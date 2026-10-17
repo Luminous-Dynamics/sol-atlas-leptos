@@ -194,29 +194,58 @@ impl fmt::Display for SpatialOverlayError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::EmptyCandidates => write!(f, "policy must declare at least one candidate"),
-            Self::EmptyConstraints => write!(f, "policy must declare at least one required constraint"),
-            Self::EmptyAcceptedSourceStates => write!(f, "policy must accept at least one evidence state"),
-            Self::InvalidEvaluationTime(value) => write!(f, "evaluation time must be non-negative, got {value}"),
-            Self::InvalidMaximumAge(value) => write!(f, "maximum overlay age must be non-negative, got {value}"),
+            Self::EmptyConstraints => {
+                write!(f, "policy must declare at least one required constraint")
+            }
+            Self::EmptyAcceptedSourceStates => {
+                write!(f, "policy must accept at least one evidence state")
+            }
+            Self::InvalidEvaluationTime(value) => {
+                write!(f, "evaluation time must be non-negative, got {value}")
+            }
+            Self::InvalidMaximumAge(value) => {
+                write!(f, "maximum overlay age must be non-negative, got {value}")
+            }
             Self::EmptyCandidateId => write!(f, "candidate IDs must not be empty"),
             Self::EmptyConstraintId => write!(f, "constraint IDs must not be empty"),
-            Self::InvalidAcceptedSourceState => write!(f, "unknown, disputed, stale and restricted evidence states cannot be accepted for spatial gate inference"),
-            Self::NoHardConstraints => write!(f, "policy must define at least one hard constraint for candidate eligibility"),
-            Self::UnknownCandidate(id) => write!(f, "overlay receipt refers to undeclared candidate {id}"),
-            Self::UnknownConstraint(id) => write!(f, "overlay receipt refers to undeclared constraint {id}"),
-            Self::DuplicateCandidateConstraint { candidate_id, constraint_id } => write!(
-                f, "duplicate overlay receipt for candidate {candidate_id}, constraint {constraint_id}"
+            Self::InvalidAcceptedSourceState => write!(
+                f,
+                "unknown, disputed, stale and restricted evidence states cannot be accepted for spatial gate inference"
+            ),
+            Self::NoHardConstraints => write!(
+                f,
+                "policy must define at least one hard constraint for candidate eligibility"
+            ),
+            Self::UnknownCandidate(id) => {
+                write!(f, "overlay receipt refers to undeclared candidate {id}")
+            }
+            Self::UnknownConstraint(id) => {
+                write!(f, "overlay receipt refers to undeclared constraint {id}")
+            }
+            Self::DuplicateCandidateConstraint {
+                candidate_id,
+                constraint_id,
+            } => write!(
+                f,
+                "duplicate overlay receipt for candidate {candidate_id}, constraint {constraint_id}"
             ),
             Self::CandidateGeometryMismatch(id) => write!(
-                f, "candidate {id} has overlay receipts pinned to different geometry digests"
+                f,
+                "candidate {id} has overlay receipts pinned to different geometry digests"
             ),
             Self::CandidateCrsMismatch(id) => write!(
-                f, "candidate {id} has overlay receipts using different candidate CRSs"
+                f,
+                "candidate {id} has overlay receipts using different candidate CRSs"
             ),
-            Self::InvalidDigest { item_id, field } => write!(f, "{item_id} has an invalid SHA-256 in {field}"),
-            Self::EmptyMetadata { item_id, field } => write!(f, "{item_id} has empty required metadata in {field}"),
+            Self::InvalidDigest { item_id, field } => {
+                write!(f, "{item_id} has an invalid SHA-256 in {field}")
+            }
+            Self::EmptyMetadata { item_id, field } => {
+                write!(f, "{item_id} has empty required metadata in {field}")
+            }
             Self::InvalidOverlayTimestamp { item_id, timestamp } => write!(
-                f, "overlay receipt {item_id} has invalid/future computation time {timestamp}"
+                f,
+                "overlay receipt {item_id} has invalid/future computation time {timestamp}"
             ),
         }
     }
@@ -265,7 +294,13 @@ fn validate_policy(policy: &SpatialOverlayPolicy) -> Result<(), SpatialOverlayEr
         return Err(SpatialOverlayError::NoHardConstraints);
     }
     if policy.accepted_source_states.iter().any(|state| {
-        matches!(state, SourceEvidenceState::Unknown | SourceEvidenceState::Disputed | SourceEvidenceState::Stale | SourceEvidenceState::Restricted)
+        matches!(
+            state,
+            SourceEvidenceState::Unknown
+                | SourceEvidenceState::Disputed
+                | SourceEvidenceState::Stale
+                | SourceEvidenceState::Restricted
+        )
     }) {
         // These states should never be accepted as a basis for asserting presence/absence.
         return Err(SpatialOverlayError::InvalidAcceptedSourceState);
@@ -278,10 +313,17 @@ fn validate_receipt(
     policy: &SpatialOverlayPolicy,
 ) -> Result<(), SpatialOverlayError> {
     if !policy.candidate_ids.contains(&receipt.candidate_id) {
-        return Err(SpatialOverlayError::UnknownCandidate(receipt.candidate_id.clone()));
+        return Err(SpatialOverlayError::UnknownCandidate(
+            receipt.candidate_id.clone(),
+        ));
     }
-    if !policy.required_constraints.contains_key(&receipt.constraint_id) {
-        return Err(SpatialOverlayError::UnknownConstraint(receipt.constraint_id.clone()));
+    if !policy
+        .required_constraints
+        .contains_key(&receipt.constraint_id)
+    {
+        return Err(SpatialOverlayError::UnknownConstraint(
+            receipt.constraint_id.clone(),
+        ));
     }
     for (field, value) in [
         ("candidate_id", receipt.candidate_id.as_str()),
@@ -290,7 +332,10 @@ fn validate_receipt(
         ("source_id", receipt.source_id.as_str()),
         ("layer_crs", receipt.layer_crs.as_str()),
         ("overlay_engine_id", receipt.overlay_engine_id.as_str()),
-        ("overlay_engine_version", receipt.overlay_engine_version.as_str()),
+        (
+            "overlay_engine_version",
+            receipt.overlay_engine_version.as_str(),
+        ),
     ] {
         if !nonempty(value) {
             return Err(SpatialOverlayError::EmptyMetadata {
@@ -300,9 +345,18 @@ fn validate_receipt(
         }
     }
     for (field, digest) in [
-        ("candidate_geometry_sha256", receipt.candidate_geometry_sha256.as_str()),
-        ("source_payload_sha256", receipt.source_payload_sha256.as_str()),
-        ("layer_geometry_sha256", receipt.layer_geometry_sha256.as_str()),
+        (
+            "candidate_geometry_sha256",
+            receipt.candidate_geometry_sha256.as_str(),
+        ),
+        (
+            "source_payload_sha256",
+            receipt.source_payload_sha256.as_str(),
+        ),
+        (
+            "layer_geometry_sha256",
+            receipt.layer_geometry_sha256.as_str(),
+        ),
     ] {
         if !valid_sha256(digest) {
             return Err(SpatialOverlayError::InvalidDigest {
@@ -357,20 +411,38 @@ fn assess_receipt(
         reasons.push("geometry validity has not been established".into());
     } else if receipt.candidate_crs != receipt.layer_crs {
         finding = ConstraintFinding::Invalid;
-        reasons.push("candidate and constraint CRSs do not match; no implicit transformation is applied".into());
+        reasons.push(
+            "candidate and constraint CRSs do not match; no implicit transformation is applied"
+                .into(),
+        );
     } else if receipt.source_policy != SourcePolicyDisposition::Accepted {
         reasons.push(match receipt.source_policy {
-            SourcePolicyDisposition::NeedsEvidence => "source policy has not accepted this layer".into(),
-            SourcePolicyDisposition::Rejected => "source was rejected by the source policy and cannot establish presence or absence".into(),
+            SourcePolicyDisposition::NeedsEvidence => {
+                "source policy has not accepted this layer".into()
+            }
+            SourcePolicyDisposition::Rejected => {
+                "source was rejected by the source policy and cannot establish presence or absence"
+                    .into()
+            }
             SourcePolicyDisposition::Accepted => unreachable!(),
         });
-    } else if !policy.accepted_source_states.contains(&receipt.source_state) {
-        reasons.push(format!("source evidence state {:?} is not accepted by this overlay policy", receipt.source_state));
+    } else if !policy
+        .accepted_source_states
+        .contains(&receipt.source_state)
+    {
+        reasons.push(format!(
+            "source evidence state {:?} is not accepted by this overlay policy",
+            receipt.source_state
+        ));
     } else if !current_enough {
-        reasons.push(format!("overlay age {age} seconds exceeds the policy maximum"));
+        reasons.push(format!(
+            "overlay age {age} seconds exceeds the policy maximum"
+        ));
     } else if receipt.accuracy != SpatialAccuracy::Adequate {
         reasons.push(match receipt.accuracy {
-            SpatialAccuracy::Insufficient => "source scale/positional accuracy is insufficient for this inference".into(),
+            SpatialAccuracy::Insufficient => {
+                "source scale/positional accuracy is insufficient for this inference".into()
+            }
             SpatialAccuracy::Unknown => "source accuracy is unknown".into(),
             SpatialAccuracy::Adequate => unreachable!(),
         });
@@ -382,12 +454,21 @@ fn assess_receipt(
             }
             SpatialRelation::Disjoint if receipt.coverage == CoverageStatus::Complete => {
                 finding = ConstraintFinding::Absent;
-                reasons.push("GIS adapter reports disjoint geometry and complete candidate-area coverage".into());
+                reasons.push(
+                    "GIS adapter reports disjoint geometry and complete candidate-area coverage"
+                        .into(),
+                );
             }
             SpatialRelation::Disjoint => {
                 reasons.push(match receipt.coverage {
-                    CoverageStatus::Partial => "non-intersection cannot establish absence because coverage is partial".into(),
-                    CoverageStatus::Unknown => "non-intersection cannot establish absence because coverage is unknown".into(),
+                    CoverageStatus::Partial => {
+                        "non-intersection cannot establish absence because coverage is partial"
+                            .into()
+                    }
+                    CoverageStatus::Unknown => {
+                        "non-intersection cannot establish absence because coverage is unknown"
+                            .into()
+                    }
                     CoverageStatus::Complete => unreachable!(),
                 });
             }
@@ -439,14 +520,21 @@ pub fn analyze_spatial_overlays(
             None => {
                 geometry_by_candidate.insert(
                     receipt.candidate_id.clone(),
-                    (receipt.candidate_geometry_sha256.clone(), receipt.candidate_crs.clone()),
+                    (
+                        receipt.candidate_geometry_sha256.clone(),
+                        receipt.candidate_crs.clone(),
+                    ),
                 );
             }
             Some((digest, crs)) if digest != &receipt.candidate_geometry_sha256 => {
-                return Err(SpatialOverlayError::CandidateGeometryMismatch(receipt.candidate_id.clone()));
+                return Err(SpatialOverlayError::CandidateGeometryMismatch(
+                    receipt.candidate_id.clone(),
+                ));
             }
             Some((_, crs)) if crs != &receipt.candidate_crs => {
-                return Err(SpatialOverlayError::CandidateCrsMismatch(receipt.candidate_id.clone()));
+                return Err(SpatialOverlayError::CandidateCrsMismatch(
+                    receipt.candidate_id.clone(),
+                ));
             }
             Some(_) => {}
         }
@@ -578,11 +666,17 @@ mod tests {
     #[test]
     fn confirmed_intersection_excludes_hard_constraint_candidate() {
         let result = analyze_spatial_overlays(
-            &[receipt(SpatialRelation::Intersects, CoverageStatus::Partial)],
+            &[receipt(
+                SpatialRelation::Intersects,
+                CoverageStatus::Partial,
+            )],
             &policy(),
         )
         .unwrap();
-        assert_eq!(result.candidates["site-A"].gate_status, CandidateGateStatus::Excluded);
+        assert_eq!(
+            result.candidates["site-A"].gate_status,
+            CandidateGateStatus::Excluded
+        );
         assert_eq!(
             result.candidates["site-A"].constraints["protected-area"].finding,
             ConstraintFinding::Present
@@ -596,7 +690,10 @@ mod tests {
             &policy(),
         )
         .unwrap();
-        assert_eq!(result.candidates["site-A"].gate_status, CandidateGateStatus::Eligible);
+        assert_eq!(
+            result.candidates["site-A"].gate_status,
+            CandidateGateStatus::Eligible
+        );
         assert_eq!(
             result.candidates["site-A"].constraints["protected-area"].finding,
             ConstraintFinding::Absent
@@ -610,7 +707,10 @@ mod tests {
             &policy(),
         )
         .unwrap();
-        assert_eq!(result.candidates["site-A"].gate_status, CandidateGateStatus::NeedsEvidence);
+        assert_eq!(
+            result.candidates["site-A"].gate_status,
+            CandidateGateStatus::NeedsEvidence
+        );
         assert_eq!(
             result.candidates["site-A"].constraints["protected-area"].finding,
             ConstraintFinding::NeedsEvidence
@@ -624,13 +724,19 @@ mod tests {
             &policy(),
         )
         .unwrap();
-        assert_eq!(result.candidates["site-A"].gate_status, CandidateGateStatus::NeedsEvidence);
+        assert_eq!(
+            result.candidates["site-A"].gate_status,
+            CandidateGateStatus::NeedsEvidence
+        );
     }
 
     #[test]
     fn missing_required_overlay_is_not_vacuous_eligibility() {
         let result = analyze_spatial_overlays(&[], &policy()).unwrap();
-        assert_eq!(result.candidates["site-A"].gate_status, CandidateGateStatus::NeedsEvidence);
+        assert_eq!(
+            result.candidates["site-A"].gate_status,
+            CandidateGateStatus::NeedsEvidence
+        );
         assert_eq!(
             result.candidates["site-A"].constraints["protected-area"].finding,
             ConstraintFinding::NeedsEvidence
@@ -646,7 +752,10 @@ mod tests {
             result.candidates["site-A"].constraints["protected-area"].finding,
             ConstraintFinding::Invalid
         );
-        assert_eq!(result.candidates["site-A"].gate_status, CandidateGateStatus::NeedsEvidence);
+        assert_eq!(
+            result.candidates["site-A"].gate_status,
+            CandidateGateStatus::NeedsEvidence
+        );
     }
 
     #[test]
@@ -654,7 +763,10 @@ mod tests {
         let mut item = receipt(SpatialRelation::Disjoint, CoverageStatus::Complete);
         item.geometry_validity = GeometryValidity::Invalid;
         let result = analyze_spatial_overlays(&[item], &policy()).unwrap();
-        assert_eq!(result.candidates["site-A"].gate_status, CandidateGateStatus::NeedsEvidence);
+        assert_eq!(
+            result.candidates["site-A"].gate_status,
+            CandidateGateStatus::NeedsEvidence
+        );
         assert_eq!(
             result.candidates["site-A"].constraints["protected-area"].finding,
             ConstraintFinding::Invalid
@@ -666,19 +778,26 @@ mod tests {
         let mut item = receipt(SpatialRelation::Disjoint, CoverageStatus::Complete);
         item.source_state = SourceEvidenceState::Stale;
         let result = analyze_spatial_overlays(&[item.clone()], &policy()).unwrap();
-        assert_eq!(result.candidates["site-A"].gate_status, CandidateGateStatus::NeedsEvidence);
+        assert_eq!(
+            result.candidates["site-A"].gate_status,
+            CandidateGateStatus::NeedsEvidence
+        );
 
         item.source_state = SourceEvidenceState::Verified;
         item.source_policy = SourcePolicyDisposition::Rejected;
         let result = analyze_spatial_overlays(&[item], &policy()).unwrap();
-        assert_eq!(result.candidates["site-A"].gate_status, CandidateGateStatus::NeedsEvidence);
+        assert_eq!(
+            result.candidates["site-A"].gate_status,
+            CandidateGateStatus::NeedsEvidence
+        );
     }
 
     #[test]
     fn soft_constraint_does_not_override_a_clear_hard_gate() {
         let mut p = policy();
         p.candidate_ids.insert("site-B".into());
-        p.required_constraints.insert("solar-potential".into(), ConstraintCriticality::Soft);
+        p.required_constraints
+            .insert("solar-potential".into(), ConstraintCriticality::Soft);
         let mut a = receipt(SpatialRelation::Disjoint, CoverageStatus::Complete);
         let mut b = a.clone();
         b.candidate_id = "site-B".into();
@@ -690,8 +809,14 @@ mod tests {
         a.constraint_id = "protected-area".into();
         b.constraint_id = "protected-area".into();
         let result = analyze_spatial_overlays(&[a, b, soft, soft_b], &p).unwrap();
-        assert_eq!(result.candidates["site-A"].gate_status, CandidateGateStatus::Eligible);
-        assert_eq!(result.candidates["site-B"].gate_status, CandidateGateStatus::Eligible);
+        assert_eq!(
+            result.candidates["site-A"].gate_status,
+            CandidateGateStatus::Eligible
+        );
+        assert_eq!(
+            result.candidates["site-B"].gate_status,
+            CandidateGateStatus::Eligible
+        );
         assert_eq!(
             result.candidates["site-A"].constraints["solar-potential"].finding,
             ConstraintFinding::Present
@@ -705,7 +830,8 @@ mod tests {
         second.constraint_id = "flood-zone".into();
         second.candidate_geometry_sha256 = "d".repeat(64);
         let mut p = policy();
-        p.required_constraints.insert("flood-zone".into(), ConstraintCriticality::Hard);
+        p.required_constraints
+            .insert("flood-zone".into(), ConstraintCriticality::Hard);
         assert!(matches!(
             analyze_spatial_overlays(&[first, second], &p),
             Err(SpatialOverlayError::CandidateGeometryMismatch(_))
@@ -748,7 +874,134 @@ mod tests {
         let mut item = receipt(SpatialRelation::Disjoint, CoverageStatus::Complete);
         item.computed_at_unix_seconds -= 90 * 86_400;
         let result = analyze_spatial_overlays(&[item], &policy()).unwrap();
-        assert_eq!(result.candidates["site-A"].gate_status, CandidateGateStatus::NeedsEvidence);
+        assert_eq!(
+            result.candidates["site-A"].gate_status,
+            CandidateGateStatus::NeedsEvidence
+        );
+    }
+
+    #[test]
+    fn exhaustive_clearance_matrix_never_promotes_uncertainty_to_eligibility() {
+        let relations = [
+            SpatialRelation::Intersects,
+            SpatialRelation::Disjoint,
+            SpatialRelation::Indeterminate,
+        ];
+        let coverages = [
+            CoverageStatus::Complete,
+            CoverageStatus::Partial,
+            CoverageStatus::Unknown,
+        ];
+        let accuracies = [
+            SpatialAccuracy::Adequate,
+            SpatialAccuracy::Insufficient,
+            SpatialAccuracy::Unknown,
+        ];
+        let source_states = [
+            SourceEvidenceState::Verified,
+            SourceEvidenceState::Estimated,
+            SourceEvidenceState::Unknown,
+            SourceEvidenceState::Disputed,
+            SourceEvidenceState::Stale,
+            SourceEvidenceState::Restricted,
+        ];
+        let source_policies = [
+            SourcePolicyDisposition::Accepted,
+            SourcePolicyDisposition::NeedsEvidence,
+            SourcePolicyDisposition::Rejected,
+        ];
+        let validities = [
+            GeometryValidity::Valid,
+            GeometryValidity::Invalid,
+            GeometryValidity::Unknown,
+        ];
+
+        let mut evaluated = 0usize;
+        for relation in relations {
+            for coverage in coverages {
+                for accuracy in accuracies {
+                    for source_state in source_states {
+                        for source_policy in source_policies {
+                            for validity in validities {
+                                for crs_matches in [false, true] {
+                                    for overlay_is_current in [false, true] {
+                                        let mut item = receipt(relation, coverage);
+                                        item.accuracy = accuracy;
+                                        item.source_state = source_state;
+                                        item.source_policy = source_policy;
+                                        item.geometry_validity = validity;
+                                        if !crs_matches {
+                                            item.layer_crs = "EPSG:3857".into();
+                                        }
+                                        if !overlay_is_current {
+                                            item.computed_at_unix_seconds =
+                                                EVALUATION_TIME - 90 * 86_400;
+                                        }
+
+                                        let result =
+                                            analyze_spatial_overlays(&[item], &policy()).unwrap();
+                                        let actual = &result.candidates["site-A"];
+                                        let expected_finding = if validity == GeometryValidity::Invalid
+                                        {
+                                            ConstraintFinding::Invalid
+                                        } else if validity == GeometryValidity::Unknown {
+                                            ConstraintFinding::NeedsEvidence
+                                        } else if !crs_matches {
+                                            ConstraintFinding::Invalid
+                                        } else if source_policy != SourcePolicyDisposition::Accepted
+                                            || source_state != SourceEvidenceState::Verified
+                                            || !overlay_is_current
+                                            || accuracy != SpatialAccuracy::Adequate
+                                        {
+                                            ConstraintFinding::NeedsEvidence
+                                        } else {
+                                            match relation {
+                                                SpatialRelation::Intersects => {
+                                                    ConstraintFinding::Present
+                                                }
+                                                SpatialRelation::Disjoint
+                                                    if coverage == CoverageStatus::Complete =>
+                                                {
+                                                    ConstraintFinding::Absent
+                                                }
+                                                SpatialRelation::Disjoint
+                                                | SpatialRelation::Indeterminate => {
+                                                    ConstraintFinding::NeedsEvidence
+                                                }
+                                            }
+                                        };
+                                        let expected_gate = match expected_finding {
+                                            ConstraintFinding::Present => {
+                                                CandidateGateStatus::Excluded
+                                            }
+                                            ConstraintFinding::Absent => {
+                                                CandidateGateStatus::Eligible
+                                            }
+                                            ConstraintFinding::NeedsEvidence
+                                            | ConstraintFinding::Invalid => {
+                                                CandidateGateStatus::NeedsEvidence
+                                            }
+                                        };
+                                        assert_eq!(
+                                            actual.constraints["protected-area"].finding,
+                                            expected_finding,
+                                            "finding matrix case {evaluated}"
+                                        );
+                                        assert_eq!(
+                                            actual.gate_status,
+                                            expected_gate,
+                                            "gate matrix case {evaluated}"
+                                        );
+                                        evaluated += 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        assert_eq!(evaluated, 5_832);
     }
 
     #[derive(Deserialize)]
@@ -766,7 +1019,8 @@ mod tests {
             include_str!("../../docs/research/fixtures/spatial-overlay-benchmark-v0.1.jsonl");
         let mut count = 0;
         for line in fixture.lines().filter(|line| !line.trim().is_empty()) {
-            let case: BenchmarkCase = serde_json::from_str(line).expect("valid spatial overlay JSONL");
+            let case: BenchmarkCase =
+                serde_json::from_str(line).expect("valid spatial overlay JSONL");
             let result = analyze_spatial_overlays(&case.receipts, &case.policy)
                 .unwrap_or_else(|error| panic!("{}: {error}", case.case_id));
             let gates: BTreeMap<String, CandidateGateStatus> = result
@@ -778,15 +1032,24 @@ mod tests {
                 .candidates
                 .iter()
                 .flat_map(|(candidate_id, assessment)| {
-                    assessment.constraints.iter().map(move |(constraint_id, constraint)| {
-                        (format!("{candidate_id}:{constraint_id}"), constraint.finding)
-                    })
+                    assessment
+                        .constraints
+                        .iter()
+                        .map(move |(constraint_id, constraint)| {
+                            (
+                                format!("{candidate_id}:{constraint_id}"),
+                                constraint.finding,
+                            )
+                        })
                 })
                 .collect();
             assert_eq!(gates, case.expected_gate, "{}", case.case_id);
             assert_eq!(findings, case.expected_findings, "{}", case.case_id);
             count += 1;
         }
-        assert!(count >= 12, "fixture should include at least 12 negative/positive controls");
+        assert!(
+            count >= 12,
+            "fixture should include at least 12 negative/positive controls"
+        );
     }
 }
