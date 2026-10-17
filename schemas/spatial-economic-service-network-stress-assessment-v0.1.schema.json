@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://luminousdynamics.io/schemas/spatial-economic-service-network-stress-assessment-v0.1.schema.json",
   "title": "Spatial-Economic Exhaustive Network Stress Assessment",
-  "description": "Exhaustive single-, double-, or triple-link outage results. Case counts are not probabilities, and no partial output is produced when the requested set exceeds its budget.",
+  "description": "Exhaustive single-, double-, or triple-link outage results, plus explicit caller-declared common-cause and hazard bundles. Case counts are not probabilities, and no partial output is produced when the requested set exceeds case or graph-materialization budgets.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -24,7 +24,8 @@
     "worst_case_optimistic_capacity_loss",
     "worst_case_conservative_failure_sets",
     "worst_case_optimistic_failure_sets",
-    "cases"
+    "cases",
+    "declared_failure_set_count"
   ],
   "properties": {
     "schema_version": {
@@ -120,6 +121,10 @@
       "items": {
         "$ref": "#/$defs/case"
       }
+    },
+    "declared_failure_set_count": {
+      "type": "integer",
+      "minimum": 0
     }
   },
   "$defs": {
@@ -128,6 +133,8 @@
       "additionalProperties": false,
       "required": [
         "case_id",
+        "origin",
+        "rationale",
         "failed_link_ids",
         "assessment",
         "conservative_capacity_loss",
@@ -157,6 +164,22 @@
         "optimistic_capacity_loss": {
           "type": "number",
           "minimum": 0
+        },
+        "origin": {
+          "enum": [
+            "enumerated_link_combination",
+            "declared_common_cause",
+            "declared_hazard_bundle",
+            "declared_other"
+          ]
+        },
+        "failure_set_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
         }
       }
     }
