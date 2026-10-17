@@ -6,6 +6,13 @@ Status: implementation proposal v0.1. The Rust kernel is authored in `sol-atlas-
 
 A site-ranking pipeline commonly asks which candidate has the highest estimated score, then treats missing measurements as a data-cleaning problem. That can hide the more important decision: **which next observation could change the decision enough to justify its cost?** Bayesian expected value of sample information (EVSI) is useful when priors and observation likelihoods are defensible. It can be fragile when those probabilities are not defensible yet.
 
+Research supports separating these modes rather than forcing one metric to cover every uncertainty regime:
+
+- Jackson et al., “Value of Information: Sensitivity Analysis and Research Design in Bayesian Evidence Synthesis,” *Journal of the American Statistical Association* (2019), [DOI: 10.1080/01621459.2018.1562932](https://doi.org/10.1080/01621459.2018.1562932), explains how VoI can prioritize data collection when its Bayesian assumptions are defensible.
+- Bonjean Stanton and Roelich, “Decision making under deep uncertainties: A review of the applicability of methods in practice,” *Technological Forecasting and Social Change* 171 (2021), [DOI: 10.1016/j.techfore.2021.120939](https://doi.org/10.1016/j.techfore.2021.120939), reviews 37 infrastructure cases and flags institutional/organizational context as a persistent practical gap.
+- “A review of tools and resources to support Decision-Making Under Deep Uncertainty,” *Environmental Modelling & Software* 198 (March 2026), [DOI: 10.1016/j.envsoft.2026.106900](https://doi.org/10.1016/j.envsoft.2026.106900), catalogs current tools and reports scalability limitations among some tools.
+- “Are we eliciting the right preferences? Insights from spatial MCDA sensitivity and uncertainty analysis,” *Environmental Modelling & Software* 205 (October 2026), [DOI: 10.1016/j.envsoft.2026.107137](https://doi.org/10.1016/j.envsoft.2026.107137), varies weights, value scales and aggregation behavior jointly in spatial suitability; its reported sensitivity results motivate testing preference and model-form uncertainty, not weights alone.
+
 This increment adds a complementary *probability-free* view. It treats each enumerated scenario as plausible, uses lower/upper loss intervals, and compares the minimax-regret bound before and after a proposed investigation partitions scenarios into possible outcomes. It invents no scenario probabilities. This is not a replacement for EVSI; the disagreement between Bayesian EVSI and robust regret is itself a useful warning signal.
 
 ## Contract and calculation
