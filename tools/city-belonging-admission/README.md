@@ -30,7 +30,7 @@ The precedence is intentionally conservative and must be reviewed with local ope
 ## Derived display claims
 
 - Only `ProviderConfirmed` entries may be surfaced as current by this fixture policy.
-- A map pin requires provider-confirmed coordinates as well as latitude/longitude; no coordinates means no pin.
+- A map pin requires a physical location type plus provider-confirmed coordinates and latitude/longitude; virtual/service-area entries never receive a street pin, even if coordinates are supplied.
 - “Free” requires a separately confirmed free-cost state; missing/unknown cost does not qualify.
 - “Accessible” requires a separately confirmed accessibility state; unknown accessibility does not qualify.
 - Live capacity requires an explicitly live-confirmed field state and an authorised provider-live source; a historic or directory estimate cannot qualify.
