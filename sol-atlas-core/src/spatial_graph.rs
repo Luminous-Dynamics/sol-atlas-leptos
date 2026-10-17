@@ -8,7 +8,7 @@
 //! automatically a fact. Reachability is structural impact propagation, not a
 //! probability, causal estimate, or prediction of real-world loss.
 
-use crate::spatial_economic::EvidenceRecord;
+use crate::spatial_economic::{EvidenceRecord, EvidenceState};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
