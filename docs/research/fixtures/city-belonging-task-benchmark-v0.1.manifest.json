@@ -44,5 +44,9 @@
   "related": [
     "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/123",
     "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/125"
-  ]
+  ],
+  "case_schema_path": "docs/research/fixtures/city-belonging-task-benchmark-v0.1.schema.json",
+  "case_schema_sha256": "4b1ff49fbd0d76751e9c59a1395a08257c80d9c7662abc39ee8844e068976c7d",
+  "schema_status": "STRICT_CASE_SHAPE_PINNED; NOT_YET_EXECUTED_BY_A_JSON_SCHEMA_VALIDATOR",
+  "validation_note": "The fixture bytes and schema digest are recorded; manual inspection and JSON parsing are not a schema-validation pass. A future executable verifier must bind to this exact schema digest."
 }
