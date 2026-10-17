@@ -105,7 +105,8 @@
       "required": [
         "eligible_candidate_ids",
         "ineligible_reasons",
-        "must_preserve_unknowns"
+        "must_preserve_unknowns",
+        "preferred_candidate_ids"
       ],
       "properties": {
         "eligible_candidate_ids": {
