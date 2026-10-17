@@ -523,8 +523,18 @@ pub fn analyze_sensitivity(
         }
     }
 
+    let all_non_excluded_candidates_ranked = candidates_sorted.iter().all(|candidate| {
+        if candidate.gate == GateDisposition::Excluded {
+            return true;
+        }
+        scenario_rankings.iter().all(|scenario| {
+            scenario.candidates[&candidate.candidate_id].status
+                == ScenarioCandidateStatus::Ranked
+        })
+    });
+
     let robust_unique_winner = scenario_rankings.first().and_then(|first| {
-        if first.winners.len() != 1 {
+        if !all_non_excluded_candidates_ranked || first.winners.len() != 1 {
             return None;
         }
         let candidate_id = first.winners[0].clone();
@@ -795,6 +805,19 @@ mod tests {
         );
         assert_eq!(result.candidates["partial"].ranked_scenarios, 1);
         assert_eq!(result.candidates["partial"].needs_evidence_scenarios, 1);
+    }
+
+    #[test]
+    fn unresolved_competitor_blocks_robust_unique_winner_claim() {
+        let candidates = [
+            candidate("stable", GateDisposition::Eligible, Some(0.99), Some(0.99), Some(0.99)),
+            candidate("unmeasured", GateDisposition::Eligible, Some(0.80), None, Some(0.70)),
+        ];
+        let scenarios = scenarios();
+        let result = analyze_sensitivity(&candidates, &scenarios, &policy()).unwrap();
+        assert!(result.scenario_rankings.iter().all(|scenario| scenario.winners == vec!["stable"]));
+        assert_eq!(result.candidates["unmeasured"].needs_evidence_scenarios, 1);
+        assert_eq!(result.robust_unique_winner, None);
     }
 
     #[test]
