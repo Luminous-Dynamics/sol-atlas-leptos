@@ -255,3 +255,11 @@ The weak-mode fixture in Symtropy uses (H = mathrm{diag}(1,0.1)) with non-unifor
 
 **Status:** 15 Rust tests are authored in Symtropy PR #1804, but no local Rust toolchain is available in this environment and the exact-head workflows remain pending/queued. The manifest remains `benchmark_specification_not_executed`; this cross-project link does not promote it to an executed or qualified benchmark.
 
+### Independent-verifier checkout boundary
+
+Qualification promotion now requires two canonicalized clean checkouts: one at the exact benchmarked code commit, and a separate verifier checkout at a different exact commit with a recorded origin. The verifier rejects identical checkout directories, identical target/verifier commits, dirty verifier checkouts, missing origin, and final receipts whose verifier evidence does not match the separate checkout's current HEAD/origin.
+
+This is stronger than relabelling the tested commit as “independently verified,” but it remains an integrity/provenance control. It does not prove that the verifier was authored or reviewed by a genuinely independent party, and locally retained workflow JSON still needs separate provider-origin review. See the usage contract in [`tools/geo-receipt-verifier/README.md`](../tools/geo-receipt-verifier/README.md) and [GEO-QUAL-001 #128](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/128).
+
+The verifier source change is authored on the feature branch but is not Rust-qualified until the exact-head formatter, tests and Clippy checks complete successfully.
+
