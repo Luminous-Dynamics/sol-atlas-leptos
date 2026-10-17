@@ -53,9 +53,19 @@ pub struct WaterServiceTrajectory {
     pub steps: Vec<WaterServiceTrajectoryStep>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum WaterStorageStateOrigin {
+    InitialScenarioMeasurement,
+    DerivedFromPreviousStep,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct WaterServiceTrajectoryStepAssessment {
     pub step_id: String,
+    pub storage_state_origin: WaterStorageStateOrigin,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub storage_source_step_id: Option<String>,
     pub as_of: String,
     pub step_hours: f64,
     pub state: WaterServiceState,
@@ -271,6 +281,14 @@ fn assess_trajectory_indexed(
             let (low, high) = previous_storage_bounds.expect("previous step must establish storage");
             derived_storage_measurement(&trajectory.initial_storage.entity_id, low, high)?
         };
+        let storage_state_origin = if index == 0 {
+            WaterStorageStateOrigin::InitialScenarioMeasurement
+        } else {
+            WaterStorageStateOrigin::DerivedFromPreviousStep
+        };
+        let storage_source_step_id = index
+            .checked_sub(1)
+            .map(|previous_index| trajectory.steps[previous_index].id.clone());
         let scenario = WaterServiceScenario {
             schema_version: WATER_SERVICE_SCHEMA_VERSION.to_owned(),
             id: format!("{}:{}", trajectory.id, step.id),
@@ -347,6 +365,8 @@ fn assess_trajectory_indexed(
         ));
         step_results.push(WaterServiceTrajectoryStepAssessment {
             step_id: step.id.clone(),
+            storage_state_origin,
+            storage_source_step_id,
             as_of: step.as_of.clone(),
             step_hours: step.step_hours,
             state: assessment.state,
@@ -528,7 +548,10 @@ mod tests {
         let result = assess_water_service_trajectory(&trajectory("north"), &[]).unwrap();
         assert_eq!(result.steps[0].state, WaterServiceState::Adequate);
         assert_eq!(result.steps[1].state, WaterServiceState::Degraded);
+        assert_eq!(result.steps[1].storage_state_origin, WaterStorageStateOrigin::DerivedFromPreviousStep);
+        assert_eq!(result.steps[1].storage_source_step_id.as_deref(), Some("normal"));
         assert_eq!(result.steps[2].state, WaterServiceState::Unavailable);
+        assert_eq!(result.steps[2].storage_source_step_id.as_deref(), Some("outage-1"));
         assert_eq!(result.steps[3].state, WaterServiceState::Adequate);
         assert_eq!(result.unmet_demand_volume_lower_bound, 150.0);
         assert_eq!(result.unmet_demand_volume_upper_bound, 150.0);

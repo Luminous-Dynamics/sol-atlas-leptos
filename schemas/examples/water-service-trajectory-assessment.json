@@ -37,7 +37,8 @@
       "optimistic_mass_balance_residual": 0,
       "coverage_lower_bound": 1.2,
       "coverage_upper_bound": 1.2,
-      "supporting_evidence_ids": []
+      "supporting_evidence_ids": [],
+      "storage_state_origin": "initial_scenario_measurement"
     },
     {
       "step_id": "outage-1",
@@ -54,7 +55,9 @@
       "optimistic_mass_balance_residual": 0,
       "coverage_lower_bound": 0.5,
       "coverage_upper_bound": 0.5,
-      "supporting_evidence_ids": []
+      "supporting_evidence_ids": [],
+      "storage_state_origin": "derived_from_previous_step",
+      "storage_source_step_id": "normal"
     },
     {
       "step_id": "outage-2",
@@ -71,7 +74,9 @@
       "optimistic_mass_balance_residual": 0,
       "coverage_lower_bound": 0,
       "coverage_upper_bound": 0,
-      "supporting_evidence_ids": []
+      "supporting_evidence_ids": [],
+      "storage_state_origin": "derived_from_previous_step",
+      "storage_source_step_id": "outage-1"
     },
     {
       "step_id": "recovery",
@@ -88,7 +93,9 @@
       "optimistic_mass_balance_residual": 0,
       "coverage_lower_bound": 1,
       "coverage_upper_bound": 1,
-      "supporting_evidence_ids": []
+      "supporting_evidence_ids": [],
+      "storage_state_origin": "derived_from_previous_step",
+      "storage_source_step_id": "outage-2"
     }
   ],
   "supporting_evidence_ids": []

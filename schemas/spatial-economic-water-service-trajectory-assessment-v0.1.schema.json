@@ -152,7 +152,8 @@
         "ending_storage_upper_bound",
         "conservative_mass_balance_residual",
         "optimistic_mass_balance_residual",
-        "supporting_evidence_ids"
+        "supporting_evidence_ids",
+        "storage_state_origin"
       ],
       "properties": {
         "step_id": {
@@ -215,6 +216,16 @@
             "type": "string",
             "minLength": 1
           }
+        },
+        "storage_state_origin": {
+          "enum": [
+            "initial_scenario_measurement",
+            "derived_from_previous_step"
+          ]
+        },
+        "storage_source_step_id": {
+          "type": "string",
+          "minLength": 1
         }
       }
     }
