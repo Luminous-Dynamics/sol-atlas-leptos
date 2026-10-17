@@ -148,10 +148,18 @@ impl AtlasEvidenceProjectionV1 {
     pub fn resolve_lineage_node(&self, node: &LineageNodeRef) -> LineageResolution {
         match node {
             LineageNodeRef::Projection(id) => {
-                if id == &self.projection_id { LineageResolution::Declared } else { LineageResolution::Unavailable }
+                if id == &self.projection_id {
+                    LineageResolution::Declared
+                } else {
+                    LineageResolution::Unavailable
+                }
             }
             LineageNodeRef::Claim(id) => {
-                if id == &self.claim_ref { LineageResolution::Declared } else { LineageResolution::Unavailable }
+                if id == &self.claim_ref {
+                    LineageResolution::Declared
+                } else {
+                    LineageResolution::Unavailable
+                }
             }
             LineageNodeRef::Evidence(id) => {
                 if self.evidence_refs.iter().any(|ref_id| ref_id == id) {
@@ -182,17 +190,25 @@ impl AtlasEvidenceProjectionV1 {
                 }
             }
             LineageNodeRef::Frontier(id) => {
-                if id == &self.frontier_ref { LineageResolution::Declared } else { LineageResolution::Unavailable }
+                if id == &self.frontier_ref {
+                    LineageResolution::Declared
+                } else {
+                    LineageResolution::Unavailable
+                }
             }
             LineageNodeRef::Derivation(id) => {
-                if matches!(self.claim_kind, ClaimKind::Derived) && self.derivation_ref.as_deref() == Some(id) {
+                if matches!(self.claim_kind, ClaimKind::Derived)
+                    && self.derivation_ref.as_deref() == Some(id)
+                {
                     LineageResolution::Declared
                 } else {
                     LineageResolution::Unavailable
                 }
             }
             LineageNodeRef::ReasoningReceipt(id) => {
-                if matches!(self.claim_kind, ClaimKind::Hypothesis) && self.derivation_ref.as_deref() == Some(id) {
+                if matches!(self.claim_kind, ClaimKind::Hypothesis)
+                    && self.derivation_ref.as_deref() == Some(id)
+                {
                     LineageResolution::Declared
                 } else {
                     LineageResolution::Unavailable
@@ -206,9 +222,21 @@ impl AtlasEvidenceProjectionV1 {
             LineageNodeRef::Projection(self.projection_id.clone()),
             LineageNodeRef::Claim(self.claim_ref.clone()),
         ];
-        nodes.extend(self.evidence_refs.iter().cloned().map(LineageNodeRef::Evidence));
-        nodes.extend(self.source_snapshot_refs.iter().cloned().map(LineageNodeRef::SourceSnapshot));
-        nodes.push(LineageNodeRef::Qualification(self.qualification_ref.clone()));
+        nodes.extend(
+            self.evidence_refs
+                .iter()
+                .cloned()
+                .map(LineageNodeRef::Evidence),
+        );
+        nodes.extend(
+            self.source_snapshot_refs
+                .iter()
+                .cloned()
+                .map(LineageNodeRef::SourceSnapshot),
+        );
+        nodes.push(LineageNodeRef::Qualification(
+            self.qualification_ref.clone(),
+        ));
         nodes.push(LineageNodeRef::Frontier(self.frontier_ref.clone()));
         if let Some(id) = &self.derivation_ref {
             nodes.push(match self.claim_kind {
@@ -250,9 +278,13 @@ impl AtlasEvidenceProjectionV1 {
             && !self.evidence_refs.is_empty()
             && self.evidence_refs.iter().all(|id| !id.trim().is_empty())
             && !self.source_snapshot_refs.is_empty()
-            && self.source_snapshot_refs.iter().all(|id| !id.trim().is_empty());
+            && self
+                .source_snapshot_refs
+                .iter()
+                .all(|id| !id.trim().is_empty());
 
-        let derivation_required = matches!(self.claim_kind, ClaimKind::Derived | ClaimKind::Hypothesis);
+        let derivation_required =
+            matches!(self.claim_kind, ClaimKind::Derived | ClaimKind::Hypothesis);
         let has_derivation = self
             .derivation_ref
             .as_ref()
@@ -313,42 +345,59 @@ mod tests {
     fn lineage_is_stable_and_contains_material_dependencies() {
         let projection = fixture();
         let ids: Vec<_> = projection.lineage_ids().collect();
-        assert_eq!(
-            ids,
-            vec!["evidence:4a90", "source:filing:v3"]
-        );
+        assert_eq!(ids, vec!["evidence:4a90", "source:filing:v3"]);
     }
 
     #[test]
     fn lineage_completeness_requires_derivation_for_derived_claims() {
         let mut projection = fixture();
-        assert_eq!(projection.lineage_completeness(), LineageCompleteness::Complete);
+        assert_eq!(
+            projection.lineage_completeness(),
+            LineageCompleteness::Complete
+        );
 
         projection.claim_kind = ClaimKind::Derived;
-        assert_eq!(projection.lineage_completeness(), LineageCompleteness::Incomplete);
+        assert_eq!(
+            projection.lineage_completeness(),
+            LineageCompleteness::Incomplete
+        );
 
         projection.derivation_ref = Some("derivation:fin:42ac".into());
-        assert_eq!(projection.lineage_completeness(), LineageCompleteness::Complete);
+        assert_eq!(
+            projection.lineage_completeness(),
+            LineageCompleteness::Complete
+        );
     }
 
     #[test]
     fn lineage_completeness_rejects_missing_source_snapshot() {
         let mut projection = fixture();
         projection.source_snapshot_refs.clear();
-        assert_eq!(projection.lineage_completeness(), LineageCompleteness::Incomplete);
+        assert_eq!(
+            projection.lineage_completeness(),
+            LineageCompleteness::Incomplete
+        );
     }
 
     #[test]
     fn lineage_nodes_are_typed_and_resolve_without_inference() {
         let projection = fixture();
         let claim = LineageNodeRef::Claim("claim:obs:7f31".into());
-        assert_eq!(projection.resolve_lineage_node(&claim), LineageResolution::Declared);
+        assert_eq!(
+            projection.resolve_lineage_node(&claim),
+            LineageResolution::Declared
+        );
 
         let missing = LineageNodeRef::Evidence("evidence:not-declared".into());
-        assert_eq!(projection.resolve_lineage_node(&missing), LineageResolution::Unavailable);
+        assert_eq!(
+            projection.resolve_lineage_node(&missing),
+            LineageResolution::Unavailable
+        );
 
         let nodes = projection.lineage_nodes();
-        assert!(nodes.iter().any(|node| matches!(node, LineageNodeRef::Qualification(id) if id == "profile:fin-001c0")));
+        assert!(nodes.iter().any(
+            |node| matches!(node, LineageNodeRef::Qualification(id) if id == "profile:fin-001c0")
+        ));
     }
 
     #[test]
@@ -363,7 +412,10 @@ mod tests {
         let mut projection = fixture();
         projection.visibility = Visibility::Redacted;
         let evidence = LineageNodeRef::Evidence("evidence:4a90".into());
-        assert_eq!(projection.resolve_lineage_node(&evidence), LineageResolution::Protected);
+        assert_eq!(
+            projection.resolve_lineage_node(&evidence),
+            LineageResolution::Protected
+        );
     }
 
     #[test]
@@ -395,7 +447,10 @@ mod tests {
         );
         assert_eq!(query.validity(), TerminalQueryValidity::Malformed);
         assert!(!query.is_replay_addressable());
-        assert_eq!(query.replay_resolution_state(None), ReplayResolutionState::Unresolved);
+        assert_eq!(
+            query.replay_resolution_state(None),
+            ReplayResolutionState::Unresolved
+        );
     }
 
     #[test]
@@ -410,7 +465,10 @@ mod tests {
             Some("evidence".into()),
         );
         assert_eq!(query.validity(), TerminalQueryValidity::Valid);
-        assert_eq!(query.replay_resolution_state(None), ReplayResolutionState::Addressable);
+        assert_eq!(
+            query.replay_resolution_state(None),
+            ReplayResolutionState::Incomplete
+        );
         assert!(!query.is_replay_addressable());
     }
 
@@ -511,9 +569,9 @@ mod tests {
             Some("entity:fin:ns-energy-01".into()),
             Some("claim:obs:7f31".into()),
             Some("ef:demo:9d7b".into()),
-            Some("profile:terminal:v1".into()),
-            Some("reasoning:baseline:v1".into()),
-            Some("model:symthaea:v1".into()),
+            None,
+            None,
+            None,
             Some("evidence".into()),
         );
         assert!(query.is_frontier_addressable());
@@ -531,7 +589,12 @@ mod tests {
         );
         let target = replay.replay_target().expect("complete replay target");
         assert_eq!(target.frontier_ref, "ef:demo:9d7b");
-        assert!(!target.dependency_manifest_request().expect("complete replay target").is_complete());
+        assert!(
+            !target
+                .dependency_manifest_request()
+                .expect("complete replay target")
+                .is_complete()
+        );
         assert_eq!(replay.view, TerminalView::Evidence);
     }
 
@@ -635,7 +698,9 @@ mod tests {
             Some("evidence".into()),
         );
         let target = query.replay_target().expect("complete replay target");
-        let mut manifest = target.dependency_manifest_request().expect("complete replay target");
+        let mut manifest = target
+            .dependency_manifest_request()
+            .expect("complete replay target");
         manifest.evidence_roots = vec!["   ".into()];
         manifest.source_versions = vec!["source:filing:v3".into()];
         manifest.canonical_state_root = Some("state-root:1".into());
@@ -712,7 +777,9 @@ mod tests {
             reasoning_program: "reasoning:baseline:v1".into(),
             model_version: "model:symthaea:v1".into(),
         };
-        let manifest = target.dependency_manifest_request().expect("complete replay target");
+        let manifest = target
+            .dependency_manifest_request()
+            .expect("complete replay target");
 
         assert_eq!(
             manifest.dependency_context_match(&target),
@@ -822,7 +889,6 @@ mod tests {
         assert!(!query.is_frontier_addressable());
     }
 }
-
 
 /// A complete address for a requested historical computation.
 ///
@@ -1096,7 +1162,10 @@ impl DependencyManifestV1 {
         if self.frontier_ref == target.frontier_ref
             && self.projection_profile == target.projection_profile
             && self.reasoning_program == target.reasoning_program
-            && self.model_versions.iter().any(|version| version == &target.model_version)
+            && self
+                .model_versions
+                .iter()
+                .any(|version| version == &target.model_version)
         {
             DependencyContextMatch::Matched
         } else {
@@ -1115,13 +1184,22 @@ impl DependencyManifestV1 {
             && self.evidence_roots.iter().all(|v| !v.trim().is_empty())
             && !self.source_versions.is_empty()
             && self.source_versions.iter().all(|v| !v.trim().is_empty())
-            && self.canonical_state_root.as_deref().is_some_and(|v| !v.trim().is_empty())
+            && self
+                .canonical_state_root
+                .as_deref()
+                .is_some_and(|v| !v.trim().is_empty())
             && !self.model_versions.is_empty()
             && self.model_versions.iter().all(|v| !v.trim().is_empty())
-            && self.ontology_version.as_deref().is_some_and(|v| !v.trim().is_empty())
+            && self
+                .ontology_version
+                .as_deref()
+                .is_some_and(|v| !v.trim().is_empty())
             && !self.projection_profile.trim().is_empty()
             && !self.reasoning_program.trim().is_empty()
-            && self.qualification_profile.as_deref().is_some_and(|v| !v.trim().is_empty())
+            && self
+                .qualification_profile
+                .as_deref()
+                .is_some_and(|v| !v.trim().is_empty())
     }
 }
 
@@ -1163,7 +1241,11 @@ impl TerminalQueryV1 {
             self.reasoning_program.as_deref(),
             self.model_version.as_deref(),
         ];
-        if values.into_iter().flatten().any(|value| value.trim().is_empty()) {
+        if values
+            .into_iter()
+            .flatten()
+            .any(|value| value.trim().is_empty())
+        {
             TerminalQueryValidity::Malformed
         } else {
             TerminalQueryValidity::Valid
@@ -1207,7 +1289,9 @@ impl TerminalQueryV1 {
                 Some(manifest) => {
                     let target = self.replay_target().expect("checked above");
                     match manifest.dependency_context_match(&target) {
-                        DependencyContextMatch::Matched => ReplayResolutionState::DependencyContextMatched,
+                        DependencyContextMatch::Matched => {
+                            ReplayResolutionState::DependencyContextMatched
+                        }
                         DependencyContextMatch::Incomplete | DependencyContextMatch::Mismatch => {
                             ReplayResolutionState::Unresolved
                         }
@@ -1289,7 +1373,9 @@ impl TerminalQueryV1 {
     ///
     /// Prefer is_frontier_addressable: this predicate does not mean that a
     /// replay has been verified or executed.
-    #[deprecated(note = "use is_frontier_addressable; this predicate only checks frontier navigation")]
+    #[deprecated(
+        note = "use is_frontier_addressable; this predicate only checks frontier navigation"
+    )]
     pub fn is_replayable(&self) -> bool {
         self.is_frontier_addressable()
     }

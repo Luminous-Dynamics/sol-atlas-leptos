@@ -66,7 +66,6 @@ fn fixture_projections() -> Vec<AtlasEvidenceProjectionV1> {
     ]
 }
 
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum ProjectionContextState {
     NotRequested,
@@ -121,12 +120,8 @@ fn projection_context_label(state: ProjectionContextState) -> &'static str {
     match state {
         ProjectionContextState::NotRequested => "LOCAL CONTEXT NOT REQUESTED",
         ProjectionContextState::PartiallySpecified => "LOCAL CONTEXT PARTIAL",
-        ProjectionContextState::LocallyMatched => {
-            "LOCAL CONTEXT MATCHED · NOT AUTHORITATIVE"
-        }
-        ProjectionContextState::LocallyMismatched => {
-            "LOCAL CONTEXT MISMATCH · NO FALLBACK"
-        }
+        ProjectionContextState::LocallyMatched => "LOCAL CONTEXT MATCHED · NOT AUTHORITATIVE",
+        ProjectionContextState::LocallyMismatched => "LOCAL CONTEXT MISMATCH · NO FALLBACK",
     }
 }
 
@@ -221,11 +216,12 @@ mod tests {
         assert!(TerminalClaimRef::new("   ").is_none());
         assert!(TerminalClaimRef::new("\t\n").is_none());
         assert_eq!(
-            TerminalClaimRef::new("claim:obs:7f31").expect("claim").as_str(),
+            TerminalClaimRef::new("claim:obs:7f31")
+                .expect("claim")
+                .as_str(),
             "claim:obs:7f31"
         );
     }
-
 
     #[test]
     fn replay_navigation_href_requires_complete_execution_context() {
@@ -254,7 +250,8 @@ mod tests {
             Some("evidence".into()),
         );
 
-        let href = replay_navigation_href(&query, TerminalView::Evidence).expect("complete replay target");
+        let href =
+            replay_navigation_href(&query, TerminalView::Evidence).expect("complete replay target");
         assert!(href.contains("frontier=ef%3Ahistorical%3A1234"));
         assert!(href.contains("projection=profile%3Acustom%3Av7"));
         assert!(href.contains("reasoning=reasoning%3Acustom%3Av9"));
@@ -280,9 +277,18 @@ mod tests {
 
     #[test]
     fn terminal_url_encoding_preserves_identifier_boundaries() {
-        assert_eq!(encode_terminal_url_value("claim:obs:a?b&c#d"), "claim%3Aobs%3Aa%3Fb%26c%23d");
-        assert_eq!(encode_terminal_url_value("entity/with space"), "entity%2Fwith%20space");
-        assert_eq!(encode_terminal_url_value("already%encoded"), "already%25encoded");
+        assert_eq!(
+            encode_terminal_url_value("claim:obs:a?b&c#d"),
+            "claim%3Aobs%3Aa%3Fb%26c%23d"
+        );
+        assert_eq!(
+            encode_terminal_url_value("entity/with space"),
+            "entity%2Fwith%20space"
+        );
+        assert_eq!(
+            encode_terminal_url_value("already%encoded"),
+            "already%25encoded"
+        );
         assert_eq!(encode_terminal_url_value("plain-id_1.~"), "plain-id_1.~");
     }
 
@@ -298,11 +304,7 @@ mod tests {
             ProjectionContextState::NotRequested
         );
         assert_eq!(
-            projection_context_state(
-                Some("profile:terminal:v1"),
-                None,
-                Some("model:symthaea:v1"),
-            ),
+            projection_context_state(Some("profile:terminal:v1"), None, Some("model:symthaea:v1"),),
             ProjectionContextState::PartiallySpecified
         );
         assert_eq!(
@@ -379,39 +381,45 @@ mod tests {
     fn unknown_selected_claim_does_not_fall_back_to_primary() {
         let projections = fixture_projections();
 
-        assert!(projection_for_query(
-            &projections,
-            Some("entity:fin:ns-energy-01"),
-            Some("claim:unknown:404"),
-            Some("ef:demo:9d7b"),
-        )
-        .is_none());
+        assert!(
+            projection_for_query(
+                &projections,
+                Some("entity:fin:ns-energy-01"),
+                Some("claim:unknown:404"),
+                Some("ef:demo:9d7b"),
+            )
+            .is_none()
+        );
     }
 
     #[test]
     fn selected_claim_must_belong_to_selected_entity() {
         let projections = fixture_projections();
 
-        assert!(projection_for_query(
-            &projections,
-            Some("entity:other:01"),
-            Some("claim:obs:7f31"),
-            Some("ef:demo:9d7b"),
-        )
-        .is_none());
+        assert!(
+            projection_for_query(
+                &projections,
+                Some("entity:other:01"),
+                Some("claim:obs:7f31"),
+                Some("ef:demo:9d7b"),
+            )
+            .is_none()
+        );
     }
 
     #[test]
     fn mismatched_frontier_does_not_fall_back_to_local_projection() {
         let projections = fixture_projections();
 
-        assert!(projection_for_query(
-            &projections,
-            Some("entity:fin:ns-energy-01"),
-            Some("claim:obs:7f31"),
-            Some("ef:later:9999"),
-        )
-        .is_none());
+        assert!(
+            projection_for_query(
+                &projections,
+                Some("entity:fin:ns-energy-01"),
+                Some("claim:obs:7f31"),
+                Some("ef:later:9999"),
+            )
+            .is_none()
+        );
     }
 
     #[test]
@@ -450,10 +458,13 @@ mod tests {
             Some("ef:demo:9d7b"),
         );
         assert!(selected.is_none());
-        assert!(None::<String>.or_else(|| selected.map(|projection| projection.claim_ref)).is_none());
+        assert!(
+            None::<String>
+                .or_else(|| selected.map(|projection| projection.claim_ref))
+                .is_none()
+        );
     }
 }
-
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum TerminalView {
@@ -552,7 +563,11 @@ fn encode_terminal_url_value(value: &str) -> String {
                 vec![byte as char]
             } else {
                 const HEX: &[u8; 16] = b"0123456789ABCDEF";
-                vec!['%', HEX[(byte >> 4) as usize] as char, HEX[(byte & 0x0f) as usize] as char]
+                vec![
+                    '%',
+                    HEX[(byte >> 4) as usize] as char,
+                    HEX[(byte & 0x0f) as usize] as char,
+                ]
             }
         })
         .collect()
@@ -675,7 +690,9 @@ pub fn EvidenceTerminal() -> impl IntoView {
                     TerminalQueryV1::from_url_parts(
                         Some(primary_entity_ref.clone()),
                         q.claim_ref.clone(),
-                        q.frontier_ref.clone().or(Some(primary_frontier_ref.clone())),
+                        q.frontier_ref
+                            .clone()
+                            .or(Some(primary_frontier_ref.clone())),
                         q.projection_profile.clone(),
                         q.reasoning_program.clone(),
                         q.model_version.clone(),
@@ -691,7 +708,10 @@ pub fn EvidenceTerminal() -> impl IntoView {
     let replay_claim: Arc<dyn Fn() -> Option<String> + Send + Sync> = {
         let selected_claim = selected_claim.clone();
         let selected_projection = selected_projection.clone();
-        Arc::new(move || selected_claim().or_else(|| selected_projection().map(|projection| projection.claim_ref)))
+        Arc::new(move || {
+            selected_claim()
+                .or_else(|| selected_projection().map(|projection| projection.claim_ref))
+        })
     };
     let replay_claim_value: Arc<dyn Fn() -> String + Send + Sync> = {
         let replay_claim = replay_claim.clone();
@@ -729,243 +749,252 @@ pub fn EvidenceTerminal() -> impl IntoView {
     };
 
     view! {
-        <main class="evidence-terminal">
-            <header class="terminal-header">
-                <div>
-                    <div class="terminal-kicker">"MYCELIX / SYMTHAEA / SOL ATLAS"</div>
-                    <h1>"Evidence Terminal"</h1>
-                    <p>"Evidence first. Frontier explicit. Reasoning reversible."</p>
-                </div>
-                <div class="terminal-frontier">
-                    <span class="frontier-label">"INFORMATION FRONTIER"</span>
-                    <strong>"2026-09-29T14:00:00Z"</strong>
-                    <span class="frontier-id">{move || selected_frontier()}</span>
-                </div>
-            </header>
-
-            <section class="terminal-command" aria-label="Research query">
-                <span class="command-mark">">"</span>
-                <input type="text" value="Why is this entity shown?" aria-label="Research query"/>
-                <kbd>"⌘K"</kbd>
-            </section>
-
-            <div class="terminal-grid">
-                <section class="terminal-main">
-                    <div class="entity-heading">
-                        <div>
-                            <span class="eyebrow">"ENTITY / ORGANIZATION"</span>
-                            <h2>"Northstar Energy Holdings"</h2>
-                            <span class="entity-id">{move || selected_entity()}</span>
-                        </div>
-                        <span class="status-chip qualified">"QUALIFIED"</span>
+            <main class="evidence-terminal">
+                <header class="terminal-header">
+                    <div>
+                        <div class="terminal-kicker">"MYCELIX / SYMTHAEA / SOL ATLAS"</div>
+                        <h1>"Evidence Terminal"</h1>
+                        <p>"Evidence first. Frontier explicit. Reasoning reversible."</p>
                     </div>
-
-                    {projections.iter().cloned().map(|projection| {
-                        let kind_class = match projection.claim_kind {
-                            ClaimKind::Observed => "",
-                            ClaimKind::Derived => " derived",
-                            ClaimKind::Hypothesis => " hypothesis",
-                        };
-                        let _status_class = state_class(projection.qualification);
-                        let kind_label = claim_kind_label(projection.claim_kind);
-                        let status = state_label(projection.qualification);
-                        view! {
-                            <article class=format!("evidence-card{kind_class}")>
-                                <div class="card-head">
-                                    <span>{kind_label}</span>
-                                    <span class="mono">{projection.claim_ref.clone()}</span>
-                                </div>
-                                <h3>{projection.statement.clone()}</h3>
-                                <div class="claim-meta">
-                                    <span>{status}</span>
-                                    <span>{format!("{} evidence ref(s)", projection.evidence_refs.len())}</span>
-                                    <span>{format!("frontier {}", projection.frontier_ref)}</span>
-                                </div>
-                            </article>
-                        }
-                    }).collect_view()}
-
-                    <div class="terminal-section">
-                        <div class="section-title">
-                            <span>"CONTRADICTION"</span>
-                            <span class="status-chip conflicting">"CONFLICTING"</span>
-                        </div>
-                        {{
-                            let selected_projection = selected_projection.clone();
-                            move || view! {
-                                <p>{selected_projection()
-                                    .and_then(|projection| projection.contradictions.first().map(|c| c.summary.clone()))
-                                    .unwrap_or_else(|| "No local contradiction is available for the selected claim.".into())}</p>
-                            }
-                        }}
-                        {{
-                            let replay_claim = replay_claim.clone();
-                            let selected_entity = selected_entity.clone();
+                    <div class="terminal-frontier">
+                        <span class="frontier-label">"INFORMATION FRONTIER"</span>
+                        <strong>"2026-09-29T14:00:00Z"</strong>
+                        <span class="frontier-id">{{
                             let selected_frontier = selected_frontier.clone();
-                            move || replay_claim().map(|claim| view! {
-                            <A attr:class="text-action" href={
-                                let context = link_replay_context();
-                                TerminalNavigationTarget::new(
-                                    selected_entity(),
-                                    selected_frontier(),
-                                    TerminalClaimRef::new(claim).expect("replay_claim returns a non-empty claim"),
-                                    context.0,
-                                    context.1,
-                                    context.2,
-                                    TerminalView::Lineage,
-                                )
-                                .href()
-                            }>"Inspect competing evidence →"</A>
-                        })
-                        }}
+                            move || selected_frontier()
+                        }}</span>
                     </div>
+                </header>
+
+                <section class="terminal-command" aria-label="Research query">
+                    <span class="command-mark">">"</span>
+                    <input type="text" value="Why is this entity shown?" aria-label="Research query"/>
+                    <kbd>"⌘K"</kbd>
                 </section>
 
-                <aside class="terminal-aside">
-                    <section class="terminal-section why-shown">
-                        <div class="section-title">
-                            <span>"WHY IS THIS SHOWN?"</span>
-                            <button class="icon-action" aria-label="Close evidence drawer">"×"</button>
+                <div class="terminal-grid">
+                    <section class="terminal-main">
+                        <div class="entity-heading">
+                            <div>
+                                <span class="eyebrow">"ENTITY / ORGANIZATION"</span>
+                                <h2>"Northstar Energy Holdings"</h2>
+                                <span class="entity-id">{{
+                                    let selected_entity = selected_entity.clone();
+                                    move || selected_entity()
+                                }}</span>
+                            </div>
+                            <span class="status-chip qualified">"QUALIFIED"</span>
                         </div>
-                        <ol class="lineage">
+
+                        {projections.iter().cloned().map(|projection| {
+                            let kind_class = match projection.claim_kind {
+                                ClaimKind::Observed => "",
+                                ClaimKind::Derived => " derived",
+                                ClaimKind::Hypothesis => " hypothesis",
+                            };
+                            let _status_class = state_class(projection.qualification);
+                            let kind_label = claim_kind_label(projection.claim_kind);
+                            let status = state_label(projection.qualification);
+                            view! {
+                                <article class=format!("evidence-card{kind_class}")>
+                                    <div class="card-head">
+                                        <span>{kind_label}</span>
+                                        <span class="mono">{projection.claim_ref.clone()}</span>
+                                    </div>
+                                    <h3>{projection.statement.clone()}</h3>
+                                    <div class="claim-meta">
+                                        <span>{status}</span>
+                                        <span>{format!("{} evidence ref(s)", projection.evidence_refs.len())}</span>
+                                        <span>{format!("frontier {}", projection.frontier_ref)}</span>
+                                    </div>
+                                </article>
+                            }
+                        }).collect_view()}
+
+                        <div class="terminal-section">
+                            <div class="section-title">
+                                <span>"CONTRADICTION"</span>
+                                <span class="status-chip conflicting">"CONFLICTING"</span>
+                            </div>
                             {{
                                 let selected_projection = selected_projection.clone();
-                                move || selected_projection()
-                                .map(|projection| projection.lineage_nodes())
-                                .unwrap_or_default()
-                                .into_iter()
-                                .map(|node| {
-                                let label = match &node {
-                                    LineageNodeRef::Projection(_) => "Rendered projection",
-                                    LineageNodeRef::Claim(_) => "Canonical claim",
-                                    LineageNodeRef::Evidence(_) => "Evidence",
-                                    LineageNodeRef::SourceSnapshot(_) => "Source snapshot",
-                                    LineageNodeRef::Qualification(_) => "Qualification profile",
-                                    LineageNodeRef::Frontier(_) => "Information frontier",
-                                    LineageNodeRef::Derivation(_) => "Derivation receipt",
-                                    LineageNodeRef::ReasoningReceipt(_) => "Reasoning receipt",
-                                };
-                                let href = {
+                                move || view! {
+                                    <p>{selected_projection()
+                                        .and_then(|projection| projection.contradictions.first().map(|c| c.summary.clone()))
+                                        .unwrap_or_else(|| "No local contradiction is available for the selected claim.".into())}</p>
+                                }
+                            }}
+                            {{
+                                let replay_claim = replay_claim.clone();
+                                let selected_entity = selected_entity.clone();
+                                let selected_frontier = selected_frontier.clone();
+                                move || replay_claim().map(|claim| view! {
+                                <A attr:class="text-action" href={
                                     let context = link_replay_context();
-                                    let claim = TerminalClaimRef::new(replay_claim_value())
-                                        .expect("a projected lineage node requires a non-empty claim");
                                     TerminalNavigationTarget::new(
                                         selected_entity(),
                                         selected_frontier(),
-                                        claim,
+                                        TerminalClaimRef::new(claim).expect("replay_claim returns a non-empty claim"),
                                         context.0,
                                         context.1,
                                         context.2,
                                         TerminalView::Lineage,
                                     )
-                                    .with_node(node.query_value())
                                     .href()
-                                };
-                                view! {
-                                    <li>
-                                        <span>{label}</span>
-                                        <A attr:class="lineage-link" href=href>{node.id().to_string()}</A>
-                                    </li>
-                                }
-                            }).collect_view()
-                            }}
-                        </ol>
-                        <div class="lineage-selection">
-                            <span>"INSPECTED NODE"</span>
-                            <code>{move || selected_node().map(|node| node.query_value()).unwrap_or_else(|| "none".into())}</code>
-                            <span class="lineage-resolution">
-                                {move || match selected_node_status() {
-                                    LineageResolution::Declared => "DECLARED BY LOCAL PROJECTION · NOT AUTHORITATIVE",
-                                    LineageResolution::Unavailable => "UNAVAILABLE · NO FALLBACK",
-                                    LineageResolution::Protected => "PROTECTED · CONTENT NOT DISCLOSED",
-                                    LineageResolution::Incomplete => "INCOMPLETE · NO NODE SELECTED",
-                                }}
-                            </span>
-                        </div>
-                        {match selected_projection()
-                            .map(|projection| projection.lineage_completeness())
-                            .unwrap_or(LineageCompleteness::Incomplete) {
-                            LineageCompleteness::Complete => view! {
-                                <div class="lineage-integrity complete">"LINEAGE COMPLETE · all declared dependencies are addressable"</div>
-                            }.into_any(),
-                            LineageCompleteness::Incomplete => view! {
-                                <div class="lineage-integrity incomplete">"LINEAGE INCOMPLETE · no missing dependency is inferred"</div>
-                            }.into_any(),
-                        }}
-                        {move || replay_href().map(|href| view! {
-                            <A attr:class="replay-action" href=href>"↻  Open replay target"</A>
-                        })}
-                        <p class="replay-status">{move || {
-                            let q = terminal_query();
-                            let context = projection_context_state(
-                                q.projection_profile.as_deref(),
-                                q.reasoning_program.as_deref(),
-                                q.model_version.as_deref(),
-                            );
-                            format!("{} · replay resolution still requires authoritative dependencies", projection_context_label(context))
-                        }}</p>
-                        <p class="replay-status">{move || match terminal_query().replay_target() {
-    Some(_) => "REPLAY TARGET ADDRESSABLE · dependency resolution still required",
-    None => "REPLAY TARGET INCOMPLETE · no replay link emitted",
-}}</p>
-                        <p class="lineage-note">"Replay links preserve the selected claim context; opening a target is navigation only and does not assert dependency resolution or replay execution."</p>
-                        {{
-                            let selected_projection = selected_projection.clone();
-                            move || selected_projection().map(|_| ()).is_none().then(|| view! {
-                                <p class="lineage-note">"SELECTED CLAIM NOT LOCALLY PROJECTED · NO FALLBACK"</p>
+                                }>"Inspect competing evidence →"</A>
                             })
-                        }}
-                        <p class="lineage-note">"Inspection links address declared dependencies only. Local declaration is not authoritative resolution; unresolved dependencies are never replaced with current or inferred data."</p>
-                        <div class="terminal-route-state">
-                            <span>"URL view"</span><code>{move || selected_view()}</code>
-                            <span>"Claim filter"</span><code>{move || selected_claim().unwrap_or_else(|| "none".into())}</code>
+                            }}
                         </div>
                     </section>
 
-                    <section class="terminal-section status-map">
-                        <div class="section-title"><span>"EPISTEMIC STATES"</span></div>
-                        <div class="state-list">
-                            <span class="status-chip qualified">"Qualified"</span>
-                            <span class="status-chip observed">"Observed / Unqualified"</span>
-                            <span class="status-chip conflicting">"Conflicting"</span>
-                            <span class="status-chip stale">"Stale"</span>
-                            <span class="status-chip protected">"Protected"</span>
-                            <span class="status-chip unknown">"Unknown"</span>
-                            <span class="status-chip future">"Future-Inaccessible"</span>
-                        </div>
-                    </section>
+                    <aside class="terminal-aside">
+                        <section class="terminal-section why-shown">
+                            <div class="section-title">
+                                <span>"WHY IS THIS SHOWN?"</span>
+                                <button class="icon-action" aria-label="Close evidence drawer">"×"</button>
+                            </div>
+                            <ol class="lineage">
+                                {{
+                                    let selected_projection = selected_projection.clone();
+                                    let selected_entity = selected_entity.clone();
+                                    let selected_frontier = selected_frontier.clone();
+                                    let replay_claim_value = replay_claim_value.clone();
+                                    move || selected_projection()
+                                    .map(|projection| projection.lineage_nodes())
+                                    .unwrap_or_default()
+                                    .into_iter()
+                                    .map(|node| {
+                                    let label = match &node {
+                                        LineageNodeRef::Projection(_) => "Rendered projection",
+                                        LineageNodeRef::Claim(_) => "Canonical claim",
+                                        LineageNodeRef::Evidence(_) => "Evidence",
+                                        LineageNodeRef::SourceSnapshot(_) => "Source snapshot",
+                                        LineageNodeRef::Qualification(_) => "Qualification profile",
+                                        LineageNodeRef::Frontier(_) => "Information frontier",
+                                        LineageNodeRef::Derivation(_) => "Derivation receipt",
+                                        LineageNodeRef::ReasoningReceipt(_) => "Reasoning receipt",
+                                    };
+                                    let href = {
+                                        let context = link_replay_context();
+                                        let claim = TerminalClaimRef::new(replay_claim_value())
+                                            .expect("a projected lineage node requires a non-empty claim");
+                                        TerminalNavigationTarget::new(
+                                            selected_entity(),
+                                            selected_frontier(),
+                                            claim,
+                                            context.0,
+                                            context.1,
+                                            context.2,
+                                            TerminalView::Lineage,
+                                        )
+                                        .with_node(node.query_value())
+                                        .href()
+                                    };
+                                    view! {
+                                        <li>
+                                            <span>{label}</span>
+                                            <A attr:class="lineage-link" href=href>{node.id().to_string()}</A>
+                                        </li>
+                                    }
+                                }).collect_view()
+                                }}
+                            </ol>
+                            <div class="lineage-selection">
+                                <span>"INSPECTED NODE"</span>
+                                <code>{move || selected_node().map(|node| node.query_value()).unwrap_or_else(|| "none".into())}</code>
+                                <span class="lineage-resolution">
+                                    {move || match selected_node_status() {
+                                        LineageResolution::Declared => "DECLARED BY LOCAL PROJECTION · NOT AUTHORITATIVE",
+                                        LineageResolution::Unavailable => "UNAVAILABLE · NO FALLBACK",
+                                        LineageResolution::Protected => "PROTECTED · CONTENT NOT DISCLOSED",
+                                        LineageResolution::Incomplete => "INCOMPLETE · NO NODE SELECTED",
+                                    }}
+                                </span>
+                            </div>
+                            {match selected_projection()
+                                .map(|projection| projection.lineage_completeness())
+                                .unwrap_or(LineageCompleteness::Incomplete) {
+                                LineageCompleteness::Complete => view! {
+                                    <div class="lineage-integrity complete">"LINEAGE COMPLETE · all declared dependencies are addressable"</div>
+                                }.into_any(),
+                                LineageCompleteness::Incomplete => view! {
+                                    <div class="lineage-integrity incomplete">"LINEAGE INCOMPLETE · no missing dependency is inferred"</div>
+                                }.into_any(),
+                            }}
+                            {move || replay_href().map(|href| view! {
+                                <A attr:class="replay-action" href=href>"↻  Open replay target"</A>
+                            })}
+                            <p class="replay-status">{move || {
+                                let q = terminal_query();
+                                let context = projection_context_state(
+                                    q.projection_profile.as_deref(),
+                                    q.reasoning_program.as_deref(),
+                                    q.model_version.as_deref(),
+                                );
+                                format!("{} · replay resolution still requires authoritative dependencies", projection_context_label(context))
+                            }}</p>
+                            <p class="replay-status">{move || match terminal_query().replay_target() {
+        Some(_) => "REPLAY TARGET ADDRESSABLE · dependency resolution still required",
+        None => "REPLAY TARGET INCOMPLETE · no replay link emitted",
+    }}</p>
+                            <p class="lineage-note">"Replay links preserve the selected claim context; opening a target is navigation only and does not assert dependency resolution or replay execution."</p>
+                            {{
+                                let selected_projection = selected_projection.clone();
+                                move || selected_projection().map(|_| ()).is_none().then(|| view! {
+                                    <p class="lineage-note">"SELECTED CLAIM NOT LOCALLY PROJECTED · NO FALLBACK"</p>
+                                })
+                            }}
+                            <p class="lineage-note">"Inspection links address declared dependencies only. Local declaration is not authoritative resolution; unresolved dependencies are never replaced with current or inferred data."</p>
+                            <div class="terminal-route-state">
+                                <span>"URL view"</span><code>{move || selected_view()}</code>
+                                <span>"Claim filter"</span><code>{move || selected_claim().unwrap_or_else(|| "none".into())}</code>
+                            </div>
+                        </section>
 
-                    <section class="terminal-section research-panel">
-                        <div class="section-title">
-                            <span>"SYMTHAEA RESEARCH"</span>
-                            <span class="status-note">{move || selected_projection()
-                                .map(|projection| state_label(projection.qualification))
-                                .unwrap_or("UNAVAILABLE")}</span>
-                        </div>
-                        <p>"Competing explanations, missing information, scenarios and forecasts will enter here through a typed ResearchResult boundary."</p>
-                        {{
-                            let replay_claim = replay_claim.clone();
-                            let selected_entity = selected_entity.clone();
-                            let selected_frontier = selected_frontier.clone();
-                            move || replay_claim().map(|claim| view! {
-                            <A attr:class="text-action" href={
-                                let context = link_replay_context();
-                                TerminalNavigationTarget::new(
-                                    selected_entity(),
-                                    selected_frontier(),
-                                    TerminalClaimRef::new(claim).expect("replay_claim returns a non-empty claim"),
-                                    context.0,
-                                    context.1,
-                                    context.2,
-                                    TerminalView::Research,
-                                )
-                                .href()
-                            }>"Show information gaps →"</A>
-                        })
-                        }}
-                    </section>
-                </aside>
-            </div>
-        </main>
-    }
+                        <section class="terminal-section status-map">
+                            <div class="section-title"><span>"EPISTEMIC STATES"</span></div>
+                            <div class="state-list">
+                                <span class="status-chip qualified">"Qualified"</span>
+                                <span class="status-chip observed">"Observed / Unqualified"</span>
+                                <span class="status-chip conflicting">"Conflicting"</span>
+                                <span class="status-chip stale">"Stale"</span>
+                                <span class="status-chip protected">"Protected"</span>
+                                <span class="status-chip unknown">"Unknown"</span>
+                                <span class="status-chip future">"Future-Inaccessible"</span>
+                            </div>
+                        </section>
+
+                        <section class="terminal-section research-panel">
+                            <div class="section-title">
+                                <span>"SYMTHAEA RESEARCH"</span>
+                                <span class="status-note">{move || selected_projection()
+                                    .map(|projection| state_label(projection.qualification))
+                                    .unwrap_or("UNAVAILABLE")}</span>
+                            </div>
+                            <p>"Competing explanations, missing information, scenarios and forecasts will enter here through a typed ResearchResult boundary."</p>
+                            {{
+                                let replay_claim = replay_claim.clone();
+                                let selected_entity = selected_entity.clone();
+                                let selected_frontier = selected_frontier.clone();
+                                move || replay_claim().map(|claim| view! {
+                                <A attr:class="text-action" href={
+                                    let context = link_replay_context();
+                                    TerminalNavigationTarget::new(
+                                        selected_entity(),
+                                        selected_frontier(),
+                                        TerminalClaimRef::new(claim).expect("replay_claim returns a non-empty claim"),
+                                        context.0,
+                                        context.1,
+                                        context.2,
+                                        TerminalView::Research,
+                                    )
+                                    .href()
+                                }>"Show information gaps →"</A>
+                            })
+                            }}
+                        </section>
+                    </aside>
+                </div>
+            </main>
+        }
 }

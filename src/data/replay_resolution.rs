@@ -35,13 +35,19 @@ pub struct DependencyResolutionRequestV1 {
 }
 
 impl DependencyResolutionRequestV1 {
-    pub fn new(frontier_ref: impl Into<String>, manifest_digest: impl Into<String>) -> Option<Self> {
+    pub fn new(
+        frontier_ref: impl Into<String>,
+        manifest_digest: impl Into<String>,
+    ) -> Option<Self> {
         let frontier_ref = frontier_ref.into();
         let manifest_digest = manifest_digest.into();
         if frontier_ref.trim().is_empty() || manifest_digest.trim().is_empty() {
             return None;
         }
-        Some(Self { frontier_ref, manifest_digest })
+        Some(Self {
+            frontier_ref,
+            manifest_digest,
+        })
     }
 
     /// Returns true when this request satisfies the constructor's identity invariant.
@@ -94,7 +100,10 @@ impl AuthorityResolutionRefV1 {
         if frontier_ref.trim().is_empty()
             || manifest_digest.trim().is_empty()
             || resolution_ref.trim().is_empty()
-            || matches!(status, DependencyResolutionStatus::Unrequested | DependencyResolutionStatus::Requested)
+            || matches!(
+                status,
+                DependencyResolutionStatus::Unrequested | DependencyResolutionStatus::Requested
+            )
         {
             return None;
         }
@@ -159,7 +168,9 @@ impl DependencyResolutionState {
     pub fn try_from_authority(reference: AuthorityResolutionRefV1) -> Option<Self> {
         match reference.status {
             DependencyResolutionStatus::Resolved => Some(Self::Resolved(reference)),
-            DependencyResolutionStatus::PartiallyResolved => Some(Self::PartiallyResolved(reference)),
+            DependencyResolutionStatus::PartiallyResolved => {
+                Some(Self::PartiallyResolved(reference))
+            }
             DependencyResolutionStatus::Mismatched
             | DependencyResolutionStatus::Protected
             | DependencyResolutionStatus::Unavailable => Some(Self::Rejected(reference)),
@@ -213,7 +224,8 @@ impl DependencyResolutionState {
     }
 
     pub fn is_bound_to(&self, frontier_ref: &str, manifest_digest: &str) -> bool {
-        let Some(request) = DependencyResolutionRequestV1::new(frontier_ref, manifest_digest) else {
+        let Some(request) = DependencyResolutionRequestV1::new(frontier_ref, manifest_digest)
+        else {
             return false;
         };
         self.is_bound_to_request(&request)
@@ -231,11 +243,15 @@ mod tests {
             "manifest:abc",
             "resolution:001",
             DependencyResolutionStatus::Resolved,
-        ).unwrap();
+        )
+        .unwrap();
         let request = DependencyResolutionRequestV1::new("frontier:001", "manifest:abc").unwrap();
 
         assert!(DependencyResolutionState::Resolved(resolved.clone()).is_terminally_resolved());
-        assert!(!DependencyResolutionState::PartiallyResolved(resolved.clone()).is_terminally_resolved());
+        assert!(
+            !DependencyResolutionState::PartiallyResolved(resolved.clone())
+                .is_terminally_resolved()
+        );
         assert!(!DependencyResolutionState::Rejected(resolved).is_terminally_resolved());
         assert!(!DependencyResolutionState::NotRequested.is_terminally_resolved());
         assert!(!DependencyResolutionState::Requested(request).is_terminally_resolved());
@@ -247,7 +263,7 @@ mod tests {
             serde_json::from_str(r#"{"frontier_ref":"   ","manifest_digest":"manifest:abc"}"#)
                 .unwrap();
         let malformed_reference: AuthorityResolutionRefV1 = serde_json::from_str(
-            r#"{"frontier_ref":"frontier:001","manifest_digest":"manifest:abc","resolution_ref":"resolution:001","status":"Resolved"}"#,
+            r#"{"frontier_ref":"   ","manifest_digest":"manifest:abc","resolution_ref":"resolution:001","status":"Resolved"}"#,
         )
         .unwrap();
 
@@ -255,8 +271,10 @@ mod tests {
         assert!(!malformed_reference.is_well_formed());
         assert!(!malformed_reference.is_terminally_resolved());
         assert!(!malformed_request.matches_authority_response(&malformed_reference));
-        assert!(!DependencyResolutionState::Resolved(malformed_reference)
-            .is_bound_to_request(&malformed_request));
+        assert!(
+            !DependencyResolutionState::Resolved(malformed_reference)
+                .is_bound_to_request(&malformed_request)
+        );
     }
 
     #[test]
@@ -264,7 +282,9 @@ mod tests {
         let request = DependencyResolutionRequestV1::new("frontier:001", "manifest:abc").unwrap();
         let state = DependencyResolutionState::Requested(request);
         assert_eq!(state.status(), DependencyResolutionStatus::Requested);
-        assert!(!state.is_bound_to_request(&DependencyResolutionRequestV1::new("frontier:001", "manifest:abc").unwrap()));
+        assert!(!state.is_bound_to_request(
+            &DependencyResolutionRequestV1::new("frontier:001", "manifest:abc").unwrap()
+        ));
         assert!(state.resolution_ref().is_none());
     }
 
@@ -276,33 +296,45 @@ mod tests {
 
     #[test]
     fn authority_reference_requires_explicit_nonblank_identity() {
-        assert!(AuthorityResolutionRefV1::from_authority(
-            "frontier:001",
-            "manifest:abc",
-            "resolution:001",
-            DependencyResolutionStatus::Resolved,
-        ).is_some());
+        assert!(
+            AuthorityResolutionRefV1::from_authority(
+                "frontier:001",
+                "manifest:abc",
+                "resolution:001",
+                DependencyResolutionStatus::Resolved,
+            )
+            .is_some()
+        );
 
-        assert!(AuthorityResolutionRefV1::from_authority(
-            "   ",
-            "manifest:abc",
-            "resolution:001",
-            DependencyResolutionStatus::Resolved,
-        ).is_none());
+        assert!(
+            AuthorityResolutionRefV1::from_authority(
+                "   ",
+                "manifest:abc",
+                "resolution:001",
+                DependencyResolutionStatus::Resolved,
+            )
+            .is_none()
+        );
 
-        assert!(AuthorityResolutionRefV1::from_authority(
-            "frontier:001",
-            "   ",
-            "resolution:001",
-            DependencyResolutionStatus::Resolved,
-        ).is_none());
+        assert!(
+            AuthorityResolutionRefV1::from_authority(
+                "frontier:001",
+                "   ",
+                "resolution:001",
+                DependencyResolutionStatus::Resolved,
+            )
+            .is_none()
+        );
 
-        assert!(AuthorityResolutionRefV1::from_authority(
-            "frontier:001",
-            "manifest:abc",
-            " ",
-            DependencyResolutionStatus::Resolved,
-        ).is_none());
+        assert!(
+            AuthorityResolutionRefV1::from_authority(
+                "frontier:001",
+                "manifest:abc",
+                " ",
+                DependencyResolutionStatus::Resolved,
+            )
+            .is_none()
+        );
     }
 
     #[test]
@@ -312,11 +344,14 @@ mod tests {
             "manifest:abc",
             "resolution:001",
             DependencyResolutionStatus::Resolved,
-        ).unwrap();
+        )
+        .unwrap();
         let state = DependencyResolutionState::Resolved(reference);
         let request = DependencyResolutionRequestV1::new("frontier:001", "manifest:abc").unwrap();
-        let wrong_frontier = DependencyResolutionRequestV1::new("frontier:other", "manifest:abc").unwrap();
-        let wrong_manifest = DependencyResolutionRequestV1::new("frontier:001", "manifest:other").unwrap();
+        let wrong_frontier =
+            DependencyResolutionRequestV1::new("frontier:other", "manifest:abc").unwrap();
+        let wrong_manifest =
+            DependencyResolutionRequestV1::new("frontier:001", "manifest:other").unwrap();
 
         assert!(state.is_bound_to_request(&request));
         assert!(!state.is_bound_to_request(&wrong_frontier));
@@ -327,9 +362,27 @@ mod tests {
     #[test]
     fn request_matches_authority_response_only_on_exact_pair() {
         let request = DependencyResolutionRequestV1::new("frontier:001", "manifest:abc").unwrap();
-        let matching = AuthorityResolutionRefV1::from_authority("frontier:001", "manifest:abc", "resolution:001", DependencyResolutionStatus::Resolved).unwrap();
-        let wrong_frontier = AuthorityResolutionRefV1::from_authority("frontier:other", "manifest:abc", "resolution:001", DependencyResolutionStatus::Resolved).unwrap();
-        let wrong_manifest = AuthorityResolutionRefV1::from_authority("frontier:001", "manifest:other", "resolution:001", DependencyResolutionStatus::Resolved).unwrap();
+        let matching = AuthorityResolutionRefV1::from_authority(
+            "frontier:001",
+            "manifest:abc",
+            "resolution:001",
+            DependencyResolutionStatus::Resolved,
+        )
+        .unwrap();
+        let wrong_frontier = AuthorityResolutionRefV1::from_authority(
+            "frontier:other",
+            "manifest:abc",
+            "resolution:001",
+            DependencyResolutionStatus::Resolved,
+        )
+        .unwrap();
+        let wrong_manifest = AuthorityResolutionRefV1::from_authority(
+            "frontier:001",
+            "manifest:other",
+            "resolution:001",
+            DependencyResolutionStatus::Resolved,
+        )
+        .unwrap();
 
         assert!(request.matches_authority_response(&matching));
         assert!(!request.matches_authority_response(&wrong_frontier));
@@ -338,13 +391,19 @@ mod tests {
 
     #[test]
     fn authority_response_constructor_rejects_request_only_statuses() {
-        for status in [DependencyResolutionStatus::Unrequested, DependencyResolutionStatus::Requested] {
-            assert!(AuthorityResolutionRefV1::from_authority(
-                "frontier:001",
-                "manifest:abc",
-                "resolution:001",
-                status,
-            ).is_none());
+        for status in [
+            DependencyResolutionStatus::Unrequested,
+            DependencyResolutionStatus::Requested,
+        ] {
+            assert!(
+                AuthorityResolutionRefV1::from_authority(
+                    "frontier:001",
+                    "manifest:abc",
+                    "resolution:001",
+                    status,
+                )
+                .is_none()
+            );
         }
 
         let reference = AuthorityResolutionRefV1::from_authority(
@@ -352,7 +411,8 @@ mod tests {
             "manifest:abc",
             "resolution:001",
             DependencyResolutionStatus::Resolved,
-        ).unwrap();
+        )
+        .unwrap();
         assert!(matches!(
             DependencyResolutionState::try_from_authority(reference),
             Some(DependencyResolutionState::Resolved(_))
@@ -372,9 +432,12 @@ mod tests {
                 "manifest:abc",
                 "resolution:001",
                 status,
-            ).unwrap();
+            )
+            .unwrap();
             let state = DependencyResolutionState::try_from_authority(reference).unwrap();
-            assert!(!state.is_bound_to_request(&DependencyResolutionRequestV1::new("frontier:001", "manifest:abc").unwrap()));
+            assert!(!state.is_bound_to_request(
+                &DependencyResolutionRequestV1::new("frontier:001", "manifest:abc").unwrap()
+            ));
         }
     }
 
@@ -385,12 +448,19 @@ mod tests {
             "manifest:abc",
             "resolution:001",
             DependencyResolutionStatus::Resolved,
-        ).unwrap();
+        )
+        .unwrap();
 
-        assert!(!DependencyResolutionState::PartiallyResolved(reference.clone())
-            .is_bound_to_request(&DependencyResolutionRequestV1::new("frontier:001", "manifest:abc").unwrap()));
-        assert!(!DependencyResolutionState::Rejected(reference)
-            .is_bound_to_request(&DependencyResolutionRequestV1::new("frontier:001", "manifest:abc").unwrap()));
+        assert!(
+            !DependencyResolutionState::PartiallyResolved(reference.clone()).is_bound_to_request(
+                &DependencyResolutionRequestV1::new("frontier:001", "manifest:abc").unwrap()
+            )
+        );
+        assert!(
+            !DependencyResolutionState::Rejected(reference).is_bound_to_request(
+                &DependencyResolutionRequestV1::new("frontier:001", "manifest:abc").unwrap()
+            )
+        );
     }
 
     #[test]
@@ -400,7 +470,8 @@ mod tests {
             "manifest:abc",
             "resolution:001",
             DependencyResolutionStatus::Resolved,
-        ).unwrap();
+        )
+        .unwrap();
         let state = DependencyResolutionState::Rejected(reference);
         assert_eq!(state.status(), DependencyResolutionStatus::Mismatched);
         assert!(!state.is_bound_to("frontier:001", "manifest:abc"));
@@ -413,19 +484,24 @@ mod tests {
             "manifest:abc",
             "resolution:partial",
             DependencyResolutionStatus::PartiallyResolved,
-        ).unwrap();
+        )
+        .unwrap();
         let protected = AuthorityResolutionRefV1::from_authority(
             "frontier:001",
             "manifest:abc",
             "resolution:protected",
             DependencyResolutionStatus::Protected,
-        ).unwrap();
+        )
+        .unwrap();
 
         assert_eq!(
             DependencyResolutionState::PartiallyResolved(partial).status(),
             DependencyResolutionStatus::PartiallyResolved
         );
-        assert!(!DependencyResolutionState::Rejected(protected)
-            .is_bound_to_request(&DependencyResolutionRequestV1::new("frontier:001", "manifest:abc").unwrap()));
+        assert!(
+            !DependencyResolutionState::Rejected(protected).is_bound_to_request(
+                &DependencyResolutionRequestV1::new("frontier:001", "manifest:abc").unwrap()
+            )
+        );
     }
 }
