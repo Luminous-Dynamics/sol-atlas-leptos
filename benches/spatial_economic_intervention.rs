@@ -41,6 +41,10 @@ use sol_atlas_core::service_recovery::{
     assess_service_recovery_trajectory, ServiceRecoveryTrajectory,
     SERVICE_RECOVERY_TRAJECTORY_SCHEMA_VERSION,
 };
+use sol_atlas_core::service_network_stress::{
+    assess_service_network_stress, ServiceNetworkStressRequest,
+    SERVICE_NETWORK_STRESS_SCHEMA_VERSION, MAX_EXHAUSTIVE_FAILURE_CASES,
+};
 use sol_atlas_core::spatial_economic::Quantity;
 use sol_atlas_core::spatial_graph::{DependencyGraph, RelationKind, SpatialRelation};
 use std::collections::BTreeMap;
@@ -98,6 +102,13 @@ struct SampleSummary {
     recovery_p50_micros: u128,
     recovery_p95_micros: u128,
     recovery_max_micros: u128,
+    stress_active_links: usize,
+    stress_failure_cases_per_run: usize,
+    stress_evidence_records: usize,
+    stress_result_bytes: usize,
+    stress_p50_micros: u128,
+    stress_p95_micros: u128,
+    stress_max_micros: u128,
 }
 
 fn evidence(id: String, feeder_id: &str) -> EvidenceRecord {
@@ -384,6 +395,69 @@ fn network_fixture(
         });
     }
     (scenarios, records)
+}
+
+fn stress_fixture(
+    active_links: usize,
+) -> (ServiceNetworkStressRequest, Vec<EvidenceRecord>) {
+    let source_id = "stress-source".to_owned();
+    let service_id = "stress-service".to_owned();
+    let mut links = Vec::with_capacity(active_links);
+    let mut records = Vec::with_capacity(active_links + 1);
+    for index in 0..active_links {
+        let link_id = format!("stress-link-{index:04}");
+        let evidence_id = format!("stress-capacity-evidence-{index:04}");
+        records.push(quantity_evidence(
+            evidence_id.clone(),
+            &link_id,
+            1.0,
+            "m3/h",
+            0.0,
+        ));
+        links.push(NetworkLink {
+            id: link_id.clone(),
+            from_entity_id: source_id.clone(),
+            to_entity_id: service_id.clone(),
+            capacity: network_measurement(&link_id, &evidence_id, 1.0, "m3/h"),
+            availability: NetworkLinkAvailability::Active,
+            availability_basis: ScenarioBasis::Assumed,
+            availability_rationale: "Synthetic active route in exhaustive stress fixture".into(),
+            availability_supporting_evidence_ids: Vec::new(),
+        });
+    }
+    let demand_evidence = "stress-demand-evidence".to_owned();
+    records.push(quantity_evidence(
+        demand_evidence.clone(),
+        &service_id,
+        active_links as f64,
+        "m3/h",
+        0.0,
+    ));
+    let scenario = ServiceCapacityNetworkScenario {
+        schema_version: SERVICE_NETWORK_SCHEMA_VERSION.into(),
+        id: format!("stress-network-{active_links}"),
+        as_of: "2026-10-15T12:00:00Z".into(),
+        service_entity_id: service_id.clone(),
+        topology_completeness: NetworkTopologyCompleteness::Complete,
+        source_entity_ids: vec![source_id],
+        required_capacity: network_measurement(
+            &service_id,
+            &demand_evidence,
+            active_links as f64,
+            "m3/h",
+        ),
+        links,
+    };
+    (
+        ServiceNetworkStressRequest {
+            schema_version: SERVICE_NETWORK_STRESS_SCHEMA_VERSION.into(),
+            id: format!("stress-sweep-{active_links}"),
+            baseline_scenario: scenario,
+            max_simultaneous_failures: 2,
+            max_failure_cases: MAX_EXHAUSTIVE_FAILURE_CASES,
+        },
+        records,
+    )
 }
 
 fn network_intervention_requests(
@@ -697,6 +771,31 @@ fn main() {
         assert_eq!(network_intervention_bounds_unchanged, 0);
         assert_eq!(network_intervention_topology_incomplete, 0);
 
+        let stress_active_links = match groups_count {
+            count if count <= 100 => 10,
+            count if count <= 1_000 => 20,
+            _ => 40,
+        };
+        let (stress_request, stress_evidence) = stress_fixture(stress_active_links);
+        let reference_stress = assess_service_network_stress(
+            &stress_request,
+            &stress_evidence,
+        )
+        .expect("synthetic exhaustive network stress fixture must evaluate");
+        let expected_stress_cases =
+            stress_active_links + (stress_active_links * (stress_active_links - 1) / 2);
+        let expected_worst_sets =
+            stress_active_links * (stress_active_links - 1) / 2;
+        assert_eq!(reference_stress.candidate_failure_case_count, expected_stress_cases);
+        assert_eq!(reference_stress.evaluated_failure_case_count, expected_stress_cases);
+        assert!(reference_stress.exhaustive);
+        assert_eq!(reference_stress.baseline.conservative_available_capacity, stress_active_links as f64);
+        assert_eq!(reference_stress.worst_case_conservative_capacity, (stress_active_links - 2) as f64);
+        assert_eq!(reference_stress.worst_case_conservative_capacity_loss, 2.0);
+        assert_eq!(reference_stress.worst_case_conservative_failure_sets.len(), expected_worst_sets);
+        let reference_stress_bytes =
+            serde_json::to_vec(&reference_stress).expect("stress report serializes");
+
         let (recovery_trajectory, recovery_evidence) = recovery_fixture(groups_count);
         let reference_recovery = assess_service_recovery_trajectory(
             &recovery_trajectory,
@@ -810,6 +909,19 @@ fn main() {
                 reference_network_intervention_bytes
             );
 
+            let stress = assess_service_network_stress(
+                &stress_request,
+                &stress_evidence,
+            )
+            .expect("synthetic exhaustive network stress fixture must evaluate");
+            assert_eq!(stress.candidate_failure_case_count, expected_stress_cases);
+            assert_eq!(stress.evaluated_failure_case_count, expected_stress_cases);
+            assert!(stress.exhaustive);
+            assert_eq!(
+                serde_json::to_vec(&stress).expect("stress report serializes"),
+                reference_stress_bytes
+            );
+
             let recovery = assess_service_recovery_trajectory(
                 &recovery_trajectory,
                 &recovery_evidence,
@@ -827,6 +939,7 @@ fn main() {
         let mut network_samples = Vec::with_capacity(measured_iterations);
         let mut network_intervention_samples = Vec::with_capacity(measured_iterations);
         let mut recovery_samples = Vec::with_capacity(measured_iterations);
+        let mut stress_samples = Vec::with_capacity(measured_iterations);
         let mut recovered = 0;
         for _ in 0..measured_iterations {
             let start = Instant::now();
@@ -917,6 +1030,21 @@ fn main() {
                 reference_network_intervention_bytes
             );
 
+            let stress_start = Instant::now();
+            let stress = assess_service_network_stress(
+                &stress_request,
+                &stress_evidence,
+            )
+            .expect("synthetic exhaustive network stress fixture must evaluate");
+            stress_samples.push(stress_start.elapsed());
+            assert_eq!(stress.candidate_failure_case_count, expected_stress_cases);
+            assert_eq!(stress.evaluated_failure_case_count, expected_stress_cases);
+            assert_eq!(stress.worst_case_conservative_capacity_loss, 2.0);
+            assert_eq!(
+                serde_json::to_vec(&stress).expect("stress report serializes"),
+                reference_stress_bytes
+            );
+
             let recovery_start = Instant::now();
             let recovery = assess_service_recovery_trajectory(
                 &recovery_trajectory,
@@ -940,6 +1068,7 @@ fn main() {
         network_samples.sort_unstable();
         network_intervention_samples.sort_unstable();
         recovery_samples.sort_unstable();
+        stress_samples.sort_unstable();
 
         let summary = SampleSummary {
             groups: groups_count,
@@ -1003,6 +1132,13 @@ fn main() {
             recovery_p50_micros: percentile(&recovery_samples, 50).as_micros(),
             recovery_p95_micros: percentile(&recovery_samples, 95).as_micros(),
             recovery_max_micros: recovery_samples.last().copied().unwrap_or_default().as_micros(),
+            stress_active_links,
+            stress_failure_cases_per_run: reference_stress.evaluated_failure_case_count,
+            stress_evidence_records: stress_evidence.len(),
+            stress_result_bytes: reference_stress_bytes.len(),
+            stress_p50_micros: percentile(&stress_samples, 50).as_micros(),
+            stress_p95_micros: percentile(&stress_samples, 95).as_micros(),
+            stress_max_micros: stress_samples.last().copied().unwrap_or_default().as_micros(),
         };
         println!(
             "{}",
