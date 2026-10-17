@@ -22,6 +22,9 @@ use std::collections::{BTreeMap, BTreeSet};
 pub const SERVICE_NETWORK_STRESS_SCHEMA_VERSION: &str = "0.1.0";
 pub const MAX_SIMULTANEOUS_LINK_FAILURES: usize = 3;
 pub const MAX_EXHAUSTIVE_FAILURE_CASES: usize = 10_000;
+/// Hard cap on (baseline + failure cases) multiplied by modeled link count.
+/// This bounds the peak cloned graph footprint, not just the number of scenarios.
+pub const MAX_STRESS_CASE_LINK_REFERENCES: usize = 2_000_000;
 const FAILURE_TIE_RELATIVE_TOLERANCE: f64 = 1.0e-9;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -86,6 +89,7 @@ pub enum ServiceNetworkStressValidationError {
     InvalidFailureCaseBudget,
     NoActiveLinks,
     ScenarioBudgetExceeded,
+    ScenarioMemoryBudgetExceeded,
     NonMonotonicConservativeFlow,
     NonMonotonicOptimisticFlow,
 }
@@ -155,6 +159,14 @@ pub fn assess_service_network_stress(
     if candidate_count > request.max_failure_cases {
         return Err(ServiceNetworkStressError::InvalidInput(vec![
             ServiceNetworkStressValidationError::ScenarioBudgetExceeded,
+        ]));
+    }
+    let scenario_count = candidate_count.saturating_add(1);
+    let modeled_link_references = scenario_count
+        .checked_mul(request.baseline_scenario.links.len());
+    if modeled_link_references.is_none_or(|count| count > MAX_STRESS_CASE_LINK_REFERENCES) {
+        return Err(ServiceNetworkStressError::InvalidInput(vec![
+            ServiceNetworkStressValidationError::ScenarioMemoryBudgetExceeded,
         ]));
     }
 
@@ -487,6 +499,26 @@ mod tests {
             result.worst_case_conservative_failure_sets,
             vec![vec!["supply".to_owned()]]
         );
+    }
+
+    #[test]
+    fn cloned_scenario_link_reference_budget_fails_before_materializing_cases() {
+        let mut input = request(1, 2_000);
+        input.baseline_scenario.links.clear();
+        for index in 0..2_000 {
+            input.baseline_scenario.links.push(link(
+                &format!("link-{index:04}"),
+                "source:reservoir",
+                "service:water",
+                1.0,
+                NetworkLinkAvailability::Active,
+            ));
+        }
+        assert!(matches!(
+            assess_service_network_stress(&input, &[]),
+            Err(ServiceNetworkStressError::InvalidInput(errors))
+                if errors.contains(&ServiceNetworkStressValidationError::ScenarioMemoryBudgetExceeded)
+        ));
     }
 
     #[test]
