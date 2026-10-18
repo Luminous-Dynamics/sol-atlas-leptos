@@ -1559,5 +1559,4 @@ mod tests {
             assert_eq!(output, permuted_output, "case {case_index} permutation");
         }
     }
-
 }
