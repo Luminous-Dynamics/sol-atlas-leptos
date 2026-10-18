@@ -84,15 +84,32 @@ pub struct RobustRegretReport {
 pub enum RobustRegretError {
     EmptyScenarios,
     EmptyDecisions,
-    EmptyIdentifier { field: &'static str },
+    EmptyIdentifier {
+        field: &'static str,
+    },
     UnknownScenario(String),
     UnknownDecision(String),
-    DuplicateLossCell { decision_id: String, scenario_id: String },
-    MissingLossCell { decision_id: String, scenario_id: String },
-    InvalidLossInterval { decision_id: String, scenario_id: String },
+    DuplicateLossCell {
+        decision_id: String,
+        scenario_id: String,
+    },
+    MissingLossCell {
+        decision_id: String,
+        scenario_id: String,
+    },
+    InvalidLossInterval {
+        decision_id: String,
+        scenario_id: String,
+    },
     DuplicateAction(String),
-    MissingActionOutcome { action_id: String, scenario_id: String },
-    EmptyActionOutcome { action_id: String, scenario_id: String },
+    MissingActionOutcome {
+        action_id: String,
+        scenario_id: String,
+    },
+    EmptyActionOutcome {
+        action_id: String,
+        scenario_id: String,
+    },
     InvalidActionCost(String),
     IncompatibleUnits {
         action_id: String,
@@ -190,7 +207,9 @@ impl RobustRegretProblem {
                 });
             }
             if !action.cost.is_finite() || action.cost < 0.0 {
-                return Err(RobustRegretError::InvalidActionCost(action.action_id.clone()));
+                return Err(RobustRegretError::InvalidActionCost(
+                    action.action_id.clone(),
+                ));
             }
             for scenario_id in action.outcome_by_scenario.keys() {
                 if !self.scenario_ids.contains(scenario_id) {
@@ -418,7 +437,10 @@ mod tests {
                     actual.post_investigation_regret_bound,
                     expected.post_investigation_regret_bound,
                 );
-                close(actual.regret_bound_reduction, expected.regret_bound_reduction);
+                close(
+                    actual.regret_bound_reduction,
+                    expected.regret_bound_reduction,
+                );
                 close(
                     actual.net_regret_bound_reduction,
                     expected.net_regret_bound_reduction,
@@ -432,14 +454,19 @@ mod tests {
             }
             evaluated += 1;
         }
-        assert_eq!(evaluated, 5, "the pinned benchmark has five synthetic cases");
+        assert_eq!(
+            evaluated, 5,
+            "the pinned benchmark has five synthetic cases"
+        );
     }
 
     fn basic_problem() -> RobustRegretProblem {
         RobustRegretProblem {
             loss_unit: "regret-units".into(),
             scenario_ids: ["dry".to_string(), "wet".to_string()].into_iter().collect(),
-            decision_ids: ["site-a".to_string(), "site-b".to_string()].into_iter().collect(),
+            decision_ids: ["site-a".to_string(), "site-b".to_string()]
+                .into_iter()
+                .collect(),
             losses: vec![
                 DecisionLoss {
                     decision_id: "site-a".into(),
@@ -505,7 +532,6 @@ mod tests {
         ));
     }
 
-
     #[test]
     fn incompatible_cost_units_are_rejected() {
         let mut problem = basic_problem();
@@ -523,7 +549,6 @@ mod tests {
             Err(RobustRegretError::IncompatibleUnits { .. })
         ));
     }
-
 
     #[test]
     fn empty_possible_outcome_set_is_rejected() {
@@ -575,14 +600,12 @@ mod tests {
 
     #[test]
     fn exhaustive_two_by_two_loss_grids_preserve_information_monotonicity() {
-        let scenario_ids: BTreeSet<String> =
-            ["scenario-a".to_string(), "scenario-b".to_string()]
-                .into_iter()
-                .collect();
-        let decision_ids: BTreeSet<String> =
-            ["decision-a".to_string(), "decision-b".to_string()]
-                .into_iter()
-                .collect();
+        let scenario_ids: BTreeSet<String> = ["scenario-a".to_string(), "scenario-b".to_string()]
+            .into_iter()
+            .collect();
+        let decision_ids: BTreeSet<String> = ["decision-a".to_string(), "decision-b".to_string()]
+            .into_iter()
+            .collect();
         let values = [0.0, 1.0, 2.0];
         let mut evaluated = 0;
 
@@ -664,14 +687,12 @@ mod tests {
 
     #[test]
     fn exhaustive_ambiguous_observation_relations_never_increase_regret_bound() {
-        let scenario_ids: BTreeSet<String> =
-            ["scenario-a".to_string(), "scenario-b".to_string()]
-                .into_iter()
-                .collect();
-        let decision_ids: BTreeSet<String> =
-            ["decision-a".to_string(), "decision-b".to_string()]
-                .into_iter()
-                .collect();
+        let scenario_ids: BTreeSet<String> = ["scenario-a".to_string(), "scenario-b".to_string()]
+            .into_iter()
+            .collect();
+        let decision_ids: BTreeSet<String> = ["decision-a".to_string(), "decision-b".to_string()]
+            .into_iter()
+            .collect();
         let values = [0.0, 1.0, 2.0];
         let outcome_set = |mask: u8| {
             let mut outcomes = BTreeSet::new();
@@ -751,5 +772,4 @@ mod tests {
 
         assert_eq!(evaluated, 729);
     }
-
 }
