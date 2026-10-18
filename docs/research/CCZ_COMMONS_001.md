@@ -182,3 +182,20 @@ Before advertising the map as complete, obtain independent review of the source 
 A passing fixture proves that the implementation handled declared synthetic/source metadata as specified. It does not establish that the inventory is complete, a legal status is uncontested, a data product is accurate, a habitat is absent/present beyond observation scope, a site is navigable, or extraction is safe or authorized.
 
 The public-good objective is to make the basis for decisions inspectable, comparable, challengeable and reproducible—not to confer permission to mine.
+
+
+## 12. Material sufficiency before primary extraction
+
+The Atlas must not turn a concentration of nodules or a mapped resource occurrence into an implied need to extract. It is a spatial evidence commons; material demand and substitution analysis belongs to the existing Symthaea [CRITMAT-001 programme #5200](https://github.com/Luminous-Dynamics/symthaea/issues/5200).
+
+For any later public decision study, compare the same delivered function and time horizon across distinct pathways:
+
+1. lower material intensity, longer service life, repair and reuse;
+2. technically qualified material or architecture substitution;
+3. manufacturing scrap, end-of-life recovery, recycling and industrial/byproduct feedstocks;
+4. existing terrestrial primary sources where comparable source and life-cycle evidence exists;
+5. seabed-derived material only as a separate, unresolved scenario with its own legal status, environmental, energy, transport, refining and benefit-sharing evidence.
+
+Keep separate axes for technical equivalence, mass per functional unit, recovery yield and grade, lifecycle emissions/energy/water/reagents/waste, habitat/biodiversity impact, uncertainty, cost and benefit distribution. Do not collapse those into a single “green metal” score without a declared decision rule. Missing high-impact burdens remain Unknown/Indeterminate, not zero.
+
+This is a paradigm shift from “where is the metal and how can it be extracted?” to “what is the least harmful, technically adequate and fairly governed way to provide the required function?” It is a cross-project decision principle, not an extraction planner.
