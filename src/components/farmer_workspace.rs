@@ -31,12 +31,14 @@ pub fn FarmerWorkspace() -> impl IntoView {
     let state_label = move || match workflow.get() {
         0 => "No sample request recorded",
         1 => "Saved on this device — not sent",
-        2 => "Synthetic quote available — not accepted",
-        3 => "Quote acceptance simulated — awaiting provider confirmation",
-        4 => "Booking confirmation simulated — work not completed",
-        5 => "Provider reports completion — farmer decision pending",
-        6 => "Farmer acceptance simulated",
-        7 => "Problem reported — demo rework path",
+        2 => "Synthetic incomplete quote available — not accepted",
+        3 => "Complete terms requested — no quote accepted",
+        4 => "Complete synthetic quote received — not accepted",
+        5 => "Quote acceptance simulated — awaiting provider confirmation",
+        6 => "Booking confirmation simulated — work not completed",
+        7 => "Provider reports completion — farmer decision pending",
+        8 => "Farmer acceptance simulated",
+        9 => "Problem reported — demo rework path",
         _ => "Unknown demo state",
     };
 
@@ -211,10 +213,10 @@ pub fn FarmerWorkspace() -> impl IntoView {
 
                         <div class="field-work-stepper" aria-label="Service lifecycle steps">
                             <div class:current=move || workflow.get() == 1 class:complete=move || workflow.get() > 1><span>"1"</span><small>"Request"</small></div>
-                            <div class:current=move || workflow.get() == 2 class:complete=move || workflow.get() > 2><span>"2"</span><small>"Quote"</small></div>
-                            <div class:current=move || workflow.get() == 3 || workflow.get() == 4 class:complete=move || workflow.get() > 4><span>"3"</span><small>"Booking"</small></div>
-                            <div class:current=move || workflow.get() == 5 class:complete=move || workflow.get() > 5><span>"4"</span><small>"Provider report"</small></div>
-                            <div class:current=move || workflow.get() == 6 || workflow.get() == 7><span>"5"</span><small>"Farmer decision"</small></div>
+                            <div class:current=move || workflow.get() == 2 || workflow.get() == 3 || workflow.get() == 4 class:complete=move || workflow.get() > 4><span>"2"</span><small>"Quote"</small></div>
+                            <div class:current=move || workflow.get() == 5 || workflow.get() == 6 class:complete=move || workflow.get() > 6><span>"3"</span><small>"Booking"</small></div>
+                            <div class:current=move || workflow.get() == 7 class:complete=move || workflow.get() > 7><span>"4"</span><small>"Provider report"</small></div>
+                            <div class:current=move || workflow.get() == 8 || workflow.get() == 9><span>"5"</span><small>"Farmer decision"</small></div>
                         </div>
 
                         <div class="field-work-panel field-work-full-panel">
@@ -254,20 +256,44 @@ pub fn FarmerWorkspace() -> impl IntoView {
                                 <h3>"The quote is not accepted or booked"</h3>
                                 <p>"A missing travel fee or unknown parts cost is material. This prototype will not pretend the full price is known."</p>
                                 <div class="field-work-receipt"><strong>"Awaiting complete terms"</strong><span>"No booking · no payment · no provider contacted"</span></div>
-                                <button class="field-work-primary" on:click=move |_| workflow.set(4)>"Simulate receipt of a complete quote and booking"</button>
+                                <button class="field-work-primary" on:click=move |_| workflow.set(4)>"Simulate receiving a complete quote"</button>
                                 <button class="field-work-secondary" on:click=move |_| workflow.set(2)>"Review original example"</button>
-                                <p class="field-work-note">"The next action skips two external actors for demo navigation only; it does not claim that a real quote was received or accepted."</p>
                             </Show>
 
                             <Show when=move || workflow.get() == 4>
-                                <p class="field-work-eyebrow">"STEP 3 · BOOKING DEMO"</p>
-                                <h3>"Booking confirmation simulated"</h3>
-                                <p>"For this local demo only, assume complete terms were received and explicitly accepted. In a real system, booking confirmation must come from the provider."</p>
-                                <div class="field-work-receipt"><strong>"SIMULATED BOOKING"</strong><span>"Work not completed · payment not made"</span></div>
-                                <button class="field-work-primary" on:click=move |_| workflow.set(5)>"Simulate provider reports work complete"</button>
+                                <p class="field-work-eyebrow">"STEP 2 · COMPLETE SYNTHETIC QUOTE"</p>
+                                <h3>"Review full terms before deciding"</h3>
+                                <p>"This is a synthetic example with every price field stated. It is still not an offer from a real provider."</p>
+                                <div class="field-work-quote">
+                                    <div><span>"Inspection and labor"</span><strong>"R 350.00"</strong></div>
+                                    <div><span>"Travel fee"</span><strong>"R 75.00"</strong></div>
+                                    <div><span>"Parts allowance"</span><strong>"R 150.00 maximum"</strong></div>
+                                    <div><span>"Total cap (synthetic)"</span><strong>"R 575.00"</strong></div>
+                                    <div><span>"Scope"</span><strong>"Inspect pump; replace one seal if required"</strong></div>
+                                    <div><span>"Validity"</span><strong>"Until demo expiry"</strong></div>
+                                </div>
+                                <button class="field-work-primary" on:click=move |_| workflow.set(5)>"Simulate accepting complete terms"</button>
+                                <button class="field-work-secondary" on:click=move |_| workflow.set(1)>"Decline and return to request"</button>
                             </Show>
 
                             <Show when=move || workflow.get() == 5>
+                                <p class="field-work-eyebrow">"STEP 3 · QUOTE DECISION"</p>
+                                <h3>"Quote acceptance simulated; awaiting provider confirmation"</h3>
+                                <p>"A farmer decision has been modelled, but no booking is yet confirmed. This prototype has not contacted any provider."</p>
+                                <div class="field-work-receipt"><strong>"QUOTE ACCEPTED · SIMULATED"</strong><span>"Booking: pending provider confirmation · payment: not authorized"</span></div>
+                                <button class="field-work-primary" on:click=move |_| workflow.set(6)>"Simulate provider confirms booking"</button>
+                                <button class="field-work-secondary" on:click=move |_| workflow.set(4)>"Review accepted quote"</button>
+                            </Show>
+
+                            <Show when=move || workflow.get() == 6>
+                                <p class="field-work-eyebrow">"STEP 3 · BOOKING DEMO"</p>
+                                <h3>"Booking confirmation simulated"</h3>
+                                <p>"This state is explicitly separate from quote acceptance. In a real system, a provider acknowledgement would be required."</p>
+                                <div class="field-work-receipt"><strong>"SIMULATED BOOKING"</strong><span>"Work not completed · payment not made"</span></div>
+                                <button class="field-work-primary" on:click=move |_| workflow.set(7)>"Simulate provider reports work complete"</button>
+                            </Show>
+
+                            <Show when=move || workflow.get() == 7>
                                 <p class="field-work-eyebrow">"STEP 4 · PROVIDER CLAIM"</p>
                                 <h3>"The provider reports completion"</h3>
                                 <p>"This is a provider claim in the demo, not independent proof of quality and not farmer acceptance."</p>
@@ -278,7 +304,7 @@ pub fn FarmerWorkspace() -> impl IntoView {
                                 </div>
                             </Show>
 
-                            <Show when=move || workflow.get() == 6>
+                            <Show when=move || workflow.get() == 8>
                                 <p class="field-work-eyebrow">"STEP 5 · FARMER DECISION"</p>
                                 <h3>"Acceptance recorded in this prototype"</h3>
                                 <p>"The demo now records a separate farmer decision. That is still not a payment receipt or proof of independently verified repair quality."</p>
@@ -287,12 +313,12 @@ pub fn FarmerWorkspace() -> impl IntoView {
                                 <button class="field-work-secondary" on:click=move |_| workflow.set(0)>"Restart demo workflow"</button>
                             </Show>
 
-                            <Show when=move || workflow.get() == 7>
+                            <Show when=move || workflow.get() == 9>
                                 <p class="field-work-eyebrow">"STEP 5 · DISPUTE"</p>
                                 <h3>"Problem reported — unresolved"</h3>
                                 <p>"The report is preserved in this local demo. No one is labelled at fault and no automatic penalty is applied."</p>
                                 <div class="field-work-receipt"><strong>"REWORK REQUEST · SIMULATED"</strong><span>"Resolution: pending · payment: not recorded"</span></div>
-                                <button class="field-work-primary" on:click=move |_| workflow.set(5)>"Return to completion review"</button>
+                                <button class="field-work-primary" on:click=move |_| workflow.set(7)>"Return to completion review"</button>
                                 <button class="field-work-secondary" on:click=move |_| workflow.set(0)>"Restart demo workflow"</button>
                             </Show>
                         </div>
