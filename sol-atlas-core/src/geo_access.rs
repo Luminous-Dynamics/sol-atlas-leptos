@@ -243,7 +243,11 @@ impl GeoAccessEnvelope {
             issues.push(ValidationIssue::InvalidTimestamp);
         }
 
-        validate_references(&self.source_evidence_refs, "source_evidence_refs", &mut issues);
+        validate_references(
+            &self.source_evidence_refs,
+            "source_evidence_refs",
+            &mut issues,
+        );
         validate_references(&self.barrier_refs, "barrier_refs", &mut issues);
 
         let is_distance = matches!(
@@ -334,10 +338,7 @@ impl GeoAccessEnvelope {
             (_, None) => {}
         }
 
-        match (
-            self.uncertainty.kind,
-            self.uncertainty.absolute_bound,
-        ) {
+        match (self.uncertainty.kind, self.uncertainty.absolute_bound) {
             (UncertaintyKind::QuantifiedAbsoluteBound, Some(bound)) => {
                 if !bound.is_finite() || bound < 0.0 {
                     issues.push(ValidationIssue::NegativeOrNonFiniteUncertainty);
@@ -363,7 +364,10 @@ fn validate_references(
     field: &'static str,
     issues: &mut Vec<ValidationIssue>,
 ) {
-    if references.iter().any(|reference| reference.trim().is_empty()) {
+    if references
+        .iter()
+        .any(|reference| reference.trim().is_empty())
+    {
         issues.push(ValidationIssue::InvalidReferences(field));
     }
     if references.windows(2).any(|pair| pair[0] >= pair[1]) {
@@ -646,17 +650,12 @@ mod tests {
     #[test]
     fn evidence_references_must_be_nonempty_unique_and_canonical() {
         let mut duplicate = modeled_time_envelope();
-        duplicate.source_evidence_refs = vec![
-            "fixture:network-v1".into(),
-            "fixture:network-v1".into(),
-        ];
+        duplicate.source_evidence_refs =
+            vec!["fixture:network-v1".into(), "fixture:network-v1".into()];
         assert!(duplicate.validate().is_err());
 
         let mut unsorted = modeled_time_envelope();
-        unsorted.source_evidence_refs = vec![
-            "fixture:z".into(),
-            "fixture:a".into(),
-        ];
+        unsorted.source_evidence_refs = vec!["fixture:z".into(), "fixture:a".into()];
         assert!(unsorted.validate().is_err());
     }
 
@@ -721,10 +720,7 @@ mod tests {
 
     #[test]
     fn travel_time_summary_refuses_cross_season_pooling_and_duplicate_samples() {
-        let samples = [
-            sample("trip:1", 10.0, 10.0),
-            sample("trip:2", 20.0, 18.0),
-        ];
+        let samples = [sample("trip:1", 10.0, 10.0), sample("trip:2", 20.0, 18.0)];
         assert!(summarize_travel_time_errors(&samples).is_ok());
 
         let mut mixed_season = samples.clone();
@@ -741,7 +737,10 @@ mod tests {
 
     #[test]
     fn travel_time_summary_rejects_invalid_pairs_instead_of_dropping_them() {
-        let samples = [sample("trip:1", 10.0, 10.0), sample("trip:2", f64::NAN, 18.0)];
+        let samples = [
+            sample("trip:1", 10.0, 10.0),
+            sample("trip:2", f64::NAN, 18.0),
+        ];
         assert!(summarize_travel_time_errors(&samples).is_err());
         assert!(summarize_travel_time_errors(&[]).is_err());
     }
