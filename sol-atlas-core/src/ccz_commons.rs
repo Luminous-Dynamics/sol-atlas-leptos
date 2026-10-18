@@ -10,6 +10,7 @@
 //! Passing validation is not legal, scientific, or navigation qualification.
 
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 
 /// Source-record class. These variants must remain semantically distinct.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -88,6 +89,76 @@ pub struct CczSourceSnapshot {
     pub terms_reviewed_by: Option<String>,
     /// Timestamp of the terms review, separate from source retrieval time.
     pub terms_reviewed_at: Option<String>,
+}
+
+
+/// Result of comparing an expected SHA-256 against the exact bytes received.
+/// This is byte-integrity evidence only; it does not authenticate the publisher,
+/// establish the license, validate the file format, or prove scientific fitness.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ArtifactDigestStatus {
+    Matched,
+    MissingExpectedDigest,
+    InvalidExpectedDigest,
+    Mismatch,
+}
+
+/// Deterministic receipt for one exact payload observed at a source snapshot.
+///
+/// A receipt preserves the source pointer supplied by the caller and records
+/// the locally computed digest and byte length. Persist the receipt alongside
+/// the archived payload and the existing provenance graph; do not treat this
+/// struct as a cryptographic signature or as evidence of publisher identity.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArtifactVerificationReceipt {
+    pub snapshot_id: String,
+    pub source_url: String,
+    pub source_version: Option<String>,
+    pub retrieved_at: String,
+    pub expected_sha256: Option<String>,
+    pub actual_sha256: String,
+    pub byte_length: u64,
+    pub status: ArtifactDigestStatus,
+}
+
+/// Compute the SHA-256 digest of the exact supplied byte sequence, rendered as
+/// 64 lower-case hexadecimal characters.
+pub fn sha256_hex(bytes: &[u8]) -> String {
+    format!("{:x}", Sha256::digest(bytes))
+}
+
+/// Verify actual bytes against a source snapshot's pinned digest.
+///
+/// Missing or malformed expected digests never produce `Matched`. This does
+/// not download the URL, archive the bytes, validate their format, or grant
+/// publication permission; callers must keep those as separate gates.
+pub fn verify_artifact_bytes(
+    source: &CczSourceSnapshot,
+    bytes: &[u8],
+) -> ArtifactVerificationReceipt {
+    let actual_sha256 = sha256_hex(bytes);
+    let expected_sha256 = source.artifact_sha256.clone();
+    let status = match expected_sha256.as_deref() {
+        None => ArtifactDigestStatus::MissingExpectedDigest,
+        Some(expected) if !valid_sha256(expected) => ArtifactDigestStatus::InvalidExpectedDigest,
+        Some(expected) if expected.eq_ignore_ascii_case(&actual_sha256) => {
+            ArtifactDigestStatus::Matched
+        }
+        Some(_) => ArtifactDigestStatus::Mismatch,
+    };
+
+    ArtifactVerificationReceipt {
+        snapshot_id: source.snapshot_id.clone(),
+        source_url: source.source_url.clone(),
+        source_version: source.source_version.clone(),
+        retrieved_at: source.retrieved_at.clone(),
+        expected_sha256,
+        actual_sha256,
+        byte_length: bytes.len() as u64,
+        status,
+    }
 }
 
 /// One CCZ feature/record that references a source snapshot.
@@ -761,4 +832,77 @@ mod tests {
         }"#;
         assert!(serde_json::from_str::<CczFeatureRecord>(json).is_err());
     }
+    #[test]
+    fn sha256_hex_matches_the_published_known_answer_vector() {
+        assert_eq!(
+            sha256_hex(b"abc"),
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+        assert_eq!(
+            sha256_hex(b""),
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        );
+    }
+
+    #[test]
+    fn exact_byte_receipt_matches_a_pinned_payload() {
+        let mut snapshot = source(
+            SourceTermsState::OpenRedistributionReviewed,
+            Some("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"),
+        );
+        snapshot.source_url = "https://example.invalid/payload".into();
+        snapshot.source_version = Some("fixture-v1".into());
+
+        let receipt = verify_artifact_bytes(&snapshot, b"abc");
+        assert_eq!(receipt.status, ArtifactDigestStatus::Matched);
+        assert_eq!(receipt.actual_sha256, snapshot.artifact_sha256.unwrap());
+        assert_eq!(receipt.byte_length, 3);
+        assert_eq!(receipt.snapshot_id, "isa-snapshot-2026-01");
+        assert_eq!(receipt.source_version.as_deref(), Some("fixture-v1"));
+    }
+
+    #[test]
+    fn changed_bytes_behind_the_same_url_are_detected() {
+        let snapshot = source(
+            SourceTermsState::OpenRedistributionReviewed,
+            Some("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"),
+        );
+        // URL and version labels do not override the exact-byte mismatch.
+        let receipt = verify_artifact_bytes(&snapshot, b"abd");
+        assert_eq!(receipt.status, ArtifactDigestStatus::Mismatch);
+        assert_ne!(receipt.actual_sha256, receipt.expected_sha256.unwrap());
+    }
+
+    #[test]
+    fn absent_expected_digest_is_not_misreported_as_verified() {
+        let snapshot = source(SourceTermsState::OpenRedistributionReviewed, None);
+        let receipt = verify_artifact_bytes(&snapshot, b"abc");
+        assert_eq!(receipt.status, ArtifactDigestStatus::MissingExpectedDigest);
+        assert_eq!(
+            receipt.actual_sha256,
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+    }
+
+    #[test]
+    fn malformed_expected_digest_is_not_misreported_as_verified() {
+        let snapshot = source(
+            SourceTermsState::OpenRedistributionReviewed,
+            Some("not-a-sha256"),
+        );
+        let receipt = verify_artifact_bytes(&snapshot, b"abc");
+        assert_eq!(receipt.status, ArtifactDigestStatus::InvalidExpectedDigest);
+    }
+
+    #[test]
+    fn uppercase_expected_digest_matches_case_insensitively() {
+        let snapshot = source(
+            SourceTermsState::OpenRedistributionReviewed,
+            Some("BA7816BF8F01CFEA140DE5DAE2223B00361A396177A9CB410FF61F20015AD"),
+        );
+        let receipt = verify_artifact_bytes(&snapshot, b"abc");
+        assert_eq!(receipt.status, ArtifactDigestStatus::Matched);
+        assert_eq!(receipt.actual_sha256, receipt.actual_sha256.to_ascii_lowercase());
+    }
+
 }
