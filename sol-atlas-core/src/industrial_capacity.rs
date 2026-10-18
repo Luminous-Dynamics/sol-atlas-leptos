@@ -634,7 +634,11 @@ mod tests {
         )
         .unwrap_err();
 
-        assert!(issues.iter().any(|issue| issue.contains("matching capacity observations")));
+        assert!(
+            issues
+                .iter()
+                .any(|issue| issue.contains("matching capacity observations"))
+        );
     }
 
     #[test]
