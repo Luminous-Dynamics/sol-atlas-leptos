@@ -205,7 +205,11 @@ impl ModelRunManifest {
             }
         }
 
-        if self.assumptions.iter().any(|assumption| is_blank(assumption)) {
+        if self
+            .assumptions
+            .iter()
+            .any(|assumption| is_blank(assumption))
+        {
             issues.push(ModelRunValidationIssue::EmptyAssumption);
         }
         if self.started_at_unix_s > self.ended_at_unix_s {
@@ -348,10 +352,12 @@ mod tests {
         let mut manifest = valid_manifest();
         manifest.schema_version = MODEL_RUN_SCHEMA_VERSION + 1;
 
-        assert!(manifest
-            .validate()
-            .unwrap_err()
-            .contains(&ModelRunValidationIssue::UnsupportedSchemaVersion));
+        assert!(
+            manifest
+                .validate()
+                .unwrap_err()
+                .contains(&ModelRunValidationIssue::UnsupportedSchemaVersion)
+        );
     }
 
     #[test]
@@ -359,32 +365,42 @@ mod tests {
         let mut manifest = valid_manifest();
         manifest.model_artifact_digest = "sha256:short".into();
 
-        assert!(manifest
-            .validate()
-            .unwrap_err()
-            .contains(&ModelRunValidationIssue::InvalidModelArtifactDigest));
+        assert!(
+            manifest
+                .validate()
+                .unwrap_err()
+                .contains(&ModelRunValidationIssue::InvalidModelArtifactDigest)
+        );
     }
 
     #[test]
     fn rejects_duplicate_input_artifact_ids() {
         let mut manifest = valid_manifest();
-        manifest.input_artifacts.push(manifest.input_artifacts[0].clone());
+        manifest
+            .input_artifacts
+            .push(manifest.input_artifacts[0].clone());
 
-        assert!(manifest
-            .validate()
-            .unwrap_err()
-            .contains(&ModelRunValidationIssue::DuplicateInputArtifactId));
+        assert!(
+            manifest
+                .validate()
+                .unwrap_err()
+                .contains(&ModelRunValidationIssue::DuplicateInputArtifactId)
+        );
     }
 
     #[test]
     fn rejects_duplicate_output_artifact_ids() {
         let mut manifest = valid_manifest();
-        manifest.output_artifacts.push(manifest.output_artifacts[0].clone());
+        manifest
+            .output_artifacts
+            .push(manifest.output_artifacts[0].clone());
 
-        assert!(manifest
-            .validate()
-            .unwrap_err()
-            .contains(&ModelRunValidationIssue::DuplicateOutputArtifactId));
+        assert!(
+            manifest
+                .validate()
+                .unwrap_err()
+                .contains(&ModelRunValidationIssue::DuplicateOutputArtifactId)
+        );
     }
 
     #[test]
@@ -392,10 +408,12 @@ mod tests {
         let mut manifest = valid_manifest();
         manifest.output_artifacts.clear();
 
-        assert!(manifest
-            .validate()
-            .unwrap_err()
-            .contains(&ModelRunValidationIssue::MissingOutputForCompletedRun));
+        assert!(
+            manifest
+                .validate()
+                .unwrap_err()
+                .contains(&ModelRunValidationIssue::MissingOutputForCompletedRun)
+        );
     }
 
     #[test]
@@ -403,10 +421,12 @@ mod tests {
         let mut manifest = valid_manifest();
         manifest.status = ModelRunStatus::Failed;
 
-        assert!(manifest
-            .validate()
-            .unwrap_err()
-            .contains(&ModelRunValidationIssue::MissingFailureReason));
+        assert!(
+            manifest
+                .validate()
+                .unwrap_err()
+                .contains(&ModelRunValidationIssue::MissingFailureReason)
+        );
     }
 
     #[test]
@@ -414,10 +434,12 @@ mod tests {
         let mut manifest = valid_manifest();
         manifest.scope.period_start_unix_s = manifest.scope.period_end_unix_s + 1;
 
-        assert!(manifest
-            .validate()
-            .unwrap_err()
-            .contains(&ModelRunValidationIssue::InvalidScopePeriod));
+        assert!(
+            manifest
+                .validate()
+                .unwrap_err()
+                .contains(&ModelRunValidationIssue::InvalidScopePeriod)
+        );
     }
 
     #[test]
@@ -425,10 +447,12 @@ mod tests {
         let mut manifest = valid_manifest();
         manifest.started_at_unix_s = manifest.ended_at_unix_s + 1;
 
-        assert!(manifest
-            .validate()
-            .unwrap_err()
-            .contains(&ModelRunValidationIssue::InvalidExecutionTimeRange));
+        assert!(
+            manifest
+                .validate()
+                .unwrap_err()
+                .contains(&ModelRunValidationIssue::InvalidExecutionTimeRange)
+        );
     }
 
     #[test]
@@ -439,10 +463,12 @@ mod tests {
             relative_tolerance: 1e-6,
         };
 
-        assert!(manifest
-            .validate()
-            .unwrap_err()
-            .contains(&ModelRunValidationIssue::InvalidAbsoluteTolerance));
+        assert!(
+            manifest
+                .validate()
+                .unwrap_err()
+                .contains(&ModelRunValidationIssue::InvalidAbsoluteTolerance)
+        );
     }
 
     #[test]
@@ -463,18 +489,19 @@ mod tests {
         let mut manifest = valid_manifest();
         manifest.assumptions.push("  ".into());
 
-        assert!(manifest
-            .validate()
-            .unwrap_err()
-            .contains(&ModelRunValidationIssue::EmptyAssumption));
+        assert!(
+            manifest
+                .validate()
+                .unwrap_err()
+                .contains(&ModelRunValidationIssue::EmptyAssumption)
+        );
     }
 
     #[test]
     fn json_round_trip_preserves_manifest() {
         let manifest = valid_manifest();
         let json = serde_json::to_string(&manifest).expect("serialize manifest");
-        let decoded: ModelRunManifest =
-            serde_json::from_str(&json).expect("deserialize manifest");
+        let decoded: ModelRunManifest = serde_json::from_str(&json).expect("deserialize manifest");
         assert_eq!(decoded, manifest);
         assert_eq!(decoded.validate(), Ok(()));
     }

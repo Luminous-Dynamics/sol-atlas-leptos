@@ -247,10 +247,12 @@ mod tests {
         let mut observation = valid_observation();
         observation.schema_version = OBSERVATION_SCHEMA_VERSION + 1;
 
-        assert!(observation
-            .validate()
-            .unwrap_err()
-            .contains(&ObservationValidationIssue::UnsupportedSchemaVersion));
+        assert!(
+            observation
+                .validate()
+                .unwrap_err()
+                .contains(&ObservationValidationIssue::UnsupportedSchemaVersion)
+        );
     }
 
     #[test]
@@ -265,10 +267,12 @@ mod tests {
         observation.uncertainty = None;
         observation.missing_reason = None;
 
-        assert!(observation
-            .validate()
-            .unwrap_err()
-            .contains(&ObservationValidationIssue::MissingReasonMismatch));
+        assert!(
+            observation
+                .validate()
+                .unwrap_err()
+                .contains(&ObservationValidationIssue::MissingReasonMismatch)
+        );
     }
 
     #[test]
@@ -286,10 +290,12 @@ mod tests {
         let mut observation = valid_observation();
         observation.value = Some(f64::NAN);
 
-        assert!(observation
-            .validate()
-            .unwrap_err()
-            .contains(&ObservationValidationIssue::NonFiniteValue));
+        assert!(
+            observation
+                .validate()
+                .unwrap_err()
+                .contains(&ObservationValidationIssue::NonFiniteValue)
+        );
     }
 
     #[test]
@@ -297,10 +303,12 @@ mod tests {
         let mut observation = valid_observation();
         observation.period_start_unix_s = observation.period_end_unix_s + 1;
 
-        assert!(observation
-            .validate()
-            .unwrap_err()
-            .contains(&ObservationValidationIssue::InvalidPeriod));
+        assert!(
+            observation
+                .validate()
+                .unwrap_err()
+                .contains(&ObservationValidationIssue::InvalidPeriod)
+        );
     }
 
     #[test]
@@ -308,10 +316,12 @@ mod tests {
         let mut observation = valid_observation();
         observation.source_digest = Some("sha256:abc".into());
 
-        assert!(observation
-            .validate()
-            .unwrap_err()
-            .contains(&ObservationValidationIssue::InvalidSourceDigest));
+        assert!(
+            observation
+                .validate()
+                .unwrap_err()
+                .contains(&ObservationValidationIssue::InvalidSourceDigest)
+        );
     }
 
     #[test]
@@ -319,10 +329,12 @@ mod tests {
         let mut observation = valid_observation();
         observation.uncertainty = Some(Uncertainty::StandardDeviation { value: -0.1 });
 
-        assert!(observation
-            .validate()
-            .unwrap_err()
-            .contains(&ObservationValidationIssue::InvalidStandardDeviation));
+        assert!(
+            observation
+                .validate()
+                .unwrap_err()
+                .contains(&ObservationValidationIssue::InvalidStandardDeviation)
+        );
     }
 
     #[test]
@@ -334,10 +346,12 @@ mod tests {
             coverage_probability: 1.0,
         });
 
-        assert!(observation
-            .validate()
-            .unwrap_err()
-            .contains(&ObservationValidationIssue::InvalidUncertaintyInterval));
+        assert!(
+            observation
+                .validate()
+                .unwrap_err()
+                .contains(&ObservationValidationIssue::InvalidUncertaintyInterval)
+        );
     }
 
     #[test]
@@ -346,10 +360,12 @@ mod tests {
         observation.value = None;
         observation.missing_reason = Some(MissingValueReason::NotCollected);
 
-        assert!(observation
-            .validate()
-            .unwrap_err()
-            .contains(&ObservationValidationIssue::UncertaintyWithoutValue));
+        assert!(
+            observation
+                .validate()
+                .unwrap_err()
+                .contains(&ObservationValidationIssue::UncertaintyWithoutValue)
+        );
     }
 
     #[test]
