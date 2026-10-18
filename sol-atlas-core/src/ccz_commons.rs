@@ -286,8 +286,8 @@ fn valid_iso_date(value: &str) -> Option<(i32, u32, u32)> {
 pub fn publication_scope(source: &CczSourceSnapshot) -> PublicationScope {
     if !present(&source.snapshot_id)
         || !present(&source.source_name)
-        || !present(&source.source_url)
-        || !present(&source.retrieved_at)
+        || !valid_http_url(&source.source_url)
+        || !valid_timestamp(&source.retrieved_at)
     {
         return PublicationScope::Blocked;
     }
@@ -296,7 +296,7 @@ pub fn publication_scope(source: &CczSourceSnapshot) -> PublicationScope {
         && source.attribution_text.as_deref().is_some_and(present)
         && source.terms_review_id.as_deref().is_some_and(present)
         && source.terms_reviewed_by.as_deref().is_some_and(present)
-        && source.terms_reviewed_at.as_deref().is_some_and(present);
+        && source.terms_reviewed_at.as_deref().is_some_and(valid_timestamp);
     match source.terms_state {
         SourceTermsState::OpenRedistributionReviewed if !terms_are_reviewed => {
             PublicationScope::Blocked
