@@ -240,3 +240,54 @@ This is a paradigm shift from “where is the metal and how can it be extracted?
 ### Structural validity is not publication authority
 
 The Rust validator exposes separate structural validity and publication-scope decisions. Consumers must check the relevant publication permission as well as structural errors; a readable record with restricted or unreviewed terms is not publishable. Metadata-only permission never authorizes redistributing the underlying artifact. Source-review fields preserve review provenance but are not cryptographic authentication or independent legal advice.
+
+
+## Source-ingestion acceptance contract
+
+The first GEBCO ingestion slice is a **rights-reviewed, reproducible fixture**, not a claim that the full CCZ has been mapped or that every source cell is directly measured. Do not fetch or redistribute an artifact until its selected endpoint's terms have been reviewed.
+
+### Artifact receipt (one selected endpoint, one exact byte stream)
+
+An ingestion run must emit a machine-readable receipt with:
+
+- `receipt_schema`: fixed versioned schema identifier;
+- `source_id`, `source_endpoint`, `source_record_url`, and `retrieved_at_utc`;
+- `source_product`, `product_version`, `artifact_filename`, and `media_type`;
+- `artifact_sha256` calculated from the exact downloaded bytes before decompression or transformation;
+- `artifact_bytes`, `transformation_id`, `transformation_version`, and `output_sha256` for each derived artifact;
+- `source_terms_record_id`, `terms_review_status`, `reviewed_endpoint`, `reviewed_at_utc`, and attribution text;
+- coordinate reference system, horizontal units, vertical datum/units where supplied, grid spacing, bounding region, and explicit NoData encoding;
+- provenance for the TID file as a distinct artifact, not an inferred property of the bathymetry grid;
+- a summary of cell count and TID-class counts, plus explicit counts for unknown/mixed/estimated source classes when the product exposes them;
+- software version and source commit used for parsing, plus a deterministic validation report.
+
+A digest proves byte identity only. It does not prove that the source is accurate, that metadata is truthful, that a license permits redistribution, or that a measurement was directly observed.
+
+### Fail-closed requirements
+
+1. **Hash exact bytes.** Never hash a decoded/re-serialized representation and call it the source artifact digest. Record a separate digest for each derived output.
+2. **Do not flatten source rights.** GEBCO, CEDA and BODC records remain distinct endpoint-specific assertions. An unresolved or conflicting applicability review blocks artifact redistribution; metadata-only publication is allowed only when its own terms and attribution have been reviewed.
+3. **Keep bathymetry and TID paired.** Reject mismatched product versions, grids, dimensions, bounds, coordinate systems, or cell ordering. Never silently resample to make a mismatch disappear.
+4. **Preserve NoData and source class.** Unknown, mixed, inferred and missing cells must not be coerced into zero depth, “no habitat”, or direct measurement.
+5. **Declare coordinate and vertical semantics.** Missing CRS, vertical datum/units, axis order, or NoData semantics makes the affected derived data indeterminate and blocks downstream scientific claims.
+6. **No navigation claims.** The GEBCO grid is not a navigational safety product; this ingestion slice must not emit safe-route, collision-avoidance or AUV-clearance claims.
+7. **Separate syntactic validity from publication permission.** A well-formed receipt can still be unpublishable because terms are unresolved.
+8. **Deterministic replay.** Given the exact artifact bytes, parser/tool version, configuration and transformation versions, the normalized receipt and validation output must be byte-for-byte stable after canonical serialization.
+
+### Minimal benchmark fixtures
+
+Before a real artifact is considered, the ingestion verifier must pass fixtures for: valid paired grid/TID; grid-version mismatch; dimension/bounds mismatch; CRS mismatch; absent vertical datum; unknown NoData encoding; hash mismatch; duplicate receipt IDs; malformed UTC timestamps; unresolved source terms; missing attribution; TID unknown/mixed categories; and an attempt to reinterpret NoData as zero or as biological absence. Include at least one positive control and one negative control for every fail-closed rule.
+
+### Acceptance targets
+
+- 100% exact-byte digest verification and deterministic replay on fixtures;
+- zero publication permission when endpoint terms or required attribution remain unresolved;
+- zero silent conversions of NoData/unknown source classes into measured values;
+- zero bathymetry/TID pairing accepted when version, dimensions, grid geometry or CRS disagree;
+- 100% of derived outputs linked to the input artifact digest and transformation version;
+- every cell summary states source-class coverage and unknown/mixed counts, not just nominal grid resolution;
+- no claim that this fixture validates the entire CCZ or supports navigation.
+
+### First bounded slice
+
+Use a small, non-navigation regional subset only after the exact download endpoint and artifact terms are reviewed. Preserve the unmodified source bytes or an authorized source-side reference, record the digest and source notice, then parse a tiny grid/TID window and compare dimensions, coordinates, NoData and class counts independently. Until the artifact has been acquired under reviewed terms, the fixture remains synthetic and the ingestion status must say `not_ingested`.
