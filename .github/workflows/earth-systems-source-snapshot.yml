@@ -1,0 +1,197 @@
+name: Earth systems source snapshot (manual)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# No cancellation group: each manual capture is evidence-producing and should run to completion.
+
+jobs:
+  chirps-index:
+    name: Capture CHIRPS index bytes (no raster download)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Capture exact monthly directory index without selecting a period
+        run: |
+          set -euo pipefail
+          mkdir -p source-evidence/chirps
+          python scripts/earth-systems/plan_chirps_monthly.py \
+            --snapshot-only \
+            --snapshot-index source-evidence/chirps/index.html \
+            --output source-evidence/chirps/manifest.json
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path("source-evidence/chirps")
+          manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+          raw = (root / "index.html").read_bytes()
+          assert manifest["status"] == "index_snapshot_only"
+          assert manifest["requested_period"] is None
+          assert manifest["raster_files_downloaded"] == 0
+          assert manifest["index_bytes"] == len(raw)
+          assert manifest["index_sha256"] == hashlib.sha256(raw).hexdigest()
+          PY
+      - name: Upload raw index and hash manifest
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: chirps-index-snapshot-${{ github.run_id }}-${{ github.run_attempt }}
+          path: source-evidence/chirps/
+          if-no-files-found: error
+          retention-days: 14
+
+  wapor-mapsets:
+    name: Capture WaPOR mapset catalog responses (metadata only)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Capture official WaPOR v3 mapset catalog
+        run: |
+          set -euo pipefail
+          mkdir -p source-evidence/wapor
+          python scripts/earth-systems/inspect_wapor_catalog.py \
+            --snapshot-dir source-evidence/wapor/raw-mapsets \
+            --output source-evidence/wapor/mapsets-inventory.json
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path("source-evidence/wapor")
+          manifest = json.loads((root / "mapsets-inventory.json").read_text(encoding="utf-8"))
+          assert manifest["status"] == "catalogue_inventory_only"
+          assert manifest["requested_mapset_code"] is None
+          assert manifest["rasters"] is None
+          for item in manifest["raw_response_snapshots"]:
+              raw = (root / "raw-mapsets" / item["filename"]).read_bytes()
+              assert item["bytes"] == len(raw)
+              assert item["sha256"] == hashlib.sha256(raw).hexdigest()
+          PY
+      - name: Upload raw catalog responses and inventory manifest
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: wapor-mapsets-snapshot-${{ github.run_id }}-${{ github.run_attempt }}
+          path: source-evidence/wapor/
+          if-no-files-found: warn
+          retention-days: 14
+
+  source-probe-national-aeti:
+    name: Probe L2-AETI-M metadata (national fallback only)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Capture exact national monthly AETI mapset metadata
+        run: |
+          set -euo pipefail
+          mkdir -p source-evidence/wapor-national-fallback
+          python scripts/earth-systems/inspect_wapor_catalog.py \
+            --mapset-code L2-AETI-M \
+            --snapshot-dir source-evidence/wapor-national-fallback/raw             --output source-evidence/wapor-national-fallback/inventory.json
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path("source-evidence/wapor-national-fallback")
+          manifest = json.loads((root / "inventory.json").read_text(encoding="utf-8"))
+          assert manifest["status"] == "catalogue_inventory_only"
+          assert manifest["requested_mapset_code"] == "L2-AETI-M"
+          assert manifest["raster_count"] == len(manifest["rasters"])
+          assert manifest["raster_pages"]
+          page_records = manifest["mapset_pages"] + manifest["raster_pages"]
+          expected = {page["response_sha256"]: page["response_bytes"] for page in page_records}
+          snapshots = manifest["raw_response_snapshots"]
+          assert len(snapshots) == len(page_records)
+          for item in snapshots:
+              raw = (root / "raw" / item["filename"]).read_bytes()
+              assert item["bytes"] == len(raw)
+              assert item["sha256"] == hashlib.sha256(raw).hexdigest()
+              assert expected.get(item["sha256"]) == len(raw)
+          selected = [x for x in manifest["mapsets"] if x.get("code") == "L2-AETI-M"]
+          assert len(selected) == 1
+          # This is a metadata-only national-resolution fallback probe. It cannot
+          # satisfy a missing Baixo Limpopo Level III layer or certify reuse rights.
+          PY
+      - name: Upload national fallback metadata evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: wapor-national-aeti-metadata-${{ github.run_id }}-${{ github.run_attempt }}
+          path: source-evidence/wapor-national-fallback/
+          if-no-files-found: warn
+          retention-days: 14
+
+  wapor-l3-mbl:
+    name: Capture WaPOR L3-AETI-M index for Baixo Limpopo
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Capture Level III area-specific index (index bytes only)
+        run: |
+          set -euo pipefail
+          mkdir -p source-evidence/wapor-l3-mbl
+          python scripts/earth-systems/inspect_wapor_level3_index.py \
+            --mapset-code L3-AETI-M \
+            --area-code MBL \
+            --snapshot-index source-evidence/wapor-l3-mbl/index.html \
+            --output source-evidence/wapor-l3-mbl/inventory.json
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path("source-evidence/wapor-l3-mbl")
+          manifest = json.loads((root / "inventory.json").read_text(encoding="utf-8"))
+          raw = (root / "index.html").read_bytes()
+          assert manifest["status"] == "level3_mosaicset_index_inventory_only"
+          assert manifest["mapset_code"] == "L3-AETI-M"
+          assert manifest["requested_area_code"] == "MBL"
+          assert manifest["index_snapshot_saved"] is True
+          assert manifest["index_bytes"] == len(raw)
+          assert manifest["index_sha256"] == hashlib.sha256(raw).hexdigest()
+          assert manifest["raster_files_downloaded"] == 0
+          assert manifest["sidecar_json_files_downloaded"] == 0
+          assert manifest["requested_area_raster_count"] == sum(
+              item["kind"] == "raster" for item in manifest["requested_area_files"]
+          )
+          PY
+      - name: Upload Level III index evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: wapor-l3-mbl-aeti-index-${{ github.run_id }}-${{ github.run_attempt }}
+          path: source-evidence/wapor-l3-mbl/
+          if-no-files-found: warn
+          retention-days: 14
+

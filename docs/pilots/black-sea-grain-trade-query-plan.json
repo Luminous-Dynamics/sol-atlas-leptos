@@ -1,0 +1,1677 @@
+{
+  "schema_version": "luminous.sol-atlas.un-comtrade-query-plan.v1",
+  "plan_id": "black-sea-grain-ukraine-monthly-trade-baseline",
+  "case_id": "black-sea-grain-initiative-2022-2023",
+  "status": "query_plan_only",
+  "execution_state": "not_run",
+  "analysis_window_frozen": false,
+  "source": {
+    "source_id": "UN-COMTRADE",
+    "provider": "United Nations Statistics Division",
+    "api_documentation_url": "https://uncomtrade.org/docs/un-comtrade-api/",
+    "endpoint_root": "https://comtradeapi.un.org",
+    "endpoint_template": "/public/v1/preview/{typeCode}/{freqCode}/{classificationCode}",
+    "access_mode": "public_preview_no_subscription_key",
+    "raw_response_bytes_acquired": false,
+    "source_sha256": null,
+    "response_schema_inspected": false,
+    "rights_review": "review_dataset_version",
+    "availability_endpoint_template": "/public/v1/getDa/{typeCode}/{freqCode}/{classificationCode}",
+    "availability_access_mode": "public_preview_no_subscription_key",
+    "availability_response_schema_inspected": false,
+    "availability_scope_limit": "Reporter/month availability only; the endpoint does not verify commodity, partner or flow."
+  },
+  "query_dimensions": {
+    "type_code": "C",
+    "frequency_code": "M",
+    "classification_code": "HS",
+    "reporter_code": 804,
+    "reporter_label": "Ukraine",
+    "partner_code": 0,
+    "partner_label": "World aggregate",
+    "flow_code": "X",
+    "flow_label": "Exports",
+    "commodity_codes": [
+      "1001",
+      "1005"
+    ],
+    "commodity_labels": [
+      "Wheat and meslin",
+      "Maize (corn)"
+    ],
+    "periods_start": "201701",
+    "periods_end": "202312",
+    "period_semantics": "YYYYMM",
+    "classification_policy": "Discovery only: preserve every returned classification/version field. Do not stitch results from different classification vintages or claim comparability until the classification, commodity definitions, quantity units and valuation fields are inspected. Split incompatible series instead of silently crosswalking them."
+  },
+  "request_chunks": [
+    {
+      "chunk_id": "201701_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201701",
+      "periods": [
+        "201701"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201701_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201701",
+      "periods": [
+        "201701"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201702_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201702",
+      "periods": [
+        "201702"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201702_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201702",
+      "periods": [
+        "201702"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201703_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201703",
+      "periods": [
+        "201703"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201703_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201703",
+      "periods": [
+        "201703"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201704_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201704",
+      "periods": [
+        "201704"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201704_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201704",
+      "periods": [
+        "201704"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201705_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201705",
+      "periods": [
+        "201705"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201705_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201705",
+      "periods": [
+        "201705"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201706_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201706",
+      "periods": [
+        "201706"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201706_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201706",
+      "periods": [
+        "201706"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201707_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201707",
+      "periods": [
+        "201707"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201707_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201707",
+      "periods": [
+        "201707"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201708_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201708",
+      "periods": [
+        "201708"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201708_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201708",
+      "periods": [
+        "201708"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201709_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201709",
+      "periods": [
+        "201709"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201709_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201709",
+      "periods": [
+        "201709"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201710_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201710",
+      "periods": [
+        "201710"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201710_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201710",
+      "periods": [
+        "201710"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201711_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201711",
+      "periods": [
+        "201711"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201711_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201711",
+      "periods": [
+        "201711"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201712_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201712",
+      "periods": [
+        "201712"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201712_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201712",
+      "periods": [
+        "201712"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201801_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201801",
+      "periods": [
+        "201801"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201801_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201801",
+      "periods": [
+        "201801"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201802_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201802",
+      "periods": [
+        "201802"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201802_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201802",
+      "periods": [
+        "201802"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201803_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201803",
+      "periods": [
+        "201803"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201803_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201803",
+      "periods": [
+        "201803"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201804_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201804",
+      "periods": [
+        "201804"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201804_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201804",
+      "periods": [
+        "201804"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201805_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201805",
+      "periods": [
+        "201805"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201805_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201805",
+      "periods": [
+        "201805"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201806_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201806",
+      "periods": [
+        "201806"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201806_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201806",
+      "periods": [
+        "201806"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201807_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201807",
+      "periods": [
+        "201807"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201807_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201807",
+      "periods": [
+        "201807"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201808_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201808",
+      "periods": [
+        "201808"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201808_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201808",
+      "periods": [
+        "201808"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201809_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201809",
+      "periods": [
+        "201809"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201809_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201809",
+      "periods": [
+        "201809"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201810_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201810",
+      "periods": [
+        "201810"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201810_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201810",
+      "periods": [
+        "201810"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201811_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201811",
+      "periods": [
+        "201811"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201811_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201811",
+      "periods": [
+        "201811"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201812_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201812",
+      "periods": [
+        "201812"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201812_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201812",
+      "periods": [
+        "201812"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201901_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201901",
+      "periods": [
+        "201901"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201901_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201901",
+      "periods": [
+        "201901"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201902_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201902",
+      "periods": [
+        "201902"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201902_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201902",
+      "periods": [
+        "201902"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201903_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201903",
+      "periods": [
+        "201903"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201903_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201903",
+      "periods": [
+        "201903"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201904_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201904",
+      "periods": [
+        "201904"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201904_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201904",
+      "periods": [
+        "201904"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201905_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201905",
+      "periods": [
+        "201905"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201905_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201905",
+      "periods": [
+        "201905"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201906_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201906",
+      "periods": [
+        "201906"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201906_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201906",
+      "periods": [
+        "201906"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201907_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201907",
+      "periods": [
+        "201907"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201907_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201907",
+      "periods": [
+        "201907"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201908_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201908",
+      "periods": [
+        "201908"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201908_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201908",
+      "periods": [
+        "201908"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201909_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201909",
+      "periods": [
+        "201909"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201909_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201909",
+      "periods": [
+        "201909"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201910_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201910",
+      "periods": [
+        "201910"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201910_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201910",
+      "periods": [
+        "201910"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201911_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201911",
+      "periods": [
+        "201911"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201911_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201911",
+      "periods": [
+        "201911"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "201912_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "201912",
+      "periods": [
+        "201912"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "201912_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "201912",
+      "periods": [
+        "201912"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202001_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202001",
+      "periods": [
+        "202001"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202001_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202001",
+      "periods": [
+        "202001"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202002_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202002",
+      "periods": [
+        "202002"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202002_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202002",
+      "periods": [
+        "202002"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202003_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202003",
+      "periods": [
+        "202003"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202003_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202003",
+      "periods": [
+        "202003"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202004_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202004",
+      "periods": [
+        "202004"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202004_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202004",
+      "periods": [
+        "202004"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202005_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202005",
+      "periods": [
+        "202005"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202005_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202005",
+      "periods": [
+        "202005"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202006_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202006",
+      "periods": [
+        "202006"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202006_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202006",
+      "periods": [
+        "202006"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202007_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202007",
+      "periods": [
+        "202007"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202007_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202007",
+      "periods": [
+        "202007"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202008_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202008",
+      "periods": [
+        "202008"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202008_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202008",
+      "periods": [
+        "202008"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202009_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202009",
+      "periods": [
+        "202009"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202009_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202009",
+      "periods": [
+        "202009"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202010_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202010",
+      "periods": [
+        "202010"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202010_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202010",
+      "periods": [
+        "202010"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202011_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202011",
+      "periods": [
+        "202011"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202011_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202011",
+      "periods": [
+        "202011"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202012_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202012",
+      "periods": [
+        "202012"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202012_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202012",
+      "periods": [
+        "202012"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202101_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202101",
+      "periods": [
+        "202101"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202101_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202101",
+      "periods": [
+        "202101"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202102_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202102",
+      "periods": [
+        "202102"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202102_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202102",
+      "periods": [
+        "202102"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202103_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202103",
+      "periods": [
+        "202103"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202103_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202103",
+      "periods": [
+        "202103"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202104_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202104",
+      "periods": [
+        "202104"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202104_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202104",
+      "periods": [
+        "202104"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202105_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202105",
+      "periods": [
+        "202105"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202105_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202105",
+      "periods": [
+        "202105"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202106_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202106",
+      "periods": [
+        "202106"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202106_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202106",
+      "periods": [
+        "202106"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202107_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202107",
+      "periods": [
+        "202107"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202107_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202107",
+      "periods": [
+        "202107"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202108_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202108",
+      "periods": [
+        "202108"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202108_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202108",
+      "periods": [
+        "202108"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202109_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202109",
+      "periods": [
+        "202109"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202109_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202109",
+      "periods": [
+        "202109"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202110_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202110",
+      "periods": [
+        "202110"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202110_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202110",
+      "periods": [
+        "202110"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202111_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202111",
+      "periods": [
+        "202111"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202111_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202111",
+      "periods": [
+        "202111"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202112_hs1001",
+      "window_id": "baseline_candidate",
+      "period": "202112",
+      "periods": [
+        "202112"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202112_hs1005",
+      "window_id": "baseline_candidate",
+      "period": "202112",
+      "periods": [
+        "202112"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202201_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202201",
+      "periods": [
+        "202201"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202201_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202201",
+      "periods": [
+        "202201"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202202_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202202",
+      "periods": [
+        "202202"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202202_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202202",
+      "periods": [
+        "202202"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202203_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202203",
+      "periods": [
+        "202203"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202203_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202203",
+      "periods": [
+        "202203"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202204_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202204",
+      "periods": [
+        "202204"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202204_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202204",
+      "periods": [
+        "202204"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202205_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202205",
+      "periods": [
+        "202205"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202205_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202205",
+      "periods": [
+        "202205"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202206_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202206",
+      "periods": [
+        "202206"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202206_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202206",
+      "periods": [
+        "202206"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202207_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202207",
+      "periods": [
+        "202207"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202207_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202207",
+      "periods": [
+        "202207"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202208_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202208",
+      "periods": [
+        "202208"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202208_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202208",
+      "periods": [
+        "202208"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202209_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202209",
+      "periods": [
+        "202209"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202209_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202209",
+      "periods": [
+        "202209"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202210_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202210",
+      "periods": [
+        "202210"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202210_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202210",
+      "periods": [
+        "202210"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202211_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202211",
+      "periods": [
+        "202211"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202211_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202211",
+      "periods": [
+        "202211"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202212_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202212",
+      "periods": [
+        "202212"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202212_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202212",
+      "periods": [
+        "202212"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202301_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202301",
+      "periods": [
+        "202301"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202301_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202301",
+      "periods": [
+        "202301"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202302_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202302",
+      "periods": [
+        "202302"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202302_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202302",
+      "periods": [
+        "202302"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202303_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202303",
+      "periods": [
+        "202303"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202303_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202303",
+      "periods": [
+        "202303"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202304_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202304",
+      "periods": [
+        "202304"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202304_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202304",
+      "periods": [
+        "202304"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202305_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202305",
+      "periods": [
+        "202305"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202305_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202305",
+      "periods": [
+        "202305"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202306_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202306",
+      "periods": [
+        "202306"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202306_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202306",
+      "periods": [
+        "202306"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202307_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202307",
+      "periods": [
+        "202307"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202307_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202307",
+      "periods": [
+        "202307"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202308_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202308",
+      "periods": [
+        "202308"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202308_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202308",
+      "periods": [
+        "202308"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202309_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202309",
+      "periods": [
+        "202309"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202309_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202309",
+      "periods": [
+        "202309"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202310_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202310",
+      "periods": [
+        "202310"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202310_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202310",
+      "periods": [
+        "202310"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202311_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202311",
+      "periods": [
+        "202311"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202311_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202311",
+      "periods": [
+        "202311"
+      ],
+      "commodity_code": "1005"
+    },
+    {
+      "chunk_id": "202312_hs1001",
+      "window_id": "conflict_follow_up",
+      "period": "202312",
+      "periods": [
+        "202312"
+      ],
+      "commodity_code": "1001"
+    },
+    {
+      "chunk_id": "202312_hs1005",
+      "window_id": "conflict_follow_up",
+      "period": "202312",
+      "periods": [
+        "202312"
+      ],
+      "commodity_code": "1005"
+    }
+  ],
+  "request_policy": {
+    "periods_per_request_target": 1,
+    "rationale": "The unauthenticated public preview endpoint is intentionally queried at its narrowest documented product/period scope: one commodity and one month per request. Seven years × 12 months × 2 commodities = 168 requests. Do not assume the broader authenticated API's multi-period capabilities apply to preview. A separate opt-in 84-request reporter/month availability pass uses the public getDa route to provide context for empty preview results; it cannot qualify product/partner/flow availability.",
+    "public_preview_record_limit": 500,
+    "fail_closed_if_count_exceeds_returned_rows": true,
+    "fail_closed_if_returned_rows_reach_preview_limit": true,
+    "preserve_exact_request_url_and_parameters": true,
+    "preserve_raw_response_bytes_before_parsing": true,
+    "store_raw_sha256_and_retrieval_timestamp": true,
+    "never_store_subscription_keys": true,
+    "minimum_seconds_between_comtrade_requests": 1,
+    "no_parallel_comtrade_requests": true,
+    "default_capture_scope": "companion_artifacts_only",
+    "comtrade_calls_require_explicit_flag": "--include-comtrade",
+    "stop_after_first_http_429": true,
+    "preserve_retry_after_header": true,
+    "preview_reporter_query_parameter": "reportercode",
+    "response_reporter_field": "reporterCode",
+    "casing_note": "The maintained UN Comtrade Python client's public-preview request builder uses lowercase reportercode; the captured response row field used for dimension validation is reporterCode. The availability route follows the maintained client's public getDa path and lowercase reportercode parameter.",
+    "availability_query_count_target": 84,
+    "availability_calls_require_explicit_flag": "--include-availability",
+    "availability_period_semantics": "One request per unique YYYYMM period and reporter; preserve all returned fields. This query does not filter or qualify commodity, partner, or flow.",
+    "minimum_seconds_between_comtrade_api_requests": 1
+  },
+  "fields_policy": {
+    "preserve_all_returned_fields": true,
+    "retain_dimensions": [
+      "period",
+      "reporterCode",
+      "partnerCode",
+      "flowCode",
+      "cmdCode",
+      "classificationCode",
+      "classificationSearchCode",
+      "isReported",
+      "isAggregate",
+      "isEstimated",
+      "primaryValue",
+      "netWgt",
+      "qty",
+      "qtyUnitCode",
+      "qtyUnitAbbr",
+      "motCode",
+      "customsCode"
+    ],
+    "interpret_only_after_metadata_review": [
+      "primaryValue",
+      "netWgt",
+      "qty",
+      "qtyUnitCode",
+      "qtyUnitAbbr",
+      "isEstimated",
+      "isAggregate",
+      "isReported"
+    ],
+    "no_implicit_unit_conversion": true,
+    "no_missing_value_to_zero_conversion": true,
+    "no_row_deduplication_without_documented_key": true,
+    "availability_dimension_limit": "Availability responses can confirm only reporter/month records; do not infer HS commodity, world-partner aggregate or export-flow availability from this endpoint."
+  },
+  "interpretation_ceiling": {
+    "allowed": "Reported monthly aggregate exports for Ukraine, world partner aggregate, and selected HS product codes, conditional on response coverage and returned metadata.",
+    "not_established": [
+      "Individual shipments, bills of lading, named suppliers, warehouse inventory or physical routes.",
+      "Which Ukrainian exports moved under the Black Sea Grain Initiative.",
+      "Port-level throughput or route availability.",
+      "Causal effect of the Initiative or conflict on world prices, food security or destination shortages."
+    ]
+  },
+  "control_design": {
+    "state": "not_preregistered",
+    "selected_controls": [],
+    "policy": "After metadata and coverage inspection but before looking at outcome patterns, write a dated control-design record. Justify comparator exporters/commodities, seasonality, COVID-period treatment, missingness, concurrent shocks and sensitivity analyses. Do not choose, drop or swap controls based on which gives a preferred result.",
+    "baseline_caveat": "2017-2021 is a candidate descriptive baseline and includes COVID-era shocks; it is not a sufficient causal control by itself."
+  },
+  "validation_gates": {
+    "query_executed": false,
+    "all_chunks_captured": false,
+    "raw_response_hashes_verified": false,
+    "api_schema_and_coverage_reviewed": false,
+    "classification_compatibility_reviewed": false,
+    "units_and_valuation_semantics_reviewed": false,
+    "incomplete_or_estimated_rows_reviewed": false,
+    "control_plan_preregistered": false,
+    "independent_review_completed": false
+  },
+  "companion_artifacts": [
+    {
+      "source_id": "UN-BSGI-JCC",
+      "artifact_id": "official-jcc-page",
+      "url": "https://www.un.org/en/node/207702",
+      "filename": "un-bsgi-jcc-initiative-update.html",
+      "response_kind": "html",
+      "expected_content_types": [
+        "text/html",
+        "application/xhtml+xml"
+      ],
+      "max_bytes": 16777216,
+      "rights_review_state": "review_per_artifact",
+      "role_limit": "Captures the public HTML response for audit and later reparse; a successful page response does not by itself prove the monthly table was independently extracted or that a separately downloadable data artifact exists."
+    },
+    {
+      "source_id": "FAO-FFPI",
+      "artifact_id": "monthly-nominal-index-csv",
+      "url": "https://www.fao.org/media/docs/worldfoodsituationlibraries/wfs-library/food_price_indices_data.csv?download=true&sfvrsn=523ebd2a_84",
+      "filename": "fao-food-price-indices-monthly.csv",
+      "response_kind": "csv",
+      "expected_content_types": [
+        "text/csv",
+        "application/csv"
+      ],
+      "max_bytes": 33554432,
+      "rights_review_state": "review_dataset_version",
+      "role_limit": "Captures the linked monthly nominal-index CSV response; inspect columns, index labels, missingness, revision vintage, attribution and terms before use."
+    }
+  ]
+}
