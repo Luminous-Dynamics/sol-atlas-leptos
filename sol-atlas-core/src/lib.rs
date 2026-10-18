@@ -13,6 +13,7 @@ pub mod confluence;
 pub mod constants;
 pub mod data;
 pub mod economics;
+pub mod industrial_capacity;
 pub mod energy_trading;
 pub mod geo;
 pub mod lod;
@@ -27,4 +28,5 @@ pub mod timeline;
 pub mod types;
 pub mod visual_validation;
 
+pub use industrial_capacity::*;
 pub use types::*;
