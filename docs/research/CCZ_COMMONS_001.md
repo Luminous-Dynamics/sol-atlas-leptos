@@ -19,6 +19,8 @@ The word “claims” must not collapse different classes of evidence.
 
 UNCLOS Article 136 describes the international seabed Area and its resources as the common heritage of mankind. Article 137 says no State may claim sovereignty or sovereign rights over the Area or its resources. Rights to mineral resources in the Area are governed through Part XI and applicable Authority rules. An ISA exploration contract is therefore not sovereign ownership and does not itself constitute a commercial-exploitation authorization.
 
+**Regulatory status is time-sensitive.** In its 19 September 2026 update, the ISA said exploitation-regulation negotiations had continued during the 31st Session; the Council requested a roadmap and an advanced negotiating text for the 32nd Session. The ISA listed Council meetings for 8–19 March and 12–23 July 2027 and the 32nd Assembly for 26–30 July 2027. Therefore a current atlas snapshot should record the retrieval/effective date and source state, rather than imply that draft exploitation regulations have already been adopted. Source: https://isa.org.jm/news/from-the-31st-to-the-32nd-session-advancing-the-mining-code-and-strengthening-the-common-heritage-of-humankind/
+
 Official references:
 - UNCLOS Part XI, Articles 136–143: https://www.un.org/depts/los/convention_agreements/texts/unclos/part112.htm
 - ISA exploration contracts: https://isa.org.jm/exploration-contracts/
@@ -72,7 +74,10 @@ This is a conceptual schema, not a compiled Rust type. Reconcile exact field nam
 - Instrument class and source-stated status.
 - Source document/dataset ID and URL.
 - Issue, effective, expiry and revocation dates where present.
-- Attribution, license/terms state, redistribution constraints and review timestamp.
+- Attribution, license/terms state and redistribution constraints.
+- A terms-review record ID, reviewer identity and timestamp; the timestamp must include a timezone.
+- Source retrieval timestamp with explicit timezone, plus stable source version where available.
+- SHA-256 format for archived source/geometry artifacts. The V0 validator checks digest syntax and provenance references; it does not calculate hashes from artifact bytes or authenticate the publisher. The ingestion path must compute a digest from exact bytes before asserting a pinned artifact.
 
 ### Measurement and quality
 - Observation interval, spatial footprint and sampling effort when available.
