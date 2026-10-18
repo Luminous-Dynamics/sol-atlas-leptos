@@ -412,6 +412,61 @@ mod tests {
     use super::{transition, DemoAction as A, DemoWorkflowState as S};
 
     #[test]
+    fn every_state_action_pair_matches_the_explicit_transition_allowlist() {
+        let states = [
+            S::Empty,
+            S::LocalRequest,
+            S::IncompleteQuote,
+            S::TermsRequested,
+            S::CompleteQuote,
+            S::QuoteAccepted,
+            S::BookingConfirmed,
+            S::ProviderReportedComplete,
+            S::FarmerAccepted,
+            S::Disputed,
+        ];
+        let actions = [
+            A::SaveRequest,
+            A::ReviewQuote,
+            A::RequestCompleteTerms,
+            A::ReceiveCompleteQuote,
+            A::AcceptQuote,
+            A::ConfirmBooking,
+            A::ReportProviderComplete,
+            A::FarmerAccept,
+            A::FarmerDispute,
+            A::ReturnToRequest,
+            A::DeclineQuote,
+            A::Restart,
+        ];
+
+        for state in states {
+            for action in actions {
+                let expected = match (state, action) {
+                    (S::Empty, A::SaveRequest) => S::LocalRequest,
+                    (S::LocalRequest, A::ReviewQuote) => S::IncompleteQuote,
+                    (S::IncompleteQuote, A::RequestCompleteTerms) => S::TermsRequested,
+                    (S::TermsRequested, A::ReceiveCompleteQuote) => S::CompleteQuote,
+                    (S::CompleteQuote, A::AcceptQuote) => S::QuoteAccepted,
+                    (S::QuoteAccepted, A::ConfirmBooking) => S::BookingConfirmed,
+                    (S::BookingConfirmed, A::ReportProviderComplete) => S::ProviderReportedComplete,
+                    (S::ProviderReportedComplete, A::FarmerAccept) => S::FarmerAccepted,
+                    (S::ProviderReportedComplete, A::FarmerDispute) => S::Disputed,
+                    (S::IncompleteQuote, A::ReturnToRequest) => S::LocalRequest,
+                    (S::CompleteQuote, A::DeclineQuote) => S::LocalRequest,
+                    (_, A::Restart) => S::Empty,
+                    _ => state,
+                };
+                assert_eq!(
+                    transition(state, action),
+                    expected,
+                    "unexpected transition from {state:?} via {action:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
     fn incomplete_quote_cannot_be_accepted() {
         assert_eq!(transition(S::IncompleteQuote, A::AcceptQuote), S::IncompleteQuote);
         assert_eq!(transition(S::TermsRequested, A::AcceptQuote), S::TermsRequested);
