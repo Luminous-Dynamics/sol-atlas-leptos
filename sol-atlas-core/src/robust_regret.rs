@@ -614,8 +614,8 @@ mod tests {
                         cost_unit: "regret-units".into(),
                         cost: 0.0,
                         outcome_by_scenario: BTreeMap::from([
-                            ("scenario-a".into(), "same".into()),
-                            ("scenario-b".into(), "same".into()),
+                            ("scenario-a".into(), ["same".into()].into()),
+                            ("scenario-b".into(), ["same".into()].into()),
                         ]),
                     },
                     InvestigationAction {
@@ -623,8 +623,8 @@ mod tests {
                         cost_unit: "regret-units".into(),
                         cost: 0.0,
                         outcome_by_scenario: BTreeMap::from([
-                            ("scenario-a".into(), "outcome-a".into()),
-                            ("scenario-b".into(), "outcome-b".into()),
+                            ("scenario-a".into(), ["outcome-a".into()].into()),
+                            ("scenario-b".into(), ["outcome-b".into()].into()),
                         ]),
                     },
                 ],
