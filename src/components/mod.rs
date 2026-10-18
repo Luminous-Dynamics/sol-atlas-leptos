@@ -10,3 +10,4 @@ pub mod reactor_twin_demo;
 pub mod timeline;
 pub mod tooltip;
 pub mod whisper;
+pub mod farmer_workspace;
