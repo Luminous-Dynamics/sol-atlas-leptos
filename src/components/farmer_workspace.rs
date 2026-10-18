@@ -97,7 +97,7 @@ pub fn FarmerWorkspace() -> impl IntoView {
     let simulated_offline = RwSignal::new(true);
     let workflow = RwSignal::new(DemoWorkflowState::Empty);
 
-    let dispatch = move |action| workflow.update(|state| *state = transition(*state, action));
+    let dispatch = move |action: DemoAction| workflow.update(|state| *state = transition(*state, action));
 
     let online_label = move || {
         if simulated_offline.get() {
@@ -315,7 +315,7 @@ pub fn FarmerWorkspace() -> impl IntoView {
                                 </div>
                                 <p class="field-work-note">"This illustrative quote is intentionally incomplete. The real workflow must block acceptance until material terms are clear."</p>
                                 <button class="field-work-primary" on:click=move |_| dispatch(DemoAction::RequestCompleteTerms)>"Simulate requesting complete terms"</button>
-                                <button class="field-work-secondary" on:click=move |_| dispatch(DemoAction::SaveRequest)>"Back to request"</button>
+                                <button class="field-work-secondary" on:click=move |_| dispatch(DemoAction::ReturnToRequest)>"Back to request"</button>
                             </Show>
 
                             <Show when=move || workflow.get() == DemoWorkflowState::TermsRequested>
@@ -324,7 +324,6 @@ pub fn FarmerWorkspace() -> impl IntoView {
                                 <p>"A missing travel fee or unknown parts cost is material. This prototype will not pretend the full price is known."</p>
                                 <div class="field-work-receipt"><strong>"Awaiting complete terms"</strong><span>"No booking · no payment · no provider contacted"</span></div>
                                 <button class="field-work-primary" on:click=move |_| dispatch(DemoAction::ReceiveCompleteQuote)>"Simulate receiving a complete quote"</button>
-                                <button class="field-work-secondary" on:click=move |_| dispatch(DemoAction::ReviewQuote)>"Review original example"</button>
                             </Show>
 
                             <Show when=move || workflow.get() == DemoWorkflowState::CompleteQuote>
@@ -375,7 +374,6 @@ pub fn FarmerWorkspace() -> impl IntoView {
                                 <h3>"Acceptance recorded in this prototype"</h3>
                                 <p>"The demo now records a separate farmer decision. That is still not a payment receipt or proof of independently verified repair quality."</p>
                                 <div class="field-work-receipt"><strong>"FARMER ACCEPTANCE · SIMULATED"</strong><span>"Payment: not recorded"</span></div>
-                                <button class="field-work-secondary" on:click=move |_| dispatch(DemoAction::Restart)>"Restart demo workflow"</button>
                                 <button class="field-work-secondary" on:click=move |_| dispatch(DemoAction::Restart)>"Restart demo workflow"</button>
                             </Show>
 
