@@ -112,6 +112,17 @@ Add deterministic fixtures for: ISA exploration contract, reserved area, APEI, n
 ### C1 — source provenance and versioning
 Bind each snapshot to exact artifact digest, retrieval/version identity and terms review. Derived features bind parent digests, transform version/parameters and output digest. A URL that now serves different bytes is a new snapshot, not the same evidence.
 
+
+### C1a — exact-byte verification receipt
+
+The core now exposes `sha256_hex` and `verify_artifact_bytes`. The latter emits a deterministic receipt containing the source snapshot pointer, expected digest, digest computed from the actual supplied bytes, byte length and one of four explicit states: `matched`, `missing_expected_digest`, `invalid_expected_digest`, or `mismatch`. A URL or version label never overrides a byte mismatch. A missing or malformed expected digest cannot be reported as verified.
+
+The helper is intentionally not a downloader or an archive: the caller must obtain bytes through a reviewed ingestion path and retain the payload and receipt. It does not authenticate publisher identity, prove a legal interpretation, parse a data format, or grant publication permission. The existing terms/publication gate remains separate.
+
+**First source candidate:** GEBCO_2026 Grid plus its Type Identifier (TID) Grid. The official GEBCO page says the grid is published at 15 arc-second intervals, supports user-selected area subsets and OPeNDAP access, and is public domain subject to its terms/disclaimer and required source acknowledgment. The cited edition reference is GEBCO Bathymetric Compilation Group 2026, DOI [10.5285/4f68d5c7-45eb-f999-e063-7086abc036fa](https://doi.org/10.5285/4f68d5c7-45eb-f999-e063-7086abc036fa). The global grid is multi-gigabyte; this change does **not** download it or claim the source artifact is ingested or rights-reviewed. Select a bounded CCZ subset, save the exact source bytes and source documentation, compute the digest locally, record exact terms/attribution review and compare the TID cells before adding any spatial claim.
+
+Source: [GEBCO_2026 Grid and terms of use](https://www.gebco.net/data-products-gridded-bathymetry-data/gebco2026-grid) and [Gridded Bathymetry Data access methods](https://www.gebco.net/data-products-gridded-bathymetry-data).
+
 ### C2 — bathymetry source-quality display
 Implement metadata/TID handling before detailed rendering. Make directly measured, predicted, interpolated, mixed and unknown source types distinguishable. Do not imply navigation safety.
 
