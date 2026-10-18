@@ -167,7 +167,8 @@ pub enum ValidationIssue {
 /// Validation design is explicit so an operational sample or synthetic oracle
 /// cannot be silently presented as spatial/seasonal generalization evidence.
 /// Random-row holdout is intentionally not a supported generalization label.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum ValidationDesign {
     SyntheticOracle,
     DescriptiveOperational,
@@ -179,7 +180,8 @@ pub enum ValidationDesign {
 /// Paired travel-time observations for validating a specific model, mode, season,
 /// scope, and declared evaluation partition. Samples should be measured
 /// independently of predictions.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct TravelTimeValidationSample {
     pub sample_ref: String,
     pub scope_ref: String,
@@ -194,7 +196,7 @@ pub struct TravelTimeValidationSample {
 }
 
 /// Error summary for one model-version/mode/season/scope group.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct TravelTimeErrorSummary {
     pub scope_ref: String,
     pub method_id: String,
@@ -875,6 +877,11 @@ mod tests {
             sample("trip:4", 40.0, 50.0),
             sample("trip:5", 50.0, 30.0),
         ];
+        let sample_json = serde_json::to_vec(&samples[0]).unwrap();
+        let decoded_sample: TravelTimeValidationSample =
+            serde_json::from_slice(&sample_json).unwrap();
+        assert_eq!(decoded_sample, samples[0]);
+
         let summary = summarize_travel_time_errors(&samples).unwrap();
         assert_eq!(summary.sample_count, 5);
         assert_eq!(summary.median_absolute_error_minutes, 3.0);
@@ -883,6 +890,9 @@ mod tests {
         assert_eq!(summary.season_label, "wet-season");
         assert_eq!(summary.validation_design, ValidationDesign::SyntheticOracle);
         assert_eq!(summary.partition_ref, "partition:synthetic-oracle-v1");
+        let serialized = serde_json::to_value(&summary).unwrap();
+        assert_eq!(serialized["validation_design"], "synthetic_oracle");
+        assert_eq!(serialized["p90_absolute_error_minutes"], 20.0);
     }
 
     #[test]
