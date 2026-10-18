@@ -1,0 +1,212 @@
+{
+  "profile_version": "city-belonging-admission-profile/0.1",
+  "title": "Synthetic City Belonging Admission Evidence Profile",
+  "status": "research fixture profile; not a production reuse licence or complete HSDS profile",
+  "claim_ceiling": "Defines local admission evidence and state enums for synthetic regression. It does not establish service truth, legal permission, safety, availability, or human outcomes.",
+  "evidence_contract": {
+    "required_fields": [
+      "source_id",
+      "source_uri",
+      "source_kind",
+      "permission_disposition",
+      "retrieved_at",
+      "upstream_record_id",
+      "provider_verified_fields",
+      "provider_verified_at",
+      "contact_checks",
+      "field_states"
+    ],
+    "source_kind_enum": [
+      "provider_supplied",
+      "directory_lead",
+      "multi_source_merge",
+      "user_submitted_correction",
+      "publicly_readable_registry"
+    ],
+    "permission_disposition_enum": [
+      "approved_for_fixture_only",
+      "approved_for_publication",
+      "unresolved",
+      "unknown",
+      "denied",
+      "revoked",
+      "review_required"
+    ],
+    "source_uri_format": "URI string; synthetic fixtures use the synthetic:// scheme. This does not imply the source exists or grants reuse permission.",
+    "timestamps": "retrieved_at is required; provider_verified_at may be null. Non-null values must be RFC3339-like timestamps and are evaluated against policy_as_of_date.",
+    "provider_verified_fields": "Unique dot paths of resource.field. Each path must point to a field actually present in the same case's pinned HSDS resource row. Verification is field- and timestamp-scoped, never a blanket record trust label.",
+    "field_state_enums": {
+      "cost": [
+        "unknown",
+        "provider_confirmed_free",
+        "provider_confirmed_paid",
+        "disputed",
+        "not_applicable"
+      ],
+      "accessibility": [
+        "unknown",
+        "provider_confirmed_accessible",
+        "provider_confirmed_inaccessible",
+        "disputed",
+        "not_applicable"
+      ],
+      "eligibility": [
+        "unknown",
+        "provider_confirmed",
+        "disputed",
+        "not_applicable"
+      ],
+      "language": [
+        "unknown",
+        "provider_confirmed",
+        "disputed",
+        "not_applicable"
+      ],
+      "capacity": [
+        "unknown",
+        "stale",
+        "provider_confirmed_live",
+        "disputed",
+        "not_applicable"
+      ],
+      "operational_status": [
+        "unknown",
+        "provider_confirmed",
+        "provider_confirmed_closed",
+        "disputed",
+        "not_applicable"
+      ],
+      "event_date": [
+        "unknown",
+        "past",
+        "upcoming",
+        "disputed",
+        "not_applicable"
+      ],
+      "contactability": [
+        "unknown",
+        "failed",
+        "verified",
+        "disputed",
+        "not_applicable"
+      ],
+      "address": [
+        "unknown",
+        "provider_confirmed",
+        "disputed",
+        "not_applicable"
+      ],
+      "service_area": [
+        "unknown",
+        "provider_confirmed",
+        "disputed",
+        "not_applicable"
+      ],
+      "street_address": [
+        "unknown",
+        "provider_confirmed",
+        "disputed",
+        "not_applicable"
+      ],
+      "coordinates": [
+        "unknown",
+        "provider_confirmed",
+        "disputed",
+        "not_applicable"
+      ],
+      "schedule": [
+        "unknown",
+        "provider_confirmed",
+        "stale",
+        "disputed",
+        "not_applicable"
+      ]
+    },
+    "contact_check": {
+      "allowed_fields": [
+        "kind",
+        "value",
+        "result"
+      ],
+      "kind_enum": [
+        "phone",
+        "url",
+        "email",
+        "in_person"
+      ],
+      "result_enum": [
+        "passed",
+        "failed",
+        "unknown",
+        "not_checked_in_synthetic_fixture"
+      ]
+    },
+    "optional_evidence_fields": {
+      "conflicts": {
+        "required_fields": [
+          "field",
+          "claim_a",
+          "claim_b"
+        ],
+        "purpose": "Preserve competing claims and their lineage; do not resolve material conflicts by recency alone."
+      },
+      "user_correction": {
+        "required_fields": [
+          "field",
+          "proposed_value",
+          "review_state"
+        ],
+        "review_state_enum": [
+          "unverified",
+          "review_required",
+          "reviewed",
+          "resolved"
+        ]
+      },
+      "capacity_claim": {
+        "required_fields": [
+          "units",
+          "available",
+          "observed_at",
+          "authority"
+        ],
+        "authority_enum": [
+          "directory_claim_only",
+          "provider_live_source",
+          "unknown"
+        ],
+        "purpose": "A historical capacity value is not live availability without explicit authorized current evidence."
+      }
+    }
+  },
+  "disposition_enum": [
+    "CandidateOnly",
+    "ReviewRequired",
+    "ProviderConfirmed",
+    "StaleOrDisputed",
+    "ClosedOrWithdrawn"
+  ],
+  "precedence": [
+    "reuse permission not approved -> CandidateOnly",
+    "material conflict, failed contact, or unreviewed correction -> ReviewRequired",
+    "provider-confirmed closed/inactive/defunct -> ClosedOrWithdrawn",
+    "past event, stale schedule/capacity, or expired provider confirmation -> StaleOrDisputed",
+    "provider-supplied source + field-scoped current verification + active status -> ProviderConfirmed",
+    "otherwise -> CandidateOnly"
+  ],
+  "display_claim_rules": {
+    "current": "Only ProviderConfirmed can be surfaced as current by this fixture policy.",
+    "map_pin": "Requires location_type=physical and separate provider-confirmed latitude and longitude.",
+    "free": "Requires field_states.cost=provider_confirmed_free.",
+    "accessible": "Requires field_states.accessibility=provider_confirmed_accessible.",
+    "live_capacity": "Requires field_states.capacity=provider_confirmed_live and capacity_claim.authority=provider_live_source."
+  },
+  "privacy_and_provenance": [
+    "Do not infer loneliness, religion, trauma, or mental-health status.",
+    "Basic discovery must not require sensitive intake.",
+    "Public readability does not grant data reuse permission.",
+    "Unknown is not positive evidence.",
+    "Fixture permission approved_for_fixture_only is test-only and grants no real data rights."
+  ],
+  "freshness_policy_reference": "The fixture manifest pins policy_as_of_date and provider_confirmation_max_age_days. The threshold is an illustrative policy parameter, not a universal standard."
+}

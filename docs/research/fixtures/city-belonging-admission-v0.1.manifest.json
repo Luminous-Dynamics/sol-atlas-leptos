@@ -1,0 +1,101 @@
+{
+  "manifest_version": "city-belonging-admission-manifest/0.1",
+  "fixture_id": "city-belonging-admission-v0.1",
+  "fixture_path": "docs/research/fixtures/city-belonging-admission-v0.1.jsonl",
+  "hash_algorithm": "SHA-256",
+  "fixture_sha256": "111a51e614ac033a0eb3ae5918159fbe020cc4fa01cdbc753fe5e09dd169c7d0",
+  "record_format": "JSON Lines; UTF-8; newline-terminated",
+  "record_count": 11,
+  "disposition_counts": {
+    "ProviderConfirmed": 3,
+    "StaleOrDisputed": 3,
+    "ReviewRequired": 3,
+    "ClosedOrWithdrawn": 1,
+    "CandidateOnly": 1
+  },
+  "schema_baseline": {
+    "standard": "Open Referral HSDS",
+    "version": "3.1",
+    "upstream_ref": "3.1",
+    "schema_pin_manifest_path": "docs/research/fixtures/hsds-3.1-selected-contract-v0.1.json",
+    "schema_pin_manifest_sha256_utf8": "854163e66a650f74f30822a3caa67bbb5d90370718bc175e6d647165070f807f",
+    "vendored_schema_files": [
+      {
+        "resource": "organization",
+        "path": "docs/research/fixtures/upstream/hsds-3.1/schema/organization.json",
+        "git_blob_sha1": "53f11b97c1461a935144524f76423a952a7bdcde",
+        "sha256_utf8": "b4359388ff45e77027bdfaa074567bf1c0bae37f2392fe978a68e1eb048484e6"
+      },
+      {
+        "resource": "service",
+        "path": "docs/research/fixtures/upstream/hsds-3.1/schema/service.json",
+        "git_blob_sha1": "bacbe613f10f89acd62861caaf362226f24dd28f",
+        "sha256_utf8": "e692fe57de03536403f2223cc955e30622a34f492cd268810593e57c3e57ed7e"
+      },
+      {
+        "resource": "location",
+        "path": "docs/research/fixtures/upstream/hsds-3.1/schema/location.json",
+        "git_blob_sha1": "06e86e417e448b3ff11108a208126eccbb3fc1ac",
+        "sha256_utf8": "205c3ce4ec0f4b5dd0b2ca30b1321bd320d1ba184f41434041e4276b3fb2e286"
+      },
+      {
+        "resource": "service_at_location",
+        "path": "docs/research/fixtures/upstream/hsds-3.1/schema/service_at_location.json",
+        "git_blob_sha1": "d399404fb790951ccaeb6f57f2b4b49e73082e9f",
+        "sha256_utf8": "24ae016e44bb626cdacd53b1a45eec348796c86efb8f8708a689c83c78264710"
+      },
+      {
+        "resource": "schedule",
+        "path": "docs/research/fixtures/upstream/hsds-3.1/schema/schedule.json",
+        "git_blob_sha1": "b4f2afa953cd91843fd900b1965266210ac653ba",
+        "sha256_utf8": "c611984058f37c8435d930fd89bf915a20eea7f3a217ff053206e21440744bdb"
+      },
+      {
+        "resource": "address",
+        "path": "docs/research/fixtures/upstream/hsds-3.1/schema/address.json",
+        "git_blob_sha1": "ba0d945f73df9581f47ed8632fb50a6847a5c539",
+        "sha256_utf8": "0647496d479a41c01744ce8caee9edc19feadb111acaecf42167128b8635209f"
+      },
+      {
+        "resource": "service_area",
+        "path": "docs/research/fixtures/upstream/hsds-3.1/schema/service_area.json",
+        "git_blob_sha1": "697283140d538a86302a667d7a6e221bec8a036f",
+        "sha256_utf8": "59dc874931770cccd9e81afd086b2b1e2a329df8fb0791f7a99c6eb0a3cc4de8"
+      },
+      {
+        "resource": "service_capacity",
+        "path": "docs/research/fixtures/upstream/hsds-3.1/schema/service_capacity.json",
+        "git_blob_sha1": "6b6ebb238cf50072dee30f0ff48f4f05bd57e5eb",
+        "sha256_utf8": "bd9620d0154c960fe61e2e0f1552bb6050da4d8f95265843064f09bd8cf63425"
+      },
+      {
+        "resource": "unit",
+        "path": "docs/research/fixtures/upstream/hsds-3.1/schema/unit.json",
+        "git_blob_sha1": "bbae59f7cac33157c64fd368ac0a350cd33a8854",
+        "sha256_utf8": "107c201430274af1584921bd20469cc4e664930cd757261698900cc88948da57"
+      }
+    ],
+    "validation_status": "PINNED_SELECTED_RESOURCE_ROW_CONTRACT_IMPLEMENTED_BUT_NOT_EXECUTED; FULL_HSDS_CONFORMANCE_NOT_ASSERTED",
+    "reason": "The checker is authored to validate selected HSDS 3.1 row properties, required plus tabular-required fields, types, formats, enums, and cross-row relationships against nine vendored, hash-pinned schema files. The Rust implementation is not compiled/executed yet; nested references and all upstream schema semantics are not fully implemented. No full HSDS conformance claim is made."
+  },
+  "local_profile": {
+    "id": "city-belonging-admission-profile",
+    "version": "0.1",
+    "path": "docs/research/fixtures/city-belonging-admission-profile-v0.1.json",
+    "sha256_utf8": "f7000d59cda23bf4ce55ceba12b4c353d6ef315a05f68f6001c613e88dee24ae",
+    "validation_status": "IMPLEMENTED_IN_RUST_CHECKER_NOT_EXECUTED"
+  },
+  "status": "SYNTHETIC_RESEARCH_FIXTURE",
+  "claims_not_made": [
+    "HSDS schema conformance",
+    "real service coverage",
+    "provider partnership",
+    "live availability",
+    "safety",
+    "reduction in loneliness"
+  ],
+  "all_entities_synthetic": true,
+  "contains_real_personal_data": false,
+  "policy_as_of_date": "2026-10-17",
+  "provider_confirmation_max_age_days": 30
+}

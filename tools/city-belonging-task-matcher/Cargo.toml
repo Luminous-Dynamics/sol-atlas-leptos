@@ -1,0 +1,9 @@
+[package]
+name = "city-belonging-task-matcher"
+version = "0.1.0"
+edition = "2024"
+description = "Deterministic constraint-first evaluator for the synthetic City Belonging task benchmark"
+
+[dependencies]
+serde_json = "1"
+sha2 = "0.10"
