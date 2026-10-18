@@ -304,6 +304,16 @@ impl GeoAccessEnvelope {
                 {
                     issues.push(ValidationIssue::InvalidCoverageState);
                 }
+                // A no-route claim requires route data with enough declared
+                // coverage to distinguish an absent path from a missing map.
+                if self.state == AccessState::NoRoute
+                    && !matches!(
+                        self.coverage,
+                        CoverageState::Validated | CoverageState::PartiallyValidated
+                    )
+                {
+                    issues.push(ValidationIssue::InvalidCoverageState);
+                }
             }
             AccessMetric::ObservedTripDistance | AccessMetric::ObservedTripTime => {
                 if self.travel_mode == TravelMode::StraightLine
@@ -324,13 +334,16 @@ impl GeoAccessEnvelope {
             issues.push(ValidationIssue::InvalidCoverageState);
         }
 
+        if self.state != AccessState::Unknown && self.source_evidence_refs.is_empty() {
+            // No-route, out-of-coverage, stale and conflicting dispositions
+            // are still claims about evidence, not permission to omit it.
+            issues.push(ValidationIssue::MissingSourceEvidence);
+        }
+
         match (self.state, self.value) {
             (AccessState::Available, Some(value)) => {
                 if !value.is_finite() || value < 0.0 {
                     issues.push(ValidationIssue::NegativeOrNonFiniteValue);
-                }
-                if self.source_evidence_refs.is_empty() {
-                    issues.push(ValidationIssue::MissingSourceEvidence);
                 }
             }
             (AccessState::Available, None) => {
@@ -768,9 +781,8 @@ mod tests {
                 candidate.state = state;
                 candidate.value = (state == AccessState::Available).then_some(45.0);
                 candidate.coverage = coverage;
-                let coverage_matches_state =
-                    (state == AccessState::OutsideCoverage)
-                        == (coverage == CoverageState::OutsideCoverage);
+                let coverage_matches_state = (state == AccessState::OutsideCoverage)
+                    == (coverage == CoverageState::OutsideCoverage);
                 let available_coverage_is_usable = state != AccessState::Available
                     || matches!(
                         coverage,
@@ -778,9 +790,15 @@ mod tests {
                             | CoverageState::PartiallyValidated
                             | CoverageState::Unvalidated
                     );
+                let no_route_is_supported = state != AccessState::NoRoute
+                    || matches!(
+                        coverage,
+                        CoverageState::Validated | CoverageState::PartiallyValidated
+                    );
                 let expected = coverage != CoverageState::NotApplicable
                     && coverage_matches_state
-                    && available_coverage_is_usable;
+                    && available_coverage_is_usable
+                    && no_route_is_supported;
                 assert_eq!(
                     candidate.validate().is_ok(),
                     expected,
@@ -814,6 +832,36 @@ mod tests {
         false_zero.state = AccessState::NoRoute;
         false_zero.value = Some(0.0);
         assert!(false_zero.validate().is_err());
+    }
+
+    #[test]
+    fn unsupported_no_route_claims_fail_closed_on_coverage_and_evidence() {
+        let mut no_route = modeled_time_envelope();
+        no_route.state = AccessState::NoRoute;
+        no_route.value = None;
+        no_route.coverage = CoverageState::Validated;
+        assert!(no_route.validate().is_ok());
+
+        no_route.coverage = CoverageState::Unknown;
+        assert!(no_route.validate().is_err());
+
+        no_route.coverage = CoverageState::Validated;
+        no_route.source_evidence_refs.clear();
+        assert!(no_route.validate().is_err());
+
+        let mut unknown = modeled_time_envelope();
+        unknown.state = AccessState::Unknown;
+        unknown.value = None;
+        unknown.coverage = CoverageState::Unknown;
+        unknown.source_evidence_refs.clear();
+        assert!(unknown.validate().is_ok());
+
+        let mut outside = modeled_time_envelope();
+        outside.state = AccessState::OutsideCoverage;
+        outside.value = None;
+        outside.coverage = CoverageState::OutsideCoverage;
+        outside.source_evidence_refs.clear();
+        assert!(outside.validate().is_err());
     }
 
     #[test]
