@@ -141,6 +141,7 @@ pub struct GeoAccessEnvelope {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ValidationIssue {
     UnsupportedSchemaVersion,
+    InvalidCoordinate,
     EmptyRequiredField(&'static str),
     InvalidPeriod,
     InvalidTimestamp,
@@ -371,7 +372,7 @@ pub fn checked_geodesic_distance_km(
             || !(-90.0..=90.0).contains(&latitude)
             || !(-180.0..=180.0).contains(&longitude)
         {
-            return Err(ValidationIssue::InvalidValidationSample);
+            return Err(ValidationIssue::InvalidCoordinate);
         }
     }
 
@@ -552,11 +553,11 @@ mod tests {
     fn geodesic_helper_rejects_invalid_coordinates() {
         assert_eq!(
             checked_geodesic_distance_km(91.0, 0.0, 0.0, 0.0),
-            Err(ValidationIssue::InvalidValidationSample)
+            Err(ValidationIssue::InvalidCoordinate)
         );
         assert_eq!(
             checked_geodesic_distance_km(0.0, f64::NAN, 0.0, 0.0),
-            Err(ValidationIssue::InvalidValidationSample)
+            Err(ValidationIssue::InvalidCoordinate)
         );
     }
 
