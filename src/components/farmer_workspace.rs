@@ -51,7 +51,9 @@ impl DemoWorkflowState {
             Self::CompleteQuote => "Complete synthetic quote received — not accepted",
             Self::QuoteAccepted => "Quote acceptance simulated — awaiting provider confirmation",
             Self::BookingConfirmed => "Booking confirmation simulated — work not completed",
-            Self::ProviderReportedComplete => "Provider reports completion — farmer decision pending",
+            Self::ProviderReportedComplete => {
+                "Provider reports completion — farmer decision pending"
+            }
             Self::FarmerAccepted => "Farmer acceptance simulated",
             Self::Disputed => "Problem reported — demo rework path",
         }
@@ -97,7 +99,8 @@ pub fn FarmerWorkspace() -> impl IntoView {
     let simulated_offline = RwSignal::new(true);
     let workflow = RwSignal::new(DemoWorkflowState::Empty);
 
-    let dispatch = move |action: DemoAction| workflow.update(|state| *state = transition(*state, action));
+    let dispatch =
+        move |action: DemoAction| workflow.update(|state| *state = transition(*state, action));
 
     let online_label = move || {
         if simulated_offline.get() {
@@ -279,11 +282,11 @@ pub fn FarmerWorkspace() -> impl IntoView {
                         </div>
 
                         <div class="field-work-stepper" aria-label="Service lifecycle steps">
-                            <div class:current=move || workflow.get() == DemoWorkflowState::LocalRequest class:complete=move || workflow.get().step() > 1><span>"1"</span><small>"Request"</small></div>
-                            <div class:current=move || workflow.get() == DemoWorkflowState::IncompleteQuote || workflow.get() == DemoWorkflowState::TermsRequested || workflow.get() == DemoWorkflowState::CompleteQuote class:complete=move || workflow.get().step() > 2><span>"2"</span><small>"Quote"</small></div>
-                            <div class:current=move || workflow.get() == DemoWorkflowState::QuoteAccepted || workflow.get() == DemoWorkflowState::BookingConfirmed class:complete=move || workflow.get().step() > 3><span>"3"</span><small>"Booking"</small></div>
-                            <div class:current=move || workflow.get() == DemoWorkflowState::ProviderReportedComplete class:complete=move || workflow.get().step() > 4><span>"4"</span><small>"Provider report"</small></div>
-                            <div class:current=move || workflow.get() == DemoWorkflowState::FarmerAccepted || workflow.get() == DemoWorkflowState::Disputed><span>"5"</span><small>"Farmer decision"</small></div>
+                            <div class:current=move || { workflow.get() == DemoWorkflowState::LocalRequest } class:complete=move || { workflow.get().step() > 1 }><span>"1"</span><small>"Request"</small></div>
+                            <div class:current=move || { matches!(workflow.get(), DemoWorkflowState::IncompleteQuote | DemoWorkflowState::TermsRequested | DemoWorkflowState::CompleteQuote) } class:complete=move || { workflow.get().step() > 2 }><span>"2"</span><small>"Quote"</small></div>
+                            <div class:current=move || { matches!(workflow.get(), DemoWorkflowState::QuoteAccepted | DemoWorkflowState::BookingConfirmed) } class:complete=move || { workflow.get().step() > 3 }><span>"3"</span><small>"Booking"</small></div>
+                            <div class:current=move || { workflow.get() == DemoWorkflowState::ProviderReportedComplete } class:complete=move || { workflow.get().step() > 4 }><span>"4"</span><small>"Provider report"</small></div>
+                            <div class:current=move || { matches!(workflow.get(), DemoWorkflowState::FarmerAccepted | DemoWorkflowState::Disputed) }><span>"5"</span><small>"Farmer decision"</small></div>
                         </div>
 
                         <div class="field-work-panel field-work-full-panel">
@@ -406,10 +409,9 @@ pub fn FarmerWorkspace() -> impl IntoView {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use super::{transition, DemoAction as A, DemoWorkflowState as S};
+    use super::{DemoAction as A, DemoWorkflowState as S, transition};
 
     #[test]
     fn every_state_action_pair_matches_the_explicit_transition_allowlist() {
@@ -468,14 +470,26 @@ mod tests {
 
     #[test]
     fn incomplete_quote_cannot_be_accepted() {
-        assert_eq!(transition(S::IncompleteQuote, A::AcceptQuote), S::IncompleteQuote);
-        assert_eq!(transition(S::TermsRequested, A::AcceptQuote), S::TermsRequested);
+        assert_eq!(
+            transition(S::IncompleteQuote, A::AcceptQuote),
+            S::IncompleteQuote
+        );
+        assert_eq!(
+            transition(S::TermsRequested, A::AcceptQuote),
+            S::TermsRequested
+        );
     }
 
     #[test]
     fn quote_acceptance_and_booking_confirmation_are_distinct_states() {
-        assert_eq!(transition(S::CompleteQuote, A::AcceptQuote), S::QuoteAccepted);
-        assert_eq!(transition(S::QuoteAccepted, A::ConfirmBooking), S::BookingConfirmed);
+        assert_eq!(
+            transition(S::CompleteQuote, A::AcceptQuote),
+            S::QuoteAccepted
+        );
+        assert_eq!(
+            transition(S::QuoteAccepted, A::ConfirmBooking),
+            S::BookingConfirmed
+        );
         assert_ne!(S::QuoteAccepted, S::BookingConfirmed);
     }
 
