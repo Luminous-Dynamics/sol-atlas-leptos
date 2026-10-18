@@ -127,7 +127,9 @@ pub enum ValidationCode {
     MissingSnapshotId,
     MissingSourceName,
     MissingSourceUrl,
+    InvalidSourceUrl,
     MissingRetrievalTime,
+    InvalidTimestamp,
     MissingLicenseTerms,
     MissingAttribution,
     MissingTermsReviewEvidence,
@@ -193,6 +195,67 @@ fn present(value: &str) -> bool {
 
 fn valid_sha256(value: &str) -> bool {
     value.len() == 64 && value.bytes().all(|b| b.is_ascii_hexdigit())
+}
+
+fn valid_http_url(value: &str) -> bool {
+    let Some(rest) = value.strip_prefix("https://").or_else(|| value.strip_prefix("http://")) else {
+        return false;
+    };
+    let authority = rest.split(['/', '?', '#']).next().unwrap_or_default();
+    !authority.is_empty() && !authority.bytes().any(|b| b.is_ascii_whitespace())
+}
+
+fn valid_timestamp(value: &str) -> bool {
+    if !value.is_ascii() || value.len() < 20 {
+        return false;
+    }
+    let bytes = value.as_bytes();
+    if valid_iso_date(&value[..10]).is_none()
+        || !matches!(bytes[10], b'T' | b't')
+        || bytes[13] != b':'
+        || bytes[16] != b':'
+    {
+        return false;
+    }
+    let (Ok(hour), Ok(minute), Ok(second)) = (
+        value[11..13].parse::<u32>(),
+        value[14..16].parse::<u32>(),
+        value[17..19].parse::<u32>(),
+    ) else {
+        return false;
+    };
+    if hour > 23 || minute > 59 || second > 60 {
+        return false;
+    }
+
+    let mut index = 19;
+    if bytes.get(index) == Some(&b'.') {
+        index += 1;
+        let start = index;
+        while bytes.get(index).is_some_and(u8::is_ascii_digit) {
+            index += 1;
+        }
+        if index == start {
+            return false;
+        }
+    }
+
+    match bytes.get(index) {
+        Some(b'Z' | b'z') => index + 1 == bytes.len(),
+        Some(b'+' | b'-') => {
+            if index + 6 != bytes.len() || bytes[index + 3] != b':' {
+                return false;
+            }
+            let (Ok(offset_hour), Ok(offset_minute)) = (
+                value[index + 1..index + 3].parse::<u32>(),
+                value[index + 4..index + 6].parse::<u32>(),
+            ) else {
+                return false;
+            };
+            offset_hour <= 23 && offset_minute <= 59
+        }
+        _ => false,
+    }
 }
 
 fn valid_iso_date(value: &str) -> Option<(i32, u32, u32)> {
@@ -266,6 +329,20 @@ pub fn validate_source_snapshot(source: &CczSourceSnapshot) -> SourceValidation 
             issues.push(issue(ValidationSeverity::Error, code, format!("{label} must be non-empty")));
         }
     }
+    if present(&source.source_url) && !valid_http_url(&source.source_url) {
+        issues.push(issue(
+            ValidationSeverity::Error,
+            ValidationCode::InvalidSourceUrl,
+            "source_url must be an absolute HTTP(S) URL with a non-empty authority",
+        ));
+    }
+    if present(&source.retrieved_at) && !valid_timestamp(&source.retrieved_at) {
+        issues.push(issue(
+            ValidationSeverity::Error,
+            ValidationCode::InvalidTimestamp,
+            "retrieved_at must be an RFC 3339 timestamp with an explicit timezone",
+        ));
+    }
 
     if let Some(digest) = source.artifact_sha256.as_deref() {
         if !valid_sha256(digest) {
@@ -308,6 +385,12 @@ pub fn validate_source_snapshot(source: &CczSourceSnapshot) -> SourceValidation 
                     ValidationSeverity::Error,
                     ValidationCode::MissingTermsReviewEvidence,
                     "reviewed terms require a review record ID, reviewer identity, and review timestamp",
+                ));
+            } else if !valid_timestamp(source.terms_reviewed_at.as_deref().unwrap_or_default()) {
+                issues.push(issue(
+                    ValidationSeverity::Error,
+                    ValidationCode::InvalidTimestamp,
+                    "terms_reviewed_at must be an RFC 3339 timestamp with an explicit timezone",
                 ));
             }
         }
@@ -516,6 +599,18 @@ mod tests {
         let report = validate_source_snapshot(&snapshot);
         assert_eq!(report.publication_scope, PublicationScope::Blocked);
         assert!(report.issues.iter().any(|i| i.code == ValidationCode::MissingTermsReviewEvidence));
+    }
+
+    #[test]
+    fn source_snapshot_rejects_invalid_url_and_unzoned_timestamp() {
+        let digest = "a".repeat(64);
+        let mut snapshot = source(SourceTermsState::OpenRedistributionReviewed, Some(&digest));
+        snapshot.source_url = "not a URL".into();
+        snapshot.retrieved_at = "2026-10-18T12:30:00".into();
+        let report = validate_source_snapshot(&snapshot);
+        assert_eq!(report.publication_scope, PublicationScope::Blocked);
+        assert!(report.issues.iter().any(|i| i.code == ValidationCode::InvalidSourceUrl));
+        assert!(report.issues.iter().any(|i| i.code == ValidationCode::InvalidTimestamp));
     }
 
     #[test]
