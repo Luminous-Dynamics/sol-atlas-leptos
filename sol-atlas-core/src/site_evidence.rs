@@ -737,6 +737,7 @@ mod tests {
     #[test]
     fn expired_sources_are_held() {
         let mut item = source("expired");
+        item.data_as_of_unix_seconds = Some(1_792_195_100);
         item.valid_until_unix_seconds = Some(1_792_195_199);
         let result = assess_source(&item, &policy()).unwrap();
         assert_eq!(result.readiness, EvidenceReadiness::Expired);
