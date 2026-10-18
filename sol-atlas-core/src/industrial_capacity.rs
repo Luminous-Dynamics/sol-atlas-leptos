@@ -120,9 +120,7 @@ pub struct IndustrialFacility {
 /// Returns every detected issue to help curators fix records in one pass.
 /// This is structural validation, not verification of the external evidence or
 /// a guarantee that nominal capacity is actually available.
-pub fn validate_industrial_facility(
-    facility: &IndustrialFacility,
-) -> Result<(), Vec<String>> {
+pub fn validate_industrial_facility(facility: &IndustrialFacility) -> Result<(), Vec<String>> {
     let mut issues = Vec::new();
 
     for (field, value, limit) in [
@@ -137,7 +135,10 @@ pub fn validate_industrial_facility(
         }
     }
     if facility.country_code.len() != 2
-        || !facility.country_code.bytes().all(|b| b.is_ascii_uppercase())
+        || !facility
+            .country_code
+            .bytes()
+            .all(|b| b.is_ascii_uppercase())
     {
         issues.push("country_code must be two uppercase ASCII letters".into());
     }
@@ -184,9 +185,7 @@ pub fn validate_industrial_facility(
 ///
 /// This function does not deduplicate silently: duplicate IDs may refer to
 /// conflicting sources or revisions and need curator resolution.
-pub fn validate_industrial_dataset(
-    facilities: &[IndustrialFacility],
-) -> Result<(), Vec<String>> {
+pub fn validate_industrial_dataset(facilities: &[IndustrialFacility]) -> Result<(), Vec<String>> {
     let mut issues = Vec::new();
     let mut ids = HashSet::with_capacity(facilities.len());
 
@@ -211,20 +210,22 @@ pub fn validate_industrial_dataset(
     }
 }
 
-fn validate_evidence(
-    label: &str,
-    evidence: &IndustrialEvidence,
-    issues: &mut Vec<String>,
-) {
+fn validate_evidence(label: &str, evidence: &IndustrialEvidence, issues: &mut Vec<String>) {
     if evidence.source_id.trim().is_empty() || evidence.source_id.len() > 256 {
-        issues.push(format!("{label}: source_id must be non-empty and at most 256 bytes"));
+        issues.push(format!(
+            "{label}: source_id must be non-empty and at most 256 bytes"
+        ));
     }
     if evidence.source_uri.trim().is_empty() || evidence.source_uri.len() > 2048 {
-        issues.push(format!("{label}: source_uri must be non-empty and at most 2048 bytes"));
+        issues.push(format!(
+            "{label}: source_uri must be non-empty and at most 2048 bytes"
+        ));
     }
     if let Some(digest) = &evidence.artifact_sha256 {
         if !valid_sha256(digest) {
-            issues.push(format!("{label}: artifact_sha256 must be 64 hexadecimal characters"));
+            issues.push(format!(
+                "{label}: artifact_sha256 must be 64 hexadecimal characters"
+            ));
         }
     }
 
@@ -236,7 +237,11 @@ fn validate_evidence(
                     "{label}: observed evidence requires a valid YYYY-MM-DD snapshot_date"
                 )),
             }
-            if !evidence.artifact_sha256.as_deref().is_some_and(valid_sha256) {
+            if !evidence
+                .artifact_sha256
+                .as_deref()
+                .is_some_and(valid_sha256)
+            {
                 issues.push(format!(
                     "{label}: observed evidence requires a SHA-256 artifact digest"
                 ));
@@ -376,7 +381,11 @@ mod tests {
     fn duplicate_facility_ids_are_not_silently_accepted() {
         let record = fixture();
         let issues = validate_industrial_dataset(&[record.clone(), record]).unwrap_err();
-        assert!(issues.iter().any(|issue| issue.contains("duplicate facility id")));
+        assert!(
+            issues
+                .iter()
+                .any(|issue| issue.contains("duplicate facility id"))
+        );
     }
 
     #[test]
