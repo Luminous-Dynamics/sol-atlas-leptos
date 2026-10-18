@@ -560,6 +560,47 @@ mod tests {
         envelope
     }
 
+    fn envelope_for_metric(metric: AccessMetric) -> GeoAccessEnvelope {
+        match metric {
+            AccessMetric::GeodesicDistance => geodesic_envelope(),
+            AccessMetric::ModeledRouteDistance => {
+                let mut envelope = geodesic_envelope();
+                envelope.metric = metric;
+                envelope.travel_mode = TravelMode::Walking;
+                envelope.unit = MetricUnit::Kilometers;
+                envelope.value = Some(12.0);
+                envelope.method_id = "synthetic_route_model".into();
+                envelope.method_version = "test-v1".into();
+                envelope.network_version = Some("synthetic-footpath-graph-v1".into());
+                envelope.coverage = CoverageState::Validated;
+                envelope.source_evidence_refs = vec![
+                    "fixture:network-v1".into(),
+                    "fixture:route-result-v1".into(),
+                ];
+                envelope
+            }
+            AccessMetric::ModeledTravelTime => modeled_time_envelope(),
+            AccessMetric::ObservedTripDistance => {
+                let mut envelope = geodesic_envelope();
+                envelope.metric = metric;
+                envelope.travel_mode = TravelMode::Walking;
+                envelope.method_id = "observed-trip-log".into();
+                envelope.method_version = "1".into();
+                envelope
+            }
+            AccessMetric::ObservedTripTime => {
+                let mut envelope = geodesic_envelope();
+                envelope.metric = metric;
+                envelope.travel_mode = TravelMode::Walking;
+                envelope.unit = MetricUnit::Minutes;
+                envelope.value = Some(45.0);
+                envelope.method_id = "observed-trip-log".into();
+                envelope.method_version = "1".into();
+                envelope
+            }
+        }
+    }
+
     #[test]
     fn geodesic_helper_matches_canonical_haversine_exactly() {
         let cases = [
@@ -622,6 +663,132 @@ mod tests {
     }
 
     #[test]
+    fn metric_unit_matrix_rejects_every_incompatible_unit() {
+        let metrics = [
+            AccessMetric::GeodesicDistance,
+            AccessMetric::ModeledRouteDistance,
+            AccessMetric::ModeledTravelTime,
+            AccessMetric::ObservedTripDistance,
+            AccessMetric::ObservedTripTime,
+        ];
+        let units = [
+            MetricUnit::Meters,
+            MetricUnit::Kilometers,
+            MetricUnit::Seconds,
+            MetricUnit::Minutes,
+        ];
+
+        for metric in metrics {
+            let base = envelope_for_metric(metric);
+            let is_distance = matches!(
+                metric,
+                AccessMetric::GeodesicDistance
+                    | AccessMetric::ModeledRouteDistance
+                    | AccessMetric::ObservedTripDistance
+            );
+            for unit in units {
+                let mut candidate = base.clone();
+                candidate.unit = unit;
+                let expected = if is_distance {
+                    matches!(unit, MetricUnit::Meters | MetricUnit::Kilometers)
+                } else {
+                    matches!(unit, MetricUnit::Seconds | MetricUnit::Minutes)
+                };
+                assert_eq!(
+                    candidate.validate().is_ok(),
+                    expected,
+                    "metric {metric:?} accepted unexpected unit {unit:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn metric_mode_matrix_never_accepts_route_or_trip_as_straight_line() {
+        let metrics = [
+            AccessMetric::GeodesicDistance,
+            AccessMetric::ModeledRouteDistance,
+            AccessMetric::ModeledTravelTime,
+            AccessMetric::ObservedTripDistance,
+            AccessMetric::ObservedTripTime,
+        ];
+        let modes = [
+            TravelMode::StraightLine,
+            TravelMode::Walking,
+            TravelMode::Bicycle,
+            TravelMode::Motorcycle,
+            TravelMode::MotorVehicle,
+            TravelMode::AnimalDrawn,
+            TravelMode::Multimodal,
+            TravelMode::Unknown,
+        ];
+
+        for metric in metrics {
+            let base = envelope_for_metric(metric);
+            for mode in modes {
+                let mut candidate = base.clone();
+                candidate.travel_mode = mode;
+                let expected = match metric {
+                    AccessMetric::GeodesicDistance => mode == TravelMode::StraightLine,
+                    _ => !matches!(mode, TravelMode::StraightLine | TravelMode::Unknown),
+                };
+                assert_eq!(
+                    candidate.validate().is_ok(),
+                    expected,
+                    "metric {metric:?} accepted unexpected mode {mode:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn modeled_state_coverage_matrix_keeps_outcomes_consistent() {
+        let states = [
+            AccessState::Available,
+            AccessState::NoRoute,
+            AccessState::OutsideCoverage,
+            AccessState::Unknown,
+            AccessState::Stale,
+            AccessState::Conflicting,
+        ];
+        let coverage_states = [
+            CoverageState::NotApplicable,
+            CoverageState::Validated,
+            CoverageState::PartiallyValidated,
+            CoverageState::Unvalidated,
+            CoverageState::OutsideCoverage,
+            CoverageState::Unknown,
+        ];
+
+        for state in states {
+            for coverage in coverage_states {
+                let mut candidate = modeled_time_envelope();
+                candidate.state = state;
+                candidate.value = (state == AccessState::Available).then_some(45.0);
+                candidate.coverage = coverage;
+                let coverage_matches_state =
+                    (state == AccessState::OutsideCoverage)
+                        == (coverage == CoverageState::OutsideCoverage);
+                let available_coverage_is_usable = state != AccessState::Available
+                    || matches!(
+                        coverage,
+                        CoverageState::Validated
+                            | CoverageState::PartiallyValidated
+                            | CoverageState::Unvalidated
+                    );
+                let expected = coverage != CoverageState::NotApplicable
+                    && coverage_matches_state
+                    && available_coverage_is_usable;
+                assert_eq!(
+                    candidate.validate().is_ok(),
+                    expected,
+                    "state {state:?} accepted unexpected coverage {coverage:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
     fn unavailable_states_are_distinct_and_never_use_zero_as_a_sentinel() {
         let mut no_route = modeled_time_envelope();
         no_route.state = AccessState::NoRoute;
@@ -678,10 +845,10 @@ mod tests {
     #[test]
     fn identical_envelopes_serialize_deterministically() {
         let envelope = modeled_time_envelope();
-        assert_eq!(
-            serde_json::to_vec(&envelope).unwrap(),
-            serde_json::to_vec(&envelope).unwrap()
-        );
+        let encoded = serde_json::to_vec(&envelope).unwrap();
+        let decoded: GeoAccessEnvelope = serde_json::from_slice(&encoded).unwrap();
+        assert_eq!(decoded, envelope);
+        assert_eq!(encoded, serde_json::to_vec(&decoded).unwrap());
     }
 
     fn sample(reference: &str, predicted: f64, observed: f64) -> TravelTimeValidationSample {
