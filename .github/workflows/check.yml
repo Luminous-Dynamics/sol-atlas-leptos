@@ -20,6 +20,9 @@ jobs:
         with:
           components: rustfmt
       - run: cargo fmt --all --check
+      # sol-atlas-core is a separate package, not a workspace member; --all misses it.
+      - name: Check standalone core formatting
+        run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml -- --check
 
   check-wasm:
     runs-on: ubuntu-latest
@@ -65,3 +68,6 @@ jobs:
       # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
       # `cargo test --lib` fails with "no library targets found".
       - run: cargo test --bin sol-atlas-leptos
+      # Exercise the path-dependency crate's own unit tests, including capacity summaries.
+      - name: Test standalone core crate
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml
