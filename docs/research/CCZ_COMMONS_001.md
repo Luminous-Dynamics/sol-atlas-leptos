@@ -135,6 +135,25 @@ Show valid time, retrieval time, source document and change history separately. 
 ### C4 — biological/environment evidence index
 Add public observation/study references with methodology, spatial/temporal coverage, sampling effort, uncertainty and limitations. Never turn missing records into negative species labels.
 
+
+### C4a — field-evidence benchmark anchors (not universal thresholds)
+
+Use published trials to stress the monitoring and inference pipeline, while keeping each study’s site, collection method, observation window and uncertainty attached. These results are not transferable “safe limits” for another site or operation.
+
+- Valls Domedel et al., *Nature Ecology & Evolution* (2026), compared two years of pre-trial data with sampling two months after a large-scale eastern Pacific trial. The authors reported a 37% decrease in macrofaunal density and a 32% reduction in species richness directly inside mining tracks, while also finding significant natural background variation. This is a regression anchor for pre-impact baselines, control sites, species-level analysis, and separating background variation from impact.
+  Source: https://www.nature.com/articles/s41559-025-02911-4
+- Gazis et al., *Nature Communications* (2025), reported a benthic plume/current-monitoring trial where the maximum suspended-particle concentration at 50 m from mining lanes was up to four orders of magnitude above ambient; bottom currents dominated dispersion to the 4.5 km monitoring boundary, with about 3 cm sediment redeposition next to lanes and a minimum estimated erosion depth of 5 cm. This is an anchor for current-aware spatial sampling, calibrated multi-sensor observations, and detecting impacts beyond the machine track.
+  Source: https://www.nature.com/articles/s41467-025-56311-0
+- *Nature* (2025) reported that biological impacts persisted in many organism groups 44 years after an older nodule-removal experiment, despite re-establishment in some groups and persistent physical seafloor changes. This is a long-horizon anchor: short post-trial monitoring cannot by itself establish recovery.
+  Source: https://www.nature.com/articles/s41586-025-08921-3
+
+Benchmark implications:
+1. A valid environmental assessment needs a declared baseline window, matched reference/control sites, spatial replication, method and detection limits, sensor calibration and observation timestamps. Missing baseline/control data must return `Indeterminate`, not “no effect”.
+2. Simulations must include current-driven plume transport, deposition, sensor blind spots, calibration drift, sparse sampling and post-operation effects. Detect when a plume leaves the observation footprint; do not convert “not detected here” into “absent”.
+3. Report direct-track, near-field, far-field and longer-term outcomes separately. Preserve physical disturbance, biological responses, uncertainty and recovery evidence as distinct measures.
+4. Do not derive operationally safe plume/biodiversity thresholds from these three studies alone. Thresholds need a broader evidence base, independent ecological review, explicit regulatory authority and a precautionary response to unknowns.
+5. Fleet-scale accounting must include cumulative sound, light, sediment disturbance and repeated passes over time, not only each individual vehicle’s local contact.
+
 ### C5 — reproducible export
 Provide a source manifest and deterministic normalized metadata export so another team can reproduce the same result offline from the same permission-cleared inputs.
 
