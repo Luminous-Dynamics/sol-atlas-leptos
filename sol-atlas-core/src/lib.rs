@@ -15,6 +15,7 @@ pub mod data;
 pub mod economics;
 pub mod energy_trading;
 pub mod geo;
+pub mod industrial_capacity;
 pub mod lod;
 pub mod mycelix_flows;
 // pub mod relativity_viz;
@@ -27,4 +28,5 @@ pub mod timeline;
 pub mod types;
 pub mod visual_validation;
 
+pub use industrial_capacity::*;
 pub use types::*;
