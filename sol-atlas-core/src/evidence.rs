@@ -13,6 +13,11 @@
 
 use serde::{Deserialize, Serialize};
 
+/// Current schema version accepted by this validator.
+///
+/// Increment this when observation semantics or required fields change.
+pub const OBSERVATION_SCHEMA_VERSION: u16 = 1;
+
 /// One sourced measurement or reported value for a metric and entity.
 ///
 /// Keep raw observations distinct from model estimates and policy scenarios.
@@ -20,6 +25,8 @@ use serde::{Deserialize, Serialize};
 /// manifest rather than overwriting the source value.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ObservationRecord {
+    /// Version of this serialized observation contract.
+    pub schema_version: u16,
     /// Stable identifier for this observation record.
     pub observation_id: String,
     /// Versioned metric identifier, such as `water.service_availability`.
@@ -94,6 +101,7 @@ pub enum Uncertainty {
 /// causal relevance, or representativeness; those require separate review.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ObservationValidationIssue {
+    UnsupportedSchemaVersion,
     EmptyObservationId,
     EmptyMetricId,
     EmptyEntityId,
@@ -118,6 +126,9 @@ impl ObservationRecord {
     pub fn validate(&self) -> Result<(), Vec<ObservationValidationIssue>> {
         let mut issues = Vec::new();
 
+        if self.schema_version != OBSERVATION_SCHEMA_VERSION {
+            issues.push(ObservationValidationIssue::UnsupportedSchemaVersion);
+        }
         if is_blank(&self.observation_id) {
             issues.push(ObservationValidationIssue::EmptyObservationId);
         }
@@ -210,6 +221,7 @@ mod tests {
 
     fn valid_observation() -> ObservationRecord {
         ObservationRecord {
+            schema_version: OBSERVATION_SCHEMA_VERSION,
             observation_id: "obs-001".into(),
             metric_id: "water.service_availability".into(),
             entity_id: "service-area-001".into(),
@@ -228,6 +240,17 @@ mod tests {
             }),
             missing_reason: None,
         }
+    }
+
+    #[test]
+    fn rejects_unsupported_schema_version() {
+        let mut observation = valid_observation();
+        observation.schema_version = OBSERVATION_SCHEMA_VERSION + 1;
+
+        assert!(observation
+            .validate()
+            .unwrap_err()
+            .contains(&ObservationValidationIssue::UnsupportedSchemaVersion));
     }
 
     #[test]
