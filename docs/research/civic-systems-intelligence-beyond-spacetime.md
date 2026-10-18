@@ -151,6 +151,12 @@ Before building an all-purpose interface, standardize a small set of conceptual 
 - random seed and environment where relevant;
 - execution status, output digest and independent verification result.
 
+**First Rust implementation (draft / not yet runtime-verified):** `sol-atlas-core::model_run` defines a schema-versioned `ModelRunManifest`, references immutable input/output artifacts using SHA-256 digests, records bounded scope, assumptions, run times and execution status, and declares bitwise, tolerance-bounded, or seeded-stochastic reproducibility. Structural tests cover malformed digests, duplicate artifact IDs, invalid periods, missing outputs, absent failure reasons, bad tolerances and missing stochastic seeds. The validator is not a model-validity certificate.
+
+The current manifest stores digests but does not yet compute them, canonicalize and hash the manifest itself, verify referenced bytes, capture a complete runtime/container fingerprint, or independently replay a run. Those are separate follow-on tasks and must not be inferred from successful deserialization or structural validation.
+
+The contract is intentionally a narrow Rust representation, not a replacement provenance standard. An interoperability adapter should map model runs to W3C PROV concepts (entities, activities and agents) and, where research packages are exported, consider RO-Crate for the bundle of data, code, configuration and metadata. Keep the domain contract stable while avoiding unnecessary invention of new provenance semantics.
+
 ### Claim / assessment
 - exact observation or model-run inputs;
 - the claim type: observation, inference, forecast, scenario or recommendation;
