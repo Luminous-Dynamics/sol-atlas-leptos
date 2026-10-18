@@ -163,8 +163,17 @@ pub struct SourceValidation {
 }
 
 impl SourceValidation {
+    /// Structural validation only. Publication permissions are a separate gate.
     pub fn is_valid(&self) -> bool {
         !self.issues.iter().any(|issue| issue.severity == ValidationSeverity::Error)
+    }
+
+    pub fn can_publish_metadata(&self) -> bool {
+        self.is_valid() && self.publication_scope != PublicationScope::Blocked
+    }
+
+    pub fn can_publish_data(&self) -> bool {
+        self.is_valid() && self.publication_scope == PublicationScope::OpenDataAndMetadata
     }
 }
 
@@ -176,8 +185,17 @@ pub struct FeatureValidation {
 }
 
 impl FeatureValidation {
+    /// Structural validation only. Publication permissions are a separate gate.
     pub fn is_valid(&self) -> bool {
         !self.issues.iter().any(|issue| issue.severity == ValidationSeverity::Error)
+    }
+
+    pub fn can_publish_metadata(&self) -> bool {
+        self.is_valid() && self.publication_scope != PublicationScope::Blocked
+    }
+
+    pub fn can_publish_data(&self) -> bool {
+        self.is_valid() && self.publication_scope == PublicationScope::OpenDataAndMetadata
     }
 }
 
@@ -611,6 +629,25 @@ mod tests {
         assert_eq!(report.publication_scope, PublicationScope::Blocked);
         assert!(report.issues.iter().any(|i| i.code == ValidationCode::InvalidSourceUrl));
         assert!(report.issues.iter().any(|i| i.code == ValidationCode::InvalidTimestamp));
+    }
+
+    #[test]
+    fn structural_validity_is_not_publication_permission() {
+        let digest = "a".repeat(64);
+        let snapshot = source(SourceTermsState::ReviewRequired, Some(&digest));
+        let report = validate_source_snapshot(&snapshot);
+        assert!(report.is_valid(), "the metadata can be structurally readable");
+        assert!(!report.can_publish_metadata());
+        assert!(!report.can_publish_data());
+    }
+
+    #[test]
+    fn metadata_only_scope_never_grants_artifact_publication() {
+        let digest = "a".repeat(64);
+        let snapshot = source(SourceTermsState::MetadataCitationOnlyReviewed, Some(&digest));
+        let report = validate_source_snapshot(&snapshot);
+        assert!(report.can_publish_metadata());
+        assert!(!report.can_publish_data());
     }
 
     #[test]
