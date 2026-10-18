@@ -258,3 +258,20 @@ The benchmark also runs 100 services over ten shared resources with one usage ed
 
 Proposed p95 target for this 100-service / 10-resource / 100-usage staged case: **50 ms**. It uses 50,500 estimated work units and is intended to expose iterative overhead alongside the balanced throughput cases above. The target remains unmeasured.
 
+
+
+## Shared-resource allocation: independent analytical oracle sweep
+
+The shared-resource unit tests now include 100 deterministic generated complete-bipartite cases: 2–8 services, 1–5 resources, varied positive demands, varied per-service/per-resource coefficients, and declared shared capacities. The oracle is independently computed from the closed form for this restricted topology:
+
+\[
+c^* = \min\!\left(1,\ \min_r \frac{C_r}{\sum_i d_i a_{ir}}\right)
+\]
+
+where every service consumes every resource, \(d_i\) is demand and \(a_{ir}\) is resource usage per unit delivered. Under equal-coverage progressive filling, every service has coverage \(c^*\); its delivery is \(d_i c^*\). This is a deliberately narrow analytic oracle—not a substitute for a general LP oracle or a proof that the model represents a physical network.
+
+Each generated case checks exact service/resource counts, coverage against the independent formula, allocated delivery against demand times coverage, no resource overspend, and byte-relevant assessment equality after reversing service/resource/usage order. The deterministic LCG seed is fixed in source so any counterexample is replayable without adding a random-number dependency.
+
+**Correctness acceptance targets:** 100/100 generated cases agree within absolute coverage tolerance \(10^{-8}\), delivery-rate tolerance \(10^{-7}\), and resource-capacity tolerance \(10^{-7}\); 0 overspend findings; 100/100 reversed-input cases return identical assessments. These targets are assertions in the test, not a claim that the new test has passed in CI.
+
+**Next independent oracle:** expand beyond complete-bipartite cases to small sparse incidence graphs, compare the progressive-fill result with exhaustive discrete max-min/lexicographic enumeration and an independent LP implementation, and report policy differences rather than treating every feasible allocation as interchangeable. HiGHS is a candidate for an offline differential harness because it solves sparse LP/MIP/QP problems; it should not become an implicit production dependency solely to test this Rust core. Hydraulic quantities still require separate EPANET comparison where semantics align.
