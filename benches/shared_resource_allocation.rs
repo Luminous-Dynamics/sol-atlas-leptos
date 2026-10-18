@@ -176,6 +176,27 @@ fn run(
     expected_coverage: f64,
 ) -> Report {
     let request = build_request(service_count, resource_count, usages_per_service);
+    run_request(
+        request,
+        samples,
+        warmup,
+        target_ms,
+        expected_coverage,
+        "one-snapshot equal-coverage allocation across shared resource constraints",
+    )
+}
+
+fn run_request(
+    request: SharedResourceAllocationRequest,
+    samples: usize,
+    warmup: usize,
+    target_ms: u128,
+    expected_coverage: f64,
+    workload: &'static str,
+) -> Report {
+    let service_count = request.services.len();
+    let resource_count = request.resources.len();
+    let usage_count = request.usages.len();
     let reference = assess_shared_resource_allocation(&request, &[])
         .expect("synthetic shared-resource benchmark input must be valid");
     let reference_bytes = serde_json::to_vec(&reference).expect("reference output must serialize");
@@ -183,7 +204,7 @@ fn run(
     assert_eq!(reference.resource_count, resource_count);
     assert_eq!(
         reference.usage_constraint_count,
-        service_count * usages_per_service
+        usage_count
     );
     assert!((reference.floor_compliance_lower_bound - 1.0).abs() < 1e-9);
     assert!(reference.services.iter().all(|service| {
@@ -246,10 +267,10 @@ fn run(
         host_arch: std::env::consts::ARCH.to_owned(),
         process_peak_rss_bytes_at_report: peak_rss_bytes(),
         rss_measurement_scope: "process VmHWM since process start; workload sizes share a process",
-        workload: "one-snapshot equal-coverage allocation across shared resource constraints",
+        workload,
         service_count,
         shared_resource_count: resource_count,
-        usage_constraints: service_count * usages_per_service,
+        usage_constraints: usage_count,
         estimated_work_units: reference.estimated_work_units,
         warmup_iterations: warmup,
         measured_iterations: samples,
@@ -271,6 +292,32 @@ fn run(
     }
 }
 
+
+fn run_sparse(samples: usize, warmup: usize, target_ms: u128) -> Report {
+    let mut request = build_request(1_000, 50, 3);
+    let mut resource_degrees = vec![0_usize; request.resources.len()];
+    for usage in &request.usages {
+        let resource_index = request
+            .resources
+            .iter()
+            .position(|resource| resource.id == usage.resource_id)
+            .expect("sparse usage resource must exist");
+        resource_degrees[resource_index] += 1;
+    }
+    for (resource, degree) in request.resources.iter_mut().zip(resource_degrees) {
+        // Every service demands 100 m3/h; this capacity profile makes 0.5 coverage
+        // simultaneously feasible and binding for every resource in the sparse graph.
+        resource.capacity.quantity.value = 50.0 * degree as f64;
+    }
+    run_request(
+        request,
+        samples,
+        warmup,
+        target_ms,
+        0.5,
+        "sparse graph: 1,000 services x 50 resources x 3 usage edges each",
+    )
+}
 fn run_staggered(samples: usize, warmup: usize, target_ms: u128) -> Report {
     let mut request = build_request(100, 10, 1);
     for resource in &mut request.resources {
@@ -393,6 +440,7 @@ fn main() {
         run(500, 25, 10, samples, warmup, 500, 0.5),
         run(1_000, 50, 10, samples, warmup, 2_000, 0.5),
         run_staggered(samples, warmup, 50),
+        run_sparse(samples, warmup, 1_000),
     ];
     println!(
         "{}",
