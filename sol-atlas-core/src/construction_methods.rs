@@ -223,15 +223,41 @@ pub enum ConstructionMethodError {
     DesignDigestMismatch(String),
     FunctionalBasisMismatch(String),
     StudyPeriodMismatch(String),
-    DuplicateGateReceipt { method_id: String, gate: ConstructionGate },
-    DuplicateMetricReceipt { method_id: String, metric: ConstructionMetric },
-    UnexpectedGateReceipt { method_id: String, gate: ConstructionGate },
-    UnexpectedMetricReceipt { method_id: String, metric: ConstructionMetric },
-    MissingReceiptMetadata { method_id: String, field: String },
-    InvalidDigest { method_id: String, field: String },
-    InvalidReceiptTime { method_id: String },
-    InvalidMetricInterval { method_id: String, metric: ConstructionMetric },
-    MetricUnitMismatch { method_id: String, metric: ConstructionMetric },
+    DuplicateGateReceipt {
+        method_id: String,
+        gate: ConstructionGate,
+    },
+    DuplicateMetricReceipt {
+        method_id: String,
+        metric: ConstructionMetric,
+    },
+    UnexpectedGateReceipt {
+        method_id: String,
+        gate: ConstructionGate,
+    },
+    UnexpectedMetricReceipt {
+        method_id: String,
+        metric: ConstructionMetric,
+    },
+    MissingReceiptMetadata {
+        method_id: String,
+        field: String,
+    },
+    InvalidDigest {
+        method_id: String,
+        field: String,
+    },
+    InvalidReceiptTime {
+        method_id: String,
+    },
+    InvalidMetricInterval {
+        method_id: String,
+        metric: ConstructionMetric,
+    },
+    MetricUnitMismatch {
+        method_id: String,
+        metric: ConstructionMetric,
+    },
 }
 
 impl fmt::Display for ConstructionMethodError {
@@ -293,7 +319,9 @@ fn validate_policy(policy: &ConstructionMethodPolicy) -> Result<(), Construction
             return Err(ConstructionMethodError::EmptyMetricUnit(objective.metric));
         }
         if !seen.insert(objective.metric) {
-            return Err(ConstructionMethodError::DuplicateObjective(objective.metric));
+            return Err(ConstructionMethodError::DuplicateObjective(
+                objective.metric,
+            ));
         }
     }
 
@@ -567,7 +595,10 @@ fn evaluate_candidate(
     for objective in &policy.objectives {
         match metric_receipts.get(&objective.metric) {
             None => {
-                reasons.push(format!("objective metric {:?} is missing", objective.metric));
+                reasons.push(format!(
+                    "objective metric {:?} is missing",
+                    objective.metric
+                ));
                 unresolved_metric = true;
             }
             Some(receipt) => {
@@ -577,7 +608,11 @@ fn evaluate_candidate(
                     policy.evaluation_time_unix_seconds,
                     policy.maximum_metric_age_seconds,
                 );
-                if !policy.accepted_metric_states.contains(&receipt.evidence_state) || !current {
+                if !policy
+                    .accepted_metric_states
+                    .contains(&receipt.evidence_state)
+                    || !current
+                {
                     reasons.push(format!(
                         "objective metric {:?} is stale or its evidence state is not accepted",
                         objective.metric
@@ -690,11 +725,7 @@ pub fn evaluate_construction_methods(
         let candidate = &assessments[method_id];
         let dominated = eligible_ids.iter().any(|other_id| {
             other_id != method_id
-                && robustly_dominates(
-                    &assessments[other_id],
-                    candidate,
-                    &policy.objectives,
-                )
+                && robustly_dominates(&assessments[other_id], candidate, &policy.objectives)
         });
         if !dominated {
             frontier.push(method_id.clone());
@@ -774,7 +805,12 @@ mod tests {
         }
     }
 
-    fn candidate(method_id: &str, carbon: (f64, f64), cost: (f64, f64), recovery: (f64, f64)) -> ConstructionMethodCandidate {
+    fn candidate(
+        method_id: &str,
+        carbon: (f64, f64),
+        cost: (f64, f64),
+        recovery: (f64, f64),
+    ) -> ConstructionMethodCandidate {
         let p = policy();
         ConstructionMethodCandidate {
             method_id: method_id.into(),
@@ -863,7 +899,9 @@ mod tests {
     ) -> ConstructionMethodCandidate {
         let p = one_gate_policy();
         let mut candidate = candidate(method_id, (10.0, 20.0), (100.0, 120.0), (0.2, 0.3));
-        candidate.metric_receipts.retain(|m| m.metric == ConstructionMetric::EmbodiedCarbonAtoC);
+        candidate
+            .metric_receipts
+            .retain(|m| m.metric == ConstructionMetric::EmbodiedCarbonAtoC);
         candidate.gate_receipts[0].outcome = outcome;
         candidate.gate_receipts[0].evidence_state = state;
         candidate.gate_receipts[0].assessed_at_unix_seconds =
@@ -892,9 +930,10 @@ mod tests {
     fn pinned_gate_benchmark_cases_match_expected_screening() {
         let p = one_gate_policy();
         let mut count = 0;
-        for line in include_str!("../../docs/research/fixtures/construction-method-benchmark-v0.1.jsonl")
-            .lines()
-            .filter(|line| !line.trim().is_empty())
+        for line in
+            include_str!("../../docs/research/fixtures/construction-method-benchmark-v0.1.jsonl")
+                .lines()
+                .filter(|line| !line.trim().is_empty())
         {
             let case: GateBenchmarkCase = serde_json::from_str(line).expect("valid gate fixture");
             let mut option = one_gate_candidate(
@@ -908,8 +947,7 @@ mod tests {
             let report = evaluate_construction_methods(&[option], &p)
                 .unwrap_or_else(|error| panic!("{}: {error}", case.case_id));
             assert_eq!(
-                report.assessments[&case.case_id].screening_status,
-                case.expected,
+                report.assessments[&case.case_id].screening_status, case.expected,
                 "fixture {}",
                 case.case_id
             );
@@ -927,7 +965,8 @@ mod tests {
     #[test]
     fn confirmed_failure_excludes_even_with_other_missing_gates() {
         let mut p = policy();
-        p.required_hard_gates.insert(ConstructionGate::FireLifeSafety);
+        p.required_hard_gates
+            .insert(ConstructionGate::FireLifeSafety);
         let incomplete = candidate("incomplete", (10.0, 20.0), (100.0, 120.0), (0.2, 0.3));
         let report = evaluate_construction_methods(&[incomplete], &p).unwrap();
         assert_eq!(
@@ -984,7 +1023,10 @@ mod tests {
         let a = candidate("method-a", (100.0, 150.0), (100.0, 150.0), (0.3, 0.5));
         let b = candidate("method-b", (140.0, 170.0), (90.0, 120.0), (0.4, 0.6));
         let report = evaluate_construction_methods(&[a, b], &policy()).unwrap();
-        assert_eq!(report.robust_frontier_method_ids, vec!["method-a", "method-b"]);
+        assert_eq!(
+            report.robust_frontier_method_ids,
+            vec!["method-a", "method-b"]
+        );
     }
 
     #[test]
@@ -1026,10 +1068,14 @@ mod tests {
         ));
     }
 
-
     #[test]
     fn changed_project_scope_digest_invalidates_gate_receipt() {
-        let mut option = candidate("scope-digest-drift", (100.0, 130.0), (100.0, 140.0), (0.2, 0.4));
+        let mut option = candidate(
+            "scope-digest-drift",
+            (100.0, 130.0),
+            (100.0, 140.0),
+            (0.2, 0.4),
+        );
         option.gate_receipts[0].project_scope_sha256 = digest('e');
         assert!(matches!(
             evaluate_construction_methods(&[option], &policy()),
@@ -1060,8 +1106,15 @@ mod tests {
 
     #[test]
     fn duplicate_metric_receipt_is_rejected() {
-        let mut option = candidate("duplicate-metric", (100.0, 130.0), (100.0, 140.0), (0.2, 0.4));
-        option.metric_receipts.push(option.metric_receipts[0].clone());
+        let mut option = candidate(
+            "duplicate-metric",
+            (100.0, 130.0),
+            (100.0, 140.0),
+            (0.2, 0.4),
+        );
+        option
+            .metric_receipts
+            .push(option.metric_receipts[0].clone());
         assert!(matches!(
             evaluate_construction_methods(&[option], &policy()),
             Err(ConstructionMethodError::DuplicateMetricReceipt { .. })
@@ -1073,7 +1126,8 @@ mod tests {
         let a = candidate("method-a", (100.0, 150.0), (100.0, 150.0), (0.3, 0.5));
         let b = candidate("method-b", (140.0, 170.0), (90.0, 120.0), (0.4, 0.6));
         let c = candidate("method-c", (50.0, 80.0), (60.0, 75.0), (0.6, 0.8));
-        let left = evaluate_construction_methods(&[a.clone(), b.clone(), c.clone()], &policy()).unwrap();
+        let left =
+            evaluate_construction_methods(&[a.clone(), b.clone(), c.clone()], &policy()).unwrap();
         let right = evaluate_construction_methods(&[c, b, a], &policy()).unwrap();
         assert_eq!(left, right);
     }
