@@ -210,6 +210,173 @@ pub fn validate_industrial_dataset(facilities: &[IndustrialFacility]) -> Result<
     }
 }
 
+/// Evidence-qualified capacity summary for one unit-bearing metric and calendar year.
+///
+/// Only capacity observations whose own evidence is `Observed` contribute to
+/// nominal totals. A value is counted as estimated spare capacity only when the
+/// facility status is also based on observed evidence, the facility is operating,
+/// and utilization is known. This estimate is not proof that capacity is qualified
+/// for a particular job, material, process, schedule, or delivery date.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct IndustrialCapacitySummary {
+    pub metric: IndustrialCapacityMetric,
+    pub year: u16,
+    /// Sum of matched observations backed by observed capacity evidence.
+    /// This includes planned, unavailable, closed, and unknown-status capacity.
+    pub observed_nominal_capacity: f64,
+    /// Operating observed capacity multiplied by (1 - observed utilization).
+    pub estimated_spare_capacity: f64,
+    /// Operating nominal capacity for which utilization is not reported.
+    pub operating_capacity_without_utilization: f64,
+    pub temporarily_unavailable_nominal_capacity: f64,
+    pub planned_nominal_capacity: f64,
+    pub closed_nominal_capacity: f64,
+    /// Includes unknown facility status and status not backed by observed facility evidence.
+    pub unknown_status_nominal_capacity: f64,
+    /// Count is required to distinguish no matching observations from an observed total of zero.
+    pub observed_capacity_observations: usize,
+    /// Curated values are counted separately and do not contribute to observed totals.
+    pub excluded_curated_capacity_observations: usize,
+    /// Scenario values are counted separately and do not contribute to observed totals.
+    pub excluded_scenario_capacity_observations: usize,
+}
+
+/// Summarize a single metric and year without silently mixing evidence classes,
+/// treating missing utilization as zero, or counting ambiguous duplicate observations.
+///
+/// Invalid records fail the complete summary rather than being silently discarded.
+pub fn summarize_industrial_capacity(
+    facilities: &[IndustrialFacility],
+    metric: IndustrialCapacityMetric,
+    year: u16,
+) -> Result<IndustrialCapacitySummary, Vec<String>> {
+    if !(1900..=2200).contains(&year) {
+        return Err(vec!["summary year is outside [1900, 2200]".into()]);
+    }
+    validate_industrial_dataset(facilities)?;
+
+    let mut summary = IndustrialCapacitySummary {
+        metric,
+        year,
+        observed_nominal_capacity: 0.0,
+        estimated_spare_capacity: 0.0,
+        operating_capacity_without_utilization: 0.0,
+        temporarily_unavailable_nominal_capacity: 0.0,
+        planned_nominal_capacity: 0.0,
+        closed_nominal_capacity: 0.0,
+        unknown_status_nominal_capacity: 0.0,
+        observed_capacity_observations: 0,
+        excluded_curated_capacity_observations: 0,
+        excluded_scenario_capacity_observations: 0,
+    };
+    let mut issues = Vec::new();
+
+    for facility in facilities {
+        let matching: Vec<_> = facility
+            .capacities
+            .iter()
+            .filter(|capacity| capacity.metric == metric && capacity.year == year)
+            .collect();
+        if matching.len() > 1 {
+            issues.push(format!(
+                "facility '{}' has {} matching capacity observations for {:?} in {}",
+                facility.id,
+                matching.len(),
+                metric,
+                year
+            ));
+            continue;
+        }
+        let Some(capacity) = matching.first() else {
+            continue;
+        };
+
+        match capacity.evidence.kind {
+            DataKind::Curated => {
+                summary.excluded_curated_capacity_observations += 1;
+                continue;
+            }
+            DataKind::Scenario => {
+                summary.excluded_scenario_capacity_observations += 1;
+                continue;
+            }
+            DataKind::Observed => {}
+        }
+
+        summary.observed_capacity_observations += 1;
+        add_capacity(
+            &mut summary.observed_nominal_capacity,
+            capacity.value,
+            "observed nominal capacity",
+            &mut issues,
+        );
+
+        // A status from curated/scenario facility metadata is not treated as a
+        // verified current operating state, even when the capacity record itself
+        // is observed.
+        let status = if facility.evidence.kind == DataKind::Observed {
+            facility.status
+        } else {
+            FacilityOperatingStatus::Unknown
+        };
+        match status {
+            FacilityOperatingStatus::Operating => match capacity.utilization {
+                Some(utilization) => add_capacity(
+                    &mut summary.estimated_spare_capacity,
+                    capacity.value * (1.0 - utilization),
+                    "estimated spare capacity",
+                    &mut issues,
+                ),
+                None => add_capacity(
+                    &mut summary.operating_capacity_without_utilization,
+                    capacity.value,
+                    "operating capacity without utilization",
+                    &mut issues,
+                ),
+            },
+            FacilityOperatingStatus::TemporarilyUnavailable => add_capacity(
+                &mut summary.temporarily_unavailable_nominal_capacity,
+                capacity.value,
+                "temporarily unavailable nominal capacity",
+                &mut issues,
+            ),
+            FacilityOperatingStatus::Planned => add_capacity(
+                &mut summary.planned_nominal_capacity,
+                capacity.value,
+                "planned nominal capacity",
+                &mut issues,
+            ),
+            FacilityOperatingStatus::Closed => add_capacity(
+                &mut summary.closed_nominal_capacity,
+                capacity.value,
+                "closed nominal capacity",
+                &mut issues,
+            ),
+            FacilityOperatingStatus::Unknown => add_capacity(
+                &mut summary.unknown_status_nominal_capacity,
+                capacity.value,
+                "unknown-status nominal capacity",
+                &mut issues,
+            ),
+        }
+    }
+
+    if issues.is_empty() {
+        Ok(summary)
+    } else {
+        Err(issues)
+    }
+}
+
+fn add_capacity(total: &mut f64, value: f64, label: &str, issues: &mut Vec<String>) {
+    let next = *total + value;
+    if next.is_finite() {
+        *total = next;
+    } else {
+        issues.push(format!("capacity summary overflow while computing {label}"));
+    }
+}
+
 fn validate_evidence(label: &str, evidence: &IndustrialEvidence, issues: &mut Vec<String>) {
     if evidence.source_id.trim().is_empty() || evidence.source_id.len() > 256 {
         issues.push(format!(
@@ -386,6 +553,119 @@ mod tests {
                 .iter()
                 .any(|issue| issue.contains("duplicate facility id"))
         );
+    }
+
+    #[test]
+    fn capacity_summary_never_equates_missing_utilization_with_spare_capacity() {
+        let mut measured = fixture();
+        measured.status = FacilityOperatingStatus::Operating;
+        measured.capacities[0].utilization = Some(0.25);
+
+        let mut unquantified = fixture();
+        unquantified.id = "facility-002".into();
+        unquantified.status = FacilityOperatingStatus::Operating;
+        unquantified.capacities[0].utilization = None;
+
+        let summary = summarize_industrial_capacity(
+            &[measured, unquantified],
+            IndustrialCapacityMetric::MachiningHoursPerYear,
+            2026,
+        )
+        .unwrap();
+
+        assert_eq!(summary.observed_capacity_observations, 2);
+        assert_eq!(summary.observed_nominal_capacity, 24_000.0);
+        assert_eq!(summary.estimated_spare_capacity, 9_000.0);
+        assert_eq!(summary.operating_capacity_without_utilization, 12_000.0);
+    }
+
+    #[test]
+    fn capacity_summary_separates_planned_and_scenario_capacity() {
+        let mut planned = fixture();
+        planned.status = FacilityOperatingStatus::Planned;
+
+        let mut scenario = fixture();
+        scenario.id = "facility-scenario".into();
+        scenario.capacities[0].evidence = evidence(DataKind::Scenario);
+        scenario.capacities[0].evidence.snapshot_date = None;
+        scenario.capacities[0].evidence.artifact_sha256 = None;
+
+        let summary = summarize_industrial_capacity(
+            &[planned, scenario],
+            IndustrialCapacityMetric::MachiningHoursPerYear,
+            2026,
+        )
+        .unwrap();
+
+        assert_eq!(summary.observed_nominal_capacity, 12_000.0);
+        assert_eq!(summary.planned_nominal_capacity, 12_000.0);
+        assert_eq!(summary.estimated_spare_capacity, 0.0);
+        assert_eq!(summary.excluded_scenario_capacity_observations, 1);
+        assert_eq!(summary.observed_capacity_observations, 1);
+    }
+
+    #[test]
+    fn curated_facility_status_cannot_assert_observed_spare_capacity() {
+        let mut record = fixture();
+        record.status = FacilityOperatingStatus::Operating;
+        record.evidence = evidence(DataKind::Curated);
+        record.capacities[0].utilization = Some(0.0);
+
+        let summary = summarize_industrial_capacity(
+            &[record],
+            IndustrialCapacityMetric::MachiningHoursPerYear,
+            2026,
+        )
+        .unwrap();
+
+        assert_eq!(summary.estimated_spare_capacity, 0.0);
+        assert_eq!(summary.unknown_status_nominal_capacity, 12_000.0);
+    }
+
+    #[test]
+    fn duplicate_metric_year_observations_fail_closed() {
+        let mut record = fixture();
+        record.capacities.push(record.capacities[0].clone());
+
+        let issues = summarize_industrial_capacity(
+            &[record],
+            IndustrialCapacityMetric::MachiningHoursPerYear,
+            2026,
+        )
+        .unwrap_err();
+
+        assert!(issues.iter().any(|issue| issue.contains("matching capacity observations")));
+    }
+
+    #[test]
+    fn empty_capacity_dataset_is_distinguishable_from_observed_zero() {
+        let summary = summarize_industrial_capacity(
+            &[],
+            IndustrialCapacityMetric::MachiningHoursPerYear,
+            2026,
+        )
+        .unwrap();
+
+        assert_eq!(summary.observed_capacity_observations, 0);
+        assert_eq!(summary.observed_nominal_capacity, 0.0);
+    }
+
+    #[test]
+    fn capacity_summary_rejects_overflow_instead_of_emitting_infinity() {
+        let mut first = fixture();
+        first.capacities[0].value = f64::MAX;
+        let mut second = fixture();
+        second.id = "facility-002".into();
+        second.capacities[0].value = f64::MAX;
+
+        let issues = summarize_industrial_capacity(
+            &[first, second],
+            IndustrialCapacityMetric::MachiningHoursPerYear,
+            2026,
+        )
+        .unwrap_err();
+
+        assert!(issues.iter().any(|issue| issue.contains("overflow")));
     }
 
     #[test]
