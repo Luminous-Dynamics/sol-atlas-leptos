@@ -123,6 +123,35 @@ pub struct ArtifactVerificationReceipt {
     pub status: ArtifactDigestStatus,
 }
 
+
+impl ArtifactVerificationReceipt {
+    /// True only when this receipt's source identity matches the supplied
+    /// snapshot and its expected digest matches the computed digest.
+    ///
+    /// This is an integrity consistency check, not authentication of a
+    /// deserialized receipt; callers must preserve trusted ingestion lineage.
+    pub fn matches_snapshot(&self, source: &CczSourceSnapshot) -> bool {
+        self.status == ArtifactDigestStatus::Matched
+            && self.snapshot_id == source.snapshot_id
+            && self.source_url == source.source_url
+            && self.source_version == source.source_version
+            && self.retrieved_at == source.retrieved_at
+            && self.expected_sha256 == source.artifact_sha256
+            && self.expected_sha256.as_deref().is_some_and(|expected| {
+                valid_sha256(expected)
+                    && valid_sha256(&self.actual_sha256)
+                    && expected.eq_ignore_ascii_case(&self.actual_sha256)
+            })
+    }
+
+    /// Artifact publication requires both byte-level digest agreement and
+    /// the existing source metadata/rights gate. A matching hash alone never
+    /// grants permission to redistribute source bytes.
+    pub fn can_publish_artifact(&self, source: &CczSourceSnapshot) -> bool {
+        self.matches_snapshot(source) && validate_source_snapshot(source).can_publish_data()
+    }
+}
+
 /// Compute the SHA-256 digest of the exact supplied byte sequence, rendered as
 /// 64 lower-case hexadecimal characters.
 pub fn sha256_hex(bytes: &[u8]) -> String {
@@ -903,6 +932,61 @@ mod tests {
         let receipt = verify_artifact_bytes(&snapshot, b"abc");
         assert_eq!(receipt.status, ArtifactDigestStatus::Matched);
         assert_eq!(receipt.actual_sha256, receipt.actual_sha256.to_ascii_lowercase());
+    }
+
+    #[test]
+    fn matched_receipt_and_reviewed_source_are_both_required_for_artifact_publication() {
+        let snapshot = source(
+            SourceTermsState::OpenRedistributionReviewed,
+            Some("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"),
+        );
+        let receipt = verify_artifact_bytes(&snapshot, b"abc");
+        assert!(receipt.matches_snapshot(&snapshot));
+        assert!(receipt.can_publish_artifact(&snapshot));
+    }
+
+    #[test]
+    fn changed_bytes_fail_the_artifact_publication_gate() {
+        let snapshot = source(
+            SourceTermsState::OpenRedistributionReviewed,
+            Some("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"),
+        );
+        let receipt = verify_artifact_bytes(&snapshot, b"abd");
+        assert!(!receipt.can_publish_artifact(&snapshot));
+    }
+
+    #[test]
+    fn exact_bytes_do_not_override_unreviewed_terms() {
+        let snapshot = source(
+            SourceTermsState::ReviewRequired,
+            Some("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"),
+        );
+        let receipt = verify_artifact_bytes(&snapshot, b"abc");
+        assert_eq!(receipt.status, ArtifactDigestStatus::Matched);
+        assert!(!receipt.can_publish_artifact(&snapshot));
+    }
+
+    #[test]
+    fn receipt_cannot_be_replayed_for_a_different_snapshot_identity() {
+        let mut snapshot = source(
+            SourceTermsState::OpenRedistributionReviewed,
+            Some("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"),
+        );
+        let receipt = verify_artifact_bytes(&snapshot, b"abc");
+        snapshot.snapshot_id = "different-snapshot".into();
+        assert!(!receipt.can_publish_artifact(&snapshot));
+    }
+
+    #[test]
+    fn metadata_only_terms_never_allow_artifact_publication_even_when_hash_matches() {
+        let snapshot = source(
+            SourceTermsState::MetadataCitationOnlyReviewed,
+            Some("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"),
+        );
+        let receipt = verify_artifact_bytes(&snapshot, b"abc");
+        assert_eq!(receipt.status, ArtifactDigestStatus::Matched);
+        assert!(!validate_source_snapshot(&snapshot).can_publish_data());
+        assert!(!receipt.can_publish_artifact(&snapshot));
     }
 
 }
