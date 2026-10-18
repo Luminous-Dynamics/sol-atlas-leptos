@@ -1441,4 +1441,123 @@ mod tests {
                 .any(|id| id == "evidence:shared-water")
         );
     }
+
+    #[test]
+    fn deterministic_dense_cases_match_closed_form_progressive_fill_oracle() {
+        // Independent oracle for complete-bipartite cases: every service consumes every
+        // resource, so equal coverage is bounded by min(1, capacity_r / sum_i(demand_i * use_ir)).
+        // A deterministic LCG avoids a new dependency and makes failures exactly reproducible.
+        let mut seed = 0x4d59_5df4_d0f3_3173_u64;
+        let mut next = || {
+            seed = seed
+                .wrapping_mul(6_364_136_223_846_793_005)
+                .wrapping_add(1_442_695_040_888_963_407);
+            seed
+        };
+
+        for case_index in 0..100 {
+            let service_count = 2 + (next() % 7) as usize;
+            let resource_count = 1 + (next() % 5) as usize;
+            let mut input = request();
+            input.id = format!("closed-form-oracle-case-{case_index}");
+            input.services.clear();
+            input.resources.clear();
+            input.usages.clear();
+
+            let mut demands = Vec::with_capacity(service_count);
+            for service_index in 0..service_count {
+                let demand = (50 + next() % 101) as f64;
+                demands.push(demand);
+                let mut item = service(
+                    &format!("service-{service_index}"),
+                    &format!("community-{}", service_index % 3),
+                    1 + (next() % 10),
+                    0.0,
+                );
+                item.demand_rate.quantity.value = demand;
+                input.services.push(item);
+            }
+
+            let mut capacities = Vec::with_capacity(resource_count);
+            for resource_index in 0..resource_count {
+                let capacity = (500 + next() % 1_501) as f64;
+                capacities.push(capacity);
+                input.resources.push(resource(
+                    &format!("resource-{resource_index}"),
+                    capacity,
+                    None,
+                    "m3/h",
+                ));
+            }
+
+            let mut coefficients = vec![vec![0.0_f64; resource_count]; service_count];
+            for resource_index in 0..resource_count {
+                for service_index in 0..service_count {
+                    let coefficient = 0.5 + (next() % 101) as f64 / 100.0;
+                    coefficients[service_index][resource_index] = coefficient;
+                    input.usages.push(usage(
+                        &format!("use-{resource_index}-{service_index}"),
+                        &format!("resource-{resource_index}"),
+                        &format!("service-{service_index}"),
+                        coefficient,
+                        "m3/h per (m3/h)",
+                    ));
+                }
+            }
+
+            let expected_coverage = (0..resource_count)
+                .map(|resource_index| {
+                    let total_usage = (0..service_count)
+                        .map(|service_index| {
+                            demands[service_index] * coefficients[service_index][resource_index]
+                        })
+                        .sum::<f64>();
+                    capacities[resource_index] / total_usage
+                })
+                .fold(1.0_f64, f64::min);
+
+            let output =
+                assess_shared_resource_allocation(&input, &[]).expect("generated case is valid");
+            assert_eq!(output.services.len(), service_count, "case {case_index}");
+            assert_eq!(output.resources.len(), resource_count, "case {case_index}");
+            for service_output in &output.services {
+                assert!(
+                    (service_output.coverage_lower_bound - expected_coverage).abs() < 1e-8,
+                    "case {case_index}, service {}: expected {expected_coverage}, got {}",
+                    service_output.service_id,
+                    service_output.coverage_lower_bound
+                );
+                let index = input
+                    .services
+                    .iter()
+                    .position(|service| service.id == service_output.service_id)
+                    .expect("generated service exists");
+                assert!(
+                    (service_output.conservative_allocated_delivery_rate
+                        - demands[index] * expected_coverage)
+                        .abs()
+                        < 1e-7,
+                    "case {case_index}, service {} rate",
+                    service_output.service_id
+                );
+            }
+            for resource_output in &output.resources {
+                assert!(
+                    resource_output.conservative_allocated_capacity
+                        <= resource_output.capacity_lower_bound + 1e-7,
+                    "case {case_index}, resource {} overspent",
+                    resource_output.resource_id
+                );
+            }
+
+            let mut permuted = input.clone();
+            permuted.services.reverse();
+            permuted.resources.reverse();
+            permuted.usages.reverse();
+            let permuted_output = assess_shared_resource_allocation(&permuted, &[])
+                .expect("permuted generated case is valid");
+            assert_eq!(output, permuted_output, "case {case_index} permutation");
+        }
+    }
+
 }
