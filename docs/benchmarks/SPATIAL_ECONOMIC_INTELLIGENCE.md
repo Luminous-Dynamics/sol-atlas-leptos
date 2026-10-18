@@ -286,3 +286,14 @@ Each case checks the sorted policy outcome, the exact-grid breakpoint assumption
 **Acceptance target:** 100/100 generated cases agree with the independent exhaustive oracle, with no capacity overspend greater than 1e-7, and 100/100 reversed-input assessments match exactly. These are encoded expectations, not a statement that the Rust tests have passed on the current head.
 
 Next, independently cross-check larger sparse graphs with heterogeneous demands and resource-use coefficients using a staged leximin LP. HiGHS is a candidate offline solver for sparse LP/MIP/QP formulation checks, without adding it to the production Rust dependency graph. Compare only the same objective and tie-breaking semantics. For hydraulic validity, keep reference comparisons separate: EPA describes EPANET as an extended-period hydraulic and water-quality simulator covering flow, pressure, tank level and constituents, which goes beyond this allocator's declared linear capacity contract (https://www.epa.gov/water-research/epanet).
+
+
+### Sparse shared-resource scaling profile
+
+The registered `shared_resource_allocation` harness now includes a sparse case with **1,000 services, 50 shared resources and 3,000 usage constraints** (three resource edges per service). Capacities are derived from each resource's declared degree so every resource is exactly binding at 0.5 coverage under the fixture's 100 m³/h demand and unit coefficients. Each sample validates the 1,000 result rows, expected uniform coverage, capacity feasibility, and deterministic serialized output before emitting timing data.
+
+| Services | Resources | Usage constraints | Conservative estimated work | Expected coverage | Proposed p95 target |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 1,000 | 50 | 3,000 | 15,015,000 | 0.5 | 1,000 ms |
+
+This complements the 1,000-service / 50-resource / 10,000-constraint balanced profile (proposed p95 <= 2,000 ms) by isolating sparse incidence overhead while maintaining a hand-computable oracle. Both targets are **unmeasured hypotheses**; correctness is a separate acceptance gate, and a synthetic linear allocation result is not a hydraulic simulation result.
