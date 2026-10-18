@@ -1613,12 +1613,15 @@ mod tests {
             }
 
             let mut capacity_units = Vec::with_capacity(RESOURCE_COUNT);
-            for resource in 0..RESOURCE_COUNT {
-                let consumers = adjacency[resource].iter().filter(|value| **value).count();
+            for resource_index in 0..RESOURCE_COUNT {
+                let consumers = adjacency[resource_index]
+                    .iter()
+                    .filter(|value| **value)
+                    .count();
                 let units = 1 + (next() % consumers as u64) as i32;
                 capacity_units.push(units);
                 input.resources.push(resource(
-                    &format!("resource-{resource}"),
+                    &format!("resource-{resource_index}"),
                     100.0 * units as f64,
                     None,
                     "m3/h",
