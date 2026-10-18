@@ -1627,10 +1627,10 @@ mod tests {
                     "m3/h",
                 ));
                 for service_index in 0..SERVICE_COUNT {
-                    if adjacency[resource][service_index] {
+                    if adjacency[resource_index][service_index] {
                         input.usages.push(usage(
-                            &format!("use-{resource}-{service_index}"),
-                            &format!("resource-{resource}"),
+                            &format!("use-{resource_index}-{service_index}"),
+                            &format!("resource-{resource_index}"),
                             &format!("service-{service_index}"),
                             1.0,
                             "m3/h per (m3/h)",
@@ -1682,10 +1682,13 @@ mod tests {
                 "case {case_index}: sparse leximin coverage differs; adjacency={adjacency:?}, capacity_units={capacity_units:?}"
             );
             for service in &output.services {
-                assert!((service.coverage_lower_bound * GRID as f64
-                    - (service.coverage_lower_bound * GRID as f64).round())
-                    .abs() < 1e-7,
-                    "case {case_index}: a coverage breakpoint was outside the exact 1/30 grid");
+                assert!(
+                    (service.coverage_lower_bound * GRID as f64
+                        - (service.coverage_lower_bound * GRID as f64).round())
+                        .abs()
+                        < 1e-7,
+                    "case {case_index}: a coverage breakpoint was outside the exact 1/30 grid"
+                );
             }
             for resource in &output.resources {
                 assert!(
