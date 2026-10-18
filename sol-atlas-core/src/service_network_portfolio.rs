@@ -636,10 +636,7 @@ mod tests {
                 .map(|item| {
                     (
                         item.plan_id.clone(),
-                        (
-                            item.pareto_front,
-                            item.pareto_dominated_by_plan_ids.clone(),
-                        ),
+                        (item.pareto_front, item.pareto_dominated_by_plan_ids.clone()),
                     )
                 })
                 .collect::<BTreeMap<_, _>>()
