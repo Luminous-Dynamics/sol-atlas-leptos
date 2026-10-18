@@ -534,6 +534,36 @@ mod tests {
     }
 
     #[test]
+    fn synthetic_fixture_corpus_preserves_distinct_record_classes() {
+        let records: Vec<CczFeatureRecord> = serde_json::from_str(include_str!(
+            "../tests/fixtures/ccz/semantic-records.json"
+        ))
+        .unwrap();
+        assert_eq!(records.len(), 8);
+
+        let expected = vec![
+            CczRecordKind::IsaExplorationContract,
+            CczRecordKind::IsaReservedArea,
+            CczRecordKind::AreaOfParticularEnvironmentalInterest,
+            CczRecordKind::NationalMaritimeZone,
+            CczRecordKind::DomesticLawApplication,
+            CczRecordKind::CorporateResourceAssertion,
+            CczRecordKind::ScientificObservation,
+            CczRecordKind::Unknown,
+        ];
+        assert_eq!(records.iter().map(|record| record.kind).collect::<Vec<_>>(), expected);
+
+        let digest = "e".repeat(64);
+        let mut snapshot = source(SourceTermsState::OpenRedistributionReviewed, Some(&digest));
+        snapshot.snapshot_id = "synthetic-source-v1".into();
+        for record in &records {
+            let report = validate_feature(record, Some(&snapshot));
+            assert!(report.is_valid(), "fixture {} failed: {:?}", record.feature_id, report.issues);
+            assert_eq!(report.publication_scope, PublicationScope::OpenDataAndMetadata);
+        }
+    }
+
+    #[test]
     fn serde_rejects_unrecognized_owner_field_instead_of_silently_importing_it() {
         let json = r#"{
             "feature_id":"x",
