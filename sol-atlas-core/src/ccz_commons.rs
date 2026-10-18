@@ -82,6 +82,12 @@ pub struct CczSourceSnapshot {
     pub license_or_terms: Option<String>,
     /// Required attribution wording where applicable.
     pub attribution_text: Option<String>,
+    /// Stable reference to the terms-review record; not a proof of legal validity.
+    pub terms_review_id: Option<String>,
+    /// Reviewer or organization identity recorded for the review.
+    pub terms_reviewed_by: Option<String>,
+    /// Timestamp of the terms review, separate from source retrieval time.
+    pub terms_reviewed_at: Option<String>,
 }
 
 /// One CCZ feature/record that references a source snapshot.
@@ -124,6 +130,7 @@ pub enum ValidationCode {
     MissingRetrievalTime,
     MissingLicenseTerms,
     MissingAttribution,
+    MissingTermsReviewEvidence,
     InvalidSha256,
     ArtifactNotPinned,
     TermsNotReviewed,
@@ -223,7 +230,10 @@ pub fn publication_scope(source: &CczSourceSnapshot) -> PublicationScope {
     }
 
     let terms_are_reviewed = source.license_or_terms.as_deref().is_some_and(present)
-        && source.attribution_text.as_deref().is_some_and(present);
+        && source.attribution_text.as_deref().is_some_and(present)
+        && source.terms_review_id.as_deref().is_some_and(present)
+        && source.terms_reviewed_by.as_deref().is_some_and(present)
+        && source.terms_reviewed_at.as_deref().is_some_and(present);
     match source.terms_state {
         SourceTermsState::OpenRedistributionReviewed if !terms_are_reviewed => {
             PublicationScope::Blocked
@@ -288,6 +298,16 @@ pub fn validate_source_snapshot(source: &CczSourceSnapshot) -> SourceValidation 
                     ValidationSeverity::Error,
                     ValidationCode::MissingAttribution,
                     "reviewed publication terms must provide attribution text",
+                ));
+            }
+            if !source.terms_review_id.as_deref().is_some_and(present)
+                || !source.terms_reviewed_by.as_deref().is_some_and(present)
+                || !source.terms_reviewed_at.as_deref().is_some_and(present)
+            {
+                issues.push(issue(
+                    ValidationSeverity::Error,
+                    ValidationCode::MissingTermsReviewEvidence,
+                    "reviewed terms require a review record ID, reviewer identity, and review timestamp",
                 ));
             }
         }
@@ -426,6 +446,9 @@ mod tests {
             terms_state,
             license_or_terms: Some("https://example.invalid/terms".into()),
             attribution_text: Some("Synthetic fixture only".into()),
+            terms_review_id: Some("synthetic-terms-review-01".into()),
+            terms_reviewed_by: Some("synthetic-reviewer".into()),
+            terms_reviewed_at: Some("2026-10-18T00:00:00Z".into()),
         }
     }
 
@@ -483,6 +506,16 @@ mod tests {
         snapshot.attribution_text = Some("Reviewed attribution".into());
         snapshot.license_or_terms = None;
         assert_eq!(publication_scope(&snapshot), PublicationScope::Blocked);
+    }
+
+    #[test]
+    fn reviewed_terms_require_review_record_reviewer_and_timestamp() {
+        let digest = "a".repeat(64);
+        let mut snapshot = source(SourceTermsState::OpenRedistributionReviewed, Some(&digest));
+        snapshot.terms_review_id = None;
+        let report = validate_source_snapshot(&snapshot);
+        assert_eq!(report.publication_scope, PublicationScope::Blocked);
+        assert!(report.issues.iter().any(|i| i.code == ValidationCode::MissingTermsReviewEvidence));
     }
 
     #[test]
