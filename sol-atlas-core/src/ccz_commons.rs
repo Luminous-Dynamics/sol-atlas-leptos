@@ -222,16 +222,21 @@ pub fn publication_scope(source: &CczSourceSnapshot) -> PublicationScope {
         return PublicationScope::Blocked;
     }
 
+    let terms_are_reviewed = source.license_or_terms.as_deref().is_some_and(present)
+        && source.attribution_text.as_deref().is_some_and(present);
     match source.terms_state {
-        SourceTermsState::OpenRedistributionReviewed
-            if source.artifact_sha256.as_deref().is_some_and(valid_sha256)
-                && source.license_or_terms.as_deref().is_some_and(present)
-                && source.attribution_text.as_deref().is_some_and(present) =>
-        {
-            PublicationScope::OpenDataAndMetadata
+        SourceTermsState::OpenRedistributionReviewed if !terms_are_reviewed => {
+            PublicationScope::Blocked
         }
-        SourceTermsState::OpenRedistributionReviewed
-        | SourceTermsState::MetadataCitationOnlyReviewed => PublicationScope::MetadataOnly,
+        SourceTermsState::OpenRedistributionReviewed => match source.artifact_sha256.as_deref() {
+            Some(digest) if valid_sha256(digest) => PublicationScope::OpenDataAndMetadata,
+            None => PublicationScope::MetadataOnly,
+            Some(_) => PublicationScope::Blocked,
+        },
+        SourceTermsState::MetadataCitationOnlyReviewed if terms_are_reviewed => {
+            PublicationScope::MetadataOnly
+        }
+        SourceTermsState::MetadataCitationOnlyReviewed => PublicationScope::Blocked,
         SourceTermsState::ReviewRequired | SourceTermsState::Restricted => PublicationScope::Blocked,
     }
 }
@@ -467,6 +472,17 @@ mod tests {
         assert_eq!(report.publication_scope, PublicationScope::MetadataOnly);
         assert!(report.issues.iter().any(|i| i.code == ValidationCode::ArtifactNotPinned));
         assert!(report.is_valid(), "missing digest is a warning, not evidence that bytes are corrupt");
+    }
+
+    #[test]
+    fn missing_license_or_attribution_blocks_publication() {
+        let digest = "a".repeat(64);
+        let mut snapshot = source(SourceTermsState::OpenRedistributionReviewed, Some(&digest));
+        snapshot.attribution_text = None;
+        assert_eq!(publication_scope(&snapshot), PublicationScope::Blocked);
+        snapshot.attribution_text = Some("Reviewed attribution".into());
+        snapshot.license_or_terms = None;
+        assert_eq!(publication_scope(&snapshot), PublicationScope::Blocked);
     }
 
     #[test]
