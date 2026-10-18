@@ -164,8 +164,21 @@ pub enum ValidationIssue {
     NonFiniteSummary,
 }
 
-/// Paired travel-time observations for validating a specific model, mode,
-/// season, and scope. Samples should be measured independently of predictions.
+/// Validation design is explicit so an operational sample or synthetic oracle
+/// cannot be silently presented as spatial/seasonal generalization evidence.
+/// Random-row holdout is intentionally not a supported generalization label.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ValidationDesign {
+    SyntheticOracle,
+    DescriptiveOperational,
+    SpatialHoldout,
+    TemporalHoldout,
+    SpatialAndTemporalHoldout,
+}
+
+/// Paired travel-time observations for validating a specific model, mode, season,
+/// scope, and declared evaluation partition. Samples should be measured
+/// independently of predictions.
 #[derive(Debug, Clone, PartialEq)]
 pub struct TravelTimeValidationSample {
     pub sample_ref: String,
@@ -174,6 +187,8 @@ pub struct TravelTimeValidationSample {
     pub method_version: String,
     pub travel_mode: TravelMode,
     pub season_label: String,
+    pub validation_design: ValidationDesign,
+    pub partition_ref: String,
     pub predicted_minutes: f64,
     pub observed_minutes: f64,
 }
@@ -186,6 +201,8 @@ pub struct TravelTimeErrorSummary {
     pub method_version: String,
     pub travel_mode: TravelMode,
     pub season_label: String,
+    pub validation_design: ValidationDesign,
+    pub partition_ref: String,
     pub sample_count: usize,
     pub median_absolute_error_minutes: f64,
     /// Nearest-rank 90th percentile: sorted[ceil(0.9 * n) - 1].
@@ -410,6 +427,7 @@ pub fn summarize_travel_time_errors(
             ("method_id", sample.method_id.as_str()),
             ("method_version", sample.method_version.as_str()),
             ("season_label", sample.season_label.as_str()),
+            ("partition_ref", sample.partition_ref.as_str()),
         ] {
             if field.1.trim().is_empty() {
                 issues.push(ValidationIssue::EmptyRequiredField(field.0));
@@ -435,6 +453,8 @@ pub fn summarize_travel_time_errors(
             || sample.method_version != first.method_version
             || sample.travel_mode != first.travel_mode
             || sample.season_label != first.season_label
+            || sample.validation_design != first.validation_design
+            || sample.partition_ref != first.partition_ref
         {
             issues.push(ValidationIssue::InconsistentValidationGroup);
         }
@@ -477,6 +497,8 @@ pub fn summarize_travel_time_errors(
         method_version: first.method_version.clone(),
         travel_mode: first.travel_mode,
         season_label: first.season_label.clone(),
+        validation_design: first.validation_design,
+        partition_ref: first.partition_ref.clone(),
         sample_count: samples.len(),
         median_absolute_error_minutes,
         p90_absolute_error_minutes,
@@ -671,6 +693,8 @@ mod tests {
             method_version: "model-v1".into(),
             travel_mode: TravelMode::Walking,
             season_label: "wet-season".into(),
+            validation_design: ValidationDesign::SyntheticOracle,
+            partition_ref: "partition:synthetic-oracle-v1".into(),
             predicted_minutes: predicted,
             observed_minutes: observed,
         }
@@ -691,6 +715,8 @@ mod tests {
         assert_eq!(summary.p90_absolute_error_minutes, 20.0);
         assert_eq!(summary.mean_signed_error_minutes, 3.0);
         assert_eq!(summary.season_label, "wet-season");
+        assert_eq!(summary.validation_design, ValidationDesign::SyntheticOracle);
+        assert_eq!(summary.partition_ref, "partition:synthetic-oracle-v1");
     }
 
     #[test]
@@ -704,6 +730,10 @@ mod tests {
         let mut mixed_season = samples.clone();
         mixed_season[1].season_label = "dry-season".into();
         assert!(summarize_travel_time_errors(&mixed_season).is_err());
+
+        let mut mixed_design = samples.clone();
+        mixed_design[1].validation_design = ValidationDesign::SpatialHoldout;
+        assert!(summarize_travel_time_errors(&mixed_design).is_err());
 
         let duplicate = [sample("trip:1", 10.0, 10.0), sample("trip:1", 20.0, 18.0)];
         assert!(summarize_travel_time_errors(&duplicate).is_err());
