@@ -25,6 +25,7 @@ impl MatchState {
     }
 }
 
+#[derive(Debug)]
 struct CaseDecision {
     eligible_candidate_ids: Vec<String>,
     preferred_candidate_ids: Vec<String>,
