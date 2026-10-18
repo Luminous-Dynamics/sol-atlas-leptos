@@ -1667,7 +1667,10 @@ mod tests {
                     }
                 }
             }
-            assert!(found_feasible, "case {case_index} must have a feasible allocation");
+            assert!(
+                found_feasible,
+                "case {case_index} must have a feasible allocation"
+            );
 
             let output = assess_shared_resource_allocation(&input, &[])
                 .expect("generated sparse graph must be valid");
@@ -1685,7 +1688,7 @@ mod tests {
                 assert!(
                     (service.coverage_lower_bound * GRID as f64
                         - (service.coverage_lower_bound * GRID as f64).round())
-                        .abs()
+                    .abs()
                         < 1e-7,
                     "case {case_index}: a coverage breakpoint was outside the exact 1/30 grid"
                 );
@@ -1708,5 +1711,4 @@ mod tests {
             assert_eq!(output, permuted_output, "case {case_index}: permutation");
         }
     }
-
 }

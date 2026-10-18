@@ -202,10 +202,7 @@ fn run_request(
     let reference_bytes = serde_json::to_vec(&reference).expect("reference output must serialize");
     assert_eq!(reference.service_count, service_count);
     assert_eq!(reference.resource_count, resource_count);
-    assert_eq!(
-        reference.usage_constraint_count,
-        usage_count
-    );
+    assert_eq!(reference.usage_constraint_count, usage_count);
     assert!((reference.floor_compliance_lower_bound - 1.0).abs() < 1e-9);
     assert!(reference.services.iter().all(|service| {
         (service.coverage_lower_bound - expected_coverage).abs() < 1e-9
@@ -291,7 +288,6 @@ fn run_request(
         output_bytes: reference_bytes.len(),
     }
 }
-
 
 fn run_sparse(samples: usize, warmup: usize, target_ms: u128) -> Report {
     let mut request = build_request(1_000, 50, 3);
