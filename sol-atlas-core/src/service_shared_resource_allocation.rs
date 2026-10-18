@@ -1559,4 +1559,148 @@ mod tests {
             assert_eq!(output, permuted_output, "case {case_index} permutation");
         }
     }
+
+    #[test]
+    fn deterministic_sparse_graphs_match_exhaustive_leximin_oracle() {
+        // Tiny independent feasibility oracle. With three services, unit demands and unit
+        // coefficients, capacities that are integer multiples of demand induce progressive-fill
+        // breakpoints on a 1/6 grid. Enumerating the 1/30 grid therefore includes every possible
+        // breakpoint for these instances while being independent of the production fill routine.
+        const GRID: i32 = 30;
+        const SERVICE_COUNT: usize = 3;
+        const RESOURCE_COUNT: usize = 4;
+
+        let mut seed = 0x243f_6a88_85a3_08d3_u64;
+        let mut next = || {
+            seed = seed
+                .wrapping_mul(6_364_136_223_846_793_005)
+                .wrapping_add(1_442_695_040_888_963_407);
+            seed
+        };
+
+        for case_index in 0..100 {
+            let mut input = request();
+            input.id = format!("sparse-leximin-oracle-case-{case_index}");
+            input.services.clear();
+            input.resources.clear();
+            input.usages.clear();
+
+            for service_index in 0..SERVICE_COUNT {
+                input.services.push(service(
+                    &format!("service-{service_index}"),
+                    &format!("community-{}", service_index % 2),
+                    1,
+                    0.0,
+                ));
+            }
+
+            let mut adjacency = vec![vec![false; SERVICE_COUNT]; RESOURCE_COUNT];
+            for resource in 0..RESOURCE_COUNT {
+                for service in 0..SERVICE_COUNT {
+                    adjacency[resource][service] = next() % 100 < 55;
+                }
+            }
+            // Ensure both sides of the incidence graph are nonempty without making it dense.
+            for service in 0..SERVICE_COUNT {
+                if !(0..RESOURCE_COUNT).any(|resource| adjacency[resource][service]) {
+                    adjacency[service % RESOURCE_COUNT][service] = true;
+                }
+            }
+            for resource in 0..RESOURCE_COUNT {
+                if !adjacency[resource].iter().any(|connected| *connected) {
+                    adjacency[resource][resource % SERVICE_COUNT] = true;
+                }
+            }
+
+            let mut capacity_units = Vec::with_capacity(RESOURCE_COUNT);
+            for resource in 0..RESOURCE_COUNT {
+                let consumers = adjacency[resource].iter().filter(|value| **value).count();
+                let units = 1 + (next() % consumers as u64) as i32;
+                capacity_units.push(units);
+                input.resources.push(resource(
+                    &format!("resource-{resource}"),
+                    100.0 * units as f64,
+                    None,
+                    "m3/h",
+                ));
+                for service_index in 0..SERVICE_COUNT {
+                    if adjacency[resource][service_index] {
+                        input.usages.push(usage(
+                            &format!("use-{resource}-{service_index}"),
+                            &format!("resource-{resource}"),
+                            &format!("service-{service_index}"),
+                            1.0,
+                            "m3/h per (m3/h)",
+                        ));
+                    }
+                }
+            }
+
+            // Maximize the sorted coverage vector lexicographically over a finite grid. The
+            // complete search is feasible here (31^3 points) and does not call the production
+            // progressive-fill algorithm or reuse its internal state.
+            let mut best = [0_i32; SERVICE_COUNT];
+            let mut found_feasible = false;
+            for a in 0..=GRID {
+                for b in 0..=GRID {
+                    for c in 0..=GRID {
+                        let candidate = [a, b, c];
+                        let feasible = (0..RESOURCE_COUNT).all(|resource| {
+                            let used_grid_units = (0..SERVICE_COUNT)
+                                .filter(|service| adjacency[resource][*service])
+                                .map(|service| candidate[service])
+                                .sum::<i32>();
+                            used_grid_units <= capacity_units[resource] * GRID
+                        });
+                        if !feasible {
+                            continue;
+                        }
+                        let mut sorted = candidate;
+                        sorted.sort_unstable();
+                        if !found_feasible || sorted > best {
+                            best = sorted;
+                            found_feasible = true;
+                        }
+                    }
+                }
+            }
+            assert!(found_feasible, "case {case_index} must have a feasible allocation");
+
+            let output = assess_shared_resource_allocation(&input, &[])
+                .expect("generated sparse graph must be valid");
+            let mut actual = output
+                .services
+                .iter()
+                .map(|service| (service.coverage_lower_bound * GRID as f64).round() as i32)
+                .collect::<Vec<_>>();
+            actual.sort_unstable();
+            assert_eq!(
+                actual, best,
+                "case {case_index}: sparse leximin coverage differs; adjacency={adjacency:?}, capacity_units={capacity_units:?}"
+            );
+            for service in &output.services {
+                assert!((service.coverage_lower_bound * GRID as f64
+                    - (service.coverage_lower_bound * GRID as f64).round())
+                    .abs() < 1e-7,
+                    "case {case_index}: a coverage breakpoint was outside the exact 1/30 grid");
+            }
+            for resource in &output.resources {
+                assert!(
+                    resource.conservative_allocated_capacity
+                        <= resource.capacity_lower_bound + 1e-7,
+                    "case {case_index}: resource {} was overspent",
+                    resource.resource_id
+                );
+            }
+
+            let mut permuted = input.clone();
+            permuted.services.reverse();
+            permuted.resources.reverse();
+            permuted.usages.reverse();
+            let permuted_output = assess_shared_resource_allocation(&permuted, &[])
+                .expect("permuted generated sparse graph must be valid");
+            assert_eq!(output, permuted_output, "case {case_index}: permutation");
+        }
+    }
+
 }
