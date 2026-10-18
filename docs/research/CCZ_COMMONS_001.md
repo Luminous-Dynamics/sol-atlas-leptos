@@ -199,3 +199,8 @@ For any later public decision study, compare the same delivered function and tim
 Keep separate axes for technical equivalence, mass per functional unit, recovery yield and grade, lifecycle emissions/energy/water/reagents/waste, habitat/biodiversity impact, uncertainty, cost and benefit distribution. Do not collapse those into a single “green metal” score without a declared decision rule. Missing high-impact burdens remain Unknown/Indeterminate, not zero.
 
 This is a paradigm shift from “where is the metal and how can it be extracted?” to “what is the least harmful, technically adequate and fairly governed way to provide the required function?” It is a cross-project decision principle, not an extraction planner.
+
+
+### Structural validity is not publication authority
+
+The Rust validator exposes separate structural validity and publication-scope decisions. Consumers must check the relevant publication permission as well as structural errors; a readable record with restricted or unreviewed terms is not publishable. Metadata-only permission never authorizes redistributing the underlying artifact. Source-review fields preserve review provenance but are not cryptographic authentication or independent legal advice.
