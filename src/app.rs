@@ -5,6 +5,7 @@ use leptos::prelude::*;
 use leptos_router::components::{A, Route, Router, Routes};
 use leptos_router::path;
 
+use crate::components::farmer_workspace::FarmerWorkspace;
 use crate::components::globe_canvas::GlobeCanvas;
 use crate::components::hud::Hud;
 use crate::components::info_panel::InfoPanel;
@@ -30,6 +31,7 @@ pub fn App() -> impl IntoView {
             <Routes fallback=|| view! { <GlobeApp/> }>
                 <Route path=path!("/") view=GlobeApp/>
                 <Route path=path!("/labs/reactor-twin") view=ReactorTwinDemo/>
+                <Route path=path!("/field-work") view=FarmerWorkspace/>
             </Routes>
         </Router>
     }
@@ -104,6 +106,7 @@ fn GlobeApp() -> impl IntoView {
             <h1>"Sol Atlas"</h1>
             <p class="subtitle">"Symthaea Planetary Coordination Layer"</p>
             <A href="/labs/reactor-twin" attr:class="labs-link">"Labs: Reactor Digital Twin demo \u{2192}"</A>
+            <A href="/field-work" attr:class="labs-link">"Farmer workspace prototype \u{2192}"</A>
         </div>
         <Hud />
         <LayerPanel />
