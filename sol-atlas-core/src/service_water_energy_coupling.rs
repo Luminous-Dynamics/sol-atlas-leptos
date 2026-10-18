@@ -477,7 +477,7 @@ pub(crate) fn assess_water_energy_coupled_trajectory_indexed(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::service_water::DIMENSIONLESS_UNIT;
+    use crate::service_water::{DIMENSIONLESS_UNIT, WATER_VOLUME_UNIT};
     use crate::service_water_trajectory::{
         WATER_SERVICE_TRAJECTORY_SCHEMA_VERSION, WaterServiceTrajectoryStep,
     };
