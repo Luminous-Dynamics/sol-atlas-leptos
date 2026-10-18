@@ -383,7 +383,6 @@ pub fn FarmerWorkspace() -> impl IntoView {
                                 <p>"The report is preserved in this local demo. No one is labelled at fault and no automatic penalty is applied."</p>
                                 <div class="field-work-receipt"><strong>"REWORK REQUEST · SIMULATED"</strong><span>"Resolution: pending · payment: not recorded"</span></div>
                                 <button class="field-work-primary" on:click=move |_| dispatch(DemoAction::Restart)>"Restart demo workflow"</button>
-                                <button class="field-work-secondary" on:click=move |_| dispatch(DemoAction::Restart)>"Restart demo workflow"</button>
                             </Show>
                         </div>
                     </Show>
