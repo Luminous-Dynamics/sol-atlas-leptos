@@ -16,8 +16,9 @@ pub fn FarmerWorkspace() -> impl IntoView {
     let selected = RwSignal::new("today");
     let simulated_offline = RwSignal::new(true);
     // 0: no local report; 1: local report; 2: synthetic quote;
-    // 3: quote acceptance simulated; 4: booking confirmation simulated;
-    // 5: provider-reported completion; 6: farmer accepts; 7: dispute/rework.
+    // 3: complete terms requested; 4: full synthetic quote received;
+    // 5: quote accepted; 6: provider confirms booking; 7: provider reports completion;
+    // 8: farmer accepts; 9: farmer disputes or requests rework.
     let workflow = RwSignal::new(0_u8);
 
     let online_label = move || {
@@ -299,8 +300,8 @@ pub fn FarmerWorkspace() -> impl IntoView {
                                 <p>"This is a provider claim in the demo, not independent proof of quality and not farmer acceptance."</p>
                                 <div class="field-work-receipt"><strong>"Awaiting your decision"</strong><span>"Not accepted · payment state unchanged"</span></div>
                                 <div class="field-work-card-actions">
-                                    <button class="field-work-primary" on:click=move |_| workflow.set(6)>"Simulate accepting work"</button>
-                                    <button class="field-work-secondary" on:click=move |_| workflow.set(7)>"Report a problem"</button>
+                                    <button class="field-work-primary" on:click=move |_| workflow.set(8)>"Simulate accepting work"</button>
+                                    <button class="field-work-secondary" on:click=move |_| workflow.set(9)>"Report a problem"</button>
                                 </div>
                             </Show>
 
@@ -309,7 +310,7 @@ pub fn FarmerWorkspace() -> impl IntoView {
                                 <h3>"Acceptance recorded in this prototype"</h3>
                                 <p>"The demo now records a separate farmer decision. That is still not a payment receipt or proof of independently verified repair quality."</p>
                                 <div class="field-work-receipt"><strong>"FARMER ACCEPTANCE · SIMULATED"</strong><span>"Payment: not recorded"</span></div>
-                                <button class="field-work-secondary" on:click=move |_| workflow.set(5)>"Review completion claim again"</button>
+                                <button class="field-work-secondary" on:click=move |_| workflow.set(7)>"Review completion claim again"</button>
                                 <button class="field-work-secondary" on:click=move |_| workflow.set(0)>"Restart demo workflow"</button>
                             </Show>
 
