@@ -1530,7 +1530,7 @@ mod tests {
         let distributed = outcome.assessments.iter().find(|value| value.architecture == Architecture::DistributedSharedReserve).unwrap();
         let sensor = distributed.requests.iter().find(|value| value.request_id == "sensor-1").unwrap();
         assert_ne!(sensor.outcome, RequestOutcome::ScheduledWithinWindow);
-        assert!(sensor.blockers.contains(&Blocker::CalibrationExpired) || sensor.blockers.contains(&Blocker::MissingSkill));
+        assert!(sensor.blockers.contains(&Blocker::CalibrationExpired));
 
         let mut unknown_fit = base_request();
         let local_candidate = unknown_fit.candidates.iter_mut()
