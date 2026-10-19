@@ -638,7 +638,10 @@ fn validate_snapshot_digest(
 }
 
 fn is_sha256_hex(value: &str) -> bool {
-    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
+    value.len() == 64
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
 /// Strict UTC seconds form: YYYY-MM-DDTHH:MM:SSZ. Adapters normalize offsets/fractions.
@@ -1363,6 +1366,12 @@ mod tests {
                 .iter()
                 .any(|violation| violation.code == "empty_observation_batch")
         );
+    }
+
+    #[test]
+    fn rejects_noncanonical_uppercase_sha256_strings() {
+        assert!(!is_sha256_hex(&"A".repeat(64)));
+        assert!(is_sha256_hex(&"a".repeat(64)));
     }
 
     #[test]
