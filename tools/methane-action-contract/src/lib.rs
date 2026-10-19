@@ -5,6 +5,7 @@
 //! calibrate instruments, validate emission estimates, or prove source attribution.
 
 pub mod census;
+pub mod comparison;
 
 use sha2::{Digest, Sha256};
 use std::collections::HashSet;
