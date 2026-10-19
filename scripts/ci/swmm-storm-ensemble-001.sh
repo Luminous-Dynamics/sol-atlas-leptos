@@ -33,7 +33,7 @@ github_sha="${GITHUB_SHA:-}"
 
 write_case_result() {
   local case_id="$1" profile="$2" multiplier="$3" diameter="$4" baseline_id="$5"
-  local state="$6" exit_code="$7" derived_sha="$8" report_sha="$9" output_sha="${10}" stdout_sha="${11}" metrics_json="${12}" dir="${13}"
+  local expected_rain_depth="$6" state="$7" exit_code="$8" derived_sha="$9" report_sha="${10}" output_sha="${11}" stdout_sha="${12}" metrics_json="${13}" dir="${14}"
   local metrics
   metrics="$(jq -c '.' <<<"$metrics_json")"
   jq -n \
@@ -57,6 +57,7 @@ write_case_result() {
        rainfall_depth_multiplier: ($multiplier | tonumber),
        conduit_diameter_m: ($diameter | tonumber),
        paired_baseline_case_id: $baseline_id,
+       expected_rainfall_depth_mm: ($expected_rain_depth | tonumber),
        case_state: $state,
        exit_code: ($exit_code | num_or_null),
        derived_input_sha256: ($derived_sha | hash_or_null),
@@ -81,6 +82,7 @@ while IFS= read -r case_json; do
   multiplier="$(jq -er '.rainfall_depth_multiplier' <<<"$case_json")"
   diameter="$(jq -er '.conduit_diameter_m' <<<"$case_json")"
   baseline_id="$(jq -er '.paired_baseline_case_id' <<<"$case_json")"
+  expected_rain_depth="$(jq -er '.expected_rainfall_depth_mm' <<<"$case_json")"
   mapfile -t rain_values < <(jq -er '.rainfall_intensity_mm_hr[]' <<<"$case_json")
   case_dir="$case_out/$case_id"
   mkdir -p "$case_dir"
@@ -95,7 +97,7 @@ while IFS= read -r case_json; do
 
   if [[ "${#rain_values[@]}" -ne 6 ]]; then
     echo "WATER_STORM_RAIN_VECTOR_INVALID: case=$case_id count=${#rain_values[@]}" >&2
-    write_case_result "$case_id" "$profile" "$multiplier" "$diameter" "$baseline_id" "Failed" "64" "" "" "" "" "$metrics_json" "$case_dir"
+    write_case_result "$case_id" "$profile" "$multiplier" "$diameter" "$baseline_id" "$expected_rain_depth" "Failed" "64" "" "" "" "$metrics_json" "$case_dir"
     continue
   fi
 
@@ -137,7 +139,7 @@ while IFS= read -r case_json; do
     derived_sha="$(sha256sum "$derived" | awk '{print $1}')"
   else
     echo "WATER_STORM_INPUT_TRANSFORM_FAILED: case=$case_id" >&2
-    write_case_result "$case_id" "$profile" "$multiplier" "$diameter" "$baseline_id" "Failed" "65" "" "" "" "" "$metrics_json" "$case_dir"
+    write_case_result "$case_id" "$profile" "$multiplier" "$diameter" "$baseline_id" "$expected_rain_depth" "Failed" "65" "" "" "" "$metrics_json" "$case_dir"
     continue
   fi
 
@@ -193,7 +195,6 @@ while IFS= read -r case_json; do
       echo "WATER_STORM_REPORT_PARSE_FAILED: case=$case_id" >&2
     else
       IFS='|' read -r runoff_cont routing_cont rain_mm runoff_depth runoff_volume peak_runoff peak_j1_depth peak_j1_time peak_conduit_flow peak_vel full_flow_ratio full_depth_ratio peak_outfall outfall_volume flooding_loss <<< "$parsed"
-      expected_rain_depth="$(jq -er '.expected_rainfall_depth_mm' <<<"$case_json")"
       rainfall_matches="true"
       if ! awk -v actual="$rain_mm" -v expected="$expected_rain_depth" 'BEGIN { d=actual-expected; if (d<0) d=-d; exit !(d<=0.02) }'; then
         rainfall_matches="false"
@@ -245,7 +246,7 @@ while IFS= read -r case_json; do
   [[ -f "$report" ]] && report_sha="$(sha256sum "$report" | awk '{print $1}')" || true
   [[ -f "$binary" ]] && output_sha="$(sha256sum "$binary" | awk '{print $1}')" || true
   [[ -f "$stdout" ]] && stdout_sha="$(sha256sum "$stdout" | awk '{print $1}')" || true
-  write_case_result "$case_id" "$profile" "$multiplier" "$diameter" "$baseline_id" "$state" "$exit_code" "$derived_sha" "$report_sha" "$output_sha" "$stdout_sha" "$metrics_json" "$case_dir"
+  write_case_result "$case_id" "$profile" "$multiplier" "$diameter" "$baseline_id" "$expected_rain_depth" "$state" "$exit_code" "$derived_sha" "$report_sha" "$output_sha" "$stdout_sha" "$metrics_json" "$case_dir"
 done < <(jq -c '.cases[]' "$plan_file")
 
 cases_json="$(jq -s '.' "$case_out"/*/result.json)"
