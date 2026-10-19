@@ -263,7 +263,9 @@ pub fn validate_batch(
         }
 
         match &assoc.review {
-            AssociationReview::Unreviewed => {}
+            AssociationReview::Unreviewed => {
+                report.push(id, "review", "association_unreviewed");
+            }
             AssociationReview::Reviewed { reviewer_id } if reviewer_id.trim().is_empty() => {
                 report.push(id, "review.reviewer_id", "empty_reviewer_id");
             }
@@ -277,6 +279,7 @@ pub fn validate_batch(
                 if reason.trim().is_empty() {
                     report.push(id, "review.reason", "empty_review_reason");
                 }
+                report.push(id, "review", "association_rejected");
             }
             AssociationReview::Reviewed { .. } => {}
         }
@@ -750,7 +753,12 @@ mod tests {
                 .iter()
                 .any(|v| v.code == "invalid_sha256_format")
         );
-        assert!(report.violations.iter().any(|v| v.code == "invalid_utc_timestamp"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "invalid_utc_timestamp")
+        );
     }
 
     #[test]
@@ -765,7 +773,12 @@ mod tests {
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         );
-        assert!(report.violations.iter().any(|v| v.code == "invalid_sha256_format"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "invalid_sha256_format")
+        );
         assert!(
             report
                 .violations
@@ -837,6 +850,47 @@ mod tests {
                 .violations
                 .iter()
                 .any(|v| v.code == "quarantined_observation")
+        );
+    }
+
+    #[test]
+    fn unreviewed_source_association_blocks_admission() {
+        let mut assoc = association("plume-review");
+        assoc.review = AssociationReview::Unreviewed;
+        let report = validate_batch(
+            &[observation("plume-review", quantified())],
+            &[assoc],
+            DataUse::ResearchNonCommercial,
+            ObservationKind::RemoteSensingPlume,
+            &GasSpecies::Methane,
+        );
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "association_unreviewed")
+        );
+    }
+
+    #[test]
+    fn rejected_source_association_blocks_admission() {
+        let mut assoc = association("plume-rejected");
+        assoc.review = AssociationReview::Rejected {
+            reviewer_id: "reviewer-2".into(),
+            reason: "match contradicted by field evidence".into(),
+        };
+        let report = validate_batch(
+            &[observation("plume-rejected", quantified())],
+            &[assoc],
+            DataUse::ResearchNonCommercial,
+            ObservationKind::RemoteSensingPlume,
+            &GasSpecies::Methane,
+        );
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "association_rejected")
         );
     }
 
