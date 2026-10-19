@@ -1,5 +1,5 @@
 use methane_action_contract::census::{
-    evaluate_census, BenchmarkCase, EvaluationReport, SystemSubmission,
+    BenchmarkCase, EvaluationReport, SystemSubmission, evaluate_census,
 };
 use methane_action_contract::sha256_hex;
 use serde::{Deserialize, Serialize};
