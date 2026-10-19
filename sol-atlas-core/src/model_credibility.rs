@@ -422,7 +422,7 @@ mod tests {
         let actual = assess_model_credibility_handoff(&input).expect("stale fixture assesses");
         assert_eq!(
             expected,
-            serde_json::to_value(actual).expect("serialize stale assessment")
+            serde_json::to_value(&actual).expect("serialize stale assessment")
         );
         assert_eq!(ModelCapacityDisposition::Indeterminate, actual.status);
         assert!(actual.eligible_capacity.is_none());
