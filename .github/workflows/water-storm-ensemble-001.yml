@@ -65,6 +65,10 @@ jobs:
           source_sha = hashlib.sha256(source_bytes).hexdigest()
           if source_sha != plan["source_input"]["sha256"] or len(source_bytes) != plan["source_input"]["byte_length"]:
               raise SystemExit(f"WATER_STORM_SOURCE_IDENTITY_MISMATCH: {source_sha}/{len(source_bytes)}")
+          if plan["solver_profile"].get("routing_step_seconds") != 5:
+              raise SystemExit("WATER_STORM_ROUTING_STEP_MUST_BE_FIXED_AT_5_SECONDS")
+          if "ROUTING_STEP 00:00:30" not in source_bytes.decode("utf-8"):
+              raise SystemExit("WATER_STORM_SOURCE_ROUTING_STEP_NOT_EXPECTED_30_SECONDS")
 
           profiles = {row["profile_id"]: row for row in plan["rainfall_profiles"]}
           multipliers = plan["rainfall_depth_multipliers"]
