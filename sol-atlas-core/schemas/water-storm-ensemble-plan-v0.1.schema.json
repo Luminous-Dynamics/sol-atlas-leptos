@@ -283,6 +283,34 @@
           ]
         }
       }
+    },
+    "acceptance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required_case_count",
+        "absolute_continuity_error_smoke_limit_percent",
+        "require_output_and_report",
+        "require_paired_baseline",
+        "require_raw_per_case_receipts"
+      ],
+      "properties": {
+        "required_case_count": {
+          "const": 54
+        },
+        "absolute_continuity_error_smoke_limit_percent": {
+          "const": 1
+        },
+        "require_output_and_report": {
+          "const": true
+        },
+        "require_paired_baseline": {
+          "const": true
+        },
+        "require_raw_per_case_receipts": {
+          "const": true
+        }
+      }
     }
   }
 }
