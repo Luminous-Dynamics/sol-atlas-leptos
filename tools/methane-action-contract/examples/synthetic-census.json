@@ -4,6 +4,7 @@
     {
       "case_id": "synthetic-positive-1",
       "stratum_id": "synthetic-low-rate",
+      "cluster_id": "synthetic-site-a",
       "reference": {
         "state": "metered_emission",
         "emission_rate_kg_h": 10.0
@@ -12,6 +13,7 @@
     {
       "case_id": "synthetic-zero-1",
       "stratum_id": "synthetic-background",
+      "cluster_id": "synthetic-site-b",
       "reference": {
         "state": "metered_zero"
       }
