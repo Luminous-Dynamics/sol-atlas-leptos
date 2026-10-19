@@ -319,7 +319,7 @@ fn present(value: &str) -> bool {
     !value.trim().is_empty()
 }
 
-fn valid_sha256(value: &str) -> bool {
+pub(crate) fn valid_sha256(value: &str) -> bool {
     value.len() == 64 && value.bytes().all(|b| b.is_ascii_hexdigit())
 }
 
