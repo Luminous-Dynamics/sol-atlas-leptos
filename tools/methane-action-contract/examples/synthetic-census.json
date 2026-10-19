@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "case_id": "synthetic-positive-1",
+      "stratum_id": "synthetic-low-rate",
+      "reference": {
+        "state": "metered_emission",
+        "emission_rate_kg_h": 10.0
+      }
+    },
+    {
+      "case_id": "synthetic-zero-1",
+      "stratum_id": "synthetic-background",
+      "reference": {
+        "state": "metered_zero"
+      }
+    }
+  ],
+  "submission": {
+    "system_id": "synthetic-example-only",
+    "version": "0.0.0-synthetic",
+    "build_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "configuration_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "responses": [
+      {
+        "case_id": "synthetic-positive-1",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "detected",
+          "emission_rate_kg_h": 9.0
+        }
+      },
+      {
+        "case_id": "synthetic-zero-1",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      }
+    ]
+  }
+}
