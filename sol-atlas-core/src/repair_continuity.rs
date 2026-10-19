@@ -17,6 +17,7 @@ pub const MAX_WINDOWS: usize = 64;
 pub const MAX_DEMAND: usize = 10_000;
 pub const MAX_CELLS_PER_CANDIDATE: usize = 128;
 pub const MAX_STOCK_LOTS_PER_CANDIDATE: usize = 10_000;
+pub const MAX_PART_REQUIREMENTS_PER_DEMAND: usize = 64;
 pub const MAX_FIT_EVALUATIONS: usize = 2_000_000;
 pub const MAX_STOCK_INSPECTIONS: usize = 20_000_000;
 const EPSILON: f64 = 1.0e-9;
@@ -449,6 +450,11 @@ fn validate(request: &RepairContinuityRequest) -> Result<(), Vec<String>> {
         validate_ids(&demand.required_skill_ids, "required_skill_ids", &mut errors);
         validate_ids(&demand.required_tool_capabilities, "required_tool_capabilities", &mut errors);
         validate_ids(&demand.required_instrument_ids, "required_instrument_ids", &mut errors);
+        if demand.required_parts.len() > MAX_PART_REQUIREMENTS_PER_DEMAND {
+            errors.push(format!(
+                "demand[{index}] exceeds part-requirement budget of {MAX_PART_REQUIREMENTS_PER_DEMAND}"
+            ));
+        }
         let mut part_keys = BTreeSet::new();
         for part in &demand.required_parts {
             if part.part_key.trim().is_empty() || part.required_revision.trim().is_empty() || part.quantity == 0 {
@@ -491,6 +497,13 @@ fn validate(request: &RepairContinuityRequest) -> Result<(), Vec<String>> {
     if actual_architectures != expected_architectures {
         errors.push("architectures must include centralized_depot, local_service_cell and distributed_shared_reserve exactly once".to_owned());
     }
+    let total_part_requirements = request.demand.iter().try_fold(0usize, |total, demand| {
+        total.checked_add(demand.required_parts.len())
+    });
+    if total_part_requirements.is_none() {
+        errors.push("repair part-requirement budget arithmetic overflowed".to_owned());
+    }
+
     let mut candidate_ids = BTreeSet::new();
     let mut fit_evaluations = 0usize;
     let mut stock_inspection_estimate = 0usize;
@@ -547,7 +560,9 @@ fn validate(request: &RepairContinuityRequest) -> Result<(), Vec<String>> {
                 candidate.candidate_id
             ));
         }
-        match candidate_evaluations
+        match total_part_requirements
+            .and_then(|requirements| requirements.checked_mul(candidate.workcells.len()))
+            .and_then(|evaluations| evaluations.checked_mul(request.windows.len()))
             .and_then(|evaluations| evaluations.checked_mul(stock_lot_count.max(1)))
             .and_then(|inspections| stock_inspection_estimate.checked_add(inspections))
         {
@@ -1332,6 +1347,25 @@ mod tests {
         }
     }
 
+
+
+    #[test]
+    fn part_requirement_budget_is_enforced_before_inventory_evaluation() {
+        let mut request = base_request();
+        request.demand[0].required_parts = (0..=MAX_PART_REQUIREMENTS_PER_DEMAND)
+            .map(|index| PartRequirement {
+                part_key: format!("part-{index:03}"),
+                required_revision: "r1".into(),
+                quantity: 1,
+            })
+            .collect();
+        let error = assess_repair_continuity(&request).unwrap_err();
+        assert!(matches!(
+            error,
+            RepairContinuityError::InvalidInput(errors)
+                if errors.iter().any(|message| message.contains("part-requirement budget"))
+        ));
+    }
 
     #[test]
     fn excessive_inventory_scan_work_fails_before_evaluation() {
