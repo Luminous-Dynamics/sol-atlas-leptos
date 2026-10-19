@@ -1,0 +1,550 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-repair-continuity-v0.1.schema.json",
+  "title": "Sol Atlas Repair Workcell Continuity Comparison",
+  "description": "Synthetic/modelled feasibility comparison across centralized, local and distributed repair architectures. This schema does not certify source truth or verified restoration.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "comparison_id",
+    "windows",
+    "demand",
+    "dependency_observations",
+    "candidates"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "comparison_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "windows": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "$ref": "#/$defs/serviceWindow"
+      }
+    },
+    "demand": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/$defs/repairDemand"
+      }
+    },
+    "dependency_observations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/dependencyObservation"
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "$ref": "#/$defs/architectureCandidate"
+      }
+    }
+  },
+  "$defs": {
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "class"
+      ],
+      "properties": {
+        "class": {
+          "enum": [
+            "observed",
+            "curated",
+            "assumed",
+            "unknown"
+          ]
+        },
+        "source_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "source_uri": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "snapshot_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "artifact_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-Fa-f0-9]{64}$"
+        }
+      }
+    },
+    "serviceWindow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "duration_hours"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "duration_hours": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "partRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "part_key",
+        "required_revision",
+        "quantity"
+      ],
+      "properties": {
+        "part_key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required_revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "quantity": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "repairDemand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "capability_id",
+        "required_parts",
+        "service_hours",
+        "arrival_window",
+        "due_window",
+        "max_turnaround_hours",
+        "priority",
+        "scope_profile"
+      ],
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "capability_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required_skill_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "required_tool_capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "required_instrument_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "required_parts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/partRequirement"
+          }
+        },
+        "service_hours": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "arrival_window": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "due_window": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_turnaround_hours": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "scope_profile": {
+          "enum": [
+            "low_voltage_fan",
+            "sensor",
+            "small_pump",
+            "simple_controller_board"
+          ]
+        }
+      }
+    },
+    "dependencyObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dependency_id",
+        "window_index",
+        "availability",
+        "evidence"
+      ],
+      "properties": {
+        "dependency_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "window_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "availability": {
+          "enum": [
+            "available",
+            "unavailable",
+            "unknown",
+            "derated"
+          ]
+        },
+        "available_fraction": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "evidence": {
+          "$ref": "#/$defs/evidence"
+        }
+      }
+    },
+    "stockLot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stock_id",
+        "part_key",
+        "revision",
+        "quantity",
+        "fit",
+        "available_from_window",
+        "evidence"
+      ],
+      "properties": {
+        "stock_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "part_key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "quantity": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "fit": {
+          "enum": [
+            "exact_revision",
+            "approved_substitute",
+            "unknown",
+            "incompatible"
+          ]
+        },
+        "approved_for_part_keys": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "available_from_window": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expires_after_window": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "supply_dependency_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "evidence": {
+          "$ref": "#/$defs/evidence"
+        }
+      }
+    },
+    "inventoryPool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pool_id",
+        "location_id",
+        "lots"
+      ],
+      "properties": {
+        "pool_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "location_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lots": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/stockLot"
+          }
+        }
+      }
+    },
+    "inventoryAccess": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pool_id",
+        "route_dependency_id",
+        "transfer_hours"
+      ],
+      "properties": {
+        "pool_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "route_dependency_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "transfer_hours": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "instrument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "instrument_id",
+        "calibration_state",
+        "evidence"
+      ],
+      "properties": {
+        "instrument_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "calibration_state": {
+          "enum": [
+            "qualified",
+            "expired",
+            "unknown"
+          ]
+        },
+        "calibrated_through_window": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "evidence": {
+          "$ref": "#/$defs/evidence"
+        }
+      }
+    },
+    "workCell": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cell_id",
+        "node_id",
+        "capability_ids",
+        "qualified_skill_ids",
+        "tool_capabilities",
+        "readiness_completeness",
+        "readiness_evidence",
+        "service_hours_by_window",
+        "travel_hours_to_service",
+        "staffing_dependency_id",
+        "power_dependency_id",
+        "service_route_dependency_id",
+        "inventory_access"
+      ],
+      "properties": {
+        "cell_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "node_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "capability_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "qualified_skill_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "tool_capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "readiness_completeness": {
+          "enum": [
+            "complete",
+            "partial",
+            "unknown"
+          ]
+        },
+        "readiness_evidence": {
+          "$ref": "#/$defs/evidence"
+        },
+        "instruments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/instrument"
+          }
+        },
+        "service_hours_by_window": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "travel_hours_to_service": {
+          "type": "number",
+          "minimum": 0
+        },
+        "staffing_dependency_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "power_dependency_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "service_route_dependency_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inventory_access": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/inventoryAccess"
+          }
+        }
+      }
+    },
+    "architectureCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_id",
+        "architecture",
+        "workcells",
+        "inventory_pools"
+      ],
+      "properties": {
+        "candidate_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "architecture": {
+          "enum": [
+            "centralized_depot",
+            "local_service_cell",
+            "distributed_shared_reserve"
+          ]
+        },
+        "workcells": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "items": {
+            "$ref": "#/$defs/workCell"
+          }
+        },
+        "inventory_pools": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/inventoryPool"
+          }
+        }
+      }
+    }
+  }
+}
