@@ -21,6 +21,21 @@ The data model distinguishes:
 
 The whole batch must be rejected if any validation violation is returned. The validator does not silently drop or repair records.
 
+## JSON census CLI
+
+The `methane-census` binary reads one strict JSON request from stdin and writes one JSON receipt to stdout. Malformed JSON/schema input exits nonzero without a receipt; structurally invalid benchmark submissions produce a receipt with `evaluation_status: "invalid"` and exit code 2; valid submissions exit 0.
+
+Example using a **synthetic smoke fixture only**:
+
+```sh
+cargo run --manifest-path tools/methane-action-contract/Cargo.toml --locked --bin methane-census \
+  < tools/methane-action-contract/examples/synthetic-census.json > receipt.json
+```
+
+The receipt includes the SHA-256 of the exact input JSON bytes and the submitted system/configuration identifiers. This digest binds the receipt to the input bytes; it does not authenticate the input source, the running binary, the upstream data provider, the reviewer, or the reference truth. The bundled two-case fixture is intentionally synthetic and is only a CLI/conformance smoke test, not evidence of methane-detector performance.
+
+Input schema version 1 uses explicit tagged states for reference truth, coverage, and system disposition. Unknown object fields are rejected rather than silently ignored.
+
 ## Complete-census evaluator
 
 The exported `census` module scores a submitted detector against the complete predeclared opportunity set, separately from input admission. Every expected case must have exactly one response row. Missing, extra, or duplicate rows suppress headline metrics. A positive event that was not tasked or fell on an invalid scene remains a miss for end-to-end recall; it is not silently omitted. No-coverage and reference-unavailable cases are reported separately and are not true negatives.
@@ -33,7 +48,7 @@ The evaluator reports end-to-end recall, recall conditional on coverage, false-a
     cargo fmt --manifest-path tools/methane-action-contract/Cargo.toml -- --check
     cargo clippy --manifest-path tools/methane-action-contract/Cargo.toml --all-targets -- -D warnings
 
-The only external crate dependency is `sha2 = 0.10.9`, with a standalone lockfile pinned to the same versions already present in the repository lockfile.
+External crates are `sha2 = 0.10.9`, `serde`, and `serde_json`, with a standalone lockfile pinned to versions already present in the repository lockfile.
 
 ## Trust and scope boundaries
 
