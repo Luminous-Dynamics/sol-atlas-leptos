@@ -191,7 +191,8 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/partRequirement"
-          }
+          },
+          "maxItems": 64
         },
         "service_hours": {
           "type": "number",
