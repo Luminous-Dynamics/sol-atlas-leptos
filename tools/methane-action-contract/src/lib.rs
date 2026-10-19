@@ -374,14 +374,13 @@ fn validate_observation_method(report: &mut ValidationReport, observation: &Obse
     if let (Some(instrument_id), Some(calibration)) = (
         observation.instrument_id.as_deref(),
         observation.calibration.as_ref(),
-    ) {
-        if instrument_id != calibration.instrument_id {
-            report.push(
-                id,
-                "calibration.instrument_id",
-                "calibration_instrument_mismatch",
-            );
-        }
+    ) && instrument_id != calibration.instrument_id
+    {
+        report.push(
+            id,
+            "calibration.instrument_id",
+            "calibration_instrument_mismatch",
+        );
     }
 }
 
