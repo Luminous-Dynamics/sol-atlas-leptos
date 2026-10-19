@@ -426,8 +426,7 @@
         "travel_hours_to_service",
         "staffing_dependency_id",
         "power_dependency_id",
-        "service_route_dependency_id",
-        "inventory_access"
+        "service_route_dependency_id"
       ],
       "properties": {
         "cell_id": {
