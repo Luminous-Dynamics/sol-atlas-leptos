@@ -42,6 +42,7 @@ write_case_result() {
     --arg multiplier "$multiplier" \
     --arg diameter "$diameter" \
     --arg baseline_id "$baseline_id" \
+    --arg expected_rain_depth "$expected_rain_depth" \
     --arg state "$state" \
     --arg exit_code "$exit_code" \
     --arg derived_sha "$derived_sha" \
