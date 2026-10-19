@@ -283,20 +283,20 @@ fn record_case(
     case: &BenchmarkCase,
     response: &CaseResponse,
 ) {
-    if matches!(case.reference, ReferenceState::ReferenceUnavailable { .. }) {
+    if matches!(&case.reference, ReferenceState::ReferenceUnavailable { .. }) {
         accumulator.counts.reference_unavailable_cases += 1;
         return;
     }
 
     accumulator.counts.reference_known_cases += 1;
-    let is_positive = matches!(case.reference, ReferenceState::MeteredEmission { .. });
+    let is_positive = matches!(&case.reference, ReferenceState::MeteredEmission { .. });
     if is_positive {
         accumulator.counts.positive_reference_cases += 1;
     } else {
         accumulator.counts.negative_reference_cases += 1;
     }
 
-    match response.coverage {
+    match &response.coverage {
         CoverageState::Covered => {
             accumulator.counts.covered_known_cases += 1;
             if is_positive {
@@ -339,7 +339,7 @@ fn record_case(
         (ReferenceState::MeteredEmission { .. }, _, _) => {
             // Every known positive not detected above is a false negative.
             accumulator.counts.false_negatives += 1;
-            if matches!(response.disposition, SystemDisposition::Abstained { .. }) {
+            if matches!(&response.disposition, SystemDisposition::Abstained { .. }) {
                 accumulator.counts.abstained_positive_cases += 1;
             }
         }
@@ -557,11 +557,10 @@ mod tests {
         assert!((overall.false_alert_rate_when_covered().unwrap() - 0.5).abs() < 1e-12);
         assert!((overall.coverage_rate().unwrap() - (4.0 / 6.0)).abs() < 1e-12);
         assert_eq!(metrics.quantification_sample_count, 1);
+        let expected_log_error = (9.0_f64.log10() - 10.0_f64.log10()).abs();
         assert!(
-            (metrics.median_absolute_log10_rate_error.unwrap() - 9.0_f64.log10().abs()
-                + 10.0_f64.log10().abs())
-            .abs()
-                < 1.0
+            (metrics.median_absolute_log10_rate_error.unwrap() - expected_log_error).abs()
+                < 1e-12
         );
         assert!(metrics.by_stratum.contains_key("low-rate"));
         assert!(metrics.by_stratum.contains_key("high-background"));
