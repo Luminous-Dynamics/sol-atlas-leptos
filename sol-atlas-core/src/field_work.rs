@@ -310,7 +310,12 @@ pub enum ViewportIntentKind {
 
 /// Typed user intent emitted by a Bevy viewport or another spatial surface.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "intent", rename_all = "camelCase", deny_unknown_fields)]
+#[serde(
+    tag = "intent",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase",
+    deny_unknown_fields
+)]
 pub enum ViewportIntentV1 {
     SelectAsset {
         asset_id: String,
