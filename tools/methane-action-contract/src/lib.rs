@@ -664,7 +664,9 @@ mod tests {
         commercial.provenance.terms_review = TermsReview::Approved {
             reviewer_id: "reviewer-1".into(),
             approved_use: DataUse::ResearchNonCommercial,
+            terms_uri: "https://data.example.test/terms".into(),
             terms_sha256: "b".repeat(64),
+            reviewed_at_utc: "2026-10-19T12:00:00Z".into(),
         };
         let report = validate_batch(
             &[commercial],
@@ -673,6 +675,28 @@ mod tests {
             &GasSpecies::Methane,
         );
         assert!(report.violations.iter().any(|v| v.code == "declared_use_mismatch"));
+    }
+
+    #[test]
+    fn rejects_unpinned_terms_review_metadata() {
+        let mut obs = observation("plume-terms", quantified());
+        obs.provenance.terms_review = TermsReview::Approved {
+            reviewer_id: String::new(),
+            approved_use: DataUse::ResearchNonCommercial,
+            terms_uri: "file:///unreviewable-terms".into(),
+            terms_sha256: "invalid".into(),
+            reviewed_at_utc: "not-a-timestamp".into(),
+        };
+        let report = validate_batch(
+            &[obs],
+            &[],
+            DataUse::ResearchNonCommercial,
+            &GasSpecies::Methane,
+        );
+        assert!(report.violations.iter().any(|v| v.code == "empty_reviewer_id"));
+        assert!(report.violations.iter().any(|v| v.code == "terms_uri_not_https"));
+        assert!(report.violations.iter().any(|v| v.code == "invalid_sha256_format"));
+        assert!(report.violations.iter().any(|v| v.code == "invalid_utc_timestamp"));
     }
 
     #[test]
