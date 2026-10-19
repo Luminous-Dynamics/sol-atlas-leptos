@@ -666,6 +666,30 @@ fn dependency_factor(
     }
 }
 
+/// Future discrete shipments cannot be fractionally materialized from a derated
+/// dependency estimate. Only an explicitly available supplier confirms the full
+/// declared lot; derated/missing/unknown supply remains indeterminate.
+fn stock_supply_factor(
+    observations: &[DependencyObservation],
+    dependency_id: &str,
+    window: usize,
+) -> ResourceFactor {
+    let Some(observation) = observations
+        .iter()
+        .find(|value| value.dependency_id == dependency_id && value.window_index == window)
+    else {
+        return ResourceFactor::Unknown;
+    };
+    if observation.evidence.class == EvidenceClass::Unknown {
+        return ResourceFactor::Unknown;
+    }
+    match observation.availability {
+        Availability::Available => ResourceFactor::Available(1.0),
+        Availability::Unavailable => ResourceFactor::Unavailable,
+        Availability::Unknown | Availability::Derated => ResourceFactor::Unknown,
+    }
+}
+
 fn initial_stock(candidate: &ArchitectureCandidate, observations: &[DependencyObservation]) -> BTreeMap<String, u32> {
     let mut remaining = BTreeMap::new();
     for pool in &candidate.inventory_pools {
@@ -673,8 +697,8 @@ fn initial_stock(candidate: &ArchitectureCandidate, observations: &[DependencyOb
             let quantity = if lot.evidence.class == EvidenceClass::Unknown {
                 0
             } else if let Some(dependency) = &lot.supply_dependency_id {
-                match dependency_factor(observations, dependency, lot.available_from_window) {
-                    ResourceFactor::Available(fraction) => ((f64::from(lot.quantity) * fraction).floor()) as u32,
+                match stock_supply_factor(observations, dependency, lot.available_from_window) {
+                    ResourceFactor::Available(_) => lot.quantity,
                     ResourceFactor::Unavailable | ResourceFactor::Unknown => 0,
                 }
             } else {
@@ -778,7 +802,7 @@ fn check_parts(
                         continue;
                     }
                     match lot.supply_dependency_id.as_deref().map(|id| {
-                        dependency_factor(observations, id, lot.available_from_window)
+                        stock_supply_factor(observations, id, lot.available_from_window)
                     }) {
                         Some(ResourceFactor::Available(_)) => future_stock = true,
                         Some(ResourceFactor::Unavailable) => supply_unavailable = true,
@@ -797,9 +821,9 @@ fn check_parts(
                         continue;
                     }
                     match lot.supply_dependency_id.as_deref().map(|id| {
-                        dependency_factor(observations, id, lot.available_from_window)
+                        stock_supply_factor(observations, id, lot.available_from_window)
                     }) {
-                        Some(ResourceFactor::Unknown) => {
+                        Some(ResourceFactor::Unknown) | None => {
                             supply_unknown = true;
                             continue;
                         }
@@ -807,13 +831,7 @@ fn check_parts(
                             supply_unavailable = true;
                             continue;
                         }
-                        Some(ResourceFactor::Available(fraction))
-                            if (f64::from(lot.quantity) * fraction).floor() < 1.0 =>
-                        {
-                            supply_unavailable = true;
-                            continue;
-                        }
-                        Some(ResourceFactor::Available(_)) | None => {}
+                        Some(ResourceFactor::Available(_)) => {}
                     }
                     if match lot.fit {
                         PartFit::ExactRevision => {
