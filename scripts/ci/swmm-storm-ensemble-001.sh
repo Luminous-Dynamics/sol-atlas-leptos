@@ -193,7 +193,12 @@ while IFS= read -r case_json; do
       echo "WATER_STORM_REPORT_PARSE_FAILED: case=$case_id" >&2
     else
       IFS='|' read -r runoff_cont routing_cont rain_mm runoff_depth runoff_volume peak_runoff peak_j1_depth peak_j1_time peak_conduit_flow peak_vel full_flow_ratio full_depth_ratio peak_outfall outfall_volume flooding_loss <<< "$parsed"
-      if awk -v a="$runoff_cont" -v b="$routing_cont" -v lim="$continuity_limit" 'BEGIN { exit !((a<=lim && a>=-lim) && (b<=lim && b>=-lim)) }'; then
+      expected_rain_depth="$(jq -er '.expected_rainfall_depth_mm' <<<"$case_json")"
+      if ! awk -v actual="$rain_mm" -v expected="$expected_rain_depth" 'BEGIN { d=actual-expected; if (d<0) d=-d; exit !(d<=0.02) }'; then
+        state="Failed"
+        echo "WATER_STORM_RAINFALL_DEPTH_MISMATCH: case=$case_id expected=$expected_rain_depth actual=$rain_mm" >&2
+      fi
+      if [[ "$state" != "Failed" ]] && awk -v a="$runoff_cont" -v b="$routing_cont" -v lim="$continuity_limit" 'BEGIN { exit !((a<=lim && a>=-lim) && (b<=lim && b>=-lim)) }'; then
         state="Completed"
         exit_code="0"
       else
