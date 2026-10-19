@@ -165,6 +165,7 @@ pub fn validate_batch(
     observations: &[Observation],
     associations: &[SourceAssociation],
     required_use: DataUse,
+    required_kind: ObservationKind,
     required_gas: &GasSpecies,
 ) -> ValidationReport {
     let mut report = ValidationReport::default();
@@ -183,6 +184,9 @@ pub fn validate_batch(
         }
         if &obs.gas_species != required_gas {
             report.push(id, "gas_species", "gas_species_mismatch");
+        }
+        if obs.kind != required_kind {
+            report.push(id, "kind", "observation_kind_mismatch");
         }
         validate_provenance(&mut report, id, &obs.provenance, required_use);
 
@@ -555,9 +559,24 @@ mod tests {
             &[observation("plume-1", quantified())],
             &[association("plume-1")],
             DataUse::ResearchNonCommercial,
+            ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         );
         assert!(report.is_valid(), "{report:?}");
+    }
+
+    #[test]
+    fn rejects_mixing_inventory_estimates_into_plume_benchmark() {
+        let mut obs = observation("inventory-1", quantified());
+        obs.kind = ObservationKind::InventoryEstimate;
+        let report = validate_batch(
+            &[obs],
+            &[],
+            DataUse::ResearchNonCommercial,
+            ObservationKind::RemoteSensingPlume,
+            &GasSpecies::Methane,
+        );
+        assert!(report.violations.iter().any(|v| v.code == "observation_kind_mismatch"));
     }
 
     #[test]
@@ -568,6 +587,7 @@ mod tests {
             &[obs],
             &[],
             DataUse::ResearchNonCommercial,
+            ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         );
         assert!(report.violations.iter().any(|v| v.code == "gas_species_mismatch"));
@@ -582,6 +602,7 @@ mod tests {
             ],
             &[],
             DataUse::ResearchNonCommercial,
+            ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         );
         assert!(report.violations.iter().any(|v| v.code == "duplicate_observation_id"));
@@ -598,6 +619,7 @@ mod tests {
             )],
             &[],
             DataUse::ResearchNonCommercial,
+            ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         );
         assert!(report.is_valid(), "{report:?}");
@@ -643,6 +665,7 @@ mod tests {
             &[obs],
             &[],
             DataUse::ResearchNonCommercial,
+            ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         );
         assert!(report.violations.iter().any(|v| v.code == "invalid_utc_timestamp"));
@@ -656,6 +679,7 @@ mod tests {
             &[obs],
             &[],
             DataUse::ResearchNonCommercial,
+            ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         );
         assert!(report.violations.iter().any(|v| v.code == "terms_not_reviewed"));
@@ -672,6 +696,7 @@ mod tests {
             &[commercial],
             &[],
             DataUse::Commercial,
+            ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         );
         assert!(report.violations.iter().any(|v| v.code == "declared_use_mismatch"));
@@ -691,6 +716,7 @@ mod tests {
             &[obs],
             &[],
             DataUse::ResearchNonCommercial,
+            ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         );
         assert!(report.violations.iter().any(|v| v.code == "empty_reviewer_id"));
@@ -708,6 +734,7 @@ mod tests {
             &[obs],
             &[],
             DataUse::ResearchNonCommercial,
+            ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         );
         assert!(report.violations.iter().any(|v| v.code == "invalid_sha256_format"));
@@ -722,6 +749,7 @@ mod tests {
             &[],
             &[assoc],
             DataUse::ResearchNonCommercial,
+            ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         );
         assert!(report.violations.iter().any(|v| v.code == "unknown_observation_reference"));
@@ -740,6 +768,7 @@ mod tests {
             &[obs],
             &[],
             DataUse::ResearchNonCommercial,
+            ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         ).is_valid());
     }
@@ -754,6 +783,7 @@ mod tests {
             &[obs],
             &[],
             DataUse::ResearchNonCommercial,
+            ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         );
         assert!(report.violations.iter().any(|v| v.code == "quarantined_observation"));
@@ -768,12 +798,14 @@ mod tests {
             &[obs.clone()],
             &[],
             DataUse::ResearchNonCommercial,
+            ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         );
         let second = validate_batch(
             &[obs],
             &[],
             DataUse::ResearchNonCommercial,
+            ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         );
         assert_eq!(first, second);
