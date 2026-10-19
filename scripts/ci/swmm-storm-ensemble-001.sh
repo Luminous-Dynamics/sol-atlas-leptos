@@ -73,12 +73,14 @@ write_case_result() {
          peak_j1_depth_m: null,
          peak_conduit_velocity_m_s: null,
          peak_outfall_flow_m3_s: null,
-         flooding_loss_million_liters: null
+         flooding_loss_million_liters: null,
+         node_flood_volume_million_liters: null,
+         max_ponded_depth_m: null
        }
      }' > "$dir/result.json"
 }
 
-empty_metrics='{"runoff_continuity_error_percent":null,"routing_continuity_error_percent":null,"rainfall_depth_mm":null,"total_runoff_depth_mm":null,"total_runoff_volume_million_liters":null,"peak_runoff_m3_s":null,"peak_j1_depth_m":null,"peak_j1_time":null,"peak_conduit_flow_m3_s":null,"peak_conduit_velocity_m_s":null,"conduit_max_full_flow_ratio":null,"conduit_max_full_depth_ratio":null,"peak_outfall_flow_m3_s":null,"outfall_volume_million_liters":null,"flooding_loss_million_liters":null,"surcharged":null,"flooded":null}'
+empty_metrics='{"runoff_continuity_error_percent":null,"routing_continuity_error_percent":null,"rainfall_depth_mm":null,"total_runoff_depth_mm":null,"total_runoff_volume_million_liters":null,"peak_runoff_m3_s":null,"peak_j1_depth_m":null,"peak_j1_time":null,"peak_conduit_flow_m3_s":null,"peak_conduit_velocity_m_s":null,"conduit_max_full_flow_ratio":null,"conduit_max_full_depth_ratio":null,"peak_outfall_flow_m3_s":null,"outfall_volume_million_liters":null,"flooding_loss_million_liters":null,"node_flood_volume_million_liters":null,"peak_node_flooding_rate_m3_s":null,"max_ponded_depth_m":null,"max_node_flooded_hours":null,"surcharged":null,"flooded":null}'
 
 while IFS= read -r case_json; do
   case_id="$(jq -er '.case_id' <<<"$case_json")"
@@ -171,12 +173,20 @@ while IFS= read -r case_json; do
   else
     parsed="$(
       awk '
+        BEGIN {
+          node_flood_volume = 0
+          peak_flood_rate = 0
+          max_ponded_depth = 0
+          max_node_flooded_hours = 0
+        }
         /Continuity Error \(%\)/ { continuity[++continuity_count] = $NF }
         /Flooding Loss/ { flooding_loss = $NF }
         /Subcatchment Runoff Summary/ { section = "subrunoff"; next }
         /Node Depth Summary/ { section = "depth"; next }
-        /Link Flow Summary/ { section = "link"; next }
+        /Node Flooding Summary/ { section = "flooding"; flooding_summary_seen = 1; next }
         /Outfall Loading Summary/ { section = "outfall"; next }
+        /Link Flow Summary/ { section = "link"; next }
+        /No nodes were flooded\./ { no_flooding = 1 }
         section == "subrunoff" && $1 == "S1" && NF >= 11 {
           rainfall = $2; runoff_depth = $8; runoff_volume = $9; peak_runoff = $10
           section = ""
@@ -191,18 +201,36 @@ while IFS= read -r case_json; do
         section == "outfall" && $1 == "O1" && NF >= 5 {
           peak_outfall_flow = $4; outfall_volume = $5; section = ""
         }
+        section == "flooding" &&
+          $2 ~ /^(JUNCTION|STORAGE|DIVIDER|OUTFALL)$/ &&
+          $3 ~ /^[-+]?([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][-+]?[0-9]+)?$/ &&
+          $4 ~ /^[-+]?([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][-+]?[0-9]+)?$/ &&
+          $7 ~ /^[-+]?([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][-+]?[0-9]+)?$/ &&
+          $8 ~ /^[-+]?([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][-+]?[0-9]+)?$/ {
+          hours = $3 + 0
+          rate = $4 + 0
+          volume = $7 + 0
+          ponded = $8 + 0
+          if (hours > max_node_flooded_hours) max_node_flooded_hours = hours
+          if (rate > peak_flood_rate) peak_flood_rate = rate
+          node_flood_volume += volume
+          if (ponded > max_ponded_depth) max_ponded_depth = ponded
+          flooding_rows++
+        }
         END {
           if (continuity_count != 2 || rainfall == "" || runoff_depth == "" || runoff_volume == "" ||
               peak_runoff == "" || peak_j1_depth == "" || peak_j1_time == "" ||
               peak_conduit_flow == "" || peak_conduit_velocity == "" || full_flow_ratio == "" ||
-              full_depth_ratio == "" || peak_outfall_flow == "" || outfall_volume == "" || flooding_loss == "") {
+              full_depth_ratio == "" || peak_outfall_flow == "" || outfall_volume == "" || flooding_loss == "" ||
+              flooding_summary_seen != 1 || (flooding_rows == 0 && no_flooding != 1)) {
             print "WATER_STORM_REPORT_METRIC_PARSE_FAILED" > "/dev/stderr"
             exit 2
           }
-          printf "%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n",
+          printf "%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n",
             continuity[1], continuity[2], rainfall, runoff_depth, runoff_volume, peak_runoff,
             peak_j1_depth, peak_j1_time, peak_conduit_flow, peak_conduit_velocity,
-            full_flow_ratio, full_depth_ratio, peak_outfall_flow, outfall_volume, flooding_loss
+            full_flow_ratio, full_depth_ratio, peak_outfall_flow, outfall_volume, flooding_loss,
+            node_flood_volume, peak_flood_rate, max_ponded_depth, max_node_flooded_hours
         }
       ' "$report"
     )" || parsed=""
@@ -210,7 +238,7 @@ while IFS= read -r case_json; do
       state="Failed"
       echo "WATER_STORM_REPORT_PARSE_FAILED: case=$case_id" >&2
     else
-      IFS='|' read -r runoff_cont routing_cont rain_mm runoff_depth runoff_volume peak_runoff peak_j1_depth peak_j1_time peak_conduit_flow peak_vel full_flow_ratio full_depth_ratio peak_outfall outfall_volume flooding_loss <<< "$parsed"
+      IFS='|' read -r runoff_cont routing_cont rain_mm runoff_depth runoff_volume peak_runoff peak_j1_depth peak_j1_time peak_conduit_flow peak_vel full_flow_ratio full_depth_ratio peak_outfall outfall_volume flooding_loss node_flood_volume peak_flood_rate max_ponded_depth max_node_flooded_hours <<< "$parsed"
       rainfall_matches="true"
       if ! awk -v actual="$rain_mm" -v expected="$expected_rain_depth" 'BEGIN { d=actual-expected; if (d<0) d=-d; exit !(d<=0.02) }'; then
         rainfall_matches="false"
@@ -235,6 +263,7 @@ while IFS= read -r case_json; do
         --arg jd "$peak_j1_depth" --arg jt "$peak_j1_time" --arg cf "$peak_conduit_flow" \
         --arg cv "$peak_vel" --arg fr "$full_flow_ratio" --arg dr "$full_depth_ratio" \
         --arg of "$peak_outfall" --arg ov "$outfall_volume" --arg fl "$flooding_loss" \
+        --arg nfv "$node_flood_volume" --arg pfr "$peak_flood_rate" --arg mpd "$max_ponded_depth" --arg mfh "$max_node_flooded_hours" \
         --arg sur "$surcharged" --arg fld "$flooded" '
         def n: if . == "" then null else tonumber end;
         {
@@ -253,6 +282,10 @@ while IFS= read -r case_json; do
           peak_outfall_flow_m3_s: ($of | n),
           outfall_volume_million_liters: ($ov | n),
           flooding_loss_million_liters: ($fl | n),
+          node_flood_volume_million_liters: ($nfv | n),
+          peak_node_flooding_rate_m3_s: ($pfr | n),
+          max_ponded_depth_m: ($mpd | n),
+          max_node_flooded_hours: ($mfh | n),
           surcharged: ($sur == "true"),
           flooded: ($fld == "true")
         }')"
@@ -280,7 +313,9 @@ paired_cases="$(
           peak_j1_depth_m: (if $base == null then null else delta($case.metrics.peak_j1_depth_m; $base.metrics.peak_j1_depth_m) end),
           peak_conduit_velocity_m_s: (if $base == null then null else delta($case.metrics.peak_conduit_velocity_m_s; $base.metrics.peak_conduit_velocity_m_s) end),
           peak_outfall_flow_m3_s: (if $base == null then null else delta($case.metrics.peak_outfall_flow_m3_s; $base.metrics.peak_outfall_flow_m3_s) end),
-          flooding_loss_million_liters: (if $base == null then null else delta($case.metrics.flooding_loss_million_liters; $base.metrics.flooding_loss_million_liters) end)
+          flooding_loss_million_liters: (if $base == null then null else delta($case.metrics.flooding_loss_million_liters; $base.metrics.flooding_loss_million_liters) end),
+          node_flood_volume_million_liters: (if $base == null then null else delta($case.metrics.node_flood_volume_million_liters; $base.metrics.node_flood_volume_million_liters) end),
+          max_ponded_depth_m: (if $base == null then null else delta($case.metrics.max_ponded_depth_m; $base.metrics.max_ponded_depth_m) end)
         }
       }
     )
