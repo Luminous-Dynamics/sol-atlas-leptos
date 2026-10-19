@@ -32,9 +32,13 @@ pub enum CoverageState {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum SystemDisposition {
-    Detected { emission_rate_kg_h: f64 },
+    Detected {
+        emission_rate_kg_h: f64,
+    },
     ExplicitNonDetect,
-    Abstained { reason: String },
+    Abstained {
+        reason: String,
+    },
     /// Valid only when coverage is NotTasked or InvalidScene.
     NoOutput,
 }
@@ -154,10 +158,7 @@ impl EvaluationReport {
 /// Any missing, extra, duplicate, or semantically malformed row invalidates the whole
 /// score. The function never treats a missing row as a true negative and never silently
 /// filters hard cases out of the denominator.
-pub fn evaluate_census(
-    cases: &[BenchmarkCase],
-    submission: &SystemSubmission,
-) -> EvaluationReport {
+pub fn evaluate_census(cases: &[BenchmarkCase], submission: &SystemSubmission) -> EvaluationReport {
     let mut report = EvaluationReport::default();
 
     if cases.is_empty() {
@@ -223,9 +224,9 @@ pub fn evaluate_census(
         }
     }
 
-    report.violations.sort_by(|left, right| {
-        (&left.record_id, left.code).cmp(&(&right.record_id, right.code))
-    });
+    report
+        .violations
+        .sort_by(|left, right| (&left.record_id, left.code).cmp(&(&right.record_id, right.code)));
 
     if !report.violations.is_empty() {
         return report;
@@ -278,11 +279,7 @@ struct Accumulator {
     absolute_log10_rate_errors: Vec<f64>,
 }
 
-fn record_case(
-    accumulator: &mut Accumulator,
-    case: &BenchmarkCase,
-    response: &CaseResponse,
-) {
+fn record_case(accumulator: &mut Accumulator, case: &BenchmarkCase, response: &CaseResponse) {
     if matches!(&case.reference, ReferenceState::ReferenceUnavailable { .. }) {
         accumulator.counts.reference_unavailable_cases += 1;
         return;
@@ -469,7 +466,11 @@ mod tests {
         ]
     }
 
-    fn response(case_id: &str, coverage: CoverageState, disposition: SystemDisposition) -> CaseResponse {
+    fn response(
+        case_id: &str,
+        coverage: CoverageState,
+        disposition: SystemDisposition,
+    ) -> CaseResponse {
         CaseResponse {
             case_id: case_id.into(),
             coverage,
@@ -559,8 +560,7 @@ mod tests {
         assert_eq!(metrics.quantification_sample_count, 1);
         let expected_log_error = (9.0_f64.log10() - 10.0_f64.log10()).abs();
         assert!(
-            (metrics.median_absolute_log10_rate_error.unwrap() - expected_log_error).abs()
-                < 1e-12
+            (metrics.median_absolute_log10_rate_error.unwrap() - expected_log_error).abs() < 1e-12
         );
         assert!(metrics.by_stratum.contains_key("low-rate"));
         assert!(metrics.by_stratum.contains_key("high-background"));
@@ -572,7 +572,12 @@ mod tests {
         responses.pop();
         let report = evaluate_census(&cases(), &submission(responses));
         assert!(report.metrics.is_none());
-        assert!(report.violations.iter().any(|v| v.code == "missing_response_row"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "missing_response_row")
+        );
     }
 
     #[test]
@@ -586,40 +591,71 @@ mod tests {
         ));
         let report = evaluate_census(&cases(), &submission(responses));
         assert!(report.metrics.is_none());
-        assert!(report.violations.iter().any(|v| v.code == "duplicate_response_case_id"));
-        assert!(report.violations.iter().any(|v| v.code == "response_for_unknown_case"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "duplicate_response_case_id")
+        );
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "response_for_unknown_case")
+        );
     }
 
     #[test]
     fn no_coverage_detection_is_rejected_instead_of_getting_credit() {
         let mut responses = valid_responses();
-        let row = responses.iter_mut().find(|r| r.case_id == "p-not-tasked").unwrap();
+        let row = responses
+            .iter_mut()
+            .find(|r| r.case_id == "p-not-tasked")
+            .unwrap();
         row.disposition = SystemDisposition::Detected {
             emission_rate_kg_h: 7.0,
         };
         let report = evaluate_census(&cases(), &submission(responses));
         assert!(report.metrics.is_none());
-        assert!(report.violations.iter().any(|v| v.code == "output_without_coverage"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "output_without_coverage")
+        );
     }
 
     #[test]
     fn covered_case_without_explicit_output_is_rejected() {
         let mut responses = valid_responses();
-        let row = responses.iter_mut().find(|r| r.case_id == "p-detected").unwrap();
+        let row = responses
+            .iter_mut()
+            .find(|r| r.case_id == "p-detected")
+            .unwrap();
         row.disposition = SystemDisposition::NoOutput;
         let report = evaluate_census(&cases(), &submission(responses));
         assert!(report.metrics.is_none());
-        assert!(report.violations.iter().any(|v| v.code == "covered_case_has_no_output"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "covered_case_has_no_output")
+        );
     }
 
     #[test]
     fn abstentions_count_as_misses_not_silent_exclusions() {
         let mut responses = valid_responses();
-        let row = responses.iter_mut().find(|r| r.case_id == "p-missed").unwrap();
+        let row = responses
+            .iter_mut()
+            .find(|r| r.case_id == "p-missed")
+            .unwrap();
         row.disposition = SystemDisposition::Abstained {
             reason: "system uncertainty limit".into(),
         };
-        let metrics = evaluate_census(&cases(), &submission(responses)).metrics.unwrap();
+        let metrics = evaluate_census(&cases(), &submission(responses))
+            .metrics
+            .unwrap();
         assert_eq!(metrics.overall.false_negatives, 2);
         assert_eq!(metrics.overall.abstained_positive_cases, 1);
     }
@@ -647,8 +683,18 @@ mod tests {
         };
         let report = evaluate_census(&cases(), &sub);
         assert!(report.metrics.is_none());
-        assert!(report.violations.iter().any(|v| v.code == "invalid_build_sha256"));
-        assert!(report.violations.iter().any(|v| v.code == "invalid_reported_emission_rate"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "invalid_build_sha256")
+        );
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "invalid_reported_emission_rate")
+        );
     }
 
     #[test]
@@ -657,10 +703,20 @@ mod tests {
         duplicate.push(duplicate[0].clone());
         let report = evaluate_census(&duplicate, &submission(valid_responses()));
         assert!(report.metrics.is_none());
-        assert!(report.violations.iter().any(|v| v.code == "duplicate_benchmark_case_id"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "duplicate_benchmark_case_id")
+        );
 
         let report = evaluate_census(&[], &submission(Vec::new()));
         assert!(report.metrics.is_none());
-        assert!(report.violations.iter().any(|v| v.code == "empty_case_universe"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "empty_case_universe")
+        );
     }
 }
