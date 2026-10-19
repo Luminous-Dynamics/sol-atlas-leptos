@@ -291,13 +291,13 @@ mod tests {
 
     #[test]
     fn rejects_duplicate_observation_ids_instead_of_double_counting() {
-        let report = validate_batch(&[observation("plume-1", quantified()), observation("plume-1", quantified())], &[], DataUse::ResearchNonCommercial);
+        let report = validate_batch(&[observation("plume-1", quantified()), observation("plume-1", quantified())], &[], DataUse::ResearchNonCommercial, &GasSpecies::Methane);
         assert!(report.violations.iter().any(|v| v.code == "duplicate_observation_id"));
     }
 
     #[test]
     fn non_detection_is_explicit_not_zero() {
-        let report = validate_batch(&[observation("plume-2", Quantification::NonDetect { detection_limit_kg_h: 0.2 })], &[], DataUse::ResearchNonCommercial);
+        let report = validate_batch(&[observation("plume-2", Quantification::NonDetect { detection_limit_kg_h: 0.2 })], &[], DataUse::ResearchNonCommercial, &GasSpecies::Methane);
         assert!(report.is_valid(), "{report:?}");
         assert!(matches!(observation("x", Quantification::NonDetect { detection_limit_kg_h: 0.2 }).quantification, Quantification::NonDetect { .. }));
     }
@@ -306,7 +306,7 @@ mod tests {
     fn rejects_negative_non_finite_and_zero_detected_rates() {
         for rate in [-1.0, 0.0, f64::NAN, f64::INFINITY] {
             let q = Quantification::Quantified { emission_rate_kg_h: rate, uncertainty_kg_h: 0.1, detection_limit_kg_h: 0.1 };
-            let report = validate_batch(&[observation("plume-x", q)], &[], DataUse::ResearchNonCommercial);
+            let report = validate_batch(&[observation("plume-x", q)], &[], DataUse::ResearchNonCommercial, &GasSpecies::Methane);
             assert!(report.violations.iter().any(|v| v.code == "invalid_emission_rate"));
         }
     }
@@ -319,7 +319,7 @@ mod tests {
         assert!(!is_utc_timestamp("2026-01-01T24:00:00Z"));
         let mut obs = observation("plume-3", quantified());
         obs.observed_at_utc = "2026-02-30T10:11:12Z".into();
-        let report = validate_batch(&[obs], &[], DataUse::ResearchNonCommercial);
+        let report = validate_batch(&[obs], &[], DataUse::ResearchNonCommercial, &GasSpecies::Methane);
         assert!(report.violations.iter().any(|v| v.code == "invalid_utc_timestamp"));
     }
 
@@ -327,7 +327,7 @@ mod tests {
     fn refuses_unreviewed_or_mismatched_data_use() {
         let mut obs = observation("plume-4", quantified());
         obs.provenance.terms_review = TermsReview::NotReviewed;
-        let report = validate_batch(&[obs.clone()], &[], DataUse::ResearchNonCommercial);
+        let report = validate_batch(&[obs.clone()], &[], DataUse::ResearchNonCommercial, &GasSpecies::Methane);
         assert!(report.violations.iter().any(|v| v.code == "terms_not_reviewed"));
         let report = validate_batch(&[obs], &[], DataUse::Commercial, &GasSpecies::Methane);
         assert!(report.violations.iter().any(|v| v.code == "terms_not_reviewed"));
@@ -335,7 +335,7 @@ mod tests {
         commercial.provenance.terms_review = TermsReview::Approved {
             reviewer_id: "reviewer-1".into(), approved_use: DataUse::ResearchNonCommercial, terms_sha256: "b".repeat(64),
         };
-        let report = validate_batch(&[commercial], &[], DataUse::Commercial);
+        let report = validate_batch(&[commercial], &[], DataUse::Commercial, &GasSpecies::Methane);
         assert!(report.violations.iter().any(|v| v.code == "declared_use_mismatch"));
     }
 
@@ -344,7 +344,7 @@ mod tests {
         let mut obs = observation("plume-5", quantified());
         obs.provenance.artifact_sha256 = "not-a-digest".into();
         obs.provenance.attribution.clear();
-        let report = validate_batch(&[obs], &[], DataUse::ResearchNonCommercial);
+        let report = validate_batch(&[obs], &[], DataUse::ResearchNonCommercial, &GasSpecies::Methane);
         assert!(report.violations.iter().any(|v| v.code == "invalid_sha256_format"));
         assert!(report.violations.iter().any(|v| v.code == "missing_attribution"));
     }
@@ -353,7 +353,7 @@ mod tests {
     fn rejects_unknown_observation_reference_and_invalid_association_score() {
         let mut assoc = association("missing-plume");
         assoc.match_score = 1.2;
-        let report = validate_batch(&[], &[assoc], DataUse::ResearchNonCommercial);
+        let report = validate_batch(&[], &[assoc], DataUse::ResearchNonCommercial, &GasSpecies::Methane);
         assert!(report.violations.iter().any(|v| v.code == "unknown_observation_reference"));
         assert!(report.violations.iter().any(|v| v.code == "invalid_match_score"));
     }
@@ -361,14 +361,14 @@ mod tests {
     #[test]
     fn preserves_unquantified_as_explicit_unknown() {
         let obs = observation("plume-6", Quantification::NotQuantified { reason: "retrieval quality below threshold".into() });
-        assert!(validate_batch(&[obs], &[], DataUse::ResearchNonCommercial).is_valid());
+        assert!(validate_batch(&[obs], &[], DataUse::ResearchNonCommercial, &GasSpecies::Methane).is_valid());
     }
 
     #[test]
     fn quarantined_observation_blocks_batch_admission() {
         let mut obs = observation("plume-7", quantified());
         obs.quality = QualityFlag::Quarantined { reason: "stale calibration".into() };
-        let report = validate_batch(&[obs], &[], DataUse::ResearchNonCommercial);
+        let report = validate_batch(&[obs], &[], DataUse::ResearchNonCommercial, &GasSpecies::Methane);
         assert!(report.violations.iter().any(|v| v.code == "quarantined_observation"));
     }
 
@@ -377,8 +377,8 @@ mod tests {
         let mut obs = observation("plume-8", quantified());
         obs.provenance.attribution.clear();
         obs.observed_at_utc = "bad".into();
-        let first = validate_batch(&[obs.clone()], &[], DataUse::ResearchNonCommercial);
-        let second = validate_batch(&[obs], &[], DataUse::ResearchNonCommercial);
+        let first = validate_batch(&[obs.clone()], &[], DataUse::ResearchNonCommercial, &GasSpecies::Methane);
+        let second = validate_batch(&[obs], &[], DataUse::ResearchNonCommercial, &GasSpecies::Methane);
         assert_eq!(first, second);
         assert!(first.violations.windows(2).all(|w| (&w[0].record_id, &w[0].field, w[0].code) <= (&w[1].record_id, &w[1].field, w[1].code)));
     }
