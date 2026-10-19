@@ -7,3 +7,6 @@ description = "Fail-closed evidence admission contract for methane observation b
 
 [lib]
 path = "src/lib.rs"
+
+[dependencies]
+sha2 = "0.10.9"
