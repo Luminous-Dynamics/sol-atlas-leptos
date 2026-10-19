@@ -297,7 +297,8 @@
         "absolute_continuity_error_smoke_limit_percent",
         "require_output_and_report",
         "require_paired_baseline",
-        "require_raw_per_case_receipts"
+        "require_raw_per_case_receipts",
+        "routing_step_seconds"
       ],
       "properties": {
         "required_case_count": {
@@ -314,6 +315,9 @@
         },
         "require_raw_per_case_receipts": {
           "const": true
+        },
+        "routing_step_seconds": {
+          "const": 5
         }
       }
     }
