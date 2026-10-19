@@ -1,9 +1,10 @@
 //! Fail-closed admission contract for methane observation benchmarks.
 //!
-//! This validates record structure and declared provenance only. It does not
-//! authenticate reviewers, verify digests against bytes, establish legal rights,
+//! This validates record structure and checks declared digests against supplied bytes. It does not
+//! authenticate reviewers, establish legal rights,
 //! calibrate instruments, validate emission estimates, or prove source attribution.
 
+use sha2::{Digest, Sha256};
 use std::collections::HashSet;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -46,6 +47,20 @@ pub struct ArtifactProvenance {
     pub license_id: String,
     pub attribution: String,
     pub terms_review: TermsReview,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ArtifactRole {
+    Dataset,
+    Terms,
+}
+
+/// Exact bytes fetched for an artifact. Digests are recomputed at admission time.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ArtifactSnapshot<'a> {
+    pub role: ArtifactRole,
+    pub uri: &'a str,
+    pub bytes: &'a [u8],
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -150,13 +165,14 @@ impl ValidationReport {
 }
 
 /// Validate the entire batch; callers must reject it if any violation exists.
-/// This function deliberately does not silently filter invalid rows.
+/// Source and terms digests are recomputed from the matching supplied byte snapshots.
 pub fn validate_batch(
     observations: &[Observation],
     associations: &[SourceAssociation],
     required_use: DataUse,
     required_kind: ObservationKind,
     required_gas: &GasSpecies,
+    artifact_snapshots: &[ArtifactSnapshot<'_>],
 ) -> ValidationReport {
     let mut report = ValidationReport::default();
     let mut observation_ids = HashSet::new();
@@ -178,7 +194,13 @@ pub fn validate_batch(
         if obs.kind != required_kind {
             report.push(id, "kind", "observation_kind_mismatch");
         }
-        validate_provenance(&mut report, id, &obs.provenance, required_use);
+        validate_provenance(
+            &mut report,
+            id,
+            &obs.provenance,
+            required_use,
+            artifact_snapshots,
+        );
 
         match &obs.quality {
             QualityFlag::Qualified => {}
@@ -303,6 +325,7 @@ fn validate_provenance(
     record_id: &str,
     provenance: &ArtifactProvenance,
     required_use: DataUse,
+    artifact_snapshots: &[ArtifactSnapshot<'_>],
 ) {
     if !provenance.source_uri.starts_with("https://") {
         report.push(record_id, "provenance.source_uri", "source_uri_not_https");
@@ -321,6 +344,18 @@ fn validate_provenance(
             "invalid_sha256_format",
         );
     }
+    validate_snapshot_digest(
+        report,
+        record_id,
+        "provenance.artifact_sha256",
+        ArtifactRole::Dataset,
+        &provenance.source_uri,
+        &provenance.artifact_sha256,
+        artifact_snapshots,
+        "source_artifact_bytes_missing",
+        "duplicate_source_artifact_snapshot",
+        "source_digest_mismatch",
+    );
     if !is_utc_timestamp(&provenance.retrieved_at_utc) {
         report.push(
             record_id,
@@ -354,6 +389,18 @@ fn validate_provenance(
                 terms_sha256,
                 reviewed_at_utc,
             );
+            validate_snapshot_digest(
+                report,
+                record_id,
+                "provenance.terms_review.terms_sha256",
+                ArtifactRole::Terms,
+                terms_uri,
+                terms_sha256,
+                artifact_snapshots,
+                "terms_artifact_bytes_missing",
+                "duplicate_terms_artifact_snapshot",
+                "terms_digest_mismatch",
+            );
             if reason.trim().is_empty() {
                 report.push(
                     record_id,
@@ -380,6 +427,18 @@ fn validate_provenance(
                 terms_uri,
                 terms_sha256,
                 reviewed_at_utc,
+            );
+            validate_snapshot_digest(
+                report,
+                record_id,
+                "provenance.terms_review.terms_sha256",
+                ArtifactRole::Terms,
+                terms_uri,
+                terms_sha256,
+                artifact_snapshots,
+                "terms_artifact_bytes_missing",
+                "duplicate_terms_artifact_snapshot",
+                "terms_digest_mismatch",
             );
             if reviewed_source_uri != &provenance.source_uri {
                 report.push(
@@ -451,6 +510,46 @@ fn validate_terms_metadata(
     }
 }
 
+/// Compute lowercase SHA-256 over the exact supplied bytes.
+pub fn sha256_hex(bytes: &[u8]) -> String {
+    format!("{:x}", Sha256::digest(bytes))
+}
+
+fn validate_snapshot_digest(
+    report: &mut ValidationReport,
+    record_id: &str,
+    field: &str,
+    role: ArtifactRole,
+    uri: &str,
+    expected_sha256: &str,
+    snapshots: &[ArtifactSnapshot<'_>],
+    missing_code: &'static str,
+    duplicate_code: &'static str,
+    mismatch_code: &'static str,
+) {
+    let mut matching = snapshots
+        .iter()
+        .filter(|snapshot| snapshot.role == role && snapshot.uri == uri);
+    let Some(snapshot) = matching.next() else {
+        report.push(record_id, field, missing_code);
+        return;
+    };
+    if matching.next().is_some() {
+        report.push(record_id, field, duplicate_code);
+        return;
+    }
+    if snapshot.bytes.is_empty() {
+        report.push(record_id, field, "empty_artifact_bytes");
+    }
+    if !is_sha256_hex(expected_sha256) {
+        return;
+    }
+    let actual_sha256 = sha256_hex(snapshot.bytes);
+    if actual_sha256 != expected_sha256 {
+        report.push(record_id, field, mismatch_code);
+    }
+}
+
 fn is_sha256_hex(value: &str) -> bool {
     value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
 }
@@ -507,11 +606,29 @@ pub fn is_utc_timestamp(value: &str) -> bool {
 mod tests {
     use super::*;
 
+    const DATA_ARTIFACT_BYTES: &[u8] = b"synthetic methane source artifact v1";
+    const TERMS_ARTIFACT_BYTES: &[u8] = b"synthetic terms snapshot v1";
+
+    fn artifact_snapshots() -> [ArtifactSnapshot<'static>; 2] {
+        [
+            ArtifactSnapshot {
+                role: ArtifactRole::Dataset,
+                uri: "https://data.example.test/methane.csv",
+                bytes: DATA_ARTIFACT_BYTES,
+            },
+            ArtifactSnapshot {
+                role: ArtifactRole::Terms,
+                uri: "https://data.example.test/terms",
+                bytes: TERMS_ARTIFACT_BYTES,
+            },
+        ]
+    }
+
     fn provenance() -> ArtifactProvenance {
         ArtifactProvenance {
             source_uri: "https://data.example.test/methane.csv".into(),
             source_version: "fixture-v1".into(),
-            artifact_sha256: "a".repeat(64),
+            artifact_sha256: sha256_hex(DATA_ARTIFACT_BYTES),
             retrieved_at_utc: "2026-10-19T12:30:00Z".into(),
             license_id: "CC-BY-4.0".into(),
             attribution: "Synthetic fixture provider".into(),
@@ -519,11 +636,11 @@ mod tests {
                 reviewer_id: "reviewer-1".into(),
                 approved_use: DataUse::ResearchNonCommercial,
                 terms_uri: "https://data.example.test/terms".into(),
-                terms_sha256: "b".repeat(64),
+                terms_sha256: sha256_hex(TERMS_ARTIFACT_BYTES),
                 reviewed_at_utc: "2026-10-19T12:00:00Z".into(),
                 reviewed_source_uri: "https://data.example.test/methane.csv".into(),
                 reviewed_source_version: "fixture-v1".into(),
-                reviewed_source_sha256: "a".repeat(64),
+                reviewed_source_sha256: sha256_hex(DATA_ARTIFACT_BYTES),
             },
         }
     }
@@ -570,6 +687,7 @@ mod tests {
             DataUse::ResearchNonCommercial,
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
+            &artifact_snapshots(),
         );
         assert!(report.is_valid(), "{report:?}");
     }
@@ -584,6 +702,7 @@ mod tests {
             DataUse::ResearchNonCommercial,
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
+            &artifact_snapshots(),
         );
         assert!(
             report
@@ -603,6 +722,7 @@ mod tests {
             DataUse::ResearchNonCommercial,
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
+            &artifact_snapshots(),
         );
         assert!(
             report
@@ -623,6 +743,7 @@ mod tests {
             DataUse::ResearchNonCommercial,
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
+            &artifact_snapshots(),
         );
         assert!(
             report
@@ -645,6 +766,7 @@ mod tests {
             DataUse::ResearchNonCommercial,
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
+            &artifact_snapshots(),
         );
         assert!(report.is_valid(), "{report:?}");
         assert!(matches!(
@@ -673,6 +795,7 @@ mod tests {
                 DataUse::ResearchNonCommercial,
                 ObservationKind::RemoteSensingPlume,
                 &GasSpecies::Methane,
+            &artifact_snapshots(),
             );
             assert!(
                 report
@@ -698,6 +821,7 @@ mod tests {
             DataUse::ResearchNonCommercial,
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
+            &artifact_snapshots(),
         );
         assert!(
             report
@@ -717,6 +841,7 @@ mod tests {
             DataUse::ResearchNonCommercial,
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
+            &artifact_snapshots(),
         );
         assert!(
             report
@@ -742,6 +867,7 @@ mod tests {
             DataUse::Commercial,
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
+            &artifact_snapshots(),
         );
         assert!(
             report
@@ -758,7 +884,7 @@ mod tests {
             reviewer_id: "reviewer-1".into(),
             approved_use: DataUse::ResearchNonCommercial,
             terms_uri: "https://data.example.test/terms".into(),
-            terms_sha256: "b".repeat(64),
+            terms_sha256: sha256_hex(TERMS_ARTIFACT_BYTES),
             reviewed_at_utc: "2026-10-19T12:00:00Z".into(),
             reviewed_source_uri: "https://data.example.test/other.csv".into(),
             reviewed_source_version: "fixture-v2".into(),
@@ -770,6 +896,7 @@ mod tests {
             DataUse::ResearchNonCommercial,
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
+            &artifact_snapshots(),
         );
         assert!(
             report
@@ -810,6 +937,7 @@ mod tests {
             DataUse::ResearchNonCommercial,
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
+            &artifact_snapshots(),
         );
         assert!(
             report
@@ -848,6 +976,7 @@ mod tests {
             DataUse::ResearchNonCommercial,
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
+            &artifact_snapshots(),
         );
         assert!(
             report
@@ -873,6 +1002,7 @@ mod tests {
             DataUse::ResearchNonCommercial,
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
+            &artifact_snapshots(),
         );
         assert!(
             report
@@ -903,6 +1033,7 @@ mod tests {
                 DataUse::ResearchNonCommercial,
                 ObservationKind::RemoteSensingPlume,
                 &GasSpecies::Methane,
+            &artifact_snapshots(),
             )
             .is_valid()
         );
@@ -920,6 +1051,7 @@ mod tests {
             DataUse::ResearchNonCommercial,
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
+            &artifact_snapshots(),
         );
         assert!(
             report
@@ -939,6 +1071,7 @@ mod tests {
             DataUse::ResearchNonCommercial,
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
+            &artifact_snapshots(),
         );
         assert!(
             report
@@ -961,12 +1094,60 @@ mod tests {
             DataUse::ResearchNonCommercial,
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
+            &artifact_snapshots(),
         );
         assert!(
             report
                 .violations
                 .iter()
                 .any(|v| v.code == "association_rejected")
+        );
+    }
+
+    #[test]
+    fn rejects_tampered_source_bytes_even_when_metadata_digest_is_unchanged() {
+        let mut snapshots = artifact_snapshots();
+        snapshots[0] = ArtifactSnapshot {
+            role: ArtifactRole::Dataset,
+            uri: "https://data.example.test/methane.csv",
+            bytes: b"tampered source bytes",
+        };
+        let report = validate_batch(
+            &[observation("plume-tamper", quantified())],
+            &[],
+            DataUse::ResearchNonCommercial,
+            ObservationKind::RemoteSensingPlume,
+            &GasSpecies::Methane,
+            &snapshots,
+        );
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|violation| violation.code == "source_digest_mismatch")
+        );
+    }
+
+    #[test]
+    fn rejects_missing_terms_snapshot() {
+        let snapshots = [ArtifactSnapshot {
+            role: ArtifactRole::Dataset,
+            uri: "https://data.example.test/methane.csv",
+            bytes: DATA_ARTIFACT_BYTES,
+        }];
+        let report = validate_batch(
+            &[observation("plume-no-terms", quantified())],
+            &[],
+            DataUse::ResearchNonCommercial,
+            ObservationKind::RemoteSensingPlume,
+            &GasSpecies::Methane,
+            &snapshots,
+        );
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|violation| violation.code == "terms_artifact_bytes_missing")
         );
     }
 
@@ -981,6 +1162,7 @@ mod tests {
             DataUse::ResearchNonCommercial,
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
+            &artifact_snapshots(),
         );
         let second = validate_batch(
             &[obs],
@@ -988,6 +1170,7 @@ mod tests {
             DataUse::ResearchNonCommercial,
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
+            &artifact_snapshots(),
         );
         assert_eq!(first, second);
         assert!(first.violations.windows(2).all(|window| {
