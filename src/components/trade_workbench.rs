@@ -64,11 +64,21 @@ impl Trade {
 
     fn evidence_hint(self) -> &'static str {
         match self {
-            Self::Electrical => "Record instrument, circuit reference, units, test conditions, and applicable procedure revision.",
-            Self::Plumbing => "Record measurement point, pressure or flow units, fixture state, and instrument identity.",
-            Self::Mechanical => "Record symptoms, diagnostic codes, test conditions, part identity, and source of specifications.",
-            Self::Hvac => "Record operating mode, ambient conditions, instrument, units, and equipment operating state.",
-            Self::Construction => "Record location, dimensions, material or component identity, photographs, and inspection criteria.",
+            Self::Electrical => {
+                "Record instrument, circuit reference, units, test conditions, and applicable procedure revision."
+            }
+            Self::Plumbing => {
+                "Record measurement point, pressure or flow units, fixture state, and instrument identity."
+            }
+            Self::Mechanical => {
+                "Record symptoms, diagnostic codes, test conditions, part identity, and source of specifications."
+            }
+            Self::Hvac => {
+                "Record operating mode, ambient conditions, instrument, units, and equipment operating state."
+            }
+            Self::Construction => {
+                "Record location, dimensions, material or component identity, photographs, and inspection criteria."
+            }
         }
     }
 
@@ -343,12 +353,66 @@ pub fn TradeWorkbench() -> impl IntoView {
                     </div>
 
                     <div class="field-work-stepper trade-work-stepper" aria-label="Job workflow progress">
-                        <div class:current=move || step() == 0 class:complete=move || step() > 0><span>"1"</span><small>"Assess"</small></div>
-                        <div class:current=move || step() == 1 class:complete=move || step() > 1><span>"2"</span><small>"Diagnose"</small></div>
-                        <div class:current=move || step() == 2 class:complete=move || step() > 2><span>"3"</span><small>"Plan"</small></div>
-                        <div class:current=move || step() == 3 class:complete=move || step() > 3><span>"4"</span><small>"Execute"</small></div>
-                        <div class:current=move || step() == 4 class:complete=move || step() > 4><span>"5"</span><small>"Verify"</small></div>
-                        <div class:current=move || step() == 5 class:complete=move || step() > 5><span>"6"</span><small>"Handover"</small></div>
+                        <div class=move || {
+                            let current_step = step();
+                            if current_step == 0 {
+                                "current"
+                            } else if current_step > 0 {
+                                "complete"
+                            } else {
+                                ""
+                            }
+                        }><span>"1"</span><small>"Assess"</small></div>
+                        <div class=move || {
+                            let current_step = step();
+                            if current_step == 1 {
+                                "current"
+                            } else if current_step > 1 {
+                                "complete"
+                            } else {
+                                ""
+                            }
+                        }><span>"2"</span><small>"Diagnose"</small></div>
+                        <div class=move || {
+                            let current_step = step();
+                            if current_step == 2 {
+                                "current"
+                            } else if current_step > 2 {
+                                "complete"
+                            } else {
+                                ""
+                            }
+                        }><span>"3"</span><small>"Plan"</small></div>
+                        <div class=move || {
+                            let current_step = step();
+                            if current_step == 3 {
+                                "current"
+                            } else if current_step > 3 {
+                                "complete"
+                            } else {
+                                ""
+                            }
+                        }><span>"4"</span><small>"Execute"</small></div>
+                        <div class=move || {
+                            let current_step = step();
+                            if current_step == 4 {
+                                "current"
+                            } else if current_step > 4 {
+                                "complete"
+                            } else {
+                                ""
+                            }
+                        }><span>"5"</span><small>"Verify"</small></div>
+                        <div class=move || {
+                            let current_step = step();
+                            if current_step == 5 {
+                                "current"
+                            } else if current_step > 5 {
+                                "complete"
+                            } else {
+                                ""
+                            }
+                        }><span>"6"</span><small>"Handover"</small></div>
                     </div>
 
                     <section class="field-work-workflow-status trade-work-status" aria-live="polite">
@@ -431,7 +495,7 @@ pub fn TradeWorkbench() -> impl IntoView {
 
 #[cfg(test)]
 mod tests {
-    use super::{transition, Trade, WorkAction as A, WorkPhase as P};
+    use super::{Trade, WorkAction as A, WorkPhase as P, transition};
 
     #[test]
     fn complete_workflow_keeps_assessment_diagnosis_plan_execution_and_verification_distinct() {
