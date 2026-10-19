@@ -128,6 +128,10 @@ Report at least:
 
 Do not present precision without recall/coverage and uncertainty; do not score a non-detect as zero emission.
 
+Before scoring any measurement-derived estimate, require an explicit instrument/platform ID and retrieval/measurement-method version. For in-situ reference readings, require a calibration artifact with exact-byte digest and a validity interval that contains the observation timestamp; bind the calibration to the same instrument identity. Reject expired, mismatched, absent, or unverifiable calibration records. For satellite and airborne products, preserve the provider's product/version and quality class; do not assume a declared instrument ID proves calibration or that all sensor products share the same detection limit.
+
+This is a key benchmark control: a supposed gain must not come from mixing instruments, retrieval versions, calibration periods, or reference quality between candidate and baseline. Report per-instrument/per-method results and confidence intervals before aggregating them.
+
 ### Track D — Inspection prioritization and intervention selection
 
 At a fixed budget (crew-hours, site visits, or money), measure:
