@@ -6,7 +6,7 @@
 //! This computes benchmark metrics; it does not authenticate a system or prove
 //! that a reference label or reported measurement is physically true.
 
-use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::collections::{BTreeMap, HashMap};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum ReferenceState {
