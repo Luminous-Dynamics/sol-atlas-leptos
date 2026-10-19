@@ -26,6 +26,20 @@ This API is a local planning reducer only. It does not establish that site-acces
 
 The JSON fixture expresses a synthetic access-approved job with parallel inspection and parts branches, followed by a functional test and handover. Unit tests cover fixture deserialization, deterministic ordering, parallel readiness, completion-versus-verification gating, invalid transition non-mutation, dependency integrity, cancellation, and revision increments.
 
+## Reproducible algorithm runner
+
+A Rust example now generates a deterministic graph and emits machine-readable latency samples:
+
+```sh
+cargo run --release --manifest-path sol-atlas-core/Cargo.toml --example task_graph_bench
+# optional: 100 samples per operation, 10,000 tasks
+cargo run --release --manifest-path sol-atlas-core/Cargo.toml --example task_graph_bench -- 100 10000
+```
+
+Default workload: 10,000 tasks, deterministic maximum fan-in of four dependencies, 39,990 edges, all task statuses pending. It measures validation, topological ordering (which includes validation), and ready-task derivation. Output includes OS/architecture, crate version, workload dimensions, percentile method, and raw nanosecond samples; capture the full JSON together with the exact source SHA and `rustc -Vv`. Use a release build on an otherwise idle, named runner, run at least 100 samples and report both raw distribution and p50/p95/max. Repeat cold-start and warm runs separately rather than mixing them.
+
+This is only an algorithm microbenchmark. It does not measure IndexedDB/SQLite durability, serialization/payload cost on realistic field records, UI rendering, network reconnection, authorization, or a commercial competitor. There is no result recorded yet: the runner is a measurement mechanism, not evidence that the numerical target has been met.
+
 ## Benchmark plan
 
 Run candidate and linear-baseline scenarios over the same frozen graph set, device, Rust build, and task scripts. The numerical thresholds below are initial hypotheses until measured.
