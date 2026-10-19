@@ -6,8 +6,8 @@
 //! intervals are descriptive bootstrap intervals, not regulatory certification.
 
 use crate::census::{
-    BenchmarkCase, EvaluationReport, ReferenceState, SystemDisposition,
-    SystemSubmission, evaluate_census,
+    BenchmarkCase, EvaluationReport, ReferenceState, SystemDisposition, SystemSubmission,
+    evaluate_census,
 };
 use serde::Serialize;
 use std::collections::{BTreeMap, HashMap};
@@ -184,13 +184,14 @@ pub fn compare_submissions(
     let cluster_values: Vec<ClusterCounts> = clusters.values().copied().collect();
     report.cluster_count = cluster_values.len();
 
-    let overall = cluster_values
-        .iter()
-        .copied()
-        .fold(ClusterCounts::default(), |mut aggregate, cluster| {
-            aggregate.add(cluster);
-            aggregate
-        });
+    let overall =
+        cluster_values
+            .iter()
+            .copied()
+            .fold(ClusterCounts::default(), |mut aggregate, cluster| {
+                aggregate.add(cluster);
+                aggregate
+            });
 
     report.recall = paired_rate(
         overall.baseline_true_positives,
@@ -255,13 +256,16 @@ fn copy_evaluation_violations(
     evaluation: &EvaluationReport,
     system_id: &str,
 ) {
-    report
-        .violations
-        .extend(evaluation.violations.iter().map(|violation| ComparisonViolation {
-            system_id: system_id.to_owned(),
-            record_id: violation.record_id.clone(),
-            code: violation.code,
-        }));
+    report.violations.extend(
+        evaluation
+            .violations
+            .iter()
+            .map(|violation| ComparisonViolation {
+                system_id: system_id.to_owned(),
+                record_id: violation.record_id.clone(),
+                code: violation.code,
+            }),
+    );
 }
 
 fn paired_rate(
@@ -276,7 +280,9 @@ fn paired_rate(
     PairedRateComparison {
         baseline_rate,
         candidate_rate,
-        candidate_minus_baseline: baseline_rate.zip(candidate_rate).map(|(base, next)| next - base),
+        candidate_minus_baseline: baseline_rate
+            .zip(candidate_rate)
+            .map(|(base, next)| next - base),
         cluster_bootstrap_ci95: None,
         denominator,
         baseline_only_events,
@@ -293,8 +299,7 @@ fn attach_interval(
     deltas.sort_by(f64::total_cmp);
     metric.bootstrap_replicates_used = deltas.len();
     if deltas.len() >= requested_replicates.saturating_mul(4).div_ceil(5) {
-        metric.cluster_bootstrap_ci95 =
-            percentile(&deltas, 0.025).zip(percentile(&deltas, 0.975));
+        metric.cluster_bootstrap_ci95 = percentile(&deltas, 0.025).zip(percentile(&deltas, 0.975));
     }
 }
 
@@ -476,15 +481,9 @@ mod tests {
         let report = compare_submissions(&cases(), &baseline(), &incomplete, 1_000, 42);
         assert!(!report.is_valid());
         assert!(report.recall.candidate_minus_baseline.is_none());
-        assert!(
-            report
-                .violations
-                .iter()
-                .any(|violation| {
-                    violation.system_id == "candidate"
-                        && violation.code == "missing_response_row"
-                })
-        );
+        assert!(report.violations.iter().any(|violation| {
+            violation.system_id == "candidate" && violation.code == "missing_response_row"
+        }));
     }
 
     #[test]
@@ -498,22 +497,37 @@ mod tests {
             "candidate",
             candidate().responses.into_iter().take(2).collect(),
         );
-        let report = compare_submissions(&small_cases, &baseline_subset, &candidate_subset, 1_000, 42);
+        let report =
+            compare_submissions(&small_cases, &baseline_subset, &candidate_subset, 1_000, 42);
         assert!(report.is_valid(), "{report:?}");
         assert_eq!(report.cluster_count, 1);
         assert!(report.recall.candidate_minus_baseline.is_some());
         assert_eq!(report.recall.cluster_bootstrap_ci95, None);
-        assert!(report.uncertainty_note.as_deref().unwrap().contains("at least 10 independent clusters"));
+        assert!(
+            report
+                .uncertainty_note
+                .as_deref()
+                .unwrap()
+                .contains("at least 10 independent clusters")
+        );
     }
 
     #[test]
     fn too_few_or_zero_bootstrap_replicates_are_rejected() {
         let zero = compare_submissions(&cases(), &baseline(), &candidate(), 0, 42);
         assert!(!zero.is_valid());
-        assert!(zero.violations.iter().any(|v| v.code == "zero_bootstrap_replicates"));
+        assert!(
+            zero.violations
+                .iter()
+                .any(|v| v.code == "zero_bootstrap_replicates")
+        );
 
         let low = compare_submissions(&cases(), &baseline(), &candidate(), 999, 42);
         assert!(!low.is_valid());
-        assert!(low.violations.iter().any(|v| v.code == "insufficient_bootstrap_replicates"));
+        assert!(
+            low.violations
+                .iter()
+                .any(|v| v.code == "insufficient_bootstrap_replicates")
+        );
     }
 }
