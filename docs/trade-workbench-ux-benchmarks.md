@@ -25,7 +25,7 @@ The route in this branch is deliberately synthetic. Its local toggles do not ins
 
 ## Shared field-job envelope
 
-Production work should use a typed, versioned contract rather than infer meaning from display text. The exact Rust types should be added in the appropriate owning crate; this document does not declare the contract implemented.
+Production work should use a typed, versioned contract rather than infer meaning from display text. An initial UI-facing projection and viewport-intent model is now implemented in `sol-atlas-core/src/field_work.rs`, with frozen fixtures under `sol-atlas-core/fixtures/`. It is not yet a canonical field-service data model, a production authorization contract, or a cross-project integration. The owning service and extension boundaries still require review.
 
 Minimum concepts:
 
