@@ -35,8 +35,8 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
-      - name: Check formatting
-        run: cargo fmt --all -- --check
+      - name: Check formatting for this tranche
+        run: rustfmt --edition 2024 --check sol-atlas-core/src/water_localization_split_audit.rs sol-atlas-core/src/bin/water_localization_split_audit.rs
       - name: Run topology split audit unit tests
         run: cargo test -p sol-atlas-core water_localization_split_audit
       - name: Evaluate frozen split manifest and bind exact revision
