@@ -124,6 +124,10 @@ pub struct Observation {
     pub observation_id: String,
     pub kind: ObservationKind,
     pub gas_species: GasSpecies,
+    /// Sensor/platform identity; required for remote-sensing and in-situ evidence.
+    pub instrument_id: Option<String>,
+    /// Retrieval or measurement-method/version identity for fair instrument comparisons.
+    pub processing_method: Option<String>,
     pub observed_at_utc: String,
     pub quality: QualityFlag,
     pub quantification: Quantification,
@@ -218,6 +222,7 @@ pub fn validate_batch(
         if obs.kind != required_kind {
             report.push(id, "kind", "observation_kind_mismatch");
         }
+        validate_observation_method(report, obs);
         validate_provenance(
             &mut report,
             id,
@@ -347,6 +352,40 @@ pub fn validate_batch(
         )
     });
     report
+}
+
+fn validate_observation_method(report: &mut ValidationReport, observation: &Observation) {
+    let id = observation.observation_id.as_str();
+    let is_instrument_observation = matches!(
+        observation.kind,
+        ObservationKind::RemoteSensingPlume | ObservationKind::InSituMeasurement
+    );
+    if !is_instrument_observation {
+        return;
+    }
+
+    match observation.instrument_id.as_deref() {
+        Some(instrument_id) if !instrument_id.trim().is_empty() => {}
+        Some(_) => report.push(id, "instrument_id", "empty_instrument_id"),
+        None => report.push(id, "instrument_id", "instrument_id_missing"),
+    }
+    match observation.processing_method.as_deref() {
+        Some(method) if !method.trim().is_empty() => {}
+        Some(_) => report.push(id, "processing_method", "empty_processing_method"),
+        None => report.push(id, "processing_method", "processing_method_missing"),
+    }
+
+    if let (Some(instrument_id), Some(calibration)) =
+        (observation.instrument_id.as_deref(), observation.calibration.as_ref())
+    {
+        if instrument_id != calibration.instrument_id {
+            report.push(
+                id,
+                "calibration.instrument_id",
+                "calibration_instrument_mismatch",
+            );
+        }
+    }
 }
 
 fn validate_calibration(
@@ -746,6 +785,8 @@ mod tests {
             observation_id: id.into(),
             kind: ObservationKind::RemoteSensingPlume,
             gas_species: GasSpecies::Methane,
+            instrument_id: Some("satellite-1".into()),
+            processing_method: Some("methane-retrieval-v1".into()),
             observed_at_utc: "2026-10-18T10:11:12Z".into(),
             quality: QualityFlag::Qualified,
             quantification,
@@ -779,6 +820,8 @@ mod tests {
     fn calibrated_observation(id: &str) -> Observation {
         let mut obs = observation(id, quantified());
         obs.kind = ObservationKind::InSituMeasurement;
+        obs.instrument_id = Some("meter-1".into());
+        obs.processing_method = Some("ground-meter-method-v1".into());
         obs.calibration = Some(MeasurementCalibration {
             instrument_id: "meter-1".into(),
             calibration_uri: "https://data.example.test/calibration.csv".into(),
@@ -800,6 +843,53 @@ mod tests {
             &artifact_snapshots(),
         );
         assert!(report.is_valid(), "{report:?}");
+    }
+
+    #[test]
+    fn rejects_remote_sensing_observation_without_instrument_or_method_identity() {
+        let mut obs = observation("plume-no-instrument", quantified());
+        obs.instrument_id = None;
+        obs.processing_method = None;
+        let report = validate_batch(
+            &[obs],
+            &[],
+            DataUse::ResearchNonCommercial,
+            ObservationKind::RemoteSensingPlume,
+            &GasSpecies::Methane,
+            &artifact_snapshots(),
+        );
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|violation| violation.code == "instrument_id_missing")
+        );
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|violation| violation.code == "processing_method_missing")
+        );
+    }
+
+    #[test]
+    fn rejects_calibration_for_a_different_instrument() {
+        let mut obs = calibrated_observation("meter-reading-wrong-instrument");
+        obs.calibration.as_mut().unwrap().instrument_id = "meter-2".into();
+        let report = validate_batch(
+            &[obs],
+            &[],
+            DataUse::ResearchNonCommercial,
+            ObservationKind::InSituMeasurement,
+            &GasSpecies::Methane,
+            &artifact_snapshots(),
+        );
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|violation| violation.code == "calibration_instrument_mismatch")
+        );
     }
 
     #[test]
