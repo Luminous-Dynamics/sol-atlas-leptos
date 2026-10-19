@@ -16,6 +16,8 @@ pub const REPAIR_CONTINUITY_SCHEMA_VERSION: &str = "0.1.0";
 pub const MAX_WINDOWS: usize = 64;
 pub const MAX_DEMAND: usize = 10_000;
 pub const MAX_CELLS_PER_CANDIDATE: usize = 128;
+pub const MAX_STOCK_LOTS_PER_CANDIDATE: usize = 10_000;
+pub const MAX_FIT_EVALUATIONS: usize = 2_000_000;
 const EPSILON: f64 = 1.0e-9;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -487,7 +489,17 @@ fn validate(request: &RepairContinuityRequest) -> Result<(), Vec<String>> {
         errors.push("architectures must include centralized_depot, local_service_cell and distributed_shared_reserve exactly once".to_owned());
     }
     let mut candidate_ids = BTreeSet::new();
+    let mut fit_evaluations = 0usize;
     for (candidate_index, candidate) in request.candidates.iter().enumerate() {
+        let candidate_evaluations = request
+            .demand
+            .len()
+            .checked_mul(candidate.workcells.len())
+            .and_then(|value| value.checked_mul(request.windows.len()));
+        match candidate_evaluations.and_then(|value| fit_evaluations.checked_add(value)) {
+            Some(total) => fit_evaluations = total,
+            None => errors.push("repair evaluation budget arithmetic overflowed".to_owned()),
+        }
         if candidate.candidate_id.trim().is_empty() || !candidate_ids.insert(candidate.candidate_id.as_str()) {
             errors.push(format!("candidates[{candidate_index}] has empty or duplicate candidate_id"));
         }
@@ -496,6 +508,7 @@ fn validate(request: &RepairContinuityRequest) -> Result<(), Vec<String>> {
         }
         let mut pool_ids = BTreeSet::new();
         let mut stock_ids = BTreeSet::new();
+        let mut stock_lot_count = 0usize;
         for pool in &candidate.inventory_pools {
             if pool.pool_id.trim().is_empty() || !pool_ids.insert(pool.pool_id.as_str()) {
                 errors.push(format!("candidate {:?} has empty or duplicate pool ID", candidate.candidate_id));
@@ -504,6 +517,7 @@ fn validate(request: &RepairContinuityRequest) -> Result<(), Vec<String>> {
                 errors.push(format!("inventory pool {:?} needs location_id", pool.pool_id));
             }
             for lot in &pool.lots {
+                stock_lot_count = stock_lot_count.saturating_add(1);
                 if lot.stock_id.trim().is_empty() || !stock_ids.insert(lot.stock_id.as_str()) {
                     errors.push(format!("candidate {:?} has empty or duplicate stock ID", candidate.candidate_id));
                 }
@@ -523,7 +537,20 @@ fn validate(request: &RepairContinuityRequest) -> Result<(), Vec<String>> {
                 validate_evidence(&lot.evidence, "stock evidence", &mut errors);
             }
         }
+        if stock_lot_count > MAX_STOCK_LOTS_PER_CANDIDATE {
+            errors.push(format!(
+                "candidate {:?} exceeds stock-lot budget of {MAX_STOCK_LOTS_PER_CANDIDATE}",
+                candidate.candidate_id
+            ));
+        }
+        let mut cell_ids = BTreeSet::new();
         for cell in &candidate.workcells {
+            if cell.cell_id.trim().is_empty() || !cell_ids.insert(cell.cell_id.as_str()) {
+                errors.push(format!(
+                    "candidate {:?} has empty or duplicate workcell ID {:?}",
+                    candidate.candidate_id, cell.cell_id
+                ));
+            }
             if cell.cell_id.trim().is_empty() || cell.node_id.trim().is_empty() {
                 errors.push(format!("candidate {:?} has a workcell with empty ID", candidate.candidate_id));
             }
@@ -569,6 +596,11 @@ fn validate(request: &RepairContinuityRequest) -> Result<(), Vec<String>> {
         }
     }
 
+    if fit_evaluations > MAX_FIT_EVALUATIONS {
+        errors.push(format!(
+            "repair fit evaluation budget exceeded: {fit_evaluations} > {MAX_FIT_EVALUATIONS}"
+        ));
+    }
     if errors.is_empty() {
         Ok(())
     } else {
