@@ -279,8 +279,10 @@ pub struct CapacityLedgerRow {
     pub cell_id: String,
     pub window_index: usize,
     pub nominal_service_hours: f64,
-    pub allocated_service_hours: f64,
-    pub remaining_service_hours: f64,
+    /// None means at least one necessary resource state is unknown, not zero.
+    pub effective_capacity_hours: Option<f64>,
+    pub allocated_service_hours: Option<f64>,
+    pub remaining_service_hours: Option<f64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -845,16 +847,20 @@ fn assess_candidate(request: &RepairContinuityRequest, candidate: &ArchitectureC
             remaining_stock.insert(lot.stock_id.clone(), quantity);
         }
     }
-    let mut remaining_capacity = BTreeMap::<(String, usize), f64>::new();
+    let mut effective_capacity = BTreeMap::<(String, usize), Option<f64>>::new();
+    let mut remaining_capacity = BTreeMap::<(String, usize), Option<f64>>::new();
     for cell in &candidate.workcells {
         for (window, nominal) in cell.service_hours_by_window.iter().enumerate() {
             let staff = dependency_factor(&request.dependency_observations, &cell.staffing_dependency_id, window);
             let power = dependency_factor(&request.dependency_observations, &cell.power_dependency_id, window);
             let capacity = match (staff, power) {
-                (ResourceFactor::Available(a), ResourceFactor::Available(b)) => nominal * a.min(b),
-                _ => 0.0,
+                (ResourceFactor::Available(a), ResourceFactor::Available(b)) => Some(nominal * a.min(b)),
+                (ResourceFactor::Unavailable, _) | (_, ResourceFactor::Unavailable) => Some(0.0),
+                (ResourceFactor::Unknown, _) | (_, ResourceFactor::Unknown) => None,
             };
-            remaining_capacity.insert((cell.cell_id.clone(), window), capacity);
+            let key = (cell.cell_id.clone(), window);
+            effective_capacity.insert(key.clone(), capacity);
+            remaining_capacity.insert(key, capacity);
         }
     }
 
@@ -879,7 +885,12 @@ fn assess_candidate(request: &RepairContinuityRequest, candidate: &ArchitectureC
             let mut cells = candidate.workcells.iter().collect::<Vec<_>>();
             cells.sort_by(|left, right| left.cell_id.cmp(&right.cell_id));
             for cell in cells {
-                if remaining_capacity.get(&(cell.cell_id.clone(), window)).copied().unwrap_or(0.0) + EPSILON < demand.service_hours {
+                if remaining_capacity
+                    .get(&(cell.cell_id.clone(), window))
+                    .copied()
+                    .flatten()
+                    .is_some_and(|available| available + EPSILON < demand.service_hours)
+                {
                     blockers.insert(Blocker::CapacityUnavailable);
                     continue;
                 }
@@ -898,8 +909,12 @@ fn assess_candidate(request: &RepairContinuityRequest, candidate: &ArchitectureC
 
         let result = if let Some(assignment) = best {
             let key = (assignment.cell_id.clone(), assignment.window_index);
-            let old = remaining_capacity.get(&key).copied().unwrap_or(0.0);
-            remaining_capacity.insert(key, (old - demand.service_hours).max(0.0));
+            let old = remaining_capacity
+                .get(&key)
+                .copied()
+                .flatten()
+                .expect("a scheduled assignment must have known resource capacity");
+            remaining_capacity.insert(key, Some((old - demand.service_hours).max(0.0)));
             for consumed in &assignment.stock_consumption {
                 let old = remaining_stock.get(&consumed.stock_id).copied().unwrap_or(0);
                 remaining_stock.insert(consumed.stock_id.clone(), old.saturating_sub(consumed.quantity));
@@ -956,12 +971,18 @@ fn assess_candidate(request: &RepairContinuityRequest, candidate: &ArchitectureC
     let mut capacity_ledger = Vec::new();
     for cell in &candidate.workcells {
         for (window_index, nominal) in cell.service_hours_by_window.iter().enumerate() {
-            let remaining = remaining_capacity.get(&(cell.cell_id.clone(), window_index)).copied().unwrap_or(0.0);
+            let key = (cell.cell_id.clone(), window_index);
+            let effective = effective_capacity.get(&key).copied().flatten();
+            let remaining = remaining_capacity.get(&key).copied().flatten();
+            let allocated = effective.zip(remaining).map(|(capacity, unallocated)| {
+                (capacity - unallocated).max(0.0)
+            });
             capacity_ledger.push(CapacityLedgerRow {
                 cell_id: cell.cell_id.clone(),
                 window_index,
                 nominal_service_hours: *nominal,
-                allocated_service_hours: (nominal - remaining).max(0.0),
+                effective_capacity_hours: effective,
+                allocated_service_hours: allocated,
                 remaining_service_hours: remaining,
             });
         }
