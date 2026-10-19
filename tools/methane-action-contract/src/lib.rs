@@ -771,9 +771,24 @@ mod tests {
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         );
-        assert!(report.violations.iter().any(|v| v.code == "terms_source_uri_mismatch"));
-        assert!(report.violations.iter().any(|v| v.code == "terms_source_version_mismatch"));
-        assert!(report.violations.iter().any(|v| v.code == "terms_source_digest_mismatch"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "terms_source_uri_mismatch")
+        );
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "terms_source_version_mismatch")
+        );
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "terms_source_digest_mismatch")
+        );
     }
 
     #[test]
