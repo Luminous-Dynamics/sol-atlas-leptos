@@ -201,6 +201,12 @@ A result is a benchmark win only if the holdout is predeclared, the baseline is 
 - Do not use private customer telemetry in a public corpus without explicit rights and a redaction plan.
 - Label synthetic cases and scenarios unambiguously. Synthetic fixtures are for schema, boundary, and fail-closed tests only; they provide no evidence of real detector accuracy or achievable savings.
 
+### Complete opportunity census
+
+Before computing a headline score, freeze the complete expected set of valid measurement opportunities and reference labels for the evaluation. Require exactly one response row per expected case and system. Missing, extra, duplicate, or malformed rows suppress the headline metrics; do not silently score only successful detections. Rows must explicitly distinguish **covered**, **not tasked**, and **invalid scene**, alongside **detected**, **explicit non-detection**, **abstention**, and **no output**. No-coverage cases are not true negatives. Positive events that were not observed remain misses in end-to-end recall; report recall conditional on coverage separately so the two questions cannot be conflated.
+
+Report confusion counts, end-to-end recall, recall conditional on coverage, false-alert rate among covered metered-zero opportunities, coverage rate, abstention rate, and rate-quantification errors. Include per-stratum counts and 95% Wilson score intervals for per-system binomial rates, including denominators. These intervals are descriptive for an individual system; comparing systems on shared scenes, sites, or time windows requires paired or cluster-aware inference rather than treating the estimates as independent. A tiny sample must show its uncertainty and cannot substantiate a SOTA claim.
+
 ## Reproducible experiment protocol
 
 Every evaluated run should emit a machine-readable receipt containing:
