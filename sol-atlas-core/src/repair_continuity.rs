@@ -584,9 +584,20 @@ fn validate(request: &RepairContinuityRequest) -> Result<(), Vec<String>> {
             validate_ids(&cell.qualified_skill_ids, "qualified_skill_ids", &mut errors);
             validate_ids(&cell.tool_capabilities, "tool_capabilities", &mut errors);
             if cell.service_hours_by_window.len() != request.windows.len()
-                || cell.service_hours_by_window.iter().any(|hours| !hours.is_finite() || *hours < 0.0)
+                || cell
+                    .service_hours_by_window
+                    .iter()
+                    .enumerate()
+                    .any(|(window, hours)| {
+                        !hours.is_finite()
+                            || *hours < 0.0
+                            || *hours > request.windows[window].duration_hours + EPSILON
+                    })
             {
-                errors.push(format!("workcell {:?} capacity must be finite, non-negative and specified for every window", cell.cell_id));
+                errors.push(format!(
+                    "workcell {:?} capacity must be finite, non-negative, specified for every window, and no greater than that window's duration",
+                    cell.cell_id
+                ));
             }
             if !cell.travel_hours_to_service.is_finite() || cell.travel_hours_to_service < 0.0 {
                 errors.push(format!("workcell {:?} travel_hours must be finite and non-negative", cell.cell_id));
@@ -1515,6 +1526,21 @@ mod tests {
         let fan = local.requests.iter().find(|item| item.request_id == "fan-1").unwrap();
         assert_eq!(fan.outcome, RequestOutcome::Indeterminate);
         assert!(fan.blockers.contains(&Blocker::InventoryRouteUnknown));
+    }
+
+    #[test]
+    fn capacity_cannot_exceed_declared_window_duration() {
+        let mut request = base_request();
+        request.windows[0].duration_hours = 1.0;
+        let local = request.candidates.iter_mut()
+            .find(|candidate| candidate.architecture == Architecture::LocalServiceCell)
+            .unwrap();
+        local.workcells[0].service_hours_by_window[0] = 1.5;
+        assert!(matches!(
+            assess_repair_continuity(&request),
+            Err(RepairContinuityError::InvalidInput(errors))
+                if errors.iter().any(|error| error.contains("no greater than that window's duration"))
+        ));
     }
 
     #[test]
