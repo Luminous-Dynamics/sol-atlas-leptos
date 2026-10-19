@@ -1,0 +1,28 @@
+[
+  {
+    "intent": "selectAsset",
+    "assetId": "asset-demo-01"
+  },
+  {
+    "intent": "focusAsset",
+    "assetId": "asset-demo-01"
+  },
+  {
+    "intent": "selectComponent",
+    "componentId": "component-demo-01"
+  },
+  {
+    "intent": "selectFlow",
+    "flowId": "flow-demo-01"
+  },
+  {
+    "intent": "setTimelineCursor",
+    "atUnixMs": 1790000000000
+  },
+  {
+    "intent": "requestJobComparison",
+    "jobId": "job-demo-01",
+    "baselineRevision": 2,
+    "candidateRevision": 3
+  }
+]
