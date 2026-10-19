@@ -14,6 +14,7 @@ use crate::components::planet_nav::PlanetNav;
 use crate::components::reactor_twin_demo::ReactorTwinDemo;
 use crate::components::timeline::Timeline;
 use crate::components::tooltip::Tooltip;
+use crate::components::trade_workbench::TradeWorkbench;
 use crate::components::whisper::Whisper;
 use crate::data::static_data;
 use crate::state::data_state::DataState;
@@ -32,6 +33,7 @@ pub fn App() -> impl IntoView {
                 <Route path=path!("/") view=GlobeApp/>
                 <Route path=path!("/labs/reactor-twin") view=ReactorTwinDemo/>
                 <Route path=path!("/field-work") view=FarmerWorkspace/>
+                <Route path=path!("/trade-work") view=TradeWorkbench/>
             </Routes>
         </Router>
     }
@@ -107,6 +109,7 @@ fn GlobeApp() -> impl IntoView {
             <p class="subtitle">"Symthaea Planetary Coordination Layer"</p>
             <A href="/labs/reactor-twin" attr:class="labs-link">"Labs: Reactor Digital Twin demo \u{2192}"</A>
             <A href="/field-work" attr:class="labs-link">"Farmer workspace prototype \u{2192}"</A>
+            <A href="/trade-work" attr:class="labs-link">"Trade workbench prototype \u{2192}"</A>
         </div>
         <Hud />
         <LayerPanel />

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "jobId": "job-demo-01",
+  "jobRevision": 3,
+  "trade": "electrical",
+  "title": "Synthetic electrical inspection",
+  "phase": "assessing",
+  "transport": {
+    "state": "localOnly"
+  },
+  "freshness": "fresh",
+  "source": {
+    "authorityId": "demo-authority",
+    "sourceRevision": 8,
+    "sourceDigestSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "assets": [
+    {
+      "assetId": "asset-demo-01",
+      "assetRevision": 2,
+      "label": "Demo distribution board",
+      "relationship": "primary"
+    }
+  ],
+  "evidence": [
+    {
+      "evidenceId": "evidence-demo-01",
+      "kind": "measured",
+      "sourceRef": "urn:demo:evidence:01",
+      "digestSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "capturedAtUnixMs": 1790000000000,
+      "unit": "V",
+      "instrumentRef": "instrument-demo",
+      "procedureRevision": 4,
+      "modelRef": null
+    }
+  ],
+  "safetyGate": {
+    "status": "blocked",
+    "policyRef": "demo-policy-v1",
+    "policyRevision": 4,
+    "missingRequirements": [
+      "qualified review has not occurred"
+    ]
+  },
+  "offeredViewportIntents": [
+    "selectAsset",
+    "focusAsset",
+    "setTimelineCursor"
+  ]
+}

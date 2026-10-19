@@ -1119,3 +1119,138 @@ canvas#globe-canvas.has-hover {
 @media (prefers-reduced-motion: reduce) {
     .field-work-page *, .field-work-page *::before, .field-work-page *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+
+/* ─── Cross-trade workbench prototype ──────────────────────────────────
+   Reuses the field-work interaction primitives. All records are synthetic;
+   no UI state here is connected to a live asset or operational safety system. */
+.trade-work-page .field-work-header-actions { flex-wrap: wrap; }
+.trade-work-page .field-work-content { max-width: 1120px; }
+.trade-work-page .field-work-page-intro { margin-bottom: 18px; }
+.trade-work-page .field-work-stepper { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.trade-work-page .field-work-stepper > div { justify-content: center; }
+.trade-work-page .field-work-stepper small { overflow-wrap: anywhere; }
+.trade-work-job-card { margin-bottom: 8px; }
+.trade-work-finding-hint {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border: 1px solid #354d3c;
+    border-radius: 9px;
+    background: #111e16;
+}
+.trade-work-finding-hint strong { display: block; color: #dcefe0; font-size: 12px; }
+.trade-work-finding-hint p { color: #a9c0ae; font-size: 12px; line-height: 1.55; margin-top: 5px; }
+.trade-work-panels {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 14px;
+}
+.trade-work-panels > section:last-child { grid-column: 1 / -1; }
+.trade-work-panels .field-work-panel { min-width: 0; height: 100%; }
+.trade-work-gate-ready, .trade-work-gate-blocked {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    border: 1px solid #71623a;
+    border-radius: 6px;
+    padding: 4px 8px;
+    color: #f0dfa2;
+    background: #302b1a;
+    font-size: 10px;
+    font-weight: 750;
+    line-height: 1.4;
+}
+.trade-work-gate-ready { color: #d0f4d9; background: #173323; border-color: #3e7851; }
+.trade-work-checklist { display: grid; gap: 9px; margin: 15px 0 12px; }
+.trade-work-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    width: 100%;
+    min-height: 64px;
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #3a4b3d;
+    border-radius: 10px;
+    color: #d8e5db;
+    background: #111b14;
+}
+.trade-work-check:hover { border-color: #77977d; background: #17271c; }
+.trade-work-check:focus-visible { outline: 3px solid #8de9b5; outline-offset: 3px; }
+.trade-work-check > span:first-child {
+    display: grid;
+    place-items: center;
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+    border: 1px solid #66796a;
+    border-radius: 7px;
+    color: #bed1c1;
+    font-size: 18px;
+    font-weight: 800;
+}
+.trade-work-check-confirmed { border-color: #4a8057; background: #15291a; }
+.trade-work-check-confirmed > span:first-child { color: #122016; background: #a8e8b9; border-color: #a8e8b9; }
+.trade-work-check strong { display: block; font-size: 12px; line-height: 1.45; }
+.trade-work-check small { display: block; margin-top: 4px; color: #9bb09f; font-size: 11px; line-height: 1.45; }
+.trade-work-safety-note {
+    margin-top: 12px !important;
+    padding: 11px 12px;
+    border-left: 3px solid #948348;
+    border-radius: 3px 8px 8px 3px;
+    color: #ded5a9 !important;
+    background: #242216;
+    font-size: 11px !important;
+    line-height: 1.6 !important;
+}
+.trade-work-primary { width: 100%; margin-top: 14px; }
+.trade-work-primary:disabled {
+    color: #a1ada4;
+    background: #29352d;
+    border-color: #435247;
+    cursor: not-allowed;
+    opacity: 1;
+}
+.trade-work-reset { width: 100%; margin-top: 9px; }
+.trade-work-status-message {
+    min-height: 42px;
+    margin-top: 14px !important;
+    padding: 10px 12px;
+    border: 1px solid #324638;
+    border-radius: 8px;
+    color: #bdd1c1 !important;
+    background: #0d1711;
+    font-size: 11px !important;
+    line-height: 1.55 !important;
+}
+.trade-work-evidence-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    margin: 14px 0;
+}
+.trade-work-evidence-summary > div {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid #2e4335;
+    border-radius: 9px;
+    background: #0e1912;
+}
+.trade-work-evidence-summary span { color: #93ad9a; font-size: 10px; line-height: 1.35; }
+.trade-work-evidence-summary strong { color: #e0ebe2; font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
+@media (max-width: 980px) {
+    .trade-work-panels { grid-template-columns: 1fr; }
+    .trade-work-panels > section:last-child { grid-column: auto; }
+    .trade-work-evidence-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+    .trade-work-page .field-work-stepper { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .trade-work-page .field-work-stepper > div { justify-content: flex-start; }
+    .trade-work-evidence-summary { grid-template-columns: 1fr 1fr; }
+    .trade-work-page .field-work-header-actions { flex-direction: column; align-items: stretch; }
+    .trade-work-page .field-work-mode { min-height: 44px; }
+}
