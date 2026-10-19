@@ -1175,7 +1175,7 @@ mod tests {
     #[test]
     fn missing_dependency_state_is_indeterminate_not_zero_or_available() {
         let mut request = base_request();
-        request.dependency_observations.retain(|value| !(value.dependency_id == "power" && value.window_index == 0));
+        request.dependency_observations.retain(|value| !(value.dependency_id == "power-local" && value.window_index == 0));
         let assessment = assess_repair_continuity(&request).unwrap();
         assert!(assessment.assessments.iter().any(|candidate| candidate.indeterminate_count > 0));
         let local = assessment.assessments.iter()
