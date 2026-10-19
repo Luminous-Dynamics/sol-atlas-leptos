@@ -38,14 +38,14 @@ jobs:
       - name: Check formatting for this tranche
         run: rustfmt --edition 2024 --check sol-atlas-core/src/water_localization_split_audit.rs sol-atlas-core/src/bin/water_localization_split_audit.rs
       - name: Run topology split audit unit tests
-        run: cargo test -p sol-atlas-core water_localization_split_audit
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml water_localization_split_audit
       - name: Evaluate frozen split manifest and bind exact revision
         id: evaluate
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p artifacts/water-localization-split-audit
-          GITHUB_SHA="$GITHUB_SHA" cargo run -p sol-atlas-core --bin water-localization-split-audit -- \
+          GITHUB_SHA="$GITHUB_SHA" cargo run --manifest-path sol-atlas-core/Cargo.toml --bin water-localization-split-audit -- \
             sol-atlas-core/fixtures/water-engineering/water-localization-topology-split.synthetic.json \
             artifacts/water-localization-split-audit/receipt.json
       - name: Install pinned Draft 2020-12 validator
