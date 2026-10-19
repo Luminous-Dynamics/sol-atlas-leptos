@@ -15,7 +15,7 @@ References:
 
 ## Implemented contract
 
-The Rust module `sol-atlas-core::ccz_grid_pair` validates a pair of strict metadata records before any downstream workflow treats them as aligned. It requires each artifact to point to an existing source snapshot and contain a well-formed SHA-256 reference. The existing exact-byte receipt remains responsible for computing and comparing hashes; the pair validator does not claim to verify bytes.
+The Rust module `sol-atlas-core::ccz_grid_pair` validates a pair of strict metadata records before any downstream workflow treats them as aligned. It requires a non-empty source-snapshot ID and a well-formed SHA-256 reference, but this metadata-only function does not independently resolve snapshot existence in the upstream provenance graph. A caller must resolve those IDs through the existing CCZ source-snapshot path. The existing exact-byte receipt remains responsible for computing and comparing hashes; the pair validator does not claim to verify bytes.
 
 Pair checks compare product family, edition, grid identity, dimensions, outer-edge bounds, cell spacing, CRS, horizontal units, row/column axes and registration. Each raster must also declare its own NoData representation. Dimension/spacing/bounds must be internally consistent, not just consistent across the pair.
 
