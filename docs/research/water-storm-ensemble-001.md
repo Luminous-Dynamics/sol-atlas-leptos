@@ -20,7 +20,7 @@ For South Africa, the SANRAL Drainage Manual 6th Edition discusses regional rain
 
 ## Required outputs
 
-Each case records exact derived input SHA-256/byte identity, report/output/stdout digests, solver revision and executable digest; runoff and routing continuity; rainfall/runoff volume; peak junction depth and time; peak conduit flow and velocity; ratios to full flow/depth; outfall peak flow/volume; flooding/surcharge state and flooding loss where present.
+Each case records exact derived input SHA-256/byte identity, report/output/stdout digests, solver revision, executable digest and fixed routing-step setting; runoff and routing continuity; rainfall/runoff volume; peak junction depth and time; peak conduit flow and velocity; ratios to full flow/depth; outfall peak flow/volume; flooding/surcharge state and flooding loss where present.
 
 The receipt also carries matched-baseline deltas for peak node depth, conduit velocity, outfall peak flow and flooding loss. Raw per-case outputs are retained, and summary statistics must be computed only from completed cases with denominators explicit. A composite scalar score is not used.
 
