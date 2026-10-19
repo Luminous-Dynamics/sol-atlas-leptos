@@ -235,9 +235,10 @@ jobs:
       - name: Build pinned SWMM 5.2.4 CLI
         run: |
           set -euo pipefail
+          mkdir -p .swmm-build/bin/Release
           cmake -S .swmm-source -B .swmm-build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF
           cmake --build .swmm-build --config Release --parallel 2
-          test -x .swmm-build/bin/Release/runswmm
+          test -x .swmm-build/bin/Release/runswmm || test -x .swmm-build/src/run/runswmm
       - name: Execute synthetic SWMM baseline and restriction candidate
         if: always()
         id: swmm_run
