@@ -621,4 +621,28 @@ mod tests {
             Err(ProjectionError::InvalidSourceDigest)
         );
     }
+
+    #[test]
+    fn frozen_projection_fixture_deserializes_and_validates() {
+        let projection: FieldJobProjectionV1 =
+            serde_json::from_str(include_str!("../fixtures/field-job-projection-v1.json"))
+                .expect("fixture matches the versioned projection wire contract");
+        assert_eq!(projection.validate(), Ok(()));
+        assert_eq!(projection.job_id, "job-demo-01");
+    }
+
+    #[test]
+    fn frozen_viewport_intent_fixture_is_typed_and_valid() {
+        let intents: Vec<ViewportIntentV1> =
+            serde_json::from_str(include_str!("../fixtures/viewport-intents-v1.json"))
+                .expect("fixture matches the tagged viewport-intent contract");
+        assert_eq!(intents.len(), 6);
+        for intent in &intents {
+            assert_eq!(intent.validate(), Ok(()));
+        }
+        assert_eq!(
+            intents.iter().map(ViewportIntentV1::kind).collect::<BTreeSet<_>>().len(),
+            6
+        );
+    }
 }
