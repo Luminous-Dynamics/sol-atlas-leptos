@@ -713,14 +713,18 @@ mod tests {
             Err(ProjectionError::IntentNotOffered)
         );
 
+        let mut comparison_projection = projection.clone();
+        comparison_projection
+            .offered_viewport_intents
+            .push(ViewportIntentKind::RequestJobComparison);
         let wrong_job = ViewportIntentV1::RequestJobComparison {
             job_id: "different-job".into(),
             baseline_revision: 2,
             candidate_revision: 3,
         };
         assert_eq!(
-            wrong_job.validate_for_projection(&projection),
-            Err(ProjectionError::IntentNotOffered)
+            wrong_job.validate_for_projection(&comparison_projection),
+            Err(ProjectionError::ComparisonJobMismatch)
         );
     }
 }
