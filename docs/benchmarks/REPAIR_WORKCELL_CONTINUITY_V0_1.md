@@ -44,7 +44,7 @@ Key behaviors:
 4. **Constrained dispatch:** work is ordered by structural scarcity, due window, declared priority and stable request ID; within a request, the selected feasible assignment minimizes modelled turnaround, then uses stable window/cell tie-breaks.
 5. **Evidence is not truth:** `observed` evidence requires a source identifier, URI, date-shaped snapshot and 64-character SHA-256. This is structural provenance validation, not verification of the source or of the stock claim.
 6. **Explicit claim ceiling:** every output states `synthetic_modelled_feasibility_only_not_verified_restoration`. Scenario counts are not probabilities, and an assignment is not evidence that work occurred.
-7. **Bounded work:** input counts have explicit limits, and the demand × workcell × window evaluation budget fails closed when exceeded.
+7. **Bounded work:** input counts have explicit limits; demand × workcell × window evaluations are capped at 2,000,000, stock lots are capped at 10,000 per candidate, and the estimated demand × workcell × window × stock-lot inspection workload is capped at 20,000,000. Arithmetic overflow and over-budget requests fail closed.
 
 ### V0.1 simplifications to keep visible
 
@@ -69,13 +69,13 @@ The fixture tests that each candidate sees the same request, that outcomes recon
 | Matched inputs | 100% of candidates process exactly the same demand IDs and declared disruption snapshot |
 | Fixture oracle | Exact expected request status, assignment window and stock use |
 | Unknown-resource handling | Zero unknown staffing, power, route, part-fit or stock evidence converted into confirmed availability |
-| Capacity integrity | Zero assignments above the cell/window's effective known capacity |
-| Inventory integrity | Zero duplicate stock IDs, duplicate pool access, overspend or repeated consumption of one lot |
+| Capacity integrity | Zero assignments above the cell/window's effective known capacity; unknown capacity remains explicitly unknown |
+| Inventory integrity | Zero duplicate stock IDs, duplicate pool access, overspend or repeated consumption of one lot; unknown routes do not contaminate unrelated part requirements |
 | Calibration integrity | Zero requests confirmed using missing, expired or unknown required instrument calibration |
 | Evidence validation | All malformed observed evidence and invalid digest inputs rejected |
 | Determinism | 100/100 repeated runs over canonicalized fixture produce identical result data |
 | Input permutation | 100/100 demand/candidate/workcell/inventory permutations preserve canonical output |
-| Negative controls | 100% of duplicate stock, incompatible revision, missing evidence, route-unavailable and capacity-overrun controls reject or remain explicitly unresolved |
+| Bounded-resource controls | Requests above 2,000,000 fit evaluations, 20,000,000 estimated stock inspections, or 10,000 stock lots/candidate fail closed |\n| Negative controls | 100% of duplicate stock, incompatible revision, missing evidence, delayed stock, unknown inventory route and capacity-overrun controls reject or remain explicitly unresolved |
 | Throughput envelope | Set measured p50/p95 once named-runner results exist for 100 / 1,000 / 10,000 demand items; no speed claim yet |
 | Physical success | No claim from this evaluator; actual restoration needs a controlled, independently verified pilot |
 
