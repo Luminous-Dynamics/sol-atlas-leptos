@@ -6,7 +6,7 @@
 //! intervals are descriptive bootstrap intervals, not regulatory certification.
 
 use crate::census::{
-    BenchmarkCase, CoverageState, EvaluationReport, ReferenceState, SystemDisposition,
+    BenchmarkCase, EvaluationReport, ReferenceState, SystemDisposition,
     SystemSubmission, evaluate_census,
 };
 use serde::Serialize;
@@ -145,8 +145,8 @@ pub fn compare_submissions(
         match &case.reference {
             ReferenceState::MeteredEmission { .. } => {
                 cluster.positive_cases += 1;
-                cluster.baseline_true_positives += usize::from(baseline_detected);
-                cluster.candidate_true_positives += usize::from(candidate_detected);
+                cluster.baseline_true_positives += usize::from(u8::from(baseline_detected));
+                cluster.candidate_true_positives += usize::from(u8::from(candidate_detected));
                 match (baseline_detected, candidate_detected) {
                     (true, false) => recall_baseline_only += 1,
                     (false, true) => recall_candidate_only += 1,
@@ -317,7 +317,7 @@ impl DeterministicRng {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::census::{CaseResponse, CoverageState, ObservationKind, SystemDisposition};
+    use crate::census::{CaseResponse, CoverageState, SystemDisposition};
 
     fn cases() -> Vec<BenchmarkCase> {
         vec![
