@@ -264,7 +264,9 @@ impl SafetyGateSummaryV1 {
         }
         match self.status {
             SafetyGateStatus::Blocked => {
-                if self.missing_requirements.is_empty()
+                if self.policy_ref.as_deref().is_none_or(str::is_empty)
+                    || self.policy_revision.is_none()
+                    || self.missing_requirements.is_empty()
                     || self.missing_requirements.iter().any(|reason| reason.trim().is_empty())
                 {
                     return Err(ProjectionError::BlockedGateMissingReason);
@@ -361,6 +363,42 @@ impl ViewportIntentV1 {
             }
         }
     }
+
+    /// Check that the intent is represented by this projection's affordances.
+    ///
+    /// This is a client-side consistency guard only. The authoritative command
+    /// handler must still re-check actor rights, revisions and domain rules.
+    pub fn validate_for_projection(
+        &self,
+        projection: &FieldJobProjectionV1,
+    ) -> Result<(), ProjectionError> {
+        self.validate()?;
+        if !projection.offered_viewport_intents.contains(&self.kind()) {
+            return Err(ProjectionError::IntentNotOffered);
+        }
+        match self {
+            Self::SelectAsset { asset_id } | Self::FocusAsset { asset_id } => {
+                if !projection.assets.iter().any(|asset| asset.asset_id == *asset_id) {
+                    return Err(ProjectionError::IntentTargetMissingFromProjection);
+                }
+            }
+            Self::SelectComponent { component_id } => {
+                if !projection.assets.iter().any(|asset| {
+                    asset.asset_id == *component_id
+                        && asset.relationship == AssetRelationship::Component
+                }) {
+                    return Err(ProjectionError::IntentTargetMissingFromProjection);
+                }
+            }
+            Self::RequestJobComparison { job_id, .. } if job_id != &projection.job_id => {
+                return Err(ProjectionError::ComparisonJobMismatch);
+            }
+            Self::SelectFlow { .. }
+            | Self::SetTimelineCursor { .. }
+            | Self::RequestJobComparison { .. } => {}
+        }
+        Ok(())
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -392,6 +430,9 @@ pub enum ProjectionError {
     DuplicateEvidenceId,
     DuplicateViewportIntent,
     MissingIntentTarget,
+    IntentNotOffered,
+    IntentTargetMissingFromProjection,
+    ComparisonJobMismatch,
     InvalidComparisonRevisions,
 }
 
@@ -643,6 +684,43 @@ mod tests {
         assert_eq!(
             intents.iter().map(ViewportIntentV1::kind).collect::<BTreeSet<_>>().len(),
             6
+        );
+    }
+
+    #[test]
+    fn viewport_intents_must_be_offered_and_target_the_current_projection() {
+        let projection: FieldJobProjectionV1 =
+            serde_json::from_str(include_str!("../fixtures/field-job-projection-v1.json"))
+                .expect("valid fixture");
+        let selected = ViewportIntentV1::SelectAsset {
+            asset_id: "asset-demo-01".into(),
+        };
+        assert_eq!(selected.validate_for_projection(&projection), Ok(()));
+
+        let missing_asset = ViewportIntentV1::FocusAsset {
+            asset_id: "asset-not-in-projection".into(),
+        };
+        assert_eq!(
+            missing_asset.validate_for_projection(&projection),
+            Err(ProjectionError::IntentTargetMissingFromProjection)
+        );
+
+        let unavailable = ViewportIntentV1::SelectFlow {
+            flow_id: "flow-demo-01".into(),
+        };
+        assert_eq!(
+            unavailable.validate_for_projection(&projection),
+            Err(ProjectionError::IntentNotOffered)
+        );
+
+        let wrong_job = ViewportIntentV1::RequestJobComparison {
+            job_id: "different-job".into(),
+            baseline_revision: 2,
+            candidate_revision: 3,
+        };
+        assert_eq!(
+            wrong_job.validate_for_projection(&projection),
+            Err(ProjectionError::IntentNotOffered)
         );
     }
 }
