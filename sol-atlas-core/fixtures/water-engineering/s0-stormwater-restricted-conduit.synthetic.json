@@ -1,0 +1,128 @@
+{
+  "schema_version": "water-engineering-bundle/v0.1",
+  "bundle_id": "s0-stormwater-restricted-conduit-v0.1",
+  "classification": "synthetic_public",
+  "model_package": {
+    "model_id": "s0-synthetic-stormwater-network",
+    "domain": "stormwater",
+    "input_snapshot": {
+      "artifact_id": "s0-swmm-input",
+      "role": "exact_synthetic_swmm_input",
+      "path": "sol-atlas-core/fixtures/water-engineering/s0_stormwater.inp",
+      "sha256": "03f0e1385784369d3f3acc21c2c4ef11e562bb7dd382f80749afab7875dc89c9",
+      "byte_length": 1668,
+      "synthetic": true
+    },
+    "source_artifacts": [
+      {
+        "artifact_id": "s0-swmm-input",
+        "role": "exact_synthetic_swmm_input",
+        "path": "sol-atlas-core/fixtures/water-engineering/s0_stormwater.inp",
+        "sha256": "03f0e1385784369d3f3acc21c2c4ef11e562bb7dd382f80749afab7875dc89c9",
+        "byte_length": 1668,
+        "synthetic": true
+      }
+    ],
+    "unit_system": "SWMM CMS (length m; runoff flow m3/s; rainfall intensity mm/hr)",
+    "coordinate_reference_system": null,
+    "asset_index": [
+      {
+        "asset_id": "G1",
+        "asset_type": "other"
+      },
+      {
+        "asset_id": "S1",
+        "asset_type": "subcatchment"
+      },
+      {
+        "asset_id": "J1",
+        "asset_type": "junction"
+      },
+      {
+        "asset_id": "O1",
+        "asset_type": "outfall"
+      },
+      {
+        "asset_id": "C1",
+        "asset_type": "conduit"
+      }
+    ],
+    "solver_profile": {
+      "engine": "EPA_SWMM",
+      "engine_version": "5.2.4",
+      "engine_binary_sha256": null,
+      "execution_state": "NotRun",
+      "analysis_mode": "RainfallRunoff+DynamicWave",
+      "headloss_model": "Manning"
+    },
+    "calibration": {
+      "state": "SyntheticUncalibrated",
+      "evidence_artifact_ids": [],
+      "notes": [
+        "Synthetic rainfall and topology only; no catchment observations or empirical calibration."
+      ]
+    },
+    "assumptions": [
+      "Synthetic 1 hectare subcatchment and one conduit; no real Johannesburg catchment is represented.",
+      "Rainfall is a declared synthetic intensity time series and is not a design storm or return-period claim.",
+      "The baseline conduit diameter is 0.6 m; the declared candidate is a deliberate synthetic restriction to 0.25 m, not a design recommendation.",
+      "SWMM is the designated physical solver; this contract/fixture alone supplies no hydraulic output."
+    ]
+  },
+  "scenario": {
+    "scenario_id": "s0-conduit-restriction",
+    "base_model_id": "s0-synthetic-stormwater-network",
+    "base_input_snapshot_sha256": "03f0e1385784369d3f3acc21c2c4ef11e562bb7dd382f80749afab7875dc89c9",
+    "scenario_type": "intervention",
+    "changes": [
+      {
+        "asset_id": "C1",
+        "parameter": "circular_diameter_m",
+        "baseline_value": 0.6,
+        "candidate_value": 0.25,
+        "unit": "m",
+        "rationale": "Deliberately synthetic conduit restriction for reference-adapter testing; not a proposed engineering intervention."
+      }
+    ],
+    "forcing_refs": [],
+    "rationale": "Run a pinned SWMM baseline and a candidate created by changing only conduit C1 circular diameter. No solver run or empirical hydraulic conclusion is claimed."
+  },
+  "run_result": {
+    "run_id": "s0-conduit-restriction-not-run",
+    "state": "NotRun",
+    "solver": {
+      "engine": "EPA_SWMM",
+      "version": "5.2.4",
+      "binary_sha256": null,
+      "settings_sha256": null
+    },
+    "execution": {
+      "started_at": null,
+      "finished_at": null,
+      "environment_ref": null
+    },
+    "diagnostics": {
+      "convergence_state": "NotRun",
+      "continuity_check_state": "NotRun",
+      "solver_exit_code": null,
+      "warnings": []
+    },
+    "metrics": [],
+    "result_artifacts": [],
+    "notes": [
+      "Input and scenario identity only. No SWMM process was executed; no hydraulic output exists."
+    ]
+  },
+  "validation": {
+    "empirical_state": "SyntheticOnly",
+    "independent_review_state": "NotReviewed",
+    "accepted_for_engineering_use": false,
+    "claim_ceiling": "Synthetic fixture and adapter contract only; not solver-executed, calibrated, empirically validated, or engineering-approved."
+  },
+  "nonclaims": [
+    "This fixture does not establish a calibrated real-catchment model or flood warning capability.",
+    "No real municipal topology, rainfall observation, sewer incident, receiving-water condition, or public-safety effect is included.",
+    "No flood-safety, sewer-compliance, environmental, intervention-benefit, or engineering approval claim is made.",
+    "No fieldwork, control-system operation, or automated actuation is authorized."
+  ]
+}
