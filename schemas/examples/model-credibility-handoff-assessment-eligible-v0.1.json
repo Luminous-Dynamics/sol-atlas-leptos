@@ -1,0 +1,23 @@
+{
+  "schema_version": "0.1.0",
+  "decision_id": "decision-002",
+  "model_id": "pump-state-estimator-v1",
+  "asset_id": "pump-17",
+  "as_of_utc": "2026-10-19T20:00:00Z",
+  "disposition": "use_model",
+  "status": "eligible_for_assessment",
+  "reason_code": "MODEL_DISPOSITION_ADMITTED",
+  "capacity_unit": "m3/h",
+  "eligible_capacity": {
+    "lower": 8,
+    "upper": 10,
+    "unit": "m3/h"
+  },
+  "source_commit_sha": "dddddddddddddddddddddddddddddddddddddddd",
+  "calibration_set_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "generated_case_set_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "supporting_evidence_ids": [
+    "measurement-window-18",
+    "calibration-study-7"
+  ]
+}
