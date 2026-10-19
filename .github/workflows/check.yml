@@ -239,6 +239,7 @@ jobs:
           cmake --build .swmm-build --config Release --parallel 2
           test -x .swmm-build/bin/Release/runswmm
       - name: Execute synthetic SWMM baseline and restriction candidate
+        if: always()
         id: swmm_run
         continue-on-error: true
         shell: bash
