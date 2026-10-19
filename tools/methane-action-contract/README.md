@@ -14,7 +14,9 @@ The data model distinguishes:
 - remote-sensing plume records, in-situ measurements, inventory estimates, model inferences, and synthetic scenarios;
 - source associations and optional facility associations;
 - terms approval bound to the exact source URI/version/digest and exact terms URI/digest;
-- source and terms digests recomputed from caller-supplied exact bytes during admission, with missing, duplicate, empty, and mismatched snapshots rejected.
+- source, terms, and calibration digests recomputed from caller-supplied exact bytes during admission, with missing, duplicate, empty, and mismatched snapshots rejected;
+- in-situ measurements require an identified instrument and a calibration snapshot whose validity interval contains the observation timestamp;
+- empty observation batches are rejected rather than vacuously passing.
 
 The whole batch must be rejected if any validation violation is returned. The validator does not silently drop or repair records.
 
@@ -28,7 +30,7 @@ The only external crate dependency is `sha2 = 0.10.9`, with a standalone lockfil
 
 ## Trust and scope boundaries
 
-The validator recomputes SHA-256 for exact source and terms bytes supplied as `ArtifactSnapshot` records and checks those results against the provenance and terms-review digests. It rejects missing, duplicated, empty, or mismatched snapshots. It does not:
+The validator recomputes canonical lowercase SHA-256 for exact source, terms, and (when provided or required) calibration bytes supplied as `ArtifactSnapshot` records and checks those results against the corresponding declared digests. It rejects missing, duplicated, empty, or mismatched snapshots. In-situ observations must be linked to an instrument and a calibration window covering the observation. The validator does not:
 - authenticate the upstream provider, prove that the supplied bytes were retrieved from the URI, or authenticate a named reviewer;
 - interpret the actual legal scope of a license or determine whether a review is legally sufficient;
 - verify instrument calibration, infer unseen events, establish source attribution, or validate fluid/atmospheric physics;
