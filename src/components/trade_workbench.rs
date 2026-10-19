@@ -22,16 +22,6 @@ enum Trade {
 }
 
 impl Trade {
-    fn label(self) -> &'static str {
-        match self {
-            Self::Electrical => "Electrical",
-            Self::Plumbing => "Plumbing",
-            Self::Mechanical => "Mechanics",
-            Self::Hvac => "HVAC",
-            Self::Construction => "Construction",
-        }
-    }
-
     fn short_label(self) -> &'static str {
         match self {
             Self::Electrical => "ELECTRICAL",
