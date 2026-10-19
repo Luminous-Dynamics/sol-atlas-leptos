@@ -10,4 +10,5 @@ pub mod planet_nav;
 pub mod reactor_twin_demo;
 pub mod timeline;
 pub mod tooltip;
+pub mod trade_workbench;
 pub mod whisper;
