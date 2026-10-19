@@ -372,6 +372,7 @@ impl ViewportIntentV1 {
         &self,
         projection: &FieldJobProjectionV1,
     ) -> Result<(), ProjectionError> {
+        projection.validate()?;
         self.validate()?;
         if !projection.offered_viewport_intents.contains(&self.kind()) {
             return Err(ProjectionError::IntentNotOffered);
