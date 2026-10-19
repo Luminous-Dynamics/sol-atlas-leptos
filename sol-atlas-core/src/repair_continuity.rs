@@ -931,7 +931,7 @@ fn assess_candidate(request: &RepairContinuityRequest, candidate: &ArchitectureC
                     .flatten()
                     .is_some_and(|available| available + EPSILON < demand.service_hours);
                 match check_cell(request, candidate, cell, demand, window, &remaining_stock) {
-                    Fit::Feasible(assignment) if capacity_blocked => {
+                    Fit::Feasible(_assignment) if capacity_blocked => {
                         blockers.insert(Blocker::CapacityUnavailable);
                     }
                     Fit::Feasible(assignment) => {
