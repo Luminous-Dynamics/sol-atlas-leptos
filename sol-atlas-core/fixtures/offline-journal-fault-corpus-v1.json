@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "description": "Synthetic protocol cases for deterministic local journal state transitions; not production telemetry.",
+  "cases": [
+    {
+      "case_id": "timeout_after_dispatch",
+      "attempts": 1,
+      "reply": null,
+      "repeat_reply": null,
+      "expected_state": "outcome_unknown",
+      "expected_result": "no_reply",
+      "expected_repeat_result": "not_applicable"
+    },
+    {
+      "case_id": "server_applied_but_response_lost",
+      "attempts": 2,
+      "reply": null,
+      "repeat_reply": null,
+      "expected_state": "outcome_unknown",
+      "expected_result": "no_reply",
+      "expected_repeat_result": "not_applicable"
+    },
+    {
+      "case_id": "same_receipt_replayed",
+      "attempts": 2,
+      "reply": {
+        "reply": "received",
+        "receipt_ref": "receipt-001",
+        "applied_revision": 8
+      },
+      "repeat_reply": {
+        "reply": "received",
+        "receipt_ref": "receipt-001",
+        "applied_revision": 8
+      },
+      "expected_state": "received",
+      "expected_result": "applied",
+      "expected_repeat_result": "duplicate_acknowledgement"
+    },
+    {
+      "case_id": "server_rejects_request",
+      "attempts": 1,
+      "reply": {
+        "reply": "rejected",
+        "reason_code": "required_evidence_missing"
+      },
+      "repeat_reply": {
+        "reply": "rejected",
+        "reason_code": "required_evidence_missing"
+      },
+      "expected_state": "rejected",
+      "expected_result": "applied",
+      "expected_repeat_result": "duplicate_terminal_reply"
+    },
+    {
+      "case_id": "concurrent_revision_conflict",
+      "attempts": 1,
+      "reply": {
+        "reply": "conflict",
+        "current_revision": 9,
+        "reason_code": "concurrent_edit"
+      },
+      "repeat_reply": {
+        "reply": "conflict",
+        "current_revision": 9,
+        "reason_code": "concurrent_edit"
+      },
+      "expected_state": "conflict_needs_review",
+      "expected_result": "applied",
+      "expected_repeat_result": "duplicate_terminal_reply"
+    },
+    {
+      "case_id": "contradictory_second_terminal_reply",
+      "attempts": 1,
+      "reply": {
+        "reply": "received",
+        "receipt_ref": "receipt-001",
+        "applied_revision": 8
+      },
+      "repeat_reply": {
+        "reply": "rejected",
+        "reason_code": "late_contradiction"
+      },
+      "expected_state": "received",
+      "expected_result": "applied",
+      "expected_repeat_result": "invalid_transition"
+    },
+    {
+      "case_id": "conflict_reply_does_not_advance_revision",
+      "attempts": 1,
+      "reply": {
+        "reply": "conflict",
+        "current_revision": 7,
+        "reason_code": "invalid_conflict"
+      },
+      "repeat_reply": null,
+      "expected_state": "outcome_unknown",
+      "expected_result": "invalid_reply",
+      "expected_repeat_result": "not_applicable"
+    }
+  ]
+}
