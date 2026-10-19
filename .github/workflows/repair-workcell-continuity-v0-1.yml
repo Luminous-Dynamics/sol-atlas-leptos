@@ -1,0 +1,107 @@
+name: Repair Workcell Continuity V0.1
+
+on:
+  push:
+    branches:
+      - research/repair-workcell-continuity-v0-1
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
+    paths:
+      - '.github/workflows/repair-workcell-continuity-v0-1.yml'
+      - 'Cargo.lock'
+      - 'Cargo.toml'
+      - 'sol-atlas-core/Cargo.toml'
+      - 'sol-atlas-core/src/lib.rs'
+      - 'sol-atlas-core/src/repair_continuity.rs'
+      - 'schemas/spatial-economic-repair-continuity-v0.1.schema.json'
+      - 'schemas/examples/repair-workcell-continuity-v0.1.json'
+      - 'docs/benchmarks/REPAIR_WORKCELL_CONTINUITY_V0_1.md'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repair-workcell-continuity-v0-1-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_TARGET_DIR: /tmp/sol-atlas-repair-target-${{ github.run_id }}-${{ github.run_attempt }}
+  QUALIFIED_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+  SOURCE_DIR: ${{ runner.temp }}/sol-atlas-repair-source-${{ github.run_id }}-${{ github.run_attempt }}
+
+jobs:
+  exact-head:
+    name: Exact-head repair continuity and Leptos/WASM integration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout exact qualification subject
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ env.QUALIFIED_SHA }}
+          persist-credentials: false
+
+      - name: Assert exact subject and clean source checkout
+        run: |
+          test "$(git rev-parse HEAD)" = "$QUALIFIED_SHA"
+          test -z "$(git status --porcelain=v1 -uall)"
+
+      - name: Install pinned Rust
+        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # master @ 2025-08-23
+        with:
+          toolchain: 1.96.0
+          targets: wasm32-unknown-unknown
+          components: rustfmt
+
+      - name: Assert Rust toolchain identity
+        run: |
+          test "$(rustc +1.96.0 --version)" = "rustc 1.96.0 (ac68faa20 2026-05-25)"
+          rustfmt +1.96.0 --version
+          cargo +1.96.0 --version
+
+      - name: Materialize isolated exact-head worktree
+        run: |
+          git worktree add --detach "$SOURCE_DIR" "$QUALIFIED_SHA"
+          test "$(git -C "$SOURCE_DIR" rev-parse HEAD)" = "$QUALIFIED_SHA"
+          test "$(git -C "$SOURCE_DIR" hash-object sol-atlas-core/src/repair_continuity.rs)" = "$(git hash-object sol-atlas-core/src/repair_continuity.rs)"
+
+      - name: Validate schema and fixture JSON
+        run: |
+          jq -e . "$SOURCE_DIR/schemas/spatial-economic-repair-continuity-v0.1.schema.json" > /dev/null
+          jq -e . "$SOURCE_DIR/schemas/examples/repair-workcell-continuity-v0.1.json" > /dev/null
+
+      - name: Check core formatting
+        run: cargo +1.96.0 fmt --manifest-path "$SOURCE_DIR/sol-atlas-core/Cargo.toml" -- --check
+
+      - name: Run core tests and independent fixture oracle
+        run: cargo +1.96.0 test --manifest-path "$SOURCE_DIR/sol-atlas-core/Cargo.toml"
+
+      - name: Build Leptos/WASM integration target
+        run: cargo +1.96.0 check --manifest-path "$SOURCE_DIR/Cargo.toml" --target wasm32-unknown-unknown
+
+      - name: Verify clean source checkout and emit evidence
+        run: |
+          test "$(git rev-parse HEAD)" = "$QUALIFIED_SHA"
+          test -z "$(git status --porcelain=v1 -uall)"
+          {
+            echo "profile=RepairWorkcellContinuityV0_1"
+            echo "status=exact-head-qualification-passed"
+            echo "qualified_sha=$QUALIFIED_SHA"
+            echo "run_id=$GITHUB_RUN_ID"
+            echo "run_attempt=$GITHUB_RUN_ATTEMPT"
+            echo "runner_os=$RUNNER_OS"
+            echo "rust=$(rustc +1.96.0 --version)"
+            echo "rust_commit=$(rustc +1.96.0 --version --verbose | sed -n 's/^commit-hash: //p')"
+            echo "cargo=$(cargo +1.96.0 --version)"
+            echo "rustfmt=$(rustfmt +1.96.0 --version)"
+            echo "module_blob=$(git hash-object sol-atlas-core/src/repair_continuity.rs)"
+            echo "core_lib_blob=$(git hash-object sol-atlas-core/src/lib.rs)"
+            echo "schema_blob=$(git hash-object schemas/spatial-economic-repair-continuity-v0.1.schema.json)"
+            echo "fixture_blob=$(git hash-object schemas/examples/repair-workcell-continuity-v0.1.json)"
+            echo "worktree_head=$(git -C "$SOURCE_DIR" rev-parse HEAD)"
+            echo "production_correspondence=NOT_ESTABLISHED"
+            echo "field_success=NOT_ESTABLISHED"
+            echo "postflight=clean"
+          } >> "$GITHUB_STEP_SUMMARY"
