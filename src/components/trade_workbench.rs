@@ -326,6 +326,21 @@ pub fn TradeWorkbench() -> impl IntoView {
             .to_string(),
     );
 
+    // Trade selection changes the job identity, so discard local demo state
+    // rather than carrying evidence/progress across two different synthetic jobs.
+    let select_trade = move |trade: Trade| {
+        if selected_trade.get() != trade {
+            selected_trade.set(trade);
+            phase.set(WorkPhase::Assigned);
+            hazards_reviewed.set(false);
+            isolation_verified.set(false);
+            evidence_count.set(0);
+            status_message.set(
+                "Trade profile changed. Demo state reset for the new synthetic job.".to_string(),
+            );
+        }
+    };
+
     let online_label = move || {
         if simulated_offline.get() {
             "Offline mode simulated"
@@ -413,19 +428,19 @@ pub fn TradeWorkbench() -> impl IntoView {
                 <aside class="field-work-sidebar" aria-label="Select trade">
                     <p class="field-work-eyebrow">"TRADE PROFILE"</p>
                     <nav class="field-work-nav">
-                        <button class:active=move || selected_trade.get() == Trade::Electrical aria-pressed=move || (selected_trade.get() == Trade::Electrical).to_string() on:click=move |_| selected_trade.set(Trade::Electrical)>
+                        <button class:active=move || selected_trade.get() == Trade::Electrical aria-pressed=move || (selected_trade.get() == Trade::Electrical).to_string() on:click=move |_| select_trade(Trade::Electrical)>
                             <span aria-hidden="true">"ϟ"</span><span>"Electrical"</span>
                         </button>
-                        <button class:active=move || selected_trade.get() == Trade::Plumbing aria-pressed=move || (selected_trade.get() == Trade::Plumbing).to_string() on:click=move |_| selected_trade.set(Trade::Plumbing)>
+                        <button class:active=move || selected_trade.get() == Trade::Plumbing aria-pressed=move || (selected_trade.get() == Trade::Plumbing).to_string() on:click=move |_| select_trade(Trade::Plumbing)>
                             <span aria-hidden="true">"≈"</span><span>"Plumbing"</span>
                         </button>
-                        <button class:active=move || selected_trade.get() == Trade::Mechanical aria-pressed=move || (selected_trade.get() == Trade::Mechanical).to_string() on:click=move |_| selected_trade.set(Trade::Mechanical)>
+                        <button class:active=move || selected_trade.get() == Trade::Mechanical aria-pressed=move || (selected_trade.get() == Trade::Mechanical).to_string() on:click=move |_| select_trade(Trade::Mechanical)>
                             <span aria-hidden="true">"⚙"</span><span>"Mechanics"</span>
                         </button>
-                        <button class:active=move || selected_trade.get() == Trade::Hvac aria-pressed=move || (selected_trade.get() == Trade::Hvac).to_string() on:click=move |_| selected_trade.set(Trade::Hvac)>
+                        <button class:active=move || selected_trade.get() == Trade::Hvac aria-pressed=move || (selected_trade.get() == Trade::Hvac).to_string() on:click=move |_| select_trade(Trade::Hvac)>
                             <span aria-hidden="true">"❄"</span><span>"HVAC"</span>
                         </button>
-                        <button class:active=move || selected_trade.get() == Trade::Construction aria-pressed=move || (selected_trade.get() == Trade::Construction).to_string() on:click=move |_| selected_trade.set(Trade::Construction)>
+                        <button class:active=move || selected_trade.get() == Trade::Construction aria-pressed=move || (selected_trade.get() == Trade::Construction).to_string() on:click=move |_| select_trade(Trade::Construction)>
                             <span aria-hidden="true">"⌂"</span><span>"Construction"</span>
                         </button>
                     </nav>
@@ -703,6 +718,26 @@ mod tests {
             transition(P::HandedOver, A::Restart, false, false),
             P::Assigned
         );
+    }
+
+    #[test]
+    fn synthetic_job_identity_and_evidence_ids_are_trade_scoped() {
+        let electrical = super::demo_projection(
+            Trade::Electrical,
+            P::Verified,
+            true,
+            2,
+        );
+        let plumbing = super::demo_projection(
+            Trade::Plumbing,
+            P::Assigned,
+            false,
+            0,
+        );
+        assert_ne!(electrical.job_id, plumbing.job_id);
+        assert_ne!(electrical.assets[0].asset_id, plumbing.assets[0].asset_id);
+        assert_ne!(electrical.evidence[0].evidence_id, plumbing.job_id);
+        assert_eq!(plumbing.evidence.len(), 0);
     }
 
     #[test]
