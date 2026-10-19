@@ -810,7 +810,10 @@ mod tests {
     fn incomplete_coordinate_metadata_fails_closed() {
         let mut pair = valid_pair();
         pair.bathymetry.coordinate_reference_system = None;
-        assert!(has_issue(&pair, GridPairIssueCode::MissingCoordinateReferenceSystem));
+        assert!(has_issue(
+            &pair,
+            GridPairIssueCode::MissingCoordinateReferenceSystem
+        ));
 
         let mut pair = valid_pair();
         pair.bathymetry.horizontal_unit = None;
@@ -878,8 +881,10 @@ mod tests {
     fn serde_rejects_unknown_grid_metadata_fields() {
         let encoded = serde_json::to_value(metadata()).unwrap();
         let mut object = encoded.as_object().unwrap().clone();
-        object.insert("owner".into(), serde_json::Value::String("unverified".into()));
+        object.insert(
+            "owner".into(),
+            serde_json::Value::String("unverified".into()),
+        );
         assert!(serde_json::from_value::<GridMetadata>(serde_json::Value::Object(object)).is_err());
     }
-
 }
