@@ -71,6 +71,15 @@ Record the chain from source observation to asset association, model/version, re
 
 The integration is a proposed architecture. No end-to-end methane-to-mitigation capability is established by this document.
 
+### Reuse existing research primitives instead of creating parallel stacks
+
+- **Symthaea experiment selection:** [PR #8034](https://github.com/Luminous-Dynamics/symthaea/pull/8034) describes a prior-free, maximin standardized-separation selector for choosing an experiment that distinguishes rival models under predictive uncertainty and relative cost. If its API is qualified and available on the selected base, use it to rank the **next measurement** that would best distinguish competing source hypotheses. Do not relabel its score as Bayesian expected information gain, a calibrated posterior, a leak-rate estimator, or a repair optimizer. Its own documented assumptions (including conditional independence) must remain visible.
+- **Symtropy simulation/experiment conventions:** [Physics Experiment Atlas PR #1981](https://github.com/Luminous-Dynamics/symtropy/pull/1981) is a useful reference-case and receipt pattern, but it is not a validated methane dispersion, pipeline-flow, or refinery-process simulator. Any domain-specific physical model needs separate calibration, assumptions, numerical validation, and held-out physical tests.
+- **Mycelix outcome receipts:** [process-run receipt PR #5228](https://github.com/Luminous-Dynamics/mycelix/pull/5228) already captures a useful general distinction among simulation outputs, instrument observations, calibration claims, and review dispositions. Reuse its evidence-layer semantics or existing shared types where compatible instead of creating a competing ledger/cryptography system. Do not transplant a manufacturing receipt as though it validated a gas measurement; the methane-specific adapter must bind its own sensor/source, units, calibration, and intervention evidence.
+- **Sol-Atlas flaring evidence:** [gas-flaring admission PR #94](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/94) already addresses source/terms review, snapshot identity, and purpose-gated data admission for annual flare-volume estimates. Reuse its exact-source/provenance principles, but keep annual flaring-volume records distinct from individual methane-plume observations and from verified avoided methane.
+
+These links describe existing research branches, not automatic integration or a claim that every referenced PR is merged or qualified. Before coupling any of them, pin the exact commit/API, verify exact-head checks, and add cross-repository contract fixtures.
+
 ## Benchmark tracks
 
 ### Track A — Evidence and data admission
