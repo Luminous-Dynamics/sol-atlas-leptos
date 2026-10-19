@@ -30,6 +30,9 @@ pub enum TermsReview {
         terms_uri: String,
         terms_sha256: String,
         reviewed_at_utc: String,
+        reviewed_source_uri: String,
+        reviewed_source_version: String,
+        reviewed_source_sha256: String,
     },
 }
 
@@ -366,6 +369,9 @@ fn validate_provenance(
             terms_uri,
             terms_sha256,
             reviewed_at_utc,
+            reviewed_source_uri,
+            reviewed_source_version,
+            reviewed_source_sha256,
         } => {
             validate_terms_metadata(
                 report,
@@ -375,6 +381,27 @@ fn validate_provenance(
                 terms_sha256,
                 reviewed_at_utc,
             );
+            if reviewed_source_uri != &provenance.source_uri {
+                report.push(
+                    record_id,
+                    "provenance.terms_review.reviewed_source_uri",
+                    "terms_source_uri_mismatch",
+                );
+            }
+            if reviewed_source_version != &provenance.source_version {
+                report.push(
+                    record_id,
+                    "provenance.terms_review.reviewed_source_version",
+                    "terms_source_version_mismatch",
+                );
+            }
+            if reviewed_source_sha256 != &provenance.artifact_sha256 {
+                report.push(
+                    record_id,
+                    "provenance.terms_review.reviewed_source_sha256",
+                    "terms_source_digest_mismatch",
+                );
+            }
             if *approved_use != required_use {
                 report.push(
                     record_id,
@@ -494,6 +521,9 @@ mod tests {
                 terms_uri: "https://data.example.test/terms".into(),
                 terms_sha256: "b".repeat(64),
                 reviewed_at_utc: "2026-10-19T12:00:00Z".into(),
+                reviewed_source_uri: "https://data.example.test/methane.csv".into(),
+                reviewed_source_version: "fixture-v1".into(),
+                reviewed_source_sha256: "a".repeat(64),
             },
         }
     }
@@ -702,6 +732,9 @@ mod tests {
             terms_uri: "https://data.example.test/terms".into(),
             terms_sha256: "b".repeat(64),
             reviewed_at_utc: "2026-10-19T12:00:00Z".into(),
+            reviewed_source_uri: "https://data.example.test/methane.csv".into(),
+            reviewed_source_version: "fixture-v1".into(),
+            reviewed_source_sha256: "a".repeat(64),
         };
         let report = validate_batch(
             &[commercial],
@@ -719,6 +752,31 @@ mod tests {
     }
 
     #[test]
+    fn terms_review_is_bound_to_exact_source_identity_and_digest() {
+        let mut obs = observation("plume-pinned-review", quantified());
+        obs.provenance.terms_review = TermsReview::Approved {
+            reviewer_id: "reviewer-1".into(),
+            approved_use: DataUse::ResearchNonCommercial,
+            terms_uri: "https://data.example.test/terms".into(),
+            terms_sha256: "b".repeat(64),
+            reviewed_at_utc: "2026-10-19T12:00:00Z".into(),
+            reviewed_source_uri: "https://data.example.test/other.csv".into(),
+            reviewed_source_version: "fixture-v2".into(),
+            reviewed_source_sha256: "c".repeat(64),
+        };
+        let report = validate_batch(
+            &[obs],
+            &[],
+            DataUse::ResearchNonCommercial,
+            ObservationKind::RemoteSensingPlume,
+            &GasSpecies::Methane,
+        );
+        assert!(report.violations.iter().any(|v| v.code == "terms_source_uri_mismatch"));
+        assert!(report.violations.iter().any(|v| v.code == "terms_source_version_mismatch"));
+        assert!(report.violations.iter().any(|v| v.code == "terms_source_digest_mismatch"));
+    }
+
+    #[test]
     fn rejects_unpinned_terms_review_metadata() {
         let mut obs = observation("plume-terms", quantified());
         obs.provenance.terms_review = TermsReview::Approved {
@@ -727,6 +785,9 @@ mod tests {
             terms_uri: "file:///unreviewable-terms".into(),
             terms_sha256: "invalid".into(),
             reviewed_at_utc: "not-a-timestamp".into(),
+            reviewed_source_uri: "https://data.example.test/methane.csv".into(),
+            reviewed_source_version: "fixture-v1".into(),
+            reviewed_source_sha256: "a".repeat(64),
         };
         let report = validate_batch(
             &[obs],
