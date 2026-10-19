@@ -703,10 +703,22 @@ fn check_parts(
                 continue;
             };
             let relevant_lots = pool.lots.iter().filter(|lot| {
-                lot.part_key == requirement.part_key
-                    || lot.approved_for_part_keys
+                match lot.fit {
+                    PartFit::ExactRevision => {
+                        lot.part_key == requirement.part_key
+                            && lot.revision == requirement.required_revision
+                    }
+                    PartFit::ApprovedSubstitute => lot.approved_for_part_keys
                         .iter()
-                        .any(|value| value == &requirement.part_key)
+                        .any(|value| value == &requirement.part_key),
+                    PartFit::Unknown => {
+                        lot.part_key == requirement.part_key
+                            || lot.approved_for_part_keys
+                                .iter()
+                                .any(|value| value == &requirement.part_key)
+                    }
+                    PartFit::Incompatible => false,
+                }
             }).collect::<Vec<_>>();
             if relevant_lots.is_empty() {
                 // An unknown/unavailable route to an irrelevant pool must not
