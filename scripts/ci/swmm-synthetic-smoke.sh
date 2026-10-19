@@ -5,6 +5,9 @@ umask 077
 repo_root="$PWD"
 out="$repo_root/artifacts/swmm-s0"
 solver="$repo_root/.swmm-build/bin/Release/runswmm"
+if [[ ! -x "$solver" && -x "$repo_root/.swmm-build/src/run/runswmm" ]]; then
+  solver="$repo_root/.swmm-build/src/run/runswmm"
+fi
 bundle_file="$repo_root/sol-atlas-core/fixtures/water-engineering/s0-stormwater-restricted-conduit.synthetic.json"
 input_default="$repo_root/sol-atlas-core/fixtures/water-engineering/s0_stormwater.inp"
 source_commit="7952ca837988b1c32f791812eccc9fd64547e093"
