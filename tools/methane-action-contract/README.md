@@ -7,6 +7,7 @@ A small, dependency-free Rust contract for **benchmark input admission**, not a 
 One satellite overpass may produce a plume observation; multiple plume observations may map to one source; and a source may or may not be attributable to a specific facility. The contract keeps these identities distinct and represents source/facility matches as separate, reviewable associations.
 
 The data model distinguishes:
+- an explicit gas-species field and required-species gate so methane and CO2 rates cannot be mixed;
 - quantified emission-rate estimates, including uncertainty and a detection limit;
 - non-detections, which are **not zero-emission observations**;
 - explicitly unquantified observations;
