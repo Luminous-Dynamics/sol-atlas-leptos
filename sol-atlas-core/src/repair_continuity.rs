@@ -888,7 +888,7 @@ fn assess_candidate(request: &RepairContinuityRequest, candidate: &ArchitectureC
             let capacity = match (staff, power) {
                 (ResourceFactor::Available(a), ResourceFactor::Available(b)) => Some(nominal * a.min(b)),
                 (ResourceFactor::Unavailable, _) | (_, ResourceFactor::Unavailable) => Some(0.0),
-                (ResourceFactor::Unknown, _) | (_, ResourceFactor::Unknown) => None,
+                _ => None,
             };
             let key = (cell.cell_id.clone(), window);
             effective_capacity.insert(key.clone(), capacity);
