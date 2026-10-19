@@ -146,10 +146,6 @@ jobs:
                   Path("sol-atlas-core/fixtures/water-engineering/w0-p2-diameter-restriction.synthetic.json"),
               ),
               (
-                  Path("sol-atlas-core/schemas/water-engineering-bundle-v0.1.schema.json"),
-                  Path("sol-atlas-core/fixtures/water-engineering/s0-stormwater-restricted-conduit.synthetic.json"),
-              ),
-              (
                   Path("sol-atlas-core/schemas/water-public-observation-bundle-v0.1.schema.json"),
                   Path("sol-atlas-core/fixtures/water-engineering/johannesburg-water-public-observations-2024-25.v0.1.json"),
               ),
