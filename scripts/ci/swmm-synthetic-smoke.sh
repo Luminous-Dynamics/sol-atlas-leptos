@@ -299,7 +299,8 @@ digest_match="true"
 failure_stage="verify_solver_profile"
 grep -Eq '^[[:space:]]*FLOW_UNITS[[:space:]]+CMS([[:space:]]|$)' "$input" || { echo "SWMM_INPUT_FLOW_UNITS_UNSUPPORTED: expected CMS"; exit 1; }
 grep -Eq '^[[:space:]]*FLOW_ROUTING[[:space:]]+DYNWAVE([[:space:]]|$)' "$input" || { echo "SWMM_INPUT_ROUTING_UNSUPPORTED: expected DYNWAVE"; exit 1; }
-grep -Eq '^[[:space:]]*\[REPORT\][[:space:]]*
+grep -Eq '^[[:space:]]*\[REPORT\][[:space:]]*$' "$input" || { echo "SWMM_REPORT_SECTION_MISSING"; exit 1; }
+grep -Eq '^[[:space:]]*CONTINUITY[[:space:]]+YES([[:space:]]|$)' "$input" || { echo "SWMM_CONTINUITY_REPORTING_NOT_ENABLED"; exit 1; }
 
 failure_stage="prepare_model_mutation"
 cp "$input" "$out/s0-baseline.inp"
