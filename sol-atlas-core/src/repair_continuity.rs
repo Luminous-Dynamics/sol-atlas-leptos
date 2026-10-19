@@ -1212,6 +1212,30 @@ mod tests {
     }
 
     #[test]
+    fn json_fixture_compares_central_local_and_distributed_architectures() {
+        let request: RepairContinuityRequest = serde_json::from_str(include_str!(
+            "../../schemas/examples/repair-workcell-continuity-v0.1.json"
+        ))
+        .expect("repair-continuity fixture must deserialize");
+        let result = assess_repair_continuity(&request).expect("fixture must be valid");
+        let central = result.assessments.iter().find(|item| item.architecture == Architecture::CentralizedDepot).unwrap();
+        let local = result.assessments.iter().find(|item| item.architecture == Architecture::LocalServiceCell).unwrap();
+        let distributed = result.assessments.iter().find(|item| item.architecture == Architecture::DistributedSharedReserve).unwrap();
+
+        assert_eq!(central.unserved_count, 1, "central stock arrives after the central route is disrupted");
+        assert_eq!(local.scheduled_count, 1, "local stock supports repair before the disruption window");
+        assert_eq!(distributed.scheduled_count, 1, "the shared reserve is modeled as arriving in the later window");
+        assert_eq!(
+            distributed.requests[0].assigned_window,
+            Some(1),
+            "distributed reserve assignment should be explicitly time-bounded"
+        );
+        assert!(result.assessments.iter().all(|item| {
+            item.scheduled_count + item.indeterminate_count + item.unserved_count == item.demand_count
+        }));
+    }
+
+    #[test]
     fn expired_instrument_and_unknown_part_fit_cannot_confirm_schedule() {
         let mut expired = base_request();
         let candidate = expired.candidates.iter_mut().find(|value| value.architecture == Architecture::DistributedSharedReserve).unwrap();
