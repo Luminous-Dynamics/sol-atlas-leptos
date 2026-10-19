@@ -81,6 +81,46 @@ Keep these user-facing distinctions visible: **Saved on this device**, **Ready t
 
 This is a contract between layers, not a claim that the integrations currently exist. Mycelix already has work-order revision-binding work in [PR #4730](https://github.com/Luminous-Dynamics/mycelix/pull/4730); reuse and reconcile with that contract instead of creating a competing notion of work-order identity.
 
+## Additional paradigm shifts to test
+
+### Offline sync → recoverable field journal
+
+Offline-first should mean more than a cached screen plus background sync. Microsoft documents offline sync status and record-level conflicts in its Field Service mobile workflow; depending on configuration, a conflict can favor one whole-record version over the other. This is a useful baseline comparator, not a claim that every Microsoft product/version behaves identically. See [offline sync and conflict handling](https://learn.microsoft.com/en-us/dynamics365/field-service/mobile/offline-data-sync).
+
+Our target should be stronger in the following measurable ways:
+
+- Persist an immutable local operation identity before any external side effect.
+- Distinguish local save, submit-ready, unknown outcome, authoritative receipt, rejection, and conflict.
+- Preserve both conflicting revisions and show a field-aware explanation of what differs.
+- Suggest a safe merge only when fields are independent and merge policy is explicit; safety-relevant measurements, permissions, procedure revisions, prices, commitments, and asset identity require deliberate resolution rather than silent last-write-wins.
+- Retain a durable correction history. Correcting a record should append a correction, not erase the prior claim.
+
+**Gate:** zero lost acknowledged writes, zero duplicate logical effects, zero silent overwrites, and zero promotion of an ambiguous response to success in the frozen fault corpus. These are software conformance claims, not proof that a field service never loses data in production.
+
+### Status checklist → task graph
+
+A linear workflow is a useful first demonstration but does not model real multi-trade jobs well. A repair can require parallel procurement, access approval, specialist inspection, customer sign-off, and rework branches. The next domain iteration should model a directed task graph with explicit prerequisites, evidence requirements, owners, revisions, and retry/rework edges; derive the visible "next action" from that graph rather than hard-code one universal sequence.
+
+**Gate:** every offered action has a valid prerequisite path; no invalid edge is accepted; rework preserves the initial failure and subsequent correction; independent tasks can proceed without mutating unrelated state. Measure time-to-resume after interruption and task completion time against a linear baseline.
+
+### AI answer → next-best diagnostic action
+
+Reuse Symthaea's existing finite-hypothesis/decision-value work for trade-specific diagnosis rather than building a second recommendation scorer in the UI. The helpful outcome is not more AI messages; it is a well-supported next measurement, test, or escalation that changes a decision.
+
+**Gate:** evaluate fixed synthetic fault traces with the same evidence and costs across baseline and candidate; report diagnostic decision accuracy, unnecessary-test count, abstention quality, total diagnostic cost, and all safety-gate bypasses. Require zero accepted safety-gate bypasses in the defined negative-control suite. Never claim real incident reduction from synthetic traces.
+
+### One input method → multimodal, evidence-preserving capture
+
+Support touch, physical keyboard, barcode/QR scan, photo, speech-to-text, and compatible instrument input as optional ways to capture the same typed information. They should create the same provenance-aware data model; none should silently turn a low-confidence transcription or visual estimate into a verified measurement. Always offer review/correction and an accessible manual route.
+
+**Gate:** compare completion time and transcription/correction error rates by input method, trade, environment/noise, and experience level. Require 100% traceability for accepted evidence and preserve the original source alongside normalized text/values.
+
+### Accessibility baseline → field ergonomics
+
+WCAG 2.2 AA is a baseline. For frequent controls in this field UI, target the WCAG 2.2 enhanced 44 × 44 CSS pixel size where practical ([W3C target-size guidance](https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced)). Also test glove-like accuracy constraints, bright light, low brightness, one-handed use, noisy environments, zoomed text, keyboard-only operation, and screen readers. Do not advertise "glove mode" or voice accessibility without task testing.
+
+**Gate:** no critical action depends on color alone or a hover-only interaction; all primary workflows remain available without the spatial viewport; participants can correctly identify job identity, freshness, transport status, and safety-gate meaning at small-screen and zoomed-text configurations.
+
 ## Trade-specific first scenarios
 
 | Profile | Synthetic scenario | Evidence that the UI should prompt for | Important negative case |
