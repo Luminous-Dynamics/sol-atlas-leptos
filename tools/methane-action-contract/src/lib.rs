@@ -283,7 +283,11 @@ pub fn validate_batch(
     }
 
     report.violations.sort_by_key(|violation| {
-        (violation.record_id.clone(), violation.field.clone(), violation.code)
+        (
+            violation.record_id.clone(),
+            violation.field.clone(),
+            violation.code,
+        )
     });
     report
 }
@@ -457,8 +461,8 @@ pub fn is_utc_timestamp(value: &str) -> bool {
     if year == 0 || !(1..=12).contains(&month) || hour > 23 || minute > 59 || second > 59 {
         return false;
     }
-    let leap_year = year.is_multiple_of(4)
-        && (!year.is_multiple_of(100) || year.is_multiple_of(400));
+    let leap_year =
+        year.is_multiple_of(4) && (!year.is_multiple_of(100) || year.is_multiple_of(400));
     let month_days = match month {
         1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
         4 | 6 | 9 | 11 => 30,
@@ -634,6 +638,7 @@ mod tests {
                 &[observation("plume-x", quantification)],
                 &[],
                 DataUse::ResearchNonCommercial,
+                ObservationKind::RemoteSensingPlume,
                 &GasSpecies::Methane,
             );
             assert!(
