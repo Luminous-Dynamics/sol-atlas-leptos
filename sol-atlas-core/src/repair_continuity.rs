@@ -733,7 +733,10 @@ fn check_parts(
             for lot in relevant_lots {
                 if window < lot.available_from_window {
                     let may_supply_later = match lot.fit {
-                        PartFit::ExactRevision => lot.revision == requirement.required_revision,
+                        PartFit::ExactRevision => {
+                            lot.part_key == requirement.part_key
+                                && lot.revision == requirement.required_revision
+                        },
                         PartFit::ApprovedSubstitute => lot.approved_for_part_keys
                             .iter()
                             .any(|value| value == &requirement.part_key),
@@ -764,7 +767,28 @@ fn check_parts(
                 if quantity == 0 {
                     if lot.evidence.class == EvidenceClass::Unknown || lot.fit == PartFit::Unknown {
                         possible_unknown += u64::from(lot.quantity);
-                    } else if match lot.fit {
+                        continue;
+                    }
+                    match lot.supply_dependency_id.as_deref().map(|id| {
+                        dependency_factor(observations, id, lot.available_from_window)
+                    }) {
+                        Some(ResourceFactor::Unknown) => {
+                            supply_unknown = true;
+                            continue;
+                        }
+                        Some(ResourceFactor::Unavailable) => {
+                            supply_unavailable = true;
+                            continue;
+                        }
+                        Some(ResourceFactor::Available(fraction))
+                            if (f64::from(lot.quantity) * fraction).floor() < 1.0 =>
+                        {
+                            supply_unavailable = true;
+                            continue;
+                        }
+                        Some(ResourceFactor::Available(_)) | None => {}
+                    }
+                    if match lot.fit {
                         PartFit::ExactRevision => {
                             lot.part_key == requirement.part_key
                                 && lot.revision == requirement.required_revision
