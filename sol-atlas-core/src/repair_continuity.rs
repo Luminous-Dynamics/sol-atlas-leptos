@@ -618,6 +618,11 @@ fn dependency_factor(
     let Some(observation) = observations.iter().find(|value| value.dependency_id == dependency_id && value.window_index == window) else {
         return ResourceFactor::Unknown;
     };
+    // An explicit Unknown evidence grade cannot establish resource availability.
+    // Assumed and curated states remain explicit inputs to the synthetic model.
+    if observation.evidence.class == EvidenceClass::Unknown {
+        return ResourceFactor::Unknown;
+    }
     match observation.availability {
         Availability::Available => ResourceFactor::Available(1.0),
         Availability::Unavailable => ResourceFactor::Unavailable,
@@ -742,6 +747,9 @@ fn check_cell(
 ) -> Fit {
     let mut blockers = BTreeSet::new();
     let mut uncertain = cell.readiness_evidence.class == EvidenceClass::Unknown;
+    if uncertain {
+        blockers.insert(Blocker::CapabilityEvidenceIncomplete);
+    }
     let mut impossible = false;
 
     if !cell.capability_ids.contains(&demand.capability_id) {
@@ -917,16 +925,15 @@ fn assess_candidate(request: &RepairContinuityRequest, candidate: &ArchitectureC
             let mut cells = candidate.workcells.iter().collect::<Vec<_>>();
             cells.sort_by(|left, right| left.cell_id.cmp(&right.cell_id));
             for cell in cells {
-                if remaining_capacity
+                let capacity_blocked = remaining_capacity
                     .get(&(cell.cell_id.clone(), window))
                     .copied()
                     .flatten()
-                    .is_some_and(|available| available + EPSILON < demand.service_hours)
-                {
-                    blockers.insert(Blocker::CapacityUnavailable);
-                    continue;
-                }
+                    .is_some_and(|available| available + EPSILON < demand.service_hours);
                 match check_cell(request, candidate, cell, demand, window, &remaining_stock) {
+                    Fit::Feasible(assignment) if capacity_blocked => {
+                        blockers.insert(Blocker::CapacityUnavailable);
+                    }
                     Fit::Feasible(assignment) => {
                         if best.as_ref().is_none_or(|old| {
                             (assignment.turnaround_hours, assignment.window_index, &assignment.cell_id)
@@ -1191,6 +1198,24 @@ mod tests {
         );
     }
 
+
+    #[test]
+    fn availability_with_unknown_evidence_resolves_to_unknown() {
+        let mut request = base_request();
+        for observation in &mut request.dependency_observations {
+            if observation.dependency_id == "power" && observation.window_index == 0 {
+                observation.evidence = evidence(EvidenceClass::Unknown);
+            }
+        }
+        let assessment = assess_repair_continuity(&request).unwrap();
+        assert!(assessment.assessments.iter().any(|candidate| candidate.indeterminate_count > 0));
+        let local = assessment.assessments.iter().find(|item| item.architecture == Architecture::LocalServiceCell).unwrap();
+        assert_eq!(
+            local.capacity_ledger.iter().find(|row| row.cell_id == "local" && row.window_index == 0).unwrap().effective_capacity_hours,
+            None
+        );
+    }
+
     #[test]
     fn duplicate_stock_identity_and_malformed_observed_digest_reject() {
         let mut duplicate = base_request();
@@ -1251,12 +1276,12 @@ mod tests {
         let mut expired = base_request();
         let candidate = expired.candidates.iter_mut().find(|value| value.architecture == Architecture::DistributedSharedReserve).unwrap();
         let cell = candidate.workcells.iter_mut().find(|value| value.cell_id == "specialist-node").unwrap();
-        cell.instruments.iter_mut().find(|value| value.instrument_id == "multimeter").unwrap().calibrated_through_window = Some(0);
+        cell.instruments.iter_mut().find(|value| value.instrument_id == "multimeter").unwrap().calibration_state = CalibrationState::Expired;
         let outcome = assess_repair_continuity(&expired).unwrap();
         let distributed = outcome.assessments.iter().find(|value| value.architecture == Architecture::DistributedSharedReserve).unwrap();
-        // A request may still be served by the local cell; no claim is made that an
-        // expired instrument is acceptable at the specialist node.
-        assert!(distributed.requests.iter().any(|value| value.blockers.contains(&Blocker::CalibrationExpired)) || distributed.scheduled_count > 0);
+        let sensor = distributed.requests.iter().find(|value| value.request_id == "sensor-1").unwrap();
+        assert_ne!(sensor.outcome, RequestOutcome::ScheduledWithinWindow);
+        assert!(sensor.blockers.contains(&Blocker::CalibrationExpired) || sensor.blockers.contains(&Blocker::MissingSkill));
 
         let mut unknown_fit = base_request();
         let local_candidate = unknown_fit.candidates.iter_mut()
