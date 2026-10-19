@@ -1,0 +1,435 @@
+{
+  "schema_version": "0.1.0",
+  "comparison_id": "repair-continuity-synthetic-v1",
+  "windows": [
+    {
+      "id": "window-0",
+      "duration_hours": 8
+    },
+    {
+      "id": "window-1",
+      "duration_hours": 8
+    }
+  ],
+  "demand": [
+    {
+      "request_id": "fan-repair-001",
+      "capability_id": "fan",
+      "required_skill_ids": [
+        "electrical"
+      ],
+      "required_tool_capabilities": [
+        "hand_tools"
+      ],
+      "required_instrument_ids": [],
+      "required_parts": [
+        {
+          "part_key": "fan-motor",
+          "required_revision": "r1",
+          "quantity": 1
+        }
+      ],
+      "service_hours": 2,
+      "arrival_window": 0,
+      "due_window": 1,
+      "max_turnaround_hours": 13,
+      "priority": 1,
+      "scope_profile": "low_voltage_fan"
+    }
+  ],
+  "dependency_observations": [
+    {
+      "dependency_id": "staff-central",
+      "window_index": 0,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "power-central",
+      "window_index": 0,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "central-parts-route",
+      "window_index": 0,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "staff-local",
+      "window_index": 0,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "power-local",
+      "window_index": 0,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "local-road",
+      "window_index": 0,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "local-parts-route",
+      "window_index": 0,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "staff-distributed",
+      "window_index": 0,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "power-distributed",
+      "window_index": 0,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "distributed-road",
+      "window_index": 0,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "distributed-parts-route",
+      "window_index": 0,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "central-road",
+      "window_index": 0,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "staff-central",
+      "window_index": 1,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "power-central",
+      "window_index": 1,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "central-parts-route",
+      "window_index": 1,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "supplier-central",
+      "window_index": 1,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "staff-local",
+      "window_index": 1,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "power-local",
+      "window_index": 1,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "local-road",
+      "window_index": 1,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "local-parts-route",
+      "window_index": 1,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "staff-distributed",
+      "window_index": 1,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "power-distributed",
+      "window_index": 1,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "distributed-road",
+      "window_index": 1,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "distributed-parts-route",
+      "window_index": 1,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "supplier-distributed",
+      "window_index": 1,
+      "availability": "available",
+      "evidence": {
+        "class": "assumed"
+      }
+    },
+    {
+      "dependency_id": "central-road",
+      "window_index": 1,
+      "availability": "unavailable",
+      "evidence": {
+        "class": "assumed"
+      }
+    }
+  ],
+  "candidates": [
+    {
+      "candidate_id": "B0-central",
+      "architecture": "centralized_depot",
+      "workcells": [
+        {
+          "cell_id": "central-cell",
+          "node_id": "central-depot",
+          "capability_ids": [
+            "fan"
+          ],
+          "qualified_skill_ids": [
+            "electrical"
+          ],
+          "tool_capabilities": [
+            "hand_tools"
+          ],
+          "readiness_completeness": "complete",
+          "readiness_evidence": {
+            "class": "assumed"
+          },
+          "instruments": [],
+          "service_hours_by_window": [
+            4,
+            4
+          ],
+          "travel_hours_to_service": 2,
+          "staffing_dependency_id": "staff-central",
+          "power_dependency_id": "power-central",
+          "service_route_dependency_id": "central-road",
+          "inventory_access": [
+            {
+              "pool_id": "central-pool",
+              "route_dependency_id": "central-parts-route",
+              "transfer_hours": 0
+            }
+          ]
+        }
+      ],
+      "inventory_pools": [
+        {
+          "pool_id": "central-pool",
+          "location_id": "central-depot",
+          "lots": [
+            {
+              "stock_id": "central-fan-motor",
+              "part_key": "fan-motor",
+              "revision": "r1",
+              "quantity": 1,
+              "fit": "exact_revision",
+              "approved_for_part_keys": [],
+              "available_from_window": 1,
+              "expires_after_window": null,
+              "supply_dependency_id": "supplier-central",
+              "evidence": {
+                "class": "assumed"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate_id": "B1-local",
+      "architecture": "local_service_cell",
+      "workcells": [
+        {
+          "cell_id": "local-cell",
+          "node_id": "local-node",
+          "capability_ids": [
+            "fan"
+          ],
+          "qualified_skill_ids": [
+            "electrical"
+          ],
+          "tool_capabilities": [
+            "hand_tools"
+          ],
+          "readiness_completeness": "complete",
+          "readiness_evidence": {
+            "class": "assumed"
+          },
+          "instruments": [],
+          "service_hours_by_window": [
+            4,
+            4
+          ],
+          "travel_hours_to_service": 0.5,
+          "staffing_dependency_id": "staff-local",
+          "power_dependency_id": "power-local",
+          "service_route_dependency_id": "local-road",
+          "inventory_access": [
+            {
+              "pool_id": "local-pool",
+              "route_dependency_id": "local-parts-route",
+              "transfer_hours": 0
+            }
+          ]
+        }
+      ],
+      "inventory_pools": [
+        {
+          "pool_id": "local-pool",
+          "location_id": "local-node",
+          "lots": [
+            {
+              "stock_id": "local-fan-motor",
+              "part_key": "fan-motor",
+              "revision": "r1",
+              "quantity": 1,
+              "fit": "exact_revision",
+              "approved_for_part_keys": [],
+              "available_from_window": 0,
+              "expires_after_window": null,
+              "supply_dependency_id": null,
+              "evidence": {
+                "class": "assumed"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate_id": "B2-distributed",
+      "architecture": "distributed_shared_reserve",
+      "workcells": [
+        {
+          "cell_id": "distributed-cell",
+          "node_id": "regional-reserve",
+          "capability_ids": [
+            "fan"
+          ],
+          "qualified_skill_ids": [
+            "electrical"
+          ],
+          "tool_capabilities": [
+            "hand_tools"
+          ],
+          "readiness_completeness": "complete",
+          "readiness_evidence": {
+            "class": "assumed"
+          },
+          "instruments": [],
+          "service_hours_by_window": [
+            4,
+            4
+          ],
+          "travel_hours_to_service": 1,
+          "staffing_dependency_id": "staff-distributed",
+          "power_dependency_id": "power-distributed",
+          "service_route_dependency_id": "distributed-road",
+          "inventory_access": [
+            {
+              "pool_id": "distributed-pool",
+              "route_dependency_id": "distributed-parts-route",
+              "transfer_hours": 1
+            }
+          ]
+        }
+      ],
+      "inventory_pools": [
+        {
+          "pool_id": "distributed-pool",
+          "location_id": "regional-reserve",
+          "lots": [
+            {
+              "stock_id": "reserve-fan-motor",
+              "part_key": "fan-motor",
+              "revision": "r1",
+              "quantity": 1,
+              "fit": "exact_revision",
+              "approved_for_part_keys": [],
+              "available_from_window": 1,
+              "expires_after_window": null,
+              "supply_dependency_id": "supplier-distributed",
+              "evidence": {
+                "class": "assumed"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
