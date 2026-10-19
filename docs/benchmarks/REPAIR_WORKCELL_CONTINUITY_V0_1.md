@@ -40,8 +40,8 @@ Key behaviors:
 
 1. **Matched comparison:** all architectures receive the same demand and declared disruption input. Candidate order is canonicalized, and result collections are emitted in stable order.
 2. **Unknown stays unknown:** absent staffing/power/route or part-fit evidence can lead to an indeterminate result. Unknown effective capacity and unallocated capacity are represented by optional values in the capacity ledger; they are not silently serialized as zero.
-3. **Finite resources:** a stock lot is consumed at most once, and service hours are reserved against one cell/window capacity budget. The v1 scheduler does not split work across windows.
-4. **Constrained dispatch:** work is ordered by structural scarcity, due window, declared priority and stable request ID; within a request, the selected feasible assignment minimizes modelled turnaround, then uses stable window/cell tie-breaks.
+3. **Finite resources:** a stock lot is consumed at most once, and service hours are reserved against one cell/window capacity budget. The v1 scheduler does not split work across windows. A future discrete shipment cannot be fractionally materialized from a derated supplier; a derated, missing or unknown delivery state remains indeterminate until its quantity is established.
+4. **Constrained dispatch:** this is a deterministic greedy heuristic, not a globally optimal schedule. Work is ordered by structural scarcity, due window, declared priority and stable request ID; within a request, the selected feasible assignment minimizes modelled turnaround, then uses stable window/cell tie-breaks. A future optimizer must be compared against an exact small-instance scheduling oracle.
 5. **Evidence is not truth:** `observed` evidence requires a source identifier, URI, date-shaped snapshot and 64-character SHA-256. This is structural provenance validation, not verification of the source or of the stock claim.
 6. **Explicit claim ceiling:** every output states `synthetic_modelled_feasibility_only_not_verified_restoration`. Scenario counts are not probabilities, and an assignment is not evidence that work occurred.
 7. **Bounded work:** input counts have explicit limits; demand × workcell × window fit evaluations are capped at 2,000,000; part requirements are capped at 64 per demand; stock lots are capped at 10,000 per candidate; and the upper bound of total part requirements × workcells × windows × stock lots is capped at 20,000,000 inspections. Arithmetic overflow and over-budget requests fail closed.
@@ -70,12 +70,13 @@ The fixture tests that each candidate sees the same request, that outcomes recon
 | Fixture oracle | Exact expected request status, assignment window and stock use |
 | Unknown-resource handling | Zero unknown staffing, power, route, part-fit or stock evidence converted into confirmed availability |
 | Capacity integrity | Zero assignments above the cell/window's effective known capacity; unknown capacity remains explicitly unknown |
-| Inventory integrity | Zero duplicate stock IDs, duplicate pool access, overspend or repeated consumption of one lot; unknown routes do not contaminate unrelated part requirements |
+| Inventory integrity | Zero duplicate stock IDs, duplicate pool access, overspend or repeated consumption of one lot; unknown routes do not contaminate unrelated part requirements; derated future stock never becomes fractional confirmed inventory |
 | Calibration integrity | Zero requests confirmed using missing, expired or unknown required instrument calibration |
 | Evidence validation | All malformed observed evidence and invalid digest inputs rejected |
 | Determinism | 100/100 repeated runs over canonicalized fixture produce identical result data |
 | Input permutation | 100/100 demand/candidate/workcell/inventory permutations preserve canonical output |
-| Bounded-resource controls | Requests above 2,000,000 fit evaluations, 20,000,000 estimated stock inspections, 64 part requirements/request, or 10,000 stock lots/candidate fail closed |\n| Negative controls | 100% of duplicate stock, incompatible revision, missing evidence, delayed stock, unknown inventory route and capacity-overrun controls reject or remain explicitly unresolved |
+| Bounded-resource controls | Requests above 2,000,000 fit evaluations, 20,000,000 estimated stock inspections, 64 part requirements/request, or 10,000 stock lots/candidate fail closed |
+| Negative controls | 100% of duplicate stock, incompatible revision, missing evidence, delayed stock, unknown inventory route and capacity-overrun controls reject or remain explicitly unresolved |
 | Throughput envelope | Set measured p50/p95 once named-runner results exist for 100 / 1,000 / 10,000 demand items; no speed claim yet |
 | Physical success | No claim from this evaluator; actual restoration needs a controlled, independently verified pilot |
 
