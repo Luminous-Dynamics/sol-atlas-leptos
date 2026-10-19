@@ -6,16 +6,19 @@
 //! This computes benchmark metrics; it does not authenticate a system or prove
 //! that a reference label or reported measurement is physically true.
 
+use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "state", rename_all = "snake_case")]
 pub enum ReferenceState {
     MeteredEmission { emission_rate_kg_h: f64 },
     MeteredZero,
     ReferenceUnavailable { reason: String },
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct BenchmarkCase {
     pub case_id: String,
     /// Predeclared stratum, e.g. rate band × scene quality × sensor family.
@@ -23,14 +26,16 @@ pub struct BenchmarkCase {
     pub reference: ReferenceState,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "state", rename_all = "snake_case")]
 pub enum CoverageState {
     Covered,
     NotTasked { reason: String },
     InvalidScene { reason: String },
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "state", rename_all = "snake_case")]
 pub enum SystemDisposition {
     Detected {
         emission_rate_kg_h: f64,
@@ -43,14 +48,16 @@ pub enum SystemDisposition {
     NoOutput,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct CaseResponse {
     pub case_id: String,
     pub coverage: CoverageState,
     pub disposition: SystemDisposition,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct SystemSubmission {
     pub system_id: String,
     pub version: String,
@@ -60,13 +67,13 @@ pub struct SystemSubmission {
     pub responses: Vec<CaseResponse>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct CensusViolation {
     pub record_id: String,
     pub code: &'static str,
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize)]
 pub struct DetectionCounts {
     pub reference_known_cases: usize,
     pub reference_unavailable_cases: usize,
@@ -147,7 +154,7 @@ impl DetectionCounts {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct BenchmarkMetrics {
     pub system_id: String,
     pub version: String,
@@ -161,7 +168,7 @@ pub struct BenchmarkMetrics {
     pub quantification_sample_count: usize,
 }
 
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq, Serialize)]
 pub struct EvaluationReport {
     pub violations: Vec<CensusViolation>,
     /// Missing/extra/duplicate rows or malformed states suppress all headline metrics.
