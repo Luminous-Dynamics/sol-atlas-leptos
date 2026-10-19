@@ -30,8 +30,8 @@ fn run() -> Result<i32, String> {
         );
     }
     let input_path = PathBuf::from(&args[0]);
-    let bytes = fs::read(&input_path)
-        .map_err(|error| format!("read {}: {error}", input_path.display()))?;
+    let bytes =
+        fs::read(&input_path).map_err(|error| format!("read {}: {error}", input_path.display()))?;
     let plan = serde_json::from_slice::<SplitPlanOwned>(&bytes)
         .map_err(|error| format!("parse {}: {error}", input_path.display()))?;
     let plan_sha = sha256_hex(&bytes);
