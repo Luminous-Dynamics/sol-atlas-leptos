@@ -23,6 +23,8 @@ pub struct BenchmarkCase {
     pub case_id: String,
     /// Predeclared stratum, e.g. rate band × scene quality × sensor family.
     pub stratum_id: String,
+    /// Shared sampling cluster, e.g. site × overpass/time window. Not the stratum.
+    pub cluster_id: String,
     pub reference: ReferenceState,
 }
 
@@ -219,6 +221,9 @@ pub fn evaluate_census(cases: &[BenchmarkCase], submission: &SystemSubmission) -
         }
         if case.stratum_id.trim().is_empty() {
             report.push(&case.case_id, "empty_stratum_id");
+        }
+        if case.cluster_id.trim().is_empty() {
+            report.push(&case.case_id, "empty_cluster_id");
         }
         if cases_by_id.insert(&case.case_id, case).is_some() {
             report.push(&case.case_id, "duplicate_benchmark_case_id");
@@ -478,6 +483,7 @@ mod tests {
         vec![
             BenchmarkCase {
                 case_id: "p-detected".into(),
+                cluster_id: "site-a".into(),
                 stratum_id: "low-rate".into(),
                 reference: ReferenceState::MeteredEmission {
                     emission_rate_kg_h: 10.0,
@@ -485,6 +491,7 @@ mod tests {
             },
             BenchmarkCase {
                 case_id: "p-missed".into(),
+                cluster_id: "site-b".into(),
                 stratum_id: "low-rate".into(),
                 reference: ReferenceState::MeteredEmission {
                     emission_rate_kg_h: 5.0,
@@ -492,16 +499,19 @@ mod tests {
             },
             BenchmarkCase {
                 case_id: "n-false-alarm".into(),
+                cluster_id: "site-a".into(),
                 stratum_id: "high-background".into(),
                 reference: ReferenceState::MeteredZero,
             },
             BenchmarkCase {
                 case_id: "n-correct".into(),
+                cluster_id: "site-b".into(),
                 stratum_id: "high-background".into(),
                 reference: ReferenceState::MeteredZero,
             },
             BenchmarkCase {
                 case_id: "p-not-tasked".into(),
+                cluster_id: "site-c".into(),
                 stratum_id: "high-background".into(),
                 reference: ReferenceState::MeteredEmission {
                     emission_rate_kg_h: 7.0,
@@ -509,11 +519,13 @@ mod tests {
             },
             BenchmarkCase {
                 case_id: "n-invalid-scene".into(),
+                cluster_id: "site-c".into(),
                 stratum_id: "low-rate".into(),
                 reference: ReferenceState::MeteredZero,
             },
             BenchmarkCase {
                 case_id: "truth-unavailable".into(),
+                cluster_id: "site-d".into(),
                 stratum_id: "unscorable".into(),
                 reference: ReferenceState::ReferenceUnavailable {
                     reason: "reference meter fault".into(),
