@@ -91,7 +91,6 @@ pub struct CczSourceSnapshot {
     pub terms_reviewed_at: Option<String>,
 }
 
-
 /// Result of comparing an expected SHA-256 against the exact bytes received.
 /// This is byte-integrity evidence only; it does not authenticate the publisher,
 /// establish the license, validate the file format, or prove scientific fitness.
@@ -122,7 +121,6 @@ pub struct ArtifactVerificationReceipt {
     pub byte_length: u64,
     pub status: ArtifactDigestStatus,
 }
-
 
 impl ArtifactVerificationReceipt {
     /// True only when this receipt's source identity matches the supplied
@@ -265,7 +263,10 @@ pub struct SourceValidation {
 impl SourceValidation {
     /// Structural validation only. Publication permissions are a separate gate.
     pub fn is_valid(&self) -> bool {
-        !self.issues.iter().any(|issue| issue.severity == ValidationSeverity::Error)
+        !self
+            .issues
+            .iter()
+            .any(|issue| issue.severity == ValidationSeverity::Error)
     }
 
     pub fn can_publish_metadata(&self) -> bool {
@@ -287,7 +288,10 @@ pub struct FeatureValidation {
 impl FeatureValidation {
     /// Structural validation only. Publication permissions are a separate gate.
     pub fn is_valid(&self) -> bool {
-        !self.issues.iter().any(|issue| issue.severity == ValidationSeverity::Error)
+        !self
+            .issues
+            .iter()
+            .any(|issue| issue.severity == ValidationSeverity::Error)
     }
 
     pub fn can_publish_metadata(&self) -> bool {
@@ -304,7 +308,11 @@ fn issue(
     code: ValidationCode,
     message: impl Into<String>,
 ) -> ValidationIssue {
-    ValidationIssue { severity, code, message: message.into() }
+    ValidationIssue {
+        severity,
+        code,
+        message: message.into(),
+    }
 }
 
 fn present(value: &str) -> bool {
@@ -316,7 +324,10 @@ fn valid_sha256(value: &str) -> bool {
 }
 
 fn valid_http_url(value: &str) -> bool {
-    let Some(rest) = value.strip_prefix("https://").or_else(|| value.strip_prefix("http://")) else {
+    let Some(rest) = value
+        .strip_prefix("https://")
+        .or_else(|| value.strip_prefix("http://"))
+    else {
         return false;
     };
     let authority = rest.split(['/', '?', '#']).next().unwrap_or_default();
@@ -381,7 +392,11 @@ fn valid_iso_date(value: &str) -> Option<(i32, u32, u32)> {
     if bytes.len() != 10 || bytes[4] != b'-' || bytes[7] != b'-' {
         return None;
     }
-    if !bytes.iter().enumerate().all(|(i, b)| i == 4 || i == 7 || b.is_ascii_digit()) {
+    if !bytes
+        .iter()
+        .enumerate()
+        .all(|(i, b)| i == 4 || i == 7 || b.is_ascii_digit())
+    {
         return None;
     }
     let year = value[0..4].parse::<i32>().ok()?;
@@ -414,7 +429,10 @@ pub fn publication_scope(source: &CczSourceSnapshot) -> PublicationScope {
         && source.attribution_text.as_deref().is_some_and(present)
         && source.terms_review_id.as_deref().is_some_and(present)
         && source.terms_reviewed_by.as_deref().is_some_and(present)
-        && source.terms_reviewed_at.as_deref().is_some_and(valid_timestamp);
+        && source
+            .terms_reviewed_at
+            .as_deref()
+            .is_some_and(valid_timestamp);
     match source.terms_state {
         SourceTermsState::OpenRedistributionReviewed if !terms_are_reviewed => {
             PublicationScope::Blocked
@@ -428,7 +446,9 @@ pub fn publication_scope(source: &CczSourceSnapshot) -> PublicationScope {
             PublicationScope::MetadataOnly
         }
         SourceTermsState::MetadataCitationOnlyReviewed => PublicationScope::Blocked,
-        SourceTermsState::ReviewRequired | SourceTermsState::Restricted => PublicationScope::Blocked,
+        SourceTermsState::ReviewRequired | SourceTermsState::Restricted => {
+            PublicationScope::Blocked
+        }
     }
 }
 
@@ -438,13 +458,33 @@ pub fn validate_source_snapshot(source: &CczSourceSnapshot) -> SourceValidation 
     let mut issues = Vec::new();
 
     for (value, code, label) in [
-        (source.snapshot_id.as_str(), ValidationCode::MissingSnapshotId, "snapshot_id"),
-        (source.source_name.as_str(), ValidationCode::MissingSourceName, "source_name"),
-        (source.source_url.as_str(), ValidationCode::MissingSourceUrl, "source_url"),
-        (source.retrieved_at.as_str(), ValidationCode::MissingRetrievalTime, "retrieved_at"),
+        (
+            source.snapshot_id.as_str(),
+            ValidationCode::MissingSnapshotId,
+            "snapshot_id",
+        ),
+        (
+            source.source_name.as_str(),
+            ValidationCode::MissingSourceName,
+            "source_name",
+        ),
+        (
+            source.source_url.as_str(),
+            ValidationCode::MissingSourceUrl,
+            "source_url",
+        ),
+        (
+            source.retrieved_at.as_str(),
+            ValidationCode::MissingRetrievalTime,
+            "retrieved_at",
+        ),
     ] {
         if !present(value) {
-            issues.push(issue(ValidationSeverity::Error, code, format!("{label} must be non-empty")));
+            issues.push(issue(
+                ValidationSeverity::Error,
+                code,
+                format!("{label} must be non-empty"),
+            ));
         }
     }
     if present(&source.source_url) && !valid_http_url(&source.source_url) {
@@ -524,7 +564,10 @@ pub fn validate_source_snapshot(source: &CczSourceSnapshot) -> SourceValidation 
         )),
     }
 
-    SourceValidation { publication_scope: publication_scope(source), issues }
+    SourceValidation {
+        publication_scope: publication_scope(source),
+        issues,
+    }
 }
 
 /// Validate a feature against its exact source snapshot. Missing/mismatched
@@ -548,7 +591,11 @@ pub fn validate_feature(
             "source_snapshot_id must be non-empty",
         ));
     }
-    if feature.issuer_as_published.as_deref().is_none_or(|s| !present(s)) {
+    if feature
+        .issuer_as_published
+        .as_deref()
+        .is_none_or(|s| !present(s))
+    {
         issues.push(issue(
             ValidationSeverity::Warning,
             ValidationCode::MissingIssuer,
@@ -629,7 +676,10 @@ pub fn validate_feature(
         }
     };
 
-    FeatureValidation { publication_scope: scope, issues }
+    FeatureValidation {
+        publication_scope: scope,
+        issues,
+    }
 }
 
 #[cfg(test)]
@@ -671,9 +721,11 @@ mod tests {
     #[test]
     fn legal_and_scientific_record_classes_are_distinct_in_serde() {
         let contract = serde_json::to_string(&CczRecordKind::IsaExplorationContract).unwrap();
-        let apei = serde_json::to_string(&CczRecordKind::AreaOfParticularEnvironmentalInterest).unwrap();
+        let apei =
+            serde_json::to_string(&CczRecordKind::AreaOfParticularEnvironmentalInterest).unwrap();
         let national_zone = serde_json::to_string(&CczRecordKind::NationalMaritimeZone).unwrap();
-        let corporate_claim = serde_json::to_string(&CczRecordKind::CorporateResourceAssertion).unwrap();
+        let corporate_claim =
+            serde_json::to_string(&CczRecordKind::CorporateResourceAssertion).unwrap();
         assert_eq!(contract, "\"isa_exploration_contract\"");
         assert_eq!(apei, "\"area_of_particular_environmental_interest\"");
         assert_eq!(national_zone, "\"national_maritime_zone\"");
@@ -685,7 +737,10 @@ mod tests {
     fn open_source_with_exact_digest_terms_and_attribution_allows_data_publication() {
         let digest = "a".repeat(64);
         let snapshot = source(SourceTermsState::OpenRedistributionReviewed, Some(&digest));
-        assert_eq!(publication_scope(&snapshot), PublicationScope::OpenDataAndMetadata);
+        assert_eq!(
+            publication_scope(&snapshot),
+            PublicationScope::OpenDataAndMetadata
+        );
         assert!(validate_source_snapshot(&snapshot).is_valid());
     }
 
@@ -694,8 +749,16 @@ mod tests {
         let snapshot = source(SourceTermsState::OpenRedistributionReviewed, None);
         let report = validate_source_snapshot(&snapshot);
         assert_eq!(report.publication_scope, PublicationScope::MetadataOnly);
-        assert!(report.issues.iter().any(|i| i.code == ValidationCode::ArtifactNotPinned));
-        assert!(report.is_valid(), "missing digest is a warning, not evidence that bytes are corrupt");
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|i| i.code == ValidationCode::ArtifactNotPinned)
+        );
+        assert!(
+            report.is_valid(),
+            "missing digest is a warning, not evidence that bytes are corrupt"
+        );
     }
 
     #[test]
@@ -716,7 +779,12 @@ mod tests {
         snapshot.terms_review_id = None;
         let report = validate_source_snapshot(&snapshot);
         assert_eq!(report.publication_scope, PublicationScope::Blocked);
-        assert!(report.issues.iter().any(|i| i.code == ValidationCode::MissingTermsReviewEvidence));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|i| i.code == ValidationCode::MissingTermsReviewEvidence)
+        );
     }
 
     #[test]
@@ -727,8 +795,18 @@ mod tests {
         snapshot.retrieved_at = "2026-10-18T12:30:00".into();
         let report = validate_source_snapshot(&snapshot);
         assert_eq!(report.publication_scope, PublicationScope::Blocked);
-        assert!(report.issues.iter().any(|i| i.code == ValidationCode::InvalidSourceUrl));
-        assert!(report.issues.iter().any(|i| i.code == ValidationCode::InvalidTimestamp));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|i| i.code == ValidationCode::InvalidSourceUrl)
+        );
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|i| i.code == ValidationCode::InvalidTimestamp)
+        );
     }
 
     #[test]
@@ -736,7 +814,10 @@ mod tests {
         let digest = "a".repeat(64);
         let snapshot = source(SourceTermsState::ReviewRequired, Some(&digest));
         let report = validate_source_snapshot(&snapshot);
-        assert!(report.is_valid(), "the metadata can be structurally readable");
+        assert!(
+            report.is_valid(),
+            "the metadata can be structurally readable"
+        );
         assert!(!report.can_publish_metadata());
         assert!(!report.can_publish_data());
     }
@@ -744,7 +825,10 @@ mod tests {
     #[test]
     fn metadata_only_scope_never_grants_artifact_publication() {
         let digest = "a".repeat(64);
-        let snapshot = source(SourceTermsState::MetadataCitationOnlyReviewed, Some(&digest));
+        let snapshot = source(
+            SourceTermsState::MetadataCitationOnlyReviewed,
+            Some(&digest),
+        );
         let report = validate_source_snapshot(&snapshot);
         assert!(report.can_publish_metadata());
         assert!(!report.can_publish_data());
@@ -756,7 +840,12 @@ mod tests {
         let snapshot = source(SourceTermsState::ReviewRequired, Some(&digest));
         let report = validate_source_snapshot(&snapshot);
         assert_eq!(report.publication_scope, PublicationScope::Blocked);
-        assert!(report.issues.iter().any(|i| i.code == ValidationCode::TermsNotReviewed));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|i| i.code == ValidationCode::TermsNotReviewed)
+        );
     }
 
     #[test]
@@ -769,7 +858,10 @@ mod tests {
     #[test]
     fn citation_only_source_allows_metadata_not_artifact_redistribution() {
         let digest = "a".repeat(64);
-        let snapshot = source(SourceTermsState::MetadataCitationOnlyReviewed, Some(&digest));
+        let snapshot = source(
+            SourceTermsState::MetadataCitationOnlyReviewed,
+            Some(&digest),
+        );
         assert_eq!(publication_scope(&snapshot), PublicationScope::MetadataOnly);
     }
 
@@ -781,14 +873,24 @@ mod tests {
         record.source_snapshot_id = "older-or-different-snapshot".into();
         let report = validate_feature(&record, Some(&snapshot));
         assert_eq!(report.publication_scope, PublicationScope::Blocked);
-        assert!(report.issues.iter().any(|i| i.code == ValidationCode::SourceReferenceMismatch));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|i| i.code == ValidationCode::SourceReferenceMismatch)
+        );
     }
 
     #[test]
     fn feature_without_snapshot_is_blocked() {
         let report = validate_feature(&feature(CczRecordKind::ScientificObservation), None);
         assert_eq!(report.publication_scope, PublicationScope::Blocked);
-        assert!(report.issues.iter().any(|i| i.code == ValidationCode::MissingSourceReference));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|i| i.code == ValidationCode::MissingSourceReference)
+        );
     }
 
     #[test]
@@ -797,7 +899,12 @@ mod tests {
         let mut record = feature(CczRecordKind::IsaReservedArea);
         record.coordinate_reference_system = None;
         let report = validate_feature(&record, Some(&snapshot));
-        assert!(report.issues.iter().any(|i| i.code == ValidationCode::GeometryCrsMismatch));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|i| i.code == ValidationCode::GeometryCrsMismatch)
+        );
     }
 
     #[test]
@@ -806,20 +913,29 @@ mod tests {
         let mut record = feature(CczRecordKind::PublicPermitOrOrder);
         record.valid_from = Some("2025-02-29".into());
         let invalid = validate_feature(&record, Some(&snapshot));
-        assert!(invalid.issues.iter().any(|i| i.code == ValidationCode::InvalidDate));
+        assert!(
+            invalid
+                .issues
+                .iter()
+                .any(|i| i.code == ValidationCode::InvalidDate)
+        );
 
         record.valid_from = Some("2027-01-01".into());
         record.valid_until = Some("2026-01-01".into());
         let inverted = validate_feature(&record, Some(&snapshot));
-        assert!(inverted.issues.iter().any(|i| i.code == ValidationCode::ValidityIntervalInverted));
+        assert!(
+            inverted
+                .issues
+                .iter()
+                .any(|i| i.code == ValidationCode::ValidityIntervalInverted)
+        );
     }
 
     #[test]
     fn synthetic_fixture_corpus_preserves_distinct_record_classes() {
-        let records: Vec<CczFeatureRecord> = serde_json::from_str(include_str!(
-            "../tests/fixtures/ccz/semantic-records.json"
-        ))
-        .unwrap();
+        let records: Vec<CczFeatureRecord> =
+            serde_json::from_str(include_str!("../tests/fixtures/ccz/semantic-records.json"))
+                .unwrap();
         assert_eq!(records.len(), 8);
 
         let expected = vec![
@@ -832,15 +948,26 @@ mod tests {
             CczRecordKind::ScientificObservation,
             CczRecordKind::Unknown,
         ];
-        assert_eq!(records.iter().map(|record| record.kind).collect::<Vec<_>>(), expected);
+        assert_eq!(
+            records.iter().map(|record| record.kind).collect::<Vec<_>>(),
+            expected
+        );
 
         let digest = "e".repeat(64);
         let mut snapshot = source(SourceTermsState::OpenRedistributionReviewed, Some(&digest));
         snapshot.snapshot_id = "synthetic-source-v1".into();
         for record in &records {
             let report = validate_feature(record, Some(&snapshot));
-            assert!(report.is_valid(), "fixture {} failed: {:?}", record.feature_id, report.issues);
-            assert_eq!(report.publication_scope, PublicationScope::OpenDataAndMetadata);
+            assert!(
+                report.is_valid(),
+                "fixture {} failed: {:?}",
+                record.feature_id,
+                report.issues
+            );
+            assert_eq!(
+                report.publication_scope,
+                PublicationScope::OpenDataAndMetadata
+            );
         }
     }
 
@@ -931,7 +1058,10 @@ mod tests {
         );
         let receipt = verify_artifact_bytes(&snapshot, b"abc");
         assert_eq!(receipt.status, ArtifactDigestStatus::Matched);
-        assert_eq!(receipt.actual_sha256, receipt.actual_sha256.to_ascii_lowercase());
+        assert_eq!(
+            receipt.actual_sha256,
+            receipt.actual_sha256.to_ascii_lowercase()
+        );
     }
 
     #[test]
@@ -988,5 +1118,4 @@ mod tests {
         assert!(!validate_source_snapshot(&snapshot).can_publish_data());
         assert!(!receipt.can_publish_artifact(&snapshot));
     }
-
 }
