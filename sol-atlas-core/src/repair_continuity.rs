@@ -237,6 +237,8 @@ pub enum Blocker {
     ServiceRouteUnavailable,
     ServiceRouteUnknown,
     NoCompatiblePart,
+    StockExhausted,
+    PartNotYetAvailable,
     PartFitUnknown,
     PartSupplyUnavailable,
     PartSupplyUnknown,
@@ -680,7 +682,9 @@ fn check_parts(
     let mut tentative = remaining.clone();
     let mut used_pool_transfer = BTreeMap::<String, f64>::new();
     let mut consumption = BTreeMap::<String, u32>::new();
-    let access_by_pool: BTreeMap<&str, &InventoryAccess> = cell.inventory_access.iter()
+    let access_by_pool: BTreeMap<&str, &InventoryAccess> = cell
+        .inventory_access
+        .iter()
         .map(|access| (access.pool_id.as_str(), access))
         .collect();
 
@@ -688,66 +692,184 @@ fn check_parts(
         let mut known = Vec::<(u8, String, String, u32, f64)>::new();
         let mut possible_unknown = 0_u64;
         let mut route_unknown = false;
+        let mut route_unavailable = false;
+        let mut supply_unknown = false;
+        let mut supply_unavailable = false;
+        let mut future_stock = false;
+        let mut stock_exhausted = false;
 
         for pool in &candidate.inventory_pools {
-            let Some(access) = access_by_pool.get(pool.pool_id.as_str()) else { continue };
-            let transfer = match dependency_factor(observations, &access.route_dependency_id, window) {
+            let Some(access) = access_by_pool.get(pool.pool_id.as_str()) else {
+                continue;
+            };
+            let relevant_lots = pool.lots.iter().filter(|lot| {
+                lot.part_key == requirement.part_key
+                    || lot.approved_for_part_keys
+                        .iter()
+                        .any(|value| value == &requirement.part_key)
+            }).collect::<Vec<_>>();
+            if relevant_lots.is_empty() {
+                // An unknown/unavailable route to an irrelevant pool must not
+                // contaminate the assessment of this particular part requirement.
+                continue;
+            }
+
+            let transfer = match dependency_factor(
+                observations,
+                &access.route_dependency_id,
+                window,
+            ) {
                 ResourceFactor::Available(factor) => access.transfer_hours / factor,
-                ResourceFactor::Unavailable => continue,
+                ResourceFactor::Unavailable => {
+                    route_unavailable = true;
+                    continue;
+                }
                 ResourceFactor::Unknown => {
                     route_unknown = true;
                     continue;
                 }
             };
-            for lot in &pool.lots {
-                if window < lot.available_from_window || lot.expires_after_window.is_some_and(|end| window > end) {
+
+            for lot in relevant_lots {
+                if window < lot.available_from_window {
+                    let may_supply_later = match lot.fit {
+                        PartFit::ExactRevision => lot.revision == requirement.required_revision,
+                        PartFit::ApprovedSubstitute => lot.approved_for_part_keys
+                            .iter()
+                            .any(|value| value == &requirement.part_key),
+                        PartFit::Unknown => true,
+                        PartFit::Incompatible => false,
+                    };
+                    if !may_supply_later {
+                        continue;
+                    }
+                    if lot.evidence.class == EvidenceClass::Unknown || lot.fit == PartFit::Unknown {
+                        supply_unknown = true;
+                        continue;
+                    }
+                    match lot.supply_dependency_id.as_deref().map(|id| {
+                        dependency_factor(observations, id, lot.available_from_window)
+                    }) {
+                        Some(ResourceFactor::Available(_)) => future_stock = true,
+                        Some(ResourceFactor::Unavailable) => supply_unavailable = true,
+                        Some(ResourceFactor::Unknown) | None => supply_unknown = true,
+                    }
                     continue;
                 }
-                let may_match = lot.part_key == requirement.part_key
-                    || lot.approved_for_part_keys.iter().any(|value| value == &requirement.part_key);
-                if !may_match { continue; }
-                let qty = tentative.get(&lot.stock_id).copied().unwrap_or(0);
-                if qty == 0 {
-                    if lot.quantity > 0 && (lot.evidence.class == EvidenceClass::Unknown || lot.fit == PartFit::Unknown
-                        || lot.supply_dependency_id.as_ref().is_some_and(|id| matches!(dependency_factor(observations, id, lot.available_from_window), ResourceFactor::Unknown))) {
+                if lot.expires_after_window.is_some_and(|end| window > end) {
+                    continue;
+                }
+
+                let quantity = tentative.get(&lot.stock_id).copied().unwrap_or(0);
+                if quantity == 0 {
+                    if lot.evidence.class == EvidenceClass::Unknown || lot.fit == PartFit::Unknown {
                         possible_unknown += u64::from(lot.quantity);
+                    } else if match lot.fit {
+                        PartFit::ExactRevision => {
+                            lot.part_key == requirement.part_key
+                                && lot.revision == requirement.required_revision
+                        }
+                        PartFit::ApprovedSubstitute => lot.approved_for_part_keys
+                            .iter()
+                            .any(|value| value == &requirement.part_key),
+                        PartFit::Unknown | PartFit::Incompatible => false,
+                    } {
+                        stock_exhausted = true;
                     }
                     continue;
                 }
+
                 match lot.fit {
-                    PartFit::ExactRevision if lot.part_key == requirement.part_key && lot.revision == requirement.required_revision => {
-                        if lot.evidence.class == EvidenceClass::Unknown { possible_unknown += u64::from(qty); }
-                        else { known.push((0, pool.pool_id.clone(), lot.stock_id.clone(), qty, transfer)); }
+                    PartFit::ExactRevision
+                        if lot.part_key == requirement.part_key
+                            && lot.revision == requirement.required_revision =>
+                    {
+                        if lot.evidence.class == EvidenceClass::Unknown {
+                            possible_unknown += u64::from(quantity);
+                        } else {
+                            known.push((
+                                0,
+                                pool.pool_id.clone(),
+                                lot.stock_id.clone(),
+                                quantity,
+                                transfer,
+                            ));
+                        }
                     }
-                    PartFit::ApprovedSubstitute if lot.approved_for_part_keys.iter().any(|value| value == &requirement.part_key) => {
-                        if lot.evidence.class == EvidenceClass::Unknown { possible_unknown += u64::from(qty); }
-                        else { known.push((1, pool.pool_id.clone(), lot.stock_id.clone(), qty, transfer)); }
+                    PartFit::ApprovedSubstitute
+                        if lot.approved_for_part_keys
+                            .iter()
+                            .any(|value| value == &requirement.part_key) =>
+                    {
+                        if lot.evidence.class == EvidenceClass::Unknown {
+                            possible_unknown += u64::from(quantity);
+                        } else {
+                            known.push((
+                                1,
+                                pool.pool_id.clone(),
+                                lot.stock_id.clone(),
+                                quantity,
+                                transfer,
+                            ));
+                        }
                     }
-                    PartFit::Unknown => possible_unknown += u64::from(qty),
-                    PartFit::ExactRevision | PartFit::ApprovedSubstitute | PartFit::Incompatible => {}
+                    PartFit::Unknown => possible_unknown += u64::from(quantity),
+                    PartFit::ExactRevision
+                    | PartFit::ApprovedSubstitute
+                    | PartFit::Incompatible => {}
                 }
             }
         }
 
-        known.sort_by(|left, right| (left.0, &left.1, &left.2).cmp(&(right.0, &right.1, &right.2)));
+        known.sort_by(|left, right| {
+            (left.0, &left.1, &left.2).cmp(&(right.0, &right.1, &right.2))
+        });
         let mut needed = requirement.quantity;
         for (_fit_rank, pool_id, stock_id, available, transfer) in known {
-            if needed == 0 { break; }
+            if needed == 0 {
+                break;
+            }
             let take = needed.min(available);
             needed -= take;
-            tentative.insert(stock_id.clone(), tentative.get(&stock_id).copied().unwrap_or(0) - take);
+            tentative.insert(
+                stock_id.clone(),
+                tentative.get(&stock_id).copied().unwrap_or(0) - take,
+            );
             *consumption.entry(stock_id).or_default() += take;
-            used_pool_transfer.entry(pool_id).and_modify(|old| *old = old.max(transfer)).or_insert(transfer);
+            used_pool_transfer
+                .entry(pool_id)
+                .and_modify(|old| *old = old.max(transfer))
+                .or_insert(transfer);
         }
         if needed > 0 {
-            if possible_unknown >= u64::from(needed) || route_unknown {
-                return Err(BTreeSet::from([Blocker::PartFitUnknown]));
-            }
-            return Err(BTreeSet::from([Blocker::NoCompatiblePart]));
+            let blocker = if possible_unknown >= u64::from(needed) {
+                Blocker::PartFitUnknown
+            } else if route_unknown {
+                Blocker::InventoryRouteUnknown
+            } else if supply_unknown {
+                Blocker::PartSupplyUnknown
+            } else if route_unavailable {
+                Blocker::InventoryRouteUnavailable
+            } else if supply_unavailable {
+                Blocker::PartSupplyUnavailable
+            } else if future_stock {
+                Blocker::PartNotYetAvailable
+            } else if stock_exhausted {
+                Blocker::StockExhausted
+            } else {
+                Blocker::NoCompatiblePart
+            };
+            return Err(BTreeSet::from([blocker]));
         }
     }
-    let transfer_hours = used_pool_transfer.values().copied().fold(0.0_f64, f64::max);
-    let stock_consumption = consumption.into_iter().map(|(stock_id, quantity)| StockConsumption { stock_id, quantity }).collect();
+    let transfer_hours = used_pool_transfer
+        .values()
+        .copied()
+        .fold(0.0_f64, f64::max);
+    let stock_consumption = consumption
+        .into_iter()
+        .map(|(stock_id, quantity)| StockConsumption { stock_id, quantity })
+        .collect();
     Ok((stock_consumption, transfer_hours))
 }
 
@@ -848,7 +970,12 @@ fn check_cell(
         Ok(result) => result,
         Err(reasons) => {
             blockers.extend(reasons.iter().copied());
-            if reasons.contains(&Blocker::PartFitUnknown) {
+            if reasons.iter().any(|reason| matches!(
+                reason,
+                Blocker::PartFitUnknown
+                    | Blocker::PartSupplyUnknown
+                    | Blocker::InventoryRouteUnknown
+            )) {
                 return Fit::Indeterminate(blockers);
             }
             return Fit::Infeasible(blockers);
@@ -1264,6 +1391,42 @@ mod tests {
             local.capacity_ledger.iter().find(|row| row.cell_id == "local" && row.window_index == 0).unwrap().effective_capacity_hours,
             None
         );
+    }
+
+
+    #[test]
+    fn future_stock_and_unknown_inventory_route_keep_distinct_blockers() {
+        let mut request = base_request();
+        let central = request.candidates.iter_mut()
+            .find(|candidate| candidate.architecture == Architecture::CentralizedDepot)
+            .unwrap();
+        central.inventory_pools[0].lots[0].available_from_window = 1;
+        central.inventory_pools[0].lots[0].supply_dependency_id = Some("supplier".into());
+        // At window zero the motor is not yet available; at window one the
+        // central service route is unavailable. Do not mislabel either fact
+        // as evidence that no compatible part exists.
+        let assessment = assess_repair_continuity(&request).unwrap();
+        let central_result = assessment.assessments.iter()
+            .find(|candidate| candidate.architecture == Architecture::CentralizedDepot)
+            .unwrap();
+        let fan = central_result.requests.iter().find(|item| item.request_id == "fan-1").unwrap();
+        assert_eq!(fan.outcome, RequestOutcome::UnservedWithinWindow);
+        assert!(fan.blockers.contains(&Blocker::PartNotYetAvailable));
+        assert!(fan.blockers.contains(&Blocker::ServiceRouteUnavailable));
+
+        let mut route_unknown = base_request();
+        for observation in &mut route_unknown.dependency_observations {
+            if observation.dependency_id == "parts-road" && observation.window_index == 0 {
+                observation.evidence = evidence(EvidenceClass::Unknown);
+            }
+        }
+        let assessment = assess_repair_continuity(&route_unknown).unwrap();
+        let local = assessment.assessments.iter()
+            .find(|candidate| candidate.architecture == Architecture::LocalServiceCell)
+            .unwrap();
+        let fan = local.requests.iter().find(|item| item.request_id == "fan-1").unwrap();
+        assert_eq!(fan.outcome, RequestOutcome::Indeterminate);
+        assert!(fan.blockers.contains(&Blocker::InventoryRouteUnknown));
     }
 
     #[test]
