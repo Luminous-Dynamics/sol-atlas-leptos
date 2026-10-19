@@ -117,6 +117,34 @@ impl DetectionCounts {
             self.covered_known_cases,
         )
     }
+
+    /// Two-sided 95% Wilson score interval for end-to-end recall.
+    pub fn end_to_end_recall_ci95(&self) -> Option<(f64, f64)> {
+        wilson_interval_95(self.true_positives, self.positive_reference_cases)
+    }
+
+    /// Two-sided 95% Wilson score interval for recall conditional on coverage.
+    pub fn recall_when_covered_ci95(&self) -> Option<(f64, f64)> {
+        wilson_interval_95(self.true_positives, self.covered_positive_cases)
+    }
+
+    /// Two-sided 95% Wilson score interval for false-alert rate on covered negatives.
+    pub fn false_alert_rate_when_covered_ci95(&self) -> Option<(f64, f64)> {
+        wilson_interval_95(self.false_positives, self.covered_negative_cases)
+    }
+
+    /// Two-sided 95% Wilson score interval for reference-known coverage.
+    pub fn coverage_rate_ci95(&self) -> Option<(f64, f64)> {
+        wilson_interval_95(self.covered_known_cases, self.reference_known_cases)
+    }
+
+    /// Two-sided 95% Wilson score interval for abstention among covered known cases.
+    pub fn abstention_rate_when_covered_ci95(&self) -> Option<(f64, f64)> {
+        wilson_interval_95(
+            self.abstained_positive_cases + self.abstained_negative_cases,
+            self.covered_known_cases,
+        )
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -402,6 +430,25 @@ fn is_canonical_sha256(value: &str) -> bool {
             .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
+/// Two-sided 95% Wilson score interval for a binomial proportion.
+///
+/// This is a descriptive per-system interval. Comparing systems still requires a
+/// paired or cluster-aware design when they share sites, scenes, or time windows.
+fn wilson_interval_95(successes: usize, trials: usize) -> Option<(f64, f64)> {
+    if trials == 0 || successes > trials {
+        return None;
+    }
+    const Z: f64 = 1.959_963_984_540_054;
+    let n = trials as f64;
+    let p = successes as f64 / n;
+    let z_squared = Z * Z;
+    let denominator = 1.0 + z_squared / n;
+    let center = (p + z_squared / (2.0 * n)) / denominator;
+    let half_width =
+        Z * ((p * (1.0 - p) / n + z_squared / (4.0 * n * n)).sqrt()) / denominator;
+    Some(((center - half_width).max(0.0), (center + half_width).min(1.0)))
+}
+
 fn ratio(numerator: usize, denominator: usize) -> Option<f64> {
     (denominator > 0).then(|| numerator as f64 / denominator as f64)
 }
@@ -564,6 +611,37 @@ mod tests {
         );
         assert!(metrics.by_stratum.contains_key("low-rate"));
         assert!(metrics.by_stratum.contains_key("high-background"));
+    }
+
+    #[test]
+    fn wilson_intervals_include_estimates_and_expose_small_sample_uncertainty() {
+        let counts = DetectionCounts {
+            true_positives: 1,
+            positive_reference_cases: 3,
+            covered_positive_cases: 2,
+            false_positives: 1,
+            covered_negative_cases: 2,
+            covered_known_cases: 4,
+            reference_known_cases: 6,
+            ..DetectionCounts::default()
+        };
+        let recall_interval = counts.end_to_end_recall_ci95().unwrap();
+        let recall = counts.end_to_end_recall().unwrap();
+        assert!(recall_interval.0 < recall && recall < recall_interval.1);
+        assert!(recall_interval.1 - recall_interval.0 > 0.5);
+
+        let false_alert_interval = counts.false_alert_rate_when_covered_ci95().unwrap();
+        assert!(false_alert_interval.0 < 0.5 && false_alert_interval.1 > 0.5);
+        let coverage_interval = counts.coverage_rate_ci95().unwrap();
+        assert!(coverage_interval.0 < (4.0 / 6.0) && coverage_interval.1 > (4.0 / 6.0));
+    }
+
+    #[test]
+    fn wilson_intervals_are_absent_without_denominators() {
+        let counts = DetectionCounts::default();
+        assert_eq!(counts.end_to_end_recall_ci95(), None);
+        assert_eq!(counts.false_alert_rate_when_covered_ci95(), None);
+        assert_eq!(counts.coverage_rate_ci95(), None);
     }
 
     #[test]
