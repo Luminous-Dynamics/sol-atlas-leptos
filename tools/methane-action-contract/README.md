@@ -1,6 +1,6 @@
 # Methane Action Contract
 
-A small, dependency-free Rust contract for **benchmark input admission**, not a methane detector.
+A small Rust benchmark contract, census scorer, and paired comparison toolkit—not a methane detector or physical model.
 
 ## Why this exists
 
@@ -35,6 +35,21 @@ cargo run --manifest-path tools/methane-action-contract/Cargo.toml --locked --bi
 The receipt includes the SHA-256 of the exact input JSON bytes and the submitted system/configuration identifiers. This digest binds the receipt to the input bytes; it does not authenticate the input source, the running binary, the upstream data provider, the reviewer, or the reference truth. The bundled two-case fixture is intentionally synthetic and is only a CLI/conformance smoke test, not evidence of methane-detector performance.
 
 Input schema version 1 uses explicit tagged states for reference truth, coverage, and system disposition. Unknown object fields are rejected rather than silently ignored.
+
+## Paired baseline comparison
+
+The `comparison` module compares a candidate and baseline on the **same complete case universe**. Each case now carries a required `cluster_id` (for example, site × overpass/time window) in addition to its analysis `stratum_id`. Do not use a stratum label as a substitute for a sampling cluster unless that is the true independence unit.
+
+The comparator reports candidate-minus-baseline differences for end-to-end recall and covered negative-case false-alert rate, discordant event counts, and deterministic cluster-bootstrap intervals. It resamples whole clusters instead of individual rows to preserve within-cluster dependence. For this implementation, intervals are withheld unless there are at least 10 distinct clusters and 1,000 requested replicates. These are conservative implementation gates, not universal guarantees of statistical adequacy; study design, cluster definition, and independent holdout selection remain decisive. If clusters share sites, overpasses, or time windows, define the cluster at the highest relevant dependence level.
+
+Use the `methane-compare` binary to generate a paired comparison receipt from a strict JSON request. The input includes `schema_version`, `cases`, `baseline`, `candidate`, `bootstrap_replicates`, and `seed`. Example using **synthetic test data only**:
+
+```sh
+cargo run --manifest-path tools/methane-action-contract/Cargo.toml --locked --bin methane-compare \
+  < tools/methane-action-contract/examples/synthetic-paired-comparison.json > comparison-receipt.json
+```
+
+The receipt binds the exact input JSON bytes by SHA-256 and includes the cluster count, point estimates, discordant pairs, and bootstrap intervals. It does not establish that the reference truth is accurate or that the candidate generalizes beyond the tested corpus.
 
 ## Complete-census evaluator
 
