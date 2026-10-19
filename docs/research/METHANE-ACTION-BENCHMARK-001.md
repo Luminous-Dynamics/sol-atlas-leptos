@@ -97,6 +97,14 @@ Compare event-level detection and asset/source association across instrument, ge
 
 Do not calculate recall or false-positive rates from positive-alert-only lists. A dataset of reported plumes does not provide the full universe of sensor opportunities, missed events, or true negatives. For those metrics, require scene/flight coverage, reviewed negatives, or controlled releases with independent ground truth.
 
+#### Empirical comparator and test design
+
+A 2024 *Atmospheric Measurement Techniques* single-blind evaluation tested nine satellite methane-sensing systems using 82 controlled releases during overpasses and collected 134 emissions estimates from six analysis teams. The paper reports 80 estimates correctly identified (58%), with 46 true-positive detections, 34 true-negative non-detections, 41 false negatives, and zero false positives. This is a useful published challenge reference—not an industry-wide current SOTA score, not a direct baseline for a differently sampled corpus, and not a guarantee of performance in another basin or operating condition. [AMT (2024), *Single-blind test of nine methane-sensing satellite systems from three continents*](https://amt.copernicus.org/articles/17/765/2024/).
+
+The key lesson for our benchmark is to report **detection probability and false-alert behavior jointly**. A detector with zero false alarms in one test can still miss a meaningful number of releases. Use the same blind release opportunities and predeclared scoring rules when comparing systems; stratify by release-rate band, wind speed/variability, scene quality, satellite/instrument, and basin. Keep no-detection, no-coverage, and quality-rejected cases distinct.
+
+The U.S. EPA's Advanced Methane Technology Alternative Test Method program asks for performance evidence across each basin and environment where a technology is intended to operate; controlled releases are encouraged, and comparable validation data are needed when controlled releases are unavailable. Our offline benchmark should therefore be treated as a development gate—not as proof of regulatory eligibility or field applicability. [EPA, Oil and Gas Alternative Test Methods](https://www.epa.gov/emc/oil-and-gas-alternative-test-methods) · [EPA Methane Advanced Technology Program guidance (May 2024)](https://nepis.epa.gov/Exe/ZyPURL.cgi?Dockey=P101GVV6.TXT).
+
 ### Track C — Emission-rate quantification and uncertainty
 
 Evaluate only against a stated reference measurement appropriate to the sensor's scope and temporal/spatial footprint. Record rate units, averaging window, reference instrument, uncertainty of the reference, environmental conditions, and any non-detect/censoring rule.
@@ -154,7 +162,7 @@ These are proposed engineering gates to ratify after establishing a baseline and
 | Dimension | Initial target to test | Guardrail |
 |---|---|---|
 | Evidence admission | 100% rejection/quarantine for authored invalid-input and provenance negative controls. | No malformed fixture silently accepted; no invalid input becomes a zero-emission observation. |
-| Detection | On a representative, independently labeled holdout, either ≥10 percentage-point absolute recall gain at a matched false-alert burden **or** ≥25% fewer false alerts at matched recall versus the strongest fair baseline. | Report both measures and per-stratum results. No hidden trade of misses against alert burden. |
+| Detection | On a representative, independently labeled holdout, either ≥10 percentage-point absolute recall gain at a matched false-alert burden **or** ≥25% fewer false alerts at matched recall versus the strongest fair baseline. | Report both measures, per-stratum results, and recall at fixed false-alert operating points; published satellite tests show missed releases remain material even when false positives are rare. No hidden trade of misses against alert burden. |
 | Quantification | Pilot target of median absolute log10 error ≤0.30 dex (roughly a factor of two) when reference uncertainty and observation scope make that target meaningful. | Report bias and interval coverage; suspend the target for a stratum if the reference is not sufficiently accurate. |
 | Uncertainty | Nominal 90% intervals achieve 85–95% empirical coverage on held-out site/time groups. | Report interval width and subgroup coverage; broad but useless intervals do not count as success. |
 | Prioritization | ≥20% more independently confirmed methane mass located per fixed field-work budget, or ≥20% lower cost per verified unit reduced, versus the best fair baseline. | Include full operating/inspection costs and maintain safety/access gates. |
