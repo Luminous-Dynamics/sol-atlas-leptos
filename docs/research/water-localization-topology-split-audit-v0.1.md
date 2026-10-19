@@ -23,6 +23,8 @@ The 2026 research picture makes that distinction important. A May 2026 unified E
 
 Topology family IDs are curator-reviewed identities: the exact graph digest preserves node/link labels and cannot discover every graph-isomorphic or near-duplicate relabeling. Curators must group known variants before running the audit.
 
+A family may contain multiple exact graph variants (for example, a reviewed small topology edit or relabeling) as long as all variants remain in that one split. The receipt enumerates each distinct exact graph digest and its case count; the exact-topology-under-multiple-family check still rejects an identical graph copied into separate families.
+
 ## Frozen toy fixture
 
 The 9-case file contains three cases in each of three topology families. Values are hand-authored synthetic pressure deltas and are included only to exercise split auditing (including one missing-sensor state). They are not EPANET outputs and must never be used to claim localization accuracy.
