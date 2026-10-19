@@ -1,0 +1,234 @@
+# METHANE-ACTION-001: Evidence-to-mitigation benchmark contract
+
+**Status:** Research specification / proposed benchmark. Not an operational system, regulatory certification, validated detector, emissions inventory, or claim of state-of-the-art performance.  
+**Date:** 2026-10-19  
+**Scope owner:** Sol-Atlas research tranche; intended interfaces to Symthaea, Symtropy, and Mycelix.
+
+## Executive decision
+
+Build a benchmark around the complete methane intervention loop, not just plume detection:
+
+`observe → qualify evidence → associate source/asset → estimate emissions and uncertainty → prioritize inspection/repair → verify outcome`
+
+The research hypothesis is that an evidence-aware, geospatially grounded workflow can improve the *amount of methane actually mitigated per unit of inspection effort and cost* while making fewer unsupported claims than disconnected detection, reporting, and work-order systems.
+
+This document defines a falsifiable evaluation plan. It contains no measured performance results. A synthetic contract pass must never be presented as field validation; satellite alerts alone are not complete ground truth for either recall or false-positive rates.
+
+## Why this is a worthwhile wedge
+
+The problem is actionable and measurable, but data coverage remains incomplete:
+
+- The IEA's *Global Methane Tracker 2026* estimates that around 70% of fossil-fuel methane emissions could be abated with existing technology and that more than 35 Mt could be avoided at no net cost under average 2025 energy prices. It identifies upstream oil and gas as the leading near-term target. These are sector-level estimates, not a promise that a particular asset or intervention will be cost-effective. [IEA, Key findings](https://www.iea.org/reports/global-methane-tracker-2026/key-findings)
+- The OGMP 2.0 2026 report describes 163 participating companies in 90 countries, covering 43% of global oil and gas production, with 69% of reported emissions now based on measurement-based data. This reflects progress but does not imply complete global or facility-level observation. [OGMP 2.0, 2026 report](https://www.ogmpartnership.org/events/ogmp-20-2026-report-measurement-mitigation-better-methane-data-enabling-action)
+- DOE/NETL explicitly researches field-scale performance of methane detection and quantification technologies across production, processing, and transport, including valves, pneumatic controllers, compressors, and tanks. We should compare against calibrated field evidence where obtainable, not only against generated examples. [NETL, Methane Emissions Quantification](https://www.netl.doe.gov/oil-gas/ngi/quantification)
+- UNEP's Methane Alert and Response System (MARS) already connects satellite observations, alerts, notifications, and mitigation follow-up. It is a relevant operational comparator and potential source of historical event records—not a blank space for us to claim novelty. [UNEP MARS](https://www.unep.org/en/what-we-do/energy/methane/methane-alert-and-response-system)
+- The Carbon Mapper data platform provides plume/source and scene-level products through documented APIs, with data from multiple airborne and satellite instruments. Its access, attribution, and commercial-use terms must be checked before each use; do not republish source data merely because an endpoint is public. [Carbon Mapper data](https://carbonmapper.org/data) · [API documentation](https://api.carbonmapper.org/api/v1/docs)
+
+The opportunity is to make the gap between a detection and a verified mitigation decision measurable and auditable, while respecting existing specialist systems.
+
+## Paradigm shifts
+
+### 1. From inventory factors to evidence-bounded observations
+
+A standardized emission factor can support planning, but must not be silently treated as a measurement of a particular event. Keep these distinct:
+
+- **Measured observation:** a dated instrument output with calibration/quality metadata and a source artifact.
+- **Remote-sensing retrieval:** a sensor- and method-specific estimate with its uncertainty and detection limits.
+- **Inventory estimate:** activity data multiplied by an emission factor.
+- **Inference:** a model's estimate derived from other evidence.
+- **Scenario:** an explicitly hypothetical value used for stress tests.
+
+Never add values from these classes together without a stated, validated reconciliation method.
+
+### 2. From a plume record to an intervention outcome
+
+A plume is an observation at a time; a source is an inferred ground location observed one or more times; a facility is an asset/organization association that may itself be uncertain. UNEP's MARS data dictionary explicitly distinguishes plume observations from source locations. Preserve those identities separately and retain the match confidence, method, and alternatives.
+
+A work order marked “closed” does not prove that emissions fell. Mitigation requires a post-intervention observation or a clearly labeled unresolved verification state.
+
+### 3. From single-objective ranking to constrained portfolio decisions
+
+Prioritize candidate actions using expected avoided methane, uncertainty, inspection/repair cost, operational risk, access, time-to-mitigation, and evidence quality. Keep methane mass, energy, water, cost, worker safety, and community exposure as separate dimensions. Safety, access authorization, environmental restrictions, and minimum evidence requirements are hard gates, not soft penalties that a high financial score can overcome.
+
+Keep a no-action / wait-for-more-evidence option in the choice set. A model must be allowed to say “insufficient evidence to rank these safely.”
+
+### 4. From model confidence to calibrated, falsifiable confidence
+
+Symthaea may propose competing explanations and rank the next useful observation. The system must expose uncertainty, calibrate probabilities on held-out data, test alternative causes, and abstain outside its validated operating domain. “The model agrees with itself” is not evidence.
+
+### 5. From siloed dashboards to portable, independently checkable receipts
+
+Record the chain from source observation to asset association, model/version, recommendation, authorization, repair, and post-repair verification. Mycelix may provide append-only provenance and authorized cross-organization evidence exchange, but cryptographic integrity only says which bytes/claims were committed and by whom; it does not prove that the original reading was true.
+
+## Four-project division of responsibility
+
+| Project | Proposed responsibility | Must not claim |
+|---|---|---|
+| **Sol-Atlas** | Source-pinned geospatial observations, facility/source association, coverage gaps, spatial joins, and regional context. | That mapped or nominal capacity is operating capacity; that a nearby asset is proven to be the source; or that missing observations imply zero emissions. |
+| **Symthaea** | Hypothesis ranking, anomaly assessment, uncertainty/calibration evaluation, expected-value-of-information ranking, and explanation of why a recommendation was made. | That a prediction establishes physical truth, that internally generated hypotheses validate themselves, or that a synthetic benchmark establishes field accuracy. |
+| **Symtropy** | Scenario/counterfactual and constrained intervention scheduling once validated physical and operational models are available. | That a generic physics engine is a calibrated fluid-dynamics, atmospheric-dispersion, refinery, or pipeline simulator without separate validation. |
+| **Mycelix** | Permissioned provenance, actor/action records, model and artifact digests, review, repair, and verification receipts. | That signatures, hashes, or decentralization prove sensor truth, regulatory compliance, or a real-world emissions reduction. |
+
+The integration is a proposed architecture. No end-to-end methane-to-mitigation capability is established by this document.
+
+## Benchmark tracks
+
+### Track A — Evidence and data admission
+
+Test invalid and incomplete records before any model is evaluated:
+
+- missing source identity, source artifact digest, timestamp, coordinate reference, gas species, units, quality flag, or instrument/method identifier;
+- stale or absent calibration, unknown detection threshold, invalid uncertainty, non-finite/negative rates, impossible units, timestamp inversion, duplicate observation IDs, and mismatched digests;
+- confused identities: plume observation reused as a unique source; source merged with facility without a match record; repeated overpasses double-counted as separate facilities;
+- unknown status, unobserved asset, or missing data silently converted to “no emissions”;
+- source terms or usage rights missing or incompatible with intended use.
+
+**Gate:** malformed or unqualified inputs must be rejected or explicitly quarantined with a reason. Unknown stays unknown. Validating a digest establishes byte identity, not the truth or calibration of the underlying observation.
+
+### Track B — Event detection and source association
+
+Compare event-level detection and asset/source association across instrument, geography, weather/season, facility class, and emission-rate bands. Use baselines including:
+
+1. published event/alert outputs where labels permit a fair comparison;
+2. simple threshold/rule baselines;
+3. a strong conventional statistical or machine-learning baseline;
+4. the best available specialist/vendor baseline, where licensing and access permit;
+5. our evidence-aware workflow.
+
+Do not calculate recall or false-positive rates from positive-alert-only lists. A dataset of reported plumes does not provide the full universe of sensor opportunities, missed events, or true negatives. For those metrics, require scene/flight coverage, reviewed negatives, or controlled releases with independent ground truth.
+
+### Track C — Emission-rate quantification and uncertainty
+
+Evaluate only against a stated reference measurement appropriate to the sensor's scope and temporal/spatial footprint. Record rate units, averaging window, reference instrument, uncertainty of the reference, environmental conditions, and any non-detect/censoring rule.
+
+Report at least:
+
+- median absolute error and median absolute log10 error for positive reference rates;
+- bias by order of magnitude and facility/source category;
+- 50%, 90%, and 95% interval coverage and interval width;
+- performance at the detection limit and below/near/above it;
+- error by sensor, weather/scene quality, geography, and source type.
+
+Do not present precision without recall/coverage and uncertainty; do not score a non-detect as zero emission.
+
+### Track D — Inspection prioritization and intervention selection
+
+At a fixed budget (crew-hours, site visits, or money), measure:
+
+- confirmed sources found per unit inspection effort;
+- independently confirmed methane mass identified;
+- predicted versus realized avoided methane after repair;
+- time from first valid observation to alert, review, field confirmation, repair, and verification;
+- cost per unit of **verified** methane reduced;
+- ranking quality under imperfect and delayed observations;
+- the share of recommendations withheld because authorization, access, safety, or evidence requirements failed.
+
+Compare policies at equal cost and equal operational constraints. A policy cannot win by assuming unlimited crews, privileged access, or a perfect ground-truth feed that competitors do not receive.
+
+### Track E — Closed-loop verification
+
+Evaluate outcome before/after intervention with a pre-declared protocol. Account for revisit timing, variability in emissions, weather, production state, sensor detection limits, and alternative causes. Use repeat measurements or independent post-repair verification where possible.
+
+Keep these outcomes separate:
+
+- detection/notification;
+- operator acknowledgement;
+- inspection completed;
+- repair reported complete;
+- measured emissions reduction;
+- independently verified mitigation;
+- unresolved / not observable.
+
+A ticket closure, model assertion, or absence of a subsequent satellite detection is not by itself proof of zero emissions.
+
+### Track F — Operational resilience and evidence integrity
+
+Inject controlled faults: missing scenes, stale data, duplicate observations, clock shifts, sensor calibration expiry, revoked access, model version drift, unavailable services, and contradictory reports. Test replay, source/model digest binding, audit completeness, safe abstention, and recovery.
+
+For process-safety context, use the applicable site safety-management system and relevant recognized indicators such as API RP 754 as references; this methane benchmark is not a substitute for process hazard analysis, alarm management, or safety certification. [API RP 754, 4th edition announcement (2026-08-06)](https://www.api.org/news-policy-and-issues/news/2026/08/06/api-publishes-fourth-edition-process-safety-performance-indicators-standard)
+
+## Provisional targets: ambitious gates, not SOTA claims
+
+These are proposed engineering gates to ratify after establishing a baseline and measuring the reference-data uncertainty. They are not external standards or reported results.
+
+| Dimension | Initial target to test | Guardrail |
+|---|---|---|
+| Evidence admission | 100% rejection/quarantine for authored invalid-input and provenance negative controls. | No malformed fixture silently accepted; no invalid input becomes a zero-emission observation. |
+| Detection | On a representative, independently labeled holdout, either ≥10 percentage-point absolute recall gain at a matched false-alert burden **or** ≥25% fewer false alerts at matched recall versus the strongest fair baseline. | Report both measures and per-stratum results. No hidden trade of misses against alert burden. |
+| Quantification | Pilot target of median absolute log10 error ≤0.30 dex (roughly a factor of two) when reference uncertainty and observation scope make that target meaningful. | Report bias and interval coverage; suspend the target for a stratum if the reference is not sufficiently accurate. |
+| Uncertainty | Nominal 90% intervals achieve 85–95% empirical coverage on held-out site/time groups. | Report interval width and subgroup coverage; broad but useless intervals do not count as success. |
+| Prioritization | ≥20% more independently confirmed methane mass located per fixed field-work budget, or ≥20% lower cost per verified unit reduced, versus the best fair baseline. | Include full operating/inspection costs and maintain safety/access gates. |
+| Mitigation loop | ≥20% lower median time from valid, actionable alert to verified mitigation in a prospective pilot. | Compare like-for-like workflows, record right-censoring and unverified cases, and do not infer causality from an uncontrolled before/after comparison. |
+| Integrity/replay | 100% detection of authored tamper, stale-version, duplicate-ID, and unauthorized-action negative controls; deterministic replay for the same pinned inputs and tool version where deterministic execution is specified. | Do not equate a passing control fixture with security certification. |
+
+A result is a benchmark win only if the holdout is predeclared, the baseline is strong and fairly matched, provenance is preserved, negative controls pass, and the improvement survives per-site/time/source stratification. If baseline performance is already stronger, record that and improve the research question instead of lowering the gate.
+
+## Dataset strategy and limits
+
+### Public retrospective sources
+
+1. **UNEP MARS** plume/source exports and data dictionaries: [download page](https://methanedata.unep.org/download-dataset) · [plume/source data dictionary](https://methanedata.unep.org/dict-mars-plumes). Best initial material for event chronology, source grouping, notification/response context, and geographic coverage. It is not automatically a complete detection benchmark: notification criteria, sensor coverage and non-observed locations create selection bias.
+2. **Carbon Mapper** data API and product definitions: [data portal](https://carbonmapper.org/data) · [API docs](https://api.carbonmapper.org/api/v1/docs) · [product guide](https://carbonmapper.org/articles/product-guide). Potential source of multi-instrument plume estimates, quality fields, uncertainty and scene context. Respect its current terms; source records should be referenced rather than redistributed unless the license explicitly allows it.
+3. **OGMP 2.0 company factsheets**: useful for reporting-maturity context and understanding the difference between inventory and measurement-based reporting, not event-level detection ground truth. [OGMP 2.0 2026 report](https://www.ogmpartnership.org/events/ogmp-20-2026-report-measurement-mitigation-better-methane-data-enabling-action)
+4. **DOE/NETL field validation**: preferred route to suitable controlled-release and field-reference evidence. Confirm specific dataset access, release terms, units and reference uncertainty before treating any record as ground truth. [NETL methane quantification program](https://www.netl.doe.gov/oil-gas/ngi/quantification)
+
+### Split design
+
+- Freeze source retrieval date, version/API query, source artifact URL, attribution, license/terms, byte length and SHA-256 for every downloaded artifact.
+- Split by **site/source and time**, not random rows. Repeated plumes from the same source must not leak between train and test.
+- Preserve instrument/platform and quality class; test geography and season shift. Publish a separate out-of-domain set.
+- Do not use private customer telemetry in a public corpus without explicit rights and a redaction plan.
+- Label synthetic cases and scenarios unambiguously. Synthetic fixtures are for schema, boundary, and fail-closed tests only; they provide no evidence of real detector accuracy or achievable savings.
+
+## Reproducible experiment protocol
+
+Every evaluated run should emit a machine-readable receipt containing:
+
+- benchmark contract version and corpus manifest digest;
+- source identifiers, dates, licensing/attribution metadata, and immutable artifact digests;
+- code commit, model/configuration digest, dependency/toolchain versions, and random seed where applicable;
+- split assignment, metrics, uncertainty, subgroup counts, missingness, exclusions, and explicit failure/abstention counts;
+- baseline identity and configuration;
+- negative-control outcomes and a concise claim scope.
+
+The receipt must bind to an exact code and data version. A pending or queued workflow is not a pass; validation must be reported against the exact evaluated commit. An independently reproducible result is preferred to a vendor or model author's unverified summary.
+
+## Implementation sequence
+
+### Phase 0 — Contract and evidence inventory (this specification)
+
+- Review this contract against Sol-Atlas's gas-flaring evidence-admission work and current industrial-capacity semantics.
+- Confirm data-source access terms and define exact provenance fields.
+- Keep this PR documentation-only; it introduces no new capability claim.
+
+### Phase 1 — Rust-first offline contract evaluator
+
+Create a small, dependency-bounded Rust package or core module to validate event identities, units, non-finite/negative values, observation/source/facility separation, quality/uncertainty metadata, artifact digests, and explicit unknown states. Add adversarial fixtures for duplicate observations, forged/mismatched digests, invalid timestamps, stale calibration, and missing source identity. CI should run tests directly for the package rather than assuming a workspace-wide command covers it.
+
+### Phase 2 — Source-pinned retrospective corpus
+
+Build small source adapters only after inspecting provider schemas and terms. Save retrieval manifests and digests; do not commit restricted imagery or raw telemetry. Publish counts and known selection biases before publishing metric results.
+
+### Phase 3 — Baselines and calibration
+
+Implement transparent threshold/statistical baselines first, then compare a learned model and the full decision pipeline. Freeze site/time holdouts and score scripts before looking at final holdout metrics.
+
+### Phase 4 — Field validation and prospective pilot
+
+Partner with an operator or independent measurement team. Establish ground truth, reference instrument accuracy, operating constraints, and repair verification before evaluating any live workflow. Begin in advisory mode; no autonomous physical actuation is authorized by this project.
+
+## Go/no-go and claim discipline
+
+Do not proceed to operational recommendations if the test cannot establish source identity or the evidence needed for the action. Do not infer emissions from missing observations, infer successful mitigation from ticket closure, or publish a percentage reduction without a credible baseline/counterfactual.
+
+Do not call the system “better than SOTA” unless an independently reviewed, predeclared experiment beats named baselines on representative held-out data and reports uncertainty, failures, costs, and relevant subgroup results. If no fair ground truth or complete negative set exists, publish a limitation and the test needed to resolve it rather than a leaderboard score.
+
+## References
+
+- IEA, [Global Methane Tracker 2026 — Key findings](https://www.iea.org/reports/global-methane-tracker-2026/key-findings)
+- OGMP 2.0, [2026 Annual Report](https://www.ogmpartnership.org/events/ogmp-20-2026-report-measurement-mitigation-better-methane-data-enabling-action)
+- UNEP, [Methane Alert and Response System (MARS)](https://www.unep.org/en/what-we-do/energy/methane/methane-alert-and-response-system), [dataset download](https://methanedata.unep.org/download-dataset), [data dictionary](https://methanedata.unep.org/dict-mars-plumes)
+- Carbon Mapper, [data portal](https://carbonmapper.org/data), [API](https://api.carbonmapper.org/api/v1/docs), [product guide](https://carbonmapper.org/articles/product-guide)
+- U.S. DOE NETL, [Methane Emissions Quantification](https://www.netl.doe.gov/oil-gas/ngi/quantification)
+- American Petroleum Institute, [API RP 754 4th edition announcement](https://www.api.org/news-policy-and-issues/news/2026/08/06/api-publishes-fourth-edition-process-safety-performance-indicators-standard)
+- NIST, [Framework for a Digital Twin in Manufacturing](https://www.nist.gov/publications/framework-digital-twin-manufacturing)
