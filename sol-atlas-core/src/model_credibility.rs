@@ -362,6 +362,26 @@ mod tests {
     }
 
     #[test]
+    fn unknown_fields_and_noncanonical_identifiers_fail_closed() {
+        let mut input = fixture(ModelDisposition::UseModel);
+        input.decision_id = " decision-001".to_owned();
+        assert_eq!(
+            Err(ModelCredibilityHandoffError::BlankIdentity),
+            assess_model_credibility_handoff(&input)
+        );
+
+        let bytes = serde_json::to_vec(&fixture(ModelDisposition::UseModel))
+            .expect("serialize valid input");
+        let mut value: serde_json::Value =
+            serde_json::from_slice(&bytes).expect("decode valid input");
+        value
+            .as_object_mut()
+            .expect("object")
+            .insert("unrecognized".to_owned(), serde_json::Value::Bool(true));
+        assert!(serde_json::from_value::<ModelCredibilityHandoff>(value).is_err());
+    }
+
+    #[test]
     fn serialized_handoff_and_assessment_are_deterministic() {
         let input = fixture(ModelDisposition::AbstainStaleTelemetry);
         let first = assess_model_credibility_handoff(&input).expect("first assessment");
