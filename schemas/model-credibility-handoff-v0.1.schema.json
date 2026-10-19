@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/model-credibility-handoff-v0.1.schema.json",
+  "title": "Model credibility handoff",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "decision_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "model_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "asset_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "as_of_utc": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+    },
+    "capacity_unit": {
+      "type": "string",
+      "minLength": 1
+    },
+    "capacity_lower": {
+      "type": "number",
+      "minimum": 0
+    },
+    "capacity_upper": {
+      "type": "number",
+      "minimum": 0
+    },
+    "disposition": {
+      "enum": [
+        "use_model",
+        "reject_unsafe_interval",
+        "abstain_missing_observation",
+        "abstain_stale_telemetry",
+        "abstain_residual_out_of_envelope",
+        "abstain_recovery_holdoff"
+      ]
+    },
+    "source_commit_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "calibration_set_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "generated_case_set_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "supporting_evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "schema_version",
+    "decision_id",
+    "model_id",
+    "asset_id",
+    "as_of_utc",
+    "capacity_unit",
+    "capacity_lower",
+    "capacity_upper",
+    "disposition",
+    "source_commit_sha",
+    "calibration_set_sha256",
+    "generated_case_set_sha256",
+    "supporting_evidence_ids"
+  ]
+}
