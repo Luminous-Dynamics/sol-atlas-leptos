@@ -1178,6 +1178,17 @@ mod tests {
         request.dependency_observations.retain(|value| !(value.dependency_id == "power" && value.window_index == 0));
         let assessment = assess_repair_continuity(&request).unwrap();
         assert!(assessment.assessments.iter().any(|candidate| candidate.indeterminate_count > 0));
+        let local = assessment.assessments.iter()
+            .find(|candidate| candidate.architecture == Architecture::LocalServiceCell)
+            .unwrap();
+        assert_eq!(
+            local.capacity_ledger.iter()
+                .find(|row| row.cell_id == "local" && row.window_index == 0)
+                .unwrap()
+                .effective_capacity_hours,
+            None,
+            "unknown power must remain unknown, not a zero-capacity observation"
+        );
     }
 
     #[test]
@@ -1248,11 +1259,16 @@ mod tests {
         assert!(distributed.requests.iter().any(|value| value.blockers.contains(&Blocker::CalibrationExpired)) || distributed.scheduled_count > 0);
 
         let mut unknown_fit = base_request();
-        let pool = &mut unknown_fit.candidates[0].inventory_pools[0];
-        pool.lots[0].fit = PartFit::Unknown;
+        let local_candidate = unknown_fit.candidates.iter_mut()
+            .find(|candidate| candidate.architecture == Architecture::LocalServiceCell)
+            .unwrap();
+        local_candidate.inventory_pools[0].lots[0].fit = PartFit::Unknown;
         let outcome = assess_repair_continuity(&unknown_fit).unwrap();
-        let central = outcome.assessments.iter().find(|value| value.architecture == Architecture::CentralizedDepot).unwrap();
-        let fan = central.requests.iter().find(|value| value.request_id == "fan-1").unwrap();
-        assert_ne!(fan.outcome, RequestOutcome::ScheduledWithinWindow);
+        let local = outcome.assessments.iter()
+            .find(|value| value.architecture == Architecture::LocalServiceCell)
+            .unwrap();
+        let fan = local.requests.iter().find(|value| value.request_id == "fan-1").unwrap();
+        assert_eq!(fan.outcome, RequestOutcome::Indeterminate);
+        assert!(fan.blockers.contains(&Blocker::PartFitUnknown));
     }
 }
