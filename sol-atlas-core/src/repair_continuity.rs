@@ -1416,7 +1416,7 @@ mod tests {
 
         let mut route_unknown = base_request();
         for observation in &mut route_unknown.dependency_observations {
-            if observation.dependency_id == "parts-road" && observation.window_index == 0 {
+            if observation.dependency_id == "parts-road" {
                 observation.evidence = evidence(EvidenceClass::Unknown);
             }
         }
