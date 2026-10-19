@@ -1948,7 +1948,7 @@ mod tests {
         let mut request = base_request();
         request
             .dependency_observations
-            .retain(|value| !(value.dependency_id == "power-local" && value.window_index == 0));
+            .retain(|value| !(value.dependency_id == "power" && value.window_index == 0));
         let assessment = assess_repair_continuity(&request).unwrap();
         assert!(
             assessment
@@ -2177,7 +2177,7 @@ mod tests {
             let fan = candidate
                 .requests
                 .iter()
-                .find(|result| result.request_id == "fan-1")
+                .find(|result| result.request_id == "sensor-1")
                 .unwrap();
             assert_eq!(fan.outcome, RequestOutcome::Indeterminate);
             assert!(fan.blockers.contains(&Blocker::PartSupplyUnknown));
