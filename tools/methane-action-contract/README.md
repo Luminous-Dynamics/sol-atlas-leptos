@@ -28,7 +28,7 @@ No third-party crate dependencies are introduced.
 ## Trust and scope boundaries
 
 This crate checks record structure and declarations only. In particular, it does not:
-- compute SHA-256 or prove a digest matches the referenced bytes;
+- compute SHA-256 or prove a digest matches the referenced bytes; the contract only checks digest shape and compares the declared source identity/digest to the recorded review scope;
 - authenticate a named reviewer or determine the actual legal scope of a license;
 - verify measurement calibration, infer unseen events, estimate source attribution quality, or validate fluid/atmospheric physics;
 - establish detector precision, recall, emissions reduction, operational safety, regulatory compliance, or state-of-the-art performance.
