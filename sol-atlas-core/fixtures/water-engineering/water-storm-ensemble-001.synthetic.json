@@ -1,0 +1,1276 @@
+{
+  "schema_version": "water-storm-ensemble-plan/v0.1",
+  "classification": "synthetic_public",
+  "benchmark_id": "water-storm-ensemble-001",
+  "claim_ceiling": "SyntheticScenarioEnvelopeOnly",
+  "source_input": {
+    "path": "sol-atlas-core/fixtures/water-engineering/s0_stormwater.inp",
+    "sha256": "b5b23a932990c3ea40d152ba100a6b3634790471160ca8d8c4ecc3099459101c",
+    "byte_length": 1660,
+    "synthetic": true
+  },
+  "solver_profile": {
+    "engine": "EPA_SWMM",
+    "engine_version": "5.2.4",
+    "source_commit": "7952ca837988b1c32f791812eccc9fd64547e093",
+    "flow_units": "CMS",
+    "routing": "DYNWAVE",
+    "rain_gauge": "G1",
+    "rain_series": "RAIN1",
+    "target_conduit_id": "C1",
+    "baseline_diameter_m": 0.6,
+    "simulation_start": "2020-01-01T00:00:00",
+    "simulation_end": "2020-01-01T02:00:00",
+    "rainfall_interval_minutes": 5,
+    "rainfall_interval_count": 6,
+    "routing_step_seconds": 5
+  },
+  "rainfall_profiles": [
+    {
+      "profile_id": "reference",
+      "interval_weights_mm_hr": [
+        0,
+        20,
+        60,
+        60,
+        30,
+        0
+      ],
+      "reference_depth_mm": 14.166667,
+      "rationale": "Current S0 pulse shape; reference for this synthetic ensemble."
+    },
+    {
+      "profile_id": "short_burst",
+      "interval_weights_mm_hr": [
+        0,
+        0,
+        85,
+        85,
+        0,
+        0
+      ],
+      "reference_depth_mm": 14.166667,
+      "rationale": "Same nominal depth concentrated into two 5-minute intervals."
+    },
+    {
+      "profile_id": "early_peak",
+      "interval_weights_mm_hr": [
+        85,
+        85,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reference_depth_mm": 14.166667,
+      "rationale": "Same nominal depth concentrated at the start of the event."
+    },
+    {
+      "profile_id": "delayed_peak",
+      "interval_weights_mm_hr": [
+        0,
+        0,
+        0,
+        0,
+        85,
+        85
+      ],
+      "reference_depth_mm": 14.166667,
+      "rationale": "Same nominal depth concentrated late in the 30-minute event window."
+    },
+    {
+      "profile_id": "double_peak",
+      "interval_weights_mm_hr": [
+        0,
+        85,
+        0,
+        0,
+        85,
+        0
+      ],
+      "reference_depth_mm": 14.166667,
+      "rationale": "Two separated rainfall pulses, with the same nominal depth."
+    },
+    {
+      "profile_id": "sustained_moderate",
+      "interval_weights_mm_hr": [
+        28,
+        28,
+        28,
+        28,
+        29,
+        29
+      ],
+      "reference_depth_mm": 14.166667,
+      "rationale": "Near-uniform rainfall across all six 5-minute intervals."
+    }
+  ],
+  "rainfall_depth_multipliers": [
+    0.5,
+    1,
+    1.5
+  ],
+  "conduit_diameters_m": [
+    0.6,
+    0.4,
+    0.25
+  ],
+  "cases": [
+    {
+      "case_id": "S1-REF-X050-D060",
+      "rainfall_profile_id": "reference",
+      "rainfall_depth_multiplier": 0.5,
+      "rainfall_intensity_mm_hr": [
+        0,
+        10,
+        30,
+        30,
+        15,
+        0
+      ],
+      "expected_rainfall_depth_mm": 7.083333,
+      "conduit_diameter_m": 0.6,
+      "paired_baseline_case_id": "S1-REF-X050-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-REF-X050-D040",
+      "rainfall_profile_id": "reference",
+      "rainfall_depth_multiplier": 0.5,
+      "rainfall_intensity_mm_hr": [
+        0,
+        10,
+        30,
+        30,
+        15,
+        0
+      ],
+      "expected_rainfall_depth_mm": 7.083333,
+      "conduit_diameter_m": 0.4,
+      "paired_baseline_case_id": "S1-REF-X050-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-REF-X050-D025",
+      "rainfall_profile_id": "reference",
+      "rainfall_depth_multiplier": 0.5,
+      "rainfall_intensity_mm_hr": [
+        0,
+        10,
+        30,
+        30,
+        15,
+        0
+      ],
+      "expected_rainfall_depth_mm": 7.083333,
+      "conduit_diameter_m": 0.25,
+      "paired_baseline_case_id": "S1-REF-X050-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-REF-X100-D060",
+      "rainfall_profile_id": "reference",
+      "rainfall_depth_multiplier": 1,
+      "rainfall_intensity_mm_hr": [
+        0,
+        20,
+        60,
+        60,
+        30,
+        0
+      ],
+      "expected_rainfall_depth_mm": 14.166667,
+      "conduit_diameter_m": 0.6,
+      "paired_baseline_case_id": "S1-REF-X100-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-REF-X100-D040",
+      "rainfall_profile_id": "reference",
+      "rainfall_depth_multiplier": 1,
+      "rainfall_intensity_mm_hr": [
+        0,
+        20,
+        60,
+        60,
+        30,
+        0
+      ],
+      "expected_rainfall_depth_mm": 14.166667,
+      "conduit_diameter_m": 0.4,
+      "paired_baseline_case_id": "S1-REF-X100-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-REF-X100-D025",
+      "rainfall_profile_id": "reference",
+      "rainfall_depth_multiplier": 1,
+      "rainfall_intensity_mm_hr": [
+        0,
+        20,
+        60,
+        60,
+        30,
+        0
+      ],
+      "expected_rainfall_depth_mm": 14.166667,
+      "conduit_diameter_m": 0.25,
+      "paired_baseline_case_id": "S1-REF-X100-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-REF-X150-D060",
+      "rainfall_profile_id": "reference",
+      "rainfall_depth_multiplier": 1.5,
+      "rainfall_intensity_mm_hr": [
+        0,
+        30,
+        90,
+        90,
+        45,
+        0
+      ],
+      "expected_rainfall_depth_mm": 21.25,
+      "conduit_diameter_m": 0.6,
+      "paired_baseline_case_id": "S1-REF-X150-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-REF-X150-D040",
+      "rainfall_profile_id": "reference",
+      "rainfall_depth_multiplier": 1.5,
+      "rainfall_intensity_mm_hr": [
+        0,
+        30,
+        90,
+        90,
+        45,
+        0
+      ],
+      "expected_rainfall_depth_mm": 21.25,
+      "conduit_diameter_m": 0.4,
+      "paired_baseline_case_id": "S1-REF-X150-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-REF-X150-D025",
+      "rainfall_profile_id": "reference",
+      "rainfall_depth_multiplier": 1.5,
+      "rainfall_intensity_mm_hr": [
+        0,
+        30,
+        90,
+        90,
+        45,
+        0
+      ],
+      "expected_rainfall_depth_mm": 21.25,
+      "conduit_diameter_m": 0.25,
+      "paired_baseline_case_id": "S1-REF-X150-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-SHORT-X050-D060",
+      "rainfall_profile_id": "short_burst",
+      "rainfall_depth_multiplier": 0.5,
+      "rainfall_intensity_mm_hr": [
+        0,
+        0,
+        42.5,
+        42.5,
+        0,
+        0
+      ],
+      "expected_rainfall_depth_mm": 7.083333,
+      "conduit_diameter_m": 0.6,
+      "paired_baseline_case_id": "S1-SHORT-X050-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-SHORT-X050-D040",
+      "rainfall_profile_id": "short_burst",
+      "rainfall_depth_multiplier": 0.5,
+      "rainfall_intensity_mm_hr": [
+        0,
+        0,
+        42.5,
+        42.5,
+        0,
+        0
+      ],
+      "expected_rainfall_depth_mm": 7.083333,
+      "conduit_diameter_m": 0.4,
+      "paired_baseline_case_id": "S1-SHORT-X050-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-SHORT-X050-D025",
+      "rainfall_profile_id": "short_burst",
+      "rainfall_depth_multiplier": 0.5,
+      "rainfall_intensity_mm_hr": [
+        0,
+        0,
+        42.5,
+        42.5,
+        0,
+        0
+      ],
+      "expected_rainfall_depth_mm": 7.083333,
+      "conduit_diameter_m": 0.25,
+      "paired_baseline_case_id": "S1-SHORT-X050-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-SHORT-X100-D060",
+      "rainfall_profile_id": "short_burst",
+      "rainfall_depth_multiplier": 1,
+      "rainfall_intensity_mm_hr": [
+        0,
+        0,
+        85,
+        85,
+        0,
+        0
+      ],
+      "expected_rainfall_depth_mm": 14.166667,
+      "conduit_diameter_m": 0.6,
+      "paired_baseline_case_id": "S1-SHORT-X100-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-SHORT-X100-D040",
+      "rainfall_profile_id": "short_burst",
+      "rainfall_depth_multiplier": 1,
+      "rainfall_intensity_mm_hr": [
+        0,
+        0,
+        85,
+        85,
+        0,
+        0
+      ],
+      "expected_rainfall_depth_mm": 14.166667,
+      "conduit_diameter_m": 0.4,
+      "paired_baseline_case_id": "S1-SHORT-X100-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-SHORT-X100-D025",
+      "rainfall_profile_id": "short_burst",
+      "rainfall_depth_multiplier": 1,
+      "rainfall_intensity_mm_hr": [
+        0,
+        0,
+        85,
+        85,
+        0,
+        0
+      ],
+      "expected_rainfall_depth_mm": 14.166667,
+      "conduit_diameter_m": 0.25,
+      "paired_baseline_case_id": "S1-SHORT-X100-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-SHORT-X150-D060",
+      "rainfall_profile_id": "short_burst",
+      "rainfall_depth_multiplier": 1.5,
+      "rainfall_intensity_mm_hr": [
+        0,
+        0,
+        127.5,
+        127.5,
+        0,
+        0
+      ],
+      "expected_rainfall_depth_mm": 21.25,
+      "conduit_diameter_m": 0.6,
+      "paired_baseline_case_id": "S1-SHORT-X150-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-SHORT-X150-D040",
+      "rainfall_profile_id": "short_burst",
+      "rainfall_depth_multiplier": 1.5,
+      "rainfall_intensity_mm_hr": [
+        0,
+        0,
+        127.5,
+        127.5,
+        0,
+        0
+      ],
+      "expected_rainfall_depth_mm": 21.25,
+      "conduit_diameter_m": 0.4,
+      "paired_baseline_case_id": "S1-SHORT-X150-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-SHORT-X150-D025",
+      "rainfall_profile_id": "short_burst",
+      "rainfall_depth_multiplier": 1.5,
+      "rainfall_intensity_mm_hr": [
+        0,
+        0,
+        127.5,
+        127.5,
+        0,
+        0
+      ],
+      "expected_rainfall_depth_mm": 21.25,
+      "conduit_diameter_m": 0.25,
+      "paired_baseline_case_id": "S1-SHORT-X150-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-EARLY-X050-D060",
+      "rainfall_profile_id": "early_peak",
+      "rainfall_depth_multiplier": 0.5,
+      "rainfall_intensity_mm_hr": [
+        42.5,
+        42.5,
+        0,
+        0,
+        0,
+        0
+      ],
+      "expected_rainfall_depth_mm": 7.083333,
+      "conduit_diameter_m": 0.6,
+      "paired_baseline_case_id": "S1-EARLY-X050-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-EARLY-X050-D040",
+      "rainfall_profile_id": "early_peak",
+      "rainfall_depth_multiplier": 0.5,
+      "rainfall_intensity_mm_hr": [
+        42.5,
+        42.5,
+        0,
+        0,
+        0,
+        0
+      ],
+      "expected_rainfall_depth_mm": 7.083333,
+      "conduit_diameter_m": 0.4,
+      "paired_baseline_case_id": "S1-EARLY-X050-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-EARLY-X050-D025",
+      "rainfall_profile_id": "early_peak",
+      "rainfall_depth_multiplier": 0.5,
+      "rainfall_intensity_mm_hr": [
+        42.5,
+        42.5,
+        0,
+        0,
+        0,
+        0
+      ],
+      "expected_rainfall_depth_mm": 7.083333,
+      "conduit_diameter_m": 0.25,
+      "paired_baseline_case_id": "S1-EARLY-X050-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-EARLY-X100-D060",
+      "rainfall_profile_id": "early_peak",
+      "rainfall_depth_multiplier": 1,
+      "rainfall_intensity_mm_hr": [
+        85,
+        85,
+        0,
+        0,
+        0,
+        0
+      ],
+      "expected_rainfall_depth_mm": 14.166667,
+      "conduit_diameter_m": 0.6,
+      "paired_baseline_case_id": "S1-EARLY-X100-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-EARLY-X100-D040",
+      "rainfall_profile_id": "early_peak",
+      "rainfall_depth_multiplier": 1,
+      "rainfall_intensity_mm_hr": [
+        85,
+        85,
+        0,
+        0,
+        0,
+        0
+      ],
+      "expected_rainfall_depth_mm": 14.166667,
+      "conduit_diameter_m": 0.4,
+      "paired_baseline_case_id": "S1-EARLY-X100-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-EARLY-X100-D025",
+      "rainfall_profile_id": "early_peak",
+      "rainfall_depth_multiplier": 1,
+      "rainfall_intensity_mm_hr": [
+        85,
+        85,
+        0,
+        0,
+        0,
+        0
+      ],
+      "expected_rainfall_depth_mm": 14.166667,
+      "conduit_diameter_m": 0.25,
+      "paired_baseline_case_id": "S1-EARLY-X100-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-EARLY-X150-D060",
+      "rainfall_profile_id": "early_peak",
+      "rainfall_depth_multiplier": 1.5,
+      "rainfall_intensity_mm_hr": [
+        127.5,
+        127.5,
+        0,
+        0,
+        0,
+        0
+      ],
+      "expected_rainfall_depth_mm": 21.25,
+      "conduit_diameter_m": 0.6,
+      "paired_baseline_case_id": "S1-EARLY-X150-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-EARLY-X150-D040",
+      "rainfall_profile_id": "early_peak",
+      "rainfall_depth_multiplier": 1.5,
+      "rainfall_intensity_mm_hr": [
+        127.5,
+        127.5,
+        0,
+        0,
+        0,
+        0
+      ],
+      "expected_rainfall_depth_mm": 21.25,
+      "conduit_diameter_m": 0.4,
+      "paired_baseline_case_id": "S1-EARLY-X150-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-EARLY-X150-D025",
+      "rainfall_profile_id": "early_peak",
+      "rainfall_depth_multiplier": 1.5,
+      "rainfall_intensity_mm_hr": [
+        127.5,
+        127.5,
+        0,
+        0,
+        0,
+        0
+      ],
+      "expected_rainfall_depth_mm": 21.25,
+      "conduit_diameter_m": 0.25,
+      "paired_baseline_case_id": "S1-EARLY-X150-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-LATE-X050-D060",
+      "rainfall_profile_id": "delayed_peak",
+      "rainfall_depth_multiplier": 0.5,
+      "rainfall_intensity_mm_hr": [
+        0,
+        0,
+        0,
+        0,
+        42.5,
+        42.5
+      ],
+      "expected_rainfall_depth_mm": 7.083333,
+      "conduit_diameter_m": 0.6,
+      "paired_baseline_case_id": "S1-LATE-X050-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-LATE-X050-D040",
+      "rainfall_profile_id": "delayed_peak",
+      "rainfall_depth_multiplier": 0.5,
+      "rainfall_intensity_mm_hr": [
+        0,
+        0,
+        0,
+        0,
+        42.5,
+        42.5
+      ],
+      "expected_rainfall_depth_mm": 7.083333,
+      "conduit_diameter_m": 0.4,
+      "paired_baseline_case_id": "S1-LATE-X050-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-LATE-X050-D025",
+      "rainfall_profile_id": "delayed_peak",
+      "rainfall_depth_multiplier": 0.5,
+      "rainfall_intensity_mm_hr": [
+        0,
+        0,
+        0,
+        0,
+        42.5,
+        42.5
+      ],
+      "expected_rainfall_depth_mm": 7.083333,
+      "conduit_diameter_m": 0.25,
+      "paired_baseline_case_id": "S1-LATE-X050-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-LATE-X100-D060",
+      "rainfall_profile_id": "delayed_peak",
+      "rainfall_depth_multiplier": 1,
+      "rainfall_intensity_mm_hr": [
+        0,
+        0,
+        0,
+        0,
+        85,
+        85
+      ],
+      "expected_rainfall_depth_mm": 14.166667,
+      "conduit_diameter_m": 0.6,
+      "paired_baseline_case_id": "S1-LATE-X100-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-LATE-X100-D040",
+      "rainfall_profile_id": "delayed_peak",
+      "rainfall_depth_multiplier": 1,
+      "rainfall_intensity_mm_hr": [
+        0,
+        0,
+        0,
+        0,
+        85,
+        85
+      ],
+      "expected_rainfall_depth_mm": 14.166667,
+      "conduit_diameter_m": 0.4,
+      "paired_baseline_case_id": "S1-LATE-X100-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-LATE-X100-D025",
+      "rainfall_profile_id": "delayed_peak",
+      "rainfall_depth_multiplier": 1,
+      "rainfall_intensity_mm_hr": [
+        0,
+        0,
+        0,
+        0,
+        85,
+        85
+      ],
+      "expected_rainfall_depth_mm": 14.166667,
+      "conduit_diameter_m": 0.25,
+      "paired_baseline_case_id": "S1-LATE-X100-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-LATE-X150-D060",
+      "rainfall_profile_id": "delayed_peak",
+      "rainfall_depth_multiplier": 1.5,
+      "rainfall_intensity_mm_hr": [
+        0,
+        0,
+        0,
+        0,
+        127.5,
+        127.5
+      ],
+      "expected_rainfall_depth_mm": 21.25,
+      "conduit_diameter_m": 0.6,
+      "paired_baseline_case_id": "S1-LATE-X150-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-LATE-X150-D040",
+      "rainfall_profile_id": "delayed_peak",
+      "rainfall_depth_multiplier": 1.5,
+      "rainfall_intensity_mm_hr": [
+        0,
+        0,
+        0,
+        0,
+        127.5,
+        127.5
+      ],
+      "expected_rainfall_depth_mm": 21.25,
+      "conduit_diameter_m": 0.4,
+      "paired_baseline_case_id": "S1-LATE-X150-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-LATE-X150-D025",
+      "rainfall_profile_id": "delayed_peak",
+      "rainfall_depth_multiplier": 1.5,
+      "rainfall_intensity_mm_hr": [
+        0,
+        0,
+        0,
+        0,
+        127.5,
+        127.5
+      ],
+      "expected_rainfall_depth_mm": 21.25,
+      "conduit_diameter_m": 0.25,
+      "paired_baseline_case_id": "S1-LATE-X150-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-DOUBLE-X050-D060",
+      "rainfall_profile_id": "double_peak",
+      "rainfall_depth_multiplier": 0.5,
+      "rainfall_intensity_mm_hr": [
+        0,
+        42.5,
+        0,
+        0,
+        42.5,
+        0
+      ],
+      "expected_rainfall_depth_mm": 7.083333,
+      "conduit_diameter_m": 0.6,
+      "paired_baseline_case_id": "S1-DOUBLE-X050-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-DOUBLE-X050-D040",
+      "rainfall_profile_id": "double_peak",
+      "rainfall_depth_multiplier": 0.5,
+      "rainfall_intensity_mm_hr": [
+        0,
+        42.5,
+        0,
+        0,
+        42.5,
+        0
+      ],
+      "expected_rainfall_depth_mm": 7.083333,
+      "conduit_diameter_m": 0.4,
+      "paired_baseline_case_id": "S1-DOUBLE-X050-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-DOUBLE-X050-D025",
+      "rainfall_profile_id": "double_peak",
+      "rainfall_depth_multiplier": 0.5,
+      "rainfall_intensity_mm_hr": [
+        0,
+        42.5,
+        0,
+        0,
+        42.5,
+        0
+      ],
+      "expected_rainfall_depth_mm": 7.083333,
+      "conduit_diameter_m": 0.25,
+      "paired_baseline_case_id": "S1-DOUBLE-X050-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-DOUBLE-X100-D060",
+      "rainfall_profile_id": "double_peak",
+      "rainfall_depth_multiplier": 1,
+      "rainfall_intensity_mm_hr": [
+        0,
+        85,
+        0,
+        0,
+        85,
+        0
+      ],
+      "expected_rainfall_depth_mm": 14.166667,
+      "conduit_diameter_m": 0.6,
+      "paired_baseline_case_id": "S1-DOUBLE-X100-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-DOUBLE-X100-D040",
+      "rainfall_profile_id": "double_peak",
+      "rainfall_depth_multiplier": 1,
+      "rainfall_intensity_mm_hr": [
+        0,
+        85,
+        0,
+        0,
+        85,
+        0
+      ],
+      "expected_rainfall_depth_mm": 14.166667,
+      "conduit_diameter_m": 0.4,
+      "paired_baseline_case_id": "S1-DOUBLE-X100-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-DOUBLE-X100-D025",
+      "rainfall_profile_id": "double_peak",
+      "rainfall_depth_multiplier": 1,
+      "rainfall_intensity_mm_hr": [
+        0,
+        85,
+        0,
+        0,
+        85,
+        0
+      ],
+      "expected_rainfall_depth_mm": 14.166667,
+      "conduit_diameter_m": 0.25,
+      "paired_baseline_case_id": "S1-DOUBLE-X100-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-DOUBLE-X150-D060",
+      "rainfall_profile_id": "double_peak",
+      "rainfall_depth_multiplier": 1.5,
+      "rainfall_intensity_mm_hr": [
+        0,
+        127.5,
+        0,
+        0,
+        127.5,
+        0
+      ],
+      "expected_rainfall_depth_mm": 21.25,
+      "conduit_diameter_m": 0.6,
+      "paired_baseline_case_id": "S1-DOUBLE-X150-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-DOUBLE-X150-D040",
+      "rainfall_profile_id": "double_peak",
+      "rainfall_depth_multiplier": 1.5,
+      "rainfall_intensity_mm_hr": [
+        0,
+        127.5,
+        0,
+        0,
+        127.5,
+        0
+      ],
+      "expected_rainfall_depth_mm": 21.25,
+      "conduit_diameter_m": 0.4,
+      "paired_baseline_case_id": "S1-DOUBLE-X150-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-DOUBLE-X150-D025",
+      "rainfall_profile_id": "double_peak",
+      "rainfall_depth_multiplier": 1.5,
+      "rainfall_intensity_mm_hr": [
+        0,
+        127.5,
+        0,
+        0,
+        127.5,
+        0
+      ],
+      "expected_rainfall_depth_mm": 21.25,
+      "conduit_diameter_m": 0.25,
+      "paired_baseline_case_id": "S1-DOUBLE-X150-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-SUSTAIN-X050-D060",
+      "rainfall_profile_id": "sustained_moderate",
+      "rainfall_depth_multiplier": 0.5,
+      "rainfall_intensity_mm_hr": [
+        14,
+        14,
+        14,
+        14,
+        14.5,
+        14.5
+      ],
+      "expected_rainfall_depth_mm": 7.083333,
+      "conduit_diameter_m": 0.6,
+      "paired_baseline_case_id": "S1-SUSTAIN-X050-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-SUSTAIN-X050-D040",
+      "rainfall_profile_id": "sustained_moderate",
+      "rainfall_depth_multiplier": 0.5,
+      "rainfall_intensity_mm_hr": [
+        14,
+        14,
+        14,
+        14,
+        14.5,
+        14.5
+      ],
+      "expected_rainfall_depth_mm": 7.083333,
+      "conduit_diameter_m": 0.4,
+      "paired_baseline_case_id": "S1-SUSTAIN-X050-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-SUSTAIN-X050-D025",
+      "rainfall_profile_id": "sustained_moderate",
+      "rainfall_depth_multiplier": 0.5,
+      "rainfall_intensity_mm_hr": [
+        14,
+        14,
+        14,
+        14,
+        14.5,
+        14.5
+      ],
+      "expected_rainfall_depth_mm": 7.083333,
+      "conduit_diameter_m": 0.25,
+      "paired_baseline_case_id": "S1-SUSTAIN-X050-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-SUSTAIN-X100-D060",
+      "rainfall_profile_id": "sustained_moderate",
+      "rainfall_depth_multiplier": 1,
+      "rainfall_intensity_mm_hr": [
+        28,
+        28,
+        28,
+        28,
+        29,
+        29
+      ],
+      "expected_rainfall_depth_mm": 14.166667,
+      "conduit_diameter_m": 0.6,
+      "paired_baseline_case_id": "S1-SUSTAIN-X100-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-SUSTAIN-X100-D040",
+      "rainfall_profile_id": "sustained_moderate",
+      "rainfall_depth_multiplier": 1,
+      "rainfall_intensity_mm_hr": [
+        28,
+        28,
+        28,
+        28,
+        29,
+        29
+      ],
+      "expected_rainfall_depth_mm": 14.166667,
+      "conduit_diameter_m": 0.4,
+      "paired_baseline_case_id": "S1-SUSTAIN-X100-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-SUSTAIN-X100-D025",
+      "rainfall_profile_id": "sustained_moderate",
+      "rainfall_depth_multiplier": 1,
+      "rainfall_intensity_mm_hr": [
+        28,
+        28,
+        28,
+        28,
+        29,
+        29
+      ],
+      "expected_rainfall_depth_mm": 14.166667,
+      "conduit_diameter_m": 0.25,
+      "paired_baseline_case_id": "S1-SUSTAIN-X100-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-SUSTAIN-X150-D060",
+      "rainfall_profile_id": "sustained_moderate",
+      "rainfall_depth_multiplier": 1.5,
+      "rainfall_intensity_mm_hr": [
+        42,
+        42,
+        42,
+        42,
+        43.5,
+        43.5
+      ],
+      "expected_rainfall_depth_mm": 21.25,
+      "conduit_diameter_m": 0.6,
+      "paired_baseline_case_id": "S1-SUSTAIN-X150-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-SUSTAIN-X150-D040",
+      "rainfall_profile_id": "sustained_moderate",
+      "rainfall_depth_multiplier": 1.5,
+      "rainfall_intensity_mm_hr": [
+        42,
+        42,
+        42,
+        42,
+        43.5,
+        43.5
+      ],
+      "expected_rainfall_depth_mm": 21.25,
+      "conduit_diameter_m": 0.4,
+      "paired_baseline_case_id": "S1-SUSTAIN-X150-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    },
+    {
+      "case_id": "S1-SUSTAIN-X150-D025",
+      "rainfall_profile_id": "sustained_moderate",
+      "rainfall_depth_multiplier": 1.5,
+      "rainfall_intensity_mm_hr": [
+        42,
+        42,
+        42,
+        42,
+        43.5,
+        43.5
+      ],
+      "expected_rainfall_depth_mm": 21.25,
+      "conduit_diameter_m": 0.25,
+      "paired_baseline_case_id": "S1-SUSTAIN-X150-D060",
+      "changed_parameters": [
+        "rainfall_intensity_mm_hr",
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
+      ]
+    }
+  ],
+  "assumptions": [
+    "All six rainfall profiles are hand-authored synthetic shapes across six 5-minute intervals; they are not observed storms or South African design storms.",
+    "Each base profile has the same nominal rainfall depth (approximately 14.166667 mm); depth multipliers change that amount independently of temporal shape.",
+    "Conduit diameters 0.60 m, 0.40 m and 0.25 m are synthetic stress states, not engineering recommendations.",
+    "Each case differs from the exact frozen source input only by the declared rainfall intensity vector and C1 circular diameter.",
+    "The paired baseline for each case uses identical rainfall profile and depth multiplier with C1 diameter 0.60 m.",
+    "All cases use the same fixed 5-second dynamic-wave routing step as a declared numerical-resolution setting; it is invariant across cases and is not independently tuned per case."
+  ],
+  "acceptance": {
+    "required_case_count": 54,
+    "absolute_continuity_error_smoke_limit_percent": 1,
+    "require_output_and_report": true,
+    "require_paired_baseline": true,
+    "require_raw_per_case_receipts": true,
+    "routing_step_seconds": 5
+  },
+  "nonclaims": [
+    "This plan is not a calibrated catchment and does not encode a return period, annual exceedance probability or design standard.",
+    "A low continuity error is a numerical consistency check, not empirical predictive accuracy or flood-safety evidence.",
+    "No environmental quality, sewer compliance, drainage design approval or real-world intervention benefit is claimed.",
+    "Every scenario is synthetic and has no authorization for fieldwork, operational control or automated actuation."
+  ]
+}

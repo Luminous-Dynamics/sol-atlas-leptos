@@ -1,0 +1,325 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/sol-atlas-core/schemas/water-storm-ensemble-plan-v0.1.schema.json",
+  "title": "Synthetic stormwater stress ensemble plan v0.1",
+  "description": "Paired 54-case scenario matrix. Synthetic-only; not a local design storm or calibration dataset.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "classification",
+    "benchmark_id",
+    "claim_ceiling",
+    "source_input",
+    "solver_profile",
+    "rainfall_profiles",
+    "rainfall_depth_multipliers",
+    "conduit_diameters_m",
+    "cases",
+    "assumptions",
+    "acceptance",
+    "nonclaims"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "water-storm-ensemble-plan/v0.1"
+    },
+    "classification": {
+      "const": "synthetic_public"
+    },
+    "benchmark_id": {
+      "const": "water-storm-ensemble-001"
+    },
+    "claim_ceiling": {
+      "const": "SyntheticScenarioEnvelopeOnly"
+    },
+    "source_input": {
+      "$ref": "#/$defs/sourceInput"
+    },
+    "solver_profile": {
+      "$ref": "#/$defs/solverProfile"
+    },
+    "rainfall_profiles": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "$ref": "#/$defs/rainfallProfile"
+      }
+    },
+    "rainfall_depth_multipliers": {
+      "const": [
+        0.5,
+        1,
+        1.5
+      ]
+    },
+    "conduit_diameters_m": {
+      "const": [
+        0.6,
+        0.4,
+        0.25
+      ]
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 54,
+      "maxItems": 54,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "acceptance": {
+      "$ref": "#/$defs/acceptance"
+    },
+    "nonclaims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "$defs": {
+    "sourceInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256",
+        "byte_length",
+        "synthetic"
+      ],
+      "properties": {
+        "path": {
+          "const": "sol-atlas-core/fixtures/water-engineering/s0_stormwater.inp"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "byte_length": {
+          "const": 1660
+        },
+        "synthetic": {
+          "const": true
+        }
+      }
+    },
+    "solverProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "engine",
+        "engine_version",
+        "source_commit",
+        "flow_units",
+        "routing",
+        "rain_gauge",
+        "rain_series",
+        "target_conduit_id",
+        "baseline_diameter_m",
+        "simulation_start",
+        "simulation_end",
+        "rainfall_interval_minutes",
+        "rainfall_interval_count",
+        "routing_step_seconds"
+      ],
+      "properties": {
+        "engine": {
+          "const": "EPA_SWMM"
+        },
+        "engine_version": {
+          "const": "5.2.4"
+        },
+        "source_commit": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "flow_units": {
+          "const": "CMS"
+        },
+        "routing": {
+          "const": "DYNWAVE"
+        },
+        "rain_gauge": {
+          "const": "G1"
+        },
+        "rain_series": {
+          "const": "RAIN1"
+        },
+        "target_conduit_id": {
+          "const": "C1"
+        },
+        "baseline_diameter_m": {
+          "const": 0.6
+        },
+        "simulation_start": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$"
+        },
+        "simulation_end": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$"
+        },
+        "rainfall_interval_minutes": {
+          "const": 5
+        },
+        "rainfall_interval_count": {
+          "const": 6
+        },
+        "routing_step_seconds": {
+          "const": 5
+        }
+      }
+    },
+    "rainfallProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile_id",
+        "interval_weights_mm_hr",
+        "reference_depth_mm",
+        "rationale"
+      ],
+      "properties": {
+        "profile_id": {
+          "enum": [
+            "reference",
+            "short_burst",
+            "early_peak",
+            "delayed_peak",
+            "double_peak",
+            "sustained_moderate"
+          ]
+        },
+        "interval_weights_mm_hr": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "items": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "reference_depth_mm": {
+          "type": "number",
+          "minimum": 0
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "rainfall_profile_id",
+        "rainfall_depth_multiplier",
+        "rainfall_intensity_mm_hr",
+        "expected_rainfall_depth_mm",
+        "conduit_diameter_m",
+        "paired_baseline_case_id",
+        "changed_parameters"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "pattern": "^S1-(REF|SHORT|EARLY|LATE|DOUBLE|SUSTAIN)-X(050|100|150)-D(060|040|025)$"
+        },
+        "rainfall_profile_id": {
+          "enum": [
+            "reference",
+            "short_burst",
+            "early_peak",
+            "delayed_peak",
+            "double_peak",
+            "sustained_moderate"
+          ]
+        },
+        "rainfall_depth_multiplier": {
+          "enum": [
+            0.5,
+            1,
+            1.5
+          ]
+        },
+        "rainfall_intensity_mm_hr": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "items": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "expected_rainfall_depth_mm": {
+          "type": "number",
+          "minimum": 0
+        },
+        "conduit_diameter_m": {
+          "enum": [
+            0.6,
+            0.4,
+            0.25
+          ]
+        },
+        "paired_baseline_case_id": {
+          "type": "string",
+          "pattern": "^S1-(REF|SHORT|EARLY|LATE|DOUBLE|SUSTAIN)-X(050|100|150)-D060$"
+        },
+        "changed_parameters": {
+          "const": [
+            "rainfall_intensity_mm_hr",
+            "C1.circular_diameter_m",
+            "ROUTING_STEP"
+          ]
+        }
+      }
+    },
+    "acceptance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required_case_count",
+        "absolute_continuity_error_smoke_limit_percent",
+        "require_output_and_report",
+        "require_paired_baseline",
+        "require_raw_per_case_receipts",
+        "routing_step_seconds"
+      ],
+      "properties": {
+        "required_case_count": {
+          "const": 54
+        },
+        "absolute_continuity_error_smoke_limit_percent": {
+          "const": 1
+        },
+        "require_output_and_report": {
+          "const": true
+        },
+        "require_paired_baseline": {
+          "const": true
+        },
+        "require_raw_per_case_receipts": {
+          "const": true
+        },
+        "routing_step_seconds": {
+          "const": 5
+        }
+      }
+    }
+  }
+}
