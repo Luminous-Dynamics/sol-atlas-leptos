@@ -1105,6 +1105,65 @@ mod tests {
     }
 
     #[test]
+    fn rejects_duplicate_dataset_and_terms_snapshots() {
+        let mut snapshots = artifact_snapshots().to_vec();
+        snapshots.push(ArtifactSnapshot {
+            role: ArtifactRole::Dataset,
+            uri: "https://data.example.test/methane.csv",
+            bytes: DATA_ARTIFACT_BYTES,
+        });
+        snapshots.push(ArtifactSnapshot {
+            role: ArtifactRole::Terms,
+            uri: "https://data.example.test/terms",
+            bytes: TERMS_ARTIFACT_BYTES,
+        });
+        let report = validate_batch(
+            &[observation("plume-duplicate-snapshot", quantified())],
+            &[],
+            DataUse::ResearchNonCommercial,
+            ObservationKind::RemoteSensingPlume,
+            &GasSpecies::Methane,
+            &snapshots,
+        );
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|violation| violation.code == "duplicate_source_artifact_snapshot")
+        );
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|violation| violation.code == "duplicate_terms_artifact_snapshot")
+        );
+    }
+
+    #[test]
+    fn rejects_empty_artifact_bytes() {
+        let mut snapshots = artifact_snapshots();
+        snapshots[0] = ArtifactSnapshot {
+            role: ArtifactRole::Dataset,
+            uri: "https://data.example.test/methane.csv",
+            bytes: b"",
+        };
+        let report = validate_batch(
+            &[observation("plume-empty-artifact", quantified())],
+            &[],
+            DataUse::ResearchNonCommercial,
+            ObservationKind::RemoteSensingPlume,
+            &GasSpecies::Methane,
+            &snapshots,
+        );
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|violation| violation.code == "empty_artifact_bytes")
+        );
+    }
+
+    #[test]
     fn sha256_helper_matches_standard_known_answer() {
         assert_eq!(
             sha256_hex(b"abc"),
