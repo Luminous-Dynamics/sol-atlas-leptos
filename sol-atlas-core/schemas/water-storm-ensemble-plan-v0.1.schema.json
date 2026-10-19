@@ -131,7 +131,8 @@
         "simulation_start",
         "simulation_end",
         "rainfall_interval_minutes",
-        "rainfall_interval_count"
+        "rainfall_interval_count",
+        "routing_step_seconds"
       ],
       "properties": {
         "engine": {
@@ -175,6 +176,9 @@
         },
         "rainfall_interval_count": {
           "const": 6
+        },
+        "routing_step_seconds": {
+          "const": 5
         }
       }
     },
@@ -279,7 +283,8 @@
         "changed_parameters": {
           "const": [
             "rainfall_intensity_mm_hr",
-            "C1.circular_diameter_m"
+            "C1.circular_diameter_m",
+            "ROUTING_STEP"
           ]
         }
       }
