@@ -1666,7 +1666,7 @@ mod tests {
                 Instrument {
                     instrument_id: "multimeter".into(),
                     calibration_state: CalibrationState::Qualified,
-                    calibrated_through_window: Some(3),
+                    calibrated_through_window: Some(2),
                     evidence: evidence(EvidenceClass::Assumed),
                 },
                 Instrument {
