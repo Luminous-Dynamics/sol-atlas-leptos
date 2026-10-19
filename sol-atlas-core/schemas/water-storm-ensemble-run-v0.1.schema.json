@@ -134,6 +134,7 @@
         "rainfall_depth_multiplier",
         "conduit_diameter_m",
         "paired_baseline_case_id",
+        "expected_rainfall_depth_mm",
         "case_state",
         "exit_code",
         "derived_input_sha256",
@@ -325,6 +326,10 @@
               "$ref": "#/$defs/metric"
             }
           }
+        },
+        "expected_rainfall_depth_mm": {
+          "type": "number",
+          "minimum": 0
         }
       }
     }
