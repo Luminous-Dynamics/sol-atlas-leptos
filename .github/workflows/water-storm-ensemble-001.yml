@@ -1,0 +1,158 @@
+name: Water storm ensemble 001 — 54 paired SWMM stress cases
+
+on:
+  push:
+    paths:
+      - "scripts/ci/swmm-storm-ensemble-001.sh"
+      - "sol-atlas-core/fixtures/water-engineering/s0_stormwater.inp"
+      - "sol-atlas-core/fixtures/water-engineering/water-storm-ensemble-001.synthetic.json"
+      - "sol-atlas-core/schemas/water-storm-ensemble-*.schema.json"
+      - "docs/research/water-storm-ensemble-001.md"
+      - ".github/workflows/water-storm-ensemble-001.yml"
+  pull_request:
+    paths:
+      - "scripts/ci/swmm-storm-ensemble-001.sh"
+      - "sol-atlas-core/fixtures/water-engineering/s0_stormwater.inp"
+      - "sol-atlas-core/fixtures/water-engineering/water-storm-ensemble-001.synthetic.json"
+      - "sol-atlas-core/schemas/water-storm-ensemble-*.schema.json"
+      - "docs/research/water-storm-ensemble-001.md"
+      - ".github/workflows/water-storm-ensemble-001.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  paired-storm-ensemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate storm ensemble runner shell syntax
+        run: bash -n scripts/ci/swmm-storm-ensemble-001.sh
+      - name: Install pinned Draft 2020-12 validator
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install jsonschema
+        run: python -m pip install --disable-pip-version-check --no-input jsonschema==4.26.0
+      - name: Validate frozen 54-case plan and exact source identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          from itertools import product
+          from jsonschema import Draft202012Validator
+
+          plan_path = Path("sol-atlas-core/fixtures/water-engineering/water-storm-ensemble-001.synthetic.json")
+          input_path = Path("sol-atlas-core/fixtures/water-engineering/s0_stormwater.inp")
+          plan_schema_path = Path("sol-atlas-core/schemas/water-storm-ensemble-plan-v0.1.schema.json")
+          run_schema_path = Path("sol-atlas-core/schemas/water-storm-ensemble-run-v0.1.schema.json")
+          plan = json.loads(plan_path.read_text(encoding="utf-8"))
+          plan_schema = json.loads(plan_schema_path.read_text(encoding="utf-8"))
+          run_schema = json.loads(run_schema_path.read_text(encoding="utf-8"))
+          Draft202012Validator.check_schema(plan_schema)
+          Draft202012Validator.check_schema(run_schema)
+          errors = list(Draft202012Validator(plan_schema).iter_errors(plan))
+          if errors:
+              for error in errors:
+                  print(f"PLAN_SCHEMA_ERROR /{'/'.join(map(str, error.absolute_path))}: {error.message}")
+              raise SystemExit(1)
+
+          source_bytes = input_path.read_bytes()
+          source_sha = hashlib.sha256(source_bytes).hexdigest()
+          if source_sha != plan["source_input"]["sha256"] or len(source_bytes) != plan["source_input"]["byte_length"]:
+              raise SystemExit(f"WATER_STORM_SOURCE_IDENTITY_MISMATCH: {source_sha}/{len(source_bytes)}")
+
+          profiles = {row["profile_id"]: row for row in plan["rainfall_profiles"]}
+          multipliers = plan["rainfall_depth_multipliers"]
+          diameters = plan["conduit_diameters_m"]
+          cases = plan["cases"]
+          expected = set(product(profiles, multipliers, diameters))
+          observed = [(c["rainfall_profile_id"], c["rainfall_depth_multiplier"], c["conduit_diameter_m"]) for c in cases]
+          if len(cases) != 54 or len({c["case_id"] for c in cases}) != 54 or set(observed) != expected or len(set(observed)) != 54:
+              raise SystemExit("WATER_STORM_MATRIX_NOT_EXACT_6x3x3")
+          by_id = {c["case_id"]: c for c in cases}
+          for case in cases:
+              p = profiles[case["rainfall_profile_id"]]
+              scale = case["rainfall_depth_multiplier"]
+              expected_rain = [round(value * scale, 3) for value in p["interval_weights_mm_hr"]]
+              if case["rainfall_intensity_mm_hr"] != expected_rain:
+                  raise SystemExit(f"WATER_STORM_RAIN_VECTOR_MISMATCH: {case['case_id']}")
+              depth = sum(expected_rain) * plan["solver_profile"]["rainfall_interval_minutes"] / 60.0
+              if abs(depth - case["expected_rainfall_depth_mm"]) > 1e-6:
+                  raise SystemExit(f"WATER_STORM_EXPECTED_DEPTH_MISMATCH: {case['case_id']}")
+              baseline = by_id.get(case["paired_baseline_case_id"])
+              if baseline is None or baseline["conduit_diameter_m"] != 0.6 or baseline["rainfall_profile_id"] != case["rainfall_profile_id"] or baseline["rainfall_depth_multiplier"] != scale or baseline["rainfall_intensity_mm_hr"] != expected_rain:
+                  raise SystemExit(f"WATER_STORM_PAIRED_BASELINE_INVALID: {case['case_id']}")
+          print("WATER_STORM_PLAN_PASS: 54 unique combinations; every stress case has an exact same-event baseline.")
+          PY
+      - name: Checkout pinned EPA SWMM solver source
+        uses: actions/checkout@v4
+        with:
+          repository: USEPA/Stormwater-Management-Model
+          ref: 7952ca837988b1c32f791812eccc9fd64547e093
+          path: .swmm-source
+      - name: Build pinned SWMM 5.2.4 CLI
+        id: swmm_build
+        run: |
+          set -euo pipefail
+          mkdir -p .swmm-build/bin/Release
+          cmake -S .swmm-source -B .swmm-build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF
+          cmake --build .swmm-build --config Release --parallel 2
+          test -x .swmm-build/bin/Release/runswmm || test -x .swmm-build/src/run/runswmm
+      - name: Run all 54 paired storm/diameter scenarios
+        if: always() && steps.swmm_build.outcome == 'success'
+        id: ensemble_run
+        continue-on-error: true
+        shell: bash
+        run: bash scripts/ci/swmm-storm-ensemble-001.sh
+      - name: Validate exact run receipt (including failure receipts)
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          receipt=artifacts/water-storm-ensemble-001/receipt.json
+          test -s "$receipt" || { echo "WATER_STORM_RECEIPT_MISSING"; exit 1; }
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+
+          schema_path = Path("sol-atlas-core/schemas/water-storm-ensemble-run-v0.1.schema.json")
+          receipt_path = Path("artifacts/water-storm-ensemble-001/receipt.json")
+          schema = json.loads(schema_path.read_text(encoding="utf-8"))
+          receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+          Draft202012Validator.check_schema(schema)
+          errors = sorted(Draft202012Validator(schema).iter_errors(receipt),
+                          key=lambda e: (list(map(str, e.absolute_path)), e.message))
+          if errors:
+              for error in errors:
+                  pointer = "/" + "/".join(map(str, error.absolute_path))
+                  print(f"{receipt_path}: {pointer}: {error.message}")
+              raise SystemExit(1)
+          print(f"WATER_STORM_RECEIPT_SCHEMA_PASS: state={receipt['run_state']} complete={receipt['completed_case_count']}/54 failed={receipt['failed_case_count']}")
+          PY
+      - name: Upload exact plan, receipts, inputs and all solver outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: water-storm-ensemble-001-evidence
+          path: |
+            sol-atlas-core/fixtures/water-engineering/s0_stormwater.inp
+            sol-atlas-core/fixtures/water-engineering/water-storm-ensemble-001.synthetic.json
+            artifacts/water-storm-ensemble-001/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Fail unless all 54 scenarios completed cleanly
+        if: always()
+        env:
+          BUILD_OUTCOME: ${{ steps.swmm_build.outcome }}
+          RUN_OUTCOME: ${{ steps.ensemble_run.outcome }}
+        run: |
+          set -euo pipefail
+          test "$BUILD_OUTCOME" = "success"
+          test "$RUN_OUTCOME" = "success"
+          test "$(jq -r '.run_state' artifacts/water-storm-ensemble-001/receipt.json)" = "Passed"
