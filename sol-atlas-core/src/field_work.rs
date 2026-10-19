@@ -72,16 +72,7 @@ impl FieldJobProjectionV1 {
             ProjectionError::InvalidSourceDigest,
         )?;
 
-        if self.transport == TransportState::OutcomeUnknown
-            && self.transport_operation_id().is_none()
-        {
-            return Err(ProjectionError::UnknownOutcomeMissingOperationId);
-        }
-        if self.transport == TransportState::Received
-            && self.transport_receipt_ref().is_none()
-        {
-            return Err(ProjectionError::ReceivedMissingReceipt);
-        }
+        self.transport.validate()?;
 
         let mut asset_ids = BTreeSet::new();
         for asset in &self.assets {
@@ -111,19 +102,6 @@ impl FieldJobProjectionV1 {
         Ok(())
     }
 
-    fn transport_operation_id(&self) -> Option<&str> {
-        match &self.transport {
-            TransportState::OutcomeUnknown { operation_id } => Some(operation_id.as_str()),
-            _ => None,
-        }
-    }
-
-    fn transport_receipt_ref(&self) -> Option<&str> {
-        match &self.transport {
-            TransportState::Received { receipt_ref } => Some(receipt_ref.as_str()),
-            _ => None,
-        }
-    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -164,6 +142,26 @@ pub enum TransportState {
     Received { receipt_ref: String },
     Rejected { reason_code: String },
     ConflictNeedsReview { conflict_ref: String },
+}
+
+impl TransportState {
+    fn validate(&self) -> Result<(), ProjectionError> {
+        match self {
+            Self::LocalOnly | Self::ReadyToSubmit => Ok(()),
+            Self::OutcomeUnknown { operation_id } => {
+                require_non_empty(operation_id, ProjectionError::UnknownOutcomeMissingOperationId)
+            }
+            Self::Received { receipt_ref } => {
+                require_non_empty(receipt_ref, ProjectionError::ReceivedMissingReceipt)
+            }
+            Self::Rejected { reason_code } => {
+                require_non_empty(reason_code, ProjectionError::RejectedMissingReasonCode)
+            }
+            Self::ConflictNeedsReview { conflict_ref } => {
+                require_non_empty(conflict_ref, ProjectionError::ConflictMissingReference)
+            }
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -376,6 +374,8 @@ pub enum ProjectionError {
     InvalidSourceDigest,
     UnknownOutcomeMissingOperationId,
     ReceivedMissingReceipt,
+    RejectedMissingReasonCode,
+    ConflictMissingReference,
     MissingAssetId,
     MissingAssetLabel,
     InvalidAssetRevision,
@@ -516,6 +516,24 @@ mod tests {
         assert_eq!(
             projection.validate(),
             Err(ProjectionError::ReceivedMissingReceipt)
+        );
+
+        let mut projection = valid_projection();
+        projection.transport = TransportState::Rejected {
+            reason_code: String::new(),
+        };
+        assert_eq!(
+            projection.validate(),
+            Err(ProjectionError::RejectedMissingReasonCode)
+        );
+
+        let mut projection = valid_projection();
+        projection.transport = TransportState::ConflictNeedsReview {
+            conflict_ref: " ".into(),
+        };
+        assert_eq!(
+            projection.validate(),
+            Err(ProjectionError::ConflictMissingReference)
         );
     }
 
