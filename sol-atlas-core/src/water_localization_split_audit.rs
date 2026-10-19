@@ -260,14 +260,17 @@ fn validate_case(plan: &SplitPlan, case: &SplitCase) -> Vec<String> {
     }
     match case.perturbation.fault_class.as_str() {
         "no_fault" => {
-            if case.perturbation.target_node_id.is_some()
-                || case.perturbation.withdrawal_gpm != 0.0
+            if case.perturbation.target_node_id.is_some() || case.perturbation.withdrawal_gpm != 0.0
             {
                 issues.push("NO_FAULT_LABEL_CONTRADICTS_PERTURBATION".to_owned());
             }
         }
         "single_withdrawal" | "incipient_withdrawal" => {
-            if case.perturbation.target_node_id.as_deref().is_none_or(|node| !nodes.contains(node))
+            if case
+                .perturbation
+                .target_node_id
+                .as_deref()
+                .is_none_or(|node| !nodes.contains(node))
                 || case.perturbation.withdrawal_gpm <= 0.0
             {
                 issues.push("WITHDRAWAL_TARGET_OR_MAGNITUDE_INVALID".to_owned());
@@ -353,13 +356,19 @@ fn family_lists(plan: &SplitPlan) -> Result<BTreeMap<String, String>, Vec<AuditI
             if let Some(previous) = mapping.insert(family.clone(), split.to_owned()) {
                 issues.push(AuditIssue {
                     code: "TOPOLOGY_FAMILY_SPLIT_OVERLAP".to_owned(),
-                    message: format!("topology family {family} appears in both {previous} and {split}"),
+                    message: format!(
+                        "topology family {family} appears in both {previous} and {split}"
+                    ),
                     case_id: None,
                 });
             }
         }
     }
-    if issues.is_empty() { Ok(mapping) } else { Err(issues) }
+    if issues.is_empty() {
+        Ok(mapping)
+    } else {
+        Err(issues)
+    }
 }
 
 pub fn evaluate_split_plan(plan: &SplitPlan, raw_plan_sha256: &str) -> SplitAuditReceipt {
@@ -374,7 +383,10 @@ pub fn evaluate_split_plan(plan: &SplitPlan, raw_plan_sha256: &str) -> SplitAudi
     if plan.schema_version != PLAN_SCHEMA_VERSION {
         issues.push(AuditIssue {
             code: "PLAN_SCHEMA_VERSION_UNSUPPORTED".to_owned(),
-            message: format!("expected {PLAN_SCHEMA_VERSION}, got {}", plan.schema_version),
+            message: format!(
+                "expected {PLAN_SCHEMA_VERSION}, got {}",
+                plan.schema_version
+            ),
             case_id: None,
         });
     }
@@ -487,7 +499,9 @@ pub fn evaluate_split_plan(plan: &SplitPlan, raw_plan_sha256: &str) -> SplitAudi
                 continue;
             }
         };
-        if let Some(previous) = family_split.insert(case.topology_family_id.clone(), case.split.clone()) {
+        if let Some(previous) =
+            family_split.insert(case.topology_family_id.clone(), case.split.clone())
+        {
             if previous != case.split {
                 issues.push(AuditIssue {
                     code: "TOPOLOGY_FAMILY_CROSSES_SPLITS".to_owned(),
@@ -499,20 +513,30 @@ pub fn evaluate_split_plan(plan: &SplitPlan, raw_plan_sha256: &str) -> SplitAudi
                 });
             }
         }
-        if let Some(previous) = family_topology.insert(case.topology_family_id.clone(), topology_digest.clone()) {
+        if let Some(previous) =
+            family_topology.insert(case.topology_family_id.clone(), topology_digest.clone())
+        {
             if previous != topology_digest {
                 issues.push(AuditIssue {
                     code: "TOPOLOGY_FAMILY_HAS_MULTIPLE_GRAPHS".to_owned(),
-                    message: format!("family {} maps to multiple exact graph fingerprints", case.topology_family_id),
+                    message: format!(
+                        "family {} maps to multiple exact graph fingerprints",
+                        case.topology_family_id
+                    ),
                     case_id: Some(case.case_id.clone()),
                 });
             }
         }
-        if let Some(previous) = topology_family.insert(topology_digest.clone(), case.topology_family_id.clone()) {
+        if let Some(previous) =
+            topology_family.insert(topology_digest.clone(), case.topology_family_id.clone())
+        {
             if previous != case.topology_family_id {
                 issues.push(AuditIssue {
                     code: "EXACT_TOPOLOGY_HAS_MULTIPLE_FAMILY_IDS".to_owned(),
-                    message: format!("exact topology appears under family IDs {previous} and {}", case.topology_family_id),
+                    message: format!(
+                        "exact topology appears under family IDs {previous} and {}",
+                        case.topology_family_id
+                    ),
                     case_id: Some(case.case_id.clone()),
                 });
             }
@@ -526,17 +550,18 @@ pub fn evaluate_split_plan(plan: &SplitPlan, raw_plan_sha256: &str) -> SplitAudi
             &mut issues,
         );
 
-        let observation_digest = match observation_signature_sha256(&plan.pressure_unit, &case.sensor_readings) {
-            Ok(value) => value,
-            Err(error) => {
-                issues.push(AuditIssue {
-                    code: "OBSERVATION_FINGERPRINT_FAILED".to_owned(),
-                    message: error,
-                    case_id: Some(case.case_id.clone()),
-                });
-                continue;
-            }
-        };
+        let observation_digest =
+            match observation_signature_sha256(&plan.pressure_unit, &case.sensor_readings) {
+                Ok(value) => value,
+                Err(error) => {
+                    issues.push(AuditIssue {
+                        code: "OBSERVATION_FINGERPRINT_FAILED".to_owned(),
+                        message: error,
+                        case_id: Some(case.case_id.clone()),
+                    });
+                    continue;
+                }
+            };
         insert_cross_split_identity(
             &mut observation_split,
             &observation_digest,
@@ -572,10 +597,21 @@ pub fn evaluate_split_plan(plan: &SplitPlan, raw_plan_sha256: &str) -> SplitAudi
             topology_sha256: topology_digest,
             scenario_spec_sha256: scenario_digest,
             observation_signature_sha256: observation_digest,
-            observed_reading_count: case.sensor_readings.iter().filter(|r| r.state == "observed").count(),
-            missing_reading_count: case.sensor_readings.iter().filter(|r| r.state == "missing").count(),
+            observed_reading_count: case
+                .sensor_readings
+                .iter()
+                .filter(|r| r.state == "observed")
+                .count(),
+            missing_reading_count: case
+                .sensor_readings
+                .iter()
+                .filter(|r| r.state == "missing")
+                .count(),
         });
-        family_members.entry(case.topology_family_id.clone()).or_default().push(case);
+        family_members
+            .entry(case.topology_family_id.clone())
+            .or_default()
+            .push(case);
     }
 
     let observed_families: BTreeSet<String> = family_members.keys().cloned().collect();
@@ -605,18 +641,23 @@ pub fn evaluate_split_plan(plan: &SplitPlan, raw_plan_sha256: &str) -> SplitAudi
     case_fingerprints.sort_by(|left, right| left.case_id.cmp(&right.case_id));
     family_counts.sort_by(|left, right| left.topology_family_id.cmp(&right.topology_family_id));
     issues.sort_by(|left, right| {
-        (&left.code, &left.case_id, &left.message).cmp(&(&right.code, &right.case_id, &right.message))
+        (&left.code, &left.case_id, &left.message).cmp(&(
+            &right.code,
+            &right.case_id,
+            &right.message,
+        ))
     });
     issues.dedup();
 
     let mut passed = issues.is_empty()
-        && ["train", "calibration", "test"].iter().all(|split| {
-            family_counts.iter().any(|family| family.split == *split)
-        });
+        && ["train", "calibration", "test"]
+            .iter()
+            .all(|split| family_counts.iter().any(|family| family.split == *split));
     if !passed && issues.is_empty() {
         issues.push(AuditIssue {
             code: "SPLIT_NOT_COVERED".to_owned(),
-            message: "train, calibration, and test must all contain at least one topology family".to_owned(),
+            message: "train, calibration, and test must all contain at least one topology family"
+                .to_owned(),
             case_id: None,
         });
         passed = false;
@@ -656,7 +697,9 @@ fn insert_cross_split_identity(
         if previous != split {
             issues.push(AuditIssue {
                 code: code.to_owned(),
-                message: format!("identity {identity} is reused across {previous} and {split} splits"),
+                message: format!(
+                    "identity {identity} is reused across {previous} and {split} splits"
+                ),
                 case_id: Some(case_id.to_owned()),
             });
         }
@@ -665,14 +708,20 @@ fn insert_cross_split_identity(
     }
 }
 
-fn scenario_spec_sha256(topology_digest: &str, perturbation: &PerturbationSpec) -> Result<String, String> {
+fn scenario_spec_sha256(
+    topology_digest: &str,
+    perturbation: &PerturbationSpec,
+) -> Result<String, String> {
     canonical_json_sha256(&CanonicalScenarioSpec {
         topology_sha256: topology_digest,
         perturbation,
     })
 }
 
-fn observation_signature_sha256(pressure_unit: &str, readings: &[SensorReading]) -> Result<String, String> {
+fn observation_signature_sha256(
+    pressure_unit: &str,
+    readings: &[SensorReading],
+) -> Result<String, String> {
     let mut canonical_readings = readings.to_vec();
     canonical_readings.sort_by(|left, right| left.node_id.cmp(&right.node_id));
     canonical_json_sha256(&CanonicalObservationSignature {
@@ -705,9 +754,20 @@ mod tests {
         assert_eq!(receipt.run_state, "Passed", "{:?}", receipt.issues);
         assert_eq!(receipt.case_count, 9);
         assert_eq!(receipt.family_count, 3);
-        assert_eq!(receipt.family_counts.iter().map(|row| row.case_count).sum::<usize>(), 9);
         assert_eq!(
-            receipt.family_counts.iter().map(|row| row.split.as_str()).collect::<BTreeSet<_>>(),
+            receipt
+                .family_counts
+                .iter()
+                .map(|row| row.case_count)
+                .sum::<usize>(),
+            9
+        );
+        assert_eq!(
+            receipt
+                .family_counts
+                .iter()
+                .map(|row| row.split.as_str())
+                .collect::<BTreeSet<_>>(),
             BTreeSet::from(["train", "calibration", "test"])
         );
     }
@@ -733,33 +793,73 @@ mod tests {
     #[test]
     fn held_out_topology_family_cannot_leak_into_training() {
         let (mut plan, digest) = load_plan();
-        let case = plan.cases.iter_mut().find(|case| case.split == "test").unwrap();
+        let case = plan
+            .cases
+            .iter_mut()
+            .find(|case| case.split == "test")
+            .unwrap();
         case.split = "train".to_owned();
         let receipt = evaluate_split_plan(&plan, &digest);
         assert_eq!(receipt.run_state, "Rejected");
-        assert!(receipt.issues.iter().any(|issue| issue.code == "CASE_SPLIT_DOES_NOT_MATCH_FAMILY_PLAN"));
+        assert!(
+            receipt
+                .issues
+                .iter()
+                .any(|issue| issue.code == "CASE_SPLIT_DOES_NOT_MATCH_FAMILY_PLAN")
+        );
     }
 
     #[test]
     fn scenario_seed_reuse_across_splits_is_rejected() {
         let (mut plan, digest) = load_plan();
-        let train_seed = plan.cases.iter().find(|case| case.split == "train").unwrap().perturbation.scenario_seed.clone();
-        let test = plan.cases.iter_mut().find(|case| case.split == "test").unwrap();
+        let train_seed = plan
+            .cases
+            .iter()
+            .find(|case| case.split == "train")
+            .unwrap()
+            .perturbation
+            .scenario_seed
+            .clone();
+        let test = plan
+            .cases
+            .iter_mut()
+            .find(|case| case.split == "test")
+            .unwrap();
         test.perturbation.scenario_seed = train_seed;
         let receipt = evaluate_split_plan(&plan, &digest);
         assert_eq!(receipt.run_state, "Rejected");
-        assert!(receipt.issues.iter().any(|issue| issue.code == "SCENARIO_SEED_CROSSES_SPLITS"));
+        assert!(
+            receipt
+                .issues
+                .iter()
+                .any(|issue| issue.code == "SCENARIO_SEED_CROSSES_SPLITS")
+        );
     }
 
     #[test]
     fn identical_observation_signature_across_splits_is_rejected() {
         let (mut plan, digest) = load_plan();
-        let train_readings = plan.cases.iter().find(|case| case.split == "train").unwrap().sensor_readings.clone();
-        let test = plan.cases.iter_mut().find(|case| case.split == "test").unwrap();
+        let train_readings = plan
+            .cases
+            .iter()
+            .find(|case| case.split == "train")
+            .unwrap()
+            .sensor_readings
+            .clone();
+        let test = plan
+            .cases
+            .iter_mut()
+            .find(|case| case.split == "test")
+            .unwrap();
         test.sensor_readings = train_readings;
         let receipt = evaluate_split_plan(&plan, &digest);
         assert_eq!(receipt.run_state, "Rejected");
-        assert!(receipt.issues.iter().any(|issue| issue.code == "OBSERVATION_SIGNATURE_CROSSES_SPLITS"));
+        assert!(
+            receipt
+                .issues
+                .iter()
+                .any(|issue| issue.code == "OBSERVATION_SIGNATURE_CROSSES_SPLITS")
+        );
     }
 
     #[test]
@@ -769,8 +869,18 @@ mod tests {
         plan.cases[2].sensor_readings[0].node_id = "MISSING-NODE".to_owned();
         let receipt = evaluate_split_plan(&plan, &digest);
         assert_eq!(receipt.run_state, "Rejected");
-        assert!(receipt.issues.iter().any(|issue| issue.code == "CASE_ID_DUPLICATE"));
-        assert!(receipt.issues.iter().any(|issue| issue.code == "SENSOR_NODE_UNKNOWN"));
+        assert!(
+            receipt
+                .issues
+                .iter()
+                .any(|issue| issue.code == "CASE_ID_DUPLICATE")
+        );
+        assert!(
+            receipt
+                .issues
+                .iter()
+                .any(|issue| issue.code == "SENSOR_NODE_UNKNOWN")
+        );
     }
 
     #[test]
@@ -781,10 +891,16 @@ mod tests {
         copy.topology_family_id = "separate-but-same-graph".to_owned();
         copy.split = "train".to_owned();
         copy.perturbation.scenario_seed = "unique-copy-seed".to_owned();
-        plan.train_topology_families.push("separate-but-same-graph".to_owned());
+        plan.train_topology_families
+            .push("separate-but-same-graph".to_owned());
         plan.cases.push(copy);
         let receipt = evaluate_split_plan(&plan, &digest);
         assert_eq!(receipt.run_state, "Rejected");
-        assert!(receipt.issues.iter().any(|issue| issue.code == "EXACT_TOPOLOGY_HAS_MULTIPLE_FAMILY_IDS"));
+        assert!(
+            receipt
+                .issues
+                .iter()
+                .any(|issue| issue.code == "EXACT_TOPOLOGY_HAS_MULTIPLE_FAMILY_IDS")
+        );
     }
 }
