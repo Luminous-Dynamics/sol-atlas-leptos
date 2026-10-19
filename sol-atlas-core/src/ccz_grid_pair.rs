@@ -764,4 +764,114 @@ mod tests {
                 .any(|i| i.code == GridPairIssueCode::InvalidArtifactSha256)
         );
     }
+    #[test]
+    fn required_provenance_identity_fields_fail_closed() {
+        let mut pair = valid_pair();
+        pair.bathymetry.source_snapshot_id.clear();
+        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::MissingSnapshotId));
+
+        let mut pair = valid_pair();
+        pair.bathymetry.product_id.clear();
+        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::MissingProductId));
+
+        let mut pair = valid_pair();
+        pair.bathymetry.product_version.clear();
+        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::MissingProductVersion));
+
+        let mut pair = valid_pair();
+        pair.bathymetry.grid_id.clear();
+        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::MissingGridId));
+    }
+
+    #[test]
+    fn invalid_grid_geometry_metadata_fails_closed() {
+        let mut pair = valid_pair();
+        pair.bathymetry.rows = 0;
+        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::InvalidDimensions));
+
+        let mut pair = valid_pair();
+        pair.bathymetry.bounds.east_edge_microarcseconds = pair.bathymetry.bounds.west_edge_microarcseconds;
+        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::InvalidBounds));
+
+        let mut pair = valid_pair();
+        pair.bathymetry.cell_width_microarcseconds = 0;
+        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::InvalidCellSpacing));
+    }
+
+    #[test]
+    fn incomplete_coordinate_metadata_fails_closed() {
+        let mut pair = valid_pair();
+        pair.bathymetry.coordinate_reference_system = None;
+        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::MissingCoordinateReferenceSystem));
+
+        let mut pair = valid_pair();
+        pair.bathymetry.horizontal_unit = None;
+        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::MissingHorizontalUnit));
+
+        let mut pair = valid_pair();
+        pair.bathymetry.row_axis = GridAxis::Unknown;
+        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::UnknownAxisOrder));
+
+        let mut pair = valid_pair();
+        pair.bathymetry.column_axis = GridAxis::Latitude;
+        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::DuplicateAxisOrder));
+
+        let mut pair = valid_pair();
+        pair.bathymetry.registration = GridRegistration::Unknown;
+        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::UnknownRegistration));
+    }
+
+    #[test]
+    fn pair_identity_spacing_units_and_registration_mismatches_fail_closed() {
+        let mut pair = valid_pair();
+        pair.type_identifier.product_id = "different-product".into();
+        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::ProductMismatch));
+
+        let mut pair = valid_pair();
+        pair.type_identifier.grid_id = "different-grid".into();
+        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::GridIdentityMismatch));
+
+        let mut pair = valid_pair();
+        pair.type_identifier.cell_width_microarcseconds += 1;
+        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::CellSpacingMismatch));
+
+        let mut pair = valid_pair();
+        pair.type_identifier.horizontal_unit = Some("radians".into());
+        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::HorizontalUnitMismatch));
+
+        let mut pair = valid_pair();
+        pair.type_identifier.registration = GridRegistration::PixelArea;
+        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::RegistrationMismatch));
+    }
+
+    #[test]
+    fn cell_decoders_reject_wrong_nodata_encoding_width() {
+        assert_eq!(
+            decode_bathymetry_cell(7, NoDataEncoding::U8Sentinel(255)),
+            Err(CellDecodeError::NoDataEncodingTypeMismatch)
+        );
+        assert_eq!(
+            decode_tid_cell(7, NoDataEncoding::I16Sentinel(-32768)),
+            Err(CellDecodeError::NoDataEncodingTypeMismatch)
+        );
+    }
+
+    #[test]
+    fn same_pair_emits_same_ordered_validation_report() {
+        let mut pair = valid_pair();
+        pair.type_identifier.product_version = "mismatched".into();
+        pair.type_identifier.bounds.east_edge_microarcseconds += 1;
+        let first = validate_grid_pair(&pair);
+        let second = validate_grid_pair(&pair);
+        assert_eq!(first, second);
+    }
+
+    #[test]
+    fn serde_rejects_unknown_grid_metadata_fields() {
+        let encoded = serde_json::to_value(metadata()).unwrap();
+        let mut object = encoded.as_object().unwrap().clone();
+        object.insert("owner".into(), serde_json::Value::String("unverified".into()));
+        assert!(serde_json::from_value::<GridMetadata>(serde_json::Value::Object(object)).is_err());
+    }
+
 }
