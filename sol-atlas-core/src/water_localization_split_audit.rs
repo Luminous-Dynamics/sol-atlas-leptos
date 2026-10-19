@@ -97,7 +97,13 @@ pub struct FamilyCount {
     pub topology_family_id: String,
     pub split: String,
     pub case_count: usize,
+    pub topology_variants: Vec<TopologyFingerprint>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct TopologyFingerprint {
     pub topology_sha256: String,
+    pub case_count: usize,
     pub node_count: usize,
     pub link_count: usize,
 }
@@ -443,7 +449,6 @@ pub fn evaluate_split_plan(plan: &SplitPlan, raw_plan_sha256: &str) -> SplitAudi
 
     let mut seen_case_ids = HashSet::new();
     let mut family_split: BTreeMap<String, String> = BTreeMap::new();
-    let mut family_topology: BTreeMap<String, String> = BTreeMap::new();
     let mut topology_family: BTreeMap<String, String> = BTreeMap::new();
     let mut seed_split: BTreeMap<String, String> = BTreeMap::new();
     let mut observation_split: BTreeMap<String, String> = BTreeMap::new();
@@ -508,20 +513,6 @@ pub fn evaluate_split_plan(plan: &SplitPlan, raw_plan_sha256: &str) -> SplitAudi
                     message: format!(
                         "topology family {} occurs in both {previous} and {}",
                         case.topology_family_id, case.split
-                    ),
-                    case_id: Some(case.case_id.clone()),
-                });
-            }
-        }
-        if let Some(previous) =
-            family_topology.insert(case.topology_family_id.clone(), topology_digest.clone())
-        {
-            if previous != topology_digest {
-                issues.push(AuditIssue {
-                    code: "TOPOLOGY_FAMILY_HAS_MULTIPLE_GRAPHS".to_owned(),
-                    message: format!(
-                        "family {} maps to multiple exact graph fingerprints",
-                        case.topology_family_id
                     ),
                     case_id: Some(case.case_id.clone()),
                 });
@@ -627,14 +618,28 @@ pub fn evaluate_split_plan(plan: &SplitPlan, raw_plan_sha256: &str) -> SplitAudi
     let mut family_counts = Vec::new();
     for (family_id, cases) in &family_members {
         if let Some(first) = cases.first() {
-            let digest = topology_sha256(&first.topology).unwrap_or_default();
+            let mut by_topology: BTreeMap<String, Vec<&SplitCase>> = BTreeMap::new();
+            for case in cases {
+                let digest = topology_sha256(&case.topology).unwrap_or_default();
+                by_topology.entry(digest).or_default().push(case);
+            }
+            let topology_variants = by_topology
+                .into_iter()
+                .filter_map(|(digest, variants)| {
+                    let first_variant = variants.first()?;
+                    Some(TopologyFingerprint {
+                        topology_sha256: digest,
+                        case_count: variants.len(),
+                        node_count: first_variant.topology.nodes.len(),
+                        link_count: first_variant.topology.links.len(),
+                    })
+                })
+                .collect();
             family_counts.push(FamilyCount {
                 topology_family_id: family_id.clone(),
                 split: first.split.clone(),
                 case_count: cases.len(),
-                topology_sha256: digest,
-                node_count: first.topology.nodes.len(),
-                link_count: first.topology.links.len(),
+                topology_variants,
             });
         }
     }
@@ -880,6 +885,50 @@ mod tests {
                 .issues
                 .iter()
                 .any(|issue| issue.code == "SENSOR_NODE_UNKNOWN")
+        );
+    }
+
+    #[test]
+    fn reviewed_topology_family_may_contain_multiple_graph_variants() {
+        let (mut plan, digest) = load_plan();
+        let mut variant = plan
+            .cases
+            .iter()
+            .find(|case| case.split == "train")
+            .unwrap()
+            .clone();
+        variant.case_id = "SRC-TOPOLOGY-VARIANT".to_owned();
+        variant.perturbation.scenario_seed = "seed-104".to_owned();
+        variant.topology.nodes.push("N5".to_owned());
+        variant.topology.links.push(TopologyLink {
+            link_id: "L4".to_owned(),
+            from_node_id: "N4".to_owned(),
+            to_node_id: "N5".to_owned(),
+        });
+        variant.sensor_readings.push(SensorReading {
+            node_id: "N5".to_owned(),
+            state: "observed".to_owned(),
+            pressure_delta_psi: Some(-0.02),
+        });
+        plan.cases.push(variant);
+
+        let receipt = evaluate_split_plan(&plan, &digest);
+        assert_eq!(receipt.run_state, "Passed", "{:?}", receipt.issues);
+        assert_eq!(receipt.case_count, 10);
+        let train_family = receipt
+            .family_counts
+            .iter()
+            .find(|family| family.topology_family_id == "source-tree")
+            .unwrap();
+        assert_eq!(train_family.case_count, 4);
+        assert_eq!(train_family.topology_variants.len(), 2);
+        assert_eq!(
+            train_family
+                .topology_variants
+                .iter()
+                .map(|variant| variant.case_count)
+                .sum::<usize>(),
+            4
         );
     }
 
