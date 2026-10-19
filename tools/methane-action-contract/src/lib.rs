@@ -20,11 +20,16 @@ pub enum TermsReview {
     Rejected {
         reviewer_id: String,
         reason: String,
+        terms_uri: String,
+        terms_sha256: String,
+        reviewed_at_utc: String,
     },
     Approved {
         reviewer_id: String,
         approved_use: DataUse,
+        terms_uri: String,
         terms_sha256: String,
+        reviewed_at_utc: String,
     },
 }
 
@@ -348,14 +353,21 @@ fn validate_provenance(
                 "terms_not_reviewed",
             );
         }
-        TermsReview::Rejected { reviewer_id, reason } => {
-            if reviewer_id.trim().is_empty() {
-                report.push(
-                    record_id,
-                    "provenance.terms_review.reviewer_id",
-                    "empty_reviewer_id",
-                );
-            }
+        TermsReview::Rejected {
+            reviewer_id,
+            reason,
+            terms_uri,
+            terms_sha256,
+            reviewed_at_utc,
+        } => {
+            validate_terms_metadata(
+                report,
+                record_id,
+                reviewer_id,
+                terms_uri,
+                terms_sha256,
+                reviewed_at_utc,
+            );
             if reason.trim().is_empty() {
                 report.push(
                     record_id,
@@ -363,24 +375,23 @@ fn validate_provenance(
                     "empty_review_reason",
                 );
             }
-            report.push(
-                record_id,
-                "provenance.terms_review",
-                "terms_rejected",
-            );
+            report.push(record_id, "provenance.terms_review", "terms_rejected");
         }
         TermsReview::Approved {
             reviewer_id,
             approved_use,
+            terms_uri,
             terms_sha256,
+            reviewed_at_utc,
         } => {
-            if reviewer_id.trim().is_empty() {
-                report.push(
-                    record_id,
-                    "provenance.terms_review.reviewer_id",
-                    "empty_reviewer_id",
-                );
-            }
+            validate_terms_metadata(
+                report,
+                record_id,
+                reviewer_id,
+                terms_uri,
+                terms_sha256,
+                reviewed_at_utc,
+            );
             if *approved_use != required_use {
                 report.push(
                     record_id,
@@ -388,14 +399,45 @@ fn validate_provenance(
                     "declared_use_mismatch",
                 );
             }
-            if !is_sha256_hex(terms_sha256) {
-                report.push(
-                    record_id,
-                    "provenance.terms_review.terms_sha256",
-                    "invalid_sha256_format",
-                );
-            }
         }
+    }
+}
+
+fn validate_terms_metadata(
+    report: &mut ValidationReport,
+    record_id: &str,
+    reviewer_id: &str,
+    terms_uri: &str,
+    terms_sha256: &str,
+    reviewed_at_utc: &str,
+) {
+    if reviewer_id.trim().is_empty() {
+        report.push(
+            record_id,
+            "provenance.terms_review.reviewer_id",
+            "empty_reviewer_id",
+        );
+    }
+    if !terms_uri.starts_with("https://") {
+        report.push(
+            record_id,
+            "provenance.terms_review.terms_uri",
+            "terms_uri_not_https",
+        );
+    }
+    if !is_sha256_hex(terms_sha256) {
+        report.push(
+            record_id,
+            "provenance.terms_review.terms_sha256",
+            "invalid_sha256_format",
+        );
+    }
+    if !is_utc_timestamp(reviewed_at_utc) {
+        report.push(
+            record_id,
+            "provenance.terms_review.reviewed_at_utc",
+            "invalid_utc_timestamp",
+        );
     }
 }
 
@@ -466,7 +508,9 @@ mod tests {
             terms_review: TermsReview::Approved {
                 reviewer_id: "reviewer-1".into(),
                 approved_use: DataUse::ResearchNonCommercial,
+                terms_uri: "https://data.example.test/terms".into(),
                 terms_sha256: "b".repeat(64),
+                reviewed_at_utc: "2026-10-19T12:00:00Z".into(),
             },
         }
     }
