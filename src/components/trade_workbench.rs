@@ -11,6 +11,11 @@
 
 use leptos::prelude::*;
 use leptos_router::components::A;
+use sol_atlas_core::field_work::{
+    AssetRefV1, AssetRelationship, EvidenceKind, EvidenceRefV1, FieldJobPhase,
+    FieldJobProjectionV1, ProjectionFreshness, ProjectionSourceV1, SafetyGateStatus,
+    SafetyGateSummaryV1, TradeKind, TransportState, ViewportIntentKind,
+};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Trade {
@@ -22,6 +27,16 @@ enum Trade {
 }
 
 impl Trade {
+    fn projection_trade(self) -> TradeKind {
+        match self {
+            Self::Electrical => TradeKind::Electrical,
+            Self::Plumbing => TradeKind::Plumbing,
+            Self::Mechanical => TradeKind::MechanicalRepair,
+            Self::Hvac => TradeKind::HvacRefrigeration,
+            Self::Construction => TradeKind::Construction,
+        }
+    }
+
     fn short_label(self) -> &'static str {
         match self {
             Self::Electrical => "ELECTRICAL",
@@ -131,6 +146,19 @@ impl WorkPhase {
         }
     }
 
+    fn projection_phase(self) -> FieldJobPhase {
+        match self {
+            Self::Assigned => FieldJobPhase::Assigned,
+            Self::Inspecting => FieldJobPhase::Assessing,
+            Self::Diagnosed => FieldJobPhase::FindingRecorded,
+            Self::Planned => FieldJobPhase::PlanApproved,
+            Self::InProgress => FieldJobPhase::WorkReportedInProgress,
+            Self::VerificationDue => FieldJobPhase::CompletionReported,
+            Self::Verified => FieldJobPhase::VerificationRecorded,
+            Self::HandedOver => FieldJobPhase::HandoverRecorded,
+        }
+    }
+
     fn next_action(self) -> WorkAction {
         match self {
             Self::Assigned => WorkAction::BeginAssessment,
@@ -197,6 +225,94 @@ fn transition(
     }
 }
 
+/// Build a projection for this UI-only demonstration. Never use demo data as
+/// canonical work state or proof that a physical prerequisite was satisfied.
+fn demo_projection(
+    trade: Trade,
+    phase: WorkPhase,
+    prerequisites_marked_in_demo: bool,
+    evidence_count: usize,
+) -> FieldJobProjectionV1 {
+    let job_id = format!("demo:{}", trade.job_id());
+    let asset_id = format!("{}:asset", trade.job_id());
+
+    let mut evidence = Vec::new();
+    if evidence_count >= 1 {
+        evidence.push(EvidenceRefV1 {
+            evidence_id: format!("{}:reported-finding", trade.job_id()),
+            kind: EvidenceKind::Reported,
+            source_ref: "urn:luminous:demo:user-report".into(),
+            digest_sha256: "f".repeat(64),
+            captured_at_unix_ms: None,
+            unit: None,
+            instrument_ref: None,
+            procedure_revision: None,
+            model_ref: None,
+        });
+    }
+    if evidence_count >= 2 {
+        evidence.push(EvidenceRefV1 {
+            evidence_id: format!("{}:verification-demo", trade.job_id()),
+            kind: EvidenceKind::Verified,
+            source_ref: "urn:luminous:demo:verification-note".into(),
+            digest_sha256: "e".repeat(64),
+            captured_at_unix_ms: None,
+            unit: None,
+            instrument_ref: None,
+            procedure_revision: Some(1),
+            model_ref: None,
+        });
+    }
+
+    let missing_requirements = if prerequisites_marked_in_demo {
+        Vec::new()
+    } else {
+        vec![
+            "Site-hazard check has not been marked in the demo".to_string(),
+            "Energy/site-control check has not been marked in the demo".to_string(),
+        ]
+    };
+
+    FieldJobProjectionV1 {
+        schema_version: 1,
+        job_id,
+        job_revision: 1,
+        trade: trade.projection_trade(),
+        title: trade.job_title().to_string(),
+        phase: phase.projection_phase(),
+        transport: TransportState::LocalOnly,
+        // Demo source values are synthetic, so do not call them fresh.
+        freshness: ProjectionFreshness::Unknown,
+        source: ProjectionSourceV1 {
+            authority_id: "synthetic-demo-only".into(),
+            source_revision: 1,
+            source_digest_sha256: "d".repeat(64),
+        },
+        assets: vec![AssetRefV1 {
+            asset_id,
+            asset_revision: 1,
+            label: trade.asset_label().to_string(),
+            relationship: AssetRelationship::Primary,
+        }],
+        evidence,
+        safety_gate: SafetyGateSummaryV1 {
+            status: if prerequisites_marked_in_demo {
+                SafetyGateStatus::AwaitingQualifiedReview
+            } else {
+                SafetyGateStatus::Blocked
+            },
+            policy_ref: Some("synthetic-demo-policy".into()),
+            policy_revision: Some(1),
+            missing_requirements,
+        },
+        offered_viewport_intents: vec![
+            ViewportIntentKind::SelectAsset,
+            ViewportIntentKind::FocusAsset,
+            ViewportIntentKind::SetTimelineCursor,
+        ],
+    }
+}
+
 #[component]
 pub fn TradeWorkbench() -> impl IntoView {
     let selected_trade = RwSignal::new(Trade::Electrical);
@@ -220,6 +336,14 @@ pub fn TradeWorkbench() -> impl IntoView {
 
     let step = move || phase.get().step();
     let safety_ready = move || hazards_reviewed.get() && isolation_verified.get();
+    let projection = move || {
+        demo_projection(
+            selected_trade.get(),
+            phase.get(),
+            safety_ready(),
+            evidence_count.get(),
+        )
+    };
     let next_disabled = move || phase.get() == WorkPhase::Planned && !safety_ready();
 
     let run_next_action = move |_| {
@@ -328,11 +452,11 @@ pub fn TradeWorkbench() -> impl IntoView {
                         <div class="field-work-attention-symbol" aria-hidden="true">"↗"</div>
                         <div class="field-work-attention-body">
                             <div class="field-work-card-topline">
-                                <span class="field-work-label">{move || selected_trade.get().job_id()}</span>
+                                <span class="field-work-label">{move || projection().job_id}</span>
                                 <span class="field-work-state field-work-state-unknown">"Synthetic · not assigned"</span>
                             </div>
-                            <h3>{move || selected_trade.get().job_title()}</h3>
-                            <p>{move || selected_trade.get().asset_label()}</p>
+                            <h3>{move || projection().title}</h3>
+                            <p>{move || projection().assets.first().map(|asset| asset.label.clone()).unwrap_or_else(|| "Asset not available".to_string())}</p>
                             <div class="field-work-evidence-row">
                                 <span>"Customer: Demo Property / Workshop"</span>
                                 <span>"Schedule: not set"</span>
@@ -579,6 +703,34 @@ mod tests {
             transition(P::HandedOver, A::Restart, false, false),
             P::Assigned
         );
+    }
+
+    #[test]
+    fn demo_adapter_emits_valid_never_fresh_projection_for_each_trade() {
+        for trade in [
+            Trade::Electrical,
+            Trade::Plumbing,
+            Trade::Mechanical,
+            Trade::Hvac,
+            Trade::Construction,
+        ] {
+            let projection = super::demo_projection(
+                trade,
+                P::Assigned,
+                false,
+                0,
+            );
+            assert_eq!(projection.validate(), Ok(()));
+            assert_eq!(projection.transport, super::TransportState::LocalOnly);
+            assert_eq!(
+                projection.freshness,
+                super::ProjectionFreshness::Unknown
+            );
+            assert_eq!(
+                projection.safety_gate.status,
+                super::SafetyGateStatus::Blocked
+            );
+        }
     }
 
     #[test]
