@@ -201,16 +201,15 @@ while IFS= read -r case_json; do
         section == "outfall" && $1 == "O1" && NF >= 5 {
           peak_outfall_flow = $4; outfall_volume = $5; section = ""
         }
-        section == "flooding" &&
-          $2 ~ /^(JUNCTION|STORAGE|DIVIDER|OUTFALL)$/ &&
+        section == "flooding" && NF >= 7 &&
+          $2 ~ /^[-+]?([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][-+]?[0-9]+)?$/ &&
           $3 ~ /^[-+]?([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][-+]?[0-9]+)?$/ &&
-          $4 ~ /^[-+]?([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][-+]?[0-9]+)?$/ &&
-          $7 ~ /^[-+]?([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][-+]?[0-9]+)?$/ &&
-          $8 ~ /^[-+]?([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][-+]?[0-9]+)?$/ {
-          hours = $3 + 0
-          rate = $4 + 0
-          volume = $7 + 0
-          ponded = $8 + 0
+          $6 ~ /^[-+]?([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][-+]?[0-9]+)?$/ &&
+          $7 ~ /^[-+]?([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][-+]?[0-9]+)?$/ {
+          hours = $2 + 0
+          rate = $3 + 0
+          volume = $6 + 0
+          ponded = $7 + 0
           if (hours > max_node_flooded_hours) max_node_flooded_hours = hours
           if (rate > peak_flood_rate) peak_flood_rate = rate
           node_flood_volume += volume
