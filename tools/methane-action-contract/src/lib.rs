@@ -293,8 +293,8 @@ pub fn validate_batch(
         }
     }
 
-    report.violations.sort_by(|a, b| {
-        (&a.record_id, &a.field, a.code).cmp(&(&b.record_id, &b.field, b.code))
+    report.violations.sort_by_key(|violation| {
+        (violation.record_id.clone(), violation.field.clone(), violation.code)
     });
     report
 }
@@ -609,7 +609,7 @@ mod tests {
         let mut obs = observation("plume-4", quantified());
         obs.provenance.terms_review = TermsReview::NotReviewed;
         let report = validate_batch(
-            &[obs.clone()],
+            &[obs],
             &[],
             DataUse::ResearchNonCommercial,
             &GasSpecies::Methane,
