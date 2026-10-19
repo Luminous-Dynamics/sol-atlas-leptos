@@ -207,6 +207,14 @@ Before computing a headline score, freeze the complete expected set of valid mea
 
 Report confusion counts, end-to-end recall, recall conditional on coverage, false-alert rate among covered metered-zero opportunities, coverage rate, abstention rate, and rate-quantification errors. Include per-stratum counts and 95% Wilson score intervals for per-system binomial rates, including denominators. These intervals are descriptive for an individual system; comparing systems on shared scenes, sites, or time windows requires paired or cluster-aware inference rather than treating the estimates as independent. A tiny sample must show its uncertainty and cannot substantiate a SOTA claim.
 
+### Paired baseline comparison
+
+A baseline and candidate must be scored on the **same complete opportunity census**. Each case therefore has both an analysis `stratum_id` (what subgroup should be reported) and a distinct `cluster_id` (the sampling dependence unit, e.g. site × overpass/time window). They must not be conflated: stratification is for reporting; clustering is for uncertainty.
+
+Compare candidate-minus-baseline end-to-end recall and false-alert rate on covered metered-zero cases. Report baseline/candidate point estimates, denominators, discordant paired event counts, seed, and deterministic cluster-bootstrap intervals that resample whole clusters instead of treating every row as independent. Missing/extra/duplicate submissions invalidate the paired comparison.
+
+The current Rust reference implementation withholds cluster-bootstrap intervals unless there are at least 10 independent clusters and at least 1,000 bootstrap replicates. These are conservative implementation gates, not universal evidence that any data set has enough independent information; the cluster definition and held-out sampling design remain decisive. If too few clusters exist, report point estimates with an explicit “interval omitted” note and do not promote the result as an uncertainty-qualified SOTA improvement. Reuse these paired comparisons on predeclared site/time holdouts; do not select the baseline or operating point after inspecting final holdout results.
+
 ## Reproducible experiment protocol
 
 Every evaluated run should emit a machine-readable receipt containing:
