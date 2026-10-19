@@ -111,10 +111,7 @@ fn validate_handoff(
     if input.schema_version != MODEL_CREDIBILITY_HANDOFF_SCHEMA_VERSION {
         return Err(ModelCredibilityHandoffError::UnsupportedSchemaVersion);
     }
-    if !nonblank(&input.decision_id)
-        || !nonblank(&input.model_id)
-        || !nonblank(&input.asset_id)
-    {
+    if !nonblank(&input.decision_id) || !nonblank(&input.model_id) || !nonblank(&input.asset_id) {
         return Err(ModelCredibilityHandoffError::BlankIdentity);
     }
     if !is_canonical_utc_timestamp(&input.as_of_utc) {
@@ -144,7 +141,10 @@ fn validate_handoff(
     {
         return Err(ModelCredibilityHandoffError::MissingEvidence);
     }
-    let evidence_set = input.supporting_evidence_ids.iter().collect::<BTreeSet<_>>();
+    let evidence_set = input
+        .supporting_evidence_ids
+        .iter()
+        .collect::<BTreeSet<_>>();
     if evidence_set.len() != input.supporting_evidence_ids.len() {
         return Err(ModelCredibilityHandoffError::DuplicateEvidenceId);
     }
@@ -240,7 +240,10 @@ mod tests {
     fn admitted_model_exports_only_its_explicit_bounded_capacity() {
         let input = fixture(ModelDisposition::UseModel);
         let result = assess_model_credibility_handoff(&input).expect("valid handoff");
-        assert_eq!(ModelCapacityDisposition::EligibleForAssessment, result.status);
+        assert_eq!(
+            ModelCapacityDisposition::EligibleForAssessment,
+            result.status
+        );
         assert_eq!("MODEL_DISPOSITION_ADMITTED", result.reason_code);
         assert_eq!(
             Some(BoundedCapacityInterval {
@@ -270,10 +273,9 @@ mod tests {
 
     #[test]
     fn explicit_unsafe_rejection_is_not_confused_with_unknown_evidence() {
-        let result = assess_model_credibility_handoff(&fixture(
-            ModelDisposition::RejectUnsafeInterval,
-        ))
-        .expect("valid rejection envelope");
+        let result =
+            assess_model_credibility_handoff(&fixture(ModelDisposition::RejectUnsafeInterval))
+                .expect("valid rejection envelope");
         assert_eq!(ModelCapacityDisposition::Rejected, result.status);
         assert!(result.eligible_capacity.is_none());
     }
