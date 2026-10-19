@@ -45,6 +45,8 @@ pub struct PairedComparisonReport {
     pub cluster_count: usize,
     pub bootstrap_replicates_requested: usize,
     pub seed: u64,
+    /// Explains why uncertainty intervals were omitted, when applicable.
+    pub uncertainty_note: Option<String>,
     pub recall: PairedRateComparison,
     pub false_alert_rate: PairedRateComparison,
     pub violations: Vec<ComparisonViolation>,
@@ -55,6 +57,10 @@ impl PairedComparisonReport {
         self.valid && self.violations.is_empty()
     }
 }
+
+/// Research guardrails, not universal statistical standards.
+const MIN_BOOTSTRAP_REPLICATES: usize = 1_000;
+const MIN_CLUSTERS_FOR_CLUSTER_BOOTSTRAP: usize = 10;
 
 #[derive(Clone, Copy, Debug, Default)]
 struct ClusterCounts {
@@ -97,6 +103,14 @@ pub fn compare_submissions(
             system_id: "__comparison__".into(),
             record_id: "__bootstrap__".into(),
             code: "zero_bootstrap_replicates",
+        });
+        return report;
+    }
+    if bootstrap_replicates < MIN_BOOTSTRAP_REPLICATES {
+        report.violations.push(ComparisonViolation {
+            system_id: "__comparison__".into(),
+            record_id: "__bootstrap__".into(),
+            code: "insufficient_bootstrap_replicates",
         });
         return report;
     }
@@ -170,10 +184,13 @@ pub fn compare_submissions(
     let cluster_values: Vec<ClusterCounts> = clusters.values().copied().collect();
     report.cluster_count = cluster_values.len();
 
-    let overall = cluster_values.iter().copied().fold(ClusterCounts::default(), |mut a, b| {
-        a.add(b);
-        a
-    });
+    let overall = cluster_values
+        .iter()
+        .copied()
+        .fold(ClusterCounts::default(), |mut aggregate, cluster| {
+            aggregate.add(cluster);
+            aggregate
+        });
 
     report.recall = paired_rate(
         overall.baseline_true_positives,
@@ -190,7 +207,12 @@ pub fn compare_submissions(
         alert_candidate_only,
     );
 
-    if report.cluster_count >= 2 {
+    if report.cluster_count < MIN_CLUSTERS_FOR_CLUSTER_BOOTSTRAP {
+        report.uncertainty_note = Some(format!(
+            "Cluster-bootstrap intervals omitted: at least {MIN_CLUSTERS_FOR_CLUSTER_BOOTSTRAP} independent clusters are required; observed {}.",
+            report.cluster_count
+        ));
+    } else {
         let mut rng = DeterministicRng::new(seed);
         let mut recall_deltas = Vec::with_capacity(bootstrap_replicates);
         let mut alert_deltas = Vec::with_capacity(bootstrap_replicates);
@@ -320,98 +342,124 @@ mod tests {
     use crate::census::{CaseResponse, CoverageState, SystemDisposition};
 
     fn cases() -> Vec<BenchmarkCase> {
-        vec![
-            BenchmarkCase {
-                case_id: "p-hit".into(),
+        let mut cases = Vec::new();
+        for index in 0..10 {
+            let cluster_id = format!("site-{index:02}");
+            cases.push(BenchmarkCase {
+                case_id: format!("positive-{index:02}"),
                 stratum_id: "low-rate".into(),
-                cluster_id: "site-a".into(),
-                reference: ReferenceState::MeteredEmission { emission_rate_kg_h: 10.0 },
-            },
-            BenchmarkCase {
-                case_id: "p-miss".into(),
-                stratum_id: "low-rate".into(),
-                cluster_id: "site-b".into(),
-                reference: ReferenceState::MeteredEmission { emission_rate_kg_h: 5.0 },
-            },
-            BenchmarkCase {
-                case_id: "n-fp".into(),
+                cluster_id: cluster_id.clone(),
+                reference: ReferenceState::MeteredEmission {
+                    emission_rate_kg_h: 10.0 + index as f64,
+                },
+            });
+            cases.push(BenchmarkCase {
+                case_id: format!("negative-{index:02}"),
                 stratum_id: "background".into(),
-                cluster_id: "site-a".into(),
+                cluster_id,
                 reference: ReferenceState::MeteredZero,
-            },
-            BenchmarkCase {
-                case_id: "n-tn".into(),
-                stratum_id: "background".into(),
-                cluster_id: "site-b".into(),
-                reference: ReferenceState::MeteredZero,
-            },
-            BenchmarkCase {
-                case_id: "p-no-coverage".into(),
-                stratum_id: "low-rate".into(),
-                cluster_id: "site-c".into(),
-                reference: ReferenceState::MeteredEmission { emission_rate_kg_h: 7.0 },
-            },
-        ]
+            });
+        }
+        cases
     }
 
     fn response(
-        case_id: &str,
+        case_id: String,
         disposition: SystemDisposition,
         coverage: CoverageState,
     ) -> CaseResponse {
-        CaseResponse { case_id: case_id.into(), disposition, coverage }
+        CaseResponse {
+            case_id,
+            disposition,
+            coverage,
+        }
     }
 
     fn submission(id: &str, responses: Vec<CaseResponse>) -> SystemSubmission {
         SystemSubmission {
             system_id: id.into(),
             version: "1.0.0".into(),
-            build_sha256: if id == "baseline" { "a".repeat(64) } else { "c".repeat(64) },
-            configuration_sha256: if id == "baseline" { "b".repeat(64) } else { "d".repeat(64) },
+            build_sha256: if id == "baseline" {
+                "a".repeat(64)
+            } else {
+                "c".repeat(64)
+            },
+            configuration_sha256: if id == "baseline" {
+                "b".repeat(64)
+            } else {
+                "d".repeat(64)
+            },
             responses,
         }
     }
 
     fn baseline() -> SystemSubmission {
-        submission("baseline", vec![
-            response("p-hit", SystemDisposition::Detected { emission_rate_kg_h: 9.0 }, CoverageState::Covered),
-            response("p-miss", SystemDisposition::ExplicitNonDetect, CoverageState::Covered),
-            response("n-fp", SystemDisposition::Detected { emission_rate_kg_h: 1.0 }, CoverageState::Covered),
-            response("n-tn", SystemDisposition::ExplicitNonDetect, CoverageState::Covered),
-            response("p-no-coverage", SystemDisposition::NoOutput, CoverageState::NotTasked { reason: "not tasked".into() }),
-        ])
+        let mut responses = Vec::new();
+        for index in 0..10 {
+            let positive_id = format!("positive-{index:02}");
+            let negative_id = format!("negative-{index:02}");
+            let positive = if index % 2 == 0 {
+                SystemDisposition::Detected {
+                    emission_rate_kg_h: 10.0 + index as f64,
+                }
+            } else {
+                SystemDisposition::ExplicitNonDetect
+            };
+            let negative = if index < 2 {
+                SystemDisposition::Detected {
+                    emission_rate_kg_h: 0.8,
+                }
+            } else {
+                SystemDisposition::ExplicitNonDetect
+            };
+            responses.push(response(positive_id, positive, CoverageState::Covered));
+            responses.push(response(negative_id, negative, CoverageState::Covered));
+        }
+        submission("baseline", responses)
     }
 
     fn candidate() -> SystemSubmission {
-        submission("candidate", vec![
-            response("p-hit", SystemDisposition::Detected { emission_rate_kg_h: 10.1 }, CoverageState::Covered),
-            response("p-miss", SystemDisposition::Detected { emission_rate_kg_h: 4.8 }, CoverageState::Covered),
-            response("n-fp", SystemDisposition::ExplicitNonDetect, CoverageState::Covered),
-            response("n-tn", SystemDisposition::ExplicitNonDetect, CoverageState::Covered),
-            response("p-no-coverage", SystemDisposition::NoOutput, CoverageState::NotTasked { reason: "not tasked".into() }),
-        ])
+        let mut responses = Vec::new();
+        for index in 0..10 {
+            let positive_id = format!("positive-{index:02}");
+            let negative_id = format!("negative-{index:02}");
+            responses.push(response(
+                positive_id,
+                SystemDisposition::Detected {
+                    emission_rate_kg_h: 10.0 + index as f64,
+                },
+                CoverageState::Covered,
+            ));
+            responses.push(response(
+                negative_id,
+                SystemDisposition::ExplicitNonDetect,
+                CoverageState::Covered,
+            ));
+        }
+        submission("candidate", responses)
     }
 
     #[test]
     fn computes_paired_delta_and_cluster_bootstrap_intervals() {
         let report = compare_submissions(&cases(), &baseline(), &candidate(), 1_000, 42);
         assert!(report.is_valid(), "{report:?}");
-        assert_eq!(report.cluster_count, 3);
-        assert_eq!(report.recall.denominator, 3);
-        assert_eq!(report.recall.baseline_rate, Some(1.0 / 3.0));
-        assert_eq!(report.recall.candidate_rate, Some(2.0 / 3.0));
-        assert!((report.recall.candidate_minus_baseline.unwrap() - 1.0 / 3.0).abs() < 1e-12);
+        assert_eq!(report.cluster_count, 10);
+        assert_eq!(report.recall.denominator, 10);
+        assert_eq!(report.recall.baseline_rate, Some(0.5));
+        assert_eq!(report.recall.candidate_rate, Some(1.0));
+        assert!((report.recall.candidate_minus_baseline.unwrap() - 0.5).abs() < 1e-12);
         assert_eq!(report.recall.baseline_only_events, 0);
-        assert_eq!(report.recall.candidate_only_events, 1);
-        assert_eq!(report.false_alert_rate.denominator, 2);
-        assert_eq!(report.false_alert_rate.baseline_rate, Some(0.5));
+        assert_eq!(report.recall.candidate_only_events, 5);
+        assert_eq!(report.false_alert_rate.denominator, 10);
+        assert_eq!(report.false_alert_rate.baseline_rate, Some(0.2));
         assert_eq!(report.false_alert_rate.candidate_rate, Some(0.0));
-        assert!((report.false_alert_rate.candidate_minus_baseline.unwrap() + 0.5).abs() < 1e-12);
-        assert_eq!(report.false_alert_rate.baseline_only_events, 1);
+        assert!((report.false_alert_rate.candidate_minus_baseline.unwrap() + 0.2).abs() < 1e-12);
+        assert_eq!(report.false_alert_rate.baseline_only_events, 2);
         assert_eq!(report.false_alert_rate.candidate_only_events, 0);
         assert!(report.recall.cluster_bootstrap_ci95.is_some());
         assert!(report.false_alert_rate.cluster_bootstrap_ci95.is_some());
         assert_eq!(report.recall.bootstrap_replicates_used, 1_000);
+        assert_eq!(report.uncertainty_note, None);
     }
 
     #[test]
@@ -428,13 +476,44 @@ mod tests {
         let report = compare_submissions(&cases(), &baseline(), &incomplete, 1_000, 42);
         assert!(!report.is_valid());
         assert!(report.recall.candidate_minus_baseline.is_none());
-        assert!(report.violations.iter().any(|v| v.system_id == "candidate" && v.code == "missing_response_row"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|violation| {
+                    violation.system_id == "candidate"
+                        && violation.code == "missing_response_row"
+                })
+        );
     }
 
     #[test]
-    fn zero_bootstrap_replicates_are_rejected() {
-        let report = compare_submissions(&cases(), &baseline(), &candidate(), 0, 42);
-        assert!(!report.is_valid());
-        assert!(report.violations.iter().any(|v| v.code == "zero_bootstrap_replicates"));
+    fn insufficient_cluster_count_suppresses_bootstrap_intervals_only() {
+        let small_cases = cases().into_iter().take(2).collect::<Vec<_>>();
+        let baseline_subset = submission(
+            "baseline",
+            baseline().responses.into_iter().take(2).collect(),
+        );
+        let candidate_subset = submission(
+            "candidate",
+            candidate().responses.into_iter().take(2).collect(),
+        );
+        let report = compare_submissions(&small_cases, &baseline_subset, &candidate_subset, 1_000, 42);
+        assert!(report.is_valid(), "{report:?}");
+        assert_eq!(report.cluster_count, 1);
+        assert!(report.recall.candidate_minus_baseline.is_some());
+        assert_eq!(report.recall.cluster_bootstrap_ci95, None);
+        assert!(report.uncertainty_note.as_deref().unwrap().contains("at least 10 independent clusters"));
+    }
+
+    #[test]
+    fn too_few_or_zero_bootstrap_replicates_are_rejected() {
+        let zero = compare_submissions(&cases(), &baseline(), &candidate(), 0, 42);
+        assert!(!zero.is_valid());
+        assert!(zero.violations.iter().any(|v| v.code == "zero_bootstrap_replicates"));
+
+        let low = compare_submissions(&cases(), &baseline(), &candidate(), 999, 42);
+        assert!(!low.is_valid());
+        assert!(low.violations.iter().any(|v| v.code == "insufficient_bootstrap_replicates"));
     }
 }
