@@ -537,9 +537,9 @@ fn validate_snapshot_digest(
     expectation: SnapshotExpectation<'_>,
     snapshots: &[ArtifactSnapshot<'_>],
 ) {
-    let mut matching = snapshots.iter().filter(|snapshot| {
-        snapshot.role == expectation.role && snapshot.uri == expectation.uri
-    });
+    let mut matching = snapshots
+        .iter()
+        .filter(|snapshot| snapshot.role == expectation.role && snapshot.uri == expectation.uri);
     let Some(snapshot) = matching.next() else {
         report.push(record_id, field, expectation.missing_code);
         return;
