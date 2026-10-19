@@ -722,22 +722,22 @@ mod tests {
 
     #[test]
     fn synthetic_job_identity_and_evidence_ids_are_trade_scoped() {
-        let electrical = super::demo_projection(
-            Trade::Electrical,
-            P::Verified,
-            true,
-            2,
+        let electrical =
+            super::demo_projection(Trade::Electrical, P::Verified, true, 2);
+        let plumbing_with_history =
+            super::demo_projection(Trade::Plumbing, P::Assigned, false, 2);
+        let new_plumbing_job =
+            super::demo_projection(Trade::Plumbing, P::Assigned, false, 0);
+        assert_ne!(electrical.job_id, plumbing_with_history.job_id);
+        assert_ne!(
+            electrical.assets[0].asset_id,
+            plumbing_with_history.assets[0].asset_id
         );
-        let plumbing = super::demo_projection(
-            Trade::Plumbing,
-            P::Assigned,
-            false,
-            0,
+        assert_ne!(
+            electrical.evidence[0].evidence_id,
+            plumbing_with_history.evidence[0].evidence_id
         );
-        assert_ne!(electrical.job_id, plumbing.job_id);
-        assert_ne!(electrical.assets[0].asset_id, plumbing.assets[0].asset_id);
-        assert_ne!(electrical.evidence[0].evidence_id, plumbing.job_id);
-        assert_eq!(plumbing.evidence.len(), 0);
+        assert_eq!(new_plumbing_job.evidence.len(), 0);
     }
 
     #[test]
