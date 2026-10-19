@@ -23,6 +23,7 @@ The bathymetry metadata must include vertical datum and unit semantics before it
 
 Cell decoders keep distinct states for numeric depth values and NoData. TID decoding preserves:
 - direct-measurement categories separately from predicted/interpolated categories;
+- code 47 (depth derived from a grounded Argo float) and code 48 (depth measured by an animal-borne logger) as explicit GEBCO_2026 source classes;
 - code 70 (pre-generated grid with mixed source types) separately from code 71 (unknown source);
 - unknown future/unrecognized codes as their original numeric value;
 - a declared NoData sentinel separately from any valid TID code.
@@ -47,7 +48,7 @@ The in-module synthetic regression tests provide a positive control and fault-in
 | Malformed artifact digest reference | Reject |
 | Declared depth NoData sentinel | Preserve as `NoData`, never as depth zero |
 | Actual depth value zero with a different sentinel | Preserve as numeric zero, without adding physical meaning |
-| TID code 70 vs 71 | Preserve mixed-source vs unknown-source distinction |
+| TID code 47 / 48 | Classify grounded Argo-float-derived vs animal-borne logger data separately |\n| TID code 70 vs 71 | Preserve mixed-source vs unknown-source distinction |
 | Unrecognized TID code | Preserve original code, not silently relabel as NoData |
 | Declared TID NoData sentinel | Preserve as NoData, not unknown-source code |
 
