@@ -1054,7 +1054,7 @@ mod tests {
     fn uppercase_expected_digest_matches_case_insensitively() {
         let snapshot = source(
             SourceTermsState::OpenRedistributionReviewed,
-            Some("BA7816BF8F01CFEA140DE5DAE2223B00361A396177A9CB410FF61F20015AD"),
+            Some("BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD"),
         );
         let receipt = verify_artifact_bytes(&snapshot, b"abc");
         assert_eq!(receipt.status, ArtifactDigestStatus::Matched);
