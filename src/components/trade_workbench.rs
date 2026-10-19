@@ -198,6 +198,37 @@ enum WorkAction {
     Restart,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct DemoProgress {
+    phase: WorkPhase,
+    hazards_reviewed: bool,
+    isolation_verified: bool,
+    evidence_count: usize,
+}
+
+impl Default for DemoProgress {
+    fn default() -> Self {
+        Self {
+            phase: WorkPhase::Assigned,
+            hazards_reviewed: false,
+            isolation_verified: false,
+            evidence_count: 0,
+        }
+    }
+}
+
+fn switch_demo_session(
+    current_trade: Trade,
+    next_trade: Trade,
+    progress: DemoProgress,
+) -> (Trade, DemoProgress) {
+    if current_trade == next_trade {
+        (current_trade, progress)
+    } else {
+        (next_trade, DemoProgress::default())
+    }
+}
+
 /// Pure demo state machine. Missing safety prerequisites fail closed.
 ///
 /// In production, these booleans must not be treated as proof of physical
@@ -326,15 +357,23 @@ pub fn TradeWorkbench() -> impl IntoView {
             .to_string(),
     );
 
-    // Trade selection changes the job identity, so discard local demo state
-    // rather than carrying evidence/progress across two different synthetic jobs.
+    // Trade selection changes job identity, so reset state rather than carry
+    // evidence/progress across two different synthetic jobs.
     let select_trade = move |trade: Trade| {
-        if selected_trade.get() != trade {
-            selected_trade.set(trade);
-            phase.set(WorkPhase::Assigned);
-            hazards_reviewed.set(false);
-            isolation_verified.set(false);
-            evidence_count.set(0);
+        let current_trade = selected_trade.get();
+        let progress = DemoProgress {
+            phase: phase.get(),
+            hazards_reviewed: hazards_reviewed.get(),
+            isolation_verified: isolation_verified.get(),
+            evidence_count: evidence_count.get(),
+        };
+        let (next_trade, next_progress) = switch_demo_session(current_trade, trade, progress);
+        if next_trade != current_trade {
+            selected_trade.set(next_trade);
+            phase.set(next_progress.phase);
+            hazards_reviewed.set(next_progress.hazards_reviewed);
+            isolation_verified.set(next_progress.isolation_verified);
+            evidence_count.set(next_progress.evidence_count);
             status_message.set(
                 "Trade profile changed. Demo state reset for the new synthetic job.".to_string(),
             );
@@ -738,6 +777,25 @@ mod tests {
             plumbing_with_history.evidence[0].evidence_id
         );
         assert_eq!(new_plumbing_job.evidence.len(), 0);
+    }
+
+    #[test]
+    fn switching_trade_resets_progress_but_reselecting_same_trade_preserves_it() {
+        let in_progress = DemoProgress {
+            phase: P::Verified,
+            hazards_reviewed: true,
+            isolation_verified: true,
+            evidence_count: 2,
+        };
+        let (same_trade, preserved) =
+            super::switch_demo_session(Trade::Electrical, Trade::Electrical, in_progress);
+        assert_eq!(same_trade, Trade::Electrical);
+        assert_eq!(preserved, in_progress);
+
+        let (new_trade, reset) =
+            super::switch_demo_session(Trade::Electrical, Trade::Plumbing, in_progress);
+        assert_eq!(new_trade, Trade::Plumbing);
+        assert_eq!(reset, DemoProgress::default());
     }
 
     #[test]
