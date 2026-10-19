@@ -40,7 +40,7 @@ Key behaviors:
 
 1. **Matched comparison:** all architectures receive the same demand and declared disruption input. Candidate order is canonicalized, and result collections are emitted in stable order.
 2. **Unknown stays unknown:** absent staffing/power/route or part-fit evidence can lead to an indeterminate result. Unknown effective capacity and unallocated capacity are represented by optional values in the capacity ledger; they are not silently serialized as zero.
-3. **Finite resources:** a stock lot is consumed at most once, and service hours are reserved against one cell/window capacity budget. The v1 scheduler does not split work across windows. A future discrete shipment cannot be fractionally materialized from a derated supplier; a derated, missing or unknown delivery state remains indeterminate until its quantity is established.
+3. **Finite resources:** a stock lot is consumed at most once, and service hours are reserved against one cell/window capacity budget. Declared cell capacity cannot exceed the duration of its service window, and the v1 scheduler does not split work across windows. A future discrete shipment cannot be fractionally materialized from a derated supplier; a derated, missing or unknown delivery state remains indeterminate until its quantity is established.
 4. **Constrained dispatch:** this is a deterministic greedy heuristic, not a globally optimal schedule. Work is ordered by structural scarcity, due window, declared priority and stable request ID; within a request, the selected feasible assignment minimizes modelled turnaround, then uses stable window/cell tie-breaks. A future optimizer must be compared against an exact small-instance scheduling oracle.
 5. **Evidence is not truth:** `observed` evidence requires a source identifier, URI, date-shaped snapshot and 64-character SHA-256. This is structural provenance validation, not verification of the source or of the stock claim.
 6. **Explicit claim ceiling:** every output states `synthetic_modelled_feasibility_only_not_verified_restoration`. Scenario counts are not probabilities, and an assignment is not evidence that work occurred.
@@ -69,7 +69,7 @@ The fixture tests that each candidate sees the same request, that outcomes recon
 | Matched inputs | 100% of candidates process exactly the same demand IDs and declared disruption snapshot |
 | Fixture oracle | Exact expected request status, assignment window and stock use |
 | Unknown-resource handling | Zero unknown staffing, power, route, part-fit or stock evidence converted into confirmed availability |
-| Capacity integrity | Zero assignments above the cell/window's effective known capacity; unknown capacity remains explicitly unknown |
+| Capacity integrity | Zero assignments above the cell/window's effective known capacity; declared capacity cannot exceed window duration; unknown capacity remains explicitly unknown |
 | Inventory integrity | Zero duplicate stock IDs, duplicate pool access, overspend or repeated consumption of one lot; unknown routes do not contaminate unrelated part requirements; derated future stock never becomes fractional confirmed inventory |
 | Calibration integrity | Zero requests confirmed using missing, expired or unknown required instrument calibration |
 | Evidence validation | All malformed observed evidence and invalid digest inputs rejected |
