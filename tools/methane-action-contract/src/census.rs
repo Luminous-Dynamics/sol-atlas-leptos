@@ -444,9 +444,11 @@ fn wilson_interval_95(successes: usize, trials: usize) -> Option<(f64, f64)> {
     let z_squared = Z * Z;
     let denominator = 1.0 + z_squared / n;
     let center = (p + z_squared / (2.0 * n)) / denominator;
-    let half_width =
-        Z * ((p * (1.0 - p) / n + z_squared / (4.0 * n * n)).sqrt()) / denominator;
-    Some(((center - half_width).max(0.0), (center + half_width).min(1.0)))
+    let half_width = Z * ((p * (1.0 - p) / n + z_squared / (4.0 * n * n)).sqrt()) / denominator;
+    Some((
+        (center - half_width).max(0.0),
+        (center + half_width).min(1.0),
+    ))
 }
 
 fn ratio(numerator: usize, denominator: usize) -> Option<f64> {
