@@ -40,6 +40,7 @@ pub struct BoundedCapacityInterval {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ModelCredibilityHandoff {
     pub schema_version: String,
     pub decision_id: String,
@@ -74,6 +75,7 @@ pub enum ModelCredibilityHandoffError {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ModelCredibilityHandoffAssessment {
     pub schema_version: String,
     pub decision_id: String,
@@ -100,7 +102,7 @@ fn is_lower_hex(value: &str, expected_len: usize) -> bool {
 }
 
 fn nonblank(value: &str) -> bool {
-    !value.trim().is_empty()
+    !value.trim().is_empty() && value == value.trim()
 }
 
 fn validate_handoff(
