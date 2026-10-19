@@ -795,7 +795,7 @@ mod tests {
                 DataUse::ResearchNonCommercial,
                 ObservationKind::RemoteSensingPlume,
                 &GasSpecies::Methane,
-            &artifact_snapshots(),
+                &artifact_snapshots(),
             );
             assert!(
                 report
@@ -1033,7 +1033,7 @@ mod tests {
                 DataUse::ResearchNonCommercial,
                 ObservationKind::RemoteSensingPlume,
                 &GasSpecies::Methane,
-            &artifact_snapshots(),
+                &artifact_snapshots(),
             )
             .is_valid()
         );
