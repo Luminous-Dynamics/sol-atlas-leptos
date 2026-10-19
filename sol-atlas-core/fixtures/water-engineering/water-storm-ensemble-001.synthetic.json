@@ -22,7 +22,8 @@
     "simulation_start": "2020-01-01T00:00:00",
     "simulation_end": "2020-01-01T02:00:00",
     "rainfall_interval_minutes": 5,
-    "rainfall_interval_count": 6
+    "rainfall_interval_count": 6,
+    "routing_step_seconds": 5
   },
   "rainfall_profiles": [
     {
@@ -132,7 +133,8 @@
       "paired_baseline_case_id": "S1-REF-X050-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -152,7 +154,8 @@
       "paired_baseline_case_id": "S1-REF-X050-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -172,7 +175,8 @@
       "paired_baseline_case_id": "S1-REF-X050-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -192,7 +196,8 @@
       "paired_baseline_case_id": "S1-REF-X100-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -212,7 +217,8 @@
       "paired_baseline_case_id": "S1-REF-X100-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -232,7 +238,8 @@
       "paired_baseline_case_id": "S1-REF-X100-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -252,7 +259,8 @@
       "paired_baseline_case_id": "S1-REF-X150-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -272,7 +280,8 @@
       "paired_baseline_case_id": "S1-REF-X150-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -292,7 +301,8 @@
       "paired_baseline_case_id": "S1-REF-X150-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -312,7 +322,8 @@
       "paired_baseline_case_id": "S1-SHORT-X050-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -332,7 +343,8 @@
       "paired_baseline_case_id": "S1-SHORT-X050-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -352,7 +364,8 @@
       "paired_baseline_case_id": "S1-SHORT-X050-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -372,7 +385,8 @@
       "paired_baseline_case_id": "S1-SHORT-X100-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -392,7 +406,8 @@
       "paired_baseline_case_id": "S1-SHORT-X100-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -412,7 +427,8 @@
       "paired_baseline_case_id": "S1-SHORT-X100-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -432,7 +448,8 @@
       "paired_baseline_case_id": "S1-SHORT-X150-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -452,7 +469,8 @@
       "paired_baseline_case_id": "S1-SHORT-X150-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -472,7 +490,8 @@
       "paired_baseline_case_id": "S1-SHORT-X150-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -492,7 +511,8 @@
       "paired_baseline_case_id": "S1-EARLY-X050-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -512,7 +532,8 @@
       "paired_baseline_case_id": "S1-EARLY-X050-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -532,7 +553,8 @@
       "paired_baseline_case_id": "S1-EARLY-X050-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -552,7 +574,8 @@
       "paired_baseline_case_id": "S1-EARLY-X100-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -572,7 +595,8 @@
       "paired_baseline_case_id": "S1-EARLY-X100-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -592,7 +616,8 @@
       "paired_baseline_case_id": "S1-EARLY-X100-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -612,7 +637,8 @@
       "paired_baseline_case_id": "S1-EARLY-X150-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -632,7 +658,8 @@
       "paired_baseline_case_id": "S1-EARLY-X150-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -652,7 +679,8 @@
       "paired_baseline_case_id": "S1-EARLY-X150-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -672,7 +700,8 @@
       "paired_baseline_case_id": "S1-LATE-X050-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -692,7 +721,8 @@
       "paired_baseline_case_id": "S1-LATE-X050-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -712,7 +742,8 @@
       "paired_baseline_case_id": "S1-LATE-X050-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -732,7 +763,8 @@
       "paired_baseline_case_id": "S1-LATE-X100-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -752,7 +784,8 @@
       "paired_baseline_case_id": "S1-LATE-X100-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -772,7 +805,8 @@
       "paired_baseline_case_id": "S1-LATE-X100-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -792,7 +826,8 @@
       "paired_baseline_case_id": "S1-LATE-X150-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -812,7 +847,8 @@
       "paired_baseline_case_id": "S1-LATE-X150-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -832,7 +868,8 @@
       "paired_baseline_case_id": "S1-LATE-X150-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -852,7 +889,8 @@
       "paired_baseline_case_id": "S1-DOUBLE-X050-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -872,7 +910,8 @@
       "paired_baseline_case_id": "S1-DOUBLE-X050-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -892,7 +931,8 @@
       "paired_baseline_case_id": "S1-DOUBLE-X050-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -912,7 +952,8 @@
       "paired_baseline_case_id": "S1-DOUBLE-X100-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -932,7 +973,8 @@
       "paired_baseline_case_id": "S1-DOUBLE-X100-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -952,7 +994,8 @@
       "paired_baseline_case_id": "S1-DOUBLE-X100-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -972,7 +1015,8 @@
       "paired_baseline_case_id": "S1-DOUBLE-X150-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -992,7 +1036,8 @@
       "paired_baseline_case_id": "S1-DOUBLE-X150-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -1012,7 +1057,8 @@
       "paired_baseline_case_id": "S1-DOUBLE-X150-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -1032,7 +1078,8 @@
       "paired_baseline_case_id": "S1-SUSTAIN-X050-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -1052,7 +1099,8 @@
       "paired_baseline_case_id": "S1-SUSTAIN-X050-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -1072,7 +1120,8 @@
       "paired_baseline_case_id": "S1-SUSTAIN-X050-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -1092,7 +1141,8 @@
       "paired_baseline_case_id": "S1-SUSTAIN-X100-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -1112,7 +1162,8 @@
       "paired_baseline_case_id": "S1-SUSTAIN-X100-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -1132,7 +1183,8 @@
       "paired_baseline_case_id": "S1-SUSTAIN-X100-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -1152,7 +1204,8 @@
       "paired_baseline_case_id": "S1-SUSTAIN-X150-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -1172,7 +1225,8 @@
       "paired_baseline_case_id": "S1-SUSTAIN-X150-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     },
     {
@@ -1192,7 +1246,8 @@
       "paired_baseline_case_id": "S1-SUSTAIN-X150-D060",
       "changed_parameters": [
         "rainfall_intensity_mm_hr",
-        "C1.circular_diameter_m"
+        "C1.circular_diameter_m",
+        "ROUTING_STEP"
       ]
     }
   ],
@@ -1201,14 +1256,16 @@
     "Each base profile has the same nominal rainfall depth (approximately 14.166667 mm); depth multipliers change that amount independently of temporal shape.",
     "Conduit diameters 0.60 m, 0.40 m and 0.25 m are synthetic stress states, not engineering recommendations.",
     "Each case differs from the exact frozen source input only by the declared rainfall intensity vector and C1 circular diameter.",
-    "The paired baseline for each case uses identical rainfall profile and depth multiplier with C1 diameter 0.60 m."
+    "The paired baseline for each case uses identical rainfall profile and depth multiplier with C1 diameter 0.60 m.",
+    "All cases use the same fixed 5-second dynamic-wave routing step as a declared numerical-resolution setting; it is invariant across cases and is not independently tuned per case."
   ],
   "acceptance": {
     "required_case_count": 54,
     "absolute_continuity_error_smoke_limit_percent": 1,
     "require_output_and_report": true,
     "require_paired_baseline": true,
-    "require_raw_per_case_receipts": true
+    "require_raw_per_case_receipts": true,
+    "routing_step_seconds": 5
   },
   "nonclaims": [
     "This plan is not a calibrated catchment and does not encode a return period, annual exceedance probability or design standard.",
