@@ -18,6 +18,7 @@ pub const MAX_DEMAND: usize = 10_000;
 pub const MAX_CELLS_PER_CANDIDATE: usize = 128;
 pub const MAX_STOCK_LOTS_PER_CANDIDATE: usize = 10_000;
 pub const MAX_FIT_EVALUATIONS: usize = 2_000_000;
+pub const MAX_STOCK_INSPECTIONS: usize = 20_000_000;
 const EPSILON: f64 = 1.0e-9;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -490,6 +491,7 @@ fn validate(request: &RepairContinuityRequest) -> Result<(), Vec<String>> {
     }
     let mut candidate_ids = BTreeSet::new();
     let mut fit_evaluations = 0usize;
+    let mut stock_inspection_estimate = 0usize;
     for (candidate_index, candidate) in request.candidates.iter().enumerate() {
         let candidate_evaluations = request
             .demand
@@ -542,6 +544,13 @@ fn validate(request: &RepairContinuityRequest) -> Result<(), Vec<String>> {
                 "candidate {:?} exceeds stock-lot budget of {MAX_STOCK_LOTS_PER_CANDIDATE}",
                 candidate.candidate_id
             ));
+        }
+        match candidate_evaluations
+            .and_then(|evaluations| evaluations.checked_mul(stock_lot_count.max(1)))
+            .and_then(|inspections| stock_inspection_estimate.checked_add(inspections))
+        {
+            Some(total) => stock_inspection_estimate = total,
+            None => errors.push("repair stock-inspection budget arithmetic overflowed".to_owned()),
         }
         let mut cell_ids = BTreeSet::new();
         for cell in &candidate.workcells {
@@ -599,6 +608,11 @@ fn validate(request: &RepairContinuityRequest) -> Result<(), Vec<String>> {
     if fit_evaluations > MAX_FIT_EVALUATIONS {
         errors.push(format!(
             "repair fit evaluation budget exceeded: {fit_evaluations} > {MAX_FIT_EVALUATIONS}"
+        ));
+    }
+    if stock_inspection_estimate > MAX_STOCK_INSPECTIONS {
+        errors.push(format!(
+            "repair stock-inspection budget exceeded: {stock_inspection_estimate} > {MAX_STOCK_INSPECTIONS}"
         ));
     }
     if errors.is_empty() {
@@ -1153,6 +1167,42 @@ mod tests {
             schema_version: REPAIR_CONTINUITY_SCHEMA_VERSION.into(), comparison_id: "synthetic-repair-continuity".into(),
             windows, demand, dependency_observations: dependencies, candidates: vec![central, local, distributed],
         }
+    }
+
+
+    #[test]
+    fn excessive_inventory_scan_work_fails_before_evaluation() {
+        let mut request = base_request();
+        for index in 0..2_000 {
+            let mut demand = request.demand[0].clone();
+            demand.request_id = format!("fan-load-{index:04}");
+            request.demand.push(demand);
+        }
+        let central = request.candidates.iter_mut()
+            .find(|candidate| candidate.architecture == Architecture::CentralizedDepot)
+            .unwrap();
+        let mut lots = Vec::with_capacity(MAX_STOCK_LOTS_PER_CANDIDATE);
+        for index in 0..MAX_STOCK_LOTS_PER_CANDIDATE {
+            lots.push(StockLot {
+                stock_id: format!("load-lot-{index:05}"),
+                part_key: "fan-motor".into(),
+                revision: "r1".into(),
+                quantity: 1,
+                fit: PartFit::ExactRevision,
+                approved_for_part_keys: Vec::new(),
+                available_from_window: 0,
+                expires_after_window: None,
+                supply_dependency_id: None,
+                evidence: evidence(EvidenceClass::Assumed),
+            });
+        }
+        central.inventory_pools[0].lots = lots;
+        let error = assess_repair_continuity(&request).unwrap_err();
+        assert!(matches!(
+            error,
+            RepairContinuityError::InvalidInput(errors)
+                if errors.iter().any(|message| message.contains("stock-inspection budget exceeded"))
+        ));
     }
 
     #[test]
