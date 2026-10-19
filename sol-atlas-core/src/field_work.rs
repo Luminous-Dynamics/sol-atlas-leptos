@@ -101,7 +101,6 @@ impl FieldJobProjectionV1 {
 
         Ok(())
     }
-
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -148,9 +147,10 @@ impl TransportState {
     fn validate(&self) -> Result<(), ProjectionError> {
         match self {
             Self::LocalOnly | Self::ReadyToSubmit => Ok(()),
-            Self::OutcomeUnknown { operation_id } => {
-                require_non_empty(operation_id, ProjectionError::UnknownOutcomeMissingOperationId)
-            }
+            Self::OutcomeUnknown { operation_id } => require_non_empty(
+                operation_id,
+                ProjectionError::UnknownOutcomeMissingOperationId,
+            ),
             Self::Received { receipt_ref } => {
                 require_non_empty(receipt_ref, ProjectionError::ReceivedMissingReceipt)
             }
@@ -221,9 +221,7 @@ impl EvidenceRefV1 {
         require_non_empty(&self.source_ref, ProjectionError::MissingEvidenceSource)?;
         validate_sha256(&self.digest_sha256, ProjectionError::InvalidEvidenceDigest)?;
 
-        if self.kind == EvidenceKind::Measured
-            && self.unit.as_deref().is_none_or(str::is_empty)
-        {
+        if self.kind == EvidenceKind::Measured && self.unit.as_deref().is_none_or(str::is_empty) {
             return Err(ProjectionError::MeasuredEvidenceMissingUnit);
         }
         if self.kind == EvidenceKind::Modelled
@@ -267,7 +265,10 @@ impl SafetyGateSummaryV1 {
                 if self.policy_ref.as_deref().is_none_or(str::is_empty)
                     || self.policy_revision.is_none()
                     || self.missing_requirements.is_empty()
-                    || self.missing_requirements.iter().any(|reason| reason.trim().is_empty())
+                    || self
+                        .missing_requirements
+                        .iter()
+                        .any(|reason| reason.trim().is_empty())
                 {
                     return Err(ProjectionError::BlockedGateMissingReason);
                 }
@@ -311,11 +312,21 @@ pub enum ViewportIntentKind {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "intent", rename_all = "camelCase", deny_unknown_fields)]
 pub enum ViewportIntentV1 {
-    SelectAsset { asset_id: String },
-    FocusAsset { asset_id: String },
-    SelectComponent { component_id: String },
-    SelectFlow { flow_id: String },
-    SetTimelineCursor { at_unix_ms: u64 },
+    SelectAsset {
+        asset_id: String,
+    },
+    FocusAsset {
+        asset_id: String,
+    },
+    SelectComponent {
+        component_id: String,
+    },
+    SelectFlow {
+        flow_id: String,
+    },
+    SetTimelineCursor {
+        at_unix_ms: u64,
+    },
     RequestJobComparison {
         job_id: String,
         baseline_revision: u64,
@@ -379,7 +390,11 @@ impl ViewportIntentV1 {
         }
         match self {
             Self::SelectAsset { asset_id } | Self::FocusAsset { asset_id } => {
-                if !projection.assets.iter().any(|asset| asset.asset_id == *asset_id) {
+                if !projection
+                    .assets
+                    .iter()
+                    .any(|asset| asset.asset_id == *asset_id)
+                {
                     return Err(ProjectionError::IntentTargetMissingFromProjection);
                 }
             }
@@ -458,11 +473,7 @@ fn validate_sha256(value: &str, error: ProjectionError) -> Result<(), Projection
         && value
             .bytes()
             .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte));
-    if valid {
-        Ok(())
-    } else {
-        Err(error)
-    }
+    if valid { Ok(()) } else { Err(error) }
 }
 
 #[cfg(test)]
@@ -683,7 +694,11 @@ mod tests {
             assert_eq!(intent.validate(), Ok(()));
         }
         assert_eq!(
-            intents.iter().map(ViewportIntentV1::kind).collect::<BTreeSet<_>>().len(),
+            intents
+                .iter()
+                .map(ViewportIntentV1::kind)
+                .collect::<BTreeSet<_>>()
+                .len(),
             6
         );
     }

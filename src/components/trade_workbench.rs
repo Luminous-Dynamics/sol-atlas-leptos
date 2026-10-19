@@ -673,7 +673,7 @@ pub fn TradeWorkbench() -> impl IntoView {
 
 #[cfg(test)]
 mod tests {
-    use super::{Trade, WorkAction as A, WorkPhase as P, transition};
+    use super::{DemoProgress, Trade, WorkAction as A, WorkPhase as P, transition};
 
     #[test]
     fn complete_workflow_keeps_assessment_diagnosis_plan_execution_and_verification_distinct() {
@@ -761,12 +761,9 @@ mod tests {
 
     #[test]
     fn synthetic_job_identity_and_evidence_ids_are_trade_scoped() {
-        let electrical =
-            super::demo_projection(Trade::Electrical, P::Verified, true, 2);
-        let plumbing_with_history =
-            super::demo_projection(Trade::Plumbing, P::Assigned, false, 2);
-        let new_plumbing_job =
-            super::demo_projection(Trade::Plumbing, P::Assigned, false, 0);
+        let electrical = super::demo_projection(Trade::Electrical, P::Verified, true, 2);
+        let plumbing_with_history = super::demo_projection(Trade::Plumbing, P::Assigned, false, 2);
+        let new_plumbing_job = super::demo_projection(Trade::Plumbing, P::Assigned, false, 0);
         assert_ne!(electrical.job_id, plumbing_with_history.job_id);
         assert_ne!(
             electrical.assets[0].asset_id,
@@ -807,18 +804,10 @@ mod tests {
             Trade::Hvac,
             Trade::Construction,
         ] {
-            let projection = super::demo_projection(
-                trade,
-                P::Assigned,
-                false,
-                0,
-            );
+            let projection = super::demo_projection(trade, P::Assigned, false, 0);
             assert_eq!(projection.validate(), Ok(()));
             assert_eq!(projection.transport, super::TransportState::LocalOnly);
-            assert_eq!(
-                projection.freshness,
-                super::ProjectionFreshness::Unknown
-            );
+            assert_eq!(projection.freshness, super::ProjectionFreshness::Unknown);
             assert_eq!(
                 projection.safety_gate.status,
                 super::SafetyGateStatus::Blocked
