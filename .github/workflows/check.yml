@@ -65,3 +65,11 @@ jobs:
       # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
       # `cargo test --lib` fails with "no library targets found".
       - run: cargo test --bin sol-atlas-leptos
+      # The methane action contract is a standalone crate; explicitly test it
+      # because root workspace/app commands do not cover nested manifests.
+      - name: Format methane contract
+        run: cargo fmt --manifest-path tools/methane-action-contract/Cargo.toml -- --check
+      - name: Test methane contract
+        run: cargo test --manifest-path tools/methane-action-contract/Cargo.toml --locked
+      - name: Clippy methane contract
+        run: cargo clippy --manifest-path tools/methane-action-contract/Cargo.toml --locked --all-targets -- -D warnings
