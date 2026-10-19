@@ -69,24 +69,16 @@ pub enum Quantification {
         detection_limit_kg_h: f64,
     },
     /// A non-detection is not an observation of zero emissions.
-    NonDetect {
-        detection_limit_kg_h: f64,
-    },
+    NonDetect { detection_limit_kg_h: f64 },
     /// Preserve unquantified values as unknown; never coerce them to zero.
-    NotQuantified {
-        reason: String,
-    },
+    NotQuantified { reason: String },
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum QualityFlag {
     Qualified,
-    Degraded {
-        reason: String,
-    },
-    Quarantined {
-        reason: String,
-    },
+    Degraded { reason: String },
+    Quarantined { reason: String },
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -111,13 +103,8 @@ pub struct FacilityId(pub String);
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum AssociationReview {
     Unreviewed,
-    Reviewed {
-        reviewer_id: String,
-    },
-    Rejected {
-        reviewer_id: String,
-        reason: String,
-    },
+    Reviewed { reviewer_id: String },
+    Rejected { reviewer_id: String, reason: String },
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -218,11 +205,7 @@ pub fn validate_batch(
                     );
                 }
                 if !uncertainty_kg_h.is_finite() || *uncertainty_kg_h < 0.0 {
-                    report.push(
-                        id,
-                        "quantification.uncertainty_kg_h",
-                        "invalid_uncertainty",
-                    );
+                    report.push(id, "quantification.uncertainty_kg_h", "invalid_uncertainty");
                 }
                 if !detection_limit_kg_h.is_finite() || *detection_limit_kg_h <= 0.0 {
                     report.push(
@@ -232,7 +215,9 @@ pub fn validate_batch(
                     );
                 }
             }
-            Quantification::NonDetect { detection_limit_kg_h } => {
+            Quantification::NonDetect {
+                detection_limit_kg_h,
+            } => {
                 if !detection_limit_kg_h.is_finite() || *detection_limit_kg_h <= 0.0 {
                     report.push(
                         id,
@@ -242,11 +227,7 @@ pub fn validate_batch(
                 }
             }
             Quantification::NotQuantified { reason } if reason.trim().is_empty() => {
-                report.push(
-                    id,
-                    "quantification.reason",
-                    "empty_quantification_reason",
-                );
+                report.push(id, "quantification.reason", "empty_quantification_reason");
             }
             Quantification::NotQuantified { .. } => {}
         }
@@ -262,11 +243,7 @@ pub fn validate_batch(
             report.push(id, "association_id", "duplicate_association_id");
         }
         if !observation_ids.contains(&assoc.observation_id) {
-            report.push(
-                id,
-                "observation_id",
-                "unknown_observation_reference",
-            );
+            report.push(id, "observation_id", "unknown_observation_reference");
         }
         if assoc.source_id.0.trim().is_empty() {
             report.push(id, "source_id", "empty_source_id");
@@ -290,7 +267,10 @@ pub fn validate_batch(
             AssociationReview::Reviewed { reviewer_id } if reviewer_id.trim().is_empty() => {
                 report.push(id, "review.reviewer_id", "empty_reviewer_id");
             }
-            AssociationReview::Rejected { reviewer_id, reason } => {
+            AssociationReview::Rejected {
+                reviewer_id,
+                reason,
+            } => {
                 if reviewer_id.trim().is_empty() {
                     report.push(id, "review.reviewer_id", "empty_reviewer_id");
                 }
@@ -315,11 +295,7 @@ fn validate_provenance(
     required_use: DataUse,
 ) {
     if !provenance.source_uri.starts_with("https://") {
-        report.push(
-            record_id,
-            "provenance.source_uri",
-            "source_uri_not_https",
-        );
+        report.push(record_id, "provenance.source_uri", "source_uri_not_https");
     }
     if provenance.source_version.trim().is_empty() {
         report.push(
@@ -351,11 +327,7 @@ fn validate_provenance(
 
     match &provenance.terms_review {
         TermsReview::NotReviewed => {
-            report.push(
-                record_id,
-                "provenance.terms_review",
-                "terms_not_reviewed",
-            );
+            report.push(record_id, "provenance.terms_review", "terms_not_reviewed");
         }
         TermsReview::Rejected {
             reviewer_id,
@@ -576,7 +548,12 @@ mod tests {
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         );
-        assert!(report.violations.iter().any(|v| v.code == "observation_kind_mismatch"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "observation_kind_mismatch")
+        );
     }
 
     #[test]
@@ -590,7 +567,12 @@ mod tests {
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         );
-        assert!(report.violations.iter().any(|v| v.code == "gas_species_mismatch"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "gas_species_mismatch")
+        );
     }
 
     #[test]
@@ -605,7 +587,12 @@ mod tests {
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         );
-        assert!(report.violations.iter().any(|v| v.code == "duplicate_observation_id"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "duplicate_observation_id")
+        );
     }
 
     #[test]
@@ -629,7 +616,8 @@ mod tests {
                 Quantification::NonDetect {
                     detection_limit_kg_h: 0.2,
                 }
-            ).quantification,
+            )
+            .quantification,
             Quantification::NonDetect { .. }
         ));
     }
@@ -648,7 +636,12 @@ mod tests {
                 DataUse::ResearchNonCommercial,
                 &GasSpecies::Methane,
             );
-            assert!(report.violations.iter().any(|v| v.code == "invalid_emission_rate"));
+            assert!(
+                report
+                    .violations
+                    .iter()
+                    .any(|v| v.code == "invalid_emission_rate")
+            );
         }
     }
 
@@ -668,7 +661,12 @@ mod tests {
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         );
-        assert!(report.violations.iter().any(|v| v.code == "invalid_utc_timestamp"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "invalid_utc_timestamp")
+        );
     }
 
     #[test]
@@ -682,7 +680,12 @@ mod tests {
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         );
-        assert!(report.violations.iter().any(|v| v.code == "terms_not_reviewed"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "terms_not_reviewed")
+        );
 
         let mut commercial = observation("plume-4b", quantified());
         commercial.provenance.terms_review = TermsReview::Approved {
@@ -699,7 +702,12 @@ mod tests {
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         );
-        assert!(report.violations.iter().any(|v| v.code == "declared_use_mismatch"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "declared_use_mismatch")
+        );
     }
 
     #[test]
@@ -719,9 +727,24 @@ mod tests {
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         );
-        assert!(report.violations.iter().any(|v| v.code == "empty_reviewer_id"));
-        assert!(report.violations.iter().any(|v| v.code == "terms_uri_not_https"));
-        assert!(report.violations.iter().any(|v| v.code == "invalid_sha256_format"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "empty_reviewer_id")
+        );
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "terms_uri_not_https")
+        );
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "invalid_sha256_format")
+        );
         assert!(report.violations.iter().any(|v| v.code == "invalid_utc_timestamp"));
     }
 
@@ -738,7 +761,12 @@ mod tests {
             &GasSpecies::Methane,
         );
         assert!(report.violations.iter().any(|v| v.code == "invalid_sha256_format"));
-        assert!(report.violations.iter().any(|v| v.code == "missing_attribution"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "missing_attribution")
+        );
     }
 
     #[test]
@@ -752,8 +780,18 @@ mod tests {
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         );
-        assert!(report.violations.iter().any(|v| v.code == "unknown_observation_reference"));
-        assert!(report.violations.iter().any(|v| v.code == "invalid_match_score"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "unknown_observation_reference")
+        );
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "invalid_match_score")
+        );
     }
 
     #[test]
@@ -764,13 +802,16 @@ mod tests {
                 reason: "retrieval quality below threshold".into(),
             },
         );
-        assert!(validate_batch(
-            &[obs],
-            &[],
-            DataUse::ResearchNonCommercial,
-            ObservationKind::RemoteSensingPlume,
-            &GasSpecies::Methane,
-        ).is_valid());
+        assert!(
+            validate_batch(
+                &[obs],
+                &[],
+                DataUse::ResearchNonCommercial,
+                ObservationKind::RemoteSensingPlume,
+                &GasSpecies::Methane,
+            )
+            .is_valid()
+        );
     }
 
     #[test]
@@ -786,7 +827,12 @@ mod tests {
             ObservationKind::RemoteSensingPlume,
             &GasSpecies::Methane,
         );
-        assert!(report.violations.iter().any(|v| v.code == "quarantined_observation"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "quarantined_observation")
+        );
     }
 
     #[test]
