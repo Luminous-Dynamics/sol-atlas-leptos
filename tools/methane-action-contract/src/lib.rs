@@ -222,7 +222,7 @@ pub fn validate_batch(
         if obs.kind != required_kind {
             report.push(id, "kind", "observation_kind_mismatch");
         }
-        validate_observation_method(report, obs);
+        validate_observation_method(&mut report, obs);
         validate_provenance(
             &mut report,
             id,
