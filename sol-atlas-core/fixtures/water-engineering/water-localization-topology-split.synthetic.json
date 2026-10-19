@@ -1,0 +1,649 @@
+{
+  "schema_version": "water-localization-split-plan/v0.1",
+  "classification": "synthetic_public",
+  "benchmark_id": "water-localization-topology-split-toy-v0.1",
+  "protocol": "leave_topology_family_out",
+  "pressure_unit": "psi",
+  "train_topology_families": [
+    "source-tree"
+  ],
+  "calibration_topology_families": [
+    "calibration-branch"
+  ],
+  "test_topology_families": [
+    "heldout-branch"
+  ],
+  "cases": [
+    {
+      "case_id": "SRC-BASE",
+      "split": "train",
+      "topology_family_id": "source-tree",
+      "topology": {
+        "nodes": [
+          "N1",
+          "N2",
+          "N3",
+          "N4"
+        ],
+        "links": [
+          {
+            "link_id": "L1",
+            "from_node_id": "N1",
+            "to_node_id": "N2"
+          },
+          {
+            "link_id": "L2",
+            "from_node_id": "N2",
+            "to_node_id": "N3"
+          },
+          {
+            "link_id": "L3",
+            "from_node_id": "N2",
+            "to_node_id": "N4"
+          }
+        ]
+      },
+      "perturbation": {
+        "fault_class": "no_fault",
+        "target_node_id": null,
+        "withdrawal_gpm": 0,
+        "scenario_seed": "seed-101"
+      },
+      "sensor_readings": [
+        {
+          "node_id": "N1",
+          "state": "observed",
+          "pressure_delta_psi": 0.001
+        },
+        {
+          "node_id": "N2",
+          "state": "observed",
+          "pressure_delta_psi": 0
+        },
+        {
+          "node_id": "N3",
+          "state": "observed",
+          "pressure_delta_psi": 0.001
+        },
+        {
+          "node_id": "N4",
+          "state": "observed",
+          "pressure_delta_psi": -0.001
+        }
+      ]
+    },
+    {
+      "case_id": "SRC-WD-N3-10",
+      "split": "train",
+      "topology_family_id": "source-tree",
+      "topology": {
+        "nodes": [
+          "N1",
+          "N2",
+          "N3",
+          "N4"
+        ],
+        "links": [
+          {
+            "link_id": "L1",
+            "from_node_id": "N1",
+            "to_node_id": "N2"
+          },
+          {
+            "link_id": "L2",
+            "from_node_id": "N2",
+            "to_node_id": "N3"
+          },
+          {
+            "link_id": "L3",
+            "from_node_id": "N2",
+            "to_node_id": "N4"
+          }
+        ]
+      },
+      "perturbation": {
+        "fault_class": "single_withdrawal",
+        "target_node_id": "N3",
+        "withdrawal_gpm": 10,
+        "scenario_seed": "seed-102"
+      },
+      "sensor_readings": [
+        {
+          "node_id": "N1",
+          "state": "observed",
+          "pressure_delta_psi": -0.01
+        },
+        {
+          "node_id": "N2",
+          "state": "observed",
+          "pressure_delta_psi": -0.04
+        },
+        {
+          "node_id": "N3",
+          "state": "observed",
+          "pressure_delta_psi": -0.15
+        },
+        {
+          "node_id": "N4",
+          "state": "observed",
+          "pressure_delta_psi": -0.04
+        }
+      ]
+    },
+    {
+      "case_id": "SRC-WD-N4-25",
+      "split": "train",
+      "topology_family_id": "source-tree",
+      "topology": {
+        "nodes": [
+          "N1",
+          "N2",
+          "N3",
+          "N4"
+        ],
+        "links": [
+          {
+            "link_id": "L1",
+            "from_node_id": "N1",
+            "to_node_id": "N2"
+          },
+          {
+            "link_id": "L2",
+            "from_node_id": "N2",
+            "to_node_id": "N3"
+          },
+          {
+            "link_id": "L3",
+            "from_node_id": "N2",
+            "to_node_id": "N4"
+          }
+        ]
+      },
+      "perturbation": {
+        "fault_class": "single_withdrawal",
+        "target_node_id": "N4",
+        "withdrawal_gpm": 25,
+        "scenario_seed": "seed-103"
+      },
+      "sensor_readings": [
+        {
+          "node_id": "N1",
+          "state": "observed",
+          "pressure_delta_psi": -0.03
+        },
+        {
+          "node_id": "N2",
+          "state": "observed",
+          "pressure_delta_psi": -0.12
+        },
+        {
+          "node_id": "N3",
+          "state": "observed",
+          "pressure_delta_psi": -0.12
+        },
+        {
+          "node_id": "N4",
+          "state": "observed",
+          "pressure_delta_psi": -0.31
+        }
+      ]
+    },
+    {
+      "case_id": "CAL-BASE",
+      "split": "calibration",
+      "topology_family_id": "calibration-branch",
+      "topology": {
+        "nodes": [
+          "N1",
+          "N2",
+          "N3",
+          "N4",
+          "N5"
+        ],
+        "links": [
+          {
+            "link_id": "L1",
+            "from_node_id": "N1",
+            "to_node_id": "N2"
+          },
+          {
+            "link_id": "L2",
+            "from_node_id": "N2",
+            "to_node_id": "N3"
+          },
+          {
+            "link_id": "L3",
+            "from_node_id": "N2",
+            "to_node_id": "N4"
+          },
+          {
+            "link_id": "L4",
+            "from_node_id": "N4",
+            "to_node_id": "N5"
+          }
+        ]
+      },
+      "perturbation": {
+        "fault_class": "no_fault",
+        "target_node_id": null,
+        "withdrawal_gpm": 0,
+        "scenario_seed": "seed-201"
+      },
+      "sensor_readings": [
+        {
+          "node_id": "N1",
+          "state": "observed",
+          "pressure_delta_psi": -0.001
+        },
+        {
+          "node_id": "N2",
+          "state": "observed",
+          "pressure_delta_psi": 0.002
+        },
+        {
+          "node_id": "N3",
+          "state": "observed",
+          "pressure_delta_psi": -0.001
+        },
+        {
+          "node_id": "N4",
+          "state": "observed",
+          "pressure_delta_psi": 0.003
+        },
+        {
+          "node_id": "N5",
+          "state": "observed",
+          "pressure_delta_psi": -0.002
+        }
+      ]
+    },
+    {
+      "case_id": "CAL-WD-N3-10",
+      "split": "calibration",
+      "topology_family_id": "calibration-branch",
+      "topology": {
+        "nodes": [
+          "N1",
+          "N2",
+          "N3",
+          "N4",
+          "N5"
+        ],
+        "links": [
+          {
+            "link_id": "L1",
+            "from_node_id": "N1",
+            "to_node_id": "N2"
+          },
+          {
+            "link_id": "L2",
+            "from_node_id": "N2",
+            "to_node_id": "N3"
+          },
+          {
+            "link_id": "L3",
+            "from_node_id": "N2",
+            "to_node_id": "N4"
+          },
+          {
+            "link_id": "L4",
+            "from_node_id": "N4",
+            "to_node_id": "N5"
+          }
+        ]
+      },
+      "perturbation": {
+        "fault_class": "single_withdrawal",
+        "target_node_id": "N3",
+        "withdrawal_gpm": 10,
+        "scenario_seed": "seed-202"
+      },
+      "sensor_readings": [
+        {
+          "node_id": "N1",
+          "state": "observed",
+          "pressure_delta_psi": -0.02
+        },
+        {
+          "node_id": "N2",
+          "state": "observed",
+          "pressure_delta_psi": -0.05
+        },
+        {
+          "node_id": "N3",
+          "state": "observed",
+          "pressure_delta_psi": -0.17
+        },
+        {
+          "node_id": "N4",
+          "state": "observed",
+          "pressure_delta_psi": -0.05
+        },
+        {
+          "node_id": "N5",
+          "state": "observed",
+          "pressure_delta_psi": -0.05
+        }
+      ]
+    },
+    {
+      "case_id": "CAL-WD-N5-25",
+      "split": "calibration",
+      "topology_family_id": "calibration-branch",
+      "topology": {
+        "nodes": [
+          "N1",
+          "N2",
+          "N3",
+          "N4",
+          "N5"
+        ],
+        "links": [
+          {
+            "link_id": "L1",
+            "from_node_id": "N1",
+            "to_node_id": "N2"
+          },
+          {
+            "link_id": "L2",
+            "from_node_id": "N2",
+            "to_node_id": "N3"
+          },
+          {
+            "link_id": "L3",
+            "from_node_id": "N2",
+            "to_node_id": "N4"
+          },
+          {
+            "link_id": "L4",
+            "from_node_id": "N4",
+            "to_node_id": "N5"
+          }
+        ]
+      },
+      "perturbation": {
+        "fault_class": "single_withdrawal",
+        "target_node_id": "N5",
+        "withdrawal_gpm": 25,
+        "scenario_seed": "seed-203"
+      },
+      "sensor_readings": [
+        {
+          "node_id": "N1",
+          "state": "observed",
+          "pressure_delta_psi": -0.04
+        },
+        {
+          "node_id": "N2",
+          "state": "observed",
+          "pressure_delta_psi": -0.14
+        },
+        {
+          "node_id": "N3",
+          "state": "observed",
+          "pressure_delta_psi": -0.14
+        },
+        {
+          "node_id": "N4",
+          "state": "observed",
+          "pressure_delta_psi": -0.2
+        },
+        {
+          "node_id": "N5",
+          "state": "observed",
+          "pressure_delta_psi": -0.34
+        }
+      ]
+    },
+    {
+      "case_id": "TEST-BASE-MISSING-SENSOR",
+      "split": "test",
+      "topology_family_id": "heldout-branch",
+      "topology": {
+        "nodes": [
+          "N1",
+          "N2",
+          "N3",
+          "N4",
+          "N5",
+          "N6"
+        ],
+        "links": [
+          {
+            "link_id": "L1",
+            "from_node_id": "N1",
+            "to_node_id": "N2"
+          },
+          {
+            "link_id": "L2",
+            "from_node_id": "N2",
+            "to_node_id": "N3"
+          },
+          {
+            "link_id": "L3",
+            "from_node_id": "N3",
+            "to_node_id": "N4"
+          },
+          {
+            "link_id": "L4",
+            "from_node_id": "N3",
+            "to_node_id": "N5"
+          },
+          {
+            "link_id": "L5",
+            "from_node_id": "N5",
+            "to_node_id": "N6"
+          }
+        ]
+      },
+      "perturbation": {
+        "fault_class": "no_fault",
+        "target_node_id": null,
+        "withdrawal_gpm": 0,
+        "scenario_seed": "seed-301"
+      },
+      "sensor_readings": [
+        {
+          "node_id": "N1",
+          "state": "observed",
+          "pressure_delta_psi": 0.002
+        },
+        {
+          "node_id": "N2",
+          "state": "missing",
+          "pressure_delta_psi": null
+        },
+        {
+          "node_id": "N3",
+          "state": "observed",
+          "pressure_delta_psi": 0.004
+        },
+        {
+          "node_id": "N4",
+          "state": "observed",
+          "pressure_delta_psi": -0.001
+        },
+        {
+          "node_id": "N5",
+          "state": "observed",
+          "pressure_delta_psi": 0.003
+        },
+        {
+          "node_id": "N6",
+          "state": "observed",
+          "pressure_delta_psi": -0.002
+        }
+      ]
+    },
+    {
+      "case_id": "TEST-WD-N4-10",
+      "split": "test",
+      "topology_family_id": "heldout-branch",
+      "topology": {
+        "nodes": [
+          "N1",
+          "N2",
+          "N3",
+          "N4",
+          "N5",
+          "N6"
+        ],
+        "links": [
+          {
+            "link_id": "L1",
+            "from_node_id": "N1",
+            "to_node_id": "N2"
+          },
+          {
+            "link_id": "L2",
+            "from_node_id": "N2",
+            "to_node_id": "N3"
+          },
+          {
+            "link_id": "L3",
+            "from_node_id": "N3",
+            "to_node_id": "N4"
+          },
+          {
+            "link_id": "L4",
+            "from_node_id": "N3",
+            "to_node_id": "N5"
+          },
+          {
+            "link_id": "L5",
+            "from_node_id": "N5",
+            "to_node_id": "N6"
+          }
+        ]
+      },
+      "perturbation": {
+        "fault_class": "single_withdrawal",
+        "target_node_id": "N4",
+        "withdrawal_gpm": 10,
+        "scenario_seed": "seed-302"
+      },
+      "sensor_readings": [
+        {
+          "node_id": "N1",
+          "state": "observed",
+          "pressure_delta_psi": -0.02
+        },
+        {
+          "node_id": "N2",
+          "state": "observed",
+          "pressure_delta_psi": -0.07
+        },
+        {
+          "node_id": "N3",
+          "state": "observed",
+          "pressure_delta_psi": -0.15
+        },
+        {
+          "node_id": "N4",
+          "state": "observed",
+          "pressure_delta_psi": -0.24
+        },
+        {
+          "node_id": "N5",
+          "state": "observed",
+          "pressure_delta_psi": -0.15
+        },
+        {
+          "node_id": "N6",
+          "state": "observed",
+          "pressure_delta_psi": -0.15
+        }
+      ]
+    },
+    {
+      "case_id": "TEST-WD-N6-25",
+      "split": "test",
+      "topology_family_id": "heldout-branch",
+      "topology": {
+        "nodes": [
+          "N1",
+          "N2",
+          "N3",
+          "N4",
+          "N5",
+          "N6"
+        ],
+        "links": [
+          {
+            "link_id": "L1",
+            "from_node_id": "N1",
+            "to_node_id": "N2"
+          },
+          {
+            "link_id": "L2",
+            "from_node_id": "N2",
+            "to_node_id": "N3"
+          },
+          {
+            "link_id": "L3",
+            "from_node_id": "N3",
+            "to_node_id": "N4"
+          },
+          {
+            "link_id": "L4",
+            "from_node_id": "N3",
+            "to_node_id": "N5"
+          },
+          {
+            "link_id": "L5",
+            "from_node_id": "N5",
+            "to_node_id": "N6"
+          }
+        ]
+      },
+      "perturbation": {
+        "fault_class": "single_withdrawal",
+        "target_node_id": "N6",
+        "withdrawal_gpm": 25,
+        "scenario_seed": "seed-303"
+      },
+      "sensor_readings": [
+        {
+          "node_id": "N1",
+          "state": "observed",
+          "pressure_delta_psi": -0.03
+        },
+        {
+          "node_id": "N2",
+          "state": "observed",
+          "pressure_delta_psi": -0.08
+        },
+        {
+          "node_id": "N3",
+          "state": "observed",
+          "pressure_delta_psi": -0.16
+        },
+        {
+          "node_id": "N4",
+          "state": "observed",
+          "pressure_delta_psi": -0.16
+        },
+        {
+          "node_id": "N5",
+          "state": "observed",
+          "pressure_delta_psi": -0.23
+        },
+        {
+          "node_id": "N6",
+          "state": "observed",
+          "pressure_delta_psi": -0.35
+        }
+      ]
+    }
+  ],
+  "assumptions": [
+    "Topology families are curator-declared groups intended to combine exact, relabeled and known near-duplicate network variants.",
+    "The pressure deltas are hand-authored toy signatures used only to test split-auditor behavior; they are not solver outputs or a hydraulic dataset.",
+    "This fixture exercises one topology family per split and is too small to estimate localization accuracy or uncertainty."
+  ],
+  "nonclaims": [
+    "No EPANET/WNTR solver was executed for the toy signatures.",
+    "No leak detection, leak localization, model calibration or field-transfer performance is claimed.",
+    "Passing this plan audit does not establish that the declared family grouping is complete or correct without curator review."
+  ]
+}
