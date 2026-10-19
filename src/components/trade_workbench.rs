@@ -289,19 +289,19 @@ pub fn TradeWorkbench() -> impl IntoView {
                 <aside class="field-work-sidebar" aria-label="Select trade">
                     <p class="field-work-eyebrow">"TRADE PROFILE"</p>
                     <nav class="field-work-nav">
-                        <button class:active=move || selected_trade.get() == Trade::Electrical on:click=move |_| selected_trade.set(Trade::Electrical)>
+                        <button class:active=move || selected_trade.get() == Trade::Electrical aria-pressed=move || (selected_trade.get() == Trade::Electrical).to_string() on:click=move |_| selected_trade.set(Trade::Electrical)>
                             <span aria-hidden="true">"ϟ"</span><span>"Electrical"</span>
                         </button>
-                        <button class:active=move || selected_trade.get() == Trade::Plumbing on:click=move |_| selected_trade.set(Trade::Plumbing)>
+                        <button class:active=move || selected_trade.get() == Trade::Plumbing aria-pressed=move || (selected_trade.get() == Trade::Plumbing).to_string() on:click=move |_| selected_trade.set(Trade::Plumbing)>
                             <span aria-hidden="true">"≈"</span><span>"Plumbing"</span>
                         </button>
-                        <button class:active=move || selected_trade.get() == Trade::Mechanical on:click=move |_| selected_trade.set(Trade::Mechanical)>
+                        <button class:active=move || selected_trade.get() == Trade::Mechanical aria-pressed=move || (selected_trade.get() == Trade::Mechanical).to_string() on:click=move |_| selected_trade.set(Trade::Mechanical)>
                             <span aria-hidden="true">"⚙"</span><span>"Mechanics"</span>
                         </button>
-                        <button class:active=move || selected_trade.get() == Trade::Hvac on:click=move |_| selected_trade.set(Trade::Hvac)>
+                        <button class:active=move || selected_trade.get() == Trade::Hvac aria-pressed=move || (selected_trade.get() == Trade::Hvac).to_string() on:click=move |_| selected_trade.set(Trade::Hvac)>
                             <span aria-hidden="true">"❄"</span><span>"HVAC"</span>
                         </button>
-                        <button class:active=move || selected_trade.get() == Trade::Construction on:click=move |_| selected_trade.set(Trade::Construction)>
+                        <button class:active=move || selected_trade.get() == Trade::Construction aria-pressed=move || (selected_trade.get() == Trade::Construction).to_string() on:click=move |_| selected_trade.set(Trade::Construction)>
                             <span aria-hidden="true">"⌂"</span><span>"Construction"</span>
                         </button>
                     </nav>
