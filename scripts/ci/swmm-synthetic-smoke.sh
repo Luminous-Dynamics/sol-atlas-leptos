@@ -182,6 +182,35 @@ on_exit() {
   local status=$?
   trap - EXIT
   if (( status != 0 )); then
+    # Preserve all artifacts produced before a failure; the manifest must bind
+    # evidence even when continuity or candidate-comparison gates reject it.
+    if [[ -x "$solver" && ! "$solver_sha" =~ ^[a-f0-9]{64}$ ]]; then
+      solver_sha="$(sha256sum "$solver" | awk '{print $1}')"
+    fi
+    if [[ -f "$out/s0-baseline.inp" && -z "$baseline_input_sha" ]]; then
+      baseline_input_sha="$(sha256sum "$out/s0-baseline.inp" | awk '{print $1}')"
+    fi
+    if [[ -f "$out/s0-candidate.inp" && -z "$candidate_input_sha" ]]; then
+      candidate_input_sha="$(sha256sum "$out/s0-candidate.inp" | awk '{print $1}')"
+    fi
+    if [[ -f "$out/s0-baseline.rpt" && -z "$baseline_report_sha" ]]; then
+      baseline_report_sha="$(sha256sum "$out/s0-baseline.rpt" | awk '{print $1}')"
+    fi
+    if [[ -f "$out/s0-candidate.rpt" && -z "$candidate_report_sha" ]]; then
+      candidate_report_sha="$(sha256sum "$out/s0-candidate.rpt" | awk '{print $1}')"
+    fi
+    if [[ -f "$out/s0-baseline.out" && -z "$baseline_output_sha" ]]; then
+      baseline_output_sha="$(sha256sum "$out/s0-baseline.out" | awk '{print $1}')"
+    fi
+    if [[ -f "$out/s0-candidate.out" && -z "$candidate_output_sha" ]]; then
+      candidate_output_sha="$(sha256sum "$out/s0-candidate.out" | awk '{print $1}')"
+    fi
+    if [[ -f "$out/s0-baseline.stdout" && -z "$baseline_stdout_sha" ]]; then
+      baseline_stdout_sha="$(sha256sum "$out/s0-baseline.stdout" | awk '{print $1}')"
+    fi
+    if [[ -f "$out/s0-candidate.stdout" && -z "$candidate_stdout_sha" ]]; then
+      candidate_stdout_sha="$(sha256sum "$out/s0-candidate.stdout" | awk '{print $1}')"
+    fi
     write_manifest "Failed" "$status" "$LINENO" "Runner failed at stage: $failure_stage" || true
   fi
   exit "$status"
