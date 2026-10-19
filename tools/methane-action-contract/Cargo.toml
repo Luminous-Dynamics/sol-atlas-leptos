@@ -1,0 +1,9 @@
+[package]
+name = "methane-action-contract"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+description = "Fail-closed evidence admission contract for methane observation benchmarks"
+
+[lib]
+path = "src/lib.rs"
