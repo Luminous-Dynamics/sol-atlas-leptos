@@ -286,6 +286,20 @@ mod tests {
         );
 
         let mut input = fixture(ModelDisposition::UseModel);
+        input.decision_id.clear();
+        assert_eq!(
+            Err(ModelCredibilityHandoffError::BlankIdentity),
+            assess_model_credibility_handoff(&input)
+        );
+
+        let mut input = fixture(ModelDisposition::UseModel);
+        input.capacity_unit = "   ".to_owned();
+        assert_eq!(
+            Err(ModelCredibilityHandoffError::InvalidCapacityUnit),
+            assess_model_credibility_handoff(&input)
+        );
+
+        let mut input = fixture(ModelDisposition::UseModel);
         input.as_of_utc = "yesterday".to_owned();
         assert_eq!(
             Err(ModelCredibilityHandoffError::InvalidTimestamp),
