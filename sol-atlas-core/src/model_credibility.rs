@@ -105,9 +105,7 @@ fn nonblank(value: &str) -> bool {
     !value.trim().is_empty() && value == value.trim()
 }
 
-fn validate_handoff(
-    input: &ModelCredibilityHandoff,
-) -> Result<(), ModelCredibilityHandoffError> {
+fn validate_handoff(input: &ModelCredibilityHandoff) -> Result<(), ModelCredibilityHandoffError> {
     if input.schema_version != MODEL_CREDIBILITY_HANDOFF_SCHEMA_VERSION {
         return Err(ModelCredibilityHandoffError::UnsupportedSchemaVersion);
     }
