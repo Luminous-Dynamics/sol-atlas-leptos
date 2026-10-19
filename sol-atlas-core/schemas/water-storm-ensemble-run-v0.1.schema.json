@@ -242,7 +242,11 @@
             "outfall_volume_million_liters",
             "flooding_loss_million_liters",
             "surcharged",
-            "flooded"
+            "flooded",
+            "node_flood_volume_million_liters",
+            "peak_node_flooding_rate_m3_s",
+            "max_ponded_depth_m",
+            "max_node_flooded_hours"
           ],
           "properties": {
             "runoff_continuity_error_percent": {
@@ -304,6 +308,18 @@
                 "boolean",
                 "null"
               ]
+            },
+            "node_flood_volume_million_liters": {
+              "$ref": "#/$defs/metric"
+            },
+            "peak_node_flooding_rate_m3_s": {
+              "$ref": "#/$defs/metric"
+            },
+            "max_ponded_depth_m": {
+              "$ref": "#/$defs/metric"
+            },
+            "max_node_flooded_hours": {
+              "$ref": "#/$defs/metric"
             }
           }
         },
@@ -314,7 +330,9 @@
             "peak_j1_depth_m",
             "peak_conduit_velocity_m_s",
             "peak_outfall_flow_m3_s",
-            "flooding_loss_million_liters"
+            "flooding_loss_million_liters",
+            "node_flood_volume_million_liters",
+            "max_ponded_depth_m"
           ],
           "properties": {
             "peak_j1_depth_m": {
@@ -327,6 +345,12 @@
               "$ref": "#/$defs/metric"
             },
             "flooding_loss_million_liters": {
+              "$ref": "#/$defs/metric"
+            },
+            "node_flood_volume_million_liters": {
+              "$ref": "#/$defs/metric"
+            },
+            "max_ponded_depth_m": {
               "$ref": "#/$defs/metric"
             }
           }
