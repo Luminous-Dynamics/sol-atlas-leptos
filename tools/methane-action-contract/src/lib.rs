@@ -53,6 +53,7 @@ pub struct ArtifactProvenance {
 pub enum ArtifactRole {
     Dataset,
     Terms,
+    Calibration,
 }
 
 /// Exact bytes fetched for an artifact. Digests are recomputed at admission time.
@@ -108,6 +109,15 @@ pub enum QualityFlag {
     Quarantined { reason: String },
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct MeasurementCalibration {
+    pub instrument_id: String,
+    pub calibration_uri: String,
+    pub calibration_sha256: String,
+    pub valid_from_utc: String,
+    pub valid_until_utc: String,
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Observation {
     /// Unique acquisition/observation identity, not a source or facility identity.
@@ -118,6 +128,8 @@ pub struct Observation {
     pub quality: QualityFlag,
     pub quantification: Quantification,
     pub provenance: ArtifactProvenance,
+    /// Required for in-situ measurements; optional for other evidence classes.
+    pub calibration: Option<MeasurementCalibration>,
 }
 
 /// Newtypes prevent source identities from being passed as facility identities.
@@ -184,6 +196,9 @@ pub fn validate_batch(
     artifact_snapshots: &[ArtifactSnapshot<'_>],
 ) -> ValidationReport {
     let mut report = ValidationReport::default();
+    if observations.is_empty() {
+        report.push("__batch__", "observations", "empty_observation_batch");
+    }
     let mut observation_ids = HashSet::new();
 
     for obs in observations {
@@ -208,6 +223,11 @@ pub fn validate_batch(
             id,
             &obs.provenance,
             required_use,
+            artifact_snapshots,
+        );
+        validate_calibration(
+            &mut report,
+            obs,
             artifact_snapshots,
         );
 
@@ -327,6 +347,63 @@ pub fn validate_batch(
         )
     });
     report
+}
+
+fn validate_calibration(
+    report: &mut ValidationReport,
+    observation: &Observation,
+    snapshots: &[ArtifactSnapshot<'_>],
+) {
+    let id = observation.observation_id.as_str();
+    let Some(calibration) = observation.calibration.as_ref() else {
+        if observation.kind == ObservationKind::InSituMeasurement {
+            report.push(id, "calibration", "in_situ_calibration_missing");
+        }
+        return;
+    };
+
+    if calibration.instrument_id.trim().is_empty() {
+        report.push(id, "calibration.instrument_id", "empty_instrument_id");
+    }
+    if !calibration.calibration_uri.starts_with("https://") {
+        report.push(id, "calibration.calibration_uri", "calibration_uri_not_https");
+    }
+    if !is_utc_timestamp(&calibration.valid_from_utc) {
+        report.push(id, "calibration.valid_from_utc", "invalid_utc_timestamp");
+    }
+    if !is_utc_timestamp(&calibration.valid_until_utc) {
+        report.push(id, "calibration.valid_until_utc", "invalid_utc_timestamp");
+    }
+    if is_utc_timestamp(&calibration.valid_from_utc)
+        && is_utc_timestamp(&calibration.valid_until_utc)
+    {
+        if calibration.valid_from_utc > calibration.valid_until_utc {
+            report.push(id, "calibration.validity", "calibration_interval_inverted");
+        } else if is_utc_timestamp(&observation.observed_at_utc)
+            && (observation.observed_at_utc < calibration.valid_from_utc
+                || observation.observed_at_utc > calibration.valid_until_utc)
+        {
+            report.push(id, "calibration.validity", "observation_outside_calibration_interval");
+        }
+    }
+
+    if !is_sha256_hex(&calibration.calibration_sha256) {
+        report.push(id, "calibration.calibration_sha256", "invalid_sha256_format");
+    }
+    validate_snapshot_digest(
+        report,
+        id,
+        "calibration.calibration_sha256",
+        SnapshotExpectation {
+            role: ArtifactRole::Calibration,
+            uri: &calibration.calibration_uri,
+            expected_sha256: &calibration.calibration_sha256,
+            missing_code: "calibration_artifact_bytes_missing",
+            duplicate_code: "duplicate_calibration_artifact_snapshot",
+            mismatch_code: "calibration_digest_mismatch",
+        },
+        snapshots,
+    );
 }
 
 fn validate_provenance(
@@ -618,8 +695,9 @@ mod tests {
 
     const DATA_ARTIFACT_BYTES: &[u8] = b"synthetic methane source artifact v1";
     const TERMS_ARTIFACT_BYTES: &[u8] = b"synthetic terms snapshot v1";
+    const CALIBRATION_ARTIFACT_BYTES: &[u8] = b"synthetic instrument calibration v1";
 
-    fn artifact_snapshots() -> [ArtifactSnapshot<'static>; 2] {
+    fn artifact_snapshots() -> [ArtifactSnapshot<'static>; 3] {
         [
             ArtifactSnapshot {
                 role: ArtifactRole::Dataset,
@@ -630,6 +708,11 @@ mod tests {
                 role: ArtifactRole::Terms,
                 uri: "https://data.example.test/terms",
                 bytes: TERMS_ARTIFACT_BYTES,
+            },
+            ArtifactSnapshot {
+                role: ArtifactRole::Calibration,
+                uri: "https://data.example.test/calibration.csv",
+                bytes: CALIBRATION_ARTIFACT_BYTES,
             },
         ]
     }
@@ -664,6 +747,7 @@ mod tests {
             quality: QualityFlag::Qualified,
             quantification,
             provenance: provenance(),
+            calibration: None,
         }
     }
 
@@ -687,6 +771,96 @@ mod tests {
                 reviewer_id: "reviewer-2".into(),
             },
         }
+    }
+
+    fn calibrated_observation(id: &str) -> Observation {
+        let mut obs = observation(id, quantified());
+        obs.kind = ObservationKind::InSituMeasurement;
+        obs.calibration = Some(MeasurementCalibration {
+            instrument_id: "meter-1".into(),
+            calibration_uri: "https://data.example.test/calibration.csv".into(),
+            calibration_sha256: sha256_hex(CALIBRATION_ARTIFACT_BYTES),
+            valid_from_utc: "2026-01-01T00:00:00Z".into(),
+            valid_until_utc: "2026-12-31T23:59:59Z".into(),
+        });
+        obs
+    }
+
+    #[test]
+    fn accepts_in_situ_measurement_with_pinned_calibration_in_validity_window() {
+        let report = validate_batch(
+            &[calibrated_observation("meter-reading-1")],
+            &[],
+            DataUse::ResearchNonCommercial,
+            ObservationKind::InSituMeasurement,
+            &GasSpecies::Methane,
+            &artifact_snapshots(),
+        );
+        assert!(report.is_valid(), "{report:?}");
+    }
+
+    #[test]
+    fn rejects_in_situ_measurement_without_calibration() {
+        let mut obs = observation("meter-reading-no-calibration", quantified());
+        obs.kind = ObservationKind::InSituMeasurement;
+        let report = validate_batch(
+            &[obs],
+            &[],
+            DataUse::ResearchNonCommercial,
+            ObservationKind::InSituMeasurement,
+            &GasSpecies::Methane,
+            &artifact_snapshots(),
+        );
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|violation| violation.code == "in_situ_calibration_missing")
+        );
+    }
+
+    #[test]
+    fn rejects_in_situ_measurement_outside_calibration_interval() {
+        let mut obs = calibrated_observation("meter-reading-expired-calibration");
+        obs.observed_at_utc = "2027-01-01T00:00:00Z".into();
+        let report = validate_batch(
+            &[obs],
+            &[],
+            DataUse::ResearchNonCommercial,
+            ObservationKind::InSituMeasurement,
+            &GasSpecies::Methane,
+            &artifact_snapshots(),
+        );
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|violation| violation.code == "observation_outside_calibration_interval")
+        );
+    }
+
+    #[test]
+    fn rejects_tampered_calibration_bytes() {
+        let mut snapshots = artifact_snapshots();
+        snapshots[2] = ArtifactSnapshot {
+            role: ArtifactRole::Calibration,
+            uri: "https://data.example.test/calibration.csv",
+            bytes: b"tampered calibration",
+        };
+        let report = validate_batch(
+            &[calibrated_observation("meter-reading-tampered-calibration")],
+            &[],
+            DataUse::ResearchNonCommercial,
+            ObservationKind::InSituMeasurement,
+            &GasSpecies::Methane,
+            &snapshots,
+        );
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|violation| violation.code == "calibration_digest_mismatch")
+        );
     }
 
     #[test]
@@ -1170,6 +1344,24 @@ mod tests {
                 .violations
                 .iter()
                 .any(|violation| violation.code == "empty_artifact_bytes")
+        );
+    }
+
+    #[test]
+    fn rejects_empty_observation_batch() {
+        let report = validate_batch(
+            &[],
+            &[],
+            DataUse::ResearchNonCommercial,
+            ObservationKind::RemoteSensingPlume,
+            &GasSpecies::Methane,
+            &artifact_snapshots(),
+        );
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|violation| violation.code == "empty_observation_batch")
         );
     }
 
