@@ -63,6 +63,15 @@ pub struct ArtifactSnapshot<'a> {
     pub bytes: &'a [u8],
 }
 
+struct SnapshotExpectation<'a> {
+    role: ArtifactRole,
+    uri: &'a str,
+    expected_sha256: &'a str,
+    missing_code: &'static str,
+    duplicate_code: &'static str,
+    mismatch_code: &'static str,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ObservationKind {
     RemoteSensingPlume,
@@ -348,13 +357,15 @@ fn validate_provenance(
         report,
         record_id,
         "provenance.artifact_sha256",
-        ArtifactRole::Dataset,
-        &provenance.source_uri,
-        &provenance.artifact_sha256,
+        SnapshotExpectation {
+            role: ArtifactRole::Dataset,
+            uri: &provenance.source_uri,
+            expected_sha256: &provenance.artifact_sha256,
+            missing_code: "source_artifact_bytes_missing",
+            duplicate_code: "duplicate_source_artifact_snapshot",
+            mismatch_code: "source_digest_mismatch",
+        },
         artifact_snapshots,
-        "source_artifact_bytes_missing",
-        "duplicate_source_artifact_snapshot",
-        "source_digest_mismatch",
     );
     if !is_utc_timestamp(&provenance.retrieved_at_utc) {
         report.push(
@@ -393,13 +404,15 @@ fn validate_provenance(
                 report,
                 record_id,
                 "provenance.terms_review.terms_sha256",
-                ArtifactRole::Terms,
-                terms_uri,
-                terms_sha256,
+                SnapshotExpectation {
+                    role: ArtifactRole::Terms,
+                    uri: terms_uri,
+                    expected_sha256: terms_sha256,
+                    missing_code: "terms_artifact_bytes_missing",
+                    duplicate_code: "duplicate_terms_artifact_snapshot",
+                    mismatch_code: "terms_digest_mismatch",
+                },
                 artifact_snapshots,
-                "terms_artifact_bytes_missing",
-                "duplicate_terms_artifact_snapshot",
-                "terms_digest_mismatch",
             );
             if reason.trim().is_empty() {
                 report.push(
@@ -432,13 +445,15 @@ fn validate_provenance(
                 report,
                 record_id,
                 "provenance.terms_review.terms_sha256",
-                ArtifactRole::Terms,
-                terms_uri,
-                terms_sha256,
+                SnapshotExpectation {
+                    role: ArtifactRole::Terms,
+                    uri: terms_uri,
+                    expected_sha256: terms_sha256,
+                    missing_code: "terms_artifact_bytes_missing",
+                    duplicate_code: "duplicate_terms_artifact_snapshot",
+                    mismatch_code: "terms_digest_mismatch",
+                },
                 artifact_snapshots,
-                "terms_artifact_bytes_missing",
-                "duplicate_terms_artifact_snapshot",
-                "terms_digest_mismatch",
             );
             if reviewed_source_uri != &provenance.source_uri {
                 report.push(
@@ -519,34 +534,29 @@ fn validate_snapshot_digest(
     report: &mut ValidationReport,
     record_id: &str,
     field: &str,
-    role: ArtifactRole,
-    uri: &str,
-    expected_sha256: &str,
+    expectation: SnapshotExpectation<'_>,
     snapshots: &[ArtifactSnapshot<'_>],
-    missing_code: &'static str,
-    duplicate_code: &'static str,
-    mismatch_code: &'static str,
 ) {
-    let mut matching = snapshots
-        .iter()
-        .filter(|snapshot| snapshot.role == role && snapshot.uri == uri);
+    let mut matching = snapshots.iter().filter(|snapshot| {
+        snapshot.role == expectation.role && snapshot.uri == expectation.uri
+    });
     let Some(snapshot) = matching.next() else {
-        report.push(record_id, field, missing_code);
+        report.push(record_id, field, expectation.missing_code);
         return;
     };
     if matching.next().is_some() {
-        report.push(record_id, field, duplicate_code);
+        report.push(record_id, field, expectation.duplicate_code);
         return;
     }
     if snapshot.bytes.is_empty() {
         report.push(record_id, field, "empty_artifact_bytes");
     }
-    if !is_sha256_hex(expected_sha256) {
+    if !is_sha256_hex(expectation.expected_sha256) {
         return;
     }
     let actual_sha256 = sha256_hex(snapshot.bytes);
-    if actual_sha256 != expected_sha256 {
-        report.push(record_id, field, mismatch_code);
+    if actual_sha256 != expectation.expected_sha256 {
+        report.push(record_id, field, expectation.mismatch_code);
     }
 }
 
