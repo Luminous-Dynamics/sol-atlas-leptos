@@ -36,3 +36,9 @@ jobs:
           cargo run --manifest-path tools/methane-action-contract/Cargo.toml --locked --bin methane-census < tools/methane-action-contract/examples/synthetic-census.json > /tmp/methane-census-receipt.json
           grep -q '"evaluation_status": "valid"' /tmp/methane-census-receipt.json
           grep -q '"true_positives": 1' /tmp/methane-census-receipt.json
+      - name: Smoke-test paired comparison receipt
+        run: |
+          cargo run --manifest-path tools/methane-action-contract/Cargo.toml --locked --bin methane-compare < tools/methane-action-contract/examples/synthetic-paired-comparison.json > /tmp/methane-comparison-receipt.json
+          grep -q '"comparison_status": "valid"' /tmp/methane-comparison-receipt.json
+          grep -q '"cluster_count": 10' /tmp/methane-comparison-receipt.json
+          grep -q '"candidate_only_events": 5' /tmp/methane-comparison-receipt.json
