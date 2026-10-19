@@ -12,9 +12,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::ccz_commons::valid_sha256;
 
-/// Number of microarcseconds in one degree.
-const MICROARCSECONDS_PER_DEGREE: i64 = 3_600_000_000;
-
 /// Horizontal axis represented by a grid dimension.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -165,22 +162,14 @@ impl GridPairValidationReport {
     }
 }
 
-fn add_issue(
-    issues: &mut Vec<GridPairIssue>,
-    code: GridPairIssueCode,
-    message: &'static str,
-) {
+fn add_issue(issues: &mut Vec<GridPairIssue>, code: GridPairIssueCode, message: &'static str) {
     issues.push(GridPairIssue {
         code,
         message: message.to_owned(),
     });
 }
 
-fn validate_one_grid(
-    grid: &GridMetadata,
-    is_bathymetry: bool,
-    issues: &mut Vec<GridPairIssue>,
-) {
+fn validate_one_grid(grid: &GridMetadata, is_bathymetry: bool, issues: &mut Vec<GridPairIssue>) {
     if grid.source_snapshot_id.trim().is_empty() {
         add_issue(
             issues,
@@ -495,38 +484,35 @@ pub fn decode_bathymetry_cell(
 }
 
 /// Interpret a raw TID byte while preserving NoData, known source classes, and unknown codes.
-pub fn decode_tid_cell(
-    raw_code: u8,
-    encoding: NoDataEncoding,
-) -> Result<TidCell, CellDecodeError> {
+pub fn decode_tid_cell(raw_code: u8, encoding: NoDataEncoding) -> Result<TidCell, CellDecodeError> {
     let class = match encoding {
         NoDataEncoding::U8Sentinel(sentinel) if raw_code == sentinel => {
-            return Ok(TidCell::NoData { raw_value: raw_code });
+            return Ok(TidCell::NoData {
+                raw_value: raw_code,
+            });
         }
-        NoDataEncoding::U8Sentinel(_) | NoDataEncoding::ExplicitNoSentinel => {
-            match raw_code {
-                0 => TidSourceClass::Land,
-                10 => TidSourceClass::DirectSingleBeam,
-                11 => TidSourceClass::DirectMultibeam,
-                12 => TidSourceClass::DirectSeismic,
-                13 => TidSourceClass::IsolatedSounding,
-                14 => TidSourceClass::ElectronicNavigationChartSounding,
-                15 => TidSourceClass::DirectLidar,
-                16 => TidSourceClass::DirectOptical,
-                17 => TidSourceClass::CombinedDirectMeasurements,
-                40 => TidSourceClass::SatelliteGravityPredicted,
-                41 => TidSourceClass::AlgorithmInterpolated,
-                42 => TidSourceClass::ChartContour,
-                43 => TidSourceClass::ElectronicNavigationChartContour,
-                44 => TidSourceClass::SoundingConstrainedInterpolation,
-                45 => TidSourceClass::FlightGravityPredicted,
-                46 => TidSourceClass::IcebergDraftEstimated,
-                70 => TidSourceClass::PreGeneratedMixedSources,
-                71 => TidSourceClass::UnknownSource,
-                72 => TidSourceClass::SteeringPoint,
-                value => TidSourceClass::UnrecognizedCode(value),
-            }
-        }
+        NoDataEncoding::U8Sentinel(_) | NoDataEncoding::ExplicitNoSentinel => match raw_code {
+            0 => TidSourceClass::Land,
+            10 => TidSourceClass::DirectSingleBeam,
+            11 => TidSourceClass::DirectMultibeam,
+            12 => TidSourceClass::DirectSeismic,
+            13 => TidSourceClass::IsolatedSounding,
+            14 => TidSourceClass::ElectronicNavigationChartSounding,
+            15 => TidSourceClass::DirectLidar,
+            16 => TidSourceClass::DirectOptical,
+            17 => TidSourceClass::CombinedDirectMeasurements,
+            40 => TidSourceClass::SatelliteGravityPredicted,
+            41 => TidSourceClass::AlgorithmInterpolated,
+            42 => TidSourceClass::ChartContour,
+            43 => TidSourceClass::ElectronicNavigationChartContour,
+            44 => TidSourceClass::SoundingConstrainedInterpolation,
+            45 => TidSourceClass::FlightGravityPredicted,
+            46 => TidSourceClass::IcebergDraftEstimated,
+            70 => TidSourceClass::PreGeneratedMixedSources,
+            71 => TidSourceClass::UnknownSource,
+            72 => TidSourceClass::SteeringPoint,
+            value => TidSourceClass::UnrecognizedCode(value),
+        },
         NoDataEncoding::Unknown => return Err(CellDecodeError::UnknownNoDataSemantics),
         NoDataEncoding::I16Sentinel(_) => {
             return Err(CellDecodeError::NoDataEncodingTypeMismatch);
@@ -594,7 +580,12 @@ mod tests {
         let mut pair = valid_pair();
         pair.type_identifier.product_version = "different-edition".into();
         let report = validate_grid_pair(&pair);
-        assert!(report.issues.iter().any(|i| i.code == GridPairIssueCode::ProductVersionMismatch));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|i| i.code == GridPairIssueCode::ProductVersionMismatch)
+        );
     }
 
     #[test]
@@ -602,7 +593,12 @@ mod tests {
         let mut pair = valid_pair();
         pair.type_identifier.columns = 3;
         let report = validate_grid_pair(&pair);
-        assert!(report.issues.iter().any(|i| i.code == GridPairIssueCode::DimensionMismatch));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|i| i.code == GridPairIssueCode::DimensionMismatch)
+        );
     }
 
     #[test]
@@ -610,7 +606,12 @@ mod tests {
         let mut pair = valid_pair();
         pair.type_identifier.bounds.east_edge_microarcseconds += 15_000_000;
         let report = validate_grid_pair(&pair);
-        assert!(report.issues.iter().any(|i| i.code == GridPairIssueCode::BoundsMismatch));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|i| i.code == GridPairIssueCode::BoundsMismatch)
+        );
     }
 
     #[test]
@@ -618,7 +619,12 @@ mod tests {
         let mut pair = valid_pair();
         pair.type_identifier.coordinate_reference_system = Some("EPSG:3857".into());
         let report = validate_grid_pair(&pair);
-        assert!(report.issues.iter().any(|i| i.code == GridPairIssueCode::CoordinateReferenceMismatch));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|i| i.code == GridPairIssueCode::CoordinateReferenceMismatch)
+        );
     }
 
     #[test]
@@ -627,7 +633,12 @@ mod tests {
         pair.type_identifier.row_axis = GridAxis::Longitude;
         pair.type_identifier.column_axis = GridAxis::Latitude;
         let report = validate_grid_pair(&pair);
-        assert!(report.issues.iter().any(|i| i.code == GridPairIssueCode::AxisOrderMismatch));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|i| i.code == GridPairIssueCode::AxisOrderMismatch)
+        );
     }
 
     #[test]
@@ -635,7 +646,12 @@ mod tests {
         let mut pair = valid_pair();
         pair.bathymetry.cell_width_microarcseconds = 10_000_000;
         let report = validate_grid_pair(&pair);
-        assert!(report.issues.iter().any(|i| i.code == GridPairIssueCode::DimensionsDoNotMatchBounds));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|i| i.code == GridPairIssueCode::DimensionsDoNotMatchBounds)
+        );
     }
 
     #[test]
@@ -644,8 +660,18 @@ mod tests {
         pair.bathymetry.vertical_datum = None;
         pair.bathymetry.vertical_unit = None;
         let report = validate_grid_pair(&pair);
-        assert!(report.issues.iter().any(|i| i.code == GridPairIssueCode::MissingVerticalDatum));
-        assert!(report.issues.iter().any(|i| i.code == GridPairIssueCode::MissingVerticalUnit));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|i| i.code == GridPairIssueCode::MissingVerticalDatum)
+        );
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|i| i.code == GridPairIssueCode::MissingVerticalUnit)
+        );
     }
 
     #[test]
@@ -653,7 +679,12 @@ mod tests {
         let mut pair = valid_pair();
         pair.bathymetry.no_data = NoDataEncoding::Unknown;
         let report = validate_grid_pair(&pair);
-        assert!(report.issues.iter().any(|i| i.code == GridPairIssueCode::UnknownNoDataEncoding));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|i| i.code == GridPairIssueCode::UnknownNoDataEncoding)
+        );
         assert!(!report.is_valid());
     }
 
@@ -726,6 +757,11 @@ mod tests {
         let mut pair = valid_pair();
         pair.type_identifier.artifact_sha256 = "not-a-digest".into();
         let report = validate_grid_pair(&pair);
-        assert!(report.issues.iter().any(|i| i.code == GridPairIssueCode::InvalidArtifactSha256));
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|i| i.code == GridPairIssueCode::InvalidArtifactSha256)
+        );
     }
 }
