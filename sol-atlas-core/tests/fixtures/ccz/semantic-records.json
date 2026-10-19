@@ -1,0 +1,98 @@
+[
+  {
+    "feature_id": "synthetic-isa-exploration-contract",
+    "kind": "isa_exploration_contract",
+    "source_snapshot_id": "synthetic-source-v1",
+    "issuer_as_published": "Synthetic ISA record; not a real contract",
+    "instrument_reference": "synthetic-contract-01",
+    "status_as_published": "in_force",
+    "valid_from": "2026-01-01",
+    "valid_until": "2027-01-01",
+    "geometry_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "coordinate_reference_system": "EPSG:4326"
+  },
+  {
+    "feature_id": "synthetic-isa-reserved-area",
+    "kind": "isa_reserved_area",
+    "source_snapshot_id": "synthetic-source-v1",
+    "issuer_as_published": "Synthetic ISA record; not a real area",
+    "instrument_reference": "synthetic-reserved-01",
+    "status_as_published": "issued",
+    "valid_from": null,
+    "valid_until": null,
+    "geometry_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "coordinate_reference_system": "EPSG:4326"
+  },
+  {
+    "feature_id": "synthetic-apei",
+    "kind": "area_of_particular_environmental_interest",
+    "source_snapshot_id": "synthetic-source-v1",
+    "issuer_as_published": "Synthetic environmental-management record",
+    "instrument_reference": "synthetic-apei-01",
+    "status_as_published": "in_force",
+    "valid_from": null,
+    "valid_until": null,
+    "geometry_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "coordinate_reference_system": "EPSG:4326"
+  },
+  {
+    "feature_id": "synthetic-national-maritime-zone",
+    "kind": "national_maritime_zone",
+    "source_snapshot_id": "synthetic-source-v1",
+    "issuer_as_published": "Synthetic national hydrographic authority",
+    "instrument_reference": "synthetic-zone-01",
+    "status_as_published": "issued",
+    "valid_from": null,
+    "valid_until": null,
+    "geometry_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "coordinate_reference_system": "EPSG:4326"
+  },
+  {
+    "feature_id": "synthetic-domestic-application",
+    "kind": "domestic_law_application",
+    "source_snapshot_id": "synthetic-source-v1",
+    "issuer_as_published": "Synthetic national authority",
+    "instrument_reference": "synthetic-application-01",
+    "status_as_published": "proposed",
+    "valid_from": null,
+    "valid_until": null,
+    "geometry_sha256": null,
+    "coordinate_reference_system": null
+  },
+  {
+    "feature_id": "synthetic-corporate-assertion",
+    "kind": "corporate_resource_assertion",
+    "source_snapshot_id": "synthetic-source-v1",
+    "issuer_as_published": "Synthetic company filing",
+    "instrument_reference": "synthetic-resource-claim-01",
+    "status_as_published": "not_stated",
+    "valid_from": null,
+    "valid_until": null,
+    "geometry_sha256": null,
+    "coordinate_reference_system": null
+  },
+  {
+    "feature_id": "synthetic-scientific-observation",
+    "kind": "scientific_observation",
+    "source_snapshot_id": "synthetic-source-v1",
+    "issuer_as_published": "Synthetic research cruise",
+    "instrument_reference": "synthetic-observation-01",
+    "status_as_published": "issued",
+    "valid_from": "2026-06-30",
+    "valid_until": null,
+    "geometry_sha256": null,
+    "coordinate_reference_system": null
+  },
+  {
+    "feature_id": "synthetic-unknown-record",
+    "kind": "unknown",
+    "source_snapshot_id": "synthetic-source-v1",
+    "issuer_as_published": null,
+    "instrument_reference": null,
+    "status_as_published": "unknown",
+    "valid_from": null,
+    "valid_until": null,
+    "geometry_sha256": null,
+    "coordinate_reference_system": null
+  }
+]
