@@ -35,6 +35,9 @@ outputs_differ=""
 continuity_pass=""
 declared_input_sha=""
 declared_input_bytes=""
+actual_input_sha=""
+actual_input_bytes=""
+digest_match=""
 bundle_id="unknown"
 scenario_id="unknown"
 asset_id="C1"
@@ -64,10 +67,11 @@ write_manifest() {
     --arg workflow_run_id "$workflow_run_id" \
     --arg workflow_run_attempt "$workflow_run_attempt" \
     --arg input_rel "sol-atlas-core/fixtures/water-engineering/s0_stormwater.inp" \
-    --arg input_sha "$declared_input_sha" \
-    --arg input_bytes "$declared_input_bytes" \
+    --arg input_sha "$actual_input_sha" \
+    --arg input_bytes "$actual_input_bytes" \
     --arg bundle_rel "sol-atlas-core/fixtures/water-engineering/s0-stormwater-restricted-conduit.synthetic.json" \
     --arg bundle_sha "$bundle_sha" \
+    --arg digest_match "$digest_match" \
     --arg bundle_id "$bundle_id" \
     --arg scenario_id "$scenario_id" \
     --arg asset_id "$asset_id" \
@@ -107,7 +111,7 @@ write_manifest() {
          engine: "EPA_SWMM",
          version: "5.2.4",
          source_commit: $source_commit,
-         executable_sha256: (if ($solver_sha | test("^[a-f0-9]{64}$")) then $solver_sha else ("0" * 64) end)
+         executable_sha256: (if ($solver_sha | test("^[a-f0-9]{64}$")) then $solver_sha else null end)
        },
        execution_identity: {
          github_sha: (if ($github_sha | test("^[a-f0-9]{40}$")) then $github_sha else null end),
@@ -117,12 +121,12 @@ write_manifest() {
        },
        source_fixture: {
          path: $input_rel,
-         sha256: (if ($input_sha | test("^[a-f0-9]{64}$")) then $input_sha else ("0" * 64) end),
-         byte_length: ($input_bytes | optional_number // 1)
+         sha256: (if ($input_sha | test("^[a-f0-9]{64}$")) then $input_sha else null end),
+         byte_length: ($input_bytes | optional_number)
        },
        scenario_bundle: {
          path: $bundle_rel,
-         sha256: (if ($bundle_sha | test("^[a-f0-9]{64}$")) then $bundle_sha else ("0" * 64) end),
+         sha256: (if ($bundle_sha | test("^[a-f0-9]{64}$")) then $bundle_sha else null end),
          bundle_id: $bundle_id,
          scenario_id: $scenario_id,
          target_asset_id: $asset_id,
@@ -158,7 +162,7 @@ write_manifest() {
          }
        },
        checks: {
-         input_digest_matches: ($input_sha != ""),
+         input_digest_matches: ($digest_match | optional_boolean),
          baseline_outputs_present: ($baseline_state == "Completed" and $baseline_report_sha != "" and $baseline_output_sha != ""),
          candidate_outputs_present: ($candidate_state == "Completed" and $candidate_report_sha != "" and $candidate_output_sha != ""),
          reports_differ: ($reports_differ | optional_boolean),
@@ -185,7 +189,12 @@ on_exit() {
 trap on_exit EXIT
 
 failure_stage="scenario_identity"
-bundle_sha="$(sha256sum "$bundle_file" | awk '{print $1}')"
+if [[ -f "$bundle_file" ]]; then bundle_sha="$(sha256sum "$bundle_file" | awk '{print $1}')"; fi
+if [[ -f "$repo_root/sol-atlas-core/fixtures/water-engineering/s0_stormwater.inp" ]]; then
+  actual_input_sha="$(sha256sum "$repo_root/sol-atlas-core/fixtures/water-engineering/s0_stormwater.inp" | awk '{print $1}')"
+  actual_input_bytes="$(wc -c < "$repo_root/sol-atlas-core/fixtures/water-engineering/s0_stormwater.inp" | tr -d '[:space:]')"
+fi
+if [[ -x "$solver" ]]; then solver_sha="$(sha256sum "$solver" | awk '{print $1}')"; fi
 bundle_id="$(jq -er '.bundle_id | strings' "$bundle_file")"
 scenario_id="$(jq -er '.scenario.scenario_id | strings' "$bundle_file")"
 input_rel="$(jq -er '.model_package.input_snapshot.path | strings' "$bundle_file")"
@@ -248,16 +257,19 @@ test "$parameter" = "circular_diameter_m"
 test -x "$solver"
 
 input="$repo_root/$input_rel"
-actual_input_sha="$(sha256sum "$input" | awk '{print $1}')"
-actual_input_bytes="$(wc -c < "$input" | tr -d '[:space:]')"
-test "$actual_input_sha" = "$declared_input_sha" || {
-  echo "SWMM_INPUT_SHA256_MISMATCH: expected=$declared_input_sha actual=$actual_input_sha"
+actual_input_sha_check="$(sha256sum "$input" | awk '{print $1}')"
+actual_input_bytes_check="$(wc -c < "$input" | tr -d '[:space:]')"
+if [[ "$actual_input_sha_check" != "$declared_input_sha" || "$actual_input_sha_check" != "$actual_input_sha" ]]; then
+  digest_match="false"
+  echo "SWMM_INPUT_SHA256_MISMATCH: declared=$declared_input_sha actual=$actual_input_sha_check"
   exit 1
-}
-test "$actual_input_bytes" = "$declared_input_bytes" || {
-  echo "SWMM_INPUT_BYTE_LENGTH_MISMATCH: expected=$declared_input_bytes actual=$actual_input_bytes"
+fi
+if [[ "$actual_input_bytes_check" != "$declared_input_bytes" || "$actual_input_bytes_check" != "$actual_input_bytes" ]]; then
+  digest_match="false"
+  echo "SWMM_INPUT_BYTE_LENGTH_MISMATCH: declared=$declared_input_bytes actual=$actual_input_bytes_check"
   exit 1
-}
+fi
+digest_match="true"
 grep -Eq '^[[:space:]]*FLOW_UNITS[[:space:]]+CMS([[:space:]]|$)' "$input" || {
   echo "SWMM_INPUT_FLOW_UNITS_UNSUPPORTED: expected CMS"
   exit 1
