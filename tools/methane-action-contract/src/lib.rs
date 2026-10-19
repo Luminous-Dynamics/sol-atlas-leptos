@@ -855,11 +855,11 @@ mod tests {
             reviewer_id: "reviewer-1".into(),
             approved_use: DataUse::ResearchNonCommercial,
             terms_uri: "https://data.example.test/terms".into(),
-            terms_sha256: "b".repeat(64),
+            terms_sha256: sha256_hex(TERMS_ARTIFACT_BYTES),
             reviewed_at_utc: "2026-10-19T12:00:00Z".into(),
             reviewed_source_uri: "https://data.example.test/methane.csv".into(),
             reviewed_source_version: "fixture-v1".into(),
-            reviewed_source_sha256: "a".repeat(64),
+            reviewed_source_sha256: sha256_hex(DATA_ARTIFACT_BYTES),
         };
         let report = validate_batch(
             &[commercial],
@@ -929,7 +929,7 @@ mod tests {
             reviewed_at_utc: "not-a-timestamp".into(),
             reviewed_source_uri: "https://data.example.test/methane.csv".into(),
             reviewed_source_version: "fixture-v1".into(),
-            reviewed_source_sha256: "a".repeat(64),
+            reviewed_source_sha256: sha256_hex(DATA_ARTIFACT_BYTES),
         };
         let report = validate_batch(
             &[obs],
@@ -1101,6 +1101,14 @@ mod tests {
                 .violations
                 .iter()
                 .any(|v| v.code == "association_rejected")
+        );
+    }
+
+    #[test]
+    fn sha256_helper_matches_standard_known_answer() {
+        assert_eq!(
+            sha256_hex(b"abc"),
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
         );
     }
 
