@@ -13,7 +13,8 @@ The data model distinguishes:
 - explicitly unquantified observations;
 - remote-sensing plume records, in-situ measurements, inventory estimates, model inferences, and synthetic scenarios;
 - source associations and optional facility associations;
-- declared source/terms provenance and intended data-use review.
+- terms approval bound to the exact source URI/version/digest and exact terms URI/digest;
+- source and terms digests recomputed from caller-supplied exact bytes during admission, with missing, duplicate, empty, and mismatched snapshots rejected.
 
 The whole batch must be rejected if any validation violation is returned. The validator does not silently drop or repair records.
 
@@ -23,17 +24,17 @@ The whole batch must be rejected if any validation violation is returned. The va
     cargo fmt --manifest-path tools/methane-action-contract/Cargo.toml -- --check
     cargo clippy --manifest-path tools/methane-action-contract/Cargo.toml --all-targets -- -D warnings
 
-No third-party crate dependencies are introduced.
+The only external crate dependency is `sha2 = 0.10.9`, with a standalone lockfile pinned to the same versions already present in the repository lockfile.
 
 ## Trust and scope boundaries
 
-This crate checks record structure and declarations only. In particular, it does not:
-- compute SHA-256 or prove a digest matches the referenced bytes; the contract only checks digest shape and compares the declared source identity/digest to the recorded review scope;
-- authenticate a named reviewer or determine the actual legal scope of a license;
-- verify measurement calibration, infer unseen events, estimate source attribution quality, or validate fluid/atmospheric physics;
+The validator recomputes SHA-256 for exact source and terms bytes supplied as `ArtifactSnapshot` records and checks those results against the provenance and terms-review digests. It rejects missing, duplicated, empty, or mismatched snapshots. It does not:
+- authenticate the upstream provider, prove that the supplied bytes were retrieved from the URI, or authenticate a named reviewer;
+- interpret the actual legal scope of a license or determine whether a review is legally sufficient;
+- verify instrument calibration, infer unseen events, establish source attribution, or validate fluid/atmospheric physics;
 - establish detector precision, recall, emissions reduction, operational safety, regulatory compliance, or state-of-the-art performance.
 
-A source/terms review is a recorded prerequisite, not legal advice or proof of reviewer identity. Data adapters must retrieve and pin actual bytes, independently compute digests, inspect terms, and ensure the approved purpose covers the planned use.
+A source/terms review is a recorded prerequisite, not legal advice or proof of reviewer identity. Adapters must fetch and preserve the actual bytes and relevant access metadata; the validator then recomputes their digests. Synthetic fixtures prove only contract behavior, not field truth.
 
 The tests use invented fixtures only; they are not real observations or measurement-validation evidence.
 
