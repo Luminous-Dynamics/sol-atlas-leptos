@@ -570,6 +570,13 @@ mod tests {
         }
     }
 
+    fn has_issue(pair: &BathymetryTidPair, code: GridPairIssueCode) -> bool {
+        validate_grid_pair(pair)
+            .issues
+            .iter()
+            .any(|issue| issue.code == code)
+    }
+
     #[test]
     fn aligned_synthetic_grid_pair_is_valid() {
         assert!(validate_grid_pair(&valid_pair()).is_valid());
@@ -768,80 +775,81 @@ mod tests {
     fn required_provenance_identity_fields_fail_closed() {
         let mut pair = valid_pair();
         pair.bathymetry.source_snapshot_id.clear();
-        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::MissingSnapshotId));
+        assert!(has_issue(&pair, GridPairIssueCode::MissingSnapshotId));
 
         let mut pair = valid_pair();
         pair.bathymetry.product_id.clear();
-        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::MissingProductId));
+        assert!(has_issue(&pair, GridPairIssueCode::MissingProductId));
 
         let mut pair = valid_pair();
         pair.bathymetry.product_version.clear();
-        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::MissingProductVersion));
+        assert!(has_issue(&pair, GridPairIssueCode::MissingProductVersion));
 
         let mut pair = valid_pair();
         pair.bathymetry.grid_id.clear();
-        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::MissingGridId));
+        assert!(has_issue(&pair, GridPairIssueCode::MissingGridId));
     }
 
     #[test]
     fn invalid_grid_geometry_metadata_fails_closed() {
         let mut pair = valid_pair();
         pair.bathymetry.rows = 0;
-        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::InvalidDimensions));
+        assert!(has_issue(&pair, GridPairIssueCode::InvalidDimensions));
 
         let mut pair = valid_pair();
-        pair.bathymetry.bounds.east_edge_microarcseconds = pair.bathymetry.bounds.west_edge_microarcseconds;
-        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::InvalidBounds));
+        pair.bathymetry.bounds.east_edge_microarcseconds =
+            pair.bathymetry.bounds.west_edge_microarcseconds;
+        assert!(has_issue(&pair, GridPairIssueCode::InvalidBounds));
 
         let mut pair = valid_pair();
         pair.bathymetry.cell_width_microarcseconds = 0;
-        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::InvalidCellSpacing));
+        assert!(has_issue(&pair, GridPairIssueCode::InvalidCellSpacing));
     }
 
     #[test]
     fn incomplete_coordinate_metadata_fails_closed() {
         let mut pair = valid_pair();
         pair.bathymetry.coordinate_reference_system = None;
-        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::MissingCoordinateReferenceSystem));
+        assert!(has_issue(&pair, GridPairIssueCode::MissingCoordinateReferenceSystem));
 
         let mut pair = valid_pair();
         pair.bathymetry.horizontal_unit = None;
-        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::MissingHorizontalUnit));
+        assert!(has_issue(&pair, GridPairIssueCode::MissingHorizontalUnit));
 
         let mut pair = valid_pair();
         pair.bathymetry.row_axis = GridAxis::Unknown;
-        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::UnknownAxisOrder));
+        assert!(has_issue(&pair, GridPairIssueCode::UnknownAxisOrder));
 
         let mut pair = valid_pair();
         pair.bathymetry.column_axis = GridAxis::Latitude;
-        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::DuplicateAxisOrder));
+        assert!(has_issue(&pair, GridPairIssueCode::DuplicateAxisOrder));
 
         let mut pair = valid_pair();
         pair.bathymetry.registration = GridRegistration::Unknown;
-        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::UnknownRegistration));
+        assert!(has_issue(&pair, GridPairIssueCode::UnknownRegistration));
     }
 
     #[test]
     fn pair_identity_spacing_units_and_registration_mismatches_fail_closed() {
         let mut pair = valid_pair();
         pair.type_identifier.product_id = "different-product".into();
-        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::ProductMismatch));
+        assert!(has_issue(&pair, GridPairIssueCode::ProductMismatch));
 
         let mut pair = valid_pair();
         pair.type_identifier.grid_id = "different-grid".into();
-        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::GridIdentityMismatch));
+        assert!(has_issue(&pair, GridPairIssueCode::GridIdentityMismatch));
 
         let mut pair = valid_pair();
         pair.type_identifier.cell_width_microarcseconds += 1;
-        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::CellSpacingMismatch));
+        assert!(has_issue(&pair, GridPairIssueCode::CellSpacingMismatch));
 
         let mut pair = valid_pair();
         pair.type_identifier.horizontal_unit = Some("radians".into());
-        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::HorizontalUnitMismatch));
+        assert!(has_issue(&pair, GridPairIssueCode::HorizontalUnitMismatch));
 
         let mut pair = valid_pair();
         pair.type_identifier.registration = GridRegistration::PixelArea;
-        assert!(validate_grid_pair(&pair).issues.iter().any(|i| i.code == GridPairIssueCode::RegistrationMismatch));
+        assert!(has_issue(&pair, GridPairIssueCode::RegistrationMismatch));
     }
 
     #[test]
