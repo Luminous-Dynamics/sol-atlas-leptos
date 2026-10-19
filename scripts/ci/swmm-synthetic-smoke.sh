@@ -345,6 +345,16 @@ else
   exit "$baseline_exit_code"
 fi
 
+# SWMM CLI returns exit status zero even when the model run reports errors.
+# Process exit alone is not evidence of a complete simulation.
+if grep -Fq "There are errors." "$out/s0-baseline.stdout" || grep -Fq "There are warnings." "$out/s0-baseline.stdout" || [[ ! -s "$out/s0-baseline.rpt" || ! -s "$out/s0-baseline.out" ]]; then
+  baseline_state="Failed"
+  echo "SWMM_BASELINE_DID_NOT_PRODUCE_CLEAN_RESULT: stdout and report follow" >&2
+  cat "$out/s0-baseline.stdout" >&2 || true
+  cat "$out/s0-baseline.rpt" >&2 || true
+  exit 1
+fi
+
 failure_stage="candidate_swmm_run"
 if "$solver" "$out/s0-candidate.inp" "$out/s0-candidate.rpt" "$out/s0-candidate.out" > "$out/s0-candidate.stdout" 2>&1; then
   candidate_state="Completed"
@@ -354,6 +364,14 @@ else
   candidate_state="Failed"
   cat "$out/s0-candidate.stdout" >&2 || true
   exit "$candidate_exit_code"
+fi
+
+if grep -Fq "There are errors." "$out/s0-candidate.stdout" || grep -Fq "There are warnings." "$out/s0-candidate.stdout" || [[ ! -s "$out/s0-candidate.rpt" || ! -s "$out/s0-candidate.out" ]]; then
+  candidate_state="Failed"
+  echo "SWMM_CANDIDATE_DID_NOT_PRODUCE_CLEAN_RESULT: stdout and report follow" >&2
+  cat "$out/s0-candidate.stdout" >&2 || true
+  cat "$out/s0-candidate.rpt" >&2 || true
+  exit 1
 fi
 
 failure_stage="validate_solver_reports"
