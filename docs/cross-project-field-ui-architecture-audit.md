@@ -85,9 +85,11 @@ Mycelix Hearth's Leptos manifest describes a Leptos + Bevy app, but `mycelix-hea
 
 Relevant source: `crates/mycelix-leptos-core/src/`, `mycelix-manufacturing/zomes/workorders/`, `mycelix-hearth/apps/leptos/src/bevy/mod.rs`, and [PR #5217](https://github.com/Luminous-Dynamics/mycelix/pull/5217).
 
-## Proposed framework-neutral contract
+## Framework-neutral contract: initial implementation
 
-Start with pure Rust/Serde value objects (or a strict versioned JSON Schema until the owner crate is agreed). They should compile without Leptos, Bevy, Holochain HDK/HDI, or Symthaea's heavy runtime dependencies.
+The initial **presentation projection and viewport-intent** contract now lives in `sol-atlas-core/src/field_work.rs`, which already provides shared renderer-facing types and depends on Serde without importing Leptos, Bevy, HDK/HDI, or the Symthaea runtime. Frozen examples live in `sol-atlas-core/fixtures/`. This is an initial interop seam, not a claim that the cross-project owner has been agreed or that the types are authoritative canonical work-order records.
+
+The contract currently includes schema versioning, source revision/digest, work phase separated from transport state, trade and asset references, evidence provenance, a cautious safety-gate summary, offered viewport affordances, and typed viewport intents. Its validation and fixtures should be reviewed as a starting point before other repositories implement matching adapters.
 
 - `FieldJobProjectionV1`: stable job ID, job revision, trade/task kind, assigned role, scope, site/asset references, applicable jurisdiction/procedure revisions, current phase, allowed next intents, and freshness.
 - `AssetRefV1`: stable asset identity, revision, parent/child relationship and source authority.
