@@ -12,6 +12,9 @@ plan_file="$repo_root/sol-atlas-core/fixtures/water-engineering/water-storm-ense
 input_file="$repo_root/sol-atlas-core/fixtures/water-engineering/s0_stormwater.inp"
 source_commit="7952ca837988b1c32f791812eccc9fd64547e093"
 continuity_limit="1.0"
+routing_step_seconds="$(jq -er '.solver_profile.routing_step_seconds' "$plan_file")"
+routing_step_value="00:00:05"
+if [[ "$routing_step_seconds" != "5" ]]; then echo "WATER_STORM_ROUTING_STEP_PROFILE_INVALID: $routing_step_seconds" >&2; exit 1; fi
 case_out="$out/cases"
 
 mkdir -p "$case_out"
@@ -105,10 +108,22 @@ while IFS= read -r case_json; do
   if awk \
     -v diameter="$diameter" \
     -v r0="${rain_values[0]}" -v r1="${rain_values[1]}" -v r2="${rain_values[2]}" \
-    -v r3="${rain_values[3]}" -v r4="${rain_values[4]}" -v r5="${rain_values[5]}" '
+    -v r3="${rain_values[3]}" -v r4="${rain_values[4]}" -v r5="${rain_values[5]}" \
+    -v route_step="$routing_step_value" '
+      /^\[OPTIONS\]/ { section = "o"; print; next }
       /^\[XSECTIONS\]/ { section = "x"; print; next }
       /^\[TIMESERIES\]/ { section = "t"; print; next }
       /^\[/ { section = ""; print; next }
+      section == "o" && $1 == "ROUTING_STEP" && $1 !~ /^;/ {
+        if ($2 != "00:00:30") {
+          printf "WATER_STORM_SOURCE_ROUTING_STEP_MISMATCH: input=%s expected=00:00:30\n", $2 > "/dev/stderr"
+          exit 2
+        }
+        $2 = route_step
+        route_steps++
+        print
+        next
+      }
       section == "x" && $1 == "C1" && $1 !~ /^;/ {
         if (($3 + 0) != 0.6) {
           printf "WATER_STORM_BASE_DIAMETER_MISMATCH: input=%s expected=0.6\n", $3 > "/dev/stderr"
@@ -131,8 +146,8 @@ while IFS= read -r case_json; do
       }
       { print }
       END {
-        if (xsections != 1 || changed != 6) {
-          printf "WATER_STORM_INPUT_TRANSFORM_INCOMPLETE: xsections=%d rainfall_rows=%d\n", xsections, changed > "/dev/stderr"
+        if (xsections != 1 || changed != 6 || route_steps != 1) {
+          printf "WATER_STORM_INPUT_TRANSFORM_INCOMPLETE: xsections=%d rainfall_rows=%d routing_steps=%d\n", xsections, changed, route_steps > "/dev/stderr"
           exit 1
         }
       }
@@ -283,6 +298,7 @@ jq -n \
   --arg plan_sha "$plan_sha" \
   --arg solver_sha "$solver_sha" \
   --arg source_commit "$source_commit" \
+  --arg routing_step_seconds "$routing_step_seconds" \
   --arg run_state "$run_state" \
   --arg completed_count "$completed_count" \
   --arg failed_count "$failed_count" \
@@ -301,6 +317,7 @@ jq -n \
        engine: "EPA_SWMM",
        version: "5.2.4",
        source_commit: $source_commit,
+       routing_step_seconds: ($routing_step_seconds | tonumber),
        executable_sha256: $solver_sha
      },
      case_count: 54,
