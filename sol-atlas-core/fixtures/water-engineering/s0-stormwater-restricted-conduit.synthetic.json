@@ -9,7 +9,7 @@
       "artifact_id": "s0-swmm-input",
       "role": "exact_synthetic_swmm_input",
       "path": "sol-atlas-core/fixtures/water-engineering/s0_stormwater.inp",
-      "sha256": "03f0e1385784369d3f3acc21c2c4ef11e562bb7dd382f80749afab7875dc89c9",
+      "sha256": "a95646d1f1fd90f9db38567895c6064785ea8f1c418cbd9f2c04b71fdc753bba",
       "byte_length": 1668,
       "synthetic": true
     },
@@ -18,7 +18,7 @@
         "artifact_id": "s0-swmm-input",
         "role": "exact_synthetic_swmm_input",
         "path": "sol-atlas-core/fixtures/water-engineering/s0_stormwater.inp",
-        "sha256": "03f0e1385784369d3f3acc21c2c4ef11e562bb7dd382f80749afab7875dc89c9",
+        "sha256": "a95646d1f1fd90f9db38567895c6064785ea8f1c418cbd9f2c04b71fdc753bba",
         "byte_length": 1668,
         "synthetic": true
       }
@@ -72,7 +72,7 @@
   "scenario": {
     "scenario_id": "s0-conduit-restriction",
     "base_model_id": "s0-synthetic-stormwater-network",
-    "base_input_snapshot_sha256": "03f0e1385784369d3f3acc21c2c4ef11e562bb7dd382f80749afab7875dc89c9",
+    "base_input_snapshot_sha256": "a95646d1f1fd90f9db38567895c6064785ea8f1c418cbd9f2c04b71fdc753bba",
     "scenario_type": "intervention",
     "changes": [
       {
