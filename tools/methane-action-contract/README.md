@@ -8,6 +8,7 @@ One satellite overpass may produce a plume observation; multiple plume observati
 
 The data model distinguishes:
 - explicit gas-species and evidence-kind gates so methane and CO2 rates, observed plumes, inventory estimates, model inferences, and synthetic scenarios cannot be silently mixed;
+- sensor/platform and processing-method identities are mandatory for remote-sensing and in-situ measurements, enabling stratified comparison;
 - quantified emission-rate estimates, including uncertainty and a detection limit;
 - non-detections, which are **not zero-emission observations**;
 - explicitly unquantified observations;
@@ -15,7 +16,7 @@ The data model distinguishes:
 - source associations and optional facility associations;
 - terms approval bound to the exact source URI/version/digest and exact terms URI/digest;
 - source, terms, and calibration digests recomputed from caller-supplied exact bytes during admission, with missing, duplicate, empty, and mismatched snapshots rejected;
-- in-situ measurements require an identified instrument and a calibration snapshot whose validity interval contains the observation timestamp;
+- in-situ measurements require an identified instrument, method/version, and calibration snapshot whose validity interval contains the observation timestamp and whose instrument ID matches;
 - empty observation batches are rejected rather than vacuously passing.
 
 The whole batch must be rejected if any validation violation is returned. The validator does not silently drop or repair records.
