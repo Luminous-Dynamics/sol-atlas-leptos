@@ -25,7 +25,7 @@ The whole batch must be rejected if any validation violation is returned. The va
 
 The exported `census` module scores a submitted detector against the complete predeclared opportunity set, separately from input admission. Every expected case must have exactly one response row. Missing, extra, or duplicate rows suppress headline metrics. A positive event that was not tasked or fell on an invalid scene remains a miss for end-to-end recall; it is not silently omitted. No-coverage and reference-unavailable cases are reported separately and are not true negatives.
 
-The evaluator reports end-to-end recall, recall conditional on coverage, false-alert rate on covered zero-release cases, coverage rate, abstention rate, per-stratum counts, and positive-detection log-rate error. It rejects detected-rate records with non-finite or non-positive values. This is a deterministic scoring reference; it does not authenticate the submitting system, run a detector, establish hidden/blind evaluation, or validate the ground-truth labels.
+The evaluator reports end-to-end recall, recall conditional on coverage, false-alert rate on covered zero-release cases, coverage rate, abstention rate, per-stratum counts, and positive-detection log-rate error. It also exposes two-sided 95% Wilson score intervals for rates, returning no interval when a denominator is zero. These are per-system descriptive intervals; fair comparisons on shared sites/scenes require paired or cluster-aware analysis. It rejects detected-rate records with non-finite or non-positive values. This is a deterministic scoring reference; it does not authenticate the submitting system, run a detector, establish hidden/blind evaluation, or validate the ground-truth labels.
 
 ## Run locally
 
