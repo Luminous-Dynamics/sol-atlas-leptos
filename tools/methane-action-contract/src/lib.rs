@@ -31,6 +31,9 @@ pub struct ArtifactProvenance {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ObservationKind { RemoteSensingPlume, InSituMeasurement, InventoryEstimate, ModelInference, SyntheticScenario }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum GasSpecies { Methane, CarbonDioxide, Other(String) }
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum Quantification {
     Quantified { emission_rate_kg_h: f64, uncertainty_kg_h: f64, detection_limit_kg_h: f64 },
@@ -48,6 +51,7 @@ pub struct Observation {
     /// Unique acquisition/observation identity, not a source or facility identity.
     pub observation_id: String,
     pub kind: ObservationKind,
+    pub gas_species: GasSpecies,
     pub observed_at_utc: String,
     pub quality: QualityFlag,
     pub quantification: Quantification,
@@ -95,7 +99,7 @@ impl ValidationReport {
 
 /// Validates the entire batch; callers must reject the batch if any violation exists.
 /// The function deliberately does not silently filter invalid rows.
-pub fn validate_batch(observations: &[Observation], associations: &[SourceAssociation], required_use: DataUse) -> ValidationReport {
+pub fn validate_batch(observations: &[Observation], associations: &[SourceAssociation], required_use: DataUse, required_gas: &GasSpecies) -> ValidationReport {
     let mut report = ValidationReport::default();
     let mut observation_ids = HashSet::new();
 
@@ -104,6 +108,7 @@ pub fn validate_batch(observations: &[Observation], associations: &[SourceAssoci
         if id.trim().is_empty() { report.push(id, "observation_id", "empty_id"); }
         if !observation_ids.insert(id.to_owned()) { report.push(id, "observation_id", "duplicate_observation_id"); }
         if !is_utc_timestamp(&obs.observed_at_utc) { report.push(id, "observed_at_utc", "invalid_utc_timestamp"); }
+        if &obs.gas_species != required_gas { report.push(id, "gas_species", "gas_species_mismatch"); }
         validate_provenance(&mut report, id, &obs.provenance, required_use);
 
         match &obs.quality {
@@ -246,6 +251,7 @@ mod tests {
         Observation {
             observation_id: id.into(),
             kind: ObservationKind::RemoteSensingPlume,
+            gas_species: GasSpecies::Methane,
             observed_at_utc: "2026-10-18T10:11:12Z".into(),
             quality: QualityFlag::Qualified,
             quantification,
@@ -271,8 +277,16 @@ mod tests {
 
     #[test]
     fn accepts_well_formed_observation_and_separate_source_association() {
-        let report = validate_batch(&[observation("plume-1", quantified())], &[association("plume-1")], DataUse::ResearchNonCommercial);
+        let report = validate_batch(&[observation("plume-1", quantified())], &[association("plume-1")], DataUse::ResearchNonCommercial, &GasSpecies::Methane);
         assert!(report.is_valid(), "{report:?}");
+    }
+
+    #[test]
+    fn rejects_cross_species_rate_mixing() {
+        let mut obs = observation("co2-1", quantified());
+        obs.gas_species = GasSpecies::CarbonDioxide;
+        let report = validate_batch(&[obs], &[], DataUse::ResearchNonCommercial, &GasSpecies::Methane);
+        assert!(report.violations.iter().any(|v| v.code == "gas_species_mismatch"));
     }
 
     #[test]
@@ -315,7 +329,7 @@ mod tests {
         obs.provenance.terms_review = TermsReview::NotReviewed;
         let report = validate_batch(&[obs.clone()], &[], DataUse::ResearchNonCommercial);
         assert!(report.violations.iter().any(|v| v.code == "terms_not_reviewed"));
-        let report = validate_batch(&[obs], &[], DataUse::Commercial);
+        let report = validate_batch(&[obs], &[], DataUse::Commercial, &GasSpecies::Methane);
         assert!(report.violations.iter().any(|v| v.code == "terms_not_reviewed"));
         let mut commercial = observation("plume-4b", quantified());
         commercial.provenance.terms_review = TermsReview::Approved {
