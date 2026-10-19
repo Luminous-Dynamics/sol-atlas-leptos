@@ -162,8 +162,7 @@ impl TaskGraphV1 {
             .depends_on
             .iter()
             .filter(|dependency_id| {
-                status_by_id.get(dependency_id.as_str())
-                    != Some(&TaskStatus::VerificationRecorded)
+                status_by_id.get(dependency_id.as_str()) != Some(&TaskStatus::VerificationRecorded)
             })
             .cloned()
             .collect())
@@ -174,11 +173,7 @@ impl TaskGraphV1 {
     /// This mutates only the in-memory graph. Persisting this state or treating
     /// it as a confirmed physical/work-order transition requires an authoritative
     /// service response and revision check.
-    pub fn apply(
-        &mut self,
-        task_id: &str,
-        action: TaskAction,
-    ) -> Result<(), TaskGraphError> {
+    pub fn apply(&mut self, task_id: &str, action: TaskAction) -> Result<(), TaskGraphError> {
         self.validate()?;
         let index = self
             .tasks
@@ -194,8 +189,7 @@ impl TaskGraphV1 {
             .depends_on
             .iter()
             .filter(|dependency_id| {
-                status_by_id.get(dependency_id.as_str())
-                    != Some(&TaskStatus::VerificationRecorded)
+                status_by_id.get(dependency_id.as_str()) != Some(&TaskStatus::VerificationRecorded)
             })
             .cloned()
             .collect();
@@ -342,7 +336,10 @@ impl fmt::Display for TaskGraphError {
             Self::MissingDependency {
                 task_id,
                 dependency_id,
-            } => write!(formatter, "task {task_id} depends on missing task {dependency_id}"),
+            } => write!(
+                formatter,
+                "task {task_id} depends on missing task {dependency_id}"
+            ),
             Self::SelfDependency(task_id) => {
                 write!(formatter, "task {task_id} cannot depend on itself")
             }
@@ -381,20 +378,17 @@ impl std::error::Error for TaskGraphError {}
 #[cfg(test)]
 mod tests {
     use super::{
-        TaskAction, TaskGraphError, TaskGraphV1, TaskNodeV1, TaskStatus,
-        TASK_GRAPH_SCHEMA_VERSION,
+        TASK_GRAPH_SCHEMA_VERSION, TaskAction, TaskGraphError, TaskGraphV1, TaskNodeV1, TaskStatus,
     };
 
-    fn node(
-        id: &str,
-        dependencies: &[&str],
-        priority: u8,
-        status: TaskStatus,
-    ) -> TaskNodeV1 {
+    fn node(id: &str, dependencies: &[&str], priority: u8, status: TaskStatus) -> TaskNodeV1 {
         TaskNodeV1 {
             task_id: id.to_owned(),
             title: format!("Task {id}"),
-            depends_on: dependencies.iter().map(|value| (*value).to_owned()).collect(),
+            depends_on: dependencies
+                .iter()
+                .map(|value| (*value).to_owned())
+                .collect(),
             priority,
             status,
         }
@@ -455,9 +449,7 @@ mod tests {
             .unwrap();
 
         assert_eq!(
-            task_graph
-                .blocked_by("test")
-                .unwrap(),
+            task_graph.blocked_by("test").unwrap(),
             vec!["inspect".to_owned()]
         );
         assert_eq!(task_graph.ready_tasks().unwrap().len(), 0);
@@ -517,8 +509,11 @@ mod tests {
             Err(TaskGraphError::CycleDetected)
         ));
         assert!(matches!(
-            graph(vec![node("a", &["b", "b"], 0, TaskStatus::Pending), node("b", &[], 0, TaskStatus::Pending)])
-                .validate(),
+            graph(vec![
+                node("a", &["b", "b"], 0, TaskStatus::Pending),
+                node("b", &[], 0, TaskStatus::Pending)
+            ])
+            .validate(),
             Err(TaskGraphError::DuplicateDependency { .. })
         ));
     }
