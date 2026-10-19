@@ -1,0 +1,108 @@
+name: Water localization topology split audit
+
+on:
+  push:
+    paths:
+      - "sol-atlas-core/src/water_localization_split_audit.rs"
+      - "sol-atlas-core/src/bin/water_localization_split_audit.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/fixtures/water-engineering/water-localization-topology-split.synthetic.json"
+      - "sol-atlas-core/schemas/water-localization-split-*.schema.json"
+      - "docs/research/water-localization-topology-split-audit-v0.1.md"
+      - ".github/workflows/water-localization-split-audit.yml"
+  pull_request:
+    paths:
+      - "sol-atlas-core/src/water_localization_split_audit.rs"
+      - "sol-atlas-core/src/bin/water_localization_split_audit.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/fixtures/water-engineering/water-localization-topology-split.synthetic.json"
+      - "sol-atlas-core/schemas/water-localization-split-*.schema.json"
+      - "docs/research/water-localization-topology-split-audit-v0.1.md"
+      - ".github/workflows/water-localization-split-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  split-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust and rustfmt
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+      - name: Run topology split audit unit tests
+        run: cargo test -p sol-atlas-core water_localization_split_audit
+      - name: Evaluate frozen split manifest and bind exact revision
+        id: evaluate
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/water-localization-split-audit
+          GITHUB_SHA="$GITHUB_SHA" cargo run -p sol-atlas-core --bin water-localization-split-audit -- \
+            sol-atlas-core/fixtures/water-engineering/water-localization-topology-split.synthetic.json \
+            artifacts/water-localization-split-audit/receipt.json
+      - name: Install pinned Draft 2020-12 validator
+        if: always()
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install jsonschema
+        if: always()
+        run: python -m pip install --disable-pip-version-check --no-input jsonschema==4.26.0
+      - name: Validate split plan, schemas and receipt
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+
+          cases = [
+              (
+                  Path("sol-atlas-core/schemas/water-localization-split-plan-v0.1.schema.json"),
+                  Path("sol-atlas-core/fixtures/water-engineering/water-localization-topology-split.synthetic.json"),
+              ),
+          ]
+          receipt_schema_path = Path("sol-atlas-core/schemas/water-localization-split-audit-v0.1.schema.json")
+          receipt_path = Path("artifacts/water-localization-split-audit/receipt.json")
+          if not receipt_path.exists():
+              raise SystemExit("WATER_LOCALIZATION_SPLIT_RECEIPT_MISSING")
+          cases.append((receipt_schema_path, receipt_path))
+          for schema_path, instance_path in cases:
+              schema = json.loads(schema_path.read_text(encoding="utf-8"))
+              instance = json.loads(instance_path.read_text(encoding="utf-8"))
+              Draft202012Validator.check_schema(schema)
+              errors = sorted(
+                  Draft202012Validator(schema).iter_errors(instance),
+                  key=lambda error: (list(map(str, error.absolute_path)), error.message),
+              )
+              if errors:
+                  for error in errors:
+                      pointer = "/" + "/".join(map(str, error.absolute_path))
+                      print(f"{instance_path}: {pointer}: {error.message}")
+                  raise SystemExit(1)
+              print(f"WATER_LOCALIZATION_SPLIT_SCHEMA_PASS: {schema_path} -> {instance_path}")
+          PY
+      - name: Upload exact plan and audit receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: water-localization-split-audit-evidence
+          path: |
+            sol-atlas-core/fixtures/water-engineering/water-localization-topology-split.synthetic.json
+            artifacts/water-localization-split-audit/
+          if-no-files-found: warn
+      - name: Fail if evaluation is rejected
+        if: always()
+        env:
+          EVALUATE_OUTCOME: ${{ steps.evaluate.outcome }}
+        run: test "$EVALUATE_OUTCOME" = "success"
