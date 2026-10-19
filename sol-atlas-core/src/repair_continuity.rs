@@ -1573,6 +1573,68 @@ mod tests {
     }
 
     #[test]
+    fn derated_future_supplier_is_indeterminate_not_fractional_inventory() {
+        let mut request = base_request();
+        for observation in &mut request.dependency_observations {
+            if observation.dependency_id == "supplier" && observation.window_index == 1 {
+                observation.availability = Availability::Derated;
+                observation.available_fraction = Some(0.5);
+            }
+        }
+        let assessment = assess_repair_continuity(&request).unwrap();
+        for architecture in [
+            Architecture::CentralizedDepot,
+            Architecture::DistributedSharedReserve,
+        ] {
+            let candidate = assessment.assessments.iter()
+                .find(|candidate| candidate.architecture == architecture)
+                .unwrap();
+            let fan = candidate.requests.iter()
+                .find(|result| result.request_id == "fan-1")
+                .unwrap();
+            assert_eq!(fan.outcome, RequestOutcome::Indeterminate);
+            assert!(fan.blockers.contains(&Blocker::PartSupplyUnknown));
+        }
+    }
+
+    #[test]
+    fn repeated_reports_are_deterministic() {
+        let request = base_request();
+        let expected = serde_json::to_vec(&assess_repair_continuity(&request).unwrap()).unwrap();
+        for _ in 0..100 {
+            let actual = serde_json::to_vec(&assess_repair_continuity(&request).unwrap()).unwrap();
+            assert_eq!(actual, expected);
+        }
+    }
+
+    #[test]
+    fn evaluation_budget_rejects_before_scheduling_unbounded_work() {
+        let mut request = base_request();
+        request.demand.truncate(1);
+        let template = request.demand[0].clone();
+        for index in 1..2_000 {
+            let mut next = template.clone();
+            next.request_id = format!("fan-{index:04}");
+            request.demand.push(next);
+        }
+        for candidate in &mut request.candidates {
+            let template = candidate.workcells[0].clone();
+            for index in 1..=127 {
+                let mut next = template.clone();
+                next.cell_id = format!("{}-{index:03}", template.cell_id);
+                next.node_id = format!("node-{}", next.cell_id);
+                candidate.workcells.push(next);
+            }
+        }
+        let result = assess_repair_continuity(&request);
+        assert!(matches!(
+            result,
+            Err(RepairContinuityError::InvalidInput(errors))
+                if errors.iter().any(|error| error.contains("evaluation budget exceeded"))
+        ));
+    }
+
+    #[test]
     fn expired_instrument_and_unknown_part_fit_cannot_confirm_schedule() {
         let mut expired = base_request();
         let candidate = expired.candidates.iter_mut().find(|value| value.architecture == Architecture::DistributedSharedReserve).unwrap();
