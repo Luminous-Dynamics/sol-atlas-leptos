@@ -382,6 +382,53 @@ mod tests {
     }
 
     #[test]
+    fn schema_files_and_eligible_golden_pair_match_the_rust_contract() {
+        let input_schema: serde_json::Value = serde_json::from_str(include_str!(
+            "../../schemas/model-credibility-handoff-v0.1.schema.json"
+        ))
+        .expect("input schema is valid JSON");
+        let output_schema: serde_json::Value = serde_json::from_str(include_str!(
+            "../../schemas/model-credibility-handoff-assessment-v0.1.schema.json"
+        ))
+        .expect("output schema is valid JSON");
+        assert_eq!("object", input_schema["type"]);
+        assert_eq!("object", output_schema["type"]);
+
+        let input: ModelCredibilityHandoff = serde_json::from_str(include_str!(
+            "../../schemas/examples/model-credibility-handoff-eligible-v0.1.json"
+        ))
+        .expect("eligible fixture decodes");
+        let expected: serde_json::Value = serde_json::from_str(include_str!(
+            "../../schemas/examples/model-credibility-handoff-assessment-eligible-v0.1.json"
+        ))
+        .expect("eligible assessment fixture is valid JSON");
+        let actual = assess_model_credibility_handoff(&input).expect("eligible fixture assesses");
+        assert_eq!(
+            expected,
+            serde_json::to_value(actual).expect("serialize eligible assessment")
+        );
+    }
+
+    #[test]
+    fn stale_telemetry_golden_pair_remains_indeterminate() {
+        let input: ModelCredibilityHandoff = serde_json::from_str(include_str!(
+            "../../schemas/examples/model-credibility-handoff-stale-telemetry-v0.1.json"
+        ))
+        .expect("stale input fixture decodes");
+        let expected: serde_json::Value = serde_json::from_str(include_str!(
+            "../../schemas/examples/model-credibility-handoff-assessment-stale-telemetry-v0.1.json"
+        ))
+        .expect("stale assessment fixture is valid JSON");
+        let actual = assess_model_credibility_handoff(&input).expect("stale fixture assesses");
+        assert_eq!(
+            expected,
+            serde_json::to_value(actual).expect("serialize stale assessment")
+        );
+        assert_eq!(ModelCapacityDisposition::Indeterminate, actual.status);
+        assert!(actual.eligible_capacity.is_none());
+    }
+
+    #[test]
     fn serialized_handoff_and_assessment_are_deterministic() {
         let input = fixture(ModelDisposition::AbstainStaleTelemetry);
         let first = assess_model_credibility_handoff(&input).expect("first assessment");
