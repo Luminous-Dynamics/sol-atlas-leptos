@@ -902,7 +902,7 @@ mod tests {
         variant.topology.nodes.push("N5".to_owned());
         variant.topology.links.push(TopologyLink {
             link_id: "L4".to_owned(),
-            from_node_id: "N4".to_owned(),
+            from_node_id: "N3".to_owned(),
             to_node_id: "N5".to_owned(),
         });
         variant.sensor_readings.push(SensorReading {
