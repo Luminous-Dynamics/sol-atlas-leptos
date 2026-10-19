@@ -82,7 +82,10 @@
           "pattern": "^[a-f0-9]{40}$"
         },
         "executable_sha256": {
-          "type": "string",
+          "type": [
+            "string",
+            "null"
+          ],
           "pattern": "^[a-f0-9]{64}$"
         }
       }
@@ -138,11 +141,17 @@
           "minLength": 1
         },
         "sha256": {
-          "type": "string",
+          "type": [
+            "string",
+            "null"
+          ],
           "pattern": "^[a-f0-9]{64}$"
         },
         "byte_length": {
-          "type": "integer",
+          "type": [
+            "integer",
+            "null"
+          ],
           "minimum": 1
         }
       }
@@ -166,7 +175,10 @@
           "minLength": 1
         },
         "sha256": {
-          "type": "string",
+          "type": [
+            "string",
+            "null"
+          ],
           "pattern": "^[a-f0-9]{64}$"
         },
         "bundle_id": {
@@ -430,6 +442,34 @@
               },
               "continuity_within_tolerance": {
                 "const": true
+              }
+            }
+          },
+          "solver": {
+            "properties": {
+              "executable_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            }
+          },
+          "source_fixture": {
+            "properties": {
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "byte_length": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          },
+          "scenario_bundle": {
+            "properties": {
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
               }
             }
           }
