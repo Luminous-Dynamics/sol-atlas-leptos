@@ -454,6 +454,8 @@ pub enum TidSourceClass {
     SoundingConstrainedInterpolation,
     FlightGravityPredicted,
     IcebergDraftEstimated,
+    GroundedArgoFloatDerived,
+    AnimalBorneDataLoggerMeasured,
     PreGeneratedMixedSources,
     UnknownSource,
     SteeringPoint,
@@ -508,6 +510,8 @@ pub fn decode_tid_cell(raw_code: u8, encoding: NoDataEncoding) -> Result<TidCell
             44 => TidSourceClass::SoundingConstrainedInterpolation,
             45 => TidSourceClass::FlightGravityPredicted,
             46 => TidSourceClass::IcebergDraftEstimated,
+            47 => TidSourceClass::GroundedArgoFloatDerived,
+            48 => TidSourceClass::AnimalBorneDataLoggerMeasured,
             70 => TidSourceClass::PreGeneratedMixedSources,
             71 => TidSourceClass::UnknownSource,
             72 => TidSourceClass::SteeringPoint,
@@ -729,6 +733,25 @@ mod tests {
             Ok(TidCell::SourceClass {
                 raw_code: 71,
                 class: TidSourceClass::UnknownSource
+            })
+        );
+    }
+
+
+    #[test]
+    fn gebco_2026_tid_codes_47_and_48_have_explicit_classes() {
+        assert_eq!(
+            decode_tid_cell(47, NoDataEncoding::U8Sentinel(u8::MAX)),
+            Ok(TidCell::SourceClass {
+                raw_code: 47,
+                class: TidSourceClass::GroundedArgoFloatDerived
+            })
+        );
+        assert_eq!(
+            decode_tid_cell(48, NoDataEncoding::U8Sentinel(u8::MAX)),
+            Ok(TidCell::SourceClass {
+                raw_code: 48,
+                class: TidSourceClass::AnimalBorneDataLoggerMeasured
             })
         );
     }
