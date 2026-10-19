@@ -66,7 +66,8 @@
         "engine",
         "version",
         "source_commit",
-        "executable_sha256"
+        "executable_sha256",
+        "routing_step_seconds"
       ],
       "properties": {
         "engine": {
@@ -82,6 +83,9 @@
         "executable_sha256": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
+        },
+        "routing_step_seconds": {
+          "const": 5
         }
       }
     },
