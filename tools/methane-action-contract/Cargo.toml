@@ -16,3 +16,7 @@ serde_json = "1"
 [[bin]]
 name = "methane-census"
 path = "src/bin/methane-census.rs"
+
+[[bin]]
+name = "methane-compare"
+path = "src/bin/methane-compare.rs"
