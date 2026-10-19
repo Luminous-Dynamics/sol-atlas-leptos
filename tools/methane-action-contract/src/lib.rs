@@ -230,11 +230,7 @@ pub fn validate_batch(
             required_use,
             artifact_snapshots,
         );
-        validate_calibration(
-            &mut report,
-            obs,
-            artifact_snapshots,
-        );
+        validate_calibration(&mut report, obs, artifact_snapshots);
 
         match &obs.quality {
             QualityFlag::Qualified => {}
@@ -375,9 +371,10 @@ fn validate_observation_method(report: &mut ValidationReport, observation: &Obse
         None => report.push(id, "processing_method", "processing_method_missing"),
     }
 
-    if let (Some(instrument_id), Some(calibration)) =
-        (observation.instrument_id.as_deref(), observation.calibration.as_ref())
-    {
+    if let (Some(instrument_id), Some(calibration)) = (
+        observation.instrument_id.as_deref(),
+        observation.calibration.as_ref(),
+    ) {
         if instrument_id != calibration.instrument_id {
             report.push(
                 id,
@@ -405,7 +402,11 @@ fn validate_calibration(
         report.push(id, "calibration.instrument_id", "empty_instrument_id");
     }
     if !calibration.calibration_uri.starts_with("https://") {
-        report.push(id, "calibration.calibration_uri", "calibration_uri_not_https");
+        report.push(
+            id,
+            "calibration.calibration_uri",
+            "calibration_uri_not_https",
+        );
     }
     if !is_utc_timestamp(&calibration.valid_from_utc) {
         report.push(id, "calibration.valid_from_utc", "invalid_utc_timestamp");
@@ -422,12 +423,20 @@ fn validate_calibration(
             && (observation.observed_at_utc < calibration.valid_from_utc
                 || observation.observed_at_utc > calibration.valid_until_utc)
         {
-            report.push(id, "calibration.validity", "observation_outside_calibration_interval");
+            report.push(
+                id,
+                "calibration.validity",
+                "observation_outside_calibration_interval",
+            );
         }
     }
 
     if !is_sha256_hex(&calibration.calibration_sha256) {
-        report.push(id, "calibration.calibration_sha256", "invalid_sha256_format");
+        report.push(
+            id,
+            "calibration.calibration_sha256",
+            "invalid_sha256_format",
+        );
     }
     validate_snapshot_digest(
         report,
