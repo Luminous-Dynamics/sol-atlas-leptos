@@ -266,7 +266,7 @@ jq -e '
 ' "$bundle_file" >/dev/null
 
 case "$input_rel" in
-  sol-atlas-core/fixtures/water-engineering/*.inp) ;;
+  "sol-atlas-core/fixtures/water-engineering/s0_stormwater.inp") ;;
   *) echo "SWMM_SCENARIO_INPUT_PATH_REJECTED: $input_rel"; exit 1 ;;
 esac
 case "$input_rel" in
