@@ -316,7 +316,19 @@ pub fn LandscapeDesigner() -> impl IntoView {
                         <div class="landscape-stage-meta"><span>"LOCAL GRID"</span><span>"1000 × 650 schematic units"</span></div>
                     </div>
                     <div class="landscape-canvas-frame">
-                        <svg class="landscape-canvas" viewBox="0 0 1000 650" tabindex="0" role="application" aria-label="Schematic landscape canvas. Click to place the selected design element." on:click=place_feature>
+                        <svg class="landscape-canvas" viewBox="0 0 1000 650" tabindex="0" role="application" aria-label="Schematic landscape canvas. Click to place the selected design element; press Enter or Space to place at the center." on:click=place_feature on:keydown=move |event: web_sys::KeyboardEvent| {
+                            if event.key() == "Enter" || event.key() == " " {
+                                event.prevent_default();
+                                let next_id = features.get_untracked().iter().map(|item| item.id).max().unwrap_or(0) + 1;
+                                set_features.update(|items| items.push(DesignFeature {
+                                    id: next_id,
+                                    x_du: 500,
+                                    y_du: 325,
+                                    kind: active_tool.get_untracked(),
+                                }));
+                                set_export_text.set(String::new());
+                            }
+                        }>
                             <defs>
                                 <pattern id="landscape-grid" width="50" height="50" patternUnits="userSpaceOnUse">
                                     <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#7f9384" stroke-width="1" stroke-opacity="0.22"/>
@@ -386,7 +398,8 @@ pub fn LandscapeDesigner() -> impl IntoView {
                     <footer class="landscape-stage-footer">
                         <span><i class="status-dot"></i>"Editor ready"</span>
                         <span>"Selected tool: " {move || active_tool.get().label()}</span>
-                        <span>"Coordinate frame: local drawing units · not georeferenced"</span>
+                        <span>"Local drawing units · not georeferenced"</span>
+                        <span>"Focus plan + Enter/Space places at center · T/P/W/L/B switch tools"</span>
                     </footer>
                     <section class="landscape-export-panel">
                         <div class="landscape-export-header"><div><p class="landscape-section-label">"PORTABLE PROJECT SNAPSHOT"</p><h3>"Draft data"</h3></div><p>"Native JSON · schema v0"</p></div>
