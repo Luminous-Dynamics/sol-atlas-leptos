@@ -96,22 +96,37 @@ pub fn validate_plan(value: &Value) -> Result<(), Vec<String>> {
         errors.push("$.project_snapshot_sha256: expected 64 lowercase hex digits".to_string());
     }
     let created_at = nonnegative_integer(value, "created_at_unix_s", "$", &mut errors);
-    let scope = value.get("project_scope").and_then(Value::as_str).unwrap_or("");
-    if !matches!(scope, "site-parcel" | "district" | "watershed" | "bioregion") {
+    let scope = value
+        .get("project_scope")
+        .and_then(Value::as_str)
+        .unwrap_or("");
+    if !matches!(
+        scope,
+        "site-parcel" | "district" | "watershed" | "bioregion"
+    ) {
         errors.push("$.project_scope: unsupported planning scope".to_string());
     }
 
-    let plan_status = value.get("plan_status").and_then(Value::as_str).unwrap_or("");
+    let plan_status = value
+        .get("plan_status")
+        .and_then(Value::as_str)
+        .unwrap_or("");
     if !matches!(
         plan_status,
         "draft" | "preregistered" | "approved" | "completed" | "archived"
     ) {
         errors.push("$.plan_status: unsupported plan status".to_string());
     }
-    let study_design = value.get("study_design").and_then(Value::as_str).unwrap_or("");
+    let study_design = value
+        .get("study_design")
+        .and_then(Value::as_str)
+        .unwrap_or("");
     if !matches!(
         study_design,
-        "descriptive-monitoring" | "before-after" | "matched-comparison" | "before-after-control-impact"
+        "descriptive-monitoring"
+            | "before-after"
+            | "matched-comparison"
+            | "before-after-control-impact"
     ) {
         errors.push("$.study_design: unsupported study design".to_string());
     }
@@ -137,7 +152,10 @@ pub fn validate_plan(value: &Value) -> Result<(), Vec<String>> {
     }
 
     let (roles, arm_count) = validate_arms(value.get("arms"), &mut errors);
-    if matches!(study_design, "matched-comparison" | "before-after-control-impact") {
+    if matches!(
+        study_design,
+        "matched-comparison" | "before-after-control-impact"
+    ) {
         if !roles.contains("intervention") {
             errors.push(format!(
                 "$.arms: {study_design} requires an intervention arm"
@@ -187,10 +205,12 @@ pub fn validate_plan(value: &Value) -> Result<(), Vec<String>> {
     }
 
     validate_outcomes(value.get("outcomes"), &mut errors);
-    let causal_timestamp =
-        validate_causal_plan(value.get("causal_analysis_plan"), &mut errors);
+    let causal_timestamp = validate_causal_plan(value.get("causal_analysis_plan"), &mut errors);
     if analysis_intent == "causal-estimate" {
-        if !matches!(study_design, "matched-comparison" | "before-after-control-impact") {
+        if !matches!(
+            study_design,
+            "matched-comparison" | "before-after-control-impact"
+        ) {
             errors.push(
                 "$.analysis_intent: causal-estimate requires matched-comparison or before-after-control-impact"
                     .to_string(),
@@ -249,11 +269,7 @@ fn validate_time_windows(value: Option<&Value>, errors: &mut Vec<String>) -> Opt
     validate_keys(group, WINDOW_GROUP_KEYS, "$.time_windows", errors);
 
     let baseline = validate_window(value.get("baseline"), "$.time_windows.baseline", errors);
-    let follow_up = validate_window(
-        value.get("follow_up"),
-        "$.time_windows.follow_up",
-        errors,
-    );
+    let follow_up = validate_window(value.get("follow_up"), "$.time_windows.follow_up", errors);
     match (baseline, follow_up) {
         (Some((_, baseline_end)), Some((follow_up_start, _))) => {
             Some((baseline_end, follow_up_start))
@@ -330,7 +346,9 @@ fn validate_arms(value: Option<&Value>, errors: &mut Vec<String>) -> (HashSet<St
         match arm.get("site_ref_sha256").and_then(Value::as_str) {
             Some(digest) if is_sha256(digest) => {
                 if !site_refs.insert(digest.to_string()) {
-                    errors.push(format!("{path}.site_ref_sha256: duplicate site reference digest"));
+                    errors.push(format!(
+                        "{path}.site_ref_sha256: duplicate site reference digest"
+                    ));
                 }
             }
             Some(_) => errors.push(format!(
@@ -342,7 +360,9 @@ fn validate_arms(value: Option<&Value>, errors: &mut Vec<String>) -> (HashSet<St
             arm.get("allocation_method").and_then(Value::as_str),
             Some("randomized" | "matched" | "non-randomized" | "observational")
         ) {
-            errors.push(format!("{path}.allocation_method: unsupported allocation method"));
+            errors.push(format!(
+                "{path}.allocation_method: unsupported allocation method"
+            ));
         }
     }
     (roles, arms.len())
@@ -373,7 +393,9 @@ fn validate_outcomes(value: Option<&Value>, errors: &mut Vec<String>) {
         match outcome.get("metric_id").and_then(Value::as_str) {
             Some(id) if valid_metric_id(id) => {
                 if !metric_ids.insert(id.to_string()) {
-                    errors.push(format!("{path}.metric_id: duplicate outcome metric ID {id}"));
+                    errors.push(format!(
+                        "{path}.metric_id: duplicate outcome metric ID {id}"
+                    ));
                 }
             }
             Some(_) => errors.push(format!("{path}.metric_id: invalid metric ID")),
@@ -392,9 +414,19 @@ fn validate_outcomes(value: Option<&Value>, errors: &mut Vec<String>) {
         }
         if !matches!(
             outcome.get("sampling_design").and_then(Value::as_str),
-            Some("event-based" | "daily" | "weekly" | "monthly" | "seasonal" | "continuous" | "manual-campaign")
+            Some(
+                "event-based"
+                    | "daily"
+                    | "weekly"
+                    | "monthly"
+                    | "seasonal"
+                    | "continuous"
+                    | "manual-campaign"
+            )
         ) {
-            errors.push(format!("{path}.sampling_design: unsupported sampling design"));
+            errors.push(format!(
+                "{path}.sampling_design: unsupported sampling design"
+            ));
         }
         match outcome
             .get("minimum_observations_per_arm_window")
@@ -454,7 +486,10 @@ fn validate_outcomes(value: Option<&Value>, errors: &mut Vec<String>) {
 
 fn validate_causal_plan(value: Option<&Value>, errors: &mut Vec<String>) -> Option<u64> {
     let Some(value) = value else {
-        errors.push("$.causal_analysis_plan: missing required field (use null when not applicable)".to_string());
+        errors.push(
+            "$.causal_analysis_plan: missing required field (use null when not applicable)"
+                .to_string(),
+        );
         return None;
     };
     if value.is_null() {
@@ -467,9 +502,9 @@ fn validate_causal_plan(value: Option<&Value>, errors: &mut Vec<String>) -> Opti
     validate_keys(object, CAUSAL_KEYS, "$.causal_analysis_plan", errors);
     match value.get("method").and_then(Value::as_str) {
         Some(method) if (8..=1000).contains(&method.chars().count()) => {}
-        Some(_) => errors.push(
-            "$.causal_analysis_plan.method: expected 8..=1000 characters".to_string(),
-        ),
+        Some(_) => {
+            errors.push("$.causal_analysis_plan.method: expected 8..=1000 characters".to_string())
+        }
         None => errors.push("$.causal_analysis_plan.method: expected a string".to_string()),
     }
     let timestamp = nonnegative_integer(
@@ -510,16 +545,11 @@ fn validate_causal_plan(value: Option<&Value>, errors: &mut Vec<String>) -> Opti
             Some(_) => errors.push(format!(
                 "$.causal_analysis_plan.{field}: at least one item is required"
             )),
-            None => errors.push(format!(
-                "$.causal_analysis_plan.{field}: expected an array"
-            )),
+            None => errors.push(format!("$.causal_analysis_plan.{field}: expected an array")),
         }
     }
     if value.get("independent_review_required") != Some(&Value::Bool(true)) {
-        errors.push(
-            "$.causal_analysis_plan.independent_review_required: must be true"
-                .to_string(),
-        );
+        errors.push("$.causal_analysis_plan.independent_review_required: must be true".to_string());
     }
     timestamp
 }
@@ -553,15 +583,17 @@ fn validate_privacy(value: Option<&Value>, errors: &mut Vec<String>) {
         .get("consent_status")
         .and_then(Value::as_str)
         .unwrap_or("");
-    if !matches!(consent, "pending" | "approved" | "not-required" | "withdrawn") {
+    if !matches!(
+        consent,
+        "pending" | "approved" | "not-required" | "withdrawn"
+    ) {
         errors.push("$.privacy.consent_status: unsupported status".to_string());
     }
     match value.get("consent_record_ref") {
         Some(Value::Null) => {}
         Some(Value::String(reference)) if reference.chars().count() <= 300 => {}
-        Some(_) => errors.push(
-            "$.privacy.consent_record_ref: expected a string reference or null".to_string(),
-        ),
+        Some(_) => errors
+            .push("$.privacy.consent_record_ref: expected a string reference or null".to_string()),
         None => errors.push("$.privacy.consent_record_ref: missing required field".to_string()),
     }
     let aggregation_policy = value
@@ -658,7 +690,10 @@ fn nonnegative_integer(
 }
 
 fn is_sha256(value: &str) -> bool {
-    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+    value.len() == 64
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
 }
 
 fn valid_evaluation_id(value: &str) -> bool {
@@ -669,7 +704,10 @@ fn valid_evaluation_id(value: &str) -> bool {
         && suffix
             .bytes()
             .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
-        && suffix.as_bytes().first().is_some_and(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
+        && suffix
+            .as_bytes()
+            .first()
+            .is_some_and(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
 }
 
 fn valid_arm_id(value: &str) -> bool {
@@ -681,7 +719,10 @@ fn valid_arm_id(value: &str) -> bool {
         && suffix
             .bytes()
             .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
-        && suffix.as_bytes().first().is_some_and(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
+        && suffix
+            .as_bytes()
+            .first()
+            .is_some_and(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
 }
 
 fn valid_method_id(value: &str) -> bool {
@@ -703,9 +744,7 @@ fn valid_metric_id(value: &str) -> bool {
     let mut parts = value.split('.');
     let valid_part = |part: &str| {
         let mut bytes = part.bytes();
-        bytes
-            .next()
-            .is_some_and(|byte| byte.is_ascii_lowercase())
+        bytes.next().is_some_and(|byte| byte.is_ascii_lowercase())
             && part.bytes().all(|byte| {
                 byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_' || byte == b'-'
             })
@@ -724,7 +763,9 @@ fn looks_like_uri(value: &str) -> bool {
             .bytes()
             .next()
             .is_some_and(|byte| byte.is_ascii_alphabetic())
-        && scheme.bytes().all(|byte| byte.is_ascii_alphanumeric() || byte == b'+' || byte == b'-' || byte == b'.')
+        && scheme.bytes().all(|byte| {
+            byte.is_ascii_alphanumeric() || byte == b'+' || byte == b'-' || byte == b'.'
+        })
         && !remainder.is_empty()
         && !value.chars().any(char::is_whitespace)
 }
@@ -754,9 +795,10 @@ mod tests {
 
     #[test]
     fn schema_and_fixture_contract_match_rust_constants() {
-        let schema: Value =
-            serde_json::from_str(include_str!("../schemas/landscape-evaluation-plan-v0.schema.json"))
-                .expect("evaluation plan schema must be valid JSON");
+        let schema: Value = serde_json::from_str(include_str!(
+            "../schemas/landscape-evaluation-plan-v0.schema.json"
+        ))
+        .expect("evaluation plan schema must be valid JSON");
         assert_eq!(schema["$id"], PLAN_SCHEMA_URI);
         assert_eq!(schema["properties"]["schema"]["const"], PLAN_SCHEMA);
         assert_eq!(schema["properties"]["schema_uri"]["const"], PLAN_SCHEMA_URI);
@@ -777,7 +819,11 @@ mod tests {
         let mut value = fixture();
         value["time_windows"]["follow_up"]["start_unix_s"] = json!(1782863999_u64);
         let errors = validate_plan(&value).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("baseline must end before follow-up")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("baseline must end before follow-up"))
+        );
     }
 
     #[test]
@@ -786,7 +832,9 @@ mod tests {
         value["study_design"] = json!("matched-comparison");
         value["arms"][1]["allocation_method"] = json!("non-randomized");
         let errors = validate_plan(&value).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("requires a comparison arm with allocation_method=matched")));
+        assert!(errors.iter().any(|error| {
+            error.contains("requires a comparison arm with allocation_method=matched")
+        }));
     }
 
     #[test]
@@ -797,8 +845,14 @@ mod tests {
         value["plan_status"] = json!("preregistered");
         value["causal_analysis_plan"] = causal_plan();
         let errors = validate_plan(&value).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("before-after without a comparison arm")));
-        assert!(errors.iter().any(|error| error.contains("requires matched-comparison or before-after-control-impact")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("before-after without a comparison arm"))
+        );
+        assert!(errors.iter().any(|error| {
+            error.contains("requires matched-comparison or before-after-control-impact")
+        }));
     }
 
     #[test]
@@ -817,8 +871,16 @@ mod tests {
         value["plan_status"] = json!("draft");
         value["causal_analysis_plan"] = Value::Null;
         let errors = validate_plan(&value).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("preregistered or approved")));
-        assert!(errors.iter().any(|error| error.contains("requires a complete preregistered analysis plan")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("preregistered or approved"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("requires a complete preregistered analysis plan"))
+        );
     }
 
     #[test]
@@ -830,7 +892,11 @@ mod tests {
         causal["pre_registered_at_unix_s"] = json!(1792454500_u64);
         value["causal_analysis_plan"] = causal;
         let errors = validate_plan(&value).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("cannot be after plan creation")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("cannot be after plan creation"))
+        );
     }
 
     #[test]
@@ -839,8 +905,16 @@ mod tests {
         value["arms"][1]["id"] = value["arms"][0]["id"].clone();
         value["arms"][1]["site_ref_sha256"] = value["arms"][0]["site_ref_sha256"].clone();
         let errors = validate_plan(&value).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("duplicate arm ID")));
-        assert!(errors.iter().any(|error| error.contains("duplicate site reference")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("duplicate arm ID"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("duplicate site reference"))
+        );
     }
 
     #[test]
@@ -849,8 +923,16 @@ mod tests {
         value["outcomes"][1]["metric_id"] = value["outcomes"][0]["metric_id"].clone();
         value["outcomes"][1]["unit"] = json!(" ");
         let errors = validate_plan(&value).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("duplicate outcome metric ID")));
-        assert!(errors.iter().any(|error| error.contains(".unit: expected a non-empty string")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("duplicate outcome metric ID"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains(".unit: expected a non-empty string"))
+        );
     }
 
     #[test]
@@ -859,7 +941,11 @@ mod tests {
         value["outcomes"][0]["desired_direction"] = json!("target-band");
         value["outcomes"][0]["target_band"] = json!([12.0, 4.0]);
         let errors = validate_plan(&value).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("lower bound must be less than or equal")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("lower bound must be less than or equal"))
+        );
     }
 
     #[test]
@@ -869,7 +955,11 @@ mod tests {
         value["privacy"]["publication_policy"] = json!("public");
         value["privacy"]["consent_status"] = json!("approved");
         let errors = validate_plan(&value).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("requires public location sensitivity")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("requires public location sensitivity"))
+        );
     }
 
     #[test]
@@ -879,10 +969,18 @@ mod tests {
         value["privacy"]["publication_policy"] = json!("public");
         value["privacy"]["consent_status"] = json!("pending");
         let pending_errors = validate_plan(&value).unwrap_err();
-        assert!(pending_errors.iter().any(|error| error.contains("requires approved or not-required consent")));
+        assert!(
+            pending_errors
+                .iter()
+                .any(|error| error.contains("requires approved or not-required consent"))
+        );
         value["privacy"]["consent_status"] = json!("withdrawn");
         let withdrawn_errors = validate_plan(&value).unwrap_err();
-        assert!(withdrawn_errors.iter().any(|error| error.contains("withdrawn consent blocks")));
+        assert!(
+            withdrawn_errors
+                .iter()
+                .any(|error| error.contains("withdrawn consent blocks"))
+        );
     }
 
     #[test]
@@ -892,6 +990,10 @@ mod tests {
         value["interpretation_limit"] = json!("causal-proof");
         let errors = validate_plan(&value).unwrap_err();
         assert!(errors.iter().any(|error| error.contains("unknown field")));
-        assert!(errors.iter().any(|error| error.contains("validation-does-not-prove-impact-or-causality")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("validation-does-not-prove-impact-or-causality"))
+        );
     }
 }
