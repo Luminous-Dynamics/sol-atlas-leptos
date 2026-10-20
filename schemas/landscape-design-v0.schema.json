@@ -60,7 +60,10 @@
       }
     },
     "geometry_status": {
-      "const": "schematic-design-intent"
+      "enum": [
+        "schematic-design-intent",
+        "synthetic-benchmark"
+      ]
     },
     "features": {
       "type": "array",
@@ -111,10 +114,16 @@
             "maximum": 650
           },
           "status": {
-            "const": "design-intent"
+            "enum": [
+              "design-intent",
+              "synthetic-benchmark"
+            ]
           },
           "source": {
-            "const": "user-authored-schematic"
+            "enum": [
+              "user-authored-schematic",
+              "synthetic-benchmark"
+            ]
           },
           "geometry_representation": {
             "const": "schematic-symbol-anchor-v0"
@@ -222,5 +231,63 @@
     "schema_uri": {
       "const": "https://luminousdynamics.io/schemas/landscape-design-v0.schema.json"
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "geometry_status": {
+            "const": "schematic-design-intent"
+          }
+        },
+        "required": [
+          "geometry_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "features": {
+            "items": {
+              "properties": {
+                "status": {
+                  "const": "design-intent"
+                },
+                "source": {
+                  "const": "user-authored-schematic"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "geometry_status": {
+            "const": "synthetic-benchmark"
+          }
+        },
+        "required": [
+          "geometry_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "features": {
+            "items": {
+              "properties": {
+                "status": {
+                  "const": "synthetic-benchmark"
+                },
+                "source": {
+                  "const": "synthetic-benchmark"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }
