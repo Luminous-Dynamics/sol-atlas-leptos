@@ -356,7 +356,7 @@ fn lower_hex(bytes: &[u8]) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        OFFLINE_JOURNAL_BUNDLE_SCHEMA_VERSION, OfflineJournalBundleError,
+        MAX_JCS_SAFE_REVISION, OFFLINE_JOURNAL_BUNDLE_SCHEMA_VERSION, OfflineJournalBundleError,
         OfflineJournalBundleRecordV1, OfflineJournalBundleV1,
     };
     use crate::{
@@ -408,6 +408,33 @@ mod tests {
         unsigned_manifest_canonical_utf8: String,
         integrity_sha256: String,
         canonical_bundle_utf8: String,
+    }
+
+    #[test]
+    fn public_json_schema_pins_bundle_envelope_and_revision_versions() {
+        let schema: serde_json::Value = serde_json::from_str(include_str!(
+            "../schemas/offline-journal-bundle-v1.schema.json"
+        ))
+        .expect("published bundle schema must be valid JSON");
+        assert_eq!(
+            schema["$schema"],
+            "https://json-schema.org/draft/2020-12/schema"
+        );
+        assert_eq!(schema["$id"], "urn:sol-atlas:offline-journal-bundle:1");
+        assert_eq!(schema["properties"]["schema_version"]["const"], 1);
+        assert_eq!(schema["$defs"]["snapshot"]["properties"]["schema_version"]["const"], 1);
+        assert_eq!(schema["$defs"]["envelope"]["properties"]["schema_version"]["const"], 2);
+        assert_eq!(
+            schema["$defs"]["revision"]["maximum"],
+            MAX_JCS_SAFE_REVISION
+        );
+        assert_eq!(schema["additionalProperties"], false);
+        assert_eq!(schema["$defs"]["record"]["additionalProperties"], false);
+        assert!(
+            schema["x-semantic-validation"]
+                .as_array()
+                .is_some_and(|rules| rules.len() >= 8)
+        );
     }
 
     #[test]
