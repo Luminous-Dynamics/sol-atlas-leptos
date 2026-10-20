@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "graph_id": "job-graph-demo-001",
+  "revision": 1,
+  "tasks": [
+    {
+      "task_id": "access-approval",
+      "title": "Confirm site access and work authorization",
+      "depends_on": [],
+      "priority": 100,
+      "status": "verification_recorded"
+    },
+    {
+      "task_id": "inspection",
+      "title": "Record site inspection and findings",
+      "depends_on": ["access-approval"],
+      "priority": 80,
+      "status": "pending"
+    },
+    {
+      "task_id": "parts-procurement",
+      "title": "Confirm required part availability",
+      "depends_on": ["access-approval"],
+      "priority": 90,
+      "status": "pending"
+    },
+    {
+      "task_id": "functional-test",
+      "title": "Record post-work functional test",
+      "depends_on": ["inspection", "parts-procurement"],
+      "priority": 100,
+      "status": "pending"
+    },
+    {
+      "task_id": "handover",
+      "title": "Prepare the handover record",
+      "depends_on": ["functional-test"],
+      "priority": 70,
+      "status": "pending"
+    }
+  ]
+}
