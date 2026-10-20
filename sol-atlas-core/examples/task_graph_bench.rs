@@ -65,6 +65,25 @@ fn build_graph(task_count: usize) -> TaskGraphV1 {
     }
 }
 
+fn build_independent_graph(task_count: usize) -> TaskGraphV1 {
+    let tasks = (0..task_count)
+        .map(|index| TaskNodeV1 {
+            task_id: format!("task-{index:05}"),
+            title: format!("Independent synthetic task {index}"),
+            depends_on: Vec::new(),
+            priority: ((index * 37) % 101) as u8,
+            status: TaskStatus::Pending,
+        })
+        .collect();
+
+    TaskGraphV1 {
+        schema_version: TASK_GRAPH_SCHEMA_VERSION,
+        graph_id: "benchmark:task-graph-v1:independent-roots".to_owned(),
+        revision: 1,
+        tasks,
+    }
+}
+
 fn execute_operation(
     graph: &TaskGraphV1,
     compiled: &CompiledTaskGraph,
@@ -80,7 +99,7 @@ fn execute_operation(
         }
         "ready_tasks" => {
             let result = graph.ready_tasks().map_err(|error| error.to_string())?;
-            black_box(result.len());
+            black_box(result);
         }
         "compile_index" => {
             let result = CompiledTaskGraph::compile(black_box(graph.clone()))
@@ -88,7 +107,7 @@ fn execute_operation(
             black_box(result);
         }
         "compiled_ready_tasks" => {
-            black_box(compiled.ready_task_ids());
+            black_box(compiled.ready_tasks());
         }
         _ => return Err(format!("unknown benchmark operation: {operation}")),
     }
@@ -149,17 +168,6 @@ fn run() -> Result<(), String> {
         return Err(format!("task count must be between 1 and {MAX_TASKS}"));
     }
 
-    let graph = build_graph(task_count);
-    graph.validate().map_err(|error| error.to_string())?;
-    let edge_count: usize = graph.tasks.iter().map(|task| task.depends_on.len()).sum();
-    let topological = graph
-        .topological_order()
-        .map_err(|error| error.to_string())?;
-    if topological.len() != task_count {
-        return Err("topological output length did not match task count".to_owned());
-    }
-
-    let compiled = CompiledTaskGraph::compile(graph.clone()).map_err(|error| error.to_string())?;
     let operations = [
         "validate",
         "topological_order",
@@ -167,15 +175,60 @@ fn run() -> Result<(), String> {
         "compile_index",
         "compiled_ready_tasks",
     ];
-    let mut results = serde_json::Map::new();
-    for operation in operations {
-        let raw = measure(&graph, &compiled, samples, operation)?;
-        results.insert(operation.to_owned(), summary(&raw));
+    let mut workloads = serde_json::Map::new();
+
+    for (workload_name, graph) in [
+        ("fan_in_4", build_graph(task_count)),
+        ("independent_roots", build_independent_graph(task_count)),
+    ] {
+        graph.validate().map_err(|error| error.to_string())?;
+        let edge_count: usize = graph.tasks.iter().map(|task| task.depends_on.len()).sum();
+        let topological = graph
+            .topological_order()
+            .map_err(|error| error.to_string())?;
+        if topological.len() != task_count {
+            return Err(format!(
+                "{workload_name}: topological output length did not match task count"
+            ));
+        }
+
+        let initial_ready_count = graph
+            .ready_tasks()
+            .map_err(|error| error.to_string())?
+            .len();
+        let compiled =
+            CompiledTaskGraph::compile(graph.clone()).map_err(|error| error.to_string())?;
+        let mut operation_results = serde_json::Map::new();
+        for operation in operations {
+            let raw = measure(&graph, &compiled, samples, operation)?;
+            operation_results.insert(operation.to_owned(), summary(&raw));
+        }
+
+        workloads.insert(
+            workload_name.to_owned(),
+            serde_json::json!({
+                "dataset": {
+                    "graph_id": graph.graph_id,
+                    "schema_version": graph.schema_version,
+                    "tasks": task_count,
+                    "edges": edge_count,
+                    "dependency_fan_in_max": if workload_name == "fan_in_4" {
+                        DEPENDENCY_FAN_IN
+                    } else {
+                        0
+                    },
+                    "initial_ready_tasks": initial_ready_count,
+                    "seed": "deterministic-index-derived-no-rng",
+                    "all_task_statuses": "pending"
+                },
+                "operations": operation_results
+            }),
+        );
     }
 
     let output = serde_json::json!({
         "benchmark": "field-task-graph-v1",
-        "benchmark_version": 2,
+        "benchmark_version": 3,
         "claim_ceiling": "local algorithm microbenchmark only; not end-to-end field-service or vendor comparison",
         "environment": {
             "source_commit_sha": env::var("GITHUB_SHA").ok(),
@@ -185,24 +238,15 @@ fn run() -> Result<(), String> {
             "debug_assertions": cfg!(debug_assertions),
             "release_profile_recommended": true
         },
-        "dataset": {
-            "graph_id": graph.graph_id,
-            "schema_version": graph.schema_version,
-            "tasks": task_count,
-            "edges": edge_count,
-            "dependency_fan_in_max": DEPENDENCY_FAN_IN,
-            "seed": "deterministic-index-derived-no-rng",
-            "all_task_statuses": "pending"
-        },
         "method": {
-            "samples_per_operation": samples,
+            "samples_per_operation_per_workload": samples,
             "clock": "std::time::Instant",
             "unit": "nanoseconds",
             "percentiles": "nearest-rank",
             "warmup_runs": 5,
             "raw_samples_retained": true
         },
-        "operations": results
+        "workloads": workloads
     });
 
     println!(
