@@ -1233,7 +1233,8 @@ mod tests {
         let obs = only_observation_mut(&mut batch);
         obs["evidence_class"] = json!("field-observation");
         obs["source"]["kind"] = json!("human-protocol");
-        obs["privacy"]["classification"] = json!("private");
+        // Deliberately keep classification="synthetic": changing only the
+        // evidence label must not launder generated data into field evidence.
 
         let errors = validate_batch(&batch).unwrap_err();
         assert!(errors.iter().any(|error| error.contains("synthetic classification requires evidence_class")));
