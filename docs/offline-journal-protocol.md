@@ -1,8 +1,8 @@
-# Offline Journal Protocol v1
+# Offline Journal Protocol v2
 
 **Status:** deterministic core primitive and synthetic fault corpus; not a production sync implementation  
 **Module:** sol-atlas-core/src/offline_journal.rs  
-**Fixture:** sol-atlas-core/fixtures/offline-journal-fault-corpus-v1.json
+**Fixture:** sol-atlas-core/fixtures/offline-journal-fault-corpus-v2.json
 
 ## Design change
 
@@ -14,7 +14,7 @@ This module is deliberately a pure decision layer. It does not implement a datab
 
 1. **Immutable retry identity.** Each operation carries a stable operation ID, aggregate ID, expected revision, canonical payload SHA-256, and idempotency key. A retry candidate must match the complete original envelope. The service must bind an idempotency key to the original payload digest and reject reuse with different content.
 2. **Persist before send.** Persist Prepared; then persist OutcomeUnknown and the incremented attempt count; only then dispatch. A crash after that commit is treated as uncertain even if the process had not yet written bytes to the socket.
-3. **Receipt is evidence.** The client reaches Received only from a well-formed authoritative service reply with a receipt reference and an acceptable applied revision. A timeout or malformed/unrecognized response leaves the outcome unknown.
+3. **Receipt is bound evidence.** Every authoritative reply echoes the exact envelope schema version, operation ID, aggregate ID, expected revision, idempotency key, and payload digest of the immutable request. The client rejects a reply whose binding differs, even if its receipt shape otherwise looks valid. The client reaches Received only from a matching authoritative reply with a receipt reference and an acceptable applied revision. A timeout or malformed/unrecognized response leaves the outcome unknown.
 4. **No terminal-state rewriting.** Duplicate identical receipts are idempotent. A different receipt, a rejection after receipt, or another contradictory terminal reply is an error rather than a silent replacement.
 5. **Conflict is preserved.** A conflict records the remote revision and a reason code. A resolution is a new operation with a new operation ID and idempotency key, bound to the remote revision and explicitly referencing the superseded operation. The original remains available for audit.
 6. **Unknown future states fail closed.** If decoding a future or malformed service reply fails, retain the current journal state and surface an unresolved outcome; never infer success from a parse failure.
@@ -36,7 +36,7 @@ A local reducer cannot prove these database, transport, security, or server prop
 
 ## Frozen fault corpus
 
-The JSON fixture contains seven synthetic cases: timeout/response loss, retries, duplicate authoritative receipt, explicit rejection, concurrent revision conflict, contradictory terminal response, and a conflict reply that does not advance revision. Rust unit tests replay the corpus against the reducer, assert the exact final state and assert the response classification. These are conformance fixtures, not telemetry or field-test observations.
+The JSON fixture contains eight synthetic cases: timeout/response loss, retries, duplicate authoritative receipt, explicit rejection, concurrent revision conflict, contradictory terminal response, a conflict reply that does not advance revision, and a receipt whose operation binding is wrong. Rust unit tests replay the corpus against the reducer, assert the exact final state and assert the response classification. These are conformance fixtures, not telemetry or field-test observations.
 
 ## Benchmarks to publish
 
@@ -48,6 +48,7 @@ The JSON fixture contains seven synthetic cases: timeout/response loss, retries,
 | JRN-04: conflict preservation | Zero silent overwrites; every conflict remains inspectable and recoverable | Two-writer revision races, process restarts, and audit-log assertions |
 | JRN-05: crash recovery | Zero lost acknowledged local operations across every durable transition | Kill/restart fault injection at each write boundary on target devices |
 | JRN-06: unknown protocol data | Zero malformed or future replies interpreted as success | Parser corpus including missing fields, unknown discriminants, and truncated JSON |
+| JRN-08: reply/request binding | Zero replies applied when any operation ID, aggregate, expected revision, idempotency key, or payload digest differs | Mutate each binding field independently and verify the entry remains unresolved |
 | JRN-07: evidence lineage | 100% of corrected operations link to the prior operation, remote revision, and resolution reason | Graph/reference integrity verifier |
 | PERF-01: local queue recovery | p95 rebuild of 10,000 journal entries under 250 ms on a named reference device (initial hypothesis) | Release build, pinned device/storage, cold and warm cache, raw sample distribution |
 | PERF-02: reconnect usability | At least 95% of interrupted synthetic tasks recover without data loss or silent state change | Controlled task protocol and participant/task denominator |

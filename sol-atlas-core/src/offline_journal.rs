@@ -12,7 +12,7 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-pub const OFFLINE_JOURNAL_SCHEMA_VERSION: u16 = 1;
+pub const OFFLINE_JOURNAL_SCHEMA_VERSION: u16 = 2;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -54,6 +54,30 @@ impl OperationEnvelope {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct OperationBinding {
+    pub envelope_schema_version: u16,
+    pub operation_id: String,
+    pub aggregate_id: String,
+    pub expected_revision: u64,
+    pub payload_digest_sha256: String,
+    pub idempotency_key: String,
+}
+
+impl OperationBinding {
+    pub fn from_envelope(envelope: &OperationEnvelope) -> Self {
+        Self {
+            envelope_schema_version: envelope.schema_version,
+            operation_id: envelope.operation_id.clone(),
+            aggregate_id: envelope.aggregate_id.clone(),
+            expected_revision: envelope.expected_revision,
+            payload_digest_sha256: envelope.payload_digest_sha256.clone(),
+            idempotency_key: envelope.idempotency_key.clone(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "state", rename_all = "snake_case")]
 pub enum JournalState {
     Prepared,
@@ -88,16 +112,29 @@ impl JournalState {
 #[serde(tag = "reply", rename_all = "snake_case")]
 pub enum ServiceReply {
     Received {
+        binding: OperationBinding,
         receipt_ref: String,
         applied_revision: u64,
     },
     Rejected {
+        binding: OperationBinding,
         reason_code: String,
     },
     Conflict {
+        binding: OperationBinding,
         current_revision: u64,
         reason_code: String,
     },
+}
+
+impl ServiceReply {
+    fn binding(&self) -> &OperationBinding {
+        match self {
+            Self::Received { binding, .. }
+            | Self::Rejected { binding, .. }
+            | Self::Conflict { binding, .. } => binding,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -162,6 +199,9 @@ impl JournalEntry {
     /// The adapter should leave the entry unchanged if decoding fails.
     pub fn reconcile(&mut self, reply: &ServiceReply) -> Result<ReconcileOutcome, JournalError> {
         validate_reply_shape(reply)?;
+        if reply.binding() != &OperationBinding::from_envelope(&self.envelope) {
+            return Err(JournalError::ReplyBindingMismatch);
+        }
 
         match (self.state.clone(), reply) {
             (
@@ -169,6 +209,7 @@ impl JournalEntry {
                 ServiceReply::Received {
                     receipt_ref,
                     applied_revision,
+                    ..
                 },
             ) => {
                 if *applied_revision < self.envelope.expected_revision {
@@ -180,7 +221,7 @@ impl JournalEntry {
                 };
                 Ok(ReconcileOutcome::Applied)
             }
-            (JournalState::OutcomeUnknown, ServiceReply::Rejected { reason_code }) => {
+            (JournalState::OutcomeUnknown, ServiceReply::Rejected { reason_code, .. }) => {
                 self.state = JournalState::Rejected {
                     reason_code: reason_code.clone(),
                 };
@@ -191,6 +232,7 @@ impl JournalEntry {
                 ServiceReply::Conflict {
                     current_revision,
                     reason_code,
+                    ..
                 },
             ) => {
                 if *current_revision <= self.envelope.expected_revision {
@@ -210,6 +252,7 @@ impl JournalEntry {
                 ServiceReply::Received {
                     receipt_ref: reply_ref,
                     applied_revision: reply_revision,
+                    ..
                 },
             ) if receipt_ref == *reply_ref && applied_revision == *reply_revision => {
                 Ok(ReconcileOutcome::DuplicateAcknowledgement)
@@ -218,6 +261,7 @@ impl JournalEntry {
                 JournalState::Rejected { reason_code },
                 ServiceReply::Rejected {
                     reason_code: reply_code,
+                    ..
                 },
             ) if reason_code == *reply_code => Ok(ReconcileOutcome::DuplicateTerminalReply),
             (
@@ -228,6 +272,7 @@ impl JournalEntry {
                 ServiceReply::Conflict {
                     current_revision: reply_revision,
                     reason_code: reply_code,
+                    ..
                 },
             ) if current_revision == *reply_revision && reason_code == *reply_code => {
                 Ok(ReconcileOutcome::DuplicateTerminalReply)
@@ -292,7 +337,7 @@ fn validate_reply_shape(reply: &ServiceReply) -> Result<(), JournalError> {
         ServiceReply::Received { receipt_ref, .. } => {
             require_non_empty(receipt_ref, "receipt_ref").map_err(|_| JournalError::InvalidReply)
         }
-        ServiceReply::Rejected { reason_code } | ServiceReply::Conflict { reason_code, .. } => {
+        ServiceReply::Rejected { reason_code, .. } | ServiceReply::Conflict { reason_code, .. } => {
             require_non_empty(reason_code, "reason_code").map_err(|_| JournalError::InvalidReply)
         }
     }
@@ -314,6 +359,7 @@ pub enum JournalError {
     AttemptsExhausted,
     OperationIdentityChanged,
     InvalidReply,
+    ReplyBindingMismatch,
     InvalidTransition,
     ConflictResolutionMismatch(&'static str),
 }
@@ -334,6 +380,9 @@ impl fmt::Display for JournalError {
             }
             Self::InvalidReply => formatter
                 .write_str("service reply is malformed or inconsistent with expected revision"),
+            Self::ReplyBindingMismatch => formatter.write_str(
+                "service reply does not bind to the immutable operation envelope",
+            ),
             Self::InvalidTransition => formatter.write_str("journal transition is not allowed"),
             Self::ConflictResolutionMismatch(reason) => {
                 write!(
@@ -351,7 +400,7 @@ impl std::error::Error for JournalError {}
 mod tests {
     use super::{
         JournalEntry, JournalError, JournalState, OFFLINE_JOURNAL_SCHEMA_VERSION,
-        OperationEnvelope, ReconcileOutcome, ServiceReply,
+        OperationBinding, OperationEnvelope, ReconcileOutcome, ServiceReply,
     };
     use serde::Deserialize;
     use std::collections::BTreeSet;
@@ -366,6 +415,10 @@ mod tests {
             idempotency_key: "idem-001".to_owned(),
             supersedes_operation_id: None,
         }
+    }
+
+    fn operation_binding() -> OperationBinding {
+        OperationBinding::from_envelope(&envelope())
     }
 
     #[test]
@@ -401,6 +454,7 @@ mod tests {
         let mut entry = JournalEntry::prepare(envelope()).unwrap();
         entry.mark_attempt_started().unwrap();
         let receipt = ServiceReply::Received {
+            binding: operation_binding(),
             receipt_ref: "receipt-001".to_owned(),
             applied_revision: 8,
         };
@@ -411,6 +465,7 @@ mod tests {
         );
         assert_eq!(
             entry.reconcile(&ServiceReply::Rejected {
+                binding: operation_binding(),
                 reason_code: "stale-rejection".to_owned(),
             }),
             Err(JournalError::InvalidTransition)
@@ -425,11 +480,43 @@ mod tests {
     }
 
     #[test]
+    fn receipt_bound_to_a_different_operation_cannot_reconcile() {
+        let mut entry = JournalEntry::prepare(envelope()).unwrap();
+        entry.mark_attempt_started().unwrap();
+
+        for mismatch in 0..6 {
+            let mut binding = operation_binding();
+            match mismatch {
+                0 => binding.envelope_schema_version = 1,
+                1 => binding.operation_id = "op-from-another-request".to_owned(),
+                2 => binding.aggregate_id = "another-job".to_owned(),
+                3 => binding.expected_revision += 1,
+                4 => binding.payload_digest_sha256 = "b".repeat(64),
+                5 => binding.idempotency_key = "another-key".to_owned(),
+                _ => unreachable!(),
+            }
+            let reply = ServiceReply::Received {
+                binding,
+                receipt_ref: "receipt-001".to_owned(),
+                applied_revision: 8,
+            };
+
+            assert_eq!(
+                entry.reconcile(&reply),
+                Err(JournalError::ReplyBindingMismatch),
+                "mismatched binding field index {mismatch}"
+            );
+            assert_eq!(entry.state, JournalState::OutcomeUnknown);
+        }
+    }
+
+    #[test]
     fn malformed_or_non_advanced_conflict_reply_leaves_state_unknown() {
         let mut entry = JournalEntry::prepare(envelope()).unwrap();
         entry.mark_attempt_started().unwrap();
         assert_eq!(
             entry.reconcile(&ServiceReply::Conflict {
+                binding: operation_binding(),
                 current_revision: 7,
                 reason_code: "revision_conflict".to_owned(),
             }),
@@ -437,6 +524,7 @@ mod tests {
         );
         assert_eq!(
             entry.reconcile(&ServiceReply::Received {
+            binding: operation_binding(),
                 receipt_ref: " ".to_owned(),
                 applied_revision: 8,
             }),
@@ -451,6 +539,7 @@ mod tests {
         original.mark_attempt_started().unwrap();
         original
             .reconcile(&ServiceReply::Conflict {
+                binding: operation_binding(),
                 current_revision: 9,
                 reason_code: "concurrent_edit".to_owned(),
             })
@@ -480,6 +569,7 @@ mod tests {
         original.mark_attempt_started().unwrap();
         original
             .reconcile(&ServiceReply::Conflict {
+                binding: operation_binding(),
                 current_revision: 9,
                 reason_code: "concurrent_edit".to_owned(),
             })
@@ -551,6 +641,7 @@ mod tests {
             Ok(ReconcileOutcome::DuplicateAcknowledgement) => "duplicate_acknowledgement",
             Ok(ReconcileOutcome::DuplicateTerminalReply) => "duplicate_terminal_reply",
             Err(JournalError::InvalidReply) => "invalid_reply",
+            Err(JournalError::ReplyBindingMismatch) => "reply_binding_mismatch",
             Err(JournalError::InvalidTransition) => "invalid_transition",
             Err(_) => "other_error",
         }
@@ -559,7 +650,7 @@ mod tests {
     #[test]
     fn frozen_fault_corpus_executes_against_the_reducer() {
         let corpus: FaultCorpus = serde_json::from_str(include_str!(
-            "../fixtures/offline-journal-fault-corpus-v1.json"
+            "../fixtures/offline-journal-fault-corpus-v2.json"
         ))
         .expect("fault corpus must be valid JSON matching the frozen schema");
         assert_eq!(corpus.schema_version, OFFLINE_JOURNAL_SCHEMA_VERSION);
