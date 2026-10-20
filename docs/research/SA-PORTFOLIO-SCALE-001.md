@@ -119,8 +119,28 @@ Pass criteria:
 - matched OR-solver comparison before claiming scale or superiority;
 - real data only after source rights, owner, baseline, independent verification and decision-rights gates.
 
-## 8. Current validation state
+## 8. Initial hosted smoke benchmark and validation
 
-The exact-head audit and baseline-ablation branches have successful hosted Rust workflows. This generalized v0.2/search branch is a new increment; its own formatting, Clippy, test and receipt results must be checked by exact head. The independent fixture-preparation enumeration confirms the expected 1,024-subset manifest, but it is not a Rust compile/test and does not verify the new branch-and-bound implementation.
+Exact-head hosted run for this benchmark-suite PR: **commit `185c26e56cea43cc4e677666c03bf348d55ebbe2`**, dedicated workflow `SA economic portfolio oracle` = **success**. Rust test suite: **19 passed, 0 failed**; `cargo fmt --check`, Clippy with `-D warnings`, both exact receipts, both search receipts, and the release benchmark commands completed successfully. The separate repository `Check` workflow was still in progress when this record was written, so no claim is made about that check's final status here.
+
+The benchmark artifact records these 21-repeat release-build measurements on the current `ubuntu-latest` runner with Rust toolchain 1.96.0:
+
+| Experiment | Metric | Exact subset evaluator | Dependency-aware frontier search |
+|---|---|---:|---:|
+| V0.2 ten-project fixture | p50 algorithm time | 434 µs | 139 µs |
+| V0.2 ten-project fixture | p95 algorithm time | 468 µs | 150 µs |
+| V0.2 ten-project fixture | minimum / maximum | 406 / 483 µs | 127 / 158 µs |
+
+This is a single-host **smoke benchmark**, not an apples-to-apples performance proof: the exhaustive evaluator returns the complete set of 82 feasible portfolios as well as the 8-member frontier; the candidate search returns the frontier and proof-of-accounting counters. The 3.1x median ratio describes only these two recorded implementations and this small synthetic input. It is not evidence of beating a commercial system, an independent MILP / CP-SAT formulation, or SOTA.
+
+The V0.2 ten-project search receipt reports 1,024 subsets, 305 visited nodes, 120 evaluated leaves, 82 feasible portfolios and the same 8-member frontier as exact enumeration. The 904 pruned completions partition into 448 gate, 192 missing-prerequisite and 264 budget prunes; 120 leaves + 904 prunes = 1,024.
+
+The adversarial 24-project case has a full universe of 16,777,216 subsets. Its 21-repeat search receipt reports:
+- p50 / p95 / max algorithm time: **67 / 85 / 128 µs**;
+- 745 search nodes and 40 evaluated leaves;
+- 9,961,432 gate-pruned, 3,145,728 prerequisite-pruned, 3,670,016 budget-pruned and 0 crew-pruned completions;
+- 22 feasible leaf portfolios, 4 frontier portfolios and exact equality with the supplied frozen frontier reference.
+
+The partition reconciles: 40 evaluated leaves + 16,777,176 pruned completions = 16,777,216. This adversarial fixture deliberately adds sixteen `UNKNOWN`-gated decoys that are immediately provable infeasible; it demonstrates accounting and negative-control behavior, not representative large-instance scaling.
 
 **Claim ceiling:** this is a synthetic contract and exact-search engineering exercise. It does not forecast GDP, jobs, real cost recovery, causal service improvement, or the optimal allocation of South African public resources.
