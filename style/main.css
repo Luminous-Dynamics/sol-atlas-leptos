@@ -1313,3 +1313,29 @@ canvas#globe-canvas.has-hover {
     font-size: 10px;
     line-height: 1.4;
 }
+
+.landscape-project-field {
+    display: grid;
+    gap: 6px;
+    margin-top: 14px;
+}
+.landscape-project-field > span {
+    color: #7b8e7e;
+    font-size: 9px;
+    font-weight: 750;
+    letter-spacing: 1.3px;
+}
+.landscape-project-field input {
+    min-width: 0;
+    width: 100%;
+    border: 1px solid #d4ded2;
+    border-radius: 6px;
+    padding: 9px 10px;
+    background: #fcfcf7;
+    color: #2d4936;
+    font-size: 12px;
+}
+.landscape-project-field input:focus {
+    border-color: #6d9d77;
+    outline: 2px solid rgba(91, 143, 101, 0.2);
+}
