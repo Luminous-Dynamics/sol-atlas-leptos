@@ -169,6 +169,14 @@
               "decision": {
                 "const": "approved_for_benchmark"
               },
+              "license_identifier": {
+                "type": "string",
+                "minLength": 1
+              },
+              "terms_uri": {
+                "type": "string",
+                "format": "uri"
+              },
               "reviewed_at": {
                 "type": "string",
                 "format": "date-time"
