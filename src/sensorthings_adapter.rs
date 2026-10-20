@@ -11,6 +11,7 @@
 //! closed. SensorThings Tasking and actuator APIs are out of scope.
 
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
 
 use crate::landscape_observation::{
     BATCH_SCHEMA, BATCH_SCHEMA_URI, validate_batch,
@@ -169,7 +170,8 @@ pub fn adapt_observation(
     let result_time_ms = result_time.expect("checked above");
     let value = numeric_result.expect("checked above");
     let unit = unit.expect("checked above");
-    let observation_uri = format!("{}({})", context.source_uri.trim_end_matches('/'), observation_id);
+    // Context source_uri is the exact URI for this observation resource.
+    let observation_uri = context.source_uri.clone();
     let native = json!({
         "schema": OBSERVATION_SCHEMA,
         "schema_uri": OBSERVATION_SCHEMA_URI,
@@ -247,6 +249,18 @@ pub fn adapt_observation(
         }]
     });
 
+    let mapped_payload_sha256 = sha256_json(&native).map_err(|error| {
+        vec![format!("mapped observation could not be serialized for its digest: {error}")]
+    })?;
+    native["transformations"] = json!([{
+        "activity_uri": PROFILE_ID,
+        "activity_version": "0",
+        "input_sha256": context.payload_sha256,
+        "output_sha256": mapped_payload_sha256,
+        "performed_at_unix_ms": result_time_ms,
+        "agent_ref_sha256": null
+    }]);
+
     let envelope = json!({
         "schema": BATCH_SCHEMA,
         "schema_uri": BATCH_SCHEMA_URI,
@@ -262,6 +276,15 @@ pub fn adapt_observation(
     })?;
 
     Ok(envelope["observations"][0].clone())
+}
+
+/// SHA-256 over serde_json's deterministic Value serialization in this
+/// pinned native contract. This is not RFC 8785/JCS; consumers must use this
+/// declared digest profile rather than assuming cross-language canonical JSON.
+fn sha256_json(value: &Value) -> Result<String, serde_json::Error> {
+    let bytes = serde_json::to_vec(value)?;
+    let digest = Sha256::digest(bytes);
+    Ok(format!("{digest:x}"))
 }
 
 fn validate_context(context: &SensorThingsAdapterContext, errors: &mut Vec<String>) {
