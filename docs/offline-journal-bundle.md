@@ -21,6 +21,8 @@ The digest is stable across insignificant JSON whitespace and object-key orderin
 
 Rust API: sol_atlas_core::offline_journal_bundle::{OfflineJournalBundleV1, OfflineJournalBundleRecordV1}.
 
+The codec also exposes `canonical_unsigned_manifest_utf8()`, which returns the exact canonical UTF-8 bytes covered by the integrity digest (excluding the integrity field itself). The frozen vector in `sol-atlas-core/fixtures/offline-journal-bundle-v1.json` locks those unsigned bytes, the expected SHA-256 and the final canonical wire bytes. The accompanying JSON Schema at `sol-atlas-core/schemas/offline-journal-bundle-v1.schema.json` describes the versioned wire shape and fails closed on unknown object fields. It explicitly documents semantic rules that JSON Schema cannot express (sorted/unique operation IDs, per-namespace scoped idempotency uniqueness, JCS payload canonicality, and authenticated owner matching); consumers must enforce both the schema and those protocol rules. The Rust test checks all three directly. Additional adversarial tests recompute the unkeyed outer digest after changing a snapshot or owner and verify inner validation/authenticated-scope checks still reject it; a property-order metamorphic test proves source ordering does not change canonical output. Independent implementations should consume this fixture rather than relying on a Rust-only round trip.
+
 The IndexedDB adapter exposes `export_bundle(owner_scope)`. It reads operation keys and values within one readonly transaction, validates every stored owner-bound record and its snapshot, filters to the requested owner, and delegates sorting/checksum creation to the core codec. This gives the export one consistent database read view rather than composing a bundle from many individually timed reads. It returns plaintext canonical JSON and does not change local data.
 
 - OfflineJournalBundleV1::create(owner_scope, records) validates, sorts and seals the bundle.
@@ -58,6 +60,7 @@ Owner scope prevents accidental cross-account restore but is not a credential. A
 | BND-02 | Whitespace or object-key reorder only | Validation succeeds; canonical output is identical |
 | BND-03 | Payload, attempt count, state, namespace or owner changed without digest update | Import validation fails |
 | BND-04 | Payload/state is invalid even when a bundle writer recomputes the outer digest | Inner snapshot validation still fails |
+| BND-17 | Attacker changes a snapshot/owner and recomputes the unkeyed outer digest | Invalid inner snapshot is rejected; a resealed owner change still fails authenticated-owner comparison |
 | BND-05 | Duplicate operation IDs or unsorted hand-authored records | Reject duplicate IDs; enforce normalized sorted order on the wire |
 | BND-06 | Unknown bundle/snapshot fields or future version | Fail closed with an explicit version/schema error |
 | BND-07 | Bundle owner differs from authenticated target | Reject before IndexedDB write; no records or indexes change |

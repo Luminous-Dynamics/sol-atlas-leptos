@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "description": "Frozen one-record RFC 8785/JCS offline-journal bundle vector; compares exact unsigned-manifest bytes, SHA-256 and final canonical bundle bytes.",
+  "algorithm": "integrity_sha256 = lowercase SHA-256 of RFC 8785 canonical UTF-8 bytes of the unsigned manifest (schema_version, owner_scope, records), excluding integrity_sha256.",
+  "unsigned_manifest_canonical_utf8": "{\"owner_scope\":\"tenant-001\",\"records\":[{\"operation_namespace\":\"work-order.apply\",\"snapshot\":{\"attempt_count\":0,\"canonical_payload_json\":\"{\\\"a\\\":1}\",\"envelope\":{\"aggregate_id\":\"job-001\",\"expected_revision\":0,\"idempotency_key\":\"idem-001\",\"operation_id\":\"op-001\",\"payload_digest_sha256\":\"015abd7f5cc57a2dd94b7590f04ad8084273905ee33ec5cebeae62276a97f862\",\"schema_version\":2,\"supersedes_operation_id\":null},\"schema_version\":1,\"state\":{\"state\":\"prepared\"}}}],\"schema_version\":1}",
+  "integrity_sha256": "5413519ea63e03096512374953792b98b9c7b5e9a91ca10ebade2c7d03f326ce",
+  "canonical_bundle_utf8": "{\"integrity_sha256\":\"5413519ea63e03096512374953792b98b9c7b5e9a91ca10ebade2c7d03f326ce\",\"owner_scope\":\"tenant-001\",\"records\":[{\"operation_namespace\":\"work-order.apply\",\"snapshot\":{\"attempt_count\":0,\"canonical_payload_json\":\"{\\\"a\\\":1}\",\"envelope\":{\"aggregate_id\":\"job-001\",\"expected_revision\":0,\"idempotency_key\":\"idem-001\",\"operation_id\":\"op-001\",\"payload_digest_sha256\":\"015abd7f5cc57a2dd94b7590f04ad8084273905ee33ec5cebeae62276a97f862\",\"schema_version\":2,\"supersedes_operation_id\":null},\"schema_version\":1,\"state\":{\"state\":\"prepared\"}}}],\"schema_version\":1}"
+}
