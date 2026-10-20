@@ -1,0 +1,235 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/ai-compute-energy-run-report-v1.schema.json",
+  "title": "AI compute-energy reference evaluator run report",
+  "description": "Versioned CLI output envelope. The receipt binds input bytes for reproducibility; it is not attestation that underlying claims are true.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "receipt",
+    "assessment"
+  ],
+  "properties": {
+    "receipt": {
+      "$ref": "#/$defs/receipt"
+    },
+    "assessment": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/policyAssessment"
+        },
+        {
+          "$ref": "#/$defs/frontierAssessment"
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "receipt_schema_version",
+        "evaluator_version",
+        "digest_algorithm",
+        "digest_scope",
+        "input_sha256",
+        "input_bytes",
+        "mode",
+        "scenario_schema_version",
+        "fixture_id",
+        "synthetic",
+        "claim_ceiling",
+        "verification_boundary"
+      ],
+      "properties": {
+        "receipt_schema_version": {
+          "const": "1"
+        },
+        "evaluator_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "digest_algorithm": {
+          "const": "SHA-256"
+        },
+        "digest_scope": {
+          "const": "exact_input_bytes_only"
+        },
+        "input_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "input_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mode": {
+          "enum": [
+            "earliest-ready",
+            "lowest-cost",
+            "lowest-carbon",
+            "pareto"
+          ]
+        },
+        "scenario_schema_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fixture_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "synthetic": {
+          "type": "boolean"
+        },
+        "claim_ceiling": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verification_boundary": {
+          "const": "digest binds input identity; it does not validate the truth of scenario claims"
+        }
+      }
+    },
+    "policyAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "policy",
+        "protected_floor_work_units_by_interval",
+        "deferrable_work_units_by_interval",
+        "scheduled_work_units",
+        "deferrable_it_energy_kwh",
+        "deferrable_facility_energy_kwh",
+        "modelled_electricity_cost_usd",
+        "modelled_grid_carbon_gco2",
+        "blockers"
+      ],
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/assessmentStatus"
+        },
+        "policy": {
+          "enum": [
+            "earliest-ready",
+            "lowest-cost",
+            "lowest-carbon"
+          ]
+        },
+        "protected_floor_work_units_by_interval": {
+          "$ref": "#/$defs/nullableUnsignedArray"
+        },
+        "deferrable_work_units_by_interval": {
+          "$ref": "#/$defs/nullableUnsignedArray"
+        },
+        "scheduled_work_units": {
+          "$ref": "#/$defs/nullableUnsignedInteger"
+        },
+        "deferrable_it_energy_kwh": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "deferrable_facility_energy_kwh": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "modelled_electricity_cost_usd": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "modelled_grid_carbon_gco2": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "blockers": {
+          "$ref": "#/$defs/stringArray"
+        }
+      }
+    },
+    "frontierAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "policy_assessments",
+        "non_dominated_policies",
+        "blockers"
+      ],
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/assessmentStatus"
+        },
+        "policy_assessments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/policyAssessment"
+          }
+        },
+        "non_dominated_policies": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "earliest-ready",
+              "lowest-cost",
+              "lowest-carbon"
+            ]
+          }
+        },
+        "blockers": {
+          "$ref": "#/$defs/stringArray"
+        }
+      }
+    },
+    "assessmentStatus": {
+      "enum": [
+        "feasible",
+        "capacity_limited",
+        "infeasible",
+        "indeterminate",
+        "unsupported",
+        "invalid"
+      ]
+    },
+    "unsignedInteger": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "nullableUnsignedInteger": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/unsignedInteger"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nullableNumber": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nullableUnsignedArray": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/unsignedInteger"
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "stringArray": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
