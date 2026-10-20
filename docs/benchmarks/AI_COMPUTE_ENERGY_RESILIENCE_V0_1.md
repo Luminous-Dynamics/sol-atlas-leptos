@@ -252,7 +252,31 @@ The 10%/15% thresholds are research hypotheses for selecting useful experiments,
 
 The campus-level design must follow Symthaea's [symbiotic infrastructure profile](https://github.com/Luminous-Dynamics/symthaea/issues/6146): useful thermal/resource coupling is optional and bounded; compute cooling and primary physical safety cannot depend on an unqualified heat customer or AI service. Symtropy's [energy-delivery issue](https://github.com/Luminous-Dynamics/symtropy/issues/2085) is a downstream system-model consumer, not a substitute for electrical-grid or nuclear licensing models.
 
-## 11. Reference sources
+## 11. External demand-response reference and metric bridge
+
+A useful comparison is not only a grid-aware scheduler objective: the output must be evaluated using a recognized demand-response tracking rule and reported workload-quality effects. The 2026 ACM E-Energy paper by Acun et al., [*Investigating Power Consumption Flexibility of AI Data Centers for Demand Response Participation*](https://doi.org/10.1145/3744255.3798112), reports 18%–55% flexibility relative to average power for its studied regulation-service-reserve (RSR) scenarios and up to 20% power reduction in its emergency-demand-response (EDR) scenarios. Those are study-specific results from its AI workload traces and power–performance profiles, **not** a transferable target or a result from Sol-Atlas.
+
+The authors' open-source [FlexDC-Sim](https://github.com/peaclab/flexdc-sim) reference repository is pinned for comparison at commit [`ea50bd582b5d1b55fcb09ea46899fa9d325cce3b`](https://github.com/peaclab/flexdc-sim/tree/ea50bd582b5d1b55fcb09ea46899fa9d325cce3b), BSD-3-Clause. Its experiment configuration specifies time step, duration, utilization, server count/idle power and the grid-provider signal; cluster/job profiles specify node idle power, job power–performance ranges and QoS. It exports a power trace including target, realized power and tracking error, and a job trace with arrivals/start/end and QoS-related fields. This is a more detailed node/job simulation than Sol-Atlas v0.1's aggregate per-interval work model. We therefore compare only an explicitly matched subdomain and do not treat either simulator's output as metered facility truth.
+
+The new dependency-free Rust module `sol-atlas-core/src/demand_response_metrics.rs` gives Sol-Atlas a first shared measurement layer:
+
+- **RSR tracking:** for each aligned sample, normalized absolute tracking error is `abs(measured_kW - target_kW) / reserve_kW`. The paper's policy requires the fraction of samples with error **greater than 0.3** to be strictly **less than 10%**. We report the linear-interpolated p90 error and the exceedance-rate condition separately. They are not interchangeable: exactly 1 violating sample among 10 fails the strict exceedance rule even when the interpolated p90 is below 0.3.
+- **EDR curtailment:** compare an aligned declared baseline against event power and report baseline/event kWh, net energy reduction, gross curtailment energy, rebound energy, count of rebound intervals, and peak event power above baseline. A negative net reduction remains visible when rebound exceeds gross curtailment.
+- **Evidence gates:** missing samples, mismatched vector lengths, non-finite values, negative power, zero/invalid reserve and derived-value overflow are rejected. The module computes accounting metrics only; it cannot prove that an input baseline is a valid causal counterfactual, and no live trace has been run yet.
+
+One denominator difference must be reconciled before bit-for-bit FlexDC-Sim parity: its runtime policy adds `0.0001` to reserve in a denominator, while this helper uses the declared positive reserve exactly and rejects zero. The helper intentionally does not use epsilon to turn an invalid reserve into a valid experiment.
+
+### Cross-validation gates
+
+1. Pin the FlexDC-Sim commit, full input/config digests, dependencies and random seeds; keep their software external and preserve license/citation attribution.
+2. Use one explicitly aligned signal, time grid, power unit, server/job profile and workload seed in both systems. Map only inputs whose semantics are verified.
+3. Compare the realized power trace and job/QoS trace against Sol-Atlas metrics, with the exact-oracle scheduler retained for small aggregate cases. A mismatch may reflect model boundaries (node-level power capping vs aggregate interruptible work) rather than an optimizer defect.
+4. Report tracking-error p90, strict exceedance fraction, response delay, peak target deviation, QoS/deadline loss, event energy, net reduction, rebound and run-to-run variation.
+5. Do not generalize FlexDC-Sim's RSR/EDR ranges to different workloads, sites, control intervals, hardware, carbon factors, water limits or interconnection conditions without matched evidence.
+
+The active work item is [AI-COMP-ENERGY-003 / issue #256](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/256). No FlexDC-Sim code or runtime dependency has been added to production Rust.
+
+## 12. Reference sources
 
 - [IEA — Key Questions on Energy and AI](https://www.iea.org/reports/key-questions-on-energy-and-ai/executive-summary).
 - [DOE/LBNL — 2024 United States Data Center Energy Usage Report](https://bies.lbl.gov/publications/2024-lbnl-data-center-energy-usage-report).
@@ -264,5 +288,7 @@ The campus-level design must follow Symthaea's [symbiotic infrastructure profile
 - [Open Compute Project — Rack & Power](https://www.opencompute.org/projects/rack-and-power/).
 - [The Green Grid — PUE](https://www.thegreengrid.org/node/372).
 - [The Green Grid — Data Center Resource Effectiveness v1](https://www.thegreengrid.org/resources/library-and-tools/wp93-data-center-resource-effectiveness-dcre-metric).
+- [FlexDC-Sim — PEACLab demand-response simulator, pinned source revision](https://github.com/peaclab/flexdc-sim/tree/ea50bd582b5d1b55fcb09ea46899fa9d325cce3b) (BSD-3-Clause).
+- [Acun et al. (2026), *Investigating Power Consumption Flexibility of AI Data Centers for Demand Response Participation*, ACM E-Energy](https://doi.org/10.1145/3744255.3798112): RSR tracking formula and studied RSR/EDR flexibility outcomes.
 
-**Current result:** a bounded capacity evaluator, greedy reference scheduler, cost/carbon Pareto comparison, exact-input SHA-256 run receipt, exhaustive small-instance test oracle, and independently calculable synthetic fixture. There is still no production joint optimizer, matched-trace result, hardware experiment, or evidence that this implementation is state of the art.
+**Current result:** a bounded capacity evaluator, greedy reference scheduler, cost/carbon Pareto comparison, exact-input SHA-256 run receipt, exhaustive small-instance test oracle, synthetic fixture, and dependency-free RSR/EDR metric helpers with fail-closed input and overflow checks. No FlexDC-Sim run, matched trace, hardware experiment, measured facility improvement, production joint optimizer, or SOTA result is claimed.
