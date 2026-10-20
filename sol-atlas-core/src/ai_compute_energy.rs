@@ -174,7 +174,7 @@ pub fn verify_scenario_receipt(
 ) -> Result<bool, serde_json::Error> {
     let request: Request = serde_json::from_slice(raw_input)?;
     let expected = scenario_receipt(raw_input, &request, mode, assessment)?;
-    Ok(expected == *supplied)
+    Ok(&expected == supplied)
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize)]
