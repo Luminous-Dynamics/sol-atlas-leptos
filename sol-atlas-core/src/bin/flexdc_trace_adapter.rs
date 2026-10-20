@@ -167,9 +167,7 @@ fn validate_manifest(manifest: &RunManifest) -> Result<(), String> {
             "manifest.qos_percentile must match the pinned simulator default {PINNED_QOS_PERCENTILE}"
         ));
     }
-    if !manifest.power_cap_w.is_finite()
-        || manifest.power_cap_w != PINNED_POWER_CAP_W
-    {
+    if !manifest.power_cap_w.is_finite() || manifest.power_cap_w != PINNED_POWER_CAP_W {
         return Err(format!(
             "manifest.power_cap_w must match the pinned AQA policy value {PINNED_POWER_CAP_W}"
         ));
@@ -272,9 +270,9 @@ fn parse_nonnegative_power_w(raw: &str, row_number: usize, field: &str) -> Resul
     if raw.trim().is_empty() {
         return Err(format!("power trace row {row_number}: {field} is missing"));
     }
-    let watts = raw.parse::<f64>().map_err(|_| {
-        format!("power trace row {row_number}: {field} must be numeric watts")
-    })?;
+    let watts = raw
+        .parse::<f64>()
+        .map_err(|_| format!("power trace row {row_number}: {field} must be numeric watts"))?;
     if !watts.is_finite() || watts < 0.0 {
         return Err(format!(
             "power trace row {row_number}: {field} must be finite non-negative watts"
@@ -527,12 +525,12 @@ mod tests {
             .expect("known-answer FlexDC-Sim trace should adapt");
         assert_eq!(output["synthetic"], true);
         assert_eq!(output["claim_ceiling"], "metric_accounting_only");
+        assert_eq!(output["rsr"]["interval_ids"].as_array().unwrap().len(), 10);
         assert_eq!(
-            output["rsr"]["interval_ids"].as_array().unwrap().len(),
-            10
-        );
-        assert_eq!(
-            output["rsr_reference"]["interval_ids"].as_array().unwrap().len(),
+            output["rsr_reference"]["interval_ids"]
+                .as_array()
+                .unwrap()
+                .len(),
             10
         );
         assert_eq!(output["rsr"]["interval_ids"][0], "0");
@@ -574,10 +572,7 @@ mod tests {
             .expect("synthetic fixture should adapt");
         assert_eq!(output["synthetic"], true);
 
-        let real_run_manifest = MANIFEST.replace(
-            "\"synthetic\": true",
-            "\"synthetic\": false",
-        );
+        let real_run_manifest = MANIFEST.replace("\"synthetic\": true", "\"synthetic\": false");
         let output = build_trace_input(TRACE.as_bytes(), real_run_manifest.as_bytes())
             .expect("manifest with a non-synthetic run flag should adapt");
         assert_eq!(output["synthetic"], false);
@@ -707,30 +702,21 @@ mod tests {
     fn same_row_power_values_reject_missing_negative_and_non_finite_values() {
         let manifest = parsed_manifest();
 
-        let missing_target = TRACE.replace(
-            "8,10000.0,13850.4,0.0",
-            "8,,13850.4,0.0",
-        );
+        let missing_target = TRACE.replace("8,10000.0,13850.4,0.0", "8,,13850.4,0.0");
         assert!(
             parse_power_trace(&missing_target, &manifest)
                 .expect_err("missing target watts must reject")
                 .contains("target is missing")
         );
 
-        let negative_power = TRACE.replace(
-            "8,10000.0,13850.4,0.0",
-            "8,-1.0,13850.4,0.0",
-        );
+        let negative_power = TRACE.replace("8,10000.0,13850.4,0.0", "8,-1.0,13850.4,0.0");
         assert!(
             parse_power_trace(&negative_power, &manifest)
                 .expect_err("negative target watts must reject")
                 .contains("finite non-negative watts")
         );
 
-        let non_finite_power = TRACE.replace(
-            "8,10000.0,13850.4,0.0",
-            "8,NaN,13850.4,0.0",
-        );
+        let non_finite_power = TRACE.replace("8,10000.0,13850.4,0.0", "8,NaN,13850.4,0.0");
         assert!(
             parse_power_trace(&non_finite_power, &manifest)
                 .expect_err("non-finite target watts must reject")
