@@ -50,12 +50,22 @@
     {
       "required": [
         "rsr"
-      ]
+      ],
+      "properties": {
+        "rsr": {
+          "$ref": "#/$defs/rsr"
+        }
+      }
     },
     {
       "required": [
         "edr"
-      ]
+      ],
+      "properties": {
+        "edr": {
+          "$ref": "#/$defs/edr"
+        }
+      }
     }
   ],
   "$defs": {
