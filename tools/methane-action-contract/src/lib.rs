@@ -658,6 +658,16 @@ pub fn sha256_hex(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
 
+/// SHA-256 of the exact executable image running this process.
+///
+/// This binds a benchmark receipt to a concrete evaluator binary. It does not
+/// establish who built the binary or make an untrusted binary trustworthy.
+pub fn executable_sha256() -> std::io::Result<String> {
+    let executable_path = std::env::current_exe()?;
+    let executable_bytes = std::fs::read(executable_path)?;
+    Ok(sha256_hex(&executable_bytes))
+}
+
 fn validate_snapshot_digest(
     report: &mut ValidationReport,
     record_id: &str,
@@ -1474,6 +1484,12 @@ mod tests {
     fn rejects_noncanonical_uppercase_sha256_strings() {
         assert!(!is_sha256_hex(&"A".repeat(64)));
         assert!(is_sha256_hex(&"a".repeat(64)));
+    }
+
+    #[test]
+    fn executable_digest_is_canonical_sha256() {
+        let digest = executable_sha256().expect("test executable should be readable");
+        assert!(is_sha256_hex(&digest));
     }
 
     #[test]
