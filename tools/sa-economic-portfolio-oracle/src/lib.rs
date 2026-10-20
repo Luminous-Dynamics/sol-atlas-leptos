@@ -2183,15 +2183,18 @@ mod tests {
         let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture parses");
         let mut patch: ScenarioPatch =
             serde_json::from_str(WITHHELD_SCENARIO).expect("withheld scenario patch parses");
-        let original = input.clone();
+        let original = serde_json::to_string(&input).expect("input should serialize");
         let augmented = add_scenario(&input, &patch).expect("valid scenario is addable");
-        assert_eq!(input, original);
+        assert_eq!(
+            serde_json::to_string(&input).expect("input should still serialize"),
+            original
+        );
         assert_eq!(augmented.scenarios.len(), input.scenarios.len() + 1);
         assert_eq!(augmented.scenarios.last().unwrap().id, patch.scenario.id);
 
         patch.scenario.id = "normal_reference".to_owned();
         assert!(add_scenario(&input, &patch).is_err());
-        patch.scenario.id = "compound_heat_drought_grid_crew".to_owned();
+        patch.scenario.id = "compound_heat_drought_grid_service_stress".to_owned();
         patch.project_outcomes_by_id.remove("P00");
         assert!(add_scenario(&input, &patch).is_err());
     }
