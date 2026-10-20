@@ -76,6 +76,10 @@ struct RsrReferenceMetadata {
     source_field: String,
     sample_time_semantics: ErrorSeriesTimeSemantics,
     denominator_convention: ErrorDenominatorConvention,
+    /// SHA-256 of the raw source artifact from which this normalized series came.
+    source_artifact_sha256: Option<String>,
+    /// SHA-256 of the exact run/config manifest used to generate the artifact.
+    source_config_manifest_sha256: Option<String>,
     normalization_note: String,
 }
 
@@ -178,6 +182,50 @@ fn validate_reference_metadata(metadata: &RsrReferenceMetadata) -> Result<(), St
     ] {
         if value.trim().is_empty() {
             return Err(format!("rsr_reference.metadata.{field} must not be blank"));
+        }
+    }
+    for (field, digest) in [
+        ("source_artifact_sha256", metadata.source_artifact_sha256.as_deref()),
+        (
+            "source_config_manifest_sha256",
+            metadata.source_config_manifest_sha256.as_deref(),
+        ),
+    ] {
+        if let Some(digest) = digest {
+            if digest.len() != 64 || !digest.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+                return Err(format!(
+                    "rsr_reference.metadata.{field} must be a 64-character SHA-256 hex digest"
+                ));
+            }
+        }
+    }
+    if metadata.source_name == "FlexDC-Sim" {
+        if metadata.source_revision.len() != 40
+            || !metadata
+                .source_revision
+                .bytes()
+                .all(|byte| byte.is_ascii_hexdigit())
+        {
+            return Err(
+                "FlexDC-Sim source_revision must be a 40-character Git commit SHA".to_owned(),
+            );
+        }
+        if metadata.source_field != "trackingError"
+            || !matches!(
+                metadata.sample_time_semantics,
+                ErrorSeriesTimeSemantics::PriorCycleState
+            )
+            || !matches!(
+                metadata.denominator_convention,
+                ErrorDenominatorConvention::ReservePlusEpsilon
+            )
+            || metadata.source_artifact_sha256.is_none()
+            || metadata.source_config_manifest_sha256.is_none()
+        {
+            return Err(
+                "FlexDC-Sim trackingError metadata must pin raw artifact/config SHA-256, prior-cycle semantics, and R + epsilon denominator"
+                    .to_owned(),
+            );
         }
     }
     Ok(())
