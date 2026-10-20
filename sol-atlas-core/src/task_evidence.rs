@@ -268,10 +268,8 @@ pub fn evaluate_evidence_packet(
 
     // A packet can carry a copy for display/transport, but it cannot edit the
     // requirement set and then claim completeness against its own modified copy.
-    let mut packet_requirements_by_id: std::collections::BTreeMap<
-        String,
-        EvidenceRequirementV1,
-    > = std::collections::BTreeMap::new();
+    let mut packet_requirements_by_id: std::collections::BTreeMap<String, EvidenceRequirementV1> =
+        std::collections::BTreeMap::new();
     let mut packet_requirements_unique = true;
     for requirement in &packet.requirements {
         if requirement.requirement_id.trim().is_empty()
@@ -301,10 +299,8 @@ pub fn evaluate_evidence_packet(
     }
 
     let mut evidence_ids = BTreeSet::new();
-    let mut artifacts_by_requirement: std::collections::BTreeMap<
-        String,
-        Vec<&EvidenceArtifactV1>,
-    > = std::collections::BTreeMap::new();
+    let mut artifacts_by_requirement: std::collections::BTreeMap<String, Vec<&EvidenceArtifactV1>> =
+        std::collections::BTreeMap::new();
 
     for artifact in &packet.evidence {
         let mut artifact_valid = true;
@@ -736,7 +732,9 @@ mod tests {
         let mut omitted = packet();
         let missing_id = omitted.requirements[1].requirement_id.clone();
         omitted.requirements.pop();
-        omitted.evidence.retain(|artifact| artifact.requirement_id != missing_id);
+        omitted
+            .evidence
+            .retain(|artifact| artifact.requirement_id != missing_id);
         let result = evaluate_evidence_packet(&omitted, &context(Some("reviewer-02")));
         assert!(has_issue(
             &result,
