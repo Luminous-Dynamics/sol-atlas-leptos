@@ -100,7 +100,9 @@ impl CanonicalPayload {
 
 /// Computes lowercase hexadecimal SHA-256 over canonical RFC 8785 UTF-8 bytes.
 pub fn canonical_payload_digest_sha256(payload_json: &str) -> Result<String, PayloadDigestError> {
-    Ok(CanonicalPayload::from_json(payload_json)?.sha256_hex().to_owned())
+    Ok(CanonicalPayload::from_json(payload_json)?
+        .sha256_hex()
+        .to_owned())
 }
 
 /// Verifies the immutable envelope digest against the original raw JSON payload.
