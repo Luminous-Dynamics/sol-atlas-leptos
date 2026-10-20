@@ -1,0 +1,33 @@
+name: Trace intake schema
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "schemas/ai-compute-energy-trace-intake-v1.schema.json"
+      - "schemas/examples/ai-compute-energy-trace-intake-v1.planned.json"
+      - "tools/validate_ai_compute_trace_intake.py"
+      - ".github/workflows/trace-intake-schema.yml"
+  pull_request:
+    paths:
+      - "schemas/ai-compute-energy-trace-intake-v1.schema.json"
+      - "schemas/examples/ai-compute-energy-trace-intake-v1.planned.json"
+      - "tools/validate_ai_compute_trace_intake.py"
+      - ".github/workflows/trace-intake-schema.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  schema-conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install pinned JSON Schema validator (CI tooling only)
+        run: python -m pip install --disable-pip-version-check "jsonschema[format]==4.26.0"
+      - name: Validate Draft 2020-12 schema and fail-closed mutations
+        run: python tools/validate_ai_compute_trace_intake.py
