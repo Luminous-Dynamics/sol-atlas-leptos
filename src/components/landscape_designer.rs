@@ -158,7 +158,8 @@ fn snapshot_json(project_name: &str, scale: LandscapeScale, features: &[DesignFe
             "x_du": feature.x_du,
             "y_du": feature.y_du,
             "status": "design-intent",
-            "source": "user-authored-schematic"
+            "source": "user-authored-schematic",
+            "geometry_representation": "schematic-symbol-anchor-v0"
         })).collect::<Vec<_>>()
     })
 }
@@ -488,6 +489,10 @@ mod tests {
         let parsed: Value = serde_json::from_str(&serialized).unwrap();
         assert_eq!(parsed, value);
         assert_eq!(parsed["features"][0]["id"], "feature-0001");
+        assert_eq!(
+            parsed["features"][0]["geometry_representation"],
+            "schematic-symbol-anchor-v0"
+        );
     }
 
     #[test]
