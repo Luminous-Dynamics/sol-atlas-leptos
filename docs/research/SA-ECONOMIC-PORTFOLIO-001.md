@@ -108,8 +108,14 @@ The initial reference implementation is now authored in `tools/sa-economic-portf
 - enumerates every subset and applies evidence, dependency/stage, period-budget, crew-cap and every-scenario service-floor constraints;
 - applies only the versioned T+W complement and A+F overlap adjustment;
 - returns all feasible portfolios and the complete scenario-wise frontier in canonical order;
-- emits a deterministic JSON receipt that includes the exact input-byte SHA-256; and
-- has unit tests for the 22-feasible/four-frontier known answer, row-order invariance, UNKNOWN-gate exclusion, unknown prerequisites, over-cap rejection, and interaction accounting.
+- emits a deterministic JSON receipt that includes the exact input-byte SHA-256 and a primary rejection reason for every infeasible subset; and
+- has unit tests for the 22-feasible/four-frontier known answer, row-order invariance, UNKNOWN-gate exclusion, unknown prerequisites, over-cap rejection, interaction accounting, budget and crew mutations, strict service-floor rejection, and corrupted known-answer manifests.
+
+### Auditability increment
+
+The receipt now partitions every rejected subset into exactly one **primary** reason using a frozen precedence: non-PASS gate → missing prerequisite → period budget exceeded → crew-capacity exceeded → protected service-floor violation. For the pinned corpus, 128 / 48 / 40 / 0 / 18 subsets fall into those categories, totaling all 234 rejected subsets; 22 are feasible. The reason totals reconcile to all 256 candidate subsets. These are mutually exclusive primary reasons, not counts of every constraint violation a subset might have.
+
+Mutation tests also create a crew-limited case with non-binding cost budgets, a tightened P1 budget, and a floor above all candidate outcomes. They assert the appropriate rejection accounting and verify that returned portfolios remain within the changed constraints. A corrupted known-answer manifest must be rejected.
 
 The authored Rust tests have **not** been represented as passing until the dedicated exact-head workflow completes. A separate evaluator used during fixture preparation parsed the committed JSON, checked the input against its schema, exhaustively enumerated all 256 subsets, and matched the frozen 22-portfolios / four-frontier manifest. This independent fixture check does not compile or execute the Rust crate.
 
