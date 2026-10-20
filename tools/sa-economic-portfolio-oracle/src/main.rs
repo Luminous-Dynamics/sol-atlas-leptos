@@ -227,18 +227,16 @@ fn host_metadata() -> HostMetadata {
         ),
         runner_name: std::env::var("RUNNER_NAME").ok(),
         cpu_model: first_matching_proc_line("/proc/cpuinfo", &["model name", "Hardware"]),
-        logical_cpu_count: std::thread::available_parallelism().ok().map(|count| count.get()),
+        logical_cpu_count: std::thread::available_parallelism()
+            .ok()
+            .map(|count| count.get()),
         total_memory_bytes: proc_memory_bytes("/proc/meminfo", "MemTotal"),
         process_peak_rss_bytes: proc_memory_bytes("/proc/self/status", "VmHWM"),
         release_build: !cfg!(debug_assertions),
     }
 }
 
-fn percentiles(
-    samples: &[u128],
-    repetitions: usize,
-    warmup_runs: usize,
-) -> TimingSummary {
+fn percentiles(samples: &[u128], repetitions: usize, warmup_runs: usize) -> TimingSummary {
     let mut sorted = samples.to_vec();
     sorted.sort_unstable();
     let nearest_rank = |percentile: usize| {
@@ -283,7 +281,10 @@ fn run_search_benchmark(args: &[String]) -> Result<(), String> {
     for _ in 0..WARMUP_RUNS {
         let evaluation = evaluate_frontier_search(&input)?;
         if evaluation.pareto_frontier != expected_frontier {
-            return Err("frontier-search result does not match reference manifest during warm-up".to_owned());
+            return Err(
+                "frontier-search result does not match reference manifest during warm-up"
+                    .to_owned(),
+            );
         }
         if let Some(previous) = &warmup_baseline {
             if previous != &evaluation {
