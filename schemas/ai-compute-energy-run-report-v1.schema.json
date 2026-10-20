@@ -73,19 +73,16 @@
           ]
         },
         "scenario_schema_version": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         },
         "fixture_id": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         },
         "synthetic": {
           "type": "boolean"
         },
         "claim_ceiling": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         },
         "verification_boundary": {
           "const": "digest binds input identity; it does not validate the truth of scenario claims"
