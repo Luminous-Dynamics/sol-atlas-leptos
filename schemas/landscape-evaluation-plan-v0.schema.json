@@ -241,7 +241,57 @@
               }
             ]
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "desired_direction": {
+                  "const": "target-band"
+                }
+              },
+              "required": [
+                "desired_direction"
+              ]
+            },
+            "then": {
+              "properties": {
+                "target_band": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "desired_direction": {
+                  "enum": [
+                    "increase",
+                    "decrease",
+                    "maintain",
+                    "non-directional"
+                  ]
+                }
+              },
+              "required": [
+                "desired_direction"
+              ]
+            },
+            "then": {
+              "properties": {
+                "target_band": {
+                  "type": "null"
+                }
+              }
+            }
+          }
+        ]
       }
     },
     "causal_analysis_plan": {
