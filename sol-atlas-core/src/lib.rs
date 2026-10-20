@@ -19,6 +19,7 @@ pub mod geo;
 pub mod lod;
 pub mod mycelix_flows;
 pub mod offline_journal;
+pub mod offline_payload_digest;
 // pub mod relativity_viz;
 pub mod geometry;
 pub mod math;
