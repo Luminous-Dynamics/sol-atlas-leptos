@@ -475,7 +475,47 @@ mod tests {
     }
 
     #[test]
-    fn sha256_known_answer_is_correct() {
+    fn pinned_source_rejects_a_substituted_config_blob() {
+        let mut manifest = parsed_manifest();
+        manifest.config_artifacts[0].git_blob_sha1 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned();
+        assert!(
+            validate_manifest(&manifest)
+                .expect_err("config identity substitution must be rejected")
+                .contains("pinned path/blob identity")
+        );
+    }
+
+    #[test]
+    fn quoted_rows_and_non_finite_errors_fail_closed() {
+        let manifest = parsed_manifest();
+        let quoted = TRACE.replace("time,trackingError", "time,\"trackingError\"");
+        assert!(
+            parse_power_trace(&quoted, &manifest)
+                .expect_err("quoted CSV rows are unsupported by this narrow adapter")
+                .contains("quoted fields")
+        );
+
+        let non_finite = TRACE.replace("9,0.8", "9,NaN");
+        assert!(
+            parse_power_trace(&non_finite, &manifest)
+                .expect_err("non-finite source error must reject")
+                .contains("must be finite")
+        );
+    }
+
+    #[test]
+    fn startup_errors_must_match_the_pinned_source_branch() {
+        let manifest = parsed_manifest();
+        let invalid_startup = TRACE.replace("0,0.0", "0,0.1");
+        assert!(
+            parse_power_trace(&invalid_startup, &manifest)
+                .expect_err("nonzero source error before signal step must reject")
+                .contains("startup trackingError")
+        );
+    }
+
+    #[test]
+    fn source_revision_must_be_canonical_lowercase_commit_sha() {
         assert_eq!(
             sha256_hex(b"abc"),
             "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
