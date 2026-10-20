@@ -32,7 +32,7 @@ use wasm_bindgen_futures::JsFuture;
 /// Object-store names are part of database schema v1. This adapter uses
 /// out-of-line keys so the ID is independently checked during recovery.
 const DATABASE_NAME: &str = "sol-atlas-offline-journal";
-const DATABASE_VERSION: u32 = 2;
+const DATABASE_VERSION: u32 = 3;
 const OPERATIONS: &str = "operations";
 const IDEMPOTENCY_KEYS: &str = "idempotency_keys";
 const PENDING_OPERATIONS: &str = "pending_operations";
@@ -45,6 +45,7 @@ const UPGRADE_STORE_NAMES: [&str; 4] = [
     DISPATCH_LEASES,
 ];
 const DISPATCH_LEASE_SCHEMA_VERSION: u16 = 1;
+const STORED_OPERATION_SCHEMA_VERSION: u16 = 1;
 const DISPATCH_LEASE_DURATION_MS: u64 = 30_000;
 
 /// Whether a browser accepted strict transaction durability options.
@@ -81,6 +82,9 @@ pub struct DispatchPermit {
     payload_digest_sha256: String,
     canonical_payload_utf8: Vec<u8>,
     attempt_count: u32,
+    owner_scope: String,
+    operation_namespace: String,
+    request_fingerprint_sha256: String,
     lease_token: String,
     lease_expires_at_ms: u64,
     durability_policy: DurabilityPolicy,
@@ -107,6 +111,21 @@ impl DispatchPermit {
         self.attempt_count
     }
 
+    /// Immutable account/tenant scope the operation was created under.
+    pub fn owner_scope(&self) -> &str {
+        &self.owner_scope
+    }
+
+    /// Immutable operation namespace used for dispatch and fingerprinting.
+    pub fn operation_namespace(&self) -> &str {
+        &self.operation_namespace
+    }
+
+    /// Canonical fingerprint over scope, namespace and immutable envelope bindings.
+    pub fn request_fingerprint_sha256(&self) -> &str {
+        &self.request_fingerprint_sha256
+    }
+
     /// Opaque fencing token for this browser-local dispatch lease.
     pub fn lease_token(&self) -> &str {
         &self.lease_token
@@ -129,6 +148,45 @@ impl DispatchPermit {
 pub struct IndexedDbJournalPage {
     pub entries: Vec<JournalEntry>,
     pub next_after_operation_id: Option<String>,
+}
+
+/// Immutable owner/namespace binding around the journal snapshot.
+///
+/// This record is stored under the operation ID and is revalidated before
+/// every read used for dispatch. Legacy snapshot-only rows have no trustworthy
+/// owner scope and are intentionally not eligible for automatic dispatch.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct StoredOperationV1 {
+    schema_version: u16,
+    owner_scope: String,
+    operation_namespace: String,
+    snapshot: JournalEntrySnapshotV1,
+}
+
+impl StoredOperationV1 {
+    fn validate(&self) -> Result<(), IndexedDbJournalError> {
+        if self.schema_version != STORED_OPERATION_SCHEMA_VERSION {
+            return Err(IndexedDbJournalError(
+                "unsupported stored operation record schema".into(),
+            ));
+        }
+        if self.owner_scope.trim().is_empty() {
+            return Err(IndexedDbJournalError(
+                "stored operation has an empty owner scope".into(),
+            ));
+        }
+        if self.operation_namespace.trim().is_empty() {
+            return Err(IndexedDbJournalError(
+                "stored operation has an empty namespace".into(),
+            ));
+        }
+        Ok(())
+    }
+
+    fn matches_scope(&self, owner_scope: &str, operation_namespace: &str) -> bool {
+        self.owner_scope == owner_scope && self.operation_namespace == operation_namespace
+    }
 }
 
 /// Versioned, browser-local dispatch lease. The operation store and this
