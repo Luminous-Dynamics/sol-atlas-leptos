@@ -190,6 +190,31 @@ def main() -> int:
         manifest_mutation,
     )
 
+    manifest_mutation = copy.deepcopy(flexdc_manifest)
+    manifest_mutation["synthetic"] = False
+    manifest_mutation["runtime_environment_sha256"] = None
+    expect_invalid(
+        "non-synthetic FlexDC runs require a runtime environment digest",
+        flexdc_manifest_validator,
+        manifest_mutation,
+    )
+
+    manifest_mutation = copy.deepcopy(flexdc_manifest)
+    manifest_mutation["python_version"] = "3.10"
+    expect_invalid(
+        "FlexDC run manifest requires an exact Python major.minor.patch version",
+        flexdc_manifest_validator,
+        manifest_mutation,
+    )
+
+    manifest_mutation = copy.deepcopy(flexdc_manifest)
+    manifest_mutation["qos_percentile"] = 0.95
+    expect_invalid(
+        "FlexDC run manifest pins the QoS percentile",
+        flexdc_manifest_validator,
+        manifest_mutation,
+    )
+
     # Shape-only metadata control. SHA-256 values below are explicitly fake;
     # this object does not attest that any FlexDC-Sim run or artifact exists.
     flexdc_control = copy.deepcopy(fixture)
