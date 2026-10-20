@@ -1,0 +1,199 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/flexdc-sim-run-manifest-v1.schema.json",
+  "title": "FlexDC-Sim Reproducible Run Manifest v1",
+  "description": "Metadata needed to replay and interpret a source simulator trace. Config Git blob SHA-1s identify source objects but do not authenticate a run or establish physical measurement.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "source_revision",
+    "simulator_command",
+    "random_seed",
+    "simulation_duration_seconds",
+    "simulation_step_seconds",
+    "signal_step_seconds",
+    "config_artifacts",
+    "notes"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "source_revision": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "simulator_command": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "random_seed": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "simulation_duration_seconds": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "simulation_step_seconds": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "signal_step_seconds": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "config_artifacts": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "role",
+          "path",
+          "git_blob_sha1"
+        ],
+        "properties": {
+          "role": {
+            "enum": [
+              "experiment_config",
+              "cluster_config",
+              "workload_config",
+              "runtime_policy_config",
+              "power_signal",
+              "optimization_weights"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          },
+          "git_blob_sha1": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{40}$"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "contains": {
+            "properties": {
+              "role": {
+                "const": "experiment_config"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "role": {
+                "const": "cluster_config"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "role": {
+                "const": "workload_config"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "role": {
+                "const": "runtime_policy_config"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "role": {
+                "const": "power_signal"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "role": {
+                "const": "optimization_weights"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        }
+      ]
+    },
+    "notes": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    }
+  },
+  "allOf": [
+    {
+      "properties": {
+        "simulation_step_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "signal_step_seconds": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    {
+      "description": "The adapter additionally checks divisibility of the time grid and consistency of CSV row count."
+    }
+  ]
+}
