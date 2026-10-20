@@ -13,7 +13,7 @@
 
 use serde::{Deserialize, Serialize};
 use std::cmp::Reverse;
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::fmt;
 
 pub const TASK_GRAPH_SCHEMA_VERSION: u16 = 1;
@@ -56,6 +56,53 @@ pub enum TaskAction {
     ReportCompletion,
     RecordVerification,
     Cancel,
+}
+
+pub const TASK_REVALIDATION_PLAN_SCHEMA_VERSION: u16 = 2;
+
+/// Preview of the downstream consequences of challenging a verified task.
+///
+/// This is an immutable analysis result, not an invalidation command. Applying
+/// it requires an authoritative service to re-check the graph revision,
+/// corrected evidence, identity, permission and domain-specific rules.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TaskRevalidationPlanV2 {
+    pub schema_version: u16,
+    pub graph_id: String,
+    pub expected_graph_revision: u64,
+    pub source_task_id: String,
+    pub source_status: TaskStatus,
+    pub reason_code: String,
+    pub correction_evidence_ref: String,
+    pub impacts: Vec<TaskRevalidationImpactV2>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TaskRevalidationImpactV2 {
+    pub task_id: String,
+    pub prior_status: TaskStatus,
+    pub kind: RevalidationImpactKind,
+    /// Previous node on a deterministic shortest-path witness from the source.
+    /// Walking these parent pointers reconstructs the path without copying every
+    /// full path into every impact entry (which would be quadratic on a chain).
+    pub predecessor_task_id: String,
+    /// Number of dependency edges from the challenged source to this task.
+    pub path_depth: usize,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RevalidationImpactKind {
+    /// The task is active, completion-reported, or previously verified.
+    /// An authorized workflow must decide how to revalidate it.
+    RequiresRevalidation,
+    /// The task has not started and must remain unavailable until prerequisites
+    /// are verified again.
+    RemainsBlocked,
+    /// The task was cancelled; this plan does not reopen it.
+    CancelledNoAction,
 }
 
 impl TaskGraphV1 {
@@ -171,6 +218,55 @@ impl TaskGraphV1 {
                 .then_with(|| left.task_id.cmp(&right.task_id))
         });
         Ok(ready)
+    }
+
+    /// Explain the downstream impact of challenging a previously verified task.
+    ///
+    /// The method does not mutate task status or graph revision. The returned
+    /// plan is bound to the observed revision and must not be applied if the
+    /// canonical graph has changed.
+    pub fn plan_verification_invalidation(
+        &self,
+        source_task_id: &str,
+        reason_code: &str,
+        correction_evidence_ref: &str,
+    ) -> Result<TaskRevalidationPlanV2, TaskGraphError> {
+        self.validate()?;
+        validate_revalidation_inputs(source_task_id, reason_code, correction_evidence_ref)?;
+
+        let source_index = self
+            .tasks
+            .iter()
+            .position(|task| task.task_id == source_task_id)
+            .ok_or_else(|| TaskGraphError::TaskNotFound(source_task_id.to_owned()))?;
+        if self.tasks[source_index].status != TaskStatus::VerificationRecorded {
+            return Err(TaskGraphError::TaskNotVerified(source_task_id.to_owned()));
+        }
+
+        let id_to_index: BTreeMap<&str, usize> = self
+            .tasks
+            .iter()
+            .enumerate()
+            .map(|(index, task)| (task.task_id.as_str(), index))
+            .collect();
+        let mut dependents = vec![Vec::new(); self.tasks.len()];
+        for (task_index, task) in self.tasks.iter().enumerate() {
+            for dependency_id in &task.depends_on {
+                let dependency_index = *id_to_index
+                    .get(dependency_id.as_str())
+                    .expect("validated dependency has an index");
+                dependents[dependency_index].push(task_index);
+            }
+        }
+        sort_dependents(&mut dependents, &self.tasks);
+        let paths = collect_dependent_predecessors(source_index, &dependents);
+        Ok(build_revalidation_plan(
+            self,
+            source_index,
+            reason_code,
+            correction_evidence_ref,
+            paths,
+        ))
     }
 
     /// Explain why a task is not dependency-ready, including cancelled or
@@ -360,6 +456,8 @@ impl CompiledTaskGraph {
             }
         }
 
+        sort_dependents(&mut dependents, &graph.tasks);
+
         let mut ready = BTreeSet::new();
         for (index, task) in graph.tasks.iter().enumerate() {
             if task.status == TaskStatus::Pending && unresolved_prerequisites[index] == 0 {
@@ -383,6 +481,33 @@ impl CompiledTaskGraph {
 
     pub fn revision(&self) -> u64 {
         self.graph.revision
+    }
+
+    /// Compute the same revalidation impact plan using the compiled dependency index.
+    /// This only previews consequences; it does not mutate graph state or authorize work.
+    pub fn plan_verification_invalidation(
+        &self,
+        source_task_id: &str,
+        reason_code: &str,
+        correction_evidence_ref: &str,
+    ) -> Result<TaskRevalidationPlanV2, TaskGraphError> {
+        validate_revalidation_inputs(source_task_id, reason_code, correction_evidence_ref)?;
+        let source_index = *self
+            .id_to_index
+            .get(source_task_id)
+            .ok_or_else(|| TaskGraphError::TaskNotFound(source_task_id.to_owned()))?;
+        if self.graph.tasks[source_index].status != TaskStatus::VerificationRecorded {
+            return Err(TaskGraphError::TaskNotVerified(source_task_id.to_owned()));
+        }
+
+        let paths = collect_dependent_predecessors(source_index, &self.dependents);
+        Ok(build_revalidation_plan(
+            &self.graph,
+            source_index,
+            reason_code,
+            correction_evidence_ref,
+            paths,
+        ))
     }
 
     /// Return the currently-ready task IDs in deterministic display order.
@@ -504,6 +629,96 @@ impl CompiledTaskGraph {
     }
 }
 
+fn validate_revalidation_inputs(
+    source_task_id: &str,
+    reason_code: &str,
+    correction_evidence_ref: &str,
+) -> Result<(), TaskGraphError> {
+    if source_task_id.trim().is_empty() {
+        return Err(TaskGraphError::EmptyTaskId);
+    }
+    if reason_code.trim().is_empty() {
+        return Err(TaskGraphError::EmptyRevalidationReason);
+    }
+    if correction_evidence_ref.trim().is_empty() {
+        return Err(TaskGraphError::EmptyCorrectionEvidenceRef);
+    }
+    Ok(())
+}
+
+fn sort_dependents(dependents: &mut [Vec<usize>], tasks: &[TaskNodeV1]) {
+    for children in dependents {
+        children.sort_by(|left, right| tasks[*left].task_id.cmp(&tasks[*right].task_id));
+    }
+}
+
+fn collect_dependent_predecessors(
+    source_index: usize,
+    dependents: &[Vec<usize>],
+) -> Vec<(usize, usize, usize)> {
+    let mut seen = BTreeSet::new();
+    seen.insert(source_index);
+    let mut queue = VecDeque::new();
+    let mut result = Vec::new();
+
+    for dependent_index in &dependents[source_index] {
+        if seen.insert(*dependent_index) {
+            queue.push_back((*dependent_index, source_index, 1usize));
+        }
+    }
+
+    while let Some((task_index, predecessor_index, path_depth)) = queue.pop_front() {
+        result.push((task_index, predecessor_index, path_depth));
+        for dependent_index in &dependents[task_index] {
+            if seen.insert(*dependent_index) {
+                queue.push_back((*dependent_index, task_index, path_depth + 1));
+            }
+        }
+    }
+
+    result
+}
+
+fn build_revalidation_plan(
+    graph: &TaskGraphV1,
+    source_index: usize,
+    reason_code: &str,
+    correction_evidence_ref: &str,
+    witnesses: Vec<(usize, usize, usize)>,
+) -> TaskRevalidationPlanV2 {
+    let impacts = witnesses
+        .into_iter()
+        .map(|(task_index, predecessor_index, path_depth)| {
+            let task = &graph.tasks[task_index];
+            let kind = match task.status {
+                TaskStatus::InProgress
+                | TaskStatus::CompletionReported
+                | TaskStatus::VerificationRecorded => RevalidationImpactKind::RequiresRevalidation,
+                TaskStatus::Pending => RevalidationImpactKind::RemainsBlocked,
+                TaskStatus::Cancelled => RevalidationImpactKind::CancelledNoAction,
+            };
+            TaskRevalidationImpactV2 {
+                task_id: task.task_id.clone(),
+                prior_status: task.status,
+                kind,
+                predecessor_task_id: graph.tasks[predecessor_index].task_id.clone(),
+                path_depth,
+            }
+        })
+        .collect();
+
+    TaskRevalidationPlanV2 {
+        schema_version: TASK_REVALIDATION_PLAN_SCHEMA_VERSION,
+        graph_id: graph.graph_id.clone(),
+        expected_graph_revision: graph.revision,
+        source_task_id: graph.tasks[source_index].task_id.clone(),
+        source_status: graph.tasks[source_index].status,
+        reason_code: reason_code.to_owned(),
+        correction_evidence_ref: correction_evidence_ref.to_owned(),
+        impacts,
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum TaskGraphError {
     UnsupportedSchemaVersion(u16),
@@ -521,6 +736,9 @@ pub enum TaskGraphError {
         task_id: String,
         dependency_ids: Vec<String>,
     },
+    TaskNotVerified(String),
+    EmptyRevalidationReason,
+    EmptyCorrectionEvidenceRef,
     SelfDependency(String),
     DuplicateDependency {
         task_id: String,
@@ -569,6 +787,15 @@ impl fmt::Display for TaskGraphError {
                 "active task {task_id} has unverified prerequisites: {}",
                 dependency_ids.join(", ")
             ),
+            Self::TaskNotVerified(task_id) => {
+                write!(formatter, "task {task_id} is not currently verified")
+            }
+            Self::EmptyRevalidationReason => {
+                formatter.write_str("revalidation reason code must not be empty")
+            }
+            Self::EmptyCorrectionEvidenceRef => {
+                formatter.write_str("correction evidence reference must not be empty")
+            }
             Self::SelfDependency(task_id) => {
                 write!(formatter, "task {task_id} cannot depend on itself")
             }
@@ -771,6 +998,133 @@ mod tests {
             .unwrap();
         assert_eq!(task_graph.revision, 3);
     }
+    #[test]
+    fn revalidation_plan_fixture_matches_reference_and_compiled_analysis_without_mutation() {
+        let tasks = vec![
+            node("access", &[], 10, TaskStatus::VerificationRecorded),
+            node("cancelled-branch", &["access"], 1, TaskStatus::Cancelled),
+            node(
+                "inspection",
+                &["access"],
+                8,
+                TaskStatus::VerificationRecorded,
+            ),
+            node("new-work", &["access"], 6, TaskStatus::Pending),
+            node("parts", &["access"], 7, TaskStatus::VerificationRecorded),
+            node(
+                "after-cancel",
+                &["cancelled-branch"],
+                1,
+                TaskStatus::Pending,
+            ),
+            node(
+                "functional-test",
+                &["inspection", "parts"],
+                9,
+                TaskStatus::CompletionReported,
+            ),
+            node("handover", &["functional-test"], 5, TaskStatus::Pending),
+        ];
+        let mut source_graph = graph(tasks.clone());
+        source_graph.graph_id = "revalidation-demo-001".to_owned();
+        source_graph.revision = 12;
+        let mut reordered = graph(tasks.into_iter().rev().collect());
+        reordered.graph_id = "revalidation-demo-001".to_owned();
+        reordered.revision = 12;
+        let before = source_graph.clone();
+
+        let reference_plan = source_graph
+            .plan_verification_invalidation(
+                "access",
+                "evidence_correction",
+                "urn:demo:evidence:access-correction",
+            )
+            .unwrap();
+        let compiled = super::CompiledTaskGraph::compile(source_graph.clone()).unwrap();
+        let compiled_plan = compiled
+            .plan_verification_invalidation(
+                "access",
+                "evidence_correction",
+                "urn:demo:evidence:access-correction",
+            )
+            .unwrap();
+        let expected: super::TaskRevalidationPlanV2 =
+            serde_json::from_str(include_str!("../fixtures/task-revalidation-plan-v2.json"))
+                .expect("frozen revalidation plan fixture must deserialize");
+
+        assert_eq!(reference_plan, expected);
+        assert_eq!(compiled_plan, expected);
+        assert_eq!(
+            reordered
+                .plan_verification_invalidation(
+                    "access",
+                    "evidence_correction",
+                    "urn:demo:evidence:access-correction",
+                )
+                .unwrap(),
+            expected
+        );
+        assert_eq!(source_graph, before);
+        assert_eq!(compiled.graph(), &before);
+    }
+
+    #[test]
+    fn compact_revalidation_witnesses_scale_linearly_on_a_chain() {
+        const TASKS: usize = 128;
+        let mut tasks = Vec::with_capacity(TASKS);
+        tasks.push(node("task-000", &[], 1, TaskStatus::VerificationRecorded));
+        for index in 1..TASKS {
+            let task_id = format!("task-{index:03}");
+            let dependency_id = format!("task-{:03}", index - 1);
+            tasks.push(node(
+                &task_id,
+                &[dependency_id.as_str()],
+                1,
+                TaskStatus::Pending,
+            ));
+        }
+
+        let mut task_graph = graph(tasks);
+        task_graph.graph_id = "revalidation-chain-test".to_owned();
+        let plan = task_graph
+            .plan_verification_invalidation(
+                "task-000",
+                "chain_root_correction",
+                "urn:test:evidence:correction",
+            )
+            .unwrap();
+
+        assert_eq!(plan.impacts.len(), TASKS - 1);
+        for (offset, impact) in plan.impacts.iter().enumerate() {
+            let expected_task = format!("task-{:03}", offset + 1);
+            let expected_predecessor = format!("task-{offset:03}");
+            assert_eq!(impact.task_id, expected_task);
+            assert_eq!(impact.predecessor_task_id, expected_predecessor);
+            assert_eq!(impact.path_depth, offset + 1);
+        }
+    }
+
+    #[test]
+    fn revalidation_plan_rejects_unverified_source_and_missing_correction_context() {
+        let graph = graph(vec![node("access", &[], 1, TaskStatus::Pending)]);
+        assert_eq!(
+            graph.plan_verification_invalidation(
+                "access",
+                "evidence_correction",
+                "urn:demo:evidence:correction",
+            ),
+            Err(TaskGraphError::TaskNotVerified("access".to_owned()))
+        );
+        assert_eq!(
+            graph.plan_verification_invalidation("access", " ", "urn:demo:evidence:correction",),
+            Err(TaskGraphError::EmptyRevalidationReason)
+        );
+        assert_eq!(
+            graph.plan_verification_invalidation("access", "evidence_correction", " "),
+            Err(TaskGraphError::EmptyCorrectionEvidenceRef)
+        );
+    }
+
     #[test]
     fn compiled_frontier_matches_reference_reducer_through_a_multi_branch_job() {
         let graph: TaskGraphV1 =

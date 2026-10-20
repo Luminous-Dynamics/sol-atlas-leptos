@@ -87,6 +87,8 @@ fn build_independent_graph(task_count: usize) -> TaskGraphV1 {
 fn execute_operation(
     graph: &TaskGraphV1,
     compiled: &CompiledTaskGraph,
+    impact_graph: &TaskGraphV1,
+    impact_compiled: &CompiledTaskGraph,
     operation: &str,
 ) -> Result<(), String> {
     match operation {
@@ -109,6 +111,31 @@ fn execute_operation(
         "compiled_ready_tasks" => {
             black_box(compiled.ready_tasks());
         }
+        "impact_compile_index" => {
+            let result = CompiledTaskGraph::compile(black_box(impact_graph.clone()))
+                .map_err(|error| error.to_string())?;
+            black_box(result);
+        }
+        "impact_plan_reference" => {
+            let result = impact_graph
+                .plan_verification_invalidation(
+                    "task-00000",
+                    "benchmark_correction",
+                    "urn:benchmark:corrective-evidence",
+                )
+                .map_err(|error| error.to_string())?;
+            black_box(result);
+        }
+        "impact_plan_compiled" => {
+            let result = impact_compiled
+                .plan_verification_invalidation(
+                    "task-00000",
+                    "benchmark_correction",
+                    "urn:benchmark:corrective-evidence",
+                )
+                .map_err(|error| error.to_string())?;
+            black_box(result);
+        }
         _ => return Err(format!("unknown benchmark operation: {operation}")),
     }
     Ok(())
@@ -117,18 +144,20 @@ fn execute_operation(
 fn measure(
     graph: &TaskGraphV1,
     compiled: &CompiledTaskGraph,
+    impact_graph: &TaskGraphV1,
+    impact_compiled: &CompiledTaskGraph,
     samples: usize,
     operation: &str,
 ) -> Result<Vec<u128>, String> {
     const WARMUP_SAMPLES: usize = 5;
     for _ in 0..WARMUP_SAMPLES {
-        execute_operation(graph, compiled, operation)?;
+        execute_operation(graph, compiled, impact_graph, impact_compiled, operation)?;
     }
 
     let mut raw_ns = Vec::with_capacity(samples);
     for _ in 0..samples {
         let start = Instant::now();
-        execute_operation(graph, compiled, operation)?;
+        execute_operation(graph, compiled, impact_graph, impact_compiled, operation)?;
         raw_ns.push(start.elapsed().as_nanos());
     }
     Ok(raw_ns)
@@ -174,6 +203,9 @@ fn run() -> Result<(), String> {
         "ready_tasks",
         "compile_index",
         "compiled_ready_tasks",
+        "impact_compile_index",
+        "impact_plan_reference",
+        "impact_plan_compiled",
     ];
     let mut workloads = serde_json::Map::new();
 
@@ -198,9 +230,33 @@ fn run() -> Result<(), String> {
             .len();
         let compiled =
             CompiledTaskGraph::compile(graph.clone()).map_err(|error| error.to_string())?;
+
+        // Build a second valid snapshot in which the root task is recorded as
+        // verified so both impact planners can measure downstream closure.
+        let mut impact_graph = graph.clone();
+        impact_graph.tasks[0].status = TaskStatus::VerificationRecorded;
+        impact_graph.validate().map_err(|error| error.to_string())?;
+        let reference_impact_plan = impact_graph
+            .plan_verification_invalidation(
+                "task-00000",
+                "benchmark_correction",
+                "urn:benchmark:corrective-evidence",
+            )
+            .map_err(|error| error.to_string())?;
+        let impact_count = reference_impact_plan.impacts.len();
+        let impact_compiled =
+            CompiledTaskGraph::compile(impact_graph.clone()).map_err(|error| error.to_string())?;
+
         let mut operation_results = serde_json::Map::new();
         for operation in operations {
-            let raw = measure(&graph, &compiled, samples, operation)?;
+            let raw = measure(
+                &graph,
+                &compiled,
+                &impact_graph,
+                &impact_compiled,
+                samples,
+                operation,
+            )?;
             operation_results.insert(operation.to_owned(), summary(&raw));
         }
 
@@ -218,6 +274,9 @@ fn run() -> Result<(), String> {
                         0
                     },
                     "initial_ready_tasks": initial_ready_count,
+                    "impact_source_task": "task-00000",
+                    "impact_source_status": "verification_recorded",
+                    "impact_reachable_descendants": impact_count,
                     "seed": "deterministic-index-derived-no-rng",
                     "all_task_statuses": "pending"
                 },
@@ -228,10 +287,12 @@ fn run() -> Result<(), String> {
 
     let output = serde_json::json!({
         "benchmark": "field-task-graph-v1",
-        "benchmark_version": 3,
+        "benchmark_version": 4,
         "claim_ceiling": "local algorithm microbenchmark only; not end-to-end field-service or vendor comparison",
         "environment": {
-            "source_commit_sha": env::var("GITHUB_SHA").ok(),
+            "source_commit_sha": env::var("TASK_GRAPH_SOURCE_SHA")
+                .or_else(|_| env::var("GITHUB_SHA"))
+                .ok(),
             "os": env::consts::OS,
             "arch": env::consts::ARCH,
             "rust_package_version": env!("CARGO_PKG_VERSION"),
