@@ -93,7 +93,9 @@ fn manifest_defaults() -> Result<(String, Vec<usize>, u32), String> {
             .and_then(|value| usize::try_from(value).ok())
             .ok_or_else(|| "feature_count must be a non-negative integer".to_string())?;
         if count == 0 || count > MAX_SNAPSHOT_FEATURES {
-            return Err(format!("feature_count {count} is outside 1..={MAX_SNAPSHOT_FEATURES}"));
+            return Err(format!(
+                "feature_count {count} is outside 1..={MAX_SNAPSHOT_FEATURES}"
+            ));
         }
         counts.push(count);
     }
@@ -108,7 +110,10 @@ fn manifest_defaults() -> Result<(String, Vec<usize>, u32), String> {
 }
 
 fn parse_seed(value: &str) -> Result<u32, String> {
-    if let Some(hex) = value.strip_prefix("0x").or_else(|| value.strip_prefix("0X")) {
+    if let Some(hex) = value
+        .strip_prefix("0x")
+        .or_else(|| value.strip_prefix("0X"))
+    {
         u32::from_str_radix(hex, 16).map_err(|error| format!("invalid hexadecimal seed: {error}"))
     } else {
         value
@@ -126,7 +131,9 @@ fn parse_counts(value: &str) -> Result<Vec<usize>, String> {
             .parse::<usize>()
             .map_err(|error| format!("invalid feature count {part:?}: {error}"))?;
         if count == 0 || count > MAX_SNAPSHOT_FEATURES {
-            return Err(format!("feature count {count} is outside 1..={MAX_SNAPSHOT_FEATURES}"));
+            return Err(format!(
+                "feature count {count} is outside 1..={MAX_SNAPSHOT_FEATURES}"
+            ));
         }
         if !seen.insert(count) {
             return Err(format!("duplicate feature count: {count}"));
@@ -227,7 +234,10 @@ fn run(config: Config) -> Result<(), String> {
 
     match config.output {
         Some(path) => {
-            if let Some(parent) = path.parent().filter(|parent| !parent.as_os_str().is_empty()) {
+            if let Some(parent) = path
+                .parent()
+                .filter(|parent| !parent.as_os_str().is_empty())
+            {
                 fs::create_dir_all(parent)
                     .map_err(|error| format!("could not create {}: {error}", parent.display()))?;
             }
@@ -259,7 +269,9 @@ fn benchmark_count(feature_count: usize, samples: usize, seed: u32) -> Result<Va
         let generation_ns = elapsed_ns(started);
         let actual_count = snapshot["features"].as_array().map(Vec::len).unwrap_or(0);
         if actual_count != feature_count {
-            return Err(format!("generator returned {actual_count} features; expected {feature_count}"));
+            return Err(format!(
+                "generator returned {actual_count} features; expected {feature_count}"
+            ));
         }
 
         let started = Instant::now();
@@ -276,10 +288,14 @@ fn benchmark_count(feature_count: usize, samples: usize, seed: u32) -> Result<Va
         let started = Instant::now();
         let digest = format!("{:x}", Sha256::digest(&serialized));
         let sha256_ns = elapsed_ns(started);
-        if expected_digest.as_ref().is_some_and(|expected| expected != &digest)
+        if expected_digest
+            .as_ref()
+            .is_some_and(|expected| expected != &digest)
             || expected_bytes.is_some_and(|expected| expected != bytes)
         {
-            return Err(format!("non-deterministic normalized snapshot at feature count {feature_count}"));
+            return Err(format!(
+                "non-deterministic normalized snapshot at feature count {feature_count}"
+            ));
         }
         expected_digest.get_or_insert_with(|| digest.clone());
         expected_bytes.get_or_insert(bytes);
@@ -299,7 +315,8 @@ fn benchmark_count(feature_count: usize, samples: usize, seed: u32) -> Result<Va
         }));
     }
 
-    let scene_sha256 = expected_digest.ok_or_else(|| "benchmark produced no samples".to_string())?;
+    let scene_sha256 =
+        expected_digest.ok_or_else(|| "benchmark produced no samples".to_string())?;
     let snapshot_bytes = expected_bytes.unwrap_or_default();
     Ok(json!({
         "feature_count": feature_count,
@@ -340,7 +357,9 @@ fn percentile_sorted(sorted: &[u64], quantile: usize) -> u64 {
     if sorted.is_empty() {
         return 0;
     }
-    let rank = (quantile * sorted.len()).div_ceil(100).clamp(1, sorted.len());
+    let rank = (quantile * sorted.len())
+        .div_ceil(100)
+        .clamp(1, sorted.len());
     sorted[rank - 1]
 }
 
@@ -367,7 +386,10 @@ fn cpu_model() -> Option<String> {
                 || line.starts_with("Hardware\t:")
                 || line.starts_with("Processor\t:")
         })
-        .and_then(|line| line.split_once(':').map(|(_, value)| value.trim().to_string()))
+        .and_then(|line| {
+            line.split_once(':')
+                .map(|(_, value)| value.trim().to_string())
+        })
         .filter(|value| !value.is_empty())
 }
 
@@ -397,7 +419,10 @@ mod tests {
         ))
         .expect("benchmark report schema must be valid JSON");
         assert_eq!(schema["$id"], REPORT_SCHEMA_URI);
-        assert_eq!(schema["properties"]["report_schema"]["const"], REPORT_SCHEMA);
+        assert_eq!(
+            schema["properties"]["report_schema"]["const"],
+            REPORT_SCHEMA
+        );
         assert_eq!(
             schema["properties"]["benchmark_kind"]["const"],
             "native-landscape-document-kernel"
