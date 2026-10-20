@@ -21,7 +21,9 @@
     },
     "batch_id": {
       "type": "string",
-      "pattern": "^obs-batch-[A-Za-z0-9][A-Za-z0-9._:-]{3,123}$"
+      "pattern": "^obs-batch-[A-Za-z0-9][A-Za-z0-9._:-]{7,117}$",
+      "minLength": 18,
+      "maxLength": 128
     },
     "created_at_unix_ms": {
       "type": "integer",
