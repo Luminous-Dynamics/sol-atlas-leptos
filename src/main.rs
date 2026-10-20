@@ -4,7 +4,9 @@
 mod app;
 mod components;
 mod data;
+mod landscape_observation;
 mod renderer;
+mod sensorthings_adapter;
 mod state;
 mod vitality;
 
