@@ -1,6 +1,7 @@
 use methane_action_contract::census::{
     BenchmarkCase, EvaluationReport, SystemSubmission, evaluate_census,
 };
+use methane_action_contract::pod::{PodProfileReport, RateBand, build_pod_profile};
 use methane_action_contract::{executable_sha256, sha256_hex};
 use serde::{Deserialize, Serialize};
 use std::io::{self, Read, Write};
@@ -12,6 +13,8 @@ struct BenchmarkInput {
     schema_version: u32,
     cases: Vec<BenchmarkCase>,
     submission: SystemSubmission,
+    #[serde(default)]
+    rate_bands: Vec<RateBand>,
 }
 
 #[derive(Debug, Serialize)]
@@ -28,6 +31,7 @@ struct RunReceipt {
     build_sha256: String,
     configuration_sha256: String,
     evaluation: EvaluationReport,
+    pod_profile: Option<PodProfileReport>,
 }
 
 fn main() -> ExitCode {
@@ -65,7 +69,19 @@ fn main() -> ExitCode {
         }
     };
     let report = evaluate_census(&input.cases, &input.submission);
-    let valid = report.is_valid();
+    let pod_profile = if input.rate_bands.is_empty() {
+        None
+    } else {
+        Some(build_pod_profile(
+            &input.cases,
+            &input.submission,
+            &input.rate_bands,
+        ))
+    };
+    let valid = report.is_valid()
+        && pod_profile
+            .as_ref()
+            .is_none_or(PodProfileReport::is_valid);
     let receipt = RunReceipt {
         receipt_schema_version: 1,
         evaluator: "methane-action-contract",
@@ -79,6 +95,7 @@ fn main() -> ExitCode {
         build_sha256: input.submission.build_sha256,
         configuration_sha256: input.submission.configuration_sha256,
         evaluation: report,
+        pod_profile,
     };
 
     let stdout = io::stdout();
