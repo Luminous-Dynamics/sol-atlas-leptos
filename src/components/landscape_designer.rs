@@ -1093,6 +1093,11 @@ mod tests {
     use super::*;
 
     #[test]
+    fn evidence_readiness_reports_catalogued_candidates_not_ingested_layers() {
+        assert_eq!(landscape_source_status().unwrap(), (6, 0));
+    }
+
+    #[test]
     fn browser_storage_draft_limit_is_explicitly_bounded() {
         assert_eq!(MAX_LOCAL_DRAFT_BYTES, 2 * 1024 * 1024);
         assert!(validate_local_draft_size("").is_ok());
