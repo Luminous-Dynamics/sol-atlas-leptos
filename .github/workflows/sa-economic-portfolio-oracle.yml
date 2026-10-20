@@ -58,6 +58,20 @@ jobs:
           docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.expected.json
           > sa-economic-portfolio-v0.2-receipt.json
 
+      - name: Produce v0.2 ten-project frontier-search receipt
+        run: >-
+          cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --search
+          docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.json
+          docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.expected.json
+          > sa-economic-portfolio-v0.2-search-receipt.json
+
+      - name: Produce v0.2 24-project adversarial search receipt
+        run: >-
+          cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --search
+          docs/research/fixtures/sa-economic-portfolio-v0.2-24-project.json
+          docs/research/fixtures/sa-economic-portfolio-v0.2-24-project.search-expected.json
+          > sa-economic-portfolio-v0.2-24-search-receipt.json
+
       - name: Preserve receipts
         if: always()
         uses: actions/upload-artifact@v4
@@ -66,4 +80,6 @@ jobs:
           path: |
             sa-economic-portfolio-v0.1-receipt.json
             sa-economic-portfolio-v0.2-receipt.json
+            sa-economic-portfolio-v0.2-search-receipt.json
+            sa-economic-portfolio-v0.2-24-search-receipt.json
           if-no-files-found: ignore
