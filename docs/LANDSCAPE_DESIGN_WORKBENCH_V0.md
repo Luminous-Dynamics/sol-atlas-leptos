@@ -74,7 +74,7 @@ The validator distinguishes `schematic-design-intent` from `synthetic-benchmark`
 - `src/landscape.rs` is a reusable, pure-Rust validation boundary for schema identity, coordinate-frame claims, scope, project name, allowed fields, unique IDs, feature kind/label coherence, anchor bounds, and design-intent tags.
 - The editor runs the validator before exposing a downloadable snapshot; failure clears the export payload and displays the validation errors.
 - Native tests cover malformed roots, unsupported scopes, duplicate IDs, out-of-bounds anchors, mismatched type/label, unknown fields, georeferencing claims and parity between Rust constants and the committed JSON Schema.
-- Editor undo is command-aware: undoing an add removes only that addition; undoing a delete restores the removed feature at its original position. Symbol selection is keyboard accessible; Enter/Space select a focused symbol rather than creating an accidental new feature.
+- Editor history is command-aware: undoing an add removes only that addition; undoing a delete restores the removed feature at its original position; redo reapplies the exact command and refuses conflicting feature identities. New edits clear the redo branch. Symbol selection is keyboard accessible; Enter/Space select a focused symbol rather than creating an accidental new feature.
 
 ### Machine-readable contract and benchmark manifest
 
@@ -179,6 +179,7 @@ Targets become product gates only after the reference hardware and benchmark har
 - /design/landscape renders on the existing Rust/Leptos stack.
 - All five tools and four scale contexts can be selected with accessible, visible state.
 - Selecting a symbol must not trigger placement; deleting one selected symbol removes only its ID and preserves unselected features.
+- Undo/redo must round-trip both add and delete commands, and reject an identity conflict without mutating the feature list.
 - One valid canvas click adds one feature; undo removes the latest; reset restores the exact starter fixtures.
 - Grid/context visibility toggles work independently of editing.
 - Export is valid JSON, deterministic for the same project and explicitly not georeferenced.
