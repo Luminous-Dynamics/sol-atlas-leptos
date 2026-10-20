@@ -1099,10 +1099,12 @@ mod tests {
         let result = assess(&request);
         assert_eq!(result.status, AssessmentStatus::Unsupported);
         assert_eq!(result.max_deferrable_work_units, None);
-        assert!(result
-            .blockers
-            .iter()
-            .any(|item| item == "storage_dispatch_unsupported_v0_1"));
+        assert!(
+            result
+                .blockers
+                .iter()
+                .any(|item| item == "storage_dispatch_unsupported_v0_1")
+        );
     }
 
     #[test]
@@ -1113,9 +1115,14 @@ mod tests {
         let result = assess(&request);
         assert_eq!(result.status, AssessmentStatus::Unsupported);
         assert_eq!(result.max_deferrable_work_units, None);
-        assert!(result.blockers.iter().any(|item| {
-            item == "workload_deferrable-batch_deferrable_not_interruptible_v0_1"
-        }));
+        assert!(
+            result
+                .blockers
+                .iter()
+                .any(|item| {
+                    item == "workload_deferrable-batch_deferrable_not_interruptible_v0_1"
+                })
+        );
     }
 
     #[test]
@@ -1130,9 +1137,14 @@ mod tests {
         let result = assess(&request);
         assert_eq!(result.status, AssessmentStatus::Unsupported);
         assert_eq!(result.max_deferrable_work_units, None);
-        assert!(result.blockers.iter().any(|item| {
-            item == "heterogeneous_deferrable_quality_profiles_unsupported_v0_1"
-        }));
+        assert!(
+            result
+                .blockers
+                .iter()
+                .any(|item| {
+                    item == "heterogeneous_deferrable_quality_profiles_unsupported_v0_1"
+                })
+        );
     }
 
     #[test]
@@ -1145,5 +1157,4 @@ mod tests {
 
         assert!(serde_json::from_value::<Request>(value).is_err());
     }
-
 }
