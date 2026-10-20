@@ -1,12 +1,12 @@
-//! Evaluate a compute-energy scenario JSON file using the bounded reference evaluator.
+//! Evaluate a compute-energy scenario JSON file with a scheduling baseline.
 //!
 //! Usage:
-//!   cargo run -p sol-atlas-core --bin ai_compute_energy_assess -- path/to/scenario.json
+//!   cargo run -p sol-atlas-core --bin ai_compute_energy_assess -- <scenario.json> [earliest-ready|lowest-cost|lowest-carbon]
 //!
-//! Output is a JSON assessment on stdout. Exit codes:
+//! Output is a JSON schedule assessment on stdout. Exit codes:
 //!   0 = feasible or capacity-limited assessment completed
 //!   2 = protected floors are infeasible
-//!   3 = required resource inputs are unknown (indeterminate)
+//!   3 = required resource/objective inputs are unknown (indeterminate)
 //!   4 = request is outside the evaluator's supported scope
 //!   5 = request is invalid
 //!   64 = command-line usage error
@@ -14,19 +14,45 @@
 //!   66 = scenario file could not be read
 //!   70 = assessment could not be serialized
 
-use sol_atlas_core::ai_compute_energy::{assess, AssessmentStatus, Request};
+use sol_atlas_core::ai_compute_energy::{
+    schedule_deferrable, AssessmentStatus, Request, SchedulingPolicy,
+};
 use std::env;
 use std::fs;
 use std::process;
 
+fn parse_policy(value: &str) -> Option<SchedulingPolicy> {
+    match value {
+        "earliest-ready" => Some(SchedulingPolicy::EarliestReady),
+        "lowest-cost" => Some(SchedulingPolicy::LowestCost),
+        "lowest-carbon" => Some(SchedulingPolicy::LowestCarbon),
+        _ => None,
+    }
+}
+
 fn main() {
     let mut args = env::args_os().skip(1);
     let Some(path) = args.next() else {
-        eprintln!("usage: ai_compute_energy_assess <scenario.json>");
+        eprintln!(
+            "usage: ai_compute_energy_assess <scenario.json> [earliest-ready|lowest-cost|lowest-carbon]"
+        );
         process::exit(64);
     };
+
+    let policy = match args.next() {
+        None => SchedulingPolicy::EarliestReady,
+        Some(raw) => match raw.to_str().and_then(parse_policy) {
+            Some(policy) => policy,
+            None => {
+                eprintln!("policy must be earliest-ready, lowest-cost, or lowest-carbon");
+                process::exit(64);
+            }
+        },
+    };
     if args.next().is_some() {
-        eprintln!("usage: ai_compute_energy_assess <scenario.json>");
+        eprintln!(
+            "usage: ai_compute_energy_assess <scenario.json> [earliest-ready|lowest-cost|lowest-carbon]"
+        );
         process::exit(64);
     }
 
@@ -46,7 +72,7 @@ fn main() {
         }
     };
 
-    let result = assess(&request);
+    let result = schedule_deferrable(&request, policy);
     let exit_code = match result.status {
         AssessmentStatus::Feasible | AssessmentStatus::CapacityLimited => 0,
         AssessmentStatus::Infeasible => 2,
