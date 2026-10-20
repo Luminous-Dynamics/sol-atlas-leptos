@@ -74,7 +74,8 @@
           "x_du",
           "y_du",
           "status",
-          "source"
+          "source",
+          "geometry_representation"
         ],
         "properties": {
           "id": {
@@ -114,6 +115,9 @@
           },
           "source": {
             "const": "user-authored-schematic"
+          },
+          "geometry_representation": {
+            "const": "schematic-symbol-anchor-v0"
           }
         }
       }
