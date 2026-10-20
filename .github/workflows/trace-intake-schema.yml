@@ -6,12 +6,28 @@ on:
     paths:
       - "schemas/ai-compute-energy-trace-intake-v1.schema.json"
       - "schemas/examples/ai-compute-energy-trace-intake-v1.planned.json"
+      - "schemas/examples/google-clusterdata2019-power-trace-intake.planned.json"
+      - "tools/validate_ai_compute_trace_intake.py"
+      - ".github/workflows/trace-intake-schema.yml"
+  pull_request:
+    paths:
+      - "schemas/ai-compute-energy-trace-intake-v1.schema.json"
+name: Trace intake schema
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "schemas/ai-compute-energy-trace-intake-v1.schema.json"
+      - "schemas/examples/ai-compute-energy-trace-intake-v1.planned.json"
+      - "schemas/examples/google-clusterdata2019-power-trace-intake.planned.json"
       - "tools/validate_ai_compute_trace_intake.py"
       - ".github/workflows/trace-intake-schema.yml"
   pull_request:
     paths:
       - "schemas/ai-compute-energy-trace-intake-v1.schema.json"
       - "schemas/examples/ai-compute-energy-trace-intake-v1.planned.json"
+      - "schemas/examples/google-clusterdata2019-power-trace-intake.planned.json"
       - "tools/validate_ai_compute_trace_intake.py"
       - ".github/workflows/trace-intake-schema.yml"
   workflow_dispatch:
