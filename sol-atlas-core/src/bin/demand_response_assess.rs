@@ -208,10 +208,9 @@ fn validate_reference_metadata(metadata: &RsrReferenceMetadata) -> Result<(), St
     }
     if metadata.source_name == "FlexDC-Sim" {
         if metadata.source_revision.len() != 40
-            || !metadata
-                .source_revision
-                .bytes()
-                .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+            || !metadata.source_revision.bytes().all(|byte| {
+                byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte)
+            })
         {
             return Err(
                 "FlexDC-Sim source_revision must be a 40-character Git commit SHA".to_owned(),
