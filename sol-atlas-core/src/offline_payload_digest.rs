@@ -65,11 +65,44 @@ pub fn canonicalize_payload_json(payload_json: &str) -> Result<Vec<u8>, PayloadD
     jcs::canonicalize_to_vec(payload_json).map_err(PayloadDigestError::Canonicalization)
 }
 
+/// Immutable canonical payload bytes plus their digest.
+///
+/// Construct this type from raw JSON once and persist/send its canonical bytes
+/// on every retry. Private fields prevent callers from changing the bytes
+/// without changing the digest as well.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CanonicalPayload {
+    canonical_utf8: Vec<u8>,
+    sha256_hex: String,
+}
+
+impl CanonicalPayload {
+    /// Parses, validates, canonicalizes and hashes one raw JSON payload.
+    pub fn from_json(payload_json: &str) -> Result<Self, PayloadDigestError> {
+        let canonical_utf8 = canonicalize_payload_json(payload_json)?;
+        let digest = Sha256::digest(&canonical_utf8);
+        Ok(Self {
+            canonical_utf8,
+            sha256_hex: lower_hex(&digest),
+        })
+    }
+
+    /// Returns the exact immutable UTF-8 bytes to persist and resend on retries.
+    pub fn canonical_utf8(&self) -> &[u8] {
+        &self.canonical_utf8
+    }
+
+    /// Returns lowercase hexadecimal SHA-256 over `canonical_utf8()`.
+    pub fn sha256_hex(&self) -> &str {
+        &self.sha256_hex
+    }
+}
+
 /// Computes lowercase hexadecimal SHA-256 over canonical RFC 8785 UTF-8 bytes.
 pub fn canonical_payload_digest_sha256(payload_json: &str) -> Result<String, PayloadDigestError> {
-    let canonical = canonicalize_payload_json(payload_json)?;
-    let digest = Sha256::digest(&canonical);
-    Ok(lower_hex(&digest))
+    Ok(CanonicalPayload::from_json(payload_json)?
+        .sha256_hex()
+        .to_owned())
 }
 
 /// Verifies the immutable envelope digest against the original raw JSON payload.
@@ -85,13 +118,13 @@ pub fn verify_payload_digest(
         return Err(PayloadDigestError::InvalidExpectedDigest);
     }
 
-    let actual = canonical_payload_digest_sha256(payload_json)?;
-    if actual == expected_digest {
+    let payload = CanonicalPayload::from_json(payload_json)?;
+    if payload.sha256_hex() == expected_digest {
         Ok(())
     } else {
         Err(PayloadDigestError::DigestMismatch {
             expected: expected_digest.to_owned(),
-            actual,
+            actual: payload.sha256_hex().to_owned(),
         })
     }
 }

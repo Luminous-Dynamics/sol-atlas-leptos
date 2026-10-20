@@ -174,20 +174,52 @@ pub enum ReconcileOutcome {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct JournalEntry {
-    pub envelope: OperationEnvelope,
-    pub state: JournalState,
+    envelope: OperationEnvelope,
+    payload: crate::offline_payload_digest::CanonicalPayload,
+    state: JournalState,
     /// Number of attempts that were durably marked as potentially dispatched.
-    pub attempt_count: u32,
+    attempt_count: u32,
 }
 
 impl JournalEntry {
-    pub fn prepare(envelope: OperationEnvelope) -> Result<Self, JournalError> {
+    /// Prepare an operation only after validating the digest against its raw payload.
+    ///
+    /// The canonical UTF-8 bytes are retained with the envelope so a retry can
+    /// resend exactly the payload that was hashed, rather than reconstructing it
+    /// from potentially edited UI state.
+    pub fn prepare(envelope: OperationEnvelope, payload_json: &str) -> Result<Self, JournalError> {
         envelope.validate()?;
+        let payload = crate::offline_payload_digest::CanonicalPayload::from_json(payload_json)
+            .map_err(|error| JournalError::PayloadCanonicalization(error.to_string()))?;
+        if payload.sha256_hex() != envelope.payload_digest_sha256 {
+            return Err(JournalError::PayloadDigestMismatch);
+        }
         Ok(Self {
             envelope,
+            payload,
             state: JournalState::Prepared,
             attempt_count: 0,
         })
+    }
+
+    /// Returns the immutable operation envelope.
+    pub fn envelope(&self) -> &OperationEnvelope {
+        &self.envelope
+    }
+
+    /// Returns the canonical payload bytes that must be persisted and retried unchanged.
+    pub fn canonical_payload_utf8(&self) -> &[u8] {
+        self.payload.canonical_utf8()
+    }
+
+    /// Returns the current reducer state without permitting external mutation.
+    pub fn state(&self) -> &JournalState {
+        &self.state
+    }
+
+    /// Number of attempts durably marked as possibly dispatched.
+    pub fn attempt_count(&self) -> u32 {
+        self.attempt_count
     }
 
     /// Validate that a retry is exactly the same logical operation.
@@ -317,6 +349,7 @@ impl JournalEntry {
     pub fn prepare_conflict_resolution(
         &self,
         replacement: OperationEnvelope,
+        replacement_payload_json: &str,
     ) -> Result<Self, JournalError> {
         let current_revision = match &self.state {
             JournalState::ConflictNeedsReview {
@@ -356,7 +389,7 @@ impl JournalEntry {
                 "idempotency_key_reused",
             ));
         }
-        Self::prepare(replacement)
+        Self::prepare(replacement, replacement_payload_json)
     }
 }
 
@@ -384,6 +417,8 @@ pub enum JournalError {
     UnsupportedSchemaVersion(u16),
     EmptyField(&'static str),
     InvalidPayloadDigest,
+    PayloadCanonicalization(String),
+    PayloadDigestMismatch,
     AttemptsExhausted,
     OperationIdentityChanged,
     InvalidReply,
@@ -402,6 +437,12 @@ impl fmt::Display for JournalError {
             Self::InvalidPayloadDigest => {
                 formatter.write_str("payload digest must be 64 lowercase hexadecimal characters")
             }
+            Self::PayloadCanonicalization(reason) => write!(
+                formatter,
+                "payload cannot be represented under strict JCS: {reason}"
+            ),
+            Self::PayloadDigestMismatch => formatter
+                .write_str("canonical payload digest does not match the operation envelope"),
             Self::AttemptsExhausted => formatter.write_str("journal attempt counter exhausted"),
             Self::OperationIdentityChanged => {
                 formatter.write_str("retry changed immutable operation identity or payload")
@@ -432,15 +473,42 @@ mod tests {
     use serde::Deserialize;
     use std::collections::BTreeSet;
 
+    fn payload_json() -> &'static str {
+        r#"{"inspection":"unit-test","quantity":2}"#
+    }
+
     fn envelope() -> OperationEnvelope {
         OperationEnvelope {
             schema_version: OFFLINE_JOURNAL_SCHEMA_VERSION,
             operation_id: "op-001".to_owned(),
             aggregate_id: "job-001".to_owned(),
             expected_revision: 7,
-            payload_digest_sha256: "a".repeat(64),
+            payload_digest_sha256: crate::offline_payload_digest::canonical_payload_digest_sha256(
+                payload_json(),
+            )
+            .unwrap(),
             idempotency_key: "idem-001".to_owned(),
             supersedes_operation_id: RequiredNullableOperationId::Null(()),
+        }
+    }
+
+    fn prepared_entry() -> JournalEntry {
+        JournalEntry::prepare(envelope(), payload_json()).unwrap()
+    }
+
+    /// Constructs a deliberately unbound entry only to isolate reducer behavior
+    /// against the historical synthetic fault corpus, whose digest is the
+    /// placeholder "a" repeated 64 times. This test-only state cannot be created
+    /// through the public constructor and must never be dispatched or persisted.
+    fn entry_for_reducer_fault_corpus() -> JournalEntry {
+        let mut fixture_envelope = envelope();
+        fixture_envelope.payload_digest_sha256 = "a".repeat(64);
+        JournalEntry {
+            envelope: fixture_envelope,
+            payload: crate::offline_payload_digest::CanonicalPayload::from_json(payload_json())
+                .unwrap(),
+            state: JournalState::Prepared,
+            attempt_count: 0,
         }
     }
 
@@ -449,8 +517,41 @@ mod tests {
     }
 
     #[test]
+    fn prepared_entry_retains_exact_canonical_payload_bytes() {
+        let entry = prepared_entry();
+        assert_eq!(
+            std::str::from_utf8(entry.canonical_payload_utf8()).unwrap(),
+            r#"{"inspection":"unit-test","quantity":2}"#
+        );
+        assert_eq!(
+            entry.envelope().payload_digest_sha256,
+            crate::offline_payload_digest::canonical_payload_digest_sha256(payload_json()).unwrap()
+        );
+        assert_eq!(entry.attempt_count(), 0);
+        assert_eq!(entry.state(), &JournalState::Prepared);
+    }
+
+    #[test]
+    fn prepare_rejects_payload_digest_mismatch_before_creating_a_journal_entry() {
+        let envelope = envelope();
+        assert!(matches!(
+            JournalEntry::prepare(envelope, r#"{"inspection":"different","quantity":2}"#),
+            Err(JournalError::PayloadDigestMismatch)
+        ));
+    }
+
+    #[test]
+    fn prepare_rejects_non_jcs_payload_before_creating_a_journal_entry() {
+        let envelope = envelope();
+        assert!(matches!(
+            JournalEntry::prepare(envelope, r#"{"a":1,"a":2}"#),
+            Err(JournalError::PayloadCanonicalization(_))
+        ));
+    }
+
+    #[test]
     fn dispatch_state_is_unknown_not_success_until_an_authoritative_receipt() {
-        let mut entry = JournalEntry::prepare(envelope()).unwrap();
+        let mut entry = prepared_entry();
         entry.mark_attempt_started().unwrap();
         assert_eq!(entry.state, JournalState::OutcomeUnknown);
         assert_eq!(entry.attempt_count, 1);
@@ -458,7 +559,7 @@ mod tests {
 
     #[test]
     fn retry_must_reuse_the_exact_immutable_envelope() {
-        let entry = JournalEntry::prepare(envelope()).unwrap();
+        let entry = prepared_entry();
         assert!(entry.ensure_retry_identity(&entry.envelope.clone()).is_ok());
 
         let mut changed = entry.envelope.clone();
@@ -478,7 +579,7 @@ mod tests {
 
     #[test]
     fn duplicate_authoritative_receipt_is_idempotent_but_a_different_reply_is_not() {
-        let mut entry = JournalEntry::prepare(envelope()).unwrap();
+        let mut entry = prepared_entry();
         entry.mark_attempt_started().unwrap();
         let receipt = ServiceReply::Received {
             binding: operation_binding(),
@@ -508,7 +609,7 @@ mod tests {
 
     #[test]
     fn receipt_bound_to_a_different_operation_cannot_reconcile() {
-        let mut entry = JournalEntry::prepare(envelope()).unwrap();
+        let mut entry = prepared_entry();
         entry.mark_attempt_started().unwrap();
 
         for mismatch in 0..7 {
@@ -599,7 +700,7 @@ mod tests {
 
     #[test]
     fn malformed_or_non_advanced_conflict_reply_leaves_state_unknown() {
-        let mut entry = JournalEntry::prepare(envelope()).unwrap();
+        let mut entry = prepared_entry();
         entry.mark_attempt_started().unwrap();
         assert_eq!(
             entry.reconcile(&ServiceReply::Conflict {
@@ -622,7 +723,7 @@ mod tests {
 
     #[test]
     fn conflict_resolution_is_a_new_revision_bound_operation() {
-        let mut original = JournalEntry::prepare(envelope()).unwrap();
+        let mut original = prepared_entry();
         original.mark_attempt_started().unwrap();
         original
             .reconcile(&ServiceReply::Conflict {
@@ -639,7 +740,9 @@ mod tests {
         replacement.supersedes_operation_id =
             RequiredNullableOperationId::Value("op-001".to_owned());
 
-        let resolved = original.prepare_conflict_resolution(replacement).unwrap();
+        let resolved = original
+            .prepare_conflict_resolution(replacement, payload_json())
+            .unwrap();
         assert_eq!(resolved.state, JournalState::Prepared);
         assert_eq!(resolved.envelope.expected_revision, 9);
         assert_eq!(
@@ -653,7 +756,7 @@ mod tests {
 
     #[test]
     fn conflict_resolution_rejects_same_identity_or_wrong_revision() {
-        let mut original = JournalEntry::prepare(envelope()).unwrap();
+        let mut original = prepared_entry();
         original.mark_attempt_started().unwrap();
         original
             .reconcile(&ServiceReply::Conflict {
@@ -668,7 +771,7 @@ mod tests {
         replacement.supersedes_operation_id =
             RequiredNullableOperationId::Value("op-001".to_owned());
         assert!(matches!(
-            original.prepare_conflict_resolution(replacement.clone()),
+            original.prepare_conflict_resolution(replacement.clone(), payload_json()),
             Err(JournalError::ConflictResolutionMismatch(
                 "operation_id_reused"
             ))
@@ -677,7 +780,7 @@ mod tests {
         replacement.idempotency_key = "idem-002".to_owned();
         replacement.expected_revision = 8;
         assert!(matches!(
-            original.prepare_conflict_resolution(replacement),
+            original.prepare_conflict_resolution(replacement, payload_json()),
             Err(JournalError::ConflictResolutionMismatch(
                 "wrong_base_revision"
             ))
@@ -686,7 +789,7 @@ mod tests {
 
     #[test]
     fn unknown_future_service_reply_is_rejected_without_promoting_state() {
-        let mut entry = JournalEntry::prepare(envelope()).unwrap();
+        let mut entry = prepared_entry();
         entry.mark_attempt_started().unwrap();
         let decoded: Result<ServiceReply, _> =
             serde_json::from_str(r#"{"reply":"future_server_status"}"#);
@@ -699,7 +802,7 @@ mod tests {
         let mut bad = envelope();
         bad.payload_digest_sha256 = "A".repeat(64);
         assert_eq!(
-            JournalEntry::prepare(bad),
+            JournalEntry::prepare(bad, payload_json()),
             Err(JournalError::InvalidPayloadDigest)
         );
     }
@@ -753,7 +856,10 @@ mod tests {
                 "duplicate case id: {}",
                 case.case_id
             );
-            let mut entry = JournalEntry::prepare(envelope()).unwrap();
+            // Keep this reducer-only test aligned with the v2 corpus's
+            // synthetic placeholder digest. Payload ingress validation is
+            // separately tested through JournalEntry::prepare.
+            let mut entry = entry_for_reducer_fault_corpus();
             for _ in 0..case.attempts {
                 entry.mark_attempt_started().unwrap();
             }
