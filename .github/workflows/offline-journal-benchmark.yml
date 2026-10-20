@@ -10,6 +10,7 @@ on:
       - "sol-atlas-core/src/offline_payload_digest.rs"
       - "sol-atlas-core/src/offline_idempotency_fingerprint.rs"
       - "sol-atlas-core/fixtures/offline-journal-bundle-v1.json"
+      - "sol-atlas-core/schemas/offline-journal-bundle-v1.schema.json"
       - "sol-atlas-core/Cargo.toml"
       - "scripts/bench-offline-journal-bundle.sh"
 
@@ -64,6 +65,17 @@ jobs:
             (.raw_samples | length == 10) and
             (.stage_summaries | all(.[]; .sample_count == 2))
           ' offline-journal-benchmark-smoke.json
+
+      - name: Verify published bundle schema is valid JSON and has versioned semantic gates
+        if: ${{ hashFiles('sol-atlas-core/schemas/offline-journal-bundle-v1.schema.json') != '' }}
+        run: |
+          jq -e '
+            ."\$schema" == "https://json-schema.org/draft/2020-12/schema" and
+            ."\$id" == "urn:sol-atlas:offline-journal-bundle:1" and
+            .properties.schema_version.const == 1 and
+            .properties.records.items["\$ref"] == "#/\$defs/record" and
+            (."x-semantic-validation" | length >= 8)
+          ' sol-atlas-core/schemas/offline-journal-bundle-v1.schema.json
 
       - name: Independently verify frozen manifest bytes with system sha256sum
         if: ${{ hashFiles('sol-atlas-core/fixtures/offline-journal-bundle-v1.json') != '' }}
