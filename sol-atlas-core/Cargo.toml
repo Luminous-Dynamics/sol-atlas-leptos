@@ -14,3 +14,7 @@ log = "0.4"
 h3o = "0.10"
 jcs = { git = "https://github.com/unbounded-ai/jcs", rev = "d4b6cdfd72ed0073d2c9ac6e83497234e78403be" }
 sha2 = "0.10"
+
+[[bench]]
+name = "offline_journal_protocol"
+harness = false
