@@ -133,6 +133,9 @@ jobs:
             sa-economic-portfolio-v0.2-receipt.json
             sa-economic-portfolio-v0.2-search-receipt.json
             sa-economic-portfolio-v0.2-24-search-receipt.json
+            sa-portfolio-scenario-omission-normal-receipt.json
+            sa-portfolio-scenario-omission-stress-receipt.json
+            sa-portfolio-scenario-omission-floor-challenge-receipt.json
             sa-economic-portfolio-v0.2-comparison-benchmark.json
             sa-economic-portfolio-v0.2-24-search-benchmark.json
           if-no-files-found: ignore
