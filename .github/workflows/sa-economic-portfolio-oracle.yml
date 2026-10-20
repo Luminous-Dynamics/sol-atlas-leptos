@@ -1,0 +1,46 @@
+name: SA economic portfolio oracle
+
+on:
+  pull_request:
+    paths:
+      - "tools/sa-economic-portfolio-oracle/**"
+      - "docs/research/SA-ECONOMIC-PORTFOLIO-001.md"
+      - "docs/research/fixtures/sa-economic-portfolio-v0.1*"
+      - "docs/research/schemas/sa-economic-portfolio-v0.1.schema.json"
+      - ".github/workflows/sa-economic-portfolio-oracle.yml"
+  push:
+    branches: [main]
+    paths:
+      - "tools/sa-economic-portfolio-oracle/**"
+      - "docs/research/SA-ECONOMIC-PORTFOLIO-001.md"
+      - "docs/research/fixtures/sa-economic-portfolio-v0.1*"
+      - "docs/research/schemas/sa-economic-portfolio-v0.1.schema.json"
+
+permissions:
+  contents: read
+
+jobs:
+  exact-synthetic-oracle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out exact revision
+        uses: actions/checkout@v4
+
+      - name: Install pinned Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.96.0"
+
+      - name: Run reference oracle tests
+        run: cargo test --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml
+
+      - name: Produce known-answer receipt
+        run: cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml > sa-economic-portfolio-receipt.json
+
+      - name: Preserve receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sa-economic-portfolio-receipt
+          path: sa-economic-portfolio-receipt.json
+          if-no-files-found: ignore
