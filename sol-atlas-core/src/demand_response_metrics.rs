@@ -98,13 +98,15 @@ pub struct RegulationTrackingAssessment {
     pub mean_normalized_absolute_error: f64,
     pub p90_normalized_absolute_error: f64,
     pub max_normalized_absolute_error: f64,
+    /// FlexDC-Sim source-parity criterion: interpolated p90 absolute error <= threshold.
+    pub p90_threshold_satisfied: bool,
     pub error_threshold: f64,
     pub max_allowed_exceedance_fraction: f64,
     pub threshold_exceedance_count: usize,
     pub threshold_exceedance_fraction: f64,
     /// Implements the strict inequality used in the reference paper:
     /// exceedance fraction < allowed fraction, not <=.
-    pub tracking_requirement_satisfied: bool,
+    pub exceedance_rate_requirement_satisfied: bool,
 }
 
 /// Tracking metrics computed from an already normalized source error series.
@@ -122,11 +124,13 @@ pub struct NormalizedErrorTrackingAssessment {
     pub mean_normalized_absolute_error: f64,
     pub p90_normalized_absolute_error: f64,
     pub max_normalized_absolute_error: f64,
+    /// FlexDC-Sim source-parity criterion: interpolated p90 absolute error <= threshold.
+    pub p90_threshold_satisfied: bool,
     pub error_threshold: f64,
     pub max_allowed_exceedance_fraction: f64,
     pub threshold_exceedance_count: usize,
     pub threshold_exceedance_fraction: f64,
-    pub tracking_requirement_satisfied: bool,
+    pub exceedance_rate_requirement_satisfied: bool,
 }
 
 /// Assess an already normalized signed tracking-error series.
@@ -206,7 +210,8 @@ pub fn assess_normalized_rsr_tracking_errors(
         max_allowed_exceedance_fraction,
         threshold_exceedance_count,
         threshold_exceedance_fraction,
-        tracking_requirement_satisfied: threshold_exceedance_fraction
+        p90_threshold_satisfied: p90_normalized_absolute_error <= error_threshold,
+        exceedance_rate_requirement_satisfied: threshold_exceedance_fraction
             < max_allowed_exceedance_fraction,
     })
 }
@@ -303,7 +308,8 @@ pub fn assess_rsr_tracking(
         max_allowed_exceedance_fraction,
         threshold_exceedance_count,
         threshold_exceedance_fraction,
-        tracking_requirement_satisfied: threshold_exceedance_fraction
+        p90_threshold_satisfied: p90_normalized_absolute_error <= error_threshold,
+        exceedance_rate_requirement_satisfied: threshold_exceedance_fraction
             < max_allowed_exceedance_fraction,
     })
 }
@@ -534,10 +540,11 @@ mod tests {
         assert_eq!(result.sample_count, 10);
         assert_eq!(result.threshold_exceedance_count, 1);
         assert_eq!(result.threshold_exceedance_fraction, 0.1);
-        assert!(!result.tracking_requirement_satisfied);
-        // Linear p90 can be less than the threshold despite a failing strict
-        // exceedance-rate condition; report both, never conflate them.
+        assert!(!result.exceedance_rate_requirement_satisfied);
+        // FlexDC-Sim checks p90 > 0.3, while the stricter empirical
+        // exceedance-rate metric rejects exactly 10%. These are distinct.
         assert!(result.p90_normalized_absolute_error < 0.3);
+        assert!(result.p90_threshold_satisfied);
         assert_eq!(result.max_normalized_absolute_error, 0.8);
     }
 
@@ -552,7 +559,8 @@ mod tests {
 
         assert_eq!(result.threshold_exceedance_count, 1);
         assert!(result.threshold_exceedance_fraction < 0.1);
-        assert!(result.tracking_requirement_satisfied);
+        assert!(result.exceedance_rate_requirement_satisfied);
+        assert!(result.p90_threshold_satisfied);
     }
 
     #[test]
@@ -567,7 +575,8 @@ mod tests {
         assert_eq!(result.normalized_absolute_errors[9], 0.3);
         assert_eq!(result.threshold_exceedance_count, 0);
         assert_eq!(result.threshold_exceedance_fraction, 0.0);
-        assert!(result.tracking_requirement_satisfied);
+        assert!(result.exceedance_rate_requirement_satisfied);
+        assert!(result.p90_threshold_satisfied);
     }
 
     #[test]
@@ -583,7 +592,8 @@ mod tests {
         assert!((result.p90_normalized_absolute_error - 0.08).abs() < 1.0e-12);
         assert_eq!(result.threshold_exceedance_count, 1);
         assert_eq!(result.threshold_exceedance_fraction, 0.1);
-        assert!(!result.tracking_requirement_satisfied);
+        assert!(!result.exceedance_rate_requirement_satisfied);
+        assert!(result.p90_threshold_satisfied);
     }
 
     #[test]
