@@ -456,6 +456,21 @@ mod tests {
     }
 
     #[test]
+    fn rsr_error_equal_to_threshold_is_not_an_exceedance() {
+        let target = vec![Some(100.0); 10];
+        let mut measured = vec![Some(100.0); 10];
+        measured[9] = Some(103.0);
+
+        let result = assess_reference_rsr_tracking(&target, &measured, 10.0)
+            .expect("aligned finite power trace should be assessable");
+
+        assert_eq!(result.normalized_absolute_errors[9], 0.3);
+        assert_eq!(result.threshold_exceedance_count, 0);
+        assert_eq!(result.threshold_exceedance_fraction, 0.0);
+        assert!(result.tracking_requirement_satisfied);
+    }
+
+    #[test]
     fn rsr_rejects_missing_samples_instead_of_dropping_them() {
         let target = vec![Some(100.0), None, Some(100.0)];
         let measured = vec![Some(100.0); 3];
@@ -523,6 +538,22 @@ mod tests {
         assert_eq!(result.baseline_energy_kwh, 0.0);
         assert_eq!(result.net_energy_reduction_kwh, 0.0);
         assert_eq!(result.net_energy_reduction_fraction, None);
+    }
+
+    #[test]
+    fn edr_rebound_can_exceed_curtailment_and_make_net_reduction_negative() {
+        let baseline = vec![Some(100.0), Some(100.0)];
+        let event = vec![Some(80.0), Some(150.0)];
+        let durations = vec![1.0, 1.0];
+
+        let result = assess_edr_curtailment(&baseline, &event, &durations)
+            .expect("aligned finite power trace should be assessable");
+
+        assert_eq!(result.gross_curtailment_kwh, 20.0);
+        assert_eq!(result.rebound_energy_kwh, 50.0);
+        assert_eq!(result.net_energy_reduction_kwh, -30.0);
+        assert_eq!(result.net_energy_reduction_fraction, Some(-0.15));
+        assert_eq!(result.peak_event_power_excess_over_baseline_kw, 50.0);
     }
 
     #[test]
