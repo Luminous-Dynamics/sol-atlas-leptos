@@ -2375,3 +2375,105 @@ mod owner_scope_tests {
         assert!(empty_namespace.validate().is_err());
     }
 }
+
+
+#[cfg(test)]
+mod staged_import_tests {
+    use super::{
+        BundleStageReport, STAGED_IMPORT_SCHEMA_VERSION, STORED_OPERATION_SCHEMA_VERSION,
+        StagedImportRecordV1, StoredOperationV1, same_immutable_operation,
+    };
+    use sol_atlas_core::offline_idempotency_fingerprint::{
+        REQUEST_FINGERPRINT_SCHEMA_VERSION, canonical_request_fingerprint_sha256,
+    };
+    use sol_atlas_core::offline_journal::{
+        OFFLINE_JOURNAL_SCHEMA_VERSION, JournalEntry, JournalState, OperationEnvelope,
+        RequiredNullableOperationId,
+    };
+    use sol_atlas_core::offline_payload_digest::canonical_payload_digest_sha256;
+
+    const PAYLOAD: &str = r#"{"value":17}"#;
+
+    fn stored_operation() -> StoredOperationV1 {
+        let envelope = OperationEnvelope {
+            schema_version: OFFLINE_JOURNAL_SCHEMA_VERSION,
+            operation_id: "op-staging-1".to_owned(),
+            aggregate_id: "aggregate-staging-1".to_owned(),
+            expected_revision: 4,
+            payload_digest_sha256: canonical_payload_digest_sha256(PAYLOAD).unwrap(),
+            idempotency_key: "idem-staging-1".to_owned(),
+            supersedes_operation_id: RequiredNullableOperationId::Null(()),
+        };
+        let entry = JournalEntry::prepare(envelope, PAYLOAD).unwrap();
+        let canonical_payload = std::str::from_utf8(entry.canonical_payload_utf8()).unwrap();
+        let owner_scope = "tenant-staging".to_owned();
+        let operation_namespace = "work-order.apply".to_owned();
+        let fingerprint = canonical_request_fingerprint_sha256(
+            &owner_scope,
+            &operation_namespace,
+            entry.envelope(),
+            canonical_payload,
+        )
+        .unwrap();
+        StoredOperationV1 {
+            schema_version: STORED_OPERATION_SCHEMA_VERSION,
+            owner_scope,
+            operation_namespace,
+            request_fingerprint_schema_version: REQUEST_FINGERPRINT_SCHEMA_VERSION,
+            request_fingerprint_sha256: fingerprint,
+            snapshot: entry.to_snapshot().unwrap(),
+        }
+    }
+
+    #[test]
+    fn staged_record_validates_owner_fingerprint_and_source_digest_shape() {
+        let staged = StagedImportRecordV1 {
+            schema_version: STAGED_IMPORT_SCHEMA_VERSION,
+            source_bundle_sha256: "a".repeat(64),
+            operation: stored_operation(),
+        };
+        assert!(staged.validate("op-staging-1").is_ok());
+
+        let mut bad_digest = staged.clone();
+        bad_digest.source_bundle_sha256 = "not-a-digest".to_owned();
+        assert!(bad_digest.validate("op-staging-1").is_err());
+
+        let mut bad_fingerprint = staged.clone();
+        bad_fingerprint.operation.request_fingerprint_sha256 = "b".repeat(64);
+        assert!(bad_fingerprint.validate("op-staging-1").is_err());
+
+        let mut wrong_owner = staged.clone();
+        wrong_owner.operation.owner_scope = "other-tenant".to_owned();
+        assert!(wrong_owner.validate("op-staging-1").is_err());
+    }
+
+    #[test]
+    fn immutable_identity_is_separate_from_local_state_progress() {
+        let original = stored_operation();
+        let mut progressed = original.clone();
+        progressed.snapshot.state = JournalState::OutcomeUnknown;
+        progressed.snapshot.attempt_count = 1;
+        assert!(progressed.validate_entry("op-staging-1").is_ok());
+        assert!(same_immutable_operation(&original, &progressed));
+
+        let mut changed_revision = original.clone();
+        changed_revision.snapshot.envelope.expected_revision += 1;
+        assert!(!same_immutable_operation(&original, &changed_revision));
+
+        let mut changed_payload = original.clone();
+        changed_payload.snapshot.canonical_payload_json = r#"{"value":18}"#.to_owned();
+        assert!(!same_immutable_operation(&original, &changed_payload));
+
+        let mut changed_scope = original.clone();
+        changed_scope.owner_scope = "other-tenant".to_owned();
+        assert!(!same_immutable_operation(&original, &changed_scope));
+    }
+
+    #[test]
+    fn stage_report_starts_with_no_claimed_import_or_dispatch() {
+        let report = BundleStageReport::default();
+        assert_eq!(report.staged_records, 0);
+        assert_eq!(report.exact_duplicates, 0);
+        assert_eq!(report.already_present_records, 0);
+    }
+}
