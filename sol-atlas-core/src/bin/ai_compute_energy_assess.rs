@@ -1,7 +1,7 @@
 //! Evaluate a compute-energy scenario JSON file with a scheduling baseline.
 //!
 //! Usage:
-//!   cargo run -p sol-atlas-core --bin ai_compute_energy_assess -- <scenario.json> [earliest-ready|lowest-cost|lowest-carbon]
+//!   cargo run -p sol-atlas-core --bin ai_compute_energy_assess -- <scenario.json> [earliest-ready|lowest-cost|lowest-carbon|pareto]
 //!
 //! Output is a JSON schedule assessment on stdout. Exit codes:
 //!   0 = feasible or capacity-limited assessment completed
@@ -15,7 +15,7 @@
 //!   70 = assessment could not be serialized
 
 use sol_atlas_core::ai_compute_energy::{
-    AssessmentStatus, Request, SchedulingPolicy, schedule_deferrable,
+    AssessmentStatus, Request, SchedulingPolicy, compare_scheduling_policies, schedule_deferrable,
 };
 use std::env;
 use std::fs;
@@ -30,6 +30,16 @@ fn parse_policy(value: &str) -> Option<SchedulingPolicy> {
     }
 }
 
+fn exit_code(status: AssessmentStatus) -> i32 {
+    match status {
+        AssessmentStatus::Feasible | AssessmentStatus::CapacityLimited => 0,
+        AssessmentStatus::Infeasible => 2,
+        AssessmentStatus::Indeterminate => 3,
+        AssessmentStatus::Unsupported => 4,
+        AssessmentStatus::Invalid => 5,
+    }
+}
+
 fn main() {
     let mut args = env::args_os().skip(1);
     let Some(path) = args.next() else {
@@ -39,19 +49,28 @@ fn main() {
         process::exit(64);
     };
 
-    let policy = match args.next() {
-        None => SchedulingPolicy::EarliestReady,
-        Some(raw) => match raw.to_str().and_then(parse_policy) {
-            Some(policy) => policy,
+    let (pareto_mode, policy) = match args.next() {
+        None => (false, SchedulingPolicy::EarliestReady),
+        Some(raw) => match raw.to_str() {
+            Some("pareto") => (true, SchedulingPolicy::EarliestReady),
+            Some(value) => match parse_policy(value) {
+                Some(policy) => (false, policy),
+                None => {
+                    eprintln!(
+                        "policy must be earliest-ready, lowest-cost, lowest-carbon, or pareto"
+                    );
+                    process::exit(64);
+                }
+            },
             None => {
-                eprintln!("policy must be earliest-ready, lowest-cost, or lowest-carbon");
+                eprintln!("policy argument must be valid UTF-8");
                 process::exit(64);
             }
         },
     };
     if args.next().is_some() {
         eprintln!(
-            "usage: ai_compute_energy_assess <scenario.json> [earliest-ready|lowest-cost|lowest-carbon]"
+            "usage: ai_compute_energy_assess <scenario.json> [earliest-ready|lowest-cost|lowest-carbon|pareto]"
         );
         process::exit(64);
     }
@@ -72,16 +91,21 @@ fn main() {
         }
     };
 
-    let result = schedule_deferrable(&request, policy);
-    let exit_code = match result.status {
-        AssessmentStatus::Feasible | AssessmentStatus::CapacityLimited => 0,
-        AssessmentStatus::Infeasible => 2,
-        AssessmentStatus::Indeterminate => 3,
-        AssessmentStatus::Unsupported => 4,
-        AssessmentStatus::Invalid => 5,
+    let (json_result, exit_code) = if pareto_mode {
+        let result = compare_scheduling_policies(&request);
+        (
+            serde_json::to_string_pretty(&result),
+            exit_code(result.status),
+        )
+    } else {
+        let result = schedule_deferrable(&request, policy);
+        (
+            serde_json::to_string_pretty(&result),
+            exit_code(result.status),
+        )
     };
 
-    match serde_json::to_string_pretty(&result) {
+    match json_result {
         Ok(json) => println!("{json}"),
         Err(error) => {
             eprintln!("could not serialize assessment: {error}");
