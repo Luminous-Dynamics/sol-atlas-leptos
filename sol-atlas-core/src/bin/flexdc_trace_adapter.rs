@@ -515,7 +515,7 @@ mod tests {
     }
 
     #[test]
-    fn source_revision_must_be_canonical_lowercase_commit_sha() {
+    fn sha256_known_answer_is_correct() {
         assert_eq!(
             sha256_hex(b"abc"),
             "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
