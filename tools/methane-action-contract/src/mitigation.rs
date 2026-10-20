@@ -549,9 +549,7 @@ fn median_sorted(values: &[f64]) -> Option<f64> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        ArtifactProvenance, DataUse, FacilityId, MeasurementCalibration, TermsReview,
-    };
+    use crate::{ArtifactProvenance, DataUse, FacilityId, TermsReview};
 
     const SOURCE_BYTES: &[u8] = b"synthetic source content v1";
     const TERMS_BYTES: &[u8] = b"synthetic terms snapshot v1";
