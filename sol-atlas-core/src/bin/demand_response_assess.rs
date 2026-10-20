@@ -192,7 +192,11 @@ fn validate_reference_metadata(metadata: &RsrReferenceMetadata) -> Result<(), St
         ),
     ] {
         if let Some(digest) = digest {
-            if digest.len() != 64 || !digest.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+            if digest.len() != 64
+                || !digest
+                    .bytes()
+                    .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+            {
                 return Err(format!(
                     "rsr_reference.metadata.{field} must be a 64-character SHA-256 hex digest"
                 ));
@@ -201,10 +205,9 @@ fn validate_reference_metadata(metadata: &RsrReferenceMetadata) -> Result<(), St
     }
     if metadata.source_name == "FlexDC-Sim" {
         if metadata.source_revision.len() != 40
-            || !metadata
-                .source_revision
-                .bytes()
-                .all(|byte| byte.is_ascii_hexdigit())
+            || !metadata.source_revision.bytes().all(|byte| {
+                byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte)
+            })
         {
             return Err(
                 "FlexDC-Sim source_revision must be a 40-character Git commit SHA".to_owned(),
