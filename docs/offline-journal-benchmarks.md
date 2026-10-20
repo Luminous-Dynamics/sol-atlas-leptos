@@ -2,6 +2,8 @@
 
 **Status:** benchmark harness implemented; no performance results have been measured or claimed yet.
 
+The CI workflow also runs a ten-sample smoke cohort on GitHub-hosted `ubuntu-latest` and uploads `offline-journal-bench-<commit SHA>` containing raw CSV and the build log. Treat this only as a noisy, shared-virtualized CI baseline; it is useful for detecting gross regressions and proving that the harness executes, not for a headline latency or industry comparison.
+
 The standalone Rust benchmark measures the CPU-side cost of canonical payload hashing, constructing an immutable canonical-payload value, deriving the scoped request fingerprint, preparing a journal entry, and serializing/decoding/revalidating a snapshot. It emits per-sample CSV rows and p50/p95/p99 summary rows for four exact payload sizes. It does **not** measure IndexedDB commit latency, browser event-loop behavior, network timing, server-side idempotency, or end-to-end queue recovery.
 
 ## Run reproducibly
@@ -20,7 +22,7 @@ From the repository root:
 
 Use the optimized `cargo bench` profile. The benchmark defaults to 50 measured samples per operation; the environment variable accepts 5–2,000. Every CSV sample includes payload bytes, sample index, iterations and nanoseconds per operation. Summary rows include nearest-rank p50/p95/p99 and operations/second computed from p50. Header comments record package version, operating system, architecture, sample count and the supplied source SHA.
 
-The harness performs up to eight warm-up iterations per operation outside timed samples. The default sample count is enough to establish an initial view, not to establish a publication-grade performance claim. For comparative work, run multiple independent processes on the same named hardware under stable thermal/power conditions. Archive the full raw CSV, stderr/build log, exact commit SHA, Rust compiler version, CPU model, OS/kernel, power mode, and exact command. Do not trim out slow samples or merge results from different devices into one percentile distribution.
+The harness performs up to eight warm-up iterations per operation outside timed samples. The default sample count is enough to establish an initial view, not to establish a publication-grade performance claim. The CI artifact records timestamp, source revision, Rust compiler version, host kernel string, CPU model and runner class. It is still not a controlled benchmark environment. For comparative work, run multiple independent processes on the same named hardware under stable thermal/power conditions. Archive the full raw CSV, stderr/build log, exact commit SHA, Rust compiler version, CPU model, OS/kernel, power mode, and exact command. Do not trim out slow samples or merge results from different devices into one percentile distribution.
 
 ## Workloads
 
