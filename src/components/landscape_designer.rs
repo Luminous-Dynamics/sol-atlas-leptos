@@ -8,6 +8,10 @@
 //! All canvas coordinates are arbitrary project-local drawing units, not metres or map coordinates.
 //! Georeferencing and standards-based exchange must be explicit future operations.
 
+use crate::landscape::{
+    FRAME_KIND, GEOMETRY_REPRESENTATION, GEOMETRY_STATUS, SNAPSHOT_SCHEMA, SNAPSHOT_SCHEMA_URI,
+    validate_snapshot,
+};
 use leptos::prelude::*;
 use leptos_router::components::A;
 use serde_json::{Value, json};
@@ -167,18 +171,18 @@ fn normalized_project_name(value: &str) -> String {
 
 fn snapshot_json(project_name: &str, scale: LandscapeScale, features: &[DesignFeature]) -> Value {
     json!({
-        "schema": "luminous.landscape-design.v0",
-        "schema_uri": "https://luminousdynamics.io/schemas/landscape-design-v0.schema.json",
+        "schema": SNAPSHOT_SCHEMA,
+        "schema_uri": SNAPSHOT_SCHEMA_URI,
         "project_name": project_name,
         "scope": scale.key(),
         "coordinate_frame": {
-            "kind": "LOCAL_CARTESIAN_DRAWING_UNITS",
+            "kind": FRAME_KIND,
             "origin": "canvas top-left",
             "x_axis": "right",
             "y_axis": "down",
             "georeferenced": false
         },
-        "geometry_status": "schematic-design-intent",
+        "geometry_status": GEOMETRY_STATUS,
         "features": features.iter().map(|feature| json!({
             "id": format!("feature-{:04}", feature.id),
             "kind": feature.kind.key(),
@@ -187,7 +191,7 @@ fn snapshot_json(project_name: &str, scale: LandscapeScale, features: &[DesignFe
             "y_du": feature.y_du,
             "status": "design-intent",
             "source": "user-authored-schematic",
-            "geometry_representation": "schematic-symbol-anchor-v0"
+            "geometry_representation": GEOMETRY_REPRESENTATION
         })).collect::<Vec<_>>()
     })
 }
@@ -287,7 +291,7 @@ pub fn LandscapeDesigner() -> impl IntoView {
             active_scale.get_untracked(),
             &features.get_untracked(),
         );
-        match crate::landscape::validate_snapshot(&value) {
+        match validate_snapshot(&value) {
             Ok(()) => {
                 set_export_text.set(
                     serde_json::to_string_pretty(&value).unwrap_or_else(|error| {
