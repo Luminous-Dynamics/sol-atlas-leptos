@@ -151,11 +151,29 @@ pub fn assess_rsr_tracking(
     for (index, (target, measured)) in target_power_kw.iter().zip(measured_power_kw).enumerate() {
         let target = checked_power(*target, "target_power_kw", index)?;
         let measured = checked_power(*measured, "measured_power_kw", index)?;
-        errors.push((measured - target).abs() / reserve_capacity_kw);
+        let normalized_error = (measured - target).abs() / reserve_capacity_kw;
+        if !normalized_error.is_finite() {
+            return Err(MetricError::InvalidObservation {
+                series: "normalized_absolute_error",
+                index,
+                reason: "derived normalized error is non-finite",
+            });
+        }
+        errors.push(normalized_error);
     }
 
     let sample_count = errors.len();
-    let mean_normalized_absolute_error = errors.iter().sum::<f64>() / sample_count as f64;
+    let mut mean_normalized_absolute_error = 0.0;
+    for (index, error) in errors.iter().enumerate() {
+        mean_normalized_absolute_error +=
+            (error - mean_normalized_absolute_error) / (index + 1) as f64;
+        if !mean_normalized_absolute_error.is_finite() {
+            return Err(MetricError::InvalidScalar {
+                field: "mean_normalized_absolute_error",
+                reason: "derived mean is non-finite",
+            });
+        }
+    }
     let mut sorted_errors = errors.clone();
     sorted_errors.sort_by(f64::total_cmp);
     let p90_normalized_absolute_error =
@@ -257,25 +275,55 @@ pub fn assess_edr_curtailment(
             });
         }
 
-        baseline_energy_kwh += baseline * duration;
-        event_energy_kwh += event * duration;
+        let baseline_interval_kwh = baseline * duration;
+        let event_interval_kwh = event * duration;
         let delta_energy_kwh = (baseline - event) * duration;
+        if !baseline_interval_kwh.is_finite()
+            || !event_interval_kwh.is_finite()
+            || !delta_energy_kwh.is_finite()
+        {
+            return Err(MetricError::InvalidObservation {
+                series: "derived_energy_kwh",
+                index,
+                reason: "derived interval energy is non-finite",
+            });
+        }
+        baseline_energy_kwh += baseline_interval_kwh;
+        event_energy_kwh += event_interval_kwh;
         if delta_energy_kwh > 0.0 {
             gross_curtailment_kwh += delta_energy_kwh;
         } else if delta_energy_kwh < 0.0 {
             rebound_energy_kwh += -delta_energy_kwh;
             rebound_interval_count += 1;
         }
+        duration_hours += duration;
+        if !baseline_energy_kwh.is_finite()
+            || !event_energy_kwh.is_finite()
+            || !gross_curtailment_kwh.is_finite()
+            || !rebound_energy_kwh.is_finite()
+            || !duration_hours.is_finite()
+        {
+            return Err(MetricError::InvalidObservation {
+                series: "derived_energy_kwh",
+                index,
+                reason: "cumulative energy or duration is non-finite",
+            });
+        }
         peak_baseline_power_kw = peak_baseline_power_kw.max(baseline);
         peak_event_power_kw = peak_event_power_kw.max(event);
         peak_event_power_excess_over_baseline_kw =
             peak_event_power_excess_over_baseline_kw.max(event - baseline);
-        duration_hours += duration;
     }
 
     let net_energy_reduction_kwh = baseline_energy_kwh - event_energy_kwh;
     let net_energy_reduction_fraction =
         (baseline_energy_kwh > 0.0).then_some(net_energy_reduction_kwh / baseline_energy_kwh);
+    if net_energy_reduction_fraction.is_some_and(|fraction| !fraction.is_finite()) {
+        return Err(MetricError::InvalidScalar {
+            field: "net_energy_reduction_fraction",
+            reason: "derived reduction fraction is non-finite",
+        });
+    }
 
     Ok(CurtailmentAssessment {
         sample_count: baseline_power_kw.len(),
@@ -493,6 +541,37 @@ mod tests {
             Err(MetricError::InvalidObservation {
                 series: "baseline_power_kw",
                 index: 1,
+                ..
+            })
+        ));
+    }
+
+    #[test]
+    fn rsr_rejects_non_finite_derived_error_from_finite_inputs() {
+        let target = vec![Some(1.0e308)];
+        let measured = vec![Some(0.0)];
+
+        assert!(matches!(
+            assess_reference_rsr_tracking(&target, &measured, 1.0e-308),
+            Err(MetricError::InvalidObservation {
+                series: "normalized_absolute_error",
+                index: 0,
+                ..
+            })
+        ));
+    }
+
+    #[test]
+    fn edr_rejects_non_finite_derived_energy_from_finite_inputs() {
+        let baseline = vec![Some(1.0e308)];
+        let event = vec![Some(0.0)];
+        let durations = vec![1.0e308];
+
+        assert!(matches!(
+            assess_edr_curtailment(&baseline, &event, &durations),
+            Err(MetricError::InvalidObservation {
+                series: "derived_energy_kwh",
+                index: 0,
                 ..
             })
         ));
