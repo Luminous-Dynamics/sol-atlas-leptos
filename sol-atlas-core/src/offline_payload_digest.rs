@@ -61,16 +61,12 @@ impl std::error::Error for PayloadDigestError {
 /// numbers, and integers that cannot be represented exactly under the JCS
 /// IEEE-754 number model. Store large exact integers as strings, as prescribed
 /// by RFC 8785 Appendix D.
-pub fn canonicalize_payload_json(
-    payload_json: &str,
-) -> Result<Vec<u8>, PayloadDigestError> {
+pub fn canonicalize_payload_json(payload_json: &str) -> Result<Vec<u8>, PayloadDigestError> {
     jcs::canonicalize_to_vec(payload_json).map_err(PayloadDigestError::Canonicalization)
 }
 
 /// Computes lowercase hexadecimal SHA-256 over canonical RFC 8785 UTF-8 bytes.
-pub fn canonical_payload_digest_sha256(
-    payload_json: &str,
-) -> Result<String, PayloadDigestError> {
+pub fn canonical_payload_digest_sha256(payload_json: &str) -> Result<String, PayloadDigestError> {
     let canonical = canonicalize_payload_json(payload_json)?;
     let digest = Sha256::digest(&canonical);
     Ok(lower_hex(&digest))
@@ -121,8 +117,8 @@ fn lower_hex(bytes: &[u8]) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        canonical_payload_digest_sha256, canonicalize_payload_json, verify_payload_digest,
-        PayloadDigestError,
+        PayloadDigestError, canonical_payload_digest_sha256, canonicalize_payload_json,
+        verify_payload_digest,
     };
     use serde::Deserialize;
 
@@ -160,10 +156,9 @@ mod tests {
 
     #[test]
     fn frozen_rfc8785_digest_corpus_matches_byte_for_byte() {
-        let corpus: DigestCorpus = serde_json::from_str(include_str!(
-            "../fixtures/offline-payload-digest-v1.json"
-        ))
-        .expect("payload digest corpus must match its frozen schema");
+        let corpus: DigestCorpus =
+            serde_json::from_str(include_str!("../fixtures/offline-payload-digest-v1.json"))
+                .expect("payload digest corpus must match its frozen schema");
         assert_eq!(corpus.schema_version, 1);
         assert!(!corpus.vectors.is_empty());
 
@@ -192,10 +187,9 @@ mod tests {
 
     #[test]
     fn rfc8785_appendix_b_binary64_number_vectors_match_exactly() {
-        let corpus: DigestCorpus = serde_json::from_str(include_str!(
-            "../fixtures/offline-payload-digest-v1.json"
-        ))
-        .expect("payload digest corpus must match its frozen schema");
+        let corpus: DigestCorpus =
+            serde_json::from_str(include_str!("../fixtures/offline-payload-digest-v1.json"))
+                .expect("payload digest corpus must match its frozen schema");
 
         assert_eq!(corpus.number_vectors.len(), 26);
         for vector in corpus.number_vectors {
@@ -220,10 +214,9 @@ mod tests {
 
     #[test]
     fn strict_jcs_rejects_duplicate_keys_and_out_of_model_values() {
-        let corpus: DigestCorpus = serde_json::from_str(include_str!(
-            "../fixtures/offline-payload-digest-v1.json"
-        ))
-        .expect("payload digest corpus must match its frozen schema");
+        let corpus: DigestCorpus =
+            serde_json::from_str(include_str!("../fixtures/offline-payload-digest-v1.json"))
+                .expect("payload digest corpus must match its frozen schema");
 
         assert!(!corpus.invalid_cases.is_empty());
         for case in corpus.invalid_cases {
