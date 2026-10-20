@@ -137,6 +137,12 @@ fn starter_features() -> Vec<DesignFeature> {
     ]
 }
 
+fn remove_feature(features: &mut Vec<DesignFeature>, id: u32) -> bool {
+    let original_len = features.len();
+    features.retain(|feature| feature.id != id);
+    features.len() != original_len
+}
+
 fn normalized_project_name(value: &str) -> String {
     let trimmed = value.trim();
     if trimmed.is_empty() {
@@ -300,7 +306,9 @@ pub fn LandscapeDesigner() -> impl IntoView {
 
     let delete_selected = move |_| {
         if let Some(id) = selected_feature_id.get_untracked() {
-            set_features.update(|items| items.retain(|feature| feature.id != id));
+            set_features.update(|items| {
+                remove_feature(items, id);
+            });
             set_selected_feature_id.set(None);
             set_export_text.set(String::new());
             set_download_status.set(String::new());
@@ -574,7 +582,10 @@ mod tests {
     fn blank_project_names_fall_back_to_a_valid_default() {
         assert_eq!(normalized_project_name(""), "Untitled landscape");
         assert_eq!(normalized_project_name("   "), "Untitled landscape");
-        assert_eq!(normalized_project_name("  Meadow Commons  "), "Meadow Commons");
+        assert_eq!(
+            normalized_project_name("  Meadow Commons  "),
+            "Meadow Commons"
+        );
     }
 
     #[test]
@@ -617,6 +628,20 @@ mod tests {
         let unique: std::collections::HashSet<u32> = ids.iter().copied().collect();
         assert_eq!(unique.len(), ids.len());
         assert!(ids.windows(2).all(|pair| pair[0] < pair[1]));
+    }
+
+    #[test]
+    fn removing_selected_feature_preserves_unselected_features() {
+        let mut features = starter_features();
+        let removed_id = features.last().unwrap().id;
+
+        assert!(remove_feature(&mut features, removed_id));
+        assert_eq!(features.len(), 6);
+        assert!(!features.iter().any(|feature| feature.id == removed_id));
+
+        let before = features.clone();
+        assert!(!remove_feature(&mut features, u32::MAX));
+        assert_eq!(features, before);
     }
 
     #[test]
