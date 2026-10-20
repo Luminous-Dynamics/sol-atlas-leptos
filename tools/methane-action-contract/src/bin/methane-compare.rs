@@ -1,6 +1,6 @@
 use methane_action_contract::census::{BenchmarkCase, SystemSubmission};
 use methane_action_contract::comparison::{PairedComparisonReport, compare_submissions};
-use methane_action_contract::sha256_hex;
+use methane_action_contract::{executable_sha256, sha256_hex};
 use serde::{Deserialize, Serialize};
 use std::io::{self, Read, Write};
 use std::process::ExitCode;
@@ -21,6 +21,7 @@ struct ComparisonReceipt {
     receipt_schema_version: u32,
     evaluator: &'static str,
     evaluator_version: &'static str,
+    evaluator_binary_sha256: String,
     input_sha256: String,
     input_bytes: usize,
     comparison_status: &'static str,
@@ -56,6 +57,13 @@ fn main() -> ExitCode {
     }
 
     let input_sha256 = sha256_hex(&input_bytes);
+    let evaluator_binary_sha256 = match executable_sha256() {
+        Ok(digest) => digest,
+        Err(error) => {
+            eprintln!("methane-compare: failed to hash evaluator executable: {error}");
+            return ExitCode::FAILURE;
+        }
+    };
     let report = compare_submissions(
         &input.cases,
         &input.baseline,
@@ -68,6 +76,7 @@ fn main() -> ExitCode {
         receipt_schema_version: 1,
         evaluator: "methane-action-contract",
         evaluator_version: env!("CARGO_PKG_VERSION"),
+        evaluator_binary_sha256,
         input_sha256,
         input_bytes: input_bytes.len(),
         comparison_status: if valid { "valid" } else { "invalid" },
