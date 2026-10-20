@@ -7,6 +7,7 @@ on:
       - "docs/research/SA-ECONOMIC-PORTFOLIO-001.md"
       - "docs/research/SA-PORTFOLIO-BENCHMARK-PROTOCOL-001.md"
       - "docs/research/SA-PORTFOLIO-OR-SOLVER-BASELINE-001.md"
+      - "docs/research/SA-PORTFOLIO-SCENARIO-ROBUSTNESS-001.md"
       - "docs/research/fixtures/sa-economic-portfolio-v0.1*"
       - "docs/research/fixtures/sa-economic-portfolio-v0.2*"
       - "docs/research/schemas/sa-economic-portfolio-v0.1.schema.json"
@@ -24,6 +25,7 @@ on:
       - "docs/research/SA-PORTFOLIO-SCALE-001.md"
       - "docs/research/SA-PORTFOLIO-BENCHMARK-PROTOCOL-001.md"
       - "docs/research/SA-PORTFOLIO-OR-SOLVER-BASELINE-001.md"
+      - "docs/research/SA-PORTFOLIO-SCENARIO-ROBUSTNESS-001.md"
 
 permissions:
   contents: read
