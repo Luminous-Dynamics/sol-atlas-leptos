@@ -601,9 +601,7 @@ pub fn evaluate(input: &Input) -> Result<Evaluation, String> {
     feasible_portfolios.sort_by_key(portfolio_key);
     if feasible_portfolios.len() as u64 + rejection_reason_counts.total() != candidate_subset_count
     {
-        return Err(
-            "internal accounting error: subset dispositions do not reconcile".to_owned(),
-        );
+        return Err("internal accounting error: subset dispositions do not reconcile".to_owned());
     }
 
     let mut pareto_frontier = Vec::new();
