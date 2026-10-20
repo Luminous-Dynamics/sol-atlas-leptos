@@ -446,7 +446,7 @@ fn is_canonical_sha256(value: &str) -> bool {
 ///
 /// This is a descriptive per-system interval. Comparing systems still requires a
 /// paired or cluster-aware design when they share sites, scenes, or time windows.
-fn wilson_interval_95(successes: usize, trials: usize) -> Option<(f64, f64)> {
+pub(crate) fn wilson_interval_95(successes: usize, trials: usize) -> Option<(f64, f64)> {
     if trials == 0 || successes > trials {
         return None;
     }
