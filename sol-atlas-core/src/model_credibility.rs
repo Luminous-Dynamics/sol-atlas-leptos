@@ -391,17 +391,16 @@ mod tests {
         use serde_json::Value;
 
         match (expected, actual) {
-            (Value::Number(left), Value::Number(right)) => {
-                match (left.as_f64(), right.as_f64()) {
-                    (Some(left), Some(right)) => left == right,
-                    _ => left == right,
-                }
-            }
+            (Value::Number(left), Value::Number(right)) => match (left.as_f64(), right.as_f64()) {
+                (Some(left), Some(right)) => left == right,
+                _ => left == right,
+            },
             (Value::Array(left), Value::Array(right)) => {
                 left.len() == right.len()
-                    && left.iter().zip(right).all(|(left, right)| {
-                        json_values_semantically_equal(left, right)
-                    })
+                    && left
+                        .iter()
+                        .zip(right)
+                        .all(|(left, right)| json_values_semantically_equal(left, right))
             }
             (Value::Object(left), Value::Object(right)) => {
                 left.len() == right.len()
@@ -437,8 +436,7 @@ mod tests {
         ))
         .expect("eligible assessment fixture is valid JSON");
         let actual = assess_model_credibility_handoff(&input).expect("eligible fixture assesses");
-        let actual_json =
-            serde_json::to_value(actual).expect("serialize eligible assessment");
+        let actual_json = serde_json::to_value(actual).expect("serialize eligible assessment");
         assert!(
             json_values_semantically_equal(&expected, &actual_json),
             "eligible assessment mismatch: expected {expected:#}, actual {actual_json:#}"
