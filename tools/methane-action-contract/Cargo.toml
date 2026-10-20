@@ -20,3 +20,7 @@ path = "src/bin/methane-census.rs"
 [[bin]]
 name = "methane-compare"
 path = "src/bin/methane-compare.rs"
+
+[[bin]]
+name = "methane-split-check"
+path = "src/bin/methane-split-check.rs"
