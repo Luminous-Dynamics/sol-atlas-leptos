@@ -1,4 +1,7 @@
-use sa_economic_portfolio_oracle::{Input, Portfolio, RejectionCounts, RobustRegretEvaluation, check_expected, evaluate, evaluate_frontier_search, evaluate_robust_regret, evaluate_robust_regret_from_search};
+use sa_economic_portfolio_oracle::{
+    Input, Portfolio, RejectionCounts, RobustRegretEvaluation, check_expected, evaluate,
+    evaluate_frontier_search, evaluate_robust_regret, evaluate_robust_regret_from_search,
+};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 use std::fs;
