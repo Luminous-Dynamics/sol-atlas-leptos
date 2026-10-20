@@ -36,6 +36,16 @@ The Rust validator is a structural and policy-contract boundary. It checks the s
 
 Causal-estimation intent therefore requires a matched-comparison or BACI design, an intervention and comparison arm, a preregistered/approved plan, declared confounders, sensitivity checks, and independent review. The preregistration timestamp must be strictly earlier than the follow-up window start; a timestamp at or after that start is rejected. This gate only qualifies the *plan shape*; results and inference require a later analysis/review artifact.
 
+## Native checker
+
+A small feature-gated native CLI validates the same plan contract outside the browser:
+
+```sh
+cargo run --features landscape-eval-check --bin landscape-evaluation-check -- fixtures/landscape/evaluation-plan-v0.json
+```
+
+It emits a deterministic JSON report with input SHA-256, byte length, evaluation ID, validity and errors. Exit code 0 means the structure passed; exit code 2 means validation failed. The report conforms to [landscape-evaluation-validation-report-v0.schema.json](../schemas/landscape-evaluation-validation-report-v0.schema.json). This reports structural qualification only.
+
 ## Evaluation-plan contents
 
 - A SHA-256 reference to one immutable design snapshot.
