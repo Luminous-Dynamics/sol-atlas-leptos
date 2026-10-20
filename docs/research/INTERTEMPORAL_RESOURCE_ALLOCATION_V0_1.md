@@ -30,9 +30,9 @@ V0.1 therefore starts with a small **exhaustive integer reference optimizer**. I
 
 `schemas/examples/intertemporal-tank-two-step.synthetic.json` has two intervals. A tank opens with 3 water quanta, has a per-interval withdrawal limit of 3, receives inflows `[0, 3]`, can store at most 4, and must retain at least 2 at the end. Essential service A requires 1 per interval; general service B requests 3 per interval. The exact objective prioritizes weighted essential-floor shortfall.
 
-The expected optimal plan allocates A = `[1, 1]` and B = `[1, 1]`. Tank stock ends at 1 after interval 0 and 2 after interval 1. The final stock condition is binding. The complete assignment space contains 64 integer allocations, small enough to exhaustively enumerate. This is an invented unit-test fixture, not a real water forecast.
+The expected optimal plan allocates A = `[1, 1]` and B = `[1, 1]`. Tank stock ends at 1 after interval 0 and 2 after interval 1. The final stock condition is binding. The complete assignment space contains 64 integer allocations, small enough to exhaustively enumerate. The budget is explicitly a cap on complete candidate plans examined—not a count of internal DFS nodes. This is an invented unit-test fixture, not a real water forecast.
 
-Negative controls vary this case to prove that missing inflow remains unknown, exhausted search budgets emit no plan, and removing the later inflow yields no feasible plan while preserving the terminal reserve.
+Negative controls vary this case to prove that missing inflow remains unknown and exhausted search budgets emit no plan. Removing the later inflow must reduce service while still preserving the terminal reserve; it is not automatically infeasible because service floors are objective terms, not hard minimum-delivery constraints in V0.1. A separate impossible-loss input verifies the genuinely infeasible disposition.
 
 ## Reference evaluation and industry comparison
 
