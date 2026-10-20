@@ -145,7 +145,7 @@ pub fn validate_plan(value: &Value) -> Result<(), Vec<String>> {
     if let Some((baseline_end, follow_up_start)) = windows {
         if baseline_end > follow_up_start {
             errors.push(
-                "$.time_windows: baseline must end before follow-up starts (windows are half-open)"
+                "$.time_windows: baseline and follow-up windows must not overlap (half-open intervals)"
                     .to_string(),
             );
         }
@@ -228,6 +228,14 @@ pub fn validate_plan(value: &Value) -> Result<(), Vec<String>> {
                     if timestamp > created_at {
                         errors.push(
                             "$.causal_analysis_plan.pre_registered_at_unix_s: preregistration timestamp cannot be after plan creation"
+                                .to_string(),
+                        );
+                    }
+                }
+                if let Some((_, follow_up_start)) = windows {
+                    if timestamp >= follow_up_start {
+                        errors.push(
+                            "$.causal_analysis_plan.pre_registered_at_unix_s: preregistration must occur before the follow-up window starts"
                                 .to_string(),
                         );
                     }
@@ -803,7 +811,7 @@ mod tests {
     fn causal_plan() -> Value {
         json!({
             "method": "difference-in-differences with predeclared seasonal covariates",
-            "pre_registered_at_unix_s": 1792454300_u64,
+            "pre_registered_at_unix_s": 1788000000_u64,
             "preregistration_record_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
             "confounders": ["seasonal rainfall", "land-use change", "upstream works"],
             "sensitivity_checks": ["leave-one-season-out", "alternate matching caliper"],
@@ -915,6 +923,21 @@ mod tests {
                 .iter()
                 .any(|error| error.contains("cannot be after plan creation"))
         );
+    }
+
+    #[test]
+    fn rejects_preregistration_after_followup_started() {
+        let mut value = fixture();
+        value["analysis_intent"] = json!("causal-estimate");
+        value["plan_status"] = json!("preregistered");
+        let mut causal = causal_plan();
+        causal["pre_registered_at_unix_s"] = json!(1789000000_u64);
+        value["causal_analysis_plan"] = causal;
+
+        let errors = validate_plan(&value).unwrap_err();
+        assert!(errors.iter().any(|error| {
+            error.contains("preregistration must occur before the follow-up window starts")
+        }));
     }
 
     #[test]
