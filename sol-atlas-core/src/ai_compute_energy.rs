@@ -396,8 +396,7 @@ pub fn assess(request: &Request) -> Assessment {
                 if let Some(profile) = deferrable_quality_profile {
                     if profile != workload.service_quality_profile_id.as_str() {
                         unsupported.push(
-                            "heterogeneous_deferrable_quality_profiles_unsupported_v0_1"
-                                .to_owned(),
+                            "heterogeneous_deferrable_quality_profiles_unsupported_v0_1".to_owned(),
                         );
                     }
                 } else {
@@ -732,13 +731,15 @@ pub fn schedule_deferrable(
         let objective_per_unit = match policy {
             SchedulingPolicy::EarliestReady => 0.0,
             SchedulingPolicy::LowestCost => {
-                interval.electricity_price_usd_per_kwh
+                interval
+                    .electricity_price_usd_per_kwh
                     .expect("eligible cost intervals were checked above")
                     * facility_factor
                     * unit_energy_for_objective
             }
             SchedulingPolicy::LowestCarbon => {
-                interval.grid_carbon_intensity_gco2_per_kwh
+                interval
+                    .grid_carbon_intensity_gco2_per_kwh
                     .expect("eligible carbon intervals were checked above")
                     * facility_factor
                     * unit_energy_for_objective
@@ -772,7 +773,9 @@ pub fn schedule_deferrable(
                 * intervals[*right]
                     .facility_energy_per_it_energy
                     .unwrap_or(1.0);
-            left_score.total_cmp(&right_score).then_with(|| left.cmp(right))
+            left_score
+                .total_cmp(&right_score)
+                .then_with(|| left.cmp(right))
         }),
         SchedulingPolicy::LowestCarbon => order.sort_by(|left, right| {
             let left_score = intervals[*left]
@@ -895,7 +898,8 @@ pub fn schedule_deferrable(
         .any(|x| !x.is_finite())
     {
         return DeferrableScheduleAssessment::no_schedule(
-            AssessmentStatus::Invalid, policy,
+            AssessmentStatus::Invalid,
+            policy,
             vec!["schedule_derived_metric_non_finite".to_owned()],
         );
     }
@@ -1122,11 +1126,7 @@ mod tests {
         assert!((result.modelled_electricity_cost_usd.unwrap() - 0.298).abs() < 1.0e-8);
     }
 
-    fn exhaustive_minimum_cost(
-        capacities: &[u64],
-        per_unit_cost: &[f64],
-        demand: u64,
-    ) -> f64 {
+    fn exhaustive_minimum_cost(capacities: &[u64], per_unit_cost: &[f64], demand: u64) -> f64 {
         fn visit(
             index: usize,
             remaining: u64,
@@ -1225,7 +1225,12 @@ mod tests {
 
                 assert_eq!(result.status, AssessmentStatus::Feasible);
                 assert_eq!(allocation.iter().sum::<u64>(), demand);
-                assert!(allocation.iter().zip(&capacities).all(|(used, cap)| used <= cap));
+                assert!(
+                    allocation
+                        .iter()
+                        .zip(&capacities)
+                        .all(|(used, cap)| used <= cap)
+                );
                 assert_eq!(
                     result.protected_floor_work_units_by_interval,
                     Some(vec![6, 6, 6, 6])
@@ -1307,12 +1312,9 @@ mod tests {
         assert_eq!(result.status, AssessmentStatus::Unsupported);
         assert_eq!(result.max_deferrable_work_units, None);
         assert!(
-            result
-                .blockers
-                .iter()
-                .any(|item| {
-                    item == "workload_deferrable-batch_deferrable_not_interruptible_v0_1"
-                })
+            result.blockers.iter().any(|item| {
+                item == "workload_deferrable-batch_deferrable_not_interruptible_v0_1"
+            })
         );
     }
 
@@ -1329,12 +1331,9 @@ mod tests {
         assert_eq!(result.status, AssessmentStatus::Unsupported);
         assert_eq!(result.max_deferrable_work_units, None);
         assert!(
-            result
-                .blockers
-                .iter()
-                .any(|item| {
-                    item == "heterogeneous_deferrable_quality_profiles_unsupported_v0_1"
-                })
+            result.blockers.iter().any(|item| {
+                item == "heterogeneous_deferrable_quality_profiles_unsupported_v0_1"
+            })
         );
     }
 
