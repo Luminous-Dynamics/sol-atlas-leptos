@@ -7,6 +7,7 @@
 pub mod census;
 pub mod comparison;
 pub mod split;
+pub mod mitigation;
 
 use sha2::{Digest, Sha256};
 use std::collections::HashSet;
@@ -58,6 +59,8 @@ pub enum ArtifactRole {
     Dataset,
     Terms,
     Calibration,
+    WorkOrder,
+    VerificationRecord,
 }
 
 /// Exact bytes fetched for an artifact. Digests are recomputed at admission time.
@@ -97,6 +100,7 @@ pub enum GasSpecies {
 pub enum Quantification {
     Quantified {
         emission_rate_kg_h: f64,
+        /// Non-negative absolute bound around the rate; not assumed to be Gaussian or 1-sigma.
         uncertainty_kg_h: f64,
         detection_limit_kg_h: f64,
     },
@@ -706,7 +710,7 @@ fn is_sha256_hex(value: &str) -> bool {
 }
 
 /// Strict UTC seconds form: YYYY-MM-DDTHH:MM:SSZ. Adapters normalize offsets/fractions.
-pub fn is_utc_timestamp(value: &str) -> bool {
+pub pub(crate) fn is_utc_timestamp(value: &str) -> bool {
     let bytes = value.as_bytes();
     if bytes.len() != 20
         || bytes[4] != b'-'
