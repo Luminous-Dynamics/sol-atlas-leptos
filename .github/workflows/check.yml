@@ -61,10 +61,34 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-bench-${{ hashFiles('**/Cargo.lock') }}
-      # Compile the standalone benchmark in the same optimized profile users
-      # will execute locally. This is a compile gate, not a performance claim.
+      # Compile the benchmark in the optimized profile, then run a small
+      # CI smoke cohort so each PR preserves raw samples and the run manifest.
+      # GitHub-hosted measurements are a noisy smoke baseline, not an SOTA claim.
       - name: Compile offline journal benchmark
         run: cargo bench -p sol-atlas-core --bench offline_journal_protocol --no-run
+      - name: Run offline journal benchmark smoke cohort
+        env:
+          SOL_ATLAS_BENCH_SAMPLES: "10"
+          SOL_ATLAS_BENCH_BUILD_SHA: ${{ github.sha }}
+        run: |
+          {
+            printf '# utc_timestamp=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            printf '# source_revision=%s\n' "$(git rev-parse HEAD)"
+            printf '# rustc_version=%s\n' "$(rustc --version)"
+            printf '# host=%s\n' "$(uname -a)"
+            printf '# cpu_model=%s\n' "$(lscpu | sed -n 's/^Model name:[[:space:]]*//p' | head -1)"
+            printf '# runner_class=GitHub-hosted ubuntu-latest; shared virtualized hardware; noisy CI baseline only\n'
+            cargo bench -p sol-atlas-core --bench offline_journal_protocol
+          } > offline-journal-bench.csv 2> offline-journal-bench-build.log
+          cat offline-journal-bench-build.log
+      - name: Upload offline journal benchmark evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: offline-journal-bench-${{ github.sha }}
+          path: |
+            offline-journal-bench.csv
+            offline-journal-bench-build.log
+          if-no-files-found: error
 
   test-native:
     runs-on: ubuntu-latest
