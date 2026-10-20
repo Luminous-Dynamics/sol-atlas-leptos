@@ -6,7 +6,7 @@
 
 From repository root, run a three-size quick set or the full matrix:
 
-\`\`\`sh
+```sh
 GIT_SHA="$(git rev-parse HEAD)" \
 HOST_LABEL="describe CPU / RAM / power mode / OS image" \
 cargo run --release \
@@ -14,12 +14,12 @@ cargo run --release \
   --example offline_journal_bundle_bench -- \
   --records 1000 --blob-bytes 1024 --samples 11 \
   > offline-journal-bundle-bench.json
-\`\`\`
+```
 
-\`\`\`sh
+```sh
 bash scripts/bench-offline-journal-bundle.sh quick
 bash scripts/bench-offline-journal-bundle.sh full /path/to/evidence-dir
-\`\`\`
+```
 
 The script writes one JSON report per cohort plus `environment.txt` and a `SHA256SUMS` manifest. It records the Git SHA, dirty-tree state, compiler/tool versions, OS, CPU and memory summary. Review the dirty-tree flag before comparing results, and do not publish a run from an uncommitted or mixed source tree as an exact release baseline.
 
@@ -29,11 +29,11 @@ The deterministic workload varies operation IDs, aggregate IDs, expected revisio
 
 ### Timed stages
 
-- \`create_validate_sort_and_digest\`: validate records, normalize sort order, and calculate the unsigned manifest integrity digest.
-- \`canonical_serialize_and_validate\`: validate and serialize as canonical JCS JSON.
-- \`parse_validate_and_recompute_digest\`: parse the wire representation, validate all records and the outer integrity digest.
-- \`canonical_jcs_and_sha256_without_snapshot_validation\`: serialize the typed unsigned manifest, canonicalize its bytes with JCS, and hash it, while omitting per-record semantic snapshot validation. Its digest must match the full codec for a valid bundle.
-- \`serde_json_unverified_roundtrip_baseline\`: a deliberately *non-equivalent* informational baseline using plain Serde JSON encode/decode without canonical JCS encoding, semantic validation or integrity recomputation.
+- `create_validate_sort_and_digest`: validate records, normalize sort order, and calculate the unsigned manifest integrity digest.
+- `canonical_serialize_and_validate`: validate and serialize as canonical JCS JSON.
+- `parse_validate_and_recompute_digest`: parse the wire representation, validate all records and the outer integrity digest.
+- `canonical_jcs_and_sha256_without_snapshot_validation`: serialize the typed unsigned manifest, canonicalize its bytes with JCS, and hash it, while omitting per-record semantic snapshot validation. Its digest must match the full codec for a valid bundle.
+- `serde_json_unverified_roundtrip_baseline`: a deliberately *non-equivalent* informational baseline using plain Serde JSON encode/decode without canonical JCS encoding, semantic validation or integrity recomputation.
 
 Both baselines are not competitor implementations for correctness and cannot replace the canonical contract. The JCS+SHA-256-only stage quantifies the cost of snapshot-validation gates; the bare Serde stage estimates the further cost of canonicalization and integrity checks. Since the input bundle has already been created and validated before either baseline is timed, neither represents safe ingestion of untrusted data. Compare full-contract paths when comparing systems.
 
@@ -53,7 +53,7 @@ Run a matrix, not a single cherry-picked size:
 | 100,000 | 1 KiB | 11+ | scalability/stress cohort |
 | 100 | 1 MiB | 11+ | maximum individual blob stress; record memory limits |
 
-Large \`records × payload\` combinations grow memory rapidly and must only run on hosts that can safely retain both the records and encoded output. The 1 MiB payload case intentionally uses only 100 records to limit its default memory footprint. Report failed/out-of-memory runs; do not omit them without explanation.
+Large `records × payload` combinations grow memory rapidly and must only run on hosts that can safely retain both the records and encoded output. The 1 MiB payload case intentionally uses only 100 records to limit its default memory footprint. Report failed/out-of-memory runs; do not omit them without explanation.
 
 The initial proposed target is **under 1 second to validate a 10,000-record / 1 KiB-blob bundle on a named modern desktop**. This is a hypothesis to measure, not a published result or a universal device guarantee. Report time and memory; consider streaming/incremental formats if fully materialized snapshots become the bottleneck.
 
