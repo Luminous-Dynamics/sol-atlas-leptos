@@ -46,6 +46,7 @@ This benchmark complements, rather than replaces, established benchmarks.
 | Layer | Reference | What it covers | What remains outside it |
 |---|---|---|---|
 | AI task performance and quality | [MLPerf Inference](https://mlcommons.org/benchmarks/inference-datacenter/) | Defined workloads, datasets/quality targets, throughput or latency scenarios | Grid location, time shifting, water, heat customers, national dependencies |
+| Online generative-AI endpoint frontier | [MLPerf Endpoints](https://docs.mlcommons.org/endpoints-submission-docs/understand/what-is-mlperf-endpoints/) | Throughput versus per-user interactivity over concurrency, with quality gates | Its `system_tps_per_kw` uses provisioned-power estimates, not an interval wall-power energy meter; pair it with measured energy per accepted work |
 | System-level AI power | [MLCommons Power](https://mlcommons.org/working-groups/benchmarks/power/) | Wall/system power and energy measurement for applicable MLPerf runs | Multi-site resilience and public-resource opportunity costs |
 | Server energy efficiency | [SPECpower_ssj2008](https://spec.org/power_ssj2008/) | Standardized server-side Java workload and power/performance behavior | GPU AI workload equivalence; facility/grid/site system optimization |
 | Open facility engineering | [OCP Data Center Facility](https://www.opencompute.org/projects/data-center-facility/) and [Rack & Power](https://www.opencompute.org/projects/rack-and-power/) | Open facility, rack, power, cooling and serviceability approaches | Whether scheduled work creates more useful national or public value |
@@ -61,6 +62,10 @@ The IEA's updated analysis reports data-centre electricity consumption of approx
 The U.S. DOE/Lawrence Berkeley National Laboratory's 2024 report provides estimates and a scenario range for U.S. data-centre electricity use: [2024 United States Data Center Energy Usage Report](https://bies.lbl.gov/publications/2024-lbnl-data-center-energy-usage-report).
 
 OCP explicitly frames rack-power engineering as a grid-to-gates problem, supporting evaluation across interdependent power and IT interfaces: [OCP Rack & Power](https://www.opencompute.org/projects/rack-and-power/).
+
+The current MLPerf Endpoints v1.0 guidance makes an important boundary explicit: throughput/interactivity is a Pareto frontier with quality gates, while its normalized `system_tps_per_kw` is based on a provisioned-power model derived from rated component power plus overhead, not the energy actually read by a meter during a run. We should preserve the official endpoint frontier for serving quality, then add repeated wall-power measurements and quality-accepted work per kWh as a separate measured axis; do not relabel a provisioned-power estimate as measured efficiency. [MLPerf Endpoints measurement definitions](https://docs.mlcommons.org/endpoints-submission-docs/understand/what-is-mlperf-endpoints/)
+
+A complementary grid-facing proposal, [*A net-grid-benefit test for interconnecting AI data centres* (npj Environmental Social Sciences, 4 June 2026)](https://www.nature.com/articles/s44432-026-00013-5), argues for evaluating interconnection contributions against a passive-load counterfactual, including auditable hour-by-hour clean-power matching with deliverability screens, verified fast frequency-response/regulation telemetry, and useful waste-heat recovery where feasible. We should benchmark these as distinct, verifiable services—not as automatic credits or a universal interconnection rule. A claimed grid-service benefit needs event telemetry, response latency, duration, rebound and a clear counterfactual.
 
 These sources motivate the problem and provide comparison context; they do not validate this synthetic model.
 
