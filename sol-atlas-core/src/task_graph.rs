@@ -842,6 +842,72 @@ mod tests {
     }
 
     #[test]
+    fn compiled_frontier_matches_reference_across_generated_parallel_and_chained_tasks() {
+        let mut tasks = Vec::new();
+        for index in 0..64 {
+            tasks.push(node(
+                &format!("task-{index:03}"),
+                &[],
+                ((index * 19) % 101) as u8,
+                TaskStatus::Pending,
+            ));
+        }
+        for index in 64..128 {
+            tasks.push(node(
+                &format!("task-{index:03}"),
+                &[&format!("task-{:03}", index % 64)],
+                ((index * 19) % 101) as u8,
+                TaskStatus::Pending,
+            ));
+        }
+        for index in 128..256 {
+            tasks.push(node(
+                &format!("task-{index:03}"),
+                &[
+                    &format!("task-{:03}", index % 64),
+                    &format!("task-{:03}", index - 1),
+                ],
+                ((index * 19) % 101) as u8,
+                TaskStatus::Pending,
+            ));
+        }
+
+        let mut reference = graph(tasks);
+        let mut compiled = super::CompiledTaskGraph::compile(reference.clone()).unwrap();
+        let assert_frontier_parity =
+            |reference: &TaskGraphV1, compiled: &super::CompiledTaskGraph| {
+                assert_eq!(
+                    reference
+                        .ready_tasks()
+                        .unwrap()
+                        .iter()
+                        .map(|task| task.task_id.as_str())
+                        .collect::<Vec<_>>(),
+                    compiled.ready_task_ids()
+                );
+                assert_eq!(reference, compiled.graph());
+                assert_eq!(reference.revision, compiled.revision());
+            };
+
+        assert_frontier_parity(&reference, &compiled);
+        for index in 0..256 {
+            let task_id = format!("task-{index:03}");
+            for action in [
+                TaskAction::Start,
+                TaskAction::ReportCompletion,
+                TaskAction::RecordVerification,
+            ] {
+                assert_eq!(
+                    reference.apply(&task_id, action),
+                    compiled.apply(&task_id, action),
+                    "transition {action:?} for {task_id}"
+                );
+                assert_frontier_parity(&reference, &compiled);
+            }
+        }
+    }
+
+    #[test]
     fn compiled_revision_overflow_does_not_mutate_status_or_frontier() {
         let mut graph = graph(vec![node("inspect", &[], 1, TaskStatus::Pending)]);
         graph.revision = u64::MAX;
