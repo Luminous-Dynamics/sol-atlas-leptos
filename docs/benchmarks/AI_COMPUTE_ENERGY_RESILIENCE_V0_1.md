@@ -258,7 +258,8 @@ A useful comparison is not only a grid-aware scheduler objective: the output mus
 
 The authors' open-source [FlexDC-Sim](https://github.com/peaclab/flexdc-sim) reference repository is pinned for comparison at commit [`ea50bd582b5d1b55fcb09ea46899fa9d325cce3b`](https://github.com/peaclab/flexdc-sim/tree/ea50bd582b5d1b55fcb09ea46899fa9d325cce3b), BSD-3-Clause. Its experiment configuration specifies time step, duration, utilization, server count/idle power and the grid-provider signal; cluster/job profiles specify node idle power, job power–performance ranges and QoS. It exports a power trace including target, realized power and tracking error, and a job trace with arrivals/start/end and QoS-related fields. This is a more detailed node/job simulation than Sol-Atlas v0.1's aggregate per-interval work model. We therefore compare only an explicitly matched subdomain and do not treat either simulator's output as metered facility truth.
 
-The new dependency-free Rust module `sol-atlas-core/src/demand_response_metrics.rs` gives Sol-Atlas a first shared measurement layer:
+The new dependency-free Rust module `sol-atlas-core/src/demand_response_metrics.rs` gives Sol-Atlas a first shared measurement layer. The `demand_response_assess` CLI reads strict aligned traces, runs both metric calculations, and emits a receipt whose SHA-256 digests bind the exact input bytes and compact metrics JSON. Input/output contracts live in `schemas/demand-response-trace-v1.schema.json` and `schemas/demand-response-assessment-report-v1.schema.json`; a small synthetic known-answer fixture is under `schemas/examples/demand-response-trace-v1.synthetic.json`. CI tests arithmetic, fail-closed behavior, report identity, strict JSON parsing, and schema/mutation behavior. These are metric-accounting tests, not measurement or causal-effect tests.
+
 
 - **RSR tracking:** for each aligned sample, normalized absolute tracking error is `abs(measured_kW - target_kW) / reserve_kW`. The paper's policy requires the fraction of samples with error **greater than 0.3** to be strictly **less than 10%**. We report the linear-interpolated p90 error and the exceedance-rate condition separately. They are not interchangeable: exactly 1 violating sample among 10 fails the strict exceedance rule even when the interpolated p90 is below 0.3.
 - **EDR curtailment:** compare an aligned declared baseline against event power and report baseline/event kWh, net energy reduction, gross curtailment energy, rebound energy, count of rebound intervals, and peak event power above baseline. A negative net reduction remains visible when rebound exceeds gross curtailment.
@@ -274,7 +275,7 @@ One denominator difference must be reconciled before bit-for-bit FlexDC-Sim pari
 4. Report tracking-error p90, strict exceedance fraction, response delay, peak target deviation, QoS/deadline loss, event energy, net reduction, rebound and run-to-run variation.
 5. Do not generalize FlexDC-Sim's RSR/EDR ranges to different workloads, sites, control intervals, hardware, carbon factors, water limits or interconnection conditions without matched evidence.
 
-The active work item is [AI-COMP-ENERGY-003 / issue #256](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/256). No FlexDC-Sim code or runtime dependency has been added to production Rust.
+The active work item is [AI-COMP-ENERGY-003 / issue #256](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/256). The current reference metric module is dependency-free Rust; FlexDC-Sim itself remains an external reference and no third-party code/runtime dependency has been added to production Rust.
 
 ## 12. Reference sources
 
