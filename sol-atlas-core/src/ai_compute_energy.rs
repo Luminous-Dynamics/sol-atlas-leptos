@@ -121,6 +121,7 @@ pub struct ScenarioReceipt {
     pub digest_algorithm: String,
     pub digest_scope: String,
     pub input_sha256: String,
+    pub assessment_sha256: String,
     pub input_bytes: usize,
     pub mode: String,
     pub scenario_schema_version: String,
@@ -134,14 +135,22 @@ fn sha256_hex(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
 
-/// Bind a run receipt to the exact UTF-8 scenario bytes that were parsed.
-pub fn scenario_receipt(raw_input: &[u8], request: &Request, mode: &str) -> ScenarioReceipt {
-    ScenarioReceipt {
+/// Bind a run receipt to the exact UTF-8 scenario bytes and compact JSON
+/// serialization of the resulting assessment.
+pub fn scenario_receipt(
+    raw_input: &[u8],
+    request: &Request,
+    mode: &str,
+    assessment: &serde_json::Value,
+) -> Result<ScenarioReceipt, serde_json::Error> {
+    let assessment_bytes = serde_json::to_vec(assessment)?;
+    Ok(ScenarioReceipt {
         receipt_schema_version: "1".to_owned(),
         evaluator_version: "0.1-reference".to_owned(),
         digest_algorithm: "SHA-256".to_owned(),
-        digest_scope: "exact_input_bytes_only".to_owned(),
+        digest_scope: "exact_input_bytes_and_compact_assessment_json".to_owned(),
         input_sha256: sha256_hex(raw_input),
+        assessment_sha256: sha256_hex(&assessment_bytes),
         input_bytes: raw_input.len(),
         mode: mode.to_owned(),
         scenario_schema_version: request.schema_version.clone(),
@@ -149,9 +158,9 @@ pub fn scenario_receipt(raw_input: &[u8], request: &Request, mode: &str) -> Scen
         synthetic: request.synthetic,
         claim_ceiling: request.claim_ceiling.clone(),
         verification_boundary:
-            "digest binds input identity; it does not validate the truth of scenario claims"
+            "digests bind input and assessment identity; they do not validate the truth of scenario claims"
                 .to_owned(),
-    }
+    })
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize)]
@@ -1125,28 +1134,50 @@ mod tests {
         );
         let request: Request =
             serde_json::from_str(fixture).expect("committed fixture must deserialize");
-        let receipt = scenario_receipt(fixture.as_bytes(), &request, "pareto");
+        let assessment = serde_json::json!({"status": "feasible", "scheduled_work_units": 66});
+        let receipt = scenario_receipt(fixture.as_bytes(), &request, "pareto", &assessment)
+            .expect("JSON assessment should serialize");
 
         assert_eq!(receipt.receipt_schema_version, "1");
         assert_eq!(receipt.evaluator_version, "0.1-reference");
         assert_eq!(receipt.digest_algorithm, "SHA-256");
-        assert_eq!(receipt.digest_scope, "exact_input_bytes_only");
+        assert_eq!(
+            receipt.digest_scope,
+            "exact_input_bytes_and_compact_assessment_json"
+        );
         assert_eq!(receipt.input_bytes, fixture.len());
         assert_eq!(receipt.input_sha256, sha256_hex(fixture.as_bytes()));
+        let assessment_bytes =
+            serde_json::to_vec(&assessment).expect("assessment should serialize");
+        assert_eq!(receipt.assessment_sha256, sha256_hex(&assessment_bytes));
+        let changed_assessment = serde_json::json!({"status": "feasible", "scheduled_work_units": 65});
+        let changed_receipt = scenario_receipt(
+            fixture.as_bytes(),
+            &request,
+            "pareto",
+            &changed_assessment,
+        )
+        .expect("changed JSON assessment should serialize");
+        assert_ne!(receipt.assessment_sha256, changed_receipt.assessment_sha256);
         assert_eq!(receipt.mode, "pareto");
         assert_eq!(receipt.scenario_schema_version, "0.1");
         assert_eq!(receipt.fixture_id, "synthetic-four-interval-flexible-compute");
         assert!(receipt.synthetic);
         assert_eq!(receipt.claim_ceiling, request.claim_ceiling);
-        assert!(receipt.verification_boundary.contains("does not validate"));
+        assert!(receipt.verification_boundary.contains("do not validate"));
 
         // Semantically equivalent JSON with different whitespace must get a
         // different exact-byte identity, while preserving the scenario identity.
         let reformatted = format!(" \n{fixture}");
         let reformatted_request: Request = serde_json::from_str(&reformatted)
             .expect("whitespace-only JSON change must preserve parsed scenario");
-        let reformatted_receipt =
-            scenario_receipt(reformatted.as_bytes(), &reformatted_request, "pareto");
+        let reformatted_receipt = scenario_receipt(
+            reformatted.as_bytes(),
+            &reformatted_request,
+            "pareto",
+            &assessment,
+        )
+        .expect("reformatted JSON assessment should serialize");
         assert_ne!(receipt.input_sha256, reformatted_receipt.input_sha256);
         assert_eq!(receipt.fixture_id, reformatted_receipt.fixture_id);
     }
