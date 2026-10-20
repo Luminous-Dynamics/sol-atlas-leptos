@@ -204,7 +204,9 @@
         "source_field",
         "sample_time_semantics",
         "denominator_convention",
-        "normalization_note"
+        "normalization_note",
+        "source_artifact_sha256",
+        "source_config_manifest_sha256"
       ],
       "properties": {
         "source_name": {
@@ -241,8 +243,60 @@
           "type": "string",
           "minLength": 1,
           "pattern": "\\S"
+        },
+        "source_artifact_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "source_config_manifest_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "source_name": {
+                "const": "FlexDC-Sim"
+              }
+            },
+            "required": [
+              "source_name"
+            ]
+          },
+          "then": {
+            "properties": {
+              "source_revision": {
+                "pattern": "^[a-f0-9]{40}$"
+              },
+              "source_field": {
+                "const": "trackingError"
+              },
+              "sample_time_semantics": {
+                "const": "prior_cycle_state"
+              },
+              "denominator_convention": {
+                "const": "reserve_plus_epsilon"
+              },
+              "source_artifact_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "source_config_manifest_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }
