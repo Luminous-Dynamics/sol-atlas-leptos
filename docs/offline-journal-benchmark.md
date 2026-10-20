@@ -25,9 +25,10 @@ The deterministic workload varies operation IDs, aggregate IDs, expected revisio
 - \`create_validate_sort_and_digest\`: validate records, normalize sort order, and calculate the unsigned manifest integrity digest.
 - \`canonical_serialize_and_validate\`: validate and serialize as canonical JCS JSON.
 - \`parse_validate_and_recompute_digest\`: parse the wire representation, validate all records and the outer integrity digest.
+- \`canonical_jcs_and_sha256_without_snapshot_validation\`: serialize the typed unsigned manifest, canonicalize its bytes with JCS, and hash it, while omitting per-record semantic snapshot validation. Its digest must match the full codec for a valid bundle.
 - \`serde_json_unverified_roundtrip_baseline\`: a deliberately *non-equivalent* informational baseline using plain Serde JSON encode/decode without canonical JCS encoding, semantic validation or integrity recomputation.
 
-The bare Serde baseline is not a competitor implementation for correctness and cannot replace the canonical contract. It is included only to quantify the approximate cost of checks that a plain typed JSON roundtrip omits. Compare full-contract paths when comparing systems.
+Both baselines are not competitor implementations for correctness and cannot replace the canonical contract. The JCS+SHA-256-only stage quantifies the cost of snapshot-validation gates; the bare Serde stage estimates the further cost of canonicalization and integrity checks. Since the input bundle has already been created and validated before either baseline is timed, neither represents safe ingestion of untrusted data. Compare full-contract paths when comparing systems.
 
 The harness currently reports nearest-rank min, median, p95, p99 and max across measured samples. Small sample counts make p95/p99 noisy; use at least 31 runs for publishable tail statistics and increase repetitions for sub-millisecond samples. Compare like-for-like optimized builds, hardware, power settings, input corpus and schema versions.
 
