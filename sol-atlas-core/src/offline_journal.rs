@@ -496,6 +496,22 @@ mod tests {
         JournalEntry::prepare(envelope(), payload_json()).unwrap()
     }
 
+    /// Constructs a deliberately unbound entry only to isolate reducer behavior
+    /// against the historical synthetic fault corpus, whose digest is the
+    /// placeholder "a" repeated 64 times. This test-only state cannot be created
+    /// through the public constructor and must never be dispatched or persisted.
+    fn entry_for_reducer_fault_corpus() -> JournalEntry {
+        let mut fixture_envelope = envelope();
+        fixture_envelope.payload_digest_sha256 = "a".repeat(64);
+        JournalEntry {
+            envelope: fixture_envelope,
+            payload: crate::offline_payload_digest::CanonicalPayload::from_json(payload_json())
+                .unwrap(),
+            state: JournalState::Prepared,
+            attempt_count: 0,
+        }
+    }
+
     fn operation_binding() -> OperationBinding {
         OperationBinding::from_envelope(&envelope())
     }
@@ -840,7 +856,10 @@ mod tests {
                 "duplicate case id: {}",
                 case.case_id
             );
-            let mut entry = prepared_entry();
+            // Keep this reducer-only test aligned with the v2 corpus's
+            // synthetic placeholder digest. Payload ingress validation is
+            // separately tested through JournalEntry::prepare.
+            let mut entry = entry_for_reducer_fault_corpus();
             for _ in 0..case.attempts {
                 entry.mark_attempt_started().unwrap();
             }
