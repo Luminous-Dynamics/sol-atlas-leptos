@@ -206,13 +206,23 @@ pub fn assess(request: &Request) -> Assessment {
             ),
             ("cooling_water_limit_l", interval.cooling_water_limit_l),
             ("water_l_per_it_kwh", interval.water_l_per_it_kwh),
-            ("electricity_price_usd_per_kwh", interval.electricity_price_usd_per_kwh),
             ("grid_carbon_intensity_gco2_per_kwh", interval.grid_carbon_intensity_gco2_per_kwh),
         ] {
             if let Some(value) = value {
                 if !finite_nonnegative(value) {
                     invalid.push(format!("interval_{}_{}_invalid", interval.id, name));
                 }
+            }
+        }
+        // Wholesale power prices may legitimately be negative during some
+        // market intervals. Require finiteness, but do not assume a nonnegative
+        // price floor in the economic model.
+        if let Some(price) = interval.electricity_price_usd_per_kwh {
+            if !price.is_finite() {
+                invalid.push(format!(
+                    "interval_{}_electricity_price_usd_per_kwh_invalid",
+                    interval.id
+                ));
             }
         }
         if let Some(value) = interval.facility_energy_per_it_energy {
