@@ -63,5 +63,31 @@
       1,
       1
     ]
+  },
+  "rsr_reference": {
+    "interval_ids": [
+      "rr0",
+      "rr1",
+      "rr2",
+      "rr3",
+      "rr4",
+      "rr5",
+      "rr6",
+      "rr7",
+      "rr8",
+      "rr9"
+    ],
+    "signed_normalized_tracking_error": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0.8
+    ]
   }
 }
