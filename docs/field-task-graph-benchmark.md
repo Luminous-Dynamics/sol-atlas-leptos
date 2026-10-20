@@ -43,7 +43,7 @@ The runner measures two graph shapes at the requested task count (default 10,000
 
 Both baseline query graphs begin with all task statuses pending. Each shape measures validation, topological ordering (which includes validation), baseline ready-task derivation, index compilation, and compiled ready-frontier lookup. Version 4 additionally constructs a separate valid impact-analysis snapshot where `task-00000` is `verification_recorded`, then measures impact-index compilation, the reference graph's impact planner, and the compiled graph's impact planner. It records the number of downstream descendants in each graph shape. Five warmup iterations are excluded from each recorded distribution. Reference and compiled readiness queries return the same task-reference collection shape. Impact planners return the same compact predecessor-witness collection; each impact records its predecessor task ID and hop depth rather than copying a full path per descendant. Query timing excludes one-time index compilation; use separate compile distributions when calculating break-even query counts. Output includes OS/architecture, crate version, workload dimensions, initial frontier width, impact closure size, percentile method, and raw nanosecond samples; capture the full JSON with exact source SHA and `rustc -Vv`. Use a release build on an otherwise idle, named runner, run at least 100 samples and report raw distributions plus p50/p95/max. Repeat cold-start and warm runs separately rather than mixing them.
 
-This is only an algorithm microbenchmark. It does not measure IndexedDB/SQLite durability, serialization/payload cost on realistic field records, UI rendering, network reconnection, authorization, or a commercial competitor. The first comparative questions are whether index compilation pays for itself at observed query counts and whether results hold for both tiny and wide frontiers; a faster compiled query is not a win if jobs are so small or short-lived that compilation cost dominates, and a narrow-frontier-only speedup is not a general graph-performance win. The version 3 ready-frontier baseline is recorded below. Version 4 adds reference and compiled impact-planning timings; its first result artifact is pending. The runner is a measurement mechanism, not evidence that any target has been met.
+This is only an algorithm microbenchmark. It does not measure IndexedDB/SQLite durability, serialization/payload cost on realistic field records, UI rendering, network reconnection, authorization, or a commercial competitor. The first comparative questions are whether index compilation pays for itself at observed query counts and whether results hold for both tiny and wide frontiers; a faster compiled query is not a win if jobs are so small or short-lived that compilation cost dominates, and a narrow-frontier-only speedup is not a general graph-performance win. The version 3 ready-frontier baseline and version 4 impact-planner measurements are recorded below. Artifacts remain tied to their exact source SHAs. A measured microbenchmark is evidence only for its workload and runner, not proof that a general performance target or product outcome has been achieved.
 
 ## Benchmark plan
 
@@ -108,3 +108,21 @@ Do not compare against vendor marketing descriptions or infer superiority from a
 3. Add rework edges and revisioned graph migration only after defining how previously completed downstream tasks are invalidated when a prerequisite is corrected.
 4. Add a persistent graph/event adapter and crash/reconnect fault injection.
 5. Connect the graph to Leptos as the accessible primary work list; let Bevy show spatial relationships without becoming necessary for completing a task.
+
+## Version 4 measured impact-planner baseline (2026-10-20)
+
+Exact source commit: `169f026dfaf1bad79db883efb25f3ef281936699`. [Release benchmark run 39408860198](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/39408860198) passed the raw-evidence/schema checks and uploaded all samples plus environment metadata. The benchmark uses the release profile, 5 warmups, and 100 measured samples per operation.
+
+**Environment:** Ubuntu 24.04 GitHub-hosted runner, 4 reported vCPUs, AMD EPYC 7763 virtual CPU, x86_64, Rust/Cargo 1.99.1, `debug_assertions=false`.
+
+| Graph shape | Impact descendants | Reference impact plan p50 / p95 | Compiled impact plan p50 / p95 | p95 ratio | Compiled impact index build p50 / p95 |
+|---|---:|---:|---:|---:|---:|
+| `fan_in_4` | 9,999 | 26.696 ms / 26.939 ms | 2.420 ms / 2.467 ms | 10.92× | 28.878 ms / 29.337 ms |
+| `independent_roots` | 0 | 4.733 ms / 4.819 ms | 0.301 µs / 0.351 µs | Not a meaningful closure comparison | 7.776 ms / 7.922 ms |
+
+For the non-empty closure, both planners meet the initial 100 ms p95 hypothesis on this runner, and the compiled planner is approximately **10.9× faster at p95**. The reference planner rebuilds and sorts adjacency as part of each plan; the compiled planner reuses an already-built dependent index. The independent-root case is an empty-impact control, so its tiny compiled-plan latency must not be represented as performance on a non-empty correction closure.
+
+The one-time impact index build cost p50 (28.878 ms) is slightly greater than the p50 saving per query (26.696 − 2.420 = 24.276 ms); by this simplified calculation, the index pays for itself at roughly the second impact query for the same graph revision. Rebuild frequency matters: if a graph changes before a second query, compilation may not pay back its cost.
+
+This only times local data structures and plan construction. It excludes persistence, JSON serialization, DOM/rendering, transport, authorization, corrective-evidence verification and any real field-service workflow. No claim of fewer errors, less rework, safer physical work, or superiority to ServiceNow/Microsoft/Salesforce follows from this microbenchmark. Those require equivalent end-to-end scenarios, realistic status distributions, mobile measurements and independent product configuration.
+
