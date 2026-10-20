@@ -24,7 +24,7 @@ The system must not turn a missing feature into evidence that there is no restri
 
 ## 2. Record model
 
-Each source-backed claim should be an immutable, revisioned record. At minimum, carry these fields (schema names are conceptual until a machine-readable schema is reviewed):
+Each source-backed claim should be an immutable, revisioned record. The initial structural shape is in [`schemas/aviation/airspace-source-record.schema.json`](../../../schemas/aviation/airspace-source-record.schema.json); it is a schema contract, not a source-authenticity or operational qualification oracle.
 
 | Group | Required fields | Why it matters |
 |---|---|---|
@@ -120,8 +120,9 @@ No subsystem converts this catalogue into clearance, flight release, operational
 ## 8. Immediate implementation sequence
 
 1. Review and freeze the record/status vocabulary and source-rights semantics.
-2. Add a machine-readable schema plus fixture corpus for valid, stale, expired, conflicting and incomplete records.
-3. Implement a read-only synthetic fixture adapter and canonical manifest serializer; do not begin with live NOTAM ingestion.
+2. Validate the Draft 2020-12 schema with an independent schema validator, then add executable semantic checks for interval ordering, freshness-policy results, rights gates and consistency between raw evidence and derived assessment states.
+3. Use [`tests/fixtures/aviation/airspace-source-record-fixtures.json`](../../../tests/fixtures/aviation/airspace-source-record-fixtures.json) as the starting corpus: fresh synthetic, stale, unknown-coverage and conflicted records. The fixture JSON parses, but semantic assertions are not yet wired into CI.
+4. Implement a read-only synthetic fixture adapter and canonical manifest serializer; do not begin with live NOTAM ingestion.
 4. Add independent golden fixtures for CRS/datum rejection, interval boundaries, explicit coverage gaps and source revision changes.
 5. Emit structured reasons and dependencies so Symtropy can distinguish “known clear in this fictional scenario” from “not assessable.”
 6. Only after those gates pass, assess whether an actual source adapter is permitted and maintainable; require human review of source authority, applicability and updates.
