@@ -154,6 +154,22 @@ pub fn validate_plan(value: &Value) -> Result<(), Vec<String>> {
             ));
         }
     }
+    if study_design == "matched-comparison"
+        && !value
+            .get("arms")
+            .and_then(Value::as_array)
+            .is_some_and(|arms| {
+                arms.iter().any(|arm| {
+                    arm.get("role").and_then(Value::as_str) == Some("comparison")
+                        && arm.get("allocation_method").and_then(Value::as_str) == Some("matched")
+                })
+            })
+    {
+        errors.push(
+            "$.arms: matched-comparison requires a comparison arm with allocation_method=matched"
+                .to_string(),
+        );
+    }
     if study_design == "before-after" && !roles.contains("intervention") {
         errors.push("$.arms: before-after design requires an intervention arm".to_string());
     }
@@ -364,7 +380,11 @@ fn validate_outcomes(value: Option<&Value>, errors: &mut Vec<String>) {
             None => errors.push(format!("{path}.metric_id: expected a string")),
         }
         require_nonempty_string(outcome, "unit", &path, 80, errors);
-        require_nonempty_string(outcome, "method_id", &path, 80, errors);
+        match outcome.get("method_id").and_then(Value::as_str) {
+            Some(method_id) if valid_method_id(method_id) => {}
+            Some(_) => errors.push(format!("{path}.method_id: invalid method ID")),
+            None => errors.push(format!("{path}.method_id: expected a string")),
+        }
         match outcome.get("method_uri").and_then(Value::as_str) {
             Some(uri) if looks_like_uri(uri) => {}
             Some(_) => errors.push(format!("{path}.method_uri: expected an absolute URI")),
@@ -445,7 +465,13 @@ fn validate_causal_plan(value: Option<&Value>, errors: &mut Vec<String>) -> Opti
         return None;
     };
     validate_keys(object, CAUSAL_KEYS, "$.causal_analysis_plan", errors);
-    require_nonempty_string(value, "method", "$.causal_analysis_plan", 1000, errors);
+    match value.get("method").and_then(Value::as_str) {
+        Some(method) if (8..=1000).contains(&method.chars().count()) => {}
+        Some(_) => errors.push(
+            "$.causal_analysis_plan.method: expected 8..=1000 characters".to_string(),
+        ),
+        None => errors.push("$.causal_analysis_plan.method: expected a string".to_string()),
+    }
     let timestamp = nonnegative_integer(
         value,
         "pre_registered_at_unix_s",
@@ -658,6 +684,21 @@ fn valid_arm_id(value: &str) -> bool {
         && suffix.as_bytes().first().is_some_and(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
 }
 
+fn valid_method_id(value: &str) -> bool {
+    let Some(first) = value.bytes().next() else {
+        return false;
+    };
+    (3..=80).contains(&value.len())
+        && (first.is_ascii_lowercase() || first.is_ascii_digit())
+        && value.bytes().all(|byte| {
+            byte.is_ascii_lowercase()
+                || byte.is_ascii_digit()
+                || byte == b'.'
+                || byte == b'_'
+                || byte == b'-'
+        })
+}
+
 fn valid_metric_id(value: &str) -> bool {
     let mut parts = value.split('.');
     let valid_part = |part: &str| {
@@ -737,6 +778,15 @@ mod tests {
         value["time_windows"]["follow_up"]["start_unix_s"] = json!(1782863999_u64);
         let errors = validate_plan(&value).unwrap_err();
         assert!(errors.iter().any(|error| error.contains("baseline must end before follow-up")));
+    }
+
+    #[test]
+    fn rejects_matched_comparison_without_matching_declaration() {
+        let mut value = fixture();
+        value["study_design"] = json!("matched-comparison");
+        value["arms"][1]["allocation_method"] = json!("non-randomized");
+        let errors = validate_plan(&value).unwrap_err();
+        assert!(errors.iter().any(|error| error.contains("requires a comparison arm with allocation_method=matched")));
     }
 
     #[test]
