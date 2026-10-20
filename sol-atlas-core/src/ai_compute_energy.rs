@@ -893,7 +893,8 @@ mod tests {
 
     #[test]
     fn hand_calculated_fixture_has_66_deferrable_units() {
-        let result = assess(&fixture_request());
+        let request = fixture_request();
+        let result = assess(&request);
         assert_eq!(result.status, AssessmentStatus::CapacityLimited);
         assert_eq!(result.protected_floor_work_units, Some(24));
         assert_eq!(result.protected_floor_met, Some(true));
@@ -910,6 +911,19 @@ mod tests {
         assert!(result.interval_assessments.iter().all(|item| {
             item.it_energy_capacity_kwh + NUMERIC_TOLERANCE >= item.protected_floor_energy_kwh
         }));
+        let expected = request
+            .oracle_expectations
+            .as_ref()
+            .expect("committed fixture should declare its independent oracle values");
+        assert_eq!(
+            result.protected_floor_work_units,
+            Some(expected.protected_work_units)
+        );
+        assert_eq!(
+            result.max_deferrable_work_units,
+            Some(expected.max_deferrable_work_units)
+        );
+        assert!(expected.resource_limits_hold);
     }
 
     #[test]
@@ -1069,4 +1083,67 @@ mod tests {
         );
         assert!((result.modelled_electricity_cost_usd.unwrap() - 0.298).abs() < 1.0e-8);
     }
+
+    #[test]
+    fn storage_profile_is_rejected_until_dispatch_is_modelled() {
+        let mut request = fixture_request();
+        request.storage = Some(StorageProfile {
+            capacity_kwh: 20.0,
+            opening_stock_kwh: 10.0,
+            charge_limit_kw: 5.0,
+            discharge_limit_kw: 5.0,
+            round_trip_efficiency: 0.9,
+            terminal_reserve_kwh: 2.0,
+        });
+
+        let result = assess(&request);
+        assert_eq!(result.status, AssessmentStatus::Unsupported);
+        assert_eq!(result.max_deferrable_work_units, None);
+        assert!(result
+            .blockers
+            .iter()
+            .any(|item| item == "storage_dispatch_unsupported_v0_1"));
+    }
+
+    #[test]
+    fn non_interruptible_deferrable_work_is_not_silently_split() {
+        let mut request = fixture_request();
+        request.workloads[1].interruptible = false;
+
+        let result = assess(&request);
+        assert_eq!(result.status, AssessmentStatus::Unsupported);
+        assert_eq!(result.max_deferrable_work_units, None);
+        assert!(result.blockers.iter().any(|item| {
+            item == "workload_deferrable-batch_deferrable_not_interruptible_v0_1"
+        }));
+    }
+
+    #[test]
+    fn heterogeneous_deferrable_quality_profiles_are_unsupported() {
+        let mut request = fixture_request();
+        let mut other = request.workloads[1].clone();
+        other.workload_id = "different-quality-batch".to_owned();
+        other.required_work_units = 1;
+        other.service_quality_profile_id = "different-quality-profile".to_owned();
+        request.workloads.push(other);
+
+        let result = assess(&request);
+        assert_eq!(result.status, AssessmentStatus::Unsupported);
+        assert_eq!(result.max_deferrable_work_units, None);
+        assert!(result.blockers.iter().any(|item| {
+            item == "heterogeneous_deferrable_quality_profiles_unsupported_v0_1"
+        }));
+    }
+
+    #[test]
+    fn unknown_nested_scenario_fields_fail_deserialization() {
+        let mut value: serde_json::Value = serde_json::from_str(include_str!(
+            "../../schemas/examples/ai-compute-energy-flexibility-four-interval.synthetic.json"
+        ))
+        .expect("fixture should be valid JSON");
+        value["intervals"][0]["unmodelled_grid_outage"] = serde_json::json!(true);
+
+        assert!(serde_json::from_value::<Request>(value).is_err());
+    }
+
 }
