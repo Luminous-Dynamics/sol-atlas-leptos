@@ -30,6 +30,24 @@ pub struct OperationEnvelope {
     pub supersedes_operation_id: Option<String>,
 }
 
+/// A nullable string that must still be present on the wire.
+///
+/// Unlike `Option<String>` as a struct field, this wrapper allows JSON null
+/// while making an omitted field a deserialization error. This matters for
+/// operation-binding fields: absence must not silently compare equal to null.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(transparent)]
+pub struct RequiredNullableOperationId(pub Option<String>);
+
+impl<'de> Deserialize<'de> for RequiredNullableOperationId {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        Option::<String>::deserialize(deserializer).map(Self)
+    }
+}
+
 impl OperationEnvelope {
     pub fn validate(&self) -> Result<(), JournalError> {
         if self.schema_version != OFFLINE_JOURNAL_SCHEMA_VERSION {
@@ -62,9 +80,8 @@ pub struct OperationBinding {
     pub expected_revision: u64,
     pub payload_digest_sha256: String,
     pub idempotency_key: String,
-    /// Conflict lineage from the immutable request envelope.
-    #[serde(default)]
-    pub supersedes_operation_id: Option<String>,
+    /// Conflict lineage from the immutable request envelope; null is explicit.
+    pub supersedes_operation_id: RequiredNullableOperationId,
 }
 
 impl OperationBinding {
@@ -76,7 +93,9 @@ impl OperationBinding {
             expected_revision: envelope.expected_revision,
             payload_digest_sha256: envelope.payload_digest_sha256.clone(),
             idempotency_key: envelope.idempotency_key.clone(),
-            supersedes_operation_id: envelope.supersedes_operation_id.clone(),
+            supersedes_operation_id: RequiredNullableOperationId(
+                envelope.supersedes_operation_id.clone(),
+            ),
         }
     }
 }
@@ -403,7 +422,7 @@ impl std::error::Error for JournalError {}
 mod tests {
     use super::{
         JournalEntry, JournalError, JournalState, OFFLINE_JOURNAL_SCHEMA_VERSION, OperationBinding,
-        OperationEnvelope, ReconcileOutcome, ServiceReply,
+        OperationEnvelope, ReconcileOutcome, RequiredNullableOperationId, ServiceReply,
     };
     use serde::Deserialize;
     use std::collections::BTreeSet;
@@ -496,7 +515,10 @@ mod tests {
                 3 => binding.expected_revision += 1,
                 4 => binding.payload_digest_sha256 = "b".repeat(64),
                 5 => binding.idempotency_key = "another-key".to_owned(),
-                6 => binding.supersedes_operation_id = Some("another-parent".to_owned()),
+                6 => {
+                    binding.supersedes_operation_id =
+                        RequiredNullableOperationId(Some("another-parent".to_owned()))
+                },
                 _ => unreachable!(),
             }
             let reply = ServiceReply::Received {
@@ -512,6 +534,27 @@ mod tests {
             );
             assert_eq!(entry.state, JournalState::OutcomeUnknown);
         }
+    }
+
+    #[test]
+    fn operation_binding_requires_explicit_null_for_missing_conflict_parent() {
+        let binding = operation_binding();
+        let encoded = serde_json::to_value(&binding).unwrap();
+        assert_eq!(encoded["supersedes_operation_id"], serde_json::Value::Null);
+        assert_eq!(
+            serde_json::from_value::<OperationBinding>(encoded.clone()).unwrap(),
+            binding
+        );
+
+        let mut omitted = encoded;
+        omitted
+            .as_object_mut()
+            .unwrap()
+            .remove("supersedes_operation_id");
+        assert!(
+            serde_json::from_value::<OperationBinding>(omitted).is_err(),
+            "omitting nullable lineage must not be accepted as explicit null"
+        );
     }
 
     #[test]
