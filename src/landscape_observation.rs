@@ -1131,10 +1131,10 @@ mod tests {
     #[test]
     fn committed_fixture_is_valid_and_explicitly_synthetic() {
         let report = validate_batch(&fixture()).unwrap();
-        assert_eq!(report.input_records, 1);
-        assert_eq!(report.unique_observations, 1);
+        assert_eq!(report.input_records, 5);
+        assert_eq!(report.unique_observations, 5);
         assert_eq!(report.identical_duplicate_records, 0);
-        assert_eq!(report.synthetic_observations, 1);
+        assert_eq!(report.synthetic_observations, 5);
     }
 
     #[test]
@@ -1168,8 +1168,8 @@ mod tests {
         batch["observations"].as_array_mut().unwrap().push(duplicate);
 
         let report = validate_batch(&batch).unwrap();
-        assert_eq!(report.input_records, 2);
-        assert_eq!(report.unique_observations, 1);
+        assert_eq!(report.input_records, 6);
+        assert_eq!(report.unique_observations, 5);
         assert_eq!(report.identical_duplicate_records, 1);
         assert_eq!(
             report.duplicate_observation_ids,
