@@ -85,7 +85,8 @@ def known_answer_report() -> dict[str, Any]:
             "max_allowed_exceedance_fraction": 0.1,
             "threshold_exceedance_count": 1,
             "threshold_exceedance_fraction": 0.1,
-            "tracking_requirement_satisfied": False,
+            "exceedance_rate_requirement_satisfied": False,
+            "p90_threshold_satisfied": True,
         },
         "rsr_reference": {
             "sample_count": 10,
@@ -98,7 +99,8 @@ def known_answer_report() -> dict[str, Any]:
             "max_allowed_exceedance_fraction": 0.1,
             "threshold_exceedance_count": 1,
             "threshold_exceedance_fraction": 0.1,
-            "tracking_requirement_satisfied": False,
+            "exceedance_rate_requirement_satisfied": False,
+            "p90_threshold_satisfied": True,
         },
         "edr": {
             "sample_count": 3,
