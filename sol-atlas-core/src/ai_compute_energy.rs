@@ -1,0 +1,615 @@
+//! Small, dependency-free reference evaluator for compute-energy constraints.
+//!
+//! This v0.1 evaluator is deliberately narrower than a production scheduler:
+//! it supports one site, a finite aligned time grid, hard per-interval protected
+//! floors, and homogeneous work units whose release/deadline window spans the
+//! horizon. It checks first-order grid, thermal and direct-water energy bounds.
+//! It does not model a power-flow network, cooling-fluid dynamics, transient
+//! server behavior, task-specific quality, storage dispatch or a real facility.
+//!
+//! The interval facility-energy multiplier is a synthetic model coefficient,
+//! not standardized PUE. Production PUE requires measured facility and IT energy
+//! over a defined measurement period.
+
+/// A time interval. Missing required resource constraints must remain unknown.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Interval {
+    pub id: String,
+    pub duration_hours: f64,
+    pub grid_import_limit_kw: Option<f64>,
+    pub facility_energy_per_it_energy: Option<f64>,
+    pub thermal_it_power_limit_kw: Option<f64>,
+    pub cooling_water_limit_l: Option<f64>,
+    pub water_l_per_it_kwh: Option<f64>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Site {
+    pub site_id: String,
+    pub it_power_capacity_kw: f64,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum WorkClass {
+    Protected,
+    Deferrable,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Workload {
+    pub workload_id: String,
+    pub work_class: WorkClass,
+    pub required_work_units: u64,
+    pub energy_kwh_per_work_unit: f64,
+    pub release_interval_index: usize,
+    pub deadline_interval_index: usize,
+    /// Hard lower bound for each time interval. Protected work must equal its
+    /// required units in total for this v0.1 contract.
+    pub minimum_accepted_units_by_interval: Vec<u64>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Request {
+    pub site: Site,
+    pub intervals: Vec<Interval>,
+    pub workloads: Vec<Workload>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AssessmentStatus {
+    /// All demand can fit in the first-order resource envelope.
+    Feasible,
+    /// Protected floors fit, but requested deferrable work exceeds residual capacity.
+    CapacityLimited,
+    /// A protected-service floor cannot fit.
+    Infeasible,
+    /// A required resource bound is unknown; no numeric plan is returned.
+    Indeterminate,
+    /// The request is structurally valid but outside this small evaluator's scope.
+    Unsupported,
+    /// Malformed values, identities, or interval alignment.
+    Invalid,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct IntervalAssessment {
+    pub interval_id: String,
+    pub effective_it_power_cap_kw: f64,
+    pub it_energy_capacity_kwh: f64,
+    pub protected_floor_energy_kwh: f64,
+    pub residual_energy_for_deferrable_kwh: f64,
+    pub max_deferrable_work_units: u64,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Assessment {
+    pub status: AssessmentStatus,
+    pub interval_assessments: Vec<IntervalAssessment>,
+    pub protected_floor_work_units: Option<u64>,
+    pub protected_floor_met: Option<bool>,
+    pub requested_deferrable_work_units: Option<u64>,
+    pub max_deferrable_work_units: Option<u64>,
+    /// Sorted, deduplicated machine-readable-ish reasons for the disposition.
+    pub blockers: Vec<String>,
+}
+
+impl Assessment {
+    fn empty(status: AssessmentStatus, mut blockers: Vec<String>) -> Self {
+        blockers.sort();
+        blockers.dedup();
+        Self {
+            status,
+            interval_assessments: Vec::new(),
+            protected_floor_work_units: None,
+            protected_floor_met: None,
+            requested_deferrable_work_units: None,
+            max_deferrable_work_units: None,
+            blockers,
+        }
+    }
+}
+
+const NUMERIC_TOLERANCE: f64 = 1.0e-9;
+
+fn finite_nonnegative(value: f64) -> bool {
+    value.is_finite() && value >= 0.0
+}
+
+fn checked_sum(values: impl IntoIterator<Item = u64>) -> Option<u64> {
+    values
+        .into_iter()
+        .try_fold(0_u64, |sum, value| sum.checked_add(value))
+}
+
+/// Assess whether protected floors fit and determine the maximum residual
+/// deferrable work for the declared homogeneous-work-unit scope.
+///
+/// This function is a reference capacity bound, not a production scheduler.
+/// It does not emit a per-workload dispatch schedule. The returned aggregate
+/// is valid only when all workloads share one energy-per-work-unit coefficient
+/// and all deferrable workloads can run anywhere within the full horizon.
+pub fn assess(request: &Request) -> Assessment {
+    let mut invalid = Vec::new();
+    let mut missing = Vec::new();
+    let mut unsupported = Vec::new();
+
+    if request.site.site_id.trim().is_empty() {
+        invalid.push("site_id_empty".to_owned());
+    }
+    if !request.site.it_power_capacity_kw.is_finite()
+        || request.site.it_power_capacity_kw <= 0.0
+    {
+        invalid.push("site_it_power_capacity_not_positive_finite".to_owned());
+    }
+    if request.intervals.is_empty() {
+        invalid.push("intervals_empty".to_owned());
+    }
+    if request.workloads.is_empty() {
+        invalid.push("workloads_empty".to_owned());
+    }
+
+    let mut interval_ids = std::collections::BTreeSet::new();
+    for (index, interval) in request.intervals.iter().enumerate() {
+        if interval.id.trim().is_empty() {
+            invalid.push(format!("interval_{index}_id_empty"));
+        }
+        if !interval_ids.insert(interval.id.as_str()) {
+            invalid.push(format!("interval_id_duplicate:{}", interval.id));
+        }
+        if !interval.duration_hours.is_finite() || interval.duration_hours <= 0.0 {
+            invalid.push(format!("interval_{}_duration_invalid", interval.id));
+        }
+
+        if interval.grid_import_limit_kw.is_none() {
+            missing.push(format!("interval_{}_grid_import_limit_unknown", interval.id));
+        }
+        if interval.facility_energy_per_it_energy.is_none() {
+            missing.push(format!(
+                "interval_{}_facility_energy_factor_unknown",
+                interval.id
+            ));
+        }
+        if interval.thermal_it_power_limit_kw.is_none() {
+            missing.push(format!(
+                "interval_{}_thermal_it_power_limit_unknown",
+                interval.id
+            ));
+        }
+        if interval.cooling_water_limit_l.is_none() {
+            missing.push(format!(
+                "interval_{}_cooling_water_limit_unknown",
+                interval.id
+            ));
+        }
+        if interval.water_l_per_it_kwh.is_none() {
+            missing.push(format!(
+                "interval_{}_water_intensity_unknown",
+                interval.id
+            ));
+        }
+
+        for (name, value) in [
+            ("grid_import_limit_kw", interval.grid_import_limit_kw),
+            (
+                "facility_energy_per_it_energy",
+                interval.facility_energy_per_it_energy,
+            ),
+            ("thermal_it_power_limit_kw", interval.thermal_it_power_limit_kw),
+            ("cooling_water_limit_l", interval.cooling_water_limit_l),
+            ("water_l_per_it_kwh", interval.water_l_per_it_kwh),
+        ] {
+            if let Some(value) = value {
+                if !finite_nonnegative(value) {
+                    invalid.push(format!("interval_{}_{}_invalid", interval.id, name));
+                }
+            }
+        }
+        if let Some(value) = interval.facility_energy_per_it_energy {
+            if value < 1.0 {
+                invalid.push(format!(
+                    "interval_{}_facility_energy_factor_below_one",
+                    interval.id
+                ));
+            }
+        }
+    }
+
+    let interval_count = request.intervals.len();
+    let horizon_last = interval_count.saturating_sub(1);
+    let mut workload_ids = std::collections::BTreeSet::new();
+    let mut common_energy: Option<f64> = None;
+    let mut protected_units = Vec::new();
+    let mut deferrable_units = Vec::new();
+
+    for workload in &request.workloads {
+        if workload.workload_id.trim().is_empty() {
+            invalid.push("workload_id_empty".to_owned());
+        }
+        if !workload_ids.insert(workload.workload_id.as_str()) {
+            invalid.push(format!("workload_id_duplicate:{}", workload.workload_id));
+        }
+        if !workload.energy_kwh_per_work_unit.is_finite()
+            || workload.energy_kwh_per_work_unit <= 0.0
+        {
+            invalid.push(format!("workload_{}_energy_per_unit_invalid", workload.workload_id));
+        }
+        if workload.minimum_accepted_units_by_interval.len() != interval_count {
+            invalid.push(format!(
+                "workload_{}_floor_length_mismatch",
+                workload.workload_id
+            ));
+            continue;
+        }
+        if workload.release_interval_index > workload.deadline_interval_index
+            || workload.deadline_interval_index >= interval_count
+        {
+            invalid.push(format!("workload_{}_window_invalid", workload.workload_id));
+        }
+        for (index, floor) in workload
+            .minimum_accepted_units_by_interval
+            .iter()
+            .copied()
+            .enumerate()
+        {
+            if (index < workload.release_interval_index
+                || index > workload.deadline_interval_index)
+                && floor > 0
+            {
+                invalid.push(format!(
+                    "workload_{}_floor_outside_window",
+                    workload.workload_id
+                ));
+            }
+        }
+
+        let Some(floor_sum) = checked_sum(
+            workload
+                .minimum_accepted_units_by_interval
+                .iter()
+                .copied(),
+        ) else {
+            invalid.push(format!("workload_{}_floor_sum_overflow", workload.workload_id));
+            continue;
+        };
+        if floor_sum > workload.required_work_units {
+            invalid.push(format!(
+                "workload_{}_floor_exceeds_demand",
+                workload.workload_id
+            ));
+        }
+
+        match workload.work_class {
+            WorkClass::Protected => {
+                if floor_sum != workload.required_work_units {
+                    unsupported.push(format!(
+                        "workload_{}_protected_demand_must_equal_floors_v0_1",
+                        workload.workload_id
+                    ));
+                }
+                protected_units.push(workload.required_work_units);
+            }
+            WorkClass::Deferrable => {
+                if floor_sum != 0 {
+                    unsupported.push(format!(
+                        "workload_{}_deferrable_floors_unsupported_v0_1",
+                        workload.workload_id
+                    ));
+                }
+                if workload.release_interval_index != 0
+                    || workload.deadline_interval_index != horizon_last
+                {
+                    unsupported.push(format!(
+                        "workload_{}_must_span_full_horizon_v0_1",
+                        workload.workload_id
+                    ));
+                }
+                deferrable_units.push(workload.required_work_units);
+            }
+        }
+
+        if let Some(existing) = common_energy {
+            if (existing - workload.energy_kwh_per_work_unit).abs()
+                > NUMERIC_TOLERANCE.max(existing.abs() * 1.0e-9)
+            {
+                unsupported.push("heterogeneous_work_energy_coefficients_unsupported_v0_1".to_owned());
+            }
+        } else {
+            common_energy = Some(workload.energy_kwh_per_work_unit);
+        }
+    }
+
+    if !invalid.is_empty() {
+        return Assessment::empty(AssessmentStatus::Invalid, invalid);
+    }
+    if !missing.is_empty() {
+        return Assessment::empty(AssessmentStatus::Indeterminate, missing);
+    }
+    if !unsupported.is_empty() {
+        return Assessment::empty(AssessmentStatus::Unsupported, unsupported);
+    }
+
+    let Some(protected_floor_work_units) = checked_sum(protected_units) else {
+        return Assessment::empty(
+            AssessmentStatus::Invalid,
+            vec!["protected_work_sum_overflow".to_owned()],
+        );
+    };
+    let Some(requested_deferrable_work_units) = checked_sum(deferrable_units) else {
+        return Assessment::empty(
+            AssessmentStatus::Invalid,
+            vec!["deferrable_work_sum_overflow".to_owned()],
+        );
+    };
+    let Some(unit_energy) = common_energy else {
+        return Assessment::empty(
+            AssessmentStatus::Invalid,
+            vec!["common_energy_coefficient_missing".to_owned()],
+        );
+    };
+
+    let mut interval_assessments = Vec::with_capacity(interval_count);
+    let mut total_deferrable_ceiling = 0_u64;
+    let mut floor_infeasible = false;
+    let mut blockers = Vec::new();
+
+    for (index, interval) in request.intervals.iter().enumerate() {
+        // Missing inputs were rejected above, so these unwraps are guarded by
+        // the explicit missing-input gate and cannot turn Unknown into zero.
+        let grid_kw = interval.grid_import_limit_kw.expect("missing checked above");
+        let facility_factor = interval
+            .facility_energy_per_it_energy
+            .expect("missing checked above");
+        let thermal_kw = interval
+            .thermal_it_power_limit_kw
+            .expect("missing checked above");
+        let water_limit_l = interval.cooling_water_limit_l.expect("missing checked above");
+        let water_l_per_kwh = interval.water_l_per_it_kwh.expect("missing checked above");
+
+        let grid_limited_it_kw = grid_kw / facility_factor;
+        let water_limited_it_kw = if water_l_per_kwh == 0.0 {
+            f64::INFINITY
+        } else {
+            water_limit_l / water_l_per_kwh / interval.duration_hours
+        };
+        let effective_kw = request
+            .site
+            .it_power_capacity_kw
+            .min(thermal_kw)
+            .min(grid_limited_it_kw)
+            .min(water_limited_it_kw);
+        let it_energy_kwh = effective_kw * interval.duration_hours;
+
+        if !effective_kw.is_finite()
+            || !it_energy_kwh.is_finite()
+            || it_energy_kwh > u64::MAX as f64
+        {
+            return Assessment::empty(
+                AssessmentStatus::Invalid,
+                vec![format!("interval_{}_derived_capacity_invalid", interval.id)],
+            );
+        }
+
+        let floor_energy_kwh = request
+            .workloads
+            .iter()
+            .map(|workload| {
+                workload.minimum_accepted_units_by_interval[index] as f64
+                    * workload.energy_kwh_per_work_unit
+            })
+            .sum::<f64>();
+        if !floor_energy_kwh.is_finite() {
+            return Assessment::empty(
+                AssessmentStatus::Invalid,
+                vec![format!("interval_{}_floor_energy_invalid", interval.id)],
+            );
+        }
+
+        let residual_kwh = it_energy_kwh - floor_energy_kwh;
+        if residual_kwh < -NUMERIC_TOLERANCE {
+            floor_infeasible = true;
+            blockers.push(format!("interval_{}_protected_floor_exceeds_capacity", interval.id));
+        }
+        let safe_residual_kwh = residual_kwh.max(0.0);
+        let units_float = ((safe_residual_kwh + NUMERIC_TOLERANCE) / unit_energy).floor();
+        if !units_float.is_finite() || units_float > u64::MAX as f64 {
+            return Assessment::empty(
+                AssessmentStatus::Invalid,
+                vec![format!("interval_{}_derived_work_capacity_invalid", interval.id)],
+            );
+        }
+        let units = units_float as u64;
+        total_deferrable_ceiling = match total_deferrable_ceiling.checked_add(units) {
+            Some(sum) => sum,
+            None => {
+                return Assessment::empty(
+                    AssessmentStatus::Invalid,
+                    vec!["deferrable_capacity_sum_overflow".to_owned()],
+                );
+            }
+        };
+
+        interval_assessments.push(IntervalAssessment {
+            interval_id: interval.id.clone(),
+            effective_it_power_cap_kw: effective_kw,
+            it_energy_capacity_kwh: it_energy_kwh,
+            protected_floor_energy_kwh: floor_energy_kwh,
+            residual_energy_for_deferrable_kwh: safe_residual_kwh,
+            max_deferrable_work_units: units,
+        });
+    }
+
+    if floor_infeasible {
+        blockers.sort();
+        blockers.dedup();
+        return Assessment {
+            status: AssessmentStatus::Infeasible,
+            interval_assessments,
+            protected_floor_work_units: Some(protected_floor_work_units),
+            protected_floor_met: Some(false),
+            requested_deferrable_work_units: Some(requested_deferrable_work_units),
+            max_deferrable_work_units: None,
+            blockers,
+        };
+    }
+
+    let max_deferrable_work_units =
+        total_deferrable_ceiling.min(requested_deferrable_work_units);
+    let status = if max_deferrable_work_units == requested_deferrable_work_units {
+        AssessmentStatus::Feasible
+    } else {
+        blockers.push("deferrable_demand_exceeds_residual_capacity".to_owned());
+        AssessmentStatus::CapacityLimited
+    };
+    blockers.sort();
+    blockers.dedup();
+
+    Assessment {
+        status,
+        interval_assessments,
+        protected_floor_work_units: Some(protected_floor_work_units),
+        protected_floor_met: Some(true),
+        requested_deferrable_work_units: Some(requested_deferrable_work_units),
+        max_deferrable_work_units: Some(max_deferrable_work_units),
+        blockers,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn fixture_request() -> Request {
+        let intervals = [
+            (20.0, 1.15, 80.0, 100.0, 0.1),
+            (10.0, 1.35, 60.0, 100.0, 0.4),
+            (10.0, 1.40, 50.0, 2.0, 0.5),
+            (20.0, 1.15, 80.0, 100.0, 0.1),
+        ]
+        .into_iter()
+        .enumerate()
+        .map(|(index, (grid, factor, thermal, water, intensity))| Interval {
+            id: format!("t{index}"),
+            duration_hours: 1.0,
+            grid_import_limit_kw: Some(grid),
+            facility_energy_per_it_energy: Some(factor),
+            thermal_it_power_limit_kw: Some(thermal),
+            cooling_water_limit_l: Some(water),
+            water_l_per_it_kwh: Some(intensity),
+        })
+        .collect();
+
+        let workloads = vec![
+            Workload {
+                workload_id: "protected-inference".to_owned(),
+                work_class: WorkClass::Protected,
+                required_work_units: 24,
+                energy_kwh_per_work_unit: 0.5,
+                release_interval_index: 0,
+                deadline_interval_index: 3,
+                minimum_accepted_units_by_interval: vec![6, 6, 6, 6],
+            },
+            Workload {
+                workload_id: "deferrable-batch".to_owned(),
+                work_class: WorkClass::Deferrable,
+                required_work_units: 80,
+                energy_kwh_per_work_unit: 0.5,
+                release_interval_index: 0,
+                deadline_interval_index: 3,
+                minimum_accepted_units_by_interval: vec![0, 0, 0, 0],
+            },
+        ];
+
+        Request {
+            site: Site {
+                site_id: "synthetic-campus-a".to_owned(),
+                it_power_capacity_kw: 80.0,
+            },
+            intervals,
+            workloads,
+        }
+    }
+
+    #[test]
+    fn hand_calculated_fixture_has_66_deferrable_units() {
+        let result = assess(&fixture_request());
+        assert_eq!(result.status, AssessmentStatus::CapacityLimited);
+        assert_eq!(result.protected_floor_work_units, Some(24));
+        assert_eq!(result.protected_floor_met, Some(true));
+        assert_eq!(result.requested_deferrable_work_units, Some(80));
+        assert_eq!(result.max_deferrable_work_units, Some(66));
+        assert_eq!(
+            result
+                .interval_assessments
+                .iter()
+                .map(|item| item.max_deferrable_work_units)
+                .collect::<Vec<_>>(),
+            vec![28, 8, 2, 28]
+        );
+        assert!(result.interval_assessments.iter().all(|item| {
+            item.it_energy_capacity_kwh + NUMERIC_TOLERANCE
+                >= item.protected_floor_energy_kwh
+        }));
+    }
+
+    #[test]
+    fn unknown_water_intensity_is_indeterminate_not_zero() {
+        let mut request = fixture_request();
+        request.intervals[2].water_l_per_it_kwh = None;
+        let result = assess(&request);
+        assert_eq!(result.status, AssessmentStatus::Indeterminate);
+        assert_eq!(result.max_deferrable_work_units, None);
+        assert!(result
+            .blockers
+            .iter()
+            .any(|item| item == "interval_t2_water_intensity_unknown"));
+    }
+
+    #[test]
+    fn protected_floor_over_capacity_has_no_deferrable_plan() {
+        let mut request = fixture_request();
+        request.intervals[1].grid_import_limit_kw = Some(2.0);
+        let result = assess(&request);
+        assert_eq!(result.status, AssessmentStatus::Infeasible);
+        assert_eq!(result.protected_floor_met, Some(false));
+        assert_eq!(result.max_deferrable_work_units, None);
+    }
+
+    #[test]
+    fn misaligned_floor_vector_is_invalid() {
+        let mut request = fixture_request();
+        request.workloads[0].minimum_accepted_units_by_interval.pop();
+        let result = assess(&request);
+        assert_eq!(result.status, AssessmentStatus::Invalid);
+        assert_eq!(result.max_deferrable_work_units, None);
+        assert!(result
+            .blockers
+            .iter()
+            .any(|item| item == "workload_protected-inference_floor_length_mismatch"));
+    }
+
+    #[test]
+    fn heterogeneous_work_energy_is_explicitly_unsupported() {
+        let mut request = fixture_request();
+        request.workloads[1].energy_kwh_per_work_unit = 0.25;
+        let result = assess(&request);
+        assert_eq!(result.status, AssessmentStatus::Unsupported);
+        assert_eq!(result.max_deferrable_work_units, None);
+        assert!(result
+            .blockers
+            .iter()
+            .any(|item| item == "heterogeneous_work_energy_coefficients_unsupported_v0_1"));
+    }
+
+    #[test]
+    fn duplicate_interval_identity_is_invalid() {
+        let mut request = fixture_request();
+        request.intervals[1].id = "t0".to_owned();
+        let result = assess(&request);
+        assert_eq!(result.status, AssessmentStatus::Invalid);
+        assert_eq!(result.max_deferrable_work_units, None);
+        assert!(result
+            .blockers
+            .iter()
+            .any(|item| item == "interval_id_duplicate:t0"));
+    }
+}
