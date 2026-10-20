@@ -37,7 +37,9 @@ pub enum OfflineJournalBundleError {
         reason: String,
     },
     DuplicateOperationId(String),
-    DuplicateScopedIdempotencyKey { operation_id: String },
+    DuplicateScopedIdempotencyKey {
+        operation_id: String,
+    },
     RevisionOutOfRange {
         operation_id: String,
         field: &'static str,
@@ -82,7 +84,10 @@ impl fmt::Display for OfflineJournalBundleError {
                 formatter,
                 "operation {operation_id} reuses a scoped idempotency key"
             ),
-            Self::RevisionOutOfRange { operation_id, field } => write!(
+            Self::RevisionOutOfRange {
+                operation_id,
+                field,
+            } => write!(
                 formatter,
                 "operation {operation_id} field {field} exceeds the JCS safe-integer range"
             ),
@@ -461,11 +466,7 @@ mod tests {
         let mut other_namespace = record("op-3", "work-order.cancel");
         other_namespace.snapshot.envelope.idempotency_key =
             first.snapshot.envelope.idempotency_key.clone();
-        assert!(OfflineJournalBundleV1::create(
-            "tenant-001",
-            vec![first, other_namespace]
-        )
-        .is_ok());
+        assert!(OfflineJournalBundleV1::create("tenant-001", vec![first, other_namespace]).is_ok());
     }
 
     #[test]
