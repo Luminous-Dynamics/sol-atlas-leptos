@@ -101,6 +101,12 @@ Candidates include the Gauteng C-Plan v4 and the 2023 national biodiversity-prio
 
 The catalog records unresolved licensing and ingestion state deliberately. No layer should enter a simulation merely because the editor can render it. The dedicated ingestion contract is [LAND-DATA-001 #206](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/206).
 
+### Evidence readiness is a first-class editor state
+
+The sidebar reads the versioned Johannesburg/Highveld source catalog and counts catalogued records separately from records marked ingested. In v0 the catalog is metadata-only: a candidate URL is not a downloaded or license-cleared dataset. When no records are ingested, the UI must state that analysis is blocked rather than showing favorable defaults.
+
+Before any source can support a model, qualify license/attribution, source version and observation date, CRS/axis order/units/vertical datum, spatial/temporal resolution, no-data and quality masks, and an independent reference. Visualizing a candidate layer is not the same as qualifying it for simulation.
+
 ### Browser-local persistence in v0
 
 The editor now offers explicit **Save in browser** and **Load browser draft** actions. These use one versioned same-origin browser-local key; they do not sync to a server, and no autosave runs in the background. A loaded snapshot is fully parsed and validated before it replaces the current project.
@@ -213,6 +219,7 @@ Targets become product gates only after the reference hardware and benchmark har
 - /design/landscape renders on the existing Rust/Leptos stack.
 - All five tools and four scale contexts can be selected with accessible, visible state.
 - Selecting a symbol must not trigger placement; deleting one selected symbol removes only its ID and preserves unselected features.
+- Evidence readiness must count metadata records separately from ingested data, and must not present un-ingested candidate sources as analysis-ready.
 - Importing the canonical authored fixture restores its scope, project name, IDs, feature kinds and anchors; malformed, oversized, unsupported, synthetic, or out-of-range-ID snapshots leave the current project unchanged.
 - Undo/redo must round-trip both add and delete commands, and reject an identity conflict without mutating the feature list.
 - One valid canvas click adds one feature; undo removes the latest; reset restores the exact starter fixtures.
