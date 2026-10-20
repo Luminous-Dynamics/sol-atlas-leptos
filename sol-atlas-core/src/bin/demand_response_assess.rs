@@ -321,6 +321,45 @@ mod tests {
     }
 
     #[test]
+    fn sha256_hex_matches_the_standard_abc_known_answer() {
+        assert_eq!(
+            super::sha256_hex(b"abc"),
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+    }
+
+    #[test]
+    fn changing_observed_power_changes_input_and_metrics_digests() {
+        let (raw, _) = fixture();
+        let changed = raw.replacen(
+            "\"measured_power_kw\": [\n      100,",
+            "\"measured_power_kw\": [\n      101,",
+            1,
+        );
+        assert_ne!(raw, changed);
+        let input: TraceInput =
+            serde_json::from_str(&changed).expect("changed known-answer trace should parse");
+        let report = build_report(raw.as_bytes(), fixture().1).expect("original fixture works");
+        let changed_report =
+            build_report(changed.as_bytes(), input).expect("changed fixture still assesses");
+
+        assert_ne!(report.receipt.input_sha256, changed_report.receipt.input_sha256);
+        assert_ne!(report.receipt.metrics_sha256, changed_report.receipt.metrics_sha256);
+    }
+
+    #[test]
+    fn interval_id_length_mismatch_is_rejected() {
+        let (_, mut input) = fixture();
+        let rsr = input.rsr.as_mut().expect("fixture has RSR");
+        rsr.interval_ids.pop();
+        assert!(
+            build_report(b"misaligned-ids", input)
+                .expect_err("misaligned identifiers must be rejected")
+                .contains("interval_ids length mismatch")
+        );
+    }
+
+    #[test]
     fn changed_claim_ceiling_is_rejected_before_assessment() {
         let (_, mut input) = fixture();
         input.claim_ceiling = "quality_accepted_work_per_kwh".to_owned();
