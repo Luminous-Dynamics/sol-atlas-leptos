@@ -1,6 +1,6 @@
 use sa_economic_portfolio_oracle::{
-    check_expected, evaluate, evaluate_frontier_search, FrontierSearchEvaluation,
-    FrontierSearchStats, Input, Portfolio, RejectionCounts,
+    FrontierSearchEvaluation, FrontierSearchStats, Input, Portfolio, RejectionCounts,
+    check_expected, evaluate, evaluate_frontier_search,
 };
 use serde::Serialize;
 use sha2::{Digest, Sha256};
@@ -201,9 +201,8 @@ fn percentiles(samples: &[u128], repetitions: usize) -> TimingSummary {
 fn reference_frontier(raw: &str) -> Result<Vec<Portfolio>, String> {
     let value: serde_json::Value =
         serde_json::from_str(raw).map_err(|error| format!("invalid reference JSON: {error}"))?;
-    let mut frontier: Vec<Portfolio> =
-        serde_json::from_value(value["pareto_frontier"].clone())
-            .map_err(|error| format!("reference frontier missing/invalid: {error}"))?;
+    let mut frontier: Vec<Portfolio> = serde_json::from_value(value["pareto_frontier"].clone())
+        .map_err(|error| format!("reference frontier missing/invalid: {error}"))?;
     frontier.sort_by_key(|portfolio| portfolio.project_ids.join("+"));
     Ok(frontier)
 }
@@ -232,14 +231,18 @@ fn run_search_benchmark(args: &[String]) -> Result<(), String> {
         }
         if let Some(previous) = &baseline {
             if previous != &evaluation {
-                return Err("frontier-search result/counters changed between repeated runs".to_owned());
+                return Err(
+                    "frontier-search result/counters changed between repeated runs".to_owned(),
+                );
             }
         } else {
             baseline = Some(evaluation);
         }
     }
 
-    let evaluation = baseline.as_ref().expect("validated repetition count is positive");
+    let evaluation = baseline
+        .as_ref()
+        .expect("validated repetition count is positive");
     let timing = percentiles(&samples, repetitions);
     let schema_version = match input.schema_version.as_str() {
         "sa-economic-portfolio-v0.1" => "sa-economic-portfolio-search-benchmark-v0.1",
@@ -300,15 +303,21 @@ fn run_comparison_benchmark(args: &[String]) -> Result<(), String> {
         }
         if let Some(previous) = &search_baseline {
             if previous != &searched {
-                return Err("frontier search result/counters changed between repeated runs".to_owned());
+                return Err(
+                    "frontier search result/counters changed between repeated runs".to_owned(),
+                );
             }
         } else {
             search_baseline = Some(searched);
         }
     }
 
-    let exact = exact_baseline.as_ref().expect("validated repetition count is positive");
-    let searched = search_baseline.as_ref().expect("validated repetition count is positive");
+    let exact = exact_baseline
+        .as_ref()
+        .expect("validated repetition count is positive");
+    let searched = search_baseline
+        .as_ref()
+        .expect("validated repetition count is positive");
     let receipt = ComparisonBenchmarkReceipt {
         schema_version: "sa-economic-portfolio-comparison-benchmark-v0.2",
         evidence_class: "synthetic_exact_vs_search_benchmark",
@@ -356,7 +365,9 @@ fn run_search(args: &[String]) -> Result<(), String> {
                 .map_err(|error| format!("reference frontier missing/invalid: {error}"))?;
         expected_frontier.sort_by_key(|portfolio| portfolio.project_ids.join("+"));
         if evaluation.pareto_frontier != expected_frontier {
-            return Err("frontier-search output does not match supplied reference frontier".to_owned());
+            return Err(
+                "frontier-search output does not match supplied reference frontier".to_owned(),
+            );
         }
         let digest = Sha256::digest(reference_raw.as_bytes());
         let manifest_sha256 = digest.iter().map(|byte| format!("{byte:02x}")).collect();
@@ -365,18 +376,20 @@ fn run_search(args: &[String]) -> Result<(), String> {
             "PASS: frontier matches supplied reference manifest",
         )
     } else {
-        (None, "NOT_VERIFIED: no reference frontier manifest supplied")
+        (
+            None,
+            "NOT_VERIFIED: no reference frontier manifest supplied",
+        )
     };
 
     let input_digest = Sha256::digest(input_raw.as_bytes());
-    let input_sha256 = input_digest.iter().map(|byte| format!("{byte:02x}")).collect();
+    let input_sha256 = input_digest
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect();
     let schema_version = match input.schema_version.as_str() {
-        "sa-economic-portfolio-v0.1" => {
-            "sa-economic-portfolio-search-receipt-v0.1".to_owned()
-        }
-        "sa-economic-portfolio-v0.2" => {
-            "sa-economic-portfolio-search-receipt-v0.2".to_owned()
-        }
+        "sa-economic-portfolio-v0.1" => "sa-economic-portfolio-search-receipt-v0.1".to_owned(),
+        "sa-economic-portfolio-v0.2" => "sa-economic-portfolio-search-receipt-v0.2".to_owned(),
         _ => return Err("unsupported schema version after frontier search".to_owned()),
     };
     let receipt = SearchReceipt {
