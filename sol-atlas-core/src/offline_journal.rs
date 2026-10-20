@@ -380,9 +380,8 @@ impl fmt::Display for JournalError {
             }
             Self::InvalidReply => formatter
                 .write_str("service reply is malformed or inconsistent with expected revision"),
-            Self::ReplyBindingMismatch => formatter.write_str(
-                "service reply does not bind to the immutable operation envelope",
-            ),
+            Self::ReplyBindingMismatch => formatter
+                .write_str("service reply does not bind to the immutable operation envelope"),
             Self::InvalidTransition => formatter.write_str("journal transition is not allowed"),
             Self::ConflictResolutionMismatch(reason) => {
                 write!(
@@ -399,8 +398,8 @@ impl std::error::Error for JournalError {}
 #[cfg(test)]
 mod tests {
     use super::{
-        JournalEntry, JournalError, JournalState, OFFLINE_JOURNAL_SCHEMA_VERSION,
-        OperationBinding, OperationEnvelope, ReconcileOutcome, ServiceReply,
+        JournalEntry, JournalError, JournalState, OFFLINE_JOURNAL_SCHEMA_VERSION, OperationBinding,
+        OperationEnvelope, ReconcileOutcome, ServiceReply,
     };
     use serde::Deserialize;
     use std::collections::BTreeSet;
@@ -524,7 +523,7 @@ mod tests {
         );
         assert_eq!(
             entry.reconcile(&ServiceReply::Received {
-            binding: operation_binding(),
+                binding: operation_binding(),
                 receipt_ref: " ".to_owned(),
                 applied_revision: 8,
             }),
