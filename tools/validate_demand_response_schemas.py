@@ -200,6 +200,16 @@ def main() -> int:
     )
 
     manifest_mutation = copy.deepcopy(flexdc_manifest)
+    manifest_mutation["synthetic"] = False
+    manifest_mutation["runtime_environment_sha256"] = "a" * 64
+    manifest_mutation["runtime_environment_manifest_path"] = None
+    expect_invalid(
+        "non-synthetic FlexDC runs require a path to the runtime manifest",
+        flexdc_manifest_validator,
+        manifest_mutation,
+    )
+
+    manifest_mutation = copy.deepcopy(flexdc_manifest)
     manifest_mutation["python_version"] = "3.10"
     expect_invalid(
         "FlexDC run manifest requires an exact Python major.minor.patch version",
