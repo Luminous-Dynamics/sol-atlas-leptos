@@ -549,21 +549,6 @@ struct IndexedUsage {
     denominator: u64,
 }
 
-fn resource_quanta_for_delivery(
-    delivered_quanta: u64,
-    numerator: u64,
-    denominator: u64,
-) -> Option<u64> {
-    if denominator == 0 {
-        return None;
-    }
-    let product = (delivered_quanta as u128).checked_mul(numerator as u128)?;
-    let rounded = product
-        .checked_add(denominator as u128 - 1)?
-        .checked_div(denominator as u128)?;
-    u64::try_from(rounded).ok()
-}
-
 fn essential_floor_quanta(demand: u64, floor_basis_points: u16) -> u64 {
     let product = (demand as u128) * (floor_basis_points as u128);
     ((product + BASIS_POINTS - 1) / BASIS_POINTS) as u64
@@ -974,7 +959,6 @@ fn enumerate_candidates(
     best_resource_steps: &mut Option<Vec<IntertemporalResourceStepResult>>,
 ) {
     if index == slots.len() {
-        *feasible_count += 1;
         let Some(ledger) = build_resource_step_results(
             current,
             services_sorted,
@@ -985,7 +969,7 @@ fn enumerate_candidates(
         ) else {
             return;
         };
-        *feasible_count = feasible_count.saturating_sub(1);
+        *feasible_count = feasible_count.saturating_add(1);
         if best.as_ref().is_none_or(|incumbent| {
             weighted_feasible_plan_is_preferred(
                 request.policy,
@@ -1326,7 +1310,7 @@ mod tests {
         let request = tank_request(IntertemporalAllocationPolicy::EssentialFloorFirst);
         let result = assess_intertemporal_resource_allocation(&request).expect("valid fixture");
         assert_eq!(result.disposition, IntertemporalAllocationDisposition::Optimal);
-        assert_eq!(result.search_complete, true);
+        assert!(result.search_complete);
         assert_eq!(result.search_space_size, Some(4 * 4 * 2 * 2));
         assert_eq!(result.service_steps.len(), 4);
 
