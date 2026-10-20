@@ -187,6 +187,25 @@ pub fn assess(request: &Request) -> Assessment {
     let mut missing = Vec::new();
     let mut unsupported = Vec::new();
 
+    if request.schema_version != "0.1" {
+        unsupported.push("scenario_schema_version_unsupported".to_owned());
+    }
+    if request.fixture_id.trim().is_empty() {
+        invalid.push("fixture_id_empty".to_owned());
+    }
+    if request.claim_ceiling.trim().is_empty() {
+        invalid.push("claim_ceiling_empty".to_owned());
+    }
+    if request.baseline_policy != "fixed_earliest_ready" {
+        unsupported.push("baseline_policy_unsupported_v0_1".to_owned());
+    }
+    if request.candidate_policies.is_empty() {
+        invalid.push("candidate_policies_empty".to_owned());
+    }
+    if request.storage.is_some() {
+        unsupported.push("storage_dispatch_unsupported_v0_1".to_owned());
+    }
+
     if request.site.site_id.trim().is_empty() {
         invalid.push("site_id_empty".to_owned());
     }
@@ -290,10 +309,17 @@ pub fn assess(request: &Request) -> Assessment {
     let mut common_energy: Option<f64> = None;
     let mut protected_units = Vec::new();
     let mut deferrable_units = Vec::new();
+    let mut deferrable_quality_profile: Option<&str> = None;
 
     for workload in &request.workloads {
         if workload.workload_id.trim().is_empty() {
             invalid.push("workload_id_empty".to_owned());
+        }
+        if workload.service_quality_profile_id.trim().is_empty() {
+            invalid.push(format!(
+                "workload_{}_quality_profile_empty",
+                workload.workload_id
+            ));
         }
         if !workload_ids.insert(workload.workload_id.as_str()) {
             invalid.push(format!("workload_id_duplicate:{}", workload.workload_id));
@@ -361,6 +387,22 @@ pub fn assess(request: &Request) -> Assessment {
                 protected_units.push(workload.required_work_units);
             }
             WorkClass::Deferrable => {
+                if !workload.interruptible {
+                    unsupported.push(format!(
+                        "workload_{}_deferrable_not_interruptible_v0_1",
+                        workload.workload_id
+                    ));
+                }
+                if let Some(profile) = deferrable_quality_profile {
+                    if profile != workload.service_quality_profile_id {
+                        unsupported.push(
+                            "heterogeneous_deferrable_quality_profiles_unsupported_v0_1"
+                                .to_owned(),
+                        );
+                    }
+                } else {
+                    deferrable_quality_profile = Some(&workload.service_quality_profile_id);
+                }
                 if floor_sum != 0 {
                     unsupported.push(format!(
                         "workload_{}_deferrable_floors_unsupported_v0_1",
