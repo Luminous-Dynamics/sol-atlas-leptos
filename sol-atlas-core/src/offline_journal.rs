@@ -40,7 +40,9 @@ fn validate_snapshot_state(
         JournalState::Prepared if attempt_count == 0 => Ok(()),
         JournalState::Prepared => Err(JournalError::InvalidSnapshot("prepared_with_attempts")),
         JournalState::OutcomeUnknown if attempt_count > 0 => Ok(()),
-        JournalState::OutcomeUnknown => Err(JournalError::InvalidSnapshot("unknown_without_attempt")),
+        JournalState::OutcomeUnknown => {
+            Err(JournalError::InvalidSnapshot("unknown_without_attempt"))
+        }
         JournalState::Received {
             receipt_ref,
             applied_revision,
@@ -293,20 +295,17 @@ impl JournalEntry {
         }
         snapshot.envelope.validate()?;
 
-        let payload =
-            crate::offline_payload_digest::CanonicalPayload::from_json(&snapshot.canonical_payload_json)
-                .map_err(|error| JournalError::PayloadCanonicalization(error.to_string()))?;
+        let payload = crate::offline_payload_digest::CanonicalPayload::from_json(
+            &snapshot.canonical_payload_json,
+        )
+        .map_err(|error| JournalError::PayloadCanonicalization(error.to_string()))?;
         if payload.canonical_utf8() != snapshot.canonical_payload_json.as_bytes() {
             return Err(JournalError::NonCanonicalSnapshotPayload);
         }
         if payload.sha256_hex() != snapshot.envelope.payload_digest_sha256 {
             return Err(JournalError::PayloadDigestMismatch);
         }
-        validate_snapshot_state(
-            &snapshot.envelope,
-            &snapshot.state,
-            snapshot.attempt_count,
-        )?;
+        validate_snapshot_state(&snapshot.envelope, &snapshot.state, snapshot.attempt_count)?;
 
         Ok(Self {
             envelope: snapshot.envelope,
@@ -551,7 +550,10 @@ impl fmt::Display for JournalError {
                 write!(formatter, "unsupported journal schema version {version}")
             }
             Self::UnsupportedSnapshotSchemaVersion(version) => {
-                write!(formatter, "unsupported journal snapshot schema version {version}")
+                write!(
+                    formatter,
+                    "unsupported journal snapshot schema version {version}"
+                )
             }
             Self::InvalidSnapshot(reason) => {
                 write!(formatter, "journal snapshot is inconsistent: {reason}")
@@ -593,9 +595,9 @@ impl std::error::Error for JournalError {}
 #[cfg(test)]
 mod tests {
     use super::{
-        JournalEntry, JournalEntrySnapshotV1, JournalError, JournalState,
-        JOURNAL_ENTRY_SNAPSHOT_SCHEMA_VERSION, OFFLINE_JOURNAL_SCHEMA_VERSION, OperationBinding,
-        OperationEnvelope, ReconcileOutcome, RequiredNullableOperationId, ServiceReply,
+        JOURNAL_ENTRY_SNAPSHOT_SCHEMA_VERSION, JournalEntry, JournalEntrySnapshotV1, JournalError,
+        JournalState, OFFLINE_JOURNAL_SCHEMA_VERSION, OperationBinding, OperationEnvelope,
+        ReconcileOutcome, RequiredNullableOperationId, ServiceReply,
     };
     use serde::Deserialize;
     use std::collections::BTreeSet;
@@ -679,13 +681,19 @@ mod tests {
         let mut entry = prepared_entry();
         entry.mark_attempt_started().unwrap();
         let snapshot = entry.to_snapshot().unwrap();
-        assert_eq!(snapshot.schema_version, JOURNAL_ENTRY_SNAPSHOT_SCHEMA_VERSION);
+        assert_eq!(
+            snapshot.schema_version,
+            JOURNAL_ENTRY_SNAPSHOT_SCHEMA_VERSION
+        );
 
         let serialized = serde_json::to_vec(&snapshot).unwrap();
         let decoded: JournalEntrySnapshotV1 = serde_json::from_slice(&serialized).unwrap();
         let recovered = JournalEntry::from_snapshot(decoded).unwrap();
         assert_eq!(recovered, entry);
-        assert_eq!(recovered.canonical_payload_utf8(), entry.canonical_payload_utf8());
+        assert_eq!(
+            recovered.canonical_payload_utf8(),
+            entry.canonical_payload_utf8()
+        );
         assert_eq!(recovered.attempt_count(), 1);
         assert_eq!(recovered.state(), &JournalState::OutcomeUnknown);
     }
@@ -757,9 +765,7 @@ mod tests {
             ))
         );
 
-        assert!(
-            serde_json::from_str::<JournalState>(r#"{"state":"future_state"}"#).is_err()
-        );
+        assert!(serde_json::from_str::<JournalState>(r#"{"state":"future_state"}"#).is_err());
 
         let mut serialized = serde_json::to_value(prepared_entry().to_snapshot().unwrap()).unwrap();
         serialized["unexpected"] = serde_json::Value::Bool(true);
