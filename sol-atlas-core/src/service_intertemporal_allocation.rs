@@ -1363,6 +1363,39 @@ mod tests {
     }
 
     #[test]
+    fn terminal_reserve_is_a_hard_feasibility_constraint() {
+        let mut request = tank_request(IntertemporalAllocationPolicy::EssentialFloorFirst);
+        request.resources[0]
+            .inventory
+            .as_mut()
+            .unwrap()
+            .inflow
+            .values = vec![Some(0), Some(0)];
+        let result = assess_intertemporal_resource_allocation(&request).unwrap();
+        assert_eq!(result.disposition, IntertemporalAllocationDisposition::Infeasible);
+        assert!(result.search_complete);
+        assert_eq!(result.feasible_plan_count, Some(0));
+        assert!(result.service_steps.iter().all(|row| row.allocated_quanta.is_none()));
+        assert!(result.resource_steps.is_empty());
+    }
+
+    #[test]
+    fn missing_inventory_inflow_is_indeterminate_not_zero_inflow() {
+        let mut request = tank_request(IntertemporalAllocationPolicy::EssentialFloorFirst);
+        request.resources[0]
+            .inventory
+            .as_mut()
+            .unwrap()
+            .inflow
+            .values[1] = None;
+        let result = assess_intertemporal_resource_allocation(&request).unwrap();
+        assert_eq!(result.disposition, IntertemporalAllocationDisposition::IndeterminateInput);
+        assert!(result.input_blockers.iter().any(|path| path == "resources.tank.inventory.inflow[t1]"));
+        assert!(result.service_steps.iter().all(|row| row.allocated_quanta.is_none()));
+        assert!(result.resource_steps.is_empty());
+    }
+
+    #[test]
     fn scenario_and_service_resource_permutations_are_deterministic() {
         let request = tank_request(IntertemporalAllocationPolicy::EqualCoverageLeximin);
         let mut permuted = request.clone();
