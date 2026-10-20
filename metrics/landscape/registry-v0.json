@@ -277,7 +277,7 @@
       "label": "Lifecycle cost range over a declared analysis horizon",
       "unit": "currency_in_declared_base_year",
       "semantic_type": "range",
-      "formula": "sum(capital, operations, maintenance, replacement and end-of-life cashflows discounted using a declared convention and scenario range",
+      "formula": "Sum of capital, operations, maintenance, replacement, and end-of-life cashflows over a declared analysis horizon, with declared discount and scenario conventions.",
       "required_inputs": [
         "quantity take-off and rates with source date/geography",
         "operations/maintenance schedule",
@@ -307,5 +307,7 @@
         "https://www.landscapeperformance.org/guide-to-evaluate-performance"
       ]
     }
-  ]
+  ],
+  "schema": "luminous.landscape-performance-registry.v0",
+  "schema_uri": "https://luminousdynamics.io/schemas/landscape-performance-registry-v0.schema.json"
 }
