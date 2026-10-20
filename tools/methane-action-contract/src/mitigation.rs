@@ -135,7 +135,11 @@ pub fn assess_mitigation(
             report.push(intervention_id, "status", "intervention_not_verified");
         }
         RepairVerificationStatus::Disputed => {
-            report.push(intervention_id, "status", "intervention_verification_disputed");
+            report.push(
+                intervention_id,
+                "status",
+                "intervention_verification_disputed",
+            );
         }
     }
     if policy.minimum_followup_count < 2 || policy.minimum_followup_span_seconds == 0 {
@@ -440,9 +444,9 @@ fn validate_intervention_artifact(
             "invalid_intervention_artifact_sha256",
         );
     }
-    let mut matches = snapshots.iter().filter(|snapshot| {
-        snapshot.role == expectation.role && snapshot.uri == expectation.uri
-    });
+    let mut matches = snapshots
+        .iter()
+        .filter(|snapshot| snapshot.role == expectation.role && snapshot.uri == expectation.uri);
     let Some(snapshot) = matches.next() else {
         report.push(record_id, expectation.field, expectation.missing_code);
         return;
@@ -488,21 +492,41 @@ fn validate_source_link(
         report.push(observation_id, "source_id", "intervention_source_mismatch");
     }
     if association.method.trim().is_empty() {
-        report.push(observation_id, "source_association.method", "empty_association_method");
+        report.push(
+            observation_id,
+            "source_association.method",
+            "empty_association_method",
+        );
     }
     if !association.match_score.is_finite() || !(0.0..=1.0).contains(&association.match_score) {
-        report.push(observation_id, "source_association.match_score", "invalid_match_score");
+        report.push(
+            observation_id,
+            "source_association.match_score",
+            "invalid_match_score",
+        );
     }
     match &association.review {
         AssociationReview::Reviewed { reviewer_id } if !reviewer_id.trim().is_empty() => {}
         AssociationReview::Reviewed { .. } => {
-            report.push(observation_id, "source_association.review", "empty_reviewer_id");
+            report.push(
+                observation_id,
+                "source_association.review",
+                "empty_reviewer_id",
+            );
         }
         AssociationReview::Unreviewed => {
-            report.push(observation_id, "source_association.review", "association_unreviewed");
+            report.push(
+                observation_id,
+                "source_association.review",
+                "association_unreviewed",
+            );
         }
         AssociationReview::Rejected { .. } => {
-            report.push(observation_id, "source_association.review", "association_rejected");
+            report.push(
+                observation_id,
+                "source_association.review",
+                "association_rejected",
+            );
         }
     }
 }
@@ -532,10 +556,8 @@ fn utc_timestamp_seconds(value: &str) -> Option<i64> {
     let minute = value.get(14..16)?.parse::<i64>().ok()?;
     let second = value.get(17..19)?.parse::<i64>().ok()?;
     let previous_year = year - 1;
-    let mut days = 365 * previous_year
-        + previous_year / 4
-        - previous_year / 100
-        + previous_year / 400;
+    let mut days =
+        365 * previous_year + previous_year / 4 - previous_year / 100 + previous_year / 400;
     const DAYS_BEFORE_MONTH: [i64; 12] = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
     days += DAYS_BEFORE_MONTH[month - 1];
     if month > 2 && is_leap_year(year) {
@@ -783,7 +805,12 @@ mod tests {
         event.status = RepairVerificationStatus::NotVerified;
         let report = assess(&event, &observations, &associations, &snapshots());
         assert!(!report.is_valid());
-        assert!(report.violations.iter().any(|v| v.code == "intervention_not_verified"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "intervention_not_verified")
+        );
     }
 
     #[test]
