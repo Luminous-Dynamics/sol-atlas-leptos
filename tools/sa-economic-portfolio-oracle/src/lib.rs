@@ -209,6 +209,40 @@ pub struct Evaluation {
     pub rejection_reason_counts: RejectionCounts,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[serde(deny_unknown_fields)]
+pub struct FrontierSearchStats {
+    pub candidate_subset_count: u64,
+    pub visited_nodes: u64,
+    pub evaluated_leaves: u64,
+    pub feasible_portfolio_count: u64,
+    pub service_floor_rejection_leaves: u64,
+    pub gate_pruned_subsets: u64,
+    pub prerequisite_pruned_subsets: u64,
+    pub budget_pruned_subsets: u64,
+    pub crew_pruned_subsets: u64,
+    pub frontier_comparisons: u64,
+}
+
+impl FrontierSearchStats {
+    pub fn pruned_subset_count(&self) -> u64 {
+        self.gate_pruned_subsets
+            + self.prerequisite_pruned_subsets
+            + self.budget_pruned_subsets
+            + self.crew_pruned_subsets
+    }
+
+    pub fn accounted_subset_count(&self) -> u64 {
+        self.evaluated_leaves + self.pruned_subset_count()
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct FrontierSearchEvaluation {
+    pub stats: FrontierSearchStats,
+    pub pareto_frontier: Vec<Portfolio>,
+}
+
 fn period_rank(period: &str) -> Option<u32> {
     period.strip_prefix('P')?.parse::<u32>().ok()
 }
@@ -646,6 +680,229 @@ pub fn evaluate(input: &Input) -> Result<Evaluation, String> {
         feasible_portfolios,
         pareto_frontier,
         rejection_reason_counts,
+    })
+}
+
+struct FrontierSearchContext<'a> {
+    input: &'a Input,
+    project_order: Vec<usize>,
+    project_index_by_id: BTreeMap<String, usize>,
+    budgets_by_period: BTreeMap<String, PeriodBudget>,
+}
+
+#[derive(Default)]
+struct FrontierSearchAccumulator {
+    stats: FrontierSearchStats,
+    pareto_frontier: Vec<Portfolio>,
+}
+
+fn insert_frontier_candidate(
+    accumulator: &mut FrontierSearchAccumulator,
+    candidate: Portfolio,
+    scenarios: &[Scenario],
+) {
+    for existing in &accumulator.pareto_frontier {
+        accumulator.stats.frontier_comparisons += 1;
+        if dominates(existing, &candidate, scenarios) {
+            return;
+        }
+    }
+
+    let mut retained = Vec::with_capacity(accumulator.pareto_frontier.len() + 1);
+    for existing in accumulator.pareto_frontier.drain(..) {
+        accumulator.stats.frontier_comparisons += 1;
+        if !dominates(&candidate, &existing, scenarios) {
+            retained.push(existing);
+        }
+    }
+    retained.push(candidate);
+    accumulator.pareto_frontier = retained;
+}
+
+fn search_frontier_recursive(
+    context: &FrontierSearchContext<'_>,
+    position: usize,
+    mask: u64,
+    used_resources: &mut BTreeMap<String, Resources>,
+    accumulator: &mut FrontierSearchAccumulator,
+) -> Result<(), String> {
+    accumulator.stats.visited_nodes += 1;
+    if position == context.project_order.len() {
+        accumulator.stats.evaluated_leaves += 1;
+        match evaluate_subset(context.input, mask)? {
+            SubsetEvaluation::Feasible(portfolio) => {
+                accumulator.stats.feasible_portfolio_count += 1;
+                insert_frontier_candidate(
+                    accumulator,
+                    portfolio,
+                    &context.input.scenarios,
+                );
+            }
+            SubsetEvaluation::Rejected(RejectionReason::ProtectedServiceFloor) => {
+                accumulator.stats.service_floor_rejection_leaves += 1;
+            }
+            SubsetEvaluation::Rejected(reason) => {
+                return Err(format!(
+                    "frontier search reached a leaf rejected by an unpruned constraint: {reason:?}"
+                ));
+            }
+        }
+        return Ok(());
+    }
+
+    let project_index = context.project_order[position];
+    let project = &context.input.projects[project_index];
+    let remaining = context.project_order.len() - position - 1;
+    let completion_count = 1_u64
+        .checked_shl(remaining as u32)
+        .ok_or_else(|| "frontier search subtree count overflow".to_owned())?;
+
+    // Excluding a project always remains a possible decision.
+    search_frontier_recursive(
+        context,
+        position + 1,
+        mask,
+        used_resources,
+        accumulator,
+    )?;
+
+    // Each include branch is pruned only when every completion beneath it is infeasible.
+    if project.gate != "PASS" {
+        accumulator.stats.gate_pruned_subsets += completion_count;
+        return Ok(());
+    }
+
+    for dependency_id in &project.requires {
+        let dependency_index = context
+            .project_index_by_id
+            .get(dependency_id)
+            .ok_or_else(|| format!("unknown prerequisite {dependency_id}"))?;
+        if mask & (1_u64 << dependency_index) == 0 {
+            accumulator.stats.prerequisite_pruned_subsets += completion_count;
+            return Ok(());
+        }
+    }
+
+    let budget = context
+        .budgets_by_period
+        .get(&project.period)
+        .ok_or_else(|| format!("missing budget for period {}", project.period))?;
+    let previous = used_resources
+        .get(&project.period)
+        .ok_or_else(|| format!("missing resource accumulator for period {}", project.period))?
+        .clone();
+    let next_cost = previous
+        .cost_u
+        .checked_add(project.cost_u)
+        .ok_or_else(|| "cost total overflow during frontier search".to_owned())?;
+    let next_crew = previous
+        .crew_u
+        .checked_add(project.crew_u)
+        .ok_or_else(|| "crew total overflow during frontier search".to_owned())?;
+    if next_cost > budget.cost_cap_u {
+        accumulator.stats.budget_pruned_subsets += completion_count;
+        return Ok(());
+    }
+    if next_crew > budget.crew_cap_u {
+        accumulator.stats.crew_pruned_subsets += completion_count;
+        return Ok(());
+    }
+
+    used_resources.insert(
+        project.period.clone(),
+        Resources {
+            cost_u: next_cost,
+            crew_u: next_crew,
+        },
+    );
+    search_frontier_recursive(
+        context,
+        position + 1,
+        mask | (1_u64 << project_index),
+        used_resources,
+        accumulator,
+    )?;
+    used_resources.insert(project.period.clone(), previous);
+    Ok(())
+}
+
+/// Return the exact scenario-wise Pareto frontier using dependency-aware recursive search.
+///
+/// This is a candidate for scale-up, not an approximation: every pruned subtree is excluded
+/// only when all completions are infeasible. Worst-case time remains exponential. The method
+/// accepts up to 63 synthetic projects so subset masks/counts fit in u64; this is not a promise
+/// of practical runtime at that maximum.
+pub fn evaluate_frontier_search(input: &Input) -> Result<FrontierSearchEvaluation, String> {
+    validate_search_input(input)?;
+    let candidate_subset_count = 1_u64
+        .checked_shl(input.projects.len() as u32)
+        .ok_or_else(|| "project subset count overflow".to_owned())?;
+
+    let mut project_order: Vec<usize> = (0..input.projects.len()).collect();
+    project_order.sort_by_key(|index| {
+        let project = &input.projects[*index];
+        (
+            period_rank(&project.period).unwrap_or(u32::MAX),
+            project.stage_order,
+            project.id.clone(),
+        )
+    });
+
+    let project_index_by_id: BTreeMap<String, usize> = input
+        .projects
+        .iter()
+        .enumerate()
+        .map(|(index, project)| (project.id.clone(), index))
+        .collect();
+    let budgets_by_period: BTreeMap<String, PeriodBudget> = input
+        .budgets_by_period
+        .iter()
+        .map(|budget| (budget.period.clone(), budget.clone()))
+        .collect();
+    let context = FrontierSearchContext {
+        input,
+        project_order,
+        project_index_by_id,
+        budgets_by_period,
+    };
+    let mut used_resources: BTreeMap<String, Resources> = input
+        .budgets_by_period
+        .iter()
+        .map(|budget| {
+            (
+                budget.period.clone(),
+                Resources {
+                    cost_u: 0,
+                    crew_u: 0,
+                },
+            )
+        })
+        .collect();
+    let mut accumulator = FrontierSearchAccumulator {
+        stats: FrontierSearchStats {
+            candidate_subset_count,
+            ..FrontierSearchStats::default()
+        },
+        pareto_frontier: Vec::new(),
+    };
+
+    search_frontier_recursive(
+        &context,
+        0,
+        0,
+        &mut used_resources,
+        &mut accumulator,
+    )?;
+    accumulator
+        .pareto_frontier
+        .sort_by_key(portfolio_key);
+    if accumulator.stats.accounted_subset_count() != candidate_subset_count {
+        return Err("frontier search subset accounting does not reconcile".to_owned());
+    }
+
+    Ok(FrontierSearchEvaluation {
+        stats: accumulator.stats,
+        pareto_frontier: accumulator.pareto_frontier,
     })
 }
 
