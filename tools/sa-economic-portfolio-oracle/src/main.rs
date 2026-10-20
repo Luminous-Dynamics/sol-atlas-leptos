@@ -1,6 +1,7 @@
 use sa_economic_portfolio_oracle::{
     FrontierSearchEvaluation, FrontierSearchStats, Input, Portfolio, RejectionCounts,
-    check_expected, evaluate, evaluate_frontier_search,
+    check_expected, evaluate, evaluate_frontier_search, evaluate_scenario_omission,
+    ScenarioOmissionReport,
 };
 use serde::Serialize;
 use sha2::{Digest, Sha256};
@@ -11,6 +12,18 @@ const DEFAULT_INPUT: &str =
     include_str!("../../../docs/research/fixtures/sa-economic-portfolio-v0.1.json");
 const DEFAULT_EXPECTED: &str =
     include_str!("../../../docs/research/fixtures/sa-economic-portfolio-v0.1.expected.json");
+
+#[derive(Serialize)]
+struct ScenarioOmissionReceipt<'a> {
+    schema_version: &'static str,
+    evidence_class: &'static str,
+    synthetic_only: bool,
+    claim_ceiling: &'static str,
+    input_sha256: String,
+    expected_sha256: String,
+    report: &'a ScenarioOmissionReport,
+    validation: &'static str,
+}
 
 #[derive(Serialize)]
 struct HostMetadata {
@@ -103,6 +116,9 @@ struct Receipt<'a> {
 
 fn run() -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
+    if args.first().map(String::as_str) == Some("--scenario-omission") {
+        return run_scenario_omission(&args[1..]);
+    }
     if args.first().map(String::as_str) == Some("--search") {
         return run_search(&args[1..]);
     }
@@ -159,6 +175,57 @@ fn run() -> Result<(), String> {
         validation: "PASS: exact comparison with the supplied known-answer manifest",
     };
 
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&receipt).map_err(|error| error.to_string())?
+    );
+    Ok(())
+}
+
+fn run_scenario_omission(args: &[String]) -> Result<(), String> {
+    if args.len() != 3 {
+        return Err(
+            "usage: sa-economic-portfolio-oracle --scenario-omission INPUT.json SCENARIO_ID EXPECTED.json"
+                .to_owned(),
+        );
+    }
+    let input_path = &args[0];
+    let scenario_id = &args[1];
+    let expected_path = &args[2];
+    let input_raw = fs::read_to_string(input_path)
+        .map_err(|error| format!("cannot read input {input_path}: {error}"))?;
+    let expected_raw = fs::read_to_string(expected_path)
+        .map_err(|error| format!("cannot read expected manifest {expected_path}: {error}"))?;
+    let input: Input = serde_json::from_str(&input_raw)
+        .map_err(|error| format!("invalid input JSON/contract: {error}"))?;
+    let report = evaluate_scenario_omission(&input, scenario_id)?;
+    let expected: serde_json::Value = serde_json::from_str(&expected_raw)
+        .map_err(|error| format!("invalid scenario-omission expected JSON: {error}"))?;
+    let actual = serde_json::to_value(&report).map_err(|error| error.to_string())?;
+    if actual != expected {
+        return Err(format!(
+            "scenario-omission report differs from frozen manifest {expected_path}"
+        ));
+    }
+
+    let input_sha256 = Sha256::digest(input_raw.as_bytes())
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect();
+    let expected_sha256 = Sha256::digest(expected_raw.as_bytes())
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect();
+    let receipt = ScenarioOmissionReceipt {
+        schema_version: "sa-economic-portfolio-scenario-omission-receipt-v0.1",
+        evidence_class: "synthetic_scenario_set_sensitivity",
+        synthetic_only: true,
+        claim_ceiling: "Exact scenario-omission analysis on one finite synthetic input; no scenario-completeness, field-validity or SOTA claim.",
+        input_sha256,
+        expected_sha256,
+        report: &report,
+        validation: "PASS: exact report equality with the supplied frozen scenario-omission manifest",
+    };
     println!(
         "{}",
         serde_json::to_string_pretty(&receipt).map_err(|error| error.to_string())?
