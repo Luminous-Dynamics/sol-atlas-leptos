@@ -59,7 +59,9 @@ impl<E: fmt::Display> fmt::Display for JournalStoreError<E> {
                 formatter.write_str("idempotency key is already bound to another operation")
             }
             Self::OperationNotFound => formatter.write_str("journal operation was not found"),
-            Self::InvalidPageSize => formatter.write_str("journal page size must be greater than zero"),
+            Self::InvalidPageSize => {
+                formatter.write_str("journal page size must be greater than zero")
+            }
             Self::Journal(error) => write!(formatter, "journal transition failed: {error}"),
             Self::Backend(error) => write!(formatter, "journal storage backend failed: {error}"),
         }
