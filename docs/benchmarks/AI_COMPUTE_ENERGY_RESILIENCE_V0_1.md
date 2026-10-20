@@ -118,15 +118,16 @@ The semantic validator must additionally enforce cross-field rules the JSON Sche
 
 ## 4A. Executable reference evaluator
 
-The dependency-free Rust core includes a bounded reference evaluator and a native JSON CLI. Run each policy against the **same exact scenario bytes**:
+The Rust core uses no external optimization solver for its bounded reference evaluator and native JSON CLI. Run individual policies or compare the reference-policy frontier against the **same exact scenario bytes**:
 
 ```sh
 cargo run -p sol-atlas-core --bin ai_compute_energy_assess -- schemas/examples/ai-compute-energy-flexibility-four-interval.synthetic.json earliest-ready
 cargo run -p sol-atlas-core --bin ai_compute_energy_assess -- schemas/examples/ai-compute-energy-flexibility-four-interval.synthetic.json lowest-cost
 cargo run -p sol-atlas-core --bin ai_compute_energy_assess -- schemas/examples/ai-compute-energy-flexibility-four-interval.synthetic.json lowest-carbon
+cargo run -p sol-atlas-core --bin ai_compute_energy_assess -- schemas/examples/ai-compute-energy-flexibility-four-interval.synthetic.json pareto
 ```
 
-The CLI emits a machine-readable JSON schedule assessment to stdout. The policies are `earliest-ready`, `lowest-cost` (sort by attributed electricity price × facility-energy factor), and `lowest-carbon` (sort by attributed carbon intensity × facility-energy factor). Missing price/carbon factors for any interval with eligible capacity make the corresponding objective indeterminate; unknown values never silently become zero. Finite negative wholesale electricity prices are allowed because negative-price intervals can occur in real markets; carbon intensity and physical resource bounds remain nonnegative.
+The CLI emits a machine-readable JSON assessment to stdout. The policies are `earliest-ready`, `lowest-cost` (sort by attributed electricity price × facility-energy factor), and `lowest-carbon` (sort by attributed carbon intensity × facility-energy factor). The `pareto` mode returns all three candidate assessments plus the non-dominated policies across modelled electricity cost and attributed grid carbon; this is a frontier over the three reference policies, not a proof of the global feasible frontier. If any candidate or objective attribution is invalid, unsupported or indeterminate, the comparison preserves candidate diagnostics and withholds the frontier. Missing price/carbon factors for any interval with eligible capacity make the corresponding objective indeterminate; unknown values never silently become zero. Finite negative wholesale electricity prices are allowed because negative-price intervals can occur in real markets; carbon intensity and physical resource bounds remain nonnegative.
 
 Exit codes are explicit: 0 for a completed feasible/capacity-limited assessment; 2 for protected-floor infeasibility; 3 for indeterminate required resource/objective inputs; 4 for unsupported request shapes; 5 for invalid inputs; 64 for CLI usage errors; 65 for JSON parse errors; 66 for file-read errors; 70 for serialization errors.
 
