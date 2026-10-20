@@ -1333,6 +1333,151 @@ mod tests {
     }
 
     #[test]
+    fn deterministic_resource_scenarios_match_cost_and_carbon_exhaustive_oracles() {
+        fn next_bounded(seed: &mut u64, upper_exclusive: u64) -> u64 {
+            *seed = seed
+                .wrapping_mul(6_364_136_223_846_793_005)
+                .wrapping_add(1_442_695_040_888_963_407);
+            (*seed >> 32) % upper_exclusive
+        }
+
+        let mut seed = 0x5eed_cafe_d00d_f00d_u64;
+        let mut checked_cases = 0_u64;
+        for case_index in 0..64 {
+            let mut request = fixture_request();
+            let mut generated_capacities = [
+                next_bounded(&mut seed, 5),
+                next_bounded(&mut seed, 5),
+                next_bounded(&mut seed, 5),
+                next_bounded(&mut seed, 5),
+            ];
+            if generated_capacities.iter().sum::<u64>() == 0 {
+                generated_capacities[case_index % 4] = 1;
+            }
+            let total_capacity = generated_capacities.iter().sum::<u64>();
+            let demand = 1 + next_bounded(&mut seed, total_capacity);
+            request.workloads[1].required_work_units = demand;
+
+            for (index, (interval, target_capacity)) in request
+                .intervals
+                .iter_mut()
+                .zip(generated_capacities)
+                .enumerate()
+            {
+                // The protected floor is six units × 0.5 kWh = 3 kWh in
+                // every one-hour interval. Set water as the binding resource
+                // so the residual capacity is exactly the generated integer.
+                let protected_energy_kwh = 3.0;
+                let deferrable_energy_kwh = target_capacity as f64 * 0.5;
+                let water_intensity = interval
+                    .water_l_per_it_kwh
+                    .expect("fixture declares water intensity");
+                interval.cooling_water_limit_l = Some(
+                    (protected_energy_kwh + deferrable_energy_kwh)
+                        * water_intensity
+                        * interval.duration_hours,
+                );
+                interval.thermal_it_power_limit_kw = Some(20.0);
+                interval.electricity_price_usd_per_kwh = Some(
+                    (next_bounded(&mut seed, 17) as i64 - 4) as f64 * 0.025,
+                );
+                interval.grid_carbon_intensity_gco2_per_kwh =
+                    Some(next_bounded(&mut seed, 1201) as f64);
+                // Keep a stable, varied interval identity to help diagnostics.
+                assert!(!interval.id.is_empty(), "interval {index} needs identity");
+            }
+
+            let capacity = assess(&request);
+            assert!(
+                matches!(
+                    capacity.status,
+                    AssessmentStatus::Feasible | AssessmentStatus::CapacityLimited
+                ),
+                "capacity precondition failed in generated case {case_index}: {:?}",
+                capacity.blockers
+            );
+            let derived_capacities = capacity
+                .interval_assessments
+                .iter()
+                .map(|row| row.max_deferrable_work_units)
+                .collect::<Vec<_>>();
+            assert_eq!(
+                derived_capacities,
+                generated_capacities,
+                "water-derived capacities differ from the generated oracle in case {case_index}"
+            );
+            let unit_energy = request.workloads[0].energy_kwh_per_work_unit;
+
+            let per_unit_cost = request
+                .intervals
+                .iter()
+                .map(|interval| {
+                    interval.electricity_price_usd_per_kwh.expect("price assigned")
+                        * interval
+                            .facility_energy_per_it_energy
+                            .expect("fixture declares facility factor")
+                        * unit_energy
+                })
+                .collect::<Vec<_>>();
+            let cost_oracle =
+                exhaustive_minimum_objective(&generated_capacities, &per_unit_cost, demand);
+            let cost_schedule = schedule_deferrable(&request, SchedulingPolicy::LowestCost);
+            let cost_allocation = cost_schedule
+                .deferrable_work_units_by_interval
+                .as_ref()
+                .expect("generated cost case must schedule");
+            assert_eq!(cost_allocation.iter().sum::<u64>(), demand);
+            assert!(
+                (cost_schedule.modelled_electricity_cost_usd.expect("price known")
+                    - cost_oracle)
+                    .abs()
+                    < 1.0e-7,
+                "cost oracle disagreement in case {case_index}"
+            );
+
+            let per_unit_carbon = request
+                .intervals
+                .iter()
+                .map(|interval| {
+                    interval
+                        .grid_carbon_intensity_gco2_per_kwh
+                        .expect("carbon intensity assigned")
+                        * interval
+                            .facility_energy_per_it_energy
+                            .expect("fixture declares facility factor")
+                        * unit_energy
+                })
+                .collect::<Vec<_>>();
+            let carbon_oracle =
+                exhaustive_minimum_objective(&generated_capacities, &per_unit_carbon, demand);
+            let carbon_schedule = schedule_deferrable(&request, SchedulingPolicy::LowestCarbon);
+            let carbon_allocation = carbon_schedule
+                .deferrable_work_units_by_interval
+                .as_ref()
+                .expect("generated carbon case must schedule");
+            assert_eq!(carbon_allocation.iter().sum::<u64>(), demand);
+            assert!(
+                (carbon_schedule.modelled_grid_carbon_gco2.expect("carbon intensity known")
+                    - carbon_oracle)
+                    .abs()
+                    < 1.0e-7,
+                "carbon oracle disagreement in case {case_index}"
+            );
+
+            assert_eq!(
+                cost_schedule.protected_floor_work_units_by_interval,
+                Some(vec![6, 6, 6, 6])
+            );
+            assert_eq!(
+                carbon_schedule.protected_floor_work_units_by_interval,
+                Some(vec![6, 6, 6, 6])
+            );
+            checked_cases += 2;
+        }
+        assert_eq!(checked_cases, 128);
+    }
+
+    #[test]
     fn non_finite_derived_objective_rank_fails_closed_before_allocation() {
         for policy in [SchedulingPolicy::LowestCost, SchedulingPolicy::LowestCarbon] {
             let mut request = fixture_request();
