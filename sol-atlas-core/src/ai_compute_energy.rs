@@ -1128,7 +1128,11 @@ mod tests {
         assert!((result.modelled_electricity_cost_usd.unwrap() - 0.298).abs() < 1.0e-8);
     }
 
-    fn exhaustive_minimum_objective(capacities: &[u64], per_unit_objective: &[f64], demand: u64) -> f64 {
+    fn exhaustive_minimum_objective(
+        capacities: &[u64],
+        per_unit_objective: &[f64],
+        demand: u64,
+    ) -> f64 {
         fn visit(
             index: usize,
             remaining: u64,
@@ -1295,8 +1299,7 @@ mod tests {
                             * unit_energy
                     })
                     .collect::<Vec<_>>();
-                let oracle =
-                    exhaustive_minimum_objective(&capacities, &per_unit_emissions, demand);
+                let oracle = exhaustive_minimum_objective(&capacities, &per_unit_emissions, demand);
                 let result = schedule_deferrable(&request, SchedulingPolicy::LowestCarbon);
                 let allocation = result
                     .deferrable_work_units_by_interval
@@ -1316,7 +1319,10 @@ mod tests {
                     Some(vec![6, 6, 6, 6])
                 );
                 assert!(
-                    (result.modelled_grid_carbon_gco2.expect("known intensity factors") - oracle)
+                    (result
+                        .modelled_grid_carbon_gco2
+                        .expect("known intensity factors")
+                        - oracle)
                         .abs()
                         < 1.0e-7,
                     "carbon scheduler must match exhaustive optimum; demand={demand}, intensities={intensities:?}, allocation={allocation:?}"
@@ -1378,9 +1384,8 @@ mod tests {
                         * interval.duration_hours,
                 );
                 interval.thermal_it_power_limit_kw = Some(20.0);
-                interval.electricity_price_usd_per_kwh = Some(
-                    (next_bounded(&mut seed, 17) as i64 - 4) as f64 * 0.025,
-                );
+                interval.electricity_price_usd_per_kwh =
+                    Some((next_bounded(&mut seed, 17) as i64 - 4) as f64 * 0.025);
                 interval.grid_carbon_intensity_gco2_per_kwh =
                     Some(next_bounded(&mut seed, 1201) as f64);
                 // Keep a stable, varied interval identity to help diagnostics.
@@ -1402,8 +1407,7 @@ mod tests {
                 .map(|row| row.max_deferrable_work_units)
                 .collect::<Vec<_>>();
             assert_eq!(
-                derived_capacities,
-                generated_capacities,
+                derived_capacities, generated_capacities,
                 "water-derived capacities differ from the generated oracle in case {case_index}"
             );
             let unit_energy = request.workloads[0].energy_kwh_per_work_unit;
@@ -1412,7 +1416,9 @@ mod tests {
                 .intervals
                 .iter()
                 .map(|interval| {
-                    interval.electricity_price_usd_per_kwh.expect("price assigned")
+                    interval
+                        .electricity_price_usd_per_kwh
+                        .expect("price assigned")
                         * interval
                             .facility_energy_per_it_energy
                             .expect("fixture declares facility factor")
@@ -1428,7 +1434,9 @@ mod tests {
                 .expect("generated cost case must schedule");
             assert_eq!(cost_allocation.iter().sum::<u64>(), demand);
             assert!(
-                (cost_schedule.modelled_electricity_cost_usd.expect("price known")
+                (cost_schedule
+                    .modelled_electricity_cost_usd
+                    .expect("price known")
                     - cost_oracle)
                     .abs()
                     < 1.0e-7,
@@ -1457,7 +1465,9 @@ mod tests {
                 .expect("generated carbon case must schedule");
             assert_eq!(carbon_allocation.iter().sum::<u64>(), demand);
             assert!(
-                (carbon_schedule.modelled_grid_carbon_gco2.expect("carbon intensity known")
+                (carbon_schedule
+                    .modelled_grid_carbon_gco2
+                    .expect("carbon intensity known")
                     - carbon_oracle)
                     .abs()
                     < 1.0e-7,
