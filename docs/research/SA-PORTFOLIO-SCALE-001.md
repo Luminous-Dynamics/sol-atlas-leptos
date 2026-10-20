@@ -21,7 +21,9 @@ The candidate remains exact rather than approximate, but has exponential worst-c
 
 Schema: [sa-economic-portfolio-v0.2.schema.json](./schemas/sa-economic-portfolio-v0.2.schema.json).  
 Ten-project fixture: [sa-economic-portfolio-v0.2-10-project.json](./fixtures/sa-economic-portfolio-v0.2-10-project.json).  
-Frozen exact expected result: [sa-economic-portfolio-v0.2-10-project.expected.json](./fixtures/sa-economic-portfolio-v0.2-10-project.expected.json).
+Frozen exact expected result: [sa-economic-portfolio-v0.2-10-project.expected.json](./fixtures/sa-economic-portfolio-v0.2-10-project.expected.json).  
+Twenty-four-project hostile fixture: [sa-economic-portfolio-v0.2-24-project.json](./fixtures/sa-economic-portfolio-v0.2-24-project.json).  
+Adversarial frontier reference: [sa-economic-portfolio-v0.2-24-project.search-expected.json](./fixtures/sa-economic-portfolio-v0.2-24-project.search-expected.json).
 
 V0.2 differs from v0.1 by accepting non-empty unique project IDs and scenario IDs and any declared positive Pn periods, while retaining:
 - four typed, separately maximized synthetic objective dimensions;
@@ -91,7 +93,8 @@ The new tests are intended to qualify the following layers:
 1. **V0.1 exact regression:** preserve 256 subsets, 22 feasible portfolios, the pinned four-member frontier and the existing negative controls.
 2. **V0.2 exact oracle:** compare all 1,024 subsets to the pinned manifest (82 feasible, eight frontier portfolios and the five rejection counters above).
 3. **Cross-check:** the branch-and-bound candidate must return structurally equal portfolio DTOs / resource totals / objective vectors as exhaustive enumeration for both frozen instances.
-4. **24-project hostile case:** start with the v0.1 case under generalized v0.2 semantics, add 16 UNKNOWN-gated decoys, and require exact frontier equality with the eight-project reference. The full universe contains 16,777,216 subsets; the candidate should account for that universe by visited leaves plus proven-pruned subtrees instead of enumerating each subset. Runtime and node counts remain measurements from the pinned run, not assumed outcomes.
+4. **24-project hostile case:** the frozen v0.2 fixture starts with the v0.1 case, adds 16 UNKNOWN-gated decoys and requires exact frontier equality with the eight-project reference. The full universe contains 16,777,216 subsets; the candidate must account for the universe by visited leaves plus proven-pruned subtrees instead of enumerating each subset. It is an intentionally prune-friendly negative control, not a representative random case or a scaling win by itself.
+5. **Deterministic generated 12 / 16 / 18-project cases:** unit tests produce instances with three stress scenarios, three periods, nonnegative period resources, mixed gates, service floors and interaction adjustments. For each instance, compare exhaustive feasible/frontier results to the candidate search and reconcile all subsets. Their exact-head status and measured duration must be recorded; no runtime claim is implied by their presence in the source.
 5. **Safety mutations:** strict protected floor, a P1 budget reduction, crew-only caps, missing / invalid prerequisite, duplicate IDs, scenario permutation and input-row permutation must preserve explicit failure or canonical result semantics.
 6. **Baseline ablations:** keep the tested minimum-cost, declared weighted-sum and naive-project-Pareto baselines as comparison controls, not recommendations.
 
@@ -99,6 +102,7 @@ The new tests are intended to qualify the following layers:
 
 - **World Bank Infrastructure Prioritization Framework:** keep financial-economic and social/environmental criteria visible; constraints, weighting and sensitivity need transparent review: https://ppp.worldbank.org/library/infrastructure-prioritization-framework-ipf
 - **COCO benchmarking platform:** reuse benchmark discipline for fixed instance suites, non-dominated solution quality and runtime-to-target. COCO's numeric black-box suites do not directly represent this discrete, dependency/resource-constrained civic portfolio problem: https://coco-platform.org/data-archive/index.html and https://arxiv.org/abs/1605.01746
+- **Google OR-Tools CP-SAT:** use an independent operations-research formulation as a comparator on matched feasibility constraints and objective directions; report the solver version, parameters, wall-time limit, status and optimality bound/gap rather than comparing to a differently posed problem: https://developers.google.com/optimization/cp
 - **NIST AI RMF Playbook:** use Govern / Map / Measure / Manage as a governance structure for the decision-support layer, not as a compliance claim from passing software tests: https://www.nist.gov/itl/ai-risk-management-framework/nist-ai-rmf-playbook
 - **Independent operations-research baseline:** for generated 12–18 project cases, compare against a separately formulated MILP / CP-SAT or suitable solver on identical constraints, scenario set, objective directions and wall-time budget. Verify exactness against enumeration on smaller instances, and report solver version, settings and optimality gap.
 
