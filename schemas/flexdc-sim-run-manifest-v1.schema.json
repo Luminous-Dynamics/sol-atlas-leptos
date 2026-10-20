@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/flexdc-sim-run-manifest-v1.schema.json",
   "title": "FlexDC-Sim Reproducible Run Manifest v1",
-  "description": "Metadata needed to replay and interpret a source simulator trace. Config Git blob SHA-1s identify source objects but do not authenticate a run or establish physical measurement. The pinned AQA comparison profile uses P=24216 W and R=9626 W.",
+  "description": "Metadata needed to replay and interpret a source simulator trace. Config Git blob SHA-1s identify source objects but do not authenticate a run or establish physical measurement. The pinned AQA comparison profile uses P=24216 W and R=9626 W. A non-synthetic run must include the SHA-256 of its captured runtime environment; placeholder interpreter fields are intended only for synthetic contract fixtures.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -12,6 +12,9 @@
     "source_revision",
     "simulator_command",
     "random_seed",
+    "qos_percentile",
+    "runtime_environment_sha256",
+    "python_version",
     "power_cap_w",
     "regulation_reserve_w",
     "simulation_duration_seconds",
@@ -192,6 +195,24 @@
     "synthetic": {
       "type": "boolean",
       "description": "True only for generated fixtures. A replay of actual FlexDC-Sim output must set false; this flag does not imply physical facility metering."
+    },
+    "python_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Exact interpreter major.minor.patch version; placeholders are allowed only in synthetic manifests."
+    },
+    "runtime_environment_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 of exact Python/runtime environment manifest (for example a normalized complete package lock or pip-freeze manifest). Must be present for a non-synthetic run."
+    },
+    "qos_percentile": {
+      "type": "number",
+      "const": 0.9,
+      "description": "Pinned simulator default used for the run manifest; set explicitly so the command is reproducible."
     }
   },
   "allOf": [
@@ -209,6 +230,26 @@
     },
     {
       "description": "The adapter additionally checks divisibility of the time grid and consistency of CSV row count."
+    },
+    {
+      "if": {
+        "properties": {
+          "synthetic": {
+            "const": false
+          }
+        },
+        "required": [
+          "synthetic"
+        ]
+      },
+      "then": {
+        "properties": {
+          "runtime_environment_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      }
     }
   ]
 }
