@@ -1114,7 +1114,7 @@ mod tests {
             synthetic_only: true,
             claim_ceiling: "Deterministic generated synthetic search benchmark only.".to_owned(),
             budgets_by_period,
-            scenarios: scenarios,
+            scenarios,
             service_baseline_by_scenario,
             mandatory_floors: vec![Floor {
                 id: "generated-service-floor".to_owned(),
