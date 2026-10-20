@@ -432,23 +432,6 @@ fn run_comparison_benchmark(args: &[String]) -> Result<(), String> {
     Ok(())
 }
 
-#[cfg(test)]
-mod benchmark_tests {
-    use super::*;
-
-    #[test]
-    fn nearest_rank_timing_summary_sorts_samples_and_records_warmups() {
-        let summary = percentiles(&[7, 1, 9, 3, 5], 5, 2);
-        assert_eq!(summary.repetitions, 5);
-        assert_eq!(summary.warmup_runs, 2);
-        assert_eq!(summary.samples_elapsed_micros, vec![1, 3, 5, 7, 9]);
-        assert_eq!(summary.min_elapsed_micros, 1);
-        assert_eq!(summary.p50_elapsed_micros, 5);
-        assert_eq!(summary.p95_elapsed_micros, 9);
-        assert_eq!(summary.max_elapsed_micros, 9);
-    }
-}
-
 fn run_search(args: &[String]) -> Result<(), String> {
     if args.is_empty() || args.len() > 2 {
         return Err(
@@ -524,5 +507,22 @@ fn main() {
     if let Err(error) = run() {
         eprintln!("sa-economic-portfolio-oracle: {error}");
         std::process::exit(1);
+    }
+}
+
+#[cfg(test)]
+mod benchmark_tests {
+    use super::*;
+
+    #[test]
+    fn nearest_rank_timing_summary_sorts_samples_and_records_warmups() {
+        let summary = percentiles(&[7, 1, 9, 3, 5], 5, 2);
+        assert_eq!(summary.repetitions, 5);
+        assert_eq!(summary.warmup_runs, 2);
+        assert_eq!(summary.samples_elapsed_micros, vec![1, 3, 5, 7, 9]);
+        assert_eq!(summary.min_elapsed_micros, 1);
+        assert_eq!(summary.p50_elapsed_micros, 5);
+        assert_eq!(summary.p95_elapsed_micros, 9);
+        assert_eq!(summary.max_elapsed_micros, 9);
     }
 }
