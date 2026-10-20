@@ -338,7 +338,7 @@ fn run_search_benchmark(args: &[String]) -> Result<(), String> {
 
 fn run_comparison_benchmark(args: &[String]) -> Result<(), String> {
     const WARMUP_RUNS: usize = 2;
-    let (_, _, repetitions, input_raw, reference_raw) = read_benchmark_args(args)?;
+    let (_, _, repetitions, input_raw, reference_raw) = read_benchmark_args(args, "compare-bench")?;
     let input: Input = serde_json::from_str(&input_raw)
         .map_err(|error| format!("invalid input JSON/contract: {error}"))?;
     let expected_frontier = reference_frontier(&reference_raw)?;
