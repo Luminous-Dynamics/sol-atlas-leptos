@@ -195,7 +195,10 @@
       }
     },
     "storage": {
-      "type": "object",
+      "type": [
+        "object",
+        "null"
+      ],
       "additionalProperties": false,
       "required": [
         "capacity_kwh",
@@ -231,7 +234,8 @@
           "type": "number",
           "minimum": 0
         }
-      }
+      },
+      "description": "Reserved for future horizon-wide storage dispatch. The v0.1 Rust evaluator returns Unsupported for a non-null storage profile rather than silently ignoring it."
     },
     "baseline_policy": {
       "enum": [
