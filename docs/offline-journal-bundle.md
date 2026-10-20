@@ -1,6 +1,6 @@
 # Portable offline journal bundle v1
 
-**Status:** shared Rust bundle codec, validation tests, and a consistent read-only IndexedDB export method are implemented. Atomic import/restore, encryption, source authentication and a user-facing workflow are not implemented.
+**Status:** shared Rust bundle codec, validation tests, consistent read-only IndexedDB export, and isolated staging of untrusted imports are implemented. Server reconciliation, safe activation/promotion, encryption, source authentication and a user-facing workflow are not implemented.
 
 ## Problem and design shift
 
@@ -40,7 +40,7 @@ The codec intentionally performs validation only. A production restore adapter s
 6. Commit the imported records and all derived indexes atomically. If storage quota, key collision, schema upgrade or any write fails, leave the prior local state unchanged.
 7. Before retrying OutcomeUnknown, send the original idempotency key and exact canonical payload bytes. Safe retry still depends on authoritative server-side idempotency and request-fingerprint enforcement.
 
-The IndexedDB adapter now implements read-only export, but not these seven import/restore steps. Until atomic restore, collision checks, encryption and user-facing recovery are implemented, this must not be advertised as one-click device migration.
+The IndexedDB adapter implements read-only export plus atomic staging outside the live journal. Staging does not activate an operation or establish its state as authoritative. Safe promotion is intentionally absent until an authenticated service reconciliation/receipt-verification contract exists. This must not be advertised as one-click device migration.
 
 ## Security and truthfulness
 
