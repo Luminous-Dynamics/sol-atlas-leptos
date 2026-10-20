@@ -168,4 +168,23 @@ On the adversarial 24-project input the candidate still represented all 16,777,2
 
 The initial un-warmed 434 µs / 139 µs ten-project numbers in section 8 are retained as historical baseline only. They must not be blended with the hardened-protocol samples above. The next performance threshold should wait for the independent, matched solver model tracked by [issue #248](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/248) and a wider structured/generated case suite.
 
+
+
+## 10. Repeat on a second hosted runner session
+
+The updated protocol was rerun on a second GitHub Actions runner session (run [#39489360212](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/39489360212), 21 additional measured repetitions per benchmark). It also passed the dedicated oracle workflow; the full Rust test evidence on that head was 19 library tests plus the new binary timing-summary unit test (20 total, 0 failures). The separate repository `Check` workflow remained pending at the time of this entry.
+
+Pooling the per-run timing samples across both 21-repetition jobs (42 observations per algorithm, two warm-ups per algorithm on each job; same runner class, not two different hardware families) gives:
+
+| Experiment | Algorithm | p50 | p95 | Min / max |
+|---|---|---:|---:|---:|
+| Ten-project fixture | Exact subset evaluator | 451 µs | 470 µs | 426 / 477 µs |
+| Ten-project fixture | Frontier search | 151 µs | 163 µs | 145 / 167 µs |
+| 24-project adversarial fixture | Frontier search | 81 µs | 115 µs | 78 / 128 µs |
+
+Recorded environment stayed Linux/X64 on AMD EPYC 7763 with four visible logical CPUs and approximately 16.77 GB reported system memory. Process high-water RSS across the two sessions ranged 3.52–3.55 MB for the ten-project comparison process and 2.91–2.95 MB for the 24-project search process. The receipt captures byte-level fixture/reference digests and per-run samples; process RSS is a process high-water mark, not an algorithm-specific memory distribution.
+
+Across this two-run sample the ten-project median ratio is about **2.99x**, with the previously stated caveat that exact enumeration also retains the complete feasible set and frontier search returns only the frontier. The 24-project case remains easy to prune by construction, and both runs are from the same processor class. The independent CP-SAT/MILP baseline and broader difficult-instance families are still necessary before any scale or SOTA conclusion.
+
+
 **Claim ceiling:** this is a synthetic contract and exact-search engineering exercise. It does not forecast GDP, jobs, real cost recovery, causal service improvement, or the optimal allocation of South African public resources.
