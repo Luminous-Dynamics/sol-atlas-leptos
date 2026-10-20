@@ -1,8 +1,9 @@
 //! Grid-facing demand-response metrics for evidence-bound compute scheduling.
 //!
-//! These helpers implement the published measurement definitions for regulation
-//! tracking and emergency-demand-response curtailment; they do not simulate a
-//! data center or prove that a baseline is a valid causal counterfactual.
+//! These helpers implement p90-based regulation-tracking and emergency-demand-
+//! response accounting; they do not simulate a data center or prove that a
+//! baseline is a valid causal counterfactual. RSR p90 and sample exceedance-rate
+//! conditions are reported separately because they can disagree at small n.
 //!
 //! Reference: Acun et al., "Investigating Power Consumption Flexibility of AI
 //! Data Centers for Demand Response Participation", ACM E-Energy 2026,
@@ -16,8 +17,9 @@ use std::fmt;
 /// experiment: absolute(measured - target) / reserve must be no greater than 0.3.
 pub const RSR_NORMALIZED_ERROR_THRESHOLD: f64 = 0.3;
 
-/// The paper's empirical requirement is a strict upper bound:
-/// the fraction of observations above the error threshold must be < 10%.
+/// Supplementary empirical statistic: the exceedance fraction target.
+/// Do not conflate this with FlexDC-Sim's p90-threshold check; at small sample
+/// counts the p90 criterion can pass while exactly 10% exceed the threshold.
 pub const RSR_MAX_ERROR_EXCEEDANCE_FRACTION: f64 = 0.10;
 
 /// Percentile reported by FlexDC-Sim for normalized regulation tracking error.
@@ -98,14 +100,15 @@ pub struct RegulationTrackingAssessment {
     pub mean_normalized_absolute_error: f64,
     pub p90_normalized_absolute_error: f64,
     pub max_normalized_absolute_error: f64,
-    /// FlexDC-Sim source-parity criterion: interpolated p90 absolute error <= threshold.
+    /// P90-based criterion used by FlexDC-Sim: interpolated p90 <= threshold.
+    /// Exact parity also requires matching the source timing and denominator.
     pub p90_threshold_satisfied: bool,
     pub error_threshold: f64,
     pub max_allowed_exceedance_fraction: f64,
     pub threshold_exceedance_count: usize,
     pub threshold_exceedance_fraction: f64,
-    /// Implements the strict inequality used in the reference paper:
-    /// exceedance fraction < allowed fraction, not <=.
+    /// Supplementary exceedance-rate criterion: fraction(error > threshold)
+    /// < allowed fraction. This is not identical to the reference p90 check.
     pub exceedance_rate_requirement_satisfied: bool,
 }
 
