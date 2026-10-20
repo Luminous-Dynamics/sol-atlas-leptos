@@ -23,6 +23,37 @@ Every backend must provide these guarantees before it can be called a durable ad
 7. **Migration is fail-safe.** Schema migration is atomic or versioned so interruption cannot leave partially migrated entries. Unknown state discriminants and unknown fields are quarantined for inspection or cause the affected record to remain unresolved; do not coerce them into a known terminal state.
 8. **Authority stays server-side.** The durable adapter does not substitute for server idempotency, revision preconditions, authentication, authorization, or receipt lookup. Client-generated IDs and local state are not proof of server application or authorization.
 
+## Receipt binding is not receipt authenticity
+
+The protocol-v2 six-field `OperationBinding` is a useful correlation check: it prevents a reply for one envelope from reconciling a different pending operation. By itself, however, it does **not** prove who produced the reply. A forged or compromised endpoint could echo all six expected fields.
+
+Before relying on a receipt as authoritative evidence, the transport/service boundary must authenticate the service identity and define how the receipt is validated. If receipts must be independently auditable after the session ends, the next protocol revision should consider a signed receipt envelope binding at least:
+
+- protocol/schema version, issuing service identity and key identifier;
+- operation ID, aggregate ID, expected revision, idempotency key and canonical payload digest;
+- outcome, unique receipt reference, and applied revision (when applicable);
+- a canonical serialization format and an explicit signature-verification/key-rotation policy.
+
+Use a maintained, standardized cryptographic scheme; do not invent a signature format. Unknown algorithms, keys, versions, invalid signatures, changed bindings, or invalid revision claims must remain unresolved. A valid signature proves that the holder of the trusted key signed those claims; it does not prove physical work occurred correctly. It also does not replace server-side idempotency or authoritative revision checks. Those need their own integration tests and durable records.
+
+Add separate fault cases for valid-but-wrong-service signatures, invalid signatures, unknown key IDs, key rotation/revocation, changed signed fields, duplicate receipt IDs and receipt lookup after a lost response. Do not label the existing reducer's binding tests as authentication tests.
+
+## Conflict policy must follow data semantics
+
+Do not select one universal conflict resolver for every field. CRDTs are appropriate when concurrent changes have a well-defined merge meaning; they do not decide which of two incompatible real-world claims is true. Local-first design treats offline ownership and continued local work as core behavior, while CouchDB demonstrates that deterministic selection of a revision can coexist with retained conflicts that an application must still resolve. See [Ink & Switch: Local-first software](https://www.inkandswitch.com/essay/local-first/) and [Apache CouchDB: eventual consistency and conflicts](https://docs.couchdb.org/en/stable/intro/consistency.html).
+
+| Data class | Recommended default | Why |
+|---|---|---|
+| Independent annotations, tags, comments or evidence references | Append-only records; use a CRDT/set only where add/remove semantics are defined | Independent additions can often merge, but authorship, tombstones and provenance still matter |
+| Truly additive counters or event totals | Operation/event log or a suitable mergeable counter with dedupe | Replaying an increment must not count twice; replacing a numeric field is not the same as adding |
+| Measurements, inspections, photos and field observations | Preserve competing observations with source, time, device/calibration metadata; corrections are new linked facts | Two different measurements are evidence to assess, not values to average or overwrite automatically |
+| Work assignments, asset identity, schedules, completion commitments | Revision preconditions plus typed conflict review or explicit resolution | These choices have operational consequences; last-write-wins can erase a valid commitment |
+| Authorization, safety-critical decisions and authoritative service revisions | Server-side policy and revision checks; fail closed when authority is unclear | Local merge rules cannot grant authority or make a safety claim true |
+
+Keep distinct states for **locally recorded**, **submitted with outcome unknown**, **service-acknowledged**, **physically verified**, and **customer accepted**. A service receipt establishes only the claim within its verified scope. A correction should retain the earlier claim and link to the new operation instead of rewriting evidence history.
+
+Benchmark merge policy per data class: no dropped independent additions, no double-counted operations, zero automatic overwrites of designated critical claims, 100% of corrections linked to their predecessor and provenance, and 100% of conflicts in non-commutative classes surfaced for an authorized resolution.
+
 ## Crash-cut fault matrix
 
 A backend conformance suite must inject process termination, transaction abort, transport loss, and storage failure at each cut below. Every test records the adapter, schema, exact source SHA, storage policy, fault point, expected state, and actual state.
@@ -44,6 +75,8 @@ A backend conformance suite must inject process termination, transaction abort, 
 | CUT-12 | Process restart while paginating pending operations | A fresh scan from the first page eventually finds every still-pending operation |
 | CUT-13 | Interrupted database version upgrade | Previous or new schema is usable; no silently lost journal entries |
 | CUT-14 | Corrupt or unknown-version stored record | Isolate and surface the record; never silently discard or mark received |
+| CUT-15 | Forged or unauthenticated service reply with matching binding | No receipt is accepted without service/receipt authentication |
+| CUT-16 | Receipt signature/key is invalid, unknown or revoked | Operation remains unresolved and a verifiable error is surfaced |
 
 The oracle is stronger than “the app opens after restart.” For every operation, the test must compare pre-crash and post-recovery immutable envelopes, attempt counts, state, receipt reference, applied revision, and the fake server's logical side-effect count.
 
@@ -70,12 +103,15 @@ The browser and native adapters should implement the same conformance suite, wit
 
 | ID | Acceptance gate | Measurement procedure |
 |---|---|---|
-| PERSIST-01 | Zero acknowledged local transitions lost in tested crash cuts | Repeat every CUT-00–CUT-14 across cold restart and abrupt process termination; publish denominator and failures |
+| PERSIST-01 | Zero acknowledged local transitions lost in tested crash cuts | Repeat every CUT-00–CUT-16 across cold restart and abrupt process termination; publish denominator and failures |
 | PERSIST-02 | Zero sends after a failed or indeterminate `begin_attempt` commit | Inject transaction abort, timeout, and read-back failures; instrument the transport boundary |
 | PERSIST-03 | Zero duplicate logical server effects | Fault-inject after server commit/before response; replay same key and digest; assert side-effect counter equals one |
-| PERSIST-04 | Zero silent mutation on corrupt, unknown, or misbound data | Parser/storage corruption corpus; compare exact serialized state before and after rejected input |
-| PERSIST-05 | 100% conflict-resolution lineage integrity | Validate original operation, new operation ID/key, superseded ID, remote base revision, and reason |
+| PERSIST-04 | Zero silent mutation on corrupt, unknown, misbound or unauthenticated data | Parser/storage/receipt-validation corpus; compare exact serialized state before and after rejected input |
+| PERSIST-05 | 100% conflict-resolution lineage integrity | Validate original operation, new operation ID/key, superseded ID, remote base revision, provenance and reason |
 | PERSIST-06 | Zero lost updates under two-tab races | Concurrent attempt/reconcile loops with deterministic barriers and randomized schedules |
+| PERSIST-07 | Zero unauthenticated replies accepted as authoritative | Attack corpus with spoofed service, invalid signature, unknown/revoked key and modified signed fields |
+| SEM-01 | Zero dropped independent additions or duplicate additive effects | Concurrent multi-replica edits with retries/reordering, compare canonical merged state and side-effect ledger |
+| SEM-02 | Zero automatic overwrite of designated safety/commitment fields | Two-writer races for each protected field class; assert preserved versions and review state |
 | PERF-01 | p95 cold recovery of 10,000 pending operations under 250 ms | **Initial hypothesis only**, measure per named browser/device/backend in optimized builds, publish raw samples and percentile method |
 | PERF-02 | Bounded-page query scales with returned rows rather than loading the full journal | Compare 1k/10k/100k entries, vary page size, report p50/p95/p99, allocated bytes if measurable, and query-plan/index evidence |
 | UX-01 | At least 95% of interrupted scripted tasks recover without data loss or a silent state change | Fixed task script and denominator; usability result stays separate from integrity gates |
@@ -93,13 +129,13 @@ Every benchmark artifact must include:
 
 Microsoft Dynamics 365 Field Service documents configurable offline conflict behavior, including record/table-level conflict handling. ServiceNow Field Service documents offline task execution and an outbox of actions taken while offline. These are established capabilities and should remain part of the baseline comparison, not straw-man competitors. See [Microsoft Learn](https://learn.microsoft.com/en-us/dynamics365/field-service/mobile/offline-data-sync) and [ServiceNow: Working offline](https://www.servicenow.com/docs/r/field-service-management/work-order-management/work-offline-fieldservice-mobile.html).
 
-The differentiator worth proving is not “offline mode exists.” It is an independently executable protocol contract plus crash-consistency evidence: exact receipt binding, server dedupe under response loss, durable pre-send ordering, concurrent-tab safety, and transparent evidence lineage.
+The differentiator worth proving is not “offline mode exists.” It is an independently executable protocol contract plus crash-consistency evidence: exact receipt binding, authenticated receipt verification, server dedupe under response loss, durable pre-send ordering, concurrent-tab safety, typed merge policies, and transparent evidence lineage.
 
 A fair head-to-head needs equivalent task models, data sizes, device/storage constraints, network-fault schedules, and defined outcomes. Vendor product documentation is not enough to infer hidden transactional guarantees. Until identical-workload measurements exist, claim a protocol/testability advantage only where demonstrated and do not claim overall superiority to Dynamics, Salesforce, or ServiceNow.
 
 ## Explicit non-goals for this increment
 
 - No browser IndexedDB implementation is included here.
-- No server endpoint, durable idempotency table, cryptographic payload canonicalizer, transport retry loop, encryption, or device-loss backup is implemented here.
+- No server endpoint, durable idempotency table, cryptographic payload canonicalizer, receipt-signature verification, transport retry loop, encryption, or device-loss backup is implemented here.
 - No performance result has been measured by this contract.
 - This contract can constrain future implementations; it does not prove a future adapter satisfies it. The adapter must pass the exact same conformance and fault-injection suite before being enabled in production.
