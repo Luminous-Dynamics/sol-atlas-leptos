@@ -164,14 +164,20 @@ Do not simply zoom the parcel tool out and call it regional planning. Use scale-
 
 ## Executable native benchmark harness
 
-The frozen workload manifest now has a portable Rust-only native harness. Run:
+The frozen workload manifest has a portable Rust-only native harness. Run the unit tests and a small smoke workload with:
 
     cargo test --features landscape-bench --bin landscape-bench
-    cargo run --release --features landscape-bench --bin landscape-bench -- --out reports/landscape/native-kernel-v0.json
+    cargo run --release --features landscape-bench --bin landscape-bench -- --counts 100,1000 --samples 2
 
-The harness derives default counts and seed from the manifest, creates deterministic synthetic scenes, validates them with the production v0 document validator, serializes normalized JSON, calculates a SHA-256 snapshot digest, and records raw generation/validation/serialization/digest timings plus p50/p95 summaries. The report includes available commit, toolchain, OS/architecture, CPU and memory metadata.
+Run all frozen sizes and write a full raw report with:
 
-This is a **native document-kernel benchmark only**. It does not measure browser frame rate, pointer interaction, user task success, geospatial operations or real landscape outcomes. Those require separate browser/reference-machine, interoperability and field-evaluation studies. Report structure is versioned by [landscape-benchmark-report-v0.schema.json](../schemas/landscape-benchmark-report-v0.schema.json); there are no performance results until the executable has been run on a declared reference machine and raw report committed. CI runs only a small smoke workload, not the 10k/100k qualification workload.
+    cargo run --release --features landscape-bench --bin landscape-bench -- --samples 20 --out reports/landscape/native-kernel-v0.json
+
+The harness derives default counts and seed from the manifest, creates deterministic synthetic scenes, validates them with the production v0 document validator, serializes normalized JSON, calculates a SHA-256 snapshot digest, and records raw generation/validation/serialization/digest timings plus p50/p95 summaries. The total kernel time is the sum of all four measured stages. The report includes available commit, toolchain, OS/architecture, CPU and memory metadata.
+
+The Check workflow runs the unit tests and a two-sample smoke workload, then uploads the raw JSON report as a 90-day Actions artifact. A manual workflow dispatch can opt into the full 100/1k/10k/100k workload and choose 1–100 samples per size. This keeps routine CI inexpensive while making the complete synthetic run repeatable and inspectable.
+
+This is a **native document-kernel benchmark only**. It does not measure browser frame rate, pointer interaction, user task success, geospatial operations or real landscape outcomes. Those require separate browser/reference-machine, interoperability and field-evaluation studies. Report structure is versioned by [landscape-benchmark-report-v0.schema.json](../schemas/landscape-benchmark-report-v0.schema.json); there are no performance results until the executable has been run on a declared reference machine and raw report inspected.
 
 ## Benchmark methodology
 
