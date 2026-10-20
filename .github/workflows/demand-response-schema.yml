@@ -4,6 +4,12 @@ on:
   push:
     branches: [main]
     paths:
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "sol-atlas-core/Cargo.toml"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "sol-atlas-core/Cargo.toml"
       - "schemas/demand-response-trace-v1.schema.json"
       - "schemas/demand-response-assessment-report-v1.schema.json"
       - "schemas/examples/demand-response-trace-v1.synthetic.json"
