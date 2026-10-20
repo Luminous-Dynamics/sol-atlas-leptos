@@ -126,6 +126,7 @@ mod tests {
     #[serde(deny_unknown_fields)]
     struct DigestCorpus {
         schema_version: u16,
+        description: String,
         vectors: Vec<DigestVector>,
         number_vectors: Vec<NumberVector>,
         invalid_cases: Vec<InvalidCase>,
@@ -160,6 +161,7 @@ mod tests {
             serde_json::from_str(include_str!("../fixtures/offline-payload-digest-v1.json"))
                 .expect("payload digest corpus must match its frozen schema");
         assert_eq!(corpus.schema_version, 1);
+        assert!(!corpus.description.trim().is_empty());
         assert!(!corpus.vectors.is_empty());
 
         for vector in corpus.vectors {
