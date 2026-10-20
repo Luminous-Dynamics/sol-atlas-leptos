@@ -13,6 +13,8 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 pub const OFFLINE_JOURNAL_SCHEMA_VERSION: u16 = 2;
+/// Version of the durable snapshot representation, independent of wire protocol schema.
+pub const JOURNAL_ENTRY_SNAPSHOT_SCHEMA_VERSION: u16 = 1;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
