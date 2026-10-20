@@ -9,6 +9,7 @@ on:
       - "sol-atlas-core/src/offline_journal.rs"
       - "sol-atlas-core/src/offline_payload_digest.rs"
       - "sol-atlas-core/src/offline_idempotency_fingerprint.rs"
+      - "sol-atlas-core/fixtures/offline-journal-bundle-v1.json"
       - "sol-atlas-core/Cargo.toml"
 
 permissions:
@@ -59,6 +60,14 @@ jobs:
             (.raw_samples | length == 10) and
             (.stage_summaries | all(.[]; .sample_count == 2))
           ' offline-journal-benchmark-smoke.json
+
+      - name: Independently verify frozen manifest bytes with system sha256sum
+        if: ${{ hashFiles('sol-atlas-core/fixtures/offline-journal-bundle-v1.json') != '' }}
+        shell: bash
+        run: |
+          expected="$(jq -r '.integrity_sha256' sol-atlas-core/fixtures/offline-journal-bundle-v1.json)"
+          actual="$(printf '%s' "$(jq -r '.unsigned_manifest_canonical_utf8' sol-atlas-core/fixtures/offline-journal-bundle-v1.json)" | sha256sum | awk '{print $1}')"
+          test "$actual" = "$expected"
 
       - name: Upload smoke report as CI evidence
         uses: actions/upload-artifact@v4
