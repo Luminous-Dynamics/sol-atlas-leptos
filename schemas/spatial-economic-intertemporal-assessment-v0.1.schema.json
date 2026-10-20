@@ -15,7 +15,7 @@
     "policy",
     "disposition",
     "search_space_size",
-    "search_nodes_examined",
+    "candidate_plans_examined",
     "feasible_plan_count",
     "search_complete",
     "service_steps",
@@ -81,7 +81,7 @@
         }
       ]
     },
-    "search_nodes_examined": {
+    "candidate_plans_examined": {
       "type": "integer",
       "minimum": 0
     },
