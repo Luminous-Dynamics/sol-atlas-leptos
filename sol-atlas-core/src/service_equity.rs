@@ -716,7 +716,44 @@ mod tests {
             function_scenario("service:c", "water:east", 7.0, Some(2.0), 10.0, Some(1.0)),
         ];
         let actual = assess_service_equity(&input, &services, &[]).unwrap();
-        assert_eq!(actual, expected);
+
+        // Equivalent arithmetic can differ by one ULP across toolchains. Apply a
+        // narrow tolerance to the one derived ratio; all other golden fields remain
+        // exact, including service-floor classifications and distribution weights.
+        let actual_east = actual
+            .cells
+            .iter()
+            .find(|cell| cell.cell_id == "east-cell")
+            .expect("east cell is present")
+            .coverage_lower_bound
+            .expect("east cell has a lower coverage bound");
+        let expected_east = expected
+            .cells
+            .iter()
+            .find(|cell| cell.cell_id == "east-cell")
+            .expect("east golden cell is present")
+            .coverage_lower_bound
+            .expect("east golden cell has a lower coverage bound");
+        assert!(
+            (actual_east - expected_east).abs() <= 1e-15,
+            "east coverage lower bound differs beyond floating-point tolerance: actual {actual_east}, expected {expected_east}"
+        );
+
+        let mut actual_for_exact_comparison = actual.clone();
+        let mut expected_for_exact_comparison = expected.clone();
+        let actual_index = actual_for_exact_comparison
+            .cells
+            .iter()
+            .position(|cell| cell.cell_id == "east-cell")
+            .expect("east cell is present");
+        let expected_index = expected_for_exact_comparison
+            .cells
+            .iter()
+            .position(|cell| cell.cell_id == "east-cell")
+            .expect("east golden cell is present");
+        actual_for_exact_comparison.cells[actual_index].coverage_lower_bound =
+            expected_for_exact_comparison.cells[expected_index].coverage_lower_bound;
+        assert_eq!(actual_for_exact_comparison, expected_for_exact_comparison);
         assert_eq!(actual.overall_floor_compliance_lower_bound, 0.6);
         assert_eq!(actual.overall_floor_compliance_upper_bound, 0.8);
     }

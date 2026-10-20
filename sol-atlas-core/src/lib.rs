@@ -21,6 +21,7 @@ pub mod geometry;
 pub mod intervention;
 pub mod lod;
 pub mod math;
+pub mod model_credibility;
 pub mod mycelix_flows;
 pub mod picking;
 pub mod service_equity;
