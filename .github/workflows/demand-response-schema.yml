@@ -73,10 +73,10 @@ jobs:
           assert abs(source_rsr["p90_normalized_absolute_error"] - 0.08) < 1.0e-12
           assert source_rsr["p90_threshold_satisfied"] is True
           assert source_rsr["exceedance_rate_requirement_satisfied"] is False
-          # Same-row W->kW reconstruction: two 0.4 samples among ten -> p90 about 0.4.
+          # Same-row W->kW reconstruction: five 0.4 samples among ten -> p90 about 0.4.
           assert abs(aligned_rsr["p90_normalized_absolute_error"] - 0.4) < 1.0e-12
           assert aligned_rsr["p90_threshold_satisfied"] is False
-          assert aligned_rsr["threshold_exceedance_count"] == 2
+          assert aligned_rsr["threshold_exceedance_count"] == 5
           assert aligned_rsr["exceedance_rate_requirement_satisfied"] is False
           assert report["metrics"]["rsr_reference_metadata"]["sample_time_semantics"] == "prior_cycle_state"
           assert report["metrics"]["rsr_reference_metadata"]["denominator_convention"] == "reserve_plus_epsilon"
