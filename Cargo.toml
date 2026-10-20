@@ -29,6 +29,7 @@ version = "0.3"
 features = [
     "Window",
     "Document",
+    "DomRect",
     "Element",
     "HtmlElement",
     "HtmlCanvasElement",
