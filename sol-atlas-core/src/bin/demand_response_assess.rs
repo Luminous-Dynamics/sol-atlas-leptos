@@ -12,8 +12,8 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use sol_atlas_core::demand_response_metrics::{
-    CurtailmentAssessment, NormalizedErrorTrackingAssessment, RegulationTrackingAssessment,
-    RSR_MAX_ERROR_EXCEEDANCE_FRACTION, RSR_NORMALIZED_ERROR_THRESHOLD, assess_edr_curtailment,
+    CurtailmentAssessment, NormalizedErrorTrackingAssessment, RSR_MAX_ERROR_EXCEEDANCE_FRACTION,
+    RSR_NORMALIZED_ERROR_THRESHOLD, RegulationTrackingAssessment, assess_edr_curtailment,
     assess_normalized_rsr_tracking_errors, assess_reference_rsr_tracking,
 };
 use std::collections::HashSet;
