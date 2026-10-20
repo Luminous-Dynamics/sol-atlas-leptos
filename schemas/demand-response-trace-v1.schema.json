@@ -180,7 +180,8 @@
       "additionalProperties": false,
       "required": [
         "interval_ids",
-        "signed_normalized_tracking_error"
+        "signed_normalized_tracking_error",
+        "metadata"
       ],
       "properties": {
         "interval_ids": {
@@ -188,6 +189,58 @@
         },
         "signed_normalized_tracking_error": {
           "$ref": "#/$defs/normalizedErrorSeries"
+        },
+        "metadata": {
+          "$ref": "#/$defs/rsrReferenceMetadata"
+        }
+      }
+    },
+    "rsrReferenceMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_name",
+        "source_revision",
+        "source_field",
+        "sample_time_semantics",
+        "denominator_convention",
+        "normalization_note"
+      ],
+      "properties": {
+        "source_name": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "source_revision": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "source_field": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "sample_time_semantics": {
+          "enum": [
+            "source_reported_series",
+            "prior_cycle_state",
+            "explicitly_aligned",
+            "unknown"
+          ]
+        },
+        "denominator_convention": {
+          "enum": [
+            "exact_reserve",
+            "reserve_plus_epsilon",
+            "source_native_unknown"
+          ]
+        },
+        "normalization_note": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
         }
       }
     }
