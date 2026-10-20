@@ -979,6 +979,38 @@ fn is_pending(state: &JournalState) -> bool {
     matches!(state, JournalState::Prepared | JournalState::OutcomeUnknown)
 }
 
+fn secure_random_token() -> Result<String, IndexedDbJournalError> {
+    let window = web_sys::window()
+        .ok_or_else(|| IndexedDbJournalError("window is unavailable".into()))?;
+    let crypto = Reflect::get(window.as_ref(), &JsValue::from_str("crypto"))
+        .map_err(js_error)?;
+    if crypto.is_null() || crypto.is_undefined() {
+        return Err(IndexedDbJournalError(
+            "secure browser crypto is unavailable; refusing to mint a dispatch lease".into(),
+        ));
+    }
+    let token = call_method(&crypto, "randomUUID", &[])
+        .map_err(js_error)?
+        .as_string()
+        .filter(|value| !value.trim().is_empty())
+        .ok_or_else(|| {
+            IndexedDbJournalError(
+                "crypto.randomUUID is unavailable; refusing to mint a dispatch lease".into(),
+            )
+        })?;
+    Ok(token)
+}
+
+fn epoch_now_ms() -> Result<u64, IndexedDbJournalError> {
+    let now = Date::now();
+    if !now.is_finite() || now < 0.0 || now > u64::MAX as f64 {
+        return Err(IndexedDbJournalError(
+            "browser wall clock is not representable as epoch milliseconds".into(),
+        ));
+    }
+    Ok(now.floor() as u64)
+}
+
 fn ensure_stores(database: &JsValue) -> Result<(), JsValue> {
     let names = Reflect::get(database, &JsValue::from_str("objectStoreNames"))?;
     for name in UPGRADE_STORE_NAMES {
