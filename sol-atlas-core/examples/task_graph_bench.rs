@@ -13,7 +13,7 @@
 //! It does not benchmark durable storage, UI rendering, server authorization,
 //! or competing vendor products.
 
-use sol_atlas_core::task_graph::{TaskGraphV1, TaskNodeV1, TaskStatus, TASK_GRAPH_SCHEMA_VERSION};
+use sol_atlas_core::task_graph::{TASK_GRAPH_SCHEMA_VERSION, TaskGraphV1, TaskNodeV1, TaskStatus};
 use std::env;
 use std::hint::black_box;
 use std::time::Instant;
@@ -63,11 +63,7 @@ fn build_graph(task_count: usize) -> TaskGraphV1 {
     }
 }
 
-fn measure(
-    graph: &TaskGraphV1,
-    samples: usize,
-    operation: &str,
-) -> Result<Vec<u128>, String> {
+fn measure(graph: &TaskGraphV1, samples: usize, operation: &str) -> Result<Vec<u128>, String> {
     let mut raw_ns = Vec::with_capacity(samples);
 
     for _ in 0..samples {
@@ -81,9 +77,7 @@ fn measure(
                 black_box(result);
             }
             "ready_tasks" => {
-                let result = graph
-                    .ready_tasks()
-                    .map_err(|error| error.to_string())?;
+                let result = graph.ready_tasks().map_err(|error| error.to_string())?;
                 black_box(result.len());
             }
             _ => return Err(format!("unknown benchmark operation: {operation}")),
