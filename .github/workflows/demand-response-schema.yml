@@ -65,14 +65,22 @@ jobs:
           report_schema = json.loads((root / "schemas/demand-response-assessment-report-v1.schema.json").read_text())
           Draft202012Validator(trace_schema, format_checker=FormatChecker()).validate(trace)
           Draft202012Validator(report_schema, format_checker=FormatChecker()).validate(report)
-          rsr = report["metrics"]["rsr_reference"]
+          source_rsr = report["metrics"]["rsr_reference"]
+          aligned_rsr = report["metrics"]["rsr"]
           assert trace["synthetic"] is True
           assert trace["claim_ceiling"] == "metric_accounting_only"
-          assert abs(rsr["p90_normalized_absolute_error"] - 0.08) < 1.0e-12
-          assert rsr["p90_threshold_satisfied"] is True
-          assert rsr["exceedance_rate_requirement_satisfied"] is False
+          # Source-native series: one 0.8 sample among ten -> p90 about 0.08.
+          assert abs(source_rsr["p90_normalized_absolute_error"] - 0.08) < 1.0e-12
+          assert source_rsr["p90_threshold_satisfied"] is True
+          assert source_rsr["exceedance_rate_requirement_satisfied"] is False
+          # Same-row W->kW reconstruction: two 0.4 samples among ten -> p90 about 0.4.
+          assert abs(aligned_rsr["p90_normalized_absolute_error"] - 0.4) < 1.0e-12
+          assert aligned_rsr["p90_threshold_satisfied"] is False
+          assert aligned_rsr["threshold_exceedance_count"] == 2
+          assert aligned_rsr["exceedance_rate_requirement_satisfied"] is False
           assert report["metrics"]["rsr_reference_metadata"]["sample_time_semantics"] == "prior_cycle_state"
           assert report["metrics"]["rsr_reference_metadata"]["denominator_convention"] == "reserve_plus_epsilon"
           assert report["metrics"]["rsr_reference_metadata"]["source_artifact_sha256"] == trace["rsr_reference"]["metadata"]["source_artifact_sha256"]
-          print("PASS adapter -> RSR CLI -> input/report schemas; p90/rate counterexample preserved")
+          assert report["metrics"]["rsr_reference_metadata"]["source_config_manifest_sha256"] == trace["rsr_reference"]["metadata"]["source_config_manifest_sha256"]
+          print("PASS paired source-native vs same-row RSR paths; both schemas valid and timing mismatch remains observable")
           PY
