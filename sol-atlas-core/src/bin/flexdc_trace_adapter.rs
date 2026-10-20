@@ -620,6 +620,60 @@ mod tests {
     }
 
     #[test]
+    fn manifest_rejects_unpinned_power_cap_or_reserve() {
+        let mut manifest = parsed_manifest();
+        manifest.power_cap_w = 24_217.0;
+        assert!(
+            validate_manifest(&manifest)
+                .expect_err("substituted power cap must reject")
+                .contains("power_cap_w must match")
+        );
+
+        let mut manifest = parsed_manifest();
+        manifest.regulation_reserve_w = 9_627.0;
+        assert!(
+            validate_manifest(&manifest)
+                .expect_err("substituted reserve must reject")
+                .contains("regulation_reserve_w must match")
+        );
+    }
+
+    #[test]
+    fn same_row_power_values_reject_missing_negative_and_non_finite_values() {
+        let manifest = parsed_manifest();
+
+        let missing_target = TRACE.replace(
+            "8,10000.0,13850.4,0.0",
+            "8,,13850.4,0.0",
+        );
+        assert!(
+            parse_power_trace(&missing_target, &manifest)
+                .expect_err("missing target watts must reject")
+                .contains("target is missing")
+        );
+
+        let negative_power = TRACE.replace(
+            "8,10000.0,13850.4,0.0",
+            "8,-1.0,13850.4,0.0",
+        );
+        assert!(
+            parse_power_trace(&negative_power, &manifest)
+                .expect_err("negative target watts must reject")
+                .contains("finite non-negative watts")
+        );
+
+        let non_finite_power = TRACE.replace(
+            "8,10000.0,13850.4,0.0",
+            "8,NaN,13850.4,0.0",
+        );
+        assert!(
+            parse_power_trace(&non_finite_power, &manifest)
+                .expect_err("non-finite target watts must reject")
+                .contains("finite non-negative watts")
+        );
+    }
+
+    #[test]
     fn manifest_rejects_zero_duration() {
         let mut manifest = parsed_manifest();
         manifest.simulation_duration_seconds = 0;
