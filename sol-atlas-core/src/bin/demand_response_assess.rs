@@ -518,6 +518,18 @@ mod tests {
             value["metrics"]["rsr_reference"]["threshold_exceedance_fraction"],
             0.1
         );
+        assert_eq!(
+            value["metrics"]["rsr_reference_metadata"]["source_name"],
+            "synthetic-known-answer"
+        );
+        assert_eq!(
+            value["metrics"]["rsr_reference_metadata"]["sample_time_semantics"],
+            "source_reported_series"
+        );
+        assert_eq!(
+            value["metrics"]["rsr_reference_metadata"]["denominator_convention"],
+            "source_native_unknown"
+        );
         assert_eq!(value["metrics"]["edr"]["gross_curtailment_kwh"], 50.0);
         assert_eq!(value["metrics"]["edr"]["rebound_energy_kwh"], 10.0);
         assert_eq!(value["receipt"]["digest_algorithm"], "SHA-256");
