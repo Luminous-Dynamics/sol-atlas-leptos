@@ -35,6 +35,7 @@ required-features = ["landscape-bench"]
 version = "0.3"
 features = [
     "Window",
+    "Storage",
     "Document",
     "DomRect",
     "Blob",
