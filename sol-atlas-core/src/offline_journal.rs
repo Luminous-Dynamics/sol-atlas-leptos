@@ -153,7 +153,7 @@ impl OperationBinding {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "state", rename_all = "snake_case")]
+#[serde(tag = "state", rename_all = "snake_case", deny_unknown_fields)]
 pub enum JournalState {
     Prepared,
     /// A request may have reached the service; no authoritative outcome is known locally.
@@ -657,6 +657,96 @@ mod tests {
             JournalEntry::prepare(envelope, r#"{"a":1,"a":2}"#),
             Err(JournalError::PayloadCanonicalization(_))
         ));
+    }
+
+    #[test]
+    fn snapshot_roundtrip_preserves_state_attempts_and_exact_payload_bytes() {
+        let mut entry = prepared_entry();
+        entry.mark_attempt_started().unwrap();
+        let snapshot = entry.to_snapshot().unwrap();
+        assert_eq!(snapshot.schema_version, JOURNAL_ENTRY_SNAPSHOT_SCHEMA_VERSION);
+
+        let serialized = serde_json::to_vec(&snapshot).unwrap();
+        let decoded: JournalEntrySnapshotV1 = serde_json::from_slice(&serialized).unwrap();
+        let recovered = JournalEntry::from_snapshot(decoded).unwrap();
+        assert_eq!(recovered, entry);
+        assert_eq!(recovered.canonical_payload_utf8(), entry.canonical_payload_utf8());
+        assert_eq!(recovered.attempt_count(), 1);
+        assert_eq!(recovered.state(), &JournalState::OutcomeUnknown);
+    }
+
+    #[test]
+    fn snapshot_roundtrip_preserves_terminal_receipt_state() {
+        let mut entry = prepared_entry();
+        entry.mark_attempt_started().unwrap();
+        entry
+            .reconcile(&ServiceReply::Received {
+                binding: OperationBinding::from_envelope(entry.envelope()),
+                receipt_ref: "receipt-snapshot".to_owned(),
+                applied_revision: entry.envelope().expected_revision + 1,
+            })
+            .unwrap();
+
+        let recovered = JournalEntry::from_snapshot(entry.to_snapshot().unwrap()).unwrap();
+        assert_eq!(recovered, entry);
+        assert!(matches!(recovered.state(), JournalState::Received { .. }));
+    }
+
+    #[test]
+    fn snapshot_rejects_payload_bytes_that_are_valid_but_not_canonical() {
+        let mut snapshot = prepared_entry().to_snapshot().unwrap();
+        snapshot.canonical_payload_json = format!(" {} ", snapshot.canonical_payload_json);
+        assert_eq!(
+            JournalEntry::from_snapshot(snapshot),
+            Err(JournalError::NonCanonicalSnapshotPayload)
+        );
+    }
+
+    #[test]
+    fn snapshot_rejects_payload_digest_mismatch() {
+        let mut snapshot = prepared_entry().to_snapshot().unwrap();
+        snapshot.envelope.payload_digest_sha256 = "0".repeat(64);
+        assert_eq!(
+            JournalEntry::from_snapshot(snapshot),
+            Err(JournalError::PayloadDigestMismatch)
+        );
+    }
+
+    #[test]
+    fn snapshot_rejects_inconsistent_attempt_and_terminal_state() {
+        let mut snapshot = prepared_entry().to_snapshot().unwrap();
+        snapshot.attempt_count = 1;
+        assert_eq!(
+            JournalEntry::from_snapshot(snapshot),
+            Err(JournalError::InvalidSnapshot("prepared_with_attempts"))
+        );
+
+        let mut snapshot = prepared_entry().to_snapshot().unwrap();
+        snapshot.state = JournalState::OutcomeUnknown;
+        assert_eq!(
+            JournalEntry::from_snapshot(snapshot),
+            Err(JournalError::InvalidSnapshot("unknown_without_attempt"))
+        );
+    }
+
+    #[test]
+    fn snapshot_rejects_unsupported_version_unknown_state_and_unknown_fields() {
+        let mut snapshot = prepared_entry().to_snapshot().unwrap();
+        snapshot.schema_version += 1;
+        assert_eq!(
+            JournalEntry::from_snapshot(snapshot),
+            Err(JournalError::UnsupportedSnapshotSchemaVersion(
+                JOURNAL_ENTRY_SNAPSHOT_SCHEMA_VERSION + 1
+            ))
+        );
+
+        assert!(
+            serde_json::from_str::<JournalState>(r#"{"state":"future_state"}"#).is_err()
+        );
+
+        let mut serialized = serde_json::to_value(prepared_entry().to_snapshot().unwrap()).unwrap();
+        serialized["unexpected"] = serde_json::Value::Bool(true);
+        assert!(serde_json::from_value::<JournalEntrySnapshotV1>(serialized).is_err());
     }
 
     #[test]
