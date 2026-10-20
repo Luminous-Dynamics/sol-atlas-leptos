@@ -12,8 +12,9 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use sol_atlas_core::demand_response_metrics::{
-    CurtailmentAssessment, RegulationTrackingAssessment, assess_edr_curtailment,
-    assess_reference_rsr_tracking,
+    CurtailmentAssessment, NormalizedErrorTrackingAssessment, RegulationTrackingAssessment,
+    RSR_MAX_ERROR_EXCEEDANCE_FRACTION, RSR_NORMALIZED_ERROR_THRESHOLD, assess_edr_curtailment,
+    assess_normalized_rsr_tracking_errors, assess_reference_rsr_tracking,
 };
 use std::collections::HashSet;
 use std::env;
@@ -35,6 +36,8 @@ struct TraceInput {
     #[serde(default)]
     rsr: Option<RsrInput>,
     #[serde(default)]
+    rsr_reference: Option<RsrReferenceInput>,
+    #[serde(default)]
     edr: Option<EdrInput>,
 }
 
@@ -46,6 +49,15 @@ struct RsrInput {
     target_power_kw: Vec<Option<f64>>,
     measured_power_kw: Vec<Option<f64>>,
     reserve_capacity_kw: f64,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RsrReferenceInput {
+    /// Ordered unique sample identifiers from the reference tool's own error series.
+    interval_ids: Vec<String>,
+    /// Signed, already-normalized tracking error as emitted by the reference tool.
+    signed_normalized_tracking_error: Vec<Option<f64>>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -78,6 +90,7 @@ struct MetricsResult {
     synthetic: bool,
     claim_ceiling: String,
     rsr: Option<RegulationTrackingAssessment>,
+    rsr_reference: Option<NormalizedErrorTrackingAssessment>,
     edr: Option<CurtailmentAssessment>,
 }
 
@@ -141,8 +154,8 @@ fn build_report(raw_input: &[u8], input: TraceInput) -> Result<RunReport, String
                 .to_owned(),
         );
     }
-    if input.rsr.is_none() && input.edr.is_none() {
-        return Err("at least one of rsr or edr must be present".to_owned());
+    if input.rsr.is_none() && input.rsr_reference.is_none() && input.edr.is_none() {
+        return Err("at least one of rsr, rsr_reference, or edr must be present".to_owned());
     }
 
     let rsr = match input.rsr {
@@ -162,6 +175,25 @@ fn build_report(raw_input: &[u8], input: TraceInput) -> Result<RunReport, String
                     section.reserve_capacity_kw,
                 )
                 .map_err(|error| format!("RSR assessment failed: {error}"))?,
+            )
+        }
+        None => None,
+    };
+
+    let rsr_reference = match input.rsr_reference {
+        Some(section) => {
+            validate_interval_ids(
+                "rsr_reference",
+                &section.interval_ids,
+                section.signed_normalized_tracking_error.len(),
+            )?;
+            Some(
+                assess_normalized_rsr_tracking_errors(
+                    &section.signed_normalized_tracking_error,
+                    RSR_NORMALIZED_ERROR_THRESHOLD,
+                    RSR_MAX_ERROR_EXCEEDANCE_FRACTION,
+                )
+                .map_err(|error| format!("normalized RSR assessment failed: {error}"))?,
             )
         }
         None => None,
@@ -202,6 +234,7 @@ fn build_report(raw_input: &[u8], input: TraceInput) -> Result<RunReport, String
         synthetic: input.synthetic,
         claim_ceiling: input.claim_ceiling.clone(),
         rsr,
+        rsr_reference,
         edr,
     };
     let metrics_bytes = serde_json::to_vec(&metrics)
@@ -281,11 +314,18 @@ mod tests {
         let rsr = report.metrics.rsr.expect("fixture includes RSR input");
         let edr = report.metrics.edr.expect("fixture includes EDR input");
 
+        let rsr_reference = report
+            .metrics
+            .rsr_reference
+            .expect("fixture includes reference-normalized RSR input");
         assert_eq!(rsr.sample_count, 10);
         assert_eq!(rsr.threshold_exceedance_count, 1);
         assert_eq!(rsr.threshold_exceedance_fraction, 0.1);
         assert!(!rsr.tracking_requirement_satisfied);
         assert!((rsr.p90_normalized_absolute_error - 0.08).abs() < 1.0e-12);
+        assert_eq!(rsr_reference.sample_count, 10);
+        assert!((rsr_reference.p90_normalized_absolute_error - 0.08).abs() < 1.0e-12);
+        assert!(!rsr_reference.tracking_requirement_satisfied);
 
         assert_eq!(edr.baseline_energy_kwh, 300.0);
         assert_eq!(edr.event_energy_kwh, 260.0);
@@ -388,6 +428,7 @@ mod tests {
     fn absent_metric_sections_are_rejected() {
         let (_, mut input) = fixture();
         input.rsr = None;
+        input.rsr_reference = None;
         input.edr = None;
         assert!(
             build_report(b"no-sections", input)
@@ -415,6 +456,14 @@ mod tests {
         assert_eq!(
             value["metrics"]["rsr"]["tracking_requirement_satisfied"],
             false
+        );
+        assert_eq!(
+            value["metrics"]["rsr_reference"]["normalization_basis"],
+            "source_normalized_error_series"
+        );
+        assert_eq!(
+            value["metrics"]["rsr_reference"]["threshold_exceedance_fraction"],
+            0.1
         );
         assert_eq!(value["metrics"]["edr"]["gross_curtailment_kwh"], 50.0);
         assert_eq!(value["metrics"]["edr"]["rebound_energy_kwh"], 10.0);
