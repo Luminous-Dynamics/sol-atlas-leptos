@@ -197,11 +197,15 @@ mod tests {
 
         assert_eq!(output["assessment"], assessment);
         assert_eq!(output["receipt"]["mode"], "pareto");
+        let expected_receipt = scenario_receipt(fixture.as_bytes(), &request, "pareto", &assessment)
+            .expect("report receipt should serialize");
         assert_eq!(
             output["receipt"]["input_sha256"],
-            scenario_receipt(fixture.as_bytes(), &request, "pareto", &assessment)
-                .expect("report receipt should serialize")
-                .input_sha256
+            expected_receipt.input_sha256
+        );
+        assert_eq!(
+            output["receipt"]["assessment_sha256"],
+            expected_receipt.assessment_sha256
         );
         assert_eq!(
             output["receipt"]["fixture_id"],
@@ -211,7 +215,7 @@ mod tests {
         assert!(output["receipt"]["verification_boundary"]
             .as_str()
             .expect("verification boundary is text")
-            .contains("does not validate"));
+            .contains("do not validate"));
     }
 
     #[test]
