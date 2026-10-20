@@ -509,8 +509,8 @@ impl IndexedDbJournal {
                         return;
                     }
                 };
-                let entry = match JournalEntry::from_snapshot_for_operation(&expected_id, snapshot)
-                {
+                let entry =
+                    match JournalEntry::from_snapshot_for_operation(&expected_id, snapshot) {
                         Ok(value) => value,
                         Err(error) => {
                             *output.borrow_mut() = Some(Err(IndexedDbJournalError::from(error)));
@@ -520,8 +520,11 @@ impl IndexedDbJournal {
 
                 // Chain the second read inside the first request's success event,
                 // keeping the transaction active without awaiting a Promise.
-                let lease_request =
-                    match call_method(&leases, "get", &[JsValue::from_str(&expected_id)]) {
+                let lease_request = match call_method(
+                    &leases,
+                    "get",
+                    &[JsValue::from_str(&expected_id)],
+                ) {
                     Ok(value) => value,
                     Err(error) => {
                         *output.borrow_mut() = Some(Err(js_error(error)));
@@ -563,13 +566,13 @@ impl IndexedDbJournal {
                                 return;
                             }
                         };
-                        let record: DispatchLeaseRecordV1 = match serde_json::from_str(&serialized)
-                        {
+                        let record: DispatchLeaseRecordV1 =
+                            match serde_json::from_str(&serialized) {
                                 Ok(value) => value,
                                 Err(error) => {
-                                    *output.borrow_mut() = Some(Err(IndexedDbJournalError(
-                                        format!("stored dispatch lease JSON invalid: {error}"),
-                                    )));
+                                    *output.borrow_mut() = Some(Err(IndexedDbJournalError(format!(
+                                        "stored dispatch lease JSON invalid: {error}"
+                                    ))));
                                     let _ = call_method(&transaction, "abort", &[]);
                                     return;
                                 }
@@ -1259,7 +1262,6 @@ fn js_error_name(value: &JsValue) -> Option<String> {
         .ok()
         .and_then(|name| name.as_string())
 }
-
 
 #[cfg(test)]
 mod dispatch_lease_tests {
