@@ -42,3 +42,8 @@ jobs:
           grep -q '"comparison_status": "valid"' /tmp/methane-comparison-receipt.json
           grep -q '"cluster_count": 10' /tmp/methane-comparison-receipt.json
           grep -q '"candidate_only_events": 5' /tmp/methane-comparison-receipt.json
+      - name: Smoke-test split leakage receipt
+        run: |
+          cargo run --manifest-path tools/methane-action-contract/Cargo.toml --locked --bin methane-split-check -- tools/methane-action-contract/examples/split-corpus.json tools/methane-action-contract/examples/split-manifest.json > /tmp/methane-split-receipt.json
+          grep -q '"validation_status": "valid"' /tmp/methane-split-receipt.json
+          grep -q '"corpus_records": 5' /tmp/methane-split-receipt.json
