@@ -166,7 +166,7 @@ pub fn assess_rsr_tracking(
     let mut mean_normalized_absolute_error = 0.0;
     for (index, error) in errors.iter().enumerate() {
         mean_normalized_absolute_error +=
-            (error - mean_normalized_absolute_error) / (index + 1) as f64;
+            (*error - mean_normalized_absolute_error) / (index + 1) as f64;
         if !mean_normalized_absolute_error.is_finite() {
             return Err(MetricError::InvalidScalar {
                 field: "mean_normalized_absolute_error",
@@ -275,9 +275,9 @@ pub fn assess_edr_curtailment(
             });
         }
 
-        let baseline_interval_kwh = baseline * duration;
-        let event_interval_kwh = event * duration;
-        let delta_energy_kwh = (baseline - event) * duration;
+        let baseline_interval_kwh = baseline * *duration;
+        let event_interval_kwh = event * *duration;
+        let delta_energy_kwh = (baseline - event) * *duration;
         if !baseline_interval_kwh.is_finite()
             || !event_interval_kwh.is_finite()
             || !delta_energy_kwh.is_finite()
@@ -296,7 +296,7 @@ pub fn assess_edr_curtailment(
             rebound_energy_kwh += -delta_energy_kwh;
             rebound_interval_count += 1;
         }
-        duration_hours += duration;
+        duration_hours += *duration;
         if !baseline_energy_kwh.is_finite()
             || !event_energy_kwh.is_finite()
             || !gross_curtailment_kwh.is_finite()
