@@ -659,6 +659,32 @@ mod tests {
     }
 
     #[test]
+    fn non_synthetic_run_requires_hashed_runtime_environment() {
+        let mut manifest = parsed_manifest();
+        manifest.synthetic = false;
+        assert!(
+            validate_manifest(&manifest)
+                .expect_err("unhashed non-synthetic runtime must reject")
+                .contains("runtime environment manifest")
+        );
+
+        manifest.runtime_environment_sha256 =
+            Some("a".repeat(64));
+        assert!(validate_manifest(&manifest).is_ok());
+    }
+
+    #[test]
+    fn manifest_rejects_unpinned_qos_percentile() {
+        let mut manifest = parsed_manifest();
+        manifest.qos_percentile = 0.95;
+        assert!(
+            validate_manifest(&manifest)
+                .expect_err("unmatched QoS percentile must reject")
+                .contains("qos_percentile must match")
+        );
+    }
+
+    #[test]
     fn manifest_rejects_unpinned_power_cap_or_reserve() {
         let mut manifest = parsed_manifest();
         manifest.power_cap_w = 24_217.0;
