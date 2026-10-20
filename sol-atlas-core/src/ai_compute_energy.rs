@@ -718,6 +718,44 @@ pub fn schedule_deferrable(
         );
     }
 
+    // Inputs can each be finite while their derived per-work-unit objective
+    // overflows. Reject those cases before sorting; otherwise an infinite rank
+    // can silently influence ordering even when that interval receives no work.
+    let unit_energy_for_objective = request.workloads[0].energy_kwh_per_work_unit;
+    for (index, interval) in intervals.iter().enumerate() {
+        if per_interval_capacity[index] == 0 {
+            continue;
+        }
+        let facility_factor = interval
+            .facility_energy_per_it_energy
+            .expect("a schedulable assessment requires known facility energy factors");
+        let objective_per_unit = match policy {
+            SchedulingPolicy::EarliestReady => 0.0,
+            SchedulingPolicy::LowestCost => {
+                interval.electricity_price_usd_per_kwh
+                    .expect("eligible cost intervals were checked above")
+                    * facility_factor
+                    * unit_energy_for_objective
+            }
+            SchedulingPolicy::LowestCarbon => {
+                interval.grid_carbon_intensity_gco2_per_kwh
+                    .expect("eligible carbon intervals were checked above")
+                    * facility_factor
+                    * unit_energy_for_objective
+            }
+        };
+        if !objective_per_unit.is_finite() {
+            return DeferrableScheduleAssessment::no_schedule(
+                AssessmentStatus::Invalid,
+                policy,
+                vec![format!(
+                    "interval_{}_derived_objective_per_unit_non_finite",
+                    interval.id
+                )],
+            );
+        }
+    }
+
     let mut order = (0..intervals.len()).collect::<Vec<_>>();
     match policy {
         SchedulingPolicy::EarliestReady => {}
@@ -1082,6 +1120,148 @@ mod tests {
             Some(vec![0, 0, 2, 8])
         );
         assert!((result.modelled_electricity_cost_usd.unwrap() - 0.298).abs() < 1.0e-8);
+    }
+
+    fn exhaustive_minimum_cost(
+        capacities: &[u64],
+        per_unit_cost: &[f64],
+        demand: u64,
+    ) -> f64 {
+        fn visit(
+            index: usize,
+            remaining: u64,
+            capacities: &[u64],
+            per_unit_cost: &[f64],
+            allocation: &mut Vec<u64>,
+            best: &mut f64,
+        ) {
+            if index == capacities.len() {
+                if remaining == 0 {
+                    let cost = allocation
+                        .iter()
+                        .zip(per_unit_cost)
+                        .map(|(units, unit_cost)| *units as f64 * unit_cost)
+                        .sum::<f64>();
+                    *best = best.min(cost);
+                }
+                return;
+            }
+
+            for units in 0..=capacities[index].min(remaining) {
+                allocation.push(units);
+                visit(
+                    index + 1,
+                    remaining - units,
+                    capacities,
+                    per_unit_cost,
+                    allocation,
+                    best,
+                );
+                allocation.pop();
+            }
+        }
+
+        assert_eq!(capacities.len(), per_unit_cost.len());
+        let mut best = f64::INFINITY;
+        visit(
+            0,
+            demand,
+            capacities,
+            per_unit_cost,
+            &mut Vec::with_capacity(capacities.len()),
+            &mut best,
+        );
+        best
+    }
+
+    #[test]
+    fn lowest_cost_policy_matches_exhaustive_oracle_across_tariff_profiles() {
+        let tariff_profiles: [[f64; 4]; 6] = [
+            [0.10, 0.30, 0.27, 0.08],
+            [0.30, 0.10, 0.20, 0.40],
+            [-0.05, 0.10, 0.15, 0.00],
+            [0.20, -0.05, 0.20, -0.05],
+            [0.20, 0.17037037037037036, 0.16428571428571428, 0.20],
+            [0.75, 0.10, 0.09, 1.25],
+        ];
+
+        for prices in tariff_profiles {
+            let mut request = fixture_request();
+            request.workloads[1].required_work_units = 12;
+            for (interval, price) in request.intervals.iter_mut().zip(prices) {
+                interval.electricity_price_usd_per_kwh = Some(price);
+            }
+
+            let capacity = assess(&request);
+            assert!(matches!(
+                capacity.status,
+                AssessmentStatus::Feasible | AssessmentStatus::CapacityLimited
+            ));
+            let capacities = capacity
+                .interval_assessments
+                .iter()
+                .map(|row| row.max_deferrable_work_units)
+                .collect::<Vec<_>>();
+            let unit_energy = request.workloads[0].energy_kwh_per_work_unit;
+            let per_unit_cost = request
+                .intervals
+                .iter()
+                .zip(prices)
+                .map(|(interval, price)| {
+                    price
+                        * interval
+                            .facility_energy_per_it_energy
+                            .expect("fixture declares facility factors")
+                        * unit_energy
+                })
+                .collect::<Vec<_>>();
+            let oracle = exhaustive_minimum_cost(&capacities, &per_unit_cost, 12);
+            let result = schedule_deferrable(&request, SchedulingPolicy::LowestCost);
+            let allocation = result
+                .deferrable_work_units_by_interval
+                .as_ref()
+                .expect("finite tariff profile must produce a schedule");
+
+            assert_eq!(result.status, AssessmentStatus::Feasible);
+            assert_eq!(allocation.iter().sum::<u64>(), 12);
+            assert!(allocation.iter().zip(&capacities).all(|(used, cap)| used <= cap));
+            assert_eq!(
+                result.protected_floor_work_units_by_interval,
+                Some(vec![6, 6, 6, 6])
+            );
+            assert!(
+                (result.modelled_electricity_cost_usd.expect("known tariffs") - oracle).abs()
+                    < 1.0e-8,
+                "scheduler objective must equal exhaustive optimum; prices={prices:?}, allocation={allocation:?}"
+            );
+            assert_eq!(
+                schedule_deferrable(&request, SchedulingPolicy::LowestCost)
+                    .deferrable_work_units_by_interval
+                    .as_ref(),
+                Some(allocation),
+                "identical request bytes must produce the same allocation"
+            );
+        }
+    }
+
+    #[test]
+    fn non_finite_derived_cost_rank_fails_closed_before_allocation() {
+        let mut request = fixture_request();
+        request.workloads[1].required_work_units = 1;
+        // The input is finite, but price × facility factor overflows in t2.
+        // Because cheaper intervals can meet the demand, that bad rank would
+        // otherwise be hidden by the final schedule's finite selected cost.
+        request.intervals[2].electricity_price_usd_per_kwh = Some(1.0e308);
+
+        let result = schedule_deferrable(&request, SchedulingPolicy::LowestCost);
+        assert_eq!(result.status, AssessmentStatus::Invalid);
+        assert_eq!(result.deferrable_work_units_by_interval, None);
+        assert!(
+            result
+                .blockers
+                .iter()
+                .any(|blocker| blocker == "interval_t2_derived_objective_per_unit_non_finite")
+        );
     }
 
     #[test]
