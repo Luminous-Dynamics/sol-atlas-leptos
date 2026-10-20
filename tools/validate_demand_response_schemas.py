@@ -102,6 +102,17 @@ def known_answer_report() -> dict[str, Any]:
             "exceedance_rate_requirement_satisfied": False,
             "p90_threshold_satisfied": True,
         },
+        "rsr_reference_metadata": {
+            "source_name": "synthetic-known-answer",
+            "source_revision": "synthetic-fixture-v1",
+            "source_field": "signed_normalized_tracking_error",
+            "sample_time_semantics": "source_reported_series",
+            "denominator_convention": "source_native_unknown",
+            "normalization_note": (
+                "Synthetic values are pre-normalized; no source clock or "
+                "denominator is implied."
+            ),
+        },
         "edr": {
             "sample_count": 3,
             "duration_hours": 3.0,
