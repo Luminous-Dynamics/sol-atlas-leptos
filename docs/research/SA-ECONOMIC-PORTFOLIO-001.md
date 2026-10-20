@@ -128,7 +128,7 @@ The next implementation slice is on [SA-PORTFOLIO-SCALE-001 (#230)](https://gith
 - a generated ten-project / three-period fixture with 1,024 total subsets, an independently enumerated exact expected feasible set and frontier;
 - `evaluate_frontier_search`, which uses dependency-aware recursive search and prunes only branches proven infeasible from gate, prerequisite, cost or crew constraints. It retains an exact multi-scenario Pareto frontier and checks that leaves plus pruned subtrees account for the full (2^n) subset universe;
 - counters for visited nodes, evaluated leaves, feasible portfolios, protected-floor failures, pruned subsets by reason and frontier comparisons; and
-- regression-test plans for exact v0.1/v0.2 frontier equality plus a 24-project synthetic case with 16 unknown-gate decoys.
+- Rust regression tests for exact v0.1/v0.2 frontier equality plus a 24-project synthetic case with 16 UNKNOWN-gate decoys; these new tests remain pending exact-head qualification.
 
 This search has exponential worst-case behavior; it is not yet a demonstrated SOTA or runtime win. The documented 63-project limit is a mask representability bound, not a practical throughput guarantee.
 
