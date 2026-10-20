@@ -28,7 +28,7 @@ The JSON fixture expresses a synthetic access-approved job with parallel inspect
 
 ## Reproducible algorithm runner
 
-A Rust example now generates a deterministic graph and emits machine-readable latency samples:
+A Rust example generates a deterministic graph and emits machine-readable latency samples. It now compares repeated queries over the plain reference graph with a compiled runtime frontier, and measures index compilation separately:
 
 ```sh
 cargo run --release --manifest-path sol-atlas-core/Cargo.toml --example task_graph_bench
@@ -36,9 +36,14 @@ cargo run --release --manifest-path sol-atlas-core/Cargo.toml --example task_gra
 cargo run --release --manifest-path sol-atlas-core/Cargo.toml --example task_graph_bench -- 100 10000
 ```
 
-Default workload: 10,000 tasks, deterministic maximum fan-in of four dependencies, 39,990 edges, all task statuses pending. It measures validation, topological ordering (which includes validation), and ready-task derivation. Output includes OS/architecture, crate version, workload dimensions, percentile method, and raw nanosecond samples; capture the full JSON together with the exact source SHA and `rustc -Vv`. Use a release build on an otherwise idle, named runner, run at least 100 samples and report both raw distribution and p50/p95/max. Repeat cold-start and warm runs separately rather than mixing them.
+The runner measures two graph shapes at the requested task count (default 10,000), with 100 samples per operation by default:
 
-This is only an algorithm microbenchmark. It does not measure IndexedDB/SQLite durability, serialization/payload cost on realistic field records, UI rendering, network reconnection, authorization, or a commercial competitor. There is no result recorded yet: the runner is a measurement mechanism, not evidence that the numerical target has been met.
+- `fan_in_4`: a narrow, deterministic dependency frontier with maximum fan-in of four and 39,990 edges at 10,000 tasks.
+- `independent_roots`: a wide frontier of 10,000 independent ready tasks and zero edges.
+
+Both begin with all task statuses pending. Each shape measures validation, topological ordering (which includes validation), baseline ready-task derivation, index compilation, and compiled ready-frontier lookup. Five warmup iterations are excluded from each recorded distribution. Reference and compiled queries now return the same task-reference collection shape. Compiled query timing excludes the one-time index build; use the separate `compile_index` distribution when calculating break-even query count. Output includes OS/architecture, crate version, workload dimensions, initial frontier width, percentile method, and raw nanosecond samples; capture the full JSON together with the exact source SHA and `rustc -Vv`. Use a release build on an otherwise idle, named runner, run at least 100 samples and report raw distributions plus p50/p95/max. Repeat cold-start and warm runs separately rather than mixing them.
+
+This is only an algorithm microbenchmark. It does not measure IndexedDB/SQLite durability, serialization/payload cost on realistic field records, UI rendering, network reconnection, authorization, or a commercial competitor. The first comparative questions are whether index compilation pays for itself at observed query counts and whether results hold for both tiny and wide frontiers; a faster compiled query is not a win if jobs are so small or short-lived that compilation cost dominates, and a narrow-frontier-only speedup is not a general graph-performance win. There is no result recorded in this document: the runner is a measurement mechanism, not evidence that the numerical target has been met.
 
 ## Benchmark plan
 
@@ -52,8 +57,17 @@ Run candidate and linear-baseline scenarios over the same frozen graph set, devi
 | DAG-04 | Illegal transition changes state/revision | 0 | Exhaustive task-state/action matrix; pre/post digest equality for rejected transitions |
 | DAG-05 | Independent branch utilization | At least 2 concurrently ready tasks in the parallel reference scenario | Same task graph executed in linear and DAG prototypes; count avoidable serialization |
 | DAG-06 | Task graph verification time | p95 under 50 ms for 10,000 tasks / 40,000 dependency edges (hypothesis) | Release build, pinned runner, fixed seeded graph generator, 1,000 samples, warm/cold runs, raw percentile method |
+| DAG-07 | Incremental ready-frontier correctness | 100% same ordered ready IDs as reference reducer after every accepted action | Deterministic multi-branch transition traces and state-by-state parity tests |
+| PERF-02 | Repeated ready queries | ≥3× p95 query-speed improvement after index compilation, with separately reported compile cost (hypothesis) | Same graph/revision, same runner, release build, 1,000 samples; calculate observed break-even query count |
+| PERF-03 | Incremental transition cost | p95 under 1 ms for a verification transition with ≤100 direct dependents (hypothesis) | Generated fan-out cases, pinned release runner, raw samples, no storage/network in timed section |
 | UX-01 | Time to resume after interruption | ≥30% lower median than linear baseline (hypothesis) | Paired simulated field tasks, with correctness/evidence checks unchanged |
 | UX-02 | Readiness comprehension | ≥95% correct interpretation of why a task is blocked and what evidence can unlock it | Moderated task study by trade and experience |
+
+## Industry comparison and the actual gap
+
+ServiceNow Field Service already supports explicit task dependencies, including finish-to-start, start-after-start, and start-together relationships, plus minimum/maximum lag. It also supports multiple task agents and offline work. Microsoft Dynamics 365 Field Service uses incident types to standardize groups of service tasks, products, and services. Therefore, the existence of a DAG or multiple ready tasks is not itself an industry breakthrough. See [ServiceNow: Create dependencies between work order tasks](https://www.servicenow.com/docs/r/field-service-management/work-order-management/t_SetAnUpstreamTask.html), [ServiceNow: Manage work order tasks](https://www.servicenow.com/docs/r/field-service-management/work-order-management/c_WorkOrderTasks.html), and [Microsoft: Work order incident type overview](https://learn.microsoft.com/en-us/dynamics365/field-service/incident-type-overview).
+
+Our narrow candidate is a deterministic, verifiable client-side ready frontier whose runtime index can be tested for parity and incremental transition cost, paired with evidence/verification semantics and a separate offline journal. That is an implementation hypothesis, not a claim of superiority over these products; v1 still lacks lag constraints, resource/skill scheduling, rework invalidation, canonical record integration and durable storage.
 
 ## How to compare with industry fairly
 

@@ -12,6 +12,7 @@
 //! engine. The canonical service must independently validate any state change.
 
 use serde::{Deserialize, Serialize};
+use std::cmp::Reverse;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
@@ -106,6 +107,31 @@ impl TaskGraphV1 {
                     return Err(TaskGraphError::MissingDependency {
                         task_id: task.task_id.clone(),
                         dependency_id: dependency_id.clone(),
+                    });
+                }
+            }
+        }
+
+        for task in &self.tasks {
+            if matches!(
+                task.status,
+                TaskStatus::InProgress
+                    | TaskStatus::CompletionReported
+                    | TaskStatus::VerificationRecorded
+            ) {
+                let unresolved: Vec<String> = task
+                    .depends_on
+                    .iter()
+                    .filter(|dependency_id| {
+                        self.tasks[by_id[dependency_id.as_str()]].status
+                            != TaskStatus::VerificationRecorded
+                    })
+                    .cloned()
+                    .collect();
+                if !unresolved.is_empty() {
+                    return Err(TaskGraphError::ActiveTaskHasUnverifiedPrerequisites {
+                        task_id: task.task_id.clone(),
+                        dependency_ids: unresolved,
                     });
                 }
             }
@@ -287,6 +313,197 @@ impl TaskGraphV1 {
     }
 }
 
+/// A validated runtime index for repeated task-frontier queries and transitions.
+///
+/// The serialized graph remains the interchange format. This compiled form
+/// indexes IDs and dependency edges once, then maintains the ready frontier
+/// incrementally as tasks transition. It is a local projection, not an authority
+/// boundary; callers still need the canonical service to check actor, revision,
+/// evidence, permissions and durable idempotency.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct CompiledTaskGraph {
+    graph: TaskGraphV1,
+    id_to_index: BTreeMap<String, usize>,
+    prerequisites: Vec<Vec<usize>>,
+    dependents: Vec<Vec<usize>>,
+    unresolved_prerequisites: Vec<usize>,
+    ready: BTreeSet<(Reverse<u8>, String, usize)>,
+}
+
+impl CompiledTaskGraph {
+    /// Validate and compile a graph once. The deterministic ready index stores
+    /// descending priority, then task ID, independent of input vector order.
+    pub fn compile(graph: TaskGraphV1) -> Result<Self, TaskGraphError> {
+        graph.validate()?;
+
+        let id_to_index: BTreeMap<String, usize> = graph
+            .tasks
+            .iter()
+            .enumerate()
+            .map(|(index, task)| (task.task_id.clone(), index))
+            .collect();
+
+        let mut prerequisites = vec![Vec::new(); graph.tasks.len()];
+        let mut dependents = vec![Vec::new(); graph.tasks.len()];
+        let mut unresolved_prerequisites = vec![0; graph.tasks.len()];
+
+        for (task_index, task) in graph.tasks.iter().enumerate() {
+            for dependency_id in &task.depends_on {
+                let dependency_index = *id_to_index
+                    .get(dependency_id)
+                    .expect("validated graph dependency has an index");
+                prerequisites[task_index].push(dependency_index);
+                dependents[dependency_index].push(task_index);
+                if graph.tasks[dependency_index].status != TaskStatus::VerificationRecorded {
+                    unresolved_prerequisites[task_index] += 1;
+                }
+            }
+        }
+
+        let mut ready = BTreeSet::new();
+        for (index, task) in graph.tasks.iter().enumerate() {
+            if task.status == TaskStatus::Pending && unresolved_prerequisites[index] == 0 {
+                ready.insert((Reverse(task.priority), task.task_id.clone(), index));
+            }
+        }
+
+        Ok(Self {
+            graph,
+            id_to_index,
+            prerequisites,
+            dependents,
+            unresolved_prerequisites,
+            ready,
+        })
+    }
+
+    pub fn graph(&self) -> &TaskGraphV1 {
+        &self.graph
+    }
+
+    pub fn revision(&self) -> u64 {
+        self.graph.revision
+    }
+
+    /// Return the currently-ready task IDs in deterministic display order.
+    /// The set has already been derived and updated by accepted transitions.
+    pub fn ready_task_ids(&self) -> Vec<&str> {
+        self.ready
+            .iter()
+            .map(|(_, task_id, _)| task_id.as_str())
+            .collect()
+    }
+
+    pub fn ready_tasks(&self) -> Vec<&TaskNodeV1> {
+        self.ready
+            .iter()
+            .map(|(_, _, index)| &self.graph.tasks[*index])
+            .collect()
+    }
+
+    pub fn blocked_by(&self, task_id: &str) -> Result<Vec<String>, TaskGraphError> {
+        let index = *self
+            .id_to_index
+            .get(task_id)
+            .ok_or_else(|| TaskGraphError::TaskNotFound(task_id.to_owned()))?;
+
+        Ok(self.prerequisites[index]
+            .iter()
+            .filter(|dependency_index| {
+                self.graph.tasks[**dependency_index].status != TaskStatus::VerificationRecorded
+            })
+            .map(|dependency_index| self.graph.tasks[*dependency_index].task_id.clone())
+            .collect())
+    }
+
+    /// Apply a local transition in indexed time. When a prerequisite is verified,
+    /// only its direct dependents have their unresolved count adjusted. This
+    /// implementation is valid for v1's monotone status transitions; adding
+    /// verification invalidation/rework must update the frontier in both directions.
+    pub fn apply(&mut self, task_id: &str, action: TaskAction) -> Result<(), TaskGraphError> {
+        let index = *self
+            .id_to_index
+            .get(task_id)
+            .ok_or_else(|| TaskGraphError::TaskNotFound(task_id.to_owned()))?;
+        let task = &self.graph.tasks[index];
+        let old_status = task.status;
+        let task_id_owned = task.task_id.clone();
+        let priority = task.priority;
+
+        let next_status = match (old_status, action) {
+            (TaskStatus::Pending, TaskAction::Start)
+                if self.unresolved_prerequisites[index] == 0 =>
+            {
+                TaskStatus::InProgress
+            }
+            (TaskStatus::Pending, TaskAction::Start) => {
+                let dependency_ids = self.prerequisites[index]
+                    .iter()
+                    .filter(|dependency_index| {
+                        self.graph.tasks[**dependency_index].status
+                            != TaskStatus::VerificationRecorded
+                    })
+                    .map(|dependency_index| self.graph.tasks[*dependency_index].task_id.clone())
+                    .collect();
+                return Err(TaskGraphError::DependencyNotVerified {
+                    task_id: task_id_owned,
+                    dependency_ids,
+                });
+            }
+            (TaskStatus::InProgress, TaskAction::ReportCompletion) => {
+                TaskStatus::CompletionReported
+            }
+            (TaskStatus::CompletionReported, TaskAction::RecordVerification) => {
+                TaskStatus::VerificationRecorded
+            }
+            (TaskStatus::Pending, TaskAction::Cancel) => TaskStatus::Cancelled,
+            _ => {
+                return Err(TaskGraphError::InvalidTransition {
+                    task_id: task_id_owned,
+                    action,
+                    status: old_status,
+                });
+            }
+        };
+
+        let next_revision = self
+            .graph
+            .revision
+            .checked_add(1)
+            .ok_or(TaskGraphError::RevisionExhausted)?;
+
+        if old_status == TaskStatus::Pending {
+            self.ready
+                .remove(&(Reverse(priority), task_id_owned.clone(), index));
+        }
+
+        self.graph.tasks[index].status = next_status;
+        self.graph.revision = next_revision;
+
+        if old_status != TaskStatus::VerificationRecorded
+            && next_status == TaskStatus::VerificationRecorded
+        {
+            for dependent_index in self.dependents[index].iter().copied() {
+                if self.unresolved_prerequisites[dependent_index] > 0 {
+                    self.unresolved_prerequisites[dependent_index] -= 1;
+                }
+                let dependent = &self.graph.tasks[dependent_index];
+                if dependent.status == TaskStatus::Pending
+                    && self.unresolved_prerequisites[dependent_index] == 0
+                {
+                    self.ready.insert((
+                        Reverse(dependent.priority),
+                        dependent.task_id.clone(),
+                        dependent_index,
+                    ));
+                }
+            }
+        }
+
+        Ok(())
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum TaskGraphError {
     UnsupportedSchemaVersion(u16),
@@ -299,6 +516,10 @@ pub enum TaskGraphError {
     MissingDependency {
         task_id: String,
         dependency_id: String,
+    },
+    ActiveTaskHasUnverifiedPrerequisites {
+        task_id: String,
+        dependency_ids: Vec<String>,
     },
     SelfDependency(String),
     DuplicateDependency {
@@ -339,6 +560,14 @@ impl fmt::Display for TaskGraphError {
             } => write!(
                 formatter,
                 "task {task_id} depends on missing task {dependency_id}"
+            ),
+            Self::ActiveTaskHasUnverifiedPrerequisites {
+                task_id,
+                dependency_ids,
+            } => write!(
+                formatter,
+                "active task {task_id} has unverified prerequisites: {}",
+                dependency_ids.join(", ")
             ),
             Self::SelfDependency(task_id) => {
                 write!(formatter, "task {task_id} cannot depend on itself")
@@ -541,5 +770,173 @@ mod tests {
             .apply("inspect", TaskAction::ReportCompletion)
             .unwrap();
         assert_eq!(task_graph.revision, 3);
+    }
+    #[test]
+    fn compiled_frontier_matches_reference_reducer_through_a_multi_branch_job() {
+        let graph: TaskGraphV1 =
+            serde_json::from_str(include_str!("../fixtures/task-graph-v1.json"))
+                .expect("task graph fixture must deserialize");
+        let mut reference = graph.clone();
+        let mut compiled = super::CompiledTaskGraph::compile(graph).unwrap();
+
+        let check_parity = |reference: &TaskGraphV1, compiled: &super::CompiledTaskGraph| {
+            assert_eq!(
+                reference
+                    .ready_tasks()
+                    .unwrap()
+                    .iter()
+                    .map(|task| task.task_id.as_str())
+                    .collect::<Vec<_>>(),
+                compiled.ready_task_ids()
+            );
+            assert_eq!(reference, compiled.graph());
+            assert_eq!(reference.revision, compiled.revision());
+        };
+
+        check_parity(&reference, &compiled);
+        for (task_id, action) in [
+            ("inspection", TaskAction::Start),
+            ("inspection", TaskAction::ReportCompletion),
+            ("inspection", TaskAction::RecordVerification),
+            ("parts-procurement", TaskAction::Start),
+            ("parts-procurement", TaskAction::ReportCompletion),
+            ("parts-procurement", TaskAction::RecordVerification),
+            ("functional-test", TaskAction::Start),
+        ] {
+            assert_eq!(
+                reference.apply(task_id, action),
+                compiled.apply(task_id, action)
+            );
+            check_parity(&reference, &compiled);
+        }
+        assert!(compiled.ready_task_ids().is_empty());
+    }
+
+    #[test]
+    fn compiled_frontier_rejects_invalid_transition_without_mutation() {
+        let graph: TaskGraphV1 =
+            serde_json::from_str(include_str!("../fixtures/task-graph-v1.json"))
+                .expect("task graph fixture must deserialize");
+        let mut compiled = super::CompiledTaskGraph::compile(graph).unwrap();
+        let before = compiled.clone();
+        assert!(matches!(
+            compiled.apply("inspection", TaskAction::RecordVerification),
+            Err(TaskGraphError::InvalidTransition { .. })
+        ));
+        assert_eq!(compiled, before);
+    }
+
+    #[test]
+    fn graph_rejects_active_snapshot_with_unverified_prerequisite() {
+        let invalid = graph(vec![
+            node("permit", &[], 1, TaskStatus::Pending),
+            node("work", &["permit"], 1, TaskStatus::InProgress),
+        ]);
+        assert!(matches!(
+            invalid.validate(),
+            Err(TaskGraphError::ActiveTaskHasUnverifiedPrerequisites {
+                task_id,
+                dependency_ids,
+            }) if task_id == "work" && dependency_ids == vec!["permit".to_owned()]
+        ));
+    }
+
+    #[test]
+    fn compiled_frontier_matches_reference_across_generated_parallel_and_chained_tasks() {
+        let mut tasks = Vec::new();
+        for index in 0..64 {
+            tasks.push(node(
+                &format!("task-{index:03}"),
+                &[],
+                ((index * 19) % 101) as u8,
+                TaskStatus::Pending,
+            ));
+        }
+        for index in 64..128 {
+            let dependency = format!("task-{:03}", index % 64);
+            tasks.push(node(
+                &format!("task-{index:03}"),
+                &[dependency.as_str()],
+                ((index * 19) % 101) as u8,
+                TaskStatus::Pending,
+            ));
+        }
+        for index in 128..256 {
+            let access_dependency = format!("task-{:03}", index % 64);
+            let previous_dependency = format!("task-{:03}", index - 1);
+            let dependencies = [access_dependency.as_str(), previous_dependency.as_str()];
+            tasks.push(node(
+                &format!("task-{index:03}"),
+                &dependencies,
+                ((index * 19) % 101) as u8,
+                TaskStatus::Pending,
+            ));
+        }
+
+        let mut reference = graph(tasks);
+        let mut compiled = super::CompiledTaskGraph::compile(reference.clone()).unwrap();
+        let assert_frontier_parity =
+            |reference: &TaskGraphV1, compiled: &super::CompiledTaskGraph| {
+                assert_eq!(
+                    reference
+                        .ready_tasks()
+                        .unwrap()
+                        .iter()
+                        .map(|task| task.task_id.as_str())
+                        .collect::<Vec<_>>(),
+                    compiled.ready_task_ids()
+                );
+                assert_eq!(reference, compiled.graph());
+                assert_eq!(reference.revision, compiled.revision());
+            };
+
+        assert_frontier_parity(&reference, &compiled);
+        for index in 0..256 {
+            let task_id = format!("task-{index:03}");
+            for action in [
+                TaskAction::Start,
+                TaskAction::ReportCompletion,
+                TaskAction::RecordVerification,
+            ] {
+                assert_eq!(
+                    reference.apply(&task_id, action),
+                    compiled.apply(&task_id, action),
+                    "transition {action:?} for {task_id}"
+                );
+                assert_frontier_parity(&reference, &compiled);
+            }
+        }
+    }
+
+    #[test]
+    fn compiled_revision_overflow_does_not_mutate_status_or_frontier() {
+        let mut graph = graph(vec![node("inspect", &[], 1, TaskStatus::Pending)]);
+        graph.revision = u64::MAX;
+        let mut compiled = super::CompiledTaskGraph::compile(graph).unwrap();
+        let before = compiled.clone();
+        assert_eq!(
+            compiled.apply("inspect", TaskAction::Start),
+            Err(TaskGraphError::RevisionExhausted)
+        );
+        assert_eq!(compiled, before);
+    }
+
+    #[test]
+    fn compiled_frontier_is_independent_of_input_task_vector_order() {
+        let tasks = vec![
+            node("z", &["a"], 2, TaskStatus::Pending),
+            node("b", &[], 9, TaskStatus::Pending),
+            node("a", &[], 3, TaskStatus::VerificationRecorded),
+            node("y", &["b"], 1, TaskStatus::Pending),
+        ];
+        let first = graph(tasks.clone());
+        let second = graph(tasks.into_iter().rev().collect());
+        let first_compiled = super::CompiledTaskGraph::compile(first).unwrap();
+        let second_compiled = super::CompiledTaskGraph::compile(second).unwrap();
+        assert_eq!(
+            first_compiled.ready_task_ids(),
+            second_compiled.ready_task_ids()
+        );
+        assert_eq!(first_compiled.ready_task_ids(), vec!["b", "z"]);
     }
 }
