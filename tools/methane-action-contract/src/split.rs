@@ -408,7 +408,8 @@ mod tests {
     fn rejects_source_group_leakage_even_when_clusters_differ() {
         let bytes = corpus_bytes();
         let mut manifest = manifest_for(&bytes);
-        manifest.assignments
+        manifest
+            .assignments
             .iter_mut()
             .find(|a| a.case_id == "test-a")
             .unwrap()
