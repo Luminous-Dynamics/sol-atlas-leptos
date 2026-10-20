@@ -630,6 +630,17 @@ pub struct DeferrableScheduleAssessment {
     pub blockers: Vec<String>,
 }
 
+/// Comparison of the reference policy set without collapsing cost and carbon
+/// into a single weighted score. The frontier is withheld when candidates
+/// cannot be compared under complete, attributed objective data.
+#[derive(Clone, Debug, PartialEq, serde::Serialize)]
+pub struct PolicyFrontierAssessment {
+    pub status: AssessmentStatus,
+    pub policy_assessments: Vec<DeferrableScheduleAssessment>,
+    pub non_dominated_policies: Vec<SchedulingPolicy>,
+    pub blockers: Vec<String>,
+}
+
 impl DeferrableScheduleAssessment {
     fn no_schedule(
         status: AssessmentStatus,
@@ -920,6 +931,125 @@ pub fn schedule_deferrable(
     }
 }
 
+/// Evaluate every reference policy and return the non-dominated options on
+/// the cost/carbon frontier. This is a frontier over the three declared
+/// baselines only, not an optimizer over all feasible schedules.
+pub fn compare_scheduling_policies(request: &Request) -> PolicyFrontierAssessment {
+    let policies = [
+        SchedulingPolicy::EarliestReady,
+        SchedulingPolicy::LowestCost,
+        SchedulingPolicy::LowestCarbon,
+    ];
+    let policy_assessments = policies
+        .into_iter()
+        .map(|policy| schedule_deferrable(request, policy))
+        .collect::<Vec<_>>();
+
+    let mut blockers = Vec::new();
+    for candidate in &policy_assessments {
+        for blocker in &candidate.blockers {
+            blockers.push(format!("{:?}:{blocker}", candidate.policy));
+        }
+    }
+
+    let status = if policy_assessments
+        .iter()
+        .any(|candidate| candidate.status == AssessmentStatus::Invalid)
+    {
+        Some(AssessmentStatus::Invalid)
+    } else if policy_assessments
+        .iter()
+        .any(|candidate| candidate.status == AssessmentStatus::Unsupported)
+    {
+        Some(AssessmentStatus::Unsupported)
+    } else if policy_assessments
+        .iter()
+        .any(|candidate| candidate.status == AssessmentStatus::Infeasible)
+    {
+        Some(AssessmentStatus::Infeasible)
+    } else if policy_assessments
+        .iter()
+        .any(|candidate| candidate.status == AssessmentStatus::Indeterminate)
+    {
+        Some(AssessmentStatus::Indeterminate)
+    } else {
+        None
+    };
+
+    if let Some(status) = status {
+        blockers.sort();
+        blockers.dedup();
+        return PolicyFrontierAssessment {
+            status,
+            policy_assessments,
+            non_dominated_policies: Vec::new(),
+            blockers,
+        };
+    }
+
+    if policy_assessments.iter().any(|candidate| {
+        candidate.modelled_electricity_cost_usd.is_none()
+            || candidate.modelled_grid_carbon_gco2.is_none()
+    }) {
+        blockers.push("pareto_frontier_requires_complete_cost_and_carbon_attribution".to_owned());
+        blockers.sort();
+        blockers.dedup();
+        return PolicyFrontierAssessment {
+            status: AssessmentStatus::Indeterminate,
+            policy_assessments,
+            non_dominated_policies: Vec::new(),
+            blockers,
+        };
+    }
+
+    let mut non_dominated_policies = Vec::new();
+    for (index, candidate) in policy_assessments.iter().enumerate() {
+        let candidate_cost = candidate
+            .modelled_electricity_cost_usd
+            .expect("objective completeness checked above");
+        let candidate_carbon = candidate
+            .modelled_grid_carbon_gco2
+            .expect("objective completeness checked above");
+        let dominated = policy_assessments
+            .iter()
+            .enumerate()
+            .any(|(other_index, other)| {
+                if index == other_index {
+                    return false;
+                }
+                let other_cost = other
+                    .modelled_electricity_cost_usd
+                    .expect("objective completeness checked above");
+                let other_carbon = other
+                    .modelled_grid_carbon_gco2
+                    .expect("objective completeness checked above");
+                other_cost <= candidate_cost
+                    && other_carbon <= candidate_carbon
+                    && (other_cost < candidate_cost || other_carbon < candidate_carbon)
+            });
+        if !dominated {
+            non_dominated_policies.push(candidate.policy);
+        }
+    }
+
+    blockers.sort();
+    blockers.dedup();
+    let status = if policy_assessments
+        .iter()
+        .any(|candidate| candidate.status == AssessmentStatus::CapacityLimited)
+    {
+        AssessmentStatus::CapacityLimited
+    } else {
+        AssessmentStatus::Feasible
+    };
+    PolicyFrontierAssessment {
+        status,
+        policy_assessments,
+        non_dominated_policies,
+        blockers,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -933,6 +1063,44 @@ mod tests {
             "../../schemas/examples/ai-compute-energy-flexibility-four-interval.synthetic.json"
         ))
         .expect("committed synthetic compute-energy fixture must deserialize")
+    }
+
+    #[test]
+    fn policy_comparison_preserves_cost_carbon_pareto_tradeoff() {
+        let mut request = fixture_request();
+        request.workloads[1].required_work_units = 40;
+
+        let comparison = compare_scheduling_policies(&request);
+        assert_eq!(comparison.status, AssessmentStatus::Feasible);
+        assert_eq!(comparison.policy_assessments.len(), 3);
+        assert_eq!(
+            comparison.non_dominated_policies,
+            vec![SchedulingPolicy::LowestCost, SchedulingPolicy::LowestCarbon]
+        );
+        assert!(
+            comparison
+                .policy_assessments
+                .iter()
+                .all(|candidate| candidate.scheduled_work_units == Some(40))
+        );
+    }
+
+    #[test]
+    fn policy_comparison_withholds_frontier_when_tariff_data_is_missing() {
+        let mut request = fixture_request();
+        request.workloads[1].required_work_units = 40;
+        request.intervals[0].electricity_price_usd_per_kwh = None;
+
+        let comparison = compare_scheduling_policies(&request);
+        assert_eq!(comparison.status, AssessmentStatus::Indeterminate);
+        assert!(comparison.non_dominated_policies.is_empty());
+        assert_eq!(comparison.policy_assessments.len(), 3);
+        assert!(
+            comparison
+                .blockers
+                .iter()
+                .any(|blocker| blocker.contains("interval_t0_electricity_price_unknown"))
+        );
     }
 
     #[test]
