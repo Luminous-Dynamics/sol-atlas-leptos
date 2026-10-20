@@ -1,0 +1,269 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/demand-response-assessment-report-v1.schema.json",
+  "title": "Demand Response Metric Assessment Report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "receipt",
+    "metrics"
+  ],
+  "properties": {
+    "receipt": {
+      "$ref": "#/$defs/receipt"
+    },
+    "metrics": {
+      "$ref": "#/$defs/metrics"
+    }
+  },
+  "$defs": {
+    "receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "receipt_schema_version",
+        "digest_algorithm",
+        "digest_scope",
+        "input_sha256",
+        "metrics_sha256",
+        "fixture_id",
+        "synthetic",
+        "claim_ceiling",
+        "verification_boundary"
+      ],
+      "properties": {
+        "receipt_schema_version": {
+          "const": "1.0"
+        },
+        "digest_algorithm": {
+          "const": "SHA-256"
+        },
+        "digest_scope": {
+          "const": "exact_input_bytes_and_compact_metrics_json"
+        },
+        "input_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "metrics_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "fixture_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "synthetic": {
+          "type": "boolean"
+        },
+        "claim_ceiling": {
+          "const": "metric_accounting_only"
+        },
+        "verification_boundary": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "rsr": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sample_count",
+        "reserve_capacity_kw",
+        "normalized_absolute_errors",
+        "mean_normalized_absolute_error",
+        "p90_normalized_absolute_error",
+        "max_normalized_absolute_error",
+        "error_threshold",
+        "max_allowed_exceedance_fraction",
+        "threshold_exceedance_count",
+        "threshold_exceedance_fraction",
+        "tracking_requirement_satisfied"
+      ],
+      "properties": {
+        "sample_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "reserve_capacity_kw": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "normalized_absolute_errors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "mean_normalized_absolute_error": {
+          "type": "number",
+          "minimum": 0
+        },
+        "p90_normalized_absolute_error": {
+          "type": "number",
+          "minimum": 0
+        },
+        "max_normalized_absolute_error": {
+          "type": "number",
+          "minimum": 0
+        },
+        "error_threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "max_allowed_exceedance_fraction": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "threshold_exceedance_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "threshold_exceedance_fraction": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "tracking_requirement_satisfied": {
+          "type": "boolean"
+        }
+      }
+    },
+    "edr": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sample_count",
+        "duration_hours",
+        "baseline_energy_kwh",
+        "event_energy_kwh",
+        "net_energy_reduction_kwh",
+        "net_energy_reduction_fraction",
+        "gross_curtailment_kwh",
+        "rebound_energy_kwh",
+        "rebound_interval_count",
+        "peak_baseline_power_kw",
+        "peak_event_power_kw",
+        "peak_event_power_excess_over_baseline_kw"
+      ],
+      "properties": {
+        "sample_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "duration_hours": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "baseline_energy_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "event_energy_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "net_energy_reduction_kwh": {
+          "type": "number"
+        },
+        "net_energy_reduction_fraction": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "gross_curtailment_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "rebound_energy_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "rebound_interval_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "peak_baseline_power_kw": {
+          "type": "number",
+          "minimum": 0
+        },
+        "peak_event_power_kw": {
+          "type": "number",
+          "minimum": 0
+        },
+        "peak_event_power_excess_over_baseline_kw": {
+          "type": "number"
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "fixture_id",
+        "synthetic",
+        "claim_ceiling",
+        "rsr",
+        "edr"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "1.0"
+        },
+        "fixture_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "synthetic": {
+          "type": "boolean"
+        },
+        "claim_ceiling": {
+          "const": "metric_accounting_only"
+        },
+        "rsr": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/rsr"
+            }
+          ]
+        },
+        "edr": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/edr"
+            }
+          ]
+        }
+      },
+      "anyOf": [
+        {
+          "properties": {
+            "rsr": {
+              "type": "object"
+            }
+          }
+        },
+        {
+          "properties": {
+            "edr": {
+              "type": "object"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
