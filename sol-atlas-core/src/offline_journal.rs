@@ -62,6 +62,9 @@ pub struct OperationBinding {
     pub expected_revision: u64,
     pub payload_digest_sha256: String,
     pub idempotency_key: String,
+    /// Conflict lineage from the immutable request envelope.
+    #[serde(default)]
+    pub supersedes_operation_id: Option<String>,
 }
 
 impl OperationBinding {
@@ -73,6 +76,7 @@ impl OperationBinding {
             expected_revision: envelope.expected_revision,
             payload_digest_sha256: envelope.payload_digest_sha256.clone(),
             idempotency_key: envelope.idempotency_key.clone(),
+            supersedes_operation_id: envelope.supersedes_operation_id.clone(),
         }
     }
 }
@@ -483,7 +487,7 @@ mod tests {
         let mut entry = JournalEntry::prepare(envelope()).unwrap();
         entry.mark_attempt_started().unwrap();
 
-        for mismatch in 0..6 {
+        for mismatch in 0..7 {
             let mut binding = operation_binding();
             match mismatch {
                 0 => binding.envelope_schema_version = 1,
@@ -492,6 +496,7 @@ mod tests {
                 3 => binding.expected_revision += 1,
                 4 => binding.payload_digest_sha256 = "b".repeat(64),
                 5 => binding.idempotency_key = "another-key".to_owned(),
+                6 => binding.supersedes_operation_id = Some("another-parent".to_owned()),
                 _ => unreachable!(),
             }
             let reply = ServiceReply::Received {
