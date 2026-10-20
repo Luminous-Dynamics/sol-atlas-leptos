@@ -7,8 +7,10 @@ on:
       - "docs/research/SA-ECONOMIC-PORTFOLIO-001.md"
       - "docs/research/SA-PORTFOLIO-BENCHMARK-PROTOCOL-001.md"
       - "docs/research/SA-PORTFOLIO-OR-SOLVER-BASELINE-001.md"
+      - "docs/research/SA-PORTFOLIO-SCENARIO-ROBUSTNESS-001.md"
       - "docs/research/fixtures/sa-economic-portfolio-v0.1*"
       - "docs/research/fixtures/sa-economic-portfolio-v0.2*"
+      - "docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1*"
       - "docs/research/schemas/sa-economic-portfolio-v0.1.schema.json"
       - "docs/research/schemas/sa-economic-portfolio-v0.2.schema.json"
       - ".github/workflows/sa-economic-portfolio-oracle.yml"
@@ -19,11 +21,13 @@ on:
       - "docs/research/SA-ECONOMIC-PORTFOLIO-001.md"
       - "docs/research/fixtures/sa-economic-portfolio-v0.1*"
       - "docs/research/fixtures/sa-economic-portfolio-v0.2*"
+      - "docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1*"
       - "docs/research/schemas/sa-economic-portfolio-v0.1.schema.json"
       - "docs/research/schemas/sa-economic-portfolio-v0.2.schema.json"
       - "docs/research/SA-PORTFOLIO-SCALE-001.md"
       - "docs/research/SA-PORTFOLIO-BENCHMARK-PROTOCOL-001.md"
       - "docs/research/SA-PORTFOLIO-OR-SOLVER-BASELINE-001.md"
+      - "docs/research/SA-PORTFOLIO-SCENARIO-ROBUSTNESS-001.md"
 
 permissions:
   contents: read
@@ -76,6 +80,46 @@ jobs:
           docs/research/fixtures/sa-economic-portfolio-v0.2-24-project.search-expected.json
           > sa-economic-portfolio-v0.2-24-search-receipt.json
 
+      - name: Produce normal-scenario omission receipt
+        run: >-
+          cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --scenario-omission
+          docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.json
+          normal_reference
+          docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-omit-normal.expected.json
+          > sa-portfolio-scenario-omission-normal-receipt.json
+
+      - name: Produce stress-scenario omission receipt
+        run: >-
+          cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --scenario-omission
+          docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.json
+          heat_dry_power_stress
+          docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-omit-heat-dry.expected.json
+          > sa-portfolio-scenario-omission-stress-receipt.json
+
+      - name: Produce omitted-scenario floor-challenge receipt
+        run: >-
+          cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --scenario-omission
+          docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-floor-challenge.json
+          heat_dry_power_stress
+          docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-floor-challenge-omit-stress.expected.json
+          > sa-portfolio-scenario-omission-floor-challenge-receipt.json
+
+      - name: Produce withheld compound-scenario addition receipt
+        run: >-
+          cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --scenario-addition
+          docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.json
+          docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-withheld-compound-stress.json
+          docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-withheld-compound-stress.expected.json
+          > sa-portfolio-scenario-addition-compound-stress-receipt.json
+
+      - name: Produce no-effect scenario control receipt
+        run: >-
+          cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --scenario-addition
+          docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.json
+          docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-no-effect-control.json
+          docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-no-effect-control.expected.json
+          > sa-portfolio-scenario-addition-no-effect-receipt.json
+
       - name: Build optimized benchmark binary
         run: cargo build --release --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml
 
@@ -105,6 +149,11 @@ jobs:
             sa-economic-portfolio-v0.2-receipt.json
             sa-economic-portfolio-v0.2-search-receipt.json
             sa-economic-portfolio-v0.2-24-search-receipt.json
+            sa-portfolio-scenario-omission-normal-receipt.json
+            sa-portfolio-scenario-omission-stress-receipt.json
+            sa-portfolio-scenario-omission-floor-challenge-receipt.json
+            sa-portfolio-scenario-addition-compound-stress-receipt.json
+            sa-portfolio-scenario-addition-no-effect-receipt.json
             sa-economic-portfolio-v0.2-comparison-benchmark.json
             sa-economic-portfolio-v0.2-24-search-benchmark.json
           if-no-files-found: ignore

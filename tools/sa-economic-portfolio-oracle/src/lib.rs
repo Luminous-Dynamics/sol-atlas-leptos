@@ -243,6 +243,55 @@ pub struct FrontierSearchEvaluation {
     pub pareto_frontier: Vec<Portfolio>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ScenarioOmissionPortfolioReport {
+    pub project_ids: Vec<String>,
+    pub full_reference_feasible: bool,
+    pub reference_outcomes_by_scenario: Option<BTreeMap<String, ObjectiveVector>>,
+    pub regret_by_scenario: Option<BTreeMap<String, ObjectiveVector>>,
+    pub worst_case_regret: Option<ObjectiveVector>,
+}
+
+/// Complete, explicit payload for a scenario withheld from the selection input.
+/// Maps must cover every current project and every current interaction rule exactly.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ScenarioPatch {
+    pub scenario: Scenario,
+    pub service_baseline: i64,
+    pub project_outcomes_by_id: BTreeMap<String, ObjectiveVector>,
+    pub interaction_adjustments_by_rule_id: BTreeMap<String, ObjectiveVector>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ScenarioAdditionReport {
+    pub added_scenario_id: String,
+    pub original_scenario_ids: Vec<String>,
+    pub augmented_scenario_ids: Vec<String>,
+    pub candidate_subset_count: u64,
+    pub original_feasible_portfolio_count: usize,
+    pub augmented_feasible_portfolio_count: usize,
+    pub original_frontier_project_ids: Vec<Vec<String>>,
+    pub augmented_frontier_project_ids: Vec<Vec<String>>,
+    pub original_feasible_removed_by_addition: Vec<Vec<String>>,
+    pub frontier_id_intersection_count: usize,
+    pub frontier_id_union_count: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ScenarioOmissionReport {
+    pub omitted_scenario_id: String,
+    pub original_scenario_ids: Vec<String>,
+    pub reduced_scenario_ids: Vec<String>,
+    pub candidate_subset_count: u64,
+    pub reduced_feasible_portfolio_count: usize,
+    pub reference_frontier_project_ids: Vec<Vec<String>>,
+    pub reduced_frontier: Vec<ScenarioOmissionPortfolioReport>,
+    pub frontier_id_intersection_count: usize,
+    pub frontier_id_union_count: usize,
+    pub full_reference_infeasible_frontier_count: usize,
+}
+
 fn period_rank(period: &str) -> Option<u32> {
     period.strip_prefix('P')?.parse::<u32>().ok()
 }
@@ -899,6 +948,399 @@ pub fn evaluate_frontier_search(input: &Input) -> Result<FrontierSearchEvaluatio
     })
 }
 
+/// Remove one declared scenario from a valid v0.2 synthetic input.
+///
+/// This is an input transformation for sensitivity analysis, not a claim that
+/// the omitted scenario is implausible. It fails closed on v0.1 inputs,
+/// unknown scenarios, missing scenario coefficients, and a final remaining
+/// scenario. The source input is never mutated.
+pub fn omit_scenario(input: &Input, scenario_id: &str) -> Result<Input, String> {
+    validate_input(input)?;
+    if input.schema_version != "sa-economic-portfolio-v0.2" {
+        return Err("scenario omission requires a v0.2 input contract".to_owned());
+    }
+    if input.scenarios.len() <= 1 {
+        return Err("cannot omit the only remaining scenario".to_owned());
+    }
+    if !input
+        .scenarios
+        .iter()
+        .any(|scenario| scenario.id == scenario_id)
+    {
+        return Err(format!("unknown scenario ID: {scenario_id}"));
+    }
+
+    let mut omitted = input.clone();
+    omitted
+        .scenarios
+        .retain(|scenario| scenario.id != scenario_id);
+    omitted
+        .service_baseline_by_scenario
+        .remove(scenario_id)
+        .ok_or_else(|| format!("missing service baseline for scenario: {scenario_id}"))?;
+
+    for project in &mut omitted.projects {
+        project.outcomes.remove(scenario_id).ok_or_else(|| {
+            format!(
+                "project {} has no outcome for omitted scenario {}",
+                project.id, scenario_id
+            )
+        })?;
+    }
+    for rule in &mut omitted.interaction_rules {
+        rule.objective_adjustment_by_scenario
+            .remove(scenario_id)
+            .ok_or_else(|| {
+                format!(
+                    "interaction rule {} has no adjustment for omitted scenario {}",
+                    rule.id, scenario_id
+                )
+            })?;
+    }
+
+    validate_input(&omitted)?;
+    Ok(omitted)
+}
+
+fn scenario_objective_ideal(
+    feasible: &[Portfolio],
+    scenario_id: &str,
+) -> Result<ObjectiveVector, String> {
+    let mut ideal: Option<ObjectiveVector> = None;
+    for portfolio in feasible {
+        let outcome = portfolio
+            .outcomes
+            .get(scenario_id)
+            .ok_or_else(|| format!("portfolio lacks scenario outcome: {scenario_id}"))?;
+        match ideal.as_mut() {
+            None => ideal = Some(outcome.clone()),
+            Some(current) => {
+                current.economic_value_u = current.economic_value_u.max(outcome.economic_value_u);
+                current.essential_service_points = current
+                    .essential_service_points
+                    .max(outcome.essential_service_points);
+                current.paid_work_opportunity_points = current
+                    .paid_work_opportunity_points
+                    .max(outcome.paid_work_opportunity_points);
+                current.ecological_quality_points = current
+                    .ecological_quality_points
+                    .max(outcome.ecological_quality_points);
+            }
+        }
+    }
+    ideal.ok_or_else(|| "cannot establish scenario ideals without feasible portfolios".to_owned())
+}
+
+fn objective_regret(
+    ideal: &ObjectiveVector,
+    outcome: &ObjectiveVector,
+) -> Result<ObjectiveVector, String> {
+    let subtract = |lhs: i64, rhs: i64, objective: &str| {
+        lhs.checked_sub(rhs)
+            .filter(|value| *value >= 0)
+            .ok_or_else(|| format!("invalid or overflowing regret for objective {objective}"))
+    };
+    Ok(ObjectiveVector {
+        economic_value_u: subtract(
+            ideal.economic_value_u,
+            outcome.economic_value_u,
+            "economic_value_u",
+        )?,
+        essential_service_points: subtract(
+            ideal.essential_service_points,
+            outcome.essential_service_points,
+            "essential_service_points",
+        )?,
+        paid_work_opportunity_points: subtract(
+            ideal.paid_work_opportunity_points,
+            outcome.paid_work_opportunity_points,
+            "paid_work_opportunity_points",
+        )?,
+        ecological_quality_points: subtract(
+            ideal.ecological_quality_points,
+            outcome.ecological_quality_points,
+            "ecological_quality_points",
+        )?,
+    })
+}
+
+/// Recompute the exact frontier after omitting one scenario, then rescore the
+/// reduced frontier against the full reference input. Only v0.2 inputs within
+/// the exact evaluator's cap are accepted so full-feasibility status is exact.
+pub fn evaluate_scenario_omission(
+    input: &Input,
+    scenario_id: &str,
+) -> Result<ScenarioOmissionReport, String> {
+    let full = evaluate(input)?;
+    if full.feasible_portfolios.is_empty() {
+        return Err("full reference input has no feasible portfolios".to_owned());
+    }
+    let reduced_input = omit_scenario(input, scenario_id)?;
+    let reduced = evaluate(&reduced_input)?;
+
+    let mut original_scenario_ids: Vec<String> = input
+        .scenarios
+        .iter()
+        .map(|scenario| scenario.id.clone())
+        .collect();
+    original_scenario_ids.sort();
+    let mut reduced_scenario_ids: Vec<String> = reduced_input
+        .scenarios
+        .iter()
+        .map(|scenario| scenario.id.clone())
+        .collect();
+    reduced_scenario_ids.sort();
+
+    let mut ideals = BTreeMap::new();
+    for scenario_id in &original_scenario_ids {
+        ideals.insert(
+            scenario_id.clone(),
+            scenario_objective_ideal(&full.feasible_portfolios, scenario_id)?,
+        );
+    }
+
+    let full_feasible_by_key: BTreeMap<String, &Portfolio> = full
+        .feasible_portfolios
+        .iter()
+        .map(|portfolio| (portfolio_key(portfolio), portfolio))
+        .collect();
+    let reference_frontier_project_ids: Vec<Vec<String>> = full
+        .pareto_frontier
+        .iter()
+        .map(|portfolio| portfolio.project_ids.clone())
+        .collect();
+    let reference_frontier_ids: BTreeSet<String> =
+        full.pareto_frontier.iter().map(portfolio_key).collect();
+    let reduced_frontier_ids: BTreeSet<String> =
+        reduced.pareto_frontier.iter().map(portfolio_key).collect();
+    let frontier_id_intersection_count = reference_frontier_ids
+        .intersection(&reduced_frontier_ids)
+        .count();
+    let frontier_id_union_count = reference_frontier_ids.union(&reduced_frontier_ids).count();
+
+    let mut full_reference_infeasible_frontier_count = 0;
+    let mut reduced_frontier = Vec::with_capacity(reduced.pareto_frontier.len());
+    for candidate in &reduced.pareto_frontier {
+        let key = portfolio_key(candidate);
+        let Some(reference_portfolio) = full_feasible_by_key.get(&key) else {
+            full_reference_infeasible_frontier_count += 1;
+            reduced_frontier.push(ScenarioOmissionPortfolioReport {
+                project_ids: candidate.project_ids.clone(),
+                full_reference_feasible: false,
+                reference_outcomes_by_scenario: None,
+                regret_by_scenario: None,
+                worst_case_regret: None,
+            });
+            continue;
+        };
+
+        let reference_outcomes_by_scenario = reference_portfolio.outcomes.clone();
+        let mut regret_by_scenario = BTreeMap::new();
+        let mut worst_case_regret = ObjectiveVector::zero();
+        for reference_scenario_id in &original_scenario_ids {
+            let ideal = ideals
+                .get(reference_scenario_id)
+                .ok_or_else(|| format!("missing objective ideal: {reference_scenario_id}"))?;
+            let outcome = reference_outcomes_by_scenario
+                .get(reference_scenario_id)
+                .ok_or_else(|| format!("missing rescored outcome: {reference_scenario_id}"))?;
+            let regret = objective_regret(ideal, outcome)?;
+            worst_case_regret.economic_value_u = worst_case_regret
+                .economic_value_u
+                .max(regret.economic_value_u);
+            worst_case_regret.essential_service_points = worst_case_regret
+                .essential_service_points
+                .max(regret.essential_service_points);
+            worst_case_regret.paid_work_opportunity_points = worst_case_regret
+                .paid_work_opportunity_points
+                .max(regret.paid_work_opportunity_points);
+            worst_case_regret.ecological_quality_points = worst_case_regret
+                .ecological_quality_points
+                .max(regret.ecological_quality_points);
+            regret_by_scenario.insert(reference_scenario_id.clone(), regret);
+        }
+        reduced_frontier.push(ScenarioOmissionPortfolioReport {
+            project_ids: candidate.project_ids.clone(),
+            full_reference_feasible: true,
+            reference_outcomes_by_scenario: Some(reference_outcomes_by_scenario),
+            regret_by_scenario: Some(regret_by_scenario),
+            worst_case_regret: Some(worst_case_regret),
+        });
+    }
+
+    Ok(ScenarioOmissionReport {
+        omitted_scenario_id: scenario_id.to_owned(),
+        original_scenario_ids,
+        reduced_scenario_ids,
+        candidate_subset_count: reduced.candidate_subset_count,
+        reduced_feasible_portfolio_count: reduced.feasible_portfolios.len(),
+        reference_frontier_project_ids,
+        reduced_frontier,
+        frontier_id_intersection_count,
+        frontier_id_union_count,
+        full_reference_infeasible_frontier_count,
+    })
+}
+
+/// Add one complete, withheld scenario to a valid v0.2 synthetic input.
+/// All project and interaction outcome rows must be supplied explicitly.
+pub fn add_scenario(input: &Input, patch: &ScenarioPatch) -> Result<Input, String> {
+    validate_input(input)?;
+    if input.schema_version != "sa-economic-portfolio-v0.2" {
+        return Err("scenario addition requires a v0.2 input contract".to_owned());
+    }
+    if patch.scenario.id.trim().is_empty()
+        || patch.scenario.weight.is_some()
+        || patch.scenario.probability.is_some()
+    {
+        return Err(
+            "scenario patch needs a non-empty ID and no uncalibrated probabilities".to_owned(),
+        );
+    }
+    if input
+        .scenarios
+        .iter()
+        .any(|scenario| scenario.id == patch.scenario.id)
+    {
+        return Err(format!("scenario already exists: {}", patch.scenario.id));
+    }
+    if patch.service_baseline < 0 {
+        return Err("scenario patch has a negative service baseline".to_owned());
+    }
+
+    let expected_project_ids: BTreeSet<String> = input
+        .projects
+        .iter()
+        .map(|project| project.id.clone())
+        .collect();
+    let supplied_project_ids: BTreeSet<String> =
+        patch.project_outcomes_by_id.keys().cloned().collect();
+    if supplied_project_ids != expected_project_ids {
+        return Err("scenario patch must provide exactly one outcome for every project".to_owned());
+    }
+
+    let expected_rule_ids: BTreeSet<String> = input
+        .interaction_rules
+        .iter()
+        .map(|rule| rule.id.clone())
+        .collect();
+    let supplied_rule_ids: BTreeSet<String> = patch
+        .interaction_adjustments_by_rule_id
+        .keys()
+        .cloned()
+        .collect();
+    if supplied_rule_ids != expected_rule_ids {
+        return Err(
+            "scenario patch must provide exactly one adjustment for every interaction rule"
+                .to_owned(),
+        );
+    }
+
+    let mut augmented = input.clone();
+    let scenario_id = patch.scenario.id.clone();
+    augmented.scenarios.push(patch.scenario.clone());
+    augmented
+        .service_baseline_by_scenario
+        .insert(scenario_id.clone(), patch.service_baseline);
+    for project in &mut augmented.projects {
+        let outcome = patch
+            .project_outcomes_by_id
+            .get(&project.id)
+            .ok_or_else(|| format!("missing project outcome for {}", project.id))?;
+        project
+            .outcomes
+            .insert(scenario_id.clone(), outcome.clone());
+    }
+    for rule in &mut augmented.interaction_rules {
+        let adjustment = patch
+            .interaction_adjustments_by_rule_id
+            .get(&rule.id)
+            .ok_or_else(|| format!("missing interaction adjustment for {}", rule.id))?;
+        rule.objective_adjustment_by_scenario
+            .insert(scenario_id.clone(), adjustment.clone());
+    }
+
+    validate_input(&augmented)?;
+    Ok(augmented)
+}
+
+/// Add a withheld scenario and exactly compare its feasible set and frontier.
+/// Adding scenario-wise hard floors may remove feasible portfolios but cannot add them.
+pub fn evaluate_scenario_addition(
+    input: &Input,
+    patch: &ScenarioPatch,
+) -> Result<ScenarioAdditionReport, String> {
+    let original = evaluate(input)?;
+    let augmented_input = add_scenario(input, patch)?;
+    let augmented = evaluate(&augmented_input)?;
+
+    let mut original_scenario_ids: Vec<String> = input
+        .scenarios
+        .iter()
+        .map(|scenario| scenario.id.clone())
+        .collect();
+    original_scenario_ids.sort();
+    let mut augmented_scenario_ids: Vec<String> = augmented_input
+        .scenarios
+        .iter()
+        .map(|scenario| scenario.id.clone())
+        .collect();
+    augmented_scenario_ids.sort();
+
+    let augmented_feasible_ids: BTreeSet<String> = augmented
+        .feasible_portfolios
+        .iter()
+        .map(portfolio_key)
+        .collect();
+    let mut original_feasible_removed_by_addition: Vec<Vec<String>> = original
+        .feasible_portfolios
+        .iter()
+        .filter(|portfolio| !augmented_feasible_ids.contains(&portfolio_key(portfolio)))
+        .map(|portfolio| portfolio.project_ids.clone())
+        .collect();
+    original_feasible_removed_by_addition.sort();
+
+    let original_frontier_project_ids: Vec<Vec<String>> = original
+        .pareto_frontier
+        .iter()
+        .map(|portfolio| portfolio.project_ids.clone())
+        .collect();
+    let augmented_frontier_project_ids: Vec<Vec<String>> = augmented
+        .pareto_frontier
+        .iter()
+        .map(|portfolio| portfolio.project_ids.clone())
+        .collect();
+    let original_frontier_ids: BTreeSet<String> =
+        original.pareto_frontier.iter().map(portfolio_key).collect();
+    let augmented_frontier_ids: BTreeSet<String> = augmented
+        .pareto_frontier
+        .iter()
+        .map(portfolio_key)
+        .collect();
+    let frontier_id_intersection_count = original_frontier_ids
+        .intersection(&augmented_frontier_ids)
+        .count();
+    let frontier_id_union_count = original_frontier_ids.union(&augmented_frontier_ids).count();
+
+    if augmented.feasible_portfolios.len() > original.feasible_portfolios.len() {
+        return Err("adding a scenario unexpectedly increased feasible portfolio count".to_owned());
+    }
+
+    Ok(ScenarioAdditionReport {
+        added_scenario_id: patch.scenario.id.clone(),
+        original_scenario_ids,
+        augmented_scenario_ids,
+        candidate_subset_count: augmented.candidate_subset_count,
+        original_feasible_portfolio_count: original.feasible_portfolios.len(),
+        augmented_feasible_portfolio_count: augmented.feasible_portfolios.len(),
+        original_frontier_project_ids,
+        augmented_frontier_project_ids,
+        original_feasible_removed_by_addition,
+        frontier_id_intersection_count,
+        frontier_id_union_count,
+    })
+}
+
 pub fn check_expected(evaluation: &Evaluation, expected_raw: &str) -> Result<(), String> {
     let expected: serde_json::Value =
         serde_json::from_str(expected_raw).map_err(|error| error.to_string())?;
@@ -973,6 +1415,12 @@ mod tests {
         include_str!("../../../docs/research/fixtures/sa-economic-portfolio-v0.2-24-project.json");
     const V24_SEARCH_EXPECTED: &str = include_str!(
         "../../../docs/research/fixtures/sa-economic-portfolio-v0.2-24-project.search-expected.json"
+    );
+    const WITHHELD_SCENARIO: &str = include_str!(
+        "../../../docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-withheld-compound-stress.json"
+    );
+    const NO_EFFECT_SCENARIO: &str = include_str!(
+        "../../../docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-no-effect-control.json"
     );
 
     fn fixture() -> Input {
@@ -1631,6 +2079,213 @@ mod tests {
                 .iter()
                 .any(|project_id| dominated_project_ids.contains(project_id))
         }));
+    }
+
+    #[test]
+    fn scenario_omission_rescores_frontier_on_the_full_reference_universe() {
+        let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture should parse");
+        let omitted_id = input.scenarios[0].id.clone();
+        let report = evaluate_scenario_omission(&input, &omitted_id)
+            .expect("valid scenario omission should be evaluable");
+
+        assert_eq!(report.omitted_scenario_id, omitted_id);
+        assert_eq!(report.original_scenario_ids.len(), input.scenarios.len());
+        assert_eq!(report.reduced_scenario_ids.len() + 1, input.scenarios.len());
+        assert_eq!(
+            report.candidate_subset_count,
+            input.enumeration.candidate_subset_count
+        );
+        assert_eq!(
+            report.reference_frontier_project_ids.len(),
+            evaluate(&input).unwrap().pareto_frontier.len()
+        );
+        assert!(report.frontier_id_intersection_count <= report.frontier_id_union_count);
+        assert_eq!(
+            report.full_reference_infeasible_frontier_count,
+            report
+                .reduced_frontier
+                .iter()
+                .filter(|portfolio| !portfolio.full_reference_feasible)
+                .count()
+        );
+
+        for portfolio in &report.reduced_frontier {
+            if !portfolio.full_reference_feasible {
+                assert!(portfolio.reference_outcomes_by_scenario.is_none());
+                assert!(portfolio.regret_by_scenario.is_none());
+                assert!(portfolio.worst_case_regret.is_none());
+                continue;
+            }
+
+            let outcomes = portfolio
+                .reference_outcomes_by_scenario
+                .as_ref()
+                .expect("feasible portfolio has full reference outcomes");
+            let regrets = portfolio
+                .regret_by_scenario
+                .as_ref()
+                .expect("feasible portfolio has objective-wise regrets");
+            let worst = portfolio
+                .worst_case_regret
+                .as_ref()
+                .expect("feasible portfolio has worst-case regret");
+            assert_eq!(outcomes.len(), input.scenarios.len());
+            assert_eq!(regrets.len(), input.scenarios.len());
+            for regret in regrets.values() {
+                assert!(regret.economic_value_u >= 0);
+                assert!(regret.essential_service_points >= 0);
+                assert!(regret.paid_work_opportunity_points >= 0);
+                assert!(regret.ecological_quality_points >= 0);
+                assert!(worst.economic_value_u >= regret.economic_value_u);
+                assert!(worst.essential_service_points >= regret.essential_service_points);
+                assert!(worst.paid_work_opportunity_points >= regret.paid_work_opportunity_points);
+                assert!(worst.ecological_quality_points >= regret.ecological_quality_points);
+            }
+        }
+    }
+
+    #[test]
+    fn scenario_omission_is_deterministic_and_fails_closed() {
+        let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture should parse");
+        let omitted_id = input.scenarios[0].id.clone();
+        let first = evaluate_scenario_omission(&input, &omitted_id)
+            .expect("valid scenario omission should be evaluable");
+        let second = evaluate_scenario_omission(&input, &omitted_id)
+            .expect("repeated scenario omission should be evaluable");
+        assert_eq!(first, second);
+
+        assert!(omit_scenario(&input, "absent-scenario").is_err());
+        assert!(evaluate_scenario_omission(&input, "absent-scenario").is_err());
+
+        let one_scenario =
+            omit_scenario(&input, &omitted_id).expect("one scenario can be removed from two");
+        let remaining_id = one_scenario.scenarios[0].id.clone();
+        assert!(omit_scenario(&one_scenario, &remaining_id).is_err());
+
+        assert!(omit_scenario(&fixture(), "nominal").is_err());
+    }
+
+    #[test]
+    fn scenario_omission_is_invariant_to_scenario_row_order() {
+        let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture should parse");
+        let omitted_id = input.scenarios[0].id.clone();
+        let original = evaluate_scenario_omission(&input, &omitted_id)
+            .expect("valid scenario omission should be evaluable");
+        let mut permuted = input.clone();
+        permuted.scenarios.reverse();
+        let reordered = evaluate_scenario_omission(&permuted, &omitted_id)
+            .expect("permuted scenario omission should be evaluable");
+        assert_eq!(original, reordered);
+    }
+
+    #[test]
+    fn scenario_addition_is_fail_closed_and_preserves_input() {
+        let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture parses");
+        let mut patch: ScenarioPatch =
+            serde_json::from_str(WITHHELD_SCENARIO).expect("withheld scenario patch parses");
+        let original = serde_json::to_string(&input).expect("input should serialize");
+        let augmented = add_scenario(&input, &patch).expect("valid scenario is addable");
+        assert_eq!(
+            serde_json::to_string(&input).expect("input should still serialize"),
+            original
+        );
+        assert_eq!(augmented.scenarios.len(), input.scenarios.len() + 1);
+        assert_eq!(augmented.scenarios.last().unwrap().id, patch.scenario.id);
+
+        patch.scenario.id = "normal_reference".to_owned();
+        assert!(add_scenario(&input, &patch).is_err());
+        patch.scenario.id = "compound_heat_drought_grid_service_stress".to_owned();
+        patch.project_outcomes_by_id.remove("P00");
+        assert!(add_scenario(&input, &patch).is_err());
+    }
+
+    #[test]
+    fn scenario_addition_cannot_increase_feasibility_and_reports_lost_portfolios() {
+        let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture parses");
+        let patch: ScenarioPatch =
+            serde_json::from_str(WITHHELD_SCENARIO).expect("withheld scenario patch parses");
+        let original = evaluate(&input).expect("original exact evaluation");
+        let augmented_input = add_scenario(&input, &patch).expect("valid addition");
+        let augmented = evaluate(&augmented_input).expect("augmented exact evaluation");
+        let report =
+            evaluate_scenario_addition(&input, &patch).expect("addition report should evaluate");
+
+        let original_ids: BTreeSet<String> = original
+            .feasible_portfolios
+            .iter()
+            .map(portfolio_key)
+            .collect();
+        let augmented_ids: BTreeSet<String> = augmented
+            .feasible_portfolios
+            .iter()
+            .map(portfolio_key)
+            .collect();
+        assert!(augmented_ids.is_subset(&original_ids));
+        assert_eq!(
+            report.original_feasible_removed_by_addition.len(),
+            original_ids.difference(&augmented_ids).count()
+        );
+        assert_eq!(
+            report.original_feasible_portfolio_count,
+            original.feasible_portfolios.len()
+        );
+        assert_eq!(
+            report.augmented_feasible_portfolio_count,
+            augmented.feasible_portfolios.len()
+        );
+        assert_eq!(
+            report.augmented_frontier_project_ids,
+            augmented
+                .pareto_frontier
+                .iter()
+                .map(|portfolio| portfolio.project_ids.clone())
+                .collect::<Vec<_>>()
+        );
+        assert!(report.frontier_id_intersection_count <= report.frontier_id_union_count);
+    }
+
+    #[test]
+    fn scenario_addition_report_is_deterministic_and_row_order_invariant() {
+        let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture parses");
+        let patch: ScenarioPatch =
+            serde_json::from_str(WITHHELD_SCENARIO).expect("withheld scenario patch parses");
+        let first = evaluate_scenario_addition(&input, &patch).unwrap();
+        assert_eq!(first, evaluate_scenario_addition(&input, &patch).unwrap());
+
+        let mut permuted_input = input.clone();
+        permuted_input.scenarios.reverse();
+        let mut permuted_patch = patch.clone();
+        permuted_patch.project_outcomes_by_id = patch
+            .project_outcomes_by_id
+            .iter()
+            .rev()
+            .map(|(id, outcome)| (id.clone(), outcome.clone()))
+            .collect();
+        assert_eq!(
+            first,
+            evaluate_scenario_addition(&permuted_input, &permuted_patch).unwrap()
+        );
+    }
+
+    #[test]
+    fn no_effect_scenario_addition_preserves_feasible_set_and_frontier() {
+        let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture parses");
+        let patch: ScenarioPatch =
+            serde_json::from_str(NO_EFFECT_SCENARIO).expect("no-effect control patch parses");
+        let report = evaluate_scenario_addition(&input, &patch)
+            .expect("duplicate scenario should be addable");
+
+        assert_eq!(report.original_feasible_portfolio_count, 82);
+        assert_eq!(report.augmented_feasible_portfolio_count, 82);
+        assert!(report.original_feasible_removed_by_addition.is_empty());
+        assert_eq!(
+            report.frontier_id_intersection_count,
+            report.frontier_id_union_count
+        );
+        assert_eq!(
+            report.original_frontier_project_ids,
+            report.augmented_frontier_project_ids
+        );
     }
 
     #[test]
