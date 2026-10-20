@@ -159,8 +159,7 @@ fn run() -> Result<(), String> {
         return Err("topological output length did not match task count".to_owned());
     }
 
-    let compiled =
-        CompiledTaskGraph::compile(graph.clone()).map_err(|error| error.to_string())?;
+    let compiled = CompiledTaskGraph::compile(graph.clone()).map_err(|error| error.to_string())?;
     let operations = [
         "validate",
         "topological_order",

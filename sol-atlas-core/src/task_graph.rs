@@ -313,7 +313,6 @@ impl TaskGraphV1 {
     }
 }
 
-
 /// A validated runtime index for repeated task-frontier queries and transitions.
 ///
 /// The serialized graph remains the interchange format. This compiled form
@@ -413,9 +412,7 @@ impl CompiledTaskGraph {
             .filter(|dependency_index| {
                 self.graph.tasks[**dependency_index].status != TaskStatus::VerificationRecorded
             })
-            .map(|dependency_index| {
-                self.graph.tasks[*dependency_index].task_id.clone()
-            })
+            .map(|dependency_index| self.graph.tasks[*dependency_index].task_id.clone())
             .collect())
     }
 
@@ -423,11 +420,7 @@ impl CompiledTaskGraph {
     /// only its direct dependents have their unresolved count adjusted. This
     /// implementation is valid for v1's monotone status transitions; adding
     /// verification invalidation/rework must update the frontier in both directions.
-    pub fn apply(
-        &mut self,
-        task_id: &str,
-        action: TaskAction,
-    ) -> Result<(), TaskGraphError> {
+    pub fn apply(&mut self, task_id: &str, action: TaskAction) -> Result<(), TaskGraphError> {
         let index = *self
             .id_to_index
             .get(task_id)
@@ -450,9 +443,7 @@ impl CompiledTaskGraph {
                         self.graph.tasks[**dependency_index].status
                             != TaskStatus::VerificationRecorded
                     })
-                    .map(|dependency_index| {
-                        self.graph.tasks[*dependency_index].task_id.clone()
-                    })
+                    .map(|dependency_index| self.graph.tasks[*dependency_index].task_id.clone())
                     .collect();
                 return Err(TaskGraphError::DependencyNotVerified {
                     task_id: task_id_owned,
@@ -512,7 +503,6 @@ impl CompiledTaskGraph {
         Ok(())
     }
 }
-
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum TaskGraphError {
@@ -791,7 +781,12 @@ mod tests {
 
         let check_parity = |reference: &TaskGraphV1, compiled: &super::CompiledTaskGraph| {
             assert_eq!(
-                reference.ready_tasks().unwrap().iter().map(|task| task.task_id.as_str()).collect::<Vec<_>>(),
+                reference
+                    .ready_tasks()
+                    .unwrap()
+                    .iter()
+                    .map(|task| task.task_id.as_str())
+                    .collect::<Vec<_>>(),
                 compiled.ready_task_ids()
             );
             assert_eq!(reference, compiled.graph());
@@ -808,7 +803,10 @@ mod tests {
             ("parts-procurement", TaskAction::RecordVerification),
             ("functional-test", TaskAction::Start),
         ] {
-            assert_eq!(reference.apply(task_id, action), compiled.apply(task_id, action));
+            assert_eq!(
+                reference.apply(task_id, action),
+                compiled.apply(task_id, action)
+            );
             check_parity(&reference, &compiled);
         }
         assert!(compiled.ready_task_ids().is_empty());
@@ -868,8 +866,10 @@ mod tests {
         let second = graph(tasks.into_iter().rev().collect());
         let first_compiled = super::CompiledTaskGraph::compile(first).unwrap();
         let second_compiled = super::CompiledTaskGraph::compile(second).unwrap();
-        assert_eq!(first_compiled.ready_task_ids(), second_compiled.ready_task_ids());
+        assert_eq!(
+            first_compiled.ready_task_ids(),
+            second_compiled.ready_task_ids()
+        );
         assert_eq!(first_compiled.ready_task_ids(), vec!["b", "z"]);
     }
-
 }
