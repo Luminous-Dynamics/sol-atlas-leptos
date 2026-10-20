@@ -47,14 +47,14 @@ Causal-estimation intent therefore requires a matched-comparison or BACI design,
 
 ### Privacy boundary
 
-Public publication is rejected by the validator unless location sensitivity is explicitly public and consent is approved or not required. Restricted/sensitive site references should stay opaque; an aggregate-only plan must declare how aggregation/redaction is to be performed. A withdrawn consent status blocks public and aggregate publication in this v0 contract. This structural rule is not a replacement for Mycelix's authoritative consent/permissions enforcement.
+Public publication is rejected by the validator unless location sensitivity is explicitly public and consent is approved or not required. An approved or withdrawn consent state must carry an opaque authoritative-record reference; the status string alone is not accepted as proof. Restricted/sensitive site references should stay opaque; an aggregate-only plan must declare how aggregation/redaction is to be performed. A withdrawn consent status blocks public and aggregate publication in this v0 contract. This structural rule is not a replacement for Mycelix's authoritative consent/permissions enforcement.
 
 ## Interoperability and repository responsibilities
 
 - **Sol-Atlas:** owns the evaluation-plan schema, links to an exact design snapshot, displays the plan, and maintains spatial/project artifact integrity.
 - **Symtropy:** produces versioned model-result artifacts tied to the same design digest and named model/solver version. Model predictions stay distinct from observations.
 - **Symthaea:** reviews protocol completeness, evidence gaps, uncertainty and inference limits; it must not infer causation just because a plan declares a causal-estimation intent.
-- **Mycelix:** supplies the authoritative consent/authority record and contributor-owned observation/provenance path. This protocol only references opaque record identifiers.
+- **Mycelix:** supplies the authoritative consent/authority record and contributor-owned observation/provenance path. This protocol only references opaque record identifiers. Follow-up mapping is tracked in [Mycelix Observation V2/evidence graph #419](https://github.com/Luminous-Dynamics/mycelix/issues/419).
 
 Use existing open standards rather than creating a parallel sensor network API:
 - OGC SensorThings API Part 1 models observations, observed properties, sensors, procedures, units and times: https://www.ogc.org/standards/sensorthings/
