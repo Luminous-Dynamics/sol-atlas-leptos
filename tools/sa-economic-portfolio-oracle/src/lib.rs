@@ -971,6 +971,11 @@ mod tests {
         include_str!("../../../docs/research/fixtures/sa-economic-portfolio-v0.1.json");
     const EXPECTED: &str =
         include_str!("../../../docs/research/fixtures/sa-economic-portfolio-v0.1.expected.json");
+    const V02_INPUT: &str =
+        include_str!("../../../docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.json");
+    const V02_EXPECTED: &str = include_str!(
+        "../../../docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.expected.json"
+    );
 
     fn fixture() -> Input {
         serde_json::from_str(INPUT).expect("synthetic portfolio fixture should parse")
@@ -1066,6 +1071,94 @@ mod tests {
             }
         }
         strictly_better
+    }
+
+    #[test]
+    fn generalized_v02_fixture_matches_exact_oracle_and_search_frontier() {
+        let input: Input =
+            serde_json::from_str(V02_INPUT).expect("v0.2 synthetic fixture should parse");
+        let exact = evaluate(&input).expect("ten-project exact oracle should evaluate");
+        check_expected(&exact, V02_EXPECTED)
+            .expect("v0.2 fixture should match its independent known-answer manifest");
+        assert_eq!(exact.candidate_subset_count, 1_024);
+        assert_eq!(exact.feasible_portfolios.len(), 82);
+        assert_eq!(exact.pareto_frontier.len(), 8);
+
+        let searched = evaluate_frontier_search(&input)
+            .expect("ten-project frontier search should evaluate");
+        assert_eq!(searched.pareto_frontier, exact.pareto_frontier);
+        assert_eq!(
+            searched.stats.feasible_portfolio_count,
+            exact.feasible_portfolios.len() as u64
+        );
+        assert_eq!(searched.stats.accounted_subset_count(), 1_024);
+        assert!(searched.stats.visited_nodes > 0);
+        assert!(searched.stats.visited_nodes < 2_047);
+        assert!(searched.stats.gate_pruned_subsets > 0);
+        assert!(searched.stats.budget_pruned_subsets > 0);
+    }
+
+    #[test]
+    fn dependency_aware_search_matches_v01_exact_frontier() {
+        let input = fixture();
+        let exact = evaluate(&input).expect("v0.1 exact oracle should evaluate");
+        let searched = evaluate_frontier_search(&input)
+            .expect("v0.1 fixture should be accepted by the v0.2-compatible search");
+        assert_eq!(searched.pareto_frontier, exact.pareto_frontier);
+        assert_eq!(
+            searched.stats.feasible_portfolio_count,
+            exact.feasible_portfolios.len() as u64
+        );
+        assert_eq!(searched.stats.accounted_subset_count(), 256);
+    }
+
+    #[test]
+    fn frontier_search_prunes_a_24_project_hostile_case_without_partial_claims() {
+        let mut input = fixture();
+        input.schema_version = "sa-economic-portfolio-v0.2".to_owned();
+        input.budgets_by_period.push(PeriodBudget {
+            period: "P3".to_owned(),
+            cost_cap_u: 0,
+            crew_cap_u: 0,
+        });
+        let reference = evaluate(&input).expect("eight-project reference should evaluate");
+
+        for index in 0..16 {
+            let project_id = format!("N{index:02}");
+            let outcomes = input
+                .scenarios
+                .iter()
+                .map(|scenario| (scenario.id.clone(), ObjectiveVector::zero()))
+                .collect();
+            input.projects.push(Project {
+                id: project_id,
+                name: "UNKNOWN-gated hostile decoy".to_owned(),
+                period: "P3".to_owned(),
+                stage_order: 1,
+                cost_u: 0,
+                crew_u: 0,
+                requires: Vec::new(),
+                gate: "UNKNOWN".to_owned(),
+                outcomes,
+                evidence_class: "synthetic hostile negative control".to_owned(),
+            });
+        }
+        input.enumeration.candidate_subset_count = 1_u64 << 24;
+
+        let searched = evaluate_frontier_search(&input)
+            .expect("24-project search should prune unknown-gate branches");
+        assert_eq!(searched.stats.candidate_subset_count, 1_u64 << 24);
+        assert_eq!(searched.stats.accounted_subset_count(), 1_u64 << 24);
+        assert!(searched.stats.gate_pruned_subsets > 0);
+        assert_eq!(
+            searched.pareto_frontier,
+            reference.pareto_frontier,
+            "unknown-gate decoys must never alter the frontier"
+        );
+        assert!(searched.pareto_frontier.iter().all(|portfolio| {
+            portfolio.project_ids.iter().all(|id| !id.starts_with('N'))
+        }));
+        assert!(searched.stats.visited_nodes < 1_000_000);
     }
 
     #[test]
