@@ -591,11 +591,10 @@ impl IndexedDbJournal {
             let request_for_callback = request.clone();
             let shared = shared.clone();
             let output = output.clone();
-            let operations = operations.clone();
-            let idempotency_keys = idempotency_keys.clone();
             let staged_imports = staged_imports.clone();
             let staged_idempotency_keys = staged_idempotency_keys.clone();
             let transaction = transaction.clone();
+            let transaction_for_registration_error = transaction.clone();
             let callback = Closure::once_into_js(move |_event: JsValue| {
                 let value = match Reflect::get(&request_for_callback, &JsValue::from_str("result"))
                 {
@@ -624,8 +623,6 @@ impl IndexedDbJournal {
                     finish_bundle_stage_reads(
                         &shared,
                         &output,
-                        &operations,
-                        &idempotency_keys,
                         &staged_imports,
                         &staged_idempotency_keys,
                         &transaction,
@@ -633,7 +630,7 @@ impl IndexedDbJournal {
                 }
             });
             if let Err(error) = Reflect::set(&request, &JsValue::from_str("onsuccess"), &callback) {
-                let _ = call_method(&transaction, "abort", &[]);
+                let _ = call_method(&transaction_for_registration_error, "abort", &[]);
                 return Err(js_error(error));
             }
         }
@@ -1642,8 +1639,6 @@ fn same_immutable_operation(left: &StoredOperationV1, right: &StoredOperationV1)
 fn finish_bundle_stage_reads(
     shared: &Rc<RefCell<BundleStageReadState>>,
     output: &Rc<RefCell<Option<Result<BundleStageReport, IndexedDbJournalError>>>>,
-    operations: &JsValue,
-    idempotency_keys: &JsValue,
     staged_imports: &JsValue,
     staged_idempotency_keys: &JsValue,
     transaction: &JsValue,
