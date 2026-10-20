@@ -710,7 +710,7 @@ fn is_sha256_hex(value: &str) -> bool {
 }
 
 /// Strict UTC seconds form: YYYY-MM-DDTHH:MM:SSZ. Adapters normalize offsets/fractions.
-pub pub(crate) fn is_utc_timestamp(value: &str) -> bool {
+pub(crate) fn is_utc_timestamp(value: &str) -> bool {
     let bytes = value.as_bytes();
     if bytes.len() != 20
         || bytes[4] != b'-'
