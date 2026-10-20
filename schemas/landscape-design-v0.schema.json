@@ -83,7 +83,9 @@
         "properties": {
           "id": {
             "type": "string",
-            "pattern": "^feature-[0-9]{4,}$"
+            "pattern": "^feature-[0-9]{4,}$",
+            "maxLength": 18,
+            "description": "Stable feature identity. The decimal suffix must fit u32 and be below 4294967295; the Rust validator enforces this numeric bound."
           },
           "kind": {
             "enum": [

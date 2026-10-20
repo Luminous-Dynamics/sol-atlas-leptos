@@ -295,7 +295,11 @@ fn valid_feature_id(id: &str) -> bool {
     let Some(digits) = id.strip_prefix("feature-") else {
         return false;
     };
-    digits.len() >= 4 && digits.bytes().all(|byte| byte.is_ascii_digit())
+    digits.len() >= 4
+        && digits.bytes().all(|byte| byte.is_ascii_digit())
+        && digits
+            .parse::<u32>()
+            .is_ok_and(|value| value < u32::MAX)
 }
 
 fn validate_integer_range(
@@ -551,9 +555,11 @@ mod tests {
 
     #[test]
     fn rejects_invalid_feature_ids() {
-        let mut snapshot = fixture();
-        snapshot["features"][0]["id"] = json!("plant-0001");
-        let errors = validate_snapshot(&snapshot).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("feature-NNNN")));
+        for id in ["plant-0001", "feature-999999999999", "feature-4294967295"] {
+            let mut snapshot = fixture();
+            snapshot["features"][0]["id"] = json!(id);
+            let errors = validate_snapshot(&snapshot).unwrap_err();
+            assert!(errors.iter().any(|error| error.contains("feature-NNNN")));
+        }
     }
 }

@@ -46,6 +46,17 @@ impl FeatureKind {
             Self::BuiltElement => "built-element",
         }
     }
+
+    fn from_key(value: &str) -> Option<Self> {
+        match value {
+            "tree" => Some(Self::Tree),
+            "planting-bed" => Some(Self::PlantingBed),
+            "water" => Some(Self::Water),
+            "path" => Some(Self::Path),
+            "built-element" => Some(Self::BuiltElement),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -80,6 +91,16 @@ impl LandscapeScale {
             Self::District => "district",
             Self::Watershed => "watershed",
             Self::Bioregion => "bioregion",
+        }
+    }
+
+    fn from_key(value: &str) -> Option<Self> {
+        match value {
+            "site-parcel" => Some(Self::Site),
+            "district" => Some(Self::District),
+            "watershed" => Some(Self::Watershed),
+            "bioregion" => Some(Self::Bioregion),
+            _ => None,
         }
     }
 }
@@ -200,6 +221,82 @@ fn undo_last_edit(features: &mut Vec<DesignFeature>, command: EditCommand) -> u3
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct ImportedSnapshot {
+    project_name: String,
+    scale: LandscapeScale,
+    features: Vec<DesignFeature>,
+    next_feature_id: u32,
+}
+
+/// Parse only user-authored native v0 projects. Synthetic benchmark snapshots
+/// are valid benchmark inputs but must not silently become design-intent data.
+fn parse_import_snapshot(value: &Value) -> Result<ImportedSnapshot, String> {
+    validate_snapshot(value).map_err(|errors| format!("Invalid snapshot: {}", errors.join("; ")))?;
+
+    if value["geometry_status"].as_str() != Some(GEOMETRY_STATUS) {
+        return Err(
+            "Synthetic benchmark snapshots cannot be imported as user-authored projects".to_string(),
+        );
+    }
+
+    let project_name = value["project_name"]
+        .as_str()
+        .ok_or_else(|| "Project name is missing".to_string())
+        .map(normalized_project_name)?;
+    let scale = LandscapeScale::from_key(
+        value["scope"]
+            .as_str()
+            .ok_or_else(|| "Project scope is missing".to_string())?,
+    )
+    .ok_or_else(|| "Project scope is unsupported".to_string())?;
+    let values = value["features"]
+        .as_array()
+        .ok_or_else(|| "Project features must be an array".to_string())?;
+
+    let mut features = Vec::with_capacity(values.len());
+    for (index, feature) in values.iter().enumerate() {
+        let id_text = feature["id"]
+            .as_str()
+            .ok_or_else(|| format!("Feature {index} has no ID"))?;
+        let id = id_text
+            .strip_prefix("feature-")
+            .and_then(|digits| digits.parse::<u32>().ok())
+            .filter(|id| *id < u32::MAX)
+            .ok_or_else(|| format!("Feature {index} ID is outside the v0 editor identity range"))?;
+        let kind_key = feature["kind"]
+            .as_str()
+            .ok_or_else(|| format!("Feature {index} has no kind"))?;
+        let kind = FeatureKind::from_key(kind_key)
+            .ok_or_else(|| format!("Feature {index} has an unsupported kind"))?;
+        let x_du = feature["x_du"]
+            .as_u64()
+            .and_then(|number| u16::try_from(number).ok())
+            .ok_or_else(|| format!("Feature {index} has an invalid x coordinate"))?;
+        let y_du = feature["y_du"]
+            .as_u64()
+            .and_then(|number| u16::try_from(number).ok())
+            .ok_or_else(|| format!("Feature {index} has an invalid y coordinate"))?;
+        features.push(DesignFeature { id, x_du, y_du, kind });
+    }
+
+    let next_feature_id = features
+        .iter()
+        .map(|feature| feature.id)
+        .max()
+        .unwrap_or(0)
+        .checked_add(1)
+        .filter(|id| *id < u32::MAX)
+        .ok_or_else(|| "No safe feature ID remains for a subsequent edit".to_string())?;
+
+    Ok(ImportedSnapshot {
+        project_name,
+        scale,
+        features,
+        next_feature_id,
+    })
+}
+
 fn normalized_project_name(value: &str) -> String {
     let trimmed = value.trim();
     if trimmed.is_empty() {
@@ -309,6 +406,10 @@ pub fn LandscapeDesigner() -> impl IntoView {
                     .clamp(0.0, 650.0)
                     .round() as u16;
                 let next_id = next_feature_id.get_untracked();
+                if next_id == u32::MAX {
+                    set_download_status.set("No safe feature IDs remain; export this project and start a new v0 project.".to_string());
+                    return;
+                }
                 set_next_feature_id.update(|id| *id = id.saturating_add(1));
                 let feature = DesignFeature {
                     id: next_id,
@@ -324,6 +425,69 @@ pub fn LandscapeDesigner() -> impl IntoView {
                 set_download_status.set(String::new());
             }
         }
+    };
+
+    let open_import = move |_| {
+        let input = web_sys::window()
+            .and_then(|window| window.document())
+            .and_then(|document| document.get_element_by_id("landscape-import-file"))
+            .and_then(|element| element.dyn_into::<web_sys::HtmlInputElement>().ok());
+        match input {
+            Some(input) => input.click(),
+            None => set_download_status.set("Could not open the local file picker.".to_string()),
+        }
+    };
+
+    let import_project = move |event: web_sys::Event| {
+        let input = leptos::prelude::event_target::<web_sys::HtmlInputElement>(&event);
+        let Some(file) = input.files().and_then(|files| files.get(0)) else {
+            return;
+        };
+        const MAX_IMPORT_BYTES: f64 = 64.0 * 1024.0 * 1024.0;
+        if file.size() > MAX_IMPORT_BYTES {
+            input.set_value("");
+            set_download_status.set("Import blocked: file exceeds the 64 MiB v0 limit.".to_string());
+            return;
+        }
+
+        let file_name = file.name();
+        let promise = file.text();
+        input.set_value("");
+        set_download_status.set(format!("Reading and validating {file_name}…"));
+
+        wasm_bindgen_futures::spawn_local(async move {
+            let parsed = match wasm_bindgen_futures::JsFuture::from(promise).await {
+                Ok(value) => value
+                    .as_string()
+                    .ok_or_else(|| "Browser returned non-text file content".to_string())
+                    .and_then(|text| {
+                        serde_json::from_str::<Value>(&text)
+                            .map_err(|error| format!("Invalid JSON: {error}"))
+                    })
+                    .and_then(|value| parse_import_snapshot(&value)),
+                Err(error) => Err(format!("Could not read local file: {error:?}")),
+            };
+
+            match parsed {
+                Ok(imported) => {
+                    let feature_count = imported.features.len();
+                    set_features.set(imported.features);
+                    set_project_name.set(imported.project_name);
+                    set_active_scale.set(imported.scale);
+                    set_next_feature_id.set(imported.next_feature_id);
+                    set_selected_feature_id.set(None);
+                    set_edit_history.set(Vec::new());
+                    set_redo_history.set(Vec::new());
+                    set_export_text.set(String::new());
+                    set_download_status.set(format!(
+                        "Imported and validated {feature_count} schematic elements. No geospatial or physical validation is implied."
+                    ));
+                }
+                Err(error) => {
+                    set_download_status.set(format!("Import blocked; current project preserved: {error}"));
+                }
+            }
+        });
     };
 
     let export_project = move |_| {
@@ -491,9 +655,18 @@ pub fn LandscapeDesigner() -> impl IntoView {
                     <span class="landscape-draft-mark"><span></span>" SCHEMATIC DRAFT"</span>
                     <button class="landscape-button quiet" type="button" disabled=move || edit_history.get().is_empty() on:click=undo>"Undo"</button>
                     <button class="landscape-button quiet" type="button" disabled=move || redo_history.get().is_empty() on:click=redo>"Redo"</button>
+                    <button class="landscape-button quiet" type="button" on:click=open_import>"Import JSON"</button>
                     <button class="landscape-button primary" type="button" on:click=export_project>"Export snapshot"</button>
                 </div>
             </header>
+            <input
+                id="landscape-import-file"
+                type="file"
+                accept=".json,application/json"
+                style="display:none"
+                aria-label="Import a saved landscape project JSON"
+                on:change=import_project
+            />
 
             <div class="landscape-layout">
                 <aside class="landscape-sidebar" aria-label="Design tools and project scope">
@@ -566,6 +739,10 @@ pub fn LandscapeDesigner() -> impl IntoView {
                             if event.key() == "Enter" || event.key() == " " {
                                 event.prevent_default();
                                 let next_id = next_feature_id.get_untracked();
+                                if next_id == u32::MAX {
+                                    set_download_status.set("No safe feature IDs remain; export this project and start a new v0 project.".to_string());
+                                    return;
+                                }
                                 set_next_feature_id.update(|id| *id = id.saturating_add(1));
                                 let feature = DesignFeature {
                                     id: next_id,
@@ -756,6 +933,40 @@ pub fn LandscapeDesigner() -> impl IntoView {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn native_import_restores_project_metadata_and_stable_feature_ids() {
+        let value: Value = serde_json::from_str(include_str!(
+            "../../fixtures/landscape/seed-landscape-v0.json"
+        ))
+        .unwrap();
+        let imported = parse_import_snapshot(&value).unwrap();
+
+        assert_eq!(imported.project_name, "Starter landscape (schematic)");
+        assert_eq!(imported.scale, LandscapeScale::Site);
+        assert_eq!(imported.features, starter_features());
+        assert_eq!(imported.next_feature_id, 8);
+    }
+
+    #[test]
+    fn native_import_rejects_synthetic_benchmark_provenance() {
+        let value = crate::landscape::synthetic_benchmark_snapshot(3, 0x4c41_4e44).unwrap();
+        let error = parse_import_snapshot(&value).unwrap_err();
+
+        assert!(error.contains("Synthetic benchmark snapshots"));
+    }
+
+    #[test]
+    fn native_import_rejects_ids_outside_editor_identity_range() {
+        let mut value: Value = serde_json::from_str(include_str!(
+            "../../fixtures/landscape/seed-landscape-v0.json"
+        ))
+        .unwrap();
+        value["features"][0]["id"] = json!("feature-999999999999");
+
+        let error = parse_import_snapshot(&value).unwrap_err();
+        assert!(error.contains("Invalid snapshot"));
+    }
 
     #[test]
     fn blank_project_names_fall_back_to_a_valid_default() {

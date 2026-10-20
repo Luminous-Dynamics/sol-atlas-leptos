@@ -29,7 +29,8 @@ Route: **/design/landscape**.
 - Layer controls: measurement grid and illustrative contours.
 - Project metadata: editable project name in the UI.
 - Export: visible, downloadable, parseable native JSON draft snapshot with schema version, scope, stable feature IDs, local drawing-unit coordinates, source/status tags, and an explicit georeferenced=false declaration.
-- Local-first: this slice does not upload or remotely save the design.
+- Local-first: import reads a locally selected native JSON file; export downloads a native snapshot. Neither operation uploads project data.
+- Import is limited to the authored schematic v0 contract, validates the entire document before mutating editor state, rejects synthetic benchmark scenes and preserves the current project on any error. Files over 64 MiB are rejected.
 
 ### Symbol geometry contract
 
@@ -179,6 +180,7 @@ Targets become product gates only after the reference hardware and benchmark har
 - /design/landscape renders on the existing Rust/Leptos stack.
 - All five tools and four scale contexts can be selected with accessible, visible state.
 - Selecting a symbol must not trigger placement; deleting one selected symbol removes only its ID and preserves unselected features.
+- Importing the canonical authored fixture restores its scope, project name, IDs, feature kinds and anchors; malformed, oversized, unsupported, synthetic, or out-of-range-ID snapshots leave the current project unchanged.
 - Undo/redo must round-trip both add and delete commands, and reject an identity conflict without mutating the feature list.
 - One valid canvas click adds one feature; undo removes the latest; reset restores the exact starter fixtures.
 - Grid/context visibility toggles work independently of editing.
