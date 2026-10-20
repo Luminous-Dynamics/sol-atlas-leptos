@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/demand-response-trace-v1.schema.json",
+  "title": "Demand Response Metric Trace Input v1",
+  "description": "Aligned RSR tracking and/or EDR curtailment observations. Metrics are arithmetic only and do not establish metering integrity, causal counterfactual validity, or physical grid service qualification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "fixture_id",
+    "synthetic",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "fixture_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "synthetic": {
+      "type": "boolean"
+    },
+    "claim_ceiling": {
+      "const": "metric_accounting_only"
+    },
+    "rsr": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/rsr"
+        }
+      ]
+    },
+    "edr": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/edr"
+        }
+      ]
+    }
+  },
+  "anyOf": [
+    {
+      "required": [
+        "rsr"
+      ]
+    },
+    {
+      "required": [
+        "edr"
+      ]
+    }
+  ],
+  "$defs": {
+    "intervalIds": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "powerSeries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "minimum": 0
+      }
+    },
+    "rsr": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "interval_ids",
+        "target_power_kw",
+        "measured_power_kw",
+        "reserve_capacity_kw"
+      ],
+      "properties": {
+        "interval_ids": {
+          "$ref": "#/$defs/intervalIds"
+        },
+        "target_power_kw": {
+          "$ref": "#/$defs/powerSeries"
+        },
+        "measured_power_kw": {
+          "$ref": "#/$defs/powerSeries"
+        },
+        "reserve_capacity_kw": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "edr": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "interval_ids",
+        "baseline_power_kw",
+        "event_power_kw",
+        "interval_duration_hours"
+      ],
+      "properties": {
+        "interval_ids": {
+          "$ref": "#/$defs/intervalIds"
+        },
+        "baseline_power_kw": {
+          "$ref": "#/$defs/powerSeries"
+        },
+        "event_power_kw": {
+          "$ref": "#/$defs/powerSeries"
+        },
+        "interval_duration_hours": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        }
+      }
+    }
+  }
+}
