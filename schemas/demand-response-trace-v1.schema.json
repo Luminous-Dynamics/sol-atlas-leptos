@@ -206,7 +206,7 @@
         "denominator_convention",
         "normalization_note",
         "source_artifact_sha256",
-        "source_config_manifest_sha256"
+        "source_run_manifest_sha256"
       ],
       "properties": {
         "source_name": {
@@ -251,7 +251,7 @@
           ],
           "pattern": "^[a-f0-9]{64}$"
         },
-        "source_config_manifest_sha256": {
+        "source_run_manifest_sha256": {
           "type": [
             "string",
             "null"
@@ -289,7 +289,7 @@
                 "type": "string",
                 "pattern": "^[a-f0-9]{64}$"
               },
-              "source_config_manifest_sha256": {
+              "source_run_manifest_sha256": {
                 "type": "string",
                 "pattern": "^[a-f0-9]{64}$"
               }
