@@ -192,6 +192,14 @@ def main() -> int:
     )
 
     mutation = copy.deepcopy(fixture)
+    mutation["rsr_reference"]["metadata"]["source_field"] = "   "
+    expect_invalid(
+        "blank source-normalization metadata is rejected",
+        input_validator,
+        mutation,
+    )
+
+    mutation = copy.deepcopy(fixture)
     del mutation["rsr"]
     del mutation["rsr_reference"]
     del mutation["edr"]
@@ -207,10 +215,18 @@ def main() -> int:
     expect_invalid("report rejects negative rebound energy", report_validator, mutation)
 
     mutation = copy.deepcopy(report)
+    mutation["metrics"]["rsr_reference_metadata"] = None
+    expect_invalid(
+        "source-normalized metrics require echoed source metadata",
+        report_validator,
+        mutation,
+    )
+
+    mutation = copy.deepcopy(report)
     mutation["metrics"]["additional_score"] = 1000000
     expect_invalid("report rejects unknown metric fields", report_validator, mutation)
 
-    print("PASS 13 demand-response schema assertions completed; no external data used")
+    print("PASS 15 demand-response schema assertions completed; no external data used")
     return 0
 
 
