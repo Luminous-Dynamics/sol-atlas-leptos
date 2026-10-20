@@ -20,7 +20,7 @@ use std::{
 use serde::Serialize;
 use sol_atlas_core::{
     offline_journal::{
-        OFFLINE_JOURNAL_SCHEMA_VERSION, JournalEntry, OperationEnvelope,
+        JournalEntry, OFFLINE_JOURNAL_SCHEMA_VERSION, OperationEnvelope,
         RequiredNullableOperationId,
     },
     offline_journal_bundle::{OfflineJournalBundleRecordV1, OfflineJournalBundleV1},
@@ -180,8 +180,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         correctness.roundtrip_equal &= parsed == bundle;
         correctness.record_count_preserved &= parsed.records.len() == options.records;
         correctness.owner_scope_preserved &= parsed.owner_scope == owner_scope;
-        correctness.integrity_digest_stable &=
-            parsed.integrity_sha256 == bundle.integrity_sha256;
+        correctness.integrity_digest_stable &= parsed.integrity_sha256 == bundle.integrity_sha256;
         if let Some(reference_json) = reference_bundle_json.as_ref() {
             correctness.canonical_bytes_stable &= reference_json == &json;
         } else {
