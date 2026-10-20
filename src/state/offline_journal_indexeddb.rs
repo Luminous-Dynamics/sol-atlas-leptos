@@ -22,6 +22,9 @@ use std::{
 };
 
 use js_sys::{Array, Date, Function, Object, Promise, Reflect};
+use sol_atlas_core::offline_journal_bundle::{
+    OfflineJournalBundleError, OfflineJournalBundleRecordV1, OfflineJournalBundleV1,
+};
 use sol_atlas_core::offline_journal::{
     JournalEntry, JournalEntrySnapshotV1, JournalError, JournalState, OperationEnvelope,
     ReconcileOutcome, ServiceReply,
@@ -372,6 +375,77 @@ impl IndexedDbJournal {
     /// Atomically writes a new prepared snapshot and enforces operation-ID and
     /// idempotency-key uniqueness. Identical re-insertion is idempotent and
     /// returns the entry as currently stored; changed identity fails closed.
+    /// Exports a consistent, validated read snapshot for one owner scope.
+    ///
+    /// Both operation keys and values are read through the same readonly
+    /// transaction. Records for other owners are omitted, but every stored row
+    /// is parsed and validated before scope filtering so corrupt legacy data
+    /// fails closed instead of silently disappearing from an export.
+    ///
+    /// This method only creates an integrity-checked bundle; it does not
+    /// encrypt the returned JSON or authenticate its source.
+    pub async fn export_bundle(
+        &self,
+        owner_scope: &str,
+    ) -> Result<OfflineJournalBundleV1, IndexedDbJournalError> {
+        if owner_scope.trim().is_empty() {
+            return Err(IndexedDbJournalError(
+                "owner scope must not be empty for journal export".into(),
+            ));
+        }
+        let (transaction, _policy) = self.transaction(&[OPERATIONS], "readonly")?;
+        let transaction_done = transaction_promise(transaction.clone());
+        let operations = object_store(&transaction, OPERATIONS)?;
+        let keys_request = call_method(&operations, "getAllKeys", &[]).map_err(js_error)?;
+        let values_request = call_method(&operations, "getAll", &[]).map_err(js_error)?;
+
+        let keys = JsFuture::from(request_promise(keys_request))
+            .await
+            .map_err(js_error)?;
+        let values = JsFuture::from(request_promise(values_request))
+            .await
+            .map_err(js_error)?;
+        JsFuture::from(transaction_done).await.map_err(js_error)?;
+
+        let keys = Array::from(&keys);
+        let values = Array::from(&values);
+        if keys.length() != values.length() {
+            return Err(IndexedDbJournalError(
+                "IndexedDB getAllKeys/getAll result lengths do not match".into(),
+            ));
+        }
+
+        let mut records = Vec::new();
+        for index in 0..keys.length() {
+            let operation_id = keys.get(index).as_string().ok_or_else(|| {
+                IndexedDbJournalError("operation store contains a non-string key".into())
+            })?;
+            let serialized = values.get(index).as_string().ok_or_else(|| {
+                IndexedDbJournalError(
+                    "operation store contains a non-string owner-bound record".into(),
+                )
+            })?;
+            let stored: StoredOperationV1 = serde_json::from_str(&serialized).map_err(|error| {
+                IndexedDbJournalError(format!(
+                    "stored operation {operation_id} is not a valid owner-bound record: {error}"
+                ))
+            })?;
+            stored.validate()?;
+            JournalEntry::from_snapshot_for_operation(&operation_id, stored.snapshot.clone())
+                .map_err(IndexedDbJournalError::from)?;
+
+            if stored.owner_scope == owner_scope {
+                records.push(OfflineJournalBundleRecordV1 {
+                    operation_namespace: stored.operation_namespace,
+                    snapshot: stored.snapshot,
+                });
+            }
+        }
+
+        OfflineJournalBundleV1::create(owner_scope, records)
+            .map_err(|error: OfflineJournalBundleError| IndexedDbJournalError(error.to_string()))
+    }
+
     pub async fn insert_prepared(
         &self,
         owner_scope: &str,
