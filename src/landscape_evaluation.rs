@@ -1009,7 +1009,11 @@ mod tests {
         value["privacy"]["consent_status"] = json!("approved");
         value["privacy"]["consent_record_ref"] = Value::Null;
         let errors = validate_plan(&value).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("requires an authoritative record reference")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("requires an authoritative record reference"))
+        );
     }
 
     #[test]
