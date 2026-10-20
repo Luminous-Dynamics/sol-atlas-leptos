@@ -1,0 +1,361 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/spatial-economic-intertemporal-allocation-v0.1.schema.json",
+  "title": "Spatial-Economic Intertemporal Resource Allocation Request V0.1",
+  "description": "Small bounded exact integer-quanta allocation model. Null quantities are unknown, never zero. Feasibility is conditional on declared coefficients and does not establish hydraulic/electrical physics.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "comparison_pair_id",
+    "design_role",
+    "scenario_id",
+    "failure_bundle_ids",
+    "time_steps",
+    "policy",
+    "services",
+    "resources",
+    "usages",
+    "max_candidate_plans"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "comparison_pair_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "design_role": {
+      "enum": [
+        "baseline",
+        "candidate"
+      ]
+    },
+    "scenario_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "failure_bundle_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "time_steps": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": {
+        "$ref": "#/$defs/timeStep"
+      }
+    },
+    "policy": {
+      "enum": [
+        "equal_coverage_leximin",
+        "fixed_priority",
+        "essential_floor_first"
+      ]
+    },
+    "services": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": {
+        "$ref": "#/$defs/service"
+      }
+    },
+    "resources": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": {
+        "$ref": "#/$defs/resource"
+      }
+    },
+    "usages": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "$ref": "#/$defs/usage"
+      }
+    },
+    "max_candidate_plans": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000
+    }
+  },
+  "$defs": {
+    "lineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "basis",
+        "evidence_ids",
+        "assumption_ids"
+      ],
+      "properties": {
+        "basis": {
+          "enum": [
+            "synthetic",
+            "assumed",
+            "observed",
+            "forecast",
+            "scenario"
+          ]
+        },
+        "evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "assumption_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "series": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit",
+        "values",
+        "lineage"
+      ],
+      "properties": {
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "values": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "lineage": {
+          "$ref": "#/$defs/lineage"
+        }
+      }
+    },
+    "timeStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "start_unix_seconds",
+        "end_unix_seconds_exclusive"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "start_unix_seconds": {
+          "type": "integer"
+        },
+        "end_unix_seconds_exclusive": {
+          "type": "integer"
+        }
+      }
+    },
+    "service": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "community_id",
+        "beneficiary_weight",
+        "priority_rank",
+        "demand",
+        "essential_floor_basis_points"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "community_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "beneficiary_weight": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "priority_rank": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "demand": {
+          "$ref": "#/$defs/series"
+        },
+        "essential_floor_basis_points": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        }
+      }
+    },
+    "resource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "capacity"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "capacity": {
+          "$ref": "#/$defs/series"
+        },
+        "inventory": {
+          "$ref": "#/$defs/inventory"
+        }
+      }
+    },
+    "inventory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "opening_stock_quanta",
+        "maximum_stock_quanta",
+        "minimum_reserve_quanta",
+        "terminal_reserve_quanta",
+        "opening_stock_lineage",
+        "storage_bounds_lineage",
+        "inflow",
+        "losses"
+      ],
+      "properties": {
+        "opening_stock_quanta": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "maximum_stock_quanta": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "minimum_reserve_quanta": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "terminal_reserve_quanta": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "opening_stock_lineage": {
+          "$ref": "#/$defs/lineage"
+        },
+        "storage_bounds_lineage": {
+          "$ref": "#/$defs/lineage"
+        },
+        "inflow": {
+          "$ref": "#/$defs/series"
+        },
+        "losses": {
+          "$ref": "#/$defs/series"
+        }
+      }
+    },
+    "usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "resource_id",
+        "service_id",
+        "resource_unit",
+        "service_unit",
+        "usage_numerator",
+        "usage_denominator",
+        "lineage"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resource_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "service_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resource_unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "service_unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "usage_numerator": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "usage_denominator": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "lineage": {
+          "$ref": "#/$defs/lineage"
+        }
+      }
+    }
+  }
+}

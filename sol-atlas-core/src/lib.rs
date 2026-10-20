@@ -25,6 +25,7 @@ pub mod mycelix_flows;
 pub mod picking;
 pub mod service_equity;
 pub mod service_function;
+pub mod service_intertemporal_allocation;
 pub mod service_network;
 pub mod service_network_intervention;
 pub mod service_network_portfolio;

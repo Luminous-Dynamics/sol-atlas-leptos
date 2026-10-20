@@ -1,0 +1,237 @@
+name: Intertemporal Resource Allocation V0.1
+
+on:
+  pull_request:
+    paths:
+      - "sol-atlas-core/**"
+      - "schemas/spatial-economic-intertemporal-*.schema.json"
+      - "schemas/examples/intertemporal-*.json"
+      - "docs/research/INTERTEMPORAL_RESOURCE_ALLOCATION_V0_1.md"
+      - ".github/workflows/intertemporal-resource-allocation-v0-1.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-reference:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Install pinned Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.96.0
+          components: rustfmt, clippy
+      - name: Install independent Draft 2020-12 validator
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install pinned schema-validation dependency
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv "$RUNNER_TEMP/jsonschema-venv"
+          "$RUNNER_TEMP/jsonschema-venv/bin/pip" install --disable-pip-version-check --no-input "jsonschema==4.26.0"
+      - name: Check core formatting
+        run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml -- --check
+      - name: Run the focused intertemporal allocation contract tests
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml service_intertemporal_allocation::tests
+      - name: Deny Clippy correctness and suspicious lints
+        run: cargo clippy --manifest-path sol-atlas-core/Cargo.toml --all-targets -- -D clippy::correctness -D clippy::suspicious
+      - name: Validate request schema and fixture with full Draft 2020-12 implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/jsonschema-venv/bin/python" - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+
+          request_path = Path("schemas/spatial-economic-intertemporal-allocation-v0.1.schema.json")
+          receipt_path = Path("schemas/spatial-economic-intertemporal-assessment-v0.1.schema.json")
+          fixture_path = Path("schemas/examples/intertemporal-tank-two-step.synthetic.json")
+
+          request_schema = json.loads(request_path.read_text())
+          receipt_schema = json.loads(receipt_path.read_text())
+          fixture = json.loads(fixture_path.read_text())
+
+          Draft202012Validator.check_schema(request_schema)
+          Draft202012Validator.check_schema(receipt_schema)
+          Draft202012Validator(request_schema).validate(fixture)
+          print("Draft 2020-12 request/receipt schemas and frozen input fixture: PASS")
+          PY
+      - name: Run exact scenario and independently verify stock balance
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture="schemas/examples/intertemporal-tank-two-step.synthetic.json"
+          manifest="sol-atlas-core/Cargo.toml"
+          bin="intertemporal_resource_allocation"
+          root="$RUNNER_TEMP/intertemporal"
+          mkdir -p "$root"
+          cargo run --quiet --manifest-path "$manifest" --bin "$bin" -- --input "$fixture" > "$root/optimal-1.json"
+          cargo run --quiet --manifest-path "$manifest" --bin "$bin" -- --input "$fixture" > "$root/optimal-2.json"
+          cmp "$root/optimal-1.json" "$root/optimal-2.json"
+          jq -e '
+            .disposition == "optimal"
+            and .search_complete == true
+            and .search_space_size == 64
+            and .candidate_plans_examined == 64
+            and .feasible_plan_count == 37
+            and .input_blockers == []
+            and (.claim_ceiling | type == "string")
+          ' "$root/optimal-1.json" >/dev/null
+          jq -e '
+            ([.service_steps[] | select(.service_id == "essential-a") | [.step_id, .allocated_quanta]] == [["t0",1],["t1",1]])
+            and ([.service_steps[] | select(.service_id == "general-b") | [.step_id, .allocated_quanta]] == [["t0",1],["t1",1]])
+          ' "$root/optimal-1.json" >/dev/null
+          jq -e '
+            all(.resource_steps[];
+              .consumed_quanta <= .capacity_quanta
+              and .residual_capacity_quanta == (.capacity_quanta - .consumed_quanta)
+              and (
+                if .balance_equation_holds == null then
+                  .opening_stock_quanta == null and .ending_stock_quanta == null
+                else
+                  .balance_equation_holds == true
+                  and (.opening_stock_quanta + .inflow_quanta)
+                    == (.loss_quanta + .withdrawal_quanta + .spill_quanta + .ending_stock_quanta)
+                end
+              )
+            )
+          ' "$root/optimal-1.json" >/dev/null
+          jq -e '
+            [.resource_steps[] | select(.resource_id == "tank") | .ending_stock_quanta] == [1,2]
+            and ([.resource_steps[] | select(.resource_id == "tank") | .ending_stock_quanta] | last) >= 2
+          ' "$root/optimal-1.json" >/dev/null
+      - name: Prove unknown and search-cap cases fail closed
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture="schemas/examples/intertemporal-tank-two-step.synthetic.json"
+          manifest="sol-atlas-core/Cargo.toml"
+          bin="intertemporal_resource_allocation"
+          root="$RUNNER_TEMP/intertemporal"
+          jq '.resources[0].inventory.inflow.values[1] = null' "$fixture" > "$root/unknown-inflow.json"
+          cargo run --quiet --manifest-path "$manifest" --bin "$bin" -- --input "$root/unknown-inflow.json" > "$root/unknown.json"
+          jq -e '
+            .disposition == "indeterminate_input"
+            and .search_complete == false
+            and .candidate_plans_examined == 0
+            and .resource_steps == []
+            and all(.service_steps[]; .allocated_quanta == null and .floor_status == "indeterminate")
+            and (.input_blockers | any(. == "resources.tank.inventory.inflow[t1]"))
+          ' "$root/unknown.json" >/dev/null
+
+          jq '.max_candidate_plans = 5' "$fixture" > "$root/search-cap.json"
+          cargo run --quiet --manifest-path "$manifest" --bin "$bin" -- --input "$root/search-cap.json" > "$root/search-cap-result.json"
+          jq -e '
+            .disposition == "search_cap_exceeded"
+            and .search_complete == false
+            and .candidate_plans_examined == 0
+            and .service_steps != []
+            and all(.service_steps[]; .allocated_quanta == null)
+            and .resource_steps == []
+          ' "$root/search-cap-result.json" >/dev/null
+
+          jq '.resources[0].inventory.inflow.values = [0,0]' "$fixture" > "$root/reserve-limited.json"
+          cargo run --quiet --manifest-path "$manifest" --bin "$bin" -- --input "$root/reserve-limited.json" > "$root/reserve-limited-result.json"
+          jq -e '
+            .disposition == "optimal"
+            and ([.service_steps[].allocated_quanta] | add) == 1
+            and ([.resource_steps[] | select(.resource_id == "tank") | .ending_stock_quanta] | last) >= 2
+            and all(.resource_steps[] | select(.resource_id == "tank"); .balance_equation_holds == true)
+          ' "$root/reserve-limited-result.json" >/dev/null
+
+          jq '.resources[0].inventory.losses.values = [4,0]' "$fixture" > "$root/impossible-loss.json"
+          cargo run --quiet --manifest-path "$manifest" --bin "$bin" -- --input "$root/impossible-loss.json" > "$root/impossible-loss-result.json"
+          jq -e '
+            .disposition == "infeasible"
+            and .search_complete == true
+            and .feasible_plan_count == 0
+            and all(.service_steps[]; .allocated_quanta == null)
+            and .resource_steps == []
+          ' "$root/impossible-loss-result.json" >/dev/null
+          echo "INTERTEMPORAL_RESOURCE_ALLOCATION_V0_1_PASS"
+      - name: Validate all generated receipts with Draft 2020-12
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/jsonschema-venv/bin/python" - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+
+          root = Path(Path.cwd())
+          output_root = Path(__import__("os").environ["RUNNER_TEMP"]) / "intertemporal"
+          schema_path = root / "schemas/spatial-economic-intertemporal-assessment-v0.1.schema.json"
+          schema = json.loads(schema_path.read_text())
+          Draft202012Validator.check_schema(schema)
+          validator = Draft202012Validator(schema)
+
+          receipts = [
+              "optimal-1.json",
+              "unknown.json",
+              "search-cap-result.json",
+              "reserve-limited-result.json",
+              "impossible-loss-result.json",
+          ]
+          for name in receipts:
+              value = json.loads((output_root / name).read_text())
+              errors = sorted(validator.iter_errors(value), key=lambda error: list(error.absolute_path))
+              if errors:
+                  rendered = "\n".join(
+                      f"{name}: {list(error.absolute_path)}: {error.message}"
+                      for error in errors
+                  )
+                  raise SystemExit(rendered)
+          print(f"Draft 2020-12 generated receipt validation: PASS ({len(receipts)} receipts)")
+          PY
+      - name: Build content-addressed qualification manifest
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/intertemporal"
+          fixture="schemas/examples/intertemporal-tank-two-step.synthetic.json"
+          request_schema="schemas/spatial-economic-intertemporal-allocation-v0.1.schema.json"
+          receipt_schema="schemas/spatial-economic-intertemporal-assessment-v0.1.schema.json"
+          cp "$fixture" "$root/input.synthetic.json"
+          cp "$request_schema" "$root/request.schema.json"
+          cp "$receipt_schema" "$root/assessment.schema.json"
+          jq -n \
+            --arg source_commit "$(git rev-parse HEAD)" \
+            --arg workflow_run_id "$GITHUB_RUN_ID" \
+            --arg input_sha256 "$(sha256sum "$root/input.synthetic.json" | cut -d ' ' -f 1)" \
+            --arg request_schema_sha256 "$(sha256sum "$root/request.schema.json" | cut -d ' ' -f 1)" \
+            --arg receipt_schema_sha256 "$(sha256sum "$root/assessment.schema.json" | cut -d ' ' -f 1)" \
+            --arg optimal_receipt_sha256 "$(sha256sum "$root/optimal-1.json" | cut -d ' ' -f 1)" \
+            --arg unknown_receipt_sha256 "$(sha256sum "$root/unknown.json" | cut -d ' ' -f 1)" \
+            --arg search_cap_receipt_sha256 "$(sha256sum "$root/search-cap-result.json" | cut -d ' ' -f 1)" \
+            --arg reserve_limited_receipt_sha256 "$(sha256sum "$root/reserve-limited-result.json" | cut -d ' ' -f 1)" \
+            --arg impossible_loss_receipt_sha256 "$(sha256sum "$root/impossible-loss-result.json" | cut -d ' ' -f 1)" \
+            '{
+              schema_version: "sol-atlas.intertemporal-qualification-manifest.v0.1",
+              source_commit: $source_commit,
+              workflow_run_id: $workflow_run_id,
+              input_sha256: $input_sha256,
+              request_schema_sha256: $request_schema_sha256,
+              receipt_schema_sha256: $receipt_schema_sha256,
+              optimal_receipt_sha256: $optimal_receipt_sha256,
+              unknown_receipt_sha256: $unknown_receipt_sha256,
+              search_cap_receipt_sha256: $search_cap_receipt_sha256,
+              reserve_limited_receipt_sha256: $reserve_limited_receipt_sha256,
+              impossible_loss_receipt_sha256: $impossible_loss_receipt_sha256,
+              qualification_scope: "Exact bounded allocation and declared integer-quanta accounting only"
+            }' > "$root/qualification-manifest.json"
+      - name: Upload exact-head inputs, receipts and digests
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: intertemporal-resource-allocation-v0-1-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/intertemporal/
+          if-no-files-found: error
+          retention-days: 30

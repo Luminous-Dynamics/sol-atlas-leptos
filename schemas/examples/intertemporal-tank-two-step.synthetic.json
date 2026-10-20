@@ -1,0 +1,151 @@
+{
+  "schema_version": "0.1.0",
+  "id": "synthetic-two-step-tank-terminal-reserve",
+  "comparison_pair_id": "pair-tank-late-inflow-v1",
+  "design_role": "candidate",
+  "scenario_id": "synthetic-late-inflow-with-terminal-reserve",
+  "failure_bundle_ids": [
+    "feeder-derate-t1"
+  ],
+  "time_steps": [
+    {
+      "id": "t0",
+      "start_unix_seconds": 0,
+      "end_unix_seconds_exclusive": 60
+    },
+    {
+      "id": "t1",
+      "start_unix_seconds": 60,
+      "end_unix_seconds_exclusive": 120
+    }
+  ],
+  "policy": "essential_floor_first",
+  "services": [
+    {
+      "id": "essential-a",
+      "community_id": "community-a",
+      "beneficiary_weight": 10,
+      "priority_rank": 0,
+      "demand": {
+        "unit": "delivery-quanta",
+        "values": [
+          1,
+          1
+        ],
+        "lineage": {
+          "basis": "synthetic",
+          "evidence_ids": [],
+          "assumption_ids": []
+        }
+      },
+      "essential_floor_basis_points": 10000
+    },
+    {
+      "id": "general-b",
+      "community_id": "community-b",
+      "beneficiary_weight": 1,
+      "priority_rank": 1,
+      "demand": {
+        "unit": "delivery-quanta",
+        "values": [
+          3,
+          3
+        ],
+        "lineage": {
+          "basis": "synthetic",
+          "evidence_ids": [],
+          "assumption_ids": []
+        }
+      },
+      "essential_floor_basis_points": 10000
+    }
+  ],
+  "resources": [
+    {
+      "id": "tank",
+      "capacity": {
+        "unit": "water-quanta",
+        "values": [
+          3,
+          3
+        ],
+        "lineage": {
+          "basis": "synthetic",
+          "evidence_ids": [],
+          "assumption_ids": []
+        }
+      },
+      "inventory": {
+        "opening_stock_quanta": 3,
+        "maximum_stock_quanta": 4,
+        "minimum_reserve_quanta": 0,
+        "terminal_reserve_quanta": 2,
+        "opening_stock_lineage": {
+          "basis": "synthetic",
+          "evidence_ids": [],
+          "assumption_ids": []
+        },
+        "storage_bounds_lineage": {
+          "basis": "synthetic",
+          "evidence_ids": [],
+          "assumption_ids": []
+        },
+        "inflow": {
+          "unit": "water-quanta",
+          "values": [
+            0,
+            3
+          ],
+          "lineage": {
+            "basis": "synthetic",
+            "evidence_ids": [],
+            "assumption_ids": []
+          }
+        },
+        "losses": {
+          "unit": "water-quanta",
+          "values": [
+            0,
+            0
+          ],
+          "lineage": {
+            "basis": "synthetic",
+            "evidence_ids": [],
+            "assumption_ids": []
+          }
+        }
+      }
+    }
+  ],
+  "usages": [
+    {
+      "id": "usage-a",
+      "resource_id": "tank",
+      "service_id": "essential-a",
+      "resource_unit": "water-quanta",
+      "service_unit": "delivery-quanta",
+      "usage_numerator": 1,
+      "usage_denominator": 1,
+      "lineage": {
+        "basis": "synthetic",
+        "evidence_ids": [],
+        "assumption_ids": []
+      }
+    },
+    {
+      "id": "usage-b",
+      "resource_id": "tank",
+      "service_id": "general-b",
+      "resource_unit": "water-quanta",
+      "service_unit": "delivery-quanta",
+      "usage_numerator": 1,
+      "usage_denominator": 1,
+      "lineage": {
+        "basis": "synthetic",
+        "evidence_ids": [],
+        "assumption_ids": []
+      }
+    }
+  ],
+  "max_candidate_plans": 100000
+}
