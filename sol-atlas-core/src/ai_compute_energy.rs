@@ -11,6 +11,8 @@
 //! not standardized PUE. Production PUE requires measured facility and IT energy
 //! over a defined measurement period.
 
+use sha2::{Digest, Sha256};
+
 /// A time interval. Missing required resource constraints must remain unknown.
 #[derive(Clone, Debug, PartialEq, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -106,6 +108,50 @@ pub struct Request {
     pub storage: Option<StorageProfile>,
     #[serde(default)]
     pub oracle_expectations: Option<OracleExpectations>,
+}
+
+/// Reproducibility receipt for one invocation of the reference evaluator.
+///
+/// The digest binds the exact input bytes supplied to the CLI. It is an
+/// integrity/identity aid, not evidence that the scenario's claims are true.
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize)]
+pub struct ScenarioReceipt {
+    pub receipt_schema_version: String,
+    pub evaluator_version: String,
+    pub digest_algorithm: String,
+    pub digest_scope: String,
+    pub input_sha256: String,
+    pub input_bytes: usize,
+    pub mode: String,
+    pub scenario_schema_version: String,
+    pub fixture_id: String,
+    pub synthetic: bool,
+    pub claim_ceiling: String,
+    pub verification_boundary: String,
+}
+
+fn sha256_hex(bytes: &[u8]) -> String {
+    format!("{:x}", Sha256::digest(bytes))
+}
+
+/// Bind a run receipt to the exact UTF-8 scenario bytes that were parsed.
+pub fn scenario_receipt(raw_input: &[u8], request: &Request, mode: &str) -> ScenarioReceipt {
+    ScenarioReceipt {
+        receipt_schema_version: "1".to_owned(),
+        evaluator_version: "0.1-reference".to_owned(),
+        digest_algorithm: "SHA-256".to_owned(),
+        digest_scope: "exact_input_bytes_only".to_owned(),
+        input_sha256: sha256_hex(raw_input),
+        input_bytes: raw_input.len(),
+        mode: mode.to_owned(),
+        scenario_schema_version: request.schema_version.clone(),
+        fixture_id: request.fixture_id.clone(),
+        synthetic: request.synthetic,
+        claim_ceiling: request.claim_ceiling.clone(),
+        verification_boundary:
+            "digest binds input identity; it does not validate the truth of scenario claims"
+                .to_owned(),
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize)]
@@ -1062,6 +1108,47 @@ mod tests {
             "../../schemas/examples/ai-compute-energy-flexibility-four-interval.synthetic.json"
         ))
         .expect("committed synthetic compute-energy fixture must deserialize")
+    }
+
+    #[test]
+    fn sha256_helper_matches_standard_known_answer() {
+        assert_eq!(
+            sha256_hex(b"abc"),
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+    }
+
+    #[test]
+    fn scenario_receipt_binds_exact_fixture_bytes_and_declared_claim_ceiling() {
+        let fixture = include_str!(
+            "../../schemas/examples/ai-compute-energy-flexibility-four-interval.synthetic.json"
+        );
+        let request: Request =
+            serde_json::from_str(fixture).expect("committed fixture must deserialize");
+        let receipt = scenario_receipt(fixture.as_bytes(), &request, "pareto");
+
+        assert_eq!(receipt.receipt_schema_version, "1");
+        assert_eq!(receipt.evaluator_version, "0.1-reference");
+        assert_eq!(receipt.digest_algorithm, "SHA-256");
+        assert_eq!(receipt.digest_scope, "exact_input_bytes_only");
+        assert_eq!(receipt.input_bytes, fixture.len());
+        assert_eq!(receipt.input_sha256, sha256_hex(fixture.as_bytes()));
+        assert_eq!(receipt.mode, "pareto");
+        assert_eq!(receipt.scenario_schema_version, "0.1");
+        assert_eq!(receipt.fixture_id, "synthetic-four-interval-flexible-compute");
+        assert!(receipt.synthetic);
+        assert_eq!(receipt.claim_ceiling, request.claim_ceiling);
+        assert!(receipt.verification_boundary.contains("does not validate"));
+
+        // Semantically equivalent JSON with different whitespace must get a
+        // different exact-byte identity, while preserving the scenario identity.
+        let reformatted = format!(" \n{fixture}");
+        let reformatted_request: Request = serde_json::from_str(&reformatted)
+            .expect("whitespace-only JSON change must preserve parsed scenario");
+        let reformatted_receipt =
+            scenario_receipt(reformatted.as_bytes(), &reformatted_request, "pareto");
+        assert_ne!(receipt.input_sha256, reformatted_receipt.input_sha256);
+        assert_eq!(receipt.fixture_id, reformatted_receipt.fixture_id);
     }
 
     #[test]
