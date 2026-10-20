@@ -13,12 +13,14 @@
 //! It does not benchmark durable storage, UI rendering, server authorization,
 //! or competing vendor products.
 
-use sol_atlas_core::task_graph::{TASK_GRAPH_SCHEMA_VERSION, TaskGraphV1, TaskNodeV1, TaskStatus};
+use sol_atlas_core::task_graph::{
+    CompiledTaskGraph, TASK_GRAPH_SCHEMA_VERSION, TaskGraphV1, TaskNodeV1, TaskStatus,
+};
 use std::env;
 use std::hint::black_box;
 use std::time::Instant;
 
-const DEFAULT_SAMPLES: usize = 30;
+const DEFAULT_SAMPLES: usize = 100;
 const DEFAULT_TASKS: usize = 10_000;
 const MAX_SAMPLES: usize = 10_000;
 const MAX_TASKS: usize = 100_000;
@@ -63,28 +65,53 @@ fn build_graph(task_count: usize) -> TaskGraphV1 {
     }
 }
 
-fn measure(graph: &TaskGraphV1, samples: usize, operation: &str) -> Result<Vec<u128>, String> {
-    let mut raw_ns = Vec::with_capacity(samples);
-
-    for _ in 0..samples {
-        let start = Instant::now();
-        match operation {
-            "validate" => graph.validate().map_err(|error| error.to_string())?,
-            "topological_order" => {
-                let result = graph
-                    .topological_order()
-                    .map_err(|error| error.to_string())?;
-                black_box(result);
-            }
-            "ready_tasks" => {
-                let result = graph.ready_tasks().map_err(|error| error.to_string())?;
-                black_box(result.len());
-            }
-            _ => return Err(format!("unknown benchmark operation: {operation}")),
+fn execute_operation(
+    graph: &TaskGraphV1,
+    compiled: &CompiledTaskGraph,
+    operation: &str,
+) -> Result<(), String> {
+    match operation {
+        "validate" => graph.validate().map_err(|error| error.to_string())?,
+        "topological_order" => {
+            let result = graph
+                .topological_order()
+                .map_err(|error| error.to_string())?;
+            black_box(result);
         }
-        raw_ns.push(start.elapsed().as_nanos());
+        "ready_tasks" => {
+            let result = graph.ready_tasks().map_err(|error| error.to_string())?;
+            black_box(result.len());
+        }
+        "compile_index" => {
+            let result = CompiledTaskGraph::compile(black_box(graph.clone()))
+                .map_err(|error| error.to_string())?;
+            black_box(result);
+        }
+        "compiled_ready_tasks" => {
+            black_box(compiled.ready_task_ids());
+        }
+        _ => return Err(format!("unknown benchmark operation: {operation}")),
+    }
+    Ok(())
+}
+
+fn measure(
+    graph: &TaskGraphV1,
+    compiled: &CompiledTaskGraph,
+    samples: usize,
+    operation: &str,
+) -> Result<Vec<u128>, String> {
+    const WARMUP_SAMPLES: usize = 5;
+    for _ in 0..WARMUP_SAMPLES {
+        execute_operation(graph, compiled, operation)?;
     }
 
+    let mut raw_ns = Vec::with_capacity(samples);
+    for _ in 0..samples {
+        let start = Instant::now();
+        execute_operation(graph, compiled, operation)?;
+        raw_ns.push(start.elapsed().as_nanos());
+    }
     Ok(raw_ns)
 }
 
@@ -132,18 +159,27 @@ fn run() -> Result<(), String> {
         return Err("topological output length did not match task count".to_owned());
     }
 
-    let operations = ["validate", "topological_order", "ready_tasks"];
+    let compiled =
+        CompiledTaskGraph::compile(graph.clone()).map_err(|error| error.to_string())?;
+    let operations = [
+        "validate",
+        "topological_order",
+        "ready_tasks",
+        "compile_index",
+        "compiled_ready_tasks",
+    ];
     let mut results = serde_json::Map::new();
     for operation in operations {
-        let raw = measure(&graph, samples, operation)?;
+        let raw = measure(&graph, &compiled, samples, operation)?;
         results.insert(operation.to_owned(), summary(&raw));
     }
 
     let output = serde_json::json!({
         "benchmark": "field-task-graph-v1",
-        "benchmark_version": 1,
+        "benchmark_version": 2,
         "claim_ceiling": "local algorithm microbenchmark only; not end-to-end field-service or vendor comparison",
         "environment": {
+            "source_commit_sha": env::var("GITHUB_SHA").ok(),
             "os": env::consts::OS,
             "arch": env::consts::ARCH,
             "rust_package_version": env!("CARGO_PKG_VERSION"),
@@ -164,7 +200,7 @@ fn run() -> Result<(), String> {
             "clock": "std::time::Instant",
             "unit": "nanoseconds",
             "percentiles": "nearest-rank",
-            "warmup_runs": 0,
+            "warmup_runs": 5,
             "raw_samples_retained": true
         },
         "operations": results
