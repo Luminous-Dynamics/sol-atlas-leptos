@@ -228,8 +228,11 @@ struct CanonicalStructuralTopology {
 
 fn compress_structural_colors(signatures: &[String]) -> Vec<usize> {
     let labels: BTreeSet<String> = signatures.iter().cloned().collect();
-    let ids: BTreeMap<String, usize> = labels.into_iter().enumerate()
-        .map(|(index, label)| (label, index)).collect();
+    let ids: BTreeMap<String, usize> = labels
+        .into_iter()
+        .enumerate()
+        .map(|(index, label)| (label, index))
+        .collect();
     signatures.iter().map(|signature| ids[signature]).collect()
 }
 
@@ -242,41 +245,59 @@ pub fn structural_topology_sha256(graph: &TopologyGraph) -> Result<String, Strin
     if !validate_graph(graph).is_empty() {
         return Err("structural signature requires a structurally valid topology".to_owned());
     }
-    let node_index: BTreeMap<&str, usize> = graph.nodes.iter().enumerate()
-        .map(|(index, node)| (node.as_str(), index)).collect();
+    let node_index: BTreeMap<&str, usize> = graph
+        .nodes
+        .iter()
+        .enumerate()
+        .map(|(index, node)| (node.as_str(), index))
+        .collect();
     let mut adjacency = vec![Vec::<usize>::new(); graph.nodes.len()];
     let mut edges = Vec::with_capacity(graph.links.len());
     for link in &graph.links {
-        let a = *node_index.get(link.from_node_id.as_str())
+        let a = *node_index
+            .get(link.from_node_id.as_str())
             .ok_or_else(|| "structural signature has an unknown link endpoint".to_owned())?;
-        let b = *node_index.get(link.to_node_id.as_str())
+        let b = *node_index
+            .get(link.to_node_id.as_str())
             .ok_or_else(|| "structural signature has an unknown link endpoint".to_owned())?;
         adjacency[a].push(b);
         adjacency[b].push(a);
         edges.push((a, b));
     }
-    let initial: Vec<String> = adjacency.iter()
-        .map(|neighbors| format!("degree:{}", neighbors.len())).collect();
+    let initial: Vec<String> = adjacency
+        .iter()
+        .map(|neighbors| format!("degree:{}", neighbors.len()))
+        .collect();
     let mut colors = compress_structural_colors(&initial);
     // Descriptors include the prior color, so refinement can split but never merge classes.
     // A fixed iteration budget bounds work on large graphs. This intentionally
     // makes the signature a conservative candidate detector, not an isomorphism oracle.
     for _ in 0..graph.nodes.len().min(32) {
-        let signatures: Vec<String> = adjacency.iter().enumerate().map(|(node, neighbors)| {
-            let mut neighbor_colors: Vec<usize> = neighbors.iter().map(|index| colors[*index]).collect();
-            neighbor_colors.sort_unstable();
-            format!("self:{}|neighbors:{:?}", colors[node], neighbor_colors)
-        }).collect();
+        let signatures: Vec<String> = adjacency
+            .iter()
+            .enumerate()
+            .map(|(node, neighbors)| {
+                let mut neighbor_colors: Vec<usize> =
+                    neighbors.iter().map(|index| colors[*index]).collect();
+                neighbor_colors.sort_unstable();
+                format!("self:{}|neighbors:{:?}", colors[node], neighbor_colors)
+            })
+            .collect();
         let next = compress_structural_colors(&signatures);
         let old_count = colors.iter().copied().max().unwrap_or(0) + 1;
         let new_count = next.iter().copied().max().unwrap_or(0) + 1;
         colors = next;
-        if new_count == old_count { break; }
+        if new_count == old_count {
+            break;
+        }
     }
-    let mut edge_colors: Vec<(usize, usize)> = edges.into_iter().map(|(a, b)| {
-        let (ca, cb) = (colors[a], colors[b]);
-        if ca <= cb { (ca, cb) } else { (cb, ca) }
-    }).collect();
+    let mut edge_colors: Vec<(usize, usize)> = edges
+        .into_iter()
+        .map(|(a, b)| {
+            let (ca, cb) = (colors[a], colors[b]);
+            if ca <= cb { (ca, cb) } else { (cb, ca) }
+        })
+        .collect();
     edge_colors.sort_unstable();
     let mut node_colors = colors;
     node_colors.sort_unstable();
@@ -604,9 +625,14 @@ pub fn evaluate_split_plan(plan: &SplitPlan, raw_plan_sha256: &str) -> SplitAudi
                 continue;
             }
         };
-        structural_family_groups.entry((
-            structural_digest.clone(), case.split.clone(), case.topology_family_id.clone()
-        )).or_default().insert(case.case_id.clone());
+        structural_family_groups
+            .entry((
+                structural_digest.clone(),
+                case.split.clone(),
+                case.topology_family_id.clone(),
+            ))
+            .or_default()
+            .insert(case.case_id.clone());
         if let Some(previous) =
             family_split.insert(case.topology_family_id.clone(), case.split.clone())
         {
@@ -750,8 +776,11 @@ pub fn evaluate_split_plan(plan: &SplitPlan, raw_plan_sha256: &str) -> SplitAudi
     let mut groups_by_signature: BTreeMap<String, Vec<(String, String, Vec<String>)>> =
         BTreeMap::new();
     for ((signature, split, family), case_ids) in structural_family_groups {
-        groups_by_signature.entry(signature).or_default()
-            .push((split, family, case_ids.into_iter().collect()));
+        groups_by_signature.entry(signature).or_default().push((
+            split,
+            family,
+            case_ids.into_iter().collect(),
+        ));
     }
     let mut topology_review_candidates = Vec::new();
     for (signature, groups) in groups_by_signature {
@@ -759,7 +788,9 @@ pub fn evaluate_split_plan(plan: &SplitPlan, raw_plan_sha256: &str) -> SplitAudi
             for right_index in left_index + 1..groups.len() {
                 let (split_a, family_a, case_ids_a) = &groups[left_index];
                 let (split_b, family_b, case_ids_b) = &groups[right_index];
-                if split_a == split_b || family_a == family_b { continue; }
+                if split_a == split_b || family_a == family_b {
+                    continue;
+                }
                 topology_review_candidates.push(TopologyReviewCandidate {
                     structural_topology_sha256: signature.clone(),
                     family_a: family_a.clone(),
@@ -1076,13 +1107,10 @@ mod tests {
         let (plan, _) = load_plan();
         let original = plan.cases[0].topology.clone();
         let mut renamed = original.clone();
-        let mapping = BTreeMap::from([
-            ("N1", "X9"),
-            ("N2", "X2"),
-            ("N3", "X7"),
-            ("N4", "X1"),
-        ]);
-        renamed.nodes = renamed.nodes.iter()
+        let mapping = BTreeMap::from([("N1", "X9"), ("N2", "X2"), ("N3", "X7"), ("N4", "X1")]);
+        renamed.nodes = renamed
+            .nodes
+            .iter()
             .map(|node| mapping[node.as_str()].to_owned())
             .collect();
         for (index, link) in renamed.links.iter_mut().enumerate() {
@@ -1106,17 +1134,15 @@ mod tests {
     fn relabeled_isomorphic_graph_across_splits_requires_curator_review() {
         let (mut plan, digest) = load_plan();
         let mut variant = plan.cases[0].clone();
-        let mapping = BTreeMap::from([
-            ("N1", "X9"),
-            ("N2", "X2"),
-            ("N3", "X7"),
-            ("N4", "X1"),
-        ]);
+        let mapping = BTreeMap::from([("N1", "X9"), ("N2", "X2"), ("N3", "X7"), ("N4", "X1")]);
         variant.case_id = "TEST-RELABELLED-SOURCE".to_owned();
         variant.split = "test".to_owned();
         variant.topology_family_id = "relabeled-source-tree".to_owned();
         variant.perturbation.scenario_seed = "seed-relabeled-source-unique".to_owned();
-        variant.topology.nodes = variant.topology.nodes.iter()
+        variant.topology.nodes = variant
+            .topology
+            .nodes
+            .iter()
             .map(|node| mapping[node.as_str()].to_owned())
             .collect();
         for (index, link) in variant.topology.links.iter_mut().enumerate() {
@@ -1140,10 +1166,19 @@ mod tests {
         assert_eq!(receipt.topology_review_candidates.len(), 1);
         let candidate = &receipt.topology_review_candidates[0];
         assert!(candidate.family_a == "source-tree" || candidate.family_b == "source-tree");
-        assert!(candidate.family_a == "relabeled-source-tree" || candidate.family_b == "relabeled-source-tree");
+        assert!(
+            candidate.family_a == "relabeled-source-tree"
+                || candidate.family_b == "relabeled-source-tree"
+        );
         assert!(candidate.split_a != candidate.split_b);
-        assert!(candidate.case_ids_a.contains(&"TEST-RELABELLED-SOURCE".to_owned())
-            || candidate.case_ids_b.contains(&"TEST-RELABELLED-SOURCE".to_owned()));
+        assert!(
+            candidate
+                .case_ids_a
+                .contains(&"TEST-RELABELLED-SOURCE".to_owned())
+                || candidate
+                    .case_ids_b
+                    .contains(&"TEST-RELABELLED-SOURCE".to_owned())
+        );
     }
 
     #[test]
