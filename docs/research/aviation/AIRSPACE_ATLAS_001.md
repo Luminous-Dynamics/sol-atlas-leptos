@@ -24,7 +24,7 @@ The system must not turn a missing feature into evidence that there is no restri
 
 ## 2. Record model
 
-Each source-backed claim should be an immutable, revisioned record. The initial structural shape is in [`schemas/aviation/airspace-source-record.schema.json`](../../../schemas/aviation/airspace-source-record.schema.json); it is a schema contract, not a source-authenticity or operational qualification oracle.
+Each source-backed claim should be an immutable, revisioned record. The initial structural shape is in [`schemas/aviation/airspace-source-record.schema.json`](../../../schemas/aviation/airspace-source-record.schema.json). An isolated Rust checker at [`tools/airspace-source-contract-check`](../../../tools/airspace-source-contract-check/Cargo.toml) validates the schema against the Draft 2020-12 meta-schema and checks cross-field invariants on the fixture corpus. Neither structural nor semantic validation authenticates a publisher or establishes operational/legal authority.
 
 | Group | Required fields | Why it matters |
 |---|---|---|
@@ -65,6 +65,8 @@ Source precedence must be an explicit, versioned policy scoped to a particular f
 For South African work, include the SACAA's official aeronautical information entry points in the source catalogue: AIP and amendments, AIP supplements, charts, NOTAM summaries, aerodrome/helistop directories, registered/approved aerodromes, AIRAC dates and publication checklists. Store source revision and effective interval per product instead of assigning one global “SACAA current” timestamp.
 
 Source discovery must not be treated as operational approval. Before a real operation, the applicable current source, relevant NOTAMs/supplements, operator procedures and authority rules must be independently checked by competent personnel. The research prototype must not fetch, redistribute or publish material without recorded rights review, and must not expose restricted operational data or private flight plans.
+
+The checker uses the Rust `jsonschema` Draft 2020-12 implementation ([documentation](https://docs.rs/jsonschema/0.59.0/jsonschema/draft202012/index.html)) for standard schema/meta-schema validation, plus explicit project-specific cross-field rules. The validator is an engineering test harness only.
 
 Useful official source pages:
 - SACAA, [Aeronautical Information / AIP amendments](https://www.caa.co.za/industry-information/aip-amendments/)
@@ -120,8 +122,8 @@ No subsystem converts this catalogue into clearance, flight release, operational
 ## 8. Immediate implementation sequence
 
 1. Review and freeze the record/status vocabulary and source-rights semantics.
-2. Validate the Draft 2020-12 schema with an independent schema validator, then add executable semantic checks for interval ordering, freshness-policy results, rights gates and consistency between raw evidence and derived assessment states.
-3. Use [`tests/fixtures/aviation/airspace-source-record-fixtures.json`](../../../tests/fixtures/aviation/airspace-source-record-fixtures.json) as the starting corpus: fresh synthetic, stale, unknown-coverage and conflicted records. The fixture JSON parses, but semantic assertions are not yet wired into CI.
+2. The Rust checker now performs Draft 2020-12 meta-schema validation, format-enabled instance validation, and semantic cross-field checks for time ordering, freshness, coverage completeness, source conflicts, withdrawn claims, and authentication-state consistency. Negative controls test malformed CRS identity, digest syntax, stale-to-current promotion, unknown-to-complete coverage promotion, conflict suppression, reversed validity time, and failed-authentication promotion.
+3. The `airspace-source-contract-check` job is wired into `.github/workflows/check.yml` to run isolated-workspace rustfmt, clippy, and tests. Its exact current-head CI result must be checked before calling this work green; local tests have not been run in the authoring environment.
 4. Implement a read-only synthetic fixture adapter and canonical manifest serializer; do not begin with live NOTAM ingestion.
 4. Add independent golden fixtures for CRS/datum rejection, interval boundaries, explicit coverage gaps and source revision changes.
 5. Emit structured reasons and dependencies so Symtropy can distinguish “known clear in this fictional scenario” from “not assessable.”
