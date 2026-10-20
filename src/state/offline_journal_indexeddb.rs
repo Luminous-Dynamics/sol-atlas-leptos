@@ -814,8 +814,10 @@ impl IndexedDbJournal {
         }
         let entry = JournalEntry::from_snapshot_for_operation(operation_id, stored.snapshot)
             .map_err(IndexedDbJournalError::from)?;
-        let canonical_payload = std::str::from_utf8(entry.canonical_payload_utf8())
-            .map_err(|error| IndexedDbJournalError(format!("canonical payload is not UTF-8: {error}")))?;
+        let canonical_payload =
+            std::str::from_utf8(entry.canonical_payload_utf8()).map_err(|error| {
+                IndexedDbJournalError(format!("canonical payload is not UTF-8: {error}"))
+            })?;
         let request_fingerprint_sha256 =
             sol_atlas_core::offline_idempotency_fingerprint::canonical_request_fingerprint_sha256(
                 owner_scope,
@@ -1229,13 +1231,15 @@ fn finish_insert_reads(
                         ) {
                             Err(error) => Err(IndexedDbJournalError::from(error)),
                             Ok(existing_entry) => {
-                                let same_envelope = stored.snapshot.envelope == new_record.snapshot.envelope;
+                                let same_envelope =
+                                    stored.snapshot.envelope == new_record.snapshot.envelope;
                                 let same_payload =
                                     existing_entry.canonical_payload_utf8() == new_payload_bytes;
                                 let same_owner = stored.owner_scope == new_record.owner_scope;
                                 let same_namespace =
                                     stored.operation_namespace == new_record.operation_namespace;
-                                if !same_envelope || !same_payload || !same_owner || !same_namespace {
+                                if !same_envelope || !same_payload || !same_owner || !same_namespace
+                                {
                                     Err(IndexedDbJournalError(
                                         "operation ID is already bound to different immutable content or owner scope".into(),
                                     ))
@@ -1319,10 +1323,13 @@ fn scoped_idempotency_key(
 ) -> Result<String, IndexedDbJournalError> {
     require_scope(owner_scope, operation_namespace)?;
     if idempotency_key.trim().is_empty() {
-        return Err(IndexedDbJournalError("idempotency key must not be empty".into()));
+        return Err(IndexedDbJournalError(
+            "idempotency key must not be empty".into(),
+        ));
     }
-    serde_json::to_string(&(owner_scope, operation_namespace, idempotency_key))
-        .map_err(|error| IndexedDbJournalError(format!("idempotency index key encoding failed: {error}")))
+    serde_json::to_string(&(owner_scope, operation_namespace, idempotency_key)).map_err(|error| {
+        IndexedDbJournalError(format!("idempotency index key encoding failed: {error}"))
+    })
 }
 
 fn is_pending(state: &JournalState) -> bool {
@@ -1531,14 +1538,13 @@ mod dispatch_lease_tests {
     }
 }
 
-
 #[cfg(test)]
 mod owner_scope_tests {
     use super::{
         STORED_OPERATION_SCHEMA_VERSION, StoredOperationV1, require_scope, scoped_idempotency_key,
     };
     use sol_atlas_core::offline_journal::{
-        OFFLINE_JOURNAL_SCHEMA_VERSION, JournalEntry, OperationEnvelope,
+        JournalEntry, OFFLINE_JOURNAL_SCHEMA_VERSION, OperationEnvelope,
         RequiredNullableOperationId,
     };
     use sol_atlas_core::offline_payload_digest::canonical_payload_digest_sha256;
