@@ -1,4 +1,4 @@
-//! Small, dependency-free reference evaluator for compute-energy constraints.
+//! Small compute-energy reference evaluator without an external optimization solver.
 //!
 //! This v0.1 evaluator is deliberately narrower than a production scheduler:
 //! it supports one site, a finite aligned time grid, hard per-interval protected
@@ -1142,7 +1142,7 @@ mod tests {
                         .zip(per_unit_cost)
                         .map(|(units, unit_cost)| *units as f64 * unit_cost)
                         .sum::<f64>();
-                    *best = best.min(cost);
+                    *best = (*best).min(cost);
                 }
                 return;
             }
@@ -1251,7 +1251,7 @@ mod tests {
         // The input is finite, but price × facility factor overflows in t2.
         // Because cheaper intervals can meet the demand, that bad rank would
         // otherwise be hidden by the final schedule's finite selected cost.
-        request.intervals[2].electricity_price_usd_per_kwh = Some(1.0e308);
+        request.intervals[2].electricity_price_usd_per_kwh = Some(1.7e308);
 
         let result = schedule_deferrable(&request, SchedulingPolicy::LowestCost);
         assert_eq!(result.status, AssessmentStatus::Invalid);
