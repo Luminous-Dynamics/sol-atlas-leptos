@@ -278,8 +278,7 @@ impl ReferenceIdempotencyLedger {
             };
         }
 
-        let operation_identity =
-            ScopedOperationIdentity::new(tenant_scope, &envelope.operation_id);
+        let operation_identity = ScopedOperationIdentity::new(tenant_scope, &envelope.operation_id);
         if self.operation_index.contains_key(&operation_identity) {
             return Err(LedgerModelError::OperationIdentityConflict);
         }
@@ -297,8 +296,7 @@ impl ReferenceIdempotencyLedger {
                 state: RecordState::InProgress { generation },
             },
         );
-        self.operation_index
-            .insert(operation_identity, key.clone());
+        self.operation_index.insert(operation_identity, key.clone());
         Ok(ReserveResult::Reserved(ReservationTicket {
             key,
             operation_id: envelope.operation_id.clone(),
@@ -496,11 +494,7 @@ mod tests {
     fn operation_identity_cannot_be_rebound_to_another_key_or_namespace() {
         let mut ledger = ReferenceIdempotencyLedger::new();
         let first = envelope("op-identity-001", "aggregate-001", 4);
-        let _ticket = reserved(
-            ledger
-                .reserve(TENANT, NAMESPACE, &first, PAYLOAD)
-                .unwrap(),
-        );
+        let _ticket = reserved(ledger.reserve(TENANT, NAMESPACE, &first, PAYLOAD).unwrap());
 
         let mut different_key = first.clone();
         different_key.idempotency_key = "idem-key-002".to_owned();
@@ -512,12 +506,7 @@ mod tests {
         let mut different_namespace = first.clone();
         different_namespace.idempotency_key = "idem-key-003".to_owned();
         assert_eq!(
-            ledger.reserve(
-                TENANT,
-                "work-order.cancel",
-                &different_namespace,
-                PAYLOAD
-            ),
+            ledger.reserve(TENANT, "work-order.cancel", &different_namespace, PAYLOAD),
             Err(LedgerModelError::OperationIdentityConflict)
         );
 
@@ -534,11 +523,7 @@ mod tests {
     fn safely_aborted_operation_id_can_be_reserved_again() {
         let mut ledger = ReferenceIdempotencyLedger::new();
         let first = envelope("op-identity-002", "aggregate-001", 4);
-        let ticket = reserved(
-            ledger
-                .reserve(TENANT, NAMESPACE, &first, PAYLOAD)
-                .unwrap(),
-        );
+        let ticket = reserved(ledger.reserve(TENANT, NAMESPACE, &first, PAYLOAD).unwrap());
         ledger.abort_before_effect(&ticket).unwrap();
 
         let mut new_key = first;
