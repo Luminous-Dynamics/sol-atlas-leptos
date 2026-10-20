@@ -1622,27 +1622,34 @@ impl IndexedDbJournal {
 }
 
 #[derive(Debug, Clone)]
-struct BundleImportCandidate {
+struct BundleStageCandidate {
     operation_id: String,
     idempotency_storage_key: String,
-    stored: StoredOperationV1,
-    serialized_record: String,
-    pending: bool,
+    staged: StagedImportRecordV1,
+    serialized_staged: String,
 }
 
-struct BundleImportReadState {
-    candidates: Vec<BundleImportCandidate>,
+struct BundleStageReadState {
+    candidates: Vec<BundleStageCandidate>,
     results: Vec<Option<JsValue>>,
     completed: usize,
     decided: bool,
 }
 
-fn finish_bundle_import_reads(
-    shared: &Rc<RefCell<BundleImportReadState>>,
-    output: &Rc<RefCell<Option<Result<BundleImportReport, IndexedDbJournalError>>>>,
+fn same_immutable_operation(left: &StoredOperationV1, right: &StoredOperationV1) -> bool {
+    left.owner_scope == right.owner_scope
+        && left.operation_namespace == right.operation_namespace
+        && left.snapshot.envelope == right.snapshot.envelope
+        && left.snapshot.canonical_payload_json == right.snapshot.canonical_payload_json
+}
+
+fn finish_bundle_stage_reads(
+    shared: &Rc<RefCell<BundleStageReadState>>,
+    output: &Rc<RefCell<Option<Result<BundleStageReport, IndexedDbJournalError>>>>,
     operations: &JsValue,
     idempotency_keys: &JsValue,
-    pending: &JsValue,
+    staged_imports: &JsValue,
+    staged_idempotency_keys: &JsValue,
     transaction: &JsValue,
 ) {
     let (candidates, results) = {
@@ -1658,87 +1665,164 @@ fn finish_bundle_import_reads(
     };
 
     let mut inserts = Vec::new();
-    let mut pending_repairs = Vec::<(String, bool)>::new();
-    let mut report = BundleImportReport::default();
+    let mut stale_staging_to_remove = Vec::<(String, String)>::new();
+    let mut report = BundleStageReport::default();
 
     let preflight = (|| -> Result<(), IndexedDbJournalError> {
         for (index, candidate) in candidates.iter().enumerate() {
-            let operation_value = &results[index * 3];
-            let idempotency_value = &results[index * 3 + 1];
-            let pending_value = &results[index * 3 + 2];
-            let operation_exists = !operation_value.is_null() && !operation_value.is_undefined();
-            let idempotency_exists =
-                !idempotency_value.is_null() && !idempotency_value.is_undefined();
-            let pending_exists = !pending_value.is_null() && !pending_value.is_undefined();
+            let offset = index * 4;
+            let live_operation = &results[offset];
+            let live_key = &results[offset + 1];
+            let staged_operation = &results[offset + 2];
+            let staged_key = &results[offset + 3];
+            let live_exists = !live_operation.is_null() && !live_operation.is_undefined();
+            let live_key_exists = !live_key.is_null() && !live_key.is_undefined();
+            let staged_exists = !staged_operation.is_null() && !staged_operation.is_undefined();
+            let staged_key_exists = !staged_key.is_null() && !staged_key.is_undefined();
 
-            if !operation_exists {
-                if idempotency_exists {
-                    return Err(IndexedDbJournalError(format!(
-                        "bundle operation {} conflicts with an existing or stale idempotency index",
-                        candidate.operation_id
-                    )));
-                }
-                if pending_exists {
-                    return Err(IndexedDbJournalError(format!(
-                        "bundle operation {} conflicts with a stale pending marker",
-                        candidate.operation_id
-                    )));
-                }
-                inserts.push(index);
-                report.inserted_records += 1;
-                continue;
-            }
-
-            let serialized = operation_value.as_string().ok_or_else(|| {
-                IndexedDbJournalError(format!(
-                    "existing operation {} is not a string record",
-                    candidate.operation_id
-                ))
-            })?;
-            let existing: StoredOperationV1 =
-                serde_json::from_str(&serialized).map_err(|error| {
+            if live_exists {
+                let serialized = live_operation.as_string().ok_or_else(|| {
                     IndexedDbJournalError(format!(
-                        "existing operation {} is invalid: {error}",
+                        "active operation {} is not a string record",
                         candidate.operation_id
                     ))
                 })?;
-            existing.validate_entry(&candidate.operation_id)?;
-            if !existing.matches_scope(
-                &candidate.stored.owner_scope,
-                &candidate.stored.operation_namespace,
-            ) {
-                return Err(IndexedDbJournalError(format!(
-                    "operation {} already belongs to another owner or namespace",
-                    candidate.operation_id
-                )));
-            }
-            if existing != candidate.stored {
-                return Err(IndexedDbJournalError(format!(
-                    "operation {} differs from the imported snapshot; refusing to overwrite or roll back local state",
-                    candidate.operation_id
-                )));
-            }
-
-            if !idempotency_exists
-                || idempotency_value.as_string().as_deref()
-                    != Some(candidate.operation_id.as_str())
-            {
-                return Err(IndexedDbJournalError(format!(
-                    "operation {} has a missing or conflicting scoped idempotency index",
-                    candidate.operation_id
-                )));
-            }
-
-            // The pending store is derived state. Exact duplicates may repair a
-            // missing/wrong marker without rewriting the immutable operation.
-            if candidate.pending {
-                if !pending_exists || pending_value.as_bool() != Some(true) {
-                    pending_repairs.push((candidate.operation_id.clone(), true));
+                let live: StoredOperationV1 =
+                    serde_json::from_str(&serialized).map_err(|error| {
+                        IndexedDbJournalError(format!(
+                            "active operation {} is invalid: {error}",
+                            candidate.operation_id
+                        ))
+                    })?;
+                live.validate_entry(&candidate.operation_id)?;
+                if !same_immutable_operation(&live, &candidate.staged.operation) {
+                    return Err(IndexedDbJournalError(format!(
+                        "operation {} is already active with different immutable content or owner scope",
+                        candidate.operation_id
+                    )));
                 }
-            } else if pending_exists {
-                pending_repairs.push((candidate.operation_id.clone(), false));
+                if !live_key_exists
+                    || live_key.as_string().as_deref()
+                        != Some(candidate.operation_id.as_str())
+                {
+                    return Err(IndexedDbJournalError(format!(
+                        "active operation {} has a missing or conflicting scoped idempotency index",
+                        candidate.operation_id
+                    )));
+                }
+
+                if staged_exists {
+                    let serialized_staged = staged_operation.as_string().ok_or_else(|| {
+                        IndexedDbJournalError(format!(
+                            "staged operation {} is not a string record",
+                            candidate.operation_id
+                        ))
+                    })?;
+                    let staged: StagedImportRecordV1 =
+                        serde_json::from_str(&serialized_staged).map_err(|error| {
+                            IndexedDbJournalError(format!(
+                                "staged operation {} is invalid: {error}",
+                                candidate.operation_id
+                            ))
+                        })?;
+                    staged.validate(&candidate.operation_id)?;
+                    if !staged.matches_scope(
+                        &candidate.staged.operation.owner_scope,
+                        &candidate.staged.operation.operation_namespace,
+                    ) || !same_immutable_operation(&staged.operation, &live)
+                    {
+                        return Err(IndexedDbJournalError(format!(
+                            "active and staged operation {} have conflicting immutable identity",
+                            candidate.operation_id
+                        )));
+                    }
+                    if staged.operation.snapshot != live.snapshot {
+                        return Err(IndexedDbJournalError(format!(
+                            "active and staged operation {} have different state/attempt lineage; keep staged evidence for explicit review",
+                            candidate.operation_id
+                        )));
+                    }
+                    if !staged_key_exists
+                        || staged_key.as_string().as_deref()
+                            != Some(candidate.operation_id.as_str())
+                    {
+                        return Err(IndexedDbJournalError(format!(
+                            "staged operation {} has a missing or conflicting scoped idempotency index",
+                            candidate.operation_id
+                        )));
+                    }
+                    stale_staging_to_remove.push((
+                        candidate.operation_id.clone(),
+                        candidate.idempotency_storage_key.clone(),
+                    ));
+                } else if staged_key_exists {
+                    return Err(IndexedDbJournalError(format!(
+                        "staged idempotency index for {} has no staged operation",
+                        candidate.operation_id
+                    )));
+                }
+                report.already_present_records += 1;
+                continue;
             }
-            report.exact_duplicates += 1;
+
+            if live_key_exists {
+                return Err(IndexedDbJournalError(format!(
+                    "bundle operation {} conflicts with an active or stale idempotency index",
+                    candidate.operation_id
+                )));
+            }
+
+            if staged_exists {
+                let serialized = staged_operation.as_string().ok_or_else(|| {
+                    IndexedDbJournalError(format!(
+                        "staged operation {} is not a string record",
+                        candidate.operation_id
+                    ))
+                })?;
+                let existing: StagedImportRecordV1 =
+                    serde_json::from_str(&serialized).map_err(|error| {
+                        IndexedDbJournalError(format!(
+                            "staged operation {} is invalid: {error}",
+                            candidate.operation_id
+                        ))
+                    })?;
+                existing.validate(&candidate.operation_id)?;
+                if !existing.matches_scope(
+                    &candidate.staged.operation.owner_scope,
+                    &candidate.staged.operation.operation_namespace,
+                ) {
+                    return Err(IndexedDbJournalError(format!(
+                        "staged operation {} belongs to another owner or namespace",
+                        candidate.operation_id
+                    )));
+                }
+                if existing.operation != candidate.staged.operation {
+                    return Err(IndexedDbJournalError(format!(
+                        "staged operation {} differs from this bundle; refusing to replace untrusted staged evidence",
+                        candidate.operation_id
+                    )));
+                }
+                if !staged_key_exists
+                    || staged_key.as_string().as_deref()
+                        != Some(candidate.operation_id.as_str())
+                {
+                    return Err(IndexedDbJournalError(format!(
+                        "staged operation {} has a missing or conflicting scoped idempotency index",
+                        candidate.operation_id
+                    )));
+                }
+                report.exact_duplicates += 1;
+                continue;
+            }
+
+            if staged_key_exists {
+                return Err(IndexedDbJournalError(format!(
+                    "staged idempotency index for {} points to a missing operation",
+                    candidate.operation_id
+                )));
+            }
+            inserts.push(index);
+            report.staged_records += 1;
         }
         Ok(())
     })();
@@ -1752,10 +1836,10 @@ fn finish_bundle_import_reads(
     for index in inserts {
         let candidate = &candidates[index];
         if let Err(error) = call_method(
-            operations,
+            staged_imports,
             "add",
             &[
-                JsValue::from_str(&candidate.serialized_record),
+                JsValue::from_str(&candidate.serialized_staged),
                 JsValue::from_str(&candidate.operation_id),
             ],
         ) {
@@ -1764,7 +1848,7 @@ fn finish_bundle_import_reads(
             return;
         }
         if let Err(error) = call_method(
-            idempotency_keys,
+            staged_idempotency_keys,
             "add",
             &[
                 JsValue::from_str(&candidate.operation_id),
@@ -1775,42 +1859,27 @@ fn finish_bundle_import_reads(
             let _ = call_method(transaction, "abort", &[]);
             return;
         }
-        if candidate.pending {
-            if let Err(error) = call_method(
-                pending,
-                "add",
-                &[
-                    JsValue::from_bool(true),
-                    JsValue::from_str(&candidate.operation_id),
-                ],
-            ) {
-                *output.borrow_mut() = Some(Err(js_error(error)));
-                let _ = call_method(transaction, "abort", &[]);
-                return;
-            }
-        }
     }
 
-    for (operation_id, should_be_pending) in pending_repairs.iter() {
-        let write_result = if *should_be_pending {
-            call_method(
-                pending,
-                "put",
-                &[
-                    JsValue::from_bool(true),
-                    JsValue::from_str(operation_id),
-                ],
-            )
-        } else {
-            call_method(pending, "delete", &[JsValue::from_str(operation_id)])
-        };
-        if let Err(error) = write_result {
+    for (operation_id, idempotency_storage_key) in stale_staging_to_remove {
+        if let Err(error) =
+            call_method(staged_imports, "delete", &[JsValue::from_str(&operation_id)])
+        {
+            *output.borrow_mut() = Some(Err(js_error(error)));
+            let _ = call_method(transaction, "abort", &[]);
+            return;
+        }
+        if let Err(error) = call_method(
+            staged_idempotency_keys,
+            "delete",
+            &[JsValue::from_str(&idempotency_storage_key)],
+        ) {
             *output.borrow_mut() = Some(Err(js_error(error)));
             let _ = call_method(transaction, "abort", &[]);
             return;
         }
     }
-    report.repaired_pending_markers = pending_repairs.len();
+
     *output.borrow_mut() = Some(Ok(report));
 }
 
