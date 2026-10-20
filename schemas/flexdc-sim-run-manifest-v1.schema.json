@@ -8,6 +8,7 @@
   "required": [
     "schema_version",
     "run_id",
+    "synthetic",
     "source_revision",
     "simulator_command",
     "random_seed",
@@ -187,6 +188,10 @@
     "regulation_reserve_w": {
       "type": "number",
       "const": 9626
+    },
+    "synthetic": {
+      "type": "boolean",
+      "description": "True only for generated fixtures. A replay of actual FlexDC-Sim output must set false; this flag does not imply physical facility metering."
     }
   },
   "allOf": [
