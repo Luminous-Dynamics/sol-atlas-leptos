@@ -219,6 +219,58 @@ impl JournalEntry {
         })
     }
 
+    /// Export the entry as a versioned, deterministic storage snapshot.
+    ///
+    /// Persist this snapshot atomically with the pending indexes used by the
+    /// backend. The snapshot is data, not authority: recovery must call
+    /// `from_snapshot` and validate it before resuming dispatch or displaying
+    /// a terminal state as authoritative.
+    pub fn to_snapshot(&self) -> Result<JournalEntrySnapshotV1, JournalError> {
+        let canonical_payload_json = std::str::from_utf8(self.payload.canonical_utf8())
+            .map_err(|_| JournalError::InvalidSnapshot("canonical_payload_not_utf8"))?
+            .to_owned();
+        Ok(JournalEntrySnapshotV1 {
+            schema_version: JOURNAL_ENTRY_SNAPSHOT_SCHEMA_VERSION,
+            envelope: self.envelope.clone(),
+            canonical_payload_json,
+            state: self.state.clone(),
+            attempt_count: self.attempt_count,
+        })
+    }
+
+    /// Rehydrate a snapshot only after rechecking schema, canonical bytes,
+    /// digest binding, and state/attempt invariants.
+    pub fn from_snapshot(snapshot: JournalEntrySnapshotV1) -> Result<Self, JournalError> {
+        if snapshot.schema_version != JOURNAL_ENTRY_SNAPSHOT_SCHEMA_VERSION {
+            return Err(JournalError::UnsupportedSnapshotSchemaVersion(
+                snapshot.schema_version,
+            ));
+        }
+        snapshot.envelope.validate()?;
+
+        let payload =
+            crate::offline_payload_digest::CanonicalPayload::from_json(&snapshot.canonical_payload_json)
+                .map_err(|error| JournalError::PayloadCanonicalization(error.to_string()))?;
+        if payload.canonical_utf8() != snapshot.canonical_payload_json.as_bytes() {
+            return Err(JournalError::NonCanonicalSnapshotPayload);
+        }
+        if payload.sha256_hex() != snapshot.envelope.payload_digest_sha256 {
+            return Err(JournalError::PayloadDigestMismatch);
+        }
+        validate_snapshot_state(
+            &snapshot.envelope,
+            &snapshot.state,
+            snapshot.attempt_count,
+        )?;
+
+        Ok(Self {
+            envelope: snapshot.envelope,
+            payload,
+            state: snapshot.state,
+            attempt_count: snapshot.attempt_count,
+        })
+    }
+
     /// Returns the immutable operation envelope.
     pub fn envelope(&self) -> &OperationEnvelope {
         &self.envelope
