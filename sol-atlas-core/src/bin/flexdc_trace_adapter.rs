@@ -19,6 +19,8 @@ use std::process;
 
 const MANIFEST_SCHEMA_VERSION: &str = "1.0";
 const PINNED_FLEXDC_REVISION: &str = "ea50bd582b5d1b55fcb09ea46899fa9d325cce3b";
+const PINNED_POWER_CAP_W: f64 = 24_216.0;
+const PINNED_REGULATION_RESERVE_W: f64 = 9_626.0;
 const PINNED_CONFIG_ARTIFACTS: [(&str, &str, &str); 6] = [
     (
         "experiment_config",
@@ -68,6 +70,8 @@ struct RunManifest {
     source_revision: String,
     simulator_command: String,
     random_seed: u64,
+    power_cap_w: f64,
+    regulation_reserve_w: f64,
     simulation_duration_seconds: u64,
     simulation_step_seconds: u64,
     signal_step_seconds: u64,
@@ -124,6 +128,20 @@ fn validate_manifest(manifest: &RunManifest) -> Result<(), String> {
     if manifest.source_revision != PINNED_FLEXDC_REVISION {
         return Err(format!(
             "this adapter supports only pinned FlexDC-Sim revision {PINNED_FLEXDC_REVISION}"
+        ));
+    }
+    if !manifest.power_cap_w.is_finite()
+        || manifest.power_cap_w != PINNED_POWER_CAP_W
+    {
+        return Err(format!(
+            "manifest.power_cap_w must match the pinned AQA policy value {PINNED_POWER_CAP_W}"
+        ));
+    }
+    if !manifest.regulation_reserve_w.is_finite()
+        || manifest.regulation_reserve_w != PINNED_REGULATION_RESERVE_W
+    {
+        return Err(format!(
+            "manifest.regulation_reserve_w must match the pinned AQA policy value {PINNED_REGULATION_RESERVE_W}"
         ));
     }
     if manifest.simulation_duration_seconds == 0 {
