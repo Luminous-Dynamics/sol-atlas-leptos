@@ -344,11 +344,7 @@ pub fn assess_edr_curtailment(
     })
 }
 
-fn require_length(
-    series: &'static str,
-    expected: usize,
-    actual: usize,
-) -> Result<(), MetricError> {
+fn require_length(series: &'static str, expected: usize, actual: usize) -> Result<(), MetricError> {
     if expected == actual {
         Ok(())
     } else {
