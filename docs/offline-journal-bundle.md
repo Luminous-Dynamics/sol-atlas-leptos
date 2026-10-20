@@ -1,6 +1,6 @@
 # Portable offline journal bundle v1
 
-**Status:** shared Rust bundle codec and validation tests. This does not yet read from or write to IndexedDB, encrypt bundles, authenticate their source, or implement a user-facing restore workflow.
+**Status:** shared Rust bundle codec, validation tests, and a consistent read-only IndexedDB export method are implemented. Atomic import/restore, encryption, source authentication and a user-facing workflow are not implemented.
 
 ## Problem and design shift
 
@@ -21,6 +21,8 @@ The digest is stable across insignificant JSON whitespace and object-key orderin
 
 Rust API: sol_atlas_core::offline_journal_bundle::{OfflineJournalBundleV1, OfflineJournalBundleRecordV1}.
 
+The IndexedDB adapter exposes `export_bundle(owner_scope)`. It reads operation keys and values within one readonly transaction, validates every stored owner-bound record and its snapshot, filters to the requested owner, and delegates sorting/checksum creation to the core codec. This gives the export one consistent database read view rather than composing a bundle from many individually timed reads. It returns plaintext canonical JSON and does not change local data.
+
 - OfflineJournalBundleV1::create(owner_scope, records) validates, sorts and seals the bundle.
 - to_json() returns canonical JCS JSON only after validation.
 - from_json(input) rejects unknown fields, validates every snapshot, and verifies the manifest digest.
@@ -38,7 +40,7 @@ The codec intentionally performs validation only. A production restore adapter s
 6. Commit the imported records and all derived indexes atomically. If storage quota, key collision, schema upgrade or any write fails, leave the prior local state unchanged.
 7. Before retrying OutcomeUnknown, send the original idempotency key and exact canonical payload bytes. Safe retry still depends on authoritative server-side idempotency and request-fingerprint enforcement.
 
-The current IndexedDB adapter does not implement these seven steps. Until it does, this codec should be used for testing and tooling, not advertised as one-click device migration.
+The IndexedDB adapter now implements read-only export, but not these seven import/restore steps. Until atomic restore, collision checks, encryption and user-facing recovery are implemented, this must not be advertised as one-click device migration.
 
 ## Security and truthfulness
 
