@@ -1,0 +1,790 @@
+{
+  "schema_version": "sa-economic-portfolio-v0.2.expected",
+  "source_fixture": "docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.json",
+  "evidence_class": "synthetic_exact_enumeration",
+  "claim_ceiling": "Exhaustive exact oracle for this finite synthetic ten-project instance only; outcomes and costs are arbitrary synthetic units, not South African estimates or investment advice.",
+  "candidate_subsets": 1024,
+  "rejected_subsets": 942,
+  "rejection_reason_counts": {
+    "gate_not_pass": 512,
+    "missing_prerequisite": 192,
+    "period_budget_exceeded": 200,
+    "crew_capacity_exceeded": 0,
+    "protected_service_floor": 38
+  },
+  "feasible_count": 82,
+  "feasible_portfolio_ids": [
+    [
+      "P00",
+      "P01"
+    ],
+    [
+      "P00",
+      "P01",
+      "P03"
+    ],
+    [
+      "P00",
+      "P01",
+      "P03",
+      "P05"
+    ],
+    [
+      "P00",
+      "P01",
+      "P03",
+      "P05",
+      "P08"
+    ],
+    [
+      "P00",
+      "P01",
+      "P03",
+      "P05",
+      "P09"
+    ],
+    [
+      "P00",
+      "P01",
+      "P03",
+      "P08"
+    ],
+    [
+      "P00",
+      "P01",
+      "P03",
+      "P09"
+    ],
+    [
+      "P00",
+      "P01",
+      "P05"
+    ],
+    [
+      "P00",
+      "P01",
+      "P05",
+      "P06"
+    ],
+    [
+      "P00",
+      "P01",
+      "P05",
+      "P06",
+      "P08"
+    ],
+    [
+      "P00",
+      "P01",
+      "P05",
+      "P06",
+      "P09"
+    ],
+    [
+      "P00",
+      "P01",
+      "P05",
+      "P08"
+    ],
+    [
+      "P00",
+      "P01",
+      "P05",
+      "P09"
+    ],
+    [
+      "P00",
+      "P01",
+      "P06"
+    ],
+    [
+      "P00",
+      "P01",
+      "P06",
+      "P08"
+    ],
+    [
+      "P00",
+      "P01",
+      "P06",
+      "P09"
+    ],
+    [
+      "P00",
+      "P01",
+      "P08"
+    ],
+    [
+      "P00",
+      "P01",
+      "P09"
+    ],
+    [
+      "P00",
+      "P02",
+      "P03",
+      "P05"
+    ],
+    [
+      "P00",
+      "P02",
+      "P03",
+      "P05",
+      "P08"
+    ],
+    [
+      "P00",
+      "P02",
+      "P03",
+      "P05",
+      "P09"
+    ],
+    [
+      "P00",
+      "P02",
+      "P03",
+      "P09"
+    ],
+    [
+      "P00",
+      "P02",
+      "P05"
+    ],
+    [
+      "P00",
+      "P02",
+      "P05",
+      "P06"
+    ],
+    [
+      "P00",
+      "P02",
+      "P05",
+      "P06",
+      "P08"
+    ],
+    [
+      "P00",
+      "P02",
+      "P05",
+      "P06",
+      "P09"
+    ],
+    [
+      "P00",
+      "P02",
+      "P05",
+      "P08"
+    ],
+    [
+      "P00",
+      "P02",
+      "P05",
+      "P09"
+    ],
+    [
+      "P00",
+      "P02",
+      "P06",
+      "P09"
+    ],
+    [
+      "P00",
+      "P02",
+      "P09"
+    ],
+    [
+      "P00",
+      "P03",
+      "P04",
+      "P05"
+    ],
+    [
+      "P00",
+      "P03",
+      "P04",
+      "P05",
+      "P08"
+    ],
+    [
+      "P00",
+      "P03",
+      "P04",
+      "P05",
+      "P09"
+    ],
+    [
+      "P00",
+      "P03",
+      "P04",
+      "P09"
+    ],
+    [
+      "P00",
+      "P03",
+      "P05"
+    ],
+    [
+      "P00",
+      "P03",
+      "P05",
+      "P08"
+    ],
+    [
+      "P00",
+      "P03",
+      "P05",
+      "P09"
+    ],
+    [
+      "P00",
+      "P03",
+      "P09"
+    ],
+    [
+      "P00",
+      "P04",
+      "P05"
+    ],
+    [
+      "P00",
+      "P04",
+      "P05",
+      "P06"
+    ],
+    [
+      "P00",
+      "P04",
+      "P05",
+      "P06",
+      "P08"
+    ],
+    [
+      "P00",
+      "P04",
+      "P05",
+      "P06",
+      "P09"
+    ],
+    [
+      "P00",
+      "P04",
+      "P05",
+      "P08"
+    ],
+    [
+      "P00",
+      "P04",
+      "P05",
+      "P09"
+    ],
+    [
+      "P00",
+      "P04",
+      "P06",
+      "P09"
+    ],
+    [
+      "P00",
+      "P04",
+      "P09"
+    ],
+    [
+      "P00",
+      "P05",
+      "P06"
+    ],
+    [
+      "P00",
+      "P05",
+      "P06",
+      "P08"
+    ],
+    [
+      "P00",
+      "P05",
+      "P06",
+      "P09"
+    ],
+    [
+      "P00",
+      "P05",
+      "P09"
+    ],
+    [
+      "P00",
+      "P06",
+      "P09"
+    ],
+    [
+      "P02",
+      "P04",
+      "P05"
+    ],
+    [
+      "P02",
+      "P04",
+      "P05",
+      "P06"
+    ],
+    [
+      "P02",
+      "P04",
+      "P05",
+      "P06",
+      "P08"
+    ],
+    [
+      "P02",
+      "P04",
+      "P05",
+      "P06",
+      "P09"
+    ],
+    [
+      "P02",
+      "P04",
+      "P05",
+      "P08"
+    ],
+    [
+      "P02",
+      "P04",
+      "P05",
+      "P09"
+    ],
+    [
+      "P02",
+      "P04",
+      "P06"
+    ],
+    [
+      "P02",
+      "P04",
+      "P06",
+      "P08"
+    ],
+    [
+      "P02",
+      "P04",
+      "P06",
+      "P09"
+    ],
+    [
+      "P02",
+      "P04",
+      "P09"
+    ],
+    [
+      "P02",
+      "P05"
+    ],
+    [
+      "P02",
+      "P05",
+      "P06"
+    ],
+    [
+      "P02",
+      "P05",
+      "P06",
+      "P08"
+    ],
+    [
+      "P02",
+      "P05",
+      "P06",
+      "P09"
+    ],
+    [
+      "P02",
+      "P05",
+      "P08"
+    ],
+    [
+      "P02",
+      "P05",
+      "P09"
+    ],
+    [
+      "P02",
+      "P06",
+      "P09"
+    ],
+    [
+      "P02",
+      "P09"
+    ],
+    [
+      "P04",
+      "P05"
+    ],
+    [
+      "P04",
+      "P05",
+      "P06"
+    ],
+    [
+      "P04",
+      "P05",
+      "P06",
+      "P08"
+    ],
+    [
+      "P04",
+      "P05",
+      "P06",
+      "P09"
+    ],
+    [
+      "P04",
+      "P05",
+      "P08"
+    ],
+    [
+      "P04",
+      "P05",
+      "P09"
+    ],
+    [
+      "P04",
+      "P06",
+      "P09"
+    ],
+    [
+      "P04",
+      "P09"
+    ],
+    [
+      "P05",
+      "P06"
+    ],
+    [
+      "P05",
+      "P06",
+      "P08"
+    ],
+    [
+      "P05",
+      "P06",
+      "P09"
+    ],
+    [
+      "P05",
+      "P09"
+    ],
+    [
+      "P06",
+      "P09"
+    ]
+  ],
+  "pareto_frontier_count": 8,
+  "dominance_rule": "Candidate A dominates candidate B only when A is no worse on every objective in every declared scenario and strictly better in at least one scenario-objective component; stress scenarios have no probability.",
+  "pareto_frontier": [
+    {
+      "project_ids": [
+        "P00",
+        "P01",
+        "P03",
+        "P05",
+        "P08"
+      ],
+      "period_cost_and_crew": {
+        "P1": {
+          "cost_u": 5,
+          "crew_u": 3
+        },
+        "P2": {
+          "cost_u": 6,
+          "crew_u": 3
+        },
+        "P3": {
+          "cost_u": 2,
+          "crew_u": 1
+        }
+      },
+      "outcomes": {
+        "normal_reference": {
+          "economic_value_u": 25,
+          "essential_service_points": 12,
+          "paid_work_opportunity_points": 11,
+          "ecological_quality_points": 9
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 18,
+          "essential_service_points": 11,
+          "paid_work_opportunity_points": 11,
+          "ecological_quality_points": 10
+        }
+      }
+    },
+    {
+      "project_ids": [
+        "P00",
+        "P01",
+        "P03",
+        "P05",
+        "P09"
+      ],
+      "period_cost_and_crew": {
+        "P1": {
+          "cost_u": 5,
+          "crew_u": 3
+        },
+        "P2": {
+          "cost_u": 6,
+          "crew_u": 3
+        },
+        "P3": {
+          "cost_u": 2,
+          "crew_u": 1
+        }
+      },
+      "outcomes": {
+        "normal_reference": {
+          "economic_value_u": 22,
+          "essential_service_points": 14,
+          "paid_work_opportunity_points": 14,
+          "ecological_quality_points": 11
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 15,
+          "essential_service_points": 13,
+          "paid_work_opportunity_points": 14,
+          "ecological_quality_points": 12
+        }
+      }
+    },
+    {
+      "project_ids": [
+        "P00",
+        "P01",
+        "P05",
+        "P06",
+        "P08"
+      ],
+      "period_cost_and_crew": {
+        "P1": {
+          "cost_u": 5,
+          "crew_u": 3
+        },
+        "P2": {
+          "cost_u": 5,
+          "crew_u": 2
+        },
+        "P3": {
+          "cost_u": 2,
+          "crew_u": 1
+        }
+      },
+      "outcomes": {
+        "normal_reference": {
+          "economic_value_u": 15,
+          "essential_service_points": 12,
+          "paid_work_opportunity_points": 8,
+          "ecological_quality_points": 16
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 12,
+          "essential_service_points": 11,
+          "paid_work_opportunity_points": 8,
+          "ecological_quality_points": 17
+        }
+      }
+    },
+    {
+      "project_ids": [
+        "P00",
+        "P01",
+        "P05",
+        "P06",
+        "P09"
+      ],
+      "period_cost_and_crew": {
+        "P1": {
+          "cost_u": 5,
+          "crew_u": 3
+        },
+        "P2": {
+          "cost_u": 5,
+          "crew_u": 2
+        },
+        "P3": {
+          "cost_u": 2,
+          "crew_u": 1
+        }
+      },
+      "outcomes": {
+        "normal_reference": {
+          "economic_value_u": 12,
+          "essential_service_points": 14,
+          "paid_work_opportunity_points": 11,
+          "ecological_quality_points": 18
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 9,
+          "essential_service_points": 13,
+          "paid_work_opportunity_points": 11,
+          "ecological_quality_points": 19
+        }
+      }
+    },
+    {
+      "project_ids": [
+        "P00",
+        "P03",
+        "P04",
+        "P05",
+        "P08"
+      ],
+      "period_cost_and_crew": {
+        "P1": {
+          "cost_u": 5,
+          "crew_u": 3
+        },
+        "P2": {
+          "cost_u": 6,
+          "crew_u": 3
+        },
+        "P3": {
+          "cost_u": 2,
+          "crew_u": 1
+        }
+      },
+      "outcomes": {
+        "normal_reference": {
+          "economic_value_u": 21,
+          "essential_service_points": 7,
+          "paid_work_opportunity_points": 14,
+          "ecological_quality_points": 8
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 16,
+          "essential_service_points": 7,
+          "paid_work_opportunity_points": 14,
+          "ecological_quality_points": 9
+        }
+      }
+    },
+    {
+      "project_ids": [
+        "P00",
+        "P03",
+        "P04",
+        "P05",
+        "P09"
+      ],
+      "period_cost_and_crew": {
+        "P1": {
+          "cost_u": 5,
+          "crew_u": 3
+        },
+        "P2": {
+          "cost_u": 6,
+          "crew_u": 3
+        },
+        "P3": {
+          "cost_u": 2,
+          "crew_u": 1
+        }
+      },
+      "outcomes": {
+        "normal_reference": {
+          "economic_value_u": 18,
+          "essential_service_points": 9,
+          "paid_work_opportunity_points": 17,
+          "ecological_quality_points": 10
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 13,
+          "essential_service_points": 9,
+          "paid_work_opportunity_points": 17,
+          "ecological_quality_points": 11
+        }
+      }
+    },
+    {
+      "project_ids": [
+        "P02",
+        "P04",
+        "P05",
+        "P06",
+        "P08"
+      ],
+      "period_cost_and_crew": {
+        "P1": {
+          "cost_u": 5,
+          "crew_u": 3
+        },
+        "P2": {
+          "cost_u": 5,
+          "crew_u": 2
+        },
+        "P3": {
+          "cost_u": 2,
+          "crew_u": 1
+        }
+      },
+      "outcomes": {
+        "normal_reference": {
+          "economic_value_u": 14,
+          "essential_service_points": 9,
+          "paid_work_opportunity_points": 11,
+          "ecological_quality_points": 15
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 11,
+          "essential_service_points": 8,
+          "paid_work_opportunity_points": 11,
+          "ecological_quality_points": 16
+        }
+      }
+    },
+    {
+      "project_ids": [
+        "P02",
+        "P04",
+        "P05",
+        "P06",
+        "P09"
+      ],
+      "period_cost_and_crew": {
+        "P1": {
+          "cost_u": 5,
+          "crew_u": 3
+        },
+        "P2": {
+          "cost_u": 5,
+          "crew_u": 2
+        },
+        "P3": {
+          "cost_u": 2,
+          "crew_u": 1
+        }
+      },
+      "outcomes": {
+        "normal_reference": {
+          "economic_value_u": 11,
+          "essential_service_points": 11,
+          "paid_work_opportunity_points": 14,
+          "ecological_quality_points": 17
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 8,
+          "essential_service_points": 10,
+          "paid_work_opportunity_points": 14,
+          "ecological_quality_points": 18
+        }
+      }
+    }
+  ],
+  "negative_control_expectations": {
+    "unknown_gate_project_id": "P07",
+    "project_P07_selected_count": 0,
+    "portfolios_violating_period_budget_returned": 0,
+    "portfolios_violating_crew_cap_returned": 0,
+    "portfolios_missing_prerequisite_returned": 0,
+    "portfolios_below_service_floor_in_any_scenario_returned": 0,
+    "interaction_adjustments_applied_more_than_once": 0
+  }
+}
