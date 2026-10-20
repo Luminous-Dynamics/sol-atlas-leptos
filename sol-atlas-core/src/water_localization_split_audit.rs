@@ -87,6 +87,8 @@ pub struct SplitAuditReceipt {
     pub family_count: usize,
     pub family_counts: Vec<FamilyCount>,
     pub cases: Vec<CaseFingerprint>,
+    /// Label-invariant color-refinement collisions that need curator review; not proof of isomorphism.
+    pub topology_review_candidates: Vec<TopologyReviewCandidate>,
     pub issues: Vec<AuditIssue>,
     pub claim_ceiling: String,
     pub nonclaims: Vec<String>,
@@ -114,10 +116,23 @@ pub struct CaseFingerprint {
     pub split: String,
     pub topology_family_id: String,
     pub topology_sha256: String,
+    /// Label-invariant WL-style signature. Collisions are review signals, not proof of graph isomorphism.
+    pub structural_topology_sha256: String,
     pub scenario_spec_sha256: String,
     pub observation_signature_sha256: String,
     pub observed_reading_count: usize,
     pub missing_reading_count: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+pub struct TopologyReviewCandidate {
+    pub structural_topology_sha256: String,
+    pub family_a: String,
+    pub split_a: String,
+    pub case_ids_a: Vec<String>,
+    pub family_b: String,
+    pub split_b: String,
+    pub case_ids_b: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -200,6 +215,76 @@ pub fn topology_sha256(graph: &TopologyGraph) -> Result<String, String> {
         ))
     });
     canonical_json_sha256(&CanonicalTopology { nodes, links })
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+struct CanonicalStructuralTopology {
+    algorithm: &'static str,
+    node_count: usize,
+    link_count: usize,
+    node_colors: Vec<usize>,
+    edge_colors: Vec<(usize, usize)>,
+}
+
+fn compress_structural_colors(signatures: &[String]) -> Vec<usize> {
+    let labels: BTreeSet<String> = signatures.iter().cloned().collect();
+    let ids: BTreeMap<String, usize> = labels.into_iter().enumerate()
+        .map(|(index, label)| (label, index)).collect();
+    signatures.iter().map(|signature| ids[signature]).collect()
+}
+
+/// Label-invariant 1-WL-style signature for an undirected topology.
+///
+/// This is only a candidate generator: non-isomorphic regular graphs can share
+/// a 1-WL signature. A cross-split collision needs curator review and is not a
+/// graph-isomorphism proof.
+pub fn structural_topology_sha256(graph: &TopologyGraph) -> Result<String, String> {
+    if !validate_graph(graph).is_empty() {
+        return Err("structural signature requires a structurally valid topology".to_owned());
+    }
+    let node_index: BTreeMap<&str, usize> = graph.nodes.iter().enumerate()
+        .map(|(index, node)| (node.as_str(), index)).collect();
+    let mut adjacency = vec![Vec::<usize>::new(); graph.nodes.len()];
+    let mut edges = Vec::with_capacity(graph.links.len());
+    for link in &graph.links {
+        let a = *node_index.get(link.from_node_id.as_str())
+            .ok_or_else(|| "structural signature has an unknown link endpoint".to_owned())?;
+        let b = *node_index.get(link.to_node_id.as_str())
+            .ok_or_else(|| "structural signature has an unknown link endpoint".to_owned())?;
+        adjacency[a].push(b);
+        adjacency[b].push(a);
+        edges.push((a, b));
+    }
+    let initial: Vec<String> = adjacency.iter()
+        .map(|neighbors| format!("degree:{}", neighbors.len())).collect();
+    let mut colors = compress_structural_colors(&initial);
+    // Descriptors include the prior color, so refinement can split but never merge classes.
+    for _ in 0..graph.nodes.len() {
+        let signatures: Vec<String> = adjacency.iter().enumerate().map(|(node, neighbors)| {
+            let mut neighbor_colors: Vec<usize> = neighbors.iter().map(|index| colors[*index]).collect();
+            neighbor_colors.sort_unstable();
+            format!("self:{}|neighbors:{:?}", colors[node], neighbor_colors)
+        }).collect();
+        let next = compress_structural_colors(&signatures);
+        let old_count = colors.iter().copied().max().unwrap_or(0) + 1;
+        let new_count = next.iter().copied().max().unwrap_or(0) + 1;
+        colors = next;
+        if new_count == old_count { break; }
+    }
+    let mut edge_colors: Vec<(usize, usize)> = edges.into_iter().map(|(a, b)| {
+        let (ca, cb) = (colors[a], colors[b]);
+        if ca <= cb { (ca, cb) } else { (cb, ca) }
+    }).collect();
+    edge_colors.sort_unstable();
+    let mut node_colors = colors;
+    node_colors.sort_unstable();
+    canonical_json_sha256(&CanonicalStructuralTopology {
+        algorithm: "water-topology-wl-1-v1",
+        node_count: graph.nodes.len(),
+        link_count: graph.links.len(),
+        node_colors,
+        edge_colors,
+    })
 }
 
 fn validate_graph(graph: &TopologyGraph) -> Vec<String> {
@@ -455,6 +540,8 @@ pub fn evaluate_split_plan(plan: &SplitPlan, raw_plan_sha256: &str) -> SplitAudi
     let mut scenario_split: BTreeMap<String, String> = BTreeMap::new();
     let mut family_members: BTreeMap<String, Vec<&SplitCase>> = BTreeMap::new();
     let mut case_fingerprints = Vec::new();
+    let mut structural_family_groups: BTreeMap<(String, String, String), BTreeSet<String>> =
+        BTreeMap::new();
 
     for case in &plan.cases {
         if !seen_case_ids.insert(case.case_id.as_str()) {
@@ -504,6 +591,20 @@ pub fn evaluate_split_plan(plan: &SplitPlan, raw_plan_sha256: &str) -> SplitAudi
                 continue;
             }
         };
+        let structural_digest = match structural_topology_sha256(&case.topology) {
+            Ok(value) => value,
+            Err(error) => {
+                issues.push(AuditIssue {
+                    code: "STRUCTURAL_TOPOLOGY_FINGERPRINT_FAILED".to_owned(),
+                    message: error,
+                    case_id: Some(case.case_id.clone()),
+                });
+                continue;
+            }
+        };
+        structural_family_groups.entry((
+            structural_digest.clone(), case.split.clone(), case.topology_family_id.clone()
+        )).or_default().insert(case.case_id.clone());
         if let Some(previous) =
             family_split.insert(case.topology_family_id.clone(), case.split.clone())
         {
@@ -586,6 +687,7 @@ pub fn evaluate_split_plan(plan: &SplitPlan, raw_plan_sha256: &str) -> SplitAudi
             split: case.split.clone(),
             topology_family_id: case.topology_family_id.clone(),
             topology_sha256: topology_digest,
+            structural_topology_sha256: structural_digest,
             scenario_spec_sha256: scenario_digest,
             observation_signature_sha256: observation_digest,
             observed_reading_count: case
@@ -643,6 +745,32 @@ pub fn evaluate_split_plan(plan: &SplitPlan, raw_plan_sha256: &str) -> SplitAudi
             });
         }
     }
+    let mut groups_by_signature: BTreeMap<String, Vec<(String, String, Vec<String>)>> =
+        BTreeMap::new();
+    for ((signature, split, family), case_ids) in structural_family_groups {
+        groups_by_signature.entry(signature).or_default()
+            .push((split, family, case_ids.into_iter().collect()));
+    }
+    let mut topology_review_candidates = Vec::new();
+    for (signature, groups) in groups_by_signature {
+        for left_index in 0..groups.len() {
+            for right_index in left_index + 1..groups.len() {
+                let (split_a, family_a, case_ids_a) = &groups[left_index];
+                let (split_b, family_b, case_ids_b) = &groups[right_index];
+                if split_a == split_b || family_a == family_b { continue; }
+                topology_review_candidates.push(TopologyReviewCandidate {
+                    structural_topology_sha256: signature.clone(),
+                    family_a: family_a.clone(),
+                    split_a: split_a.clone(),
+                    case_ids_a: case_ids_a.clone(),
+                    family_b: family_b.clone(),
+                    split_b: split_b.clone(),
+                    case_ids_b: case_ids_b.clone(),
+                });
+            }
+        }
+    }
+    topology_review_candidates.sort();
     case_fingerprints.sort_by(|left, right| left.case_id.cmp(&right.case_id));
     family_counts.sort_by(|left, right| left.topology_family_id.cmp(&right.topology_family_id));
     issues.sort_by(|left, right| {
@@ -668,9 +796,17 @@ pub fn evaluate_split_plan(plan: &SplitPlan, raw_plan_sha256: &str) -> SplitAudi
         passed = false;
     }
 
+    let run_state = if !passed {
+        "Rejected"
+    } else if !topology_review_candidates.is_empty() {
+        "NeedsTopologyReview"
+    } else {
+        "Passed"
+    };
+
     SplitAuditReceipt {
         schema_version: RECEIPT_SCHEMA_VERSION.to_owned(),
-        run_state: if passed { "Passed" } else { "Rejected" }.to_owned(),
+        run_state: run_state.to_owned(),
         benchmark_id: plan.benchmark_id.clone(),
         protocol: plan.protocol.clone(),
         plan_sha256: raw_plan_sha256.to_owned(),
@@ -679,6 +815,7 @@ pub fn evaluate_split_plan(plan: &SplitPlan, raw_plan_sha256: &str) -> SplitAudi
         family_count: family_counts.len(),
         family_counts,
         cases: case_fingerprints,
+        topology_review_candidates,
         issues,
         claim_ceiling: CLAIM_CEILING.to_owned(),
         nonclaims: vec![
