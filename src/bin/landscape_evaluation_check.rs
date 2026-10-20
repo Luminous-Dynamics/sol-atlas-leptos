@@ -121,6 +121,19 @@ mod tests {
     }
 
     #[test]
+    fn report_schema_contract_matches_cli_output() {
+        let schema: Value = serde_json::from_str(include_str!(
+            "../../schemas/landscape-evaluation-validation-report-v0.schema.json"
+        ))
+        .unwrap();
+        let report = validate_bytes(&valid_fixture());
+        assert_eq!(schema["$id"], REPORT_SCHEMA_URI);
+        assert_eq!(schema["properties"]["report_schema"]["const"], REPORT_SCHEMA);
+        assert_eq!(report["report_schema"], schema["properties"]["report_schema"]["const"]);
+        assert_eq!(report["schema_uri"], schema["properties"]["schema_uri"]["const"]);
+    }
+
+    #[test]
     fn valid_fixture_produces_repeatable_success_report() {
         let bytes = valid_fixture();
         let first = validate_bytes(&bytes);
@@ -147,19 +160,20 @@ mod tests {
     #[test]
     fn unsupported_plan_is_rejected_without_losing_input_digest() {
         let mut plan: Value = serde_json::from_slice(&valid_fixture()).unwrap();
-        plan["scope"] = json!("planetary");
+        plan["project_scope"] = json!("planetary");
+        plan["unexpected"] = json!(true);
         let bytes = serde_json::to_vec(&plan).unwrap();
         let report = validate_bytes(&bytes);
 
         assert_eq!(report["valid"], false);
         assert_eq!(report["input_sha256"], format!("{:x}", Sha256::digest(&bytes)));
-        assert!(
-            report["errors"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .any(|error| error.as_str().unwrap().contains("unknown field"))
-        );
+        let errors = report["errors"].as_array().unwrap();
+        assert!(errors.iter().any(|error| {
+            error.as_str().unwrap().contains("unknown field")
+        }));
+        assert!(errors.iter().any(|error| {
+            error.as_str().unwrap().contains("unsupported planning scope")
+        }));
     }
 
     #[test]
