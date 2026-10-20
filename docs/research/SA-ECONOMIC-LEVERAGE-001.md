@@ -54,6 +54,49 @@ The ratings below are **qualitative research judgements**, not measured economic
 - **Best route to inclusive employment:** make real maintenance, repair, asset inventory, metering, materials recovery and field verification into safely paid work purchased by real operators—not speculative gigs.
 - **Highest long-run urban productivity opportunity:** bring people and jobs closer through housing, transport, land-use and service planning, but this is slower and more politically / institutionally complex.
 
+### Multi-objective decision rule
+
+**Yes: both the long-term South African development portfolio and each intervention should be multi-objective, but the objectives must be organized instead of naively summed.** A national economic-loss figure, a company's ROI, household service quality, paid employment, ecological benefit and resilience are different kinds of value. They are related, but cannot be assumed commensurable or automatically attributed to the same actor.
+
+Use a three-stage decision architecture:
+
+1. **Feasibility / hard constraints first.** Reject or pause options that violate applicable law, safety, rights, privacy, essential-service floors, required environmental constraints, budget limits or authorization. Constraints must be explicit and attributable to a responsible authority. Do not allow high financial scores to compensate for a hard-floor violation.
+2. **Multi-objective comparison second.** For the remaining feasible options, report separate dimensions and the Pareto frontier. A candidate is Pareto-dominated if another feasible candidate is no worse on every declared objective and is strictly better on at least one. Retain the non-dominated options so genuine trade-offs stay visible.
+3. **Decision / portfolio selection third.** Select among feasible, non-dominated alternatives using an accountable decision-maker's explicitly stated priorities, budget and risk tolerance. Show sensitivity to reasonable weight / assumption changes and disclose who chose the weights. If the selection changes sharply under small weight changes, describe the result as preference-sensitive rather than an objective winner.
+
+For decisions where a scalar is operationally required (such as a specific customer's business case), use an agreed cost-benefit / multi-criteria method for that decision only. Do not promote the resulting private ROI score into a national-wellbeing score. Monetary benefits and costs should be estimated directly where defensible; qualitative or non-monetized criteria should remain visible and must not be given arbitrary monetary values merely to force a single ranking.
+
+#### Shared objective dimensions
+
+| Dimension | Example measures | What it must not hide |
+|---|---|---|
+| Financial / productive value | Cashable cost reduction, verified additional revenue, avoided downtime contribution margin, net present value, payback, sensitivity | Benefits belonging to different actors; double counting; public value that is not cashable by the buyer |
+| Essential-service quality | Availability, delivered quantity / quality, verified restoration time, repeat-fault rate, unmet demand | Poor service in a specific community masked by aggregate performance |
+| Equity / inclusion | Distribution of benefit, affordability, access by locality and income group where lawful and reliable | Who carries costs, who is excluded, or who loses a service |
+| Employment / capability | Actual wages, paid hours, safe work, recognized skills, 6-/12-month retention, local supplier value captured | A task, training enrolment or temporary placement being described as a durable job |
+| Resilience / option value | Recovery time, critical dependencies, performance under declared stress cases, redundancy | Stress scenarios being misrepresented as probability-weighted forecasts when probabilities are unknown |
+| Environment / resource sustainability | Measured energy/water/material use, emissions where defensible, waste and lifecycle effects | Burden-shifting from one resource, community or lifecycle stage to another |
+| Durability / maintainability | Total lifecycle cost, repairability, operating skills, vendor concentration, support burden, replacement needs | Cheap deployment being treated as low lifetime cost |
+| Evidence / uncertainty | Source coverage, uncertainty intervals, stale / unknown rates, reproducibility, independent verification | False precision or an apparent win caused by dropping hard cases |
+
+Keep the number of **primary objectives for each pilot small enough to measure well**. A practical pilot should nominate one primary operational outcome, one fully accounted economic outcome, and a compact set of hard floors and distributional / environmental guardrails. Additional dimensions can be secondary / exploratory, clearly labeled in advance. Do not change primary outcomes after seeing the results.
+
+#### Two levels of multi-objective optimization
+
+- **Intervention level:** Which maintenance action, schedule, site or operating policy performs best for this service owner under the same constraints and scenarios?
+- **Portfolio level:** Given limited people, funding and calendar time, which combination of opportunities balances near-term cash sustainability, measurable public benefit, learning value, reuse across regions, risk and long-term capability-building?
+
+These should not be conflated. A pilot with modest immediate ROI might be valuable for validated infrastructure capability or reusable data contracts, but that strategic option value should be stated separately rather than smuggled into the customer's measured ROI. Conversely, a high-ROI private pilot is not automatically the best use of the public-interest portfolio if benefits are narrow, risks are high or distributional outcomes are poor.
+
+#### Avoid a false sense of mathematical objectivity
+
+Pareto analysis and multi-criteria decision analysis make choices more explicit; they do not discover an objectively correct set of human values. Criterion selection, thresholds, weights and scenario coverage are normative choices. Record who selected them, consult affected stakeholders, disclose conflicts of interest, include sensitivity analysis and preserve a human-readable explanation / appeal path. Use robust ranges where inputs are uncertain, rather than spurious precision.
+
+This approach is consistent with the World Bank's Infrastructure Prioritization Framework, which separates financial-economic and social-environmental dimensions and advises that criteria, weighting and sensitivity analysis be transparent and open to third-party review. OECD guidance also recommends integrated assessments that highlight trade-offs, risk and uncertainty rather than make judgments in place of decision-makers:
+- https://ppp.worldbank.org/library/infrastructure-prioritization-framework-ipf
+- https://www.oecd.org/content/dam/oecd/en/publications/reports/2021/07/oecd-implementation-handbook-for-quality-infrastructure-investment_b9131199/479131b2-en.pdf
+- https://legalinstruments.oecd.org/public/doc/49/49.en.pdf
+
 ## 3. Economic value model: calculate only what we can defend
 
 Do not multiply a national loss statistic by an assumed software savings percentage and call it the opportunity. First choose a customer / operational boundary, a time period, and a counterfactual.
