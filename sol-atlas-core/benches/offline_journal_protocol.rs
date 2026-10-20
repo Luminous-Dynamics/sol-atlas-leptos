@@ -159,6 +159,13 @@ fn run_benchmark<T, F>(
 ) where
     F: FnMut() -> T,
 {
+    // Warm the code path and payload-size cohort outside timed samples.
+    // Cap the warm-up so the largest payloads do not dominate the benchmark run.
+    let warmup_iterations = iterations.min(8);
+    for _ in 0..warmup_iterations {
+        black_box(operation_fn());
+    }
+
     let mut per_operation_ns = Vec::with_capacity(samples);
     for sample_index in 0..samples {
         let started = Instant::now();
