@@ -429,10 +429,42 @@ fn parse_power_trace(
     ))
 }
 
-fn build_trace_input(power_csv: &[u8], manifest_bytes: &[u8]) -> Result<Value, String> {
+fn build_trace_input(
+    power_csv: &[u8],
+    manifest_bytes: &[u8],
+    runtime_environment_bytes: Option<&[u8]>,
+) -> Result<Value, String> {
     let manifest: RunManifest = serde_json::from_slice(manifest_bytes)
         .map_err(|error| format!("could not parse strict run manifest JSON: {error}"))?;
     validate_manifest(&manifest)?;
+
+    match (
+        manifest.runtime_environment_manifest_path.as_deref(),
+        manifest.runtime_environment_sha256.as_deref(),
+        runtime_environment_bytes,
+    ) {
+        (Some(_), Some(expected_digest), Some(environment_bytes)) => {
+            let actual_digest = sha256_hex(environment_bytes);
+            if actual_digest != expected_digest {
+                return Err(
+                    "runtime environment manifest bytes do not match the declared SHA-256"
+                        .to_owned(),
+                );
+            }
+        }
+        (None, None, None) if manifest.synthetic => {}
+        (None, None, None) => {
+            return Err(
+                "non-synthetic runs require a runtime environment manifest artifact".to_owned(),
+            );
+        }
+        _ => {
+            return Err(
+                "runtime environment artifact path, digest and provided bytes must agree"
+                    .to_owned(),
+            );
+        }
+    }
 
     let csv_text = std::str::from_utf8(power_csv)
         .map_err(|error| format!("power trace must be UTF-8 CSV: {error}"))?;
@@ -546,7 +578,7 @@ mod tests {
 
     #[test]
     fn known_answer_trace_preserves_source_errors_and_receipt_digests() {
-        let output = build_trace_input(TRACE.as_bytes(), MANIFEST.as_bytes())
+        let output = build_trace_input(TRACE.as_bytes(), MANIFEST.as_bytes(), None)
             .expect("known-answer FlexDC-Sim trace should adapt");
         assert_eq!(output["synthetic"], true);
         assert_eq!(output["claim_ceiling"], "metric_accounting_only");
@@ -598,7 +630,7 @@ mod tests {
         assert_eq!(output["synthetic"], true);
 
         let real_run_manifest = MANIFEST.replace("\"synthetic\": true", "\"synthetic\": false");
-        let output = build_trace_input(TRACE.as_bytes(), real_run_manifest.as_bytes())
+        let output = build_trace_input(TRACE.as_bytes(), real_run_manifest.as_bytes(), None)
             .expect("manifest with a non-synthetic run flag should adapt");
         assert_eq!(output["synthetic"], false);
     }
