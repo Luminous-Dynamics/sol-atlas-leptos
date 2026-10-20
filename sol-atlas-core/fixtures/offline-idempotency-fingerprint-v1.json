@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "description": "Frozen RFC 8785/JCS scoped request fingerprint vectors for independent client/service implementations.",
+  "algorithm": "SHA-256(JCS(JSON fingerprint material)); material excludes idempotency_key because the scoped ledger key indexes the fingerprint separately.",
+  "vectors": [
+    {
+      "case_id": "base_explicit_null_parent",
+      "tenant_scope": "tenant-001",
+      "operation_namespace": "work-order.apply",
+      "envelope": {
+        "schema_version": 2,
+        "operation_id": "op-001",
+        "aggregate_id": "job-001",
+        "expected_revision": 7,
+        "payload_digest_sha256": "43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
+        "idempotency_key": "idem-001",
+        "supersedes_operation_id": null
+      },
+      "payload_json": "{ \"b\": 2, \"a\": 1.0 }",
+      "canonical_payload_utf8": "{\"a\":1,\"b\":2}",
+      "canonical_material_utf8": "{\"aggregate_id\":\"job-001\",\"envelope_schema_version\":2,\"expected_revision_decimal\":\"7\",\"fingerprint_schema_version\":1,\"operation_id\":\"op-001\",\"operation_namespace\":\"work-order.apply\",\"payload_digest_sha256\":\"43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"supersedes_operation_id\":null,\"tenant_scope\":\"tenant-001\"}",
+      "request_fingerprint_sha256": "b9bbfd55bce0d1c29224872f235b2750d124ab0f5bf5ae3382dcc4072c82a1d3"
+    },
+    {
+      "case_id": "tenant_scope_changes_fingerprint",
+      "tenant_scope": "tenant-002",
+      "operation_namespace": "work-order.apply",
+      "envelope": {
+        "schema_version": 2,
+        "operation_id": "op-001",
+        "aggregate_id": "job-001",
+        "expected_revision": 7,
+        "payload_digest_sha256": "43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
+        "idempotency_key": "idem-001",
+        "supersedes_operation_id": null
+      },
+      "payload_json": "{ \"b\": 2, \"a\": 1.0 }",
+      "canonical_payload_utf8": "{\"a\":1,\"b\":2}",
+      "canonical_material_utf8": "{\"aggregate_id\":\"job-001\",\"envelope_schema_version\":2,\"expected_revision_decimal\":\"7\",\"fingerprint_schema_version\":1,\"operation_id\":\"op-001\",\"operation_namespace\":\"work-order.apply\",\"payload_digest_sha256\":\"43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"supersedes_operation_id\":null,\"tenant_scope\":\"tenant-002\"}",
+      "request_fingerprint_sha256": "af025a506654240d8f3e5e5a48b862296edd2641cbd11ee4876a7437bcfd53f2"
+    },
+    {
+      "case_id": "operation_namespace_changes_fingerprint",
+      "tenant_scope": "tenant-001",
+      "operation_namespace": "work-order.cancel",
+      "envelope": {
+        "schema_version": 2,
+        "operation_id": "op-001",
+        "aggregate_id": "job-001",
+        "expected_revision": 7,
+        "payload_digest_sha256": "43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
+        "idempotency_key": "idem-001",
+        "supersedes_operation_id": null
+      },
+      "payload_json": "{ \"b\": 2, \"a\": 1.0 }",
+      "canonical_payload_utf8": "{\"a\":1,\"b\":2}",
+      "canonical_material_utf8": "{\"aggregate_id\":\"job-001\",\"envelope_schema_version\":2,\"expected_revision_decimal\":\"7\",\"fingerprint_schema_version\":1,\"operation_id\":\"op-001\",\"operation_namespace\":\"work-order.cancel\",\"payload_digest_sha256\":\"43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"supersedes_operation_id\":null,\"tenant_scope\":\"tenant-001\"}",
+      "request_fingerprint_sha256": "69328686b65d9c85f1bbe82591837d611150ac6ecae2e346c0a5c0b94d8bb20e"
+    },
+    {
+      "case_id": "operation_id_changes_fingerprint",
+      "tenant_scope": "tenant-001",
+      "operation_namespace": "work-order.apply",
+      "envelope": {
+        "schema_version": 2,
+        "operation_id": "op-002",
+        "aggregate_id": "job-001",
+        "expected_revision": 7,
+        "payload_digest_sha256": "43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
+        "idempotency_key": "idem-001",
+        "supersedes_operation_id": null
+      },
+      "payload_json": "{ \"b\": 2, \"a\": 1.0 }",
+      "canonical_payload_utf8": "{\"a\":1,\"b\":2}",
+      "canonical_material_utf8": "{\"aggregate_id\":\"job-001\",\"envelope_schema_version\":2,\"expected_revision_decimal\":\"7\",\"fingerprint_schema_version\":1,\"operation_id\":\"op-002\",\"operation_namespace\":\"work-order.apply\",\"payload_digest_sha256\":\"43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"supersedes_operation_id\":null,\"tenant_scope\":\"tenant-001\"}",
+      "request_fingerprint_sha256": "c0bdae0efdd6f1f1800ad5a231b73b9913ec62559e6241e1a569d312ffba7d9a"
+    },
+    {
+      "case_id": "aggregate_id_changes_fingerprint",
+      "tenant_scope": "tenant-001",
+      "operation_namespace": "work-order.apply",
+      "envelope": {
+        "schema_version": 2,
+        "operation_id": "op-001",
+        "aggregate_id": "job-002",
+        "expected_revision": 7,
+        "payload_digest_sha256": "43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
+        "idempotency_key": "idem-001",
+        "supersedes_operation_id": null
+      },
+      "payload_json": "{ \"b\": 2, \"a\": 1.0 }",
+      "canonical_payload_utf8": "{\"a\":1,\"b\":2}",
+      "canonical_material_utf8": "{\"aggregate_id\":\"job-002\",\"envelope_schema_version\":2,\"expected_revision_decimal\":\"7\",\"fingerprint_schema_version\":1,\"operation_id\":\"op-001\",\"operation_namespace\":\"work-order.apply\",\"payload_digest_sha256\":\"43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"supersedes_operation_id\":null,\"tenant_scope\":\"tenant-001\"}",
+      "request_fingerprint_sha256": "374a2abef9caa006a7f2099f01436c41558de742f6d1187cb91e0ddbaf25ac4d"
+    },
+    {
+      "case_id": "expected_revision_changes_fingerprint",
+      "tenant_scope": "tenant-001",
+      "operation_namespace": "work-order.apply",
+      "envelope": {
+        "schema_version": 2,
+        "operation_id": "op-001",
+        "aggregate_id": "job-001",
+        "expected_revision": 8,
+        "payload_digest_sha256": "43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
+        "idempotency_key": "idem-001",
+        "supersedes_operation_id": null
+      },
+      "payload_json": "{ \"b\": 2, \"a\": 1.0 }",
+      "canonical_payload_utf8": "{\"a\":1,\"b\":2}",
+      "canonical_material_utf8": "{\"aggregate_id\":\"job-001\",\"envelope_schema_version\":2,\"expected_revision_decimal\":\"8\",\"fingerprint_schema_version\":1,\"operation_id\":\"op-001\",\"operation_namespace\":\"work-order.apply\",\"payload_digest_sha256\":\"43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"supersedes_operation_id\":null,\"tenant_scope\":\"tenant-001\"}",
+      "request_fingerprint_sha256": "54adaea2c50e26d234ec2c298481ccf2d5cdbbf4949bb2caa17efd697ef61279"
+    },
+    {
+      "case_id": "supersession_parent_changes_fingerprint",
+      "tenant_scope": "tenant-001",
+      "operation_namespace": "work-order.apply",
+      "envelope": {
+        "schema_version": 2,
+        "operation_id": "op-001",
+        "aggregate_id": "job-001",
+        "expected_revision": 7,
+        "payload_digest_sha256": "43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
+        "idempotency_key": "idem-001",
+        "supersedes_operation_id": "op-parent"
+      },
+      "payload_json": "{ \"b\": 2, \"a\": 1.0 }",
+      "canonical_payload_utf8": "{\"a\":1,\"b\":2}",
+      "canonical_material_utf8": "{\"aggregate_id\":\"job-001\",\"envelope_schema_version\":2,\"expected_revision_decimal\":\"7\",\"fingerprint_schema_version\":1,\"operation_id\":\"op-001\",\"operation_namespace\":\"work-order.apply\",\"payload_digest_sha256\":\"43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"supersedes_operation_id\":\"op-parent\",\"tenant_scope\":\"tenant-001\"}",
+      "request_fingerprint_sha256": "f762be507b4da61cf34af900b868115939a0ec6b134a3169e6327079af73d330"
+    },
+    {
+      "case_id": "key_is_scoped_separately_from_fingerprint",
+      "tenant_scope": "tenant-001",
+      "operation_namespace": "work-order.apply",
+      "envelope": {
+        "schema_version": 2,
+        "operation_id": "op-001",
+        "aggregate_id": "job-001",
+        "expected_revision": 7,
+        "payload_digest_sha256": "43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
+        "idempotency_key": "idem-002",
+        "supersedes_operation_id": null
+      },
+      "payload_json": "{ \"b\": 2, \"a\": 1.0 }",
+      "canonical_payload_utf8": "{\"a\":1,\"b\":2}",
+      "canonical_material_utf8": "{\"aggregate_id\":\"job-001\",\"envelope_schema_version\":2,\"expected_revision_decimal\":\"7\",\"fingerprint_schema_version\":1,\"operation_id\":\"op-001\",\"operation_namespace\":\"work-order.apply\",\"payload_digest_sha256\":\"43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"supersedes_operation_id\":null,\"tenant_scope\":\"tenant-001\"}",
+      "request_fingerprint_sha256": "b9bbfd55bce0d1c29224872f235b2750d124ab0f5bf5ae3382dcc4072c82a1d3"
+    }
+  ]
+}

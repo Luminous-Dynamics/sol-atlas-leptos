@@ -19,12 +19,18 @@ The server must accept the operation envelope and raw payload body, then indepen
    - principal or tenant scope;
    - operation ID and aggregate ID;
    - expected aggregate revision;
-   - idempotency key (as the key, not recursively inside its fingerprint);
    - canonical payload digest;
    - explicit supersession/conflict lineage.
-4. Persist an authoritative server-computed fingerprint. Do not trust a client-supplied fingerprint without recomputation.
+4. Use the idempotency key as a unique, separately indexed ledger key; do not include the key itself inside the fingerprint material. Persist an authoritative server-computed fingerprint. Do not trust a client-supplied fingerprint without recomputation.
 
-Use a versioned, unambiguous encoding for the fingerprint. A canonical object with a declared domain/version separator is acceptable; alternatively, use a specified length-prefixed tuple. Document the exact byte construction and freeze cross-language test vectors. Never concatenate arbitrary strings without boundaries.
+The shared Rust reference primitive is now available in `sol-atlas-core::offline_idempotency_fingerprint`:
+
+- `canonical_request_fingerprint_material` returns the exact canonical JCS UTF-8 bytes;
+- `canonical_request_fingerprint_sha256` returns lowercase SHA-256 over those bytes.
+
+Fingerprint schema v1 binds the tenant scope, operation namespace, envelope schema version, operation ID, aggregate ID, exact expected revision (encoded as decimal text to avoid unsafe IEEE-754 numbers), payload digest, and explicit nullable supersession lineage. It excludes the idempotency key because the server's unique ledger key indexes that fingerprint separately. The server must derive tenant/route scope from authenticated context, not accept an arbitrary client-selected scope as authoritative.
+
+The frozen eight-vector corpus at `sol-atlas-core/fixtures/offline-idempotency-fingerprint-v1.json` locks both canonical material bytes and resulting digests, including tenant/namespace changes, operation/aggregate/revision changes, lineage changes, and the separate-key rule. Independent service implementations should consume that same file and compare bytes and digests exactly. The Rust tests only establish the Rust implementation's conformance to this corpus; no second server runtime is implemented here.
 
 ## Durable ledger and atomic effects
 
