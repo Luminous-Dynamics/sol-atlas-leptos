@@ -165,9 +165,32 @@ mod tests {
     use crate::offline_journal::{
         OFFLINE_JOURNAL_SCHEMA_VERSION, OperationEnvelope, RequiredNullableOperationId,
     };
-    use crate::offline_payload_digest::canonical_payload_digest_sha256;
+    use crate::offline_payload_digest::{CanonicalPayload, canonical_payload_digest_sha256};
+    use serde::Deserialize;
 
     const PAYLOAD: &str = r#"{ "b": 2, "a": 1.0 }"#;
+
+    #[derive(Debug, Deserialize)]
+    #[serde(deny_unknown_fields)]
+    struct FingerprintCorpus {
+        schema_version: u16,
+        description: String,
+        algorithm: String,
+        vectors: Vec<FingerprintVector>,
+    }
+
+    #[derive(Debug, Deserialize)]
+    #[serde(deny_unknown_fields)]
+    struct FingerprintVector {
+        case_id: String,
+        tenant_scope: String,
+        operation_namespace: String,
+        envelope: OperationEnvelope,
+        payload_json: String,
+        canonical_payload_utf8: String,
+        canonical_material_utf8: String,
+        request_fingerprint_sha256: String,
+    }
 
     fn envelope() -> OperationEnvelope {
         OperationEnvelope {
@@ -189,6 +212,54 @@ mod tests {
             payload,
         )
         .unwrap()
+    }
+
+    #[test]
+    fn frozen_cross_implementation_corpus_matches_bytes_and_hashes() {
+        let corpus: FingerprintCorpus = serde_json::from_str(include_str!(
+            "../fixtures/offline-idempotency-fingerprint-v1.json"
+        ))
+        .expect("fingerprint corpus must match its frozen schema");
+        assert_eq!(corpus.schema_version, 1);
+        assert!(!corpus.description.trim().is_empty());
+        assert!(!corpus.algorithm.trim().is_empty());
+        assert_eq!(corpus.vectors.len(), 8);
+
+        for vector in corpus.vectors {
+            let payload = CanonicalPayload::from_json(&vector.payload_json)
+                .unwrap_or_else(|error| panic!("{}: {error}", vector.case_id));
+            assert_eq!(
+                String::from_utf8(payload.canonical_utf8().to_vec()).unwrap(),
+                vector.canonical_payload_utf8,
+                "canonical payload for {}",
+                vector.case_id
+            );
+            let material = canonical_request_fingerprint_material(
+                &vector.tenant_scope,
+                &vector.operation_namespace,
+                &vector.envelope,
+                &vector.payload_json,
+            )
+            .unwrap_or_else(|error| panic!("{}: {error}", vector.case_id));
+            assert_eq!(
+                String::from_utf8(material).unwrap(),
+                vector.canonical_material_utf8,
+                "canonical material for {}",
+                vector.case_id
+            );
+            assert_eq!(
+                canonical_request_fingerprint_sha256(
+                    &vector.tenant_scope,
+                    &vector.operation_namespace,
+                    &vector.envelope,
+                    &vector.payload_json,
+                )
+                .unwrap(),
+                vector.request_fingerprint_sha256,
+                "fingerprint for {}",
+                vector.case_id
+            );
+        }
     }
 
     #[test]
