@@ -101,14 +101,25 @@ Report frontier preservation, selected-portfolios sensitivity to criterion chang
 ### Real-world promotion
 Before real project data are admitted, secure permissions and source vintages, define ownership and decision rights, validate each domain model separately, define outcomes and counterfactual method, review privacy/equity/environmental risk and name an independent evaluator. Real cost and benefit estimates must remain separate by actor and must not double-count household, provider and public-sector value.
 
-## 7. Immediate implementation sequence
+## 7. Current implementation and next gates
 
-1. Review this DTO/fixture boundary against Sol-Atlas #132/#137/#133, #152/#153/#155 and Symtropy #1874.
-2. Implement a small deterministic Rust reference oracle, isolated from the UI and physical models.
-3. Add mutation tests for every hostile case; compare generated subsets against an independently written test oracle.
-4. Produce deterministic machine-readable receipts and benchmark counters.
-5. Only after tiny-corpus parity, add randomized synthetic instances and compare with B1–B4.
-6. Connect real Sol-Atlas service evidence only when the source and domain-adapter gates pass.
+The initial reference implementation is now authored in `tools/sa-economic-portfolio-oracle/` as a standalone Rust crate, with no UI or physical-model dependency. It:
+- validates the frozen v0.1 input semantics and rejects over-cap inputs rather than truncating;
+- enumerates every subset and applies evidence, dependency/stage, period-budget, crew-cap and every-scenario service-floor constraints;
+- applies only the versioned T+W complement and A+F overlap adjustment;
+- returns all feasible portfolios and the complete scenario-wise frontier in canonical order;
+- emits a deterministic JSON receipt that includes the exact input-byte SHA-256; and
+- has unit tests for the 22-feasible/four-frontier known answer, row-order invariance, UNKNOWN-gate exclusion, unknown prerequisites, over-cap rejection, and interaction accounting.
+
+The authored Rust tests have **not** been represented as passing until the dedicated exact-head workflow completes. A separate evaluator used during fixture preparation parsed the committed JSON, checked the input against its schema, exhaustively enumerated all 256 subsets, and matched the frozen 22-portfolios / four-frontier manifest. This independent fixture check does not compile or execute the Rust crate.
+
+Next gates:
+1. Require a successful exact-head [SA economic portfolio oracle workflow](../../../.github/workflows/sa-economic-portfolio-oracle.yml); queued, missing or stale checks are not passes.
+2. Fix any compiler, formatting or test failures on a new exact head and rerun the workflow.
+3. Add mutation tests for budget overruns, each hard floor, interaction-rule revisions and corrupted expected manifests.
+4. Compare a transparent greedy, predeclared weighted-sum and individual-project-Pareto-then-budget baseline on the same corpus; freeze more cases before reporting scale.
+5. Add generated synthetic instances and compare larger cases against an independently configured MILP / CP-SAT / appropriate OR solver with matching constraints and budgets.
+6. Connect real Sol-Atlas service evidence only when source permissions, source-time semantics and domain-adapter gates pass.
 
 ## 8. Industry / research anchors
 
