@@ -23,6 +23,9 @@ on:
       - "schemas/flexdc-sim-run-manifest-v1.schema.json"
       - "schemas/examples/flexdc-sim-run-manifest-v1.synthetic.json"
       - "schemas/examples/flexdc-sim-power-trace.synthetic.csv"
+      - "sol-atlas-core/src/bin/flexdc_trace_adapter.rs"
+      - "sol-atlas-core/src/bin/demand_response_assess.rs"
+      - "sol-atlas-core/src/demand_response_metrics.rs"
       - "tools/validate_demand_response_schemas.py"
       - ".github/workflows/demand-response-schema.yml"
   workflow_dispatch:
