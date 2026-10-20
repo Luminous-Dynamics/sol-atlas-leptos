@@ -137,9 +137,9 @@ fn validate_manifest(manifest: &RunManifest) -> Result<(), String> {
     }
     let python_version_parts = manifest.python_version.split('.').collect::<Vec<_>>();
     if python_version_parts.len() != 3
-        || python_version_parts.iter().any(|part| {
-            part.is_empty() || !part.bytes().all(|byte| byte.is_ascii_digit())
-        })
+        || python_version_parts
+            .iter()
+            .any(|part| part.is_empty() || !part.bytes().all(|byte| byte.is_ascii_digit()))
     {
         return Err(
             "manifest.python_version must be an exact major.minor.patch version".to_owned(),
@@ -160,9 +160,7 @@ fn validate_manifest(manifest: &RunManifest) -> Result<(), String> {
         }
         _ => {}
     }
-    if !manifest.qos_percentile.is_finite()
-        || manifest.qos_percentile != PINNED_QOS_PERCENTILE
-    {
+    if !manifest.qos_percentile.is_finite() || manifest.qos_percentile != PINNED_QOS_PERCENTILE {
         return Err(format!(
             "manifest.qos_percentile must match the pinned simulator default {PINNED_QOS_PERCENTILE}"
         ));
@@ -663,8 +661,7 @@ mod tests {
                 .contains("runtime environment manifest")
         );
 
-        manifest.runtime_environment_sha256 =
-            Some("a".repeat(64));
+        manifest.runtime_environment_sha256 = Some("a".repeat(64));
         assert!(validate_manifest(&manifest).is_ok());
     }
 
