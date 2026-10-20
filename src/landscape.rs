@@ -43,7 +43,6 @@ const FEATURE_KEYS: &[&str] = &[
     "geometry_representation",
 ];
 
-
 /// Create a deterministic synthetic scene using the LCG algorithm pinned in
 /// benchmarks/landscape/workloads-v0.json. The output is benchmark data, not a
 /// user-authored proposal or a geospatial/physical model.
@@ -421,7 +420,11 @@ mod tests {
         snapshot["features"][1]["source"] = Value::String(USER_AUTHORED_SOURCE.to_string());
 
         let errors = validate_snapshot(&snapshot).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("status/source must agree")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("status/source must agree"))
+        );
     }
 
     #[test]
