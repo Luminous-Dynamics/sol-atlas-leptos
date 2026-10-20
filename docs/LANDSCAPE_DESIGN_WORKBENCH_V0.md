@@ -27,12 +27,13 @@ Route: **/design/landscape**.
 - Interaction: select tool; click canvas to place; undo latest placement; reset to deterministic starter plan.
 - Scope context: site/parcel, district, watershed, bioregion. In v0 this labels the intended planning context; it does not rescale or georeference the geometry.
 - Layer controls: measurement grid and illustrative contours.
-- Export: visible, parseable native JSON draft snapshot with schema version, scope, stable feature IDs, local drawing-unit coordinates, source/status tags, and an explicit georeferenced=false declaration.
+- Project metadata: editable project name in the UI.
+- Export: visible, downloadable, parseable native JSON draft snapshot with schema version, scope, stable feature IDs, local drawing-unit coordinates, source/status tags, and an explicit georeferenced=false declaration.
 - Local-first: this slice does not upload or remotely save the design.
 
 ### Symbol geometry contract
 
-The rendered marks are symbols. A feature snapshot currently stores a symbol anchor, not full plant polygons, path centerlines, hydraulic geometry, or surveyed footprints; do not use the icon extents for quantities, simulation, or construction documents.
+The rendered marks are symbols. A feature snapshot currently stores a symbol anchor, not full plant polygons, path centerlines, hydraulic geometry, or surveyed footprints; the snapshot contains only the feature anchor and does not preserve symbol footprint or stroke extents. Do not use icon extents for quantities, simulation, or construction documents.
 
 ### Coordinate contract
 
