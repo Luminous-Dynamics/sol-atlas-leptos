@@ -25,22 +25,44 @@ jobs:
         with:
           toolchain: 1.96.0
           components: rustfmt, clippy
+      - name: Install independent Draft 2020-12 validator
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install pinned schema-validation dependency
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv "$RUNNER_TEMP/jsonschema-venv"
+          "$RUNNER_TEMP/jsonschema-venv/bin/pip" install --disable-pip-version-check --no-input "jsonschema==4.26.0"
       - name: Check core formatting
         run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml -- --check
       - name: Run the focused intertemporal allocation contract tests
         run: cargo test --manifest-path sol-atlas-core/Cargo.toml service_intertemporal_allocation::tests
       - name: Deny Clippy correctness and suspicious lints
         run: cargo clippy --manifest-path sol-atlas-core/Cargo.toml --all-targets -- -D clippy::correctness -D clippy::suspicious
-      - name: Check frozen schema and synthetic fixture JSON
+      - name: Validate request schema and fixture with full Draft 2020-12 implementation
         shell: bash
         run: |
           set -euo pipefail
-          request_schema="schemas/spatial-economic-intertemporal-allocation-v0.1.schema.json"
-          receipt_schema="schemas/spatial-economic-intertemporal-assessment-v0.1.schema.json"
-          fixture="schemas/examples/intertemporal-tank-two-step.synthetic.json"
-          jq -e '."$schema" == "https://json-schema.org/draft/2020-12/schema" and .properties.max_candidate_plans.maximum == 1000000' "$request_schema" >/dev/null
-          jq -e '."$schema" == "https://json-schema.org/draft/2020-12/schema" and .properties.disposition.enum == ["optimal","indeterminate_input","infeasible","search_cap_exceeded"]' "$receipt_schema" >/dev/null
-          jq -e '.design_role == "candidate" and .policy == "essential_floor_first" and (.time_steps | length) == 2 and .resources[0].inventory.terminal_reserve_quanta == 2 and .resources[0].inventory.inflow.values == [0,3]' "$fixture" >/dev/null
+          "$RUNNER_TEMP/jsonschema-venv/bin/python" - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+
+          request_path = Path("schemas/spatial-economic-intertemporal-allocation-v0.1.schema.json")
+          receipt_path = Path("schemas/spatial-economic-intertemporal-assessment-v0.1.schema.json")
+          fixture_path = Path("schemas/examples/intertemporal-tank-two-step.synthetic.json")
+
+          request_schema = json.loads(request_path.read_text())
+          receipt_schema = json.loads(receipt_path.read_text())
+          fixture = json.loads(fixture_path.read_text())
+
+          Draft202012Validator.check_schema(request_schema)
+          Draft202012Validator.check_schema(receipt_schema)
+          Draft202012Validator(request_schema).validate(fixture)
+          print("Draft 2020-12 request/receipt schemas and frozen input fixture: PASS")
+          PY
       - name: Run exact scenario and independently verify stock balance
         shell: bash
         run: |
@@ -134,6 +156,40 @@ jobs:
             and .resource_steps == []
           ' "$root/impossible-loss-result.json" >/dev/null
           echo "INTERTEMPORAL_RESOURCE_ALLOCATION_V0_1_PASS"
+      - name: Validate all generated receipts with Draft 2020-12
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/jsonschema-venv/bin/python" - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+
+          root = Path(Path.cwd())
+          output_root = Path(__import__("os").environ["RUNNER_TEMP"]) / "intertemporal"
+          schema_path = root / "schemas/spatial-economic-intertemporal-assessment-v0.1.schema.json"
+          schema = json.loads(schema_path.read_text())
+          Draft202012Validator.check_schema(schema)
+          validator = Draft202012Validator(schema)
+
+          receipts = [
+              "optimal-1.json",
+              "unknown.json",
+              "search-cap-result.json",
+              "reserve-limited-result.json",
+              "impossible-loss-result.json",
+          ]
+          for name in receipts:
+              value = json.loads((output_root / name).read_text())
+              errors = sorted(validator.iter_errors(value), key=lambda error: list(error.absolute_path))
+              if errors:
+                  rendered = "\n".join(
+                      f"{name}: {list(error.absolute_path)}: {error.message}"
+                      for error in errors
+                  )
+                  raise SystemExit(rendered)
+          print(f"Draft 2020-12 generated receipt validation: PASS ({len(receipts)} receipts)")
+          PY
       - name: Build content-addressed qualification manifest
         if: success()
         shell: bash
