@@ -6,8 +6,8 @@
 
 pub mod census;
 pub mod comparison;
-pub mod split;
 pub mod mitigation;
+pub mod split;
 
 use sha2::{Digest, Sha256};
 use std::collections::HashSet;
