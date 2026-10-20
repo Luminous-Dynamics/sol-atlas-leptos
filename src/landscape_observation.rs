@@ -106,6 +106,32 @@ pub struct BatchValidation {
     pub synthetic_observations: usize,
 }
 
+/// Validate an offline batch and remove only records proven to be exact
+/// duplicates. Original first-seen order is preserved. Conflicting content for
+/// a previously seen ID is rejected by `validate_batch`, never last-write-wins.
+pub fn normalize_batch(value: &Value) -> Result<(Value, BatchValidation), Vec<String>> {
+    let summary = validate_batch(value)?;
+    let mut normalized = value.clone();
+    let Some(observations) = normalized
+        .get_mut("observations")
+        .and_then(Value::as_array_mut)
+    else {
+        // validate_batch already guards this invariant; retain a typed failure
+        // if a future schema evolution breaks that assumption.
+        return Err(vec![
+            "$.observations: validated batch lost its observation array".to_string(),
+        ]);
+    };
+    let mut seen = HashSet::with_capacity(summary.unique_observations);
+    observations.retain(|observation| {
+        observation
+            .get("observation_id")
+            .and_then(Value::as_str)
+            .is_some_and(|id| seen.insert(id.to_string()))
+    });
+    Ok((normalized, summary))
+}
+
 /// Validate an offline batch. Repeated identical records are reported as
 /// idempotent duplicates; different content under one observation ID is a
 /// hard conflict and invalidates the whole batch.
@@ -1167,7 +1193,7 @@ mod tests {
         let duplicate = batch["observations"][0].clone();
         batch["observations"].as_array_mut().unwrap().push(duplicate);
 
-        let report = validate_batch(&batch).unwrap();
+        let (normalized, report) = normalize_batch(&batch).unwrap();
         assert_eq!(report.input_records, 6);
         assert_eq!(report.unique_observations, 5);
         assert_eq!(report.identical_duplicate_records, 1);
@@ -1175,6 +1201,8 @@ mod tests {
             report.duplicate_observation_ids,
             vec!["obs-synthetic-plant-survival-0001"]
         );
+        assert_eq!(normalized, fixture());
+        assert_eq!(normalized["observations"].as_array().unwrap().len(), 5);
     }
 
     #[test]
