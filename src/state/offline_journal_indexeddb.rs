@@ -657,8 +657,6 @@ impl IndexedDbJournal {
                 let leases = leases.clone();
                 let transaction = transaction.clone();
                 let expected_id = expected_id.clone();
-                let expected_owner_scope = expected_owner_scope.clone();
-                let expected_namespace = expected_namespace.clone();
                 let lease_token = lease_token.clone();
                 let callback = Closure::once_into_js(move |_lease_event: JsValue| {
                     let raw_lease = match Reflect::get(
@@ -845,6 +843,19 @@ impl IndexedDbJournal {
         &self,
         permit: &mut DispatchPermit,
     ) -> Result<(), IndexedDbJournalError> {
+        if self
+            .load(
+                &permit.operation_id,
+                &permit.owner_scope,
+                &permit.operation_namespace,
+            )
+            .await?
+            .is_none()
+        {
+            return Err(IndexedDbJournalError(
+                "operation owner scope changed; refusing dispatch lease renewal".into(),
+            ));
+        }
         let (transaction, durability_policy) = self.transaction(&[DISPATCH_LEASES], "readwrite")?;
         let transaction_done = transaction_promise(transaction.clone());
         let leases = object_store(&transaction, DISPATCH_LEASES)?;
@@ -978,6 +989,8 @@ impl IndexedDbJournal {
             let leases = leases.clone();
             let transaction = transaction.clone();
             let op_id = operation_id.to_owned();
+            let expected_owner_scope = owner_scope.to_owned();
+            let expected_namespace = operation_namespace.to_owned();
             let reply = reply.clone();
             let callback = Closure::once_into_js(move |_event: JsValue| {
                 let raw = match Reflect::get(&request_for_callback, &JsValue::from_str("result")) {
@@ -1015,7 +1028,7 @@ impl IndexedDbJournal {
                     *output.borrow_mut() = Some(Err(error));
                     return;
                 }
-                if !stored.matches_scope(owner_scope, operation_namespace) {
+                if !stored.matches_scope(&expected_owner_scope, &expected_namespace) {
                     *output.borrow_mut() = Some(Err(IndexedDbJournalError(
                         "operation is bound to a different owner scope or namespace".into(),
                     )));
