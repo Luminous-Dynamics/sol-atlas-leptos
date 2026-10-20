@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "graph_id": "revalidation-demo-001",
+  "expected_graph_revision": 12,
+  "source_task_id": "access",
+  "source_status": "verification_recorded",
+  "reason_code": "evidence_correction",
+  "correction_evidence_ref": "urn:demo:evidence:access-correction",
+  "impacts": [
+    {
+      "task_id": "cancelled-branch",
+      "prior_status": "cancelled",
+      "kind": "cancelled_no_action",
+      "dependency_path": [
+        "access",
+        "cancelled-branch"
+      ]
+    },
+    {
+      "task_id": "inspection",
+      "prior_status": "verification_recorded",
+      "kind": "requires_revalidation",
+      "dependency_path": [
+        "access",
+        "inspection"
+      ]
+    },
+    {
+      "task_id": "new-work",
+      "prior_status": "pending",
+      "kind": "remains_blocked",
+      "dependency_path": [
+        "access",
+        "new-work"
+      ]
+    },
+    {
+      "task_id": "parts",
+      "prior_status": "verification_recorded",
+      "kind": "requires_revalidation",
+      "dependency_path": [
+        "access",
+        "parts"
+      ]
+    },
+    {
+      "task_id": "after-cancel",
+      "prior_status": "pending",
+      "kind": "remains_blocked",
+      "dependency_path": [
+        "access",
+        "cancelled-branch",
+        "after-cancel"
+      ]
+    },
+    {
+      "task_id": "functional-test",
+      "prior_status": "completion_reported",
+      "kind": "requires_revalidation",
+      "dependency_path": [
+        "access",
+        "inspection",
+        "functional-test"
+      ]
+    },
+    {
+      "task_id": "handover",
+      "prior_status": "pending",
+      "kind": "remains_blocked",
+      "dependency_path": [
+        "access",
+        "inspection",
+        "functional-test",
+        "handover"
+      ]
+    }
+  ]
+}
