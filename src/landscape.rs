@@ -16,6 +16,10 @@ pub const SNAPSHOT_SCHEMA_URI: &str =
     "https://luminousdynamics.io/schemas/landscape-design-v0.schema.json";
 pub const FRAME_KIND: &str = "LOCAL_CARTESIAN_DRAWING_UNITS";
 pub const GEOMETRY_STATUS: &str = "schematic-design-intent";
+pub const SYNTHETIC_GEOMETRY_STATUS: &str = "synthetic-benchmark";
+pub const DESIGN_INTENT_STATUS: &str = "design-intent";
+pub const USER_AUTHORED_SOURCE: &str = "user-authored-schematic";
+pub const SYNTHETIC_SOURCE: &str = "synthetic-benchmark";
 pub const GEOMETRY_REPRESENTATION: &str = "schematic-symbol-anchor-v0";
 
 const ROOT_KEYS: &[&str] = &[
@@ -39,6 +43,69 @@ const FEATURE_KEYS: &[&str] = &[
     "geometry_representation",
 ];
 
+
+/// Create a deterministic synthetic scene using the LCG algorithm pinned in
+/// benchmarks/landscape/workloads-v0.json. The output is benchmark data, not a
+/// user-authored proposal or a geospatial/physical model.
+pub fn synthetic_benchmark_snapshot(feature_count: usize, seed: u32) -> Result<Value, String> {
+    const MAX_FEATURES: usize = 100_000;
+    const KINDS: [(&str, &str); 5] = [
+        ("tree", "Canopy tree"),
+        ("planting-bed", "Planting bed"),
+        ("water", "Water feature"),
+        ("path", "Path"),
+        ("built-element", "Built element"),
+    ];
+
+    if feature_count > MAX_FEATURES {
+        return Err(format!(
+            "benchmark feature count {feature_count} exceeds the v0 limit {MAX_FEATURES}"
+        ));
+    }
+
+    let mut state = seed;
+    let mut next_u32 = || {
+        state = state.wrapping_mul(1_664_525).wrapping_add(1_013_904_223);
+        state
+    };
+
+    let features = (0..feature_count)
+        .map(|index| {
+            let kind_index = (next_u32() % KINDS.len() as u32) as usize;
+            let x_du = next_u32() % 1001;
+            let y_du = next_u32() % 651;
+            let (kind, label) = KINDS[kind_index];
+
+            serde_json::json!({
+                "id": format!("feature-{:04}", index + 1),
+                "kind": kind,
+                "label": label,
+                "x_du": x_du,
+                "y_du": y_du,
+                "status": SYNTHETIC_GEOMETRY_STATUS,
+                "source": SYNTHETIC_SOURCE,
+                "geometry_representation": GEOMETRY_REPRESENTATION
+            })
+        })
+        .collect::<Vec<_>>();
+
+    Ok(serde_json::json!({
+        "schema": SNAPSHOT_SCHEMA,
+        "schema_uri": SNAPSHOT_SCHEMA_URI,
+        "project_name": format!("Synthetic benchmark ({feature_count} features)"),
+        "scope": "site-parcel",
+        "coordinate_frame": {
+            "kind": FRAME_KIND,
+            "origin": "canvas top-left",
+            "x_axis": "right",
+            "y_axis": "down",
+            "georeferenced": false
+        },
+        "geometry_status": SYNTHETIC_GEOMETRY_STATUS,
+        "features": features
+    }))
+}
+
 /// Return every structural violation found in a native v0 project snapshot.
 ///
 /// An invalid or unsupported snapshot must never be treated as an empty, valid
@@ -52,7 +119,14 @@ pub fn validate_snapshot(value: &Value) -> Result<(), Vec<String>> {
     validate_keys(root.keys().map(String::as_str), ROOT_KEYS, "$", &mut errors);
     require_string_eq(value, "schema", SNAPSHOT_SCHEMA, "$", &mut errors);
     require_string_eq(value, "schema_uri", SNAPSHOT_SCHEMA_URI, "$", &mut errors);
-    require_string_eq(value, "geometry_status", GEOMETRY_STATUS, "$", &mut errors);
+    let geometry_status = value.get("geometry_status").and_then(Value::as_str);
+    match geometry_status {
+        Some(GEOMETRY_STATUS | SYNTHETIC_GEOMETRY_STATUS) => {}
+        Some(_) => errors.push(format!(
+            "$.geometry_status: expected {GEOMETRY_STATUS:?} or {SYNTHETIC_GEOMETRY_STATUS:?}"
+        )),
+        None => errors.push("$.geometry_status: expected a string".to_string()),
+    }
 
     match value.get("project_name").and_then(Value::as_str) {
         Some(name) if !name.trim().is_empty() && name.chars().count() <= 200 => {}
@@ -107,7 +181,13 @@ pub fn validate_snapshot(value: &Value) -> Result<(), Vec<String>> {
         Some(features) => {
             let mut ids = HashSet::with_capacity(features.len());
             for (index, feature) in features.iter().enumerate() {
-                validate_feature(feature, index, &mut ids, &mut errors);
+                validate_feature(
+                    feature,
+                    index,
+                    geometry_status.unwrap_or(""),
+                    &mut ids,
+                    &mut errors,
+                );
             }
         }
         None => errors.push("$.features: expected an array".to_string()),
@@ -123,6 +203,7 @@ pub fn validate_snapshot(value: &Value) -> Result<(), Vec<String>> {
 fn validate_feature(
     feature: &Value,
     index: usize,
+    document_status: &str,
     ids: &mut HashSet<String>,
     errors: &mut Vec<String>,
 ) {
@@ -178,8 +259,24 @@ fn validate_feature(
 
     validate_integer_range(feature, "x_du", 0, 1000, &path, errors);
     validate_integer_range(feature, "y_du", 0, 650, &path, errors);
-    require_string_eq(feature, "status", "design-intent", &path, errors);
-    require_string_eq(feature, "source", "user-authored-schematic", &path, errors);
+    let feature_status = feature.get("status").and_then(Value::as_str);
+    let feature_source = feature.get("source").and_then(Value::as_str);
+    let provenance_matches_document = match document_status {
+        GEOMETRY_STATUS => {
+            feature_status == Some(DESIGN_INTENT_STATUS)
+                && feature_source == Some(USER_AUTHORED_SOURCE)
+        }
+        SYNTHETIC_GEOMETRY_STATUS => {
+            feature_status == Some(SYNTHETIC_GEOMETRY_STATUS)
+                && feature_source == Some(SYNTHETIC_SOURCE)
+        }
+        _ => false,
+    };
+    if !provenance_matches_document {
+        errors.push(format!(
+            "{path}: feature status/source must agree with document geometry_status {document_status:?}"
+        ));
+    }
     require_string_eq(
         feature,
         "geometry_representation",
@@ -292,6 +389,39 @@ mod tests {
     #[test]
     fn committed_v0_fixture_passes_document_validator() {
         assert_eq!(validate_snapshot(&fixture()), Ok(()));
+    }
+
+    #[test]
+    fn synthetic_benchmark_generation_is_deterministic_and_valid() {
+        let first = synthetic_benchmark_snapshot(100, 0x4c41_4e44).unwrap();
+        let repeat = synthetic_benchmark_snapshot(100, 0x4c41_4e44).unwrap();
+        let other_seed = synthetic_benchmark_snapshot(100, 0x4c41_4e45).unwrap();
+
+        assert_eq!(first, repeat);
+        assert_ne!(first, other_seed);
+        assert_eq!(first["geometry_status"], SYNTHETIC_GEOMETRY_STATUS);
+        assert_eq!(first["features"].as_array().unwrap().len(), 100);
+        assert_eq!(validate_snapshot(&first), Ok(()));
+        assert_eq!(first["features"][0]["kind"], "built-element");
+        assert_eq!(first["features"][0]["x_du"], 600);
+        assert_eq!(first["features"][0]["y_du"], 29);
+        assert_eq!(first["features"][1]["kind"], "planting-bed");
+        assert_eq!(first["features"][1]["x_du"], 994);
+        assert_eq!(first["features"][1]["y_du"], 500);
+    }
+
+    #[test]
+    fn synthetic_benchmark_generator_enforces_size_ceiling() {
+        assert!(synthetic_benchmark_snapshot(100_001, 1).is_err());
+    }
+
+    #[test]
+    fn rejects_mixed_provenance_in_synthetic_document() {
+        let mut snapshot = synthetic_benchmark_snapshot(2, 1).unwrap();
+        snapshot["features"][1]["source"] = Value::String(USER_AUTHORED_SOURCE.to_string());
+
+        let errors = validate_snapshot(&snapshot).unwrap_err();
+        assert!(errors.iter().any(|error| error.contains("status/source must agree")));
     }
 
     #[test]
