@@ -147,5 +147,5 @@
       }
     }
   ],
-  "max_search_nodes": 100000
+  "max_candidate_plans": 100000
 }
