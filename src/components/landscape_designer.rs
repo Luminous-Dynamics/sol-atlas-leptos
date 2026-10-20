@@ -273,11 +273,23 @@ pub fn LandscapeDesigner() -> impl IntoView {
             active_scale.get_untracked(),
             &features.get_untracked(),
         );
-        set_export_text.set(
-            serde_json::to_string_pretty(&value)
-                .unwrap_or_else(|error| format!("Snapshot serialization failed: {error}")),
-        );
-        set_download_status.set(String::new());
+        match crate::landscape::validate_snapshot(&value) {
+            Ok(()) => {
+                set_export_text.set(
+                    serde_json::to_string_pretty(&value).unwrap_or_else(|error| {
+                        format!("Snapshot serialization failed: {error}")
+                    }),
+                );
+                set_download_status.set(String::new());
+            }
+            Err(errors) => {
+                set_export_text.set(String::new());
+                set_download_status.set(format!(
+                    "Snapshot validation failed; download blocked: {}",
+                    errors.join("; ")
+                ));
+            }
+        }
     };
 
     let download_project = move |_| {
