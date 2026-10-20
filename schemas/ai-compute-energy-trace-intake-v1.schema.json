@@ -1,0 +1,1437 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/ai-compute-energy-trace-intake-v1.schema.json",
+  "title": "AI Compute–Energy Trace Intake Manifest v1",
+  "description": "Provenance and claim-boundary manifest for workload, energy, water, carbon, and grid-flexibility trace experiments. Metadata-only plans are valid and do not authorize quantitative performance claims.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "intake_id",
+    "created_at",
+    "dataset",
+    "license_gate",
+    "artifact",
+    "time_scope",
+    "field_mappings",
+    "workload_quality",
+    "energy_attribution",
+    "data_quality",
+    "transformation",
+    "claim_policy"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "intake_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{2,95}$"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "dataset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "publisher",
+        "release",
+        "source_kind",
+        "source_uri",
+        "description"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "publisher": {
+          "type": "string",
+          "minLength": 1
+        },
+        "release": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_kind": {
+          "enum": [
+            "public_trace",
+            "synthetic",
+            "metered_experiment",
+            "derived_publication"
+          ]
+        },
+        "source_uri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "license_gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "decision",
+        "license_identifier",
+        "terms_uri",
+        "reviewed_at",
+        "review_note"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "not_reviewed",
+            "approved",
+            "restricted",
+            "prohibited"
+          ]
+        },
+        "decision": {
+          "enum": [
+            "not_authorized",
+            "metadata_only",
+            "approved_for_benchmark",
+            "blocked"
+          ]
+        },
+        "license_identifier": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "terms_uri": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uri"
+        },
+        "reviewed_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "review_note": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "not_reviewed"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "decision": {
+                "enum": [
+                  "not_authorized",
+                  "metadata_only"
+                ]
+              },
+              "reviewed_at": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "approved"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "decision": {
+                "const": "approved_for_benchmark"
+              },
+              "license_identifier": {
+                "type": "string",
+                "minLength": 1
+              },
+              "terms_uri": {
+                "type": "string",
+                "format": "uri"
+              },
+              "reviewed_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "restricted"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "decision": {
+                "enum": [
+                  "metadata_only",
+                  "blocked"
+                ]
+              },
+              "reviewed_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "prohibited"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "decision": {
+                "const": "blocked"
+              },
+              "reviewed_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "raw_sha256",
+        "raw_bytes",
+        "retrieved_at",
+        "normalized_sha256",
+        "normalized_bytes"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "planned",
+            "retrieved",
+            "normalized"
+          ]
+        },
+        "raw_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "raw_bytes": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "retrieved_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "normalized_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "normalized_bytes": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "planned"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "raw_sha256": {
+                "type": "null"
+              },
+              "raw_bytes": {
+                "type": "null"
+              },
+              "retrieved_at": {
+                "type": "null"
+              },
+              "normalized_sha256": {
+                "type": "null"
+              },
+              "normalized_bytes": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "retrieved"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "raw_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "raw_bytes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "retrieved_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "normalized_sha256": {
+                "type": "null"
+              },
+              "normalized_bytes": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "normalized"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "raw_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "raw_bytes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "retrieved_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "normalized_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "normalized_bytes": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "time_scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "timestamp_semantics",
+        "start_utc",
+        "end_utc",
+        "source_timezone",
+        "source_time_unit",
+        "aggregation_interval_seconds",
+        "notes"
+      ],
+      "properties": {
+        "timestamp_semantics": {
+          "enum": [
+            "event_time",
+            "snapshot_time",
+            "interval_start",
+            "interval_end",
+            "unknown"
+          ]
+        },
+        "start_utc": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "end_utc": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "source_timezone": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_time_unit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "aggregation_interval_seconds": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "start_utc": {
+                "type": "string"
+              },
+              "end_utc": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "start_utc",
+              "end_utc"
+            ]
+          },
+          "then": {
+            "properties": {
+              "start_utc": {
+                "format": "date-time"
+              },
+              "end_utc": {
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "field_mappings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "canonical_field",
+          "mapping_status",
+          "source_field",
+          "source_unit",
+          "canonical_unit",
+          "conversion_rule",
+          "records_checked",
+          "records_missing",
+          "notes"
+        ],
+        "properties": {
+          "canonical_field": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{1,79}$"
+          },
+          "mapping_status": {
+            "enum": [
+              "planned",
+              "mapped",
+              "not_available",
+              "excluded"
+            ]
+          },
+          "source_field": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_unit": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "canonical_unit": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "conversion_rule": {
+            "enum": [
+              "identity",
+              "scale",
+              "aggregate",
+              "derive",
+              "exclude",
+              "unresolved"
+            ]
+          },
+          "records_checked": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "records_missing": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "notes": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "mapping_status": {
+                  "const": "mapped"
+                }
+              },
+              "required": [
+                "mapping_status"
+              ]
+            },
+            "then": {
+              "properties": {
+                "source_field": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "conversion_rule": {
+                  "enum": [
+                    "identity",
+                    "scale",
+                    "aggregate",
+                    "derive"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "mapping_status": {
+                  "enum": [
+                    "planned",
+                    "not_available",
+                    "excluded"
+                  ]
+                }
+              },
+              "required": [
+                "mapping_status"
+              ]
+            },
+            "then": {
+              "properties": {
+                "records_checked": {
+                  "type": "null"
+                },
+                "records_missing": {
+                  "type": "null"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "workload_quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "quality_metric",
+        "acceptance_rule",
+        "model_or_job_identity",
+        "notes"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "measured",
+            "separate_quality_gate_required",
+            "not_applicable",
+            "unknown"
+          ]
+        },
+        "quality_metric": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "acceptance_rule": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "model_or_job_identity": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "measured"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "quality_metric": {
+                "type": "string",
+                "minLength": 1
+              },
+              "acceptance_rule": {
+                "type": "string",
+                "minLength": 1
+              },
+              "model_or_job_identity": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "energy_attribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "class",
+        "boundary",
+        "metering_method",
+        "instrument_or_model",
+        "uncertainty_percent",
+        "notes"
+      ],
+      "properties": {
+        "class": {
+          "enum": [
+            "metered",
+            "calibrated_model",
+            "proxy",
+            "unknown"
+          ]
+        },
+        "boundary": {
+          "enum": [
+            "accelerator",
+            "server",
+            "rack",
+            "facility",
+            "unknown"
+          ]
+        },
+        "metering_method": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "instrument_or_model": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "uncertainty_percent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "class": {
+                "const": "metered"
+              }
+            },
+            "required": [
+              "class"
+            ]
+          },
+          "then": {
+            "properties": {
+              "boundary": {
+                "not": {
+                  "const": "unknown"
+                }
+              },
+              "metering_method": {
+                "type": "string",
+                "minLength": 1
+              },
+              "instrument_or_model": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uncertainty_percent": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              }
+            }
+          }
+        }
+      ]
+    },
+    "data_quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stage",
+        "records_read",
+        "records_kept",
+        "records_excluded",
+        "duplicate_records",
+        "missing_timestamps",
+        "out_of_scope_timestamps",
+        "measured_missingness_fraction",
+        "checks_run",
+        "notes"
+      ],
+      "properties": {
+        "stage": {
+          "enum": [
+            "planned",
+            "retrieved",
+            "normalized"
+          ]
+        },
+        "records_read": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "records_kept": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "records_excluded": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "duplicate_records": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "missing_timestamps": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "out_of_scope_timestamps": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "measured_missingness_fraction": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "checks_run": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "stage": {
+                "const": "planned"
+              }
+            },
+            "required": [
+              "stage"
+            ]
+          },
+          "then": {
+            "properties": {
+              "records_read": {
+                "type": "null"
+              },
+              "records_kept": {
+                "type": "null"
+              },
+              "records_excluded": {
+                "type": "null"
+              },
+              "duplicate_records": {
+                "type": "null"
+              },
+              "missing_timestamps": {
+                "type": "null"
+              },
+              "out_of_scope_timestamps": {
+                "type": "null"
+              },
+              "measured_missingness_fraction": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "stage": {
+                "enum": [
+                  "retrieved",
+                  "normalized"
+                ]
+              }
+            },
+            "required": [
+              "stage"
+            ]
+          },
+          "then": {
+            "properties": {
+              "records_read": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "records_kept": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "records_excluded": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "duplicate_records": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "missing_timestamps": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "out_of_scope_timestamps": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "transformation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pipeline_id",
+        "pipeline_version",
+        "source_commit",
+        "config_sha256",
+        "normalization_notes"
+      ],
+      "properties": {
+        "pipeline_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pipeline_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_commit": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^([a-f0-9]{40}|[a-f0-9]{64})$"
+        },
+        "config_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "normalization_notes": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "pipeline_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "pipeline_id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "pipeline_version": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_commit": {
+                "type": "string",
+                "pattern": "^([a-f0-9]{40}|[a-f0-9]{64})$"
+              },
+              "config_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "claim_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claim_ceiling",
+        "allowed_claims",
+        "prohibited_inferences"
+      ],
+      "properties": {
+        "claim_ceiling": {
+          "enum": [
+            "metadata_only",
+            "workload_timing_only",
+            "capacity_replay_only",
+            "metered_energy",
+            "quality_accepted_work_per_kwh"
+          ]
+        },
+        "allowed_claims": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "prohibited_inferences": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "unknown_energy_is_zero",
+              "generic_cpu_utilization_equals_ai_quality",
+              "provisioned_power_equals_measured_energy",
+              "annual_clean_energy_match_proves_hourly_deliverability",
+              "synthetic_results_are_facility_measurements",
+              "estimated_heat_is_recovered_heat",
+              "one_site_results_generalize_to_all_grids",
+              "workload_flexibility_always_reduces_generation_capacity"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "artifact": {
+            "properties": {
+              "state": {
+                "const": "planned"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          }
+        },
+        "required": [
+          "artifact"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data_quality": {
+            "properties": {
+              "stage": {
+                "const": "planned"
+              }
+            }
+          },
+          "transformation": {
+            "properties": {
+              "pipeline_id": {
+                "type": "null"
+              },
+              "pipeline_version": {
+                "type": "null"
+              },
+              "source_commit": {
+                "type": "null"
+              },
+              "config_sha256": {
+                "type": "null"
+              }
+            }
+          },
+          "claim_policy": {
+            "properties": {
+              "claim_ceiling": {
+                "const": "metadata_only"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "artifact": {
+            "properties": {
+              "state": {
+                "const": "retrieved"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          }
+        },
+        "required": [
+          "artifact"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data_quality": {
+            "properties": {
+              "stage": {
+                "const": "retrieved"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "artifact": {
+            "properties": {
+              "state": {
+                "const": "normalized"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          }
+        },
+        "required": [
+          "artifact"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data_quality": {
+            "properties": {
+              "stage": {
+                "const": "normalized"
+              }
+            }
+          },
+          "transformation": {
+            "properties": {
+              "pipeline_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "energy_attribution": {
+            "properties": {
+              "class": {
+                "enum": [
+                  "proxy",
+                  "unknown"
+                ]
+              }
+            },
+            "required": [
+              "class"
+            ]
+          }
+        },
+        "required": [
+          "energy_attribution"
+        ]
+      },
+      "then": {
+        "properties": {
+          "claim_policy": {
+            "properties": {
+              "claim_ceiling": {
+                "enum": [
+                  "metadata_only",
+                  "workload_timing_only",
+                  "capacity_replay_only"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "claim_policy": {
+            "properties": {
+              "claim_ceiling": {
+                "enum": [
+                  "metered_energy",
+                  "quality_accepted_work_per_kwh"
+                ]
+              }
+            },
+            "required": [
+              "claim_ceiling"
+            ]
+          }
+        },
+        "required": [
+          "claim_policy"
+        ]
+      },
+      "then": {
+        "properties": {
+          "artifact": {
+            "properties": {
+              "state": {
+                "const": "normalized"
+              }
+            }
+          },
+          "energy_attribution": {
+            "properties": {
+              "class": {
+                "const": "metered"
+              }
+            }
+          },
+          "license_gate": {
+            "properties": {
+              "status": {
+                "const": "approved"
+              },
+              "decision": {
+                "const": "approved_for_benchmark"
+              },
+              "license_identifier": {
+                "type": "string",
+                "minLength": 1
+              },
+              "terms_uri": {
+                "type": "string",
+                "format": "uri"
+              },
+              "reviewed_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "dataset": {
+            "properties": {
+              "source_kind": {
+                "enum": [
+                  "public_trace",
+                  "metered_experiment"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "claim_policy": {
+            "properties": {
+              "claim_ceiling": {
+                "const": "quality_accepted_work_per_kwh"
+              }
+            },
+            "required": [
+              "claim_ceiling"
+            ]
+          }
+        },
+        "required": [
+          "claim_policy"
+        ]
+      },
+      "then": {
+        "properties": {
+          "workload_quality": {
+            "properties": {
+              "status": {
+                "const": "measured"
+              },
+              "quality_metric": {
+                "type": "string",
+                "minLength": 1
+              },
+              "acceptance_rule": {
+                "type": "string",
+                "minLength": 1
+              },
+              "model_or_job_identity": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "energy_attribution": {
+            "properties": {
+              "boundary": {
+                "const": "facility"
+              }
+            }
+          },
+          "field_mappings": {
+            "items": {
+              "properties": {
+                "mapping_status": {
+                  "enum": [
+                    "mapped",
+                    "excluded"
+                  ]
+                }
+              }
+            },
+            "contains": {
+              "properties": {
+                "mapping_status": {
+                  "const": "mapped"
+                }
+              }
+            },
+            "minContains": 1
+          },
+          "data_quality": {
+            "properties": {
+              "stage": {
+                "const": "normalized"
+              },
+              "records_read": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "records_kept": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "records_excluded": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "duplicate_records": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "missing_timestamps": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "out_of_scope_timestamps": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "measured_missingness_fraction": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "checks_run": {
+                "type": "array",
+                "minItems": 1
+              }
+            }
+          },
+          "time_scope": {
+            "properties": {
+              "start_utc": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "end_utc": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "source_timezone": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_time_unit": {
+                "type": "string",
+                "minLength": 1
+              },
+              "aggregation_interval_seconds": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
