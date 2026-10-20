@@ -35,20 +35,25 @@ use wasm_bindgen_futures::JsFuture;
 /// Object-store names are part of database schema v1. This adapter uses
 /// out-of-line keys so the ID is independently checked during recovery.
 const DATABASE_NAME: &str = "sol-atlas-offline-journal";
-const DATABASE_VERSION: u32 = 3;
+const DATABASE_VERSION: u32 = 4;
 const OPERATIONS: &str = "operations";
 const IDEMPOTENCY_KEYS: &str = "idempotency_keys";
 const PENDING_OPERATIONS: &str = "pending_operations";
 const DISPATCH_LEASES: &str = "dispatch_leases";
+const STAGED_IMPORTS: &str = "staged_imports";
+const STAGED_IMPORT_IDEMPOTENCY_KEYS: &str = "staged_import_idempotency_keys";
 const STORE_NAMES: [&str; 3] = [OPERATIONS, IDEMPOTENCY_KEYS, PENDING_OPERATIONS];
-const UPGRADE_STORE_NAMES: [&str; 4] = [
+const UPGRADE_STORE_NAMES: [&str; 6] = [
     OPERATIONS,
     IDEMPOTENCY_KEYS,
     PENDING_OPERATIONS,
     DISPATCH_LEASES,
+    STAGED_IMPORTS,
+    STAGED_IMPORT_IDEMPOTENCY_KEYS,
 ];
 const DISPATCH_LEASE_SCHEMA_VERSION: u16 = 1;
 const STORED_OPERATION_SCHEMA_VERSION: u16 = 1;
+const STAGED_IMPORT_SCHEMA_VERSION: u16 = 1;
 const DISPATCH_LEASE_DURATION_MS: u64 = 30_000;
 
 /// Whether a browser accepted strict transaction durability options.
@@ -153,6 +158,29 @@ pub struct IndexedDbJournalPage {
     pub next_after_operation_id: Option<String>,
 }
 
+/// Result of staging a portable bundle for authoritative reconciliation.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct BundleStageReport {
+    /// New records written to the isolated staging store, never the dispatch queue.
+    pub staged_records: usize,
+    /// Records that exactly matched an existing staged record.
+    pub exact_duplicates: usize,
+    /// Records already present in the active journal with matching immutable content.
+    pub already_present_records: usize,
+}
+
+/// A staged snapshot which has not yet been reconciled with the authoritative service.
+///
+/// The type carries no dispatch permit and does not make the contained state an
+/// authenticated result. Callers must display it as untrusted imported material.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StagedJournalOperation {
+    pub owner_scope: String,
+    pub operation_namespace: String,
+    pub source_bundle_sha256: String,
+    pub snapshot: JournalEntrySnapshotV1,
+}
+
 /// Immutable owner/namespace binding around the journal snapshot.
 ///
 /// This record is stored under the operation ID and is revalidated before
@@ -230,6 +258,45 @@ impl StoredOperationV1 {
             ));
         }
         Ok(entry)
+    }
+}
+
+/// Untrusted imported operation held outside the active journal and dispatch indexes.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct StagedImportRecordV1 {
+    schema_version: u16,
+    source_bundle_sha256: String,
+    operation: StoredOperationV1,
+}
+
+impl StagedImportRecordV1 {
+    fn validate(&self, expected_operation_id: &str) -> Result<JournalEntry, IndexedDbJournalError> {
+        if self.schema_version != STAGED_IMPORT_SCHEMA_VERSION {
+            return Err(IndexedDbJournalError(
+                "unsupported staged import record schema".into(),
+            ));
+        }
+        if !is_sha256_lower_hex(&self.source_bundle_sha256) {
+            return Err(IndexedDbJournalError(
+                "staged import source bundle digest is invalid".into(),
+            ));
+        }
+        self.operation.validate_entry(expected_operation_id)
+    }
+
+    fn matches_scope(&self, owner_scope: &str, operation_namespace: &str) -> bool {
+        self.operation
+            .matches_scope(owner_scope, operation_namespace)
+    }
+
+    fn to_public(&self) -> StagedJournalOperation {
+        StagedJournalOperation {
+            owner_scope: self.operation.owner_scope.clone(),
+            operation_namespace: self.operation.operation_namespace.clone(),
+            source_bundle_sha256: self.source_bundle_sha256.clone(),
+            snapshot: self.operation.snapshot.clone(),
+        }
     }
 }
 
@@ -375,6 +442,272 @@ impl IndexedDbJournal {
     /// Atomically writes a new prepared snapshot and enforces operation-ID and
     /// idempotency-key uniqueness. Identical re-insertion is idempotent and
     /// returns the entry as currently stored; changed identity fails closed.
+    /// Atomically imports a validated portable bundle for the authenticated owner.
+    ///
+    /// All operation IDs, scoped idempotency keys and pending markers are
+    /// preflighted in the same readwrite transaction that performs inserts.
+    /// Exact duplicates are no-ops; any immutable-state conflict aborts the
+    /// entire transaction. Existing operation snapshots are never overwritten,
+    /// so importing a stale bundle cannot roll a locally progressed row back.
+    /// Dispatch leases are deliberately not imported.
+    /// Stages a validated bundle outside the active journal.
+    ///
+    /// Bundles have an unkeyed integrity digest, so their state/receipt fields
+    /// are not proof that an operation was or was not applied by the service.
+    /// This method therefore never writes imported rows to the live operation,
+    /// idempotency or pending stores, and never makes them dispatchable. Records
+    /// must be reconciled against the authoritative service before promotion.
+    pub async fn stage_bundle(
+        &self,
+        bundle: &OfflineJournalBundleV1,
+        authenticated_owner_scope: &str,
+    ) -> Result<BundleStageReport, IndexedDbJournalError> {
+        bundle
+            .validate_for_owner(authenticated_owner_scope)
+            .map_err(|error| IndexedDbJournalError(error.to_string()))?;
+        if bundle.records.is_empty() {
+            return Ok(BundleStageReport::default());
+        }
+
+        let mut seen_scoped_keys = std::collections::HashSet::with_capacity(bundle.records.len());
+        let mut candidates = Vec::with_capacity(bundle.records.len());
+        for record in &bundle.records {
+            let operation_id = record.operation_id().to_owned();
+            let entry =
+                JournalEntry::from_snapshot_for_operation(&operation_id, record.snapshot.clone())
+                    .map_err(IndexedDbJournalError::from)?;
+            let canonical_payload =
+                std::str::from_utf8(entry.canonical_payload_utf8()).map_err(|error| {
+                    IndexedDbJournalError(format!("canonical payload is not UTF-8: {error}"))
+                })?;
+            let request_fingerprint_sha256 =
+                sol_atlas_core::offline_idempotency_fingerprint::canonical_request_fingerprint_sha256(
+                    authenticated_owner_scope,
+                    &record.operation_namespace,
+                    entry.envelope(),
+                    canonical_payload,
+                )
+                .map_err(|error| IndexedDbJournalError(error.to_string()))?;
+            let stored = StoredOperationV1 {
+                schema_version: STORED_OPERATION_SCHEMA_VERSION,
+                owner_scope: authenticated_owner_scope.to_owned(),
+                operation_namespace: record.operation_namespace.clone(),
+                request_fingerprint_schema_version:
+                    sol_atlas_core::offline_idempotency_fingerprint::REQUEST_FINGERPRINT_SCHEMA_VERSION,
+                request_fingerprint_sha256,
+                snapshot: record.snapshot.clone(),
+            };
+            stored.validate_entry(&operation_id)?;
+            let idempotency_storage_key = scoped_idempotency_key(
+                authenticated_owner_scope,
+                &record.operation_namespace,
+                &entry.envelope().idempotency_key,
+            )?;
+            if !seen_scoped_keys.insert(idempotency_storage_key.clone()) {
+                return Err(IndexedDbJournalError(format!(
+                    "bundle reuses scoped idempotency key for operation {operation_id}"
+                )));
+            }
+            let staged = StagedImportRecordV1 {
+                schema_version: STAGED_IMPORT_SCHEMA_VERSION,
+                source_bundle_sha256: bundle.integrity_sha256.clone(),
+                operation: stored,
+            };
+            staged.validate(&operation_id)?;
+            let serialized_staged = serde_json::to_string(&staged).map_err(|error| {
+                IndexedDbJournalError(format!("staged record serialization failed: {error}"))
+            })?;
+            candidates.push(BundleStageCandidate {
+                operation_id,
+                idempotency_storage_key,
+                staged,
+                serialized_staged,
+            });
+        }
+
+        let store_names = [
+            OPERATIONS,
+            IDEMPOTENCY_KEYS,
+            STAGED_IMPORTS,
+            STAGED_IMPORT_IDEMPOTENCY_KEYS,
+        ];
+        let (transaction, _policy) = self.transaction(&store_names, "readwrite")?;
+        let transaction_done = transaction_promise(transaction.clone());
+        let operations = object_store(&transaction, OPERATIONS)?;
+        let idempotency_keys = object_store(&transaction, IDEMPOTENCY_KEYS)?;
+        let staged_imports = object_store(&transaction, STAGED_IMPORTS)?;
+        let staged_idempotency_keys = object_store(&transaction, STAGED_IMPORT_IDEMPOTENCY_KEYS)?;
+
+        let mut requests = Vec::with_capacity(candidates.len() * 4);
+        for (index, candidate) in candidates.iter().enumerate() {
+            requests.push((
+                call_method(
+                    &operations,
+                    "get",
+                    &[JsValue::from_str(&candidate.operation_id)],
+                )
+                .map_err(js_error)?,
+                index * 4,
+            ));
+            requests.push((
+                call_method(
+                    &idempotency_keys,
+                    "get",
+                    &[JsValue::from_str(&candidate.idempotency_storage_key)],
+                )
+                .map_err(js_error)?,
+                index * 4 + 1,
+            ));
+            requests.push((
+                call_method(
+                    &staged_imports,
+                    "get",
+                    &[JsValue::from_str(&candidate.operation_id)],
+                )
+                .map_err(js_error)?,
+                index * 4 + 2,
+            ));
+            requests.push((
+                call_method(
+                    &staged_idempotency_keys,
+                    "get",
+                    &[JsValue::from_str(&candidate.idempotency_storage_key)],
+                )
+                .map_err(js_error)?,
+                index * 4 + 3,
+            ));
+        }
+
+        let shared = Rc::new(RefCell::new(BundleStageReadState {
+            candidates,
+            results: vec![None; requests.len()],
+            completed: 0,
+            decided: false,
+        }));
+        let output: Rc<RefCell<Option<Result<BundleStageReport, IndexedDbJournalError>>>> =
+            Rc::new(RefCell::new(None));
+
+        for (request, result_index) in requests {
+            let request_for_callback = request.clone();
+            let shared = shared.clone();
+            let output = output.clone();
+            let staged_imports = staged_imports.clone();
+            let staged_idempotency_keys = staged_idempotency_keys.clone();
+            let transaction = transaction.clone();
+            let transaction_for_registration_error = transaction.clone();
+            let callback = Closure::once_into_js(move |_event: JsValue| {
+                let value = match Reflect::get(&request_for_callback, &JsValue::from_str("result"))
+                {
+                    Ok(value) => value,
+                    Err(error) => {
+                        *output.borrow_mut() = Some(Err(js_error(error)));
+                        let _ = call_method(&transaction, "abort", &[]);
+                        return;
+                    }
+                };
+                let all_reads_completed = {
+                    let mut state = shared.borrow_mut();
+                    if state.decided {
+                        return;
+                    }
+                    state.results[result_index] = Some(value);
+                    state.completed += 1;
+                    if state.completed == state.results.len() {
+                        state.decided = true;
+                        true
+                    } else {
+                        false
+                    }
+                };
+                if all_reads_completed {
+                    finish_bundle_stage_reads(
+                        &shared,
+                        &output,
+                        &staged_imports,
+                        &staged_idempotency_keys,
+                        &transaction,
+                    );
+                }
+            });
+            if let Err(error) = Reflect::set(&request, &JsValue::from_str("onsuccess"), &callback) {
+                let _ = call_method(&transaction_for_registration_error, "abort", &[]);
+                return Err(js_error(error));
+            }
+        }
+
+        let transaction_result = JsFuture::from(transaction_done).await;
+        match transaction_result {
+            Ok(_) => output.borrow_mut().take().ok_or_else(|| {
+                IndexedDbJournalError(
+                    "bundle staging transaction completed without an outcome".into(),
+                )
+            })?,
+            Err(transaction_error) => match output.borrow_mut().take() {
+                Some(Err(preflight_error)) => Err(preflight_error),
+                _ => Err(js_error(transaction_error)),
+            },
+        }
+    }
+
+    /// Lists untrusted, owner-scoped staged records for an explicit reconciliation UI.
+    /// It does not add the records to the dispatch queue or assert their outcomes.
+    pub async fn list_staged_imports(
+        &self,
+        owner_scope: &str,
+    ) -> Result<Vec<StagedJournalOperation>, IndexedDbJournalError> {
+        if owner_scope.trim().is_empty() {
+            return Err(IndexedDbJournalError(
+                "owner scope must not be empty for staged-import listing".into(),
+            ));
+        }
+        let (transaction, _policy) = self.transaction(&[STAGED_IMPORTS], "readonly")?;
+        let transaction_done = transaction_promise(transaction.clone());
+        let staged = object_store(&transaction, STAGED_IMPORTS)?;
+        let keys_request = call_method(&staged, "getAllKeys", &[]).map_err(js_error)?;
+        let values_request = call_method(&staged, "getAll", &[]).map_err(js_error)?;
+        let keys = JsFuture::from(request_promise(keys_request))
+            .await
+            .map_err(js_error)?;
+        let values = JsFuture::from(request_promise(values_request))
+            .await
+            .map_err(js_error)?;
+        JsFuture::from(transaction_done).await.map_err(js_error)?;
+        let keys = Array::from(&keys);
+        let values = Array::from(&values);
+        if keys.length() != values.length() {
+            return Err(IndexedDbJournalError(
+                "staged-import keys and values do not align".into(),
+            ));
+        }
+
+        let mut records = Vec::new();
+        for index in 0..keys.length() {
+            let operation_id = keys.get(index).as_string().ok_or_else(|| {
+                IndexedDbJournalError("staged-import store contains a non-string key".into())
+            })?;
+            let serialized = values.get(index).as_string().ok_or_else(|| {
+                IndexedDbJournalError("staged-import store contains a non-string record".into())
+            })?;
+            let staged: StagedImportRecordV1 =
+                serde_json::from_str(&serialized).map_err(|error| {
+                    IndexedDbJournalError(format!(
+                        "staged record {operation_id} is invalid: {error}"
+                    ))
+                })?;
+            staged.validate(&operation_id)?;
+            if staged.operation.owner_scope == owner_scope {
+                records.push(staged.to_public());
+            }
+        }
+        records.sort_by(|left, right| {
+            left.snapshot
+                .envelope
+                .operation_id
+                .cmp(&right.snapshot.envelope.operation_id)
+        });
+        Ok(records)
+    }
+
     /// Exports a consistent, validated read snapshot for one owner scope.
     ///
     /// Both operation keys and values are read through the same readonly
@@ -430,9 +763,7 @@ impl IndexedDbJournal {
                     "stored operation {operation_id} is not a valid owner-bound record: {error}"
                 ))
             })?;
-            stored.validate()?;
-            JournalEntry::from_snapshot_for_operation(&operation_id, stored.snapshot.clone())
-                .map_err(IndexedDbJournalError::from)?;
+            stored.validate_entry(&operation_id)?;
 
             if stored.owner_scope == owner_scope {
                 records.push(OfflineJournalBundleRecordV1 {
@@ -1283,6 +1614,266 @@ impl IndexedDbJournal {
     }
 }
 
+#[derive(Debug, Clone)]
+struct BundleStageCandidate {
+    operation_id: String,
+    idempotency_storage_key: String,
+    staged: StagedImportRecordV1,
+    serialized_staged: String,
+}
+
+struct BundleStageReadState {
+    candidates: Vec<BundleStageCandidate>,
+    results: Vec<Option<JsValue>>,
+    completed: usize,
+    decided: bool,
+}
+
+fn same_immutable_operation(left: &StoredOperationV1, right: &StoredOperationV1) -> bool {
+    left.owner_scope == right.owner_scope
+        && left.operation_namespace == right.operation_namespace
+        && left.snapshot.envelope == right.snapshot.envelope
+        && left.snapshot.canonical_payload_json == right.snapshot.canonical_payload_json
+}
+
+fn finish_bundle_stage_reads(
+    shared: &Rc<RefCell<BundleStageReadState>>,
+    output: &Rc<RefCell<Option<Result<BundleStageReport, IndexedDbJournalError>>>>,
+    staged_imports: &JsValue,
+    staged_idempotency_keys: &JsValue,
+    transaction: &JsValue,
+) {
+    let (candidates, results) = {
+        let state = shared.borrow();
+        (
+            state.candidates.clone(),
+            state
+                .results
+                .iter()
+                .map(|value| value.clone().unwrap_or(JsValue::UNDEFINED))
+                .collect::<Vec<_>>(),
+        )
+    };
+
+    let mut inserts = Vec::new();
+    let mut stale_staging_to_remove = Vec::<(String, String)>::new();
+    let mut report = BundleStageReport::default();
+
+    let preflight = (|| -> Result<(), IndexedDbJournalError> {
+        for (index, candidate) in candidates.iter().enumerate() {
+            let offset = index * 4;
+            let live_operation = &results[offset];
+            let live_key = &results[offset + 1];
+            let staged_operation = &results[offset + 2];
+            let staged_key = &results[offset + 3];
+            let live_exists = !live_operation.is_null() && !live_operation.is_undefined();
+            let live_key_exists = !live_key.is_null() && !live_key.is_undefined();
+            let staged_exists = !staged_operation.is_null() && !staged_operation.is_undefined();
+            let staged_key_exists = !staged_key.is_null() && !staged_key.is_undefined();
+
+            if live_exists {
+                let serialized = live_operation.as_string().ok_or_else(|| {
+                    IndexedDbJournalError(format!(
+                        "active operation {} is not a string record",
+                        candidate.operation_id
+                    ))
+                })?;
+                let live: StoredOperationV1 =
+                    serde_json::from_str(&serialized).map_err(|error| {
+                        IndexedDbJournalError(format!(
+                            "active operation {} is invalid: {error}",
+                            candidate.operation_id
+                        ))
+                    })?;
+                live.validate_entry(&candidate.operation_id)?;
+                if !same_immutable_operation(&live, &candidate.staged.operation) {
+                    return Err(IndexedDbJournalError(format!(
+                        "operation {} is already active with different immutable content or owner scope",
+                        candidate.operation_id
+                    )));
+                }
+                if !live_key_exists
+                    || live_key.as_string().as_deref() != Some(candidate.operation_id.as_str())
+                {
+                    return Err(IndexedDbJournalError(format!(
+                        "active operation {} has a missing or conflicting scoped idempotency index",
+                        candidate.operation_id
+                    )));
+                }
+
+                if staged_exists {
+                    let serialized_staged = staged_operation.as_string().ok_or_else(|| {
+                        IndexedDbJournalError(format!(
+                            "staged operation {} is not a string record",
+                            candidate.operation_id
+                        ))
+                    })?;
+                    let staged: StagedImportRecordV1 = serde_json::from_str(&serialized_staged)
+                        .map_err(|error| {
+                            IndexedDbJournalError(format!(
+                                "staged operation {} is invalid: {error}",
+                                candidate.operation_id
+                            ))
+                        })?;
+                    staged.validate(&candidate.operation_id)?;
+                    if !staged.matches_scope(
+                        &candidate.staged.operation.owner_scope,
+                        &candidate.staged.operation.operation_namespace,
+                    ) || !same_immutable_operation(&staged.operation, &live)
+                    {
+                        return Err(IndexedDbJournalError(format!(
+                            "active and staged operation {} have conflicting immutable identity",
+                            candidate.operation_id
+                        )));
+                    }
+                    if staged.operation.snapshot != live.snapshot {
+                        return Err(IndexedDbJournalError(format!(
+                            "active and staged operation {} have different state/attempt lineage; keep staged evidence for explicit review",
+                            candidate.operation_id
+                        )));
+                    }
+                    if !staged_key_exists
+                        || staged_key.as_string().as_deref()
+                            != Some(candidate.operation_id.as_str())
+                    {
+                        return Err(IndexedDbJournalError(format!(
+                            "staged operation {} has a missing or conflicting scoped idempotency index",
+                            candidate.operation_id
+                        )));
+                    }
+                    stale_staging_to_remove.push((
+                        candidate.operation_id.clone(),
+                        candidate.idempotency_storage_key.clone(),
+                    ));
+                } else if staged_key_exists {
+                    return Err(IndexedDbJournalError(format!(
+                        "staged idempotency index for {} has no staged operation",
+                        candidate.operation_id
+                    )));
+                }
+                report.already_present_records += 1;
+                continue;
+            }
+
+            if live_key_exists {
+                return Err(IndexedDbJournalError(format!(
+                    "bundle operation {} conflicts with an active or stale idempotency index",
+                    candidate.operation_id
+                )));
+            }
+
+            if staged_exists {
+                let serialized = staged_operation.as_string().ok_or_else(|| {
+                    IndexedDbJournalError(format!(
+                        "staged operation {} is not a string record",
+                        candidate.operation_id
+                    ))
+                })?;
+                let existing: StagedImportRecordV1 =
+                    serde_json::from_str(&serialized).map_err(|error| {
+                        IndexedDbJournalError(format!(
+                            "staged operation {} is invalid: {error}",
+                            candidate.operation_id
+                        ))
+                    })?;
+                existing.validate(&candidate.operation_id)?;
+                if !existing.matches_scope(
+                    &candidate.staged.operation.owner_scope,
+                    &candidate.staged.operation.operation_namespace,
+                ) {
+                    return Err(IndexedDbJournalError(format!(
+                        "staged operation {} belongs to another owner or namespace",
+                        candidate.operation_id
+                    )));
+                }
+                if existing.operation != candidate.staged.operation {
+                    return Err(IndexedDbJournalError(format!(
+                        "staged operation {} differs from this bundle; refusing to replace untrusted staged evidence",
+                        candidate.operation_id
+                    )));
+                }
+                if !staged_key_exists
+                    || staged_key.as_string().as_deref() != Some(candidate.operation_id.as_str())
+                {
+                    return Err(IndexedDbJournalError(format!(
+                        "staged operation {} has a missing or conflicting scoped idempotency index",
+                        candidate.operation_id
+                    )));
+                }
+                report.exact_duplicates += 1;
+                continue;
+            }
+
+            if staged_key_exists {
+                return Err(IndexedDbJournalError(format!(
+                    "staged idempotency index for {} points to a missing operation",
+                    candidate.operation_id
+                )));
+            }
+            inserts.push(index);
+            report.staged_records += 1;
+        }
+        Ok(())
+    })();
+
+    if let Err(error) = preflight {
+        *output.borrow_mut() = Some(Err(error));
+        let _ = call_method(transaction, "abort", &[]);
+        return;
+    }
+
+    for index in inserts {
+        let candidate = &candidates[index];
+        if let Err(error) = call_method(
+            staged_imports,
+            "add",
+            &[
+                JsValue::from_str(&candidate.serialized_staged),
+                JsValue::from_str(&candidate.operation_id),
+            ],
+        ) {
+            *output.borrow_mut() = Some(Err(js_error(error)));
+            let _ = call_method(transaction, "abort", &[]);
+            return;
+        }
+        if let Err(error) = call_method(
+            staged_idempotency_keys,
+            "add",
+            &[
+                JsValue::from_str(&candidate.operation_id),
+                JsValue::from_str(&candidate.idempotency_storage_key),
+            ],
+        ) {
+            *output.borrow_mut() = Some(Err(js_error(error)));
+            let _ = call_method(transaction, "abort", &[]);
+            return;
+        }
+    }
+
+    for (operation_id, idempotency_storage_key) in stale_staging_to_remove {
+        if let Err(error) = call_method(
+            staged_imports,
+            "delete",
+            &[JsValue::from_str(&operation_id)],
+        ) {
+            *output.borrow_mut() = Some(Err(js_error(error)));
+            let _ = call_method(transaction, "abort", &[]);
+            return;
+        }
+        if let Err(error) = call_method(
+            staged_idempotency_keys,
+            "delete",
+            &[JsValue::from_str(&idempotency_storage_key)],
+        ) {
+            *output.borrow_mut() = Some(Err(js_error(error)));
+            let _ = call_method(transaction, "abort", &[]);
+            return;
+        }
+    }
+
+    *output.borrow_mut() = Some(Ok(report));
+}
+
 #[derive(Default)]
 struct InsertReadState {
     operation_read: Option<JsValue>,
@@ -1773,5 +2364,106 @@ mod owner_scope_tests {
         let mut empty_namespace = stored_operation();
         empty_namespace.operation_namespace.clear();
         assert!(empty_namespace.validate().is_err());
+    }
+}
+
+#[cfg(test)]
+mod staged_import_tests {
+    use super::{
+        BundleStageReport, STAGED_IMPORT_SCHEMA_VERSION, STORED_OPERATION_SCHEMA_VERSION,
+        StagedImportRecordV1, StoredOperationV1, same_immutable_operation,
+    };
+    use sol_atlas_core::offline_idempotency_fingerprint::{
+        REQUEST_FINGERPRINT_SCHEMA_VERSION, canonical_request_fingerprint_sha256,
+    };
+    use sol_atlas_core::offline_journal::{
+        JournalEntry, JournalState, OFFLINE_JOURNAL_SCHEMA_VERSION, OperationEnvelope,
+        RequiredNullableOperationId,
+    };
+    use sol_atlas_core::offline_payload_digest::canonical_payload_digest_sha256;
+
+    const PAYLOAD: &str = r#"{"value":17}"#;
+
+    fn stored_operation() -> StoredOperationV1 {
+        let envelope = OperationEnvelope {
+            schema_version: OFFLINE_JOURNAL_SCHEMA_VERSION,
+            operation_id: "op-staging-1".to_owned(),
+            aggregate_id: "aggregate-staging-1".to_owned(),
+            expected_revision: 4,
+            payload_digest_sha256: canonical_payload_digest_sha256(PAYLOAD).unwrap(),
+            idempotency_key: "idem-staging-1".to_owned(),
+            supersedes_operation_id: RequiredNullableOperationId::Null(()),
+        };
+        let entry = JournalEntry::prepare(envelope, PAYLOAD).unwrap();
+        let canonical_payload = std::str::from_utf8(entry.canonical_payload_utf8()).unwrap();
+        let owner_scope = "tenant-staging".to_owned();
+        let operation_namespace = "work-order.apply".to_owned();
+        let fingerprint = canonical_request_fingerprint_sha256(
+            &owner_scope,
+            &operation_namespace,
+            entry.envelope(),
+            canonical_payload,
+        )
+        .unwrap();
+        StoredOperationV1 {
+            schema_version: STORED_OPERATION_SCHEMA_VERSION,
+            owner_scope,
+            operation_namespace,
+            request_fingerprint_schema_version: REQUEST_FINGERPRINT_SCHEMA_VERSION,
+            request_fingerprint_sha256: fingerprint,
+            snapshot: entry.to_snapshot().unwrap(),
+        }
+    }
+
+    #[test]
+    fn staged_record_validates_owner_fingerprint_and_source_digest_shape() {
+        let staged = StagedImportRecordV1 {
+            schema_version: STAGED_IMPORT_SCHEMA_VERSION,
+            source_bundle_sha256: "a".repeat(64),
+            operation: stored_operation(),
+        };
+        assert!(staged.validate("op-staging-1").is_ok());
+
+        let mut bad_digest = staged.clone();
+        bad_digest.source_bundle_sha256 = "not-a-digest".to_owned();
+        assert!(bad_digest.validate("op-staging-1").is_err());
+
+        let mut bad_fingerprint = staged.clone();
+        bad_fingerprint.operation.request_fingerprint_sha256 = "b".repeat(64);
+        assert!(bad_fingerprint.validate("op-staging-1").is_err());
+
+        let mut wrong_owner = staged.clone();
+        wrong_owner.operation.owner_scope = "other-tenant".to_owned();
+        assert!(wrong_owner.validate("op-staging-1").is_err());
+    }
+
+    #[test]
+    fn immutable_identity_is_separate_from_local_state_progress() {
+        let original = stored_operation();
+        let mut progressed = original.clone();
+        progressed.snapshot.state = JournalState::OutcomeUnknown;
+        progressed.snapshot.attempt_count = 1;
+        assert!(progressed.validate_entry("op-staging-1").is_ok());
+        assert!(same_immutable_operation(&original, &progressed));
+
+        let mut changed_revision = original.clone();
+        changed_revision.snapshot.envelope.expected_revision += 1;
+        assert!(!same_immutable_operation(&original, &changed_revision));
+
+        let mut changed_payload = original.clone();
+        changed_payload.snapshot.canonical_payload_json = r#"{"value":18}"#.to_owned();
+        assert!(!same_immutable_operation(&original, &changed_payload));
+
+        let mut changed_scope = original.clone();
+        changed_scope.owner_scope = "other-tenant".to_owned();
+        assert!(!same_immutable_operation(&original, &changed_scope));
+    }
+
+    #[test]
+    fn stage_report_starts_with_no_claimed_import_or_dispatch() {
+        let report = BundleStageReport::default();
+        assert_eq!(report.staged_records, 0);
+        assert_eq!(report.exact_duplicates, 0);
+        assert_eq!(report.already_present_records, 0);
     }
 }

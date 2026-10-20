@@ -1,15 +1,17 @@
-# Browser IndexedDB adapter v3
+# Browser IndexedDB adapter v4
 
 **Status:** first browser persistence adapter draft. The adapter is exported from `src/state/offline_journal_indexeddb.rs`; it is not yet wired into a user-facing workflow or transport client. Exact-head WASM/native CI and browser fault-injection evidence are release gates.
 
 ## Storage model
 
-Database `sol-atlas-offline-journal`, version 3, has four key-addressed object stores. Version 2 introduced the lease store; version 3 changes each operation value to an owner-bound record:
+Database `sol-atlas-offline-journal`, version 4, has six key-addressed object stores. Version 2 introduced the lease store; version 3 introduced owner-bound operation records; version 4 adds isolated staging for untrusted portable imports:
 
 - `operations`: operation ID → `StoredOperationV1` (`owner_scope`, `operation_namespace`, fingerprint schema version/hash, and `JournalEntrySnapshotV1`);
 - `idempotency_keys`: JSON-tuple key `(owner_scope, operation_namespace, raw_idempotency_key)` → operation ID;
 - `pending_operations`: operation ID → scheduling marker for entries in `Prepared` or `OutcomeUnknown`;
-- `dispatch_leases`: operation ID → versioned lease record containing a cryptographically random owner token and a wall-clock expiry.
+- `dispatch_leases`: operation ID → versioned lease record containing a cryptographically random owner token and a wall-clock expiry;
+- `staged_imports`: operation ID → portable record held outside the active journal pending authoritative reconciliation;
+- `staged_import_idempotency_keys`: scoped idempotency tuple → staged operation ID, separate from the active journal's uniqueness index.
 
 Object stores use out-of-line keys. The outer owner-bound record is a versioned storage type separate from the service envelope. Recovery checks the storage key against `envelope.operation_id` using `JournalEntry::from_snapshot_for_operation`, validates owner/namespace metadata, snapshot schema, canonical payload bytes, SHA-256 and state/attempt invariants, then recomputes and compares the stored scoped request fingerprint. The pending store is only a scheduling index: every result is reloaded and validated, and a stale/missing index is surfaced rather than treated as evidence that an operation is safe to send.
 
@@ -35,11 +37,15 @@ A permit is not a network result and is not proof that the payload reached the s
 
 `load(operation_id, owner_scope, operation_namespace)` validates every recovered row and returns no visible record when the owner/namespace differs. `list_pending(owner_scope, operation_namespace, after, limit)` enumerates the shared scheduling index but returns only records bound to the requested owner and namespace; an empty page may still carry a cursor when the scanned rows belong to other accounts. The returned page is not snapshot-isolated because records may change while pages are fetched. A scheduler must restart full recovery scans from the beginning and call `begin_attempt` before any dispatch. A missing operation referenced by the pending index is a hard error rather than silently skipped.
 
-## Portable export
+## Portable export and safe staging
 
-`export_bundle(owner_scope)` reads `getAllKeys` and `getAll` for the operation store inside one readonly IndexedDB transaction, waits for transaction completion, checks that key/value results line up, validates every owner-bound record and checks each storage key against the snapshot's operation ID. Only after validation does it filter to the requested owner and build the canonical integrity-checked bundle. A corrupt or legacy snapshot-only row blocks export instead of silently disappearing.
+`export_bundle(owner_scope)` reads `getAllKeys` and `getAll` for the operation store inside one readonly IndexedDB transaction, waits for transaction completion, checks that key/value results line up, validates every owner-bound record and recomputes its scoped request fingerprint before filtering. It then builds the canonical integrity-checked bundle. A corrupt or legacy snapshot-only row blocks export instead of silently disappearing.
 
-This is a consistent **read-only** export, not a backup system. It returns plaintext canonical JSON, does not upload it, does not mutate the journal and does not implement restore/import. Keep the bundle protected by the caller; payloads can contain sensitive information. The manifest digest detects accidental corruption, not malicious tampering.
+This is a consistent **read-only** export, not an encrypted backup. It returns plaintext canonical JSON, does not upload it and does not mutate the journal. The manifest digest detects accidental corruption, not malicious tampering.
+
+`stage_bundle(bundle, authenticated_owner_scope)` validates the entire bundle and owner binding, then preflights active-operation and staged-operation ID/key indexes in one readwrite transaction. New rows are written only to `staged_imports` and `staged_import_idempotency_keys`. They do not enter `operations`, the active idempotency index, the pending scheduler index or the dispatch-lease store. Existing active rows are never overwritten; collisions and divergent staged state abort the transaction.
+
+This is intentionally **staging, not activation**. Bundle digests are unkeyed and portable snapshots can lie about whether an operation was sent or received. A staged row—whether it says Prepared, OutcomeUnknown or Received—must be treated as untrusted data and reconciled with the authoritative service before it can be promoted. `list_staged_imports(owner_scope)` returns scope-filtered, revalidated staged records for such a review/reconciliation workflow. This branch does not implement the online reconciliation endpoint, cryptographic receipt verification or promotion back into the active journal.
 
 ## Durability truthfulness
 
@@ -82,6 +88,11 @@ This draft adds no claim that the following browser-fault tests have run. They a
 | IDB-22 | Upgrade from unowned v2 records | Legacy rows lacking owner scope are never inferred or auto-dispatched; an explicit user-visible export/reconciliation path is required before old records can be retired |
 | IDB-23 | Persisted request fingerprint mutation | Changing the stored fingerprint, owner, namespace, immutable envelope or canonical body makes validation fail before permit creation |
 | IDB-24 | Fingerprint algorithm/schema update | Old records retain their declared fingerprint profile; unsupported versions fail closed until an explicit version-compatible verifier/migration is implemented |
+| IDB-25 | Stage valid or forged bundle | No staged row enters the active operation/pending/dispatch stores; reconciliation is required before promotion |
+| IDB-26 | Conflict in any bundle record | Staging transaction aborts as a whole; no partial staged rows or mappings remain |
+| IDB-27 | Duplicate staged bundle | Exact staged identity is idempotent; divergent state/attempt lineage is preserved for review and not overwritten |
+| IDB-28 | Active row and matching bundle | Local progressed state is never overwritten; immutable-content or scope conflicts fail closed |
+| IDB-29 | Staged Received state with forged receipt reference | Row remains isolated and marked untrusted; no active row or dispatch permit is created from the receipt claim |
 
 ## Benchmarks
 
@@ -97,7 +108,7 @@ Integrity gates are absolute: zero sends after failed/indeterminate pre-dispatch
 
 ## Explicit limits
 
-- This adapter is currently a draft and is not wired into the product's UI or a live API.
+- This adapter is currently a draft and is not wired into the product's UI or a live API. Version 4 adds isolated staging but does not yet offer authoritative reconciliation or promotion.
 - Pure lease-policy tests cover expiry boundaries and malformed bindings, but the adapter has not been browser-tested; exact-head WebAssembly compilation plus two-tab/crash fault tests remain required.
-- No service authentication, signed receipt, authoritative server idempotency table, server payload digest verifier, network retry layer, automated lease heartbeat, encryption, export/backup or device-loss recovery is included. Owner/namespace binding prevents accidental cross-account replay in this adapter but is not authentication; the service must derive its tenant from authenticated context. The proposed service contract and end-to-end acceptance gates are in `docs/offline-journal-server-contract.md`.
+- No service authentication, signed receipt, authoritative server idempotency table, server payload digest verifier, network retry layer, automated lease heartbeat, authenticated bundle encryption, recovery UX, staged-record reconciliation or promotion is included. Owner/namespace binding prevents accidental cross-account replay in this adapter but is not authentication; the service must derive its tenant from authenticated context. The proposed service contract and end-to-end acceptance gates are in `docs/offline-journal-server-contract.md`.
 - IndexedDB does not provide an unconditional power-loss guarantee simply because the application observed a completed transaction.
