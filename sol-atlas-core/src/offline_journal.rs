@@ -31,6 +31,51 @@ pub struct OperationEnvelope {
     pub supersedes_operation_id: RequiredNullableOperationId,
 }
 
+fn validate_snapshot_state(
+    envelope: &OperationEnvelope,
+    state: &JournalState,
+    attempt_count: u32,
+) -> Result<(), JournalError> {
+    match state {
+        JournalState::Prepared if attempt_count == 0 => Ok(()),
+        JournalState::Prepared => Err(JournalError::InvalidSnapshot("prepared_with_attempts")),
+        JournalState::OutcomeUnknown if attempt_count > 0 => Ok(()),
+        JournalState::OutcomeUnknown => Err(JournalError::InvalidSnapshot("unknown_without_attempt")),
+        JournalState::Received {
+            receipt_ref,
+            applied_revision,
+        } if attempt_count > 0
+            && !receipt_ref.trim().is_empty()
+            && *applied_revision >= envelope.expected_revision =>
+        {
+            Ok(())
+        }
+        JournalState::Received { .. } => {
+            Err(JournalError::InvalidSnapshot("invalid_received_state"))
+        }
+        JournalState::Rejected { reason_code }
+            if attempt_count > 0 && !reason_code.trim().is_empty() =>
+        {
+            Ok(())
+        }
+        JournalState::Rejected { .. } => {
+            Err(JournalError::InvalidSnapshot("invalid_rejected_state"))
+        }
+        JournalState::ConflictNeedsReview {
+            current_revision,
+            reason_code,
+        } if attempt_count > 0
+            && !reason_code.trim().is_empty()
+            && *current_revision > envelope.expected_revision =>
+        {
+            Ok(())
+        }
+        JournalState::ConflictNeedsReview { .. } => {
+            Err(JournalError::InvalidSnapshot("invalid_conflict_state"))
+        }
+    }
+}
+
 /// A nullable string that must still be present on the wire.
 ///
 /// Unlike `Option<String>` as a struct field, this non-optional untagged enum
