@@ -59,6 +59,15 @@ pub enum TaskAction {
 
 impl TaskGraphV1 {
     pub fn validate(&self) -> Result<(), TaskGraphError> {
+        self.validate_structure()?;
+        self.topological_order_unchecked().map(|_| ())
+    }
+
+    /// Validate node and edge references without traversing for cycles.
+    ///
+    /// Callers that need a topological order can validate structure and detect
+    /// cycles in one Kahn traversal rather than doing the cycle pass twice.
+    fn validate_structure(&self) -> Result<(), TaskGraphError> {
         if self.schema_version != TASK_GRAPH_SCHEMA_VERSION {
             return Err(TaskGraphError::UnsupportedSchemaVersion(
                 self.schema_version,
@@ -111,12 +120,15 @@ impl TaskGraphV1 {
             }
         }
 
-        self.topological_order_unchecked().map(|_| ())
+        Ok(())
     }
 
     /// Return a stable topological order. Independent ties are resolved by task ID.
+    ///
+    /// Structural validation runs first; Kahn's algorithm then checks for cycles
+    /// and returns the order in the same traversal.
     pub fn topological_order(&self) -> Result<Vec<String>, TaskGraphError> {
-        self.validate()?;
+        self.validate_structure()?;
         self.topological_order_unchecked()
     }
 
@@ -500,12 +512,16 @@ mod tests {
             graph(vec![node("a", &["a"], 0, TaskStatus::Pending)]).validate(),
             Err(TaskGraphError::SelfDependency(_))
         ));
+        let cycle = graph(vec![
+            node("a", &["b"], 0, TaskStatus::Pending),
+            node("b", &["a"], 0, TaskStatus::Pending),
+        ]);
         assert!(matches!(
-            graph(vec![
-                node("a", &["b"], 0, TaskStatus::Pending),
-                node("b", &["a"], 0, TaskStatus::Pending),
-            ])
-            .validate(),
+            cycle.validate(),
+            Err(TaskGraphError::CycleDetected)
+        ));
+        assert!(matches!(
+            cycle.topological_order(),
             Err(TaskGraphError::CycleDetected)
         ));
         assert!(matches!(
