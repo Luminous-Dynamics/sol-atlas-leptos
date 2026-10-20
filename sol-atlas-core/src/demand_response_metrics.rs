@@ -90,7 +90,7 @@ impl std::error::Error for MetricError {}
 /// denominator; this helper uses positive reserve exactly and rejects zero so
 /// the small epsilon cannot mask an invalid reserve declaration. Exact parity
 /// comparisons must record that difference.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, serde::Serialize)]
 pub struct RegulationTrackingAssessment {
     pub sample_count: usize,
     pub reserve_capacity_kw: f64,
@@ -215,7 +215,7 @@ pub fn assess_rsr_tracking(
 /// gross_curtailment_kwh counts positive reductions; rebound_energy_kwh counts
 /// intervals where event power is above baseline. Net reduction may be negative
 /// when rebound exceeds gross curtailment.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, serde::Serialize)]
 pub struct CurtailmentAssessment {
     pub sample_count: usize,
     pub duration_hours: f64,
