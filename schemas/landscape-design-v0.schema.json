@@ -7,6 +7,7 @@
   "additionalProperties": false,
   "required": [
     "schema",
+    "schema_uri",
     "project_name",
     "scope",
     "coordinate_frame",
@@ -116,6 +117,9 @@
           }
         }
       }
+    },
+    "schema_uri": {
+      "const": "https://luminousdynamics.io/schemas/landscape-design-v0.schema.json"
     }
   }
 }
