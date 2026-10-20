@@ -488,17 +488,27 @@ mod tests {
         assert_eq!(output["synthetic"], true);
         assert_eq!(output["claim_ceiling"], "metric_accounting_only");
         assert_eq!(
-            output["rsr_reference"]["interval_ids"]
-                .as_array()
-                .unwrap()
-                .len(),
+            output["rsr"]["interval_ids"].as_array().unwrap().len(),
             10
         );
+        assert_eq!(
+            output["rsr_reference"]["interval_ids"].as_array().unwrap().len(),
+            10
+        );
+        assert_eq!(output["rsr"]["interval_ids"][0], "0");
+        assert_eq!(output["rsr"]["interval_ids"][9], "9");
         assert_eq!(output["rsr_reference"]["interval_ids"][0], "0");
         assert_eq!(output["rsr_reference"]["interval_ids"][9], "9");
+        assert_eq!(output["rsr"]["target_power_kw"][8], 10.0);
+        assert_eq!(output["rsr"]["measured_power_kw"][8], 13.8504);
+        assert_eq!(output["rsr"]["reserve_capacity_kw"], 9.626);
         assert_eq!(
             output["rsr_reference"]["signed_normalized_tracking_error"][9],
             0.8
+        );
+        assert_eq!(
+            output["rsr"]["interval_ids"],
+            output["rsr_reference"]["interval_ids"]
         );
         assert_eq!(
             output["rsr_reference"]["metadata"]["sample_time_semantics"],
@@ -519,6 +529,25 @@ mod tests {
     }
 
     #[test]
+    fn source_native_and_same_row_metrics_are_deliberately_distinct() {
+        let output = build_trace_input(TRACE.as_bytes(), MANIFEST.as_bytes())
+            .expect("paired known-answer trace should adapt");
+        let aligned = output["rsr"]["target_power_kw"]
+            .as_array()
+            .expect("row-aligned target series");
+        assert_eq!(aligned[8], 10.0);
+        let measured = output["rsr"]["measured_power_kw"]
+            .as_array()
+            .expect("row-aligned measured series");
+        assert_eq!(measured[8], 13.8504);
+        let source_errors = output["rsr_reference"]["signed_normalized_tracking_error"]
+            .as_array()
+            .expect("source-native tracking error series");
+        assert_eq!(source_errors[8], 0.0);
+        assert_eq!(source_errors[9], 0.8);
+    }
+
+    #[test]
     fn malformed_source_metadata_and_csv_rows_fail_closed() {
         let manifest = parsed_manifest();
         let bad_header = "time,realSum\n0,0\n";
@@ -527,13 +556,13 @@ mod tests {
                 .expect_err("missing trackingError column must reject")
                 .contains("exactly one")
         );
-        let bad_time = TRACE.replace("5,0.0", "6,0.0");
+        let bad_time = TRACE.replace("5,10000.0,10000.0,0.0", "6,10000.0,10000.0,0.0");
         assert!(
             parse_power_trace(&bad_time, &manifest)
                 .expect_err("gap in timestamps must reject")
                 .contains("expected time 5, got 6")
         );
-        let missing_error = TRACE.replace("9,0.8", "9,");
+        let missing_error = TRACE.replace("9,10000.0,13850.4,0.8", "9,10000.0,13850.4,");
         assert!(
             parse_power_trace(&missing_error, &manifest)
                 .expect_err("missing trackingError must reject")
@@ -621,14 +650,14 @@ mod tests {
     #[test]
     fn quoted_rows_and_non_finite_errors_fail_closed() {
         let manifest = parsed_manifest();
-        let quoted = TRACE.replace("time,trackingError", "time,\"trackingError\"");
+        let quoted = TRACE.replace("time,target", "time,\"target\"");
         assert!(
             parse_power_trace(&quoted, &manifest)
                 .expect_err("quoted CSV rows are unsupported by this narrow adapter")
                 .contains("quoted fields")
         );
 
-        let non_finite = TRACE.replace("9,0.8", "9,NaN");
+        let non_finite = TRACE.replace("9,10000.0,13850.4,0.8", "9,10000.0,13850.4,NaN");
         assert!(
             parse_power_trace(&non_finite, &manifest)
                 .expect_err("non-finite source error must reject")
@@ -639,7 +668,7 @@ mod tests {
     #[test]
     fn startup_errors_must_match_the_pinned_source_branch() {
         let manifest = parsed_manifest();
-        let invalid_startup = TRACE.replace("0,0.0", "0,0.1");
+        let invalid_startup = TRACE.replace("0,10000.0,10000.0,0.0", "0,10000.0,10000.0,0.1");
         assert!(
             parse_power_trace(&invalid_startup, &manifest)
                 .expect_err("nonzero source error before signal step must reject")
