@@ -38,12 +38,20 @@ jobs:
           workspaces: |
             sol-atlas-core -> sol-atlas-core/target
 
+      - name: Resolve and freeze core benchmark dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo generate-lockfile --manifest-path sol-atlas-core/Cargo.toml
+          cargo metadata --manifest-path sol-atlas-core/Cargo.toml --locked --no-deps --format-version 1 > /dev/null
+          cp sol-atlas-core/Cargo.lock benchmark-output/Cargo.lock
+
       - name: Run deterministic release benchmark
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p benchmark-output
-          cargo run --release --manifest-path sol-atlas-core/Cargo.toml --example task_graph_bench -- 100 10000 > benchmark-output/task-graph-benchmark.json
+          cargo run --locked --release --manifest-path sol-atlas-core/Cargo.toml --example task_graph_bench -- 100 10000 > benchmark-output/task-graph-benchmark.json
 
       - name: Record execution provenance
         shell: bash
@@ -64,7 +72,7 @@ jobs:
             echo "rust=$(rustc --version)"
             echo "rust_verbose_commit=$(rustc --version --verbose | sed -n 's/^commit-hash: //p')"
             echo "cargo=$(cargo --version)"
-            sha256sum sol-atlas-core/src/task_graph.rs sol-atlas-core/examples/task_graph_bench.rs sol-atlas-core/fixtures/task-graph-v1.json sol-atlas-core/Cargo.toml > benchmark-output/source-digests.sha256
+            sha256sum sol-atlas-core/src/task_graph.rs sol-atlas-core/examples/task_graph_bench.rs sol-atlas-core/fixtures/task-graph-v1.json sol-atlas-core/Cargo.toml sol-atlas-core/Cargo.lock > benchmark-output/source-digests.sha256
             echo "source_digests_file=source-digests.sha256"
           } > benchmark-output/provenance.txt
           cp benchmark-output/source-digests.sha256 benchmark-output/provenance-digests.tmp
