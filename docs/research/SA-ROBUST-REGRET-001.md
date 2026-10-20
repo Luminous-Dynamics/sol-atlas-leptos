@@ -67,7 +67,7 @@ That reduction is not a universal ranking of public values. It means only that, 
 - Preserve an explicit input and reference digest whenever regret outputs are published.
 - Do not select a scalar winner without a separate, predeclared decision-policy contract.
 
-## 6. Exact-head validation record
+## 5. Exact-head validation record
 
 The pinned Rust workflow completed successfully at commit `5ea2d34fb8add8de97e1a1f047de7cf8bbb4c1c2`:
 - Rust unit tests: **22 passed, 0 failed**;
@@ -79,7 +79,7 @@ The pinned Rust workflow completed successfully at commit `5ea2d34fb8add8de97e1a
 
 These are synthetic fixtures, and the test run validates implementation against those fixtures—not empirical regret quality or real-world planning superiority.
 
-## 7. How to compare with industry / SOTA responsibly
+## 6. How to compare with industry / SOTA responsibly
 
 The current tests establish exactness for two tiny synthetic corpora. They do not prove that regret-aware planning beats a public-sector incumbent, commercial portfolio platform, MILP/CP-SAT model or state-of-the-art robust optimizer.
 
