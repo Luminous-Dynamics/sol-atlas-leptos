@@ -113,7 +113,7 @@ def known_answer_report() -> dict[str, Any]:
             "sample_time_semantics": "source_reported_series",
             "denominator_convention": "source_native_unknown",
             "source_artifact_sha256": None,
-            "source_config_manifest_sha256": None,
+            "source_run_manifest_sha256": None,
             "normalization_note": (
                 "Synthetic values are pre-normalized; no source clock or "
                 "denominator is implied."
@@ -237,7 +237,7 @@ def main() -> int:
             "sample_time_semantics": "prior_cycle_state",
             "denominator_convention": "reserve_plus_epsilon",
             "source_artifact_sha256": "a" * 64,
-            "source_config_manifest_sha256": "b" * 64,
+            "source_run_manifest_sha256": "b" * 64,
             "normalization_note": (
                 "Fictional validator control only; hashes are placeholders, "
                 "not an executed FlexDC-Sim artifact or config."
