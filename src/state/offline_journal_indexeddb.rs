@@ -548,8 +548,7 @@ impl IndexedDbJournal {
         reply: &ServiceReply,
     ) -> Result<ReconcileOutcome, IndexedDbJournalError> {
         let store_names = [OPERATIONS, PENDING_OPERATIONS];
-        let (transaction, _policy) =
-            begin_transaction(&self.database, &store_names, "readwrite")?;
+        let (transaction, _policy) = self.transaction(&store_names, "readwrite")?;
         let transaction_done = transaction_promise(transaction.clone());
         let operations = object_store(&transaction, OPERATIONS)?;
         let pending = object_store(&transaction, PENDING_OPERATIONS)?;
