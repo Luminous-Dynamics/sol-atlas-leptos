@@ -518,6 +518,8 @@ mod tests {
     #[test]
     fn manifest_rejects_incompatible_simulation_and_signal_steps() {
         let mut manifest = parsed_manifest();
+        manifest.simulation_duration_seconds = 10;
+        manifest.simulation_step_seconds = 2;
         manifest.signal_step_seconds = 3;
         assert!(
             validate_manifest(&manifest)
