@@ -58,7 +58,6 @@ pub enum TaskAction {
     Cancel,
 }
 
-
 pub const TASK_REVALIDATION_PLAN_SCHEMA_VERSION: u16 = 1;
 
 /// Preview of the downstream consequences of challenging a verified task.
@@ -626,7 +625,6 @@ impl CompiledTaskGraph {
     }
 }
 
-
 fn validate_revalidation_inputs(
     source_task_id: &str,
     reason_code: &str,
@@ -646,11 +644,7 @@ fn validate_revalidation_inputs(
 
 fn sort_dependents(dependents: &mut [Vec<usize>], tasks: &[TaskNodeV1]) {
     for children in dependents {
-        children.sort_by(|left, right| {
-            tasks[*left]
-                .task_id
-                .cmp(&tasks[*right].task_id)
-        });
+        children.sort_by(|left, right| tasks[*left].task_id.cmp(&tasks[*right].task_id));
     }
 }
 
@@ -697,9 +691,7 @@ fn build_revalidation_plan(
             let kind = match task.status {
                 TaskStatus::InProgress
                 | TaskStatus::CompletionReported
-                | TaskStatus::VerificationRecorded => {
-                    RevalidationImpactKind::RequiresRevalidation
-                }
+                | TaskStatus::VerificationRecorded => RevalidationImpactKind::RequiresRevalidation,
                 TaskStatus::Pending => RevalidationImpactKind::RemainsBlocked,
                 TaskStatus::Cancelled => RevalidationImpactKind::CancelledNoAction,
             };
@@ -1011,10 +1003,20 @@ mod tests {
         let tasks = vec![
             node("access", &[], 10, TaskStatus::VerificationRecorded),
             node("cancelled-branch", &["access"], 1, TaskStatus::Cancelled),
-            node("inspection", &["access"], 8, TaskStatus::VerificationRecorded),
+            node(
+                "inspection",
+                &["access"],
+                8,
+                TaskStatus::VerificationRecorded,
+            ),
             node("new-work", &["access"], 6, TaskStatus::Pending),
             node("parts", &["access"], 7, TaskStatus::VerificationRecorded),
-            node("after-cancel", &["cancelled-branch"], 1, TaskStatus::Pending),
+            node(
+                "after-cancel",
+                &["cancelled-branch"],
+                1,
+                TaskStatus::Pending,
+            ),
             node(
                 "functional-test",
                 &["inspection", "parts"],
@@ -1023,22 +1025,22 @@ mod tests {
             ),
             node("handover", &["functional-test"], 5, TaskStatus::Pending),
         ];
-        let mut graph = graph(tasks.clone());
-        graph.graph_id = "revalidation-demo-001".to_owned();
-        graph.revision = 12;
+        let mut source_graph = graph(tasks.clone());
+        source_graph.graph_id = "revalidation-demo-001".to_owned();
+        source_graph.revision = 12;
         let mut reordered = graph(tasks.into_iter().rev().collect());
         reordered.graph_id = "revalidation-demo-001".to_owned();
         reordered.revision = 12;
-        let before = graph.clone();
+        let before = source_graph.clone();
 
-        let reference_plan = graph
+        let reference_plan = source_graph
             .plan_verification_invalidation(
                 "access",
                 "evidence_correction",
                 "urn:demo:evidence:access-correction",
             )
             .unwrap();
-        let compiled = super::CompiledTaskGraph::compile(graph.clone()).unwrap();
+        let compiled = super::CompiledTaskGraph::compile(source_graph.clone()).unwrap();
         let compiled_plan = compiled
             .plan_verification_invalidation(
                 "access",
@@ -1062,7 +1064,7 @@ mod tests {
                 .unwrap(),
             expected
         );
-        assert_eq!(graph, before);
+        assert_eq!(source_graph, before);
         assert_eq!(compiled.graph(), &before);
     }
 
@@ -1078,11 +1080,7 @@ mod tests {
             Err(TaskGraphError::TaskNotVerified("access".to_owned()))
         );
         assert_eq!(
-            graph.plan_verification_invalidation(
-                "access",
-                " ",
-                "urn:demo:evidence:correction",
-            ),
+            graph.plan_verification_invalidation("access", " ", "urn:demo:evidence:correction",),
             Err(TaskGraphError::EmptyRevalidationReason)
         );
         assert_eq!(
