@@ -8,7 +8,7 @@
       "id": "t0",
       "duration_hours": 1,
       "grid_import_limit_kw": 20,
-      "grid_carbon_intensity_gco2_per_kwh": 400,
+      "grid_carbon_intensity_gco2_per_kwh": 1200,
       "electricity_price_usd_per_kwh": 0.1,
       "ambient_temperature_c": 24,
       "facility_energy_per_it_energy": 1.15,
