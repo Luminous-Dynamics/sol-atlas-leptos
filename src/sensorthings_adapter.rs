@@ -410,18 +410,23 @@ fn parse_rfc3339_millis(value: &str) -> Result<u64, String> {
         };
     }
 
-    let offset_seconds = match bytes.get(index) {
-        Some(b'Z' | b'z') if index + 1 == bytes.len() => 0i64,
-        Some(sign @ (b'+' | b'-')) if index + 6 == bytes.len() && bytes[index + 3] == b':' => {
-            let offset_hour = parse_digits(bytes, index + 1, 2)?;
-            let offset_minute = parse_digits(bytes, index + 4, 2)?;
-            if offset_hour > 23 || offset_minute > 59 {
-                return Err("invalid timezone offset".to_string());
-            }
-            let magnitude = i64::from(offset_hour * 3600 + offset_minute * 60);
-            if *sign == b'+' { magnitude } else { -magnitude }
+    let offset_seconds = if index + 1 == bytes.len()
+        && matches!(bytes[index], b'Z' | b'z')
+    {
+        0i64
+    } else if index + 6 == bytes.len()
+        && matches!(bytes[index], b'+' | b'-')
+        && bytes[index + 3] == b':'
+    {
+        let offset_hour = parse_digits(bytes, index + 1, 2)?;
+        let offset_minute = parse_digits(bytes, index + 4, 2)?;
+        if offset_hour > 23 || offset_minute > 59 {
+            return Err("invalid timezone offset".to_string());
         }
-        _ => return Err("timezone must be Z or numeric plus/minus HH:MM".to_string()),
+        let magnitude = i64::from(offset_hour * 3600 + offset_minute * 60);
+        if bytes[index] == b'+' { magnitude } else { -magnitude }
+    } else {
+        return Err("timezone must be Z or numeric plus/minus HH:MM".to_string());
     };
 
     let days = days_from_civil(i64::from(year), month, day);
@@ -449,7 +454,7 @@ fn parse_digits(bytes: &[u8], start: usize, count: usize) -> Result<u32, String>
     }
     Ok(slice
         .iter()
-        .fold(0u32, |value, digit| value * 10 + u32::from(digit - b'0')))
+        .fold(0u32, |value, digit| value * 10 + u32::from(*digit - b'0')))
 }
 
 fn days_in_month(year: u32, month: u32) -> u32 {
@@ -568,6 +573,13 @@ mod tests {
         assert_eq!(adapted["quality"]["state"], "unreviewed");
         assert_eq!(adapted["quality"]["calibration_state"], "unknown");
         assert_eq!(adapted["location"]["kind"], "opaque-site");
+        assert_eq!(adapted["source"]["source_uri"], context().source_uri);
+        assert_eq!(adapted["transformations"][0]["input_sha256"], context().payload_sha256);
+        assert_eq!(adapted["transformations"][0]["activity_uri"], PROFILE_ID);
+        assert_ne!(
+            adapted["transformations"][0]["output_sha256"],
+            context().payload_sha256
+        );
         assert!(adapted["location"].get("coordinates").is_none());
     }
 
