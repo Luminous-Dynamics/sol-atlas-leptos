@@ -201,68 +201,110 @@ pub fn evaluate_evidence_packet(
             "packet task identity does not match the task being reviewed",
         ));
     }
-    if packet.procedure_revision == 0 {
+    if packet.procedure_revision == 0 || context.expected_procedure_revision == 0 {
         issues.push(issue(
             EvidenceIssueCode::InvalidProcedureRevision,
             None,
             None,
-            "procedure revision must be positive",
+            "packet and authoritative procedure revisions must be positive",
+        ));
+    } else if packet.procedure_revision != context.expected_procedure_revision {
+        issues.push(issue(
+            EvidenceIssueCode::ProcedureRevisionMismatch,
+            None,
+            None,
+            "packet procedure revision does not match the authoritative procedure revision",
         ));
     }
-    if packet.requirements.is_empty() {
+    if context.expected_requirements.is_empty() {
         issues.push(issue(
             EvidenceIssueCode::EmptyRequirements,
             None,
             None,
-            "a review packet must declare at least one requirement",
+            "authoritative task contract contains no evidence requirements",
         ));
     }
 
-    let mut requirement_ids = BTreeSet::new();
-    let mut requirements_by_id: BTreeMap<&str, &EvidenceRequirementV1> = BTreeMap::new();
-    let mut requirements_valid = true;
-    for requirement in &packet.requirements {
+    // Build the authority-supplied requirement map first. Evidence is always
+    // evaluated against this set, never against a caller's self-declared subset.
+    let mut requirements_by_id: std::collections::BTreeMap<String, EvidenceRequirementV1> =
+        std::collections::BTreeMap::new();
+    let mut authoritative_requirements_valid = true;
+    for requirement in &context.expected_requirements {
         if requirement.requirement_id.trim().is_empty()
-            || !requirement_ids.insert(requirement.requirement_id.as_str())
+            || requirements_by_id.contains_key(&requirement.requirement_id)
         {
-            requirements_valid = false;
+            authoritative_requirements_valid = false;
             issues.push(issue(
                 EvidenceIssueCode::DuplicateRequirementId,
                 Some(requirement.requirement_id.clone()),
                 None,
-                "requirement identifier is empty or duplicated",
+                "authoritative requirement identifier is empty or duplicated",
             ));
-        } else {
-            requirements_by_id.insert(requirement.requirement_id.as_str(), requirement);
+            continue;
         }
         if requirement.required_procedure_revision == Some(0) {
-            requirements_valid = false;
+            authoritative_requirements_valid = false;
             issues.push(issue(
                 EvidenceIssueCode::InvalidProcedureRevision,
                 Some(requirement.requirement_id.clone()),
                 None,
-                "required procedure revision must be positive",
+                "authoritative required procedure revision must be positive",
             ));
         }
         if let Some(required_revision) = requirement.required_procedure_revision {
-            if packet.procedure_revision != required_revision {
-                requirements_valid = false;
+            if required_revision != context.expected_procedure_revision {
+                authoritative_requirements_valid = false;
                 issues.push(issue(
                     EvidenceIssueCode::ProcedureRevisionMismatch,
                     Some(requirement.requirement_id.clone()),
                     None,
-                    format!(
-                        "packet procedure revision {} does not match required revision {}",
-                        packet.procedure_revision, required_revision
-                    ),
+                    "authoritative requirement revision disagrees with the task procedure revision",
                 ));
             }
         }
+        requirements_by_id.insert(requirement.requirement_id.clone(), requirement.clone());
+    }
+
+    // A packet can carry a copy for display/transport, but it cannot edit the
+    // requirement set and then claim completeness against its own modified copy.
+    let mut packet_requirements_by_id: std::collections::BTreeMap<
+        String,
+        EvidenceRequirementV1,
+    > = std::collections::BTreeMap::new();
+    let mut packet_requirements_unique = true;
+    for requirement in &packet.requirements {
+        if requirement.requirement_id.trim().is_empty()
+            || packet_requirements_by_id.contains_key(&requirement.requirement_id)
+        {
+            packet_requirements_unique = false;
+            issues.push(issue(
+                EvidenceIssueCode::DuplicateRequirementId,
+                Some(requirement.requirement_id.clone()),
+                None,
+                "packet requirement identifier is empty or duplicated",
+            ));
+            continue;
+        }
+        packet_requirements_by_id.insert(requirement.requirement_id.clone(), requirement.clone());
+    }
+    let requirements_match_authority = packet_requirements_unique
+        && packet_requirements_by_id == requirements_by_id
+        && packet.requirements.len() == context.expected_requirements.len();
+    if !requirements_match_authority {
+        issues.push(issue(
+            EvidenceIssueCode::RequirementsDoNotMatchAuthority,
+            None,
+            None,
+            "packet requirements must exactly match the authoritative task/procedure requirement set",
+        ));
     }
 
     let mut evidence_ids = BTreeSet::new();
-    let mut artifacts_by_requirement: std::collections::BTreeMap<&str, Vec<&EvidenceArtifactV1>> =
-        std::collections::BTreeMap::new();
+    let mut artifacts_by_requirement: std::collections::BTreeMap<
+        String,
+        Vec<&EvidenceArtifactV1>,
+    > = std::collections::BTreeMap::new();
 
     for artifact in &packet.evidence {
         let mut artifact_valid = true;
@@ -343,16 +385,13 @@ pub fn evaluate_evidence_packet(
             ));
         }
 
-        let Some(requirement) = requirements_by_id
-            .get(artifact.requirement_id.as_str())
-            .copied()
-        else {
+        let Some(requirement) = requirements_by_id.get(&artifact.requirement_id) else {
             artifact_valid = false;
             issues.push(issue(
                 EvidenceIssueCode::UnknownRequirement,
                 Some(artifact.requirement_id.clone()),
                 Some(artifact.evidence_id.clone()),
-                "evidence references a requirement not declared in this packet",
+                "evidence references no requirement in the authoritative task/procedure set",
             ));
             continue;
         };
@@ -363,7 +402,7 @@ pub fn evaluate_evidence_packet(
                 EvidenceIssueCode::WrongEvidenceKind,
                 Some(requirement.requirement_id.clone()),
                 Some(artifact.evidence_id.clone()),
-                "evidence kind does not match the requirement",
+                "evidence kind does not match the authoritative requirement",
             ));
         }
         if let Some(required_revision) = requirement.required_procedure_revision {
@@ -415,23 +454,23 @@ pub fn evaluate_evidence_packet(
 
         if artifact_valid {
             artifacts_by_requirement
-                .entry(requirement.requirement_id.as_str())
+                .entry(requirement.requirement_id.clone())
                 .or_default()
                 .push(artifact);
         }
     }
 
     let mut satisfied_count = 0;
-    for requirement in &packet.requirements {
+    for requirement in &context.expected_requirements {
         let valid_artifacts = artifacts_by_requirement
-            .get(requirement.requirement_id.as_str())
+            .get(&requirement.requirement_id)
             .map_or(0, Vec::len);
         if valid_artifacts == 0 {
             issues.push(issue(
                 EvidenceIssueCode::MissingRequiredEvidence,
                 Some(requirement.requirement_id.clone()),
                 None,
-                "no valid evidence artifact satisfies this requirement",
+                "no valid evidence artifact satisfies this authoritative requirement",
             ));
         } else {
             satisfied_count += 1;
@@ -445,13 +484,15 @@ pub fn evaluate_evidence_packet(
         && packet.graph_id.trim() != ""
         && packet.task_id.trim() != ""
         && packet.prepared_by.trim() != ""
-        && packet.procedure_revision > 0;
+        && packet.procedure_revision == context.expected_procedure_revision
+        && context.expected_procedure_revision > 0;
 
     let ready = issues.is_empty()
         && identity_valid
-        && requirements_valid
-        && satisfied_count == packet.requirements.len()
-        && !packet.requirements.is_empty();
+        && authoritative_requirements_valid
+        && requirements_match_authority
+        && satisfied_count == context.expected_requirements.len()
+        && !context.expected_requirements.is_empty();
 
     EvidenceEvaluation {
         decision: if ready {
@@ -459,12 +500,11 @@ pub fn evaluate_evidence_packet(
         } else {
             EvidenceDecision::Incomplete
         },
-        required_count: packet.requirements.len(),
+        required_count: context.expected_requirements.len(),
         satisfied_count,
         issues,
     }
 }
-
 fn issue(
     code: EvidenceIssueCode,
     requirement_id: Option<String>,
@@ -549,6 +589,11 @@ mod tests {
             graph_id: "job-graph-demo-001",
             graph_revision: 4,
             task_id: "functional-test",
+            expected_procedure_revision: 7,
+            expected_requirements: vec![
+                requirement("observation", EvidenceKind::Observation, false),
+                requirement("measurement", EvidenceKind::Measurement, true),
+            ],
             reviewer_id,
         }
     }
@@ -687,6 +732,38 @@ mod tests {
     }
 
     #[test]
+    fn packet_cannot_omit_or_rewrite_authoritative_requirements() {
+        let mut omitted = packet();
+        let missing_id = omitted.requirements[1].requirement_id.clone();
+        omitted.requirements.pop();
+        omitted.evidence.retain(|artifact| artifact.requirement_id != missing_id);
+        let result = evaluate_evidence_packet(&omitted, &context(Some("reviewer-02")));
+        assert!(has_issue(
+            &result,
+            EvidenceIssueCode::RequirementsDoNotMatchAuthority
+        ));
+        assert!(has_issue(
+            &result,
+            EvidenceIssueCode::MissingRequiredEvidence
+        ));
+        assert_eq!(result.required_count, 2);
+        assert_eq!(result.decision, EvidenceDecision::Incomplete);
+
+        let mut rewritten = packet();
+        rewritten.requirements[1].accepted_kind = EvidenceKind::Observation;
+        rewritten.evidence[1].kind = EvidenceKind::Observation;
+        rewritten.evidence[1].unit = None;
+        rewritten.evidence[1].instrument_ref = None;
+        let result = evaluate_evidence_packet(&rewritten, &context(Some("reviewer-02")));
+        assert!(has_issue(
+            &result,
+            EvidenceIssueCode::RequirementsDoNotMatchAuthority
+        ));
+        assert!(has_issue(&result, EvidenceIssueCode::WrongEvidenceKind));
+        assert_eq!(result.decision, EvidenceDecision::Incomplete);
+    }
+
+    #[test]
     fn fixture_deserializes_and_is_ready_for_review() {
         let value: TaskEvidencePacketV1 =
             serde_json::from_str(include_str!("../fixtures/task-evidence-packet-v1.json"))
@@ -697,6 +774,8 @@ mod tests {
                 graph_id: "job-graph-demo-001",
                 graph_revision: 4,
                 task_id: "functional-test",
+                expected_procedure_revision: value.procedure_revision,
+                expected_requirements: value.requirements.clone(),
                 reviewer_id: Some("reviewer-02"),
             },
         );
