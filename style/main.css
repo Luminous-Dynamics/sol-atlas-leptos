@@ -1359,3 +1359,41 @@ canvas#globe-canvas.has-hover {
     cursor: not-allowed;
     opacity: 0.45;
 }
+
+.landscape-evidence-counts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 13px;
+}
+.landscape-evidence-counts > div {
+    display: grid;
+    gap: 4px;
+    padding: 10px 9px;
+    border: 1px solid #dce3d8;
+    border-radius: 7px;
+    background: #eef2e9;
+}
+.landscape-evidence-counts strong {
+    color: #365e41;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 22px;
+    font-weight: 500;
+}
+.landscape-evidence-counts span {
+    color: #7b8c7b;
+    font-size: 10px;
+    line-height: 1.35;
+}
+.landscape-evidence-blocked {
+    margin-top: 10px;
+    padding: 9px 10px;
+    border: 1px solid #e0cfaa;
+    border-radius: 6px;
+    background: #f6f0e3;
+    color: #80633b;
+    font-size: 9px;
+    font-weight: 750;
+    letter-spacing: 0.4px;
+    line-height: 1.5;
+}
