@@ -23,6 +23,21 @@ use crate::{
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct ScopedOperationIdentity {
+    tenant_scope: String,
+    operation_id: String,
+}
+
+impl ScopedOperationIdentity {
+    fn new(tenant_scope: &str, operation_id: &str) -> Self {
+        Self {
+            tenant_scope: tenant_scope.to_owned(),
+            operation_id: operation_id.to_owned(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ScopedIdempotencyKey {
     tenant_scope: String,
     operation_namespace: String,
@@ -116,6 +131,7 @@ impl StoredOutcome {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ReservationTicket {
     key: ScopedIdempotencyKey,
+    operation_id: String,
     request_fingerprint_schema_version: u16,
     request_fingerprint_sha256: String,
     generation: u64,
@@ -158,6 +174,7 @@ pub enum LedgerModelError {
     InvalidEnvelope(String),
     InvalidFingerprint(String),
     RequestFingerprintConflict,
+    OperationIdentityConflict,
     StaleReservation,
     ConflictingFinalization,
     SequenceExhausted,
@@ -176,6 +193,9 @@ impl fmt::Display for LedgerModelError {
             }
             Self::RequestFingerprintConflict => formatter
                 .write_str("idempotency key is already bound to a different request fingerprint"),
+            Self::OperationIdentityConflict => formatter.write_str(
+                "operation ID is already bound to another idempotency key in this tenant scope",
+            ),
             Self::StaleReservation => {
                 formatter.write_str("reservation is stale, missing, or no longer authoritative")
             }
@@ -212,6 +232,7 @@ struct LedgerRecord {
 #[derive(Debug, Default)]
 pub struct ReferenceIdempotencyLedger {
     records: BTreeMap<ScopedIdempotencyKey, LedgerRecord>,
+    operation_index: BTreeMap<ScopedOperationIdentity, ScopedIdempotencyKey>,
     next_generation: u64,
 }
 
@@ -257,6 +278,11 @@ impl ReferenceIdempotencyLedger {
             };
         }
 
+        let operation_identity = ScopedOperationIdentity::new(tenant_scope, &envelope.operation_id);
+        if self.operation_index.contains_key(&operation_identity) {
+            return Err(LedgerModelError::OperationIdentityConflict);
+        }
+
         self.next_generation = self
             .next_generation
             .checked_add(1)
@@ -270,8 +296,10 @@ impl ReferenceIdempotencyLedger {
                 state: RecordState::InProgress { generation },
             },
         );
+        self.operation_index.insert(operation_identity, key.clone());
         Ok(ReserveResult::Reserved(ReservationTicket {
             key,
+            operation_id: envelope.operation_id.clone(),
             request_fingerprint_schema_version: REQUEST_FINGERPRINT_SCHEMA_VERSION,
             request_fingerprint_sha256: fingerprint,
             generation,
@@ -336,6 +364,11 @@ impl ReferenceIdempotencyLedger {
             return Err(LedgerModelError::StaleReservation);
         }
         self.records.remove(&ticket.key);
+        let operation_identity =
+            ScopedOperationIdentity::new(ticket.key.tenant_scope(), &ticket.operation_id);
+        if self.operation_index.get(&operation_identity) == Some(&ticket.key) {
+            self.operation_index.remove(&operation_identity);
+        }
         Ok(())
     }
 
@@ -455,6 +488,50 @@ mod tests {
             Err(LedgerModelError::RequestFingerprintConflict)
         );
         assert_eq!(ledger.record_count(), 1);
+    }
+
+    #[test]
+    fn operation_identity_cannot_be_rebound_to_another_key_or_namespace() {
+        let mut ledger = ReferenceIdempotencyLedger::new();
+        let first = envelope("op-identity-001", "aggregate-001", 4);
+        let _ticket = reserved(ledger.reserve(TENANT, NAMESPACE, &first, PAYLOAD).unwrap());
+
+        let mut different_key = first.clone();
+        different_key.idempotency_key = "idem-key-002".to_owned();
+        assert_eq!(
+            ledger.reserve(TENANT, NAMESPACE, &different_key, PAYLOAD),
+            Err(LedgerModelError::OperationIdentityConflict)
+        );
+
+        let mut different_namespace = first.clone();
+        different_namespace.idempotency_key = "idem-key-003".to_owned();
+        assert_eq!(
+            ledger.reserve(TENANT, "work-order.cancel", &different_namespace, PAYLOAD),
+            Err(LedgerModelError::OperationIdentityConflict)
+        );
+
+        // Operation identities are tenant-scoped, so another authenticated
+        // tenant may legitimately have its own operation ID and key space.
+        assert!(matches!(
+            ledger.reserve("tenant-b", NAMESPACE, &first, PAYLOAD),
+            Ok(ReserveResult::Reserved(_))
+        ));
+        assert_eq!(ledger.record_count(), 2);
+    }
+
+    #[test]
+    fn safely_aborted_operation_id_can_be_reserved_again() {
+        let mut ledger = ReferenceIdempotencyLedger::new();
+        let first = envelope("op-identity-002", "aggregate-001", 4);
+        let ticket = reserved(ledger.reserve(TENANT, NAMESPACE, &first, PAYLOAD).unwrap());
+        ledger.abort_before_effect(&ticket).unwrap();
+
+        let mut new_key = first;
+        new_key.idempotency_key = "idem-new-after-rollback".to_owned();
+        assert!(matches!(
+            ledger.reserve(TENANT, NAMESPACE, &new_key, PAYLOAD),
+            Ok(ReserveResult::Reserved(_))
+        ));
     }
 
     #[test]
