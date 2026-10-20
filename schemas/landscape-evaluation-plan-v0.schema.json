@@ -185,7 +185,8 @@
           "unit": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 80
+            "maxLength": 80,
+            "pattern": "\\S"
           },
           "method_id": {
             "type": "string",
@@ -544,6 +545,68 @@
             "properties": {
               "aggregation_policy": {
                 "minLength": 8
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "study_design": {
+            "const": "matched-comparison"
+          }
+        },
+        "required": [
+          "study_design"
+        ]
+      },
+      "then": {
+        "properties": {
+          "arms": {
+            "contains": {
+              "properties": {
+                "role": {
+                  "const": "comparison"
+                },
+                "allocation_method": {
+                  "const": "matched"
+                }
+              },
+              "required": [
+                "role",
+                "allocation_method"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "privacy": {
+            "properties": {
+              "consent_status": {
+                "const": "withdrawn"
+              }
+            },
+            "required": [
+              "consent_status"
+            ]
+          }
+        },
+        "required": [
+          "privacy"
+        ]
+      },
+      "then": {
+        "properties": {
+          "privacy": {
+            "properties": {
+              "publication_policy": {
+                "const": "private"
               }
             }
           }
