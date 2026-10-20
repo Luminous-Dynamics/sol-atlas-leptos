@@ -24,8 +24,9 @@ use sol_atlas_core::{
         RequiredNullableOperationId,
     },
     offline_journal_bundle::{OfflineJournalBundleRecordV1, OfflineJournalBundleV1},
-    offline_payload_digest::canonical_payload_digest_sha256,
+    offline_payload_digest::{canonical_payload_digest_sha256, canonicalize_payload_json},
 };
+use sha2::{Digest, Sha256};
 
 #[derive(Debug, Clone, Copy)]
 struct Options {
@@ -52,6 +53,13 @@ struct Sample {
     elapsed_ns: u64,
 }
 
+#[derive(Serialize)]
+struct UnsignedManifestBaseline<'a> {
+    schema_version: u16,
+    owner_scope: &'a str,
+    records: &'a [OfflineJournalBundleRecordV1],
+}
+
 #[derive(Debug, Serialize)]
 struct StageSummary {
     stage: &'static str,
@@ -76,9 +84,12 @@ struct BenchmarkReport {
     parameters: BenchmarkParameters,
     bundle_json_bytes: usize,
     bare_serde_json_bytes: usize,
+    canonical_hash_only_manifest_bytes: usize,
     bytes_per_record: f64,
     bare_serde_json_bytes_per_record: f64,
+    canonical_hash_only_bytes_per_record: f64,
     baseline_note: &'static str,
+    canonical_hash_only_note: &'static str,
     bundle_integrity_sha256: String,
     stage_summaries: Vec<StageSummary>,
     raw_samples: Vec<Sample>,
@@ -93,6 +104,7 @@ struct Correctness {
     integrity_digest_stable: bool,
     canonical_bytes_stable: bool,
     bare_serde_json_roundtrip_equal: bool,
+    canonical_hash_only_matches_bundle_digest: bool,
 }
 
 fn main() {
@@ -123,6 +135,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut raw_samples = Vec::with_capacity(options.samples * 4);
     let mut bundle_bytes = 0usize;
     let mut bare_serde_json_bytes = 0usize;
+    let mut canonical_hash_only_manifest_bytes = 0usize;
     let mut bundle_digest = String::new();
     let mut reference_bundle_json: Option<String> = None;
     let mut correctness = Correctness {
@@ -132,6 +145,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         integrity_digest_stable: true,
         canonical_bytes_stable: true,
         bare_serde_json_roundtrip_equal: true,
+        canonical_hash_only_matches_bundle_digest: true,
     };
 
     for sample_index in 0..options.samples {
@@ -163,6 +177,20 @@ fn run() -> Result<(), Box<dyn Error>> {
             elapsed_ns: elapsed,
         });
 
+        // Informational, deliberately non-equivalent baseline: canonical JCS
+        // encode + SHA-256, but without revalidating every snapshot's semantics.
+        // The input bundle was already created/validated above; this timed stage
+        // quantifies serialization/hash cost separately from semantic validation.
+        let start = Instant::now();
+        let (canonical_hash_only_digest, canonical_hash_only_bytes) =
+            canonical_hash_only_manifest_digest(&bundle)?;
+        let elapsed = elapsed_ns(start.elapsed());
+        raw_samples.push(Sample {
+            sample_index,
+            stage: "canonical_jcs_and_sha256_without_snapshot_validation",
+            elapsed_ns: elapsed,
+        });
+
         // Informational, deliberately non-equivalent baseline: typed Serde JSON
         // roundtrip without JCS canonicalization, snapshot validation, or digest
         // recomputation. This quantifies overhead but is not a security substitute.
@@ -177,6 +205,8 @@ fn run() -> Result<(), Box<dyn Error>> {
         });
 
         correctness.bare_serde_json_roundtrip_equal &= bare_parsed == bundle;
+        correctness.canonical_hash_only_matches_bundle_digest &=
+            canonical_hash_only_digest == bundle.integrity_sha256;
         correctness.roundtrip_equal &= parsed == bundle;
         correctness.record_count_preserved &= parsed.records.len() == options.records;
         correctness.owner_scope_preserved &= parsed.owner_scope == owner_scope;
@@ -188,6 +218,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         }
         bundle_bytes = json.len();
         bare_serde_json_bytes = bare_json.len();
+        canonical_hash_only_manifest_bytes = canonical_hash_only_bytes;
         bundle_digest = bundle.integrity_sha256;
     }
 
@@ -196,7 +227,8 @@ fn run() -> Result<(), Box<dyn Error>> {
         && correctness.owner_scope_preserved
         && correctness.integrity_digest_stable
         && correctness.canonical_bytes_stable
-        && correctness.bare_serde_json_roundtrip_equal)
+        && correctness.bare_serde_json_roundtrip_equal
+        && correctness.canonical_hash_only_matches_bundle_digest)
     {
         return Err("benchmark correctness oracle failed".into());
     }
@@ -221,9 +253,12 @@ fn run() -> Result<(), Box<dyn Error>> {
         },
         bundle_json_bytes: bundle_bytes,
         bare_serde_json_bytes,
+        canonical_hash_only_manifest_bytes,
         bytes_per_record: bundle_bytes as f64 / options.records as f64,
         bare_serde_json_bytes_per_record: bare_serde_json_bytes as f64 / options.records as f64,
+        canonical_hash_only_bytes_per_record: canonical_hash_only_manifest_bytes as f64 / options.records as f64,
         baseline_note: "Bare Serde roundtrip omits canonicalization, semantic snapshot validation, and integrity digest verification; informational only, not an equivalent security baseline.",
+        canonical_hash_only_note: "JCS+SHA-256 only over typed serialized manifest; skips per-record semantic snapshot validation, and is therefore not equivalent to full contract validation.",
         bundle_integrity_sha256: bundle_digest,
         stage_summaries,
         raw_samples,
@@ -297,11 +332,31 @@ fn make_records(
     Ok(records)
 }
 
+fn canonical_hash_only_manifest_digest(
+    bundle: &OfflineJournalBundleV1,
+) -> Result<(String, usize), Box<dyn Error>> {
+    let unsigned = UnsignedManifestBaseline {
+        schema_version: bundle.schema_version,
+        owner_scope: &bundle.owner_scope,
+        records: &bundle.records,
+    };
+    let serialized = serde_json::to_string(&unsigned)?;
+    let canonical = canonicalize_payload_json(&serialized)?;
+    let digest = Sha256::digest(&canonical);
+    let mut hex = String::with_capacity(digest.len() * 2);
+    for byte in digest {
+        use std::fmt::Write as _;
+        write!(&mut hex, "{byte:02x}")?;
+    }
+    Ok((hex, canonical.len()))
+}
+
 fn summarize(samples: &[Sample], record_count: usize) -> Vec<StageSummary> {
     let stages = [
         "create_validate_sort_and_digest",
         "canonical_serialize_and_validate",
         "parse_validate_and_recompute_digest",
+        "canonical_jcs_and_sha256_without_snapshot_validation",
         "serde_json_unverified_roundtrip_baseline",
     ];
     stages
