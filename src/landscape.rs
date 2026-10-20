@@ -1,0 +1,341 @@
+// Copyright (C) 2024-2026 Tristan Stoltz / Luminous Dynamics
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Commercial licensing: see COMMERCIAL_LICENSE.md at repository root
+
+//! Validation boundary for the native landscape-design v0 snapshot.
+//!
+//! This validates document structure and the current schematic-symbol contract.
+//! It does not validate surveyed geometry, geospatial reference systems, ecology,
+//! hydrology, engineering compliance, or predicted landscape outcomes.
+
+use serde_json::Value;
+use std::collections::HashSet;
+
+pub const SNAPSHOT_SCHEMA: &str = "luminous.landscape-design.v0";
+pub const SNAPSHOT_SCHEMA_URI: &str =
+    "https://luminousdynamics.io/schemas/landscape-design-v0.schema.json";
+pub const FRAME_KIND: &str = "LOCAL_CARTESIAN_DRAWING_UNITS";
+pub const GEOMETRY_STATUS: &str = "schematic-design-intent";
+pub const GEOMETRY_REPRESENTATION: &str = "schematic-symbol-anchor-v0";
+
+const ROOT_KEYS: &[&str] = &[
+    "schema",
+    "schema_uri",
+    "project_name",
+    "scope",
+    "coordinate_frame",
+    "geometry_status",
+    "features",
+];
+const FRAME_KEYS: &[&str] = &["kind", "origin", "x_axis", "y_axis", "georeferenced"];
+const FEATURE_KEYS: &[&str] = &[
+    "id",
+    "kind",
+    "label",
+    "x_du",
+    "y_du",
+    "status",
+    "source",
+    "geometry_representation",
+];
+
+/// Return every structural violation found in a native v0 project snapshot.
+///
+/// An invalid or unsupported snapshot must never be treated as an empty, valid
+/// project. Callers should display the returned errors and stop export/import.
+pub fn validate_snapshot(value: &Value) -> Result<(), Vec<String>> {
+    let mut errors = Vec::new();
+    let Some(root) = value.as_object() else {
+        return Err(vec!["$: expected a JSON object".to_string()]);
+    };
+
+    validate_keys(root.keys().map(String::as_str), ROOT_KEYS, "$", &mut errors);
+    require_string_eq(value, "schema", SNAPSHOT_SCHEMA, "$", &mut errors);
+    require_string_eq(value, "schema_uri", SNAPSHOT_SCHEMA_URI, "$", &mut errors);
+    require_string_eq(value, "geometry_status", GEOMETRY_STATUS, "$", &mut errors);
+
+    match value.get("project_name").and_then(Value::as_str) {
+        Some(name) if !name.trim().is_empty() && name.chars().count() <= 200 => {}
+        Some(_) => errors.push(
+            "$.project_name: expected a non-empty name of at most 200 Unicode scalar values"
+                .to_string(),
+        ),
+        None => errors.push("$.project_name: expected a string".to_string()),
+    }
+
+    match value.get("scope").and_then(Value::as_str) {
+        Some("site-parcel" | "district" | "watershed" | "bioregion") => {}
+        Some(_) => errors.push(
+            "$.scope: unsupported scope (expected site-parcel, district, watershed, or bioregion)"
+                .to_string(),
+        ),
+        None => errors.push("$.scope: expected a string".to_string()),
+    }
+
+    if let Some(frame) = value.get("coordinate_frame") {
+        if let Some(object) = frame.as_object() {
+            validate_keys(
+                object.keys().map(String::as_str),
+                FRAME_KEYS,
+                "$.coordinate_frame",
+                &mut errors,
+            );
+            require_string_eq(frame, "kind", FRAME_KIND, "$.coordinate_frame", &mut errors);
+            require_string_eq(
+                frame,
+                "origin",
+                "canvas top-left",
+                "$.coordinate_frame",
+                &mut errors,
+            );
+            require_string_eq(
+                frame,
+                "x_axis",
+                "right",
+                "$.coordinate_frame",
+                &mut errors,
+            );
+            require_string_eq(
+                frame,
+                "y_axis",
+                "down",
+                "$.coordinate_frame",
+                &mut errors,
+            );
+            if frame.get("georeferenced") != Some(&Value::Bool(false)) {
+                errors.push(
+                    "$.coordinate_frame.georeferenced: v0 schematic snapshots must be false"
+                        .to_string(),
+                );
+            }
+        } else {
+            errors.push("$.coordinate_frame: expected an object".to_string());
+        }
+    } else {
+        errors.push("$.coordinate_frame: missing required object".to_string());
+    }
+
+    match value.get("features").and_then(Value::as_array) {
+        Some(features) => {
+            let mut ids = HashSet::with_capacity(features.len());
+            for (index, feature) in features.iter().enumerate() {
+                validate_feature(feature, index, &mut ids, &mut errors);
+            }
+        }
+        None => errors.push("$.features: expected an array".to_string()),
+    }
+
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        Err(errors)
+    }
+}
+
+fn validate_feature(
+    feature: &Value,
+    index: usize,
+    ids: &mut HashSet<String>,
+    errors: &mut Vec<String>,
+) {
+    let path = format!("$.features[{index}]");
+    let Some(object) = feature.as_object() else {
+        errors.push(format!("{path}: expected an object"));
+        return;
+    };
+    validate_keys(
+        object.keys().map(String::as_str),
+        FEATURE_KEYS,
+        &path,
+        errors,
+    );
+
+    let id = feature.get("id").and_then(Value::as_str);
+    match id {
+        Some(id) if valid_feature_id(id) => {
+            if !ids.insert(id.to_string()) {
+                errors.push(format!("{path}.id: duplicate feature ID {id}"));
+            }
+        }
+        Some(_) => errors.push(format!(
+            "{path}.id: expected feature-NNNN with at least four decimal digits"
+        )),
+        None => errors.push(format!("{path}.id: expected a string")),
+    }
+
+    let kind = feature.get("kind").and_then(Value::as_str);
+    let expected_label = match kind {
+        Some("tree") => Some("Canopy tree"),
+        Some("planting-bed") => Some("Planting bed"),
+        Some("water") => Some("Water feature"),
+        Some("path") => Some("Path"),
+        Some("built-element") => Some("Built element"),
+        Some(_) => {
+            errors.push(format!("{path}.kind: unsupported feature kind"));
+            None
+        }
+        None => {
+            errors.push(format!("{path}.kind: expected a string"));
+            None
+        }
+    };
+
+    if let Some(expected) = expected_label {
+        if feature.get("label").and_then(Value::as_str) != Some(expected) {
+            errors.push(format!(
+                "{path}.label: label must match kind {kind:?} ({expected:?})"
+            ));
+        }
+    }
+
+    validate_integer_range(feature, "x_du", 0, 1000, &path, errors);
+    validate_integer_range(feature, "y_du", 0, 650, &path, errors);
+    require_string_eq(feature, "status", "design-intent", &path, errors);
+    require_string_eq(feature, "source", "user-authored-schematic", &path, errors);
+    require_string_eq(
+        feature,
+        "geometry_representation",
+        GEOMETRY_REPRESENTATION,
+        &path,
+        errors,
+    );
+}
+
+fn valid_feature_id(id: &str) -> bool {
+    let Some(digits) = id.strip_prefix("feature-") else {
+        return false;
+    };
+    digits.len() >= 4 && digits.bytes().all(|byte| byte.is_ascii_digit())
+}
+
+fn validate_integer_range(
+    object: &Value,
+    key: &str,
+    minimum: u64,
+    maximum: u64,
+    path: &str,
+    errors: &mut Vec<String>,
+) {
+    match object.get(key).and_then(Value::as_u64) {
+        Some(value) if (minimum..=maximum).contains(&value) => {}
+        Some(_) => errors.push(format!(
+            "{path}.{key}: expected an integer in {minimum}..={maximum}"
+        )),
+        None => errors.push(format!(
+            "{path}.{key}: expected a non-negative integer"
+        )),
+    }
+}
+
+fn require_string_eq(
+    object: &Value,
+    key: &str,
+    expected: &str,
+    path: &str,
+    errors: &mut Vec<String>,
+) {
+    if object.get(key).and_then(Value::as_str) != Some(expected) {
+        errors.push(format!("{path}.{key}: expected {expected:?}"));
+    }
+}
+
+fn validate_keys<'a>(
+    actual: impl Iterator<Item = &'a str>,
+    required_and_allowed: &[&str],
+    path: &str,
+    errors: &mut Vec<String>,
+) {
+    let actual: HashSet<&str> = actual.collect();
+    for key in required_and_allowed {
+        if !actual.contains(key) {
+            errors.push(format!("{path}.{key}: missing required field"));
+        }
+    }
+    for key in actual {
+        if !required_and_allowed.contains(&key) {
+            errors.push(format!("{path}.{key}: unknown field"));
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    fn fixture() -> Value {
+        serde_json::from_str(include_str!("../fixtures/landscape/seed-landscape-v0.json"))
+            .expect("committed landscape fixture must be valid JSON")
+    }
+
+    #[test]
+    fn committed_v0_fixture_passes_document_validator() {
+        assert_eq!(validate_snapshot(&fixture()), Ok(()));
+    }
+
+    #[test]
+    fn rejects_georeference_claim_in_local_drawing_frame() {
+        let mut snapshot = fixture();
+        snapshot["coordinate_frame"]["georeferenced"] = Value::Bool(true);
+
+        let errors = validate_snapshot(&snapshot).unwrap_err();
+        assert!(errors.iter().any(|error| error.contains("georeferenced")));
+    }
+
+    #[test]
+    fn rejects_duplicate_feature_ids() {
+        let mut snapshot = fixture();
+        let first = snapshot["features"][0]["id"].clone();
+        snapshot["features"][1]["id"] = first;
+
+        let errors = validate_snapshot(&snapshot).unwrap_err();
+        assert!(errors.iter().any(|error| error.contains("duplicate feature ID")));
+    }
+
+    #[test]
+    fn rejects_kind_label_mismatch() {
+        let mut snapshot = fixture();
+        snapshot["features"][0]["label"] = Value::String("Water feature".to_string());
+
+        let errors = validate_snapshot(&snapshot).unwrap_err();
+        assert!(errors.iter().any(|error| error.contains("label must match kind")));
+    }
+
+    #[test]
+    fn rejects_out_of_canvas_coordinates_and_unknown_fields() {
+        let mut snapshot = fixture();
+        snapshot["features"][0]["x_du"] = json!(1001);
+        snapshot["features"][0]["surprise"] = json!("not in schema");
+
+        let errors = validate_snapshot(&snapshot).unwrap_err();
+        assert!(errors.iter().any(|error| error.contains("x_du")));
+        assert!(errors.iter().any(|error| error.contains("unknown field")));
+    }
+
+    #[test]
+    fn rejects_blank_project_names_and_unknown_scopes() {
+        let mut snapshot = fixture();
+        snapshot["project_name"] = json!("   ");
+        snapshot["scope"] = json!("planetary");
+
+        let errors = validate_snapshot(&snapshot).unwrap_err();
+        assert!(errors.iter().any(|error| error.contains("project_name")));
+        assert!(errors.iter().any(|error| error.contains("scope")));
+    }
+
+    #[test]
+    fn rejects_non_object_roots_and_non_array_features() {
+        assert!(validate_snapshot(&json!(null)).is_err());
+        let mut snapshot = fixture();
+        snapshot["features"] = json!({});
+        assert!(validate_snapshot(&snapshot).is_err());
+    }
+
+    #[test]
+    fn rejects_invalid_feature_ids() {
+        let mut snapshot = fixture();
+        snapshot["features"][0]["id"] = json!("plant-0001");
+        let errors = validate_snapshot(&snapshot).unwrap_err();
+        assert!(errors.iter().any(|error| error.contains("feature-NNNN")));
+    }
+}
