@@ -1,0 +1,205 @@
+{
+  "schema_version": 2,
+  "description": "Version 2 synthetic protocol cases; every service outcome is bound to the immutable operation envelope. Not production telemetry.",
+  "cases": [
+    {
+      "case_id": "timeout_after_dispatch",
+      "attempts": 1,
+      "reply": null,
+      "repeat_reply": null,
+      "expected_state": "outcome_unknown",
+      "expected_result": "no_reply",
+      "expected_repeat_result": "not_applicable"
+    },
+    {
+      "case_id": "server_applied_but_response_lost",
+      "attempts": 2,
+      "reply": null,
+      "repeat_reply": null,
+      "expected_state": "outcome_unknown",
+      "expected_result": "no_reply",
+      "expected_repeat_result": "not_applicable"
+    },
+    {
+      "case_id": "same_receipt_replayed",
+      "attempts": 2,
+      "reply": {
+        "reply": "received",
+        "receipt_ref": "receipt-001",
+        "applied_revision": 8,
+        "binding": {
+          "operation_id": "op-001",
+          "aggregate_id": "job-001",
+          "expected_revision": 7,
+          "payload_digest_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "idempotency_key": "idem-001",
+          "envelope_schema_version": 2,
+          "supersedes_operation_id": null
+        }
+      },
+      "repeat_reply": {
+        "reply": "received",
+        "receipt_ref": "receipt-001",
+        "applied_revision": 8,
+        "binding": {
+          "operation_id": "op-001",
+          "aggregate_id": "job-001",
+          "expected_revision": 7,
+          "payload_digest_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "idempotency_key": "idem-001",
+          "envelope_schema_version": 2,
+          "supersedes_operation_id": null
+        }
+      },
+      "expected_state": "received",
+      "expected_result": "applied",
+      "expected_repeat_result": "duplicate_acknowledgement"
+    },
+    {
+      "case_id": "server_rejects_request",
+      "attempts": 1,
+      "reply": {
+        "reply": "rejected",
+        "reason_code": "required_evidence_missing",
+        "binding": {
+          "operation_id": "op-001",
+          "aggregate_id": "job-001",
+          "expected_revision": 7,
+          "payload_digest_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "idempotency_key": "idem-001",
+          "envelope_schema_version": 2,
+          "supersedes_operation_id": null
+        }
+      },
+      "repeat_reply": {
+        "reply": "rejected",
+        "reason_code": "required_evidence_missing",
+        "binding": {
+          "operation_id": "op-001",
+          "aggregate_id": "job-001",
+          "expected_revision": 7,
+          "payload_digest_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "idempotency_key": "idem-001",
+          "envelope_schema_version": 2,
+          "supersedes_operation_id": null
+        }
+      },
+      "expected_state": "rejected",
+      "expected_result": "applied",
+      "expected_repeat_result": "duplicate_terminal_reply"
+    },
+    {
+      "case_id": "concurrent_revision_conflict",
+      "attempts": 1,
+      "reply": {
+        "reply": "conflict",
+        "current_revision": 9,
+        "reason_code": "concurrent_edit",
+        "binding": {
+          "operation_id": "op-001",
+          "aggregate_id": "job-001",
+          "expected_revision": 7,
+          "payload_digest_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "idempotency_key": "idem-001",
+          "envelope_schema_version": 2,
+          "supersedes_operation_id": null
+        }
+      },
+      "repeat_reply": {
+        "reply": "conflict",
+        "current_revision": 9,
+        "reason_code": "concurrent_edit",
+        "binding": {
+          "operation_id": "op-001",
+          "aggregate_id": "job-001",
+          "expected_revision": 7,
+          "payload_digest_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "idempotency_key": "idem-001",
+          "envelope_schema_version": 2,
+          "supersedes_operation_id": null
+        }
+      },
+      "expected_state": "conflict_needs_review",
+      "expected_result": "applied",
+      "expected_repeat_result": "duplicate_terminal_reply"
+    },
+    {
+      "case_id": "contradictory_second_terminal_reply",
+      "attempts": 1,
+      "reply": {
+        "reply": "received",
+        "receipt_ref": "receipt-001",
+        "applied_revision": 8,
+        "binding": {
+          "operation_id": "op-001",
+          "aggregate_id": "job-001",
+          "expected_revision": 7,
+          "payload_digest_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "idempotency_key": "idem-001",
+          "envelope_schema_version": 2,
+          "supersedes_operation_id": null
+        }
+      },
+      "repeat_reply": {
+        "reply": "rejected",
+        "reason_code": "late_contradiction",
+        "binding": {
+          "operation_id": "op-001",
+          "aggregate_id": "job-001",
+          "expected_revision": 7,
+          "payload_digest_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "idempotency_key": "idem-001",
+          "envelope_schema_version": 2,
+          "supersedes_operation_id": null
+        }
+      },
+      "expected_state": "received",
+      "expected_result": "applied",
+      "expected_repeat_result": "invalid_transition"
+    },
+    {
+      "case_id": "conflict_reply_does_not_advance_revision",
+      "attempts": 1,
+      "reply": {
+        "reply": "conflict",
+        "current_revision": 7,
+        "reason_code": "invalid_conflict",
+        "binding": {
+          "operation_id": "op-001",
+          "aggregate_id": "job-001",
+          "expected_revision": 7,
+          "payload_digest_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "idempotency_key": "idem-001",
+          "envelope_schema_version": 2,
+          "supersedes_operation_id": null
+        }
+      },
+      "repeat_reply": null,
+      "expected_state": "outcome_unknown",
+      "expected_result": "invalid_reply",
+      "expected_repeat_result": "not_applicable"
+    },
+    {
+      "case_id": "misbound_receipt_rejected",
+      "attempts": 1,
+      "reply": {
+        "reply": "received",
+        "binding": {
+          "operation_id": "op-from-another-request",
+          "aggregate_id": "job-001",
+          "expected_revision": 7,
+          "payload_digest_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "idempotency_key": "idem-001",
+          "envelope_schema_version": 2,
+          "supersedes_operation_id": null
+        },
+        "receipt_ref": "receipt-001",
+        "applied_revision": 8
+      },
+      "repeat_reply": null,
+      "expected_state": "outcome_unknown",
+      "expected_result": "reply_binding_mismatch",
+      "expected_repeat_result": "not_applicable"
+    }
+  ]
+}
