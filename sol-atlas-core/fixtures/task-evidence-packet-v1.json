@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "graph_id": "job-graph-demo-001",
+  "graph_revision": 4,
+  "task_id": "functional-test",
+  "procedure_revision": 7,
+  "prepared_by": "technician-01",
+  "requirements": [
+    {
+      "requirement_id": "observation",
+      "accepted_kind": "observation",
+      "required_procedure_revision": 7,
+      "requires_independent_reviewer": false
+    },
+    {
+      "requirement_id": "measurement",
+      "accepted_kind": "measurement",
+      "required_procedure_revision": 7,
+      "requires_independent_reviewer": true
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "evidence-observation-01",
+      "requirement_id": "observation",
+      "kind": "observation",
+      "source_ref": "urn:luminous:synthetic:observation-01",
+      "digest_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "recorded_by": "technician-01",
+      "captured_at_unix_ms": 1797000000000,
+      "unit": null,
+      "instrument_ref": null,
+      "procedure_revision": 7
+    },
+    {
+      "evidence_id": "evidence-measurement-01",
+      "requirement_id": "measurement",
+      "kind": "measurement",
+      "source_ref": "urn:luminous:synthetic:measurement-01",
+      "digest_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "recorded_by": "technician-01",
+      "captured_at_unix_ms": 1797000000010,
+      "unit": "kPa",
+      "instrument_ref": "instrument:pressure-gauge-09",
+      "procedure_revision": 7
+    }
+  ]
+}

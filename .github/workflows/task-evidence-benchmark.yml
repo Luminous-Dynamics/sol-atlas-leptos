@@ -1,0 +1,95 @@
+name: Task Evidence Benchmark
+
+on:
+  push:
+    paths:
+      - ".github/workflows/task-evidence-benchmark.yml"
+      - "sol-atlas-core/src/task_evidence.rs"
+      - "sol-atlas-core/examples/task_evidence_bench.rs"
+  pull_request:
+    paths:
+      - ".github/workflows/task-evidence-benchmark.yml"
+      - "sol-atlas-core/src/task_evidence.rs"
+      - "sol-atlas-core/examples/task_evidence_bench.rs"
+  workflow_dispatch:
+    inputs:
+      samples:
+        description: "Measured repetitions (raw samples are published)"
+        required: false
+        default: "30"
+        type: string
+      requirements:
+        description: "Number of required evidence items"
+        required: false
+        default: "1000"
+        type: string
+      evidence:
+        description: "Number of evidence artifacts"
+        required: false
+        default: "10000"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: task-evidence-benchmark-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    name: Release-mode evidence packet benchmark
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      SAMPLES: ${{ github.event_name == 'workflow_dispatch' && inputs.samples || '30' }}
+      REQUIREMENTS: ${{ github.event_name == 'workflow_dispatch' && inputs.requirements || '1000' }}
+      EVIDENCE: ${{ github.event_name == 'workflow_dispatch' && inputs.evidence || '10000' }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+        with:
+          toolchain: stable
+      - name: Record source and host identity
+        run: |
+          {
+            echo "source_commit=$(git rev-parse HEAD)"
+            echo "workflow_commit=$GITHUB_WORKFLOW_SHA"
+            echo "runner_os=$RUNNER_OS"
+            echo "runner_image=${ImageOS:-unknown}"
+            echo "rust=$(rustc --version)"
+            echo "cargo=$(cargo --version)"
+            echo "samples=$SAMPLES"
+            echo "requirements=$REQUIREMENTS"
+            echo "evidence=$EVIDENCE"
+          } | tee benchmark-environment.txt
+      - name: Run release-mode benchmark
+        run: |
+          set -o pipefail
+          cargo run --release --manifest-path sol-atlas-core/Cargo.toml --example task_evidence_bench -- "$SAMPLES" "$REQUIREMENTS" "$EVIDENCE" | tee task-evidence-benchmark.json
+      - name: Validate result envelope without enforcing an unmeasured performance target
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          result = json.loads(Path("task-evidence-benchmark.json").read_text(encoding="utf-8"))
+          assert result["benchmark"] == "task_evidence_packet_evaluation_v1"
+          assert result["profile"] == "release"
+          assert result["decision"] == "ready_for_qualified_review"
+          assert result["requirements"] == int(__import__("os").environ["REQUIREMENTS"])
+          assert result["evidence_records"] == int(__import__("os").environ["EVIDENCE"])
+          latency = result["latency_ns"]
+          assert len(latency["raw"]) == int(__import__("os").environ["SAMPLES"])
+          assert latency["p50"] <= latency["p95"] <= latency["max"]
+          print(f"p50_ns={latency['p50']} p95_ns={latency['p95']} max_ns={latency['max']}")
+          PY
+      - name: Upload raw benchmark evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: task-evidence-benchmark-${{ github.sha }}-${{ github.run_id }}
+          path: |
+            task-evidence-benchmark.json
+            benchmark-environment.txt

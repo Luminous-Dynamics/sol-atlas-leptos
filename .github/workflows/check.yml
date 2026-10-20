@@ -71,3 +71,5 @@ jobs:
         run: cargo test --manifest-path sol-atlas-core/Cargo.toml
       - name: Smoke-test task graph benchmark runner
         run: cargo run --manifest-path sol-atlas-core/Cargo.toml --example task_graph_bench -- 1 100
+      - name: Smoke-test task evidence benchmark runner
+        run: cargo run --manifest-path sol-atlas-core/Cargo.toml --example task_evidence_bench -- 1 10 100
