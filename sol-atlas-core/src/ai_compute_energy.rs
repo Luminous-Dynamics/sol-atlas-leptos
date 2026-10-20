@@ -906,4 +906,20 @@ mod tests {
         }));
     }
 
+
+    #[test]
+    fn lowest_cost_policy_accepts_negative_wholesale_price() {
+        let mut request = fixture_request();
+        request.workloads[1].required_work_units = 10;
+        request.intervals[2].electricity_price_usd_per_kwh = Some(-0.05);
+
+        let result = schedule_deferrable(&request, SchedulingPolicy::LowestCost);
+        assert_eq!(result.status, AssessmentStatus::Feasible);
+        assert_eq!(
+            result.deferrable_work_units_by_interval,
+            Some(vec![0, 0, 2, 8])
+        );
+        assert!((result.modelled_electricity_cost_usd.unwrap() - 0.298).abs() < 1.0e-8);
+    }
+
 }
