@@ -21,6 +21,9 @@ use crate::{
 };
 
 pub const OFFLINE_JOURNAL_BUNDLE_SCHEMA_VERSION: u16 = 1;
+/// JCS represents JSON numbers using IEEE-754 binary64. Revision counters in
+/// the bundle's canonical numeric fields must stay within the safe-integer range.
+pub const MAX_JCS_SAFE_REVISION: u64 = 9_007_199_254_740_991;
 
 #[derive(Debug)]
 pub enum OfflineJournalBundleError {
@@ -34,6 +37,11 @@ pub enum OfflineJournalBundleError {
         reason: String,
     },
     DuplicateOperationId(String),
+    DuplicateScopedIdempotencyKey { operation_id: String },
+    RevisionOutOfRange {
+        operation_id: String,
+        field: &'static str,
+    },
     NonCanonicalRecordOrder,
     OwnerScopeMismatch {
         expected: String,
@@ -70,6 +78,14 @@ impl fmt::Display for OfflineJournalBundleError {
             Self::DuplicateOperationId(operation_id) => {
                 write!(formatter, "bundle repeats operation ID {operation_id}")
             }
+            Self::DuplicateScopedIdempotencyKey { operation_id } => write!(
+                formatter,
+                "operation {operation_id} reuses a scoped idempotency key"
+            ),
+            Self::RevisionOutOfRange { operation_id, field } => write!(
+                formatter,
+                "operation {operation_id} field {field} exceeds the JCS safe-integer range"
+            ),
             Self::NonCanonicalRecordOrder => {
                 formatter.write_str("bundle records must be sorted by operation ID")
             }
@@ -110,12 +126,37 @@ impl OfflineJournalBundleRecordV1 {
         if self.operation_namespace.trim().is_empty() {
             return Err(OfflineJournalBundleError::EmptyNamespace { operation_id });
         }
-        JournalEntry::from_snapshot(self.snapshot.clone()).map_err(|error| {
+        let entry = JournalEntry::from_snapshot(self.snapshot.clone()).map_err(|error| {
             OfflineJournalBundleError::InvalidSnapshot {
-                operation_id,
+                operation_id: operation_id.clone(),
                 reason: error.to_string(),
             }
         })?;
+        if entry.envelope().expected_revision > MAX_JCS_SAFE_REVISION {
+            return Err(OfflineJournalBundleError::RevisionOutOfRange {
+                operation_id,
+                field: "expected_revision",
+            });
+        }
+        match entry.state() {
+            crate::offline_journal::JournalState::Received {
+                applied_revision, ..
+            } if *applied_revision > MAX_JCS_SAFE_REVISION => {
+                return Err(OfflineJournalBundleError::RevisionOutOfRange {
+                    operation_id,
+                    field: "applied_revision",
+                });
+            }
+            crate::offline_journal::JournalState::ConflictNeedsReview {
+                current_revision, ..
+            } if *current_revision > MAX_JCS_SAFE_REVISION => {
+                return Err(OfflineJournalBundleError::RevisionOutOfRange {
+                    operation_id,
+                    field: "current_revision",
+                });
+            }
+            _ => {}
+        }
         Ok(())
     }
 }
@@ -230,6 +271,7 @@ impl OfflineJournalBundleV1 {
 
     fn validate_records(&self) -> Result<(), OfflineJournalBundleError> {
         let mut seen = HashSet::with_capacity(self.records.len());
+        let mut seen_scoped_idempotency = HashSet::with_capacity(self.records.len());
         let mut previous: Option<&str> = None;
         for record in &self.records {
             record.validate()?;
@@ -238,6 +280,15 @@ impl OfflineJournalBundleV1 {
                 return Err(OfflineJournalBundleError::DuplicateOperationId(
                     operation_id.to_owned(),
                 ));
+            }
+            let scoped_key = (
+                record.operation_namespace.clone(),
+                record.snapshot.envelope.idempotency_key.clone(),
+            );
+            if !seen_scoped_idempotency.insert(scoped_key) {
+                return Err(OfflineJournalBundleError::DuplicateScopedIdempotencyKey {
+                    operation_id: operation_id.to_owned(),
+                });
             }
             if previous.is_some_and(|value| value >= operation_id) {
                 return Err(OfflineJournalBundleError::NonCanonicalRecordOrder);
@@ -395,6 +446,39 @@ mod tests {
         let snapshot: JournalEntrySnapshotV1 = invalid.snapshot.clone();
         assert!(JournalEntry::from_snapshot(snapshot).is_err());
         assert!(OfflineJournalBundleV1::create("tenant-001", vec![invalid]).is_err());
+    }
+
+    #[test]
+    fn duplicate_scoped_idempotency_keys_are_rejected_but_namespaces_are_isolated() {
+        let first = record("op-1", "work-order.apply");
+        let mut second = record("op-2", "work-order.apply");
+        second.snapshot.envelope.idempotency_key = first.snapshot.envelope.idempotency_key.clone();
+        assert!(matches!(
+            OfflineJournalBundleV1::create("tenant-001", vec![first.clone(), second]),
+            Err(OfflineJournalBundleError::DuplicateScopedIdempotencyKey { .. })
+        ));
+
+        let mut other_namespace = record("op-3", "work-order.cancel");
+        other_namespace.snapshot.envelope.idempotency_key =
+            first.snapshot.envelope.idempotency_key.clone();
+        assert!(OfflineJournalBundleV1::create(
+            "tenant-001",
+            vec![first, other_namespace]
+        )
+        .is_ok());
+    }
+
+    #[test]
+    fn revision_fields_outside_jcs_safe_integer_range_fail_explicitly() {
+        let mut invalid = record("op-large-revision", "work-order.apply");
+        invalid.snapshot.envelope.expected_revision = u64::MAX;
+        assert!(matches!(
+            OfflineJournalBundleV1::create("tenant-001", vec![invalid]),
+            Err(OfflineJournalBundleError::RevisionOutOfRange {
+                field: "expected_revision",
+                ..
+            })
+        ));
     }
 
     #[test]
