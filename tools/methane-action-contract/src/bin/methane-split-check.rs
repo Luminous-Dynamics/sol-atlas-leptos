@@ -1,4 +1,4 @@
-use methane_action_contract::sha256_hex;
+use methane_action_contract::{executable_sha256, sha256_hex};
 use methane_action_contract::split::{SplitManifest, SplitValidationReport, validate_split_manifest};
 use serde::Serialize;
 use std::env;
@@ -12,6 +12,7 @@ struct SplitReceipt {
     receipt_schema_version: u32,
     evaluator: &'static str,
     evaluator_version: &'static str,
+    evaluator_binary_sha256: String,
     corpus_path: String,
     manifest_path: String,
     corpus_sha256: Option<String>,
@@ -59,12 +60,20 @@ fn main() -> ExitCode {
         }
     };
 
+    let evaluator_binary_sha256 = match executable_sha256() {
+        Ok(digest) => digest,
+        Err(error) => {
+            eprintln!("methane-split-check: failed to hash evaluator executable: {error}");
+            return ExitCode::FAILURE;
+        }
+    };
     let report = validate_split_manifest(&corpus_bytes, &manifest);
     let valid = report.is_valid();
     let receipt = SplitReceipt {
         receipt_schema_version: 1,
         evaluator: "methane-action-contract",
         evaluator_version: env!("CARGO_PKG_VERSION"),
+        evaluator_binary_sha256,
         corpus_path: corpus_path.display().to_string(),
         manifest_path: manifest_path.display().to_string(),
         corpus_sha256: report.computed_corpus_sha256.clone(),
