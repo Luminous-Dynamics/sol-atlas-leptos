@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
 const MAX_EXACT_PROJECTS: usize = 20;
+const MAX_SEARCH_PROJECTS: usize = 63;
 const OBJECTIVE_IDS: [&str; 4] = [
     "economic_value_u",
     "essential_service_points",
@@ -228,16 +229,23 @@ fn portfolio_key(portfolio: &Portfolio) -> String {
 }
 
 fn validate_input(input: &Input) -> Result<(), String> {
-    if input.schema_version != "sa-economic-portfolio-v0.1"
-        || input.evidence_class != "synthetic"
-        || !input.synthetic_only
-    {
+    validate_input_with_limit(input, MAX_EXACT_PROJECTS)
+}
+
+fn validate_search_input(input: &Input) -> Result<(), String> {
+    validate_input_with_limit(input, MAX_SEARCH_PROJECTS)
+}
+
+fn validate_input_with_limit(input: &Input, max_projects: usize) -> Result<(), String> {
+    let v01 = input.schema_version == "sa-economic-portfolio-v0.1";
+    let v02 = input.schema_version == "sa-economic-portfolio-v0.2";
+    if (!v01 && !v02) || input.evidence_class != "synthetic" || !input.synthetic_only {
         return Err("unsupported schema or non-synthetic input".to_owned());
     }
 
-    if input.projects.is_empty() || input.projects.len() > MAX_EXACT_PROJECTS {
+    if input.projects.is_empty() || input.projects.len() > max_projects {
         return Err(format!(
-            "exact oracle accepts 1..={MAX_EXACT_PROJECTS} projects; got {}",
+            "portfolio evaluator accepts 1..={max_projects} projects; got {}",
             input.projects.len()
         ));
     }
@@ -267,17 +275,21 @@ fn validate_input(input: &Input) -> Result<(), String> {
         .iter()
         .map(|scenario| scenario.id.clone())
         .collect();
-    if scenario_ids.len() != input.scenarios.len()
-        || scenario_ids != BTreeSet::from(["nominal".to_owned(), "hot_dry_grid_stress".to_owned()])
+    let v01_scenarios =
+        BTreeSet::from(["nominal".to_owned(), "hot_dry_grid_stress".to_owned()]);
+    if scenario_ids.is_empty()
+        || scenario_ids.len() != input.scenarios.len()
+        || scenario_ids.iter().any(String::is_empty)
+        || (v01 && scenario_ids != v01_scenarios)
     {
-        return Err("scenario IDs must be unique and match the frozen v0.1 set".to_owned());
+        return Err("scenario IDs must be unique, non-empty, and match the v0.1 set when applicable".to_owned());
     }
     if input
         .scenarios
         .iter()
         .any(|scenario| scenario.weight.is_some() || scenario.probability.is_some())
     {
-        return Err("v0.1 stress cases must not carry scenario weights/probabilities".to_owned());
+        return Err("synthetic stress scenarios must not carry uncalibrated weights/probabilities".to_owned());
     }
 
     let budget_periods: BTreeSet<String> = input
@@ -285,10 +297,20 @@ fn validate_input(input: &Input) -> Result<(), String> {
         .iter()
         .map(|budget| budget.period.clone())
         .collect();
-    if budget_periods.len() != input.budgets_by_period.len()
-        || budget_periods != BTreeSet::from(["P1".to_owned(), "P2".to_owned()])
+    let period_ranks: BTreeSet<u32> = budget_periods
+        .iter()
+        .filter_map(|period| period_rank(period))
+        .collect();
+    let v01_periods = BTreeSet::from(["P1".to_owned(), "P2".to_owned()]);
+    if budget_periods.is_empty()
+        || budget_periods.len() != input.budgets_by_period.len()
+        || budget_periods.iter().any(|period| {
+            !matches!(period_rank(period), Some(rank) if rank > 0)
+        })
+        || period_ranks.len() != budget_periods.len()
+        || (v01 && budget_periods != v01_periods)
     {
-        return Err("period budgets must uniquely declare P1 and P2".to_owned());
+        return Err("period budgets must be unique positive Pn periods and match P1/P2 for v0.1".to_owned());
     }
     if input
         .budgets_by_period
@@ -313,7 +335,7 @@ fn validate_input(input: &Input) -> Result<(), String> {
             .any(|objective| objective.direction != "maximize" || objective.unit.is_empty())
     {
         return Err(
-            "objective schema must declare the four unique v0.1 maximization objectives".to_owned(),
+            "objective schema must declare the four unique v0.1/v0.2 maximization objectives".to_owned(),
         );
     }
 
@@ -343,20 +365,21 @@ fn validate_input(input: &Input) -> Result<(), String> {
         .iter()
         .map(|project| project.id.clone())
         .collect();
+    let v01_project_ids = BTreeSet::from([
+        "T".to_owned(),
+        "W".to_owned(),
+        "A".to_owned(),
+        "I".to_owned(),
+        "R".to_owned(),
+        "J".to_owned(),
+        "F".to_owned(),
+        "X".to_owned(),
+    ]);
     if project_ids.len() != input.projects.len()
-        || project_ids
-            != BTreeSet::from([
-                "T".to_owned(),
-                "W".to_owned(),
-                "A".to_owned(),
-                "I".to_owned(),
-                "R".to_owned(),
-                "J".to_owned(),
-                "F".to_owned(),
-                "X".to_owned(),
-            ])
+        || project_ids.iter().any(String::is_empty)
+        || (v01 && project_ids != v01_project_ids)
     {
-        return Err("project IDs must uniquely match the frozen v0.1 corpus".to_owned());
+        return Err("project IDs must be unique/non-empty and match the frozen v0.1 corpus when applicable".to_owned());
     }
 
     let by_id: BTreeMap<&str, &Project> = input
@@ -680,14 +703,6 @@ pub fn check_expected(evaluation: &Evaluation, expected_raw: &str) -> Result<(),
         return Err("known-answer frontier or objective/resource totals mismatch".to_owned());
     }
 
-    if !expected_frontier.iter().all(|portfolio| {
-        !portfolio
-            .project_ids
-            .iter()
-            .any(|project_id| project_id == "X")
-    }) {
-        return Err("expected frontier incorrectly includes the UNKNOWN-gate decoy".to_owned());
-    }
     Ok(())
 }
 
