@@ -969,9 +969,175 @@ mod tests {
     const V02_EXPECTED: &str = include_str!(
         "../../../docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.expected.json"
     );
+    const V24_INPUT: &str =
+        include_str!("../../../docs/research/fixtures/sa-economic-portfolio-v0.2-24-project.json");
+    const V24_SEARCH_EXPECTED: &str = include_str!(
+        "../../../docs/research/fixtures/sa-economic-portfolio-v0.2-24-project.search-expected.json"
+    );
 
     fn fixture() -> Input {
         serde_json::from_str(INPUT).expect("synthetic portfolio fixture should parse")
+    }
+
+    fn generated_v02_problem(project_count: usize) -> Input {
+        let scenario_ids = ["normal", "hot_dry", "grid_stress"];
+        let scenarios = scenario_ids
+            .iter()
+            .map(|id| Scenario {
+                id: (*id).to_owned(),
+                weight: None,
+                probability: None,
+                notes: "Deterministically generated synthetic stress case; no probability."
+                    .to_owned(),
+            })
+            .collect();
+        let service_baseline_by_scenario = scenario_ids
+            .iter()
+            .map(|id| ((*id).to_owned(), 1_i64))
+            .collect();
+        let objective_schema = OBJECTIVE_IDS
+            .iter()
+            .map(|id| ObjectiveDefinition {
+                id: (*id).to_owned(),
+                direction: "maximize".to_owned(),
+                unit: "synthetic unit".to_owned(),
+            })
+            .collect();
+
+        let projects = (0..project_count)
+            .map(|index| {
+                let id = format!("G{index:02}");
+                let period = format!("P{}", (index % 3) + 1);
+                let outcomes = scenario_ids
+                    .iter()
+                    .enumerate()
+                    .map(|(scenario_index, scenario_id)| {
+                        let i = index as i64;
+                        let s = scenario_index as i64;
+                        (
+                            (*scenario_id).to_owned(),
+                            ObjectiveVector {
+                                economic_value_u: (i * 7 + s * 3) % 13 - 3,
+                                essential_service_points: (i + s * 2) % 3,
+                                paid_work_opportunity_points: (i * 5 + s * 2) % 9,
+                                ecological_quality_points: (i * 2 + s * 5) % 11,
+                            },
+                        )
+                    })
+                    .collect();
+                let gate = if index % 9 == 8 {
+                    "UNKNOWN"
+                } else if index % 13 == 12 {
+                    "BLOCK"
+                } else {
+                    "PASS"
+                };
+                Project {
+                    id,
+                    name: format!("Generated synthetic option {index:02}"),
+                    period,
+                    stage_order: index as u32 + 1,
+                    cost_u: 1 + (index % 3) as i64,
+                    crew_u: 1 + (index % 2) as i64,
+                    requires: Vec::new(),
+                    gate: gate.to_owned(),
+                    outcomes,
+                    evidence_class: if gate == "PASS" {
+                        "synthetic"
+                    } else {
+                        "synthetic hostile negative control"
+                    }
+                    .to_owned(),
+                }
+            })
+            .collect();
+
+        let budgets_by_period = (1..=3)
+            .map(|period| PeriodBudget {
+                period: format!("P{period}"),
+                cost_cap_u: 4,
+                crew_cap_u: 3,
+            })
+            .collect();
+
+        let mut interaction_rules = Vec::new();
+        if project_count >= 5 {
+            interaction_rules.push(InteractionRule {
+                id: "generated-synergy-00-04".to_owned(),
+                kind: "synergy".to_owned(),
+                when_all_selected: vec!["G00".to_owned(), "G04".to_owned()],
+                objective_adjustment_by_scenario: scenario_ids
+                    .iter()
+                    .enumerate()
+                    .map(|(index, scenario_id)| {
+                        (
+                            (*scenario_id).to_owned(),
+                            ObjectiveVector {
+                                economic_value_u: 2,
+                                essential_service_points: 1,
+                                paid_work_opportunity_points: 1,
+                                ecological_quality_points: index as i64,
+                            },
+                        )
+                    })
+                    .collect(),
+                reason: "Deterministic generated synthetic complementarity.".to_owned(),
+            });
+        }
+        if project_count >= 8 {
+            interaction_rules.push(InteractionRule {
+                id: "generated-overlap-02-07".to_owned(),
+                kind: "overlap_adjustment".to_owned(),
+                when_all_selected: vec!["G02".to_owned(), "G07".to_owned()],
+                objective_adjustment_by_scenario: scenario_ids
+                    .iter()
+                    .enumerate()
+                    .map(|(index, scenario_id)| {
+                        (
+                            (*scenario_id).to_owned(),
+                            ObjectiveVector {
+                                economic_value_u: -1,
+                                essential_service_points: 0,
+                                paid_work_opportunity_points: -1,
+                                ecological_quality_points: index as i64,
+                            },
+                        )
+                    })
+                    .collect(),
+                reason: "Deterministic generated synthetic overlap adjustment.".to_owned(),
+            });
+        }
+
+        Input {
+            schema_version: "sa-economic-portfolio-v0.2".to_owned(),
+            evidence_class: "synthetic".to_owned(),
+            synthetic_only: true,
+            claim_ceiling: "Deterministic generated synthetic search benchmark only.".to_owned(),
+            budgets_by_period,
+            scenarios,
+            service_baseline_by_scenario,
+            mandatory_floors: vec![Floor {
+                id: "generated-service-floor".to_owned(),
+                metric: "total_essential_service_points".to_owned(),
+                direction: "minimize violation".to_owned(),
+                threshold: 2,
+                apply_to_each_scenario: true,
+                source_class: "synthetic test invariant".to_owned(),
+            }],
+            objective_schema,
+            projects,
+            interaction_rules,
+            enumeration: EnumerationConfig {
+                method: "complete subset enumeration".to_owned(),
+                candidate_subset_count: 1_u64 << project_count,
+                over_cap_behavior:
+                    "structured error; never return a partial frontier as complete".to_owned(),
+                objective_comparison:
+                    "scenario-wise componentwise maximization over every declared scenario and objective; scenario cases have no probabilities".to_owned(),
+                canonicalization:
+                    "sort project IDs within each portfolio and sort portfolio ID tuples lexicographically".to_owned(),
+            },
+        }
     }
 
     fn worst_case_objectives(portfolio: &Portfolio, scenarios: &[Scenario]) -> [i64; 4] {
@@ -1067,6 +1233,28 @@ mod tests {
     }
 
     #[test]
+    fn deterministic_generated_instances_match_exact_oracle_at_multiple_sizes() {
+        for project_count in [12_usize, 16, 18] {
+            let input = generated_v02_problem(project_count);
+            let exact = evaluate(&input).expect("generated exact oracle should evaluate");
+            let searched = evaluate_frontier_search(&input)
+                .expect("generated frontier search should evaluate");
+            assert_eq!(
+                searched.pareto_frontier, exact.pareto_frontier,
+                "frontier mismatch for {project_count} generated projects"
+            );
+            assert_eq!(
+                searched.stats.feasible_portfolio_count,
+                exact.feasible_portfolios.len() as u64
+            );
+            assert_eq!(
+                searched.stats.accounted_subset_count(),
+                1_u64 << project_count
+            );
+            assert!(searched.stats.visited_nodes < (1_u64 << (project_count + 1)) - 1);
+        }
+    }
+    #[test]
     fn generalized_v02_fixture_matches_exact_oracle_and_search_frontier() {
         let input: Input =
             serde_json::from_str(V02_INPUT).expect("v0.2 synthetic fixture should parse");
@@ -1133,36 +1321,13 @@ mod tests {
 
     #[test]
     fn frontier_search_prunes_a_24_project_hostile_case_without_partial_claims() {
-        let mut input = fixture();
-        input.schema_version = "sa-economic-portfolio-v0.2".to_owned();
-        input.budgets_by_period.push(PeriodBudget {
-            period: "P3".to_owned(),
-            cost_cap_u: 0,
-            crew_cap_u: 0,
-        });
-        let reference = evaluate(&input).expect("eight-project reference should evaluate");
-
-        for index in 0..16 {
-            let project_id = format!("N{index:02}");
-            let outcomes = input
-                .scenarios
-                .iter()
-                .map(|scenario| (scenario.id.clone(), ObjectiveVector::zero()))
-                .collect();
-            input.projects.push(Project {
-                id: project_id,
-                name: "UNKNOWN-gated hostile decoy".to_owned(),
-                period: "P3".to_owned(),
-                stage_order: 1,
-                cost_u: 0,
-                crew_u: 0,
-                requires: Vec::new(),
-                gate: "UNKNOWN".to_owned(),
-                outcomes,
-                evidence_class: "synthetic hostile negative control".to_owned(),
-            });
-        }
-        input.enumeration.candidate_subset_count = 1_u64 << 24;
+        let input: Input =
+            serde_json::from_str(V24_INPUT).expect("24-project hostile fixture should parse");
+        let reference: serde_json::Value = serde_json::from_str(V24_SEARCH_EXPECTED)
+            .expect("24-project search manifest should parse");
+        let expected_frontier: Vec<Portfolio> =
+            serde_json::from_value(reference["pareto_frontier"].clone())
+                .expect("search manifest must carry the expected frontier");
 
         let searched = evaluate_frontier_search(&input)
             .expect("24-project search should prune unknown-gate branches");
@@ -1170,9 +1335,10 @@ mod tests {
         assert_eq!(searched.stats.accounted_subset_count(), 1_u64 << 24);
         assert!(searched.stats.gate_pruned_subsets > 0);
         assert_eq!(
-            searched.pareto_frontier, reference.pareto_frontier,
-            "unknown-gate decoys must never alter the frontier"
+            searched.pareto_frontier, expected_frontier,
+            "unknown-gate decoys must never alter the known eight-project frontier"
         );
+        assert_eq!(searched.pareto_frontier.len(), 4);
         assert!(
             searched
                 .pareto_frontier
@@ -1180,6 +1346,10 @@ mod tests {
                 .all(|portfolio| { portfolio.project_ids.iter().all(|id| !id.starts_with('N')) })
         );
         assert!(searched.stats.visited_nodes < 1_000_000);
+        assert_eq!(
+            searched.stats.feasible_portfolio_count,
+            reference["feasible_portfolio_count"].as_u64().unwrap()
+        );
     }
 
     #[test]
