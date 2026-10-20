@@ -1068,6 +1068,89 @@
           "artifact": {
             "properties": {
               "state": {
+                "const": "planned"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          }
+        },
+        "required": [
+          "artifact"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data_quality": {
+            "properties": {
+              "stage": {
+                "const": "planned"
+              }
+            }
+          },
+          "transformation": {
+            "properties": {
+              "pipeline_id": {
+                "type": "null"
+              },
+              "pipeline_version": {
+                "type": "null"
+              },
+              "source_commit": {
+                "type": "null"
+              },
+              "config_sha256": {
+                "type": "null"
+              }
+            }
+          },
+          "claim_policy": {
+            "properties": {
+              "claim_ceiling": {
+                "const": "metadata_only"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "artifact": {
+            "properties": {
+              "state": {
+                "const": "retrieved"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          }
+        },
+        "required": [
+          "artifact"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data_quality": {
+            "properties": {
+              "stage": {
+                "const": "retrieved"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "artifact": {
+            "properties": {
+              "state": {
                 "const": "normalized"
               }
             },
@@ -1082,6 +1165,13 @@
       },
       "then": {
         "properties": {
+          "data_quality": {
+            "properties": {
+              "stage": {
+                "const": "normalized"
+              }
+            }
+          },
           "transformation": {
             "properties": {
               "pipeline_id": {
@@ -1124,6 +1214,95 @@
                   "workload_timing_only",
                   "capacity_replay_only"
                 ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "claim_policy": {
+            "properties": {
+              "claim_ceiling": {
+                "enum": [
+                  "metered_energy",
+                  "quality_accepted_work_per_kwh"
+                ]
+              }
+            },
+            "required": [
+              "claim_ceiling"
+            ]
+          }
+        },
+        "required": [
+          "claim_policy"
+        ]
+      },
+      "then": {
+        "properties": {
+          "artifact": {
+            "properties": {
+              "state": {
+                "const": "normalized"
+              }
+            }
+          },
+          "energy_attribution": {
+            "properties": {
+              "class": {
+                "const": "metered"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "claim_policy": {
+            "properties": {
+              "claim_ceiling": {
+                "const": "quality_accepted_work_per_kwh"
+              }
+            },
+            "required": [
+              "claim_ceiling"
+            ]
+          }
+        },
+        "required": [
+          "claim_policy"
+        ]
+      },
+      "then": {
+        "properties": {
+          "workload_quality": {
+            "properties": {
+              "status": {
+                "const": "measured"
+              },
+              "quality_metric": {
+                "type": "string",
+                "minLength": 1
+              },
+              "acceptance_rule": {
+                "type": "string",
+                "minLength": 1
+              },
+              "model_or_job_identity": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "energy_attribution": {
+            "properties": {
+              "boundary": {
+                "const": "facility"
               }
             }
           }
