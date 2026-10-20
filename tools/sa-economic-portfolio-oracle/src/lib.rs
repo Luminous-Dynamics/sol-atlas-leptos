@@ -252,7 +252,6 @@ pub struct ScenarioOmissionPortfolioReport {
     pub worst_case_regret: Option<ObjectiveVector>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 /// Complete, explicit payload for a scenario withheld from the selection input.
 /// Maps must cover every current project and every current interaction rule exactly.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -279,6 +278,7 @@ pub struct ScenarioAdditionReport {
     pub frontier_id_union_count: usize,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ScenarioOmissionReport {
     pub omitted_scenario_id: String,
     pub original_scenario_ids: Vec<String>,
@@ -1193,17 +1193,26 @@ pub fn add_scenario(input: &Input, patch: &ScenarioPatch) -> Result<Input, Strin
         || patch.scenario.weight.is_some()
         || patch.scenario.probability.is_some()
     {
-        return Err("scenario patch needs a non-empty ID and no uncalibrated probabilities".to_owned());
+        return Err(
+            "scenario patch needs a non-empty ID and no uncalibrated probabilities".to_owned(),
+        );
     }
-    if input.scenarios.iter().any(|scenario| scenario.id == patch.scenario.id) {
+    if input
+        .scenarios
+        .iter()
+        .any(|scenario| scenario.id == patch.scenario.id)
+    {
         return Err(format!("scenario already exists: {}", patch.scenario.id));
     }
     if patch.service_baseline < 0 {
         return Err("scenario patch has a negative service baseline".to_owned());
     }
 
-    let expected_project_ids: BTreeSet<String> =
-        input.projects.iter().map(|project| project.id.clone()).collect();
+    let expected_project_ids: BTreeSet<String> = input
+        .projects
+        .iter()
+        .map(|project| project.id.clone())
+        .collect();
     let supplied_project_ids: BTreeSet<String> =
         patch.project_outcomes_by_id.keys().cloned().collect();
     if supplied_project_ids != expected_project_ids {
@@ -1234,14 +1243,21 @@ pub fn add_scenario(input: &Input, patch: &ScenarioPatch) -> Result<Input, Strin
         .service_baseline_by_scenario
         .insert(scenario_id.clone(), patch.service_baseline);
     for project in &mut augmented.projects {
-        let outcome = patch.project_outcomes_by_id.get(&project.id)
+        let outcome = patch
+            .project_outcomes_by_id
+            .get(&project.id)
             .ok_or_else(|| format!("missing project outcome for {}", project.id))?;
-        project.outcomes.insert(scenario_id.clone(), outcome.clone());
+        project
+            .outcomes
+            .insert(scenario_id.clone(), outcome.clone());
     }
     for rule in &mut augmented.interaction_rules {
-        let adjustment = patch.interaction_adjustments_by_rule_id.get(&rule.id)
+        let adjustment = patch
+            .interaction_adjustments_by_rule_id
+            .get(&rule.id)
             .ok_or_else(|| format!("missing interaction adjustment for {}", rule.id))?;
-        rule.objective_adjustment_by_scenario.insert(scenario_id.clone(), adjustment.clone());
+        rule.objective_adjustment_by_scenario
+            .insert(scenario_id.clone(), adjustment.clone());
     }
 
     validate_input(&augmented)?;
@@ -1258,34 +1274,53 @@ pub fn evaluate_scenario_addition(
     let augmented_input = add_scenario(input, patch)?;
     let augmented = evaluate(&augmented_input)?;
 
-    let mut original_scenario_ids: Vec<String> =
-        input.scenarios.iter().map(|scenario| scenario.id.clone()).collect();
+    let mut original_scenario_ids: Vec<String> = input
+        .scenarios
+        .iter()
+        .map(|scenario| scenario.id.clone())
+        .collect();
     original_scenario_ids.sort();
     let mut augmented_scenario_ids: Vec<String> = augmented_input
-        .scenarios.iter().map(|scenario| scenario.id.clone()).collect();
+        .scenarios
+        .iter()
+        .map(|scenario| scenario.id.clone())
+        .collect();
     augmented_scenario_ids.sort();
 
-    let augmented_feasible_ids: BTreeSet<String> = augmented.feasible_portfolios
-        .iter().map(portfolio_key).collect();
+    let augmented_feasible_ids: BTreeSet<String> = augmented
+        .feasible_portfolios
+        .iter()
+        .map(portfolio_key)
+        .collect();
     let mut original_feasible_removed_by_addition: Vec<Vec<String>> = original
-        .feasible_portfolios.iter()
+        .feasible_portfolios
+        .iter()
         .filter(|portfolio| !augmented_feasible_ids.contains(&portfolio_key(portfolio)))
         .map(|portfolio| portfolio.project_ids.clone())
         .collect();
     original_feasible_removed_by_addition.sort();
 
-    let original_frontier_project_ids: Vec<Vec<String>> = original.pareto_frontier
-        .iter().map(|portfolio| portfolio.project_ids.clone()).collect();
-    let augmented_frontier_project_ids: Vec<Vec<String>> = augmented.pareto_frontier
-        .iter().map(|portfolio| portfolio.project_ids.clone()).collect();
+    let original_frontier_project_ids: Vec<Vec<String>> = original
+        .pareto_frontier
+        .iter()
+        .map(|portfolio| portfolio.project_ids.clone())
+        .collect();
+    let augmented_frontier_project_ids: Vec<Vec<String>> = augmented
+        .pareto_frontier
+        .iter()
+        .map(|portfolio| portfolio.project_ids.clone())
+        .collect();
     let original_frontier_ids: BTreeSet<String> =
         original.pareto_frontier.iter().map(portfolio_key).collect();
-    let augmented_frontier_ids: BTreeSet<String> =
-        augmented.pareto_frontier.iter().map(portfolio_key).collect();
+    let augmented_frontier_ids: BTreeSet<String> = augmented
+        .pareto_frontier
+        .iter()
+        .map(portfolio_key)
+        .collect();
     let frontier_id_intersection_count = original_frontier_ids
-        .intersection(&augmented_frontier_ids).count();
-    let frontier_id_union_count = original_frontier_ids
-        .union(&augmented_frontier_ids).count();
+        .intersection(&augmented_frontier_ids)
+        .count();
+    let frontier_id_union_count = original_frontier_ids.union(&augmented_frontier_ids).count();
 
     if augmented.feasible_portfolios.len() > original.feasible_portfolios.len() {
         return Err("adding a scenario unexpectedly increased feasible portfolio count".to_owned());
@@ -2146,8 +2181,8 @@ mod tests {
     #[test]
     fn scenario_addition_is_fail_closed_and_preserves_input() {
         let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture parses");
-        let mut patch: ScenarioPatch = serde_json::from_str(WITHHELD_SCENARIO)
-            .expect("withheld scenario patch parses");
+        let mut patch: ScenarioPatch =
+            serde_json::from_str(WITHHELD_SCENARIO).expect("withheld scenario patch parses");
         let original = input.clone();
         let augmented = add_scenario(&input, &patch).expect("valid scenario is addable");
         assert_eq!(input, original);
@@ -2164,29 +2199,44 @@ mod tests {
     #[test]
     fn scenario_addition_cannot_increase_feasibility_and_reports_lost_portfolios() {
         let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture parses");
-        let patch: ScenarioPatch = serde_json::from_str(WITHHELD_SCENARIO)
-            .expect("withheld scenario patch parses");
+        let patch: ScenarioPatch =
+            serde_json::from_str(WITHHELD_SCENARIO).expect("withheld scenario patch parses");
         let original = evaluate(&input).expect("original exact evaluation");
         let augmented_input = add_scenario(&input, &patch).expect("valid addition");
         let augmented = evaluate(&augmented_input).expect("augmented exact evaluation");
-        let report = evaluate_scenario_addition(&input, &patch)
-            .expect("addition report should evaluate");
+        let report =
+            evaluate_scenario_addition(&input, &patch).expect("addition report should evaluate");
 
-        let original_ids: BTreeSet<String> = original.feasible_portfolios
-            .iter().map(portfolio_key).collect();
-        let augmented_ids: BTreeSet<String> = augmented.feasible_portfolios
-            .iter().map(portfolio_key).collect();
+        let original_ids: BTreeSet<String> = original
+            .feasible_portfolios
+            .iter()
+            .map(portfolio_key)
+            .collect();
+        let augmented_ids: BTreeSet<String> = augmented
+            .feasible_portfolios
+            .iter()
+            .map(portfolio_key)
+            .collect();
         assert!(augmented_ids.is_subset(&original_ids));
         assert_eq!(
             report.original_feasible_removed_by_addition.len(),
             original_ids.difference(&augmented_ids).count()
         );
-        assert_eq!(report.original_feasible_portfolio_count, original.feasible_portfolios.len());
-        assert_eq!(report.augmented_feasible_portfolio_count, augmented.feasible_portfolios.len());
+        assert_eq!(
+            report.original_feasible_portfolio_count,
+            original.feasible_portfolios.len()
+        );
+        assert_eq!(
+            report.augmented_feasible_portfolio_count,
+            augmented.feasible_portfolios.len()
+        );
         assert_eq!(
             report.augmented_frontier_project_ids,
-            augmented.pareto_frontier.iter()
-                .map(|portfolio| portfolio.project_ids.clone()).collect::<Vec<_>>()
+            augmented
+                .pareto_frontier
+                .iter()
+                .map(|portfolio| portfolio.project_ids.clone())
+                .collect::<Vec<_>>()
         );
         assert!(report.frontier_id_intersection_count <= report.frontier_id_union_count);
     }
@@ -2202,9 +2252,12 @@ mod tests {
         let mut permuted_input = input.clone();
         permuted_input.scenarios.reverse();
         let mut permuted_patch = patch.clone();
-        permuted_patch.project_outcomes_by_id =
-            patch.project_outcomes_by_id.iter().rev()
-                .map(|(id, outcome)| (id.clone(), outcome.clone())).collect();
+        permuted_patch.project_outcomes_by_id = patch
+            .project_outcomes_by_id
+            .iter()
+            .rev()
+            .map(|(id, outcome)| (id.clone(), outcome.clone()))
+            .collect();
         assert_eq!(
             first,
             evaluate_scenario_addition(&permuted_input, &permuted_patch).unwrap()
