@@ -1,8 +1,8 @@
-# Task revalidation impact plan v1
+# Task revalidation impact plan v2
 
 **Status:** immutable impact-analysis preview; not a rework command, durable event, or authorization decision  
 **Module:** `sol-atlas-core/src/task_graph.rs`  
-**Fixture:** `sol-atlas-core/fixtures/task-revalidation-plan-v1.json`
+**Fixture:** `sol-atlas-core/fixtures/task-revalidation-plan-v2.json`
 
 ## The paradigm shift
 
@@ -22,9 +22,10 @@ This separation prevents a UI preview from pretending to be an authoritative rec
 
 - Source task must currently be `verification_recorded`.
 - Reason code and correction-evidence reference must be non-empty.
-- Plan includes schema version, graph ID, expected graph revision, source task/status, reason, correction evidence reference, previous downstream statuses, impact classes and deterministic dependency paths.
+- Plan includes schema version, graph ID, expected graph revision, source task/status, reason, correction evidence reference, prior downstream statuses, impact classes and a compact path witness per impact.
 - Both the straightforward graph model and the compiled graph index emit the same plan.
-- Planner returns shortest paths; equal-length paths are chosen deterministically by sorted dependency IDs. For a joined dependency graph, a node is included once, using the first deterministic shortest path.
+- The impact list is a deterministic breadth-first traversal. Each impact stores its predecessor task ID and hop depth, not a complete copied path. Follow predecessor links until reaching the source task to reconstruct a path; joined nodes use the first deterministic shortest witness based on sorted dependency IDs.
+- The compact witness representation avoids storing every full prefix path. A chain with N descendants would otherwise retain approximately N(N+1)/2 path elements; v2 retains one predecessor reference and depth per impact.
 - Generating a plan is read-only and must not increment graph revision.
 - A real correction is rejected if the canonical graph revision changed, unless the authoritative service deliberately recomputes impact against that newer revision.
 
@@ -43,10 +44,11 @@ The fixture includes a verified access task, verified inspection and parts branc
 | REV-03 | Missing provenance | Zero plans with blank source, reason code or correction reference | Negative input suite |
 | REV-04 | Incorrect root state | Zero plans from a source not currently verification-recorded | Source-status negative controls |
 | REV-05 | Complete downstream closure | 100% of reachable descendants classified exactly once | DAGs with branching, joins, cancellation and multiple paths |
-| REV-06 | Deterministic explanation | 100% identical dependency paths for the same graph revision regardless of input vector order | Reordered-node property cases |
-| PERF-REV-01 | Impact-planning cost | p95 under 10 ms for 10,000 tasks and 40,000 edges (initial hypothesis) | Release build, fixed graph generator, named runner, 1,000 samples and raw distribution |
+| REV-06 | Deterministic explanation | 100% identical predecessor witnesses for the same graph revision regardless of input vector order | Reordered-node property cases |
+| REV-07 | Compact output growth | Exactly one predecessor ID and depth per impacted task; no repeated full paths | Fixture/schema assertions and a 10,000-node chain |
+| PERF-REV-01 | Impact-planning cost | p95 under 100 ms for 10,000 tasks and about 40,000 edges (initial hypothesis, v2) | Release build, fixed graph generator, named runner, 100+ samples, raw distribution; profile reference and compiled planners separately |
 
-The timing target is not measured yet. The benchmark must include both a narrow chain-like frontier and a wide independent frontier, and should report graph shape and impact-set size. Report p50/p95/max and raw samples; don't turn algorithm measurements into claimed field productivity or safety outcomes.
+The compact impact planner is now measured by benchmark runner v4. It separately reports impact-index build cost, reference planning (which rebuilds adjacency) and compiled planning (which reuses the compiled graph's dependent index). The fan-in scenario exercises 9,999 descendants in a 10,000-task graph; independent roots provide a zero-descendant control. Compare output counts and p95 latency before making any performance claim. The first v4 release run is pending; until it produces a raw evidence artifact, the p95-under-100-ms target remains a hypothesis.
 
 ## Industry comparison
 

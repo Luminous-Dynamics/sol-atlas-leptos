@@ -61,15 +61,23 @@ jobs:
           set -euo pipefail
           jq -e '
             .benchmark == "field-task-graph-v1"
-            and .benchmark_version == 3
+            and .benchmark_version == 4
             and (.workloads | keys == ["fan_in_4", "independent_roots"])
             and all(.workloads[]; .dataset.tasks == 10000)
             and all(.workloads[]; .operations.validate.samples == 100)
             and all(.workloads[]; (.operations.validate.raw_ns | length) == 100)
             and all(.workloads[]; .operations.compiled_ready_tasks.samples == 100)
             and all(.workloads[]; (.operations.compiled_ready_tasks.raw_ns | length) == 100)
+            and all(.workloads[]; .operations.impact_compile_index.samples == 100)
+            and all(.workloads[]; (.operations.impact_compile_index.raw_ns | length) == 100)
+            and all(.workloads[]; .operations.impact_plan_reference.samples == 100)
+            and all(.workloads[]; (.operations.impact_plan_reference.raw_ns | length) == 100)
+            and all(.workloads[]; .operations.impact_plan_compiled.samples == 100)
+            and all(.workloads[]; (.operations.impact_plan_compiled.raw_ns | length) == 100)
             and (.workloads.fan_in_4.dataset.edges == 39990)
             and (.workloads.independent_roots.dataset.edges == 0)
+            and (.workloads.fan_in_4.dataset.impact_reachable_descendants == 9999)
+            and (.workloads.independent_roots.dataset.impact_reachable_descendants == 0)
             and (.environment.debug_assertions == false)
           ' task-graph-benchmark.json > /dev/null
           jq '{benchmark, benchmark_version, environment, method, workloads: (.workloads | with_entries(.value |= {dataset, operations: (.operations | with_entries(.value |= {samples, p50_ns, p95_ns, max_ns}))}))}' task-graph-benchmark.json > task-graph-benchmark-summary.json

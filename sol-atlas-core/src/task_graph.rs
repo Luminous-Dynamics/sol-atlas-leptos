@@ -58,7 +58,7 @@ pub enum TaskAction {
     Cancel,
 }
 
-pub const TASK_REVALIDATION_PLAN_SCHEMA_VERSION: u16 = 1;
+pub const TASK_REVALIDATION_PLAN_SCHEMA_VERSION: u16 = 2;
 
 /// Preview of the downstream consequences of challenging a verified task.
 ///
@@ -67,7 +67,7 @@ pub const TASK_REVALIDATION_PLAN_SCHEMA_VERSION: u16 = 1;
 /// corrected evidence, identity, permission and domain-specific rules.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct TaskRevalidationPlanV1 {
+pub struct TaskRevalidationPlanV2 {
     pub schema_version: u16,
     pub graph_id: String,
     pub expected_graph_revision: u64,
@@ -75,17 +75,21 @@ pub struct TaskRevalidationPlanV1 {
     pub source_status: TaskStatus,
     pub reason_code: String,
     pub correction_evidence_ref: String,
-    pub impacts: Vec<TaskRevalidationImpactV1>,
+    pub impacts: Vec<TaskRevalidationImpactV2>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct TaskRevalidationImpactV1 {
+pub struct TaskRevalidationImpactV2 {
     pub task_id: String,
     pub prior_status: TaskStatus,
     pub kind: RevalidationImpactKind,
-    /// Stable path from the challenged task to this downstream task.
-    pub dependency_path: Vec<String>,
+    /// Previous node on a deterministic shortest-path witness from the source.
+    /// Walking these parent pointers reconstructs the path without copying every
+    /// full path into every impact entry (which would be quadratic on a chain).
+    pub predecessor_task_id: String,
+    /// Number of dependency edges from the challenged source to this task.
+    pub path_depth: usize,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -226,7 +230,7 @@ impl TaskGraphV1 {
         source_task_id: &str,
         reason_code: &str,
         correction_evidence_ref: &str,
-    ) -> Result<TaskRevalidationPlanV1, TaskGraphError> {
+    ) -> Result<TaskRevalidationPlanV2, TaskGraphError> {
         self.validate()?;
         validate_revalidation_inputs(source_task_id, reason_code, correction_evidence_ref)?;
 
@@ -255,7 +259,7 @@ impl TaskGraphV1 {
             }
         }
         sort_dependents(&mut dependents, &self.tasks);
-        let paths = collect_dependent_paths(source_index, &dependents);
+        let paths = collect_dependent_predecessors(source_index, &dependents);
         Ok(build_revalidation_plan(
             self,
             source_index,
@@ -486,7 +490,7 @@ impl CompiledTaskGraph {
         source_task_id: &str,
         reason_code: &str,
         correction_evidence_ref: &str,
-    ) -> Result<TaskRevalidationPlanV1, TaskGraphError> {
+    ) -> Result<TaskRevalidationPlanV2, TaskGraphError> {
         validate_revalidation_inputs(source_task_id, reason_code, correction_evidence_ref)?;
         let source_index = *self
             .id_to_index
@@ -496,7 +500,7 @@ impl CompiledTaskGraph {
             return Err(TaskGraphError::TaskNotVerified(source_task_id.to_owned()));
         }
 
-        let paths = collect_dependent_paths(source_index, &self.dependents);
+        let paths = collect_dependent_predecessors(source_index, &self.dependents);
         Ok(build_revalidation_plan(
             &self.graph,
             source_index,
@@ -648,10 +652,10 @@ fn sort_dependents(dependents: &mut [Vec<usize>], tasks: &[TaskNodeV1]) {
     }
 }
 
-fn collect_dependent_paths(
+fn collect_dependent_predecessors(
     source_index: usize,
     dependents: &[Vec<usize>],
-) -> Vec<(usize, Vec<usize>)> {
+) -> Vec<(usize, usize, usize)> {
     let mut seen = BTreeSet::new();
     seen.insert(source_index);
     let mut queue = VecDeque::new();
@@ -659,17 +663,15 @@ fn collect_dependent_paths(
 
     for dependent_index in &dependents[source_index] {
         if seen.insert(*dependent_index) {
-            queue.push_back((*dependent_index, vec![source_index, *dependent_index]));
+            queue.push_back((*dependent_index, source_index, 1usize));
         }
     }
 
-    while let Some((task_index, path)) = queue.pop_front() {
-        result.push((task_index, path.clone()));
+    while let Some((task_index, predecessor_index, path_depth)) = queue.pop_front() {
+        result.push((task_index, predecessor_index, path_depth));
         for dependent_index in &dependents[task_index] {
             if seen.insert(*dependent_index) {
-                let mut child_path = path.clone();
-                child_path.push(*dependent_index);
-                queue.push_back((*dependent_index, child_path));
+                queue.push_back((*dependent_index, task_index, path_depth + 1));
             }
         }
     }
@@ -682,11 +684,11 @@ fn build_revalidation_plan(
     source_index: usize,
     reason_code: &str,
     correction_evidence_ref: &str,
-    paths: Vec<(usize, Vec<usize>)>,
-) -> TaskRevalidationPlanV1 {
-    let impacts = paths
+    witnesses: Vec<(usize, usize, usize)>,
+) -> TaskRevalidationPlanV2 {
+    let impacts = witnesses
         .into_iter()
-        .map(|(task_index, path)| {
+        .map(|(task_index, predecessor_index, path_depth)| {
             let task = &graph.tasks[task_index];
             let kind = match task.status {
                 TaskStatus::InProgress
@@ -695,19 +697,17 @@ fn build_revalidation_plan(
                 TaskStatus::Pending => RevalidationImpactKind::RemainsBlocked,
                 TaskStatus::Cancelled => RevalidationImpactKind::CancelledNoAction,
             };
-            TaskRevalidationImpactV1 {
+            TaskRevalidationImpactV2 {
                 task_id: task.task_id.clone(),
                 prior_status: task.status,
                 kind,
-                dependency_path: path
-                    .into_iter()
-                    .map(|index| graph.tasks[index].task_id.clone())
-                    .collect(),
+                predecessor_task_id: graph.tasks[predecessor_index].task_id.clone(),
+                path_depth,
             }
         })
         .collect();
 
-    TaskRevalidationPlanV1 {
+    TaskRevalidationPlanV2 {
         schema_version: TASK_REVALIDATION_PLAN_SCHEMA_VERSION,
         graph_id: graph.graph_id.clone(),
         expected_graph_revision: graph.revision,
@@ -1048,8 +1048,8 @@ mod tests {
                 "urn:demo:evidence:access-correction",
             )
             .unwrap();
-        let expected: super::TaskRevalidationPlanV1 =
-            serde_json::from_str(include_str!("../fixtures/task-revalidation-plan-v1.json"))
+        let expected: super::TaskRevalidationPlanV2 =
+            serde_json::from_str(include_str!("../fixtures/task-revalidation-plan-v2.json"))
                 .expect("frozen revalidation plan fixture must deserialize");
 
         assert_eq!(reference_plan, expected);
@@ -1066,6 +1066,42 @@ mod tests {
         );
         assert_eq!(source_graph, before);
         assert_eq!(compiled.graph(), &before);
+    }
+
+    #[test]
+    fn compact_revalidation_witnesses_scale_linearly_on_a_chain() {
+        const TASKS: usize = 128;
+        let mut tasks = Vec::with_capacity(TASKS);
+        tasks.push(node("task-000", &[], 1, TaskStatus::VerificationRecorded));
+        for index in 1..TASKS {
+            let task_id = format!("task-{index:03}");
+            let dependency_id = format!("task-{:03}", index - 1);
+            tasks.push(node(
+                &task_id,
+                &[dependency_id.as_str()],
+                1,
+                TaskStatus::Pending,
+            ));
+        }
+
+        let mut task_graph = graph(tasks);
+        task_graph.graph_id = "revalidation-chain-test".to_owned();
+        let plan = task_graph
+            .plan_verification_invalidation(
+                "task-000",
+                "chain_root_correction",
+                "urn:test:evidence:correction",
+            )
+            .unwrap();
+
+        assert_eq!(plan.impacts.len(), TASKS - 1);
+        for (offset, impact) in plan.impacts.iter().enumerate() {
+            let expected_task = format!("task-{:03}", offset + 1);
+            let expected_predecessor = format!("task-{offset:03}");
+            assert_eq!(impact.task_id, expected_task);
+            assert_eq!(impact.predecessor_task_id, expected_predecessor);
+            assert_eq!(impact.path_depth, offset + 1);
+        }
     }
 
     #[test]
