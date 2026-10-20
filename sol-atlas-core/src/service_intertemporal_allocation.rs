@@ -1364,7 +1364,7 @@ mod tests {
     }
 
     #[test]
-    fn terminal_reserve_is_a_hard_feasibility_constraint() {
+    fn terminal_reserve_is_not_relaxed_to_fulfil_all_service_demand() {
         let mut request = tank_request(IntertemporalAllocationPolicy::EssentialFloorFirst);
         request.resources[0]
             .inventory
@@ -1372,6 +1372,33 @@ mod tests {
             .unwrap()
             .inflow
             .values = vec![Some(0), Some(0)];
+        let result = assess_intertemporal_resource_allocation(&request).unwrap();
+        assert_eq!(result.disposition, IntertemporalAllocationDisposition::Optimal);
+        assert!(result.search_complete);
+        let tank_rows: Vec<_> = result
+            .resource_steps
+            .iter()
+            .filter(|row| row.resource_id == "tank")
+            .collect();
+        assert_eq!(tank_rows.len(), 2);
+        assert_eq!(tank_rows[1].ending_stock_quanta, Some(2));
+        assert_eq!(
+            tank_rows.iter().map(|row| row.withdrawal_quanta.unwrap()).sum::<u64>(),
+            1,
+            "only one water quantum may be withdrawn while preserving the terminal reserve"
+        );
+        assert!(tank_rows.iter().all(|row| row.balance_equation_holds == Some(true)));
+    }
+
+    #[test]
+    fn physically_impossible_declared_loss_yields_infeasible_not_a_fabricated_stock() {
+        let mut request = tank_request(IntertemporalAllocationPolicy::EssentialFloorFirst);
+        request.resources[0]
+            .inventory
+            .as_mut()
+            .unwrap()
+            .losses
+            .values = vec![Some(4), Some(0)];
         let result = assess_intertemporal_resource_allocation(&request).unwrap();
         assert_eq!(result.disposition, IntertemporalAllocationDisposition::Infeasible);
         assert!(result.search_complete);
