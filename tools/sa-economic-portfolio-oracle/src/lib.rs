@@ -309,21 +309,26 @@ fn validate_input_with_limit(input: &Input, max_projects: usize) -> Result<(), S
         .iter()
         .map(|scenario| scenario.id.clone())
         .collect();
-    let v01_scenarios =
-        BTreeSet::from(["nominal".to_owned(), "hot_dry_grid_stress".to_owned()]);
+    let v01_scenarios = BTreeSet::from(["nominal".to_owned(), "hot_dry_grid_stress".to_owned()]);
     if scenario_ids.is_empty()
         || scenario_ids.len() != input.scenarios.len()
         || scenario_ids.iter().any(String::is_empty)
         || (v01 && scenario_ids != v01_scenarios)
     {
-        return Err("scenario IDs must be unique, non-empty, and match the v0.1 set when applicable".to_owned());
+        return Err(
+            "scenario IDs must be unique, non-empty, and match the v0.1 set when applicable"
+                .to_owned(),
+        );
     }
     if input
         .scenarios
         .iter()
         .any(|scenario| scenario.weight.is_some() || scenario.probability.is_some())
     {
-        return Err("synthetic stress scenarios must not carry uncalibrated weights/probabilities".to_owned());
+        return Err(
+            "synthetic stress scenarios must not carry uncalibrated weights/probabilities"
+                .to_owned(),
+        );
     }
 
     let budget_periods: BTreeSet<String> = input
@@ -338,13 +343,15 @@ fn validate_input_with_limit(input: &Input, max_projects: usize) -> Result<(), S
     let v01_periods = BTreeSet::from(["P1".to_owned(), "P2".to_owned()]);
     if budget_periods.is_empty()
         || budget_periods.len() != input.budgets_by_period.len()
-        || budget_periods.iter().any(|period| {
-            !matches!(period_rank(period), Some(rank) if rank > 0)
-        })
+        || budget_periods
+            .iter()
+            .any(|period| !matches!(period_rank(period), Some(rank) if rank > 0))
         || period_ranks.len() != budget_periods.len()
         || (v01 && budget_periods != v01_periods)
     {
-        return Err("period budgets must be unique positive Pn periods and match P1/P2 for v0.1".to_owned());
+        return Err(
+            "period budgets must be unique positive Pn periods and match P1/P2 for v0.1".to_owned(),
+        );
     }
     if input
         .budgets_by_period
@@ -369,7 +376,8 @@ fn validate_input_with_limit(input: &Input, max_projects: usize) -> Result<(), S
             .any(|objective| objective.direction != "maximize" || objective.unit.is_empty())
     {
         return Err(
-            "objective schema must declare the four unique v0.1/v0.2 maximization objectives".to_owned(),
+            "objective schema must declare the four unique v0.1/v0.2 maximization objectives"
+                .to_owned(),
         );
     }
 
@@ -413,7 +421,10 @@ fn validate_input_with_limit(input: &Input, max_projects: usize) -> Result<(), S
         || project_ids.iter().any(String::is_empty)
         || (v01 && project_ids != v01_project_ids)
     {
-        return Err("project IDs must be unique/non-empty and match the frozen v0.1 corpus when applicable".to_owned());
+        return Err(
+            "project IDs must be unique/non-empty and match the frozen v0.1 corpus when applicable"
+                .to_owned(),
+        );
     }
 
     let by_id: BTreeMap<&str, &Project> = input
@@ -732,11 +743,7 @@ fn search_frontier_recursive(
         match evaluate_subset(context.input, mask)? {
             SubsetEvaluation::Feasible(portfolio) => {
                 accumulator.stats.feasible_portfolio_count += 1;
-                insert_frontier_candidate(
-                    accumulator,
-                    portfolio,
-                    &context.input.scenarios,
-                );
+                insert_frontier_candidate(accumulator, portfolio, &context.input.scenarios);
             }
             SubsetEvaluation::Rejected(RejectionReason::ProtectedServiceFloor) => {
                 accumulator.stats.service_floor_rejection_leaves += 1;
@@ -758,13 +765,7 @@ fn search_frontier_recursive(
         .ok_or_else(|| "frontier search subtree count overflow".to_owned())?;
 
     // Excluding a project always remains a possible decision.
-    search_frontier_recursive(
-        context,
-        position + 1,
-        mask,
-        used_resources,
-        accumulator,
-    )?;
+    search_frontier_recursive(context, position + 1, mask, used_resources, accumulator)?;
 
     // Each include branch is pruned only when every completion beneath it is infeasible.
     if project.gate != "PASS" {
@@ -886,16 +887,8 @@ pub fn evaluate_frontier_search(input: &Input) -> Result<FrontierSearchEvaluatio
         pareto_frontier: Vec::new(),
     };
 
-    search_frontier_recursive(
-        &context,
-        0,
-        0,
-        &mut used_resources,
-        &mut accumulator,
-    )?;
-    accumulator
-        .pareto_frontier
-        .sort_by_key(portfolio_key);
+    search_frontier_recursive(&context, 0, 0, &mut used_resources, &mut accumulator)?;
+    accumulator.pareto_frontier.sort_by_key(portfolio_key);
     if accumulator.stats.accounted_subset_count() != candidate_subset_count {
         return Err("frontier search subset accounting does not reconcile".to_owned());
     }
@@ -1084,8 +1077,8 @@ mod tests {
         assert_eq!(exact.feasible_portfolios.len(), 82);
         assert_eq!(exact.pareto_frontier.len(), 8);
 
-        let searched = evaluate_frontier_search(&input)
-            .expect("ten-project frontier search should evaluate");
+        let searched =
+            evaluate_frontier_search(&input).expect("ten-project frontier search should evaluate");
         assert_eq!(searched.pareto_frontier, exact.pareto_frontier);
         assert_eq!(
             searched.stats.feasible_portfolio_count,
@@ -1100,24 +1093,30 @@ mod tests {
 
     #[test]
     fn generalized_v02_row_permutations_preserve_exact_and_search_results() {
-        let mut input: Input =
-            serde_json::from_str(V02_INPUT).expect("v0.2 fixture should parse");
+        let mut input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture should parse");
         let baseline = evaluate(&input).expect("baseline exact evaluation should work");
-        let baseline_search = evaluate_frontier_search(&input)
-            .expect("baseline frontier search should work");
+        let baseline_search =
+            evaluate_frontier_search(&input).expect("baseline frontier search should work");
         input.projects.reverse();
         input.scenarios.reverse();
         input.budgets_by_period.reverse();
         input.objective_schema.reverse();
         input.interaction_rules.reverse();
         let permuted = evaluate(&input).expect("permuted exact evaluation should work");
-        let permuted_search = evaluate_frontier_search(&input)
-            .expect("permuted frontier search should work");
+        let permuted_search =
+            evaluate_frontier_search(&input).expect("permuted frontier search should work");
         assert_eq!(permuted, baseline);
-        assert_eq!(permuted_search.pareto_frontier, baseline_search.pareto_frontier);
-        assert_eq!(permuted_search.stats.feasible_portfolio_count, baseline_search.stats.feasible_portfolio_count);
+        assert_eq!(
+            permuted_search.pareto_frontier,
+            baseline_search.pareto_frontier
+        );
+        assert_eq!(
+            permuted_search.stats.feasible_portfolio_count,
+            baseline_search.stats.feasible_portfolio_count
+        );
         assert_eq!(permuted_search.stats.accounted_subset_count(), 1_024);
     }
+
     #[test]
     fn dependency_aware_search_matches_v01_exact_frontier() {
         let input = fixture();
@@ -1171,13 +1170,15 @@ mod tests {
         assert_eq!(searched.stats.accounted_subset_count(), 1_u64 << 24);
         assert!(searched.stats.gate_pruned_subsets > 0);
         assert_eq!(
-            searched.pareto_frontier,
-            reference.pareto_frontier,
+            searched.pareto_frontier, reference.pareto_frontier,
             "unknown-gate decoys must never alter the frontier"
         );
-        assert!(searched.pareto_frontier.iter().all(|portfolio| {
-            portfolio.project_ids.iter().all(|id| !id.starts_with('N'))
-        }));
+        assert!(
+            searched
+                .pareto_frontier
+                .iter()
+                .all(|portfolio| { portfolio.project_ids.iter().all(|id| !id.starts_with('N')) })
+        );
         assert!(searched.stats.visited_nodes < 1_000_000);
     }
 
