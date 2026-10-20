@@ -582,7 +582,7 @@ fn utc_timestamp_seconds(value: &str) -> Option<i64> {
 }
 
 fn is_leap_year(year: i64) -> bool {
-    year.is_multiple_of(4) && (!year.is_multiple_of(100) || year.is_multiple_of(400))
+    year.rem_euclid(4) == 0 && (year.rem_euclid(100) != 0 || year.rem_euclid(400) == 0)
 }
 
 fn is_canonical_sha256(value: &str) -> bool {
