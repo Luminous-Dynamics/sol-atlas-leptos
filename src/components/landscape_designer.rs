@@ -304,6 +304,21 @@ fn parse_import_snapshot(value: &Value) -> Result<ImportedSnapshot, String> {
     })
 }
 
+fn landscape_source_status() -> Result<(usize, usize), String> {
+    let catalog: Value = serde_json::from_str(include_str!(
+        "../../data-sources/landscape/south-africa-johannesburg-v0.json"
+    ))
+    .map_err(|error| format!("Source catalog is invalid JSON: {error}"))?;
+    let records = catalog["records"]
+        .as_array()
+        .ok_or_else(|| "Source catalog has no records array".to_string())?;
+    let ingested = records
+        .iter()
+        .filter(|record| record["ingestion_state"].as_str() == Some("ingested"))
+        .count();
+    Ok((records.len(), ingested))
+}
+
 fn normalized_project_name(value: &str) -> String {
     let trimmed = value.trim();
     if trimmed.is_empty() {
@@ -830,7 +845,32 @@ pub fn LandscapeDesigner() -> impl IntoView {
                     </section>
 
                     <section class="landscape-section">
-                        <p class="landscape-section-label">"04 / INSPECT SELECTION"</p>
+                        <p class="landscape-section-label">"04 / EVIDENCE READINESS"</p>
+                        <h2>"What do we know?"</h2>
+                        {move || match landscape_source_status() {
+                            Ok((catalogued, ingested)) => view! {
+                                <div class="landscape-evidence-counts">
+                                    <div><strong>{catalogued.to_string()}</strong><span>"candidate sources"</span></div>
+                                    <div><strong>{ingested.to_string()}</strong><span>"layers ingested"</span></div>
+                                </div>
+                                <p class="landscape-evidence-blocked">
+                                    {if ingested == 0 {
+                                        "SCREENING BLOCKED · no source layers are ingested".to_string()
+                                    } else {
+                                        "SOURCE LAYERS PRESENT · per-model qualification still required".to_string()
+                                    }}
+                                </p>
+                            }.into_any(),
+                            Err(error) => view! {
+                                <p class="landscape-evidence-blocked">"SOURCE CATALOG INVALID · " {error}</p>
+                            }.into_any()
+                        }}
+                        <p class="landscape-muted">"A public URL is only a candidate source. Before a layer can support analysis, verify license/attribution, date and resolution, CRS/units, missing-data behavior, and an independent reference."</p>
+                        <p class="landscape-note">"The canvas is design intent. No runoff, shade, biodiversity, carbon, cost, or accessibility result is calculated here."</p>
+                    </section>
+
+                    <section class="landscape-section">
+                        <p class="landscape-section-label">"05 / INSPECT SELECTION"</p>
                         <h2>"Selected element"</h2>
                         <p class="landscape-muted">"Select a symbol on the canvas to inspect its current anchor and remove it from this schematic draft."</p>
                         <p class="landscape-selected-value">{move || selected_description()}</p>
