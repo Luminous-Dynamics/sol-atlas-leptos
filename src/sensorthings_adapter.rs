@@ -165,7 +165,7 @@ pub fn adapt_observation(
     let unit = unit.expect("checked above");
     // Context source_uri is the exact URI for this observation resource.
     let observation_uri = context.source_uri.clone();
-    let native = json!({
+    let mut native = json!({
         "schema": OBSERVATION_SCHEMA,
         "schema_uri": OBSERVATION_SCHEMA_URI,
         "observation_id": format!("obs-sensorthings-{observation_id}-v1"),
