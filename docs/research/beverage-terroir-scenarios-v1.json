@@ -1,0 +1,119 @@
+{
+  "schema_version": "beverage-terroir-scenarios-v1",
+  "status": "synthetic_spatial_data_contract_not_field_evidence",
+  "scenarios": [
+    {
+      "id": "BTERR-001",
+      "name": "valid_point_weather_with_native_resolution",
+      "expected_disposition": "ELIGIBLE_FOR_CONTEXTUAL_ANALYSIS",
+      "guards": [
+        "source_version",
+        "crs",
+        "units",
+        "native_resolution",
+        "time_standard"
+      ],
+      "claim_ceiling": "Regional climate context only."
+    },
+    {
+      "id": "BTERR-002",
+      "name": "coordinate_reference_system_mismatch",
+      "expected_disposition": "REJECT",
+      "guards": [
+        "input_crs_matches_declared_transform",
+        "axis_order_valid"
+      ],
+      "claim_ceiling": "Unaligned spatial overlays cannot support site ranking."
+    },
+    {
+      "id": "BTERR-003",
+      "name": "out_of_date_water_layer",
+      "expected_disposition": "INDETERMINATE",
+      "guards": [
+        "as_of_date",
+        "valid_time_window",
+        "staleness_policy"
+      ],
+      "claim_ceiling": "Stale water data are not evidence of current availability."
+    },
+    {
+      "id": "BTERR-004",
+      "name": "grid_to_plot_upsampling_claims_false_precision",
+      "expected_disposition": "REJECT_CLAIM_OR_REPORT_SOURCE_SCALE",
+      "guards": [
+        "source_resolution_preserved",
+        "resampling_method_declared",
+        "no_resolution_gain_claim"
+      ],
+      "claim_ceiling": "Interpolation does not create new observed spatial detail."
+    },
+    {
+      "id": "BTERR-005",
+      "name": "missing_water_observation_silently_zeroed",
+      "expected_disposition": "REJECT",
+      "guards": [
+        "missingness_preserved",
+        "no_zero_imputation",
+        "coverage_reported"
+      ],
+      "claim_ceiling": "Missing resource evidence is unknown, not absence or abundance."
+    },
+    {
+      "id": "BTERR-006",
+      "name": "climate_extrapolation_outside_training_domain",
+      "expected_disposition": "OUT_OF_DOMAIN_WITH_UNCERTAINTY",
+      "guards": [
+        "training_domain_pinned",
+        "distance_or_shift_diagnostic",
+        "uncertainty_report"
+      ],
+      "claim_ceiling": "Model extrapolation cannot be treated as validated crop response."
+    },
+    {
+      "id": "BTERR-007",
+      "name": "unknown_source_rights",
+      "expected_disposition": "INELIGIBLE_FOR_REUSE",
+      "guards": [
+        "license_or_permission",
+        "attribution_terms",
+        "source_snapshot_identity"
+      ],
+      "claim_ceiling": "Public accessibility does not automatically permit all reuse."
+    },
+    {
+      "id": "BTERR-008",
+      "name": "climate_map_used_as_wine_sensory_ground_truth",
+      "expected_disposition": "REJECT_CLAIM",
+      "guards": [
+        "target_provenance",
+        "crop_harvest_chemistry_link",
+        "held_out_site_validation",
+        "blind_sensory_protocol"
+      ],
+      "claim_ceiling": "Climate correlation alone does not establish wine flavor or consumer preference."
+    },
+    {
+      "id": "BTERR-009",
+      "name": "nasa_power_time_standard_unspecified",
+      "expected_disposition": "INDETERMINATE",
+      "guards": [
+        "utc_or_local_solar_time_explicit",
+        "timestamp_basis",
+        "aggregation_window"
+      ],
+      "claim_ceiling": "Ambiguous time basis prevents exact temporal comparisons."
+    },
+    {
+      "id": "BTERR-010",
+      "name": "plot_recommendation_without_local_measurements",
+      "expected_disposition": "CONTEXT_ONLY_NO_ACTIONABLE_ADVICE",
+      "guards": [
+        "data_coverage",
+        "local_validation",
+        "domain_review",
+        "legal_constraints"
+      ],
+      "claim_ceiling": "Public grids alone do not authorize field-level irrigation decisions."
+    }
+  ]
+}
