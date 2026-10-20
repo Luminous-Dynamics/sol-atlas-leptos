@@ -460,7 +460,10 @@
                     "type": "string",
                     "minLength": 1
                   }
-                }
+                },
+                "required": [
+                  "identifier"
+                ]
               }
             }
           }
@@ -491,7 +494,10 @@
                     "type": "string",
                     "minLength": 1
                   }
-                }
+                },
+                "required": [
+                  "identifier"
+                ]
               }
             }
           }

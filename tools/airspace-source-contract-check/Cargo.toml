@@ -1,0 +1,17 @@
+[package]
+name = "airspace-source-contract-check"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+description = "Structural and semantic tests for the Sol-Atlas aviation source evidence contract"
+publish = false
+
+[dependencies]
+jsonschema = { version = "=0.59.0", default-features = false }
+serde_json = "1"
+time = { version = "0.3", features = ["parsing"] }
+
+# Keep this validator separate from the Bevy/Leptos app workspace so its
+# schema and negative-control tests can run independently in CI.
+[workspace]
+resolver = "2"
