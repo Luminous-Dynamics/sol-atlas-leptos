@@ -11,6 +11,7 @@ on:
       - "sol-atlas-core/src/offline_idempotency_fingerprint.rs"
       - "sol-atlas-core/fixtures/offline-journal-bundle-v1.json"
       - "sol-atlas-core/Cargo.toml"
+      - "scripts/bench-offline-journal-bundle.sh"
 
 permissions:
   contents: read
@@ -29,6 +30,9 @@ jobs:
 
       - name: Install stable Rust
         uses: dtolnay/rust-toolchain@stable
+
+      - name: Validate benchmark matrix script syntax
+        run: bash -n scripts/bench-offline-journal-bundle.sh
 
       - name: Execute release benchmark on deterministic smoke corpus
         env:
