@@ -56,7 +56,8 @@ pub struct Request {
     pub workloads: Vec<Workload>,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum AssessmentStatus {
     /// All demand can fit in the first-order resource envelope.
     Feasible,
@@ -72,7 +73,7 @@ pub enum AssessmentStatus {
     Invalid,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, serde::Serialize)]
 pub struct IntervalAssessment {
     pub interval_id: String,
     pub effective_it_power_cap_kw: f64,
@@ -82,7 +83,7 @@ pub struct IntervalAssessment {
     pub max_deferrable_work_units: u64,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, serde::Serialize)]
 pub struct Assessment {
     pub status: AssessmentStatus,
     pub interval_assessments: Vec<IntervalAssessment>,
