@@ -422,8 +422,14 @@ mod tests {
         );
         assert_eq!(schema["$id"], "urn:sol-atlas:offline-journal-bundle:1");
         assert_eq!(schema["properties"]["schema_version"]["const"], 1);
-        assert_eq!(schema["$defs"]["snapshot"]["properties"]["schema_version"]["const"], 1);
-        assert_eq!(schema["$defs"]["envelope"]["properties"]["schema_version"]["const"], 2);
+        assert_eq!(
+            schema["$defs"]["snapshot"]["properties"]["schema_version"]["const"],
+            1
+        );
+        assert_eq!(
+            schema["$defs"]["envelope"]["properties"]["schema_version"]["const"],
+            2
+        );
         assert_eq!(
             schema["$defs"]["revision"]["maximum"],
             MAX_JCS_SAFE_REVISION
