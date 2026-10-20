@@ -151,7 +151,9 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::build_run_output;
-    use sol_atlas_core::ai_compute_energy::{Request, scenario_receipt};
+    use sol_atlas_core::ai_compute_energy::{
+        Request, SchedulingPolicy, scenario_receipt, schedule_deferrable,
+    };
 
     fn fixture_request_and_bytes() -> (&'static str, Request) {
         let fixture = include_str!(
@@ -201,6 +203,54 @@ mod tests {
             .as_str()
             .expect("verification boundary is text")
             .contains("does not validate"));
+    }
+
+    #[test]
+    fn invalid_scenario_metadata_is_preserved_for_diagnostics() {
+        let (fixture, _) = fixture_request_and_bytes();
+        let invalid_input = fixture
+            .replace(
+                "\"fixture_id\": \"synthetic-four-interval-flexible-compute\"",
+                "\"fixture_id\": \"\"",
+            )
+            .replace(
+                "\"claim_ceiling\": \"Hand-calculated synthetic scheduling fixture only. Not an AI model measurement, real grid/facility profile, national forecast, or field-performance claim.\"",
+                "\"claim_ceiling\": \"\"",
+            );
+        let request: Request =
+            serde_json::from_str(&invalid_input).expect("empty semantic metadata still parses");
+        let assessment = serde_json::to_value(schedule_deferrable(
+            &request,
+            SchedulingPolicy::EarliestReady,
+        ))
+        .expect("invalid assessment should serialize");
+        assert_eq!(assessment["status"], "invalid");
+
+        let output = build_run_output(
+            invalid_input.as_bytes(),
+            &request,
+            "earliest-ready",
+            assessment,
+        );
+        assert_eq!(output["receipt"]["fixture_id"], "");
+        assert_eq!(output["receipt"]["claim_ceiling"], "");
+
+        let schema: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../schemas/ai-compute-energy-run-report-v1.schema.json"
+        ))
+        .expect("run report schema must be valid JSON");
+        for field in ["scenario_schema_version", "fixture_id", "claim_ceiling"] {
+            assert_eq!(
+                schema["$defs"]["receipt"]["properties"][field]["type"],
+                "string"
+            );
+            assert!(
+                schema["$defs"]["receipt"]["properties"][field]
+                    .get("minLength")
+                    .is_none(),
+                "receipt must preserve empty raw metadata for {field} diagnostics"
+            );
+        }
     }
 
     #[test]
