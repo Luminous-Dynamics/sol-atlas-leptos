@@ -1,7 +1,7 @@
 # SA-ROBUST-REGRET-001
 ## Scenario-wise objective regret without replacing the outcome Pareto frontier
 
-**Status:** Rust analysis API and regression tests authored; exact-head verification pending.  
+**Status:** Exact-head Rust workflow passed on commit `5ea2d34fb8add8de97e1a1f047de7cf8bbb4c1c2`: formatting, Clippy with warnings denied, 22 tests, and all three regret receipts succeeded. The repository `Check` workflow also completed successfully on that head.  
 **Parent:** [Issue #239](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/239).  
 **Input contracts:** [v0.1 frozen oracle](./SA-ECONOMIC-PORTFOLIO-001.md) and [v0.2 generalized scale suite](./SA-PORTFOLIO-SCALE-001.md).  
 **Claim ceiling:** Synthetic decision-analysis methods only; no real project outcomes or investment decisions.
@@ -67,7 +67,19 @@ That reduction is not a universal ranking of public values. It means only that, 
 - Preserve an explicit input and reference digest whenever regret outputs are published.
 - Do not select a scalar winner without a separate, predeclared decision-policy contract.
 
-## 5. How to compare with industry / SOTA responsibly
+## 6. Exact-head validation record
+
+The pinned Rust workflow completed successfully at commit `5ea2d34fb8add8de97e1a1f047de7cf8bbb4c1c2`:
+- Rust unit tests: **22 passed, 0 failed**;
+- `cargo fmt --check`: pass;
+- Clippy with `-D warnings`: pass;
+- v0.1 exact-regret receipt: 22 feasible portfolios and four regret-frontier members;
+- v0.2 ten-project exact-regret receipt: 82 feasible portfolios, eight outcome-frontier members and seven regret-frontier members;
+- v0.2 24-project search-regret receipt: full search accounting and frontier comparison pass, four regret-frontier members.
+
+These are synthetic fixtures, and the test run validates implementation against those fixtures—not empirical regret quality or real-world planning superiority.
+
+## 7. How to compare with industry / SOTA responsibly
 
 The current tests establish exactness for two tiny synthetic corpora. They do not prove that regret-aware planning beats a public-sector incumbent, commercial portfolio platform, MILP/CP-SAT model or state-of-the-art robust optimizer.
 
