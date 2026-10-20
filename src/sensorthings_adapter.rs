@@ -13,9 +13,7 @@
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
-use crate::landscape_observation::{
-    BATCH_SCHEMA, BATCH_SCHEMA_URI, validate_batch,
-};
+use crate::landscape_observation::{BATCH_SCHEMA, BATCH_SCHEMA_URI, validate_batch};
 
 const PROFILE_ID: &str = "urn:luminous:adapter:ogc-sensorthings-sensing-1.1-landscape-v0";
 const OBSERVATION_SCHEMA: &str = "luminous.landscape-observation.v0";
@@ -60,14 +58,13 @@ pub fn adapt_observation(
         ]);
     }
 
-    let observation_id = entity_id(input.get("@iot.id"), "$.@iot.id", &mut errors)
-        .unwrap_or_default();
+    let observation_id =
+        entity_id(input.get("@iot.id"), "$.@iot.id", &mut errors).unwrap_or_default();
 
     let datastream = input.get("Datastream");
     if !datastream.is_some_and(Value::is_object) {
-        errors.push(
-            "$.Datastream: expanded Datastream object is required by profile v0".to_string(),
-        );
+        errors
+            .push("$.Datastream: expanded Datastream object is required by profile v0".to_string());
     }
     let datastream = datastream.unwrap_or(&Value::Null);
 
@@ -124,9 +121,7 @@ pub fn adapt_observation(
     let numeric_result = match input.get("result").and_then(Value::as_f64) {
         Some(number) if number.is_finite() => Some(number),
         _ => {
-            errors.push(
-                "$.result: profile v0 maps only finite numeric results".to_string(),
-            );
+            errors.push("$.result: profile v0 maps only finite numeric results".to_string());
             None
         }
     };
@@ -145,9 +140,7 @@ pub fn adapt_observation(
         .get("unitOfMeasurement")
         .is_some_and(Value::is_object)
     {
-        errors.push(
-            "$.Datastream.unitOfMeasurement: expanded unit object is required".to_string(),
-        );
+        errors.push("$.Datastream.unitOfMeasurement: expanded unit object is required".to_string());
     }
     let unit = required_string(
         datastream
@@ -250,7 +243,9 @@ pub fn adapt_observation(
     });
 
     let mapped_payload_sha256 = sha256_json(&native).map_err(|error| {
-        vec![format!("mapped observation could not be serialized for its digest: {error}")]
+        vec![format!(
+            "mapped observation could not be serialized for its digest: {error}"
+        )]
     })?;
     native["transformations"] = json!([{
         "activity_uri": PROFILE_ID,
@@ -300,20 +295,32 @@ fn validate_context(context: &SensorThingsAdapterContext, errors: &mut Vec<Strin
     if !valid_sha256(&context.instrument_ref_sha256) {
         errors.push("context.instrument_ref_sha256: expected lowercase SHA-256 hex".to_string());
     }
-    if context.observer_ref_sha256.as_deref().is_some_and(|value| !valid_sha256(value)) {
-        errors.push("context.observer_ref_sha256: expected null or lowercase SHA-256 hex".to_string());
+    if context
+        .observer_ref_sha256
+        .as_deref()
+        .is_some_and(|value| !valid_sha256(value))
+    {
+        errors.push(
+            "context.observer_ref_sha256: expected null or lowercase SHA-256 hex".to_string(),
+        );
     }
     if context
         .project_snapshot_sha256
         .as_deref()
         .is_some_and(|value| !valid_sha256(value))
     {
-        errors.push("context.project_snapshot_sha256: expected null or lowercase SHA-256 hex".to_string());
+        errors.push(
+            "context.project_snapshot_sha256: expected null or lowercase SHA-256 hex".to_string(),
+        );
     }
     if context.project_snapshot_sha256.is_none() && context.feature_id.is_some() {
         errors.push("context.feature_id requires project_snapshot_sha256".to_string());
     }
-    if context.feature_id.as_deref().is_some_and(|value| !valid_feature_id(value)) {
+    if context
+        .feature_id
+        .as_deref()
+        .is_some_and(|value| !valid_feature_id(value))
+    {
         errors.push("context.feature_id: invalid feature ID".to_string());
     }
     if !valid_sha256(&context.site_ref_sha256) {
@@ -410,9 +417,7 @@ fn parse_rfc3339_millis(value: &str) -> Result<u64, String> {
         };
     }
 
-    let offset_seconds = if index + 1 == bytes.len()
-        && matches!(bytes[index], b'Z' | b'z')
-    {
+    let offset_seconds = if index + 1 == bytes.len() && matches!(bytes[index], b'Z' | b'z') {
         0i64
     } else if index + 6 == bytes.len()
         && matches!(bytes[index], b'+' | b'-')
@@ -424,16 +429,18 @@ fn parse_rfc3339_millis(value: &str) -> Result<u64, String> {
             return Err("invalid timezone offset".to_string());
         }
         let magnitude = i64::from(offset_hour * 3600 + offset_minute * 60);
-        if bytes[index] == b'+' { magnitude } else { -magnitude }
+        if bytes[index] == b'+' {
+            magnitude
+        } else {
+            -magnitude
+        }
     } else {
         return Err("timezone must be Z or numeric plus/minus HH:MM".to_string());
     };
 
     let days = days_from_civil(i64::from(year), month, day);
-    let local_seconds = days * 86_400
-        + i64::from(hour) * 3_600
-        + i64::from(minute) * 60
-        + i64::from(second);
+    let local_seconds =
+        days * 86_400 + i64::from(hour) * 3_600 + i64::from(minute) * 60 + i64::from(second);
     let utc_seconds = local_seconds - offset_seconds;
     if utc_seconds < 0 {
         return Err("pre-Unix-epoch timestamps are unsupported".to_string());
@@ -472,11 +479,8 @@ fn days_from_civil(year: i64, month: u32, day: u32) -> i64 {
     let era = if year >= 0 { year } else { year - 399 } / 400;
     let year_of_era = year - era * 400;
     let month = i64::from(month);
-    let day_of_year = (153 * (month + if month > 2 { -3 } else { 9 }) + 2) / 5
-        + i64::from(day)
-        - 1;
-    let day_of_era =
-        year_of_era * 365 + year_of_era / 4 - year_of_era / 100 + day_of_year;
+    let day_of_year = (153 * (month + if month > 2 { -3 } else { 9 }) + 2) / 5 + i64::from(day) - 1;
+    let day_of_era = year_of_era * 365 + year_of_era / 4 - year_of_era / 100 + day_of_year;
     era * 146_097 + day_of_era - 719_468
 }
 
@@ -531,9 +535,9 @@ fn valid_feature_id(value: &str) -> bool {
 fn valid_identifier_token(value: &str, maximum: usize) -> bool {
     !value.is_empty()
         && value.len() <= maximum
-        && value.bytes().all(|byte| {
-            byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'_' | b':' | b'-')
-        })
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'_' | b':' | b'-'))
 }
 
 #[cfg(test)]
@@ -574,7 +578,10 @@ mod tests {
         assert_eq!(adapted["quality"]["calibration_state"], "unknown");
         assert_eq!(adapted["location"]["kind"], "opaque-site");
         assert_eq!(adapted["source"]["source_uri"], context().source_uri);
-        assert_eq!(adapted["transformations"][0]["input_sha256"], context().payload_sha256);
+        assert_eq!(
+            adapted["transformations"][0]["input_sha256"],
+            context().payload_sha256
+        );
         assert_eq!(adapted["transformations"][0]["activity_uri"], PROFILE_ID);
         assert_ne!(
             adapted["transformations"][0]["output_sha256"],
@@ -586,9 +593,18 @@ mod tests {
     #[test]
     fn rfc3339_offset_and_milliseconds_normalize_to_utc() {
         assert_eq!(parse_rfc3339_millis("1970-01-01T00:00:00Z").unwrap(), 0);
-        assert_eq!(parse_rfc3339_millis("1970-01-01T01:00:00+01:00").unwrap(), 0);
-        assert_eq!(parse_rfc3339_millis("1970-01-01T00:00:00.250Z").unwrap(), 250);
-        assert_eq!(parse_rfc3339_millis("1970-01-01T02:30:00+02:30").unwrap(), 0);
+        assert_eq!(
+            parse_rfc3339_millis("1970-01-01T01:00:00+01:00").unwrap(),
+            0
+        );
+        assert_eq!(
+            parse_rfc3339_millis("1970-01-01T00:00:00.250Z").unwrap(),
+            250
+        );
+        assert_eq!(
+            parse_rfc3339_millis("1970-01-01T02:30:00+02:30").unwrap(),
+            0
+        );
     }
 
     #[test]
