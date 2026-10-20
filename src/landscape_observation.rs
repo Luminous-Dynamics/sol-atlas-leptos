@@ -46,13 +46,8 @@ const OBSERVATION_KEYS: &[&str] = &[
     "privacy",
     "transformations",
 ];
-const PROJECT_REF_KEYS: &[&str] = &[
-    "project_snapshot_sha256",
-    "feature_id",
-    "site_ref_sha256",
-];
-const PHENOMENON_TIME_KEYS: &[&str] =
-    &["start_unix_ms", "end_unix_ms", "clock_uncertainty_ms"];
+const PROJECT_REF_KEYS: &[&str] = &["project_snapshot_sha256", "feature_id", "site_ref_sha256"];
+const PHENOMENON_TIME_KEYS: &[&str] = &["start_unix_ms", "end_unix_ms", "clock_uncertainty_ms"];
 const PROPERTY_KEYS: &[&str] = &["id", "label", "metric_id", "unit"];
 const SOURCE_KEYS: &[&str] = &[
     "kind",
@@ -177,7 +172,10 @@ pub fn validate_batch(value: &Value) -> Result<BatchValidation, Vec<String>> {
         let path = format!("$.observations[{index}]");
         validate_observation(observation, &path, &mut errors);
 
-        if let Some(result_time) = observation.get("result_time_unix_ms").and_then(Value::as_u64) {
+        if let Some(result_time) = observation
+            .get("result_time_unix_ms")
+            .and_then(Value::as_u64)
+        {
             if created_at.is_some_and(|created| created < result_time) {
                 errors.push(format!(
                     "{path}.result_time_unix_ms: batch creation time predates the observation result"
@@ -185,10 +183,7 @@ pub fn validate_batch(value: &Value) -> Result<BatchValidation, Vec<String>> {
             }
         }
 
-        let Some(id) = observation
-            .get("observation_id")
-            .and_then(Value::as_str)
-        else {
+        let Some(id) = observation.get("observation_id").and_then(Value::as_str) else {
             continue;
         };
 
@@ -246,7 +241,11 @@ fn validate_observation(value: &Value, path: &str, errors: &mut Vec<String>) {
         errors,
     );
 
-    validate_project_ref(value.get("project_ref").unwrap(), &format!("{path}.project_ref"), errors);
+    validate_project_ref(
+        value.get("project_ref").unwrap(),
+        &format!("{path}.project_ref"),
+        errors,
+    );
 
     let event_end = validate_phenomenon_time(
         value.get("phenomenon_time").unwrap(),
@@ -319,8 +318,11 @@ fn validate_observation(value: &Value, path: &str, errors: &mut Vec<String>) {
         }
     }
 
-    let location_sensitivity =
-        validate_location(value.get("location").unwrap(), &format!("{path}.location"), errors);
+    let location_sensitivity = validate_location(
+        value.get("location").unwrap(),
+        &format!("{path}.location"),
+        errors,
+    );
     validate_privacy(
         value.get("privacy").unwrap(),
         evidence_class,
@@ -389,7 +391,9 @@ fn validate_property(value: &Value, path: &str, errors: &mut Vec<String>) {
     match value.get("metric_id") {
         Some(Value::Null) => {}
         Some(Value::String(id)) if valid_metric_id(id) => {}
-        _ => errors.push(format!("{path}.metric_id: expected null or a stable metric identifier")),
+        _ => errors.push(format!(
+            "{path}.metric_id: expected null or a stable metric identifier"
+        )),
     }
     match value.get("unit") {
         Some(Value::Null) => {}
@@ -417,7 +421,9 @@ fn validate_result<'a>(
             }
             match value.get("numeric_value").and_then(Value::as_f64) {
                 Some(number) if number.is_finite() => {}
-                _ => errors.push(format!("{path}.numeric_value: expected a finite JSON number")),
+                _ => errors.push(format!(
+                    "{path}.numeric_value: expected a finite JSON number"
+                )),
             }
             let unit = required_text(value, "unit", path, errors);
             if let (Some(unit), Some(property_unit)) = (unit, property_unit) {
@@ -434,7 +440,12 @@ fn validate_result<'a>(
             (Some(kind), unit)
         }
         "category" => {
-            if !check_exact_keys(value, &["kind", "category_value", "vocabulary_uri"], path, errors) {
+            if !check_exact_keys(
+                value,
+                &["kind", "category_value", "vocabulary_uri"],
+                path,
+                errors,
+            ) {
                 return (Some(kind), None);
             }
             validate_bounded_text(value, "category_value", 256, path, errors);
@@ -467,11 +478,7 @@ fn validate_result<'a>(
     }
 }
 
-fn validate_source<'a>(
-    value: &'a Value,
-    path: &str,
-    errors: &mut Vec<String>,
-) -> Option<&'a str> {
+fn validate_source<'a>(value: &'a Value, path: &str, errors: &mut Vec<String>) -> Option<&'a str> {
     if !check_exact_keys(value, SOURCE_KEYS, path, errors) {
         return None;
     }
@@ -490,7 +497,12 @@ fn validate_source<'a>(
     ) {
         errors.push(format!("{path}.kind: unsupported source kind"));
     }
-    validate_token(value.get("source_id"), &format!("{path}.source_id"), 256, errors);
+    validate_token(
+        value.get("source_id"),
+        &format!("{path}.source_id"),
+        256,
+        errors,
+    );
     require_uri(value, "source_uri", path, errors);
     validate_bounded_text(value, "source_version", 128, path, errors);
     require_digest(value, "payload_sha256", path, errors);
@@ -524,12 +536,20 @@ fn validate_quality<'a>(
         return None;
     }
     let state = required_text(value, "state", path, errors);
-    if !matches!(state, Some("unreviewed" | "accepted" | "flagged" | "rejected")) {
+    if !matches!(
+        state,
+        Some("unreviewed" | "accepted" | "flagged" | "rejected")
+    ) {
         errors.push(format!("{path}.state: unsupported quality state"));
     }
     let calibration = required_text(value, "calibration_state", path, errors);
-    if !matches!(calibration, Some("current" | "stale" | "not-required" | "unknown")) {
-        errors.push(format!("{path}.calibration_state: unsupported calibration state"));
+    if !matches!(
+        calibration,
+        Some("current" | "stale" | "not-required" | "unknown")
+    ) {
+        errors.push(format!(
+            "{path}.calibration_state: unsupported calibration state"
+        ));
     }
 
     let Some(flags) = value.get("flags").and_then(Value::as_array) else {
@@ -627,23 +647,32 @@ fn validate_uncertainty(
                 ));
             }
             if unit != result_unit || unit.is_none() {
-                errors.push(format!("{path}.unit: uncertainty unit must match result unit"));
+                errors.push(format!(
+                    "{path}.unit: uncertainty unit must match result unit"
+                ));
             }
             if method_uri.is_none_or(|uri| !valid_uri(uri)) {
-                errors.push(format!("{path}.method_uri: a valid uncertainty method URI is required"));
+                errors.push(format!(
+                    "{path}.method_uri: a valid uncertainty method URI is required"
+                ));
             }
             if reason.is_some() {
-                errors.push(format!("{path}.reason_code: must be null for quantified uncertainty"));
+                errors.push(format!(
+                    "{path}.reason_code: must be null for quantified uncertainty"
+                ));
             }
         }
         Some("interval") => {
             if result_kind != Some("quantity") {
-                errors.push(format!("{path}.kind: interval uncertainty requires a quantity result"));
+                errors.push(format!(
+                    "{path}.kind: interval uncertainty requires a quantity result"
+                ));
             }
             if number("value").is_some()
                 || !number("lower_bound").is_some()
                 || !number("upper_bound").is_some()
-                || number("coverage_probability").is_none_or(|coverage| coverage <= 0.0 || coverage > 1.0)
+                || number("coverage_probability")
+                    .is_none_or(|coverage| coverage <= 0.0 || coverage > 1.0)
             {
                 errors.push(format!(
                     "{path}: interval requires lower/upper bounds and coverage in (0, 1]"
@@ -655,21 +684,31 @@ fn validate_uncertainty(
                 }
             }
             if unit != result_unit || unit.is_none() {
-                errors.push(format!("{path}.unit: uncertainty unit must match result unit"));
+                errors.push(format!(
+                    "{path}.unit: uncertainty unit must match result unit"
+                ));
             }
             if method_uri.is_none_or(|uri| !valid_uri(uri)) {
-                errors.push(format!("{path}.method_uri: a valid uncertainty method URI is required"));
+                errors.push(format!(
+                    "{path}.method_uri: a valid uncertainty method URI is required"
+                ));
             }
             if reason.is_some() {
-                errors.push(format!("{path}.reason_code: must be null for quantified uncertainty"));
+                errors.push(format!(
+                    "{path}.reason_code: must be null for quantified uncertainty"
+                ));
             }
         }
         Some("qualitative") => {
             if raw_fields.iter().any(|(_, number)| number.is_some()) || unit.is_some() {
-                errors.push(format!("{path}: qualitative uncertainty must not carry numeric fields or a unit"));
+                errors.push(format!(
+                    "{path}: qualitative uncertainty must not carry numeric fields or a unit"
+                ));
             }
             if reason.is_none_or(|reason| !valid_lowercase_code(reason, 128)) {
-                errors.push(format!("{path}.reason_code: qualitative uncertainty requires a stable reason code"));
+                errors.push(format!(
+                    "{path}.reason_code: qualitative uncertainty requires a stable reason code"
+                ));
             }
             if method_uri.is_some_and(|uri| !valid_uri(uri)) {
                 errors.push(format!("{path}.method_uri: invalid URI"));
@@ -694,8 +733,7 @@ fn validate_uncertainty(
         None => {}
     }
 
-    if result_kind != Some("quantity")
-        && matches!(kind, Some("standard-uncertainty" | "interval"))
+    if result_kind != Some("quantity") && matches!(kind, Some("standard-uncertainty" | "interval"))
     {
         errors.push(format!(
             "{path}: non-quantity results cannot carry numeric uncertainty intervals"
@@ -722,7 +760,10 @@ fn validate_location<'a>(
                 return None;
             }
             require_string_eq(value, "crs", "OGC:CRS84", path, errors);
-            match value.get("longitude_latitude_deg").and_then(Value::as_array) {
+            match value
+                .get("longitude_latitude_deg")
+                .and_then(Value::as_array)
+            {
                 Some(coords) if coords.len() == 2 => {
                     let lon = coords[0].as_f64().filter(|v| v.is_finite());
                     let lat = coords[1].as_f64().filter(|v| v.is_finite());
@@ -759,7 +800,9 @@ fn validate_location<'a>(
             validate_bounded_text(value, "frame_id", 512, path, errors);
             let units = required_text(value, "units", path, errors);
             if !matches!(units, Some("drawing-unit" | "m" | "ft" | "other-declared")) {
-                errors.push(format!("{path}.units: unsupported coordinate unit declaration"));
+                errors.push(format!(
+                    "{path}.units: unsupported coordinate unit declaration"
+                ));
             }
             match value.get("coordinates_xy").and_then(Value::as_array) {
                 Some(coords)
@@ -785,7 +828,9 @@ fn validate_location<'a>(
                 precision,
                 Some("site" | "parcel" | "neighbourhood" | "catchment" | "region" | "redacted")
             ) {
-                errors.push(format!("{path}.precision_class: unsupported precision class"));
+                errors.push(format!(
+                    "{path}.precision_class: unsupported precision class"
+                ));
             }
             validate_sensitivity(value, path, errors)
         }
@@ -816,11 +861,21 @@ fn validate_privacy(
     validate_bounded_text(value, "policy_version", 128, path, errors);
     require_string_eq(value, "consent_authority", CONSENT_AUTHORITY, path, errors);
 
-    if !matches!(classification, Some("public" | "private" | "sensitive" | "synthetic")) {
-        errors.push(format!("{path}.classification: unsupported privacy classification"));
+    if !matches!(
+        classification,
+        Some("public" | "private" | "sensitive" | "synthetic")
+    ) {
+        errors.push(format!(
+            "{path}.classification: unsupported privacy classification"
+        ));
     }
-    if !matches!(policy, Some("private-only" | "aggregate-only" | "public-approved")) {
-        errors.push(format!("{path}.publication_policy: unsupported publication policy"));
+    if !matches!(
+        policy,
+        Some("private-only" | "aggregate-only" | "public-approved")
+    ) {
+        errors.push(format!(
+            "{path}.publication_policy: unsupported publication policy"
+        ));
     }
     if policy == Some("public-approved") {
         if classification != Some("public") {
@@ -840,7 +895,9 @@ fn validate_privacy(
         }
     }
     if classification == Some("sensitive") && policy == Some("public-approved") {
-        errors.push(format!("{path}: sensitive observations cannot be raw-public-approved"));
+        errors.push(format!(
+            "{path}: sensitive observations cannot be raw-public-approved"
+        ));
     }
     if evidence_class == Some("synthetic-test") && classification != Some("synthetic") {
         errors.push(format!(
@@ -881,8 +938,7 @@ fn validate_transformations(
         validate_bounded_text(transformation, "activity_version", 128, &step_path, errors);
         let input_digest = required_digest(transformation, "input_sha256", &step_path, errors);
         let output_digest = required_digest(transformation, "output_sha256", &step_path, errors);
-        let performed_at =
-            required_u64(transformation, "performed_at_unix_ms", &step_path, errors);
+        let performed_at = required_u64(transformation, "performed_at_unix_ms", &step_path, errors);
         optional_digest(transformation, "agent_ref_sha256", &step_path, errors);
 
         if let (Some(expected), Some(actual)) = (expected_input, input_digest) {
@@ -921,7 +977,9 @@ fn validate_sensitivity<'a>(
         sensitivity,
         Some("public" | "coarse" | "restricted" | "sensitive")
     ) {
-        errors.push(format!("{path}.sensitivity: unsupported location sensitivity"));
+        errors.push(format!(
+            "{path}.sensitivity: unsupported location sensitivity"
+        ));
     }
     sensitivity
 }
@@ -1000,7 +1058,9 @@ fn validate_identifier(
 ) {
     match value.and_then(Value::as_str) {
         Some(id) if valid_prefixed_id(id, prefix, maximum) => {}
-        _ => errors.push(format!("{path}: expected a valid opaque identifier with prefix {prefix:?}")),
+        _ => errors.push(format!(
+            "{path}: expected a valid opaque identifier with prefix {prefix:?}"
+        )),
     }
 }
 
@@ -1024,17 +1084,13 @@ fn valid_feature_id(value: &str) -> bool {
 }
 
 fn valid_metric_id(value: &str) -> bool {
-    !value.is_empty()
-        && value.len() <= 256
-        && value.split('.').all(valid_token_segment)
+    !value.is_empty() && value.len() <= 256 && value.split('.').all(valid_token_segment)
 }
 
 fn valid_token_segment(value: &str) -> bool {
     !value.is_empty()
         && value.bytes().all(|byte| {
-            byte.is_ascii_lowercase()
-                || byte.is_ascii_digit()
-                || matches!(byte, b'_' | b'-')
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || matches!(byte, b'_' | b'-')
         })
 }
 
@@ -1046,18 +1102,16 @@ fn valid_lowercase_code(value: &str, maximum: usize) -> bool {
         && value.len() <= maximum
         && (first.is_ascii_lowercase() || first.is_ascii_digit())
         && value.bytes().all(|byte| {
-            byte.is_ascii_lowercase()
-                || byte.is_ascii_digit()
-                || matches!(byte, b'.' | b'_' | b'-')
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || matches!(byte, b'.' | b'_' | b'-')
         })
 }
 
 fn valid_token(value: &str, maximum: usize) -> bool {
     !value.is_empty()
         && value.len() <= maximum
-        && value.bytes().all(|byte| {
-            byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'_' | b':' | b'-')
-        })
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'_' | b':' | b'-'))
 }
 
 fn valid_uri(value: &str) -> bool {
@@ -1067,7 +1121,9 @@ fn valid_uri(value: &str) -> bool {
 fn require_uri(value: &Value, key: &str, path: &str, errors: &mut Vec<String>) {
     match value.get(key).and_then(Value::as_str) {
         Some(uri) if valid_uri(uri) => {}
-        _ => errors.push(format!("{path}.{key}: expected an absolute HTTP(S) or URN URI")),
+        _ => errors.push(format!(
+            "{path}.{key}: expected an absolute HTTP(S) or URN URI"
+        )),
     }
 }
 
@@ -1081,7 +1137,9 @@ fn valid_sha256(value: &str) -> bool {
 fn require_digest(value: &Value, key: &str, path: &str, errors: &mut Vec<String>) {
     match value.get(key).and_then(Value::as_str) {
         Some(digest) if valid_sha256(digest) => {}
-        _ => errors.push(format!("{path}.{key}: expected lowercase 64-character SHA-256 hex")),
+        _ => errors.push(format!(
+            "{path}.{key}: expected lowercase 64-character SHA-256 hex"
+        )),
     }
 }
 
@@ -1094,7 +1152,9 @@ fn required_digest<'a>(
     match value.get(key).and_then(Value::as_str) {
         Some(digest) if valid_sha256(digest) => Some(digest),
         _ => {
-            errors.push(format!("{path}.{key}: expected lowercase 64-character SHA-256 hex"));
+            errors.push(format!(
+                "{path}.{key}: expected lowercase 64-character SHA-256 hex"
+            ));
             None
         }
     }
@@ -1110,7 +1170,9 @@ fn optional_digest<'a>(
         Some(Value::Null) => None,
         Some(Value::String(digest)) if valid_sha256(digest) => Some(digest),
         _ => {
-            errors.push(format!("{path}.{key}: expected null or lowercase SHA-256 hex"));
+            errors.push(format!(
+                "{path}.{key}: expected null or lowercase SHA-256 hex"
+            ));
             None
         }
     }
@@ -1180,7 +1242,10 @@ mod tests {
             .filter_map(|observation| observation["quality"]["uncertainty"]["kind"].as_str())
             .collect();
 
-        assert_eq!(result_kinds, HashSet::from(["quantity", "category", "boolean"]));
+        assert_eq!(
+            result_kinds,
+            HashSet::from(["quantity", "category", "boolean"])
+        );
         assert_eq!(
             location_kinds,
             HashSet::from(["opaque-site", "geographic-wgs84", "project-local"])
@@ -1195,7 +1260,10 @@ mod tests {
                 "standard-uncertainty"
             ])
         );
-        assert_eq!(observations[4]["transformations"].as_array().unwrap().len(), 2);
+        assert_eq!(
+            observations[4]["transformations"].as_array().unwrap().len(),
+            2
+        );
     }
 
     #[test]
@@ -1229,14 +1297,23 @@ mod tests {
             batch_schema["properties"]["observations"]["items"]["$ref"],
             OBSERVATION_SCHEMA_URI
         );
-        assert_eq!(observation_schema["properties"]["location"]["oneOf"].as_array().unwrap().len(), 3);
+        assert_eq!(
+            observation_schema["properties"]["location"]["oneOf"]
+                .as_array()
+                .unwrap()
+                .len(),
+            3
+        );
     }
 
     #[test]
     fn exact_reimport_is_idempotent_and_reported() {
         let mut batch = fixture();
         let duplicate = batch["observations"][0].clone();
-        batch["observations"].as_array_mut().unwrap().push(duplicate);
+        batch["observations"]
+            .as_array_mut()
+            .unwrap()
+            .push(duplicate);
 
         let (normalized, report) = normalize_batch(&batch).unwrap();
         assert_eq!(report.input_records, 6);
@@ -1255,10 +1332,17 @@ mod tests {
         let mut batch = fixture();
         let mut conflicting = batch["observations"][0].clone();
         conflicting["result"]["numeric_value"] = json!(18);
-        batch["observations"].as_array_mut().unwrap().push(conflicting);
+        batch["observations"]
+            .as_array_mut()
+            .unwrap()
+            .push(conflicting);
 
         let errors = validate_batch(&batch).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("conflicting content")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("conflicting content"))
+        );
     }
 
     #[test]
@@ -1267,7 +1351,11 @@ mod tests {
         only_observation_mut(&mut batch)["result"]["unit"] = json!("m");
 
         let errors = validate_batch(&batch).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("does not match observed_property.unit")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("does not match observed_property.unit"))
+        );
     }
 
     #[test]
@@ -1293,11 +1381,15 @@ mod tests {
         let obs = only_observation_mut(&mut batch);
         obs["privacy"]["classification"] = json!("public");
         obs["privacy"]["publication_policy"] = json!("public-approved");
-        obs["privacy"]["consent_record_ref_sha256"] = json!(format!("{}","d".repeat(64)));
+        obs["privacy"]["consent_record_ref_sha256"] = json!(format!("{}", "d".repeat(64)));
         obs["location"]["sensitivity"] = json!("restricted");
 
         let errors = validate_batch(&batch).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("public location sensitivity")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("public location sensitivity"))
+        );
     }
 
     #[test]
@@ -1310,7 +1402,11 @@ mod tests {
         // evidence label must not launder generated data into field evidence.
 
         let errors = validate_batch(&batch).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("synthetic classification requires evidence_class")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("synthetic classification requires evidence_class"))
+        );
         assert!(errors.iter().any(|error| error.contains("evidence_class")));
     }
 
@@ -1326,7 +1422,11 @@ mod tests {
         obs["privacy"]["classification"] = json!("private");
 
         let errors = validate_batch(&batch).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("current calibration")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("current calibration"))
+        );
     }
 
     #[test]
@@ -1336,7 +1436,11 @@ mod tests {
         batch["created_at_unix_ms"] = json!(1792450000000_u64);
 
         let errors = validate_batch(&batch).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("must not precede")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("must not precede"))
+        );
     }
 
     #[test]
@@ -1354,7 +1458,11 @@ mod tests {
         ]);
 
         let errors = validate_batch(&batch).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("transformation chain is discontinuous")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("transformation chain is discontinuous"))
+        );
     }
 
     #[test]
@@ -1372,7 +1480,11 @@ mod tests {
         });
 
         let errors = validate_batch(&batch).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("lower_bound must be <= upper_bound")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("lower_bound must be <= upper_bound"))
+        );
     }
 
     #[test]
@@ -1381,16 +1493,27 @@ mod tests {
         only_observation_mut(&mut batch)["project_ref"]["project_snapshot_sha256"] = Value::Null;
 
         let errors = validate_batch(&batch).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("requires project_snapshot_sha256")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("requires project_snapshot_sha256"))
+        );
     }
 
     #[test]
     fn missing_required_nested_object_fails_without_panicking() {
         let mut batch = fixture();
-        only_observation_mut(&mut batch).as_object_mut().unwrap().remove("quality");
+        only_observation_mut(&mut batch)
+            .as_object_mut()
+            .unwrap()
+            .remove("quality");
 
         let errors = validate_batch(&batch).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("missing required field")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("missing required field"))
+        );
     }
 
     #[test]
