@@ -315,6 +315,24 @@ impl JournalEntry {
         })
     }
 
+    /// Rehydrate a snapshot loaded by a storage key, enforcing that the
+    /// key and immutable operation ID agree before validating the record.
+    ///
+    /// Durable adapters should use this method rather than `from_snapshot`
+    /// whenever the database key is independently supplied by the storage layer.
+    pub fn from_snapshot_for_operation(
+        expected_operation_id: &str,
+        snapshot: JournalEntrySnapshotV1,
+    ) -> Result<Self, JournalError> {
+        if snapshot.envelope.operation_id != expected_operation_id {
+            return Err(JournalError::SnapshotOperationIdMismatch {
+                expected: expected_operation_id.to_owned(),
+                actual: snapshot.envelope.operation_id,
+            });
+        }
+        Self::from_snapshot(snapshot)
+    }
+
     /// Returns the immutable operation envelope.
     pub fn envelope(&self) -> &OperationEnvelope {
         &self.envelope
@@ -529,6 +547,7 @@ fn require_non_empty(value: &str, field: &'static str) -> Result<(), JournalErro
 pub enum JournalError {
     UnsupportedSchemaVersion(u16),
     UnsupportedSnapshotSchemaVersion(u16),
+    SnapshotOperationIdMismatch { expected: String, actual: String },
     InvalidSnapshot(&'static str),
     NonCanonicalSnapshotPayload,
     EmptyField(&'static str),
@@ -555,6 +574,10 @@ impl fmt::Display for JournalError {
                     "unsupported journal snapshot schema version {version}"
                 )
             }
+            Self::SnapshotOperationIdMismatch { expected, actual } => write!(
+                formatter,
+                "journal snapshot operation ID mismatch: storage key {expected}, snapshot ID {actual}"
+            ),
             Self::InvalidSnapshot(reason) => {
                 write!(formatter, "journal snapshot is inconsistent: {reason}")
             }
@@ -715,6 +738,18 @@ mod tests {
         let recovered = JournalEntry::from_snapshot(entry.to_snapshot().unwrap()).unwrap();
         assert_eq!(recovered, entry);
         assert!(matches!(recovered.state(), JournalState::Received { .. }));
+    }
+
+    #[test]
+    fn snapshot_rejects_a_storage_key_that_does_not_match_the_operation_id() {
+        let snapshot = prepared_entry().to_snapshot().unwrap();
+        assert_eq!(
+            JournalEntry::from_snapshot_for_operation("different-operation", snapshot),
+            Err(JournalError::SnapshotOperationIdMismatch {
+                expected: "different-operation".to_owned(),
+                actual: "op-001".to_owned(),
+            })
+        );
     }
 
     #[test]
