@@ -70,6 +70,9 @@ jobs:
       # Exercise the receipt-wrapped JSON report contract in the evaluator CLI.
       - name: Test compute-energy assessment CLI
         run: cargo test -p sol-atlas-core --bin ai_compute_energy_assess
+      # Exercise the receipt-bound RSR/EDR metrics CLI and its known-answer fixture.
+      - name: Test demand-response assessment CLI
+        run: cargo test -p sol-atlas-core --bin demand_response_assess
       # Compile the core library and every binary/test target.
       - name: Check core library, tests, and binaries
         run: cargo check -p sol-atlas-core --all-targets
