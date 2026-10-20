@@ -518,7 +518,7 @@ mod tests {
                 6 => {
                     binding.supersedes_operation_id =
                         RequiredNullableOperationId(Some("another-parent".to_owned()))
-                },
+                }
                 _ => unreachable!(),
             }
             let reply = ServiceReply::Received {
