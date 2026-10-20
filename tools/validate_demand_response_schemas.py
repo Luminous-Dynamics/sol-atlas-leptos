@@ -161,7 +161,7 @@ def main() -> int:
 
     expect_valid("committed synthetic trace fixture", input_validator, fixture)
     expect_valid(
-        "synthetic FlexDC run-manifest fixture (placeholder blob IDs only)",
+        "synthetic FlexDC run manifest (real pinned source IDs; no run occurred)",
         flexdc_manifest_validator,
         flexdc_manifest,
     )
@@ -190,7 +190,7 @@ def main() -> int:
         manifest_mutation,
     )
 
-    # Shape-only metadata control. Placeholder hashes below are explicitly fake;
+    # Shape-only metadata control. SHA-256 values below are explicitly fake;
     # this object does not attest that any FlexDC-Sim run or artifact exists.
     flexdc_control = copy.deepcopy(fixture)
     flexdc_meta = flexdc_control["rsr_reference"]["metadata"]
