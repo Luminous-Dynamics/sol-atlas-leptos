@@ -216,7 +216,8 @@
         "claim_ceiling",
         "rsr",
         "rsr_reference",
-        "edr"
+        "edr",
+        "rsr_reference_metadata"
       ],
       "properties": {
         "schema_version": {
@@ -261,6 +262,16 @@
               "$ref": "#/$defs/normalizedRsr"
             }
           ]
+        },
+        "rsr_reference_metadata": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/rsrReferenceMetadata"
+            }
+          ]
         }
       },
       "anyOf": [
@@ -282,6 +293,46 @@
           "properties": {
             "rsr_reference": {
               "type": "object"
+            }
+          }
+        }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "rsr_reference": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "rsr_reference"
+            ]
+          },
+          "then": {
+            "properties": {
+              "rsr_reference_metadata": {
+                "$ref": "#/$defs/rsrReferenceMetadata"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "rsr_reference": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "rsr_reference"
+            ]
+          },
+          "then": {
+            "properties": {
+              "rsr_reference_metadata": {
+                "type": "null"
+              }
             }
           }
         }
@@ -356,6 +407,55 @@
         },
         "p90_threshold_satisfied": {
           "type": "boolean"
+        }
+      }
+    },
+    "rsrReferenceMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_name",
+        "source_revision",
+        "source_field",
+        "sample_time_semantics",
+        "denominator_convention",
+        "normalization_note"
+      ],
+      "properties": {
+        "source_name": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "source_revision": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "source_field": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "sample_time_semantics": {
+          "enum": [
+            "source_reported_series",
+            "prior_cycle_state",
+            "explicitly_aligned",
+            "unknown"
+          ]
+        },
+        "denominator_convention": {
+          "enum": [
+            "exact_reserve",
+            "reserve_plus_epsilon",
+            "source_native_unknown"
+          ]
+        },
+        "normalization_note": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
         }
       }
     }
