@@ -31,6 +31,9 @@ jobs:
         with:
           toolchain: "1.96.0"
 
+      - name: Install Rust formatting and lint components
+        run: rustup component add rustfmt clippy --toolchain 1.96.0
+
       - name: Check Rust formatting
         run: cargo fmt --check --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml
 
