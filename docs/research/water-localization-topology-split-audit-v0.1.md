@@ -15,19 +15,21 @@ The 2026 research picture makes that distinction important. A May 2026 unified E
 - All cases in one declared topology family stay in exactly one of train, calibration or test.
 - Family lists are non-empty, disjoint and fully represented by cases.
 - An exact graph digest cannot be declared under multiple family IDs.
-- Graph digesting is order-independent for nodes/links and link endpoint order.
+- Graph identity digesting is order-independent for listed nodes/links and endpoint order, but intentionally preserves names.
+- A second label-invariant 1-WL-style structural signature ignores node and link IDs and is used to propose candidate cross-split topology-family collisions.
+- If a structural-signature candidate crosses split families, the receipt uses `NeedsTopologyReview`, not `Passed`, until a curator adjudicates the candidate.
 - Scenario seeds and exact observation signatures cannot cross splits.
 - Scenario specification and observation signatures are fingerprinted from canonical JSON.
 - Duplicate case IDs, inconsistent fault labels, invalid sensor states, missing readings encoded as zero, unknown nodes and malformed graph references are rejected.
 - The CLI emits a receipt containing the raw plan digest, computed fingerprints, split counts, issues and the revision supplied by the workflow.
 
-Topology family IDs are curator-reviewed identities: the exact graph digest preserves node/link labels and cannot discover every graph-isomorphic or near-duplicate relabeling. Curators must group known variants before running the audit.
+Topology family IDs remain curator-reviewed identities. The exact topology digest preserves node/link labels, while the new structural fingerprint runs an iterative 1-dimensional Weisfeiler–Lehman-style color refinement over the undirected graph and ignores names. A cross-split structural match is a **review candidate only**: 1-WL signatures are not a complete graph-isomorphism test, and non-isomorphic regular graphs can collide. The audit deliberately stops at `NeedsTopologyReview` rather than asserting that a candidate pair is isomorphic or silently accepting the benchmark for scoring.
 
-A family may contain multiple exact graph variants (for example, a reviewed small topology edit or relabeling) as long as all variants remain in that one split. The receipt enumerates each distinct exact graph digest and its case count; the exact-topology-under-multiple-family check still rejects an identical graph copied into separate families.
+This is a conservative new pre-scoring gate, not automatic family assignment. Curators must decide whether each candidate is genuinely the same/related topology and then update the declared family plan accordingly. A family may contain multiple exact graph variants (for example, a reviewed small topology edit or relabeling) as long as all variants remain in one split. The receipt preserves both the label-sensitive exact digest and label-invariant candidate signature so reviewers can reproduce what was compared.
 
 ## Frozen toy fixture
 
-The 9-case file contains three cases in each of three topology families. Values are hand-authored synthetic pressure deltas and are included only to exercise split auditing (including one missing-sensor state). They are not EPANET outputs and must never be used to claim localization accuracy.
+The 9-case file contains three cases in each of three topology families. A frozen mutation test adds a renamed copy of the training tree in the test split and requires `NeedsTopologyReview`, while a separate test confirms that exact identity digests remain label-sensitive and structural candidate signatures are label-invariant. Values are hand-authored synthetic pressure deltas and are included only to exercise split auditing (including one missing-sensor state). They are not EPANET outputs and must never be used to claim localization accuracy.
 
 ## Next gates
 
