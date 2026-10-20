@@ -44,6 +44,16 @@
           "$ref": "#/$defs/edr"
         }
       ]
+    },
+    "rsr_reference": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/rsrReference"
+        }
+      ]
     }
   },
   "anyOf": [
@@ -64,6 +74,16 @@
       "properties": {
         "edr": {
           "$ref": "#/$defs/edr"
+        }
+      }
+    },
+    {
+      "required": [
+        "rsr_reference"
+      ],
+      "properties": {
+        "rsr_reference": {
+          "$ref": "#/$defs/rsrReference"
         }
       }
     }
@@ -140,6 +160,32 @@
             "type": "number",
             "exclusiveMinimum": 0
           }
+        }
+      }
+    },
+    "normalizedErrorSeries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": [
+          "number",
+          "null"
+        ]
+      }
+    },
+    "rsrReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "interval_ids",
+        "signed_normalized_tracking_error"
+      ],
+      "properties": {
+        "interval_ids": {
+          "$ref": "#/$defs/intervalIds"
+        },
+        "signed_normalized_tracking_error": {
+          "$ref": "#/$defs/normalizedErrorSeries"
         }
       }
     }
