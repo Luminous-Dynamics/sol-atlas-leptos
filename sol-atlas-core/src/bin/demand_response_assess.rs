@@ -79,7 +79,7 @@ struct RsrReferenceMetadata {
     /// SHA-256 of the raw source artifact from which this normalized series came.
     source_artifact_sha256: Option<String>,
     /// SHA-256 of the exact run/config manifest used to generate the artifact.
-    source_config_manifest_sha256: Option<String>,
+    source_run_manifest_sha256: Option<String>,
     normalization_note: String,
 }
 
@@ -190,8 +190,8 @@ fn validate_reference_metadata(metadata: &RsrReferenceMetadata) -> Result<(), St
             metadata.source_artifact_sha256.as_deref(),
         ),
         (
-            "source_config_manifest_sha256",
-            metadata.source_config_manifest_sha256.as_deref(),
+            "source_run_manifest_sha256",
+            metadata.source_run_manifest_sha256.as_deref(),
         ),
     ] {
         if let Some(digest) = digest {
@@ -227,7 +227,7 @@ fn validate_reference_metadata(metadata: &RsrReferenceMetadata) -> Result<(), St
                 ErrorDenominatorConvention::ReservePlusEpsilon
             )
             || metadata.source_artifact_sha256.is_none()
-            || metadata.source_config_manifest_sha256.is_none()
+            || metadata.source_run_manifest_sha256.is_none()
         {
             return Err(
                 "FlexDC-Sim trackingError metadata must pin raw artifact/config SHA-256, prior-cycle semantics, and R + epsilon denominator"
