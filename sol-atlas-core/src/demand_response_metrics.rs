@@ -573,7 +573,7 @@ mod tests {
     #[test]
     fn source_normalized_rsr_series_matches_reference_error_quantile_and_strict_rule() {
         let mut errors = vec![Some(0.0); 10];
-        errors[9] = Some(0.8);
+        errors[9] = Some(-0.8);
 
         let result = assess_normalized_rsr_tracking_errors(&errors, 0.3, 0.1)
             .expect("finite source-normalized errors should be assessed");
