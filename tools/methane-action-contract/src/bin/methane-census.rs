@@ -78,10 +78,7 @@ fn main() -> ExitCode {
             &input.rate_bands,
         ))
     };
-    let valid = report.is_valid()
-        && pod_profile
-            .as_ref()
-            .is_none_or(PodProfileReport::is_valid);
+    let valid = report.is_valid() && pod_profile.as_ref().is_none_or(PodProfileReport::is_valid);
     let receipt = RunReceipt {
         receipt_schema_version: 1,
         evaluator: "methane-action-contract",
