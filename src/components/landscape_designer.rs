@@ -5,7 +5,7 @@
 //! First vertical slice of the multi-scale landscape design workbench.
 //!
 //! This is a schematic editor, not a survey/GIS source or an engineering solver.
-//! All canvas coordinates are local metres with a screen-oriented positive Y axis.
+//! All canvas coordinates are arbitrary project-local drawing units, not metres or map coordinates.
 //! Georeferencing and standards-based exchange must be explicit future operations.
 
 use leptos::prelude::*;
@@ -43,15 +43,6 @@ impl FeatureKind {
         }
     }
 
-    const fn color(self) -> &'static str {
-        match self {
-            Self::Tree => "#438b66",
-            Self::PlantingBed => "#86a96f",
-            Self::Water => "#5caab4",
-            Self::Path => "#c8b785",
-            Self::BuiltElement => "#b4aaa0",
-        }
-    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -137,10 +128,32 @@ fn starter_features() -> Vec<DesignFeature> {
     ]
 }
 
-fn remove_feature(features: &mut Vec<DesignFeature>, id: u32) -> bool {
-    let original_len = features.len();
-    features.retain(|feature| feature.id != id);
-    features.len() != original_len
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum EditCommand {
+    Added { feature: DesignFeature },
+    Deleted { feature: DesignFeature, index: usize },
+}
+
+/// Remove one feature while preserving enough information to undo the edit.
+fn remove_feature(features: &mut Vec<DesignFeature>, id: u32) -> Option<(usize, DesignFeature)> {
+    let index = features.iter().position(|feature| feature.id == id)?;
+    Some((index, features.remove(index)))
+}
+
+/// Reverse one edit command. Deletion undo restores the element to its original
+/// position; addition undo removes only the feature created by that command.
+fn undo_last_edit(features: &mut Vec<DesignFeature>, command: EditCommand) -> u32 {
+    match command {
+        EditCommand::Added { feature } => {
+            let _ = remove_feature(features, feature.id);
+            feature.id
+        }
+        EditCommand::Deleted { feature, index } => {
+            let insert_at = index.min(features.len());
+            features.insert(insert_at, feature);
+            feature.id
+        }
+    }
 }
 
 fn normalized_project_name(value: &str) -> String {
@@ -224,6 +237,7 @@ fn download_snapshot(content: &str) -> Result<(), String> {
 #[component]
 pub fn LandscapeDesigner() -> impl IntoView {
     let (features, set_features) = signal(starter_features());
+    let (edit_history, set_edit_history) = signal(Vec::<EditCommand>::new());
     let (selected_feature_id, set_selected_feature_id) = signal(None::<u32>);
     let (project_name, set_project_name) = signal("Untitled landscape".to_string());
     // Never reuse a feature ID after undo: downstream provenance will rely on
@@ -251,14 +265,14 @@ pub fn LandscapeDesigner() -> impl IntoView {
                     .round() as u16;
                 let next_id = next_feature_id.get_untracked();
                 set_next_feature_id.update(|id| *id = id.saturating_add(1));
-                set_features.update(|items| {
-                    items.push(DesignFeature {
-                        id: next_id,
-                        x_du: x,
-                        y_du: y,
-                        kind: active_tool.get_untracked(),
-                    })
-                });
+                let feature = DesignFeature {
+                    id: next_id,
+                    x_du: x,
+                    y_du: y,
+                    kind: active_tool.get_untracked(),
+                };
+                set_features.update(|items| items.push(feature));
+                set_edit_history.update(|history| history.push(EditCommand::Added { feature }));
                 set_selected_feature_id.set(Some(next_id));
                 set_export_text.set(String::new());
                 set_download_status.set(String::new());
@@ -305,12 +319,22 @@ pub fn LandscapeDesigner() -> impl IntoView {
     };
 
     let undo = move |_| {
-        let removed_id = features.get_untracked().last().map(|feature| feature.id);
-        set_features.update(|items| {
-            items.pop();
+        let Some(command) = edit_history.get_untracked().last().copied() else {
+            return;
+        };
+        set_edit_history.update(|history| {
+            history.pop();
         });
-        if selected_feature_id.get_untracked() == removed_id {
-            set_selected_feature_id.set(None);
+        let mut current_features = features.get_untracked();
+        let affected_id = undo_last_edit(&mut current_features, command);
+        set_features.set(current_features);
+        match command {
+            EditCommand::Added { .. } => {
+                if selected_feature_id.get_untracked() == Some(affected_id) {
+                    set_selected_feature_id.set(None);
+                }
+            }
+            EditCommand::Deleted { .. } => set_selected_feature_id.set(Some(affected_id)),
         }
         set_export_text.set(String::new());
         set_download_status.set(String::new());
@@ -318,9 +342,15 @@ pub fn LandscapeDesigner() -> impl IntoView {
 
     let delete_selected = move |_| {
         if let Some(id) = selected_feature_id.get_untracked() {
+            let mut removed = None;
             set_features.update(|items| {
-                remove_feature(items, id);
+                removed = remove_feature(items, id);
             });
+            if let Some((index, feature)) = removed {
+                set_edit_history.update(|history| {
+                    history.push(EditCommand::Deleted { feature, index });
+                });
+            }
             set_selected_feature_id.set(None);
             set_export_text.set(String::new());
             set_download_status.set(String::new());
@@ -343,6 +373,7 @@ pub fn LandscapeDesigner() -> impl IntoView {
 
     let reset = move |_| {
         set_features.set(starter_features());
+        set_edit_history.set(Vec::new());
         set_next_feature_id.set(8);
         set_selected_feature_id.set(None);
         set_project_name.set("Untitled landscape".to_string());
@@ -458,12 +489,14 @@ pub fn LandscapeDesigner() -> impl IntoView {
                                 event.prevent_default();
                                 let next_id = next_feature_id.get_untracked();
                                 set_next_feature_id.update(|id| *id = id.saturating_add(1));
-                                set_features.update(|items| items.push(DesignFeature {
+                                let feature = DesignFeature {
                                     id: next_id,
                                     x_du: 500,
                                     y_du: 325,
                                     kind: active_tool.get_untracked(),
-                                }));
+                                };
+                                set_features.update(|items| items.push(feature));
+                                set_edit_history.update(|history| history.push(EditCommand::Added { feature }));
                                 set_selected_feature_id.set(Some(next_id));
                                 set_export_text.set(String::new());
                                 set_download_status.set(String::new());
@@ -495,6 +528,17 @@ pub fn LandscapeDesigner() -> impl IntoView {
                                     FeatureKind::Tree => view! {
                                         <g
                                             class:landscape-feature-selected=move || selected_feature_id.get() == Some(feature.id)
+                                            tabindex="0"
+                                            role="button"
+                                            aria-label=move || format!("Select {} at drawing coordinates ({}, {})", title, feature.x_du, feature.y_du)
+                                            aria-pressed=move || selected_feature_id.get() == Some(feature.id)
+                                            on:keydown=move |event: web_sys::KeyboardEvent| {
+                                                if event.key() == "Enter" || event.key() == " " {
+                                                    event.prevent_default();
+                                                    event.stop_propagation();
+                                                    set_selected_feature_id.set(Some(feature.id));
+                                                }
+                                            }
                                             on:click=move |event: web_sys::MouseEvent| {
                                                 event.stop_propagation();
                                                 set_selected_feature_id.set(Some(feature.id));
@@ -508,6 +552,17 @@ pub fn LandscapeDesigner() -> impl IntoView {
                                     FeatureKind::PlantingBed => view! {
                                         <g
                                             class:landscape-feature-selected=move || selected_feature_id.get() == Some(feature.id)
+                                            tabindex="0"
+                                            role="button"
+                                            aria-label=move || format!("Select {} at drawing coordinates ({}, {})", title, feature.x_du, feature.y_du)
+                                            aria-pressed=move || selected_feature_id.get() == Some(feature.id)
+                                            on:keydown=move |event: web_sys::KeyboardEvent| {
+                                                if event.key() == "Enter" || event.key() == " " {
+                                                    event.prevent_default();
+                                                    event.stop_propagation();
+                                                    set_selected_feature_id.set(Some(feature.id));
+                                                }
+                                            }
                                             on:click=move |event: web_sys::MouseEvent| {
                                                 event.stop_propagation();
                                                 set_selected_feature_id.set(Some(feature.id));
@@ -521,6 +576,17 @@ pub fn LandscapeDesigner() -> impl IntoView {
                                     FeatureKind::Water => view! {
                                         <g
                                             class:landscape-feature-selected=move || selected_feature_id.get() == Some(feature.id)
+                                            tabindex="0"
+                                            role="button"
+                                            aria-label=move || format!("Select {} at drawing coordinates ({}, {})", title, feature.x_du, feature.y_du)
+                                            aria-pressed=move || selected_feature_id.get() == Some(feature.id)
+                                            on:keydown=move |event: web_sys::KeyboardEvent| {
+                                                if event.key() == "Enter" || event.key() == " " {
+                                                    event.prevent_default();
+                                                    event.stop_propagation();
+                                                    set_selected_feature_id.set(Some(feature.id));
+                                                }
+                                            }
                                             on:click=move |event: web_sys::MouseEvent| {
                                                 event.stop_propagation();
                                                 set_selected_feature_id.set(Some(feature.id));
@@ -533,6 +599,17 @@ pub fn LandscapeDesigner() -> impl IntoView {
                                     FeatureKind::Path => view! {
                                         <g
                                             class:landscape-feature-selected=move || selected_feature_id.get() == Some(feature.id)
+                                            tabindex="0"
+                                            role="button"
+                                            aria-label=move || format!("Select {} at drawing coordinates ({}, {})", title, feature.x_du, feature.y_du)
+                                            aria-pressed=move || selected_feature_id.get() == Some(feature.id)
+                                            on:keydown=move |event: web_sys::KeyboardEvent| {
+                                                if event.key() == "Enter" || event.key() == " " {
+                                                    event.prevent_default();
+                                                    event.stop_propagation();
+                                                    set_selected_feature_id.set(Some(feature.id));
+                                                }
+                                            }
                                             on:click=move |event: web_sys::MouseEvent| {
                                                 event.stop_propagation();
                                                 set_selected_feature_id.set(Some(feature.id));
@@ -546,6 +623,17 @@ pub fn LandscapeDesigner() -> impl IntoView {
                                     FeatureKind::BuiltElement => view! {
                                         <g
                                             class:landscape-feature-selected=move || selected_feature_id.get() == Some(feature.id)
+                                            tabindex="0"
+                                            role="button"
+                                            aria-label=move || format!("Select {} at drawing coordinates ({}, {})", title, feature.x_du, feature.y_du)
+                                            aria-pressed=move || selected_feature_id.get() == Some(feature.id)
+                                            on:keydown=move |event: web_sys::KeyboardEvent| {
+                                                if event.key() == "Enter" || event.key() == " " {
+                                                    event.prevent_default();
+                                                    event.stop_propagation();
+                                                    set_selected_feature_id.set(Some(feature.id));
+                                                }
+                                            }
                                             on:click=move |event: web_sys::MouseEvent| {
                                                 event.stop_propagation();
                                                 set_selected_feature_id.set(Some(feature.id));
@@ -658,16 +746,57 @@ mod tests {
 
     #[test]
     fn removing_selected_feature_preserves_unselected_features() {
-        let mut features = starter_features();
+        let original = starter_features();
+        let mut features = original.clone();
         let removed_id = features.last().unwrap().id;
 
-        assert!(remove_feature(&mut features, removed_id));
+        let (index, removed) = remove_feature(&mut features, removed_id).unwrap();
+        assert_eq!(removed.id, removed_id);
         assert_eq!(features.len(), 6);
         assert!(!features.iter().any(|feature| feature.id == removed_id));
 
         let before = features.clone();
-        assert!(!remove_feature(&mut features, u32::MAX));
+        assert!(remove_feature(&mut features, u32::MAX).is_none());
         assert_eq!(features, before);
+
+        features.insert(index, removed);
+        assert_eq!(features, original);
+    }
+
+    #[test]
+    fn undoing_a_deletion_restores_exact_order() {
+        let original = starter_features();
+        let mut features = original.clone();
+        let target = features[2];
+        let (index, removed) = remove_feature(&mut features, target.id).unwrap();
+        assert_eq!(removed, target);
+
+        let affected_id = undo_last_edit(
+            &mut features,
+            EditCommand::Deleted {
+                feature: removed,
+                index,
+            },
+        );
+        assert_eq!(affected_id, target.id);
+        assert_eq!(features, original);
+    }
+
+    #[test]
+    fn undoing_an_addition_removes_only_that_added_feature() {
+        let mut features = starter_features();
+        let original = features.clone();
+        let added = DesignFeature {
+            id: 8,
+            x_du: 500,
+            y_du: 325,
+            kind: FeatureKind::Water,
+        };
+        features.push(added);
+        let affected_id = undo_last_edit(&mut features, EditCommand::Added { feature: added });
+
+        assert_eq!(affected_id, 8);
+        assert_eq!(features, original);
     }
 
     #[test]
