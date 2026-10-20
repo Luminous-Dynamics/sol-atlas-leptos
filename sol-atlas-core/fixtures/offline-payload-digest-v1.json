@@ -32,6 +32,12 @@
       "payload_json": "{}",
       "canonical_utf8": "{}",
       "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "case_id": "rfc8785_correctly_rounded_decimal_parse",
+      "payload_json": "{\"x\":333333333.33333329}",
+      "canonical_utf8": "{\"x\":333333333.3333333}",
+      "sha256": "edfae0a13a6160251052c8e984f35961c7f206619e8c0e74568fbbfb6439644e"
     }
   ],
   "invalid_cases": [
