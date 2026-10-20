@@ -333,13 +333,27 @@ impl IndexedDbJournal {
     /// returns the entry as currently stored; changed identity fails closed.
     pub async fn insert_prepared(
         &self,
+        owner_scope: &str,
+        operation_namespace: &str,
         envelope: OperationEnvelope,
         payload_json: &str,
     ) -> Result<JournalEntry, IndexedDbJournalError> {
+        if owner_scope.trim().is_empty() || operation_namespace.trim().is_empty() {
+            return Err(IndexedDbJournalError(
+                "owner scope and operation namespace must not be empty".into(),
+            ));
+        }
         let new_entry = JournalEntry::prepare(envelope, payload_json)?;
         let new_snapshot = new_entry.to_snapshot()?;
-        let new_snapshot_json = serde_json::to_string(&new_snapshot).map_err(|error| {
-            IndexedDbJournalError(format!("snapshot serialization failed: {error}"))
+        let new_record = StoredOperationV1 {
+            schema_version: STORED_OPERATION_SCHEMA_VERSION,
+            owner_scope: owner_scope.to_owned(),
+            operation_namespace: operation_namespace.to_owned(),
+            snapshot: new_snapshot,
+        };
+        new_record.validate()?;
+        let new_record_json = serde_json::to_string(&new_record).map_err(|error| {
+            IndexedDbJournalError(format!("stored operation serialization failed: {error}"))
         })?;
         let operation_id = new_entry.envelope().operation_id.clone();
         let idempotency_key = new_entry.envelope().idempotency_key.clone();
@@ -374,8 +388,8 @@ impl IndexedDbJournal {
             let transaction = transaction.clone();
             let op_id = operation_id.clone();
             let idem_key = idempotency_key.clone();
-            let new_snapshot = new_snapshot.clone();
-            let new_snapshot_json = new_snapshot_json.clone();
+            let new_record = new_record.clone();
+            let new_record_json = new_record_json.clone();
             let payload_bytes = new_entry.canonical_payload_utf8().to_vec();
             let on_success = Closure::once_into_js(move |_event: JsValue| {
                 let result = Reflect::get(&request, &JsValue::from_str("result"));
@@ -396,8 +410,8 @@ impl IndexedDbJournal {
                     &transaction,
                     &op_id,
                     &idem_key,
-                    &new_snapshot,
-                    &new_snapshot_json,
+                    &new_record,
+                    &new_record_json,
                     &payload_bytes,
                 );
             });
@@ -419,8 +433,8 @@ impl IndexedDbJournal {
             let transaction = transaction.clone();
             let op_id = operation_id.clone();
             let idem_key = idempotency_key.clone();
-            let new_snapshot = new_snapshot.clone();
-            let new_snapshot_json = new_snapshot_json.clone();
+            let new_record = new_record.clone();
+            let new_record_json = new_record_json.clone();
             let payload_bytes = new_entry.canonical_payload_utf8().to_vec();
             let on_success = Closure::once_into_js(move |_event: JsValue| {
                 let result = Reflect::get(&request, &JsValue::from_str("result"));
@@ -441,8 +455,8 @@ impl IndexedDbJournal {
                     &transaction,
                     &op_id,
                     &idem_key,
-                    &new_snapshot,
-                    &new_snapshot_json,
+                    &new_record,
+                    &new_record_json,
                     &payload_bytes,
                 );
             });
@@ -453,12 +467,18 @@ impl IndexedDbJournal {
         JsFuture::from(transaction_done).await.map_err(js_error)?;
 
         match output.borrow_mut().take() {
-            Some(Ok(Some(existing_snapshot))) => {
-                let snapshot: JournalEntrySnapshotV1 = serde_json::from_str(&existing_snapshot)
+            Some(Ok(Some(existing_record_json))) => {
+                let existing: StoredOperationV1 = serde_json::from_str(&existing_record_json)
                     .map_err(|error| {
-                        IndexedDbJournalError(format!("stored snapshot JSON invalid: {error}"))
+                        IndexedDbJournalError(format!("stored operation JSON invalid: {error}"))
                     })?;
-                JournalEntry::from_snapshot_for_operation(&operation_id, snapshot)
+                existing.validate()?;
+                if !existing.matches_scope(owner_scope, operation_namespace) {
+                    return Err(IndexedDbJournalError(
+                        "operation ID is already bound to another owner scope or namespace".into(),
+                    ));
+                }
+                JournalEntry::from_snapshot_for_operation(&operation_id, existing.snapshot)
                     .map_err(IndexedDbJournalError::from)
             }
             Some(Ok(None)) => Ok(new_entry),
