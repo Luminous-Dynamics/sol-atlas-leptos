@@ -1,4 +1,4 @@
-use sa_economic_portfolio_oracle::{check_expected, evaluate, Input, Portfolio, RejectionCounts};
+use sa_economic_portfolio_oracle::{Input, Portfolio, RejectionCounts, check_expected, evaluate};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 use std::fs;
@@ -28,9 +28,7 @@ struct Receipt<'a> {
 fn run() -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     if args.len() > 2 {
-        return Err(
-            "usage: sa-economic-portfolio-oracle [INPUT.json [EXPECTED.json]]".to_owned(),
-        );
+        return Err("usage: sa-economic-portfolio-oracle [INPUT.json [EXPECTED.json]]".to_owned());
     }
 
     let input_raw = match args.first() {
