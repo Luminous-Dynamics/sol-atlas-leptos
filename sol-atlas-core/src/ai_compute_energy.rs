@@ -1201,15 +1201,15 @@ mod tests {
         );
         assert!(
             !verify_scenario_receipt(reformatted.as_bytes(), "pareto", &assessment, &receipt,)
-            .expect("reformatted input should parse")
+                .expect("reformatted input should parse")
         );
         assert!(
             !verify_scenario_receipt(fixture.as_bytes(), "lowest-cost", &assessment, &receipt,)
-            .expect("original input should parse")
+                .expect("original input should parse")
         );
         assert!(
             !verify_scenario_receipt(fixture.as_bytes(), "pareto", &changed_assessment, &receipt,)
-            .expect("original input should parse")
+                .expect("original input should parse")
         );
     }
 
