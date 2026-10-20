@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "run_id": "synthetic-adapter-known-answer",
+  "source_revision": "ea50bd582b5d1b55fcb09ea46899fa9d325cce3b",
+  "simulator_command": "CI-only placeholder; no FlexDC-Sim process was run",
+  "random_seed": 20,
+  "simulation_duration_seconds": 9,
+  "simulation_step_seconds": 1,
+  "signal_step_seconds": 4,
+  "config_artifacts": [
+    {
+      "role": "experiment_config",
+      "path": "configs/experiment/exp_low_util.ini",
+      "git_blob_sha1": "1111111111111111111111111111111111111111"
+    },
+    {
+      "role": "cluster_config",
+      "path": "configs/cluster/cluster.ini",
+      "git_blob_sha1": "2222222222222222222222222222222222222222"
+    },
+    {
+      "role": "workload_config",
+      "path": "configs/workload/W2-short-qos3445.ini",
+      "git_blob_sha1": "3333333333333333333333333333333333333333"
+    },
+    {
+      "role": "runtime_policy_config",
+      "path": "configs/policy/example_flexDC_simulation.ini",
+      "git_blob_sha1": "4444444444444444444444444444444444444444"
+    },
+    {
+      "role": "power_signal",
+      "path": "data/ISO24h.csv",
+      "git_blob_sha1": "5555555555555555555555555555555555555555"
+    },
+    {
+      "role": "optimization_weights",
+      "path": "src/peacsim/output/optimization/W2-simulated_annealing_low_util_availability=False_20250308130817/opt_weights.csv",
+      "git_blob_sha1": "6666666666666666666666666666666666666666"
+    }
+  ],
+  "notes": "Entire manifest and every listed Git blob SHA-1 are fictional schema/test placeholders. Only the FlexDC-Sim source revision is a real pinned commit. This fixture is not evidence that a run occurred or that these config files were used."
+}
