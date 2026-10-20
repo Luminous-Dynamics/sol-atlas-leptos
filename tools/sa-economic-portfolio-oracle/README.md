@@ -26,6 +26,7 @@ The evaluator enumerates every project subset and rejects inputs above 20 projec
 - All costs and objective values are arbitrary synthetic units.
 - Scenario cases are stress cases, not probabilities.
 - The frontier preserves non-dominated alternatives; it does not choose society's priorities or a single winner.
+- Every rejected subset receives exactly one **primary** rejection reason in the receipt. The fixed precedence is: non-PASS gate, missing prerequisite, period budget exceeded, crew cap exceeded, protected service floor. When multiple constraints fail, only the first reason is counted; these counts partition rejected subsets and must sum to the rejected-subset count. They are not multi-label incident totals.
 - The UNKNOWN-gate decoy is deliberately assigned implausibly high values to verify that a failed evidence gate cannot be compensated by apparent benefit.
 - Input hashing identifies the exact bytes evaluated. It does not authenticate a publisher or establish the truth of data.
 - Passing the tests does not establish real ROI, causal service improvements, jobs, engineering validity, legal permission or investment authority.

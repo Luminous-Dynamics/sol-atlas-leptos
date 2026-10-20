@@ -5,6 +5,13 @@
   "claim_ceiling": "Expected output for a finite synthetic contract test only; not South African estimates or a real development recommendation.",
   "candidate_subsets": 256,
   "rejected_subsets": 234,
+  "rejection_reason_counts": {
+    "gate_not_pass": 128,
+    "missing_prerequisite": 48,
+    "period_budget_exceeded": 40,
+    "crew_capacity_exceeded": 0,
+    "protected_service_floor": 18
+  },
   "feasible_count": 22,
   "feasible_portfolio_ids": [
     [

@@ -1,4 +1,4 @@
-use sa_economic_portfolio_oracle::{check_expected, evaluate, Input, Portfolio};
+use sa_economic_portfolio_oracle::{Input, Portfolio, RejectionCounts, check_expected, evaluate};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 use std::fs;
@@ -18,6 +18,7 @@ struct Receipt<'a> {
     candidate_subset_count: u64,
     feasible_count: usize,
     rejected_subset_count: u64,
+    rejection_reason_counts: &'a RejectionCounts,
     frontier_count: usize,
     feasible_portfolio_ids: Vec<Vec<String>>,
     pareto_frontier: &'a [Portfolio],
@@ -27,9 +28,7 @@ struct Receipt<'a> {
 fn run() -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     if args.len() > 2 {
-        return Err(
-            "usage: sa-economic-portfolio-oracle [INPUT.json [EXPECTED.json]]".to_owned(),
-        );
+        return Err("usage: sa-economic-portfolio-oracle [INPUT.json [EXPECTED.json]]".to_owned());
     }
 
     let input_raw = match args.first() {
@@ -63,8 +62,8 @@ fn run() -> Result<(), String> {
         input_sha256,
         candidate_subset_count: evaluation.candidate_subset_count,
         feasible_count: evaluation.feasible_portfolios.len(),
-        rejected_subset_count: evaluation.candidate_subset_count
-            - evaluation.feasible_portfolios.len() as u64,
+        rejected_subset_count: evaluation.rejection_reason_counts.total(),
+        rejection_reason_counts: &evaluation.rejection_reason_counts,
         frontier_count: evaluation.pareto_frontier.len(),
         feasible_portfolio_ids,
         pareto_frontier: &evaluation.pareto_frontier,
