@@ -9,8 +9,8 @@
 //! Georeferencing and standards-based exchange must be explicit future operations.
 
 use crate::landscape::{
-    DESIGN_INTENT_STATUS, FRAME_KIND, GEOMETRY_REPRESENTATION, GEOMETRY_STATUS,
-    SNAPSHOT_SCHEMA, SNAPSHOT_SCHEMA_URI, USER_AUTHORED_SOURCE, validate_snapshot,
+    DESIGN_INTENT_STATUS, FRAME_KIND, GEOMETRY_REPRESENTATION, GEOMETRY_STATUS, SNAPSHOT_SCHEMA,
+    SNAPSHOT_SCHEMA_URI, USER_AUTHORED_SOURCE, validate_snapshot,
 };
 use leptos::prelude::*;
 use leptos_router::components::A;
