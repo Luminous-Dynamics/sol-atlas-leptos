@@ -43,14 +43,20 @@ impl fmt::Display for RequestFingerprintError {
                 write!(formatter, "request envelope is invalid: {reason}")
             }
             Self::PayloadCanonicalization(reason) => {
-                write!(formatter, "request payload cannot be represented under strict JCS: {reason}")
+                write!(
+                    formatter,
+                    "request payload cannot be represented under strict JCS: {reason}"
+                )
             }
             Self::PayloadDigestMismatch { expected, actual } => write!(
                 formatter,
                 "request payload digest mismatch: expected {expected}, computed {actual}"
             ),
             Self::FingerprintMaterialSerialization(reason) => {
-                write!(formatter, "request fingerprint material serialization failed: {reason}")
+                write!(
+                    formatter,
+                    "request fingerprint material serialization failed: {reason}"
+                )
             }
         }
     }
@@ -96,9 +102,8 @@ pub fn canonical_request_fingerprint_material(
         .validate()
         .map_err(|error| RequestFingerprintError::InvalidEnvelope(error.to_string()))?;
 
-    let payload = CanonicalPayload::from_json(payload_json).map_err(|error| {
-        RequestFingerprintError::PayloadCanonicalization(error.to_string())
-    })?;
+    let payload = CanonicalPayload::from_json(payload_json)
+        .map_err(|error| RequestFingerprintError::PayloadCanonicalization(error.to_string()))?;
     if payload.sha256_hex() != envelope.payload_digest_sha256 {
         return Err(RequestFingerprintError::PayloadDigestMismatch {
             expected: envelope.payload_digest_sha256.clone(),
@@ -124,9 +129,8 @@ pub fn canonical_request_fingerprint_material(
     let material_json = serde_json::to_string(&material).map_err(|error| {
         RequestFingerprintError::FingerprintMaterialSerialization(error.to_string())
     })?;
-    canonicalize_payload_json(&material_json).map_err(|error| {
-        RequestFingerprintError::PayloadCanonicalization(error.to_string())
-    })
+    canonicalize_payload_json(&material_json)
+        .map_err(|error| RequestFingerprintError::PayloadCanonicalization(error.to_string()))
 }
 
 /// Computes lowercase hexadecimal SHA-256 over canonical request-fingerprint bytes.
@@ -205,13 +209,8 @@ mod tests {
     }
 
     fn fingerprint(envelope: &OperationEnvelope, payload: &str) -> String {
-        canonical_request_fingerprint_sha256(
-            "tenant-001",
-            "work-order.apply",
-            envelope,
-            payload,
-        )
-        .unwrap()
+        canonical_request_fingerprint_sha256("tenant-001", "work-order.apply", envelope, payload)
+            .unwrap()
     }
 
     #[test]
@@ -325,13 +324,8 @@ mod tests {
             original
         );
         assert_ne!(
-            canonical_request_fingerprint_sha256(
-                "tenant-001",
-                "work-order.cancel",
-                &base,
-                PAYLOAD
-            )
-            .unwrap(),
+            canonical_request_fingerprint_sha256("tenant-001", "work-order.cancel", &base, PAYLOAD)
+                .unwrap(),
             original
         );
     }
