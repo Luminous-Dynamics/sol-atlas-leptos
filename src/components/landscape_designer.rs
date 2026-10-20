@@ -209,6 +209,7 @@ fn download_snapshot(content: &str) -> Result<(), String> {
 #[component]
 pub fn LandscapeDesigner() -> impl IntoView {
     let (features, set_features) = signal(starter_features());
+    let (project_name, set_project_name) = signal("Untitled landscape".to_string());
     // Never reuse a feature ID after undo: downstream provenance will rely on
     // IDs continuing to identify one authored object within an edit session.
     let (next_feature_id, set_next_feature_id) = signal(8_u32);
@@ -243,13 +244,15 @@ pub fn LandscapeDesigner() -> impl IntoView {
                     })
                 });
                 set_export_text.set(String::new());
+                set_download_status.set(String::new());
             }
         }
     };
 
     let export_project = move |_| {
+        let name = project_name.get_untracked();
         let value = snapshot_json(
-            "Untitled landscape",
+            &name,
             active_scale.get_untracked(),
             &features.get_untracked(),
         );
@@ -277,11 +280,13 @@ pub fn LandscapeDesigner() -> impl IntoView {
             items.pop();
         });
         set_export_text.set(String::new());
+        set_download_status.set(String::new());
     };
 
     let reset = move |_| {
         set_features.set(starter_features());
         set_next_feature_id.set(8);
+        set_project_name.set("Untitled landscape".to_string());
         set_active_tool.set(FeatureKind::Tree);
         set_active_scale.set(LandscapeScale::Site);
         set_show_grid.set(true);
@@ -327,6 +332,14 @@ pub fn LandscapeDesigner() -> impl IntoView {
                     <section class="landscape-section">
                         <p class="landscape-section-label">"01 / DESIGN SCALE"</p>
                         <h2>"Think in systems"</h2>
+                        <label class="landscape-project-field">
+                            <span>"PROJECT NAME"</span>
+                            <input type="text" maxlength="200" prop:value=move || project_name.get() on:input=move |event| {
+                                set_project_name.set(event_target_value(&event));
+                                set_export_text.set(String::new());
+                                set_download_status.set(String::new());
+                            }/>
+                        </label>
                         <p class="landscape-muted">"Switch planning context from a single property to its wider living landscape. This changes the declared scope, not the coordinate frame."</p>
                         <div class="landscape-scale-list">
                             <button type="button" class:chosen=move || active_scale.get() == LandscapeScale::Site on:click=move |_| set_active_scale.set(LandscapeScale::Site)><span>"01"</span>"Site / parcel"</button>
@@ -368,7 +381,7 @@ pub fn LandscapeDesigner() -> impl IntoView {
                 <section class="landscape-stage" aria-label="Landscape plan editor">
                     <div class="landscape-stage-head">
                         <div>
-                            <p class="landscape-kicker">"UNTITLED LANDSCAPE / CONCEPT 01"</p>
+                            <p class="landscape-kicker">{move || format!("{} / CONCEPT 01", project_name.get().to_uppercase())}</p>
                             <h2>"Living systems plan"</h2>
                         </div>
                         <div class="landscape-stage-meta"><span>"LOCAL GRID"</span><span>"1000 × 650 schematic units"</span></div>
@@ -484,6 +497,7 @@ mod tests {
         let features = starter_features();
         let value = snapshot_json("fixture", LandscapeScale::Watershed, &features);
         assert_eq!(value["schema"], "luminous.landscape-design.v0");
+        assert_eq!(value["project_name"], "fixture");
         assert_eq!(
             value["schema_uri"],
             "https://luminousdynamics.io/schemas/landscape-design-v0.schema.json"
