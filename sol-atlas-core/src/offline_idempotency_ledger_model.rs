@@ -11,11 +11,7 @@
 //! constraints and atomically commit the domain effect plus outcome (or use an
 //! outbox for external effects).
 
-use std::{
-    collections::BTreeMap,
-    error::Error,
-    fmt,
-};
+use std::{collections::BTreeMap, error::Error, fmt};
 
 use sha2::{Digest, Sha256};
 
@@ -172,19 +168,25 @@ impl fmt::Display for LedgerModelError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::EmptyScope(field) => write!(formatter, "{field} must not be empty"),
-            Self::InvalidEnvelope(reason) => write!(formatter, "invalid operation envelope: {reason}"),
-            Self::InvalidFingerprint(reason) => write!(formatter, "cannot fingerprint request: {reason}"),
-            Self::RequestFingerprintConflict => {
-                formatter.write_str("idempotency key is already bound to a different request fingerprint")
+            Self::InvalidEnvelope(reason) => {
+                write!(formatter, "invalid operation envelope: {reason}")
             }
+            Self::InvalidFingerprint(reason) => {
+                write!(formatter, "cannot fingerprint request: {reason}")
+            }
+            Self::RequestFingerprintConflict => formatter
+                .write_str("idempotency key is already bound to a different request fingerprint"),
             Self::StaleReservation => {
                 formatter.write_str("reservation is stale, missing, or no longer authoritative")
             }
-            Self::ConflictingFinalization => {
-                formatter.write_str("completed idempotency record cannot be finalized with another outcome")
+            Self::ConflictingFinalization => formatter
+                .write_str("completed idempotency record cannot be finalized with another outcome"),
+            Self::SequenceExhausted => {
+                formatter.write_str("reservation generation counter exhausted")
             }
-            Self::SequenceExhausted => formatter.write_str("reservation generation counter exhausted"),
-            Self::InvalidOutcome(reason) => write!(formatter, "invalid authoritative outcome: {reason}"),
+            Self::InvalidOutcome(reason) => {
+                write!(formatter, "invalid authoritative outcome: {reason}")
+            }
         }
     }
 }
@@ -290,11 +292,8 @@ impl ReferenceIdempotencyLedger {
         if ticket.request_fingerprint_schema_version != REQUEST_FINGERPRINT_SCHEMA_VERSION {
             return Err(LedgerModelError::StaleReservation);
         }
-        let proposed = StoredOutcome::new(
-            status_code,
-            receipt_id.to_owned(),
-            response_body.to_vec(),
-        )?;
+        let proposed =
+            StoredOutcome::new(status_code, receipt_id.to_owned(), response_body.to_vec())?;
         let record = self
             .records
             .get_mut(&ticket.key)
@@ -364,9 +363,7 @@ fn lower_hex(bytes: &[u8]) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        CommitResult, LedgerModelError, ReferenceIdempotencyLedger, ReserveResult,
-    };
+    use super::{CommitResult, LedgerModelError, ReferenceIdempotencyLedger, ReserveResult};
     use crate::offline_journal::{
         OFFLINE_JOURNAL_SCHEMA_VERSION, OperationEnvelope, RequiredNullableOperationId,
     };
@@ -377,7 +374,11 @@ mod tests {
     const NAMESPACE: &str = "work-order.apply";
     const PAYLOAD: &str = r#"{ "quantity": 2 }"#;
 
-    fn envelope(operation_id: &str, aggregate_id: &str, expected_revision: u64) -> OperationEnvelope {
+    fn envelope(
+        operation_id: &str,
+        aggregate_id: &str,
+        expected_revision: u64,
+    ) -> OperationEnvelope {
         OperationEnvelope {
             schema_version: OFFLINE_JOURNAL_SCHEMA_VERSION,
             operation_id: operation_id.to_owned(),
@@ -516,7 +517,9 @@ mod tests {
                 .reserve(TENANT, NAMESPACE, &envelope, PAYLOAD)
                 .unwrap(),
         );
-        ledger.commit(&ticket, 201, "receipt-001", b"{\"ok\":true}").unwrap();
+        ledger
+            .commit(&ticket, 201, "receipt-001", b"{\"ok\":true}")
+            .unwrap();
         assert_eq!(
             ledger.commit(&ticket, 409, "receipt-002", b"{\"ok\":false}"),
             Err(LedgerModelError::ConflictingFinalization)
@@ -541,7 +544,9 @@ mod tests {
 
         // Model a lost network response: the client retries without knowing the
         // commit result. It receives the exact stored bytes and receipt.
-        let replay = ledger.reserve(TENANT, NAMESPACE, &envelope, PAYLOAD).unwrap();
+        let replay = ledger
+            .reserve(TENANT, NAMESPACE, &envelope, PAYLOAD)
+            .unwrap();
         match replay {
             ReserveResult::Replay(outcome) => {
                 assert_eq!(outcome.receipt_id(), "receipt-001");
