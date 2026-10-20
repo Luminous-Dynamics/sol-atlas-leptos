@@ -126,6 +126,9 @@ fn validate_manifest(manifest: &RunManifest) -> Result<(), String> {
             "this adapter supports only pinned FlexDC-Sim revision {PINNED_FLEXDC_REVISION}"
         ));
     }
+    if manifest.simulation_duration_seconds == 0 {
+        return Err("manifest.simulation_duration_seconds must be positive".to_owned());
+    }
     if manifest.simulation_step_seconds == 0 {
         return Err("manifest.simulation_step_seconds must be positive".to_owned());
     }
@@ -482,6 +485,17 @@ mod tests {
             validate_manifest(&manifest)
                 .expect_err("different source revision must be rejected")
                 .contains("supports only pinned FlexDC-Sim revision")
+        );
+    }
+
+    #[test]
+    fn manifest_rejects_zero_duration() {
+        let mut manifest = parsed_manifest();
+        manifest.simulation_duration_seconds = 0;
+        assert!(
+            validate_manifest(&manifest)
+                .expect_err("zero-duration run must reject")
+                .contains("simulation_duration_seconds must be positive")
         );
     }
 
