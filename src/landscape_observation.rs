@@ -1278,10 +1278,9 @@ mod tests {
 
     #[test]
     fn metric_observation_map_is_explicit_and_non_scoring() {
-        let mapping: Value = serde_json::from_str(include_str!(
-            "../metrics/landscape/observation-map-v0.json"
-        ))
-        .unwrap();
+        let mapping: Value =
+            serde_json::from_str(include_str!("../metrics/landscape/observation-map-v0.json"))
+                .unwrap();
         let mapping_schema: Value = serde_json::from_str(include_str!(
             "../schemas/landscape-metric-observation-map-v0.schema.json"
         ))
@@ -1291,10 +1290,7 @@ mod tests {
             mapping["schema"],
             "luminous.landscape-metric-observation-map.v0"
         );
-        assert_eq!(
-            mapping["schema_uri"],
-            mapping_schema["$id"]
-        );
+        assert_eq!(mapping["schema_uri"], mapping_schema["$id"]);
         assert_eq!(
             mapping["registry_schema_uri"],
             "https://luminousdynamics.io/schemas/landscape-performance-registry-v0.schema.json"
@@ -1310,7 +1306,12 @@ mod tests {
         for entry in entries {
             let metric_id = entry["metric_id"].as_str().unwrap();
             assert!(metric_ids.insert(metric_id));
-            assert!(!entry["prohibited_inferences"].as_array().unwrap().is_empty());
+            assert!(
+                !entry["prohibited_inferences"]
+                    .as_array()
+                    .unwrap()
+                    .is_empty()
+            );
             assert!(!entry["output_status"].as_str().unwrap().is_empty());
         }
 
