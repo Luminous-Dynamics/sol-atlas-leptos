@@ -32,19 +32,21 @@ pub struct OperationEnvelope {
 
 /// A nullable string that must still be present on the wire.
 ///
-/// Unlike `Option<String>` as a struct field, this wrapper allows JSON null
-/// while making an omitted field a deserialization error. This matters for
-/// operation-binding fields: absence must not silently compare equal to null.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-#[serde(transparent)]
-pub struct RequiredNullableOperationId(pub Option<String>);
+/// Unlike `Option<String>` as a struct field, this non-optional untagged enum
+/// accepts JSON null while making an omitted field a deserialization error.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum RequiredNullableOperationId {
+    Value(String),
+    Null(()),
+}
 
-impl<'de> Deserialize<'de> for RequiredNullableOperationId {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        Option::<String>::deserialize(deserializer).map(Self)
+impl RequiredNullableOperationId {
+    fn from_option(value: Option<String>) -> Self {
+        match value {
+            Some(value) => Self::Value(value),
+            None => Self::Null(()),
+        }
     }
 }
 
@@ -93,7 +95,7 @@ impl OperationBinding {
             expected_revision: envelope.expected_revision,
             payload_digest_sha256: envelope.payload_digest_sha256.clone(),
             idempotency_key: envelope.idempotency_key.clone(),
-            supersedes_operation_id: RequiredNullableOperationId(
+            supersedes_operation_id: RequiredNullableOperationId::from_option(
                 envelope.supersedes_operation_id.clone(),
             ),
         }
@@ -517,7 +519,7 @@ mod tests {
                 5 => binding.idempotency_key = "another-key".to_owned(),
                 6 => {
                     binding.supersedes_operation_id =
-                        RequiredNullableOperationId(Some("another-parent".to_owned()))
+                        RequiredNullableOperationId::Value("another-parent".to_owned())
                 }
                 _ => unreachable!(),
             }
