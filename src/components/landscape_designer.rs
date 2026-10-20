@@ -9,8 +9,8 @@
 //! Georeferencing and standards-based exchange must be explicit future operations.
 
 use crate::landscape::{
-    FRAME_KIND, GEOMETRY_REPRESENTATION, GEOMETRY_STATUS, SNAPSHOT_SCHEMA, SNAPSHOT_SCHEMA_URI,
-    validate_snapshot,
+    DESIGN_INTENT_STATUS, FRAME_KIND, GEOMETRY_REPRESENTATION, GEOMETRY_STATUS,
+    SNAPSHOT_SCHEMA, SNAPSHOT_SCHEMA_URI, USER_AUTHORED_SOURCE, validate_snapshot,
 };
 use leptos::prelude::*;
 use leptos_router::components::A;
@@ -194,8 +194,8 @@ fn snapshot_json(project_name: &str, scale: LandscapeScale, features: &[DesignFe
             "label": feature.kind.label(),
             "x_du": feature.x_du,
             "y_du": feature.y_du,
-            "status": "design-intent",
-            "source": "user-authored-schematic",
+            "status": DESIGN_INTENT_STATUS,
+            "source": USER_AUTHORED_SOURCE,
             "geometry_representation": GEOMETRY_REPRESENTATION
         })).collect::<Vec<_>>()
     })
