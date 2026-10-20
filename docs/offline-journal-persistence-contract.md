@@ -25,7 +25,7 @@ Every backend must provide these guarantees before it can be called a durable ad
 
 ## Receipt binding is not receipt authenticity
 
-The protocol-v2 six-field `OperationBinding` is a useful correlation check: it prevents a reply for one envelope from reconciling a different pending operation. By itself, however, it does **not** prove who produced the reply. A forged or compromised endpoint could echo all six expected fields.
+The protocol-v2 seven-field `OperationBinding`—including `supersedes_operation_id` with explicit null semantics—is a correlation check: it prevents a reply for one envelope from reconciling a different pending operation, and rejects an omitted lineage field. By itself, however, it does **not** prove who produced the reply. A forged or compromised endpoint could echo all six expected fields.
 
 Before relying on a receipt as authoritative evidence, the transport/service boundary must authenticate the service identity and define how the receipt is validated. If receipts must be independently auditable after the session ends, the next protocol revision should consider a signed receipt envelope binding at least:
 
