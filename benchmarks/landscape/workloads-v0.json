@@ -26,7 +26,10 @@
       "georeferenced": false,
       "reminder": "Synthetic benchmark scenes are not user-authored designs, real-world geometry or field observations."
     },
-    "reproducibility": "The same feature_count and seed produce the same normalized serde_json snapshot. Validator acceptance is mandatory before benchmarking."
+    "reproducibility": "The same feature_count and seed produce the same normalized serde_json snapshot. Validator acceptance is mandatory before benchmarking.",
+    "harness": "src/bin/landscape_bench.rs",
+    "report_schema": "luminous.landscape-benchmark-report-v0",
+    "run_command": "cargo run --release --features landscape-bench --bin landscape-bench -- --out reports/landscape/native-kernel-v0.json"
   },
   "workload_sizes": [
     {
@@ -124,7 +127,11 @@
     "action_trace_sha256",
     "seed",
     "cache_condition",
-    "raw_sample_file_sha256"
+    "raw_sample_file_sha256",
+    "git_commit_sha_or_null",
+    "cpu_model_or_null",
+    "ram_bytes_or_null",
+    "benchmark_kind"
   ],
   "proposed_gates": {
     "large-10000": {
@@ -157,5 +164,22 @@
     "missing tile or offline source",
     "interrupted export",
     "very large export"
-  ]
+  ],
+  "native_kernel_measurements": [
+    "generation_ns",
+    "validation_ns",
+    "serialization_ns",
+    "sha256_ns",
+    "total_kernel_ns"
+  ],
+  "harness_scope": {
+    "benchmark_kind": "native-landscape-document-kernel",
+    "excludes": [
+      "browser-interaction-latency",
+      "browser-frame-time",
+      "physical-or-ecological-outcomes",
+      "professional-product-comparisons"
+    ],
+    "report_schema": "schemas/landscape-benchmark-report-v0.schema.json"
+  }
 }

@@ -147,6 +147,17 @@ Own project identity and version history, who contributed or approved which chan
 
 Do not simply zoom the parcel tool out and call it regional planning. Use scale-specific primitives, aggregation and source-resolution disclosures. A coarse dataset cannot support a precise parcel-level conclusion.
 
+## Executable native benchmark harness
+
+The frozen workload manifest now has a portable Rust-only native harness. Run:
+
+    cargo test --features landscape-bench --bin landscape-bench
+    cargo run --release --features landscape-bench --bin landscape-bench -- --out reports/landscape/native-kernel-v0.json
+
+The harness derives default counts and seed from the manifest, creates deterministic synthetic scenes, validates them with the production v0 document validator, serializes normalized JSON, calculates a SHA-256 snapshot digest, and records raw generation/validation/serialization/digest timings plus p50/p95 summaries. The report includes available commit, toolchain, OS/architecture, CPU and memory metadata.
+
+This is a **native document-kernel benchmark only**. It does not measure browser frame rate, pointer interaction, user task success, geospatial operations or real landscape outcomes. Those require separate browser/reference-machine, interoperability and field-evaluation studies. Report structure is versioned by [landscape-benchmark-report-v0.schema.json](../schemas/landscape-benchmark-report-v0.schema.json); there are no performance results until the executable has been run on a declared reference machine and raw report committed. CI runs only a small smoke workload, not the 10k/100k qualification workload.
+
 ## Benchmark methodology
 
 ### Reproducible protocol

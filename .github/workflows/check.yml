@@ -65,3 +65,15 @@ jobs:
       # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
       # `cargo test --lib` fails with "no library targets found".
       - run: cargo test --bin sol-atlas-leptos
+      # Native-only synthetic workload; feature-gated so it never becomes a WASM/browser target.
+      - run: cargo test --features landscape-bench --bin landscape-bench
+      - name: Smoke-test native landscape benchmark report
+        run: |
+          cargo run --release --features landscape-bench --bin landscape-bench -- --counts 100,1000 --samples 2 > "$RUNNER_TEMP/landscape-kernel-smoke.json"
+          jq -e '
+            .report_schema == "luminous.landscape-benchmark-report-v0" and
+            .benchmark_kind == "native-landscape-document-kernel" and
+            (.results | length == 2) and
+            ([.results[].raw_samples | length] | all(. == 2)) and
+            ([.results[].normalized_snapshot_sha256] | length == 2)
+          ' "$RUNNER_TEMP/landscape-kernel-smoke.json"
