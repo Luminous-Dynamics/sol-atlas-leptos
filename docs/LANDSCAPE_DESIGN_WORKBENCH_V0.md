@@ -70,6 +70,7 @@ LOCAL_CARTESIAN_METRES is a project-local drawing frame, with canvas top-left as
 ### Machine-readable contract and benchmark manifest
 
 - JSON Schema: [schemas/landscape-design-v0.schema.json](../schemas/landscape-design-v0.schema.json). Every snapshot declares the schema URI as well as its schema version.
+- Canonical starter fixture: [fixtures/landscape/seed-landscape-v0.json](../fixtures/landscape/seed-landscape-v0.json), checked against the exporter by a native unit test.
 - Frozen deterministic workload protocol: [benchmarks/landscape/workloads-v0.json](../benchmarks/landscape/workloads-v0.json). This defines feature counts, a seeded generator, action traces, raw measurements and negative controls. It contains no measured performance claims.
 - Initial performance metric registry: [metrics/landscape/registry-v0.json](../metrics/landscape/registry-v0.json), with schema [landscape-performance-registry-v0.schema.json](../schemas/landscape-performance-registry-v0.schema.json). This is a metric-definition contract only, not populated field data.
 - Benchmark implementation work: [LAND-BENCH-001](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/195).
@@ -173,3 +174,6 @@ Targets become product gates only after the reference hardware and benchmark har
 - Export is valid JSON, deterministic for the same project and explicitly not georeferenced.
 - Tests cover schema, round-trip, feature IDs and machine keys; the exact PR head passes formatting, native tests and target wasm build.
 - No simulation, field-validated ecological result, construction compliance, terrain survey or QGIS/SketchUp parity is claimed by this prototype.
+
+
+The starter fixture is canonical only for the schematic v0 symbol-anchor representation; it does not carry surveyed geometry, physical dimensions, or measured impact values.
