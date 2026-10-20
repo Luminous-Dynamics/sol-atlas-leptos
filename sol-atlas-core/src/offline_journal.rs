@@ -529,6 +529,9 @@ fn require_non_empty(value: &str, field: &'static str) -> Result<(), JournalErro
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum JournalError {
     UnsupportedSchemaVersion(u16),
+    UnsupportedSnapshotSchemaVersion(u16),
+    InvalidSnapshot(&'static str),
+    NonCanonicalSnapshotPayload,
     EmptyField(&'static str),
     InvalidPayloadDigest,
     PayloadCanonicalization(String),
@@ -546,6 +549,15 @@ impl fmt::Display for JournalError {
         match self {
             Self::UnsupportedSchemaVersion(version) => {
                 write!(formatter, "unsupported journal schema version {version}")
+            }
+            Self::UnsupportedSnapshotSchemaVersion(version) => {
+                write!(formatter, "unsupported journal snapshot schema version {version}")
+            }
+            Self::InvalidSnapshot(reason) => {
+                write!(formatter, "journal snapshot is inconsistent: {reason}")
+            }
+            Self::NonCanonicalSnapshotPayload => {
+                formatter.write_str("persisted payload is valid JSON but not canonical JCS bytes")
             }
             Self::EmptyField(field) => write!(formatter, "{field} must not be empty"),
             Self::InvalidPayloadDigest => {
