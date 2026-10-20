@@ -10,12 +10,23 @@ mod landscape_observation;
 use landscape_observation::{MAX_BATCH_OBSERVATIONS, normalize_batch, validate_batch};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
-use std::{env, process::Command, time::{Instant, SystemTime, UNIX_EPOCH}};
+use std::{
+    env,
+    process::Command,
+    time::{Instant, SystemTime, UNIX_EPOCH},
+};
 
 const FIXTURE: &str = include_str!("../../fixtures/landscape/observation-batch-v0.json");
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Profile { Unique, Dup1Pct, Dup10Pct, Dup100Pct, Conflict, OverLimit }
+enum Profile {
+    Unique,
+    Dup1Pct,
+    Dup10Pct,
+    Dup100Pct,
+    Conflict,
+    OverLimit,
+}
 
 impl Profile {
     fn parse(s: &str) -> Result<Self, String> {
@@ -69,19 +80,34 @@ impl Config {
                 "--records" => records = next_parse(&mut args, "--records")?,
                 "--iterations" => iterations = next_parse(&mut args, "--iterations")?,
                 "--warmup" => warmup = next_parse(&mut args, "--warmup")?,
-                "--profile" => profile = Profile::parse(&args.next().ok_or("--profile needs a value")?)?,
+                "--profile" => {
+                    profile = Profile::parse(&args.next().ok_or("--profile needs a value")?)?
+                }
                 "--commit-sha" => commit = Some(args.next().ok_or("--commit-sha needs a value")?),
-                "--machine-label" => machine = Some(args.next().ok_or("--machine-label needs a value")?),
+                "--machine-label" => {
+                    machine = Some(args.next().ok_or("--machine-label needs a value")?)
+                }
                 "--cpu-model" => cpu = Some(args.next().ok_or("--cpu-model needs a value")?),
                 "--ram-mib" => ram = Some(next_parse(&mut args, "--ram-mib")?),
                 other => return Err(format!("unknown argument {other:?}\n{}", Self::usage())),
             }
         }
-        if records == 0 || records > MAX_BATCH_OBSERVATIONS + 1 || iterations == 0 || iterations > 100_000 || warmup > 100_000 {
-            return Err("records must be 1..=10001; iterations 1..=100000; warmup <= 100000".into());
+        if records == 0
+            || records > MAX_BATCH_OBSERVATIONS + 1
+            || iterations == 0
+            || iterations > 100_000
+            || warmup > 100_000
+        {
+            return Err(
+                "records must be 1..=10001; iterations 1..=100000; warmup <= 100000".into(),
+            );
         }
-        if profile == Profile::OverLimit { records = MAX_BATCH_OBSERVATIONS + 1; }
-        if profile == Profile::Conflict && records < 2 { return Err("conflict profile requires at least 2 records".into()); }
+        if profile == Profile::OverLimit {
+            records = MAX_BATCH_OBSERVATIONS + 1;
+        }
+        if profile == Profile::Conflict && records < 2 {
+            return Err("conflict profile requires at least 2 records".into());
+        }
         let commit = commit.ok_or("--commit-sha is required")?;
         if !matches!(commit.len(), 40 | 64) || !commit.bytes().all(|b| b.is_ascii_hexdigit()) {
             return Err("--commit-sha must be a 40- or 64-character Git SHA".into());
@@ -89,8 +115,19 @@ impl Config {
         let machine = required(machine, "--machine-label")?;
         let cpu = required(cpu, "--cpu-model")?;
         let ram_mib = ram.ok_or("--ram-mib is required")?;
-        if ram_mib == 0 { return Err("--ram-mib must be > 0".into()); }
-        Ok(Self { records, iterations, warmup, profile, commit, machine, cpu, ram_mib })
+        if ram_mib == 0 {
+            return Err("--ram-mib must be > 0".into());
+        }
+        Ok(Self {
+            records,
+            iterations,
+            warmup,
+            profile,
+            commit,
+            machine,
+            cpu,
+            ram_mib,
+        })
     }
     fn usage() -> &'static str {
         "Usage: landscape-observation-bench --commit-sha SHA --machine-label LABEL --cpu-model MODEL --ram-mib MIB [--records N] [--iterations N] [--warmup N] [--profile unique|exact-1pct|exact-10pct|exact-100pct|conflict|over-limit]\nAll records are synthetic. Output is JSON including raw timing samples."
@@ -98,20 +135,35 @@ impl Config {
 }
 
 fn required(v: Option<String>, name: &str) -> Result<String, String> {
-    match v { Some(v) if !v.trim().is_empty() && v.len() <= 256 => Ok(v), _ => Err(format!("{name} must be supplied (max 256 chars")) }
+    match v {
+        Some(v) if !v.trim().is_empty() && v.len() <= 256 => Ok(v),
+        _ => Err(format!("{name} must be supplied (max 256 chars")),
+    }
 }
 
-fn next_parse<T: std::str::FromStr>(args: &mut impl Iterator<Item = String>, name: &str) -> Result<T, String>
-where T::Err: std::fmt::Display {
-    args.next().ok_or_else(|| format!("{name} needs a value"))?
-        .parse().map_err(|e| format!("invalid {name}: {e}"))
+fn next_parse<T: std::str::FromStr>(
+    args: &mut impl Iterator<Item = String>,
+    name: &str,
+) -> Result<T, String>
+where
+    T::Err: std::fmt::Display,
+{
+    args.next()
+        .ok_or_else(|| format!("{name} needs a value"))?
+        .parse()
+        .map_err(|e| format!("invalid {name}: {e}"))
 }
 
-fn sha(bytes: &[u8]) -> String { format!("{:x}", Sha256::digest(bytes)) }
+fn sha(bytes: &[u8]) -> String {
+    format!("{:x}", Sha256::digest(bytes))
+}
 
 fn template_records() -> Result<Vec<Value>, String> {
     let batch: Value = serde_json::from_str(FIXTURE).map_err(|e| e.to_string())?;
-    batch["observations"].as_array().cloned().ok_or_else(|| "fixture observations are missing".into())
+    batch["observations"]
+        .as_array()
+        .cloned()
+        .ok_or_else(|| "fixture observations are missing".into())
 }
 
 fn generated_record(template: &Value, i: usize) -> Value {
@@ -155,33 +207,57 @@ fn generated_record(template: &Value, i: usize) -> Value {
 
 fn generate(config: &Config) -> Result<Value, String> {
     let templates = template_records()?;
-    if templates.is_empty() { return Err("fixture has no observation records".into()); }
+    if templates.is_empty() {
+        return Err("fixture has no observation records".into());
+    }
     let duplicate_count = match config.profile {
-        Profile::Dup1Pct => config.records.saturating_mul(100).div_ceil(10_000).min(config.records - 1),
-        Profile::Dup10Pct => config.records.saturating_mul(1_000).div_ceil(10_000).min(config.records - 1),
+        Profile::Dup1Pct => config
+            .records
+            .saturating_mul(100)
+            .div_ceil(10_000)
+            .min(config.records - 1),
+        Profile::Dup10Pct => config
+            .records
+            .saturating_mul(1_000)
+            .div_ceil(10_000)
+            .min(config.records - 1),
         Profile::Dup100Pct => config.records.saturating_sub(1),
         _ => 0,
     };
     let unique_count = config.records.saturating_sub(duplicate_count);
     let mut observations = Vec::with_capacity(config.records);
-    for i in 0..unique_count { observations.push(generated_record(&templates[i % templates.len()], i)); }
+    for i in 0..unique_count {
+        observations.push(generated_record(&templates[i % templates.len()], i));
+    }
     if duplicate_count > 0 {
-        let first = observations.first().ok_or("duplicate profile has no canonical record")?.clone();
+        let first = observations
+            .first()
+            .ok_or("duplicate profile has no canonical record")?
+            .clone();
         observations.extend(std::iter::repeat_n(first, duplicate_count));
     }
     if config.profile == Profile::Conflict {
         observations.clear();
-        for i in 0..config.records - 1 { observations.push(generated_record(&templates[0], i)); }
+        for i in 0..config.records - 1 {
+            observations.push(generated_record(&templates[0], i));
+        }
         let mut changed = observations[0].clone();
-        changed["result"]["numeric_value"] = json!(changed["result"]["numeric_value"].as_f64().unwrap_or(0.0) + 1.0);
+        changed["result"]["numeric_value"] =
+            json!(changed["result"]["numeric_value"].as_f64().unwrap_or(0.0) + 1.0);
         observations.push(changed);
     }
     if config.profile == Profile::OverLimit {
         observations.clear();
-        for i in 0..config.records { observations.push(generated_record(&templates[i % templates.len()], i)); }
+        for i in 0..config.records {
+            observations.push(generated_record(&templates[i % templates.len()], i));
+        }
     }
-    let created = observations.iter()
-        .filter_map(|o| o["result_time_unix_ms"].as_u64()).max().unwrap_or(0).saturating_add(1000);
+    let created = observations
+        .iter()
+        .filter_map(|o| o["result_time_unix_ms"].as_u64())
+        .max()
+        .unwrap_or(0)
+        .saturating_add(1000);
     Ok(json!({
         "schema":"luminous.landscape-observation-batch.v0",
         "schema_uri":"https://luminousdynamics.io/schemas/landscape-observation-batch-v0.schema.json",
@@ -192,7 +268,9 @@ fn generate(config: &Config) -> Result<Value, String> {
 }
 
 fn percentile(samples: &[u128], p: usize) -> u128 {
-    if samples.is_empty() { return 0; }
+    if samples.is_empty() {
+        return 0;
+    }
     let mut sorted = samples.to_vec();
     sorted.sort_unstable();
     let rank = sorted.len().saturating_mul(p).div_ceil(100).max(1);
@@ -210,7 +288,9 @@ fn summary(samples: &[u128]) -> Value {
 }
 
 fn measure<T>(iterations: usize, warmup: usize, mut f: impl FnMut() -> T) -> (Vec<u128>, Vec<T>) {
-    for _ in 0..warmup { std::hint::black_box(f()); }
+    for _ in 0..warmup {
+        std::hint::black_box(f());
+    }
     let mut times = Vec::with_capacity(iterations);
     let mut values = Vec::with_capacity(iterations);
     for _ in 0..iterations {
@@ -223,13 +303,23 @@ fn measure<T>(iterations: usize, warmup: usize, mut f: impl FnMut() -> T) -> (Ve
 }
 
 fn rustc_version() -> Result<String, String> {
-    let output = Command::new("rustc").arg("--version").output().map_err(|e| e.to_string())?;
-    if !output.status.success() { return Err("rustc --version failed".into()); }
+    let output = Command::new("rustc")
+        .arg("--version")
+        .output()
+        .map_err(|e| e.to_string())?;
+    if !output.status.success() {
+        return Err("rustc --version failed".into());
+    }
     Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
 }
 
 fn unix_ms() -> u64 {
-    SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_millis().try_into().unwrap_or(u64::MAX)
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis()
+        .try_into()
+        .unwrap_or(u64::MAX)
 }
 
 fn run(config: Config) -> Result<Value, String> {
@@ -238,19 +328,27 @@ fn run(config: Config) -> Result<Value, String> {
     let input_sha = sha(&input);
     let expected = config.profile.expected_valid();
     let (v_times, v_results) = measure(config.iterations, config.warmup, || validate_batch(&batch));
-    let (n_times, n_results) = measure(config.iterations, config.warmup, || normalize_batch(&batch));
+    let (n_times, n_results) =
+        measure(config.iterations, config.warmup, || normalize_batch(&batch));
     let v_mismatch = v_results.iter().filter(|r| r.is_ok() != expected).count();
     let n_mismatch = n_results.iter().filter(|r| r.is_ok() != expected).count();
     let last_validation = v_results.last().map(|r| match r {
         Ok(v) => json!({"ok":true,"input_records":v.input_records,"unique_observations":v.unique_observations,"duplicates":v.identical_duplicate_records}),
         Err(e) => json!({"ok":false,"errors":e}),
     }).unwrap_or(Value::Null);
-    let normalized = n_results.last().and_then(|r| r.as_ref().ok()).and_then(|(v,_)| serde_json::to_vec(v).ok());
+    let normalized = n_results
+        .last()
+        .and_then(|r| r.as_ref().ok())
+        .and_then(|(v, _)| serde_json::to_vec(v).ok());
     let normalized_sha = normalized.as_deref().map(sha);
     let mut sorted_v = v_times.clone();
     sorted_v.sort_unstable();
-    let p50 = percentile(&sorted_v,50);
-    let throughput = if p50 == 0 { Value::Null } else { json!(config.records as f64 / (p50 as f64 / 1_000_000_000.0)) };
+    let p50 = percentile(&sorted_v, 50);
+    let throughput = if p50 == 0 {
+        Value::Null
+    } else {
+        json!(config.records as f64 / (p50 as f64 / 1_000_000_000.0))
+    };
     let raw_samples = json!({"validate_ns":v_times,"normalize_ns":n_times,"validation_mismatches":v_mismatch,"normalization_mismatches":n_mismatch});
     let raw_samples_sha = sha(&serde_json::to_vec(&raw_samples).map_err(|e| e.to_string())?);
     let correct = v_mismatch == 0 && n_mismatch == 0;
@@ -270,17 +368,29 @@ fn run(config: Config) -> Result<Value, String> {
 
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
-    if args.iter().any(|arg| arg == "--help" || arg == "-h") { println!("{}", Config::usage()); return; }
+    if args.iter().any(|arg| arg == "--help" || arg == "-h") {
+        println!("{}", Config::usage());
+        return;
+    }
     let config = match Config::parse(args) {
         Ok(config) => config,
-        Err(error) => { eprintln!("{error}\n{}", Config::usage()); std::process::exit(2); }
+        Err(error) => {
+            eprintln!("{error}\n{}", Config::usage());
+            std::process::exit(2);
+        }
     };
     match run(config) {
         Ok(report) => match serde_json::to_string_pretty(&report) {
             Ok(output) => println!("{output}"),
-            Err(error) => { eprintln!("JSON serialization failed: {error}"); std::process::exit(3); }
+            Err(error) => {
+                eprintln!("JSON serialization failed: {error}");
+                std::process::exit(3);
+            }
         },
-        Err(error) => { eprintln!("{error}"); std::process::exit(4); }
+        Err(error) => {
+            eprintln!("{error}");
+            std::process::exit(4);
+        }
     }
 }
 
@@ -289,46 +399,60 @@ mod tests {
     use super::*;
 
     fn cfg(records: usize, profile: Profile) -> Config {
-        Config { records, iterations: 2, warmup: 0, profile, commit:"a".repeat(40), machine:"test-machine".into(), cpu:"synthetic-test-cpu".into(), ram_mib:1024 }
+        Config {
+            records,
+            iterations: 2,
+            warmup: 0,
+            profile,
+            commit: "a".repeat(40),
+            machine: "test-machine".into(),
+            cpu: "synthetic-test-cpu".into(),
+            ram_mib: 1024,
+        }
     }
 
     #[test]
     fn unique_generator_is_valid_and_repeatable() {
-        let config=cfg(20,Profile::Unique);
-        let a=generate(&config).unwrap();
-        let b=generate(&config).unwrap();
-        assert_eq!(a,b);
+        let config = cfg(20, Profile::Unique);
+        let a = generate(&config).unwrap();
+        let b = generate(&config).unwrap();
+        assert_eq!(a, b);
         assert!(validate_batch(&a).is_ok());
     }
 
     #[test]
     fn exact_duplicates_normalize_deterministically() {
-        let batch=generate(&cfg(20,Profile::Dup100Pct)).unwrap();
-        let summary=validate_batch(&batch).unwrap();
-        assert_eq!(summary.input_records,20);
-        assert_eq!(summary.unique_observations,1);
-        assert_eq!(summary.identical_duplicate_records,19);
-        let (normalized,_) = normalize_batch(&batch).unwrap();
-        assert_eq!(normalized["observations"].as_array().unwrap().len(),1);
+        let batch = generate(&cfg(20, Profile::Dup100Pct)).unwrap();
+        let summary = validate_batch(&batch).unwrap();
+        assert_eq!(summary.input_records, 20);
+        assert_eq!(summary.unique_observations, 1);
+        assert_eq!(summary.identical_duplicate_records, 19);
+        let (normalized, _) = normalize_batch(&batch).unwrap();
+        assert_eq!(normalized["observations"].as_array().unwrap().len(), 1);
     }
 
     #[test]
     fn conflicting_id_is_rejected_by_both_paths() {
-        let batch=generate(&cfg(5,Profile::Conflict)).unwrap();
+        let batch = generate(&cfg(5, Profile::Conflict)).unwrap();
         assert!(validate_batch(&batch).is_err());
         assert!(normalize_batch(&batch).is_err());
     }
 
     #[test]
     fn over_limit_profile_rejected_early() {
-        let batch=generate(&cfg(MAX_BATCH_OBSERVATIONS+1,Profile::OverLimit)).unwrap();
-        assert!(validate_batch(&batch).unwrap_err().iter().any(|e|e.contains("exceeds limit")));
+        let batch = generate(&cfg(MAX_BATCH_OBSERVATIONS + 1, Profile::OverLimit)).unwrap();
+        assert!(
+            validate_batch(&batch)
+                .unwrap_err()
+                .iter()
+                .any(|e| e.contains("exceeds limit"))
+        );
     }
 
     #[test]
     fn percentile_uses_nearest_rank() {
-        assert_eq!(percentile(&[10,20,30,40,50],50),30);
-        assert_eq!(percentile(&[10,20,30,40,50],95),50);
-        assert_eq!(percentile(&[],95),0);
+        assert_eq!(percentile(&[10, 20, 30, 40, 50], 50), 30);
+        assert_eq!(percentile(&[10, 20, 30, 40, 50], 95), 50);
+        assert_eq!(percentile(&[], 95), 0);
     }
 }
