@@ -4,11 +4,12 @@
 
 ## Storage model
 
-Database `sol-atlas-offline-journal`, version 1, has three key-addressed object stores:
+Database `sol-atlas-offline-journal`, version 2, has four key-addressed object stores (upgrade creates the new lease store for any existing v1 database):
 
 - `operations`: operation ID → serialized `JournalEntrySnapshotV1`;
 - `idempotency_keys`: idempotency key → operation ID;
-- `pending_operations`: operation ID → scheduling marker for entries in `Prepared` or `OutcomeUnknown`.
+- `pending_operations`: operation ID → scheduling marker for entries in `Prepared` or `OutcomeUnknown`;
+- `dispatch_leases`: operation ID → versioned lease record containing a cryptographically random owner token and a wall-clock expiry.
 
 Object stores use out-of-line keys. Recovery checks the storage key against `envelope.operation_id` using `JournalEntry::from_snapshot_for_operation`, then validates snapshot schema, canonical payload bytes, SHA-256 and state/attempt invariants. The pending store is only a scheduling index: every result is reloaded and validated, and a stale/missing index is surfaced rather than treated as evidence that an operation is safe to send.
 
@@ -20,13 +21,15 @@ Object stores use out-of-line keys. Recovery checks the storage key against `env
 
 ### Dispatch boundary
 
-`begin_attempt(operation_id)` reads and validates the snapshot inside a readwrite transaction, increments the attempt state through the reducer, and writes the new snapshot and pending marker in that same transaction. It returns a `DispatchPermit` **only after awaiting the transaction's `complete` event**. The permit contains the canonical payload bytes, digest, operation identity and attempt count. A transport should accept this permit and send its stored bytes rather than reconstructing a request from UI state.
+`begin_attempt(operation_id)` reads and validates the snapshot and lease under one readwrite transaction scoped to the operation, pending and dispatch-lease stores. If a still-active lease exists, it refuses to issue a second permit. Otherwise it writes a cryptographically random lease token with a 30-second expiry, the `OutcomeUnknown` snapshot, attempt count and pending marker in the same transaction. It returns a `DispatchPermit` **only after awaiting the transaction's `complete` event**. The permit contains the canonical payload bytes, digest, operation identity, attempt count, owner token and expiry. A transport should accept this permit and send its stored bytes rather than reconstructing a request from UI state. If `crypto.randomUUID()` is unavailable, lease creation fails closed.
 
-A permit is not a network result and is not proof that the payload reached the server. This draft does not include the network transport, cross-tab request scheduler, or server endpoint. Concurrent callers may still receive permits for the same idempotency identity; server-side deduplication and/or a future explicit dispatch-lease policy must prevent multiple logical side effects.
+`renew_dispatch_lease(&mut permit)` extends the claim only while the stored owner token still matches and the lease has not expired. A suspended/stale holder cannot revive an expired lease. The caller must renew before the deadline when a legitimate request may exceed 30 seconds; this function does not start a heartbeat by itself.
+
+A permit is not a network result and is not proof that the payload reached the server. This draft does not include the network transport, cross-tab request scheduler, or server endpoint. The lease suppresses concurrent permits while active but cannot guarantee exactly-once dispatch: a suspended tab can resume after lease expiry, and a process can crash after sending but before receipt reconciliation. Server-side idempotency is still mandatory.
 
 ### Reply reconciliation
 
-`apply_reply` loads the operation snapshot inside a readwrite transaction, rehydrates it, calls the pure reducer, then writes the updated snapshot and updates/deletes the pending marker atomically. A mismatched reply or invalid state transition causes no journal write. The receipt binding still is only correlation: it does not authenticate the service. A future transport/service layer must authenticate the service and make signed receipt verification available when receipts are intended to be independently auditable.
+`apply_reply` loads the operation snapshot inside a readwrite transaction, rehydrates it, calls the pure reducer, then writes the updated snapshot, updates/deletes the pending marker, and deletes the local dispatch lease atomically. A mismatched reply or invalid state transition causes no journal write. The receipt binding still is only correlation: it does not authenticate the service. A future transport/service layer must authenticate the service and make signed receipt verification available when receipts are intended to be independently auditable.
 
 ### Recovery reads
 
@@ -63,6 +66,10 @@ This draft adds no claim that the following browser-fault tests have run. They a
 | IDB-12 | Strict durability unsupported | Fallback is explicit and surfaced to diagnostics; no claim of strict behavior |
 | IDB-13 | Stale/missing pending index | Error or a full recovery rebuild path; no silently lost unresolved operation |
 | IDB-14 | Malformed/noncanonical/digest-mismatched stored snapshot | Recovery rejects before the scheduler can dispatch or report receipt |
+| IDB-15 | Two tabs claim same operation concurrently | A browser test starts two readwrite claims from separate connections; at most one active lease is committed and at most one permit is returned while that lease remains active |
+| IDB-16 | Lease expiry / suspended tab | A second tab cannot claim before expiry but can reclaim after expiry; explicitly demonstrate that a paused original tab can resume later, so server-side idempotency remains mandatory |
+| IDB-17 | Missing secure UUID source | No fallback to predictable tokens; claim fails closed without mutating attempt count or pending state |
+| IDB-18 | Stale lease renewal | Renewal succeeds only with the current token before expiry; an expired lease or superseded token cannot be revived |
 
 ## Benchmarks
 
@@ -79,6 +86,6 @@ Integrity gates are absolute: zero sends after failed/indeterminate pre-dispatch
 ## Explicit limits
 
 - This adapter is currently a draft and is not wired into the product's UI or a live API.
-- It has not been browser-tested; WebAssembly compilation is still required.
-- No service authentication, signed receipt, authoritative server idempotency table, server payload digest verifier, network retry layer, encryption, export/backup or device-loss recovery is included.
+- Pure lease-policy tests cover expiry boundaries and malformed bindings, but the adapter has not been browser-tested; exact-head WebAssembly compilation plus two-tab/crash fault tests remain required.
+- No service authentication, signed receipt, authoritative server idempotency table, server payload digest verifier, network retry layer, automated lease heartbeat, encryption, export/backup or device-loss recovery is included. The proposed service contract and end-to-end acceptance gates are in `docs/offline-journal-server-contract.md`.
 - IndexedDB does not provide an unconditional power-loss guarantee simply because the application observed a completed transaction.

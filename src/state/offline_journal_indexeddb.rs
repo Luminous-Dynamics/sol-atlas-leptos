@@ -21,7 +21,7 @@ use std::{
     rc::Rc,
 };
 
-use js_sys::{Array, Function, Object, Promise, Reflect};
+use js_sys::{Array, Date, Function, Object, Promise, Reflect};
 use sol_atlas_core::offline_journal::{
     JournalEntry, JournalEntrySnapshotV1, JournalError, JournalState, OperationEnvelope,
     ReconcileOutcome, ServiceReply,
@@ -32,11 +32,20 @@ use wasm_bindgen_futures::JsFuture;
 /// Object-store names are part of database schema v1. This adapter uses
 /// out-of-line keys so the ID is independently checked during recovery.
 const DATABASE_NAME: &str = "sol-atlas-offline-journal";
-const DATABASE_VERSION: u32 = 1;
+const DATABASE_VERSION: u32 = 2;
 const OPERATIONS: &str = "operations";
 const IDEMPOTENCY_KEYS: &str = "idempotency_keys";
 const PENDING_OPERATIONS: &str = "pending_operations";
+const DISPATCH_LEASES: &str = "dispatch_leases";
 const STORE_NAMES: [&str; 3] = [OPERATIONS, IDEMPOTENCY_KEYS, PENDING_OPERATIONS];
+const UPGRADE_STORE_NAMES: [&str; 4] = [
+    OPERATIONS,
+    IDEMPOTENCY_KEYS,
+    PENDING_OPERATIONS,
+    DISPATCH_LEASES,
+];
+const DISPATCH_LEASE_SCHEMA_VERSION: u16 = 1;
+const DISPATCH_LEASE_DURATION_MS: u64 = 30_000;
 
 /// Whether a browser accepted strict transaction durability options.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -72,6 +81,8 @@ pub struct DispatchPermit {
     payload_digest_sha256: String,
     canonical_payload_utf8: Vec<u8>,
     attempt_count: u32,
+    lease_token: String,
+    lease_expires_at_ms: u64,
     durability_policy: DurabilityPolicy,
 }
 
@@ -96,6 +107,16 @@ impl DispatchPermit {
         self.attempt_count
     }
 
+    /// Opaque fencing token for this browser-local dispatch lease.
+    pub fn lease_token(&self) -> &str {
+        &self.lease_token
+    }
+
+    /// Epoch-millisecond expiry. Renew before expiry for long-running requests.
+    pub fn lease_expires_at_ms(&self) -> u64 {
+        self.lease_expires_at_ms
+    }
+
     /// Durability policy used for the transaction that granted this permit.
     pub fn durability_policy(&self) -> DurabilityPolicy {
         self.durability_policy
@@ -108,6 +129,45 @@ impl DispatchPermit {
 pub struct IndexedDbJournalPage {
     pub entries: Vec<JournalEntry>,
     pub next_after_operation_id: Option<String>,
+}
+
+/// Versioned, browser-local dispatch lease. The operation store and this
+/// record are updated in the same transaction before a dispatch permit exists.
+/// The lease reduces competing sends; the server's idempotency ledger remains
+/// the only authority against duplicate effects after pauses or expiry.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct DispatchLeaseRecordV1 {
+    schema_version: u16,
+    operation_id: String,
+    owner_token: String,
+    acquired_at_ms: u64,
+    expires_at_ms: u64,
+}
+
+impl DispatchLeaseRecordV1 {
+    fn validate(&self, expected_operation_id: &str) -> Result<(), IndexedDbJournalError> {
+        if self.schema_version != DISPATCH_LEASE_SCHEMA_VERSION {
+            return Err(IndexedDbJournalError(
+                "unsupported dispatch lease schema".into(),
+            ));
+        }
+        if self.operation_id != expected_operation_id {
+            return Err(IndexedDbJournalError(
+                "dispatch lease operation ID mismatch".into(),
+            ));
+        }
+        if self.owner_token.trim().is_empty() || self.expires_at_ms <= self.acquired_at_ms {
+            return Err(IndexedDbJournalError(
+                "invalid dispatch lease record".into(),
+            ));
+        }
+        Ok(())
+    }
+
+    fn is_active_at(&self, now_ms: u64) -> bool {
+        self.expires_at_ms > now_ms
+    }
 }
 
 /// Connected browser journal database.
@@ -384,27 +444,39 @@ impl IndexedDbJournal {
     /// Persists the OutcomeUnknown transition, pending index, attempt count and
     /// canonical body together. Returns no DispatchPermit until transaction
     /// completion has been observed by this future.
+    /// Atomically claims a cross-tab lease and persists OutcomeUnknown before
+    /// returning permission to send. A second tab sees the active lease and
+    /// receives an error rather than a second permit.
+    ///
+    /// Lease expiry is a duplicate-suppression mechanism, not an exactly-once
+    /// guarantee: a suspended tab can resume after expiry. Server-side idempotency
+    /// must still bind each key to the same immutable request fingerprint.
     pub async fn begin_attempt(
         &self,
         operation_id: &str,
     ) -> Result<DispatchPermit, IndexedDbJournalError> {
-        let store_names = [OPERATIONS, PENDING_OPERATIONS];
+        let lease_token = secure_random_token()?;
+        let store_names = [OPERATIONS, PENDING_OPERATIONS, DISPATCH_LEASES];
         let (transaction, durability_policy) = self.transaction(&store_names, "readwrite")?;
         let transaction_done = transaction_promise(transaction.clone());
         let operations = object_store(&transaction, OPERATIONS)?;
         let pending = object_store(&transaction, PENDING_OPERATIONS)?;
+        let leases = object_store(&transaction, DISPATCH_LEASES)?;
         let request = call_method(&operations, "get", &[JsValue::from_str(operation_id)])
             .map_err(js_error)?;
-        let output: Rc<RefCell<Option<Result<String, IndexedDbJournalError>>>> =
-            Rc::new(RefCell::new(None));
+        let output: Rc<
+            RefCell<Option<Result<(String, DispatchLeaseRecordV1), IndexedDbJournalError>>>,
+        > = Rc::new(RefCell::new(None));
 
         {
             let request_for_callback = request.clone();
             let output = output.clone();
             let operations = operations.clone();
             let pending = pending.clone();
+            let leases = leases.clone();
             let transaction = transaction.clone();
             let expected_id = operation_id.to_owned();
+            let lease_token = lease_token.clone();
             let callback = Closure::once_into_js(move |_event: JsValue| {
                 let raw = match Reflect::get(&request_for_callback, &JsValue::from_str("result")) {
                     Ok(value) => value,
@@ -437,53 +509,169 @@ impl IndexedDbJournal {
                         return;
                     }
                 };
-                let mut entry =
-                    match JournalEntry::from_snapshot_for_operation(&expected_id, snapshot) {
-                        Ok(value) => value,
-                        Err(error) => {
-                            *output.borrow_mut() = Some(Err(IndexedDbJournalError::from(error)));
-                            return;
-                        }
-                    };
-                if let Err(error) = entry.mark_attempt_started() {
-                    *output.borrow_mut() = Some(Err(IndexedDbJournalError::from(error)));
-                    return;
-                }
-                let saved = match entry.to_snapshot().and_then(|value| {
-                    serde_json::to_string(&value)
-                        .map_err(|_| JournalError::InvalidSnapshot("snapshot_serialization_failed"))
-                }) {
+                let entry = match JournalEntry::from_snapshot_for_operation(&expected_id, snapshot)
+                {
                     Ok(value) => value,
                     Err(error) => {
                         *output.borrow_mut() = Some(Err(IndexedDbJournalError::from(error)));
                         return;
                     }
                 };
-                if let Err(error) = call_method(
-                    &operations,
-                    "put",
-                    &[JsValue::from_str(&saved), JsValue::from_str(&expected_id)],
-                ) {
-                    *output.borrow_mut() = Some(Err(js_error(error)));
-                    let _ = call_method(&transaction, "abort", &[]);
-                    return;
+
+                // Chain the second read inside the first request's success event,
+                // keeping the transaction active without awaiting a Promise.
+                let lease_request =
+                    match call_method(&leases, "get", &[JsValue::from_str(&expected_id)]) {
+                        Ok(value) => value,
+                        Err(error) => {
+                            *output.borrow_mut() = Some(Err(js_error(error)));
+                            let _ = call_method(&transaction, "abort", &[]);
+                            return;
+                        }
+                    };
+                let lease_request_for_callback = lease_request.clone();
+                let output_for_registration_error = output.clone();
+                let transaction_for_registration_error = transaction.clone();
+                let output = output.clone();
+                let operations = operations.clone();
+                let pending = pending.clone();
+                let leases = leases.clone();
+                let transaction = transaction.clone();
+                let expected_id = expected_id.clone();
+                let lease_token = lease_token.clone();
+                let callback = Closure::once_into_js(move |_lease_event: JsValue| {
+                    let raw_lease = match Reflect::get(
+                        &lease_request_for_callback,
+                        &JsValue::from_str("result"),
+                    ) {
+                        Ok(value) => value,
+                        Err(error) => {
+                            *output.borrow_mut() = Some(Err(js_error(error)));
+                            let _ = call_method(&transaction, "abort", &[]);
+                            return;
+                        }
+                    };
+
+                    let existing_lease = if raw_lease.is_null() || raw_lease.is_undefined() {
+                        None
+                    } else {
+                        let serialized = match raw_lease.as_string() {
+                            Some(value) => value,
+                            None => {
+                                *output.borrow_mut() = Some(Err(IndexedDbJournalError(
+                                    "dispatch lease store contains a non-string record".into(),
+                                )));
+                                let _ = call_method(&transaction, "abort", &[]);
+                                return;
+                            }
+                        };
+                        let record: DispatchLeaseRecordV1 = match serde_json::from_str(&serialized)
+                        {
+                            Ok(value) => value,
+                            Err(error) => {
+                                *output.borrow_mut() = Some(Err(IndexedDbJournalError(format!(
+                                    "stored dispatch lease JSON invalid: {error}"
+                                ))));
+                                let _ = call_method(&transaction, "abort", &[]);
+                                return;
+                            }
+                        };
+                        if let Err(error) = record.validate(&expected_id) {
+                            *output.borrow_mut() = Some(Err(error));
+                            let _ = call_method(&transaction, "abort", &[]);
+                            return;
+                        }
+                        Some(record)
+                    };
+
+                    let now_ms = match epoch_now_ms() {
+                        Ok(value) => value,
+                        Err(error) => {
+                            *output.borrow_mut() = Some(Err(error));
+                            let _ = call_method(&transaction, "abort", &[]);
+                            return;
+                        }
+                    };
+                    if let Some(existing) = existing_lease.as_ref() {
+                        if existing.is_active_at(now_ms) {
+                            *output.borrow_mut() = Some(Err(IndexedDbJournalError(format!(
+                                "dispatch lease is held until epoch-ms {}",
+                                existing.expires_at_ms
+                            ))));
+                            return;
+                        }
+                    }
+
+                    let lease = DispatchLeaseRecordV1 {
+                        schema_version: DISPATCH_LEASE_SCHEMA_VERSION,
+                        operation_id: expected_id.clone(),
+                        owner_token: lease_token,
+                        acquired_at_ms: now_ms,
+                        expires_at_ms: now_ms.saturating_add(DISPATCH_LEASE_DURATION_MS),
+                    };
+                    let lease_json = match serde_json::to_string(&lease) {
+                        Ok(value) => value,
+                        Err(error) => {
+                            *output.borrow_mut() = Some(Err(IndexedDbJournalError(format!(
+                                "dispatch lease serialization failed: {error}"
+                            ))));
+                            let _ = call_method(&transaction, "abort", &[]);
+                            return;
+                        }
+                    };
+
+                    let mut entry = entry;
+                    if let Err(error) = entry.mark_attempt_started() {
+                        *output.borrow_mut() = Some(Err(IndexedDbJournalError::from(error)));
+                        return;
+                    }
+                    let saved = match entry.to_snapshot().and_then(|value| {
+                        serde_json::to_string(&value).map_err(|_| {
+                            JournalError::InvalidSnapshot("snapshot_serialization_failed")
+                        })
+                    }) {
+                        Ok(value) => value,
+                        Err(error) => {
+                            *output.borrow_mut() = Some(Err(IndexedDbJournalError::from(error)));
+                            return;
+                        }
+                    };
+
+                    // Both writes plus the pending marker commit or abort as a unit.
+                    for (store, value) in [(&leases, lease_json), (&operations, saved.clone())] {
+                        if let Err(error) = call_method(
+                            store,
+                            "put",
+                            &[JsValue::from_str(&value), JsValue::from_str(&expected_id)],
+                        ) {
+                            *output.borrow_mut() = Some(Err(js_error(error)));
+                            let _ = call_method(&transaction, "abort", &[]);
+                            return;
+                        }
+                    }
+                    if let Err(error) = call_method(
+                        &pending,
+                        "put",
+                        &[JsValue::from_bool(true), JsValue::from_str(&expected_id)],
+                    ) {
+                        *output.borrow_mut() = Some(Err(js_error(error)));
+                        let _ = call_method(&transaction, "abort", &[]);
+                        return;
+                    }
+                    *output.borrow_mut() = Some(Ok((saved, lease)));
+                });
+                if let Err(error) =
+                    Reflect::set(&lease_request, &JsValue::from_str("onsuccess"), &callback)
+                {
+                    *output_for_registration_error.borrow_mut() = Some(Err(js_error(error)));
+                    let _ = call_method(&transaction_for_registration_error, "abort", &[]);
                 }
-                if let Err(error) = call_method(
-                    &pending,
-                    "put",
-                    &[JsValue::from_bool(true), JsValue::from_str(&expected_id)],
-                ) {
-                    *output.borrow_mut() = Some(Err(js_error(error)));
-                    let _ = call_method(&transaction, "abort", &[]);
-                    return;
-                }
-                *output.borrow_mut() = Some(Ok(saved));
             });
             Reflect::set(&request, &JsValue::from_str("onsuccess"), &callback).map_err(js_error)?;
         }
 
         JsFuture::from(transaction_done).await.map_err(js_error)?;
-        let saved = output.borrow_mut().take().ok_or_else(|| {
+        let (saved, lease) = output.borrow_mut().take().ok_or_else(|| {
             IndexedDbJournalError("attempt transaction completed without an outcome".into())
         })??;
         let snapshot: JournalEntrySnapshotV1 = serde_json::from_str(&saved).map_err(|error| {
@@ -497,8 +685,122 @@ impl IndexedDbJournal {
             payload_digest_sha256: entry.envelope().payload_digest_sha256.clone(),
             canonical_payload_utf8: entry.canonical_payload_utf8().to_vec(),
             attempt_count: entry.attempt_count(),
+            lease_token: lease.owner_token,
+            lease_expires_at_ms: lease.expires_at_ms,
             durability_policy,
         })
+    }
+
+    /// Renew the current permit's lease without incrementing the attempt count.
+    ///
+    /// This is a compare-and-set operation. A lease that has expired or whose
+    /// owner token changed cannot be revived by a stale or suspended tab.
+    pub async fn renew_dispatch_lease(
+        &self,
+        permit: &mut DispatchPermit,
+    ) -> Result<(), IndexedDbJournalError> {
+        let (transaction, durability_policy) = self.transaction(&[DISPATCH_LEASES], "readwrite")?;
+        let transaction_done = transaction_promise(transaction.clone());
+        let leases = object_store(&transaction, DISPATCH_LEASES)?;
+        let request = call_method(&leases, "get", &[JsValue::from_str(&permit.operation_id)])
+            .map_err(js_error)?;
+        let output: Rc<RefCell<Option<Result<u64, IndexedDbJournalError>>>> =
+            Rc::new(RefCell::new(None));
+
+        {
+            let request_for_callback = request.clone();
+            let output = output.clone();
+            let leases = leases.clone();
+            let transaction = transaction.clone();
+            let operation_id = permit.operation_id.clone();
+            let owner_token = permit.lease_token.clone();
+            let callback = Closure::once_into_js(move |_event: JsValue| {
+                let raw = match Reflect::get(&request_for_callback, &JsValue::from_str("result")) {
+                    Ok(value) => value,
+                    Err(error) => {
+                        *output.borrow_mut() = Some(Err(js_error(error)));
+                        return;
+                    }
+                };
+                if raw.is_null() || raw.is_undefined() {
+                    *output.borrow_mut() = Some(Err(IndexedDbJournalError(
+                        "dispatch lease no longer exists".into(),
+                    )));
+                    return;
+                }
+                let serialized = match raw.as_string() {
+                    Some(value) => value,
+                    None => {
+                        *output.borrow_mut() = Some(Err(IndexedDbJournalError(
+                            "dispatch lease record is not a string".into(),
+                        )));
+                        return;
+                    }
+                };
+                let mut lease: DispatchLeaseRecordV1 = match serde_json::from_str(&serialized) {
+                    Ok(value) => value,
+                    Err(error) => {
+                        *output.borrow_mut() = Some(Err(IndexedDbJournalError(format!(
+                            "stored dispatch lease JSON invalid: {error}"
+                        ))));
+                        let _ = call_method(&transaction, "abort", &[]);
+                        return;
+                    }
+                };
+                if let Err(error) = lease.validate(&operation_id) {
+                    *output.borrow_mut() = Some(Err(error));
+                    let _ = call_method(&transaction, "abort", &[]);
+                    return;
+                }
+                let now_ms = match epoch_now_ms() {
+                    Ok(value) => value,
+                    Err(error) => {
+                        *output.borrow_mut() = Some(Err(error));
+                        let _ = call_method(&transaction, "abort", &[]);
+                        return;
+                    }
+                };
+                if lease.owner_token != owner_token || !lease.is_active_at(now_ms) {
+                    *output.borrow_mut() = Some(Err(IndexedDbJournalError(
+                        "dispatch lease ownership lost; reacquire before sending".into(),
+                    )));
+                    return;
+                }
+                lease.expires_at_ms = now_ms.saturating_add(DISPATCH_LEASE_DURATION_MS);
+                let new_expiry = lease.expires_at_ms;
+                let encoded = match serde_json::to_string(&lease) {
+                    Ok(value) => value,
+                    Err(error) => {
+                        *output.borrow_mut() = Some(Err(IndexedDbJournalError(format!(
+                            "dispatch lease serialization failed: {error}"
+                        ))));
+                        let _ = call_method(&transaction, "abort", &[]);
+                        return;
+                    }
+                };
+                if let Err(error) = call_method(
+                    &leases,
+                    "put",
+                    &[
+                        JsValue::from_str(&encoded),
+                        JsValue::from_str(&operation_id),
+                    ],
+                ) {
+                    *output.borrow_mut() = Some(Err(js_error(error)));
+                    let _ = call_method(&transaction, "abort", &[]);
+                    return;
+                }
+                *output.borrow_mut() = Some(Ok(new_expiry));
+            });
+            Reflect::set(&request, &JsValue::from_str("onsuccess"), &callback).map_err(js_error)?;
+        }
+
+        JsFuture::from(transaction_done).await.map_err(js_error)?;
+        permit.lease_expires_at_ms = output.borrow_mut().take().ok_or_else(|| {
+            IndexedDbJournalError("lease renewal completed without an outcome".into())
+        })??;
+        permit.durability_policy = durability_policy;
+        Ok(())
     }
 
     /// Applies a matching reply and its pending-index change in one transaction.
@@ -508,11 +810,12 @@ impl IndexedDbJournal {
         operation_id: &str,
         reply: &ServiceReply,
     ) -> Result<ReconcileOutcome, IndexedDbJournalError> {
-        let store_names = [OPERATIONS, PENDING_OPERATIONS];
+        let store_names = [OPERATIONS, PENDING_OPERATIONS, DISPATCH_LEASES];
         let (transaction, _policy) = self.transaction(&store_names, "readwrite")?;
         let transaction_done = transaction_promise(transaction.clone());
         let operations = object_store(&transaction, OPERATIONS)?;
         let pending = object_store(&transaction, PENDING_OPERATIONS)?;
+        let leases = object_store(&transaction, DISPATCH_LEASES)?;
         let request = call_method(&operations, "get", &[JsValue::from_str(operation_id)])
             .map_err(js_error)?;
         let output: Rc<RefCell<Option<Result<ReconcileOutcome, IndexedDbJournalError>>>> =
@@ -523,6 +826,7 @@ impl IndexedDbJournal {
             let output = output.clone();
             let operations = operations.clone();
             let pending = pending.clone();
+            let leases = leases.clone();
             let transaction = transaction.clone();
             let op_id = operation_id.to_owned();
             let reply = reply.clone();
@@ -610,6 +914,11 @@ impl IndexedDbJournal {
                 } else if let Err(error) =
                     call_method(&pending, "delete", &[JsValue::from_str(&op_id)])
                 {
+                    *output.borrow_mut() = Some(Err(js_error(error)));
+                    let _ = call_method(&transaction, "abort", &[]);
+                    return;
+                }
+                if let Err(error) = call_method(&leases, "delete", &[JsValue::from_str(&op_id)]) {
                     *output.borrow_mut() = Some(Err(js_error(error)));
                     let _ = call_method(&transaction, "abort", &[]);
                     return;
@@ -789,9 +1098,40 @@ fn is_pending(state: &JournalState) -> bool {
     matches!(state, JournalState::Prepared | JournalState::OutcomeUnknown)
 }
 
+fn secure_random_token() -> Result<String, IndexedDbJournalError> {
+    let window =
+        web_sys::window().ok_or_else(|| IndexedDbJournalError("window is unavailable".into()))?;
+    let crypto = Reflect::get(window.as_ref(), &JsValue::from_str("crypto")).map_err(js_error)?;
+    if crypto.is_null() || crypto.is_undefined() {
+        return Err(IndexedDbJournalError(
+            "secure browser crypto is unavailable; refusing to mint a dispatch lease".into(),
+        ));
+    }
+    let token = call_method(&crypto, "randomUUID", &[])
+        .map_err(js_error)?
+        .as_string()
+        .filter(|value| !value.trim().is_empty())
+        .ok_or_else(|| {
+            IndexedDbJournalError(
+                "crypto.randomUUID is unavailable; refusing to mint a dispatch lease".into(),
+            )
+        })?;
+    Ok(token)
+}
+
+fn epoch_now_ms() -> Result<u64, IndexedDbJournalError> {
+    let now = Date::now();
+    if !now.is_finite() || now < 0.0 || now > u64::MAX as f64 {
+        return Err(IndexedDbJournalError(
+            "browser wall clock is not representable as epoch milliseconds".into(),
+        ));
+    }
+    Ok(now.floor() as u64)
+}
+
 fn ensure_stores(database: &JsValue) -> Result<(), JsValue> {
     let names = Reflect::get(database, &JsValue::from_str("objectStoreNames"))?;
-    for name in STORE_NAMES {
+    for name in UPGRADE_STORE_NAMES {
         let exists = call_method(&names, "contains", &[JsValue::from_str(name)])?
             .as_bool()
             .unwrap_or(false);
@@ -913,4 +1253,49 @@ fn js_error_name(value: &JsValue) -> Option<String> {
     Reflect::get(value, &JsValue::from_str("name"))
         .ok()
         .and_then(|name| name.as_string())
+}
+
+#[cfg(test)]
+mod dispatch_lease_tests {
+    use super::{DISPATCH_LEASE_DURATION_MS, DISPATCH_LEASE_SCHEMA_VERSION, DispatchLeaseRecordV1};
+
+    fn valid_lease() -> DispatchLeaseRecordV1 {
+        DispatchLeaseRecordV1 {
+            schema_version: DISPATCH_LEASE_SCHEMA_VERSION,
+            operation_id: "op-lease-test".to_owned(),
+            owner_token: "opaque-random-token".to_owned(),
+            acquired_at_ms: 1_000,
+            expires_at_ms: 1_000 + DISPATCH_LEASE_DURATION_MS,
+        }
+    }
+
+    #[test]
+    fn lease_is_active_until_but_not_at_expiry() {
+        let lease = valid_lease();
+        assert!(lease.is_active_at(lease.expires_at_ms - 1));
+        assert!(!lease.is_active_at(lease.expires_at_ms));
+        assert!(!lease.is_active_at(lease.expires_at_ms + 1));
+    }
+
+    #[test]
+    fn lease_record_rejects_wrong_operation_or_unknown_schema() {
+        let lease = valid_lease();
+        assert!(lease.validate("op-lease-test").is_ok());
+        assert!(lease.validate("other-operation").is_err());
+
+        let mut unknown = valid_lease();
+        unknown.schema_version += 1;
+        assert!(unknown.validate("op-lease-test").is_err());
+    }
+
+    #[test]
+    fn lease_record_rejects_empty_token_and_nonpositive_lifetime() {
+        let mut empty_token = valid_lease();
+        empty_token.owner_token = "  ".to_owned();
+        assert!(empty_token.validate("op-lease-test").is_err());
+
+        let mut no_lifetime = valid_lease();
+        no_lifetime.expires_at_ms = no_lifetime.acquired_at_ms;
+        assert!(no_lifetime.validate("op-lease-test").is_err());
+    }
 }
