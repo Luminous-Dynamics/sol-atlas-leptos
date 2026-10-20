@@ -1145,3 +1145,51 @@ fn js_error_name(value: &JsValue) -> Option<String> {
         .ok()
         .and_then(|name| name.as_string())
 }
+
+
+#[cfg(test)]
+mod dispatch_lease_tests {
+    use super::{
+        DISPATCH_LEASE_DURATION_MS, DISPATCH_LEASE_SCHEMA_VERSION, DispatchLeaseRecordV1,
+    };
+
+    fn valid_lease() -> DispatchLeaseRecordV1 {
+        DispatchLeaseRecordV1 {
+            schema_version: DISPATCH_LEASE_SCHEMA_VERSION,
+            operation_id: "op-lease-test".to_owned(),
+            owner_token: "opaque-random-token".to_owned(),
+            acquired_at_ms: 1_000,
+            expires_at_ms: 1_000 + DISPATCH_LEASE_DURATION_MS,
+        }
+    }
+
+    #[test]
+    fn lease_is_active_until_but_not_at_expiry() {
+        let lease = valid_lease();
+        assert!(lease.is_active_at(lease.expires_at_ms - 1));
+        assert!(!lease.is_active_at(lease.expires_at_ms));
+        assert!(!lease.is_active_at(lease.expires_at_ms + 1));
+    }
+
+    #[test]
+    fn lease_record_rejects_wrong_operation_or_unknown_schema() {
+        let lease = valid_lease();
+        assert!(lease.validate("op-lease-test").is_ok());
+        assert!(lease.validate("other-operation").is_err());
+
+        let mut unknown = valid_lease();
+        unknown.schema_version += 1;
+        assert!(unknown.validate("op-lease-test").is_err());
+    }
+
+    #[test]
+    fn lease_record_rejects_empty_token_and_nonpositive_lifetime() {
+        let mut empty_token = valid_lease();
+        empty_token.owner_token = "  ".to_owned();
+        assert!(empty_token.validate("op-lease-test").is_err());
+
+        let mut no_lifetime = valid_lease();
+        no_lifetime.expires_at_ms = no_lifetime.acquired_at_ms;
+        assert!(no_lifetime.validate("op-lease-test").is_err());
+    }
+}
