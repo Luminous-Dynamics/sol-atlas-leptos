@@ -1677,6 +1677,175 @@ mod tests {
     }
 
     #[test]
+    fn robust_regret_uses_feasible_scenario_ideals_without_changing_the_original_frontier() {
+        let input = fixture();
+        let exact = evaluate(&input).expect("fixture should evaluate");
+        let original_frontier = exact.pareto_frontier.clone();
+        let regret = evaluate_robust_regret(&exact, &input.scenarios)
+            .expect("robust regret should evaluate the complete frontier");
+        let searched = evaluate_frontier_search(&input)
+            .expect("search frontier should evaluate");
+        let search_regret = evaluate_robust_regret_from_search(&searched, &input.scenarios)
+            .expect("search frontier regret should evaluate");
+
+        assert_eq!(regret, search_regret);
+        assert_eq!(exact.pareto_frontier, original_frontier);
+        assert_eq!(regret.portfolio_regrets.len(), 4);
+        assert_eq!(regret.minimax_regret_frontier.len(), 4);
+        assert_eq!(
+            regret.scenario_ideal_objectives["nominal"],
+            ObjectiveVector {
+                economic_value_u: 21,
+                essential_service_points: 12,
+                paid_work_opportunity_points: 13,
+                ecological_quality_points: 14,
+            }
+        );
+        assert_eq!(
+            regret.scenario_ideal_objectives["hot_dry_grid_stress"],
+            ObjectiveVector {
+                economic_value_u: 14,
+                essential_service_points: 11,
+                paid_work_opportunity_points: 13,
+                ecological_quality_points: 14,
+            }
+        );
+
+        let key = |entry: &PortfolioRegret| portfolio_key(&entry.portfolio);
+        let expected_worst: BTreeMap<&str, ObjectiveVector> = BTreeMap::from([
+            (
+                "A+F+J+R",
+                ObjectiveVector {
+                    economic_value_u: 11,
+                    essential_service_points: 3,
+                    paid_work_opportunity_points: 3,
+                    ecological_quality_points: 1,
+                },
+            ),
+            (
+                "F+J+T+W",
+                ObjectiveVector {
+                    economic_value_u: 10,
+                    essential_service_points: 0,
+                    paid_work_opportunity_points: 6,
+                    ecological_quality_points: 0,
+                },
+            ),
+            (
+                "I+J+R+T",
+                ObjectiveVector {
+                    economic_value_u: 4,
+                    essential_service_points: 5,
+                    paid_work_opportunity_points: 0,
+                    ecological_quality_points: 8,
+                },
+            ),
+            (
+                "I+J+T+W",
+                ObjectiveVector {
+                    economic_value_u: 0,
+                    essential_service_points: 0,
+                    paid_work_opportunity_points: 3,
+                    ecological_quality_points: 7,
+                },
+            ),
+        ]);
+        let actual_worst: BTreeMap<String, ObjectiveVector> = regret
+            .minimax_regret_frontier
+            .iter()
+            .map(|entry| (key(entry), entry.worst_case_regret.clone()))
+            .collect();
+        for (portfolio_id, expected) in expected_worst {
+            assert_eq!(actual_worst[portfolio_id], expected);
+        }
+
+        for scenario in &input.scenarios {
+            for objective_id in OBJECTIVE_IDS {
+                let ideal = regret.scenario_ideal_objectives[&scenario.id]
+                    .value(objective_id)
+                    .expect("objective ideal should exist");
+                assert!(exact.feasible_portfolios.iter().any(|portfolio| {
+                    portfolio.outcomes[&scenario.id]
+                        .value(objective_id)
+                        .expect("portfolio objective should exist")
+                        == ideal
+                }));
+            }
+        }
+        assert!(regret.portfolio_regrets.iter().all(|entry| {
+            entry.scenario_regret.values().all(|value| {
+                value.economic_value_u >= 0
+                    && value.essential_service_points >= 0
+                    && value.paid_work_opportunity_points >= 0
+                    && value.ecological_quality_points >= 0
+            })
+        }));
+    }
+
+    #[test]
+    fn v02_robust_regret_frontier_has_frozen_expected_members() {
+        let input: Input =
+            serde_json::from_str(V02_INPUT).expect("v0.2 fixture should parse");
+        let exact = evaluate(&input).expect("v0.2 fixture should evaluate");
+        let regret = evaluate_robust_regret(&exact, &input.scenarios)
+            .expect("v0.2 robust regret should evaluate");
+
+        let actual: Vec<String> = regret
+            .minimax_regret_frontier
+            .iter()
+            .map(|entry| portfolio_key(&entry.portfolio))
+            .collect();
+        assert_eq!(
+            actual,
+            vec![
+                "P00+P01+P03+P05+P08",
+                "P00+P01+P03+P05+P09",
+                "P00+P01+P05+P06+P08",
+                "P00+P01+P05+P06+P09",
+                "P00+P03+P04+P05+P09",
+                "P02+P04+P05+P06+P08",
+                "P02+P04+P05+P06+P09",
+            ]
+        );
+        assert_eq!(regret.portfolio_regrets.len(), exact.pareto_frontier.len());
+    }
+
+    #[test]
+    fn robust_regret_is_invariant_to_input_row_permutations() {
+        let mut input = fixture();
+        let baseline = evaluate(&input).expect("fixture should evaluate");
+        let baseline_regret =
+            evaluate_robust_regret(&baseline, &input.scenarios).expect("regret should evaluate");
+        input.projects.reverse();
+        input.scenarios.reverse();
+        input.budgets_by_period.reverse();
+        input.objective_schema.reverse();
+        input.interaction_rules.reverse();
+        let permuted = evaluate(&input).expect("permuted fixture should evaluate");
+        let permuted_regret = evaluate_robust_regret(&permuted, &input.scenarios)
+            .expect("permuted regret should evaluate");
+        assert_eq!(permuted_regret, baseline_regret);
+    }
+
+    #[test]
+    fn robust_regret_fails_closed_for_empty_or_inconsistent_frontiers() {
+        let mut input = fixture();
+        for floor in &mut input.mandatory_floors {
+            floor.threshold = 99;
+        }
+        let empty = evaluate(&input).expect("zero-feasible synthetic case should evaluate");
+        assert!(empty.pareto_frontier.is_empty());
+        assert!(evaluate_robust_regret(&empty, &input.scenarios).is_err());
+
+        let baseline_input = fixture();
+        let baseline = evaluate(&baseline_input).expect("fixture should evaluate");
+        assert!(
+            evaluate_robust_regret(&baseline, &baseline_input.scenarios[..1]).is_err(),
+            "scenario coverage mismatch must fail closed"
+        );
+    }
+
+    #[test]
     fn interaction_adjustments_are_applied_once_per_selected_pair() {
         let evaluation = evaluate(&fixture()).expect("fixture should evaluate");
         let portfolio = evaluation
