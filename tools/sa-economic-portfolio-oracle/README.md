@@ -79,7 +79,14 @@ cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --sce
   docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-withheld-compound-stress.expected.json
 ```
 
-The frozen compound-stress patch adds explicit outcomes for all ten projects and both interaction rules, and combines heat/drought/grid/crew stress without assigning a probability. The independent exhaustive manifest records 82 feasible portfolios and 8 frontier members in the original two-scenario input; after adding this synthetic scenario, 41 feasible portfolios and 5 frontier members remain, with 41 previously feasible combinations failing the expanded constraints. Four frontier IDs are retained; the ID-set union contains nine. These are synthetic units only. The metamorphic test verifies that the augmented feasible set is a subset of the original set and that the reported removed portfolios reconcile exactly.
+The frozen compound-stress patch adds explicit outcomes for all ten projects and both interaction rules, and combines heat/drought/grid/crew stress without assigning a probability. A second patch, `sa-portfolio-scenario-robustness-v0.1-no-effect-control.json`, duplicates the `normal_reference` coefficients exactly as a negative control; its expected report verifies 82 feasible portfolios, the same eight frontier IDs, and zero feasible-set or frontier turnover.
+
+```sh
+cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --scenario-addition \
+  docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.json \
+  docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-no-effect-control.json \
+  docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-no-effect-control.expected.json
+``` The independent exhaustive manifest records 82 feasible portfolios and 8 frontier members in the original two-scenario input; after adding this synthetic scenario, 41 feasible portfolios and 5 frontier members remain, with 41 previously feasible combinations failing the expanded constraints. Four frontier IDs are retained; the ID-set union contains nine. These are synthetic units only. The metamorphic test verifies that the augmented feasible set is a subset of the original set and that the reported removed portfolios reconcile exactly.
 
 The exact oracle enumerates all subsets up to 20 projects and rejects over-cap inputs rather than silently truncating. V0.1 freezes eight project IDs, two named stress scenarios, P1/P2 periods and interaction rules. V0.2 accepts unique project and scenario IDs plus ordered Pn periods (while retaining the four typed maximize objectives and null scenario weights/probabilities); the committed ten-project fixture freezes 1,024 subsets, 82 feasible portfolios and its exact frontier.
 
