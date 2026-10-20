@@ -150,7 +150,8 @@ fn validate_manifest(manifest: &RunManifest) -> Result<(), String> {
         if path.trim().is_empty()
             || path.starts_with('/')
             || path.starts_with('\\')
-            || path.contains(['\n', '\r'])
+            || path.contains('\n')
+            || path.contains('\r')
             || path
                 .split(|character| character == '/' || character == '\\')
                 .any(|component| component == "..")
