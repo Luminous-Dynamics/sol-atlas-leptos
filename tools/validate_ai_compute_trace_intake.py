@@ -17,8 +17,9 @@ from jsonschema import Draft202012Validator, FormatChecker
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_PATH = ROOT / "schemas/ai-compute-energy-trace-intake-v1.schema.json"
-PLANNED_PATH = (
-    ROOT / "schemas/examples/ai-compute-energy-trace-intake-v1.planned.json"
+PLANNED_PATHS = (
+    ROOT / "schemas/examples/ai-compute-energy-trace-intake-v1.planned.json",
+    ROOT / "schemas/examples/google-clusterdata2019-power-trace-intake.planned.json",
 )
 
 
@@ -166,7 +167,7 @@ def positive_control(planned: dict[str, Any]) -> dict[str, Any]:
 
 def main() -> int:
     schema = load_json(SCHEMA_PATH)
-    planned = load_json(PLANNED_PATH)
+    planned_instances = [(path, load_json(path)) for path in PLANNED_PATHS]
 
     # Validate the schema document against its declared Draft 2020-12 meta-schema.
     Draft202012Validator.check_schema(schema)
@@ -176,7 +177,13 @@ def main() -> int:
     )
     print("PASS schema is valid Draft 2020-12")
 
-    expect_valid("planned metadata-only fixture", validator, planned)
+    for path, planned in planned_instances:
+        expect_valid(path.relative_to(ROOT).as_posix(), validator, planned)
+
+    # Use Alibaba's compact fixture as a template for a wholly fictional positive
+    # control. This intentionally does not certify the Google trace's power or
+    # license metadata and is never used as empirical evidence.
+    planned = planned_instances[0][1]
     expect_valid(
         "fictional positive-control schema path (not real evidence)",
         validator,
