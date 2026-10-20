@@ -302,7 +302,8 @@ fn benchmark_count(feature_count: usize, samples: usize, seed: u32) -> Result<Va
 
         let total_kernel_ns = generation_ns
             .saturating_add(validation_ns)
-            .saturating_add(serialization_ns);
+            .saturating_add(serialization_ns)
+            .saturating_add(sha256_ns);
         raw_samples.push(json!({
             "sample_index": sample_index,
             "generation_ns": generation_ns,
@@ -481,6 +482,12 @@ mod tests {
             report["raw_samples"][0]["snapshot_sha256"],
             report["raw_samples"][1]["snapshot_sha256"]
         );
+        let sample = &report["raw_samples"][0];
+        let measured_total = sample["generation_ns"].as_u64().unwrap()
+            + sample["validation_ns"].as_u64().unwrap()
+            + sample["serialization_ns"].as_u64().unwrap()
+            + sample["sha256_ns"].as_u64().unwrap();
+        assert_eq!(sample["total_kernel_ns"].as_u64().unwrap(), measured_total);
         assert!(report["snapshot_bytes"].as_u64().unwrap() > 0);
     }
 }
