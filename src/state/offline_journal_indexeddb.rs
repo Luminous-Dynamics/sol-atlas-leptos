@@ -1100,9 +1100,12 @@ impl IndexedDbJournal {
     /// scheduling hint; every row is reloaded and validated before being returned.
     pub async fn list_pending(
         &self,
+        owner_scope: &str,
+        operation_namespace: &str,
         after_operation_id: Option<&str>,
         limit: usize,
     ) -> Result<IndexedDbJournalPage, IndexedDbJournalError> {
+        require_scope(owner_scope, operation_namespace)?;
         if limit == 0 {
             return Err(IndexedDbJournalError(
                 "page size must be greater than zero".into(),
@@ -1125,11 +1128,21 @@ impl IndexedDbJournal {
         ids.sort();
         let has_more = ids.len() > limit;
         ids.truncate(limit);
+
+        // The pending index is shared by all account scopes. Scan by operation ID
+        // but only return records bound to this authenticated owner + namespace.
+        // An empty page may still return a cursor when the scanned IDs belonged
+        // to other scopes; callers continue until the cursor is None.
         let mut entries = Vec::with_capacity(ids.len());
         for id in ids.iter() {
-            let entry = self.load(id).await?.ok_or_else(|| {
+            let stored = self.read_stored_operation(id).await?.ok_or_else(|| {
                 IndexedDbJournalError(format!("pending index points to missing operation {id}"))
             })?;
+            if !stored.matches_scope(owner_scope, operation_namespace) {
+                continue;
+            }
+            let entry = JournalEntry::from_snapshot_for_operation(id, stored.snapshot)
+                .map_err(IndexedDbJournalError::from)?;
             if !is_pending(entry.state()) {
                 return Err(IndexedDbJournalError(format!(
                     "pending index points to non-pending operation {id}"
