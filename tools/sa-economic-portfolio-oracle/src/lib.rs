@@ -777,7 +777,7 @@ fn search_frontier_recursive(
             .project_index_by_id
             .get(dependency_id)
             .ok_or_else(|| format!("unknown prerequisite {dependency_id}"))?;
-        if mask & (1_u64 << dependency_index) == 0 {
+        if mask & (1_u64 << *dependency_index) == 0 {
             accumulator.stats.prerequisite_pruned_subsets += completion_count;
             return Ok(());
         }
