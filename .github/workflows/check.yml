@@ -72,9 +72,9 @@ jobs:
           output_dir="${RUNNER_TEMP}/landscape-observation-bench"
           mkdir -p "$output_dir"
           machine_label="${ImageOS:-ubuntu-latest}-${ImageVersion:-unknown}"
-          cpu_model="$(lscpu | awk -F: '/Model name/ { gsub(/^[[:space:]]+/, "", \$2); print \$2; exit }')"
+          cpu_model="$(lscpu | awk -F: '/Model name/ { gsub(/^[[:space:]]+/, "", $2); print $2; exit }')"
           if [ -z "$cpu_model" ]; then cpu_model="$(uname -m)"; fi
-          ram_mib="$(awk '/MemTotal:/ { print int(\$2 / 1024) }' /proc/meminfo)"
+          ram_mib="$(awk '/MemTotal:/ { print int($2 / 1024) }' /proc/meminfo)"
           for profile in unique exact-10pct exact-100pct conflict over-limit; do
             cargo run --quiet --features landscape-observation-bench --bin landscape-observation-bench -- \
               --commit-sha "$GITHUB_SHA" \
