@@ -438,27 +438,39 @@ impl IndexedDbJournal {
     /// Persists the OutcomeUnknown transition, pending index, attempt count and
     /// canonical body together. Returns no DispatchPermit until transaction
     /// completion has been observed by this future.
+    /// Atomically claims a cross-tab lease and persists OutcomeUnknown before
+    /// returning permission to send. A second tab sees the active lease and
+    /// receives an error rather than a second permit.
+    ///
+    /// Lease expiry is a duplicate-suppression mechanism, not an exactly-once
+    /// guarantee: a suspended tab can resume after expiry. Server-side idempotency
+    /// must still bind each key to the same immutable request fingerprint.
     pub async fn begin_attempt(
         &self,
         operation_id: &str,
     ) -> Result<DispatchPermit, IndexedDbJournalError> {
-        let store_names = [OPERATIONS, PENDING_OPERATIONS];
+        let lease_token = secure_random_token()?;
+        let store_names = [OPERATIONS, PENDING_OPERATIONS, DISPATCH_LEASES];
         let (transaction, durability_policy) = self.transaction(&store_names, "readwrite")?;
         let transaction_done = transaction_promise(transaction.clone());
         let operations = object_store(&transaction, OPERATIONS)?;
         let pending = object_store(&transaction, PENDING_OPERATIONS)?;
+        let leases = object_store(&transaction, DISPATCH_LEASES)?;
         let request = call_method(&operations, "get", &[JsValue::from_str(operation_id)])
             .map_err(js_error)?;
-        let output: Rc<RefCell<Option<Result<String, IndexedDbJournalError>>>> =
-            Rc::new(RefCell::new(None));
+        let output: Rc<
+            RefCell<Option<Result<(String, DispatchLeaseRecordV1), IndexedDbJournalError>>>,
+        > = Rc::new(RefCell::new(None));
 
         {
             let request_for_callback = request.clone();
             let output = output.clone();
             let operations = operations.clone();
             let pending = pending.clone();
+            let leases = leases.clone();
             let transaction = transaction.clone();
             let expected_id = operation_id.to_owned();
+            let lease_token = lease_token.clone();
             let callback = Closure::once_into_js(move |_event: JsValue| {
                 let raw = match Reflect::get(&request_for_callback, &JsValue::from_str("result")) {
                     Ok(value) => value,
@@ -491,7 +503,7 @@ impl IndexedDbJournal {
                         return;
                     }
                 };
-                let mut entry =
+                let entry =
                     match JournalEntry::from_snapshot_for_operation(&expected_id, snapshot) {
                         Ok(value) => value,
                         Err(error) => {
@@ -499,45 +511,167 @@ impl IndexedDbJournal {
                             return;
                         }
                     };
-                if let Err(error) = entry.mark_attempt_started() {
-                    *output.borrow_mut() = Some(Err(IndexedDbJournalError::from(error)));
-                    return;
-                }
-                let saved = match entry.to_snapshot().and_then(|value| {
-                    serde_json::to_string(&value)
-                        .map_err(|_| JournalError::InvalidSnapshot("snapshot_serialization_failed"))
-                }) {
+
+                // Chain the second read inside the first request's success event,
+                // keeping the transaction active without awaiting a Promise.
+                let lease_request = match call_method(
+                    &leases,
+                    "get",
+                    &[JsValue::from_str(&expected_id)],
+                ) {
                     Ok(value) => value,
                     Err(error) => {
-                        *output.borrow_mut() = Some(Err(IndexedDbJournalError::from(error)));
+                        *output.borrow_mut() = Some(Err(js_error(error)));
+                        let _ = call_method(&transaction, "abort", &[]);
                         return;
                     }
                 };
-                if let Err(error) = call_method(
-                    &operations,
-                    "put",
-                    &[JsValue::from_str(&saved), JsValue::from_str(&expected_id)],
+                let lease_request_for_callback = lease_request.clone();
+                let output = output.clone();
+                let operations = operations.clone();
+                let pending = pending.clone();
+                let leases = leases.clone();
+                let transaction = transaction.clone();
+                let expected_id = expected_id.clone();
+                let lease_token = lease_token.clone();
+                let callback = Closure::once_into_js(move |_lease_event: JsValue| {
+                    let raw_lease = match Reflect::get(
+                        &lease_request_for_callback,
+                        &JsValue::from_str("result"),
+                    ) {
+                        Ok(value) => value,
+                        Err(error) => {
+                            *output.borrow_mut() = Some(Err(js_error(error)));
+                            let _ = call_method(&transaction, "abort", &[]);
+                            return;
+                        }
+                    };
+
+                    let existing_lease = if raw_lease.is_null() || raw_lease.is_undefined() {
+                        None
+                    } else {
+                        let serialized = match raw_lease.as_string() {
+                            Some(value) => value,
+                            None => {
+                                *output.borrow_mut() = Some(Err(IndexedDbJournalError(
+                                    "dispatch lease store contains a non-string record".into(),
+                                )));
+                                let _ = call_method(&transaction, "abort", &[]);
+                                return;
+                            }
+                        };
+                        let record: DispatchLeaseRecordV1 =
+                            match serde_json::from_str(&serialized) {
+                                Ok(value) => value,
+                                Err(error) => {
+                                    *output.borrow_mut() = Some(Err(IndexedDbJournalError(
+                                        format!("stored dispatch lease JSON invalid: {error}"),
+                                    )));
+                                    let _ = call_method(&transaction, "abort", &[]);
+                                    return;
+                                }
+                            };
+                        if let Err(error) = record.validate(&expected_id) {
+                            *output.borrow_mut() = Some(Err(error));
+                            let _ = call_method(&transaction, "abort", &[]);
+                            return;
+                        }
+                        Some(record)
+                    };
+
+                    let now_ms = match epoch_now_ms() {
+                        Ok(value) => value,
+                        Err(error) => {
+                            *output.borrow_mut() = Some(Err(error));
+                            let _ = call_method(&transaction, "abort", &[]);
+                            return;
+                        }
+                    };
+                    if let Some(existing) = existing_lease.as_ref() {
+                        if existing.is_active_at(now_ms) {
+                            *output.borrow_mut() = Some(Err(IndexedDbJournalError(format!(
+                                "dispatch lease is held until epoch-ms {}",
+                                existing.expires_at_ms
+                            ))));
+                            return;
+                        }
+                    }
+
+                    let lease = DispatchLeaseRecordV1 {
+                        schema_version: DISPATCH_LEASE_SCHEMA_VERSION,
+                        operation_id: expected_id.clone(),
+                        owner_token: lease_token,
+                        acquired_at_ms: now_ms,
+                        expires_at_ms: now_ms.saturating_add(DISPATCH_LEASE_DURATION_MS),
+                    };
+                    let lease_json = match serde_json::to_string(&lease) {
+                        Ok(value) => value,
+                        Err(error) => {
+                            *output.borrow_mut() = Some(Err(IndexedDbJournalError(format!(
+                                "dispatch lease serialization failed: {error}"
+                            ))));
+                            let _ = call_method(&transaction, "abort", &[]);
+                            return;
+                        }
+                    };
+
+                    let mut entry = entry;
+                    if let Err(error) = entry.mark_attempt_started() {
+                        *output.borrow_mut() = Some(Err(IndexedDbJournalError::from(error)));
+                        return;
+                    }
+                    let saved = match entry.to_snapshot().and_then(|value| {
+                        serde_json::to_string(&value)
+                            .map_err(|_| JournalError::InvalidSnapshot("snapshot_serialization_failed"))
+                    }) {
+                        Ok(value) => value,
+                        Err(error) => {
+                            *output.borrow_mut() = Some(Err(IndexedDbJournalError::from(error)));
+                            return;
+                        }
+                    };
+
+                    // Both writes plus the pending marker commit or abort as a unit.
+                    for (store, value) in [
+                        (&leases, lease_json),
+                        (&operations, saved.clone()),
+                    ] {
+                        if let Err(error) = call_method(
+                            store,
+                            "put",
+                            &[JsValue::from_str(&value), JsValue::from_str(&expected_id)],
+                        ) {
+                            *output.borrow_mut() = Some(Err(js_error(error)));
+                            let _ = call_method(&transaction, "abort", &[]);
+                            return;
+                        }
+                    }
+                    if let Err(error) = call_method(
+                        &pending,
+                        "put",
+                        &[JsValue::from_bool(true), JsValue::from_str(&expected_id)],
+                    ) {
+                        *output.borrow_mut() = Some(Err(js_error(error)));
+                        let _ = call_method(&transaction, "abort", &[]);
+                        return;
+                    }
+                    *output.borrow_mut() = Some(Ok((saved, lease)));
+                });
+                if let Err(error) = Reflect::set(
+                    &lease_request,
+                    &JsValue::from_str("onsuccess"),
+                    &callback,
                 ) {
                     *output.borrow_mut() = Some(Err(js_error(error)));
                     let _ = call_method(&transaction, "abort", &[]);
-                    return;
                 }
-                if let Err(error) = call_method(
-                    &pending,
-                    "put",
-                    &[JsValue::from_bool(true), JsValue::from_str(&expected_id)],
-                ) {
-                    *output.borrow_mut() = Some(Err(js_error(error)));
-                    let _ = call_method(&transaction, "abort", &[]);
-                    return;
-                }
-                *output.borrow_mut() = Some(Ok(saved));
             });
-            Reflect::set(&request, &JsValue::from_str("onsuccess"), &callback).map_err(js_error)?;
+            Reflect::set(&request, &JsValue::from_str("onsuccess"), &callback)
+                .map_err(js_error)?;
         }
 
         JsFuture::from(transaction_done).await.map_err(js_error)?;
-        let saved = output.borrow_mut().take().ok_or_else(|| {
+        let (saved, lease) = output.borrow_mut().take().ok_or_else(|| {
             IndexedDbJournalError("attempt transaction completed without an outcome".into())
         })??;
         let snapshot: JournalEntrySnapshotV1 = serde_json::from_str(&saved).map_err(|error| {
@@ -551,6 +685,8 @@ impl IndexedDbJournal {
             payload_digest_sha256: entry.envelope().payload_digest_sha256.clone(),
             canonical_payload_utf8: entry.canonical_payload_utf8().to_vec(),
             attempt_count: entry.attempt_count(),
+            lease_token: lease.owner_token,
+            lease_expires_at_ms: lease.expires_at_ms,
             durability_policy,
         })
     }
