@@ -15,6 +15,7 @@ use sha2::{Digest, Sha256};
 use std::collections::HashSet;
 use std::env;
 use std::fs;
+use std::path::Path;
 use std::process;
 
 const MANIFEST_SCHEMA_VERSION: &str = "1.0";
@@ -547,7 +548,40 @@ fn main() {
             process::exit(66);
         }
     };
-    let input = match build_trace_input(&power_csv, &manifest_bytes) {
+    let manifest: RunManifest = match serde_json::from_slice(&manifest_bytes) {
+        Ok(manifest) => manifest,
+        Err(error) => {
+            eprintln!("could not parse strict run manifest JSON: {error}");
+            process::exit(65);
+        }
+    };
+    if let Err(error) = validate_manifest(&manifest) {
+        eprintln!("invalid FlexDC-Sim run manifest: {error}");
+        process::exit(65);
+    }
+
+    // Resolve the manifest-declared runtime artifact relative to the manifest
+    // directory, never relative to an implicit current working directory.
+    let runtime_environment_bytes = match manifest.runtime_environment_manifest_path.as_deref() {
+        Some(relative_path) => {
+            let manifest_file = Path::new(&manifest_path);
+            let bundle_dir = manifest_file.parent().unwrap_or_else(|| Path::new("."));
+            match fs::read(bundle_dir.join(relative_path)) {
+                Ok(bytes) => Some(bytes),
+                Err(error) => {
+                    eprintln!("could not read runtime environment manifest: {error}");
+                    process::exit(66);
+                }
+            }
+        }
+        None => None,
+    };
+
+    let input = match build_trace_input(
+        &power_csv,
+        &manifest_bytes,
+        runtime_environment_bytes.as_deref(),
+    ) {
         Ok(value) => value,
         Err(error) => {
             eprintln!("could not adapt FlexDC-Sim trace: {error}");
