@@ -1385,7 +1385,7 @@ mod tests {
         SharedResourceAllocationPolicy, SharedResourceAllocationRequest, SharedResourceCapacity,
         SharedResourceServiceDemand, SharedResourceUsage, assess_shared_resource_allocation,
     };
-    use crate::spatial_economic::{EvidenceRecord, Quantity};
+    use crate::spatial_economic::Quantity;
 
     fn synthetic_lineage() -> IntertemporalLineage {
         IntertemporalLineage {
@@ -1534,10 +1534,10 @@ mod tests {
                 )
             })
             .collect();
-        assert_eq!(allocation[("essential-a", "t0")], 1);
-        assert_eq!(allocation[("essential-a", "t1")], 1);
-        assert_eq!(allocation[("general-b", "t0")], 1);
-        assert_eq!(allocation[("general-b", "t1")], 1);
+        assert_eq!(allocation[&("essential-a", "t0")], 1);
+        assert_eq!(allocation[&("essential-a", "t1")], 1);
+        assert_eq!(allocation[&("general-b", "t0")], 1);
+        assert_eq!(allocation[&("general-b", "t1")], 1);
 
         let rows: Vec<_> = result
             .resource_steps
