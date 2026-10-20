@@ -231,10 +231,25 @@ fn split_numeric_csv_line(line: &str, row_number: usize) -> Result<Vec<&str>, St
     Ok(line.split(',').collect())
 }
 
+fn parse_nonnegative_power_w(raw: &str, row_number: usize, field: &str) -> Result<f64, String> {
+    if raw.trim().is_empty() {
+        return Err(format!("power trace row {row_number}: {field} is missing"));
+    }
+    let watts = raw.parse::<f64>().map_err(|_| {
+        format!("power trace row {row_number}: {field} must be numeric watts")
+    })?;
+    if !watts.is_finite() || watts < 0.0 {
+        return Err(format!(
+            "power trace row {row_number}: {field} must be finite non-negative watts"
+        ));
+    }
+    Ok(watts)
+}
+
 fn parse_power_trace(
     csv_text: &str,
     manifest: &RunManifest,
-) -> Result<(Vec<String>, Vec<f64>), String> {
+) -> Result<(Vec<String>, Vec<f64>, Vec<f64>, Vec<f64>), String> {
     let mut lines = csv_text.lines();
     let header_line = lines
         .next()
@@ -245,22 +260,30 @@ fn parse_power_trace(
         return Err("power trace header is blank".to_owned());
     }
     let header = split_numeric_csv_line(header_line, 1)?;
-    let time_indices = header
-        .iter()
-        .enumerate()
-        .filter_map(|(i, name)| (*name == "time").then_some(i))
-        .collect::<Vec<_>>();
-    let error_indices = header
-        .iter()
-        .enumerate()
-        .filter_map(|(i, name)| (*name == "trackingError").then_some(i))
-        .collect::<Vec<_>>();
-    if time_indices.len() != 1 || error_indices.len() != 1 {
+    let find_indices = |field: &str| {
+        header
+            .iter()
+            .enumerate()
+            .filter_map(|(i, name)| (*name == field).then_some(i))
+            .collect::<Vec<_>>()
+    };
+    let time_indices = find_indices("time");
+    let target_indices = find_indices("target");
+    let real_sum_indices = find_indices("realSum");
+    let error_indices = find_indices("trackingError");
+    if time_indices.len() != 1
+        || target_indices.len() != 1
+        || real_sum_indices.len() != 1
+        || error_indices.len() != 1
+    {
         return Err(
-            "power trace must contain exactly one time and one trackingError column".to_owned(),
+            "power trace must contain exactly one each of time, target, realSum, trackingError"
+                .to_owned(),
         );
     }
     let time_idx = time_indices[0];
+    let target_idx = target_indices[0];
+    let real_sum_idx = real_sum_indices[0];
     let error_idx = error_indices[0];
     let expected_rows_u64 =
         manifest.simulation_duration_seconds / manifest.simulation_step_seconds + 1;
@@ -268,6 +291,8 @@ fn parse_power_trace(
         .map_err(|_| "declared simulation row count exceeds platform limits".to_owned())?;
 
     let mut interval_ids = Vec::with_capacity(expected_rows);
+    let mut target_power_kw = Vec::with_capacity(expected_rows);
+    let mut measured_power_kw = Vec::with_capacity(expected_rows);
     let mut tracking_errors = Vec::with_capacity(expected_rows);
     for (line_index, line) in lines.enumerate() {
         let row_number = line_index + 2;
@@ -293,6 +318,17 @@ fn parse_power_trace(
                 "power trace row {row_number}: expected time {expected_time}, got {time}; missing, duplicate, or out-of-order rows are not silently repaired"
             ));
         }
+
+        let target_w = parse_nonnegative_power_w(fields[target_idx], row_number, "target")?;
+        let real_sum_w = parse_nonnegative_power_w(fields[real_sum_idx], row_number, "realSum")?;
+        let target_kw = target_w / 1000.0;
+        let real_sum_kw = real_sum_w / 1000.0;
+        if !target_kw.is_finite() || !real_sum_kw.is_finite() {
+            return Err(format!(
+                "power trace row {row_number}: converted power must remain finite in kW"
+            ));
+        }
+
         let raw_error = fields[error_idx];
         if raw_error.trim().is_empty() {
             return Err(format!(
@@ -313,6 +349,8 @@ fn parse_power_trace(
             ));
         }
         interval_ids.push(time.to_string());
+        target_power_kw.push(target_kw);
+        measured_power_kw.push(real_sum_kw);
         tracking_errors.push(error);
     }
     if tracking_errors.len() != expected_rows {
@@ -324,7 +362,12 @@ fn parse_power_trace(
     if tracking_errors.is_empty() {
         return Err("power trace contains no samples".to_owned());
     }
-    Ok((interval_ids, tracking_errors))
+    Ok((
+        interval_ids,
+        target_power_kw,
+        measured_power_kw,
+        tracking_errors,
+    ))
 }
 
 fn build_trace_input(power_csv: &[u8], manifest_bytes: &[u8]) -> Result<Value, String> {
@@ -334,15 +377,19 @@ fn build_trace_input(power_csv: &[u8], manifest_bytes: &[u8]) -> Result<Value, S
 
     let csv_text = std::str::from_utf8(power_csv)
         .map_err(|error| format!("power trace must be UTF-8 CSV: {error}"))?;
-    let (interval_ids, signed_errors) = parse_power_trace(csv_text, &manifest)?;
+    let (interval_ids, target_power_kw, measured_power_kw, signed_errors) =
+        parse_power_trace(csv_text, &manifest)?;
     let artifact_sha256 = sha256_hex(power_csv);
     let manifest_sha256 = sha256_hex(manifest_bytes);
+    let reserve_capacity_kw = manifest.regulation_reserve_w / 1000.0;
     let normalization_note = format!(
-        "FlexDC-Sim source commit {}; run {}; command {}; random seed {}; exported trackingError is the source-native signed normalized error from prior-cycle real_power and previous signal cap, divided by R + 0.0001. Startup rows before signal step {} seconds are zero. Time is preserved in seconds as interval IDs with no resampling. power_trace.csv SHA-256={artifact_sha256}; exact run-manifest JSON SHA-256={manifest_sha256}. {} This is simulator output, not wall-metered facility power.",
+        "FlexDC-Sim source commit {}; run {}; command {}; random seed {}; configured power cap P={} W and reserve R={} W. The exported trackingError is the source-native signed normalized error from prior-cycle real_power and previous signal cap, divided by R + 0.0001. Same-row target/realSum values are separately converted from W to kW and paired with exact configured R for the rederived RSR view. Startup rows before signal step {} seconds are zero. Time is preserved in seconds as interval IDs with no resampling. power_trace.csv SHA-256={artifact_sha256}; exact run-manifest JSON SHA-256={manifest_sha256}. {} This is simulator output, not wall-metered facility power.",
         manifest.source_revision,
         manifest.run_id,
         manifest.simulator_command,
         manifest.random_seed,
+        manifest.power_cap_w,
+        manifest.regulation_reserve_w,
         manifest.signal_step_seconds,
         manifest.notes
     );
@@ -352,7 +399,12 @@ fn build_trace_input(power_csv: &[u8], manifest_bytes: &[u8]) -> Result<Value, S
         "fixture_id": format!("flexdc-sim-{}", manifest.run_id),
         "synthetic": true,
         "claim_ceiling": "metric_accounting_only",
-        "rsr": null,
+        "rsr": {
+            "interval_ids": interval_ids.clone(),
+            "target_power_kw": target_power_kw,
+            "measured_power_kw": measured_power_kw,
+            "reserve_capacity_kw": reserve_capacity_kw
+        },
         "rsr_reference": {
             "metadata": {
                 "source_name": "FlexDC-Sim",
