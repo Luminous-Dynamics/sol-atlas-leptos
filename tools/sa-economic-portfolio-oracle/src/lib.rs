@@ -1099,6 +1099,26 @@ mod tests {
     }
 
     #[test]
+    fn generalized_v02_row_permutations_preserve_exact_and_search_results() {
+        let mut input: Input =
+            serde_json::from_str(V02_INPUT).expect("v0.2 fixture should parse");
+        let baseline = evaluate(&input).expect("baseline exact evaluation should work");
+        let baseline_search = evaluate_frontier_search(&input)
+            .expect("baseline frontier search should work");
+        input.projects.reverse();
+        input.scenarios.reverse();
+        input.budgets_by_period.reverse();
+        input.objective_schema.reverse();
+        input.interaction_rules.reverse();
+        let permuted = evaluate(&input).expect("permuted exact evaluation should work");
+        let permuted_search = evaluate_frontier_search(&input)
+            .expect("permuted frontier search should work");
+        assert_eq!(permuted, baseline);
+        assert_eq!(permuted_search.pareto_frontier, baseline_search.pareto_frontier);
+        assert_eq!(permuted_search.stats.feasible_portfolio_count, baseline_search.stats.feasible_portfolio_count);
+        assert_eq!(permuted_search.stats.accounted_subset_count(), 1_024);
+    }
+    #[test]
     fn dependency_aware_search_matches_v01_exact_frontier() {
         let input = fixture();
         let exact = evaluate(&input).expect("v0.1 exact oracle should evaluate");
