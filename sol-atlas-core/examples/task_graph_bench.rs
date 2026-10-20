@@ -23,6 +23,7 @@ const DEFAULT_TASKS: usize = 10_000;
 const MAX_SAMPLES: usize = 10_000;
 const MAX_TASKS: usize = 100_000;
 const DEPENDENCY_FAN_IN: usize = 4;
+const WARMUP_RUNS: usize = 5;
 
 fn parse_arg<T: std::str::FromStr>(
     args: &mut impl Iterator<Item = String>,
@@ -66,7 +67,7 @@ fn build_graph(task_count: usize) -> TaskGraphV1 {
 fn measure(graph: &TaskGraphV1, samples: usize, operation: &str) -> Result<Vec<u128>, String> {
     let mut raw_ns = Vec::with_capacity(samples);
 
-    for _ in 0..samples {
+    for iteration in 0..(samples + WARMUP_RUNS) {
         let start = Instant::now();
         match operation {
             "validate" => graph.validate().map_err(|error| error.to_string())?,
@@ -82,7 +83,10 @@ fn measure(graph: &TaskGraphV1, samples: usize, operation: &str) -> Result<Vec<u
             }
             _ => return Err(format!("unknown benchmark operation: {operation}")),
         }
-        raw_ns.push(start.elapsed().as_nanos());
+        let elapsed_ns = start.elapsed().as_nanos();
+        if iteration >= WARMUP_RUNS {
+            raw_ns.push(elapsed_ns);
+        }
     }
 
     Ok(raw_ns)
@@ -164,7 +168,7 @@ fn run() -> Result<(), String> {
             "clock": "std::time::Instant",
             "unit": "nanoseconds",
             "percentiles": "nearest-rank",
-            "warmup_runs": 0,
+            "warmup_runs": WARMUP_RUNS,
             "raw_samples_retained": true
         },
         "operations": results

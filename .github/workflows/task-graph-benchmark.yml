@@ -1,0 +1,101 @@
+name: Task Graph Benchmark
+
+on:
+  push:
+    paths:
+      - ".github/workflows/task-graph-benchmark.yml"
+      - "sol-atlas-core/src/task_graph.rs"
+      - "sol-atlas-core/examples/task_graph_bench.rs"
+  pull_request:
+    paths:
+      - ".github/workflows/task-graph-benchmark.yml"
+      - "sol-atlas-core/src/task_graph.rs"
+      - "sol-atlas-core/examples/task_graph_bench.rs"
+  workflow_dispatch:
+    inputs:
+      samples:
+        description: "Measured repetitions per operation (warmup calls are additional)"
+        required: false
+        default: "100"
+        type: string
+      tasks:
+        description: "Number of task nodes"
+        required: false
+        default: "10000"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: task-graph-benchmark-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    name: Release-mode task graph benchmark
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      SAMPLES: ${{ github.event_name == 'workflow_dispatch' && inputs.samples || '100' }}
+      TASKS: ${{ github.event_name == 'workflow_dispatch' && inputs.tasks || '10000' }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+        with:
+          toolchain: stable
+      - name: Record source and host identity
+        run: |
+          {
+            echo "checked_out_commit=$(git rev-parse HEAD)"
+            echo "workflow_sha=$GITHUB_SHA"
+            if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+              echo "pull_request_head_sha=${{ github.event.pull_request.head.sha }}"
+              echo "pull_request_base_sha=${{ github.event.pull_request.base.sha }}"
+              echo "checked_out_ref_kind=merge_ref"
+            else
+              echo "pull_request_head_sha=not_applicable"
+              echo "pull_request_base_sha=not_applicable"
+              echo "checked_out_ref_kind=event_commit"
+            fi
+            echo "runner_os=$RUNNER_OS"
+            echo "runner_image=${ImageOS:-unknown}"
+            echo "rust=$(rustc --version)"
+            echo "cargo=$(cargo --version)"
+            echo "samples=$SAMPLES"
+            echo "tasks=$TASKS"
+          } | tee benchmark-environment.txt
+      - name: Run release-mode graph benchmark
+        run: |
+          set -o pipefail
+          cargo run --release --manifest-path sol-atlas-core/Cargo.toml --example task_graph_bench -- "$SAMPLES" "$TASKS" | tee task-graph-benchmark.json
+      - name: Validate result envelope without masking performance results
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          result = json.loads(Path("task-graph-benchmark.json").read_text(encoding="utf-8"))
+          assert result["benchmark"] == "field-task-graph-v1"
+          assert result["environment"]["debug_assertions"] is False
+          assert result["dataset"]["tasks"] == int(os.environ["TASKS"])
+          assert result["method"]["samples_per_operation"] == int(os.environ["SAMPLES"])
+          assert result["method"]["warmup_runs"] == 5
+          assert result["dataset"]["edges"] == sum(min(i, 4) for i in range(int(os.environ["TASKS"])))
+          assert set(result["operations"]) == {"validate", "topological_order", "ready_tasks"}
+          for name, metrics in result["operations"].items():
+              raw = metrics["raw_ns"]
+              assert len(raw) == int(os.environ["SAMPLES"]), name
+              assert metrics["p50_ns"] <= metrics["p95_ns"] <= metrics["max_ns"], name
+              print(f"{name}: p50_ns={metrics['p50_ns']} p95_ns={metrics['p95_ns']} max_ns={metrics['max_ns']}")
+          PY
+      - name: Upload raw benchmark evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: task-graph-benchmark-${{ github.sha }}-${{ github.run_id }}
+          path: |
+            task-graph-benchmark.json
+            benchmark-environment.txt
