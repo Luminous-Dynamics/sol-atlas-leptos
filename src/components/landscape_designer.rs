@@ -218,6 +218,7 @@ fn download_snapshot(content: &str) -> Result<(), String> {
 #[component]
 pub fn LandscapeDesigner() -> impl IntoView {
     let (features, set_features) = signal(starter_features());
+    let (selected_feature_id, set_selected_feature_id) = signal(None::<u32>);
     let (project_name, set_project_name) = signal("Untitled landscape".to_string());
     // Never reuse a feature ID after undo: downstream provenance will rely on
     // IDs continuing to identify one authored object within an edit session.
@@ -252,6 +253,7 @@ pub fn LandscapeDesigner() -> impl IntoView {
                         kind: active_tool.get_untracked(),
                     })
                 });
+                set_selected_feature_id.set(Some(next_id));
                 set_export_text.set(String::new());
                 set_download_status.set(String::new());
             }
@@ -285,16 +287,44 @@ pub fn LandscapeDesigner() -> impl IntoView {
     };
 
     let undo = move |_| {
+        let removed_id = features.get_untracked().last().map(|feature| feature.id);
         set_features.update(|items| {
             items.pop();
         });
+        if selected_feature_id.get_untracked() == removed_id {
+            set_selected_feature_id.set(None);
+        }
         set_export_text.set(String::new());
         set_download_status.set(String::new());
+    };
+
+    let delete_selected = move |_| {
+        if let Some(id) = selected_feature_id.get_untracked() {
+            set_features.update(|items| items.retain(|feature| feature.id != id));
+            set_selected_feature_id.set(None);
+            set_export_text.set(String::new());
+            set_download_status.set(String::new());
+        }
+    };
+
+    let selected_description = move || {
+        let id = selected_feature_id.get();
+        let items = features.get();
+        match id.and_then(|selected_id| items.iter().find(|feature| feature.id == selected_id)) {
+            Some(feature) => format!(
+                "{} · anchor ({}, {})",
+                feature.kind.label(),
+                feature.x_du,
+                feature.y_du
+            ),
+            None => "No element selected".to_string(),
+        }
     };
 
     let reset = move |_| {
         set_features.set(starter_features());
         set_next_feature_id.set(8);
+        set_selected_feature_id.set(None);
         set_project_name.set("Untitled landscape".to_string());
         set_active_tool.set(FeatureKind::Tree);
         set_active_scale.set(LandscapeScale::Site);
@@ -379,6 +409,13 @@ pub fn LandscapeDesigner() -> impl IntoView {
                         <p class="landscape-note">"Context lines are decorative teaching geometry, not a terrain survey or hydrology result."</p>
                     </section>
 
+                    <section class="landscape-section">
+                        <p class="landscape-section-label">"04 / INSPECT SELECTION"</p>
+                        <h2>"Selected element"</h2>
+                        <p class="landscape-muted">"Select a symbol on the canvas to inspect its current anchor and remove it from this schematic draft."</p>
+                        <p class="landscape-selected-value">{move || selected_description()}</p>
+                        <button class="landscape-button quiet full-width" type="button" disabled=move || selected_feature_id.get().is_none() on:click=delete_selected>"Delete selected"</button>
+                    </section>
                     <section class="landscape-section landscape-summary">
                         <p class="landscape-section-label">"CURRENT PLAN"</p>
                         <div class="landscape-stat"><strong>{move || features.get().len().to_string()}</strong><span>"placed elements"</span></div>
@@ -407,7 +444,9 @@ pub fn LandscapeDesigner() -> impl IntoView {
                                     y_du: 325,
                                     kind: active_tool.get_untracked(),
                                 }));
+                                set_selected_feature_id.set(Some(next_id));
                                 set_export_text.set(String::new());
+                                set_download_status.set(String::new());
                             }
                         }>
                             <defs>
@@ -434,34 +473,64 @@ pub fn LandscapeDesigner() -> impl IntoView {
                                 let title = feature.kind.label();
                                 match feature.kind {
                                     FeatureKind::Tree => view! {
-                                        <g>
+                                        <g
+                                            class:landscape-feature-selected=move || selected_feature_id.get() == Some(feature.id)
+                                            on:click=move |event: web_sys::MouseEvent| {
+                                                event.stop_propagation();
+                                                set_selected_feature_id.set(Some(feature.id));
+                                            }
+                                        >
                                             <circle cx=x.clone() cy=y.clone() r="17" fill="#438b66" fill-opacity="0.78" stroke="#315d47" stroke-width="2"/>
                                             <circle cx=x.clone() cy=y.clone() r="7" fill="#b8d3a8" fill-opacity="0.75"/>
                                             <title>{title}</title>
                                         </g>
                                     }.into_any(),
                                     FeatureKind::PlantingBed => view! {
-                                        <g>
+                                        <g
+                                            class:landscape-feature-selected=move || selected_feature_id.get() == Some(feature.id)
+                                            on:click=move |event: web_sys::MouseEvent| {
+                                                event.stop_propagation();
+                                                set_selected_feature_id.set(Some(feature.id));
+                                            }
+                                        >
                                             <rect x=left.clone() y=top.clone() width="34" height="24" rx="5" fill="#86a96f" stroke="#4f744d" stroke-width="2"/>
                                             <path d=format!("M {} {} l 10 16 m 5 -16 l 10 16", feature.x_du.saturating_sub(12), feature.y_du.saturating_sub(8)) fill="none" stroke="#e6efd9" stroke-width="2"/>
                                             <title>{title}</title>
                                         </g>
                                     }.into_any(),
                                     FeatureKind::Water => view! {
-                                        <g>
+                                        <g
+                                            class:landscape-feature-selected=move || selected_feature_id.get() == Some(feature.id)
+                                            on:click=move |event: web_sys::MouseEvent| {
+                                                event.stop_propagation();
+                                                set_selected_feature_id.set(Some(feature.id));
+                                            }
+                                        >
                                             <path d=format!("M {} {} C {} {}, {} {}, {} {} C {} {}, {} {}, {} {}", feature.x_du.saturating_sub(18), feature.y_du, feature.x_du.saturating_sub(10), feature.y_du.saturating_sub(19), feature.x_du.saturating_add(8), feature.y_du.saturating_sub(16), feature.x_du.saturating_add(18), feature.y_du, feature.x_du.saturating_add(25), feature.y_du.saturating_add(15), feature.x_du.saturating_sub(12), feature.y_du.saturating_add(17), feature.x_du.saturating_sub(18), feature.y_du) fill="#5caab4" stroke="#347780" stroke-width="2"/>
                                             <title>{title}</title>
                                         </g>
                                     }.into_any(),
                                     FeatureKind::Path => view! {
-                                        <g>
+                                        <g
+                                            class:landscape-feature-selected=move || selected_feature_id.get() == Some(feature.id)
+                                            on:click=move |event: web_sys::MouseEvent| {
+                                                event.stop_propagation();
+                                                set_selected_feature_id.set(Some(feature.id));
+                                            }
+                                        >
                                             <path d=format!("M {} {} l 35 18", feature.x_du.saturating_sub(16), feature.y_du.saturating_sub(8)) fill="none" stroke="#c8b785" stroke-width="12" stroke-linecap="round"/>
                                             <path d=format!("M {} {} l 35 18", feature.x_du.saturating_sub(16), feature.y_du.saturating_sub(8)) fill="none" stroke="#f1e7c6" stroke-width="2" stroke-linecap="round"/>
                                             <title>{title}</title>
                                         </g>
                                     }.into_any(),
                                     FeatureKind::BuiltElement => view! {
-                                        <g>
+                                        <g
+                                            class:landscape-feature-selected=move || selected_feature_id.get() == Some(feature.id)
+                                            on:click=move |event: web_sys::MouseEvent| {
+                                                event.stop_propagation();
+                                                set_selected_feature_id.set(Some(feature.id));
+                                            }
+                                        >
                                             <rect x=left.clone() y=top.clone() width="34" height="24" rx="2" fill="#b4aaa0" stroke="#716961" stroke-width="2"/>
                                             <path d=format!("M {} {} l 17 -11 l 17 11", feature.x_du.saturating_sub(17), feature.y_du.saturating_sub(12)) fill="none" stroke="#716961" stroke-width="2"/>
                                             <title>{title}</title>
