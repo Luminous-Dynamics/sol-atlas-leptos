@@ -1,7 +1,7 @@
 # SA-PORTFOLIO-BENCHMARK-PROTOCOL-001
 ## A reproducible comparison protocol for discrete, dependency-constrained multi-objective portfolios
 
-**Status:** Research protocol and benchmark harness changes; new measurements require exact-head verification.  
+**Status:** Protocol and harness changes implemented. Exact-head workflow passed on commit `b7148214db462ed52d5626f4da34e00812c0e4b7`; the warmed, order-alternated measurements are recorded in [SA-PORTFOLIO-SCALE-001 section 9](./SA-PORTFOLIO-SCALE-001.md). Independent CP-SAT/MILP result comparison remains outstanding.  
 **Related implementations:** [Scale and frontier search](./SA-PORTFOLIO-SCALE-001.md), [baseline ablations](./SA-ECONOMIC-PORTFOLIO-BASELINES-001.md), [robust regret](./SA-ROBUST-REGRET-001.md).  
 **Claim ceiling:** Synthetic solver evaluation only until real case data, decision rights and independent validation are approved.
 
