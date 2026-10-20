@@ -8,14 +8,14 @@
 
 A graph says which prerequisites are complete; it does not say what evidence makes that statement defensible. This module models a version-bound evidence packet with explicit requirement IDs, typed evidence, source references, digest encodings, recorder identity and procedure revision. It evaluates whether the packet is complete enough for qualified review.
 
-It intentionally returns `ReadyForQualifiedReview`, **not** `Verified`, `Safe`, `Authorized` or `Passed`. The module cannot establish artifact authenticity, recompute hashes over canonical bytes, validate worker qualifications, validate signatures, or persist the result. Those are service/integration responsibilities.
+It intentionally returns `ReadyForQualifiedReview`, **not** `Verified`, `Safe`, `Authorized` or `Passed`. The packet evaluator does not automatically retrieve artifact bytes, recompute hashes during packet evaluation, authenticate producers, validate worker qualifications/signatures, or persist the result. A separate `verify_sha256_bytes` helper recomputes SHA-256 when a trusted adapter supplies exact artifact bytes; the adapter must resolve the correct source, apply any required canonicalization, and authenticate the expected digest source. Server-side identity, authorization and durable decision handling remain integration responsibilities.
 
 ## Current guarantees
 
 - Packet graph ID, graph revision and task ID must match the caller's current authoritative projection. The caller must also provide the current authoritative procedure revision and its evidence-requirement set separately; the evaluator rejects packets whose declared requirements omit or rewrite that set. In production, do not populate the context from the packet being evaluated.
 - Requirements and evidence references are explicit; duplicate requirement/evidence IDs and undeclared requirement references block readiness.
 - Evidence type must match its requirement. Measurement artifacts require a unit and instrument reference.
-- SHA-256 encoding must be exactly 64 lowercase hexadecimal characters. This is format validation, not cryptographic digest verification.
+- SHA-256 encoding must be exactly 64 lowercase hexadecimal characters. Packet evaluation treats that field as metadata; adapters can additionally call `verify_sha256_bytes` to recompute the hash over exact bytes and reject a mismatch.
 - Pinned procedure revision must agree at packet, requirement and artifact level.
 - Requirements needing an independent review block if the reviewer is missing or is also the recorder.
 - Completeness and issue ordering follow stable input order for reproducible UI and test output.
@@ -50,7 +50,7 @@ A Rust example generates deterministic synthetic packets and emits raw nanosecon
 cargo run --release --manifest-path sol-atlas-core/Cargo.toml --example task_evidence_bench -- 100 1000 10000
 ```
 
-CI smoke-tests the runner on a small packet; that is not the 10,000-record performance result. Publish the exact source SHA and all raw samples from a named release-mode runner before comparing performance.
+CI smoke-tests the runner on a small packet; that is not the 10,000-record performance result. The benchmark measures metadata/completeness evaluation only and excludes byte hashing, persistence, authentication and network I/O. Publish the exact source SHA and all raw samples from a named release-mode runner before comparing performance.
 
 ## Industry comparison and fair baseline
 
