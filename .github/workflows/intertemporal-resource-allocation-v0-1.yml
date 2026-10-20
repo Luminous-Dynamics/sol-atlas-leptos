@@ -114,13 +114,22 @@ jobs:
             and .resource_steps == []
           ' "$root/search-cap-result.json" >/dev/null
 
-          jq '.resources[0].inventory.inflow.values = [0,0]' "$fixture" > "$root/infeasible.json"
-          cargo run --quiet --manifest-path "$manifest" --bin "$bin" -- --input "$root/infeasible.json" > "$root/infeasible-result.json"
+          jq '.resources[0].inventory.inflow.values = [0,0]' "$fixture" > "$root/reserve-limited.json"
+          cargo run --quiet --manifest-path "$manifest" --bin "$bin" -- --input "$root/reserve-limited.json" > "$root/reserve-limited-result.json"
+          jq -e '
+            .disposition == "optimal"
+            and ([.service_steps[].allocated_quanta] | add) == 3
+            and ([.resource_steps[] | select(.resource_id == "tank") | .ending_stock_quanta] | last) >= 2
+            and all(.resource_steps[] | select(.resource_id == "tank"); .balance_equation_holds == true)
+          ' "$root/reserve-limited-result.json" >/dev/null
+
+          jq '.resources[0].inventory.losses.values = [4,0]' "$fixture" > "$root/impossible-loss.json"
+          cargo run --quiet --manifest-path "$manifest" --bin "$bin" -- --input "$root/impossible-loss.json" > "$root/impossible-loss-result.json"
           jq -e '
             .disposition == "infeasible"
             and .search_complete == true
             and .feasible_plan_count == 0
             and all(.service_steps[]; .allocated_quanta == null)
             and .resource_steps == []
-          ' "$root/infeasible-result.json" >/dev/null
+          ' "$root/impossible-loss-result.json" >/dev/null
           echo "INTERTEMPORAL_RESOURCE_ALLOCATION_V0_1_PASS"
