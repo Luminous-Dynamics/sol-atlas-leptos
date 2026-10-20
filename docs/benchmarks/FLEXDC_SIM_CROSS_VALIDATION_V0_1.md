@@ -12,7 +12,7 @@
 - Reference paper: Acun et al., [*Investigating Power Consumption Flexibility of AI Data Centers for Demand Response Participation*](https://doi.org/10.1145/3744255.3798112), ACM E-Energy 2026.
 - This plan consumes the external simulator as a pinned baseline. No FlexDC-Sim implementation code is copied into the Rust production module and no external Python runtime dependency is added to Sol-Atlas.
 
-The paper reports 18%–55% power flexibility relative to average power for its evaluated RSR cases and up to 20% power reduction in its EDR cases. These are study-specific outputs from the authors' workloads, measured power-performance profiles and simulator setup—not a general law or a Sol-Atlas result. The paper defines normalized RSR error as `abs(P_measured - P_target) / reserve` and requires `Prob(error > 0.3) < 0.10`; the inequality is strict. citeturn840104view0
+The paper reports 18%–55% power flexibility relative to average power for its evaluated RSR cases and up to 20% power reduction in its EDR cases. These are study-specific outputs from the authors' workloads, measured power-performance profiles and simulator setup—not a general law or a Sol-Atlas result. The paper defines normalized RSR error as `abs(P_measured - P_target) / reserve` and requires `Prob(error > 0.3) < 0.10`; the inequality is strict ([Acun et al., ACM E-Energy 2026](https://doi.org/10.1145/3744255.3798112)).
 
 ## 2. Pinned reference configuration artifacts
 
