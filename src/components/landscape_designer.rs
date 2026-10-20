@@ -162,14 +162,61 @@ fn snapshot_json(project_name: &str, scale: LandscapeScale, features: &[DesignFe
     })
 }
 
+
+/// Download a native JSON snapshot using a browser Blob (not a data URI).
+/// Blob URLs avoid the practical URL-length limits of embedding the whole
+/// project in an anchor's href.
+fn download_snapshot(content: &str) -> Result<(), String> {
+    let window = web_sys::window().ok_or_else(|| "Browser window is unavailable".to_string())?;
+    let document = window
+        .document()
+        .ok_or_else(|| "Browser document is unavailable".to_string())?;
+    let body = document
+        .body()
+        .ok_or_else(|| "Browser document has no body".to_string())?;
+
+    let parts = js_sys::Array::new();
+    parts.push(&wasm_bindgen::JsValue::from_str(content));
+    let blob = web_sys::Blob::new_with_str_sequence(&parts)
+        .map_err(|error| format!("Could not create project Blob: {error:?}"))?;
+    let url = web_sys::Url::create_object_url_with_blob(&blob)
+        .map_err(|error| format!("Could not create download URL: {error:?}"))?;
+
+    let activation: Result<(), String> = (|| {
+        let element = document
+            .create_element("a")
+            .map_err(|error| format!("Could not create download link: {error:?}"))?;
+        let anchor = element
+            .dyn_into::<web_sys::HtmlAnchorElement>()
+            .map_err(|_| "Download element was not an anchor".to_string())?;
+        anchor.set_href(&url);
+        anchor.set_download("landscape-design.json");
+        body.append_child(&anchor)
+            .map_err(|error| format!("Could not attach download link: {error:?}"))?;
+        anchor.click();
+        anchor.remove();
+        Ok(())
+    })();
+
+    let cleanup = web_sys::Url::revoke_object_url(&url)
+        .map_err(|error| format!("Could not release download URL: {error:?}"));
+    activation?;
+    cleanup?;
+    Ok(())
+}
+
 #[component]
 pub fn LandscapeDesigner() -> impl IntoView {
     let (features, set_features) = signal(starter_features());
+    // Never reuse a feature ID after undo: downstream provenance will rely on
+    // IDs continuing to identify one authored object within an edit session.
+    let (next_feature_id, set_next_feature_id) = signal(8_u32);
     let (active_tool, set_active_tool) = signal(FeatureKind::Tree);
     let (active_scale, set_active_scale) = signal(LandscapeScale::Site);
     let (show_grid, set_show_grid) = signal(true);
     let (show_context, set_show_context) = signal(true);
     let (export_text, set_export_text) = signal(String::new());
+    let (download_status, set_download_status) = signal(String::new());
 
     let place_feature = move |event: web_sys::MouseEvent| {
         // Use the SVG element's measured bounds so pointer placement remains
@@ -184,13 +231,8 @@ pub fn LandscapeDesigner() -> impl IntoView {
                 let y = ((f64::from(event.client_y()) - rect.top()) * 650.0 / rect.height())
                     .clamp(0.0, 650.0)
                     .round() as u16;
-                let next_id = features
-                    .get_untracked()
-                    .iter()
-                    .map(|item| item.id)
-                    .max()
-                    .unwrap_or(0)
-                    + 1;
+                let next_id = next_feature_id.get_untracked();
+                set_next_feature_id.update(|id| *id = id.saturating_add(1));
                 set_features.update(|items| {
                     items.push(DesignFeature {
                         id: next_id,
@@ -225,6 +267,7 @@ pub fn LandscapeDesigner() -> impl IntoView {
 
     let reset = move |_| {
         set_features.set(starter_features());
+        set_next_feature_id.set(8);
         set_active_tool.set(FeatureKind::Tree);
         set_active_scale.set(LandscapeScale::Site);
         set_show_grid.set(true);
@@ -319,7 +362,8 @@ pub fn LandscapeDesigner() -> impl IntoView {
                         <svg class="landscape-canvas" viewBox="0 0 1000 650" tabindex="0" role="application" aria-label="Schematic landscape canvas. Click to place the selected design element; press Enter or Space to place at the center." on:click=place_feature on:keydown=move |event: web_sys::KeyboardEvent| {
                             if event.key() == "Enter" || event.key() == " " {
                                 event.prevent_default();
-                                let next_id = features.get_untracked().iter().map(|item| item.id).max().unwrap_or(0) + 1;
+                                let next_id = next_feature_id.get_untracked();
+                                set_next_feature_id.update(|id| *id = id.saturating_add(1));
                                 set_features.update(|items| items.push(DesignFeature {
                                     id: next_id,
                                     x_du: 500,
@@ -402,12 +446,13 @@ pub fn LandscapeDesigner() -> impl IntoView {
                         <span>"Focus plan + Enter/Space places at center · T/P/W/L/B switch tools"</span>
                     </footer>
                     <section class="landscape-export-panel">
-                        <div class="landscape-export-header"><div><p class="landscape-section-label">"PORTABLE PROJECT SNAPSHOT"</p><h3>"Draft data"</h3></div><p>"Native JSON · schema v0"</p></div>
+                        <div class="landscape-export-header"><div><p class="landscape-section-label">"PORTABLE PROJECT SNAPSHOT"</p><h3>"Draft data"</h3></div><div class="landscape-export-actions"><p>"Native JSON · schema v0"</p><button class="landscape-button quiet" type="button" on:click=download_project>"Download JSON"</button></div></div>
                         {move || if export_text.get().is_empty() {
                             view! { <p class="landscape-muted">"Export a snapshot to inspect the exact design-intent data and coordinate declaration. No remote save or network upload occurs."</p> }.into_any()
                         } else {
                             view! { <pre class="landscape-json">{move || export_text.get()}</pre> }.into_any()
                         }}
+                        <p class="landscape-download-status" role="status" aria-live="polite">{move || download_status.get()}</p>
                     </section>
                 </section>
             </div>
@@ -441,6 +486,15 @@ mod tests {
         let parsed: Value = serde_json::from_str(&serialized).unwrap();
         assert_eq!(parsed, value);
         assert_eq!(parsed["features"][0]["id"], "feature-0001");
+    }
+
+    #[test]
+    fn feature_ids_in_starter_plan_are_unique_and_increasing() {
+        let features = starter_features();
+        let ids: Vec<u32> = features.iter().map(|feature| feature.id).collect();
+        let unique: std::collections::HashSet<u32> = ids.iter().copied().collect();
+        assert_eq!(unique.len(), ids.len());
+        assert!(ids.windows(2).all(|pair| pair[0] < pair[1]));
     }
 
     #[test]
