@@ -75,6 +75,11 @@ pub struct VerificationContext<'a> {
     pub graph_revision: u64,
     /// Task for which this review packet is being evaluated.
     pub task_id: &'a str,
+    /// Current authoritative procedure revision.
+    pub expected_procedure_revision: u64,
+    /// Requirement set loaded independently from the authoritative task/procedure source.
+    /// Do not populate this field from the submitted packet in production.
+    pub expected_requirements: Vec<EvidenceRequirementV1>,
     /// Reviewer identity selected by the caller/authority layer, if known.
     pub reviewer_id: Option<&'a str>,
 }
@@ -97,6 +102,7 @@ pub enum EvidenceIssueCode {
     InvalidProcedureRevision,
     EmptyRequirements,
     DuplicateRequirementId,
+    RequirementsDoNotMatchAuthority,
     DuplicateEvidenceId,
     UnknownRequirement,
     MissingRequiredEvidence,
