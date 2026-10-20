@@ -297,9 +297,7 @@ fn valid_feature_id(id: &str) -> bool {
     };
     digits.len() >= 4
         && digits.bytes().all(|byte| byte.is_ascii_digit())
-        && digits
-            .parse::<u32>()
-            .is_ok_and(|value| value < u32::MAX)
+        && digits.parse::<u32>().is_ok_and(|value| value < u32::MAX)
 }
 
 fn validate_integer_range(

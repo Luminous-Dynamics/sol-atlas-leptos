@@ -232,11 +232,13 @@ struct ImportedSnapshot {
 /// Parse only user-authored native v0 projects. Synthetic benchmark snapshots
 /// are valid benchmark inputs but must not silently become design-intent data.
 fn parse_import_snapshot(value: &Value) -> Result<ImportedSnapshot, String> {
-    validate_snapshot(value).map_err(|errors| format!("Invalid snapshot: {}", errors.join("; ")))?;
+    validate_snapshot(value)
+        .map_err(|errors| format!("Invalid snapshot: {}", errors.join("; ")))?;
 
     if value["geometry_status"].as_str() != Some(GEOMETRY_STATUS) {
         return Err(
-            "Synthetic benchmark snapshots cannot be imported as user-authored projects".to_string(),
+            "Synthetic benchmark snapshots cannot be imported as user-authored projects"
+                .to_string(),
         );
     }
 
@@ -277,7 +279,12 @@ fn parse_import_snapshot(value: &Value) -> Result<ImportedSnapshot, String> {
             .as_u64()
             .and_then(|number| u16::try_from(number).ok())
             .ok_or_else(|| format!("Feature {index} has an invalid y coordinate"))?;
-        features.push(DesignFeature { id, x_du, y_du, kind });
+        features.push(DesignFeature {
+            id,
+            x_du,
+            y_du,
+            kind,
+        });
     }
 
     let next_feature_id = features
@@ -446,7 +453,8 @@ pub fn LandscapeDesigner() -> impl IntoView {
         const MAX_IMPORT_BYTES: f64 = 64.0 * 1024.0 * 1024.0;
         if file.size() > MAX_IMPORT_BYTES {
             input.set_value("");
-            set_download_status.set("Import blocked: file exceeds the 64 MiB v0 limit.".to_string());
+            set_download_status
+                .set("Import blocked: file exceeds the 64 MiB v0 limit.".to_string());
             return;
         }
 
@@ -484,7 +492,9 @@ pub fn LandscapeDesigner() -> impl IntoView {
                     ));
                 }
                 Err(error) => {
-                    set_download_status.set(format!("Import blocked; current project preserved: {error}"));
+                    set_download_status.set(format!(
+                        "Import blocked; current project preserved: {error}"
+                    ));
                 }
             }
         });
