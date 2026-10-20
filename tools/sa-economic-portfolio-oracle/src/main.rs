@@ -13,8 +13,21 @@ const DEFAULT_EXPECTED: &str =
     include_str!("../../../docs/research/fixtures/sa-economic-portfolio-v0.1.expected.json");
 
 #[derive(Serialize)]
+struct HostMetadata {
+    runner_os: Option<String>,
+    runner_arch: Option<String>,
+    runner_name: Option<String>,
+    cpu_model: Option<String>,
+    logical_cpu_count: Option<usize>,
+    total_memory_bytes: Option<u64>,
+    process_peak_rss_bytes: Option<u64>,
+    release_build: bool,
+}
+
+#[derive(Serialize)]
 struct TimingSummary {
     repetitions: usize,
+    warmup_runs: usize,
     samples_elapsed_micros: Vec<u128>,
     min_elapsed_micros: u128,
     p50_elapsed_micros: u128,
@@ -30,6 +43,8 @@ struct ComparisonBenchmarkReceipt<'a> {
     claim_ceiling: &'static str,
     input_sha256: String,
     reference_manifest_sha256: String,
+    host: HostMetadata,
+    measurement_order: &'static str,
     exact_subset_count: u64,
     exact_feasible_count: usize,
     frontier_count: usize,
@@ -47,6 +62,7 @@ struct SearchBenchmarkReceipt<'a> {
     claim_ceiling: &'static str,
     input_sha256: String,
     reference_manifest_sha256: String,
+    host: HostMetadata,
     timing: TimingSummary,
     stats: &'a FrontierSearchStats,
     frontier_count: usize,
@@ -181,7 +197,46 @@ fn read_benchmark_args(args: &[String]) -> Result<(String, String, usize, String
     ))
 }
 
-fn percentiles(samples: &[u128], repetitions: usize) -> TimingSummary {
+fn first_matching_proc_line(path: &str, keys: &[&str]) -> Option<String> {
+    let raw = fs::read_to_string(path).ok()?;
+    raw.lines().find_map(|line| {
+        let (key, value) = line.split_once(':')?;
+        if keys.iter().any(|candidate| key.trim() == *candidate) {
+            Some(value.trim().to_owned())
+        } else {
+            None
+        }
+    })
+}
+
+fn proc_memory_bytes(path: &str, key: &str) -> Option<u64> {
+    let value = first_matching_proc_line(path, &[key])?;
+    let kilobytes = value.split_whitespace().next()?.parse::<u64>().ok()?;
+    kilobytes.checked_mul(1024)
+}
+
+fn host_metadata() -> HostMetadata {
+    HostMetadata {
+        runner_os: Some(
+            std::env::var("RUNNER_OS").unwrap_or_else(|_| std::env::consts::OS.to_owned()),
+        ),
+        runner_arch: Some(
+            std::env::var("RUNNER_ARCH").unwrap_or_else(|_| std::env::consts::ARCH.to_owned()),
+        ),
+        runner_name: std::env::var("RUNNER_NAME").ok(),
+        cpu_model: first_matching_proc_line("/proc/cpuinfo", &["model name", "Hardware"]),
+        logical_cpu_count: std::thread::available_parallelism().ok().map(|count| count.get()),
+        total_memory_bytes: proc_memory_bytes("/proc/meminfo", "MemTotal"),
+        process_peak_rss_bytes: proc_memory_bytes("/proc/self/status", "VmHWM"),
+        release_build: !cfg!(debug_assertions),
+    }
+}
+
+fn percentiles(
+    samples: &[u128],
+    repetitions: usize,
+    warmup_runs: usize,
+) -> TimingSummary {
     let mut sorted = samples.to_vec();
     sorted.sort_unstable();
     let nearest_rank = |percentile: usize| {
@@ -190,6 +245,7 @@ fn percentiles(samples: &[u128], repetitions: usize) -> TimingSummary {
     };
     TimingSummary {
         repetitions,
+        warmup_runs,
         min_elapsed_micros: *sorted.first().expect("timing sample is non-empty"),
         p50_elapsed_micros: nearest_rank(50),
         p95_elapsed_micros: nearest_rank(95),
