@@ -1602,10 +1602,22 @@ mod owner_scope_tests {
             supersedes_operation_id: RequiredNullableOperationId::Null(()),
         };
         let entry = JournalEntry::prepare(envelope, PAYLOAD).unwrap();
+        let canonical_payload = std::str::from_utf8(entry.canonical_payload_utf8()).unwrap();
+        let request_fingerprint_sha256 =
+            sol_atlas_core::offline_idempotency_fingerprint::canonical_request_fingerprint_sha256(
+                "tenant-a",
+                "work-order.apply",
+                entry.envelope(),
+                canonical_payload,
+            )
+            .unwrap();
         StoredOperationV1 {
             schema_version: STORED_OPERATION_SCHEMA_VERSION,
             owner_scope: "tenant-a".to_owned(),
             operation_namespace: "work-order.apply".to_owned(),
+            request_fingerprint_schema_version:
+                sol_atlas_core::offline_idempotency_fingerprint::REQUEST_FINGERPRINT_SCHEMA_VERSION,
+            request_fingerprint_sha256,
             snapshot: entry.to_snapshot().unwrap(),
         }
     }
@@ -1648,6 +1660,28 @@ mod owner_scope_tests {
 
         let legacy_snapshot = serde_json::to_string(&stored.snapshot).unwrap();
         assert!(serde_json::from_str::<StoredOperationV1>(&legacy_snapshot).is_err());
+    }
+
+    #[test]
+    fn request_fingerprint_is_bound_to_persisted_owner_and_namespace() {
+        let stored = stored_operation();
+        assert!(stored.validate_entry("op-owner-test").is_ok());
+
+        let mut wrong_owner = stored.clone();
+        wrong_owner.owner_scope = "tenant-b".to_owned();
+        assert!(wrong_owner.validate_entry("op-owner-test").is_err());
+
+        let mut wrong_namespace = stored.clone();
+        wrong_namespace.operation_namespace = "work-order.cancel".to_owned();
+        assert!(wrong_namespace.validate_entry("op-owner-test").is_err());
+
+        let mut changed_fingerprint = stored.clone();
+        changed_fingerprint.request_fingerprint_sha256 = "0".repeat(64);
+        assert!(changed_fingerprint.validate_entry("op-owner-test").is_err());
+
+        let mut changed_payload_binding = stored.clone();
+        changed_payload_binding.snapshot.envelope.aggregate_id = "aggregate-other".to_owned();
+        assert!(changed_payload_binding.validate_entry("op-owner-test").is_err());
     }
 
     #[test]
