@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:sol-atlas:offline-journal-bundle:1",
+  "title": "Sol Atlas Offline Journal Bundle v1",
+  "description": "Syntactic schema for a portable offline journal bundle. Implementations MUST also enforce the semantic and cryptographic rules in docs/offline-journal-bundle.md; JSON Schema alone is not sufficient to trust or dispatch imported operations.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "owner_scope",
+    "records",
+    "integrity_sha256"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "owner_scope": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/record"
+      }
+    },
+    "integrity_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991,
+      "description": "Must not exceed the IEEE-754 binary64 safe-integer range used by RFC 8785 canonical JSON."
+    },
+    "operationId": {
+      "$ref": "#/$defs/nonEmptyString"
+    },
+    "envelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "operation_id",
+        "aggregate_id",
+        "expected_revision",
+        "payload_digest_sha256",
+        "idempotency_key",
+        "supersedes_operation_id"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 2
+        },
+        "operation_id": {
+          "$ref": "#/$defs/operationId"
+        },
+        "aggregate_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "expected_revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "payload_digest_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "idempotency_key": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "supersedes_operation_id": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/operationId"
+            }
+          ]
+        }
+      }
+    },
+    "state": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state"],
+          "properties": {
+            "state": {
+              "const": "prepared"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state"],
+          "properties": {
+            "state": {
+              "const": "outcome_unknown"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "receipt_ref",
+            "applied_revision"
+          ],
+          "properties": {
+            "state": {
+              "const": "received"
+            },
+            "receipt_ref": {
+              "$ref": "#/$defs/nonEmptyString"
+            },
+            "applied_revision": {
+              "$ref": "#/$defs/revision"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "reason_code"],
+          "properties": {
+            "state": {
+              "const": "rejected"
+            },
+            "reason_code": {
+              "$ref": "#/$defs/nonEmptyString"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "current_revision",
+            "reason_code"
+          ],
+          "properties": {
+            "state": {
+              "const": "conflict_needs_review"
+            },
+            "current_revision": {
+              "$ref": "#/$defs/revision"
+            },
+            "reason_code": {
+              "$ref": "#/$defs/nonEmptyString"
+            }
+          }
+        }
+      ]
+    },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "envelope",
+        "canonical_payload_json",
+        "state",
+        "attempt_count"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "envelope": {
+          "$ref": "#/$defs/envelope"
+        },
+        "canonical_payload_json": {
+          "type": "string",
+          "description": "Must itself be valid RFC 8785 canonical JSON and its SHA-256 must equal envelope.payload_digest_sha256."
+        },
+        "state": {
+          "$ref": "#/$defs/state"
+        },
+        "attempt_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        }
+      }
+    },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_namespace",
+        "snapshot"
+      ],
+      "properties": {
+        "operation_namespace": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "snapshot": {
+          "$ref": "#/$defs/snapshot"
+        }
+      }
+    }
+  },
+  "x-semantic-validation": [
+    "records must be sorted by snapshot.envelope.operation_id in strictly ascending byte/string order",
+    "operation IDs must be unique within the bundle",
+    "idempotency_key values must be unique within each operation_namespace for this owner_scope",
+    "every snapshot must pass the versioned Rust journal state/attempt invariants",
+    "canonical_payload_json must be byte-for-byte RFC 8785 canonical UTF-8 and match the envelope payload digest",
+    "integrity_sha256 is SHA-256 over the RFC 8785 canonical UTF-8 bytes of the unsigned manifest containing schema_version, owner_scope and records, excluding integrity_sha256",
+    "the bundle owner_scope must exactly match an owner scope supplied by authenticated application context",
+    "an integrity digest is not a signature, authentication token, or proof of a server outcome; imported records must not become dispatchable solely from the bundle"
+  ]
+}
+

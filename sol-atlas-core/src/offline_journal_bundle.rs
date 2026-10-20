@@ -303,7 +303,28 @@ impl OfflineJournalBundleV1 {
         Ok(())
     }
 
-    fn computed_integrity_sha256(&self) -> Result<String, OfflineJournalBundleError> {
+    /// Returns the exact RFC 8785 canonical UTF-8 bytes covered by the bundle's
+    /// integrity digest. This allows independent implementations to verify the
+    /// manifest bytes rather than trusting a Rust-specific serialization path.
+    ///
+    /// The returned bytes exclude integrity_sha256 itself. The caller should
+    /// hash these bytes with SHA-256 and compare to integrity_sha256. This method
+    /// validates schema, owner scope and every record, but intentionally does not
+    /// require the stored integrity digest to match so verifiers can inspect it.
+    pub fn canonical_unsigned_manifest_utf8(&self) -> Result<Vec<u8>, OfflineJournalBundleError> {
+        if self.schema_version != OFFLINE_JOURNAL_BUNDLE_SCHEMA_VERSION {
+            return Err(OfflineJournalBundleError::UnsupportedSchemaVersion(
+                self.schema_version,
+            ));
+        }
+        if self.owner_scope.trim().is_empty() {
+            return Err(OfflineJournalBundleError::EmptyOwnerScope);
+        }
+        self.validate_records()?;
+        self.serialize_unsigned_manifest_utf8()
+    }
+
+    fn serialize_unsigned_manifest_utf8(&self) -> Result<Vec<u8>, OfflineJournalBundleError> {
         let unsigned = OfflineJournalBundleUnsignedV1 {
             schema_version: self.schema_version,
             owner_scope: self.owner_scope.clone(),
@@ -311,8 +332,12 @@ impl OfflineJournalBundleV1 {
         };
         let json = serde_json::to_string(&unsigned)
             .map_err(|error| OfflineJournalBundleError::Serialization(error.to_string()))?;
-        let canonical = canonicalize_payload_json(&json)
-            .map_err(|error| OfflineJournalBundleError::Serialization(error.to_string()))?;
+        canonicalize_payload_json(&json)
+            .map_err(|error| OfflineJournalBundleError::Serialization(error.to_string()))
+    }
+
+    fn computed_integrity_sha256(&self) -> Result<String, OfflineJournalBundleError> {
+        let canonical = self.serialize_unsigned_manifest_utf8()?;
         let digest = Sha256::digest(&canonical);
         Ok(lower_hex(&digest))
     }
@@ -331,7 +356,7 @@ fn lower_hex(bytes: &[u8]) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        OFFLINE_JOURNAL_BUNDLE_SCHEMA_VERSION, OfflineJournalBundleError,
+        MAX_JCS_SAFE_REVISION, OFFLINE_JOURNAL_BUNDLE_SCHEMA_VERSION, OfflineJournalBundleError,
         OfflineJournalBundleRecordV1, OfflineJournalBundleV1,
     };
     use crate::{
@@ -339,8 +364,10 @@ mod tests {
             JournalEntry, JournalEntrySnapshotV1, OFFLINE_JOURNAL_SCHEMA_VERSION,
             OperationEnvelope, RequiredNullableOperationId,
         },
-        offline_payload_digest::canonical_payload_digest_sha256,
+        offline_payload_digest::{canonical_payload_digest_sha256, canonicalize_payload_json},
     };
+    use serde::Deserialize;
+    use sha2::{Digest, Sha256};
 
     const PAYLOAD: &str = r#"{"label":"transfer","amount":12}"#;
 
@@ -372,6 +399,69 @@ mod tests {
         .unwrap()
     }
 
+    #[derive(Debug, Deserialize)]
+    #[serde(deny_unknown_fields)]
+    struct BundleConformanceVector {
+        schema_version: u16,
+        description: String,
+        algorithm: String,
+        unsigned_manifest_canonical_utf8: String,
+        integrity_sha256: String,
+        canonical_bundle_utf8: String,
+    }
+
+    #[test]
+    fn public_json_schema_pins_bundle_envelope_and_revision_versions() {
+        let schema: serde_json::Value = serde_json::from_str(include_str!(
+            "../schemas/offline-journal-bundle-v1.schema.json"
+        ))
+        .expect("published bundle schema must be valid JSON");
+        assert_eq!(
+            schema["$schema"],
+            "https://json-schema.org/draft/2020-12/schema"
+        );
+        assert_eq!(schema["$id"], "urn:sol-atlas:offline-journal-bundle:1");
+        assert_eq!(schema["properties"]["schema_version"]["const"], 1);
+        assert_eq!(
+            schema["$defs"]["snapshot"]["properties"]["schema_version"]["const"],
+            1
+        );
+        assert_eq!(
+            schema["$defs"]["envelope"]["properties"]["schema_version"]["const"],
+            2
+        );
+        assert_eq!(
+            schema["$defs"]["revision"]["maximum"],
+            MAX_JCS_SAFE_REVISION
+        );
+        assert_eq!(schema["additionalProperties"], false);
+        assert_eq!(schema["$defs"]["record"]["additionalProperties"], false);
+        assert!(
+            schema["x-semantic-validation"]
+                .as_array()
+                .is_some_and(|rules| rules.len() >= 8)
+        );
+    }
+
+    #[test]
+    fn frozen_bundle_vector_matches_unsigned_bytes_digest_and_final_wire_bytes() {
+        let vector: BundleConformanceVector =
+            serde_json::from_str(include_str!("../fixtures/offline-journal-bundle-v1.json"))
+                .expect("bundle vector must match its frozen schema");
+        assert_eq!(vector.schema_version, 1);
+        assert!(!vector.description.trim().is_empty());
+        assert!(!vector.algorithm.trim().is_empty());
+
+        let bundle = OfflineJournalBundleV1::from_json(&vector.canonical_bundle_utf8)
+            .expect("frozen bundle must pass the public validator");
+        assert_eq!(bundle.integrity_sha256, vector.integrity_sha256);
+        assert_eq!(
+            String::from_utf8(bundle.canonical_unsigned_manifest_utf8().unwrap()).unwrap(),
+            vector.unsigned_manifest_canonical_utf8
+        );
+        assert_eq!(bundle.to_json().unwrap(), vector.canonical_bundle_utf8);
+    }
+
     #[test]
     fn creation_sorts_records_and_serializes_canonical_json() {
         let bundle = bundle();
@@ -385,11 +475,35 @@ mod tests {
 
     #[test]
     fn whitespace_and_property_order_do_not_change_bundle_validation() {
-        let json = bundle().to_json().unwrap();
+        let expected = bundle();
+        let json = expected.to_json().unwrap();
         let with_whitespace = format!(" \n  {json}\n");
         assert_eq!(
             OfflineJournalBundleV1::from_json(&with_whitespace).unwrap(),
-            bundle()
+            expected
+        );
+
+        // Reorder the top-level properties deliberately. Canonicalization,
+        // not the incoming source spelling, defines the digest bytes.
+        let decoded: serde_json::Value = serde_json::from_str(&json).unwrap();
+        let reordered = format!(
+            r#"{{"schema_version":{},"records":{},"owner_scope":{},"integrity_sha256":{}}}"#,
+            decoded["schema_version"],
+            decoded["records"],
+            decoded["owner_scope"],
+            decoded["integrity_sha256"]
+        );
+        assert_ne!(reordered, json);
+        assert_eq!(
+            OfflineJournalBundleV1::from_json(&reordered).unwrap(),
+            expected
+        );
+        assert_eq!(
+            OfflineJournalBundleV1::from_json(&reordered)
+                .unwrap()
+                .to_json()
+                .unwrap(),
+            json
         );
     }
 
@@ -407,6 +521,59 @@ mod tests {
             serde_json::Value::String(r#"{"label":"tampered","amount":12}"#.to_owned());
         let tampered = serde_json::to_string(&decoded).unwrap();
         assert!(OfflineJournalBundleV1::from_json(&tampered).is_err());
+    }
+
+    fn reseal_untrusted_bundle_json(mut value: serde_json::Value) -> String {
+        value
+            .as_object_mut()
+            .expect("bundle JSON must be an object")
+            .remove("integrity_sha256");
+        let unsigned_json = serde_json::to_string(&value).unwrap();
+        let canonical_unsigned = canonicalize_payload_json(&unsigned_json).unwrap();
+        let digest = Sha256::digest(&canonical_unsigned);
+        let digest_hex = digest
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>();
+        value["integrity_sha256"] = serde_json::Value::String(digest_hex);
+        serde_json::to_string(&value).unwrap()
+    }
+
+    #[test]
+    fn recomputed_outer_digest_cannot_authorize_an_invalid_inner_snapshot() {
+        let valid_json = bundle().to_json().unwrap();
+
+        // A malicious editor can recompute the unkeyed outer checksum, so the
+        // inner journal snapshot must be independently validated after reseal.
+        let mut forged_state: serde_json::Value = serde_json::from_str(&valid_json).unwrap();
+        forged_state["records"][0]["snapshot"]["state"] = serde_json::json!({
+            "state": "received",
+            "receipt_ref": "",
+            "applied_revision": 0
+        });
+        let resealed_invalid_state = reseal_untrusted_bundle_json(forged_state);
+        assert!(matches!(
+            OfflineJournalBundleV1::from_json(&resealed_invalid_state),
+            Err(OfflineJournalBundleError::InvalidSnapshot { .. })
+        ));
+
+        let mut forged_payload: serde_json::Value = serde_json::from_str(&valid_json).unwrap();
+        forged_payload["records"][0]["snapshot"]["canonical_payload_json"] =
+            serde_json::Value::String(r#"{"a":999}"#.to_owned());
+        let resealed_invalid_payload = reseal_untrusted_bundle_json(forged_payload);
+        assert!(matches!(
+            OfflineJournalBundleV1::from_json(&resealed_invalid_payload),
+            Err(OfflineJournalBundleError::InvalidSnapshot { .. })
+        ));
+
+        let mut forged_owner: serde_json::Value = serde_json::from_str(&valid_json).unwrap();
+        forged_owner["owner_scope"] = serde_json::Value::String("tenant-002".to_owned());
+        let resealed_wrong_owner = reseal_untrusted_bundle_json(forged_owner);
+        let decoded = OfflineJournalBundleV1::from_json(&resealed_wrong_owner).unwrap();
+        assert!(matches!(
+            decoded.validate_for_owner("tenant-001"),
+            Err(OfflineJournalBundleError::OwnerScopeMismatch { .. })
+        ));
     }
 
     #[test]
