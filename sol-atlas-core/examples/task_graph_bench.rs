@@ -244,8 +244,8 @@ fn run() -> Result<(), String> {
             )
             .map_err(|error| error.to_string())?;
         let impact_count = reference_impact_plan.impacts.len();
-        let impact_compiled = CompiledTaskGraph::compile(impact_graph.clone())
-            .map_err(|error| error.to_string())?;
+        let impact_compiled =
+            CompiledTaskGraph::compile(impact_graph.clone()).map_err(|error| error.to_string())?;
 
         let mut operation_results = serde_json::Map::new();
         for operation in operations {
