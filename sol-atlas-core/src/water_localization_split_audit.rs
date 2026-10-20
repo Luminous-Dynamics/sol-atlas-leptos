@@ -1070,11 +1070,30 @@ mod tests {
         variant.case_id = "SRC-TOPOLOGY-VARIANT".to_owned();
         variant.perturbation.scenario_seed = "seed-104".to_owned();
         variant.topology.nodes.push("N5".to_owned());
-        variant.topology.links.push(TopologyLink {
-            link_id: "L4".to_owned(),
-            from_node_id: "N3".to_owned(),
-            to_node_id: "N5".to_owned(),
-        });
+        // Use a five-node path; the former edit created a T-shaped tree
+        // isomorphic to the calibration family and was correctly flagged.
+        variant.topology.links = vec![
+            TopologyLink {
+                link_id: "L1".to_owned(),
+                from_node_id: "N1".to_owned(),
+                to_node_id: "N2".to_owned(),
+            },
+            TopologyLink {
+                link_id: "L2".to_owned(),
+                from_node_id: "N2".to_owned(),
+                to_node_id: "N3".to_owned(),
+            },
+            TopologyLink {
+                link_id: "L3".to_owned(),
+                from_node_id: "N3".to_owned(),
+                to_node_id: "N4".to_owned(),
+            },
+            TopologyLink {
+                link_id: "L4".to_owned(),
+                from_node_id: "N4".to_owned(),
+                to_node_id: "N5".to_owned(),
+            },
+        ];
         variant.sensor_readings.push(SensorReading {
             node_id: "N5".to_owned(),
             state: "observed".to_owned(),
