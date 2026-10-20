@@ -202,7 +202,6 @@ pub fn build_pod_profile(
                     (CoverageState::Covered, SystemDisposition::NoOutput) => {
                         report.push(&case.case_id, "covered_case_has_no_output");
                     }
-
                 }
             }
             ReferenceState::ReferenceUnavailable { .. } => unscorable += 1,
