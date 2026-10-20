@@ -22,12 +22,12 @@ use std::{
 };
 
 use js_sys::{Array, Date, Function, Object, Promise, Reflect};
-use sol_atlas_core::offline_journal_bundle::{
-    OfflineJournalBundleError, OfflineJournalBundleRecordV1, OfflineJournalBundleV1,
-};
 use sol_atlas_core::offline_journal::{
     JournalEntry, JournalEntrySnapshotV1, JournalError, JournalState, OperationEnvelope,
     ReconcileOutcome, ServiceReply,
+};
+use sol_atlas_core::offline_journal_bundle::{
+    OfflineJournalBundleError, OfflineJournalBundleRecordV1, OfflineJournalBundleV1,
 };
 use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 use wasm_bindgen_futures::JsFuture;
