@@ -156,11 +156,56 @@ pub struct Portfolio {
     pub outcomes: BTreeMap<String, ObjectiveVector>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[serde(deny_unknown_fields)]
+pub struct RejectionCounts {
+    pub gate_not_pass: u64,
+    pub missing_prerequisite: u64,
+    pub period_budget_exceeded: u64,
+    pub crew_capacity_exceeded: u64,
+    pub protected_service_floor: u64,
+}
+
+impl RejectionCounts {
+    fn record(&mut self, reason: RejectionReason) {
+        match reason {
+            RejectionReason::GateNotPass => self.gate_not_pass += 1,
+            RejectionReason::MissingPrerequisite => self.missing_prerequisite += 1,
+            RejectionReason::PeriodBudgetExceeded => self.period_budget_exceeded += 1,
+            RejectionReason::CrewCapacityExceeded => self.crew_capacity_exceeded += 1,
+            RejectionReason::ProtectedServiceFloor => self.protected_service_floor += 1,
+        }
+    }
+
+    pub fn total(&self) -> u64 {
+        self.gate_not_pass
+            + self.missing_prerequisite
+            + self.period_budget_exceeded
+            + self.crew_capacity_exceeded
+            + self.protected_service_floor
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum RejectionReason {
+    GateNotPass,
+    MissingPrerequisite,
+    PeriodBudgetExceeded,
+    CrewCapacityExceeded,
+    ProtectedServiceFloor,
+}
+
+enum SubsetEvaluation {
+    Feasible(Portfolio),
+    Rejected(RejectionReason),
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Evaluation {
     pub candidate_subset_count: u64,
     pub feasible_portfolios: Vec<Portfolio>,
     pub pareto_frontier: Vec<Portfolio>,
+    pub rejection_reason_counts: RejectionCounts,
 }
 
 fn period_rank(period: &str) -> Option<u32> {
@@ -374,7 +419,7 @@ fn validate_input(input: &Input) -> Result<(), String> {
     Ok(())
 }
 
-fn evaluate_subset(input: &Input, mask: u64) -> Result<Option<Portfolio>, String> {
+fn evaluate_subset(input: &Input, mask: u64) -> Result<SubsetEvaluation, String> {
     let selected: Vec<&Project> = input
         .projects
         .iter()
@@ -383,7 +428,7 @@ fn evaluate_subset(input: &Input, mask: u64) -> Result<Option<Portfolio>, String
         .collect();
 
     if selected.iter().any(|project| project.gate != "PASS") {
-        return Ok(None);
+        return Ok(SubsetEvaluation::Rejected(RejectionReason::GateNotPass));
     }
 
     let selected_ids: BTreeSet<&str> =
@@ -396,7 +441,9 @@ fn evaluate_subset(input: &Input, mask: u64) -> Result<Option<Portfolio>, String
     for project in &selected {
         for dependency_id in &project.requires {
             if !selected_ids.contains(dependency_id.as_str()) {
-                return Ok(None);
+                return Ok(SubsetEvaluation::Rejected(
+                    RejectionReason::MissingPrerequisite,
+                ));
             }
             let dependency = by_id
                 .get(dependency_id.as_str())
@@ -423,8 +470,15 @@ fn evaluate_subset(input: &Input, mask: u64) -> Result<Option<Portfolio>, String
                 .checked_add(project.crew_u)
                 .ok_or_else(|| "crew total overflow".to_owned())?;
         }
-        if used.cost_u > budget.cost_cap_u || used.crew_u > budget.crew_cap_u {
-            return Ok(None);
+        if used.cost_u > budget.cost_cap_u {
+            return Ok(SubsetEvaluation::Rejected(
+                RejectionReason::PeriodBudgetExceeded,
+            ));
+        }
+        if used.crew_u > budget.crew_cap_u {
+            return Ok(SubsetEvaluation::Rejected(
+                RejectionReason::CrewCapacityExceeded,
+            ));
         }
         period_cost_and_crew.insert(budget.period.clone(), used);
     }
@@ -460,7 +514,9 @@ fn evaluate_subset(input: &Input, mask: u64) -> Result<Option<Portfolio>, String
                 _ => return Err(format!("unsupported floor metric {}", floor.metric)),
             };
             if measured < floor.threshold {
-                return Ok(None);
+                return Ok(SubsetEvaluation::Rejected(
+                    RejectionReason::ProtectedServiceFloor,
+                ));
             }
         }
         outcomes.insert(scenario.id.clone(), total);
@@ -468,7 +524,7 @@ fn evaluate_subset(input: &Input, mask: u64) -> Result<Option<Portfolio>, String
 
     let mut project_ids: Vec<String> = selected.iter().map(|project| project.id.clone()).collect();
     project_ids.sort();
-    Ok(Some(Portfolio {
+    Ok(SubsetEvaluation::Feasible(Portfolio {
         project_ids,
         period_cost_and_crew,
         outcomes,
@@ -509,12 +565,19 @@ pub fn evaluate(input: &Input) -> Result<Evaluation, String> {
         .ok_or_else(|| "project subset count overflow".to_owned())?;
 
     let mut feasible_portfolios = Vec::new();
+    let mut rejection_reason_counts = RejectionCounts::default();
     for mask in 0..candidate_subset_count {
-        if let Some(portfolio) = evaluate_subset(input, mask)? {
-            feasible_portfolios.push(portfolio);
+        match evaluate_subset(input, mask)? {
+            SubsetEvaluation::Feasible(portfolio) => feasible_portfolios.push(portfolio),
+            SubsetEvaluation::Rejected(reason) => rejection_reason_counts.record(reason),
         }
     }
     feasible_portfolios.sort_by_key(portfolio_key);
+    if feasible_portfolios.len() as u64 + rejection_reason_counts.total()
+        != candidate_subset_count
+    {
+        return Err("internal accounting error: subset dispositions do not reconcile".to_owned());
+    }
 
     let mut pareto_frontier = Vec::new();
     for (candidate_index, candidate) in feasible_portfolios.iter().enumerate() {
@@ -531,6 +594,7 @@ pub fn evaluate(input: &Input) -> Result<Evaluation, String> {
         candidate_subset_count,
         feasible_portfolios,
         pareto_frontier,
+        rejection_reason_counts,
     })
 }
 
@@ -551,13 +615,18 @@ pub fn check_expected(evaluation: &Evaluation, expected_raw: &str) -> Result<(),
         .as_u64()
         .ok_or_else(|| "expected rejected_subsets missing".to_owned())?;
 
+    let expected_reason_counts: RejectionCounts =
+        serde_json::from_value(expected["rejection_reason_counts"].clone())
+            .map_err(|error| format!("expected rejection_reason_counts invalid: {error}"))?;
     if evaluation.candidate_subset_count != expected_subsets
         || evaluation.feasible_portfolios.len() as u64 != expected_feasible_count
         || evaluation.candidate_subset_count - evaluation.feasible_portfolios.len() as u64
             != expected_rejected_count
         || evaluation.pareto_frontier.len() as u64 != expected_frontier_count
+        || evaluation.rejection_reason_counts != expected_reason_counts
+        || evaluation.rejection_reason_counts.total() != expected_rejected_count
     {
-        return Err("known-answer count mismatch".to_owned());
+        return Err("known-answer counts or rejection accounting mismatch".to_owned());
     }
 
     let expected_ids: Vec<Vec<String>> =
@@ -653,6 +722,72 @@ mod tests {
         let extra = input.projects[0].clone();
         input.projects.extend(std::iter::repeat_n(extra, 13));
         assert!(evaluate(&input).is_err());
+    }
+
+    #[test]
+    fn rejection_reasons_reconcile_every_subset_with_frozen_precedence() {
+        let evaluation = evaluate(&fixture()).expect("fixture should evaluate");
+        assert_eq!(evaluation.candidate_subset_count, 256);
+        assert_eq!(evaluation.feasible_portfolios.len() as u64 + evaluation.rejection_reason_counts.total(), 256);
+        assert_eq!(evaluation.rejection_reason_counts.gate_not_pass, 128);
+        assert_eq!(evaluation.rejection_reason_counts.missing_prerequisite, 48);
+        assert_eq!(evaluation.rejection_reason_counts.period_budget_exceeded, 40);
+        assert_eq!(evaluation.rejection_reason_counts.crew_capacity_exceeded, 0);
+        assert_eq!(evaluation.rejection_reason_counts.protected_service_floor, 18);
+    }
+
+    #[test]
+    fn crew_capacity_has_separate_rejection_accounting_when_budget_is_not_binding() {
+        let mut input = fixture();
+        for budget in &mut input.budgets_by_period {
+            budget.cost_cap_u = 100;
+            budget.crew_cap_u = 1;
+        }
+        let evaluation = evaluate(&input).expect("modified synthetic case should evaluate");
+        assert!(evaluation.rejection_reason_counts.crew_capacity_exceeded > 0);
+        assert_eq!(
+            evaluation.feasible_portfolios.len() as u64
+                + evaluation.rejection_reason_counts.total(),
+            evaluation.candidate_subset_count
+        );
+        for portfolio in &evaluation.feasible_portfolios {
+            assert!(portfolio.period_cost_and_crew.values().all(|used| used.crew_u <= 1));
+        }
+    }
+
+    #[test]
+    fn stricter_floor_never_returns_a_below_floor_portfolio() {
+        let mut input = fixture();
+        for floor in &mut input.mandatory_floors {
+            floor.threshold = 99;
+        }
+        let evaluation = evaluate(&input).expect("strict synthetic floor should evaluate");
+        assert!(evaluation.feasible_portfolios.is_empty());
+        assert!(evaluation.pareto_frontier.is_empty());
+        assert!(evaluation.rejection_reason_counts.protected_service_floor > 0);
+        assert_eq!(
+            evaluation.rejection_reason_counts.total(),
+            evaluation.candidate_subset_count
+        );
+    }
+
+    #[test]
+    fn tighter_period_budget_is_reported_and_never_exceeded() {
+        let mut input = fixture();
+        input.budgets_by_period.iter_mut().find(|b| b.period == "P1").unwrap().cost_cap_u = 4;
+        let evaluation = evaluate(&input).expect("tighter-budget synthetic case should evaluate");
+        assert!(evaluation.rejection_reason_counts.period_budget_exceeded > 0);
+        assert!(evaluation.feasible_portfolios.iter().all(|portfolio| {
+            portfolio.period_cost_and_crew["P1"].cost_u <= 4
+        }));
+    }
+
+    #[test]
+    fn corrupted_known_answer_manifest_is_rejected() {
+        let evaluation = evaluate(&fixture()).expect("fixture should evaluate");
+        let corrupted = EXPECTED.replace("\\"feasible_count\\": 22", "\\"feasible_count\\": 23");
+        assert_ne!(corrupted, EXPECTED);
+        assert!(check_expected(&evaluation, &corrupted).is_err());
     }
 
     #[test]
