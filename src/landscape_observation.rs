@@ -319,8 +319,6 @@ fn validate_project_ref(value: &Value, path: &str, errors: &mut Vec<String>) {
     }
     let project_digest = optional_digest(value, "project_snapshot_sha256", path, errors);
     let site_digest = optional_digest(value, "site_ref_sha256", path, errors);
-    let feature_id = value.get("feature_id").and_then(Value::as_str);
-
     if project_digest.is_none() && site_digest.is_none() {
         errors.push(format!(
             "{path}: a project snapshot digest or opaque site-reference digest is required"
@@ -338,10 +336,6 @@ fn validate_project_ref(value: &Value, path: &str, errors: &mut Vec<String>) {
         _ => errors.push(format!(
             "{path}.feature_id: expected null or a valid feature-NNNN identifier"
         )),
-    }
-    if feature_id.is_some() && project_digest.is_none() {
-        // The preceding match already emits the precise error; this keeps the
-        // invariant explicit if accepted feature-ID forms expand later.
     }
 }
 
@@ -648,7 +642,7 @@ fn validate_uncertainty(
             if raw_fields.iter().any(|(_, number)| number.is_some()) || unit.is_some() {
                 errors.push(format!("{path}: qualitative uncertainty must not carry numeric fields or a unit"));
             }
-            if reason.is_none_or(|reason| !valid_token(reason, 128)) {
+            if reason.is_none_or(|reason| !valid_lowercase_code(reason, 128)) {
                 errors.push(format!("{path}.reason_code: qualitative uncertainty requires a stable reason code"));
             }
             if method_uri.is_some_and(|uri| !valid_uri(uri)) {
@@ -1015,6 +1009,20 @@ fn valid_token_segment(value: &str) -> bool {
             byte.is_ascii_lowercase()
                 || byte.is_ascii_digit()
                 || matches!(byte, b'_' | b'-')
+        })
+}
+
+fn valid_lowercase_code(value: &str, maximum: usize) -> bool {
+    let Some(first) = value.as_bytes().first() else {
+        return false;
+    };
+    !value.is_empty()
+        && value.len() <= maximum
+        && (first.is_ascii_lowercase() || first.is_ascii_digit())
+        && value.bytes().all(|byte| {
+            byte.is_ascii_lowercase()
+                || byte.is_ascii_digit()
+                || matches!(byte, b'.' | b'_' | b'-')
         })
 }
 
