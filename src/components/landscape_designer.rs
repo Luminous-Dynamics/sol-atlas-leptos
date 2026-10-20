@@ -150,10 +150,7 @@ fn remove_feature(features: &mut Vec<DesignFeature>, id: u32) -> Option<(usize, 
 
 /// Reapply one command removed from the undo stack. Conflicting/missing
 /// identities fail closed instead of silently corrupting edit history.
-fn redo_last_edit(
-    features: &mut Vec<DesignFeature>,
-    command: EditCommand,
-) -> Result<u32, String> {
+fn redo_last_edit(features: &mut Vec<DesignFeature>, command: EditCommand) -> Result<u32, String> {
     match command {
         EditCommand::Added { feature } => {
             if features.iter().any(|existing| existing.id == feature.id) {
@@ -166,7 +163,10 @@ fn redo_last_edit(
             Ok(feature.id)
         }
         EditCommand::Deleted { feature, .. } => {
-            let Some(index) = features.iter().position(|existing| existing.id == feature.id) else {
+            let Some(index) = features
+                .iter()
+                .position(|existing| existing.id == feature.id)
+            else {
                 return Err(format!(
                     "cannot redo delete: feature ID {} is missing",
                     feature.id
@@ -940,10 +940,7 @@ mod tests {
         let original = features.clone();
         let existing = features[0];
 
-        let result = redo_last_edit(
-            &mut features,
-            EditCommand::Added { feature: existing },
-        );
+        let result = redo_last_edit(&mut features, EditCommand::Added { feature: existing });
 
         assert!(result.is_err());
         assert_eq!(features, original);
