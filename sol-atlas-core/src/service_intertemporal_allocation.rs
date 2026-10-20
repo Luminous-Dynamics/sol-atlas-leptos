@@ -22,7 +22,7 @@ pub const MAX_INTERTEMPORAL_STEPS: usize = 8;
 pub const MAX_INTERTEMPORAL_SERVICES: usize = 8;
 pub const MAX_INTERTEMPORAL_RESOURCES: usize = 8;
 pub const MAX_INTERTEMPORAL_USAGES: usize = 64;
-pub const MAX_INTERTEMPORAL_SEARCH_NODES: usize = 1_000_000;
+pub const MAX_INTERTEMPORAL_CANDIDATE_PLANS: usize = 1_000_000;
 const BASIS_POINTS: u128 = 10_000;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -154,8 +154,8 @@ pub struct IntertemporalAllocationRequest {
     pub services: Vec<IntertemporalServiceDemand>,
     pub resources: Vec<IntertemporalResource>,
     pub usages: Vec<IntertemporalResourceUsage>,
-    /// Caller-selected exhaustive search budget, bounded again by the hard limit.
-    pub max_search_nodes: usize,
+    /// Caller-selected maximum number of complete candidate allocations to evaluate, bounded again by the hard limit.
+    pub max_candidate_plans: usize,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -221,7 +221,8 @@ pub struct IntertemporalAllocationAssessment {
     /// None means the complete Cartesian space overflowed the counter or was
     /// deliberately not calculated; an over-budget search never emits a plan.
     pub search_space_size: Option<u64>,
-    pub search_nodes_examined: u64,
+    /// Number of complete candidate assignments evaluated, not internal DFS nodes.
+    pub candidate_plans_examined: u64,
     pub feasible_plan_count: Option<u64>,
     pub search_complete: bool,
     pub service_steps: Vec<IntertemporalServiceStepResult>,
@@ -379,8 +380,8 @@ pub fn validate_intertemporal_allocation_request(
     if request.usages.len() > MAX_INTERTEMPORAL_USAGES {
         push_issue(&mut issues, "usage_count_exceeds_exact_reference_limit", "usages");
     }
-    if request.max_search_nodes == 0 || request.max_search_nodes > MAX_INTERTEMPORAL_SEARCH_NODES {
-        push_issue(&mut issues, "search_budget_out_of_range", "max_search_nodes");
+    if request.max_candidate_plans == 0 || request.max_candidate_plans > MAX_INTERTEMPORAL_CANDIDATE_PLANS {
+        push_issue(&mut issues, "search_budget_out_of_range", "max_candidate_plans");
     }
 
     let step_count = request.time_steps.len();
@@ -794,7 +795,7 @@ fn empty_assessment(
     request: &IntertemporalAllocationRequest,
     disposition: IntertemporalAllocationDisposition,
     search_space_size: Option<u64>,
-    search_nodes_examined: u64,
+    candidate_plans_examined: u64,
     feasible_plan_count: Option<u64>,
     search_complete: bool,
     input_blockers: Vec<String>,
@@ -816,7 +817,7 @@ fn empty_assessment(
         policy: request.policy,
         disposition,
         search_space_size,
-        search_nodes_examined,
+        candidate_plans_examined,
         feasible_plan_count,
         search_complete,
         service_steps: service_step_skeleton(request, services_sorted),
@@ -1075,7 +1076,7 @@ pub fn assess_intertemporal_resource_allocation(
     }
 
     let space = search_space_size(&demands);
-    let space_within_budget = space.is_some_and(|value| value <= request.max_search_nodes as u128);
+    let space_within_budget = space.is_some_and(|value| value <= request.max_candidate_plans as u128);
     if !space_within_budget {
         return Ok(empty_assessment(
             request,
@@ -1183,7 +1184,7 @@ pub fn assess_intertemporal_resource_allocation(
         policy: request.policy,
         disposition: IntertemporalAllocationDisposition::Optimal,
         search_space_size: Some(exact_space),
-        search_nodes_examined: exact_space,
+        candidate_plans_examined: exact_space,
         feasible_plan_count: Some(feasible_count),
         search_complete: true,
         service_steps,
@@ -1301,7 +1302,7 @@ mod tests {
                 usage("usage-a", "tank", "essential-a", Some(1), Some(1)),
                 usage("usage-b", "tank", "general-b", Some(1), Some(1)),
             ],
-            max_search_nodes: 100_000,
+            max_candidate_plans: 100_000,
         }
     }
 
@@ -1341,7 +1342,7 @@ mod tests {
         request.resources[0].capacity.values[1] = None;
         let result = assess_intertemporal_resource_allocation(&request).expect("well-formed unknown input");
         assert_eq!(result.disposition, IntertemporalAllocationDisposition::IndeterminateInput);
-        assert_eq!(result.search_nodes_examined, 0);
+        assert_eq!(result.candidate_plans_examined, 0);
         assert!(!result.search_complete);
         assert!(result.input_blockers.iter().any(|field| field == "resources.tank.capacity[t1]"));
         assert!(result.resource_steps.is_empty());
@@ -1352,10 +1353,10 @@ mod tests {
     #[test]
     fn search_cap_returns_no_partial_plan() {
         let mut request = tank_request(IntertemporalAllocationPolicy::EssentialFloorFirst);
-        request.max_search_nodes = 5;
+        request.max_candidate_plans = 5;
         let result = assess_intertemporal_resource_allocation(&request).expect("valid bounded input");
         assert_eq!(result.disposition, IntertemporalAllocationDisposition::SearchCapExceeded);
-        assert_eq!(result.search_nodes_examined, 0);
+        assert_eq!(result.candidate_plans_examined, 0);
         assert!(!result.search_complete);
         assert!(result.service_steps.iter().all(|row| row.allocated_quanta.is_none()));
         assert_eq!(result.resource_steps.len(), 0);
@@ -1460,7 +1461,7 @@ mod tests {
                 IntertemporalResourceUsage { id: "usage-a".to_owned(), resource_id: "shared".to_owned(), service_id: "service-a".to_owned(), resource_unit: "resource-quanta".to_owned(), service_unit: "delivery-quanta".to_owned(), usage_numerator: Some(1), usage_denominator: Some(1), lineage: synthetic_lineage() },
                 IntertemporalResourceUsage { id: "usage-b".to_owned(), resource_id: "shared".to_owned(), service_id: "service-b".to_owned(), resource_unit: "resource-quanta".to_owned(), service_unit: "delivery-quanta".to_owned(), usage_numerator: Some(1), usage_denominator: Some(1), lineage: synthetic_lineage() },
             ],
-            max_search_nodes: 1_000,
+            max_candidate_plans: 1_000,
         };
         let exact = assess_intertemporal_resource_allocation(&request).expect("small request");
         let exact_allocations: BTreeMap<_, _> = exact.service_steps.iter()
