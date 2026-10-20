@@ -969,6 +969,11 @@ mod tests {
     const V02_EXPECTED: &str = include_str!(
         "../../../docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.expected.json"
     );
+    const V24_INPUT: &str =
+        include_str!("../../../docs/research/fixtures/sa-economic-portfolio-v0.2-24-project.json");
+    const V24_SEARCH_EXPECTED: &str = include_str!(
+        "../../../docs/research/fixtures/sa-economic-portfolio-v0.2-24-project.search-expected.json"
+    );
 
     fn fixture() -> Input {
         serde_json::from_str(INPUT).expect("synthetic portfolio fixture should parse")
@@ -1316,36 +1321,13 @@ mod tests {
 
     #[test]
     fn frontier_search_prunes_a_24_project_hostile_case_without_partial_claims() {
-        let mut input = fixture();
-        input.schema_version = "sa-economic-portfolio-v0.2".to_owned();
-        input.budgets_by_period.push(PeriodBudget {
-            period: "P3".to_owned(),
-            cost_cap_u: 0,
-            crew_cap_u: 0,
-        });
-        let reference = evaluate(&input).expect("eight-project reference should evaluate");
-
-        for index in 0..16 {
-            let project_id = format!("N{index:02}");
-            let outcomes = input
-                .scenarios
-                .iter()
-                .map(|scenario| (scenario.id.clone(), ObjectiveVector::zero()))
-                .collect();
-            input.projects.push(Project {
-                id: project_id,
-                name: "UNKNOWN-gated hostile decoy".to_owned(),
-                period: "P3".to_owned(),
-                stage_order: 1,
-                cost_u: 0,
-                crew_u: 0,
-                requires: Vec::new(),
-                gate: "UNKNOWN".to_owned(),
-                outcomes,
-                evidence_class: "synthetic hostile negative control".to_owned(),
-            });
-        }
-        input.enumeration.candidate_subset_count = 1_u64 << 24;
+        let input: Input =
+            serde_json::from_str(V24_INPUT).expect("24-project hostile fixture should parse");
+        let reference: serde_json::Value = serde_json::from_str(V24_SEARCH_EXPECTED)
+            .expect("24-project search manifest should parse");
+        let expected_frontier: Vec<Portfolio> =
+            serde_json::from_value(reference["pareto_frontier"].clone())
+                .expect("search manifest must carry the expected frontier");
 
         let searched = evaluate_frontier_search(&input)
             .expect("24-project search should prune unknown-gate branches");
@@ -1353,16 +1335,21 @@ mod tests {
         assert_eq!(searched.stats.accounted_subset_count(), 1_u64 << 24);
         assert!(searched.stats.gate_pruned_subsets > 0);
         assert_eq!(
-            searched.pareto_frontier, reference.pareto_frontier,
-            "unknown-gate decoys must never alter the frontier"
+            searched.pareto_frontier, expected_frontier,
+            "unknown-gate decoys must never alter the known eight-project frontier"
         );
-        assert!(
-            searched
-                .pareto_frontier
+        assert_eq!(searched.pareto_frontier.len(), 4);
+        assert!(searched.pareto_frontier.iter().all(|portfolio| {
+            portfolio
+                .project_ids
                 .iter()
-                .all(|portfolio| { portfolio.project_ids.iter().all(|id| !id.starts_with('N')) })
-        );
+                .all(|id| !id.starts_with('N'))
+        }));
         assert!(searched.stats.visited_nodes < 1_000_000);
+        assert_eq!(
+            searched.stats.feasible_portfolio_count,
+            reference["feasible_portfolio_count"].as_u64().unwrap()
+        );
     }
 
     #[test]
