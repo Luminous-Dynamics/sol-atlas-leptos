@@ -612,6 +612,41 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "privacy": {
+            "properties": {
+              "consent_status": {
+                "enum": [
+                  "approved",
+                  "withdrawn"
+                ]
+              }
+            },
+            "required": [
+              "consent_status"
+            ]
+          }
+        },
+        "required": [
+          "privacy"
+        ]
+      },
+      "then": {
+        "properties": {
+          "privacy": {
+            "properties": {
+              "consent_record_ref": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              }
+            }
+          }
+        }
+      }
     }
   ]
 }
