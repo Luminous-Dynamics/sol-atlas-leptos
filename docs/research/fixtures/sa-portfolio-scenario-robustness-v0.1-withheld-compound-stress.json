@@ -1,9 +1,9 @@
 {
   "scenario": {
-    "id": "compound_heat_drought_grid_crew",
+    "id": "compound_heat_drought_grid_service_stress",
     "weight": null,
     "probability": null,
-    "notes": "Withheld compound stress: heat/drought demand, grid scarcity and crew shortage combined. Deterministic adversarial case; no probability assigned."
+    "notes": "Withheld compound service stress: heat/drought demand and grid scarcity are combined. Crew capacity remains at the base input and is not perturbed in this scenario. Deterministic adversarial case; no probability assigned."
   },
   "service_baseline": 2,
   "project_outcomes_by_id": {
