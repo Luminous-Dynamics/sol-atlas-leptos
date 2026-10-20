@@ -13,6 +13,8 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 pub const OFFLINE_JOURNAL_SCHEMA_VERSION: u16 = 2;
+/// Version of the durable snapshot representation, independent of wire protocol schema.
+pub const JOURNAL_ENTRY_SNAPSHOT_SCHEMA_VERSION: u16 = 1;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -27,6 +29,51 @@ pub struct OperationEnvelope {
     pub idempotency_key: String,
     /// Conflict lineage; null is explicit and the field must be present on the wire.
     pub supersedes_operation_id: RequiredNullableOperationId,
+}
+
+fn validate_snapshot_state(
+    envelope: &OperationEnvelope,
+    state: &JournalState,
+    attempt_count: u32,
+) -> Result<(), JournalError> {
+    match state {
+        JournalState::Prepared if attempt_count == 0 => Ok(()),
+        JournalState::Prepared => Err(JournalError::InvalidSnapshot("prepared_with_attempts")),
+        JournalState::OutcomeUnknown if attempt_count > 0 => Ok(()),
+        JournalState::OutcomeUnknown => Err(JournalError::InvalidSnapshot("unknown_without_attempt")),
+        JournalState::Received {
+            receipt_ref,
+            applied_revision,
+        } if attempt_count > 0
+            && !receipt_ref.trim().is_empty()
+            && *applied_revision >= envelope.expected_revision =>
+        {
+            Ok(())
+        }
+        JournalState::Received { .. } => {
+            Err(JournalError::InvalidSnapshot("invalid_received_state"))
+        }
+        JournalState::Rejected { reason_code }
+            if attempt_count > 0 && !reason_code.trim().is_empty() =>
+        {
+            Ok(())
+        }
+        JournalState::Rejected { .. } => {
+            Err(JournalError::InvalidSnapshot("invalid_rejected_state"))
+        }
+        JournalState::ConflictNeedsReview {
+            current_revision,
+            reason_code,
+        } if attempt_count > 0
+            && !reason_code.trim().is_empty()
+            && *current_revision > envelope.expected_revision =>
+        {
+            Ok(())
+        }
+        JournalState::ConflictNeedsReview { .. } => {
+            Err(JournalError::InvalidSnapshot("invalid_conflict_state"))
+        }
+    }
 }
 
 /// A nullable string that must still be present on the wire.
@@ -106,7 +153,7 @@ impl OperationBinding {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "state", rename_all = "snake_case")]
+#[serde(tag = "state", rename_all = "snake_case", deny_unknown_fields)]
 pub enum JournalState {
     Prepared,
     /// A request may have reached the service; no authoritative outcome is known locally.
@@ -172,6 +219,21 @@ pub enum ReconcileOutcome {
     DuplicateTerminalReply,
 }
 
+/// Versioned persistence representation of a complete immutable journal operation.
+///
+/// The payload string must contain canonical RFC 8785 JSON, not an arbitrary
+/// source spelling. Recovery re-canonicalizes it, demands byte-for-byte equality,
+/// and recomputes its digest before trusting either the payload or stored state.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct JournalEntrySnapshotV1 {
+    pub schema_version: u16,
+    pub envelope: OperationEnvelope,
+    pub canonical_payload_json: String,
+    pub state: JournalState,
+    pub attempt_count: u32,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct JournalEntry {
     envelope: OperationEnvelope,
@@ -199,6 +261,58 @@ impl JournalEntry {
             payload,
             state: JournalState::Prepared,
             attempt_count: 0,
+        })
+    }
+
+    /// Export the entry as a versioned, deterministic storage snapshot.
+    ///
+    /// Persist this snapshot atomically with the pending indexes used by the
+    /// backend. The snapshot is data, not authority: recovery must call
+    /// `from_snapshot` and validate it before resuming dispatch or displaying
+    /// a terminal state as authoritative.
+    pub fn to_snapshot(&self) -> Result<JournalEntrySnapshotV1, JournalError> {
+        let canonical_payload_json = std::str::from_utf8(self.payload.canonical_utf8())
+            .map_err(|_| JournalError::InvalidSnapshot("canonical_payload_not_utf8"))?
+            .to_owned();
+        Ok(JournalEntrySnapshotV1 {
+            schema_version: JOURNAL_ENTRY_SNAPSHOT_SCHEMA_VERSION,
+            envelope: self.envelope.clone(),
+            canonical_payload_json,
+            state: self.state.clone(),
+            attempt_count: self.attempt_count,
+        })
+    }
+
+    /// Rehydrate a snapshot only after rechecking schema, canonical bytes,
+    /// digest binding, and state/attempt invariants.
+    pub fn from_snapshot(snapshot: JournalEntrySnapshotV1) -> Result<Self, JournalError> {
+        if snapshot.schema_version != JOURNAL_ENTRY_SNAPSHOT_SCHEMA_VERSION {
+            return Err(JournalError::UnsupportedSnapshotSchemaVersion(
+                snapshot.schema_version,
+            ));
+        }
+        snapshot.envelope.validate()?;
+
+        let payload =
+            crate::offline_payload_digest::CanonicalPayload::from_json(&snapshot.canonical_payload_json)
+                .map_err(|error| JournalError::PayloadCanonicalization(error.to_string()))?;
+        if payload.canonical_utf8() != snapshot.canonical_payload_json.as_bytes() {
+            return Err(JournalError::NonCanonicalSnapshotPayload);
+        }
+        if payload.sha256_hex() != snapshot.envelope.payload_digest_sha256 {
+            return Err(JournalError::PayloadDigestMismatch);
+        }
+        validate_snapshot_state(
+            &snapshot.envelope,
+            &snapshot.state,
+            snapshot.attempt_count,
+        )?;
+
+        Ok(Self {
+            envelope: snapshot.envelope,
+            payload,
+            state: snapshot.state,
+            attempt_count: snapshot.attempt_count,
         })
     }
 
@@ -415,6 +529,9 @@ fn require_non_empty(value: &str, field: &'static str) -> Result<(), JournalErro
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum JournalError {
     UnsupportedSchemaVersion(u16),
+    UnsupportedSnapshotSchemaVersion(u16),
+    InvalidSnapshot(&'static str),
+    NonCanonicalSnapshotPayload,
     EmptyField(&'static str),
     InvalidPayloadDigest,
     PayloadCanonicalization(String),
@@ -432,6 +549,15 @@ impl fmt::Display for JournalError {
         match self {
             Self::UnsupportedSchemaVersion(version) => {
                 write!(formatter, "unsupported journal schema version {version}")
+            }
+            Self::UnsupportedSnapshotSchemaVersion(version) => {
+                write!(formatter, "unsupported journal snapshot schema version {version}")
+            }
+            Self::InvalidSnapshot(reason) => {
+                write!(formatter, "journal snapshot is inconsistent: {reason}")
+            }
+            Self::NonCanonicalSnapshotPayload => {
+                formatter.write_str("persisted payload is valid JSON but not canonical JCS bytes")
             }
             Self::EmptyField(field) => write!(formatter, "{field} must not be empty"),
             Self::InvalidPayloadDigest => {
@@ -467,7 +593,8 @@ impl std::error::Error for JournalError {}
 #[cfg(test)]
 mod tests {
     use super::{
-        JournalEntry, JournalError, JournalState, OFFLINE_JOURNAL_SCHEMA_VERSION, OperationBinding,
+        JournalEntry, JournalEntrySnapshotV1, JournalError, JournalState,
+        JOURNAL_ENTRY_SNAPSHOT_SCHEMA_VERSION, OFFLINE_JOURNAL_SCHEMA_VERSION, OperationBinding,
         OperationEnvelope, ReconcileOutcome, RequiredNullableOperationId, ServiceReply,
     };
     use serde::Deserialize;
@@ -496,10 +623,8 @@ mod tests {
         JournalEntry::prepare(envelope(), payload_json()).unwrap()
     }
 
-    /// Constructs a deliberately unbound entry only to isolate reducer behavior
-    /// against the historical synthetic fault corpus, whose digest is the
-    /// placeholder "a" repeated 64 times. This test-only state cannot be created
-    /// through the public constructor and must never be dispatched or persisted.
+    /// Test-only state for the frozen reducer corpus, whose legacy fixture uses
+    /// a placeholder digest. Never use this constructor for persistence or dispatch.
     fn entry_for_reducer_fault_corpus() -> JournalEntry {
         let mut fixture_envelope = envelope();
         fixture_envelope.payload_digest_sha256 = "a".repeat(64);
@@ -547,6 +672,98 @@ mod tests {
             JournalEntry::prepare(envelope, r#"{"a":1,"a":2}"#),
             Err(JournalError::PayloadCanonicalization(_))
         ));
+    }
+
+    #[test]
+    fn snapshot_roundtrip_preserves_state_attempts_and_exact_payload_bytes() {
+        let mut entry = prepared_entry();
+        entry.mark_attempt_started().unwrap();
+        let snapshot = entry.to_snapshot().unwrap();
+        assert_eq!(snapshot.schema_version, JOURNAL_ENTRY_SNAPSHOT_SCHEMA_VERSION);
+
+        let serialized = serde_json::to_vec(&snapshot).unwrap();
+        let decoded: JournalEntrySnapshotV1 = serde_json::from_slice(&serialized).unwrap();
+        let recovered = JournalEntry::from_snapshot(decoded).unwrap();
+        assert_eq!(recovered, entry);
+        assert_eq!(recovered.canonical_payload_utf8(), entry.canonical_payload_utf8());
+        assert_eq!(recovered.attempt_count(), 1);
+        assert_eq!(recovered.state(), &JournalState::OutcomeUnknown);
+    }
+
+    #[test]
+    fn snapshot_roundtrip_preserves_terminal_receipt_state() {
+        let mut entry = prepared_entry();
+        entry.mark_attempt_started().unwrap();
+        let binding = OperationBinding::from_envelope(entry.envelope());
+        let applied_revision = entry.envelope().expected_revision + 1;
+        entry
+            .reconcile(&ServiceReply::Received {
+                binding,
+                receipt_ref: "receipt-snapshot".to_owned(),
+                applied_revision,
+            })
+            .unwrap();
+
+        let recovered = JournalEntry::from_snapshot(entry.to_snapshot().unwrap()).unwrap();
+        assert_eq!(recovered, entry);
+        assert!(matches!(recovered.state(), JournalState::Received { .. }));
+    }
+
+    #[test]
+    fn snapshot_rejects_payload_bytes_that_are_valid_but_not_canonical() {
+        let mut snapshot = prepared_entry().to_snapshot().unwrap();
+        snapshot.canonical_payload_json = format!(" {} ", snapshot.canonical_payload_json);
+        assert_eq!(
+            JournalEntry::from_snapshot(snapshot),
+            Err(JournalError::NonCanonicalSnapshotPayload)
+        );
+    }
+
+    #[test]
+    fn snapshot_rejects_payload_digest_mismatch() {
+        let mut snapshot = prepared_entry().to_snapshot().unwrap();
+        snapshot.envelope.payload_digest_sha256 = "0".repeat(64);
+        assert_eq!(
+            JournalEntry::from_snapshot(snapshot),
+            Err(JournalError::PayloadDigestMismatch)
+        );
+    }
+
+    #[test]
+    fn snapshot_rejects_inconsistent_attempt_and_terminal_state() {
+        let mut snapshot = prepared_entry().to_snapshot().unwrap();
+        snapshot.attempt_count = 1;
+        assert_eq!(
+            JournalEntry::from_snapshot(snapshot),
+            Err(JournalError::InvalidSnapshot("prepared_with_attempts"))
+        );
+
+        let mut snapshot = prepared_entry().to_snapshot().unwrap();
+        snapshot.state = JournalState::OutcomeUnknown;
+        assert_eq!(
+            JournalEntry::from_snapshot(snapshot),
+            Err(JournalError::InvalidSnapshot("unknown_without_attempt"))
+        );
+    }
+
+    #[test]
+    fn snapshot_rejects_unsupported_version_unknown_state_and_unknown_fields() {
+        let mut snapshot = prepared_entry().to_snapshot().unwrap();
+        snapshot.schema_version += 1;
+        assert_eq!(
+            JournalEntry::from_snapshot(snapshot),
+            Err(JournalError::UnsupportedSnapshotSchemaVersion(
+                JOURNAL_ENTRY_SNAPSHOT_SCHEMA_VERSION + 1
+            ))
+        );
+
+        assert!(
+            serde_json::from_str::<JournalState>(r#"{"state":"future_state"}"#).is_err()
+        );
+
+        let mut serialized = serde_json::to_value(prepared_entry().to_snapshot().unwrap()).unwrap();
+        serialized["unexpected"] = serde_json::Value::Bool(true);
+        assert!(serde_json::from_value::<JournalEntrySnapshotV1>(serialized).is_err());
     }
 
     #[test]
@@ -856,9 +1073,9 @@ mod tests {
                 "duplicate case id: {}",
                 case.case_id
             );
-            // Keep this reducer-only test aligned with the v2 corpus's
-            // synthetic placeholder digest. Payload ingress validation is
-            // separately tested through JournalEntry::prepare.
+            // The immutable v2 reducer corpus uses a placeholder digest.
+            // This test-only entry isolates reply/reducer semantics; payload
+            // ingress is covered by separate constructor tests.
             let mut entry = entry_for_reducer_fault_corpus();
             for _ in 0..case.attempts {
                 entry.mark_attempt_started().unwrap();
