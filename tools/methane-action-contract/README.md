@@ -65,6 +65,14 @@ cargo run --manifest-path tools/methane-action-contract/Cargo.toml --locked --bi
 
 The receipt binds the exact input JSON bytes and running evaluator executable by SHA-256, and includes cluster counts, point estimates, discordant pairs, and bootstrap intervals. Binary hashing identifies the executable bytes but does not prove who built them, establish reference truth, or show that the candidate generalizes beyond the tested corpus.
 
+## Condition-stratified probability-of-detection profiles
+
+The exported `pod` module computes empirical probability of detection by **predeclared rate band × condition stratum**. The `methane-census` JSON input accepts an optional `rate_bands` array; when present, the receipt includes a `pod_profile` with end-to-end POD, POD conditional on coverage, two-sided 95% Wilson score intervals, counts of non-detections/abstentions/not-tasked/invalid-scene cases, and false-alert rates for covered metered-zero opportunities.
+
+Each rate band has an ID, an inclusive lower kg/h bound and an exclusive upper bound. Bands must be ordered, unique and non-overlapping; a final open-ended upper bound is permitted. If a known positive reference rate falls outside the configured bands, the entire POD profile is invalidated rather than silently dropping that case. Empty condition-by-rate cells report no estimate, not zero probability.
+
+Use each case's predeclared `stratum_id` for condition context such as instrument/product version, wind regime, retrieval noise, resolution or scene-quality class. Choose these groups before examining candidate results; do not invent post-hoc strata that make a model look better. The profile reports empirical bins, it does **not** fit or extrapolate a continuous probability-of-detection model. A 100% observed POD in a tiny cell is not evidence of perfect future detection; retain its denominator and interval. The synthetic census fixture smoke-tests the optional profile field, not field detection performance.
+
 ## Complete-census evaluator
 
 The exported `census` module scores a submitted detector against the complete predeclared opportunity set, separately from input admission. Every expected case must have exactly one response row. Missing, extra, or duplicate rows suppress headline metrics. A positive event that was not tasked or fell on an invalid scene remains a miss for end-to-end recall; it is not silently omitted. No-coverage and reference-unavailable cases are reported separately and are not true negatives.
@@ -89,7 +97,7 @@ The validator recomputes canonical lowercase SHA-256 for exact source, terms, an
 
 A source/terms review is a recorded prerequisite, not legal advice or proof of reviewer identity. Adapters must fetch and preserve the actual bytes and relevant access metadata; the validator then recomputes their digests. Synthetic fixtures prove only contract behavior, not field truth.
 
-All 66 Rust tests use invented fixtures only; they are not real observations, detector-performance results, calibration evidence, or field measurement validation.
+All 73 Rust tests use invented fixtures only; they are not real observations, detector-performance results, calibration evidence, or field measurement validation.
 
 ## Post-intervention mitigation assessment
 
