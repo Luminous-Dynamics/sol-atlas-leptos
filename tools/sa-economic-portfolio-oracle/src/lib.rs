@@ -353,7 +353,7 @@ fn validate_input(input: &Input) -> Result<(), String> {
         let participants: BTreeSet<&str> =
             rule.when_all_selected.iter().map(String::as_str).collect();
         if participants.len() != rule.when_all_selected.len()
-            || participants.iter().any(|id| !by_id.contains_key(id))
+            || participants.iter().any(|id| !by_id.contains_key(*id))
         {
             return Err(format!("invalid participants for interaction {}", rule.id));
         }
@@ -413,7 +413,7 @@ fn evaluate_subset(input: &Input, mask: u64) -> Result<Option<Portfolio>, String
             cost_u: 0,
             crew_u: 0,
         };
-        for project in selected.iter().filter(|project| project.period == budget.period) {
+        for project in selected.iter().filter(|project| project.period.as_str() == budget.period.as_str()) {
             used.cost_u = used
                 .cost_u
                 .checked_add(project.cost_u)
@@ -661,7 +661,7 @@ mod tests {
         let portfolio = evaluation
             .pareto_frontier
             .iter()
-            .find(|portfolio| portfolio.project_ids == ["A", "F", "J", "R"])
+            .find(|portfolio| portfolio_key(portfolio) == "A+F+J+R")
             .expect("A+F+J+R should remain on the frontier");
         assert_eq!(portfolio.outcomes["nominal"].ecological_quality_points, 13);
         assert_eq!(portfolio.outcomes["hot_dry_grid_stress"].ecological_quality_points, 13);
@@ -669,7 +669,7 @@ mod tests {
         let water_portfolio = evaluation
             .pareto_frontier
             .iter()
-            .find(|portfolio| portfolio.project_ids == ["F", "J", "T", "W"])
+            .find(|portfolio| portfolio_key(portfolio) == "F+J+T+W")
             .expect("F+J+T+W should remain on the frontier");
         assert_eq!(water_portfolio.outcomes["nominal"].essential_service_points, 12);
         assert_eq!(water_portfolio.outcomes["hot_dry_grid_stress"].essential_service_points, 11);
