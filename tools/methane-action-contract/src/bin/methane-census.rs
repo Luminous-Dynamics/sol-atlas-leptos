@@ -1,7 +1,7 @@
 use methane_action_contract::census::{
     BenchmarkCase, EvaluationReport, SystemSubmission, evaluate_census,
 };
-use methane_action_contract::sha256_hex;
+use methane_action_contract::{executable_sha256, sha256_hex};
 use serde::{Deserialize, Serialize};
 use std::io::{self, Read, Write};
 use std::process::ExitCode;
@@ -19,6 +19,7 @@ struct RunReceipt {
     receipt_schema_version: u32,
     evaluator: &'static str,
     evaluator_version: &'static str,
+    evaluator_binary_sha256: String,
     input_sha256: String,
     input_bytes: usize,
     evaluation_status: &'static str,
@@ -56,12 +57,20 @@ fn main() -> ExitCode {
     }
 
     let input_sha256 = sha256_hex(&input_bytes);
+    let evaluator_binary_sha256 = match executable_sha256() {
+        Ok(digest) => digest,
+        Err(error) => {
+            eprintln!("methane-census: failed to hash evaluator executable: {error}");
+            return ExitCode::FAILURE;
+        }
+    };
     let report = evaluate_census(&input.cases, &input.submission);
     let valid = report.is_valid();
     let receipt = RunReceipt {
         receipt_schema_version: 1,
         evaluator: "methane-action-contract",
         evaluator_version: env!("CARGO_PKG_VERSION"),
+        evaluator_binary_sha256,
         input_sha256,
         input_bytes: input_bytes.len(),
         evaluation_status: if valid { "valid" } else { "invalid" },
