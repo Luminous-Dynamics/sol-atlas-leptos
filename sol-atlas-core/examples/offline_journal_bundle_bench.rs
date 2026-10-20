@@ -75,7 +75,10 @@ struct BenchmarkReport {
     rustc_version: String,
     parameters: BenchmarkParameters,
     bundle_json_bytes: usize,
+    bare_serde_json_bytes: usize,
     bytes_per_record: f64,
+    bare_serde_json_bytes_per_record: f64,
+    baseline_note: &'static str,
     bundle_integrity_sha256: String,
     stage_summaries: Vec<StageSummary>,
     raw_samples: Vec<Sample>,
@@ -89,6 +92,7 @@ struct Correctness {
     owner_scope_preserved: bool,
     integrity_digest_stable: bool,
     canonical_bytes_stable: bool,
+    bare_serde_json_roundtrip_equal: bool,
 }
 
 fn main() {
@@ -116,8 +120,9 @@ fn run() -> Result<(), Box<dyn Error>> {
     let warmup_json = warmup.to_json()?;
     let _ = OfflineJournalBundleV1::from_json(&warmup_json)?;
 
-    let mut raw_samples = Vec::with_capacity(options.samples * 3);
+    let mut raw_samples = Vec::with_capacity(options.samples * 4);
     let mut bundle_bytes = 0usize;
+    let mut bare_serde_json_bytes = 0usize;
     let mut bundle_digest = String::new();
     let mut reference_bundle_json: Option<String> = None;
     let mut correctness = Correctness {
@@ -126,6 +131,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         owner_scope_preserved: true,
         integrity_digest_stable: true,
         canonical_bytes_stable: true,
+        bare_serde_json_roundtrip_equal: true,
     };
 
     for sample_index in 0..options.samples {
@@ -157,6 +163,20 @@ fn run() -> Result<(), Box<dyn Error>> {
             elapsed_ns: elapsed,
         });
 
+        // Informational, deliberately non-equivalent baseline: typed Serde JSON
+        // roundtrip without JCS canonicalization, snapshot validation, or digest
+        // recomputation. This quantifies overhead but is not a security substitute.
+        let start = Instant::now();
+        let bare_json = serde_json::to_string(&bundle)?;
+        let bare_parsed: OfflineJournalBundleV1 = serde_json::from_str(&bare_json)?;
+        let elapsed = elapsed_ns(start.elapsed());
+        raw_samples.push(Sample {
+            sample_index,
+            stage: "serde_json_unverified_roundtrip_baseline",
+            elapsed_ns: elapsed,
+        });
+
+        correctness.bare_serde_json_roundtrip_equal &= bare_parsed == bundle;
         correctness.roundtrip_equal &= parsed == bundle;
         correctness.record_count_preserved &= parsed.records.len() == options.records;
         correctness.owner_scope_preserved &= parsed.owner_scope == owner_scope;
@@ -168,6 +188,7 @@ fn run() -> Result<(), Box<dyn Error>> {
             reference_bundle_json = Some(json.clone());
         }
         bundle_bytes = json.len();
+        bare_serde_json_bytes = bare_json.len();
         bundle_digest = bundle.integrity_sha256;
     }
 
@@ -175,7 +196,8 @@ fn run() -> Result<(), Box<dyn Error>> {
         && correctness.record_count_preserved
         && correctness.owner_scope_preserved
         && correctness.integrity_digest_stable
-        && correctness.canonical_bytes_stable)
+        && correctness.canonical_bytes_stable
+        && correctness.bare_serde_json_roundtrip_equal)
     {
         return Err("benchmark correctness oracle failed".into());
     }
@@ -199,7 +221,10 @@ fn run() -> Result<(), Box<dyn Error>> {
             operation_namespace: operation_namespace.to_owned(),
         },
         bundle_json_bytes: bundle_bytes,
+        bare_serde_json_bytes,
         bytes_per_record: bundle_bytes as f64 / options.records as f64,
+        bare_serde_json_bytes_per_record: bare_serde_json_bytes as f64 / options.records as f64,
+        baseline_note: "Bare Serde roundtrip omits canonicalization, semantic snapshot validation, and integrity digest verification; informational only, not an equivalent security baseline.",
         bundle_integrity_sha256: bundle_digest,
         stage_summaries,
         raw_samples,
@@ -278,6 +303,7 @@ fn summarize(samples: &[Sample], record_count: usize) -> Vec<StageSummary> {
         "create_validate_sort_and_digest",
         "canonical_serialize_and_validate",
         "parse_validate_and_recompute_digest",
+        "serde_json_unverified_roundtrip_baseline",
     ];
     stages
         .iter()
