@@ -1,0 +1,182 @@
+# AI Compute–Energy Resilience Benchmark V0.1
+
+**Status:** proposed contract and synthetic fixture; no performance or facility improvement has been measured.  
+**Work item:** AI-COMP-ENERGY-001.  
+**Parent context:** [spatial-economic resilience PR #116](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/116), [intertemporal allocation issue #153](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/153), and its exact-oracle implementation candidate [PR #187](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/187).  
+**Claim ceiling:** deterministic scheduling and resource accounting under declared synthetic constraints only; no grid-load-flow, thermal-CFD, real-world facility, causal impact, or national-ranking claim.
+
+## 1. Paradigm shift
+
+A data center should not be evaluated only as a building with servers, or only by its Power Usage Effectiveness (PUE). The relevant system is:
+
+**workload and quality target → compute hardware → IT electricity → facility power/cooling/water → grid and local resources → economic and public outcomes.**
+
+The unit of value is accepted, quality-conformant work delivered at the required place and time—not GPUs installed, tokens generated without a quality constraint, or megawatts announced in a project pipeline.
+
+V0.1 defines a compute-specific contract on top of Sol-Atlas's existing service-capacity and intertemporal resource work. It keeps separate:
+
+- requested, scheduled, completed, and quality-accepted work;
+- protected-service floors and deferrable demand;
+- IT energy and total facility energy;
+- nameplate compute capacity and capacity deliverable under each interval's grid, thermal and water limits;
+- measured observations, forecasts, commitments, model outputs and unknowns;
+- modeled potential heat and heat actually accepted by a compatible customer;
+- private operating cost and external or public resource impacts.
+
+The central optimization output is a **Pareto set** and a transparent constraint ledger, not a hidden weighted “green AI” score. Hard service floors and safety/resource limits are constraints, not costs that can be traded away for a better scalar score.
+
+## 2. Boundaries and definitions
+
+The fixture's interval-level **facility_energy_per_it_energy** is a synthetic conversion factor for the interval model. It is **not** a standardized PUE measurement. PUE is calculated from total facility energy divided by IT equipment energy over a defined measurement period; it should be reported separately from this model coefficient.
+
+For each interval, a first-order upper bound on IT power is:
+
+min(site IT rating, thermal IT limit, grid import limit / facility-energy-per-IT-energy)
+
+Water may impose an additional constraint using the declared per-IT-energy water coefficient. This is a deliberately bounded scheduling model: it does not simulate electrical voltage/current, cooling-fluid dynamics, heat-exchanger behavior, equipment transient response or a real utility network. Real deployments need their qualified domain solvers and measured power/thermal/water telemetry.
+
+Unknown inputs must remain unknown. Missing grid headroom is not zero demand or unlimited supply; missing marginal emissions is not zero-carbon electricity; absent heat-reuse demand is not a recovered-heat benefit.
+
+## 3. Benchmark layers and industry baselines
+
+This benchmark complements, rather than replaces, established benchmarks.
+
+| Layer | Reference | What it covers | What remains outside it |
+|---|---|---|---|
+| AI task performance and quality | [MLPerf Inference](https://mlcommons.org/benchmarks/inference-datacenter/) | Defined workloads, datasets/quality targets, throughput or latency scenarios | Grid location, time shifting, water, heat customers, national dependencies |
+| System-level AI power | [MLCommons Power](https://mlcommons.org/working-groups/benchmarks/power/) | Wall/system power and energy measurement for applicable MLPerf runs | Multi-site resilience and public-resource opportunity costs |
+| Server energy efficiency | [SPECpower_ssj2008](https://spec.org/power_ssj2008/) | Standardized server-side Java workload and power/performance behavior | GPU AI workload equivalence; facility/grid/site system optimization |
+| Open facility engineering | [OCP Data Center Facility](https://www.opencompute.org/projects/data-center-facility/) and [Rack & Power](https://www.opencompute.org/projects/rack-and-power/) | Open facility, rack, power, cooling and serviceability approaches | Whether scheduled work creates more useful national or public value |
+| Facility/resource metrics | [The Green Grid PUE](https://www.thegreengrid.org/node/372) and [DCRE v1](https://www.thegreengrid.org/resources/library-and-tools/wp93-data-center-resource-effectiveness-dcre-metric) | Facility overhead; broader energy/water/resource-context metrics | Workload quality and end-to-end resilience/economic trade-offs |
+| National/regional capacity | Sol-Atlas network, evidence, service-floor and intervention contracts | Spatial dependencies, time-bound capacity, resource competition, uncertainty and recovery | Physical facts not present in attributed evidence or qualified models |
+
+The differentiator is system-level comparison under matched workload quality and explicit shared-resource constraints. It is not fair to compare an MLPerf score to an unrelated normalized work unit. When hardware is available, task-level energy must be measured with appropriate wall-power instrumentation and a fixed quality target. The synthetic work units in the fixture below are only for correctness testing.
+
+### Research context
+
+The IEA's updated analysis reports data-centre electricity consumption of approximately 485 TWh in 2025 and projects around 950 TWh in 2030 in its central outlook; it also notes that grid/equipment bottlenecks constrain near-term deployment. These are scenario estimates, not certain outcomes: [IEA, Key Questions on Energy and AI](https://www.iea.org/reports/key-questions-on-energy-and-ai/executive-summary).
+
+The U.S. DOE/Lawrence Berkeley National Laboratory's 2024 report provides estimates and a scenario range for U.S. data-centre electricity use: [2024 United States Data Center Energy Usage Report](https://bies.lbl.gov/publications/2024-lbnl-data-center-energy-usage-report).
+
+OCP explicitly frames rack-power engineering as a grid-to-gates problem, supporting evaluation across interdependent power and IT interfaces: [OCP Rack & Power](https://www.opencompute.org/projects/rack-and-power/).
+
+These sources motivate the problem and provide comparison context; they do not validate this synthetic model.
+
+## 4. Scenario contract
+
+The machine-readable shape is defined by **schemas/spatial-economic-ai-compute-energy-flexibility-v0.1.schema.json**. The example **schemas/examples/ai-compute-energy-flexibility-four-interval.synthetic.json** is a tiny, hand-checkable positive control.
+
+A scenario declares:
+
+1. **Time grid:** ordered, non-overlapping intervals and duration.
+2. **Site:** IT rating and stable site identity.
+3. **Grid:** maximum facility import per interval, with optional attributed price and marginal-emissions factors.
+4. **Thermal envelope:** interval-level upper bound on IT power after ambient/thermal derating.
+5. **Water envelope:** maximum operational cooling water and water per IT-energy coefficient for each interval.
+6. **Workload:** required work units, energy per unit, release/deadline indices, service-quality-profile identity, and minimum accepted work per interval.
+7. **Evidence and claim ceiling:** source references for real data; the synthetic fixture explicitly says it is not an observation or national forecast.
+
+The semantic validator must additionally enforce cross-field rules the JSON Schema cannot fully express: unique IDs, array lengths aligned to the interval count, valid release/deadline bounds, service floors not exceeding required work, compatible units, finite values, and valid power/energy conversions. Never infer an absent interval, unit, resource or workload profile.
+
+## 5. Synthetic oracle case
+
+The four-interval fixture uses abstract work units and invented limits. It must never be labelled as a real AI model, U.S. grid, Johannesburg facility, or industry result.
+
+- Every interval lasts one hour.
+- The site IT rating is 80 kW.
+- Grid import limits are 20, 10, 10 and 20 kW.
+- The synthetic facility-energy multipliers are 1.15, 1.35, 1.40 and 1.15.
+- Thermal IT caps are 80, 60, 50 and 80 kW.
+- Cooling-water limits are 100, 100, 2 and 100 litres; water coefficients are 0.1, 0.4, 0.5 and 0.1 L/kWh of IT energy.
+- A protected workload requires six accepted units in every interval. A deferrable batch workload requests 80 units by the end of the horizon. Each unit uses 0.5 kWh of IT energy.
+- Protected floors are hard constraints. Every policy must satisfy them first; deferrable work uses only residual capacity.
+
+For this finite fixture, the hand-calculated maximum deferrable delivery is 66 units: interval ceilings are 28, 8, 2 and 28 units after the protected floor and power/water constraints. The expected results are therefore 24/24 protected work units and 66/80 deferrable work units, with all resource limits held. Freeze these values only as the fixture's oracle, not as an optimizer benchmark or field-performance claim.
+
+The test is useful because a nominal site rating of 80 kW is not the deliverable capacity in every interval. The grid interface, thermal limit and water constraint can each change the feasible scheduling envelope. A scalar average or nameplate value would hide that fact.
+
+## 6. Baseline ladder
+
+Use identical scenario bytes, task quality profile, work demand, deadlines, service floors and resource bounds for every candidate.
+
+- **B0 — fixed/earliest-ready:** deterministic earliest-ready scheduling within the residual capacity left after protected service floors and all hard constraints.
+- **B1 — power-cap-aware greedy:** respects interval grid, site and thermal bounds before admitting deferrable work.
+- **B2 — resource-aware scheduling:** additionally respects water limits and uses attributed time-dependent prices/emissions where present.
+- **B3 — joint optimization:** co-optimizes deferrable workloads with shared power, water and optional storage over the horizon. Optional heat reuse is a separate resource stream, never an assumed credit.
+- **Exact oracle:** exhaustive search on tiny integer fixtures; a candidate must match the feasible optimum and objective for the exact supported domain.
+- **Independent scalable baseline:** documented LP/MILP/CP-SAT solver or other independently implemented optimization method on larger cases. Pin version, solver parameters, stopping tolerance and optimality gap.
+
+A heuristic is not “better than SOTA” because it beats a weak baseline. The comparison must include the strongest applicable baseline that can represent the same constraints, and disclose any constraints it cannot model. The exact oracle is for correctness on small instances, not a claim of superior scalability over industrial solvers.
+
+## 7. Scorecard: do not collapse the Pareto frontier
+
+Always report the following independently:
+
+| Dimension | Metric | Interpretation and guardrail |
+|---|---|---|
+| Usefulness | accepted work / requested work, by workload | Count only output meeting the declared quality profile |
+| Service | per-class completion, deadline misses, floor shortfall and p95/p99 latency where applicable | Zero protected-floor violations are a hard gate |
+| Compute energy | measured or modelled IT kWh / accepted work | Keep measured and modelled results distinct |
+| Facility overhead | facility kWh and IT kWh; observed period PUE where measured | Do not call interval multipliers PUE |
+| Grid | peak import kW, curtailed work, load profile, interconnection-limit binding intervals | Power capacity is time- and location-specific |
+| Carbon | consumption-weighted emissions using attributed time/location factors | Unknown factors remain unknown; do not substitute annual averages silently |
+| Water | operational water by source/type and L/kWh of IT energy | Also report local water-stress context and scope; do not equate low water consumption with zero impact |
+| Heat reuse | heat accepted at usable temperature minus associated pumping/heat-pump energy; customer uptime | No credit for heat merely rejected or technically recoverable |
+| Economics | energy cost, capital/maintenance assumptions, cost per quality-accepted work unit | Keep assumptions and financing horizon visible |
+| Resilience | accepted work during named outage/heat/grid events; service degradation and recovery | Declared scenarios are not probabilities; report coverage and uncertainty |
+| Distribution | impacts on essential services, other industries and communities where evidence supports them | Do not let an aggregate gain conceal protected-service failure |
+| Confidence | observed/modelled/forecast/committed/unknown coverage and provenance | No hidden imputation or false precision |
+
+For national/regional presentation, add a dependency ledger: commissioned versus announced capacity; grid-connection status; deliverable compute under peak conditions; equipment/import concentration; local energy and water opportunity costs; workforce and service access; and model/data vintage. Aggregate only compatible measures with aligned geography/time and publish the denominator and missing-data coverage. Do not emit a single geopolitical rank from this one benchmark.
+
+## 8. Proposed acceptance gates and improvement targets
+
+All targets below are proposed and unmeasured until an exact revision is run.
+
+| Gate | Target | Fail-closed interpretation |
+|---|---:|---|
+| Small known-answer oracle | 100% exact agreement | Any difference in protected floors, work counts or resource bounds fails |
+| Resource conservation/capacity | 100% of interval rows valid | No negative stock, power overrun, water overrun or double allocation |
+| Unknown/invalid evidence | 0 unsafe positive conclusions | Missing interval/price/emissions/source/units cannot silently become zero or unlimited |
+| Protected services | 0 accepted floor violations | Infeasible floors return explicit infeasible/indeterminate status, never PASS |
+| Determinism | 100/100 identical canonical outputs | Input-order permutations must preserve the canonical result |
+| Scheduling improvement hypothesis | In at least 3 of 4 resource-constrained synthetic cases, ≥10% more deadline-satisfying deferrable work than B0, or ≥15% lower peak grid import at equal accepted work | Improvement is measured only under identical quality, service floors and resource constraints; if not attained, report the result rather than relax constraints |
+| Pareto integrity | All non-dominated candidates retained | Never conceal resource trade-offs behind one weighted score |
+| Small/medium/large timing | Report p50/p95/max and memory before setting release gates | Establish a named reference runner and baseline first; proposed latency thresholds are not currently authoritative |
+| Real-hardware promotion | Matched workload quality, wall-power measurement and repeated runs | Simulator outcomes cannot qualify physical facility performance |
+
+The 10%/15% thresholds are research hypotheses for selecting useful experiments, not expected or established results. A candidate that increases work by violating a hard service floor, relying on missing water data, or using an incomparable quality target is a failure.
+
+## 9. Adversarial cases to add next
+
+1. **Heat wave + grid cap:** simultaneous thermal derating and reduced import headroom; all protected floors and limits remain explicit.
+2. **Water constraint:** cooling-water cap binds before IT nameplate; resource scarcity is visible rather than averaged away.
+3. **Storage look-ahead:** a myopic scheduler empties storage early and harms a later protected interval; compare with the temporal allocator from issue #153 / PR #187 once integrated.
+4. **Heat customer outage:** recoverable heat demand falls to zero; compute cooling remains safe on the independent rejection path.
+5. **Interconnection bottleneck:** high announced IT capacity but limited commissioned power delivery; report deliverable capacity, not project announcements.
+6. **Common-cause event:** a shared substation or transmission failure affects multiple sites; do not treat them as independent capacity.
+7. **Unknown/mismatched factors:** an emissions factor is expired, a unit differs, or a site/time interval is missing; disposition is indeterminate.
+8. **Fairness pressure:** deferrable commercial demand competes with declared essential services; no scalar objective can override protected floors.
+
+## 10. Cross-stack integration
+
+- **Sol-Atlas:** owns scenario geography, evidence provenance, service/capacity assessment, intervention comparison and later national/regional aggregation.
+- **Symtropy:** supplies validated scenario simulation and temporal resource/energy experiments; it must expose model versions, assumptions and limits.
+- **Symthaea:** may search for candidate schedules and hypotheses, but every candidate must pass the same deterministic constraints and independent verifier.
+- **Mycelix:** can retain source lineage, review/attestation history and challengeable evidence records. A digest authenticates identity only when verified; it does not prove the underlying claim true.
+
+The campus-level design must follow Symthaea's [symbiotic infrastructure profile](https://github.com/Luminous-Dynamics/symthaea/issues/6146): useful thermal/resource coupling is optional and bounded; compute cooling and primary physical safety cannot depend on an unqualified heat customer or AI service. Symtropy's [energy-delivery issue](https://github.com/Luminous-Dynamics/symtropy/issues/2085) is a downstream system-model consumer, not a substitute for electrical-grid or nuclear licensing models.
+
+## 11. Reference sources
+
+- [IEA — Key Questions on Energy and AI](https://www.iea.org/reports/key-questions-on-energy-and-ai/executive-summary).
+- [DOE/LBNL — 2024 United States Data Center Energy Usage Report](https://bies.lbl.gov/publications/2024-lbnl-data-center-energy-usage-report).
+- [MLCommons — MLPerf Inference: Datacenter](https://mlcommons.org/benchmarks/inference-datacenter/).
+- [MLCommons — Power working group](https://mlcommons.org/working-groups/benchmarks/power/).
+- [SPECpower_ssj2008](https://spec.org/power_ssj2008/).
+- [Open Compute Project — Data Center Facility](https://www.opencompute.org/projects/data-center-facility/).
+- [Open Compute Project — Rack & Power](https://www.opencompute.org/projects/rack-and-power/).
+- [The Green Grid — PUE](https://www.thegreengrid.org/node/372).
+- [The Green Grid — Data Center Resource Effectiveness v1](https://www.thegreengrid.org/resources/library-and-tools/wp93-data-center-resource-effectiveness-dcre-metric).
+
+**Current result:** a contract and an independently calculable synthetic fixture only. No solver implementation, hardware experiment, comparative performance result or claim of being state of the art is included in V0.1.
