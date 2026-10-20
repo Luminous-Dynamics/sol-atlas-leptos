@@ -81,16 +81,19 @@ The semantic validator must additionally enforce cross-field rules the JSON Sche
 
 ## 4A. Executable reference evaluator
 
-The dependency-free Rust core includes a bounded reference evaluator and a native JSON CLI:
+The dependency-free Rust core includes a bounded reference evaluator and a native JSON CLI. Run each policy against the **same exact scenario bytes**:
 
 ```sh
-cargo run -p sol-atlas-core --bin ai_compute_energy_assess -- \
-  schemas/examples/ai-compute-energy-flexibility-four-interval.synthetic.json
+cargo run -p sol-atlas-core --bin ai_compute_energy_assess -- schemas/examples/ai-compute-energy-flexibility-four-interval.synthetic.json earliest-ready
+cargo run -p sol-atlas-core --bin ai_compute_energy_assess -- schemas/examples/ai-compute-energy-flexibility-four-interval.synthetic.json lowest-cost
+cargo run -p sol-atlas-core --bin ai_compute_energy_assess -- schemas/examples/ai-compute-energy-flexibility-four-interval.synthetic.json lowest-carbon
 ```
 
-The CLI emits a machine-readable JSON assessment to stdout. Exit codes are explicit: 0 for a completed feasible/capacity-limited assessment; 2 for protected-floor infeasibility; 3 for indeterminate required resource inputs; 4 for unsupported request shapes; 5 for invalid inputs; 64 for CLI usage errors; 65 for JSON parse errors; 66 for file-read errors; 70 for serialization errors.
+The CLI emits a machine-readable JSON schedule assessment to stdout. The policies are `earliest-ready`, `lowest-cost` (sort by attributed electricity price × facility-energy factor), and `lowest-carbon` (sort by attributed carbon intensity × facility-energy factor). Missing price/carbon factors for any interval with eligible capacity make the corresponding objective indeterminate; unknown values never silently become zero.
 
-The evaluator's unit tests parse the committed synthetic JSON via `include_str!`, rather than maintaining a second copied fixture. This prevents the test fixture and the code-side request from silently drifting apart. The CLI is useful for deterministic local inspection and later integration with other stack components; it does not elevate synthetic data to physical evidence.
+Exit codes are explicit: 0 for a completed feasible/capacity-limited assessment; 2 for protected-floor infeasibility; 3 for indeterminate required resource/objective inputs; 4 for unsupported request shapes; 5 for invalid inputs; 64 for CLI usage errors; 65 for JSON parse errors; 66 for file-read errors; 70 for serialization errors.
+
+The evaluator's unit tests parse the committed synthetic JSON via `include_str!`, rather than maintaining a second copied fixture. This prevents the test fixture and code-side request from silently drifting apart. The CLI is useful for deterministic local inspection and integration with other stack components; it does not elevate synthetic data to physical evidence.
 
 ## 5. Synthetic oracle case
 
@@ -108,6 +111,20 @@ The four-interval fixture uses abstract work units and invented limits. It must 
 For this finite fixture, the hand-calculated maximum deferrable delivery is 66 units: interval ceilings are 28, 8, 2 and 28 units after the protected floor and power/water constraints. The expected results are therefore 24/24 protected work units and 66/80 deferrable work units, with all resource limits held. Freeze these values only as the fixture's oracle, not as an optimizer benchmark or field-performance claim.
 
 The test is useful because a nominal site rating of 80 kW is not the deliverable capacity in every interval. The grid interface, thermal limit and water constraint can each change the feasible scheduling envelope. A scalar average or nameplate value would hide that fact.
+
+### Synthetic scheduling counterfactual
+
+With deferrable demand set to 40 units in the same four-interval fixture, the three policies produce these synthetic schedules:
+
+| Policy | Deferrable units by interval | Modelled electricity cost | Modelled grid carbon |
+|---|---|---:|---:|
+| Earliest-ready | `[28, 8, 2, 2]` | $3.700 | 24,227.5 gCO₂ |
+| Lowest-cost | `[12, 0, 0, 28]` | $1.978 | 12,305 gCO₂ |
+| Lowest-carbon | `[2, 8, 2, 28]` | $3.401 | 10,025 gCO₂ |
+
+These are derived from the fixture's explicitly synthetic factors—not facility measurements, observed grid emissions, or evidence that a real workload can move without changing quality and latency. The counterfactual demonstrates that price and carbon minimization are distinct objectives: the evaluator exposes the trade-off instead of collapsing it into an opaque score. All three schedules preserve the six-unit protected floor in every interval.
+
+A May 2026 paper using Alibaba workload traces reports that about 20% of data-center power came from latency-tolerant tasks suitable for shifting and that its LAD-Flex strategy could shed up to 22% load during flexibility windows. This is a workload- and scenario-specific result, not a universal fleet property: [Caprara et al., *Data center workload flexibility for power system demand response: Evidence from Alibaba traces*](https://www.sciencedirect.com/science/article/pii/S0142061526003820). It supports testing workload flexibility, but does not prove this synthetic scheduler beats the published approach; a fair comparison needs comparable trace, flexibility-window, and quality/service assumptions.
 
 ## 6. Baseline ladder
 
