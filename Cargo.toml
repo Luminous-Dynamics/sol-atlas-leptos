@@ -24,6 +24,7 @@ log = "0.4"
 
 [features]
 default = []
+landscape-observation-bench = []
 
 [dependencies.web-sys]
 version = "0.3"
@@ -62,3 +63,8 @@ opt-level = "z"
 lto = true
 codegen-units = 1
 strip = true
+
+[[bin]]
+name = "landscape-observation-bench"
+path = "src/bin/landscape_observation_bench.rs"
+required-features = ["landscape-observation-bench"]
