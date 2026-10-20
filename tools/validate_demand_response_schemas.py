@@ -171,6 +171,7 @@ def main() -> int:
 
     mutation = copy.deepcopy(fixture)
     del mutation["rsr"]
+    del mutation["rsr_reference"]
     del mutation["edr"]
     expect_invalid("at least one metric section is required", input_validator, mutation)
 
@@ -187,7 +188,7 @@ def main() -> int:
     mutation["metrics"]["additional_score"] = 1000000
     expect_invalid("report rejects unknown metric fields", report_validator, mutation)
 
-    print("PASS 10 demand-response schema assertions completed; no external data used")
+    print("PASS 11 demand-response schema assertions completed; no external data used")
     return 0
 
 
