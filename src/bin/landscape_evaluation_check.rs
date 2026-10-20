@@ -143,7 +143,7 @@ mod tests {
         assert_eq!(first, second);
         assert_eq!(first["valid"], true);
         assert_eq!(first["evaluation_id"], "eval-watershed-demo-v0");
-        assert_eq!(first["input_bytes"], bytes.len());
+        assert_eq!(first["input_bytes"], json!(bytes.len()));
         assert_eq!(first["input_sha256"].as_str().unwrap().len(), 64);
         assert_eq!(first["errors"].as_array().unwrap().len(), 0);
     }
