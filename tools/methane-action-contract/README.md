@@ -32,7 +32,7 @@ cargo run --manifest-path tools/methane-action-contract/Cargo.toml --locked --bi
   < tools/methane-action-contract/examples/synthetic-census.json > receipt.json
 ```
 
-The receipt includes the SHA-256 of the exact input JSON bytes and the submitted system/configuration identifiers. This digest binds the receipt to the input bytes; it does not authenticate the input source, the running binary, the upstream data provider, the reviewer, or the reference truth. The bundled two-case fixture is intentionally synthetic and is only a CLI/conformance smoke test, not evidence of methane-detector performance.
+The receipt includes SHA-256 digests for the exact input JSON bytes and running evaluator executable, plus submitted system/configuration identifiers. These hashes identify the inputs and executable image; they do not authenticate the input source, prove who built the binary, authenticate the upstream provider or reviewer, or establish reference truth. The bundled two-case fixture is intentionally synthetic and is only a CLI/conformance smoke test, not evidence of methane-detector performance.
 
 Input schema version 1 uses explicit tagged states for reference truth, coverage, and system disposition. Unknown object fields are rejected rather than silently ignored.
 
@@ -48,7 +48,7 @@ cargo run --manifest-path tools/methane-action-contract/Cargo.toml --locked --bi
   tools/methane-action-contract/examples/split-manifest.json
 ```
 
-The corpus contains five made-up cases across four named partitions. Its manifest is pinned to the exact bytes of `split-corpus.json`. This checks that split identities and hashes are internally consistent; it does not establish that the chosen clusters are truly independent, that reference labels are accurate, or that a holdout represents future deployment conditions.
+The corpus contains five made-up cases across four named partitions. Its manifest is pinned to the exact bytes of `split-corpus.json`. The receipt includes corpus, split-manifest, and evaluator-executable digests. This checks internal consistency; it does not establish that clusters are independent, labels are accurate, or a holdout represents future deployment conditions.
 
 ## Paired baseline comparison
 
@@ -63,7 +63,7 @@ cargo run --manifest-path tools/methane-action-contract/Cargo.toml --locked --bi
   < tools/methane-action-contract/examples/synthetic-paired-comparison.json > comparison-receipt.json
 ```
 
-The receipt binds the exact input JSON bytes by SHA-256 and includes the cluster count, point estimates, discordant pairs, and bootstrap intervals. It does not establish that the reference truth is accurate or that the candidate generalizes beyond the tested corpus.
+The receipt binds the exact input JSON bytes and running evaluator executable by SHA-256, and includes cluster counts, point estimates, discordant pairs, and bootstrap intervals. Binary hashing identifies the executable bytes but does not prove who built them, establish reference truth, or show that the candidate generalizes beyond the tested corpus.
 
 ## Complete-census evaluator
 
