@@ -88,20 +88,8 @@ pub fn validate_snapshot(value: &Value) -> Result<(), Vec<String>> {
                 "$.coordinate_frame",
                 &mut errors,
             );
-            require_string_eq(
-                frame,
-                "x_axis",
-                "right",
-                "$.coordinate_frame",
-                &mut errors,
-            );
-            require_string_eq(
-                frame,
-                "y_axis",
-                "down",
-                "$.coordinate_frame",
-                &mut errors,
-            );
+            require_string_eq(frame, "x_axis", "right", "$.coordinate_frame", &mut errors);
+            require_string_eq(frame, "y_axis", "down", "$.coordinate_frame", &mut errors);
             if frame.get("georeferenced") != Some(&Value::Bool(false)) {
                 errors.push(
                     "$.coordinate_frame.georeferenced: v0 schematic snapshots must be false"
@@ -221,9 +209,7 @@ fn validate_integer_range(
         Some(_) => errors.push(format!(
             "{path}.{key}: expected an integer in {minimum}..={maximum}"
         )),
-        None => errors.push(format!(
-            "{path}.{key}: expected a non-negative integer"
-        )),
+        None => errors.push(format!("{path}.{key}: expected a non-negative integer")),
     }
 }
 
@@ -270,14 +256,16 @@ mod tests {
 
     #[test]
     fn schema_file_contract_matches_rust_constants() {
-        let schema: Value = serde_json::from_str(include_str!(
-            "../schemas/landscape-design-v0.schema.json"
-        ))
-        .expect("committed snapshot schema must be valid JSON");
+        let schema: Value =
+            serde_json::from_str(include_str!("../schemas/landscape-design-v0.schema.json"))
+                .expect("committed snapshot schema must be valid JSON");
 
         assert_eq!(schema["$id"], SNAPSHOT_SCHEMA_URI);
         assert_eq!(schema["properties"]["schema"]["const"], SNAPSHOT_SCHEMA);
-        assert_eq!(schema["properties"]["schema_uri"]["const"], SNAPSHOT_SCHEMA_URI);
+        assert_eq!(
+            schema["properties"]["schema_uri"]["const"],
+            SNAPSHOT_SCHEMA_URI
+        );
         assert_eq!(
             schema["properties"]["coordinate_frame"]["properties"]["kind"]["const"],
             FRAME_KIND
@@ -291,11 +279,13 @@ mod tests {
             GEOMETRY_REPRESENTATION
         );
         for required in ROOT_KEYS {
-            assert!(schema["required"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .any(|entry| entry == required));
+            assert!(
+                schema["required"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .any(|entry| entry.as_str() == Some(*required))
+            );
         }
     }
 
@@ -320,7 +310,11 @@ mod tests {
         snapshot["features"][1]["id"] = first;
 
         let errors = validate_snapshot(&snapshot).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("duplicate feature ID")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("duplicate feature ID"))
+        );
     }
 
     #[test]
@@ -329,7 +323,11 @@ mod tests {
         snapshot["features"][0]["label"] = Value::String("Water feature".to_string());
 
         let errors = validate_snapshot(&snapshot).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("label must match kind")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("label must match kind"))
+        );
     }
 
     #[test]
