@@ -113,9 +113,7 @@ pub fn build_pod_profile(
     let mut report = PodProfileReport::default();
     validate_rate_bands(&mut report, rate_bands);
     let census: EvaluationReport = evaluate_census(cases, submission);
-    report
-        .violations
-        .extend(census.violations.iter().cloned());
+    report.violations.extend(census.violations.iter().cloned());
 
     if !report.violations.is_empty() {
         sort_violations(&mut report);
@@ -150,11 +148,16 @@ pub fn build_pod_profile(
                     .iter()
                     .filter(|band| {
                         *emission_rate_kg_h >= band.lower_kg_h
-                            && band.upper_kg_h.is_none_or(|upper| *emission_rate_kg_h < upper)
+                            && band
+                                .upper_kg_h
+                                .is_none_or(|upper| *emission_rate_kg_h < upper)
                     })
                     .collect::<Vec<_>>();
                 if matching.len() != 1 {
-                    report.push(&case.case_id, "positive_case_outside_or_duplicated_rate_band");
+                    report.push(
+                        &case.case_id,
+                        "positive_case_outside_or_duplicated_rate_band",
+                    );
                     continue;
                 }
                 let accumulator = pod
@@ -235,7 +238,10 @@ pub fn build_pod_profile(
                 explicit_non_detections: accumulator.non_detections,
                 abstentions: accumulator.abstentions,
                 end_to_end_pod: ratio(accumulator.detections, accumulator.positives),
-                end_to_end_pod_ci95: wilson_interval_95(accumulator.detections, accumulator.positives),
+                end_to_end_pod_ci95: wilson_interval_95(
+                    accumulator.detections,
+                    accumulator.positives,
+                ),
                 pod_when_covered: ratio(accumulator.detections, accumulator.covered_positives),
                 pod_when_covered_ci95: wilson_interval_95(
                     accumulator.detections,
@@ -325,9 +331,9 @@ fn ratio(numerator: usize, denominator: usize) -> Option<f64> {
 }
 
 fn sort_violations(report: &mut PodProfileReport) {
-    report.violations.sort_by(|left, right| {
-        (&left.record_id, left.code).cmp(&(&right.record_id, right.code))
-    });
+    report
+        .violations
+        .sort_by(|left, right| (&left.record_id, left.code).cmp(&(&right.record_id, right.code)));
     report.violations.dedup();
 }
 
@@ -337,32 +343,119 @@ mod tests {
 
     fn bands() -> Vec<RateBand> {
         vec![
-            RateBand { band_id: "low".into(), lower_kg_h: 0.0, upper_kg_h: Some(10.0) },
-            RateBand { band_id: "mid".into(), lower_kg_h: 10.0, upper_kg_h: Some(50.0) },
-            RateBand { band_id: "high".into(), lower_kg_h: 50.0, upper_kg_h: None },
+            RateBand {
+                band_id: "low".into(),
+                lower_kg_h: 0.0,
+                upper_kg_h: Some(10.0),
+            },
+            RateBand {
+                band_id: "mid".into(),
+                lower_kg_h: 10.0,
+                upper_kg_h: Some(50.0),
+            },
+            RateBand {
+                band_id: "high".into(),
+                lower_kg_h: 50.0,
+                upper_kg_h: None,
+            },
         ]
     }
 
     fn cases() -> Vec<BenchmarkCase> {
         vec![
-            case("positive-low-detected", "low-wind", "site-a", ReferenceState::MeteredEmission { emission_rate_kg_h: 5.0 }),
-            case("positive-mid-nondetect", "low-wind", "site-b", ReferenceState::MeteredEmission { emission_rate_kg_h: 25.0 }),
-            case("positive-high-detected", "high-wind", "site-c", ReferenceState::MeteredEmission { emission_rate_kg_h: 75.0 }),
-            case("positive-low-not-tasked", "high-wind", "site-d", ReferenceState::MeteredEmission { emission_rate_kg_h: 7.0 }),
-            case("positive-mid-abstained", "low-wind", "site-e", ReferenceState::MeteredEmission { emission_rate_kg_h: 30.0 }),
-            case("negative-false-alert", "low-wind", "site-f", ReferenceState::MeteredZero),
-            case("negative-true-nondetect", "low-wind", "site-g", ReferenceState::MeteredZero),
-            case("negative-not-tasked", "high-wind", "site-h", ReferenceState::MeteredZero),
-            case("truth-unavailable", "low-wind", "site-i", ReferenceState::ReferenceUnavailable { reason: "reference meter unavailable".into() }),
+            case(
+                "positive-low-detected",
+                "low-wind",
+                "site-a",
+                ReferenceState::MeteredEmission {
+                    emission_rate_kg_h: 5.0,
+                },
+            ),
+            case(
+                "positive-mid-nondetect",
+                "low-wind",
+                "site-b",
+                ReferenceState::MeteredEmission {
+                    emission_rate_kg_h: 25.0,
+                },
+            ),
+            case(
+                "positive-high-detected",
+                "high-wind",
+                "site-c",
+                ReferenceState::MeteredEmission {
+                    emission_rate_kg_h: 75.0,
+                },
+            ),
+            case(
+                "positive-low-not-tasked",
+                "high-wind",
+                "site-d",
+                ReferenceState::MeteredEmission {
+                    emission_rate_kg_h: 7.0,
+                },
+            ),
+            case(
+                "positive-mid-abstained",
+                "low-wind",
+                "site-e",
+                ReferenceState::MeteredEmission {
+                    emission_rate_kg_h: 30.0,
+                },
+            ),
+            case(
+                "negative-false-alert",
+                "low-wind",
+                "site-f",
+                ReferenceState::MeteredZero,
+            ),
+            case(
+                "negative-true-nondetect",
+                "low-wind",
+                "site-g",
+                ReferenceState::MeteredZero,
+            ),
+            case(
+                "negative-not-tasked",
+                "high-wind",
+                "site-h",
+                ReferenceState::MeteredZero,
+            ),
+            case(
+                "truth-unavailable",
+                "low-wind",
+                "site-i",
+                ReferenceState::ReferenceUnavailable {
+                    reason: "reference meter unavailable".into(),
+                },
+            ),
         ]
     }
 
-    fn case(case_id: &str, stratum_id: &str, cluster_id: &str, reference: ReferenceState) -> BenchmarkCase {
-        BenchmarkCase { case_id: case_id.into(), stratum_id: stratum_id.into(), cluster_id: cluster_id.into(), reference }
+    fn case(
+        case_id: &str,
+        stratum_id: &str,
+        cluster_id: &str,
+        reference: ReferenceState,
+    ) -> BenchmarkCase {
+        BenchmarkCase {
+            case_id: case_id.into(),
+            stratum_id: stratum_id.into(),
+            cluster_id: cluster_id.into(),
+            reference,
+        }
     }
 
-    fn response(case_id: &str, coverage: CoverageState, disposition: SystemDisposition) -> CaseResponse {
-        CaseResponse { case_id: case_id.into(), coverage, disposition }
+    fn response(
+        case_id: &str,
+        coverage: CoverageState,
+        disposition: SystemDisposition,
+    ) -> CaseResponse {
+        CaseResponse {
+            case_id: case_id.into(),
+            coverage,
+            disposition,
+        }
     }
 
     fn submission(responses: Vec<CaseResponse>) -> SystemSubmission {
@@ -377,20 +470,76 @@ mod tests {
 
     fn responses() -> Vec<CaseResponse> {
         vec![
-            response("positive-low-detected", CoverageState::Covered, SystemDisposition::Detected { emission_rate_kg_h: 4.7 }),
-            response("positive-mid-nondetect", CoverageState::Covered, SystemDisposition::ExplicitNonDetect),
-            response("positive-high-detected", CoverageState::Covered, SystemDisposition::Detected { emission_rate_kg_h: 72.0 }),
-            response("positive-low-not-tasked", CoverageState::NotTasked { reason: "no collection opportunity".into() }, SystemDisposition::NoOutput),
-            response("positive-mid-abstained", CoverageState::Covered, SystemDisposition::Abstained { reason: "quality below model threshold".into() }),
-            response("negative-false-alert", CoverageState::Covered, SystemDisposition::Detected { emission_rate_kg_h: 1.2 }),
-            response("negative-true-nondetect", CoverageState::Covered, SystemDisposition::ExplicitNonDetect),
-            response("negative-not-tasked", CoverageState::NotTasked { reason: "platform unavailable".into() }, SystemDisposition::NoOutput),
-            response("truth-unavailable", CoverageState::Covered, SystemDisposition::Abstained { reason: "no reference label".into() }),
+            response(
+                "positive-low-detected",
+                CoverageState::Covered,
+                SystemDisposition::Detected {
+                    emission_rate_kg_h: 4.7,
+                },
+            ),
+            response(
+                "positive-mid-nondetect",
+                CoverageState::Covered,
+                SystemDisposition::ExplicitNonDetect,
+            ),
+            response(
+                "positive-high-detected",
+                CoverageState::Covered,
+                SystemDisposition::Detected {
+                    emission_rate_kg_h: 72.0,
+                },
+            ),
+            response(
+                "positive-low-not-tasked",
+                CoverageState::NotTasked {
+                    reason: "no collection opportunity".into(),
+                },
+                SystemDisposition::NoOutput,
+            ),
+            response(
+                "positive-mid-abstained",
+                CoverageState::Covered,
+                SystemDisposition::Abstained {
+                    reason: "quality below model threshold".into(),
+                },
+            ),
+            response(
+                "negative-false-alert",
+                CoverageState::Covered,
+                SystemDisposition::Detected {
+                    emission_rate_kg_h: 1.2,
+                },
+            ),
+            response(
+                "negative-true-nondetect",
+                CoverageState::Covered,
+                SystemDisposition::ExplicitNonDetect,
+            ),
+            response(
+                "negative-not-tasked",
+                CoverageState::NotTasked {
+                    reason: "platform unavailable".into(),
+                },
+                SystemDisposition::NoOutput,
+            ),
+            response(
+                "truth-unavailable",
+                CoverageState::Covered,
+                SystemDisposition::Abstained {
+                    reason: "no reference label".into(),
+                },
+            ),
         ]
     }
 
-    fn cell<'a>(profile: &'a DetectionProfile, condition: &str, band: &str) -> &'a ConditionRateBandResult {
-        profile.by_condition_and_rate_band.iter()
+    fn cell<'a>(
+        profile: &'a DetectionProfile,
+        condition: &str,
+        band: &str,
+    ) -> &'a ConditionRateBandResult {
+        profile
+            .by_condition_and_rate_band
+            .iter()
             .find(|cell| cell.condition_stratum_id == condition && cell.rate_band_id == band)
             .expect("condition/rate-band cross product contains requested bucket")
     }
@@ -429,13 +578,23 @@ mod tests {
 
     #[test]
     fn false_alert_rate_uses_only_covered_zero_release_opportunities() {
-        let profile = build_pod_profile(&cases(), &submission(responses()), &bands()).profile.unwrap();
-        let low = profile.false_alerts_by_condition.iter().find(|row| row.condition_stratum_id == "low-wind").unwrap();
+        let profile = build_pod_profile(&cases(), &submission(responses()), &bands())
+            .profile
+            .unwrap();
+        let low = profile
+            .false_alerts_by_condition
+            .iter()
+            .find(|row| row.condition_stratum_id == "low-wind")
+            .unwrap();
         assert_eq!(low.metered_zero_opportunities, 2);
         assert_eq!(low.covered_zero_opportunities, 2);
         assert_eq!(low.false_alerts, 1);
         assert_eq!(low.false_alert_rate_when_covered, Some(0.5));
-        let high = profile.false_alerts_by_condition.iter().find(|row| row.condition_stratum_id == "high-wind").unwrap();
+        let high = profile
+            .false_alerts_by_condition
+            .iter()
+            .find(|row| row.condition_stratum_id == "high-wind")
+            .unwrap();
         assert_eq!(high.metered_zero_opportunities, 1);
         assert_eq!(high.covered_zero_opportunities, 0);
         assert_eq!(high.not_tasked_zero, 1);
@@ -449,22 +608,39 @@ mod tests {
         let report = build_pod_profile(&cases(), &submission(responses()), &invalid);
         assert!(!report.is_valid());
         assert!(report.profile.is_none());
-        assert!(report.violations.iter().any(|v| v.code == "overlapping_rate_bands"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "overlapping_rate_bands")
+        );
         let mut reversed = bands();
         reversed.swap(0, 1);
         let report = build_pod_profile(&cases(), &submission(responses()), &reversed);
         assert!(!report.is_valid());
-        assert!(report.violations.iter().any(|v| v.code == "rate_bands_not_strictly_ordered"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "rate_bands_not_strictly_ordered")
+        );
     }
 
     #[test]
     fn rejects_positive_reference_outside_configured_bands() {
         let mut out_of_band = cases();
-        out_of_band[0].reference = ReferenceState::MeteredEmission { emission_rate_kg_h: 1000.0 };
+        out_of_band[0].reference = ReferenceState::MeteredEmission {
+            emission_rate_kg_h: 1000.0,
+        };
         let report = build_pod_profile(&out_of_band, &submission(responses()), &bands());
         assert!(!report.is_valid());
         assert!(report.profile.is_none());
-        assert!(report.violations.iter().any(|v| v.code == "positive_case_outside_or_duplicated_rate_band"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "positive_case_outside_or_duplicated_rate_band")
+        );
     }
 
     #[test]
@@ -474,25 +650,42 @@ mod tests {
         let report = build_pod_profile(&cases(), &submission(incomplete), &bands());
         assert!(!report.is_valid());
         assert!(report.profile.is_none());
-        assert!(report.violations.iter().any(|v| v.code == "missing_response_row"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "missing_response_row")
+        );
     }
 
     #[test]
     fn rejects_empty_or_malformed_bands() {
         let empty = build_pod_profile(&cases(), &submission(responses()), &[]);
         assert!(!empty.is_valid());
-        assert!(empty.violations.iter().any(|v| v.code == "empty_rate_bands"));
+        assert!(
+            empty
+                .violations
+                .iter()
+                .any(|v| v.code == "empty_rate_bands")
+        );
         let mut invalid = bands();
         invalid[0].upper_kg_h = Some(f64::NAN);
         let report = build_pod_profile(&cases(), &submission(responses()), &invalid);
         assert!(!report.is_valid());
-        assert!(report.violations.iter().any(|v| v.code == "invalid_rate_band_upper_bound"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "invalid_rate_band_upper_bound")
+        );
     }
 
     #[test]
     fn upper_bound_is_exclusive_and_lower_bound_inclusive() {
         let mut boundary_cases = cases();
-        boundary_cases[0].reference = ReferenceState::MeteredEmission { emission_rate_kg_h: 10.0 };
+        boundary_cases[0].reference = ReferenceState::MeteredEmission {
+            emission_rate_kg_h: 10.0,
+        };
         let report = build_pod_profile(&boundary_cases, &submission(responses()), &bands());
         assert!(report.is_valid(), "{report:?}");
         let profile = report.profile.unwrap();
