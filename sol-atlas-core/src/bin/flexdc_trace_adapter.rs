@@ -173,7 +173,10 @@ fn validate_manifest(manifest: &RunManifest) -> Result<(), String> {
             return Err("config artifact paths must be nonblank single-line values".to_owned());
         }
         if !seen_paths.insert(artifact.path.as_str()) {
-            return Err(format!("duplicate config artifact path {:?}", artifact.path));
+            return Err(format!(
+                "duplicate config artifact path {:?}",
+                artifact.path
+            ));
         }
         if !is_lower_hex(&artifact.git_blob_sha1, 40) {
             return Err(format!(
@@ -278,9 +281,9 @@ fn parse_power_trace(
                 "power trace row {row_number}: trackingError is missing"
             ));
         }
-        let error = raw_error.parse::<f64>().map_err(|_| {
-            format!("power trace row {row_number}: trackingError is not numeric")
-        })?;
+        let error = raw_error
+            .parse::<f64>()
+            .map_err(|_| format!("power trace row {row_number}: trackingError is not numeric"))?;
         if !error.is_finite() {
             return Err(format!(
                 "power trace row {row_number}: trackingError must be finite"
@@ -397,7 +400,7 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    use super::{build_trace_input, parse_power_trace, sha256_hex, validate_manifest, RunManifest};
+    use super::{RunManifest, build_trace_input, parse_power_trace, sha256_hex, validate_manifest};
 
     const TRACE: &str =
         include_str!("../../../schemas/examples/flexdc-sim-power-trace.synthetic.csv");
@@ -415,7 +418,10 @@ mod tests {
         assert_eq!(output["synthetic"], true);
         assert_eq!(output["claim_ceiling"], "metric_accounting_only");
         assert_eq!(
-            output["rsr_reference"]["interval_ids"].as_array().unwrap().len(),
+            output["rsr_reference"]["interval_ids"]
+                .as_array()
+                .unwrap()
+                .len(),
             10
         );
         assert_eq!(output["rsr_reference"]["interval_ids"][0], "0");
@@ -446,35 +452,45 @@ mod tests {
     fn malformed_source_metadata_and_csv_rows_fail_closed() {
         let manifest = parsed_manifest();
         let bad_header = "time,realSum\n0,0\n";
-        assert!(parse_power_trace(bad_header, &manifest)
-            .expect_err("missing trackingError column must reject")
-            .contains("exactly one"));
+        assert!(
+            parse_power_trace(bad_header, &manifest)
+                .expect_err("missing trackingError column must reject")
+                .contains("exactly one")
+        );
         let bad_time = TRACE.replace("5,0.0", "6,0.0");
-        assert!(parse_power_trace(&bad_time, &manifest)
-            .expect_err("gap in timestamps must reject")
-            .contains("expected time 5, got 6"));
+        assert!(
+            parse_power_trace(&bad_time, &manifest)
+                .expect_err("gap in timestamps must reject")
+                .contains("expected time 5, got 6")
+        );
         let missing_error = TRACE.replace("9,0.8", "9,");
-        assert!(parse_power_trace(&missing_error, &manifest)
-            .expect_err("missing trackingError must reject")
-            .contains("trackingError is missing"));
+        assert!(
+            parse_power_trace(&missing_error, &manifest)
+                .expect_err("missing trackingError must reject")
+                .contains("trackingError is missing")
+        );
     }
 
     #[test]
     fn manifest_must_pin_all_configuration_roles() {
         let mut manifest = parsed_manifest();
         manifest.config_artifacts.pop();
-        assert!(validate_manifest(&manifest)
-            .expect_err("incomplete config list must reject")
-            .contains("exactly 6 required roles"));
+        assert!(
+            validate_manifest(&manifest)
+                .expect_err("incomplete config list must reject")
+                .contains("exactly 6 required roles")
+        );
     }
 
     #[test]
     fn source_revision_must_be_canonical_lowercase_commit_sha() {
         let mut manifest = parsed_manifest();
         manifest.source_revision = "A".repeat(40);
-        assert!(validate_manifest(&manifest)
-            .expect_err("uppercase revision must reject")
-            .contains("lowercase Git commit SHA"));
+        assert!(
+            validate_manifest(&manifest)
+                .expect_err("uppercase revision must reject")
+                .contains("lowercase Git commit SHA")
+        );
     }
 
     #[test]
@@ -521,7 +537,8 @@ mod tests {
     #[test]
     fn pinned_source_rejects_a_substituted_config_blob() {
         let mut manifest = parsed_manifest();
-        manifest.config_artifacts[0].git_blob_sha1 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned();
+        manifest.config_artifacts[0].git_blob_sha1 =
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned();
         assert!(
             validate_manifest(&manifest)
                 .expect_err("config identity substitution must be rejected")
