@@ -10,7 +10,7 @@
 
 use leptos::prelude::*;
 use leptos_router::components::A;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use wasm_bindgen::JsCast;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -92,13 +92,48 @@ impl LandscapeScale {
 
 fn starter_features() -> Vec<DesignFeature> {
     vec![
-        DesignFeature { id: 1, x_du: 180, y_du: 160, kind: FeatureKind::Tree },
-        DesignFeature { id: 2, x_du: 245, y_du: 195, kind: FeatureKind::Tree },
-        DesignFeature { id: 3, x_du: 365, y_du: 250, kind: FeatureKind::PlantingBed },
-        DesignFeature { id: 4, x_du: 430, y_du: 285, kind: FeatureKind::Water },
-        DesignFeature { id: 5, x_du: 540, y_du: 360, kind: FeatureKind::Path },
-        DesignFeature { id: 6, x_du: 740, y_du: 190, kind: FeatureKind::BuiltElement },
-        DesignFeature { id: 7, x_du: 785, y_du: 420, kind: FeatureKind::Tree },
+        DesignFeature {
+            id: 1,
+            x_du: 180,
+            y_du: 160,
+            kind: FeatureKind::Tree,
+        },
+        DesignFeature {
+            id: 2,
+            x_du: 245,
+            y_du: 195,
+            kind: FeatureKind::Tree,
+        },
+        DesignFeature {
+            id: 3,
+            x_du: 365,
+            y_du: 250,
+            kind: FeatureKind::PlantingBed,
+        },
+        DesignFeature {
+            id: 4,
+            x_du: 430,
+            y_du: 285,
+            kind: FeatureKind::Water,
+        },
+        DesignFeature {
+            id: 5,
+            x_du: 540,
+            y_du: 360,
+            kind: FeatureKind::Path,
+        },
+        DesignFeature {
+            id: 6,
+            x_du: 740,
+            y_du: 190,
+            kind: FeatureKind::BuiltElement,
+        },
+        DesignFeature {
+            id: 7,
+            x_du: 785,
+            y_du: 420,
+            kind: FeatureKind::Tree,
+        },
     ]
 }
 
@@ -149,23 +184,36 @@ pub fn LandscapeDesigner() -> impl IntoView {
                 let y = ((f64::from(event.client_y()) - rect.top()) * 650.0 / rect.height())
                     .clamp(0.0, 650.0)
                     .round() as u16;
-                let next_id = features.get_untracked().iter().map(|item| item.id).max().unwrap_or(0) + 1;
-                set_features.update(|items| items.push(DesignFeature {
-                    id: next_id,
-                    x_du: x,
-                    y_du: y,
-                    kind: active_tool.get_untracked(),
-                }));
+                let next_id = features
+                    .get_untracked()
+                    .iter()
+                    .map(|item| item.id)
+                    .max()
+                    .unwrap_or(0)
+                    + 1;
+                set_features.update(|items| {
+                    items.push(DesignFeature {
+                        id: next_id,
+                        x_du: x,
+                        y_du: y,
+                        kind: active_tool.get_untracked(),
+                    })
+                });
                 set_export_text.set(String::new());
             }
         }
     };
 
     let export_project = move |_| {
-        let value = snapshot_json("Untitled landscape", active_scale.get_untracked(), &features.get_untracked());
-        set_export_text.set(serde_json::to_string_pretty(&value).unwrap_or_else(|error| {
-            format!("Snapshot serialization failed: {error}")
-        }));
+        let value = snapshot_json(
+            "Untitled landscape",
+            active_scale.get_untracked(),
+            &features.get_untracked(),
+        );
+        set_export_text.set(
+            serde_json::to_string_pretty(&value)
+                .unwrap_or_else(|error| format!("Snapshot serialization failed: {error}")),
+        );
     };
 
     let undo = move |_| {
@@ -364,7 +412,10 @@ mod tests {
         let value = snapshot_json("fixture", LandscapeScale::Watershed, &features);
         assert_eq!(value["schema"], "luminous.landscape-design.v0");
         assert_eq!(value["scope"], "watershed");
-        assert_eq!(value["coordinate_frame"]["kind"], "LOCAL_CARTESIAN_DRAWING_UNITS");
+        assert_eq!(
+            value["coordinate_frame"]["kind"],
+            "LOCAL_CARTESIAN_DRAWING_UNITS"
+        );
         assert_eq!(value["coordinate_frame"]["georeferenced"], false);
         assert_eq!(value["features"].as_array().unwrap().len(), 7);
     }
@@ -388,6 +439,9 @@ mod tests {
             FeatureKind::Path,
             FeatureKind::BuiltElement,
         ];
-        assert_eq!(kinds.map(FeatureKind::key), ["tree", "planting-bed", "water", "path", "built-element"]);
+        assert_eq!(
+            kinds.map(FeatureKind::key),
+            ["tree", "planting-bed", "water", "path", "built-element"]
+        );
     }
 }
