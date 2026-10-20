@@ -2244,8 +2244,8 @@ mod tests {
     #[test]
     fn scenario_addition_report_is_deterministic_and_row_order_invariant() {
         let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture parses");
-        let patch: ScenarioPatch = serde_json::from_str(WITHHELD_SCENARIO)
-            .expect("withheld scenario patch parses");
+        let patch: ScenarioPatch =
+            serde_json::from_str(WITHHELD_SCENARIO).expect("withheld scenario patch parses");
         let first = evaluate_scenario_addition(&input, &patch).unwrap();
         assert_eq!(first, evaluate_scenario_addition(&input, &patch).unwrap());
 
