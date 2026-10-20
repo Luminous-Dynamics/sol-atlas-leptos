@@ -124,7 +124,7 @@ fn execute_operation(
                     "urn:benchmark:corrective-evidence",
                 )
                 .map_err(|error| error.to_string())?;
-            black_box(result.impacts.len());
+            black_box(result);
         }
         "impact_plan_compiled" => {
             let result = impact_compiled
@@ -134,7 +134,7 @@ fn execute_operation(
                     "urn:benchmark:corrective-evidence",
                 )
                 .map_err(|error| error.to_string())?;
-            black_box(result.impacts.len());
+            black_box(result);
         }
         _ => return Err(format!("unknown benchmark operation: {operation}")),
     }

@@ -48,7 +48,7 @@ The fixture includes a verified access task, verified inspection and parts branc
 | REV-07 | Compact output growth | Exactly one predecessor ID and depth per impacted task; no repeated full paths | Fixture/schema assertions and a 10,000-node chain |
 | PERF-REV-01 | Impact-planning cost | p95 under 100 ms for 10,000 tasks and about 40,000 edges (initial hypothesis, v2) | Release build, fixed graph generator, named runner, 100+ samples, raw distribution; profile reference and compiled planners separately |
 
-The compact impact planner is now measured by benchmark runner v4. It separately reports impact-index build cost, reference planning (which rebuilds adjacency) and compiled planning (which reuses the compiled graph's dependent index). The fan-in scenario exercises 9,999 descendants in a 10,000-task graph; independent roots provide a zero-descendant control. Compare output counts and p95 latency before making any performance claim. The first v4 release run is pending; until it produces a raw evidence artifact, the p95-under-100-ms target remains a hypothesis.
+The compact impact planner is measured by benchmark runner v4. It reports impact-index build cost, reference planning (which rebuilds adjacency) and compiled planning (which reuses the compiled graph's dependent index). The fan-in scenario exercises 9,999 descendants in a 10,000-task graph; independent roots provide a zero-descendant control. The workflow validates exact sample counts and closure sizes and uploads raw percentiles and machine/toolchain details. Compare output count and p95 latency before making any performance claim; the 100-ms p95 threshold remains a target hypothesis until the v4 artifact is inspected.
 
 ## Industry comparison
 
