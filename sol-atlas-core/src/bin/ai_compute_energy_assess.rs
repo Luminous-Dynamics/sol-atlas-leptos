@@ -54,12 +54,12 @@ fn build_run_output(
     request: &Request,
     mode: &str,
     assessment: serde_json::Value,
-) -> serde_json::Value {
-    let receipt = scenario_receipt(raw_input, request, mode);
-    serde_json::json!({
+) -> Result<serde_json::Value, serde_json::Error> {
+    let receipt = scenario_receipt(raw_input, request, mode, &assessment)?;
+    Ok(serde_json::json!({
         "receipt": receipt,
         "assessment": assessment,
-    })
+    }))
 }
 
 fn main() {
@@ -133,7 +133,13 @@ fn main() {
     } else {
         policy_name(policy)
     };
-    let output = build_run_output(content.as_bytes(), &request, mode, assessment);
+    let output = match build_run_output(content.as_bytes(), &request, mode, assessment) {
+        Ok(output) => output,
+        Err(error) => {
+            eprintln!("could not serialize run receipt: {error}");
+            process::exit(70);
+        }
+    };
 
     match serde_json::to_string_pretty(&output) {
         Ok(json) => println!("{json}"),
@@ -186,13 +192,16 @@ mod tests {
             "status": "feasible",
             "scheduled_work_units": 40
         });
-        let output = build_run_output(fixture.as_bytes(), &request, "pareto", assessment.clone());
+        let output = build_run_output(fixture.as_bytes(), &request, "pareto", assessment.clone())
+            .expect("run report should serialize");
 
         assert_eq!(output["assessment"], assessment);
         assert_eq!(output["receipt"]["mode"], "pareto");
         assert_eq!(
             output["receipt"]["input_sha256"],
-            scenario_receipt(fixture.as_bytes(), &request, "pareto").input_sha256
+            scenario_receipt(fixture.as_bytes(), &request, "pareto", &assessment)
+                .expect("report receipt should serialize")
+                .input_sha256
         );
         assert_eq!(
             output["receipt"]["fixture_id"],
@@ -231,7 +240,8 @@ mod tests {
             &request,
             "earliest-ready",
             assessment,
-        );
+        )
+        .expect("invalid assessment receipt should serialize");
         assert_eq!(output["receipt"]["fixture_id"], "");
         assert_eq!(output["receipt"]["claim_ceiling"], "");
 
@@ -265,7 +275,8 @@ mod tests {
             "non_dominated_policies": ["lowest-cost", "lowest-carbon"],
             "blockers": []
         });
-        let output = build_run_output(fixture.as_bytes(), &request, "pareto", assessment);
+        let output = build_run_output(fixture.as_bytes(), &request, "pareto", assessment)
+            .expect("run report should serialize");
         let schema: serde_json::Value = serde_json::from_str(include_str!(
             "../../../schemas/ai-compute-energy-run-report-v1.schema.json"
         ))
