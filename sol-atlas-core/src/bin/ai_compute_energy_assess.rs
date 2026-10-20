@@ -15,7 +15,8 @@
 //!   70 = assessment could not be serialized
 
 use sol_atlas_core::ai_compute_energy::{
-    AssessmentStatus, Request, SchedulingPolicy, compare_scheduling_policies, schedule_deferrable,
+    AssessmentStatus, Request, SchedulingPolicy, compare_scheduling_policies, scenario_receipt,
+    schedule_deferrable,
 };
 use std::env;
 use std::fs;
@@ -27,6 +28,14 @@ fn parse_policy(value: &str) -> Option<SchedulingPolicy> {
         "lowest-cost" => Some(SchedulingPolicy::LowestCost),
         "lowest-carbon" => Some(SchedulingPolicy::LowestCarbon),
         _ => None,
+    }
+}
+
+fn policy_name(policy: SchedulingPolicy) -> &'static str {
+    match policy {
+        SchedulingPolicy::EarliestReady => "earliest-ready",
+        SchedulingPolicy::LowestCost => "lowest-cost",
+        SchedulingPolicy::LowestCarbon => "lowest-carbon",
     }
 }
 
@@ -91,29 +100,41 @@ fn main() {
         }
     };
 
-    let (json_result, exit_code) = if pareto_mode {
+    let (assessment_value, status_code) = if pareto_mode {
         let result = compare_scheduling_policies(&request);
-        (
-            serde_json::to_string_pretty(&result),
-            exit_code(result.status),
-        )
+        (serde_json::to_value(&result), exit_code(result.status))
     } else {
         let result = schedule_deferrable(&request, policy);
-        (
-            serde_json::to_string_pretty(&result),
-            exit_code(result.status),
-        )
+        (serde_json::to_value(&result), exit_code(result.status))
     };
-
-    match json_result {
-        Ok(json) => println!("{json}"),
+    let assessment = match assessment_value {
+        Ok(value) => value,
         Err(error) => {
             eprintln!("could not serialize assessment: {error}");
             process::exit(70);
         }
+    };
+
+    let mode = if pareto_mode {
+        "pareto"
+    } else {
+        policy_name(policy)
+    };
+    let receipt = scenario_receipt(content.as_bytes(), &request, mode);
+    let output = serde_json::json!({
+        "receipt": receipt,
+        "assessment": assessment,
+    });
+
+    match serde_json::to_string_pretty(&output) {
+        Ok(json) => println!("{json}"),
+        Err(error) => {
+            eprintln!("could not serialize run receipt: {error}");
+            process::exit(70);
+        }
     }
 
-    if exit_code != 0 {
-        process::exit(exit_code);
+    if status_code != 0 {
+        process::exit(status_code);
     }
 }
