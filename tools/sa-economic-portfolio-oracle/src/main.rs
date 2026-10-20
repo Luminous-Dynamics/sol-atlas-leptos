@@ -271,35 +271,43 @@ fn digest_hex(raw: &str) -> String {
 }
 
 fn run_search_benchmark(args: &[String]) -> Result<(), String> {
+    const WARMUP_RUNS: usize = 2;
     let (_, _, repetitions, input_raw, reference_raw) = read_benchmark_args(args)?;
     let input: Input = serde_json::from_str(&input_raw)
         .map_err(|error| format!("invalid input JSON/contract: {error}"))?;
     let expected_frontier = reference_frontier(&reference_raw)?;
-    let mut samples = Vec::with_capacity(repetitions);
-    let mut baseline: Option<FrontierSearchEvaluation> = None;
 
+    let mut warmup_baseline: Option<FrontierSearchEvaluation> = None;
+    for _ in 0..WARMUP_RUNS {
+        let evaluation = evaluate_frontier_search(&input)?;
+        if evaluation.pareto_frontier != expected_frontier {
+            return Err("frontier-search result does not match reference manifest during warm-up".to_owned());
+        }
+        if let Some(previous) = &warmup_baseline {
+            if previous != &evaluation {
+                return Err("frontier-search result/counters changed during warm-up".to_owned());
+            }
+        } else {
+            warmup_baseline = Some(evaluation);
+        }
+    }
+    let baseline = warmup_baseline.expect("warm-up count is positive");
+
+    let mut samples = Vec::with_capacity(repetitions);
     for _ in 0..repetitions {
         let start = Instant::now();
         let evaluation = evaluate_frontier_search(&input)?;
-        samples.push(start.elapsed().as_micros());
+        let elapsed = start.elapsed().as_micros();
         if evaluation.pareto_frontier != expected_frontier {
             return Err("frontier-search result does not match reference manifest".to_owned());
         }
-        if let Some(previous) = &baseline {
-            if previous != &evaluation {
-                return Err(
-                    "frontier-search result/counters changed between repeated runs".to_owned(),
-                );
-            }
-        } else {
-            baseline = Some(evaluation);
+        if evaluation != baseline {
+            return Err("frontier-search result/counters changed between repeated runs".to_owned());
         }
+        samples.push(elapsed);
     }
 
-    let evaluation = baseline
-        .as_ref()
-        .expect("validated repetition count is positive");
-    let timing = percentiles(&samples, repetitions);
+    let timing = percentiles(&samples, repetitions, WARMUP_RUNS);
     let schema_version = match input.schema_version.as_str() {
         "sa-economic-portfolio-v0.1" => "sa-economic-portfolio-search-benchmark-v0.1",
         "sa-economic-portfolio-v0.2" => "sa-economic-portfolio-search-benchmark-v0.2",
@@ -309,14 +317,15 @@ fn run_search_benchmark(args: &[String]) -> Result<(), String> {
         schema_version: schema_version.to_owned(),
         evidence_class: "synthetic_frontier_search_benchmark",
         synthetic_only: true,
-        claim_ceiling: "Repeated in-process algorithm timing on the current runner; not a cross-host SOTA claim.",
+        claim_ceiling: "Repeated warmed in-process algorithm timing on the recorded current runner; not a cross-host SOTA claim.",
         input_sha256: digest_hex(&input_raw),
         reference_manifest_sha256: digest_hex(&reference_raw),
+        host: host_metadata(),
         timing,
-        stats: &evaluation.stats,
-        frontier_count: evaluation.pareto_frontier.len(),
-        pareto_frontier: &evaluation.pareto_frontier,
-        validation: "PASS: every repeated frontier matched the supplied reference manifest",
+        stats: &baseline.stats,
+        frontier_count: baseline.pareto_frontier.len(),
+        pareto_frontier: &baseline.pareto_frontier,
+        validation: "PASS: warm-up and every measured frontier matched the supplied reference manifest",
     };
     println!(
         "{}",
@@ -326,68 +335,92 @@ fn run_search_benchmark(args: &[String]) -> Result<(), String> {
 }
 
 fn run_comparison_benchmark(args: &[String]) -> Result<(), String> {
+    const WARMUP_RUNS: usize = 2;
     let (_, _, repetitions, input_raw, reference_raw) = read_benchmark_args(args)?;
     let input: Input = serde_json::from_str(&input_raw)
         .map_err(|error| format!("invalid input JSON/contract: {error}"))?;
     let expected_frontier = reference_frontier(&reference_raw)?;
-    let mut exact_samples = Vec::with_capacity(repetitions);
-    let mut search_samples = Vec::with_capacity(repetitions);
-    let mut exact_baseline = None;
-    let mut search_baseline: Option<FrontierSearchEvaluation> = None;
 
-    for _ in 0..repetitions {
-        let exact_start = Instant::now();
+    let measure_exact = || -> Result<(u128, sa_economic_portfolio_oracle::Evaluation), String> {
+        let start = Instant::now();
         let exact = evaluate(&input)?;
-        exact_samples.push(exact_start.elapsed().as_micros());
+        let elapsed = start.elapsed().as_micros();
         check_expected(&exact, &reference_raw)?;
         if exact.pareto_frontier != expected_frontier {
             return Err("exact oracle frontier does not match the supplied reference".to_owned());
         }
-        if let Some(previous) = &exact_baseline {
-            if previous != &exact {
-                return Err("exact oracle result changed between repeated runs".to_owned());
-            }
-        } else {
-            exact_baseline = Some(exact);
-        }
-
-        let search_start = Instant::now();
+        Ok((elapsed, exact))
+    };
+    let measure_search = || -> Result<(u128, FrontierSearchEvaluation), String> {
+        let start = Instant::now();
         let searched = evaluate_frontier_search(&input)?;
-        search_samples.push(search_start.elapsed().as_micros());
+        let elapsed = start.elapsed().as_micros();
         if searched.pareto_frontier != expected_frontier {
-            return Err("frontier search does not match the exact reference".to_owned());
+            return Err("frontier search does not match the supplied reference".to_owned());
         }
-        if let Some(previous) = &search_baseline {
-            if previous != &searched {
-                return Err(
-                    "frontier search result/counters changed between repeated runs".to_owned(),
-                );
+        Ok((elapsed, searched))
+    };
+
+    // Interleave two warm-up runs per algorithm before collecting timings.
+    let (_, exact_warmup_one) = measure_exact()?;
+    let (_, search_warmup_one) = measure_search()?;
+    let (_, search_warmup_two) = measure_search()?;
+    let (_, exact_warmup_two) = measure_exact()?;
+    if exact_warmup_one != exact_warmup_two || search_warmup_one != search_warmup_two {
+        return Err("algorithm results/counters changed between warm-up runs".to_owned());
+    }
+    if exact_warmup_two.pareto_frontier != search_warmup_two.pareto_frontier {
+        return Err("exact and search frontiers disagree before timing".to_owned());
+    }
+
+    let exact_baseline = exact_warmup_two;
+    let search_baseline = search_warmup_two;
+    let mut exact_samples = Vec::with_capacity(repetitions);
+    let mut search_samples = Vec::with_capacity(repetitions);
+
+    // Alternate the order for each measured pair to reduce fixed order/cache bias.
+    for repetition in 0..repetitions {
+        if repetition % 2 == 0 {
+            let (exact_elapsed, exact) = measure_exact()?;
+            let (search_elapsed, searched) = measure_search()?;
+            if exact != exact_baseline || searched != search_baseline {
+                return Err("algorithm output/counters changed between measured runs".to_owned());
             }
+            if exact.pareto_frontier != searched.pareto_frontier {
+                return Err("exact and search frontiers disagree in a measured pair".to_owned());
+            }
+            exact_samples.push(exact_elapsed);
+            search_samples.push(search_elapsed);
         } else {
-            search_baseline = Some(searched);
+            let (search_elapsed, searched) = measure_search()?;
+            let (exact_elapsed, exact) = measure_exact()?;
+            if exact != exact_baseline || searched != search_baseline {
+                return Err("algorithm output/counters changed between measured runs".to_owned());
+            }
+            if exact.pareto_frontier != searched.pareto_frontier {
+                return Err("exact and search frontiers disagree in a measured pair".to_owned());
+            }
+            search_samples.push(search_elapsed);
+            exact_samples.push(exact_elapsed);
         }
     }
 
-    let exact = exact_baseline
-        .as_ref()
-        .expect("validated repetition count is positive");
-    let searched = search_baseline
-        .as_ref()
-        .expect("validated repetition count is positive");
     let receipt = ComparisonBenchmarkReceipt {
         schema_version: "sa-economic-portfolio-comparison-benchmark-v0.2",
         evidence_class: "synthetic_exact_vs_search_benchmark",
         synthetic_only: true,
-        claim_ceiling: "Matched synthetic algorithm comparison on the current runner; not a cross-host SOTA claim.",
+        claim_ceiling: "Matched warmed synthetic algorithm comparison on the recorded current runner; not a cross-host SOTA claim.",
         input_sha256: digest_hex(&input_raw),
         reference_manifest_sha256: digest_hex(&reference_raw),
-        exact_subset_count: exact.candidate_subset_count,
-        exact_feasible_count: exact.feasible_portfolios.len(),
-        frontier_count: exact.pareto_frontier.len(),
-        exact_subset_enumeration: percentiles(&exact_samples, repetitions),
-        dependency_aware_frontier_search: percentiles(&search_samples, repetitions),
-        search_stats: &searched.stats,
-        validation: "PASS: exact and search frontiers match the supplied manifest on every repetition",
+        host: host_metadata(),
+        measurement_order: "Two warm-ups per algorithm; measured pair order alternates exact→search and search→exact.",
+        exact_subset_count: exact_baseline.candidate_subset_count,
+        exact_feasible_count: exact_baseline.feasible_portfolios.len(),
+        frontier_count: exact_baseline.pareto_frontier.len(),
+        exact_subset_enumeration: percentiles(&exact_samples, repetitions, WARMUP_RUNS),
+        dependency_aware_frontier_search: percentiles(&search_samples, repetitions, WARMUP_RUNS),
+        search_stats: &search_baseline.stats,
+        validation: "PASS: warm-ups and every measured exact/search pair agreed and matched the supplied manifest",
     };
     println!(
         "{}",
