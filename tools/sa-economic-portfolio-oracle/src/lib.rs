@@ -255,7 +255,7 @@ pub struct ScenarioOmissionPortfolioReport {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 /// Complete, explicit payload for a scenario withheld from the selection input.
 /// Maps must cover every current project and every current interaction rule exactly.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ScenarioPatch {
     pub scenario: Scenario,
@@ -1384,6 +1384,9 @@ mod tests {
     const WITHHELD_SCENARIO: &str = include_str!(
         "../../../docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-withheld-compound-stress.json"
     );
+    const NO_EFFECT_SCENARIO: &str = include_str!(
+        "../../../docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-no-effect-control.json"
+    );
 
     fn fixture() -> Input {
         serde_json::from_str(INPUT).expect("synthetic portfolio fixture should parse")
@@ -2205,6 +2208,27 @@ mod tests {
         assert_eq!(
             first,
             evaluate_scenario_addition(&permuted_input, &permuted_patch).unwrap()
+        );
+    }
+
+    #[test]
+    fn no_effect_scenario_addition_preserves_feasible_set_and_frontier() {
+        let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture parses");
+        let patch: ScenarioPatch = serde_json::from_str(NO_EFFECT_SCENARIO)
+            .expect("no-effect control patch parses");
+        let report = evaluate_scenario_addition(&input, &patch)
+            .expect("duplicate scenario should be addable");
+
+        assert_eq!(report.original_feasible_portfolio_count, 82);
+        assert_eq!(report.augmented_feasible_portfolio_count, 82);
+        assert!(report.original_feasible_removed_by_addition.is_empty());
+        assert_eq!(
+            report.frontier_id_intersection_count,
+            report.frontier_id_union_count
+        );
+        assert_eq!(
+            report.original_frontier_project_ids,
+            report.augmented_frontier_project_ids
         );
     }
 
