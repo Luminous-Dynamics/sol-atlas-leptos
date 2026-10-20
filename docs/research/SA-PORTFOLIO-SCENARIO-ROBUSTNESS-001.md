@@ -1,9 +1,9 @@
 # SA-PORTFOLIO-SCENARIO-ROBUSTNESS-001
 ## Adversarial scenario-set sensitivity for auditable multi-objective portfolios
 
-**Status:** Research protocol / implementation contract; executable perturbation harness and pinned outputs are not yet implemented.  
+**Status:** Research protocol plus initial Rust v0.2 leave-one-scenario-out API and unit tests committed; exact-head verification is pending. CLI receipts, a deterministic perturbation generator, and independently derived frozen mutation manifests remain outstanding.  
 **Tracking issue:** [#254](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/254).  
-**Builds on:** [portfolio scale/search](./SA-PORTFOLIO-SCALE-001.md), [robust regret](./SA-ROBUST-REGRET-001.md), [benchmark protocol](./SA-PORTFOLIO-BENCHMARK-PROTOCOL-001.md), and [independent solver baseline](./SA-PORTFOLIO-OR-SOLVER-BASELINE-001.md).  
+**Builds on:** [portfolio scale/search](./SA-PORTFOLIO-SCALE-001.md), [robust-regret implementation PR #242](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/242), [benchmark protocol](./SA-PORTFOLIO-BENCHMARK-PROTOCOL-001.md), and [independent solver baseline](./SA-PORTFOLIO-OR-SOLVER-BASELINE-001.md).  
 **Claim ceiling:** Synthetic scenario-model sensitivity only. Passing this protocol cannot prove that real-world scenarios are complete, calibrate unknown probabilities, validate field outcomes, or establish SOTA.
 
 ## 1. The gap: robustness is conditional on the scenario set
@@ -33,7 +33,7 @@ The benchmark must distinguish four things:
 
 Do not encode unknown scenario likelihoods as weights or probabilities. Do not mix a new scenario with the baseline scenario set and call its result a forecast. Each perturbation is a named, versioned counterfactual used to stress-test the decision model.
 
-The first implementation is an **offline benchmark harness in Rust** that constructs deterministic input variants and compares them with independent expected outputs. Reuse the current input contract, exact evaluator, dependency-aware search, and robust-regret functions. Do not create a parallel production schema or require Python. Do not modify production recommendations to “win” a benchmark.
+The initial executable slice adds `omit_scenario(&Input, scenario_id)` and `evaluate_scenario_omission(&Input, scenario_id)` to the Rust oracle library. It requires a valid v0.2 input within the exact evaluator's project cap, computes the reduced-set frontier, and rescores each candidate against the full reference feasible set. It marks candidates that fail full-universe feasibility separately and only attaches objective-wise regret to full-universe-feasible candidates. This is an API/test foundation, not yet a complete command-line benchmark harness. Reuse the current input contract, exact evaluator, dependency-aware search, and robust-regret functions. Do not create a parallel production schema or require Python. Do not modify production recommendations to “win” a benchmark.
 
 Adaptive recourse is a separate future capability. Re-solving a different portfolio for each fully known scenario is perfect hindsight, not an executable adaptive policy. A true adaptive model must define what is committed before observations, what can be observed and when, which decisions can still change afterward, the remaining resource constraints, and any costs or delays of changing course.
 
@@ -169,12 +169,13 @@ Do not compare the full frontier with a one-solution weighted-sum optimizer as i
 
 ## 8. Execution plan
 
-1. Add a tiny frozen baseline plus omitted-scenario and no-effect negative-control manifests.
-2. Implement a deterministic **Rust** transformation layer that emits variant inputs and a manifest; keep perturbation generation separate from evaluator logic.
-3. Add exhaustive exact expected-result generation only as an offline development aid; freeze and check in the resulting reference manifests, and include a second independent derivation for the tiny challenge.
-4. Add leave-one-scenario-out and withheld-scenario receipts with source, input, mutation-config, reference and output digests.
-5. Add metamorphic tests before adding larger random suites.
-6. Compare the same tiny corpus with the independent solver under #248. Only then move to high-density correlated-stress cases and timing.
+1. Exact-head qualify the current v0.2 leave-one-scenario-out API and its deterministic/fail-closed tests.
+2. Add a tiny frozen baseline plus omitted-scenario and no-effect negative-control manifests with independently calculated expected outputs.
+3. Implement a deterministic **Rust** transformation runner that emits variant inputs and a manifest; keep perturbation generation separate from evaluator logic.
+4. Add exhaustive exact expected-result generation only as an offline development aid; freeze and check in the resulting reference manifests, and include a second independent derivation for the tiny challenge.
+5. Add leave-one-scenario-out and withheld-scenario receipts with source, input, mutation-config, reference and output digests.
+6. Add remaining metamorphic tests before adding larger random suites.
+7. Compare the same tiny corpus with the independent solver under #248. Only then move to high-density correlated-stress cases and timing.
 
 No CI pass or executable implementation is claimed by this protocol document. Exact-head checks are required after the harness exists.
 
