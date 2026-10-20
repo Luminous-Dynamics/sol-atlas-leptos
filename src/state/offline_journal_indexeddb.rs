@@ -534,14 +534,12 @@ impl IndexedDbJournal {
                     .map_err(|error| {
                         IndexedDbJournalError(format!("stored operation JSON invalid: {error}"))
                     })?;
-                existing.validate()?;
                 if !existing.matches_scope(owner_scope, operation_namespace) {
                     return Err(IndexedDbJournalError(
                         "operation ID is already bound to another owner scope or namespace".into(),
                     ));
                 }
-                JournalEntry::from_snapshot_for_operation(&operation_id, existing.snapshot)
-                    .map_err(IndexedDbJournalError::from)
+                existing.validate_entry(&operation_id)
             }
             Some(Ok(None)) => Ok(new_entry),
             Some(Err(error)) => Err(error),
@@ -577,9 +575,7 @@ impl IndexedDbJournal {
                 "stored operation is not an owner-bound v1 record; automatic dispatch is blocked: {error}"
             ))
         })?;
-        stored.validate()?;
-        JournalEntry::from_snapshot_for_operation(operation_id, stored.snapshot.clone())
-            .map_err(IndexedDbJournalError::from)?;
+        stored.validate_entry(operation_id)?;
         Ok(Some(stored))
     }
 
@@ -687,13 +683,10 @@ impl IndexedDbJournal {
                     )));
                     return;
                 }
-                let entry = match JournalEntry::from_snapshot_for_operation(
-                    &expected_id,
-                    stored.snapshot.clone(),
-                ) {
+                let entry = match stored.validate_entry(&expected_id) {
                     Ok(value) => value,
                     Err(error) => {
-                        *output.borrow_mut() = Some(Err(IndexedDbJournalError::from(error)));
+                        *output.borrow_mut() = Some(Err(error));
                         return;
                     }
                 };
@@ -864,26 +857,13 @@ impl IndexedDbJournal {
         let stored: StoredOperationV1 = serde_json::from_str(&saved).map_err(|error| {
             IndexedDbJournalError(format!("stored operation JSON invalid: {error}"))
         })?;
-        stored.validate()?;
         if !stored.matches_scope(owner_scope, operation_namespace) {
             return Err(IndexedDbJournalError(
                 "operation owner scope changed before dispatch permit creation".into(),
             ));
         }
-        let entry = JournalEntry::from_snapshot_for_operation(operation_id, stored.snapshot)
-            .map_err(IndexedDbJournalError::from)?;
-        let canonical_payload =
-            std::str::from_utf8(entry.canonical_payload_utf8()).map_err(|error| {
-                IndexedDbJournalError(format!("canonical payload is not UTF-8: {error}"))
-            })?;
-        let request_fingerprint_sha256 =
-            sol_atlas_core::offline_idempotency_fingerprint::canonical_request_fingerprint_sha256(
-                owner_scope,
-                operation_namespace,
-                entry.envelope(),
-                canonical_payload,
-            )
-            .map_err(|error| IndexedDbJournalError(error.to_string()))?;
+        let request_fingerprint_sha256 = stored.request_fingerprint_sha256.clone();
+        let entry = stored.validate_entry(operation_id)?;
         Ok(DispatchPermit {
             operation_id: entry.envelope().operation_id.clone(),
             idempotency_key: entry.envelope().idempotency_key.clone(),
@@ -1098,13 +1078,10 @@ impl IndexedDbJournal {
                     )));
                     return;
                 }
-                let mut entry = match JournalEntry::from_snapshot_for_operation(
-                    &op_id,
-                    stored.snapshot.clone(),
-                ) {
+                let mut entry = match stored.validate_entry(&op_id) {
                     Ok(value) => value,
                     Err(error) => {
-                        *output.borrow_mut() = Some(Err(IndexedDbJournalError::from(error)));
+                        *output.borrow_mut() = Some(Err(error));
                         return;
                     }
                 };
@@ -1283,11 +1260,8 @@ fn finish_insert_reads(
                     ))),
                     Ok(stored) => match stored.validate() {
                         Err(error) => Err(error),
-                        Ok(()) => match JournalEntry::from_snapshot_for_operation(
-                            operation_id,
-                            stored.snapshot.clone(),
-                        ) {
-                            Err(error) => Err(IndexedDbJournalError::from(error)),
+                        Ok(()) => match stored.validate_entry(operation_id) {
+                            Err(error) => Err(error),
                             Ok(existing_entry) => {
                                 let same_envelope =
                                     stored.snapshot.envelope == new_record.snapshot.envelope;
