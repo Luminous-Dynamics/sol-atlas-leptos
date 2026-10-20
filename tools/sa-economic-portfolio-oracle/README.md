@@ -25,7 +25,20 @@ cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- \
   docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.expected.json
 ```
 
+# Exact outcome-frontier plus scenario-regret receipt
+cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --regret \
+  docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.json \
+  docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.expected.json
+
+# Search-scale regret: verify frontier against the reference manifest first
+cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --search-regret \
+  docs/research/fixtures/sa-economic-portfolio-v0.2-24-project.json \
+  docs/research/fixtures/sa-economic-portfolio-v0.2-24-project.search-expected.json
+```
+
 The exact oracle enumerates all subsets up to 20 projects and rejects over-cap inputs rather than silently truncating. V0.1 freezes eight project IDs, two named stress scenarios, P1/P2 periods and interaction rules. V0.2 accepts unique project and scenario IDs plus ordered Pn periods (while retaining the four typed maximize objectives and null scenario weights/probabilities); the committed ten-project fixture freezes 1,024 subsets, 82 feasible portfolios and its exact frontier.
+
+The library also exposes `evaluate_robust_regret(&Evaluation, &scenarios)` and `evaluate_robust_regret_from_search(&FrontierSearchEvaluation, &scenarios)`. They retain the existing outcome frontier, calculate scenario-specific objective ideals, per-scenario absolute regret, componentwise worst-case regret across unweighted stress scenarios, and a separate frontier minimizing that regret vector. These APIs do not select a scalar winner or infer scenario probabilities. The `--regret INPUT EXPECTED` CLI checks the exact feasible set/frontier before emitting a digest-bound regret receipt; `--search-regret INPUT REFERENCE_FRONTIER` supports a large complete search, but it verifies the frontier only against the supplied reference. See [SA-ROBUST-REGRET-001](../../docs/research/SA-ROBUST-REGRET-001.md) for expected synthetic results and limits.
 
 The library also exposes `evaluate_frontier_search(&Input)`, a dependency-aware depth-first frontier search. It prunes only provably infeasible include branches (non-PASS gate, missing prerequisite, period cost or crew cap), retains the full multi-scenario objective vector, and returns node/subset accounting. It is exact, not an approximation, but remains exponential in the worst case; the 63-project u64 mask bound is not a practical runtime promise. The frozen v0.1 and generated v0.2 tiny instances are cross-checked against exhaustive enumeration.
 

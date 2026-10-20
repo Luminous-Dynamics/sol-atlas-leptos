@@ -1,0 +1,157 @@
+{
+  "schema_version": "sa-economic-portfolio-search-v0.2.expected",
+  "source_fixture": "docs/research/fixtures/sa-economic-portfolio-v0.2-24-project.json",
+  "reference_fixture": "docs/research/fixtures/sa-economic-portfolio-v0.1.expected.json",
+  "evidence_class": "synthetic_frontier_reference",
+  "claim_ceiling": "Expected frontier from the eight-project exact oracle under sixteen added UNKNOWN-gated decoys. This is an adversarial regression, not a general 24-project exact enumeration.",
+  "candidate_subsets": 16777216,
+  "feasible_portfolio_count": 22,
+  "expected_frontier_count": 4,
+  "pareto_frontier": [
+    {
+      "project_ids": [
+        "A",
+        "F",
+        "J",
+        "R"
+      ],
+      "period_cost_and_crew": {
+        "P1": {
+          "cost_u": 5,
+          "crew_u": 3
+        },
+        "P2": {
+          "cost_u": 5,
+          "crew_u": 2
+        },
+        "P3": {
+          "cost_u": 0,
+          "crew_u": 0
+        }
+      },
+      "outcomes": {
+        "nominal": {
+          "economic_value_u": 10,
+          "essential_service_points": 9,
+          "paid_work_opportunity_points": 10,
+          "ecological_quality_points": 13
+        },
+        "hot_dry_grid_stress": {
+          "economic_value_u": 7,
+          "essential_service_points": 8,
+          "paid_work_opportunity_points": 10,
+          "ecological_quality_points": 13
+        }
+      }
+    },
+    {
+      "project_ids": [
+        "F",
+        "J",
+        "T",
+        "W"
+      ],
+      "period_cost_and_crew": {
+        "P1": {
+          "cost_u": 5,
+          "crew_u": 3
+        },
+        "P2": {
+          "cost_u": 5,
+          "crew_u": 2
+        },
+        "P3": {
+          "cost_u": 0,
+          "crew_u": 0
+        }
+      },
+      "outcomes": {
+        "nominal": {
+          "economic_value_u": 11,
+          "essential_service_points": 12,
+          "paid_work_opportunity_points": 7,
+          "ecological_quality_points": 14
+        },
+        "hot_dry_grid_stress": {
+          "economic_value_u": 8,
+          "essential_service_points": 11,
+          "paid_work_opportunity_points": 7,
+          "ecological_quality_points": 14
+        }
+      }
+    },
+    {
+      "project_ids": [
+        "I",
+        "J",
+        "R",
+        "T"
+      ],
+      "period_cost_and_crew": {
+        "P1": {
+          "cost_u": 5,
+          "crew_u": 3
+        },
+        "P2": {
+          "cost_u": 6,
+          "crew_u": 3
+        },
+        "P3": {
+          "cost_u": 0,
+          "crew_u": 0
+        }
+      },
+      "outcomes": {
+        "nominal": {
+          "economic_value_u": 17,
+          "essential_service_points": 7,
+          "paid_work_opportunity_points": 13,
+          "ecological_quality_points": 6
+        },
+        "hot_dry_grid_stress": {
+          "economic_value_u": 12,
+          "essential_service_points": 7,
+          "paid_work_opportunity_points": 13,
+          "ecological_quality_points": 6
+        }
+      }
+    },
+    {
+      "project_ids": [
+        "I",
+        "J",
+        "T",
+        "W"
+      ],
+      "period_cost_and_crew": {
+        "P1": {
+          "cost_u": 5,
+          "crew_u": 3
+        },
+        "P2": {
+          "cost_u": 6,
+          "crew_u": 3
+        },
+        "P3": {
+          "cost_u": 0,
+          "crew_u": 0
+        }
+      },
+      "outcomes": {
+        "nominal": {
+          "economic_value_u": 21,
+          "essential_service_points": 12,
+          "paid_work_opportunity_points": 10,
+          "ecological_quality_points": 7
+        },
+        "hot_dry_grid_stress": {
+          "economic_value_u": 14,
+          "essential_service_points": 11,
+          "paid_work_opportunity_points": 10,
+          "ecological_quality_points": 7
+        }
+      }
+    }
+  ],
+  "expected_excluded_project_prefix": "N"
+}
