@@ -1339,3 +1339,23 @@ canvas#globe-canvas.has-hover {
     border-color: #6d9d77;
     outline: 2px solid rgba(91, 143, 101, 0.2);
 }
+
+.landscape-canvas .landscape-feature-selected {
+    cursor: pointer;
+    filter: drop-shadow(0 0 2px #ffffff) drop-shadow(0 0 4px #315c43);
+}
+.landscape-selected-value {
+    min-height: 35px;
+    margin-top: 12px;
+    padding: 9px 10px;
+    border: 1px solid #d9e2d4;
+    border-radius: 6px;
+    background: #eef2e9;
+    color: #4e6954;
+    font-size: 11px;
+    line-height: 1.4;
+}
+.landscape-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
