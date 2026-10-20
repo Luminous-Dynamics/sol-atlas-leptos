@@ -11,6 +11,7 @@
 //! and the canonical service.
 
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 
 pub const TASK_EVIDENCE_SCHEMA_VERSION: u16 = 1;
@@ -523,6 +524,50 @@ fn issue(
     }
 }
 
+/// Result of recomputing SHA-256 over caller-supplied artifact bytes.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DigestVerificationError {
+    InvalidExpectedDigestEncoding,
+    DigestMismatch,
+}
+
+impl std::fmt::Display for DigestVerificationError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::InvalidExpectedDigestEncoding => {
+                formatter.write_str("expected digest must be 64 lowercase hexadecimal characters")
+            }
+            Self::DigestMismatch => {
+                formatter.write_str("SHA-256 of artifact bytes does not match the expected digest")
+            }
+        }
+    }
+}
+
+impl std::error::Error for DigestVerificationError {}
+
+/// Recompute SHA-256 for caller-supplied artifact bytes.
+///
+/// The caller is responsible for resolving `source_ref` to the correct bytes,
+/// applying any required canonicalization before calling this function, and
+/// authenticating the expected digest source. This verifies the bytes it is
+/// given; it does not fetch files or authenticate the evidence producer.
+pub fn verify_sha256_bytes(
+    expected_digest: &str,
+    artifact_bytes: &[u8],
+) -> Result<(), DigestVerificationError> {
+    if !is_lowercase_sha256(expected_digest) {
+        return Err(DigestVerificationError::InvalidExpectedDigestEncoding);
+    }
+
+    let actual_digest = format!("{:x}", Sha256::digest(artifact_bytes));
+    if actual_digest == expected_digest {
+        Ok(())
+    } else {
+        Err(DigestVerificationError::DigestMismatch)
+    }
+}
+
 fn is_lowercase_sha256(value: &str) -> bool {
     value.len() == 64
         && value
@@ -777,6 +822,43 @@ mod tests {
         ));
         assert!(has_issue(&result, EvidenceIssueCode::WrongEvidenceKind));
         assert_eq!(result.decision, EvidenceDecision::Incomplete);
+    }
+
+    #[test]
+    fn digest_verification_matches_known_sha256_vectors() {
+        assert_eq!(
+            super::verify_sha256_bytes(
+                "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+                b"abc",
+            ),
+            Ok(())
+        );
+        assert_eq!(
+            super::verify_sha256_bytes(
+                "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                b"",
+            ),
+            Ok(())
+        );
+    }
+
+    #[test]
+    fn digest_verification_rejects_mismatched_bytes_and_bad_encoding() {
+        assert_eq!(
+            super::verify_sha256_bytes(
+                "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+                b"abd",
+            ),
+            Err(super::DigestVerificationError::DigestMismatch)
+        );
+        assert_eq!(
+            super::verify_sha256_bytes(&"A".repeat(64), b"abc"),
+            Err(super::DigestVerificationError::InvalidExpectedDigestEncoding)
+        );
+        assert_eq!(
+            super::verify_sha256_bytes("not-a-digest", b"abc"),
+            Err(super::DigestVerificationError::InvalidExpectedDigestEncoding)
+        );
     }
 
     #[test]
