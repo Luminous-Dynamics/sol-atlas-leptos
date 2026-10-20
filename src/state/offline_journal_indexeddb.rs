@@ -153,6 +153,17 @@ pub struct IndexedDbJournalPage {
     pub next_after_operation_id: Option<String>,
 }
 
+/// Result of one atomic portable-bundle merge.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct BundleImportReport {
+    /// New operations inserted; existing rows are never overwritten.
+    pub inserted_records: usize,
+    /// Records that exactly matched their existing immutable local state.
+    pub exact_duplicates: usize,
+    /// Derived pending markers repaired for exact duplicate records.
+    pub repaired_pending_markers: usize,
+}
+
 /// Immutable owner/namespace binding around the journal snapshot.
 ///
 /// This record is stored under the operation ID and is revalidated before
@@ -430,9 +441,7 @@ impl IndexedDbJournal {
                     "stored operation {operation_id} is not a valid owner-bound record: {error}"
                 ))
             })?;
-            stored.validate()?;
-            JournalEntry::from_snapshot_for_operation(&operation_id, stored.snapshot.clone())
-                .map_err(IndexedDbJournalError::from)?;
+            stored.validate_entry(&operation_id)?;
 
             if stored.owner_scope == owner_scope {
                 records.push(OfflineJournalBundleRecordV1 {
