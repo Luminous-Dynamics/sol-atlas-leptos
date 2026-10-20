@@ -704,6 +704,98 @@ mod tests {
         serde_json::from_str(INPUT).expect("synthetic portfolio fixture should parse")
     }
 
+    fn worst_case_objectives(portfolio: &Portfolio, scenarios: &[Scenario]) -> [i64; 4] {
+        let mut values = [0_i64; 4];
+        for (index, objective_id) in OBJECTIVE_IDS.iter().enumerate() {
+            values[index] = scenarios
+                .iter()
+                .map(|scenario| {
+                    portfolio.outcomes[&scenario.id]
+                        .value(objective_id)
+                        .expect("declared objective should exist")
+                })
+                .min()
+                .expect("at least one scenario should exist");
+        }
+        values
+    }
+
+    fn normalized_weight_winner(
+        evaluation: &Evaluation,
+        scenarios: &[Scenario],
+        weights: [f64; 4],
+    ) -> String {
+        let entries: Vec<(String, [i64; 4])> = evaluation
+            .feasible_portfolios
+            .iter()
+            .map(|portfolio| {
+                (
+                    portfolio_key(portfolio),
+                    worst_case_objectives(portfolio, scenarios),
+                )
+            })
+            .collect();
+        let mut minimum = [i64::MAX; 4];
+        let mut maximum = [i64::MIN; 4];
+        for (_, values) in &entries {
+            for (index, value) in values.iter().enumerate() {
+                minimum[index] = minimum[index].min(*value);
+                maximum[index] = maximum[index].max(*value);
+            }
+        }
+
+        let mut scored: Vec<(String, f64)> = entries
+            .into_iter()
+            .map(|(key, values)| {
+                let score = weights
+                    .iter()
+                    .enumerate()
+                    .map(|(index, weight)| {
+                        let normalized = if maximum[index] == minimum[index] {
+                            1.0
+                        } else {
+                            (values[index] - minimum[index]) as f64
+                                / (maximum[index] - minimum[index]) as f64
+                        };
+                        weight * normalized
+                    })
+                    .sum();
+                (key, score)
+            })
+            .collect();
+        scored.sort_by(|a, b| b.1.total_cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+        scored
+            .first()
+            .expect("a feasible portfolio should exist")
+            .0
+            .clone()
+    }
+
+    fn project_robustly_dominates(
+        candidate: &Project,
+        other: &Project,
+        scenarios: &[Scenario],
+    ) -> bool {
+        let mut strictly_better = false;
+        for scenario in scenarios {
+            for objective_id in OBJECTIVE_IDS {
+                let candidate_value = candidate.outcomes[&scenario.id]
+                    .value(objective_id)
+                    .expect("declared objective should exist");
+                let other_value = other.outcomes[&scenario.id]
+                    .value(objective_id)
+                    .expect("declared objective should exist");
+                if candidate_value < other_value {
+                    return false;
+                }
+                if candidate_value > other_value {
+                    strictly_better = true;
+                }
+            }
+        }
+        strictly_better
+    }
+
     #[test]
     fn frozen_fixture_matches_exact_feasible_set_and_frontier() {
         let input = fixture();
@@ -852,6 +944,137 @@ mod tests {
         let corrupted = EXPECTED.replace("\"feasible_count\": 22", "\"feasible_count\": 23");
         assert_ne!(corrupted, EXPECTED);
         assert!(check_expected(&evaluation, &corrupted).is_err());
+    }
+
+    #[test]
+    fn minimum_cost_baseline_returns_the_expected_feasible_portfolio() {
+        let evaluation = evaluate(&fixture()).expect("fixture should evaluate");
+        let winner = evaluation
+            .feasible_portfolios
+            .iter()
+            .min_by_key(|portfolio| {
+                let cost = portfolio
+                    .period_cost_and_crew
+                    .values()
+                    .map(|used| used.cost_u)
+                    .sum::<i64>();
+                let crew = portfolio
+                    .period_cost_and_crew
+                    .values()
+                    .map(|used| used.crew_u)
+                    .sum::<i64>();
+                (cost, crew, portfolio_key(portfolio))
+            })
+            .expect("a feasible portfolio should exist");
+        assert_eq!(portfolio_key(winner), "A+J");
+        assert_eq!(
+            winner
+                .period_cost_and_crew
+                .values()
+                .map(|used| used.cost_u)
+                .sum::<i64>(),
+            4
+        );
+    }
+
+    #[test]
+    fn normalized_weight_baseline_exposes_preference_sensitive_selection() {
+        let input = fixture();
+        let evaluation = evaluate(&input).expect("fixture should evaluate");
+        let scenarios = input.scenarios.as_slice();
+
+        assert_eq!(
+            normalized_weight_winner(&evaluation, scenarios, [0.25, 0.25, 0.25, 0.25]),
+            "I+J+T+W"
+        );
+        assert_eq!(
+            normalized_weight_winner(&evaluation, scenarios, [0.55, 0.20, 0.15, 0.10]),
+            "I+J+T+W"
+        );
+        assert_eq!(
+            normalized_weight_winner(&evaluation, scenarios, [0.10, 0.60, 0.20, 0.10]),
+            "I+J+T+W"
+        );
+        assert_eq!(
+            normalized_weight_winner(&evaluation, scenarios, [0.10, 0.15, 0.65, 0.10]),
+            "I+J+R+T"
+        );
+        assert_eq!(
+            normalized_weight_winner(&evaluation, scenarios, [0.10, 0.10, 0.10, 0.70]),
+            "F+J+T+W"
+        );
+    }
+
+    #[test]
+    fn naive_individual_project_pareto_pruning_loses_the_global_frontier() {
+        let input = fixture();
+        let evaluation = evaluate(&input).expect("fixture should evaluate");
+        let pass_projects: Vec<&Project> = input
+            .projects
+            .iter()
+            .filter(|project| project.gate == "PASS")
+            .collect();
+        let dominated_project_ids: BTreeSet<String> = pass_projects
+            .iter()
+            .filter(|project| {
+                pass_projects.iter().any(|candidate| {
+                    candidate.id != project.id
+                        && project_robustly_dominates(candidate, project, &input.scenarios)
+                })
+            })
+            .map(|project| project.id.clone())
+            .collect();
+        assert_eq!(
+            dominated_project_ids,
+            BTreeSet::from(["A".to_owned(), "T".to_owned()])
+        );
+
+        let retained_project_ids: BTreeSet<String> = pass_projects
+            .iter()
+            .filter(|project| !dominated_project_ids.contains(&project.id))
+            .map(|project| project.id.clone())
+            .collect();
+        let mut surviving: Vec<&Portfolio> = evaluation
+            .feasible_portfolios
+            .iter()
+            .filter(|portfolio| {
+                portfolio
+                    .project_ids
+                    .iter()
+                    .all(|project_id| retained_project_ids.contains(project_id))
+            })
+            .collect();
+        surviving.sort_by_key(|portfolio| portfolio_key(portfolio));
+        assert_eq!(
+            surviving
+                .iter()
+                .map(|portfolio| portfolio_key(portfolio))
+                .collect::<Vec<_>>(),
+            vec!["F+J".to_owned(), "F+J+R".to_owned(), "J+R".to_owned()]
+        );
+
+        let mut surviving_frontier: Vec<&Portfolio> = Vec::new();
+        for (candidate_index, candidate) in surviving.iter().enumerate() {
+            let is_dominated = surviving.iter().enumerate().any(|(other_index, other)| {
+                other_index != candidate_index && dominates(other, candidate, &input.scenarios)
+            });
+            if !is_dominated {
+                surviving_frontier.push(*candidate);
+            }
+        }
+        assert_eq!(
+            surviving_frontier
+                .iter()
+                .map(|portfolio| portfolio_key(portfolio))
+                .collect::<Vec<_>>(),
+            vec!["F+J+R".to_owned()]
+        );
+        assert!(evaluation.pareto_frontier.iter().all(|portfolio| {
+            portfolio
+                .project_ids
+                .iter()
+                .any(|project_id| dominated_project_ids.contains(project_id))
+        }));
     }
 
     #[test]

@@ -12,7 +12,7 @@ A correct exact oracle is necessary, but it does not show whether a portfolio me
 
 The fixture has 256 possible subsets, period-specific budgets and crew limits, prerequisites, a T+W complement, an A+F overlap adjustment, a protected essential-service floor, and nominal plus hot/dry/grid-stress scenarios. Both scenarios are unweighted stress cases. All costs/outcomes are arbitrary synthetic units.
 
-The reproducible exact reference yields 22 feasible portfolios and a four-portfolio scenario-wise Pareto frontier. The existing Rust CLI is intended to reproduce that reference; the analysis below is a separate JavaScript enumeration of the committed input bytes, not a Rust test result.
+The reproducible exact reference yields 22 feasible portfolios and a four-portfolio scenario-wise Pareto frontier. The numeric ablation results below were first computed by a separate JavaScript enumeration of the committed input bytes. This follow-on branch adds Rust regression tests that pin the cost-only, weighted-sum, and naive-prefilter outcomes against the exact oracle's feasible set; those tests remain unqualified until the exact-head Rust workflow passes.
 
 ## 2. Baselines and frozen methods
 
