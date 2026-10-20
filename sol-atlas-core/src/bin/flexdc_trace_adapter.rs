@@ -73,6 +73,7 @@ struct RunManifest {
     simulator_command: String,
     random_seed: u64,
     python_version: String,
+    runtime_environment_manifest_path: Option<String>,
     runtime_environment_sha256: Option<String>,
     power_cap_w: f64,
     regulation_reserve_w: f64,
@@ -145,16 +146,40 @@ fn validate_manifest(manifest: &RunManifest) -> Result<(), String> {
             "manifest.python_version must be an exact major.minor.patch version".to_owned(),
         );
     }
-    match manifest.runtime_environment_sha256.as_deref() {
-        Some(digest) if !is_lower_hex(digest, 64) => {
+    if let Some(path) = manifest.runtime_environment_manifest_path.as_deref() {
+        if path.trim().is_empty()
+            || path.starts_with('/')
+            || path.starts_with('\\')
+            || path.contains(['\n', '\r'])
+            || path
+                .split(|character| character == '/' || character == '\\')
+                .any(|component| component == "..")
+        {
+            return Err(
+                "manifest.runtime_environment_manifest_path must be a safe relative artifact path"
+                    .to_owned(),
+            );
+        }
+    }
+    match (
+        manifest.runtime_environment_manifest_path.as_deref(),
+        manifest.runtime_environment_sha256.as_deref(),
+    ) {
+        (Some(_), Some(digest)) if !is_lower_hex(digest, 64) => {
             return Err(
                 "manifest.runtime_environment_sha256 must be 64-character lowercase SHA-256 hex"
                     .to_owned(),
             );
         }
-        None if !manifest.synthetic => {
+        (None, _) | (_, None) if !manifest.synthetic => {
             return Err(
-                "non-synthetic runs require a SHA-256 digest of the runtime environment manifest"
+                "non-synthetic runs require both runtime environment artifact path and SHA-256 digest"
+                    .to_owned(),
+            );
+        }
+        (Some(_), None) | (None, Some(_)) if manifest.synthetic => {
+            return Err(
+                "synthetic manifests must set both runtime environment path and digest, or neither"
                     .to_owned(),
             );
         }
@@ -416,12 +441,13 @@ fn build_trace_input(power_csv: &[u8], manifest_bytes: &[u8]) -> Result<Value, S
     let manifest_sha256 = sha256_hex(manifest_bytes);
     let reserve_capacity_kw = manifest.regulation_reserve_w / 1000.0;
     let normalization_note = format!(
-        "FlexDC-Sim source commit {}; run {}; command {}; random seed {}; Python {}; runtime environment manifest SHA-256={:?}; QoS percentile {}; configured power cap P={} W and reserve R={} W. The exported trackingError is the source-native signed normalized error from prior-cycle real_power and previous signal cap, divided by R + 0.0001. Same-row target/realSum values are separately converted from W to kW and paired with exact configured R for the rederived RSR view. Startup rows before signal step {} seconds are zero. Time is preserved in seconds as interval IDs with no resampling. power_trace.csv SHA-256={artifact_sha256}; exact run-manifest JSON SHA-256={manifest_sha256}. {} This is simulator output, not wall-metered facility power.",
+        "FlexDC-Sim source commit {}; run {}; command {}; random seed {}; Python {}; runtime environment artifact {:?} SHA-256={:?}; QoS percentile {}; configured power cap P={} W and reserve R={} W. The exported trackingError is the source-native signed normalized error from prior-cycle real_power and previous signal cap, divided by R + 0.0001. Same-row target/realSum values are separately converted from W to kW and paired with exact configured R for the rederived RSR view. Startup rows before signal step {} seconds are zero. Time is preserved in seconds as interval IDs with no resampling. power_trace.csv SHA-256={artifact_sha256}; exact run-manifest JSON SHA-256={manifest_sha256}. {} This is simulator output, not wall-metered facility power.",
         manifest.source_revision,
         manifest.run_id,
         manifest.simulator_command,
         manifest.random_seed,
         manifest.python_version,
+        manifest.runtime_environment_manifest_path,
         manifest.runtime_environment_sha256,
         manifest.qos_percentile,
         manifest.power_cap_w,
@@ -658,11 +684,21 @@ mod tests {
         assert!(
             validate_manifest(&manifest)
                 .expect_err("unhashed non-synthetic runtime must reject")
-                .contains("runtime environment manifest")
+                .contains("runtime environment artifact path and SHA-256 digest")
         );
 
+        manifest.runtime_environment_manifest_path =
+            Some("run-001/runtime-environment.txt".to_owned());
         manifest.runtime_environment_sha256 = Some("a".repeat(64));
         assert!(validate_manifest(&manifest).is_ok());
+
+        manifest.runtime_environment_manifest_path =
+            Some("../outside/runtime-environment.txt".to_owned());
+        assert!(
+            validate_manifest(&manifest)
+                .expect_err("traversal in environment artifact path must reject")
+                .contains("safe relative artifact path")
+        );
     }
 
     #[test]
