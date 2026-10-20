@@ -631,6 +631,20 @@ mod tests {
     }
 
     #[test]
+    fn committed_starter_fixture_matches_exporter() {
+        let committed: Value = serde_json::from_str(include_str!(
+            "../../fixtures/landscape/seed-landscape-v0.json"
+        ))
+        .unwrap();
+        let generated = snapshot_json(
+            "Starter landscape (schematic)",
+            LandscapeScale::Site,
+            &starter_features(),
+        );
+        assert_eq!(committed, generated);
+    }
+
+    #[test]
     fn removing_selected_feature_preserves_unselected_features() {
         let mut features = starter_features();
         let removed_id = features.last().unwrap().id;
