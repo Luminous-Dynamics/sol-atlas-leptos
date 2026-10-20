@@ -68,7 +68,7 @@ jobs:
           rsr = report["metrics"]["rsr_reference"]
           assert trace["synthetic"] is True
           assert trace["claim_ceiling"] == "metric_accounting_only"
-          assert rsr["p90_normalized_absolute_error"] == 0.08
+          assert abs(rsr["p90_normalized_absolute_error"] - 0.08) < 1.0e-12
           assert rsr["p90_threshold_satisfied"] is True
           assert rsr["exceedance_rate_requirement_satisfied"] is False
           assert report["metrics"]["rsr_reference_metadata"]["sample_time_semantics"] == "prior_cycle_state"
