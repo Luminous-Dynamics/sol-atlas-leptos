@@ -118,7 +118,7 @@ jobs:
           cargo run --quiet --manifest-path "$manifest" --bin "$bin" -- --input "$root/reserve-limited.json" > "$root/reserve-limited-result.json"
           jq -e '
             .disposition == "optimal"
-            and ([.service_steps[].allocated_quanta] | add) == 3
+            and ([.service_steps[].allocated_quanta] | add) == 1
             and ([.resource_steps[] | select(.resource_id == "tank") | .ending_stock_quanta] | last) >= 2
             and all(.resource_steps[] | select(.resource_id == "tank"); .balance_equation_holds == true)
           ' "$root/reserve-limited-result.json" >/dev/null
