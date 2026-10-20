@@ -441,7 +441,7 @@ pub fn evaluate_evidence_packet(
                         "reviewer identity must be non-empty",
                     ));
                 }
-                Some(reviewer) if reviewer == artifact.recorded_by && artifact_valid => {
+                Some(reviewer) if reviewer.trim() == artifact.recorded_by.trim() && artifact_valid => {
                     artifact_valid = false;
                     issues.push(issue(
                         EvidenceIssueCode::ReviewerEqualsRecorder,
@@ -697,6 +697,19 @@ mod tests {
             EvidenceIssueCode::IndependentReviewerMissing
         ));
         assert_eq!(no_reviewer.decision, EvidenceDecision::Incomplete);
+
+        let mut whitespace_spoof = packet();
+        whitespace_spoof.evidence[1].recorded_by = " technician-01 ".to_owned();
+        let padded_self_review =
+            evaluate_evidence_packet(&whitespace_spoof, &context(Some("technician-01")));
+        assert!(has_issue(
+            &padded_self_review,
+            EvidenceIssueCode::ReviewerEqualsRecorder
+        ));
+        assert_eq!(
+            padded_self_review.decision,
+            EvidenceDecision::Incomplete
+        );
     }
 
     #[test]
