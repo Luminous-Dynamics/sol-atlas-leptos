@@ -34,8 +34,9 @@ fn run() -> Result<(), String> {
         .map_err(|error| format!("cannot read request {input_path}: {error}"))?;
     let request: IntertemporalAllocationRequest = from_slice(&input)
         .map_err(|error| format!("request JSON does not match the typed contract: {error}"))?;
-    let receipt = assess_intertemporal_resource_allocation(&request)
-        .map_err(|issues| format!("request rejected by structural/domain validation: {issues:?}"))?;
+    let receipt = assess_intertemporal_resource_allocation(&request).map_err(|issues| {
+        format!("request rejected by structural/domain validation: {issues:?}")
+    })?;
     println!(
         "{}",
         serde_json::to_string_pretty(&receipt)
