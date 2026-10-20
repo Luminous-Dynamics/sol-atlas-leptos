@@ -6,7 +6,9 @@ on:
       - "tools/sa-economic-portfolio-oracle/**"
       - "docs/research/SA-ECONOMIC-PORTFOLIO-001.md"
       - "docs/research/fixtures/sa-economic-portfolio-v0.1*"
+      - "docs/research/fixtures/sa-economic-portfolio-v0.2*"
       - "docs/research/schemas/sa-economic-portfolio-v0.1.schema.json"
+      - "docs/research/schemas/sa-economic-portfolio-v0.2.schema.json"
       - ".github/workflows/sa-economic-portfolio-oracle.yml"
   push:
     branches: [main]
@@ -14,7 +16,10 @@ on:
       - "tools/sa-economic-portfolio-oracle/**"
       - "docs/research/SA-ECONOMIC-PORTFOLIO-001.md"
       - "docs/research/fixtures/sa-economic-portfolio-v0.1*"
+      - "docs/research/fixtures/sa-economic-portfolio-v0.2*"
       - "docs/research/schemas/sa-economic-portfolio-v0.1.schema.json"
+      - "docs/research/schemas/sa-economic-portfolio-v0.2.schema.json"
+      - "docs/research/SA-PORTFOLIO-SCALE-001.md"
 
 permissions:
   contents: read
@@ -43,13 +48,22 @@ jobs:
       - name: Run reference oracle tests
         run: cargo test --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml
 
-      - name: Produce known-answer receipt
-        run: cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml > sa-economic-portfolio-receipt.json
+      - name: Produce v0.1 known-answer receipt
+        run: cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml > sa-economic-portfolio-v0.1-receipt.json
 
-      - name: Preserve receipt
+      - name: Produce v0.2 known-answer receipt
+        run: >-
+          cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml --
+          docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.json
+          docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.expected.json
+          > sa-economic-portfolio-v0.2-receipt.json
+
+      - name: Preserve receipts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: sa-economic-portfolio-receipt
-          path: sa-economic-portfolio-receipt.json
+          name: sa-economic-portfolio-receipts
+          path: |
+            sa-economic-portfolio-v0.1-receipt.json
+            sa-economic-portfolio-v0.2-receipt.json
           if-no-files-found: ignore

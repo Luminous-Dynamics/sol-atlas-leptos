@@ -10,7 +10,7 @@ const DEFAULT_EXPECTED: &str =
 
 #[derive(Serialize)]
 struct Receipt<'a> {
-    schema_version: &'static str,
+    schema_version: String,
     evidence_class: &'static str,
     synthetic_only: bool,
     claim_ceiling: &'static str,
@@ -55,7 +55,11 @@ fn run() -> Result<(), String> {
         .map(|portfolio| portfolio.project_ids.clone())
         .collect();
     let receipt = Receipt {
-        schema_version: "sa-economic-portfolio-receipt-v0.1",
+        schema_version: match input.schema_version.as_str() {
+            "sa-economic-portfolio-v0.1" => "sa-economic-portfolio-receipt-v0.1".to_owned(),
+            "sa-economic-portfolio-v0.2" => "sa-economic-portfolio-receipt-v0.2".to_owned(),
+            _ => return Err("unsupported schema version after evaluation".to_owned()),
+        },
         evidence_class: "synthetic_exact_oracle",
         synthetic_only: true,
         claim_ceiling: "Finite synthetic contract validation only; no real-world ROI, service impact, jobs, legal approval, or investment decision.",

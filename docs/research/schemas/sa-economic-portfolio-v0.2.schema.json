@@ -1,0 +1,365 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "sa-economic-portfolio-v0.2.schema.json",
+  "title": "Generalized synthetic multi-objective portfolio problem v0.2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "evidence_class",
+    "synthetic_only",
+    "claim_ceiling",
+    "budgets_by_period",
+    "scenarios",
+    "service_baseline_by_scenario",
+    "mandatory_floors",
+    "objective_schema",
+    "projects",
+    "interaction_rules",
+    "enumeration"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "sa-economic-portfolio-v0.2"
+    },
+    "evidence_class": {
+      "const": "synthetic"
+    },
+    "synthetic_only": {
+      "const": true
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 1
+    },
+    "budgets_by_period": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/periodBudget"
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/scenario"
+      }
+    },
+    "service_baseline_by_scenario": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "mandatory_floors": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/floor"
+      }
+    },
+    "objective_schema": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "$ref": "#/$defs/objectiveDefinition"
+      }
+    },
+    "projects": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 63,
+      "items": {
+        "$ref": "#/$defs/project"
+      }
+    },
+    "interaction_rules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/interactionRule"
+      }
+    },
+    "enumeration": {
+      "$ref": "#/$defs/enumerationConfig"
+    }
+  },
+  "$defs": {
+    "objectiveVector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "economic_value_u",
+        "essential_service_points",
+        "paid_work_opportunity_points",
+        "ecological_quality_points"
+      ],
+      "properties": {
+        "economic_value_u": {
+          "type": "integer"
+        },
+        "essential_service_points": {
+          "type": "integer"
+        },
+        "paid_work_opportunity_points": {
+          "type": "integer"
+        },
+        "ecological_quality_points": {
+          "type": "integer"
+        }
+      }
+    },
+    "periodBudget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "period",
+        "cost_cap_u",
+        "crew_cap_u"
+      ],
+      "properties": {
+        "period": {
+          "type": "string",
+          "pattern": "^P[1-9][0-9]*$"
+        },
+        "cost_cap_u": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "crew_cap_u": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "weight",
+        "probability",
+        "notes"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "weight": {
+          "const": null
+        },
+        "probability": {
+          "const": null
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "objectiveDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "direction",
+        "unit"
+      ],
+      "properties": {
+        "id": {
+          "enum": [
+            "economic_value_u",
+            "essential_service_points",
+            "paid_work_opportunity_points",
+            "ecological_quality_points"
+          ]
+        },
+        "direction": {
+          "const": "maximize"
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "floor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "metric",
+        "direction",
+        "threshold",
+        "apply_to_each_scenario",
+        "source_class"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "metric": {
+          "const": "total_essential_service_points"
+        },
+        "direction": {
+          "const": "minimize violation"
+        },
+        "threshold": {
+          "type": "integer"
+        },
+        "apply_to_each_scenario": {
+          "const": true
+        },
+        "source_class": {
+          "const": "synthetic test invariant"
+        }
+      }
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "period",
+        "stage_order",
+        "cost_u",
+        "crew_u",
+        "requires",
+        "gate",
+        "outcomes",
+        "evidence_class"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "period": {
+          "type": "string",
+          "pattern": "^P[1-9][0-9]*$"
+        },
+        "stage_order": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "cost_u": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "crew_u": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "requires": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "gate": {
+          "enum": [
+            "PASS",
+            "BLOCK",
+            "UNKNOWN"
+          ]
+        },
+        "outcomes": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "#/$defs/objectiveVector"
+          }
+        },
+        "evidence_class": {
+          "enum": [
+            "synthetic",
+            "synthetic hostile negative control"
+          ]
+        }
+      }
+    },
+    "interactionRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "when_all_selected",
+        "objective_adjustment_by_scenario",
+        "reason"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "synergy",
+            "overlap_adjustment"
+          ]
+        },
+        "when_all_selected": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "objective_adjustment_by_scenario": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "#/$defs/objectiveVector"
+          }
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "enumerationConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "candidate_subset_count",
+        "over_cap_behavior",
+        "objective_comparison",
+        "canonicalization"
+      ],
+      "properties": {
+        "method": {
+          "const": "complete subset enumeration"
+        },
+        "candidate_subset_count": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "over_cap_behavior": {
+          "const": "structured error; never return a partial frontier as complete"
+        },
+        "objective_comparison": {
+          "const": "scenario-wise componentwise maximization over every declared scenario and objective; scenario cases have no probabilities"
+        },
+        "canonicalization": {
+          "const": "sort project IDs within each portfolio and sort portfolio ID tuples lexicographically"
+        }
+      }
+    }
+  }
+}
