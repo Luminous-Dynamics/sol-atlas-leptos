@@ -386,6 +386,185 @@ impl IndexedDbJournal {
     /// Atomically writes a new prepared snapshot and enforces operation-ID and
     /// idempotency-key uniqueness. Identical re-insertion is idempotent and
     /// returns the entry as currently stored; changed identity fails closed.
+    /// Atomically imports a validated portable bundle for the authenticated owner.
+    ///
+    /// All operation IDs, scoped idempotency keys and pending markers are
+    /// preflighted in the same readwrite transaction that performs inserts.
+    /// Exact duplicates are no-ops; any immutable-state conflict aborts the
+    /// entire transaction. Existing operation snapshots are never overwritten,
+    /// so importing a stale bundle cannot roll a locally progressed row back.
+    /// Dispatch leases are deliberately not imported.
+    pub async fn import_bundle(
+        &self,
+        bundle: &OfflineJournalBundleV1,
+        authenticated_owner_scope: &str,
+    ) -> Result<BundleImportReport, IndexedDbJournalError> {
+        bundle
+            .validate_for_owner(authenticated_owner_scope)
+            .map_err(|error| IndexedDbJournalError(error.to_string()))?;
+        if bundle.records.is_empty() {
+            return Ok(BundleImportReport::default());
+        }
+
+        let mut candidates = Vec::with_capacity(bundle.records.len());
+        for record in &bundle.records {
+            let operation_id = record.operation_id().to_owned();
+            let entry = JournalEntry::from_snapshot_for_operation(
+                &operation_id,
+                record.snapshot.clone(),
+            )
+            .map_err(IndexedDbJournalError::from)?;
+            let canonical_payload =
+                std::str::from_utf8(entry.canonical_payload_utf8()).map_err(|error| {
+                    IndexedDbJournalError(format!("canonical payload is not UTF-8: {error}"))
+                })?;
+            let request_fingerprint_sha256 =
+                sol_atlas_core::offline_idempotency_fingerprint::canonical_request_fingerprint_sha256(
+                    authenticated_owner_scope,
+                    &record.operation_namespace,
+                    entry.envelope(),
+                    canonical_payload,
+                )
+                .map_err(|error| IndexedDbJournalError(error.to_string()))?;
+            let stored = StoredOperationV1 {
+                schema_version: STORED_OPERATION_SCHEMA_VERSION,
+                owner_scope: authenticated_owner_scope.to_owned(),
+                operation_namespace: record.operation_namespace.clone(),
+                request_fingerprint_schema_version:
+                    sol_atlas_core::offline_idempotency_fingerprint::REQUEST_FINGERPRINT_SCHEMA_VERSION,
+                request_fingerprint_sha256,
+                snapshot: record.snapshot.clone(),
+            };
+            stored.validate_entry(&operation_id)?;
+            let idempotency_storage_key = scoped_idempotency_key(
+                authenticated_owner_scope,
+                &record.operation_namespace,
+                &entry.envelope().idempotency_key,
+            )?;
+            let serialized_record = serde_json::to_string(&stored).map_err(|error| {
+                IndexedDbJournalError(format!("import record serialization failed: {error}"))
+            })?;
+            candidates.push(BundleImportCandidate {
+                operation_id,
+                idempotency_storage_key,
+                stored,
+                serialized_record,
+                pending: is_pending(entry.state()),
+            });
+        }
+
+        let (transaction, _policy) = self.transaction(&STORE_NAMES, "readwrite")?;
+        let transaction_done = transaction_promise(transaction.clone());
+        let operations = object_store(&transaction, OPERATIONS)?;
+        let idempotency_keys = object_store(&transaction, IDEMPOTENCY_KEYS)?;
+        let pending = object_store(&transaction, PENDING_OPERATIONS)?;
+
+        // Queue every read before installing handlers. Each success callback
+        // records one result; the final callback performs preflight and all
+        // writes synchronously while the IndexedDB transaction is still active.
+        let mut requests = Vec::with_capacity(candidates.len() * 3);
+        for (index, candidate) in candidates.iter().enumerate() {
+            let operation_request = call_method(
+                &operations,
+                "get",
+                &[JsValue::from_str(&candidate.operation_id)],
+            )
+            .map_err(js_error)?;
+            let idempotency_request = call_method(
+                &idempotency_keys,
+                "get",
+                &[JsValue::from_str(&candidate.idempotency_storage_key)],
+            )
+            .map_err(js_error)?;
+            let pending_request = call_method(
+                &pending,
+                "get",
+                &[JsValue::from_str(&candidate.operation_id)],
+            )
+            .map_err(js_error)?;
+            requests.push((operation_request, index * 3));
+            requests.push((idempotency_request, index * 3 + 1));
+            requests.push((pending_request, index * 3 + 2));
+        }
+
+        let shared = Rc::new(RefCell::new(BundleImportReadState {
+            candidates,
+            results: vec![None; requests.len()],
+            completed: 0,
+            decided: false,
+        }));
+        let output: Rc<RefCell<Option<Result<BundleImportReport, IndexedDbJournalError>>>> =
+            Rc::new(RefCell::new(None));
+
+        for (request, result_index) in requests {
+            let request_for_callback = request.clone();
+            let shared = shared.clone();
+            let output = output.clone();
+            let operations = operations.clone();
+            let idempotency_keys = idempotency_keys.clone();
+            let pending = pending.clone();
+            let transaction = transaction.clone();
+            let callback = Closure::once_into_js(move |_event: JsValue| {
+                let value = match Reflect::get(
+                    &request_for_callback,
+                    &JsValue::from_str("result"),
+                ) {
+                    Ok(value) => value,
+                    Err(error) => {
+                        *output.borrow_mut() = Some(Err(js_error(error)));
+                        let _ = call_method(&transaction, "abort", &[]);
+                        return;
+                    }
+                };
+                let all_reads_completed = {
+                    let mut state = shared.borrow_mut();
+                    if state.decided {
+                        return;
+                    }
+                    state.results[result_index] = Some(value);
+                    state.completed += 1;
+                    if state.completed == state.results.len() {
+                        state.decided = true;
+                        true
+                    } else {
+                        false
+                    }
+                };
+                if all_reads_completed {
+                    finish_bundle_import_reads(
+                        &shared,
+                        &output,
+                        &operations,
+                        &idempotency_keys,
+                        &pending,
+                        &transaction,
+                    );
+                }
+            });
+            if let Err(error) = Reflect::set(
+                &request,
+                &JsValue::from_str("onsuccess"),
+                &callback,
+            ) {
+                let _ = call_method(&transaction, "abort", &[]);
+                return Err(js_error(error));
+            }
+        }
+
+        let transaction_result = JsFuture::from(transaction_done).await;
+        match transaction_result {
+            Ok(_) => output.borrow_mut().take().ok_or_else(|| {
+                IndexedDbJournalError(
+                    "bundle import transaction completed without an outcome".into(),
+                )
+            })?,
+            Err(transaction_error) => match output.borrow_mut().take() {
+                Some(Err(preflight_error)) => Err(preflight_error),
+                _ => Err(js_error(transaction_error)),
+            },
+        }
+    }
+
     /// Exports a consistent, validated read snapshot for one owner scope.
     ///
     /// Both operation keys and values are read through the same readonly
