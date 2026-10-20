@@ -1364,11 +1364,8 @@ mod tests {
             let demand = 1 + next_bounded(&mut seed, total_capacity);
             request.workloads[1].required_work_units = demand;
 
-            for (index, (interval, target_capacity)) in request
-                .intervals
-                .iter_mut()
-                .zip(generated_capacities)
-                .enumerate()
+            for (interval, target_capacity) in
+                request.intervals.iter_mut().zip(generated_capacities)
             {
                 // The protected floor is six units × 0.5 kWh = 3 kWh in
                 // every one-hour interval. Set water as the binding resource
@@ -1388,8 +1385,6 @@ mod tests {
                     Some((next_bounded(&mut seed, 17) as i64 - 4) as f64 * 0.025);
                 interval.grid_carbon_intensity_gco2_per_kwh =
                     Some(next_bounded(&mut seed, 1201) as f64);
-                // Keep a stable, varied interval identity to help diagnostics.
-                assert!(!interval.id.is_empty(), "interval {index} needs identity");
             }
 
             let capacity = assess(&request);
