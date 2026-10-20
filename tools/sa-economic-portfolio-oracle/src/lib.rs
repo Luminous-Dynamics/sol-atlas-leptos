@@ -2214,8 +2214,8 @@ mod tests {
     #[test]
     fn no_effect_scenario_addition_preserves_feasible_set_and_frontier() {
         let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture parses");
-        let patch: ScenarioPatch = serde_json::from_str(NO_EFFECT_SCENARIO)
-            .expect("no-effect control patch parses");
+        let patch: ScenarioPatch =
+            serde_json::from_str(NO_EFFECT_SCENARIO).expect("no-effect control patch parses");
         let report = evaluate_scenario_addition(&input, &patch)
             .expect("duplicate scenario should be addable");
 
