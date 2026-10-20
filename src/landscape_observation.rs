@@ -132,12 +132,14 @@ pub fn validate_batch(value: &Value) -> Result<BatchValidation, Vec<String>> {
     };
     if observations.is_empty() {
         errors.push("$.observations: expected at least one observation".to_string());
+        return Err(errors);
     }
     if observations.len() > MAX_BATCH_OBSERVATIONS {
         errors.push(format!(
             "$.observations: batch size {} exceeds limit {MAX_BATCH_OBSERVATIONS}",
             observations.len()
         ));
+        return Err(errors);
     }
 
     let mut seen: HashMap<String, Value> = HashMap::new();
@@ -681,7 +683,11 @@ fn validate_uncertainty(
     }
 }
 
-fn validate_location(value: &Value, path: &str, errors: &mut Vec<String>) -> Option<&str> {
+fn validate_location<'a>(
+    value: &'a Value,
+    path: &str,
+    errors: &mut Vec<String>,
+) -> Option<&'a str> {
     let kind = value.get("kind").and_then(Value::as_str);
     match kind {
         Some("geographic-wgs84") => {
@@ -885,7 +891,11 @@ fn validate_transformations(
     }
 }
 
-fn validate_sensitivity(value: &Value, path: &str, errors: &mut Vec<String>) -> Option<&str> {
+fn validate_sensitivity<'a>(
+    value: &'a Value,
+    path: &str,
+    errors: &mut Vec<String>,
+) -> Option<&'a str> {
     let sensitivity = required_text(value, "sensitivity", path, errors);
     if !matches!(
         sensitivity,
