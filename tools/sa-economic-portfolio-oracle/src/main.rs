@@ -1,7 +1,7 @@
 use sa_economic_portfolio_oracle::{
     FrontierSearchEvaluation, FrontierSearchStats, Input, Portfolio, RejectionCounts,
-    check_expected, evaluate, evaluate_frontier_search, evaluate_scenario_omission,
-    ScenarioOmissionReport,
+    ScenarioOmissionReport, check_expected, evaluate, evaluate_frontier_search,
+    evaluate_scenario_omission,
 };
 use serde::Serialize;
 use sha2::{Digest, Sha256};
