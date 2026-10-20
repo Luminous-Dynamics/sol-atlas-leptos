@@ -107,6 +107,110 @@ pub struct RegulationTrackingAssessment {
     pub tracking_requirement_satisfied: bool,
 }
 
+/// Tracking metrics computed from an already normalized source error series.
+///
+/// Use this form when reproducing a reference tool's exported normalized-error
+/// column (for example FlexDC-Sim's `trackingError`). The signed values are
+/// converted to absolute errors for quantiles and threshold checks. The source
+/// tool's time alignment and denominator convention remain part of the input
+/// provenance; this function does not validate either.
+#[derive(Clone, Debug, PartialEq, serde::Serialize)]
+pub struct NormalizedErrorTrackingAssessment {
+    pub sample_count: usize,
+    pub normalization_basis: &'static str,
+    pub normalized_absolute_errors: Vec<f64>,
+    pub mean_normalized_absolute_error: f64,
+    pub p90_normalized_absolute_error: f64,
+    pub max_normalized_absolute_error: f64,
+    pub error_threshold: f64,
+    pub max_allowed_exceedance_fraction: f64,
+    pub threshold_exceedance_count: usize,
+    pub threshold_exceedance_fraction: f64,
+    pub tracking_requirement_satisfied: bool,
+}
+
+/// Assess an already normalized signed tracking-error series.
+///
+/// This is deliberately separate from `assess_rsr_tracking`: it reproduces
+/// metrics over the supplied normalized values without silently recalculating
+/// the source's target alignment or reserve denominator.
+pub fn assess_normalized_rsr_tracking_errors(
+    signed_normalized_errors: &[Option<f64>],
+    error_threshold: f64,
+    max_allowed_exceedance_fraction: f64,
+) -> Result<NormalizedErrorTrackingAssessment, MetricError> {
+    if signed_normalized_errors.is_empty() {
+        return Err(MetricError::EmptySeries);
+    }
+    require_nonnegative_fraction("error_threshold", error_threshold)?;
+    require_unit_fraction(
+        "max_allowed_exceedance_fraction",
+        max_allowed_exceedance_fraction,
+    )?;
+
+    let mut errors = Vec::with_capacity(signed_normalized_errors.len());
+    for (index, value) in signed_normalized_errors.iter().enumerate() {
+        let value = value.ok_or(MetricError::MissingObservation {
+            series: "signed_normalized_errors",
+            index,
+        })?;
+        if !value.is_finite() {
+            return Err(MetricError::InvalidObservation {
+                series: "signed_normalized_errors",
+                index,
+                reason: "normalized error must be finite",
+            });
+        }
+        let absolute_error = value.abs();
+        if !absolute_error.is_finite() {
+            return Err(MetricError::InvalidObservation {
+                series: "normalized_absolute_errors",
+                index,
+                reason: "absolute normalized error is non-finite",
+            });
+        }
+        errors.push(absolute_error);
+    }
+
+    let sample_count = errors.len();
+    let mut mean_normalized_absolute_error = 0.0;
+    for (index, error) in errors.iter().enumerate() {
+        mean_normalized_absolute_error +=
+            (*error - mean_normalized_absolute_error) / (index + 1) as f64;
+        if !mean_normalized_absolute_error.is_finite() {
+            return Err(MetricError::InvalidScalar {
+                field: "mean_normalized_absolute_error",
+                reason: "derived mean is non-finite",
+            });
+        }
+    }
+    let mut sorted_errors = errors.clone();
+    sorted_errors.sort_by(f64::total_cmp);
+    let p90_normalized_absolute_error =
+        linear_quantile_sorted(&sorted_errors, RSR_TRACKING_ERROR_QUANTILE);
+    let max_normalized_absolute_error = sorted_errors[sample_count - 1];
+    let threshold_exceedance_count = errors
+        .iter()
+        .filter(|&&error| error > error_threshold)
+        .count();
+    let threshold_exceedance_fraction = threshold_exceedance_count as f64 / sample_count as f64;
+
+    Ok(NormalizedErrorTrackingAssessment {
+        sample_count,
+        normalization_basis: "source_normalized_error_series",
+        normalized_absolute_errors: errors,
+        mean_normalized_absolute_error,
+        p90_normalized_absolute_error,
+        max_normalized_absolute_error,
+        error_threshold,
+        max_allowed_exceedance_fraction,
+        threshold_exceedance_count,
+        threshold_exceedance_fraction,
+        tracking_requirement_satisfied: threshold_exceedance_fraction
+            < max_allowed_exceedance_fraction,
+    })
+}
+
 /// Assess RSR power tracking using the paper's default 0.3 error threshold and
 /// strict <10% exceedance condition.
 pub fn assess_reference_rsr_tracking(
@@ -464,6 +568,41 @@ mod tests {
         assert_eq!(result.threshold_exceedance_count, 0);
         assert_eq!(result.threshold_exceedance_fraction, 0.0);
         assert!(result.tracking_requirement_satisfied);
+    }
+
+    #[test]
+    fn source_normalized_rsr_series_matches_reference_error_quantile_and_strict_rule() {
+        let mut errors = vec![Some(0.0); 10];
+        errors[9] = Some(0.8);
+
+        let result = assess_normalized_rsr_tracking_errors(&errors, 0.3, 0.1)
+            .expect("finite source-normalized errors should be assessed");
+
+        assert_eq!(result.normalization_basis, "source_normalized_error_series");
+        assert_eq!(result.sample_count, 10);
+        assert!((result.p90_normalized_absolute_error - 0.08).abs() < 1.0e-12);
+        assert_eq!(result.threshold_exceedance_count, 1);
+        assert_eq!(result.threshold_exceedance_fraction, 0.1);
+        assert!(!result.tracking_requirement_satisfied);
+    }
+
+    #[test]
+    fn source_normalized_rsr_series_rejects_missing_or_non_finite_values() {
+        assert_eq!(
+            assess_normalized_rsr_tracking_errors(&[Some(0.0), None], 0.3, 0.1),
+            Err(MetricError::MissingObservation {
+                series: "signed_normalized_errors",
+                index: 1
+            })
+        );
+        assert!(matches!(
+            assess_normalized_rsr_tracking_errors(&[Some(f64::NAN)], 0.3, 0.1),
+            Err(MetricError::InvalidObservation {
+                series: "signed_normalized_errors",
+                index: 0,
+                ..
+            })
+        ));
     }
 
     #[test]
