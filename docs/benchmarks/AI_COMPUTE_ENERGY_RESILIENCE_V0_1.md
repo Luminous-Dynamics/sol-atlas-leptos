@@ -143,6 +143,10 @@ These are derived from the fixture's explicitly synthetic factors—not facility
 
 A May 2026 paper using Alibaba workload traces reports that about 20% of data-center power came from latency-tolerant tasks suitable for shifting and that its LAD-Flex strategy could shed up to 22% load during flexibility windows. This is a workload- and scenario-specific result, not a universal fleet property: [Caprara et al., *Data center workload flexibility for power system demand response: Evidence from Alibaba traces*](https://www.sciencedirect.com/science/article/pii/S0142061526003820). It supports testing workload flexibility, but does not prove this synthetic scheduler beats the published approach; a fair comparison needs comparable trace, flexibility-window, and quality/service assumptions.
 
+A June 2026 ACM Sustainability Week study, [*To Defer or To Shift? The Role of AI Data Center Flexibility on Grid Interconnection*](https://doi.org/10.1145/3765611.3815593), reports that flexibility's grid-planning effects are location- and scenario-dependent; more flexible load does not automatically reduce required generation capacity. The benchmark should therefore report locational congestion, import limits, connection readiness, and capacity-expansion effects separately instead of treating every shifted kWh as a system-level benefit.
+
+A timely real-world failure mode is interconnection rather than server efficiency: [Reuters, 19 October 2026](https://www.reuters.com/business/media-telecom/microsoft-pulls-out-uk-data-center-deal-with-nscale-telegraph-reports-2026-10-18/) reported that Microsoft withdrew from a planned 50 MW UK data-centre deal after expected grid power availability moved into the 2030s. This is a specific reported project, not a general estimate; it motivates keeping **announced, contracted, commissioned, and deliverable** capacity as distinct states in the spatial-economic model.
+
 ## 6. Baseline ladder
 
 Use identical scenario bytes, task quality profile, work demand, deadlines, service floors and resource bounds for every candidate.
@@ -226,6 +230,7 @@ The campus-level design must follow Symthaea's [symbiotic infrastructure profile
 - [IEA — Key Questions on Energy and AI](https://www.iea.org/reports/key-questions-on-energy-and-ai/executive-summary).
 - [DOE/LBNL — 2024 United States Data Center Energy Usage Report](https://bies.lbl.gov/publications/2024-lbnl-data-center-energy-usage-report).
 - [MLCommons — MLPerf Inference: Datacenter](https://mlcommons.org/benchmarks/inference-datacenter/).
+- [MLCommons — MLPerf Endpoints](https://docs.mlcommons.org/endpoints-submission-docs/understand/what-is-mlperf-endpoints/): multi-point throughput/interactivity Pareto frontier with model-quality gates.
 - [MLCommons — Power working group](https://mlcommons.org/working-groups/benchmarks/power/).
 - [SPECpower_ssj2008](https://spec.org/power_ssj2008/).
 - [Open Compute Project — Data Center Facility](https://www.opencompute.org/projects/data-center-facility/).
@@ -233,4 +238,4 @@ The campus-level design must follow Symthaea's [symbiotic infrastructure profile
 - [The Green Grid — PUE](https://www.thegreengrid.org/node/372).
 - [The Green Grid — Data Center Resource Effectiveness v1](https://www.thegreengrid.org/resources/library-and-tools/wp93-data-center-resource-effectiveness-dcre-metric).
 
-**Current result:** a contract and an independently calculable synthetic fixture only. No solver implementation, hardware experiment, comparative performance result or claim of being state of the art is included in V0.1.
+**Current result:** a bounded capacity evaluator, greedy reference scheduler, exhaustive small-instance test oracle, and independently calculable synthetic fixture. There is still no production joint optimizer, matched-trace result, hardware experiment, or evidence that this implementation is state of the art.
