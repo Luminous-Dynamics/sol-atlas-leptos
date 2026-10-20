@@ -79,7 +79,7 @@ cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --sce
   docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-withheld-compound-stress.expected.json
 ```
 
-The frozen compound-stress patch adds explicit outcomes for all ten projects and both interaction rules, and combines heat/drought/grid/crew stress without assigning a probability. A second patch, `sa-portfolio-scenario-robustness-v0.1-no-effect-control.json`, duplicates the `normal_reference` coefficients exactly as a negative control; its expected report verifies 82 feasible portfolios, the same eight frontier IDs, and zero feasible-set or frontier turnover.
+The frozen compound-stress patch adds explicit outcomes for all ten projects and both interaction rules, combining heat/drought service pressure with grid scarcity without assigning a probability. This first patch does not change the period crew caps; resource-capacity uncertainty is a separate perturbation family still to implement. A second patch, `sa-portfolio-scenario-robustness-v0.1-no-effect-control.json`, duplicates the `normal_reference` coefficients exactly as a negative control; its expected report verifies 82 feasible portfolios, the same eight frontier IDs, and zero feasible-set or frontier turnover.
 
 ```sh
 cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --scenario-addition \
