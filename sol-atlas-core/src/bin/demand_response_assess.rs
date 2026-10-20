@@ -147,11 +147,7 @@ fn build_report(raw_input: &[u8], input: TraceInput) -> Result<RunReport, String
 
     let rsr = match input.rsr {
         Some(section) => {
-            validate_interval_ids(
-                "rsr",
-                &section.interval_ids,
-                section.target_power_kw.len(),
-            )?;
+            validate_interval_ids("rsr", &section.interval_ids, section.target_power_kw.len())?;
             if section.interval_ids.len() != section.measured_power_kw.len() {
                 return Err(format!(
                     "rsr.interval_ids length mismatch: expected {}, got {}",
@@ -219,8 +215,7 @@ fn build_report(raw_input: &[u8], input: TraceInput) -> Result<RunReport, String
         fixture_id: input.fixture_id,
         synthetic: input.synthetic,
         claim_ceiling: input.claim_ceiling,
-        verification_boundary:
-            "digests bind byte identity, not sensor calibration, evidence truth, or causal grid benefit",
+        verification_boundary: "digests bind byte identity, not sensor calibration, evidence truth, or causal grid benefit",
     };
     Ok(RunReport { receipt, metrics })
 }
@@ -272,9 +267,7 @@ mod tests {
     use serde_json::Value;
 
     fn fixture() -> (&'static str, TraceInput) {
-        let raw = include_str!(
-            "../../../schemas/examples/demand-response-trace-v1.synthetic.json"
-        );
+        let raw = include_str!("../../../schemas/examples/demand-response-trace-v1.synthetic.json");
         let input: TraceInput =
             serde_json::from_str(raw).expect("committed trace fixture should parse strictly");
         (raw, input)
@@ -307,7 +300,10 @@ mod tests {
     fn receipt_binds_raw_bytes_and_metrics_and_preserves_claim_ceiling() {
         let (raw, input) = fixture();
         let report = build_report(raw.as_bytes(), input.clone()).expect("fixture should assess");
-        assert_eq!(report.receipt.input_sha256, super::sha256_hex(raw.as_bytes()));
+        assert_eq!(
+            report.receipt.input_sha256,
+            super::sha256_hex(raw.as_bytes())
+        );
         assert_eq!(report.receipt.claim_ceiling, "metric_accounting_only");
         assert!(report.receipt.verification_boundary.contains("not sensor"));
 
@@ -343,8 +339,14 @@ mod tests {
         let changed_report =
             build_report(changed.as_bytes(), input).expect("changed fixture still assesses");
 
-        assert_ne!(report.receipt.input_sha256, changed_report.receipt.input_sha256);
-        assert_ne!(report.receipt.metrics_sha256, changed_report.receipt.metrics_sha256);
+        assert_ne!(
+            report.receipt.input_sha256,
+            changed_report.receipt.input_sha256
+        );
+        assert_ne!(
+            report.receipt.metrics_sha256,
+            changed_report.receipt.metrics_sha256
+        );
     }
 
     #[test]
@@ -410,7 +412,10 @@ mod tests {
         let report = build_report(raw.as_bytes(), input).expect("fixture should assess");
         let value: Value =
             serde_json::to_value(report).expect("run report should serialize as JSON");
-        assert_eq!(value["metrics"]["rsr"]["tracking_requirement_satisfied"], false);
+        assert_eq!(
+            value["metrics"]["rsr"]["tracking_requirement_satisfied"],
+            false
+        );
         assert_eq!(value["metrics"]["edr"]["gross_curtailment_kwh"], 50.0);
         assert_eq!(value["metrics"]["edr"]["rebound_energy_kwh"], 10.0);
         assert_eq!(value["receipt"]["digest_algorithm"], "SHA-256");
