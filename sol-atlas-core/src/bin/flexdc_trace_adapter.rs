@@ -658,20 +658,45 @@ mod tests {
     }
 
     #[test]
-    fn adapter_preserves_manifest_synthetic_flag() {
-        let output = build_trace_input(TRACE.as_bytes(), MANIFEST.as_bytes())
+    fn adapter_preserves_manifest_synthetic_flag_and_verifies_env_bytes() {
+        let output = build_trace_input(TRACE.as_bytes(), MANIFEST.as_bytes(), None)
             .expect("synthetic fixture should adapt");
         assert_eq!(output["synthetic"], true);
 
-        let real_run_manifest = MANIFEST.replace("\"synthetic\": true", "\"synthetic\": false");
-        let output = build_trace_input(TRACE.as_bytes(), real_run_manifest.as_bytes(), None)
-            .expect("manifest with a non-synthetic run flag should adapt");
+        let environment_bytes = b"Python 3.10.0\\npeacsim==0.0.1\\nnumpy==1.26.4\\n";
+        let mut manifest_value: serde_json::Value =
+            serde_json::from_str(MANIFEST).expect("manifest fixture should parse");
+        manifest_value["synthetic"] = serde_json::Value::Bool(false);
+        manifest_value["runtime_environment_manifest_path"] =
+            serde_json::json!("run-001/runtime-environment.txt");
+        manifest_value["runtime_environment_sha256"] =
+            serde_json::json!(sha256_hex(environment_bytes));
+        let real_run_manifest =
+            serde_json::to_vec(&manifest_value).expect("manifest JSON should serialize");
+
+        let output = build_trace_input(
+            TRACE.as_bytes(),
+            &real_run_manifest,
+            Some(environment_bytes),
+        )
+        .expect("complete non-synthetic environment receipt should adapt");
         assert_eq!(output["synthetic"], false);
+
+        let wrong_environment = b"Python 3.10.0\\nother-package==9.9.9\\n";
+        assert!(
+            build_trace_input(
+                TRACE.as_bytes(),
+                &real_run_manifest,
+                Some(wrong_environment),
+            )
+            .expect_err("environment bytes inconsistent with manifest digest must reject")
+            .contains("do not match the declared SHA-256")
+        );
     }
 
     #[test]
     fn source_native_and_same_row_metrics_are_deliberately_distinct() {
-        let output = build_trace_input(TRACE.as_bytes(), MANIFEST.as_bytes())
+        let output = build_trace_input(TRACE.as_bytes(), MANIFEST.as_bytes(), None)
             .expect("paired known-answer trace should adapt");
         let aligned = output["rsr"]["target_power_kw"]
             .as_array()
