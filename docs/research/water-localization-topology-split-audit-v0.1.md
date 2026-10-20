@@ -39,6 +39,26 @@ The 9-case file contains three cases in each of three topology families. A froze
 4. Score matched physical-model, classical ML and graph-model baselines only after exact data and solver artifacts are available.
 5. Keep binary detection, pipe/node localization, graph-distance error, abstention/calibration, false dispatch and field transfer on separate compatible scorecards.
 
+## Benchmark ladder and proposed targets
+
+These are **proposed go/no-go targets**, not results, guarantees, or universal industry standards. The published Net3 figures above are context only; they do not establish a matched held-out-topology baseline.
+
+| Gate | Metric and protocol | Proposed target |
+|---|---|---|
+| Split integrity | Exact digests, seed reuse, observation signatures, family membership, structural-collision review | Zero unresolved integrity findings in a scored run; 100% deterministic replay from exact manifest bytes |
+| Binary detection | Recall at a fixed false-positive rate; AUPRC under declared prevalence and per-topology strata | Stretch target: ≥95% recall at ≤1% false-positive rate on held-out topology families, with confidence intervals |
+| Localization | Top-1 / Top-3 node-or-pipe identification on families never used for training or calibration | Stretch target: Top-1 >80% and Top-3 >90%; require a paired comparison on identical cases and a confidence interval over the strongest matched baseline |
+| Structural generalization | Difference between random-row and topology-family-held-out performance | Report the gap; target ≥50% reduction versus the strongest matched baseline without increasing false-positive rate |
+| Spatial error | Shortest-path distance to the true affected node/pipe, normalized by graph size and reported in physical units where meaningful | Report median, p90 and worst-stratum distance; no one scalar may replace Top-1/Top-3 |
+| Confidence and abstention | Risk–coverage curve; calibration by topology family, sensor density and fault magnitude | At ≥80% coverage, target ≤10% selective Top-1 error; also report false-abstention and high-confidence error rates |
+| Robustness | Independent shifts in leak magnitude, sensor placement/density, noise, missingness and demand regime | Publish per-stratum results and worst stratum; no overall average may hide a failed stratum |
+| Cost | Solver time, training/inference latency, memory, simulations used and calibration-data budget | Compare quality-versus-budget curves on the same hardware and data; disclose preprocessing and tuning budgets |
+| Physical validity | Locked physical-bench cases from an independent acquisition, separate from EPANET/WNTR simulations | Establish a field/bench baseline first; report domain gap and failure rate before any deployment claim |
+
+The >80% Top-1 and >90% Top-3 targets are stretch hypotheses inspired by the published 75–77% Net3 ensemble Top-1 context. They are **not directly comparable** until that baseline is reproduced on the same exact topology-family holdout, target labels, sensor layout, fault distribution and tuning budget. A model should be called better only when the paired comparison supports the improvement and the data split has no unresolved structural-review candidates.
+
+The first scorecard must separate: (1) synthetic random split, (2) synthetic topology-family holdout, (3) unseen operating conditions on known topology, and (4) independent physical/field validation. Progress on one tier does not qualify the next.
+
 ## Nonclaims
 
 Passing this audit means only that the declared toy split plan meets its explicit structural leakage checks. It is not a hydraulic validation, benchmark reproduction, state-of-the-art comparison, calibrated model, field experiment or utility decision recommendation.
