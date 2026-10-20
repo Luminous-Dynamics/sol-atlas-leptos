@@ -88,6 +88,7 @@ struct Correctness {
     record_count_preserved: bool,
     owner_scope_preserved: bool,
     integrity_digest_stable: bool,
+    canonical_bytes_stable: bool,
 }
 
 fn main() {
@@ -118,11 +119,13 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut raw_samples = Vec::with_capacity(options.samples * 3);
     let mut bundle_bytes = 0usize;
     let mut bundle_digest = String::new();
+    let mut reference_bundle_json: Option<String> = None;
     let mut correctness = Correctness {
         roundtrip_equal: true,
         record_count_preserved: true,
         owner_scope_preserved: true,
         integrity_digest_stable: true,
+        canonical_bytes_stable: true,
     };
 
     for sample_index in 0..options.samples {
@@ -159,6 +162,11 @@ fn run() -> Result<(), Box<dyn Error>> {
         correctness.owner_scope_preserved &= parsed.owner_scope == owner_scope;
         correctness.integrity_digest_stable &=
             parsed.integrity_sha256 == bundle.integrity_sha256;
+        if let Some(reference_json) = reference_bundle_json.as_ref() {
+            correctness.canonical_bytes_stable &= reference_json == &json;
+        } else {
+            reference_bundle_json = Some(json.clone());
+        }
         bundle_bytes = json.len();
         bundle_digest = bundle.integrity_sha256;
     }
@@ -166,7 +174,8 @@ fn run() -> Result<(), Box<dyn Error>> {
     if !(correctness.roundtrip_equal
         && correctness.record_count_preserved
         && correctness.owner_scope_preserved
-        && correctness.integrity_digest_stable)
+        && correctness.integrity_digest_stable
+        && correctness.canonical_bytes_stable)
     {
         return Err("benchmark correctness oracle failed".into());
     }
@@ -206,7 +215,7 @@ fn parse_options() -> Result<Options, Box<dyn Error>> {
         blob_bytes: 1_024,
         samples: 7,
     };
-    let mut args = env::args().skip_while(|argument| argument != "--").skip(1);
+    let mut args = env::args().skip(1);
     while let Some(flag) = args.next() {
         let value = args
             .next()
