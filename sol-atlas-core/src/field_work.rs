@@ -422,6 +422,71 @@ impl ViewportIntentV1 {
     }
 }
 
+/// Version for revision-bound viewport intent envelopes exchanged by Leptos and Bevy.
+pub const VIEWPORT_INTENT_ENVELOPE_SCHEMA_VERSION: u16 = 1;
+
+/// A viewport request bound to the exact projection the user interacted with.
+///
+/// This envelope prevents a click from silently retargeting a newer job/asset
+/// projection after the view has changed. It is not authorization: the
+/// authoritative command handler must re-check actor rights, revisions, target
+/// existence, and domain rules before performing a mutation.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct ViewportIntentEnvelopeV1 {
+    pub schema_version: u16,
+    /// Stable across retries of this exact request; unique within the client journal.
+    pub request_id: String,
+    pub job_id: String,
+    pub expected_job_revision: u64,
+    pub expected_source_revision: u64,
+    pub expected_source_digest_sha256: String,
+    pub intent: ViewportIntentV1,
+}
+
+impl ViewportIntentEnvelopeV1 {
+    /// Validate that an intent still belongs to the exact projection it was created from.
+    pub fn validate_for_projection(
+        &self,
+        projection: &FieldJobProjectionV1,
+    ) -> Result<(), ProjectionError> {
+        if self.schema_version != VIEWPORT_INTENT_ENVELOPE_SCHEMA_VERSION {
+            return Err(ProjectionError::UnsupportedIntentEnvelopeSchema);
+        }
+        require_non_empty(
+            &self.request_id,
+            ProjectionError::MissingIntentRequestId,
+        )?;
+        require_non_empty(&self.job_id, ProjectionError::MissingJobId)?;
+        if self.expected_job_revision == 0 {
+            return Err(ProjectionError::InvalidExpectedIntentJobRevision);
+        }
+        if self.expected_source_revision == 0 {
+            return Err(ProjectionError::InvalidExpectedIntentSourceRevision);
+        }
+        validate_sha256(
+            &self.expected_source_digest_sha256,
+            ProjectionError::InvalidIntentSourceDigest,
+        )?;
+
+        projection.validate()?;
+        if self.job_id != projection.job_id {
+            return Err(ProjectionError::IntentJobMismatch);
+        }
+        if self.expected_job_revision != projection.job_revision {
+            return Err(ProjectionError::StaleIntentJobRevision);
+        }
+        if self.expected_source_revision != projection.source.source_revision {
+            return Err(ProjectionError::StaleIntentSourceRevision);
+        }
+        if self.expected_source_digest_sha256 != projection.source.source_digest_sha256 {
+            return Err(ProjectionError::StaleIntentSourceDigest);
+        }
+
+        self.intent.validate_for_projection(projection)
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ProjectionError {
     UnsupportedSchemaVersion,
@@ -455,6 +520,15 @@ pub enum ProjectionError {
     IntentTargetMissingFromProjection,
     ComparisonJobMismatch,
     InvalidComparisonRevisions,
+    UnsupportedIntentEnvelopeSchema,
+    MissingIntentRequestId,
+    InvalidExpectedIntentJobRevision,
+    InvalidExpectedIntentSourceRevision,
+    InvalidIntentSourceDigest,
+    IntentJobMismatch,
+    StaleIntentJobRevision,
+    StaleIntentSourceRevision,
+    StaleIntentSourceDigest,
 }
 
 impl std::fmt::Display for ProjectionError {
@@ -529,6 +603,112 @@ mod tests {
                 ViewportIntentKind::SetTimelineCursor,
             ],
         }
+    }
+
+    #[test]
+    fn frozen_revision_bound_intent_envelope_validates_against_its_exact_projection() {
+        let envelope: ViewportIntentEnvelopeV1 = serde_json::from_str(include_str!(
+            "../fixtures/viewport-intent-envelope-v1.json"
+        ))
+        .expect("frozen viewport intent envelope matches schema");
+        let projection = valid_projection();
+        assert_eq!(envelope.validate_for_projection(&projection), Ok(()));
+        assert_eq!(envelope.request_id, "request-demo-01");
+        assert_eq!(envelope.intent.kind(), ViewportIntentKind::FocusAsset);
+    }
+
+    #[test]
+    fn viewport_intent_envelope_rejects_a_stale_job_revision() {
+        let mut envelope: ViewportIntentEnvelopeV1 = serde_json::from_str(include_str!(
+            "../fixtures/viewport-intent-envelope-v1.json"
+        ))
+        .unwrap();
+        envelope.expected_job_revision += 1;
+        assert_eq!(
+            envelope.validate_for_projection(&valid_projection()),
+            Err(ProjectionError::StaleIntentJobRevision)
+        );
+    }
+
+    #[test]
+    fn viewport_intent_envelope_rejects_stale_source_revision_and_digest() {
+        let mut envelope: ViewportIntentEnvelopeV1 = serde_json::from_str(include_str!(
+            "../fixtures/viewport-intent-envelope-v1.json"
+        ))
+        .unwrap();
+        envelope.expected_source_revision += 1;
+        assert_eq!(
+            envelope.validate_for_projection(&valid_projection()),
+            Err(ProjectionError::StaleIntentSourceRevision)
+        );
+
+        let mut envelope: ViewportIntentEnvelopeV1 = serde_json::from_str(include_str!(
+            "../fixtures/viewport-intent-envelope-v1.json"
+        ))
+        .unwrap();
+        envelope.expected_source_digest_sha256 = "c".repeat(64);
+        assert_eq!(
+            envelope.validate_for_projection(&valid_projection()),
+            Err(ProjectionError::StaleIntentSourceDigest)
+        );
+    }
+
+    #[test]
+    fn viewport_intent_envelope_rejects_wrong_job_and_invalid_envelope_identity() {
+        let mut envelope: ViewportIntentEnvelopeV1 = serde_json::from_str(include_str!(
+            "../fixtures/viewport-intent-envelope-v1.json"
+        ))
+        .unwrap();
+        envelope.job_id = "another-job".into();
+        assert_eq!(
+            envelope.validate_for_projection(&valid_projection()),
+            Err(ProjectionError::IntentJobMismatch)
+        );
+
+        let mut envelope: ViewportIntentEnvelopeV1 = serde_json::from_str(include_str!(
+            "../fixtures/viewport-intent-envelope-v1.json"
+        ))
+        .unwrap();
+        envelope.request_id = " ".into();
+        assert_eq!(
+            envelope.validate_for_projection(&valid_projection()),
+            Err(ProjectionError::MissingIntentRequestId)
+        );
+
+        let mut envelope: ViewportIntentEnvelopeV1 = serde_json::from_str(include_str!(
+            "../fixtures/viewport-intent-envelope-v1.json"
+        ))
+        .unwrap();
+        envelope.schema_version = 2;
+        assert_eq!(
+            envelope.validate_for_projection(&valid_projection()),
+            Err(ProjectionError::UnsupportedIntentEnvelopeSchema)
+        );
+    }
+
+    #[test]
+    fn viewport_intent_envelope_rejects_malformed_source_digest_and_unknown_json_fields() {
+        let mut envelope: ViewportIntentEnvelopeV1 = serde_json::from_str(include_str!(
+            "../fixtures/viewport-intent-envelope-v1.json"
+        ))
+        .unwrap();
+        envelope.expected_source_digest_sha256 = "not-a-sha256".into();
+        assert_eq!(
+            envelope.validate_for_projection(&valid_projection()),
+            Err(ProjectionError::InvalidIntentSourceDigest)
+        );
+
+        let with_unknown_field = r#"{
+            "schemaVersion": 1,
+            "requestId": "request-demo-01",
+            "jobId": "job-demo-01",
+            "expectedJobRevision": 3,
+            "expectedSourceRevision": 8,
+            "expectedSourceDigestSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "intent": {"intent": "focusAsset", "assetId": "asset-demo-01"},
+            "unexpected": true
+        }"#;
+        assert!(serde_json::from_str::<ViewportIntentEnvelopeV1>(with_unknown_field).is_err());
     }
 
     #[test]

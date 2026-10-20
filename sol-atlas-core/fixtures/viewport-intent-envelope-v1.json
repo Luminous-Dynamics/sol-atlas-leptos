@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "requestId": "request-demo-01",
+  "jobId": "job-demo-01",
+  "expectedJobRevision": 3,
+  "expectedSourceRevision": 8,
+  "expectedSourceDigestSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "intent": {
+    "intent": "focusAsset",
+    "assetId": "asset-demo-01"
+  }
+}
