@@ -95,7 +95,9 @@
       "source_field": "signed_normalized_tracking_error",
       "sample_time_semantics": "source_reported_series",
       "denominator_convention": "source_native_unknown",
-      "normalization_note": "Synthetic input values are already normalized for the metric known-answer test; no source clock or denominator is implied."
+      "normalization_note": "Synthetic input values are already normalized for the metric known-answer test; no source clock or denominator is implied.",
+      "source_artifact_sha256": null,
+      "source_config_manifest_sha256": null
     }
   }
 }
