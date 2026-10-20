@@ -36,6 +36,20 @@ The receipt includes the SHA-256 of the exact input JSON bytes and the submitted
 
 Input schema version 1 uses explicit tagged states for reference truth, coverage, and system disposition. Unknown object fields are rejected rather than silently ignored.
 
+## Leakage-resistant split manifest
+
+The `split` module validates a separately versioned `SplitManifest` against the **exact corpus JSON bytes**. It recomputes the corpus digest, requires a complete one-to-one case assignment, and rejects cross-partition leakage through repeated cluster IDs, source-group IDs, or identical case-artifact digests. Train, validation, and test partitions must all be populated; a blind test partition is optional.
+
+The `methane-split-check` binary accepts two files, writes a JSON validation receipt, and exits 2 for a structurally invalid split. Example using a **synthetic-only corpus**:
+
+```sh
+cargo run --manifest-path tools/methane-action-contract/Cargo.toml --locked --bin methane-split-check -- \
+  tools/methane-action-contract/examples/split-corpus.json \
+  tools/methane-action-contract/examples/split-manifest.json
+```
+
+The corpus contains five made-up cases across four named partitions. Its manifest is pinned to the exact bytes of `split-corpus.json`. This checks that split identities and hashes are internally consistent; it does not establish that the chosen clusters are truly independent, that reference labels are accurate, or that a holdout represents future deployment conditions.
+
 ## Paired baseline comparison
 
 The `comparison` module compares a candidate and baseline on the **same complete case universe**. Each case now carries a required `cluster_id` (for example, site × overpass/time window) in addition to its analysis `stratum_id`. Do not use a stratum label as a substitute for a sampling cluster unless that is the true independence unit.
