@@ -39,7 +39,7 @@ fn main() {
     println!("# target_arch={}", std::env::consts::ARCH);
     println!(
         "# source_sha={}",
-        option_env!("SOL_ATLAS_BENCH_BUILD_SHA").unwrap_or("not-set")
+        std::env::var("SOL_ATLAS_BENCH_BUILD_SHA").unwrap_or_else(|_| "not-set".to_owned())
     );
     println!("# samples_per_operation={samples}");
     println!(
