@@ -425,7 +425,6 @@ mod tests {
 
     #[test]
     fn rejects_identical_case_artifact_in_different_splits() {
-        let bytes = corpus_bytes();
         let mut corpus_value = corpus();
         corpus_value.records[3].case_artifact_sha256 = digest('a');
         let changed_bytes = serde_json::to_vec(&corpus_value).unwrap();
@@ -447,6 +446,7 @@ mod tests {
 
     #[test]
     fn rejects_missing_duplicate_and_extra_assignments() {
+        let bytes = corpus_bytes();
         let mut manifest = manifest_for(&bytes);
         manifest.assignments.pop();
         manifest.assignments.push(manifest.assignments[0].clone());
