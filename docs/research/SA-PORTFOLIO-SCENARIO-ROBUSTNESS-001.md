@@ -1,7 +1,7 @@
 # SA-PORTFOLIO-SCENARIO-ROBUSTNESS-001
 ## Adversarial scenario-set sensitivity for auditable multi-objective portfolios
 
-**Status:** Research protocol plus initial Rust v0.2 leave-one-scenario-out API and unit tests committed; exact-head verification is pending. CLI receipts, a deterministic perturbation generator, and independently derived frozen mutation manifests remain outstanding.  
+**Status:** Research protocol, v0.2 exact leave-one-scenario-out API, known-answer CLI, and three frozen expected reports committed; exact-head verification is pending. The perturbation generator and scenario-addition/correlated-stress harness remain outstanding.  
 **Tracking issue:** [#254](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/254).  
 **Builds on:** [portfolio scale/search](./SA-PORTFOLIO-SCALE-001.md), [robust-regret implementation PR #242](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/242), [benchmark protocol](./SA-PORTFOLIO-BENCHMARK-PROTOCOL-001.md), and [independent solver baseline](./SA-PORTFOLIO-OR-SOLVER-BASELINE-001.md).  
 **Claim ceiling:** Synthetic scenario-model sensitivity only. Passing this protocol cannot prove that real-world scenarios are complete, calibrate unknown probabilities, validate field outcomes, or establish SOTA.
@@ -155,6 +155,20 @@ Any violated invariant is a correctness failure, regardless of speed.
 
 Do not publish a single aggregate rank across unlike case families. Stratify results by dependency density/depth, interaction density/arity, scenario count, constraint tightness and stress family. Freeze development/calibration cases separately from a final, held-out challenge suite; otherwise iteration can overfit the benchmark.
 
+### First executable known-answer slice
+
+Three scenario-omission reports are frozen under `docs/research/fixtures/`. The expected outputs were derived by a separate exhaustive enumerator over all 1,024 subsets, then pinned as JSON; the Rust candidate compares its whole report with the frozen manifest before emitting a receipt.
+
+| Input / omission | Reduced feasible portfolios | Reduced frontier members | Frontier-ID intersection / union vs. full reference | Reduced-frontier candidates infeasible under full reference |
+|---|---:|---:|---:|---:|
+| Original v0.2 / omit `normal_reference` | 82 | 8 | 8 / 8 | 0 |
+| Original v0.2 / omit `heat_dry_power_stress` | 90 | 7 | 7 / 8 | 0 |
+| Floor challenge / omit `heat_dry_power_stress` | 90 | 7 | 4 / 7 | 3 |
+
+The floor challenge is intentionally hostile: one synthetic project's stress-scenario essential-service contribution is lowered to `-6`. The full two-scenario input has 60 feasible portfolios and a four-member frontier. Removing the stress scenario exposes seven nominal-only frontier members, three of which fail the original full-universe service floor. The analyzer marks those three as infeasible and withholds regret values for them; it does not disguise an essential-service breach as a numerical trade-off. These values demonstrate only that the test catches its injected failure.
+
+The current CLI mode is `--scenario-omission INPUT.json SCENARIO_ID EXPECTED.json`; the dedicated workflow emits receipts for these three frozen cases and captures SHA-256 digests of the input and expected manifest. See the [oracle README](../../tools/sa-economic-portfolio-oracle/README.md) for commands. This initial exact slice is limited to v0.2 inputs within the 20-project exhaustive-evaluation cap. No CLI, format, Clippy, test or CI pass is claimed until the exact-head run completes.
+
 ## 7. Comparisons that are fair—and comparisons that are not
 
 Use these as explicitly different baselines:
@@ -169,13 +183,12 @@ Do not compare the full frontier with a one-solution weighted-sum optimizer as i
 
 ## 8. Execution plan
 
-1. Exact-head qualify the current v0.2 leave-one-scenario-out API and its deterministic/fail-closed tests.
-2. Add a tiny frozen baseline plus omitted-scenario and no-effect negative-control manifests with independently calculated expected outputs.
-3. Implement a deterministic **Rust** transformation runner that emits variant inputs and a manifest; keep perturbation generation separate from evaluator logic.
-4. Add exhaustive exact expected-result generation only as an offline development aid; freeze and check in the resulting reference manifests, and include a second independent derivation for the tiny challenge.
-5. Add leave-one-scenario-out and withheld-scenario receipts with source, input, mutation-config, reference and output digests.
-6. Add remaining metamorphic tests before adding larger random suites.
-7. Compare the same tiny corpus with the independent solver under #248. Only then move to high-density correlated-stress cases and timing.
+1. Exact-head qualify the current v0.2 API, CLI, frozen reports and fail-closed tests.
+2. Add a no-effect negative control and scenario-addition/withheld-scenario cases with independently calculated expected outputs.
+3. Implement a deterministic **Rust** perturbation generator that emits variant inputs and a manifest; keep generation separate from evaluator logic.
+4. Add input, mutation-config, reference and output digests to every receipt; preserve seeds and complete output distributions.
+5. Add the remaining metamorphic tests, including budget/crew monotonicity, before adding larger random suites.
+6. Compare the same tiny corpus with the independent solver under #248. Only then move to high-density correlated-stress cases and timing.
 
 No CI pass or executable implementation is claimed by this protocol document. Exact-head checks are required after the harness exists.
 
