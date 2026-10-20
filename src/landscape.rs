@@ -617,4 +617,115 @@ mod tests {
             false
         );
     }
+
+    #[test]
+    fn performance_metric_registry_is_traceable_and_definition_only() {
+        let registry: Value = serde_json::from_str(include_str!(
+            "../metrics/landscape/registry-v0.json"
+        ))
+        .expect("performance metric registry must be valid JSON");
+        let schema: Value = serde_json::from_str(include_str!(
+            "../schemas/landscape-performance-registry-v0.schema.json"
+        ))
+        .expect("performance registry schema must be valid JSON");
+
+        assert_eq!(
+            registry["schema"],
+            "luminous.landscape-performance-registry.v0"
+        );
+        assert_eq!(registry["schema_uri"], schema["$id"]);
+        assert_eq!(
+            registry["status"],
+            "specification-only-no-field-values"
+        );
+        assert_eq!(schema["properties"]["metrics"]["items"]["additionalProperties"], false);
+
+        let metrics = registry["metrics"]
+            .as_array()
+            .expect("metric definitions must be an array");
+        assert_eq!(metrics.len(), 8);
+        let mut ids = HashSet::with_capacity(metrics.len());
+        let mut families = HashSet::with_capacity(7);
+        for metric in metrics {
+            let id = metric["id"].as_str().expect("metric ID must be a string");
+            assert!(ids.insert(id), "duplicate metric ID: {id}");
+            families.insert(
+                metric["family"]
+                    .as_str()
+                    .expect("metric family must be a string"),
+            );
+            for field in [
+                "label",
+                "unit",
+                "semantic_type",
+                "formula",
+                "target_policy",
+            ] {
+                assert!(
+                    metric[field]
+                        .as_str()
+                        .is_some_and(|value| !value.trim().is_empty()),
+                    "metric {id} has no {field}"
+                );
+            }
+            for field in ["required_inputs", "failure_modes", "uncertainty_requirements"] {
+                assert!(
+                    metric[field]
+                        .as_array()
+                        .is_some_and(|values| !values.is_empty()),
+                    "metric {id} has no {field}"
+                );
+            }
+            assert!(
+                matches!(
+                    metric["v0_status"].as_str(),
+                    Some("not-computable" | "requires-myclix-stewardship-contract")
+                ),
+                "metric {id} must be explicitly unavailable until qualified"
+            );
+            assert!(
+                metric.as_object().is_some_and(|object| {
+                    !object.contains_key("value") && !object.contains_key("measured_value")
+                }),
+                "metric {id} must not embed an unqualified result value"
+            );
+        }
+        assert_eq!(families.len(), 7);
+    }
+
+    #[test]
+    fn benchmark_manifest_matches_generator_limits_without_claiming_results() {
+        let manifest: Value = serde_json::from_str(include_str!(
+            "../benchmarks/landscape/workloads-v0.json"
+        ))
+        .expect("landscape benchmark manifest must be valid JSON");
+
+        assert_eq!(
+            manifest["manifest_version"],
+            "landscape-editor-benchmark-v0"
+        );
+        assert_eq!(manifest["status"], "protocol-only-no-measurements");
+        assert_eq!(
+            manifest["generator"]["implementation"],
+            "src/landscape.rs::synthetic_benchmark_snapshot"
+        );
+        assert_eq!(manifest["coordinate_frame"], FRAME_KIND);
+
+        let sizes = manifest["workload_sizes"]
+            .as_array()
+            .expect("workload sizes must be an array");
+        let counts: Vec<u64> = sizes
+            .iter()
+            .map(|size| size["feature_count"].as_u64().unwrap())
+            .collect();
+        assert_eq!(counts, [100, 1_000, 10_000, MAX_SNAPSHOT_FEATURES as u64]);
+        assert_eq!(
+            manifest["generator"]["initial_seed_hex"],
+            "0x4c414e44"
+        );
+        assert_eq!(
+            manifest["generator"]["geometry_warning"],
+            "These generated features are synthetic drawing units; no geographic or physical meaning."
+        );
+    }
 }
