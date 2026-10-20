@@ -1,6 +1,6 @@
 # FlexDC-Sim Cross-Validation Plan v0.1
 
-**Status:** source/config files inspected and pinned; no FlexDC-Sim execution or parity result is claimed.  
+**Status:** source/config files inspected and pinned; an automated pinned-reference workflow now executes FlexDC-Sim and validates its output through the Rust adapter/metric CLI. Do not claim a real simulator parity result until that workflow completes successfully and its artifact/metrics have been inspected.  
 **Related code:** `sol-atlas-core/src/demand_response_metrics.rs` and the `demand_response_assess` CLI in this branch.  
 **Tracking work item:** [AI-COMP-ENERGY-003 / issue #256](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/256).
 
@@ -110,8 +110,7 @@ The same derived trace should be scored by both FlexDC-Sim's published outputs a
 
 ## 6. Next execution gate
 
-1. Review the provenance/license of the provider signal; do not redistribute raw data until permitted.
-2. Run the pinned reference profile in an isolated external environment and verify the policy's referenced weight file and exact command-line flags.
-3. Export canonical power/job traces and compute per-file digests. Confirm the tracked-error timing from source before creating aligned metric inputs.
-4. Score the same trace through `demand_response_assess`; publish a difference report and explain only measured discrepancies.
-5. Add actual RSR/EDR result rows only when the external simulation has genuinely run. Until then the only checked result is the synthetic Rust known-answer fixture.
+1. The new `.github/workflows/flexdc-reference.yml` executes the pinned upstream simulator with exact Python/dependency versions and the reviewed configuration. It captures the full environment manifest, run manifest, power trace, job table, and receipt-bound paired RSR report as a GitHub Actions artifact.
+2. Inspect the exact-head run and its uploaded artifact. Confirm that the manifest’s config hashes, environment digest, row count and source revision match the workflow and that both output schemas validate.
+3. Compare the source-native p90 and same-row recomputed p90, including threshold/exceedance counts, without assuming they should agree. Review the source job table and QoS outputs as a separate workload-quality dimension.
+4. Only then append actual simulator metrics to the benchmark record. These remain modeled simulator evidence; they do not establish physical facility energy, site-grid benefit or SOTA superiority. The committed 10-row fixture remains the separate synthetic known-answer test.
