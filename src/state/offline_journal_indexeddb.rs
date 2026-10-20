@@ -519,7 +519,7 @@ impl IndexedDbJournal {
             Rc::new(RefCell::new(None));
 
         {
-            let request = request.clone();
+            let request_for_callback = request.clone();
             let output = output.clone();
             let operations = operations.clone();
             let pending = pending.clone();
@@ -527,7 +527,7 @@ impl IndexedDbJournal {
             let op_id = operation_id.to_owned();
             let reply = reply.clone();
             let callback = Closure::once_into_js(move |_event: JsValue| {
-                let raw = match Reflect::get(&request, &JsValue::from_str("result")) {
+                let raw = match Reflect::get(&request_for_callback, &JsValue::from_str("result")) {
                     Ok(value) => value,
                     Err(error) => {
                         *output.borrow_mut() = Some(Err(js_error(error)));
