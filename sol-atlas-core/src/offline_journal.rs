@@ -623,6 +623,20 @@ mod tests {
         JournalEntry::prepare(envelope(), payload_json()).unwrap()
     }
 
+    /// Test-only state for the frozen reducer corpus, whose legacy fixture uses
+    /// a placeholder digest. Never use this constructor for persistence or dispatch.
+    fn entry_for_reducer_fault_corpus() -> JournalEntry {
+        let mut fixture_envelope = envelope();
+        fixture_envelope.payload_digest_sha256 = "a".repeat(64);
+        JournalEntry {
+            envelope: fixture_envelope,
+            payload: crate::offline_payload_digest::CanonicalPayload::from_json(payload_json())
+                .unwrap(),
+            state: JournalState::Prepared,
+            attempt_count: 0,
+        }
+    }
+
     fn operation_binding() -> OperationBinding {
         OperationBinding::from_envelope(&envelope())
     }
@@ -1059,7 +1073,10 @@ mod tests {
                 "duplicate case id: {}",
                 case.case_id
             );
-            let mut entry = prepared_entry();
+            // The immutable v2 reducer corpus uses a placeholder digest.
+            // This test-only entry isolates reply/reducer semantics; payload
+            // ingress is covered by separate constructor tests.
+            let mut entry = entry_for_reducer_fault_corpus();
             for _ in 0..case.attempts {
                 entry.mark_attempt_started().unwrap();
             }
