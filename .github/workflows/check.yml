@@ -73,6 +73,9 @@ jobs:
       # Exercise the receipt-bound RSR/EDR metrics CLI and its known-answer fixture.
       - name: Test demand-response assessment CLI
         run: cargo test -p sol-atlas-core --bin demand_response_assess
+      # Verify the strict pinned-source CSV adapter and its synthetic known-answer slice.
+      - name: Test FlexDC-Sim trace adapter
+        run: cargo test -p sol-atlas-core --bin flexdc_trace_adapter
       # Compile the core library and every binary/test target.
       - name: Check core library, tests, and binaries
         run: cargo check -p sol-atlas-core --all-targets
