@@ -35,20 +35,25 @@ use wasm_bindgen_futures::JsFuture;
 /// Object-store names are part of database schema v1. This adapter uses
 /// out-of-line keys so the ID is independently checked during recovery.
 const DATABASE_NAME: &str = "sol-atlas-offline-journal";
-const DATABASE_VERSION: u32 = 3;
+const DATABASE_VERSION: u32 = 4;
 const OPERATIONS: &str = "operations";
 const IDEMPOTENCY_KEYS: &str = "idempotency_keys";
 const PENDING_OPERATIONS: &str = "pending_operations";
 const DISPATCH_LEASES: &str = "dispatch_leases";
+const STAGED_IMPORTS: &str = "staged_imports";
+const STAGED_IMPORT_IDEMPOTENCY_KEYS: &str = "staged_import_idempotency_keys";
 const STORE_NAMES: [&str; 3] = [OPERATIONS, IDEMPOTENCY_KEYS, PENDING_OPERATIONS];
-const UPGRADE_STORE_NAMES: [&str; 4] = [
+const UPGRADE_STORE_NAMES: [&str; 6] = [
     OPERATIONS,
     IDEMPOTENCY_KEYS,
     PENDING_OPERATIONS,
     DISPATCH_LEASES,
+    STAGED_IMPORTS,
+    STAGED_IMPORT_IDEMPOTENCY_KEYS,
 ];
 const DISPATCH_LEASE_SCHEMA_VERSION: u16 = 1;
 const STORED_OPERATION_SCHEMA_VERSION: u16 = 1;
+const STAGED_IMPORT_SCHEMA_VERSION: u16 = 1;
 const DISPATCH_LEASE_DURATION_MS: u64 = 30_000;
 
 /// Whether a browser accepted strict transaction durability options.
@@ -153,15 +158,27 @@ pub struct IndexedDbJournalPage {
     pub next_after_operation_id: Option<String>,
 }
 
-/// Result of one atomic portable-bundle merge.
+/// Result of staging a portable bundle for authoritative reconciliation.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub struct BundleImportReport {
-    /// New operations inserted; existing rows are never overwritten.
-    pub inserted_records: usize,
-    /// Records that exactly matched their existing immutable local state.
+pub struct BundleStageReport {
+    /// New records written to the isolated staging store, never the dispatch queue.
+    pub staged_records: usize,
+    /// Records that exactly matched an existing staged record.
     pub exact_duplicates: usize,
-    /// Derived pending markers repaired for exact duplicate records.
-    pub repaired_pending_markers: usize,
+    /// Records already present in the active journal with matching immutable content.
+    pub already_present_records: usize,
+}
+
+/// A staged snapshot which has not yet been reconciled with the authoritative service.
+///
+/// The type carries no dispatch permit and does not make the contained state an
+/// authenticated result. Callers must display it as untrusted imported material.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StagedJournalOperation {
+    pub owner_scope: String,
+    pub operation_namespace: String,
+    pub source_bundle_sha256: String,
+    pub snapshot: JournalEntrySnapshotV1,
 }
 
 /// Immutable owner/namespace binding around the journal snapshot.
@@ -241,6 +258,44 @@ impl StoredOperationV1 {
             ));
         }
         Ok(entry)
+    }
+}
+
+/// Untrusted imported operation held outside the active journal and dispatch indexes.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct StagedImportRecordV1 {
+    schema_version: u16,
+    source_bundle_sha256: String,
+    operation: StoredOperationV1,
+}
+
+impl StagedImportRecordV1 {
+    fn validate(&self, expected_operation_id: &str) -> Result<JournalEntry, IndexedDbJournalError> {
+        if self.schema_version != STAGED_IMPORT_SCHEMA_VERSION {
+            return Err(IndexedDbJournalError(
+                "unsupported staged import record schema".into(),
+            ));
+        }
+        if !is_sha256_lower_hex(&self.source_bundle_sha256) {
+            return Err(IndexedDbJournalError(
+                "staged import source bundle digest is invalid".into(),
+            ));
+        }
+        self.operation.validate_entry(expected_operation_id)
+    }
+
+    fn matches_scope(&self, owner_scope: &str, operation_namespace: &str) -> bool {
+        self.operation.matches_scope(owner_scope, operation_namespace)
+    }
+
+    fn to_public(&self) -> StagedJournalOperation {
+        StagedJournalOperation {
+            owner_scope: self.operation.owner_scope.clone(),
+            operation_namespace: self.operation.operation_namespace.clone(),
+            source_bundle_sha256: self.source_bundle_sha256.clone(),
+            snapshot: self.operation.snapshot.clone(),
+        }
     }
 }
 
