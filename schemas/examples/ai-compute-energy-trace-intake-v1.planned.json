@@ -1,0 +1,135 @@
+{
+  "schema_version": "1.0",
+  "intake_id": "alibaba-cluster-trace-v2018-planned",
+  "created_at": "2026-10-20T20:00:00+02:00",
+  "dataset": {
+    "name": "Alibaba Cluster Trace Program — cluster-trace-v2018",
+    "publisher": "Alibaba Cluster Trace Program",
+    "release": "cluster-trace-v2018",
+    "source_kind": "public_trace",
+    "source_uri": "https://github.com/alibaba/clusterdata/blob/master/cluster-trace-v2018/trace_2018.md",
+    "description": "Planned source for workload-arrival, batch-task dependency, and resource-trace replay. This manifest does not represent a downloaded artifact or verified field mapping."
+  },
+  "license_gate": {
+    "status": "not_reviewed",
+    "decision": "metadata_only",
+    "license_identifier": null,
+    "terms_uri": null,
+    "reviewed_at": null,
+    "review_note": "License and use terms must be reviewed against the exact release and download route before retrieval, redistribution, or quantitative benchmark use."
+  },
+  "artifact": {
+    "state": "planned",
+    "raw_sha256": null,
+    "raw_bytes": null,
+    "retrieved_at": null,
+    "normalized_sha256": null,
+    "normalized_bytes": null
+  },
+  "time_scope": {
+    "timestamp_semantics": "unknown",
+    "start_utc": null,
+    "end_utc": null,
+    "source_timezone": null,
+    "source_time_unit": null,
+    "aggregation_interval_seconds": null,
+    "notes": "The official release documentation describes relative-second fields whose origin is the beginning of the sampled period. Exact file-level mapping, time range, interval semantics, and normalized UTC origin remain unverified until the chosen artifacts are inspected."
+  },
+  "field_mappings": [
+    {
+      "canonical_field": "task_arrival_time",
+      "mapping_status": "planned",
+      "source_field": null,
+      "source_unit": null,
+      "canonical_unit": "seconds_since_trace_origin",
+      "conversion_rule": "unresolved",
+      "records_checked": null,
+      "records_missing": null,
+      "notes": "Candidate mapping only; do not schedule from this field until exact table/column semantics are verified."
+    },
+    {
+      "canonical_field": "task_runtime",
+      "mapping_status": "planned",
+      "source_field": null,
+      "source_unit": null,
+      "canonical_unit": "seconds",
+      "conversion_rule": "unresolved",
+      "records_checked": null,
+      "records_missing": null,
+      "notes": "Candidate mapping only; distinguish requested duration, observed duration, and end time where present."
+    },
+    {
+      "canonical_field": "resource_demand",
+      "mapping_status": "planned",
+      "source_field": null,
+      "source_unit": null,
+      "canonical_unit": null,
+      "conversion_rule": "unresolved",
+      "records_checked": null,
+      "records_missing": null,
+      "notes": "Do not infer GPU demand, work units, joules, or model quality from normalized generic resource fields without a justified mapping."
+    },
+    {
+      "canonical_field": "task_precedence",
+      "mapping_status": "planned",
+      "source_field": null,
+      "source_unit": null,
+      "canonical_unit": "directed_acyclic_graph",
+      "conversion_rule": "unresolved",
+      "records_checked": null,
+      "records_missing": null,
+      "notes": "Dependency reconstruction must follow the exact release's documented batch-task identifier semantics and be tested on known-answer jobs."
+    }
+  ],
+  "workload_quality": {
+    "status": "separate_quality_gate_required",
+    "quality_metric": null,
+    "acceptance_rule": null,
+    "model_or_job_identity": null,
+    "notes": "A generic cluster trace is not a model-quality or AI-inference benchmark. Any serving claim must add a separately versioned model/dataset quality gate such as a matching MLPerf task."
+  },
+  "energy_attribution": {
+    "class": "unknown",
+    "boundary": "unknown",
+    "metering_method": null,
+    "instrument_or_model": null,
+    "uncertainty_percent": null,
+    "notes": "The planned trace is not treated as facility energy or measured AI accelerator power. Energy/carbon results must remain unknown unless a defensible measured or calibrated attribution is added."
+  },
+  "data_quality": {
+    "stage": "planned",
+    "records_read": null,
+    "records_kept": null,
+    "records_excluded": null,
+    "duplicate_records": null,
+    "missing_timestamps": null,
+    "out_of_scope_timestamps": null,
+    "measured_missingness_fraction": null,
+    "checks_run": [],
+    "notes": "No trace artifact has been retrieved or parsed. Do not report record counts, completeness, or exclusions yet."
+  },
+  "transformation": {
+    "pipeline_id": null,
+    "pipeline_version": null,
+    "source_commit": null,
+    "config_sha256": null,
+    "normalization_notes": "No transformation has run. On retrieval, record the exact transformer commit, configuration digest, canonical schema version, and raw/normalized artifact digests."
+  },
+  "claim_policy": {
+    "claim_ceiling": "metadata_only",
+    "allowed_claims": [
+      "The Alibaba cluster-trace-v2018 release is registered as a proposed workload-trace source.",
+      "The next step is license review and exact artifact/field inspection."
+    ],
+    "prohibited_inferences": [
+      "unknown_energy_is_zero",
+      "generic_cpu_utilization_equals_ai_quality",
+      "provisioned_power_equals_measured_energy",
+      "annual_clean_energy_match_proves_hourly_deliverability",
+      "synthetic_results_are_facility_measurements",
+      "estimated_heat_is_recovered_heat",
+      "one_site_results_generalize_to_all_grids",
+      "workload_flexibility_always_reduces_generation_capacity"
+    ]
+  }
+}
