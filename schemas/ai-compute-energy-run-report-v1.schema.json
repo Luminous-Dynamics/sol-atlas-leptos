@@ -34,6 +34,7 @@
         "digest_algorithm",
         "digest_scope",
         "input_sha256",
+        "assessment_sha256",
         "input_bytes",
         "mode",
         "scenario_schema_version",
@@ -54,9 +55,13 @@
           "const": "SHA-256"
         },
         "digest_scope": {
-          "const": "exact_input_bytes_only"
+          "const": "exact_input_bytes_and_compact_assessment_json"
         },
         "input_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "assessment_sha256": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
         },
@@ -85,7 +90,7 @@
           "type": "string"
         },
         "verification_boundary": {
-          "const": "digest binds input identity; it does not validate the truth of scenario claims"
+          "const": "digests bind input and assessment identity; they do not validate the truth of scenario claims"
         }
       }
     },
