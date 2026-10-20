@@ -131,7 +131,7 @@ The benchmark artifact records these 21-repeat release-build measurements on the
 | V0.2 ten-project fixture | p95 algorithm time | 468 µs | 150 µs |
 | V0.2 ten-project fixture | minimum / maximum | 406 / 483 µs | 127 / 158 µs |
 
-This is a single-host **smoke benchmark**, not an apples-to-apples performance proof: the exhaustive evaluator returns the complete set of 82 feasible portfolios as well as the 8-member frontier; the candidate search returns the frontier and proof-of-accounting counters. The 3.1x median ratio describes only these two recorded implementations and this small synthetic input. It is not evidence of beating a commercial system, an independent MILP / CP-SAT formulation, or SOTA.
+**Measurement-protocol caveat:** these numbers are from the initial pre-warm-up, fixed-order comparison. They are preserved as a historical smoke baseline; the benchmark-methodology follow-up adds two warm-ups per algorithm, alternates paired order, and records host metadata. Future readings produced under the improved protocol must be reported separately, not silently appended to or directly mixed with these initial samples. See [SA-PORTFOLIO-BENCHMARK-PROTOCOL-001](./SA-PORTFOLIO-BENCHMARK-PROTOCOL-001.md).\n\nThis is a single-host **smoke benchmark**, not an apples-to-apples performance proof: the exhaustive evaluator returns the complete set of 82 feasible portfolios as well as the 8-member frontier; the candidate search returns the frontier and proof-of-accounting counters. The 3.1x median ratio describes only these two recorded implementations and this small synthetic input. It is not evidence of beating a commercial system, an independent MILP / CP-SAT formulation, or SOTA.
 
 The V0.2 ten-project search receipt reports 1,024 subsets, 305 visited nodes, 120 evaluated leaves, 82 feasible portfolios and the same 8-member frontier as exact enumeration. The 904 pruned completions partition into 448 gate, 192 missing-prerequisite and 264 budget prunes; 120 leaves + 904 prunes = 1,024.
 
@@ -142,5 +142,49 @@ The adversarial 24-project case has a full universe of 16,777,216 subsets. Its 2
 - 22 feasible leaf portfolios, 4 frontier portfolios and exact equality with the supplied frozen frontier reference.
 
 The partition reconciles: 40 evaluated leaves + 16,777,176 pruned completions = 16,777,216. This adversarial fixture deliberately adds sixteen `UNKNOWN`-gated decoys that are immediately provable infeasible; it demonstrates accounting and negative-control behavior, not representative large-instance scaling.
+
+
+
+## 9. Warmed, order-alternated benchmark (methodology PR #247)
+
+The measurement protocol was then hardened and run on exact source head `b7148214db462ed52d5626f4da34e00812c0e4b7`, workflow [SA economic portfolio oracle run #39489050764](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/39489050764). The dedicated workflow passed formatting, Clippy with warnings denied, the full Rust test suite, exact/search receipts and both benchmark commands. The separate repository `Check` run was still in progress at the time of this record.
+
+Environment recorded in both benchmark receipts: GitHub Actions Linux/X64 runner; AMD EPYC 7763 64-Core Processor; 4 logical CPUs visible to the process; 16,766,414,848 bytes reported total memory; release build. Process high-water RSS was 3,522,560 bytes for the ten-project comparison process and 2,945,024 bytes for the 24-project search process. These are per-process high-water readings from this run, not peak RSS distributions across repeated isolated processes or evidence of production capacity.
+
+The new protocol ran **2 unmeasured warm-ups per algorithm** and alternated measurement order over **21 paired repetitions**:
+
+| Experiment | Measure | Exact subset evaluation | Frontier search |
+|---|---|---:|---:|
+| 10 projects | p50 algorithm latency | 449 µs | 151 µs |
+| 10 projects | p95 algorithm latency | 465 µs | 156 µs |
+| 10 projects | min / max | 428 / 477 µs | 146 / 157 µs |
+| 24-project adversarial fixture | p50 / p95 / max search latency | — | 81 / 113 / 128 µs |
+
+The warmed ten-project median ratio is about **2.98x** for this exact pair of code paths on this runner. The exact evaluator also returns all 82 feasible portfolios, whereas the search returns the 8-member frontier and proof-of-accounting counters; therefore this remains a benchmark of two defined outputs, not a claim that equivalent full-output tasks differ by 2.98x or that the method beats SOTA.
+
+On the 10-project input the frontier search still visited 305 nodes, evaluated 120 leaves and pruned 904 completions: 448 gate, 192 prerequisite, 264 budget; 120 + 904 = 1,024. All 21 exact/search pairs matched the pinned outcome frontier and exact known-answer manifest.
+
+On the adversarial 24-project input the candidate still represented all 16,777,216 subsets with 745 visited nodes and 40 evaluated leaves. The 16,777,176 pruned completions were 9,961,432 gate, 3,145,728 prerequisite and 3,670,016 budget prunes. Its four-member frontier matched the supplied reference every time. This fixture remains deliberately easy to prune; the timing is not a representative hard-instance claim.
+
+The initial un-warmed 434 µs / 139 µs ten-project numbers in section 8 are retained as historical baseline only. They must not be blended with the hardened-protocol samples above. The next performance threshold should wait for the independent, matched solver model tracked by [issue #248](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/248) and a wider structured/generated case suite.
+
+
+
+## 10. Repeat on a second hosted runner session
+
+The updated protocol was rerun on a second GitHub Actions runner session (run [#39489360212](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/39489360212), 21 additional measured repetitions per benchmark). It also passed the dedicated oracle workflow; the full Rust test evidence on that head was 19 library tests plus the new binary timing-summary unit test (20 total, 0 failures). The separate repository `Check` workflow remained pending at the time of this entry.
+
+Pooling the per-run timing samples across both 21-repetition jobs (42 observations per algorithm, two warm-ups per algorithm on each job; same runner class, not two different hardware families) gives:
+
+| Experiment | Algorithm | p50 | p95 | Min / max |
+|---|---|---:|---:|---:|
+| Ten-project fixture | Exact subset evaluator | 451 µs | 470 µs | 426 / 477 µs |
+| Ten-project fixture | Frontier search | 151 µs | 163 µs | 145 / 167 µs |
+| 24-project adversarial fixture | Frontier search | 81 µs | 115 µs | 78 / 128 µs |
+
+Recorded environment stayed Linux/X64 on AMD EPYC 7763 with four visible logical CPUs and approximately 16.77 GB reported system memory. Process high-water RSS across the two sessions ranged 3.52–3.55 MB for the ten-project comparison process and 2.91–2.95 MB for the 24-project search process. The receipt captures byte-level fixture/reference digests and per-run samples; process RSS is a process high-water mark, not an algorithm-specific memory distribution.
+
+Across this two-run sample the ten-project median ratio is about **2.99x**, with the previously stated caveat that exact enumeration also retains the complete feasible set and frontier search returns only the frontier. The 24-project case remains easy to prune by construction, and both runs are from the same processor class. The independent CP-SAT/MILP baseline and broader difficult-instance families are still necessary before any scale or SOTA conclusion.
+
 
 **Claim ceiling:** this is a synthetic contract and exact-search engineering exercise. It does not forecast GDP, jobs, real cost recovery, causal service improvement, or the optimal allocation of South African public resources.

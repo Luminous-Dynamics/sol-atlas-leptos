@@ -13,8 +13,21 @@ const DEFAULT_EXPECTED: &str =
     include_str!("../../../docs/research/fixtures/sa-economic-portfolio-v0.1.expected.json");
 
 #[derive(Serialize)]
+struct HostMetadata {
+    runner_os: Option<String>,
+    runner_arch: Option<String>,
+    runner_name: Option<String>,
+    cpu_model: Option<String>,
+    logical_cpu_count: Option<usize>,
+    total_memory_bytes: Option<u64>,
+    process_peak_rss_bytes: Option<u64>,
+    release_build: bool,
+}
+
+#[derive(Serialize)]
 struct TimingSummary {
     repetitions: usize,
+    warmup_runs: usize,
     samples_elapsed_micros: Vec<u128>,
     min_elapsed_micros: u128,
     p50_elapsed_micros: u128,
@@ -30,6 +43,8 @@ struct ComparisonBenchmarkReceipt<'a> {
     claim_ceiling: &'static str,
     input_sha256: String,
     reference_manifest_sha256: String,
+    host: HostMetadata,
+    measurement_order: &'static str,
     exact_subset_count: u64,
     exact_feasible_count: usize,
     frontier_count: usize,
@@ -47,6 +62,7 @@ struct SearchBenchmarkReceipt<'a> {
     claim_ceiling: &'static str,
     input_sha256: String,
     reference_manifest_sha256: String,
+    host: HostMetadata,
     timing: TimingSummary,
     stats: &'a FrontierSearchStats,
     frontier_count: usize,
@@ -150,12 +166,14 @@ fn run() -> Result<(), String> {
     Ok(())
 }
 
-fn read_benchmark_args(args: &[String]) -> Result<(String, String, usize, String, String), String> {
+fn read_benchmark_args(
+    args: &[String],
+    mode: &str,
+) -> Result<(String, String, usize, String, String), String> {
     if args.len() < 2 || args.len() > 3 {
-        return Err(
-            "usage: sa-economic-portfolio-oracle --bench-search INPUT.json REFERENCE.json [REPEATS]"
-                .to_owned(),
-        );
+        return Err(format!(
+            "usage: sa-economic-portfolio-oracle --{mode} INPUT.json REFERENCE.json [REPEATS]"
+        ));
     }
     let input_path = args[0].clone();
     let reference_path = args[1].clone();
@@ -181,7 +199,44 @@ fn read_benchmark_args(args: &[String]) -> Result<(String, String, usize, String
     ))
 }
 
-fn percentiles(samples: &[u128], repetitions: usize) -> TimingSummary {
+fn first_matching_proc_line(path: &str, keys: &[&str]) -> Option<String> {
+    let raw = fs::read_to_string(path).ok()?;
+    raw.lines().find_map(|line| {
+        let (key, value) = line.split_once(':')?;
+        if keys.iter().any(|candidate| key.trim() == *candidate) {
+            Some(value.trim().to_owned())
+        } else {
+            None
+        }
+    })
+}
+
+fn proc_memory_bytes(path: &str, key: &str) -> Option<u64> {
+    let value = first_matching_proc_line(path, &[key])?;
+    let kilobytes = value.split_whitespace().next()?.parse::<u64>().ok()?;
+    kilobytes.checked_mul(1024)
+}
+
+fn host_metadata() -> HostMetadata {
+    HostMetadata {
+        runner_os: Some(
+            std::env::var("RUNNER_OS").unwrap_or_else(|_| std::env::consts::OS.to_owned()),
+        ),
+        runner_arch: Some(
+            std::env::var("RUNNER_ARCH").unwrap_or_else(|_| std::env::consts::ARCH.to_owned()),
+        ),
+        runner_name: std::env::var("RUNNER_NAME").ok(),
+        cpu_model: first_matching_proc_line("/proc/cpuinfo", &["model name", "Hardware"]),
+        logical_cpu_count: std::thread::available_parallelism()
+            .ok()
+            .map(|count| count.get()),
+        total_memory_bytes: proc_memory_bytes("/proc/meminfo", "MemTotal"),
+        process_peak_rss_bytes: proc_memory_bytes("/proc/self/status", "VmHWM"),
+        release_build: !cfg!(debug_assertions),
+    }
+}
+
+fn percentiles(samples: &[u128], repetitions: usize, warmup_runs: usize) -> TimingSummary {
     let mut sorted = samples.to_vec();
     sorted.sort_unstable();
     let nearest_rank = |percentile: usize| {
@@ -190,6 +245,7 @@ fn percentiles(samples: &[u128], repetitions: usize) -> TimingSummary {
     };
     TimingSummary {
         repetitions,
+        warmup_runs,
         min_elapsed_micros: *sorted.first().expect("timing sample is non-empty"),
         p50_elapsed_micros: nearest_rank(50),
         p95_elapsed_micros: nearest_rank(95),
@@ -215,35 +271,46 @@ fn digest_hex(raw: &str) -> String {
 }
 
 fn run_search_benchmark(args: &[String]) -> Result<(), String> {
-    let (_, _, repetitions, input_raw, reference_raw) = read_benchmark_args(args)?;
+    const WARMUP_RUNS: usize = 2;
+    let (_, _, repetitions, input_raw, reference_raw) = read_benchmark_args(args, "bench-search")?;
     let input: Input = serde_json::from_str(&input_raw)
         .map_err(|error| format!("invalid input JSON/contract: {error}"))?;
     let expected_frontier = reference_frontier(&reference_raw)?;
-    let mut samples = Vec::with_capacity(repetitions);
-    let mut baseline: Option<FrontierSearchEvaluation> = None;
 
+    let mut warmup_baseline: Option<FrontierSearchEvaluation> = None;
+    for _ in 0..WARMUP_RUNS {
+        let evaluation = evaluate_frontier_search(&input)?;
+        if evaluation.pareto_frontier != expected_frontier {
+            return Err(
+                "frontier-search result does not match reference manifest during warm-up"
+                    .to_owned(),
+            );
+        }
+        if let Some(previous) = &warmup_baseline {
+            if previous != &evaluation {
+                return Err("frontier-search result/counters changed during warm-up".to_owned());
+            }
+        } else {
+            warmup_baseline = Some(evaluation);
+        }
+    }
+    let baseline = warmup_baseline.expect("warm-up count is positive");
+
+    let mut samples = Vec::with_capacity(repetitions);
     for _ in 0..repetitions {
         let start = Instant::now();
         let evaluation = evaluate_frontier_search(&input)?;
-        samples.push(start.elapsed().as_micros());
+        let elapsed = start.elapsed().as_micros();
         if evaluation.pareto_frontier != expected_frontier {
             return Err("frontier-search result does not match reference manifest".to_owned());
         }
-        if let Some(previous) = &baseline {
-            if previous != &evaluation {
-                return Err(
-                    "frontier-search result/counters changed between repeated runs".to_owned(),
-                );
-            }
-        } else {
-            baseline = Some(evaluation);
+        if evaluation != baseline {
+            return Err("frontier-search result/counters changed between repeated runs".to_owned());
         }
+        samples.push(elapsed);
     }
 
-    let evaluation = baseline
-        .as_ref()
-        .expect("validated repetition count is positive");
-    let timing = percentiles(&samples, repetitions);
+    let timing = percentiles(&samples, repetitions, WARMUP_RUNS);
     let schema_version = match input.schema_version.as_str() {
         "sa-economic-portfolio-v0.1" => "sa-economic-portfolio-search-benchmark-v0.1",
         "sa-economic-portfolio-v0.2" => "sa-economic-portfolio-search-benchmark-v0.2",
@@ -253,14 +320,15 @@ fn run_search_benchmark(args: &[String]) -> Result<(), String> {
         schema_version: schema_version.to_owned(),
         evidence_class: "synthetic_frontier_search_benchmark",
         synthetic_only: true,
-        claim_ceiling: "Repeated in-process algorithm timing on the current runner; not a cross-host SOTA claim.",
+        claim_ceiling: "Repeated warmed in-process algorithm timing on the recorded current runner; not a cross-host SOTA claim.",
         input_sha256: digest_hex(&input_raw),
         reference_manifest_sha256: digest_hex(&reference_raw),
+        host: host_metadata(),
         timing,
-        stats: &evaluation.stats,
-        frontier_count: evaluation.pareto_frontier.len(),
-        pareto_frontier: &evaluation.pareto_frontier,
-        validation: "PASS: every repeated frontier matched the supplied reference manifest",
+        stats: &baseline.stats,
+        frontier_count: baseline.pareto_frontier.len(),
+        pareto_frontier: &baseline.pareto_frontier,
+        validation: "PASS: warm-up and every measured frontier matched the supplied reference manifest",
     };
     println!(
         "{}",
@@ -270,68 +338,92 @@ fn run_search_benchmark(args: &[String]) -> Result<(), String> {
 }
 
 fn run_comparison_benchmark(args: &[String]) -> Result<(), String> {
-    let (_, _, repetitions, input_raw, reference_raw) = read_benchmark_args(args)?;
+    const WARMUP_RUNS: usize = 2;
+    let (_, _, repetitions, input_raw, reference_raw) = read_benchmark_args(args, "compare-bench")?;
     let input: Input = serde_json::from_str(&input_raw)
         .map_err(|error| format!("invalid input JSON/contract: {error}"))?;
     let expected_frontier = reference_frontier(&reference_raw)?;
-    let mut exact_samples = Vec::with_capacity(repetitions);
-    let mut search_samples = Vec::with_capacity(repetitions);
-    let mut exact_baseline = None;
-    let mut search_baseline: Option<FrontierSearchEvaluation> = None;
 
-    for _ in 0..repetitions {
-        let exact_start = Instant::now();
+    let measure_exact = || -> Result<(u128, sa_economic_portfolio_oracle::Evaluation), String> {
+        let start = Instant::now();
         let exact = evaluate(&input)?;
-        exact_samples.push(exact_start.elapsed().as_micros());
+        let elapsed = start.elapsed().as_micros();
         check_expected(&exact, &reference_raw)?;
         if exact.pareto_frontier != expected_frontier {
             return Err("exact oracle frontier does not match the supplied reference".to_owned());
         }
-        if let Some(previous) = &exact_baseline {
-            if previous != &exact {
-                return Err("exact oracle result changed between repeated runs".to_owned());
-            }
-        } else {
-            exact_baseline = Some(exact);
-        }
-
-        let search_start = Instant::now();
+        Ok((elapsed, exact))
+    };
+    let measure_search = || -> Result<(u128, FrontierSearchEvaluation), String> {
+        let start = Instant::now();
         let searched = evaluate_frontier_search(&input)?;
-        search_samples.push(search_start.elapsed().as_micros());
+        let elapsed = start.elapsed().as_micros();
         if searched.pareto_frontier != expected_frontier {
-            return Err("frontier search does not match the exact reference".to_owned());
+            return Err("frontier search does not match the supplied reference".to_owned());
         }
-        if let Some(previous) = &search_baseline {
-            if previous != &searched {
-                return Err(
-                    "frontier search result/counters changed between repeated runs".to_owned(),
-                );
+        Ok((elapsed, searched))
+    };
+
+    // Interleave two warm-up runs per algorithm before collecting timings.
+    let (_, exact_warmup_one) = measure_exact()?;
+    let (_, search_warmup_one) = measure_search()?;
+    let (_, search_warmup_two) = measure_search()?;
+    let (_, exact_warmup_two) = measure_exact()?;
+    if exact_warmup_one != exact_warmup_two || search_warmup_one != search_warmup_two {
+        return Err("algorithm results/counters changed between warm-up runs".to_owned());
+    }
+    if exact_warmup_two.pareto_frontier != search_warmup_two.pareto_frontier {
+        return Err("exact and search frontiers disagree before timing".to_owned());
+    }
+
+    let exact_baseline = exact_warmup_two;
+    let search_baseline = search_warmup_two;
+    let mut exact_samples = Vec::with_capacity(repetitions);
+    let mut search_samples = Vec::with_capacity(repetitions);
+
+    // Alternate the order for each measured pair to reduce fixed order/cache bias.
+    for repetition in 0..repetitions {
+        if repetition % 2 == 0 {
+            let (exact_elapsed, exact) = measure_exact()?;
+            let (search_elapsed, searched) = measure_search()?;
+            if exact != exact_baseline || searched != search_baseline {
+                return Err("algorithm output/counters changed between measured runs".to_owned());
             }
+            if exact.pareto_frontier != searched.pareto_frontier {
+                return Err("exact and search frontiers disagree in a measured pair".to_owned());
+            }
+            exact_samples.push(exact_elapsed);
+            search_samples.push(search_elapsed);
         } else {
-            search_baseline = Some(searched);
+            let (search_elapsed, searched) = measure_search()?;
+            let (exact_elapsed, exact) = measure_exact()?;
+            if exact != exact_baseline || searched != search_baseline {
+                return Err("algorithm output/counters changed between measured runs".to_owned());
+            }
+            if exact.pareto_frontier != searched.pareto_frontier {
+                return Err("exact and search frontiers disagree in a measured pair".to_owned());
+            }
+            search_samples.push(search_elapsed);
+            exact_samples.push(exact_elapsed);
         }
     }
 
-    let exact = exact_baseline
-        .as_ref()
-        .expect("validated repetition count is positive");
-    let searched = search_baseline
-        .as_ref()
-        .expect("validated repetition count is positive");
     let receipt = ComparisonBenchmarkReceipt {
         schema_version: "sa-economic-portfolio-comparison-benchmark-v0.2",
         evidence_class: "synthetic_exact_vs_search_benchmark",
         synthetic_only: true,
-        claim_ceiling: "Matched synthetic algorithm comparison on the current runner; not a cross-host SOTA claim.",
+        claim_ceiling: "Matched warmed synthetic algorithm comparison on the recorded current runner; not a cross-host SOTA claim.",
         input_sha256: digest_hex(&input_raw),
         reference_manifest_sha256: digest_hex(&reference_raw),
-        exact_subset_count: exact.candidate_subset_count,
-        exact_feasible_count: exact.feasible_portfolios.len(),
-        frontier_count: exact.pareto_frontier.len(),
-        exact_subset_enumeration: percentiles(&exact_samples, repetitions),
-        dependency_aware_frontier_search: percentiles(&search_samples, repetitions),
-        search_stats: &searched.stats,
-        validation: "PASS: exact and search frontiers match the supplied manifest on every repetition",
+        host: host_metadata(),
+        measurement_order: "Two warm-ups per algorithm; measured pair order alternates exact→search and search→exact.",
+        exact_subset_count: exact_baseline.candidate_subset_count,
+        exact_feasible_count: exact_baseline.feasible_portfolios.len(),
+        frontier_count: exact_baseline.pareto_frontier.len(),
+        exact_subset_enumeration: percentiles(&exact_samples, repetitions, WARMUP_RUNS),
+        dependency_aware_frontier_search: percentiles(&search_samples, repetitions, WARMUP_RUNS),
+        search_stats: &search_baseline.stats,
+        validation: "PASS: warm-ups and every measured exact/search pair agreed and matched the supplied manifest",
     };
     println!(
         "{}",
@@ -415,5 +507,22 @@ fn main() {
     if let Err(error) = run() {
         eprintln!("sa-economic-portfolio-oracle: {error}");
         std::process::exit(1);
+    }
+}
+
+#[cfg(test)]
+mod benchmark_tests {
+    use super::*;
+
+    #[test]
+    fn nearest_rank_timing_summary_sorts_samples_and_records_warmups() {
+        let summary = percentiles(&[7, 1, 9, 3, 5], 5, 2);
+        assert_eq!(summary.repetitions, 5);
+        assert_eq!(summary.warmup_runs, 2);
+        assert_eq!(summary.samples_elapsed_micros, vec![1, 3, 5, 7, 9]);
+        assert_eq!(summary.min_elapsed_micros, 1);
+        assert_eq!(summary.p50_elapsed_micros, 5);
+        assert_eq!(summary.p95_elapsed_micros, 9);
+        assert_eq!(summary.max_elapsed_micros, 9);
     }
 }
