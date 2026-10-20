@@ -1,0 +1,91 @@
+# Offline Journal Authoritative Service Contract v1
+
+**Status:** design/acceptance contract for the future authoritative API. This repository's IndexedDB adapter is client-side only; no server implementation, database schema, or end-to-end proof is supplied by this document.
+
+## Why this is the next critical boundary
+
+A local journal can prove which bytes it intended to send. It cannot decide whether the server applied those bytes before a connection failed. A browser-local dispatch lease reduces simultaneous sends, but it cannot prevent a suspended tab from resuming after lease expiry, nor can it close the crash gap after the server commits but before the client stores the receipt.
+
+The correctness boundary therefore has to be server-side. Transport is at-least-once; the service must provide one durable logical outcome per scoped idempotency key and immutable request fingerprint.
+
+## Request identity and fingerprint
+
+The server must accept the operation envelope and raw payload body, then independently:
+
+1. Parse the body using the protocol's strict RFC 8785 JSON Canonicalization Scheme profile. Reject malformed JSON, duplicate names and unsupported numeric values.
+2. Canonicalize it and compute SHA-256 over the exact canonical UTF-8 bytes. Reject if the result differs from `payload_digest_sha256`.
+3. Reconstruct the immutable request binding from the validated envelope. The fingerprint must bind all immutable fields, not only the body digest:
+   - envelope/schema version;
+   - principal or tenant scope;
+   - operation ID and aggregate ID;
+   - expected aggregate revision;
+   - idempotency key (as the key, not recursively inside its fingerprint);
+   - canonical payload digest;
+   - explicit supersession/conflict lineage.
+4. Persist an authoritative server-computed fingerprint. Do not trust a client-supplied fingerprint without recomputation.
+
+Use a versioned, unambiguous encoding for the fingerprint. A canonical object with a declared domain/version separator is acceptable; alternatively, use a specified length-prefixed tuple. Document the exact byte construction and freeze cross-language test vectors. Never concatenate arbitrary strings without boundaries.
+
+## Durable ledger and atomic effects
+
+Suggested relational model (names are illustrative):
+
+`idempotency_ledger`
+- scoped unique key: `(tenant_id, operation_namespace, idempotency_key)`;
+- `request_fingerprint`, `operation_id`, aggregate ID and expected revision;
+- status: `in_progress | applied | rejected | conflict`;
+- stable outcome / receipt ID, response status and replayable response body;
+- created/updated timestamps and published retention policy.
+
+The database must enforce uniqueness; a read-before-insert check alone is racy. Every write is scoped to the authenticated principal/tenant. Never reveal another tenant's response when a key collides.
+
+For effects contained in one transactional database, the ledger reservation, aggregate revision check, domain mutation, final idempotency outcome, receipt record and any outbox event should commit in one database transaction. This produces one authoritative commit point.
+
+For external effects (payments, email, messaging, physical device commands, partner APIs), a local database transaction cannot atomically include a remote system. Use a transactional outbox plus downstream idempotency/deduplication and reconciliation; do not claim global exactly-once execution across uncooperative systems.
+
+## Required server behavior
+
+| Situation | Required behavior |
+|---|---|
+| New key + valid fingerprint + valid expected revision | Atomically claim key; execute once; persist outcome and receipt with the effect |
+| Retry after success with same key and same fingerprint | Return the original outcome and receipt; do not repeat the effect |
+| Retry after a deterministic rejection/conflict with same key and same fingerprint | Return the stored original outcome; changed intent requires a new operation/key |
+| Same scoped key reused with another fingerprint | Reject with a documented client error (HTTP 422 is recommended by the retrieved HTTPAPI working-group draft); never apply the new payload |
+| Same key concurrently in progress | Return a documented in-progress/conflict response, or wait for/replay the definitive result; never create a second logical execution |
+| Missing required key | Reject before the non-idempotent effect |
+| Server crash before transactional effect commit | No domain effect is committed; retry can claim/complete the operation |
+| Server crash after effect/outcome commit but before response | Retry replays the committed outcome with the same receipt |
+| Retry after key-retention horizon | Follow a documented expiry policy; do not silently imply indefinite deduplication |
+
+A server response must bind to the original operation envelope. The client reducer already checks reply binding, but this is not authentication. Authenticate the endpoint through the established service channel; if portable audit evidence is needed, define a signed receipt format binding request fingerprint, operation ID, idempotency key, outcome, applied revision, result digest, receipt ID, signer/key ID, and protocol version.
+
+## Retention and replay policy
+
+The resource owner must publish key scope, required header syntax, expiry/retention duration, duplicate-in-progress behavior, deterministic validation-error handling, maximum request size and replay guarantees. Retain the ledger at least as long as the supported offline retry horizon and any business duplicate-hazard horizon. An in-progress operation must not age out while it can still commit. If the system must forget bulky response bodies, retain a tombstone containing the key, fingerprint, receipt/outcome reference, and replay policy so an old retry cannot create a second effect.
+
+The current HTTPAPI working-group document titled *The Idempotency-Key HTTP Header Field* describes unique keys, request fingerprints, replay of completed outcomes, a conflict response for concurrent requests, and rejection when one key is reused with a different payload. It is a working-group Internet-Draft, not proof that any arbitrary endpoint implements those behaviors. Check the current revision/status before choosing the exact wire syntax: [IETF HTTPAPI working-group source](https://github.com/ietf-wg-httpapi/idempotency/blob/ebd731bf7ae4af534725eccee8c5d5bcad3580c0/draft-ietf-httpapi-idempotency-key-header.md).
+
+## End-to-end fault benchmark
+
+Correctness gates are absolute; a speedup cannot offset one duplicate effect or one false receipt.
+
+| ID | Scenario | Hard oracle |
+|---|---|---|
+| SVC-01 | 100,000 operations with randomized retries, response loss, duplicate delivery and out-of-order replies | Zero duplicate domain effects; one stable outcome per scoped key/fingerprint |
+| SVC-02 | Same key with one changed immutable field at a time | 100% rejected before effects; all mutations retained as minimized counterexamples |
+| SVC-03 | Same body/digest but changed aggregate, revision, operation ID or lineage | Fingerprint mismatch rejected; body digest alone is not accepted as complete request identity |
+| SVC-04 | Concurrent duplicate requests at 1/16/64/256 clients | At most one authoritative logical effect; all losers receive a defined replay/in-progress outcome |
+| SVC-05 | Crash injection before and after every durable write / outbox dispatch / response write | Zero committed effects without recoverable ledger outcome; zero second effects after response loss |
+| SVC-06 | Tenant A's key and Tenant B's collision attempt | No cross-tenant outcome disclosure or mutation |
+| SVC-07 | Key expiry followed by delayed offline retry | Behavior follows an explicit expiry contract and cannot silently duplicate a protected effect |
+| SVC-08 | Receipt mutation/tampering and stale applied revision | Authentication/binding failure never promotes client state to received |
+| PERF-01 | End-to-end latency at concurrency 1/16/64/256 and payload cohorts 1 KiB/32 KiB/256 KiB/1 MiB | Publish p50/p95/p99, throughput, CPU/storage cost, failures, target hardware and raw samples |
+| PERF-02 | Ledger hot-key and many-key contention | Quantify collision behavior; no correctness gate relaxed for throughput |
+
+Report the raw event log with stable operation IDs, attempt numbers, server transaction/receipt IDs, payload digests, injected failure point, expected state and observed state. A test result without its code SHA, server/database version, test seed, exact command and raw evidence is not a release pass.
+
+## Industry comparison and honest claim
+
+The industry baseline is not a local retry queue alone. The established building blocks are (a) client persistence, (b) unique idempotency keys, (c) a server-maintained request fingerprint and outcome ledger, (d) database-enforced uniqueness and transactional effects/outbox, (e) replayable receipts, and (f) fault injection around crash boundaries.
+
+The potential Sol Atlas advantage is the explicit combination of canonical byte identity, immutable payload retention, snapshot revalidation, browser-local claim coordination and a conformance suite spanning client/service boundaries. This is an architectural hypothesis, not a measured lead over Stripe-like APIs, offline-first databases, or other mature systems. The differentiator becomes real only when independent implementations pass the same corpus and crash suite, then publish comparable latency and recovery measurements.
