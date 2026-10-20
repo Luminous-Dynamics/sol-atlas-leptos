@@ -140,6 +140,7 @@ fn starter_features() -> Vec<DesignFeature> {
 fn snapshot_json(project_name: &str, scale: LandscapeScale, features: &[DesignFeature]) -> Value {
     json!({
         "schema": "luminous.landscape-design.v0",
+        "schema_uri": "https://luminousdynamics.io/schemas/landscape-design-v0.schema.json",
         "project_name": project_name,
         "scope": scale.key(),
         "coordinate_frame": {
@@ -469,6 +470,7 @@ mod tests {
         let features = starter_features();
         let value = snapshot_json("fixture", LandscapeScale::Watershed, &features);
         assert_eq!(value["schema"], "luminous.landscape-design.v0");
+        assert_eq!(value["schema_uri"], "https://luminousdynamics.io/schemas/landscape-design-v0.schema.json");
         assert_eq!(value["scope"], "watershed");
         assert_eq!(
             value["coordinate_frame"]["kind"],
