@@ -12,7 +12,7 @@
 //! over a defined measurement period.
 
 /// A time interval. Missing required resource constraints must remain unknown.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, serde::Deserialize)]
 pub struct Interval {
     pub id: String,
     pub duration_hours: f64,
@@ -23,19 +23,20 @@ pub struct Interval {
     pub water_l_per_it_kwh: Option<f64>,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, serde::Deserialize)]
 pub struct Site {
     pub site_id: String,
     pub it_power_capacity_kw: f64,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum WorkClass {
     Protected,
     Deferrable,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, serde::Deserialize)]
 pub struct Workload {
     pub workload_id: String,
     pub work_class: WorkClass,
@@ -48,7 +49,7 @@ pub struct Workload {
     pub minimum_accepted_units_by_interval: Vec<u64>,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, serde::Deserialize)]
 pub struct Request {
     pub site: Site,
     pub intervals: Vec<Interval>,
@@ -492,56 +493,14 @@ mod tests {
     use super::*;
 
     fn fixture_request() -> Request {
-        let intervals = [
-            (20.0, 1.15, 80.0, 100.0, 0.1),
-            (10.0, 1.35, 60.0, 100.0, 0.4),
-            (10.0, 1.40, 50.0, 2.0, 0.5),
-            (20.0, 1.15, 80.0, 100.0, 0.1),
-        ]
-        .into_iter()
-        .enumerate()
-        .map(
-            |(index, (grid, factor, thermal, water, intensity))| Interval {
-                id: format!("t{index}"),
-                duration_hours: 1.0,
-                grid_import_limit_kw: Some(grid),
-                facility_energy_per_it_energy: Some(factor),
-                thermal_it_power_limit_kw: Some(thermal),
-                cooling_water_limit_l: Some(water),
-                water_l_per_it_kwh: Some(intensity),
-            },
-        )
-        .collect();
-
-        let workloads = vec![
-            Workload {
-                workload_id: "protected-inference".to_owned(),
-                work_class: WorkClass::Protected,
-                required_work_units: 24,
-                energy_kwh_per_work_unit: 0.5,
-                release_interval_index: 0,
-                deadline_interval_index: 3,
-                minimum_accepted_units_by_interval: vec![6, 6, 6, 6],
-            },
-            Workload {
-                workload_id: "deferrable-batch".to_owned(),
-                work_class: WorkClass::Deferrable,
-                required_work_units: 80,
-                energy_kwh_per_work_unit: 0.5,
-                release_interval_index: 0,
-                deadline_interval_index: 3,
-                minimum_accepted_units_by_interval: vec![0, 0, 0, 0],
-            },
-        ];
-
-        Request {
-            site: Site {
-                site_id: "synthetic-campus-a".to_owned(),
-                it_power_capacity_kw: 80.0,
-            },
-            intervals,
-            workloads,
-        }
+        // Parse the exact committed JSON fixture instead of maintaining a
+        // second hand-copied request in Rust. Extra scenario-envelope fields
+        // are intentionally ignored by Request; this evaluator consumes only
+        // its bounded site/interval/workload projection.
+        serde_json::from_str(include_str!(
+            "../../schemas/examples/ai-compute-energy-flexibility-four-interval.synthetic.json"
+        ))
+        .expect("committed synthetic compute-energy fixture must deserialize")
     }
 
     #[test]
