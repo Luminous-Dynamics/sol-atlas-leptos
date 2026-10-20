@@ -473,6 +473,23 @@ mod tests {
     }
 
     #[test]
+    fn blank_source_normalization_metadata_is_rejected() {
+        let (_, mut input) = fixture();
+        input
+            .rsr_reference
+            .as_mut()
+            .expect("fixture has source RSR metadata")
+            .metadata
+            .source_field = "   ".to_owned();
+
+        assert!(
+            build_report(b"blank-source-field", input)
+                .expect_err("blank source-field metadata must be rejected")
+                .contains("rsr_reference.metadata.source_field must not be blank")
+        );
+    }
+
+    #[test]
     fn absent_metric_sections_are_rejected() {
         let (_, mut input) = fixture();
         input.rsr = None;
