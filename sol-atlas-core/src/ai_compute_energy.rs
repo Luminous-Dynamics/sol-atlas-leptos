@@ -1569,7 +1569,8 @@ mod tests {
                 .map(|row| row.max_deferrable_work_units)
                 .collect::<Vec<_>>();
             assert_eq!(
-                derived_capacities, generated_capacities,
+                derived_capacities,
+                generated_capacities.to_vec(),
                 "water-derived capacities differ from the generated oracle in case {case_index}"
             );
             let unit_energy = request.workloads[0].energy_kwh_per_work_unit;
