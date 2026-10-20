@@ -38,7 +38,7 @@ jobs:
           request_schema="schemas/spatial-economic-intertemporal-allocation-v0.1.schema.json"
           receipt_schema="schemas/spatial-economic-intertemporal-assessment-v0.1.schema.json"
           fixture="schemas/examples/intertemporal-tank-two-step.synthetic.json"
-          jq -e '."$schema" == "https://json-schema.org/draft/2020-12/schema" and .properties.max_search_nodes.maximum == 1000000' "$request_schema" >/dev/null
+          jq -e '."$schema" == "https://json-schema.org/draft/2020-12/schema" and .properties.max_candidate_plans.maximum == 1000000' "$request_schema" >/dev/null
           jq -e '."$schema" == "https://json-schema.org/draft/2020-12/schema" and .properties.disposition.enum == ["optimal","indeterminate_input","infeasible","search_cap_exceeded"]' "$receipt_schema" >/dev/null
           jq -e '.design_role == "candidate" and .policy == "essential_floor_first" and (.time_steps | length) == 2 and .resources[0].inventory.terminal_reserve_quanta == 2 and .resources[0].inventory.inflow.values == [0,3]' "$fixture" >/dev/null
       - name: Run exact scenario and independently verify stock balance
@@ -57,9 +57,9 @@ jobs:
             .disposition == "optimal"
             and .search_complete == true
             and .search_space_size == 64
-            and .search_nodes_examined == 64
+            and .candidate_plans_examined == 64
             and .input_blockers == []
-            and .claim_ceiling | type == "string"
+            and (.claim_ceiling | type == "string")
           ' "$root/optimal-1.json" >/dev/null
           jq -e '
             ([.service_steps[] | select(.service_id == "essential-a") | [.step_id, .allocated_quanta]] == [["t0",1],["t1",1]])
@@ -97,18 +97,18 @@ jobs:
           jq -e '
             .disposition == "indeterminate_input"
             and .search_complete == false
-            and .search_nodes_examined == 0
+            and .candidate_plans_examined == 0
             and .resource_steps == []
             and all(.service_steps[]; .allocated_quanta == null and .floor_status == "indeterminate")
             and (.input_blockers | any(. == "resources.tank.inventory.inflow[t1]"))
           ' "$root/unknown.json" >/dev/null
 
-          jq '.max_search_nodes = 5' "$fixture" > "$root/search-cap.json"
+          jq '.max_candidate_plans = 5' "$fixture" > "$root/search-cap.json"
           cargo run --quiet --manifest-path "$manifest" --bin "$bin" -- --input "$root/search-cap.json" > "$root/search-cap-result.json"
           jq -e '
             .disposition == "search_cap_exceeded"
             and .search_complete == false
-            and .search_nodes_examined == 0
+            and .candidate_plans_examined == 0
             and .service_steps != []
             and all(.service_steps[]; .allocated_quanta == null)
             and .resource_steps == []
