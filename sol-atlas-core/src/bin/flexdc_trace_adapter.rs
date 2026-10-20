@@ -21,6 +21,7 @@ const MANIFEST_SCHEMA_VERSION: &str = "1.0";
 const PINNED_FLEXDC_REVISION: &str = "ea50bd582b5d1b55fcb09ea46899fa9d325cce3b";
 const PINNED_POWER_CAP_W: f64 = 24_216.0;
 const PINNED_REGULATION_RESERVE_W: f64 = 9_626.0;
+const PINNED_QOS_PERCENTILE: f64 = 0.9;
 const PINNED_CONFIG_ARTIFACTS: [(&str, &str, &str); 6] = [
     (
         "experiment_config",
@@ -71,8 +72,11 @@ struct RunManifest {
     source_revision: String,
     simulator_command: String,
     random_seed: u64,
+    python_version: String,
+    runtime_environment_sha256: Option<String>,
     power_cap_w: f64,
     regulation_reserve_w: f64,
+    qos_percentile: f64,
     simulation_duration_seconds: u64,
     simulation_step_seconds: u64,
     signal_step_seconds: u64,
@@ -129,6 +133,38 @@ fn validate_manifest(manifest: &RunManifest) -> Result<(), String> {
     if manifest.source_revision != PINNED_FLEXDC_REVISION {
         return Err(format!(
             "this adapter supports only pinned FlexDC-Sim revision {PINNED_FLEXDC_REVISION}"
+        ));
+    }
+    let python_version_parts = manifest.python_version.split('.').collect::<Vec<_>>();
+    if python_version_parts.len() != 3
+        || python_version_parts.iter().any(|part| {
+            part.is_empty() || !part.bytes().all(|byte| byte.is_ascii_digit())
+        })
+    {
+        return Err(
+            "manifest.python_version must be an exact major.minor.patch version".to_owned(),
+        );
+    }
+    match manifest.runtime_environment_sha256.as_deref() {
+        Some(digest) if !is_lower_hex(digest, 64) => {
+            return Err(
+                "manifest.runtime_environment_sha256 must be 64-character lowercase SHA-256 hex"
+                    .to_owned(),
+            );
+        }
+        None if !manifest.synthetic => {
+            return Err(
+                "non-synthetic runs require a SHA-256 digest of the runtime environment manifest"
+                    .to_owned(),
+            );
+        }
+        _ => {}
+    }
+    if !manifest.qos_percentile.is_finite()
+        || manifest.qos_percentile != PINNED_QOS_PERCENTILE
+    {
+        return Err(format!(
+            "manifest.qos_percentile must match the pinned simulator default {PINNED_QOS_PERCENTILE}"
         ));
     }
     if !manifest.power_cap_w.is_finite()
@@ -384,11 +420,14 @@ fn build_trace_input(power_csv: &[u8], manifest_bytes: &[u8]) -> Result<Value, S
     let manifest_sha256 = sha256_hex(manifest_bytes);
     let reserve_capacity_kw = manifest.regulation_reserve_w / 1000.0;
     let normalization_note = format!(
-        "FlexDC-Sim source commit {}; run {}; command {}; random seed {}; configured power cap P={} W and reserve R={} W. The exported trackingError is the source-native signed normalized error from prior-cycle real_power and previous signal cap, divided by R + 0.0001. Same-row target/realSum values are separately converted from W to kW and paired with exact configured R for the rederived RSR view. Startup rows before signal step {} seconds are zero. Time is preserved in seconds as interval IDs with no resampling. power_trace.csv SHA-256={artifact_sha256}; exact run-manifest JSON SHA-256={manifest_sha256}. {} This is simulator output, not wall-metered facility power.",
+        "FlexDC-Sim source commit {}; run {}; command {}; random seed {}; Python {}; runtime environment manifest SHA-256={:?}; QoS percentile {}; configured power cap P={} W and reserve R={} W. The exported trackingError is the source-native signed normalized error from prior-cycle real_power and previous signal cap, divided by R + 0.0001. Same-row target/realSum values are separately converted from W to kW and paired with exact configured R for the rederived RSR view. Startup rows before signal step {} seconds are zero. Time is preserved in seconds as interval IDs with no resampling. power_trace.csv SHA-256={artifact_sha256}; exact run-manifest JSON SHA-256={manifest_sha256}. {} This is simulator output, not wall-metered facility power.",
         manifest.source_revision,
         manifest.run_id,
         manifest.simulator_command,
         manifest.random_seed,
+        manifest.python_version,
+        manifest.runtime_environment_sha256,
+        manifest.qos_percentile,
         manifest.power_cap_w,
         manifest.regulation_reserve_w,
         manifest.signal_step_seconds,
