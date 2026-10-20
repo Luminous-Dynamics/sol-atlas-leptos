@@ -53,6 +53,20 @@ For effects contained in one transactional database, the ledger reservation, agg
 
 For external effects (payments, email, messaging, physical device commands, partner APIs), a local database transaction cannot atomically include a remote system. Use a transactional outbox plus downstream idempotency/deduplication and reconciliation; do not claim global exactly-once execution across uncooperative systems.
 
+## Executable reference state machine
+
+Shared Rust core now exports `offline_idempotency_ledger_model::ReferenceIdempotencyLedger`. It is an **in-memory contract oracle**, not production persistence. The reference model executes these semantics:
+
+- `reserve(scope, namespace, envelope, body)` independently validates the envelope and body digest, recomputes the full scoped request fingerprint, and creates at most one active reservation for the scoped idempotency key.
+- An identical request while the reservation is active returns `AlreadyInProgress`; an identical request after commit returns `Replay` with the exact stored HTTP status, receipt ID, response bytes and response-body digest.
+- Reusing the same scoped key with a changed immutable binding returns a fingerprint conflict without replacing the first record.
+- `commit(ticket, outcome)` accepts only the current reservation generation; it returns the same outcome for an identical repeated finalization and refuses a conflicting outcome or stale ticket.
+- `abort_before_effect(ticket)` is permitted only for the current reservation and is explicitly named for the case where the caller knows the domain transaction did not commit. It must never be used to clear an unknown external side-effect result.
+
+The native tests cover exact replay after simulated response loss, changed aggregate/revision rejection, per-tenant/per-namespace key isolation, stale reservation fencing, immutable completed outcomes and a 64-contender in-process concurrency scenario.
+
+**Limitation:** the model serializes through an in-memory map/mutex in tests. It does not establish durability, database isolation, cross-process correctness, effect atomicity or protection against server crashes. Its role is to provide an executable oracle that an actual database-backed service adapter must match. The production gate remains the crash/transaction fault matrix below.
+
 ## Required server behavior
 
 | Situation | Required behavior |
