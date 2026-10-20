@@ -340,6 +340,32 @@ fn snapshot_json(project_name: &str, scale: LandscapeScale, features: &[DesignFe
     })
 }
 
+const LOCAL_DRAFT_STORAGE_KEY: &str = "luminous.landscape-design.native-v0";
+
+/// Explicit, same-browser persistence. localStorage is not encrypted and may be
+/// cleared by the user/browser; users should download a JSON backup for portability.
+fn save_local_draft(content: &str) -> Result<(), String> {
+    let window = web_sys::window().ok_or_else(|| "Browser window is unavailable".to_string())?;
+    let storage = window
+        .local_storage()
+        .map_err(|error| format!("Could not access browser storage: {error:?}"))?
+        .ok_or_else(|| "This browser does not expose local storage".to_string())?;
+    storage
+        .set_item(LOCAL_DRAFT_STORAGE_KEY, content)
+        .map_err(|error| format!("Could not save local draft (storage may be full or blocked): {error:?}"))
+}
+
+fn load_local_draft() -> Result<Option<String>, String> {
+    let window = web_sys::window().ok_or_else(|| "Browser window is unavailable".to_string())?;
+    let storage = window
+        .local_storage()
+        .map_err(|error| format!("Could not access browser storage: {error:?}"))?
+        .ok_or_else(|| "This browser does not expose local storage".to_string())?;
+    storage
+        .get_item(LOCAL_DRAFT_STORAGE_KEY)
+        .map_err(|error| format!("Could not read local draft: {error:?}"))
+}
+
 /// Download a native JSON snapshot using a browser Blob (not a data URI).
 /// Blob URLs avoid the practical URL-length limits of embedding the whole
 /// project in an anchor's href.
@@ -537,6 +563,67 @@ pub fn LandscapeDesigner() -> impl IntoView {
         });
     };
 
+        let save_browser_project = move |_| {
+        let name = normalized_project_name(&project_name.get_untracked());
+        let value = snapshot_json(
+            &name,
+            active_scale.get_untracked(),
+            &features.get_untracked(),
+        );
+        match validate_snapshot(&value) {
+            Err(errors) => set_download_status.set(format!(
+                "Local save blocked by snapshot validation: {}",
+                errors.join("; ")
+            )),
+            Ok(()) => match serde_json::to_string_pretty(&value) {
+                Err(error) => set_download_status
+                    .set(format!("Could not serialize local draft: {error}")),
+                Ok(content) => match save_local_draft(&content) {
+                    Ok(()) => {
+                        set_export_text.set(content);
+                        set_download_status.set(
+                            "Saved in this browser only. Storage is not encrypted; download a JSON backup for portability."
+                                .to_string(),
+                        );
+                    }
+                    Err(error) => set_download_status.set(format!("Local save failed: {error}")),
+                },
+            },
+        }
+    };
+
+    let load_browser_project = move |_| {
+        match load_local_draft() {
+            Err(error) => set_download_status.set(format!("Local load failed: {error}")),
+            Ok(None) => set_download_status
+                .set("No browser-local landscape draft has been saved yet.".to_string()),
+            Ok(Some(content)) => {
+                let result = serde_json::from_str::<Value>(&content)
+                    .map_err(|error| format!("Saved draft is invalid JSON: {error}"))
+                    .and_then(|value| parse_import_snapshot(&value));
+                match result {
+                    Err(error) => set_download_status.set(format!(
+                        "Local load blocked; current project preserved: {error}"
+                    )),
+                    Ok(imported) => {
+                        let feature_count = imported.features.len();
+                        set_features.set(imported.features);
+                        set_project_name.set(imported.project_name);
+                        set_active_scale.set(imported.scale);
+                        set_next_feature_id.set(imported.next_feature_id);
+                        set_selected_feature_id.set(None);
+                        set_edit_history.set(Vec::new());
+                        set_redo_history.set(Vec::new());
+                        set_export_text.set(content);
+                        set_download_status.set(format!(
+                            "Loaded and validated {feature_count} schematic elements from this browser. No geospatial or physical validation is implied."
+                        ));
+                    }
+                }
+            }
+        }
+    };
+
     let undo = move |_| {
         let Some(command) = edit_history.get_untracked().last().copied() else {
             return;
@@ -665,6 +752,8 @@ pub fn LandscapeDesigner() -> impl IntoView {
                     <span class="landscape-draft-mark"><span></span>" SCHEMATIC DRAFT"</span>
                     <button class="landscape-button quiet" type="button" disabled=move || edit_history.get().is_empty() on:click=undo>"Undo"</button>
                     <button class="landscape-button quiet" type="button" disabled=move || redo_history.get().is_empty() on:click=redo>"Redo"</button>
+                    <button class="landscape-button quiet" type="button" on:click=load_browser_project>"Load browser draft"</button>
+                    <button class="landscape-button quiet" type="button" on:click=save_browser_project>"Save in browser"</button>
                     <button class="landscape-button quiet" type="button" on:click=open_import>"Import JSON"</button>
                     <button class="landscape-button primary" type="button" on:click=export_project>"Export snapshot"</button>
                 </div>
@@ -928,7 +1017,7 @@ pub fn LandscapeDesigner() -> impl IntoView {
                     <section class="landscape-export-panel">
                         <div class="landscape-export-header"><div><p class="landscape-section-label">"PORTABLE PROJECT SNAPSHOT"</p><h3>"Draft data"</h3></div><div class="landscape-export-actions"><p>"Native JSON · schema v0"</p><button class="landscape-button quiet" type="button" on:click=download_project>"Download JSON"</button></div></div>
                         {move || if export_text.get().is_empty() {
-                            view! { <p class="landscape-muted">"Export a snapshot to inspect the exact design-intent data and coordinate declaration. No remote save or network upload occurs."</p> }.into_any()
+                            view! { <p class="landscape-muted">"Export a portable snapshot or explicitly save one draft in this browser. Browser storage is not encrypted and may be cleared; do not save sensitive land or participant details on a shared device."</p> }.into_any()
                         } else {
                             view! { <pre class="landscape-json">{move || export_text.get()}</pre> }.into_any()
                         }}
