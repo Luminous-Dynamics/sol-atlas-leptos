@@ -118,3 +118,16 @@ cargo run --release --features landscape-observation-bench --bin landscape-obser
 Run the same frozen host/toolchain across `unique`, `exact-1pct`, `exact-10pct`, `exact-100pct`, `conflict`, and `over-limit`. The CLI records raw per-iteration timings, p50/p95/p99, input/output digests, duplicate accounting, correctness mismatch count, OS/architecture/Rust version, and user-supplied host metadata. It reports a JSON status of `correctness-pass` only when observed validity matches the expected profile on all samples.
 
 The CLI keeps input in memory; it does **not** establish operating-system cold-cache behavior, peak RSS, sensor-provider latency, or field-data quality. Those remain explicit gaps in the v0 acceptance protocol. Do not advertise the proposed 500 ms/1 s or 128 MiB targets as achieved until the report is captured on a named reference machine and independently checked.
+
+
+## Performance metric ↔ observation crosswalk
+
+Files:
+- `metrics/landscape/observation-map-v0.json`
+- `schemas/landscape-metric-observation-map-v0.schema.json`
+
+The crosswalk maps the eight initial performance metric IDs to admissible or merely supporting observation properties, expected source-unit symbols, needed feature/project references and mandatory non-observation inputs. It explicitly marks several capabilities as unavailable in v0: canopy-cover area requires spatial geometry; event runoff requires hydrologic time-series aggregation and a qualified catchment/model; maintenance-assignment coverage requires a Mycelix governance artifact. Other measurements can supply evidence without themselves computing a metric.
+
+The mapping currently declares `cross-pr-dependency-not-yet-merged-or-validated-against-registry`: its metric IDs refer to the landscape registry proposed in Sol-Atlas draft PR #191, which remains a separate branch. The Rust test pins eight unique IDs and checks that every mapping includes prohibited-inference text; it does **not** claim schema-instance validation against an unmerged registry. After the registry lands, the IDs and units should be checked against its exact schema/version before enabling automated calculations.
+
+This is deliberate: a point observation does not become an area metric, a single discharge reading does not become event volume, and a sensor cannot attest that a maintenance obligation was accepted.
