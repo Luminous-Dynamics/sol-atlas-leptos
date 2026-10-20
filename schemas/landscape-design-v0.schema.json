@@ -226,7 +226,8 @@
             }
           }
         ]
-      }
+      },
+      "maxItems": 100000
     },
     "schema_uri": {
       "const": "https://luminousdynamics.io/schemas/landscape-design-v0.schema.json"
