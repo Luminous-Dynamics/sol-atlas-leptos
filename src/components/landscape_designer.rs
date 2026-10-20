@@ -626,33 +626,31 @@ pub fn LandscapeDesigner() -> impl IntoView {
         }
     };
 
-    let load_browser_project = move |_| {
-        match load_local_draft() {
-            Err(error) => set_download_status.set(format!("Local load failed: {error}")),
-            Ok(None) => set_download_status
-                .set("No browser-local landscape draft has been saved yet.".to_string()),
-            Ok(Some(content)) => {
-                let result = serde_json::from_str::<Value>(&content)
-                    .map_err(|error| format!("Saved draft is invalid JSON: {error}"))
-                    .and_then(|value| parse_import_snapshot(&value));
-                match result {
-                    Err(error) => set_download_status.set(format!(
-                        "Local load blocked; current project preserved: {error}"
-                    )),
-                    Ok(imported) => {
-                        let feature_count = imported.features.len();
-                        set_features.set(imported.features);
-                        set_project_name.set(imported.project_name);
-                        set_active_scale.set(imported.scale);
-                        set_next_feature_id.set(imported.next_feature_id);
-                        set_selected_feature_id.set(None);
-                        set_edit_history.set(Vec::new());
-                        set_redo_history.set(Vec::new());
-                        set_export_text.set(content);
-                        set_download_status.set(format!(
-                            "Loaded and validated {feature_count} schematic elements from this browser. No geospatial or physical validation is implied."
-                        ));
-                    }
+    let load_browser_project = move |_| match load_local_draft() {
+        Err(error) => set_download_status.set(format!("Local load failed: {error}")),
+        Ok(None) => set_download_status
+            .set("No browser-local landscape draft has been saved yet.".to_string()),
+        Ok(Some(content)) => {
+            let result = serde_json::from_str::<Value>(&content)
+                .map_err(|error| format!("Saved draft is invalid JSON: {error}"))
+                .and_then(|value| parse_import_snapshot(&value));
+            match result {
+                Err(error) => set_download_status.set(format!(
+                    "Local load blocked; current project preserved: {error}"
+                )),
+                Ok(imported) => {
+                    let feature_count = imported.features.len();
+                    set_features.set(imported.features);
+                    set_project_name.set(imported.project_name);
+                    set_active_scale.set(imported.scale);
+                    set_next_feature_id.set(imported.next_feature_id);
+                    set_selected_feature_id.set(None);
+                    set_edit_history.set(Vec::new());
+                    set_redo_history.set(Vec::new());
+                    set_export_text.set(content);
+                    set_download_status.set(format!(
+                        "Loaded and validated {feature_count} schematic elements from this browser. No geospatial or physical validation is implied."
+                    ));
                 }
             }
         }
