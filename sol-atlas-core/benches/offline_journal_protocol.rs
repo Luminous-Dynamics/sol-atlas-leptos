@@ -42,7 +42,9 @@ fn main() {
         option_env!("SOL_ATLAS_BENCH_BUILD_SHA").unwrap_or("not-set")
     );
     println!("# samples_per_operation={samples}");
-    println!("record_type,operation,payload_bytes,sample_index,iterations,ns_per_op,p50_ns,p95_ns,p99_ns,ops_per_second");
+    println!(
+        "record_type,operation,payload_bytes,sample_index,iterations,ns_per_op,p50_ns,p95_ns,p99_ns,ops_per_second"
+    );
 
     for target_bytes in TARGET_PAYLOAD_BYTES {
         let payload_json = payload_of_exact_size(target_bytes);
@@ -59,8 +61,8 @@ fn main() {
             idempotency_key: format!("bench-idem-{target_bytes}"),
             supersedes_operation_id: RequiredNullableOperationId::Null(()),
         };
-        let entry =
-            JournalEntry::prepare(envelope.clone(), &payload_json).expect("prepare benchmark entry");
+        let entry = JournalEntry::prepare(envelope.clone(), &payload_json)
+            .expect("prepare benchmark entry");
         let snapshot: JournalEntrySnapshotV1 =
             entry.to_snapshot().expect("export benchmark snapshot");
 
@@ -131,11 +133,8 @@ fn main() {
                 let decoded: JournalEntrySnapshotV1 =
                     serde_json::from_slice(black_box(&encoded)).expect("snapshot decoding");
                 black_box(
-                    JournalEntry::from_snapshot_for_operation(
-                        &envelope.operation_id,
-                        decoded,
-                    )
-                    .expect("validated snapshot recovery"),
+                    JournalEntry::from_snapshot_for_operation(&envelope.operation_id, decoded)
+                        .expect("validated snapshot recovery"),
                 )
             },
         );
@@ -148,10 +147,7 @@ fn payload_of_exact_size(target_bytes: usize) -> String {
         target_bytes > OVERHEAD,
         "target size must fit the JSON wrapper"
     );
-    format!(
-        "{{\"data\":\"{}\"}}",
-        "x".repeat(target_bytes - OVERHEAD)
-    )
+    format!("{{\"data\":\"{}\"}}", "x".repeat(target_bytes - OVERHEAD))
 }
 
 fn run_benchmark<T, F>(
@@ -180,7 +176,11 @@ fn run_benchmark<T, F>(
     let p50 = percentile(&per_operation_ns, 0.50);
     let p95 = percentile(&per_operation_ns, 0.95);
     let p99 = percentile(&per_operation_ns, 0.99);
-    let ops_per_second = if p50 > 0.0 { 1_000_000_000.0 / p50 } else { 0.0 };
+    let ops_per_second = if p50 > 0.0 {
+        1_000_000_000.0 / p50
+    } else {
+        0.0
+    };
     println!(
         "summary,{operation},{payload_bytes},{samples},{iterations},,{p50:.2},{p95:.2},{p99:.2},{ops_per_second:.2}"
     );
