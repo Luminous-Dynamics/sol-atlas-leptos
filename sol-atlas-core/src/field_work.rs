@@ -453,10 +453,7 @@ impl ViewportIntentEnvelopeV1 {
         if self.schema_version != VIEWPORT_INTENT_ENVELOPE_SCHEMA_VERSION {
             return Err(ProjectionError::UnsupportedIntentEnvelopeSchema);
         }
-        require_non_empty(
-            &self.request_id,
-            ProjectionError::MissingIntentRequestId,
-        )?;
+        require_non_empty(&self.request_id, ProjectionError::MissingIntentRequestId)?;
         require_non_empty(&self.job_id, ProjectionError::MissingJobId)?;
         if self.expected_job_revision == 0 {
             return Err(ProjectionError::InvalidExpectedIntentJobRevision);
@@ -607,10 +604,9 @@ mod tests {
 
     #[test]
     fn frozen_revision_bound_intent_envelope_validates_against_its_exact_projection() {
-        let envelope: ViewportIntentEnvelopeV1 = serde_json::from_str(include_str!(
-            "../fixtures/viewport-intent-envelope-v1.json"
-        ))
-        .expect("frozen viewport intent envelope matches schema");
+        let envelope: ViewportIntentEnvelopeV1 =
+            serde_json::from_str(include_str!("../fixtures/viewport-intent-envelope-v1.json"))
+                .expect("frozen viewport intent envelope matches schema");
         let projection = valid_projection();
         assert_eq!(envelope.validate_for_projection(&projection), Ok(()));
         assert_eq!(envelope.request_id, "request-demo-01");
@@ -619,10 +615,9 @@ mod tests {
 
     #[test]
     fn viewport_intent_envelope_rejects_a_stale_job_revision() {
-        let mut envelope: ViewportIntentEnvelopeV1 = serde_json::from_str(include_str!(
-            "../fixtures/viewport-intent-envelope-v1.json"
-        ))
-        .unwrap();
+        let mut envelope: ViewportIntentEnvelopeV1 =
+            serde_json::from_str(include_str!("../fixtures/viewport-intent-envelope-v1.json"))
+                .unwrap();
         envelope.expected_job_revision += 1;
         assert_eq!(
             envelope.validate_for_projection(&valid_projection()),
@@ -632,20 +627,18 @@ mod tests {
 
     #[test]
     fn viewport_intent_envelope_rejects_stale_source_revision_and_digest() {
-        let mut envelope: ViewportIntentEnvelopeV1 = serde_json::from_str(include_str!(
-            "../fixtures/viewport-intent-envelope-v1.json"
-        ))
-        .unwrap();
+        let mut envelope: ViewportIntentEnvelopeV1 =
+            serde_json::from_str(include_str!("../fixtures/viewport-intent-envelope-v1.json"))
+                .unwrap();
         envelope.expected_source_revision += 1;
         assert_eq!(
             envelope.validate_for_projection(&valid_projection()),
             Err(ProjectionError::StaleIntentSourceRevision)
         );
 
-        let mut envelope: ViewportIntentEnvelopeV1 = serde_json::from_str(include_str!(
-            "../fixtures/viewport-intent-envelope-v1.json"
-        ))
-        .unwrap();
+        let mut envelope: ViewportIntentEnvelopeV1 =
+            serde_json::from_str(include_str!("../fixtures/viewport-intent-envelope-v1.json"))
+                .unwrap();
         envelope.expected_source_digest_sha256 = "c".repeat(64);
         assert_eq!(
             envelope.validate_for_projection(&valid_projection()),
@@ -655,30 +648,27 @@ mod tests {
 
     #[test]
     fn viewport_intent_envelope_rejects_wrong_job_and_invalid_envelope_identity() {
-        let mut envelope: ViewportIntentEnvelopeV1 = serde_json::from_str(include_str!(
-            "../fixtures/viewport-intent-envelope-v1.json"
-        ))
-        .unwrap();
+        let mut envelope: ViewportIntentEnvelopeV1 =
+            serde_json::from_str(include_str!("../fixtures/viewport-intent-envelope-v1.json"))
+                .unwrap();
         envelope.job_id = "another-job".into();
         assert_eq!(
             envelope.validate_for_projection(&valid_projection()),
             Err(ProjectionError::IntentJobMismatch)
         );
 
-        let mut envelope: ViewportIntentEnvelopeV1 = serde_json::from_str(include_str!(
-            "../fixtures/viewport-intent-envelope-v1.json"
-        ))
-        .unwrap();
+        let mut envelope: ViewportIntentEnvelopeV1 =
+            serde_json::from_str(include_str!("../fixtures/viewport-intent-envelope-v1.json"))
+                .unwrap();
         envelope.request_id = " ".into();
         assert_eq!(
             envelope.validate_for_projection(&valid_projection()),
             Err(ProjectionError::MissingIntentRequestId)
         );
 
-        let mut envelope: ViewportIntentEnvelopeV1 = serde_json::from_str(include_str!(
-            "../fixtures/viewport-intent-envelope-v1.json"
-        ))
-        .unwrap();
+        let mut envelope: ViewportIntentEnvelopeV1 =
+            serde_json::from_str(include_str!("../fixtures/viewport-intent-envelope-v1.json"))
+                .unwrap();
         envelope.schema_version = 2;
         assert_eq!(
             envelope.validate_for_projection(&valid_projection()),
@@ -688,10 +678,9 @@ mod tests {
 
     #[test]
     fn viewport_intent_envelope_rejects_malformed_source_digest_and_unknown_json_fields() {
-        let mut envelope: ViewportIntentEnvelopeV1 = serde_json::from_str(include_str!(
-            "../fixtures/viewport-intent-envelope-v1.json"
-        ))
-        .unwrap();
+        let mut envelope: ViewportIntentEnvelopeV1 =
+            serde_json::from_str(include_str!("../fixtures/viewport-intent-envelope-v1.json"))
+                .unwrap();
         envelope.expected_source_digest_sha256 = "not-a-sha256".into();
         assert_eq!(
             envelope.validate_for_projection(&valid_projection()),
