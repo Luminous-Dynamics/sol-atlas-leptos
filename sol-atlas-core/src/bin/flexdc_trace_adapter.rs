@@ -67,6 +67,7 @@ const REQUIRED_CONFIG_ROLES: [&str; 6] = [
 struct RunManifest {
     schema_version: String,
     run_id: String,
+    synthetic: bool,
     source_revision: String,
     simulator_command: String,
     random_seed: u64,
@@ -397,7 +398,7 @@ fn build_trace_input(power_csv: &[u8], manifest_bytes: &[u8]) -> Result<Value, S
     Ok(json!({
         "schema_version": "1.0",
         "fixture_id": format!("flexdc-sim-{}", manifest.run_id),
-        "synthetic": true,
+        "synthetic": manifest.synthetic,
         "claim_ceiling": "metric_accounting_only",
         "rsr": {
             "interval_ids": interval_ids.clone(),
@@ -526,6 +527,21 @@ mod tests {
             output["rsr_reference"]["metadata"]["source_config_manifest_sha256"],
             sha256_hex(MANIFEST.as_bytes())
         );
+    }
+
+    #[test]
+    fn adapter_preserves_manifest_synthetic_flag() {
+        let output = build_trace_input(TRACE.as_bytes(), MANIFEST.as_bytes())
+            .expect("synthetic fixture should adapt");
+        assert_eq!(output["synthetic"], true);
+
+        let real_run_manifest = MANIFEST.replace(
+            "\"synthetic\": true",
+            "\"synthetic\": false",
+        );
+        let output = build_trace_input(TRACE.as_bytes(), real_run_manifest.as_bytes())
+            .expect("manifest with a non-synthetic run flag should adapt");
+        assert_eq!(output["synthetic"], false);
     }
 
     #[test]
