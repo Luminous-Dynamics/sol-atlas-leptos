@@ -1,0 +1,104 @@
+name: Task Graph Performance Baseline
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/task-graph-benchmark.yml"
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/examples/task_graph_bench.rs"
+      - "sol-atlas-core/fixtures/task-graph-v1.json"
+      - "sol-atlas-core/src/task_graph.rs"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: task-graph-benchmark-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    name: Release task-graph baseline (10k nodes)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            sol-atlas-core -> sol-atlas-core/target
+
+      - name: Run deterministic release benchmark
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p benchmark-output
+          cargo run --release --manifest-path sol-atlas-core/Cargo.toml --example task_graph_bench -- 100 10000 > benchmark-output/task-graph-benchmark.json
+
+      - name: Record execution provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "benchmark=field-task-graph-v1"
+            echo "source_commit=$(git rev-parse HEAD)"
+            echo "source_branch=${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+            echo "workflow_run_id=${GITHUB_RUN_ID}"
+            echo "workflow_run_attempt=${GITHUB_RUN_ATTEMPT}"
+            echo "runner_os=${RUNNER_OS}"
+            echo "runner_arch=$(uname -m)"
+            echo "kernel=$(uname -sr)"
+            echo "rust=$(rustc --version)"
+            echo "rust_verbose_commit=$(rustc --version --verbose | sed -n 's/^commit-hash: //p')"
+            echo "cargo=$(cargo --version)"
+            sha256sum sol-atlas-core/src/task_graph.rs sol-atlas-core/examples/task_graph_bench.rs sol-atlas-core/fixtures/task-graph-v1.json sol-atlas-core/Cargo.toml > benchmark-output/source-digests.sha256
+            echo "source_digests_file=source-digests.sha256"
+          } > benchmark-output/provenance.txt
+          cp benchmark-output/source-digests.sha256 benchmark-output/provenance-digests.tmp
+          cat benchmark-output/provenance-digests.tmp >> benchmark-output/provenance.txt
+          rm benchmark-output/provenance-digests.tmp
+
+      - name: Summarize results (measurement only; no performance claim)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' | tee benchmark-output/summary.txt
+          import json
+          from pathlib import Path
+
+          data = json.loads(Path("benchmark-output/task-graph-benchmark.json").read_text(encoding="utf-8"))
+          dataset = data["dataset"]
+          if dataset["tasks"] != 10_000 or dataset["edges"] != 39_990:
+              raise SystemExit(f"unexpected benchmark workload: {dataset}")
+          if data["method"]["samples_per_operation"] != 100:
+              raise SystemExit("expected exactly 100 samples per operation")
+
+          print("Field task graph release microbenchmark")
+          print(f"commit={Path('benchmark-output/provenance.txt').read_text(encoding='utf-8').split('source_commit=')[1].splitlines()[0]}")
+          print(f"tasks={dataset['tasks']} edges={dataset['edges']} samples={data['method']['samples_per_operation']}")
+          print("target_p95_ms=50 (hypothesis only; not a gate)")
+          for name, result in data["operations"].items():
+              print(
+                  f"{name}: p50_ms={result['p50_ns'] / 1_000_000:.3f} "
+                  f"p95_ms={result['p95_ns'] / 1_000_000:.3f} "
+                  f"max_ms={result['max_ns'] / 1_000_000:.3f} "
+                  f"samples={result['samples']}"
+              )
+          print("interpretation=single-run algorithm baseline only; not durable-storage, UI, network, safety, or vendor-comparison evidence")
+          PY
+
+      - name: Upload raw measurements and provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: task-graph-release-benchmark-${{ github.sha }}-run-${{ github.run_id }}
+          if-no-files-found: error
+          path: benchmark-output/
+          retention-days: 90
