@@ -156,6 +156,12 @@ Use identical scenario bytes, task quality profile, work demand, deadlines, serv
 
 A heuristic is not “better than SOTA” because it beats a weak baseline. The comparison must include the strongest applicable baseline that can represent the same constraints, and disclose any constraints it cannot model. The exact oracle is for correctness on small instances, not a claim of superior scalability over industrial solvers.
 
+### Small-instance optimizer oracle (added after the initial v0.1 slice)
+
+The Rust test suite now checks the lowest-cost greedy allocator against an independent exhaustive enumerator over every feasible integer allocation for six small tariff profiles, including negative and near-tied tariffs. It asserts exact work conservation, interval capacity bounds, protected-service floors, repeat determinism, and equality with the globally minimum modelled cost for those bounded cases. A separate regression case verifies that finite raw values whose derived per-unit objective overflows are rejected before sorting, rather than allowing a non-finite rank to influence the result.
+
+This oracle validates only the supported four-interval, homogeneous-workload domain used by the test. It does not establish scalability, prove the general implementation formally, or compare against a production LP/MILP/CP-SAT solver. The next benchmark step is randomized/property-based small-instance differential testing, followed by a pinned independent solver for larger cases.
+
 ## 7. Scorecard: do not collapse the Pareto frontier
 
 Always report the following independently:
