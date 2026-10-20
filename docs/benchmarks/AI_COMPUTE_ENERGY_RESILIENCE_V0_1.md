@@ -62,6 +62,21 @@ OCP explicitly frames rack-power engineering as a grid-to-gates problem, support
 
 These sources motivate the problem and provide comparison context; they do not validate this synthetic model.
 
+
+### Electrical architecture as an explicit comparison, not a presumption
+
+The Open Compute Project's 800 VDC work is a current industry reference for high-density AI racks and more integrated power conversion/storage interfaces: [OCP, 800 VDC transition](https://www.opencompute.org/news/powering-the-next-era-of-ai-data-center-infrastructure-through-800vdc/). The benchmark should support AC, hybrid and DC-native candidate topologies through measured or source-qualified parameters rather than declaring one topology universally better.
+
+For each comparable design, measure or model separately:
+- source-to-rack and rack-to-accelerator conversion losses;
+- copper/conductor mass and distribution losses;
+- protection, fault isolation, serviceability and restoration time;
+- UPS/storage efficiency, availability and dispatch limits;
+- rack-density and cooling effects;
+- installation capital, commissioning time, retrofit disruption and lifecycle cost.
+
+The first comparison must use the same delivered workload, quality target, facility boundary and reliability/service constraints. Claims about newer voltage architectures should be source-attributed design hypotheses until supported by measured equipment or independently qualified system models.
+
 ## 4. Scenario contract
 
 The machine-readable shape is defined by **schemas/spatial-economic-ai-compute-energy-flexibility-v0.1.schema.json**. The example **schemas/examples/ai-compute-energy-flexibility-four-interval.synthetic.json** is a tiny, hand-checkable positive control.
@@ -89,7 +104,7 @@ cargo run -p sol-atlas-core --bin ai_compute_energy_assess -- schemas/examples/a
 cargo run -p sol-atlas-core --bin ai_compute_energy_assess -- schemas/examples/ai-compute-energy-flexibility-four-interval.synthetic.json lowest-carbon
 ```
 
-The CLI emits a machine-readable JSON schedule assessment to stdout. The policies are `earliest-ready`, `lowest-cost` (sort by attributed electricity price × facility-energy factor), and `lowest-carbon` (sort by attributed carbon intensity × facility-energy factor). Missing price/carbon factors for any interval with eligible capacity make the corresponding objective indeterminate; unknown values never silently become zero.
+The CLI emits a machine-readable JSON schedule assessment to stdout. The policies are `earliest-ready`, `lowest-cost` (sort by attributed electricity price × facility-energy factor), and `lowest-carbon` (sort by attributed carbon intensity × facility-energy factor). Missing price/carbon factors for any interval with eligible capacity make the corresponding objective indeterminate; unknown values never silently become zero. Finite negative wholesale electricity prices are allowed because negative-price intervals can occur in real markets; carbon intensity and physical resource bounds remain nonnegative.
 
 Exit codes are explicit: 0 for a completed feasible/capacity-limited assessment; 2 for protected-floor infeasibility; 3 for indeterminate required resource/objective inputs; 4 for unsupported request shapes; 5 for invalid inputs; 64 for CLI usage errors; 65 for JSON parse errors; 66 for file-read errors; 70 for serialization errors.
 
@@ -151,7 +166,7 @@ Always report the following independently:
 | Facility overhead | facility kWh and IT kWh; observed period PUE where measured | Do not call interval multipliers PUE |
 | Grid | peak import kW, curtailed work, load profile, interconnection-limit binding intervals | Power capacity is time- and location-specific |
 | Carbon | consumption-weighted emissions using attributed time/location factors | Unknown factors remain unknown; do not substitute annual averages silently |
-| Water | operational water by source/type and L/kWh of IT energy | Also report local water-stress context and scope; do not equate low water consumption with zero impact |
+| Water | operational water by source/type, WUE, and water consumption per accepted work unit | Add site-specific water-stress context such as The Green Grid's Water Usage Impact (WUI); do not equate low water consumption with zero impact |
 | Heat reuse | heat accepted at usable temperature minus associated pumping/heat-pump energy; customer uptime | No credit for heat merely rejected or technically recoverable |
 | Economics | energy cost, capital/maintenance assumptions, cost per quality-accepted work unit | Keep assumptions and financing horizon visible |
 | Resilience | accepted work during named outage/heat/grid events; service degradation and recovery | Declared scenarios are not probabilities; report coverage and uncertainty |
