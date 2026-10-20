@@ -356,7 +356,11 @@ impl IndexedDbJournal {
             IndexedDbJournalError(format!("stored operation serialization failed: {error}"))
         })?;
         let operation_id = new_entry.envelope().operation_id.clone();
-        let idempotency_key = new_entry.envelope().idempotency_key.clone();
+        let idempotency_key = scoped_idempotency_key(
+            owner_scope,
+            operation_namespace,
+            &new_entry.envelope().idempotency_key,
+        )?;
 
         let (transaction, _policy) = self.transaction(&STORE_NAMES, "readwrite")?;
         let transaction_done = transaction_promise(transaction.clone());
@@ -1286,6 +1290,39 @@ fn finish_insert_reads(
         }
     };
     *output.borrow_mut() = Some(result);
+}
+
+fn require_scope(
+    owner_scope: &str,
+    operation_namespace: &str,
+) -> Result<(), IndexedDbJournalError> {
+    if owner_scope.trim().is_empty() {
+        return Err(IndexedDbJournalError(
+            "owner scope must not be empty".into(),
+        ));
+    }
+    if operation_namespace.trim().is_empty() {
+        return Err(IndexedDbJournalError(
+            "operation namespace must not be empty".into(),
+        ));
+    }
+    Ok(())
+}
+
+/// Serializes the unique IndexedDB idempotency index key as a JSON tuple so
+/// the scope cannot collide through delimiter ambiguity. The raw key itself
+/// remains in the immutable envelope and on the wire.
+fn scoped_idempotency_key(
+    owner_scope: &str,
+    operation_namespace: &str,
+    idempotency_key: &str,
+) -> Result<String, IndexedDbJournalError> {
+    require_scope(owner_scope, operation_namespace)?;
+    if idempotency_key.trim().is_empty() {
+        return Err(IndexedDbJournalError("idempotency key must not be empty".into()));
+    }
+    serde_json::to_string(&(owner_scope, operation_namespace, idempotency_key))
+        .map_err(|error| IndexedDbJournalError(format!("idempotency index key encoding failed: {error}")))
 }
 
 fn is_pending(state: &JournalState) -> bool {
