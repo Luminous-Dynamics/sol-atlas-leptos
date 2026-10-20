@@ -1,27 +1,27 @@
-# Browser IndexedDB adapter v1
+# Browser IndexedDB adapter v3
 
 **Status:** first browser persistence adapter draft. The adapter is exported from `src/state/offline_journal_indexeddb.rs`; it is not yet wired into a user-facing workflow or transport client. Exact-head WASM/native CI and browser fault-injection evidence are release gates.
 
 ## Storage model
 
-Database `sol-atlas-offline-journal`, version 2, has four key-addressed object stores (upgrade creates the new lease store for any existing v1 database):
+Database `sol-atlas-offline-journal`, version 3, has four key-addressed object stores. Version 2 introduced the lease store; version 3 changes each operation value to an owner-bound record:
 
-- `operations`: operation ID → serialized `JournalEntrySnapshotV1`;
-- `idempotency_keys`: idempotency key → operation ID;
+- `operations`: operation ID → `StoredOperationV1` (`owner_scope`, `operation_namespace`, and `JournalEntrySnapshotV1`);
+- `idempotency_keys`: JSON-tuple key `(owner_scope, operation_namespace, raw_idempotency_key)` → operation ID;
 - `pending_operations`: operation ID → scheduling marker for entries in `Prepared` or `OutcomeUnknown`;
 - `dispatch_leases`: operation ID → versioned lease record containing a cryptographically random owner token and a wall-clock expiry.
 
-Object stores use out-of-line keys. Recovery checks the storage key against `envelope.operation_id` using `JournalEntry::from_snapshot_for_operation`, then validates snapshot schema, canonical payload bytes, SHA-256 and state/attempt invariants. The pending store is only a scheduling index: every result is reloaded and validated, and a stale/missing index is surfaced rather than treated as evidence that an operation is safe to send.
+Object stores use out-of-line keys. The outer owner-bound record is a versioned storage type separate from the service envelope. Recovery checks the storage key against `envelope.operation_id` using `JournalEntry::from_snapshot_for_operation`, validates owner/namespace metadata and then validates snapshot schema, canonical payload bytes, SHA-256 and state/attempt invariants. The pending store is only a scheduling index: every result is reloaded and validated, and a stale/missing index is surfaced rather than treated as evidence that an operation is safe to send.
 
 ## Transaction semantics
 
 ### Prepare
 
-`insert_prepared(envelope, payload_json)` first constructs the payload-bound `JournalEntry`, so malformed JCS or a digest mismatch never reaches storage. Inside one readwrite transaction covering all three stores, it checks both operation-ID and idempotency-key indexes. Identical insertion of the same envelope/canonical payload is idempotent and returns the stored state; operation-ID reuse with changed immutable content or an idempotency key pointing elsewhere is rejected. A new record, idempotency mapping and pending marker are added in the same transaction.
+`insert_prepared(owner_scope, operation_namespace, envelope, payload_json)` first constructs the payload-bound `JournalEntry`, so malformed JCS or a digest mismatch never reaches storage. `owner_scope` must be the stable opaque account/tenant identifier for which the operation was created; `operation_namespace` is the immutable action/route name. Inside one readwrite transaction covering all three stores, it checks both operation-ID and scoped idempotency-key indexes. Identical insertion of the same envelope/canonical payload/owner/namespace is idempotent and returns the stored state; reusing an operation ID with changed immutable content, owner or namespace is rejected. The raw idempotency key remains inside the envelope, while the IndexedDB index uses a JSON tuple encoding to avoid delimiter collisions. A new record, idempotency mapping and pending marker are added in the same transaction.
 
 ### Dispatch boundary
 
-`begin_attempt(operation_id)` reads and validates the snapshot and lease under one readwrite transaction scoped to the operation, pending and dispatch-lease stores. If a still-active lease exists, it refuses to issue a second permit. Otherwise it writes a cryptographically random lease token with a 30-second expiry, the `OutcomeUnknown` snapshot, attempt count and pending marker in the same transaction. It returns a `DispatchPermit` **only after awaiting the transaction's `complete` event**. The permit contains the canonical payload bytes, digest, operation identity, attempt count, owner token and expiry. A transport should accept this permit and send its stored bytes rather than reconstructing a request from UI state. If `crypto.randomUUID()` is unavailable, lease creation fails closed.
+`begin_attempt(operation_id, owner_scope, operation_namespace)` reads and validates the owner-bound record, snapshot and lease under one readwrite transaction scoped to the operation, pending and dispatch-lease stores. If the currently authenticated account/route differs from the immutable stored owner/namespace, the attempt is refused before the attempt count or lease is changed. If a still-active lease exists, it refuses to issue a second permit. Otherwise it writes a cryptographically random lease token with a 30-second expiry, the `OutcomeUnknown` snapshot, attempt count and pending marker in the same transaction. It returns a `DispatchPermit` **only after awaiting the transaction's `complete` event**. The permit contains the canonical payload bytes, payload digest, scoped request-fingerprint SHA-256, immutable owner scope and operation namespace, operation identity, attempt count, owner token and expiry. The fingerprint is computed by the shared Rust profile and is advisory metadata; the server must recompute it from authenticated tenant/route context and request bytes. A transport should accept this permit and send its stored bytes rather than reconstructing a request from UI state. If `crypto.randomUUID()` is unavailable, lease creation fails closed.
 
 `renew_dispatch_lease(&mut permit)` extends the claim only while the stored owner token still matches and the lease has not expired. A suspended/stale holder cannot revive an expired lease. The caller must renew before the deadline when a legitimate request may exceed 30 seconds; this function does not start a heartbeat by itself.
 
@@ -29,11 +29,11 @@ A permit is not a network result and is not proof that the payload reached the s
 
 ### Reply reconciliation
 
-`apply_reply` loads the operation snapshot inside a readwrite transaction, rehydrates it, calls the pure reducer, then writes the updated snapshot, updates/deletes the pending marker, and deletes the local dispatch lease atomically. A mismatched reply or invalid state transition causes no journal write. The receipt binding still is only correlation: it does not authenticate the service. A future transport/service layer must authenticate the service and make signed receipt verification available when receipts are intended to be independently auditable.
+`apply_reply(operation_id, owner_scope, operation_namespace, reply)` reads the owner-bound record inside a readwrite transaction, rejects a different caller scope/namespace, rehydrates the inner snapshot, calls the pure reducer, then writes the updated outer record, updates/deletes the pending marker, and deletes the local dispatch lease atomically. A mismatched reply or invalid state transition causes no journal write. The receipt binding still is only correlation: it does not authenticate the service. A future transport/service layer must authenticate the service and make signed receipt verification available when receipts are intended to be independently auditable.
 
 ### Recovery reads
 
-`load` validates every recovered row. `list_pending(after, limit)` enumerates the scheduling index, reloads each candidate and verifies that it is still pending; the returned page is not snapshot-isolated because records may change while pages are fetched. A scheduler must restart full recovery scans from the beginning and call `begin_attempt` before any dispatch. A missing operation referenced by the pending index is a hard error rather than silently skipped.
+`load(operation_id, owner_scope, operation_namespace)` validates every recovered row and returns no visible record when the owner/namespace differs. `list_pending(owner_scope, operation_namespace, after, limit)` enumerates the shared scheduling index but returns only records bound to the requested owner and namespace; an empty page may still carry a cursor when the scanned rows belong to other accounts. The returned page is not snapshot-isolated because records may change while pages are fetched. A scheduler must restart full recovery scans from the beginning and call `begin_attempt` before any dispatch. A missing operation referenced by the pending index is a hard error rather than silently skipped.
 
 ## Durability truthfulness
 
@@ -70,6 +70,10 @@ This draft adds no claim that the following browser-fault tests have run. They a
 | IDB-16 | Lease expiry / suspended tab | A second tab cannot claim before expiry but can reclaim after expiry; explicitly demonstrate that a paused original tab can resume later, so server-side idempotency remains mandatory |
 | IDB-17 | Missing secure UUID source | No fallback to predictable tokens; claim fails closed without mutating attempt count or pending state |
 | IDB-18 | Stale lease renewal | Renewal succeeds only with the current token before expiry; an expired lease or superseded token cannot be revived |
+| IDB-19 | Account switch before offline sync | A queued operation created under scope A is never issued a permit under scope B; no snapshot/receipt details for A are returned to B |
+| IDB-20 | Namespace switch before retry | An operation created for namespace A cannot be retried through namespace B; the stored request fingerprint and the server-derived route namespace agree |
+| IDB-21 | Same raw key across owners/namespaces | The local uniqueness index remains independent for the same raw idempotency key under different owner/namespace tuples |
+| IDB-22 | Upgrade from unowned v2 records | Legacy rows lacking owner scope are never inferred or auto-dispatched; an explicit user-visible export/reconciliation path is required before old records can be retired |
 
 ## Benchmarks
 
@@ -87,5 +91,5 @@ Integrity gates are absolute: zero sends after failed/indeterminate pre-dispatch
 
 - This adapter is currently a draft and is not wired into the product's UI or a live API.
 - Pure lease-policy tests cover expiry boundaries and malformed bindings, but the adapter has not been browser-tested; exact-head WebAssembly compilation plus two-tab/crash fault tests remain required.
-- No service authentication, signed receipt, authoritative server idempotency table, server payload digest verifier, network retry layer, automated lease heartbeat, encryption, export/backup or device-loss recovery is included. The proposed service contract and end-to-end acceptance gates are in `docs/offline-journal-server-contract.md`.
+- No service authentication, signed receipt, authoritative server idempotency table, server payload digest verifier, network retry layer, automated lease heartbeat, encryption, export/backup or device-loss recovery is included. Owner/namespace binding prevents accidental cross-account replay in this adapter but is not authentication; the service must derive its tenant from authenticated context. The proposed service contract and end-to-end acceptance gates are in `docs/offline-journal-server-contract.md`.
 - IndexedDB does not provide an unconditional power-loss guarantee simply because the application observed a completed transaction.
