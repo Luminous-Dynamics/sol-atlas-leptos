@@ -18,6 +18,7 @@ use std::{
 };
 
 use serde::Serialize;
+use sha2::{Digest, Sha256};
 use sol_atlas_core::{
     offline_journal::{
         JournalEntry, OFFLINE_JOURNAL_SCHEMA_VERSION, OperationEnvelope,
@@ -26,7 +27,6 @@ use sol_atlas_core::{
     offline_journal_bundle::{OfflineJournalBundleRecordV1, OfflineJournalBundleV1},
     offline_payload_digest::{canonical_payload_digest_sha256, canonicalize_payload_json},
 };
-use sha2::{Digest, Sha256};
 
 #[derive(Debug, Clone, Copy)]
 struct Options {
@@ -256,7 +256,8 @@ fn run() -> Result<(), Box<dyn Error>> {
         canonical_hash_only_manifest_bytes,
         bytes_per_record: bundle_bytes as f64 / options.records as f64,
         bare_serde_json_bytes_per_record: bare_serde_json_bytes as f64 / options.records as f64,
-        canonical_hash_only_bytes_per_record: canonical_hash_only_manifest_bytes as f64 / options.records as f64,
+        canonical_hash_only_bytes_per_record: canonical_hash_only_manifest_bytes as f64
+            / options.records as f64,
         baseline_note: "Bare Serde roundtrip omits canonicalization, semantic snapshot validation, and integrity digest verification; informational only, not an equivalent security baseline.",
         canonical_hash_only_note: "JCS+SHA-256 only over typed serialized manifest; skips per-record semantic snapshot validation, and is therefore not equivalent to full contract validation.",
         bundle_integrity_sha256: bundle_digest,
