@@ -73,6 +73,7 @@ run_case() {
     --samples "$samples" > "$report"
 
   jq -e '
+    .parameters.samples as $samples |
     .schema_version == 1 and
     .correctness.roundtrip_equal == true and
     .correctness.record_count_preserved == true and
@@ -80,7 +81,7 @@ run_case() {
     .correctness.integrity_digest_stable == true and
     .correctness.canonical_bytes_stable == true and
     .correctness.canonical_hash_only_matches_bundle_digest == true and
-    (.raw_samples | length == (. [0].parameters.samples * 5))
+    (.raw_samples | length == ($samples * 5))
   ' "$report" >/dev/null
 }
 
