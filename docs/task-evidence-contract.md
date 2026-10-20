@@ -12,7 +12,7 @@ It intentionally returns `ReadyForQualifiedReview`, **not** `Verified`, `Safe`, 
 
 ## Current guarantees
 
-- Packet graph ID, graph revision and task ID must match the caller's current authoritative projection.
+- Packet graph ID, graph revision and task ID must match the caller's current authoritative projection. The caller must also provide the current authoritative procedure revision and its evidence-requirement set separately; the evaluator rejects packets whose declared requirements omit or rewrite that set. In production, do not populate the context from the packet being evaluated.
 - Requirements and evidence references are explicit; duplicate requirement/evidence IDs and undeclared requirement references block readiness.
 - Evidence type must match its requirement. Measurement artifacts require a unit and instrument reference.
 - SHA-256 encoding must be exactly 64 lowercase hexadecimal characters. This is format validation, not cryptographic digest verification.
@@ -32,9 +32,10 @@ The Rust test corpus includes complete packet, missing evidence, stale graph rev
 | ID | Target | Required evidence |
 |---|---|---|
 | EVD-01 | Zero incomplete/stale/malformed packets marked ready for review | Frozen adversarial fixture plus generated mutation corpus |
-| EVD-02 | 100% of required requirements have at least one valid matching artifact when ready | Invariant assertions and negative controls removing each required artifact in turn |
+| EVD-02 | 100% of authoritative requirements have at least one valid matching artifact when ready | Invariant assertions and negative controls removing each required artifact in turn |
 | EVD-03 | Zero self-review accepted when independence is required | Reviewer identity equality and whitespace/empty ID tests |
 | EVD-04 | Zero stale graph or procedure revision accepted | One-step and many-step graph/procedure revision mutations |
+| EVD-05 | Zero packets accepted after omitting or rewriting a required evidence condition | Mutate/remove one authoritative requirement at a time while keeping the rest of the packet valid |
 | EVD-05 | 100% deterministic decision/issues for identical packet and context | Replay corpus and compare serialized evaluations |
 | EVD-06 | p95 under 25 ms for 10,000 evidence records and 1,000 requirements (initial hypothesis) | Release-mode benchmark on named runner, ≥100 samples, raw distribution and exact SHA |
 | UX-01 | ≥95% correct interpretation of missing-evidence explanations | Moderated evaluation with technicians and qualified reviewers, stratified by trade |

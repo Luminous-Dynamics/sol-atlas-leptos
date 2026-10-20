@@ -96,6 +96,8 @@ fn run() -> Result<(), String> {
         graph_id: "benchmark:evidence-v1",
         graph_revision: 4,
         task_id: "benchmark:functional-test",
+        expected_procedure_revision: 7,
+        expected_requirements: packet.requirements.clone(),
         reviewer_id: Some("reviewer-02"),
     };
     for _ in 0..5 {
