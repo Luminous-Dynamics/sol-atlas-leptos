@@ -92,8 +92,10 @@ Do not claim “better than SOTA” from a synthetic fixture alone. It qualifies
 - 100% deterministic result under input permutation.
 - 100% explicit interaction accounting and complete scenario evaluation.
 
-### Scale (report; do not fabricate target performance)
-Benchmark generated cases at 8 / 12 / 16 / 18 projects on a named, pinned runner. Report p50/p95/max, peak memory, subset count, explored/pruned counts, feasible portfolio count and frontier size. The exhaustive oracle should have a fixed maximum problem size and reject anything above the cap. Set a speedup target only after obtaining a reproducible measured baseline.
+### Scale (current limitation; no scale claim yet)
+The current Rust oracle is a **frozen v0.1 fixture evaluator**: it requires the eight declared project IDs, the two named scenarios, and P1/P2 budget periods. `MAX_EXACT_PROJECTS = 20` is only an exhaustive-enumeration safety cap; it does not make the current v0.1 contract a general 12–20-project instance format. Do not report generated 12 / 16 / 18-project measurements through this fixture-specific contract.
+
+The next scale-up is tracked in [SA-PORTFOLIO-SCALE-001 (#230)](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/230): freeze a versioned generalized v0.2 input contract and deterministic generator, preserve v0.1 as the immutable known-answer oracle, and add a candidate frontier search. Only after that gate should the benchmark compare generated sizes (initially 8 / 10 / 12 / 14 / 16 / 18, with exact cases only where feasible) on a named pinned runner. Report p50/p95/max, peak RSS, subsets/nodes explored and pruned, feasible count, frontier size, exact frontier agreement and constraint violations. Establish speed targets only after a reproducible baseline exists.
 
 ### Decision-quality / value
 Report frontier preservation, selected-portfolios sensitivity to criterion changes, hard-floor robustness and exact optimality gap where an independent solver can produce one. If hypervolume is used for approximate frontiers, disclose objective normalization and reference point and keep it secondary to feasibility/oracle correctness. Do not use an arbitrary weighted sum as a universal societal objective.
@@ -103,7 +105,7 @@ Before real project data are admitted, secure permissions and source vintages, d
 
 ## 7. Current implementation and next gates
 
-The initial reference implementation is now authored in `tools/sa-economic-portfolio-oracle/` as a standalone Rust crate, with no UI or physical-model dependency. It:
+The initial reference implementation is authored in `tools/sa-economic-portfolio-oracle/` as a standalone Rust crate, with no UI or physical-model dependency. It is intentionally fixture-specific at v0.1, **not yet a general portfolio-planning or scalable-search engine**. The generalized v0.2 contract and candidate search are tracked in [issue #230](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/230). It:
 - validates the frozen v0.1 input semantics and rejects over-cap inputs rather than truncating;
 - enumerates every subset and applies evidence, dependency/stage, period-budget, crew-cap and every-scenario service-floor constraints;
 - applies only the versioned T+W complement and A+F overlap adjustment;
