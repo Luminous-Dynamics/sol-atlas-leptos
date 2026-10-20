@@ -9,16 +9,18 @@ The standalone Rust benchmark measures the CPU-side cost of canonical payload ha
 From the repository root:
 
 ```sh
-SOL_ATLAS_BENCH_SAMPLES=50 \
-SOL_ATLAS_BENCH_BUILD_SHA="$(git rev-parse HEAD)" \
-  cargo bench -p sol-atlas-core --bench offline_journal_protocol \
-  > offline-journal-bench.csv \
-  2> offline-journal-bench-build.log
+{
+  printf '# rustc_version=%s\n' "$(rustc --version)"
+  printf '# source_revision=%s\n' "$(git rev-parse HEAD)"
+  SOL_ATLAS_BENCH_SAMPLES=50 \
+  SOL_ATLAS_BENCH_BUILD_SHA="$(git rev-parse HEAD)" \
+    cargo bench -p sol-atlas-core --bench offline_journal_protocol
+} > offline-journal-bench.csv 2> offline-journal-bench-build.log
 ```
 
 Use the optimized `cargo bench` profile. The benchmark defaults to 50 measured samples per operation; the environment variable accepts 5–2,000. Every CSV sample includes payload bytes, sample index, iterations and nanoseconds per operation. Summary rows include nearest-rank p50/p95/p99 and operations/second computed from p50. Header comments record package version, operating system, architecture, sample count and the supplied source SHA.
 
-The default sample count is enough to establish an initial view, not to establish a publication-grade performance claim. For comparative work, run multiple independent processes on the same named hardware under stable thermal/power conditions. Archive the full raw CSV, stderr/build log, exact commit SHA, Rust compiler version, CPU model, OS/kernel, power mode, and exact command. Do not trim out slow samples or merge results from different devices into one percentile distribution.
+The harness performs up to eight warm-up iterations per operation outside timed samples. The default sample count is enough to establish an initial view, not to establish a publication-grade performance claim. For comparative work, run multiple independent processes on the same named hardware under stable thermal/power conditions. Archive the full raw CSV, stderr/build log, exact commit SHA, Rust compiler version, CPU model, OS/kernel, power mode, and exact command. Do not trim out slow samples or merge results from different devices into one percentile distribution.
 
 ## Workloads
 
