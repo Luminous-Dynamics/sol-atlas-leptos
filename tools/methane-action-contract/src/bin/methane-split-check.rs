@@ -1,5 +1,7 @@
+use methane_action_contract::split::{
+    SplitManifest, SplitValidationReport, validate_split_manifest,
+};
 use methane_action_contract::{executable_sha256, sha256_hex};
-use methane_action_contract::split::{SplitManifest, SplitValidationReport, validate_split_manifest};
 use serde::Serialize;
 use std::env;
 use std::fs;
