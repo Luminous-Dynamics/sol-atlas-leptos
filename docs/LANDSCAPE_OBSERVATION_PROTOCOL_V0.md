@@ -97,3 +97,24 @@ Tests prove the sample FeatureOfInterest geometry is not copied into the adapted
 - **Mycelix:** observer authorization, consent, publication permissions, stewardship commitments and epistemic evidence graph. Reuse Observation V2 concepts; do not duplicate the DHT graph.
 - **Symtropy:** model qualification/comparison against observations and held-out validation.
 - **Symthaea:** explain disagreements and alternate explanations; don't convert association to causation.
+
+
+## Executable ingest benchmark
+
+The CLI is in `src/bin/landscape_observation_bench.rs`, behind Cargo feature `landscape-observation-bench`. It is excluded from the default application and WebAssembly target. CI tests it together with the main native app target.
+
+Example invocation on a pinned native host:
+
+```sh
+cargo run --release --features landscape-observation-bench --bin landscape-observation-bench -- \
+  --commit-sha "$(git rev-parse HEAD)" \
+  --machine-label "reference-host-01" \
+  --cpu-model "fill-in-exact-cpu-model" \
+  --ram-mib 32768 \
+  --records 10000 --iterations 25 --warmup 3 --profile unique \
+  > landscape-observation-bench.json
+```
+
+Run the same frozen host/toolchain across `unique`, `exact-1pct`, `exact-10pct`, `exact-100pct`, `conflict`, and `over-limit`. The CLI records raw per-iteration timings, p50/p95/p99, input/output digests, duplicate accounting, correctness mismatch count, OS/architecture/Rust version, and user-supplied host metadata. It reports a JSON status of `correctness-pass` only when observed validity matches the expected profile on all samples.
+
+The CLI keeps input in memory; it does **not** establish operating-system cold-cache behavior, peak RSS, sensor-provider latency, or field-data quality. Those remain explicit gaps in the v0 acceptance protocol. Do not advertise the proposed 500 ms/1 s or 128 MiB targets as achieved until the report is captured on a named reference machine and independently checked.
