@@ -21,7 +21,7 @@ use std::{
     rc::Rc,
 };
 
-use js_sys::{Array, Function, Object, Promise, Reflect};
+use js_sys::{Array, Date, Function, Object, Promise, Reflect};
 use sol_atlas_core::offline_journal::{
     JournalEntry, JournalEntrySnapshotV1, JournalError, JournalState, OperationEnvelope,
     ReconcileOutcome, ServiceReply,
@@ -32,11 +32,20 @@ use wasm_bindgen_futures::JsFuture;
 /// Object-store names are part of database schema v1. This adapter uses
 /// out-of-line keys so the ID is independently checked during recovery.
 const DATABASE_NAME: &str = "sol-atlas-offline-journal";
-const DATABASE_VERSION: u32 = 1;
+const DATABASE_VERSION: u32 = 2;
 const OPERATIONS: &str = "operations";
 const IDEMPOTENCY_KEYS: &str = "idempotency_keys";
 const PENDING_OPERATIONS: &str = "pending_operations";
+const DISPATCH_LEASES: &str = "dispatch_leases";
 const STORE_NAMES: [&str; 3] = [OPERATIONS, IDEMPOTENCY_KEYS, PENDING_OPERATIONS];
+const UPGRADE_STORE_NAMES: [&str; 4] = [
+    OPERATIONS,
+    IDEMPOTENCY_KEYS,
+    PENDING_OPERATIONS,
+    DISPATCH_LEASES,
+];
+const DISPATCH_LEASE_SCHEMA_VERSION: u16 = 1;
+const DISPATCH_LEASE_DURATION_MS: u64 = 30_000;
 
 /// Whether a browser accepted strict transaction durability options.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -72,6 +81,8 @@ pub struct DispatchPermit {
     payload_digest_sha256: String,
     canonical_payload_utf8: Vec<u8>,
     attempt_count: u32,
+    lease_token: String,
+    lease_expires_at_ms: u64,
     durability_policy: DurabilityPolicy,
 }
 
@@ -96,6 +107,16 @@ impl DispatchPermit {
         self.attempt_count
     }
 
+    /// Opaque fencing token for this browser-local dispatch lease.
+    pub fn lease_token(&self) -> &str {
+        &self.lease_token
+    }
+
+    /// Epoch-millisecond expiry. Renew before expiry for long-running requests.
+    pub fn lease_expires_at_ms(&self) -> u64 {
+        self.lease_expires_at_ms
+    }
+
     /// Durability policy used for the transaction that granted this permit.
     pub fn durability_policy(&self) -> DurabilityPolicy {
         self.durability_policy
@@ -108,6 +129,39 @@ impl DispatchPermit {
 pub struct IndexedDbJournalPage {
     pub entries: Vec<JournalEntry>,
     pub next_after_operation_id: Option<String>,
+}
+
+/// Versioned, browser-local dispatch lease. The operation store and this
+/// record are updated in the same transaction before a dispatch permit exists.
+/// The lease reduces competing sends; the server's idempotency ledger remains
+/// the only authority against duplicate effects after pauses or expiry.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct DispatchLeaseRecordV1 {
+    schema_version: u16,
+    operation_id: String,
+    owner_token: String,
+    acquired_at_ms: u64,
+    expires_at_ms: u64,
+}
+
+impl DispatchLeaseRecordV1 {
+    fn validate(&self, expected_operation_id: &str) -> Result<(), IndexedDbJournalError> {
+        if self.schema_version != DISPATCH_LEASE_SCHEMA_VERSION {
+            return Err(IndexedDbJournalError("unsupported dispatch lease schema".into()));
+        }
+        if self.operation_id != expected_operation_id {
+            return Err(IndexedDbJournalError("dispatch lease operation ID mismatch".into()));
+        }
+        if self.owner_token.trim().is_empty() || self.expires_at_ms <= self.acquired_at_ms {
+            return Err(IndexedDbJournalError("invalid dispatch lease record".into()));
+        }
+        Ok(())
+    }
+
+    fn is_active_at(&self, now_ms: u64) -> bool {
+        self.expires_at_ms > now_ms
+    }
 }
 
 /// Connected browser journal database.
@@ -791,7 +845,7 @@ fn is_pending(state: &JournalState) -> bool {
 
 fn ensure_stores(database: &JsValue) -> Result<(), JsValue> {
     let names = Reflect::get(database, &JsValue::from_str("objectStoreNames"))?;
-    for name in STORE_NAMES {
+    for name in UPGRADE_STORE_NAMES {
         let exists = call_method(&names, "contains", &[JsValue::from_str(name)])?
             .as_bool()
             .unwrap_or(false);
