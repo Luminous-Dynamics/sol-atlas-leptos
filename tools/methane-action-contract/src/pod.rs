@@ -202,11 +202,7 @@ pub fn build_pod_profile(
                     (CoverageState::Covered, SystemDisposition::NoOutput) => {
                         report.push(&case.case_id, "covered_case_has_no_output");
                     }
-                    (_, SystemDisposition::Detected { .. })
-                    | (_, SystemDisposition::ExplicitNonDetect)
-                    | (_, SystemDisposition::Abstained { .. }) => {
-                        report.push(&case.case_id, "output_without_coverage");
-                    }
+
                 }
             }
             ReferenceState::ReferenceUnavailable { .. } => unscorable += 1,
@@ -303,10 +299,10 @@ fn validate_rate_bands(report: &mut PodProfileReport, bands: &[RateBand]) {
         if !band.lower_kg_h.is_finite() || band.lower_kg_h < 0.0 {
             report.push(&band.band_id, "invalid_rate_band_lower_bound");
         }
-        if let Some(upper) = band.upper_kg_h {
-            if !upper.is_finite() || upper <= band.lower_kg_h {
-                report.push(&band.band_id, "invalid_rate_band_upper_bound");
-            }
+        if let Some(upper) = band.upper_kg_h
+            && (!upper.is_finite() || upper <= band.lower_kg_h)
+        {
+            report.push(&band.band_id, "invalid_rate_band_upper_bound");
         }
         if band.upper_kg_h.is_none() && index + 1 != bands.len() {
             report.push(&band.band_id, "unbounded_rate_band_not_last");
