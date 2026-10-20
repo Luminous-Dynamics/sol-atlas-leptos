@@ -1,6 +1,6 @@
 # AI Compute–Energy Trace Intake and Benchmark Protocol v1
 
-**Status:** protocol draft; the attached Alibaba manifest is planned metadata only. No trace artifact has been downloaded or evaluated by this work item.  
+**Status:** protocol draft; the Alibaba and Google Borg manifests are both planned metadata only. No trace artifact has been downloaded or evaluated by this work item.  
 **Related work:** [AI-COMP-ENERGY-001 / evaluator PR #203](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/203) and [AI-COMP-ENERGY-002 / follow-up issue #212](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/212).  
 **Machine-readable contract:** `schemas/ai-compute-energy-trace-intake-v1.schema.json`.
 
@@ -26,6 +26,14 @@ The [official Alibaba `cluster-trace-v2018` release documentation](https://githu
 This makes the release a useful candidate for **arrival/dependency/resource-replay research**, not a direct AI model-quality benchmark and not, by itself, a trustworthy GPU/facility-energy dataset. It must not be used to infer GPU wattage or model quality from generic CPU utilization. The planned manifest at `schemas/examples/ai-compute-energy-trace-intake-v1.planned.json` records the source while leaving licensing, exact artifact identity, source columns, and data-quality counters unresolved.
 
 Before retrieval, record the license decision against the exact release and acquisition route. The official page has historically routed downloads through a survey; a public repository page alone does not establish that a mirror, redistributed archive, or transformed copy can be republished. Never commit raw data or credentials as part of the benchmark by default.
+
+### Complementary candidate: Google ClusterData2019 plus power traces
+
+A second, potentially better first **workload-to-power replay** source is the official [Google Borg cluster-data repository](https://github.com/google/cluster-data). Its documentation says that version 3 (`ClusterData2019`) covers eight Borg cells during May 2019 and separately provides power traces for 57 power domains from that same month. It states that the data and documentation are available under CC-BY. See the [official README](https://github.com/google/cluster-data) and [Google's trace overview](https://research.google/blog/yet-more-google-compute-cluster-trace-data/).
+
+The planned manifest `schemas/examples/google-clusterdata2019-power-trace-intake.planned.json` registers this source under `metadata_only`. The presence of power traces does **not** establish that every power domain maps one-to-one to a Borg cell, that the values are metered facility-boundary power, or that the jobs are AI inference. Those semantics must be established from the chosen files and official power documentation before model replay or stronger claims. The source is a priority candidate for general workload/power response analysis, while Alibaba remains a separate candidate for workload arrivals and batch dependencies. Neither alone proves GPU energy per accepted AI token or real grid-service benefit.
+
+The tracking plan for the paired Google workload/power path is [AI-COMP-ENERGY-004 / issue #257](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/257). Its data, license, alignment, and power-attribution gates are intentionally not treated as complete by registering the manifest.
 
 ## 3. Required intake receipt
 
