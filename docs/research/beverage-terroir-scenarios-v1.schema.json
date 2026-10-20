@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Beverage Terroir Scenario Corpus V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "scenarios"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "beverage-terroir-scenarios-v1"
+    },
+    "status": {
+      "const": "synthetic_spatial_data_contract_not_field_evidence"
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "expected_disposition",
+          "guards",
+          "claim_ceiling"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^BTERR-[0-9]{3}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expected_disposition": {
+            "enum": [
+              "ELIGIBLE_FOR_CONTEXTUAL_ANALYSIS",
+              "REJECT",
+              "INDETERMINATE",
+              "REJECT_CLAIM_OR_REPORT_SOURCE_SCALE",
+              "OUT_OF_DOMAIN_WITH_UNCERTAINTY",
+              "INELIGIBLE_FOR_REUSE",
+              "REJECT_CLAIM",
+              "CONTEXT_ONLY_NO_ACTIONABLE_ADVICE"
+            ]
+          },
+          "guards": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "claim_ceiling": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}
