@@ -218,9 +218,7 @@ fn is_earlier(prerequisite: &Project, dependent: &Project) -> bool {
         period_rank(&dependent.period),
     ) {
         (Some(a), Some(b)) if a < b => true,
-        (Some(a), Some(b)) if a == b => {
-            prerequisite.stage_order < dependent.stage_order
-        }
+        (Some(a), Some(b)) if a == b => prerequisite.stage_order < dependent.stage_order,
         _ => false,
     }
 }
@@ -264,13 +262,13 @@ fn validate_input(input: &Input) -> Result<(), String> {
         return Err("unsupported enumeration contract".to_owned());
     }
 
-    let scenario_ids: BTreeSet<String> =
-        input.scenarios.iter().map(|scenario| scenario.id.clone()).collect();
+    let scenario_ids: BTreeSet<String> = input
+        .scenarios
+        .iter()
+        .map(|scenario| scenario.id.clone())
+        .collect();
     if scenario_ids.len() != input.scenarios.len()
-        || scenario_ids != BTreeSet::from([
-            "nominal".to_owned(),
-            "hot_dry_grid_stress".to_owned(),
-        ])
+        || scenario_ids != BTreeSet::from(["nominal".to_owned(), "hot_dry_grid_stress".to_owned()])
     {
         return Err("scenario IDs must be unique and match the frozen v0.1 set".to_owned());
     }
@@ -314,7 +312,9 @@ fn validate_input(input: &Input) -> Result<(), String> {
             .iter()
             .any(|objective| objective.direction != "maximize" || objective.unit.is_empty())
     {
-        return Err("objective schema must declare the four unique v0.1 maximization objectives".to_owned());
+        return Err(
+            "objective schema must declare the four unique v0.1 maximization objectives".to_owned(),
+        );
     }
 
     if input.mandatory_floors.is_empty()
@@ -328,25 +328,33 @@ fn validate_input(input: &Input) -> Result<(), String> {
         return Err("unsupported or incomplete mandatory-floor contract".to_owned());
     }
 
-    if input.service_baseline_by_scenario.keys().cloned().collect::<BTreeSet<_>>()
+    if input
+        .service_baseline_by_scenario
+        .keys()
+        .cloned()
+        .collect::<BTreeSet<_>>()
         != scenario_ids
     {
         return Err("service baseline must cover exactly the declared scenarios".to_owned());
     }
 
-    let project_ids: BTreeSet<String> =
-        input.projects.iter().map(|project| project.id.clone()).collect();
+    let project_ids: BTreeSet<String> = input
+        .projects
+        .iter()
+        .map(|project| project.id.clone())
+        .collect();
     if project_ids.len() != input.projects.len()
-        || project_ids != BTreeSet::from([
-            "T".to_owned(),
-            "W".to_owned(),
-            "A".to_owned(),
-            "I".to_owned(),
-            "R".to_owned(),
-            "J".to_owned(),
-            "F".to_owned(),
-            "X".to_owned(),
-        ])
+        || project_ids
+            != BTreeSet::from([
+                "T".to_owned(),
+                "W".to_owned(),
+                "A".to_owned(),
+                "I".to_owned(),
+                "R".to_owned(),
+                "J".to_owned(),
+                "F".to_owned(),
+                "X".to_owned(),
+            ])
     {
         return Err("project IDs must uniquely match the frozen v0.1 corpus".to_owned());
     }
@@ -363,12 +371,18 @@ fn validate_input(input: &Input) -> Result<(), String> {
             || project.cost_u < 0
             || project.crew_u < 0
             || !matches!(project.gate.as_str(), "PASS" | "BLOCK" | "UNKNOWN")
-            || !matches!(project.evidence_class.as_str(), "synthetic" | "synthetic hostile negative control")
+            || !matches!(
+                project.evidence_class.as_str(),
+                "synthetic" | "synthetic hostile negative control"
+            )
         {
             return Err(format!("invalid project metadata for {}", project.id));
         }
         if project.outcomes.keys().cloned().collect::<BTreeSet<_>>() != scenario_ids {
-            return Err(format!("scenario coverage mismatch for project {}", project.id));
+            return Err(format!(
+                "scenario coverage mismatch for project {}",
+                project.id
+            ));
         }
         let mut local_dependencies = BTreeSet::new();
         for dependency_id in &project.requires {
@@ -409,11 +423,18 @@ fn validate_input(input: &Input) -> Result<(), String> {
             .collect::<BTreeSet<_>>()
             != scenario_ids
         {
-            return Err(format!("scenario coverage mismatch for interaction {}", rule.id));
+            return Err(format!(
+                "scenario coverage mismatch for interaction {}",
+                rule.id
+            ));
         }
     }
 
-    if input.service_baseline_by_scenario.values().any(|value| *value < 0) {
+    if input
+        .service_baseline_by_scenario
+        .values()
+        .any(|value| *value < 0)
+    {
         return Err("negative baseline service value".to_owned());
     }
     Ok(())
@@ -431,8 +452,7 @@ fn evaluate_subset(input: &Input, mask: u64) -> Result<SubsetEvaluation, String>
         return Ok(SubsetEvaluation::Rejected(RejectionReason::GateNotPass));
     }
 
-    let selected_ids: BTreeSet<&str> =
-        selected.iter().map(|project| project.id.as_str()).collect();
+    let selected_ids: BTreeSet<&str> = selected.iter().map(|project| project.id.as_str()).collect();
     let by_id: BTreeMap<&str, &Project> = input
         .projects
         .iter()
@@ -463,7 +483,10 @@ fn evaluate_subset(input: &Input, mask: u64) -> Result<SubsetEvaluation, String>
             cost_u: 0,
             crew_u: 0,
         };
-        for project in selected.iter().filter(|project| project.period.as_str() == budget.period.as_str()) {
+        for project in selected
+            .iter()
+            .filter(|project| project.period.as_str() == budget.period.as_str())
+        {
             used.cost_u = used
                 .cost_u
                 .checked_add(project.cost_u)
@@ -576,17 +599,21 @@ pub fn evaluate(input: &Input) -> Result<Evaluation, String> {
         }
     }
     feasible_portfolios.sort_by_key(portfolio_key);
-    if feasible_portfolios.len() as u64 + rejection_reason_counts.total()
-        != candidate_subset_count
+    if feasible_portfolios.len() as u64 + rejection_reason_counts.total() != candidate_subset_count
     {
-        return Err("internal accounting error: subset dispositions do not reconcile".to_owned());
+        return Err(
+            "internal accounting error: subset dispositions do not reconcile".to_owned(),
+        );
     }
 
     let mut pareto_frontier = Vec::new();
     for (candidate_index, candidate) in feasible_portfolios.iter().enumerate() {
-        let dominated = feasible_portfolios.iter().enumerate().any(|(other_index, other)| {
-            candidate_index != other_index && dominates(other, candidate, &input.scenarios)
-        });
+        let dominated = feasible_portfolios
+            .iter()
+            .enumerate()
+            .any(|(other_index, other)| {
+                candidate_index != other_index && dominates(other, candidate, &input.scenarios)
+            });
         if !dominated {
             pareto_frontier.push(candidate.clone());
         }
@@ -656,7 +683,10 @@ pub fn check_expected(evaluation: &Evaluation, expected_raw: &str) -> Result<(),
     }
 
     if !expected_frontier.iter().all(|portfolio| {
-        !portfolio.project_ids.iter().any(|project_id| project_id == "X")
+        !portfolio
+            .project_ids
+            .iter()
+            .any(|project_id| project_id == "X")
     }) {
         return Err("expected frontier incorrectly includes the UNKNOWN-gate decoy".to_owned());
     }
@@ -704,17 +734,27 @@ mod tests {
     fn unknown_gate_decoy_never_enters_feasible_set_or_frontier() {
         let evaluation = evaluate(&fixture()).expect("fixture should evaluate");
         assert!(evaluation.feasible_portfolios.iter().all(|portfolio| {
-            !portfolio.project_ids.iter().any(|project_id| project_id == "X")
+            !portfolio
+                .project_ids
+                .iter()
+                .any(|project_id| project_id == "X")
         }));
         assert!(evaluation.pareto_frontier.iter().all(|portfolio| {
-            !portfolio.project_ids.iter().any(|project_id| project_id == "X")
+            !portfolio
+                .project_ids
+                .iter()
+                .any(|project_id| project_id == "X")
         }));
     }
 
     #[test]
     fn unknown_prerequisite_fails_closed() {
         let mut input = fixture();
-        let water = input.projects.iter_mut().find(|project| project.id == "W").unwrap();
+        let water = input
+            .projects
+            .iter_mut()
+            .find(|project| project.id == "W")
+            .unwrap();
         water.requires = vec!["MISSING".to_owned()];
         assert!(evaluate(&input).is_err());
     }
@@ -731,12 +771,22 @@ mod tests {
     fn rejection_reasons_reconcile_every_subset_with_frozen_precedence() {
         let evaluation = evaluate(&fixture()).expect("fixture should evaluate");
         assert_eq!(evaluation.candidate_subset_count, 256);
-        assert_eq!(evaluation.feasible_portfolios.len() as u64 + evaluation.rejection_reason_counts.total(), 256);
+        assert_eq!(
+            evaluation.feasible_portfolios.len() as u64
+                + evaluation.rejection_reason_counts.total(),
+            256
+        );
         assert_eq!(evaluation.rejection_reason_counts.gate_not_pass, 128);
         assert_eq!(evaluation.rejection_reason_counts.missing_prerequisite, 48);
-        assert_eq!(evaluation.rejection_reason_counts.period_budget_exceeded, 40);
+        assert_eq!(
+            evaluation.rejection_reason_counts.period_budget_exceeded,
+            40
+        );
         assert_eq!(evaluation.rejection_reason_counts.crew_capacity_exceeded, 0);
-        assert_eq!(evaluation.rejection_reason_counts.protected_service_floor, 18);
+        assert_eq!(
+            evaluation.rejection_reason_counts.protected_service_floor,
+            18
+        );
     }
 
     #[test]
@@ -754,7 +804,12 @@ mod tests {
             evaluation.candidate_subset_count
         );
         for portfolio in &evaluation.feasible_portfolios {
-            assert!(portfolio.period_cost_and_crew.values().all(|used| used.crew_u <= 1));
+            assert!(
+                portfolio
+                    .period_cost_and_crew
+                    .values()
+                    .all(|used| used.crew_u <= 1)
+            );
         }
     }
 
@@ -777,12 +832,20 @@ mod tests {
     #[test]
     fn tighter_period_budget_is_reported_and_never_exceeded() {
         let mut input = fixture();
-        input.budgets_by_period.iter_mut().find(|b| b.period == "P1").unwrap().cost_cap_u = 4;
+        input
+            .budgets_by_period
+            .iter_mut()
+            .find(|b| b.period == "P1")
+            .unwrap()
+            .cost_cap_u = 4;
         let evaluation = evaluate(&input).expect("tighter-budget synthetic case should evaluate");
         assert!(evaluation.rejection_reason_counts.period_budget_exceeded > 0);
-        assert!(evaluation.feasible_portfolios.iter().all(|portfolio| {
-            portfolio.period_cost_and_crew["P1"].cost_u <= 4
-        }));
+        assert!(
+            evaluation
+                .feasible_portfolios
+                .iter()
+                .all(|portfolio| { portfolio.period_cost_and_crew["P1"].cost_u <= 4 })
+        );
     }
 
     #[test]
@@ -802,14 +865,23 @@ mod tests {
             .find(|portfolio| portfolio_key(portfolio) == "A+F+J+R")
             .expect("A+F+J+R should remain on the frontier");
         assert_eq!(portfolio.outcomes["nominal"].ecological_quality_points, 13);
-        assert_eq!(portfolio.outcomes["hot_dry_grid_stress"].ecological_quality_points, 13);
+        assert_eq!(
+            portfolio.outcomes["hot_dry_grid_stress"].ecological_quality_points,
+            13
+        );
 
         let water_portfolio = evaluation
             .pareto_frontier
             .iter()
             .find(|portfolio| portfolio_key(portfolio) == "F+J+T+W")
             .expect("F+J+T+W should remain on the frontier");
-        assert_eq!(water_portfolio.outcomes["nominal"].essential_service_points, 12);
-        assert_eq!(water_portfolio.outcomes["hot_dry_grid_stress"].essential_service_points, 11);
+        assert_eq!(
+            water_portfolio.outcomes["nominal"].essential_service_points,
+            12
+        );
+        assert_eq!(
+            water_portfolio.outcomes["hot_dry_grid_stress"].essential_service_points,
+            11
+        );
     }
 }
