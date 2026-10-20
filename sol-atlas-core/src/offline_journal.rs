@@ -593,7 +593,8 @@ impl std::error::Error for JournalError {}
 #[cfg(test)]
 mod tests {
     use super::{
-        JournalEntry, JournalError, JournalState, OFFLINE_JOURNAL_SCHEMA_VERSION, OperationBinding,
+        JournalEntry, JournalEntrySnapshotV1, JournalError, JournalState,
+        JOURNAL_ENTRY_SNAPSHOT_SCHEMA_VERSION, OFFLINE_JOURNAL_SCHEMA_VERSION, OperationBinding,
         OperationEnvelope, ReconcileOutcome, RequiredNullableOperationId, ServiceReply,
     };
     use serde::Deserialize;
@@ -679,11 +680,13 @@ mod tests {
     fn snapshot_roundtrip_preserves_terminal_receipt_state() {
         let mut entry = prepared_entry();
         entry.mark_attempt_started().unwrap();
+        let binding = OperationBinding::from_envelope(entry.envelope());
+        let applied_revision = entry.envelope().expected_revision + 1;
         entry
             .reconcile(&ServiceReply::Received {
-                binding: OperationBinding::from_envelope(entry.envelope()),
+                binding,
                 receipt_ref: "receipt-snapshot".to_owned(),
-                applied_revision: entry.envelope().expected_revision + 1,
+                applied_revision,
             })
             .unwrap();
 
