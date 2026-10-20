@@ -1,0 +1,134 @@
+{
+  "added_scenario_id": "duplicate_normal_negative_control",
+  "original_scenario_ids": [
+    "heat_dry_power_stress",
+    "normal_reference"
+  ],
+  "augmented_scenario_ids": [
+    "duplicate_normal_negative_control",
+    "heat_dry_power_stress",
+    "normal_reference"
+  ],
+  "candidate_subset_count": 1024,
+  "original_feasible_portfolio_count": 82,
+  "augmented_feasible_portfolio_count": 82,
+  "original_frontier_project_ids": [
+    [
+      "P00",
+      "P01",
+      "P03",
+      "P05",
+      "P08"
+    ],
+    [
+      "P00",
+      "P01",
+      "P03",
+      "P05",
+      "P09"
+    ],
+    [
+      "P00",
+      "P01",
+      "P05",
+      "P06",
+      "P08"
+    ],
+    [
+      "P00",
+      "P01",
+      "P05",
+      "P06",
+      "P09"
+    ],
+    [
+      "P00",
+      "P03",
+      "P04",
+      "P05",
+      "P08"
+    ],
+    [
+      "P00",
+      "P03",
+      "P04",
+      "P05",
+      "P09"
+    ],
+    [
+      "P02",
+      "P04",
+      "P05",
+      "P06",
+      "P08"
+    ],
+    [
+      "P02",
+      "P04",
+      "P05",
+      "P06",
+      "P09"
+    ]
+  ],
+  "augmented_frontier_project_ids": [
+    [
+      "P00",
+      "P01",
+      "P03",
+      "P05",
+      "P08"
+    ],
+    [
+      "P00",
+      "P01",
+      "P03",
+      "P05",
+      "P09"
+    ],
+    [
+      "P00",
+      "P01",
+      "P05",
+      "P06",
+      "P08"
+    ],
+    [
+      "P00",
+      "P01",
+      "P05",
+      "P06",
+      "P09"
+    ],
+    [
+      "P00",
+      "P03",
+      "P04",
+      "P05",
+      "P08"
+    ],
+    [
+      "P00",
+      "P03",
+      "P04",
+      "P05",
+      "P09"
+    ],
+    [
+      "P02",
+      "P04",
+      "P05",
+      "P06",
+      "P08"
+    ],
+    [
+      "P02",
+      "P04",
+      "P05",
+      "P06",
+      "P09"
+    ]
+  ],
+  "original_feasible_removed_by_addition": [],
+  "frontier_id_intersection_count": 8,
+  "frontier_id_union_count": 8
+}
