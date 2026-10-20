@@ -1298,3 +1298,18 @@ canvas#globe-canvas.has-hover {
         transition-duration: 0.01ms !important;
     }
 }
+
+.landscape-export-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+}
+.landscape-download-status {
+    min-height: 1em;
+    margin-top: 8px;
+    color: #6d806e;
+    font-size: 10px;
+    line-height: 1.4;
+}
