@@ -583,6 +583,36 @@ mod tests {
     }
 
     #[test]
+    fn rsr_p90_exactly_at_threshold_passes_reference_criterion() {
+        let target = vec![Some(100.0); 10];
+        let mut measured = vec![Some(100.0); 10];
+        measured[8] = Some(103.0);
+        measured[9] = Some(103.0);
+
+        let result = assess_reference_rsr_tracking(&target, &measured, 10.0)
+            .expect("aligned finite power trace should be assessable");
+
+        assert!((result.p90_normalized_absolute_error - 0.3).abs() < 1.0e-12);
+        assert!(result.p90_threshold_satisfied);
+        assert_eq!(result.threshold_exceedance_count, 0);
+    }
+
+    #[test]
+    fn rsr_p90_above_threshold_fails_reference_criterion() {
+        let target = vec![Some(100.0); 10];
+        let mut measured = vec![Some(100.0); 10];
+        measured[8] = Some(104.0);
+        measured[9] = Some(104.0);
+
+        let result = assess_reference_rsr_tracking(&target, &measured, 10.0)
+            .expect("aligned finite power trace should be assessable");
+
+        assert!(result.p90_normalized_absolute_error > 0.3);
+        assert!(!result.p90_threshold_satisfied);
+        assert_eq!(result.threshold_exceedance_count, 2);
+    }
+
+    #[test]
     fn source_normalized_rsr_series_matches_reference_error_quantile_and_strict_rule() {
         let mut errors = vec![Some(0.0); 10];
         errors[9] = Some(-0.8);
