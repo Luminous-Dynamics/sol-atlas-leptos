@@ -276,7 +276,11 @@ fn validate_lineage(
     match lineage.basis {
         IntertemporalLineageBasis::Synthetic => {
             if !lineage.evidence_ids.is_empty() || !lineage.assumption_ids.is_empty() {
-                push_issue(issues, "synthetic_lineage_must_not_claim_source_evidence", path);
+                push_issue(
+                    issues,
+                    "synthetic_lineage_must_not_claim_source_evidence",
+                    path,
+                );
             }
         }
         IntertemporalLineageBasis::Assumed => {
@@ -286,7 +290,11 @@ fn validate_lineage(
         }
         IntertemporalLineageBasis::Observed | IntertemporalLineageBasis::Forecast => {
             if lineage.evidence_ids.is_empty() {
-                push_issue(issues, "evidence_backed_lineage_requires_evidence_ids", path);
+                push_issue(
+                    issues,
+                    "evidence_backed_lineage_requires_evidence_ids",
+                    path,
+                );
             }
         }
         IntertemporalLineageBasis::Scenario => {
@@ -325,7 +333,11 @@ pub fn validate_intertemporal_allocation_request(
         push_issue(&mut issues, "request_id_empty", "id");
     }
     if request.comparison_pair_id.trim().is_empty() {
-        push_issue(&mut issues, "comparison_pair_id_empty", "comparison_pair_id");
+        push_issue(
+            &mut issues,
+            "comparison_pair_id_empty",
+            "comparison_pair_id",
+        );
     }
     if request.scenario_id.trim().is_empty() {
         push_issue(&mut issues, "scenario_id_empty", "scenario_id");
@@ -336,52 +348,94 @@ pub fn validate_intertemporal_allocation_request(
             push_issue(&mut issues, "failure_bundle_id_empty", "failure_bundle_ids");
         }
         if !seen_failures.insert(id) {
-            push_issue(&mut issues, "failure_bundle_id_duplicate", "failure_bundle_ids");
+            push_issue(
+                &mut issues,
+                "failure_bundle_id_duplicate",
+                "failure_bundle_ids",
+            );
         }
     }
     if request.time_steps.is_empty() {
         push_issue(&mut issues, "time_grid_empty", "time_steps");
     }
     if request.time_steps.len() > MAX_INTERTEMPORAL_STEPS {
-        push_issue(&mut issues, "time_grid_too_large_for_exact_reference", "time_steps");
+        push_issue(
+            &mut issues,
+            "time_grid_too_large_for_exact_reference",
+            "time_steps",
+        );
     }
     let mut seen_steps = BTreeSet::new();
     for (index, step) in request.time_steps.iter().enumerate() {
         if step.id.trim().is_empty() {
-            push_issue(&mut issues, "time_step_id_empty", format!("time_steps[{index}].id"));
+            push_issue(
+                &mut issues,
+                "time_step_id_empty",
+                format!("time_steps[{index}].id"),
+            );
         }
         if !seen_steps.insert(&step.id) {
-            push_issue(&mut issues, "time_step_id_duplicate", format!("time_steps[{index}].id"));
+            push_issue(
+                &mut issues,
+                "time_step_id_duplicate",
+                format!("time_steps[{index}].id"),
+            );
         }
         if step.start_unix_seconds >= step.end_unix_seconds_exclusive {
-            push_issue(&mut issues, "time_step_interval_invalid", format!("time_steps[{index}].start_unix_seconds"));
+            push_issue(
+                &mut issues,
+                "time_step_interval_invalid",
+                format!("time_steps[{index}].start_unix_seconds"),
+            );
         }
         if index > 0
             && request.time_steps[index - 1].end_unix_seconds_exclusive != step.start_unix_seconds
         {
-            push_issue(&mut issues, "time_grid_not_contiguous", format!("time_steps[{index}]"));
+            push_issue(
+                &mut issues,
+                "time_grid_not_contiguous",
+                format!("time_steps[{index}]"),
+            );
         }
     }
     if request.services.is_empty() {
         push_issue(&mut issues, "service_set_empty", "services");
     }
     if request.services.len() > MAX_INTERTEMPORAL_SERVICES {
-        push_issue(&mut issues, "service_count_exceeds_exact_reference_limit", "services");
+        push_issue(
+            &mut issues,
+            "service_count_exceeds_exact_reference_limit",
+            "services",
+        );
     }
     if request.resources.is_empty() {
         push_issue(&mut issues, "resource_set_empty", "resources");
     }
     if request.resources.len() > MAX_INTERTEMPORAL_RESOURCES {
-        push_issue(&mut issues, "resource_count_exceeds_exact_reference_limit", "resources");
+        push_issue(
+            &mut issues,
+            "resource_count_exceeds_exact_reference_limit",
+            "resources",
+        );
     }
     if request.usages.is_empty() {
         push_issue(&mut issues, "usage_set_empty", "usages");
     }
     if request.usages.len() > MAX_INTERTEMPORAL_USAGES {
-        push_issue(&mut issues, "usage_count_exceeds_exact_reference_limit", "usages");
+        push_issue(
+            &mut issues,
+            "usage_count_exceeds_exact_reference_limit",
+            "usages",
+        );
     }
-    if request.max_candidate_plans == 0 || request.max_candidate_plans > MAX_INTERTEMPORAL_CANDIDATE_PLANS {
-        push_issue(&mut issues, "search_budget_out_of_range", "max_candidate_plans");
+    if request.max_candidate_plans == 0
+        || request.max_candidate_plans > MAX_INTERTEMPORAL_CANDIDATE_PLANS
+    {
+        push_issue(
+            &mut issues,
+            "search_budget_out_of_range",
+            "max_candidate_plans",
+        );
     }
 
     let step_count = request.time_steps.len();
@@ -392,15 +446,32 @@ pub fn validate_intertemporal_allocation_request(
             push_issue(&mut issues, "service_id_empty", format!("{base}.id"));
         }
         if service.community_id.trim().is_empty() {
-            push_issue(&mut issues, "community_id_empty", format!("{base}.community_id"));
+            push_issue(
+                &mut issues,
+                "community_id_empty",
+                format!("{base}.community_id"),
+            );
         }
         if service.beneficiary_weight == 0 {
-            push_issue(&mut issues, "beneficiary_weight_zero", format!("{base}.beneficiary_weight"));
+            push_issue(
+                &mut issues,
+                "beneficiary_weight_zero",
+                format!("{base}.beneficiary_weight"),
+            );
         }
         if service.essential_floor_basis_points > 10_000 {
-            push_issue(&mut issues, "essential_floor_out_of_range", format!("{base}.essential_floor_basis_points"));
+            push_issue(
+                &mut issues,
+                "essential_floor_out_of_range",
+                format!("{base}.essential_floor_basis_points"),
+            );
         }
-        validate_series(&service.demand, step_count, &format!("{base}.demand"), &mut issues);
+        validate_series(
+            &service.demand,
+            step_count,
+            &format!("{base}.demand"),
+            &mut issues,
+        );
         for (step_index, value) in service.demand.values.iter().enumerate() {
             if *value == Some(0) {
                 push_issue(
@@ -421,19 +492,32 @@ pub fn validate_intertemporal_allocation_request(
         if resource.id.trim().is_empty() {
             push_issue(&mut issues, "resource_id_empty", format!("{base}.id"));
         }
-        validate_series(&resource.capacity, step_count, &format!("{base}.capacity"), &mut issues);
+        validate_series(
+            &resource.capacity,
+            step_count,
+            &format!("{base}.capacity"),
+            &mut issues,
+        );
         if let Some(inventory) = &resource.inventory {
             if inventory.maximum_stock_quanta == 0
                 || inventory.minimum_reserve_quanta > inventory.maximum_stock_quanta
                 || inventory.terminal_reserve_quanta > inventory.maximum_stock_quanta
             {
-                push_issue(&mut issues, "inventory_storage_bounds_invalid", format!("{base}.inventory"));
+                push_issue(
+                    &mut issues,
+                    "inventory_storage_bounds_invalid",
+                    format!("{base}.inventory"),
+                );
             }
             if inventory
                 .opening_stock_quanta
                 .is_some_and(|opening| opening > inventory.maximum_stock_quanta)
             {
-                push_issue(&mut issues, "opening_stock_exceeds_maximum", format!("{base}.inventory.opening_stock_quanta"));
+                push_issue(
+                    &mut issues,
+                    "opening_stock_exceeds_maximum",
+                    format!("{base}.inventory.opening_stock_quanta"),
+                );
             }
             validate_lineage(
                 &inventory.opening_stock_lineage,
@@ -445,16 +529,37 @@ pub fn validate_intertemporal_allocation_request(
                 &format!("{base}.inventory.storage_bounds_lineage"),
                 &mut issues,
             );
-            validate_series(&inventory.inflow, step_count, &format!("{base}.inventory.inflow"), &mut issues);
-            validate_series(&inventory.losses, step_count, &format!("{base}.inventory.losses"), &mut issues);
+            validate_series(
+                &inventory.inflow,
+                step_count,
+                &format!("{base}.inventory.inflow"),
+                &mut issues,
+            );
+            validate_series(
+                &inventory.losses,
+                step_count,
+                &format!("{base}.inventory.losses"),
+                &mut issues,
+            );
             if inventory.inflow.unit != resource.capacity.unit {
-                push_issue(&mut issues, "inventory_inflow_unit_mismatch", format!("{base}.inventory.inflow.unit"));
+                push_issue(
+                    &mut issues,
+                    "inventory_inflow_unit_mismatch",
+                    format!("{base}.inventory.inflow.unit"),
+                );
             }
             if inventory.losses.unit != resource.capacity.unit {
-                push_issue(&mut issues, "inventory_loss_unit_mismatch", format!("{base}.inventory.losses.unit"));
+                push_issue(
+                    &mut issues,
+                    "inventory_loss_unit_mismatch",
+                    format!("{base}.inventory.losses.unit"),
+                );
             }
         }
-        if resource_by_id.insert(resource.id.clone(), resource).is_some() {
+        if resource_by_id
+            .insert(resource.id.clone(), resource)
+            .is_some()
+        {
             push_issue(&mut issues, "resource_id_duplicate", format!("{base}.id"));
         }
     }
@@ -475,40 +580,74 @@ pub fn validate_intertemporal_allocation_request(
         let resource = resource_by_id.get(&usage.resource_id).copied();
         let service = service_by_id.get(&usage.service_id).copied();
         if resource.is_none() {
-            push_issue(&mut issues, "usage_resource_unknown", format!("{base}.resource_id"));
+            push_issue(
+                &mut issues,
+                "usage_resource_unknown",
+                format!("{base}.resource_id"),
+            );
         }
         if service.is_none() {
-            push_issue(&mut issues, "usage_service_unknown", format!("{base}.service_id"));
+            push_issue(
+                &mut issues,
+                "usage_service_unknown",
+                format!("{base}.service_id"),
+            );
         }
         if let Some(resource) = resource {
             if usage.resource_unit != resource.capacity.unit {
-                push_issue(&mut issues, "usage_resource_unit_mismatch", format!("{base}.resource_unit"));
+                push_issue(
+                    &mut issues,
+                    "usage_resource_unit_mismatch",
+                    format!("{base}.resource_unit"),
+                );
             }
         }
         if let Some(service) = service {
             if usage.service_unit != service.demand.unit {
-                push_issue(&mut issues, "usage_service_unit_mismatch", format!("{base}.service_unit"));
+                push_issue(
+                    &mut issues,
+                    "usage_service_unit_mismatch",
+                    format!("{base}.service_unit"),
+                );
             }
         }
         match (usage.usage_numerator, usage.usage_denominator) {
             (Some(numerator), Some(denominator)) if numerator > 0 && denominator > 0 => {}
             (None, None) => {}
-            _ => push_issue(&mut issues, "usage_ratio_invalid_or_partially_unknown", format!("{base}.usage_numerator")),
+            _ => push_issue(
+                &mut issues,
+                "usage_ratio_invalid_or_partially_unknown",
+                format!("{base}.usage_numerator"),
+            ),
         }
-        if !seen_resource_service_pairs.insert((usage.resource_id.clone(), usage.service_id.clone())) {
-            push_issue(&mut issues, "duplicate_resource_service_usage", base.clone());
+        if !seen_resource_service_pairs
+            .insert((usage.resource_id.clone(), usage.service_id.clone()))
+        {
+            push_issue(
+                &mut issues,
+                "duplicate_resource_service_usage",
+                base.clone(),
+            );
         }
         used_services.insert(usage.service_id.clone());
         used_resources.insert(usage.resource_id.clone());
     }
     for service in request.services.iter() {
         if !used_services.contains(&service.id) {
-            push_issue(&mut issues, "service_without_resource_constraint", format!("services.{}", service.id));
+            push_issue(
+                &mut issues,
+                "service_without_resource_constraint",
+                format!("services.{}", service.id),
+            );
         }
     }
     for resource in request.resources.iter() {
         if !used_resources.contains(&resource.id) {
-            push_issue(&mut issues, "resource_without_service_constraint", format!("resources.{}", resource.id));
+            push_issue(
+                &mut issues,
+                "resource_without_service_constraint",
+                format!("resources.{}", resource.id),
+            );
         }
     }
 
@@ -614,7 +753,10 @@ fn priority_delivery_vector(
     services: &[&IntertemporalServiceDemand],
     step_count: usize,
 ) -> Vec<u128> {
-    let priorities: BTreeSet<u16> = services.iter().map(|service| service.priority_rank).collect();
+    let priorities: BTreeSet<u16> = services
+        .iter()
+        .map(|service| service.priority_rank)
+        .collect();
     priorities
         .into_iter()
         .map(|priority| {
@@ -648,38 +790,28 @@ fn compare_allocations(
     let right_leximin = leximin_coverage(right, demands, step_count);
 
     let primary = match policy {
-        IntertemporalAllocationPolicy::EqualCoverageLeximin => {
-            left_leximin.cmp(&right_leximin)
-        }
+        IntertemporalAllocationPolicy::EqualCoverageLeximin => left_leximin.cmp(&right_leximin),
         IntertemporalAllocationPolicy::FixedPriority => {
             priority_delivery_vector(left, services, step_count)
                 .cmp(&priority_delivery_vector(right, services, step_count))
         }
-        IntertemporalAllocationPolicy::EssentialFloorFirst => {
-            right_shortfall.cmp(&left_shortfall)
-        }
+        IntertemporalAllocationPolicy::EssentialFloorFirst => right_shortfall.cmp(&left_shortfall),
     };
     if primary != Ordering::Equal {
         return primary;
     }
 
     let secondary = match policy {
-        IntertemporalAllocationPolicy::EqualCoverageLeximin => {
-            right_shortfall
-                .cmp(&left_shortfall)
-                .then_with(|| left_delivered.cmp(&right_delivered))
-        }
-        IntertemporalAllocationPolicy::FixedPriority => {
-            right_shortfall
-                .cmp(&left_shortfall)
-                .then_with(|| left_delivered.cmp(&right_delivered))
-                .then_with(|| left_leximin.cmp(&right_leximin))
-        }
-        IntertemporalAllocationPolicy::EssentialFloorFirst => {
-            left_delivered
-                .cmp(&right_delivered)
-                .then_with(|| left_leximin.cmp(&right_leximin))
-        }
+        IntertemporalAllocationPolicy::EqualCoverageLeximin => right_shortfall
+            .cmp(&left_shortfall)
+            .then_with(|| left_delivered.cmp(&right_delivered)),
+        IntertemporalAllocationPolicy::FixedPriority => right_shortfall
+            .cmp(&left_shortfall)
+            .then_with(|| left_delivered.cmp(&right_delivered))
+            .then_with(|| left_leximin.cmp(&right_leximin)),
+        IntertemporalAllocationPolicy::EssentialFloorFirst => left_delivered
+            .cmp(&right_delivered)
+            .then_with(|| left_leximin.cmp(&right_leximin)),
     };
     if secondary != Ordering::Equal {
         return secondary;
@@ -700,7 +832,11 @@ fn build_unknown_paths(request: &IntertemporalAllocationRequest) -> Vec<String> 
     for service in &request.services {
         for (index, value) in service.demand.values.iter().enumerate() {
             if value.is_none() {
-                let step_id = request.time_steps.get(index).map(|step| step.id.as_str()).unwrap_or("unknown-step");
+                let step_id = request
+                    .time_steps
+                    .get(index)
+                    .map(|step| step.id.as_str())
+                    .unwrap_or("unknown-step");
                 unknown.push(format!("services.{}.demand[{step_id}]", service.id));
             }
         }
@@ -708,7 +844,11 @@ fn build_unknown_paths(request: &IntertemporalAllocationRequest) -> Vec<String> 
     for resource in &request.resources {
         for (index, value) in resource.capacity.values.iter().enumerate() {
             if value.is_none() {
-                let step_id = request.time_steps.get(index).map(|step| step.id.as_str()).unwrap_or("unknown-step");
+                let step_id = request
+                    .time_steps
+                    .get(index)
+                    .map(|step| step.id.as_str())
+                    .unwrap_or("unknown-step");
                 unknown.push(format!("resources.{}.capacity[{step_id}]", resource.id));
             }
         }
@@ -718,14 +858,28 @@ fn build_unknown_paths(request: &IntertemporalAllocationRequest) -> Vec<String> 
             }
             for (index, value) in inventory.inflow.values.iter().enumerate() {
                 if value.is_none() {
-                    let step_id = request.time_steps.get(index).map(|step| step.id.as_str()).unwrap_or("unknown-step");
-                    unknown.push(format!("resources.{}.inventory.inflow[{step_id}]", resource.id));
+                    let step_id = request
+                        .time_steps
+                        .get(index)
+                        .map(|step| step.id.as_str())
+                        .unwrap_or("unknown-step");
+                    unknown.push(format!(
+                        "resources.{}.inventory.inflow[{step_id}]",
+                        resource.id
+                    ));
                 }
             }
             for (index, value) in inventory.losses.values.iter().enumerate() {
                 if value.is_none() {
-                    let step_id = request.time_steps.get(index).map(|step| step.id.as_str()).unwrap_or("unknown-step");
-                    unknown.push(format!("resources.{}.inventory.losses[{step_id}]", resource.id));
+                    let step_id = request
+                        .time_steps
+                        .get(index)
+                        .map(|step| step.id.as_str())
+                        .unwrap_or("unknown-step");
+                    unknown.push(format!(
+                        "resources.{}.inventory.losses[{step_id}]",
+                        resource.id
+                    ));
                 }
             }
         }
@@ -764,7 +918,10 @@ fn collect_lineage_references(
     for usage in &request.usages {
         add(&usage.lineage);
     }
-    (evidence.into_iter().collect(), assumptions.into_iter().collect())
+    (
+        evidence.into_iter().collect(),
+        assumptions.into_iter().collect(),
+    )
 }
 
 fn service_step_skeleton(
@@ -775,7 +932,8 @@ fn service_step_skeleton(
     for service in services_sorted {
         for (step_index, step) in request.time_steps.iter().enumerate() {
             let demand = service.demand.values.get(step_index).copied().flatten();
-            let floor = demand.map(|value| essential_floor_quanta(value, service.essential_floor_basis_points));
+            let floor = demand
+                .map(|value| essential_floor_quanta(value, service.essential_floor_basis_points));
             output.push(IntertemporalServiceStepResult {
                 service_id: service.id.clone(),
                 community_id: service.community_id.clone(),
@@ -852,7 +1010,8 @@ fn build_resource_step_results(
     for usage in usages_indexed {
         for step_index in 0..step_count {
             let amount = allocation[usage.service_index * step_count + step_index];
-            let consumed = resource_quanta_for_delivery_checked(amount, usage.numerator, usage.denominator)?;
+            let consumed =
+                resource_quanta_for_delivery_checked(amount, usage.numerator, usage.denominator)?;
             used[usage.resource_index][step_index] =
                 used[usage.resource_index][step_index].checked_add(consumed as u128)?;
         }
@@ -903,7 +1062,9 @@ fn build_resource_step_results(
                 if ending < inventory.minimum_reserve_quanta as u128 {
                     return None;
                 }
-                if step_index + 1 == step_count && ending < inventory.terminal_reserve_quanta as u128 {
+                if step_index + 1 == step_count
+                    && ending < inventory.terminal_reserve_quanta as u128
+                {
                     return None;
                 }
                 let ending_u64 = u64::try_from(ending).ok()?;
@@ -942,7 +1103,8 @@ fn weighted_feasible_plan_is_preferred(
     demands: &[Vec<u64>],
     step_count: usize,
 ) -> bool {
-    compare_allocations(policy, candidate, incumbent, services, demands, step_count) == Ordering::Greater
+    compare_allocations(policy, candidate, incumbent, services, demands, step_count)
+        == Ordering::Greater
 }
 
 fn enumerate_candidates(
@@ -1076,7 +1238,8 @@ pub fn assess_intertemporal_resource_allocation(
     }
 
     let space = search_space_size(&demands);
-    let space_within_budget = space.is_some_and(|value| value <= request.max_candidate_plans as u128);
+    let space_within_budget =
+        space.is_some_and(|value| value <= request.max_candidate_plans as u128);
     if !space_within_budget {
         return Ok(empty_assessment(
             request,
@@ -1091,7 +1254,8 @@ pub fn assess_intertemporal_resource_allocation(
             &assumption_ids,
         ));
     }
-    let exact_space = u64::try_from(space.expect("within-budget search space")).expect("search cap is bounded by usize");
+    let exact_space = u64::try_from(space.expect("within-budget search space"))
+        .expect("search cap is bounded by usize");
     let indexed_usages: Vec<IndexedUsage> = usages_sorted
         .iter()
         .map(|usage| IndexedUsage {
@@ -1101,14 +1265,22 @@ pub fn assess_intertemporal_resource_allocation(
             service_index: *service_index
                 .get(&usage.service_id)
                 .expect("usage references validated service"),
-            numerator: usage.usage_numerator.expect("unknown coefficient handled above"),
-            denominator: usage.usage_denominator.expect("unknown coefficient handled above"),
+            numerator: usage
+                .usage_numerator
+                .expect("unknown coefficient handled above"),
+            denominator: usage
+                .usage_denominator
+                .expect("unknown coefficient handled above"),
         })
         .collect();
 
     let slots: Vec<CandidateSlot> = demands
         .iter()
-        .flat_map(|service_demands| service_demands.iter().map(|demand| CandidateSlot { demand: *demand }))
+        .flat_map(|service_demands| {
+            service_demands
+                .iter()
+                .map(|demand| CandidateSlot { demand: *demand })
+        })
         .collect();
     let mut current = vec![0_u64; slots.len()];
     let mut best = None;
@@ -1123,7 +1295,11 @@ pub fn assess_intertemporal_resource_allocation(
         &resources_sorted,
         &indexed_usages,
         &demands,
-        &request.time_steps.iter().map(|step| step.id.clone()).collect::<Vec<_>>(),
+        &request
+            .time_steps
+            .iter()
+            .map(|step| step.id.clone())
+            .collect::<Vec<_>>(),
         &mut feasible_count,
         &mut best,
         &mut best_resource_steps,
@@ -1137,7 +1313,10 @@ pub fn assess_intertemporal_resource_allocation(
             exact_space,
             Some(0),
             true,
-            vec!["no_feasible_plan_satisfies_all_resource_and_terminal_reserve_constraints".to_owned()],
+            vec![
+                "no_feasible_plan_satisfies_all_resource_and_terminal_reserve_constraints"
+                    .to_owned(),
+            ],
             &services_sorted,
             &evidence_ids,
             &assumption_ids,
@@ -1188,7 +1367,8 @@ pub fn assess_intertemporal_resource_allocation(
         feasible_plan_count: Some(feasible_count),
         search_complete: true,
         service_steps,
-        resource_steps: best_resource_steps.expect("best allocation has a feasible resource ledger"),
+        resource_steps: best_resource_steps
+            .expect("best allocation has a feasible resource ledger"),
         input_blockers: Vec::new(),
         supporting_evidence_ids: evidence_ids,
         assumption_ids,
@@ -1200,12 +1380,11 @@ pub fn assess_intertemporal_resource_allocation(
 mod tests {
     use super::*;
     use crate::dependency_logic::ScenarioBasis;
-    use crate::service_shared_resource_allocation::{
-        assess_shared_resource_allocation, SharedResourceAllocationPolicy,
-        SharedResourceAllocationRequest, SharedResourceCapacity, SharedResourceServiceDemand,
-        SharedResourceUsage,
-    };
     use crate::service_function::FunctionMeasurement;
+    use crate::service_shared_resource_allocation::{
+        SharedResourceAllocationPolicy, SharedResourceAllocationRequest, SharedResourceCapacity,
+        SharedResourceServiceDemand, SharedResourceUsage, assess_shared_resource_allocation,
+    };
     use crate::spatial_economic::{EvidenceRecord, Quantity};
 
     fn synthetic_lineage() -> IntertemporalLineage {
@@ -1226,12 +1405,26 @@ mod tests {
 
     fn time_steps() -> Vec<IntertemporalTimeStep> {
         vec![
-            IntertemporalTimeStep { id: "t0".to_owned(), start_unix_seconds: 0, end_unix_seconds_exclusive: 60 },
-            IntertemporalTimeStep { id: "t1".to_owned(), start_unix_seconds: 60, end_unix_seconds_exclusive: 120 },
+            IntertemporalTimeStep {
+                id: "t0".to_owned(),
+                start_unix_seconds: 0,
+                end_unix_seconds_exclusive: 60,
+            },
+            IntertemporalTimeStep {
+                id: "t1".to_owned(),
+                start_unix_seconds: 60,
+                end_unix_seconds_exclusive: 120,
+            },
         ]
     }
 
-    fn service(id: &str, weight: u64, priority: u16, demand: Vec<Option<u64>>, floor_bps: u16) -> IntertemporalServiceDemand {
+    fn service(
+        id: &str,
+        weight: u64,
+        priority: u16,
+        demand: Vec<Option<u64>>,
+        floor_bps: u16,
+    ) -> IntertemporalServiceDemand {
         IntertemporalServiceDemand {
             id: id.to_owned(),
             community_id: format!("community-{id}"),
@@ -1268,7 +1461,13 @@ mod tests {
         }
     }
 
-    fn usage(id: &str, resource_id: &str, service_id: &str, numerator: Option<u64>, denominator: Option<u64>) -> IntertemporalResourceUsage {
+    fn usage(
+        id: &str,
+        resource_id: &str,
+        service_id: &str,
+        numerator: Option<u64>,
+        denominator: Option<u64>,
+    ) -> IntertemporalResourceUsage {
         IntertemporalResourceUsage {
             id: id.to_owned(),
             resource_id: resource_id.to_owned(),
@@ -1295,9 +1494,16 @@ mod tests {
                 service("essential-a", 10, 0, vec![Some(1), Some(1)], 10_000),
                 service("general-b", 1, 1, vec![Some(3), Some(3)], 10_000),
             ],
-            resources: vec![
-                inventory_resource("tank", Some(3), vec![Some(3), Some(3)], vec![Some(0), Some(3)], vec![Some(0), Some(0)], 4, 0, 2)
-            ],
+            resources: vec![inventory_resource(
+                "tank",
+                Some(3),
+                vec![Some(3), Some(3)],
+                vec![Some(0), Some(3)],
+                vec![Some(0), Some(0)],
+                4,
+                0,
+                2,
+            )],
             usages: vec![
                 usage("usage-a", "tank", "essential-a", Some(1), Some(1)),
                 usage("usage-b", "tank", "general-b", Some(1), Some(1)),
@@ -1310,20 +1516,34 @@ mod tests {
     fn two_step_planner_uses_later_inflow_and_preserves_terminal_reserve() {
         let request = tank_request(IntertemporalAllocationPolicy::EssentialFloorFirst);
         let result = assess_intertemporal_resource_allocation(&request).expect("valid fixture");
-        assert_eq!(result.disposition, IntertemporalAllocationDisposition::Optimal);
+        assert_eq!(
+            result.disposition,
+            IntertemporalAllocationDisposition::Optimal
+        );
         assert!(result.search_complete);
         assert_eq!(result.search_space_size, Some(4 * 4 * 2 * 2));
         assert_eq!(result.service_steps.len(), 4);
 
-        let allocation: BTreeMap<_, _> = result.service_steps.iter()
-            .map(|row| ((row.service_id.as_str(), row.step_id.as_str()), row.allocated_quanta.unwrap()))
+        let allocation: BTreeMap<_, _> = result
+            .service_steps
+            .iter()
+            .map(|row| {
+                (
+                    (row.service_id.as_str(), row.step_id.as_str()),
+                    row.allocated_quanta.unwrap(),
+                )
+            })
             .collect();
         assert_eq!(allocation[("essential-a", "t0")], 1);
         assert_eq!(allocation[("essential-a", "t1")], 1);
         assert_eq!(allocation[("general-b", "t0")], 1);
         assert_eq!(allocation[("general-b", "t1")], 1);
 
-        let rows: Vec<_> = result.resource_steps.iter().filter(|row| row.resource_id == "tank").collect();
+        let rows: Vec<_> = result
+            .resource_steps
+            .iter()
+            .filter(|row| row.resource_id == "tank")
+            .collect();
         assert_eq!(rows[0].opening_stock_quanta, Some(3));
         assert_eq!(rows[0].inflow_quanta, Some(0));
         assert_eq!(rows[0].consumed_quanta, 2);
@@ -1333,34 +1553,69 @@ mod tests {
         assert_eq!(rows[1].consumed_quanta, 2);
         assert_eq!(rows[1].ending_stock_quanta, Some(2));
         assert_eq!(rows[1].balance_equation_holds, Some(true));
-        assert!(rows.iter().all(|row| row.residual_capacity_quanta <= row.capacity_quanta));
+        assert!(
+            rows.iter()
+                .all(|row| row.residual_capacity_quanta <= row.capacity_quanta)
+        );
     }
 
     #[test]
     fn missing_capacity_is_indeterminate_not_zero_capacity() {
         let mut request = tank_request(IntertemporalAllocationPolicy::EssentialFloorFirst);
         request.resources[0].capacity.values[1] = None;
-        let result = assess_intertemporal_resource_allocation(&request).expect("well-formed unknown input");
-        assert_eq!(result.disposition, IntertemporalAllocationDisposition::IndeterminateInput);
+        let result =
+            assess_intertemporal_resource_allocation(&request).expect("well-formed unknown input");
+        assert_eq!(
+            result.disposition,
+            IntertemporalAllocationDisposition::IndeterminateInput
+        );
         assert_eq!(result.candidate_plans_examined, 0);
         assert!(!result.search_complete);
-        assert!(result.input_blockers.iter().any(|field| field == "resources.tank.capacity[t1]"));
+        assert!(
+            result
+                .input_blockers
+                .iter()
+                .any(|field| field == "resources.tank.capacity[t1]")
+        );
         assert!(result.resource_steps.is_empty());
-        assert!(result.service_steps.iter().all(|row| row.floor_status == IntertemporalFloorStatus::Indeterminate));
-        assert!(result.service_steps.iter().all(|row| row.allocated_quanta.is_none()));
+        assert!(
+            result
+                .service_steps
+                .iter()
+                .all(|row| row.floor_status == IntertemporalFloorStatus::Indeterminate)
+        );
+        assert!(
+            result
+                .service_steps
+                .iter()
+                .all(|row| row.allocated_quanta.is_none())
+        );
     }
 
     #[test]
     fn search_cap_returns_no_partial_plan() {
         let mut request = tank_request(IntertemporalAllocationPolicy::EssentialFloorFirst);
         request.max_candidate_plans = 5;
-        let result = assess_intertemporal_resource_allocation(&request).expect("valid bounded input");
-        assert_eq!(result.disposition, IntertemporalAllocationDisposition::SearchCapExceeded);
+        let result =
+            assess_intertemporal_resource_allocation(&request).expect("valid bounded input");
+        assert_eq!(
+            result.disposition,
+            IntertemporalAllocationDisposition::SearchCapExceeded
+        );
         assert_eq!(result.candidate_plans_examined, 0);
         assert!(!result.search_complete);
-        assert!(result.service_steps.iter().all(|row| row.allocated_quanta.is_none()));
+        assert!(
+            result
+                .service_steps
+                .iter()
+                .all(|row| row.allocated_quanta.is_none())
+        );
         assert_eq!(result.resource_steps.len(), 0);
-        assert!(result.input_blockers.contains(&"complete_search_space_exceeds_declared_budget".to_owned()));
+        assert!(
+            result
+                .input_blockers
+                .contains(&"complete_search_space_exceeds_declared_budget".to_owned())
+        );
     }
 
     #[test]
@@ -1373,7 +1628,10 @@ mod tests {
             .inflow
             .values = vec![Some(0), Some(0)];
         let result = assess_intertemporal_resource_allocation(&request).unwrap();
-        assert_eq!(result.disposition, IntertemporalAllocationDisposition::Optimal);
+        assert_eq!(
+            result.disposition,
+            IntertemporalAllocationDisposition::Optimal
+        );
         assert!(result.search_complete);
         let tank_rows: Vec<_> = result
             .resource_steps
@@ -1383,11 +1641,18 @@ mod tests {
         assert_eq!(tank_rows.len(), 2);
         assert_eq!(tank_rows[1].ending_stock_quanta, Some(2));
         assert_eq!(
-            tank_rows.iter().map(|row| row.withdrawal_quanta.unwrap()).sum::<u64>(),
+            tank_rows
+                .iter()
+                .map(|row| row.withdrawal_quanta.unwrap())
+                .sum::<u64>(),
             1,
             "only one water quantum may be withdrawn while preserving the terminal reserve"
         );
-        assert!(tank_rows.iter().all(|row| row.balance_equation_holds == Some(true)));
+        assert!(
+            tank_rows
+                .iter()
+                .all(|row| row.balance_equation_holds == Some(true))
+        );
     }
 
     #[test]
@@ -1400,10 +1665,18 @@ mod tests {
             .losses
             .values = vec![Some(4), Some(0)];
         let result = assess_intertemporal_resource_allocation(&request).unwrap();
-        assert_eq!(result.disposition, IntertemporalAllocationDisposition::Infeasible);
+        assert_eq!(
+            result.disposition,
+            IntertemporalAllocationDisposition::Infeasible
+        );
         assert!(result.search_complete);
         assert_eq!(result.feasible_plan_count, Some(0));
-        assert!(result.service_steps.iter().all(|row| row.allocated_quanta.is_none()));
+        assert!(
+            result
+                .service_steps
+                .iter()
+                .all(|row| row.allocated_quanta.is_none())
+        );
         assert!(result.resource_steps.is_empty());
     }
 
@@ -1417,9 +1690,22 @@ mod tests {
             .inflow
             .values[1] = None;
         let result = assess_intertemporal_resource_allocation(&request).unwrap();
-        assert_eq!(result.disposition, IntertemporalAllocationDisposition::IndeterminateInput);
-        assert!(result.input_blockers.iter().any(|path| path == "resources.tank.inventory.inflow[t1]"));
-        assert!(result.service_steps.iter().all(|row| row.allocated_quanta.is_none()));
+        assert_eq!(
+            result.disposition,
+            IntertemporalAllocationDisposition::IndeterminateInput
+        );
+        assert!(
+            result
+                .input_blockers
+                .iter()
+                .any(|path| path == "resources.tank.inventory.inflow[t1]")
+        );
+        assert!(
+            result
+                .service_steps
+                .iter()
+                .all(|row| row.allocated_quanta.is_none())
+        );
         assert!(result.resource_steps.is_empty());
     }
 
@@ -1441,8 +1727,16 @@ mod tests {
         request.usages[0].usage_numerator = None;
         request.usages[0].usage_denominator = None;
         let result = assess_intertemporal_resource_allocation(&request).unwrap();
-        assert_eq!(result.disposition, IntertemporalAllocationDisposition::IndeterminateInput);
-        assert!(result.input_blockers.iter().any(|field| field == "usages.usage-a.coefficient"));
+        assert_eq!(
+            result.disposition,
+            IntertemporalAllocationDisposition::IndeterminateInput
+        );
+        assert!(
+            result
+                .input_blockers
+                .iter()
+                .any(|field| field == "usages.usage-a.coefficient")
+        );
     }
 
     #[test]
@@ -1452,10 +1746,19 @@ mod tests {
         assert_eq!(resource_quanta_for_delivery_checked(3, 1, 2), Some(2));
     }
 
-    fn assumed_measurement(entity_id: &str, value: f64, unit: &str, rationale: &str) -> FunctionMeasurement {
+    fn assumed_measurement(
+        entity_id: &str,
+        value: f64,
+        unit: &str,
+        rationale: &str,
+    ) -> FunctionMeasurement {
         FunctionMeasurement {
             entity_id: entity_id.to_owned(),
-            quantity: Quantity { value, unit: unit.to_owned(), uncertainty_abs: None },
+            quantity: Quantity {
+                value,
+                unit: unit.to_owned(),
+                uncertainty_abs: None,
+            },
             basis: ScenarioBasis::Assumed,
             rationale: rationale.to_owned(),
             supporting_evidence_ids: Vec::new(),
@@ -1471,27 +1774,63 @@ mod tests {
             design_role: IntertemporalDesignRole::Candidate,
             scenario_id: "synthetic-one-step".to_owned(),
             failure_bundle_ids: Vec::new(),
-            time_steps: vec![IntertemporalTimeStep { id: "t0".to_owned(), start_unix_seconds: 0, end_unix_seconds_exclusive: 60 }],
+            time_steps: vec![IntertemporalTimeStep {
+                id: "t0".to_owned(),
+                start_unix_seconds: 0,
+                end_unix_seconds_exclusive: 60,
+            }],
             policy: IntertemporalAllocationPolicy::EqualCoverageLeximin,
             services: vec![
                 IntertemporalServiceDemand {
-                    id: "service-a".to_owned(), community_id: "community-a".to_owned(), beneficiary_weight: 1, priority_rank: 0,
-                    demand: series("delivery-quanta", vec![Some(4)]), essential_floor_basis_points: 5_000,
+                    id: "service-a".to_owned(),
+                    community_id: "community-a".to_owned(),
+                    beneficiary_weight: 1,
+                    priority_rank: 0,
+                    demand: series("delivery-quanta", vec![Some(4)]),
+                    essential_floor_basis_points: 5_000,
                 },
                 IntertemporalServiceDemand {
-                    id: "service-b".to_owned(), community_id: "community-b".to_owned(), beneficiary_weight: 1, priority_rank: 1,
-                    demand: series("delivery-quanta", vec![Some(4)]), essential_floor_basis_points: 5_000,
+                    id: "service-b".to_owned(),
+                    community_id: "community-b".to_owned(),
+                    beneficiary_weight: 1,
+                    priority_rank: 1,
+                    demand: series("delivery-quanta", vec![Some(4)]),
+                    essential_floor_basis_points: 5_000,
                 },
             ],
-            resources: vec![IntertemporalResource { id: "shared".to_owned(), capacity: series("resource-quanta", vec![Some(4)]), inventory: None }],
+            resources: vec![IntertemporalResource {
+                id: "shared".to_owned(),
+                capacity: series("resource-quanta", vec![Some(4)]),
+                inventory: None,
+            }],
             usages: vec![
-                IntertemporalResourceUsage { id: "usage-a".to_owned(), resource_id: "shared".to_owned(), service_id: "service-a".to_owned(), resource_unit: "resource-quanta".to_owned(), service_unit: "delivery-quanta".to_owned(), usage_numerator: Some(1), usage_denominator: Some(1), lineage: synthetic_lineage() },
-                IntertemporalResourceUsage { id: "usage-b".to_owned(), resource_id: "shared".to_owned(), service_id: "service-b".to_owned(), resource_unit: "resource-quanta".to_owned(), service_unit: "delivery-quanta".to_owned(), usage_numerator: Some(1), usage_denominator: Some(1), lineage: synthetic_lineage() },
+                IntertemporalResourceUsage {
+                    id: "usage-a".to_owned(),
+                    resource_id: "shared".to_owned(),
+                    service_id: "service-a".to_owned(),
+                    resource_unit: "resource-quanta".to_owned(),
+                    service_unit: "delivery-quanta".to_owned(),
+                    usage_numerator: Some(1),
+                    usage_denominator: Some(1),
+                    lineage: synthetic_lineage(),
+                },
+                IntertemporalResourceUsage {
+                    id: "usage-b".to_owned(),
+                    resource_id: "shared".to_owned(),
+                    service_id: "service-b".to_owned(),
+                    resource_unit: "resource-quanta".to_owned(),
+                    service_unit: "delivery-quanta".to_owned(),
+                    usage_numerator: Some(1),
+                    usage_denominator: Some(1),
+                    lineage: synthetic_lineage(),
+                },
             ],
             max_candidate_plans: 1_000,
         };
         let exact = assess_intertemporal_resource_allocation(&request).expect("small request");
-        let exact_allocations: BTreeMap<_, _> = exact.service_steps.iter()
+        let exact_allocations: BTreeMap<_, _> = exact
+            .service_steps
+            .iter()
             .map(|row| (row.service_id.as_str(), row.allocated_quanta.unwrap()))
             .collect();
 
@@ -1502,29 +1841,71 @@ mod tests {
             policy: SharedResourceAllocationPolicy::EqualCoverageProgressiveFill,
             services: vec![
                 SharedResourceServiceDemand {
-                    id: "service-a".to_owned(), service_entity_id: "service-entity-a".to_owned(), community_id: "community-a".to_owned(), beneficiary_weight: 1,
+                    id: "service-a".to_owned(),
+                    service_entity_id: "service-entity-a".to_owned(),
+                    community_id: "community-a".to_owned(),
+                    beneficiary_weight: 1,
                     delivery_rate_unit: "delivery-quanta".to_owned(),
-                    demand_rate: assumed_measurement("service-entity-a", 4.0, "delivery-quanta", "Synthetic parity test."),
+                    demand_rate: assumed_measurement(
+                        "service-entity-a",
+                        4.0,
+                        "delivery-quanta",
+                        "Synthetic parity test.",
+                    ),
                     essential_coverage_floor: 0.5,
                 },
                 SharedResourceServiceDemand {
-                    id: "service-b".to_owned(), service_entity_id: "service-entity-b".to_owned(), community_id: "community-b".to_owned(), beneficiary_weight: 1,
+                    id: "service-b".to_owned(),
+                    service_entity_id: "service-entity-b".to_owned(),
+                    community_id: "community-b".to_owned(),
+                    beneficiary_weight: 1,
                     delivery_rate_unit: "delivery-quanta".to_owned(),
-                    demand_rate: assumed_measurement("service-entity-b", 4.0, "delivery-quanta", "Synthetic parity test."),
+                    demand_rate: assumed_measurement(
+                        "service-entity-b",
+                        4.0,
+                        "delivery-quanta",
+                        "Synthetic parity test.",
+                    ),
                     essential_coverage_floor: 0.5,
                 },
             ],
             resources: vec![SharedResourceCapacity {
                 id: "shared".to_owned(),
-                capacity: assumed_measurement("shared", 4.0, "resource-quanta", "Synthetic parity test."),
+                capacity: assumed_measurement(
+                    "shared",
+                    4.0,
+                    "resource-quanta",
+                    "Synthetic parity test.",
+                ),
             }],
             usages: vec![
-                SharedResourceUsage { id: "usage-a".to_owned(), resource_id: "shared".to_owned(), service_id: "service-a".to_owned(), resource_use_per_delivery_rate: assumed_measurement("usage-a", 1.0, "resource-quanta per (delivery-quanta)", "Synthetic parity test.") },
-                SharedResourceUsage { id: "usage-b".to_owned(), resource_id: "shared".to_owned(), service_id: "service-b".to_owned(), resource_use_per_delivery_rate: assumed_measurement("usage-b", 1.0, "resource-quanta per (delivery-quanta)", "Synthetic parity test.") },
+                SharedResourceUsage {
+                    id: "usage-a".to_owned(),
+                    resource_id: "shared".to_owned(),
+                    service_id: "service-a".to_owned(),
+                    resource_use_per_delivery_rate: assumed_measurement(
+                        "usage-a",
+                        1.0,
+                        "resource-quanta per (delivery-quanta)",
+                        "Synthetic parity test.",
+                    ),
+                },
+                SharedResourceUsage {
+                    id: "usage-b".to_owned(),
+                    resource_id: "shared".to_owned(),
+                    service_id: "service-b".to_owned(),
+                    resource_use_per_delivery_rate: assumed_measurement(
+                        "usage-b",
+                        1.0,
+                        "resource-quanta per (delivery-quanta)",
+                        "Synthetic parity test.",
+                    ),
+                },
             ],
             max_work_units: 10_000,
         };
-        let old = assess_shared_resource_allocation(&old_snapshot, &[]).expect("existing single-snapshot model");
+        let old = assess_shared_resource_allocation(&old_snapshot, &[])
+            .expect("existing single-snapshot model");
         assert_eq!(exact_allocations["service-a"], 2);
         assert_eq!(exact_allocations["service-b"], 2);
         for service in old.services {
