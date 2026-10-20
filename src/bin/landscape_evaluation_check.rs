@@ -12,7 +12,7 @@
 mod landscape_evaluation;
 
 use landscape_evaluation::{INTERPRETATION_LIMIT, PLAN_SCHEMA_URI, validate_plan};
-use serde_json::{Value, json};
+use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::env;
 use std::fs;
@@ -115,6 +115,7 @@ fn validate_bytes(bytes: &[u8]) -> Value {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::json;
 
     fn valid_fixture() -> Vec<u8> {
         include_bytes!("../../fixtures/landscape/evaluation-plan-v0.json").to_vec()
