@@ -1,0 +1,126 @@
+name: Intertemporal Resource Allocation V0.1
+
+on:
+  pull_request:
+    paths:
+      - "sol-atlas-core/**"
+      - "schemas/spatial-economic-intertemporal-*.schema.json"
+      - "schemas/examples/intertemporal-*.json"
+      - "docs/research/INTERTEMPORAL_RESOURCE_ALLOCATION_V0_1.md"
+      - ".github/workflows/intertemporal-resource-allocation-v0-1.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-reference:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Install pinned Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.96.0
+          components: rustfmt, clippy
+      - name: Check core formatting
+        run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml -- --check
+      - name: Run exact allocation and conservation tests
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml
+      - name: Run strict Clippy
+        run: cargo clippy --manifest-path sol-atlas-core/Cargo.toml --all-targets -- -D warnings
+      - name: Check frozen schema and synthetic fixture JSON
+        shell: bash
+        run: |
+          set -euo pipefail
+          request_schema="schemas/spatial-economic-intertemporal-allocation-v0.1.schema.json"
+          receipt_schema="schemas/spatial-economic-intertemporal-assessment-v0.1.schema.json"
+          fixture="schemas/examples/intertemporal-tank-two-step.synthetic.json"
+          jq -e '."$schema" == "https://json-schema.org/draft/2020-12/schema" and .properties.max_search_nodes.maximum == 1000000' "$request_schema" >/dev/null
+          jq -e '."$schema" == "https://json-schema.org/draft/2020-12/schema" and .properties.disposition.enum == ["optimal","indeterminate_input","infeasible","search_cap_exceeded"]' "$receipt_schema" >/dev/null
+          jq -e '.design_role == "candidate" and .policy == "essential_floor_first" and (.time_steps | length) == 2 and .resources[0].inventory.terminal_reserve_quanta == 2 and .resources[0].inventory.inflow.values == [0,3]' "$fixture" >/dev/null
+      - name: Run exact scenario and independently verify stock balance
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture="schemas/examples/intertemporal-tank-two-step.synthetic.json"
+          manifest="sol-atlas-core/Cargo.toml"
+          bin="intertemporal_resource_allocation"
+          root="$RUNNER_TEMP/intertemporal"
+          mkdir -p "$root"
+          cargo run --quiet --manifest-path "$manifest" --bin "$bin" -- --input "$fixture" > "$root/optimal-1.json"
+          cargo run --quiet --manifest-path "$manifest" --bin "$bin" -- --input "$fixture" > "$root/optimal-2.json"
+          cmp "$root/optimal-1.json" "$root/optimal-2.json"
+          jq -e '
+            .disposition == "optimal"
+            and .search_complete == true
+            and .search_space_size == 64
+            and .search_nodes_examined == 64
+            and .input_blockers == []
+            and .claim_ceiling | type == "string"
+          ' "$root/optimal-1.json" >/dev/null
+          jq -e '
+            ([.service_steps[] | select(.service_id == "essential-a") | [.step_id, .allocated_quanta]] == [["t0",1],["t1",1]])
+            and ([.service_steps[] | select(.service_id == "general-b") | [.step_id, .allocated_quanta]] == [["t0",1],["t1",1]])
+          ' "$root/optimal-1.json" >/dev/null
+          jq -e '
+            all(.resource_steps[];
+              .consumed_quanta <= .capacity_quanta
+              and .residual_capacity_quanta == (.capacity_quanta - .consumed_quanta)
+              and (
+                if .balance_equation_holds == null then
+                  .opening_stock_quanta == null and .ending_stock_quanta == null
+                else
+                  .balance_equation_holds == true
+                  and (.opening_stock_quanta + .inflow_quanta)
+                    == (.loss_quanta + .withdrawal_quanta + .spill_quanta + .ending_stock_quanta)
+                end
+              )
+            )
+          ' "$root/optimal-1.json" >/dev/null
+          jq -e '
+            [.resource_steps[] | select(.resource_id == "tank") | .ending_stock_quanta] == [1,2]
+            and ([.resource_steps[] | select(.resource_id == "tank") | .ending_stock_quanta] | last) >= 2
+          ' "$root/optimal-1.json" >/dev/null
+      - name: Prove unknown and search-cap cases fail closed
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture="schemas/examples/intertemporal-tank-two-step.synthetic.json"
+          manifest="sol-atlas-core/Cargo.toml"
+          bin="intertemporal_resource_allocation"
+          root="$RUNNER_TEMP/intertemporal"
+          jq '.resources[0].inventory.inflow.values[1] = null' "$fixture" > "$root/unknown-inflow.json"
+          cargo run --quiet --manifest-path "$manifest" --bin "$bin" -- --input "$root/unknown-inflow.json" > "$root/unknown.json"
+          jq -e '
+            .disposition == "indeterminate_input"
+            and .search_complete == false
+            and .search_nodes_examined == 0
+            and .resource_steps == []
+            and all(.service_steps[]; .allocated_quanta == null and .floor_status == "indeterminate")
+            and (.input_blockers | any(. == "resources.tank.inventory.inflow[t1]"))
+          ' "$root/unknown.json" >/dev/null
+
+          jq '.max_search_nodes = 5' "$fixture" > "$root/search-cap.json"
+          cargo run --quiet --manifest-path "$manifest" --bin "$bin" -- --input "$root/search-cap.json" > "$root/search-cap-result.json"
+          jq -e '
+            .disposition == "search_cap_exceeded"
+            and .search_complete == false
+            and .search_nodes_examined == 0
+            and .service_steps != []
+            and all(.service_steps[]; .allocated_quanta == null)
+            and .resource_steps == []
+          ' "$root/search-cap-result.json" >/dev/null
+
+          jq '.resources[0].inventory.inflow.values = [0,0]' "$fixture" > "$root/infeasible.json"
+          cargo run --quiet --manifest-path "$manifest" --bin "$bin" -- --input "$root/infeasible.json" > "$root/infeasible-result.json"
+          jq -e '
+            .disposition == "infeasible"
+            and .search_complete == true
+            and .feasible_plan_count == 0
+            and all(.service_steps[]; .allocated_quanta == null)
+            and .resource_steps == []
+          ' "$root/infeasible-result.json" >/dev/null
+          echo "INTERTEMPORAL_RESOURCE_ALLOCATION_V0_1_PASS"
