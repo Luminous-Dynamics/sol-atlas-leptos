@@ -37,6 +37,8 @@ Water may impose an additional constraint using the declared per-IT-energy water
 
 Unknown inputs must remain unknown. Missing grid headroom is not zero demand or unlimited supply; missing marginal emissions is not zero-carbon electricity; absent heat-reuse demand is not a recovered-heat benefit.
 
+The CLI deserializes the versioned envelope with strict root and nested records; unrecognized keys fail parsing instead of disappearing from the model. A non-null `storage` profile is explicitly `Unsupported` until horizon-wide charge/discharge/reserve accounting is implemented. Deferrable workloads must be interruptible, and multiple deferrable workloads must share a declared quality-profile identity; otherwise no schedule is emitted. The thermal cap is an explicit input, not inferred from ambient temperature or free-form failure tags.
+
 ## 3. Benchmark layers and industry baselines
 
 This benchmark complements, rather than replaces, established benchmarks.
