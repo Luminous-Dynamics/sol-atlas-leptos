@@ -932,7 +932,9 @@ fn componentwise_max(left: &ObjectiveVector, right: &ObjectiveVector) -> Objecti
 
 fn checked_regret(ideal: &ObjectiveVector, actual: &ObjectiveVector) -> Option<ObjectiveVector> {
     Some(ObjectiveVector {
-        economic_value_u: ideal.economic_value_u.checked_sub(actual.economic_value_u)?,
+        economic_value_u: ideal
+            .economic_value_u
+            .checked_sub(actual.economic_value_u)?,
         essential_service_points: ideal
             .essential_service_points
             .checked_sub(actual.essential_service_points)?,
@@ -945,10 +947,7 @@ fn checked_regret(ideal: &ObjectiveVector, actual: &ObjectiveVector) -> Option<O
     })
 }
 
-fn componentwise_worst(
-    left: &ObjectiveVector,
-    right: &ObjectiveVector,
-) -> ObjectiveVector {
+fn componentwise_worst(left: &ObjectiveVector, right: &ObjectiveVector) -> ObjectiveVector {
     ObjectiveVector {
         economic_value_u: left.economic_value_u.max(right.economic_value_u),
         essential_service_points: left
@@ -982,17 +981,19 @@ fn evaluate_robust_regret_from_frontier(
     scenarios: &[Scenario],
 ) -> Result<RobustRegretEvaluation, String> {
     if frontier.is_empty() {
-        return Err("cannot evaluate robust regret without a complete non-empty frontier".to_owned());
+        return Err(
+            "cannot evaluate robust regret without a complete non-empty frontier".to_owned(),
+        );
     }
     if scenarios.is_empty() {
         return Err("cannot evaluate robust regret without declared scenarios".to_owned());
     }
 
-    let scenario_ids: BTreeSet<String> =
-        scenarios.iter().map(|scenario| scenario.id.clone()).collect();
-    if scenario_ids.len() != scenarios.len()
-        || scenario_ids.iter().any(String::is_empty)
-    {
+    let scenario_ids: BTreeSet<String> = scenarios
+        .iter()
+        .map(|scenario| scenario.id.clone())
+        .collect();
+    if scenario_ids.len() != scenarios.len() || scenario_ids.iter().any(String::is_empty) {
         return Err("robust regret scenarios must have unique non-empty IDs".to_owned());
     }
     for portfolio in frontier {
@@ -1683,8 +1684,7 @@ mod tests {
         let original_frontier = exact.pareto_frontier.clone();
         let regret = evaluate_robust_regret(&exact, &input.scenarios)
             .expect("robust regret should evaluate the complete frontier");
-        let searched = evaluate_frontier_search(&input)
-            .expect("search frontier should evaluate");
+        let searched = evaluate_frontier_search(&input).expect("search frontier should evaluate");
         let search_regret = evaluate_robust_regret_from_search(&searched, &input.scenarios)
             .expect("search frontier regret should evaluate");
 
@@ -1784,8 +1784,7 @@ mod tests {
 
     #[test]
     fn v02_robust_regret_frontier_has_frozen_expected_members() {
-        let input: Input =
-            serde_json::from_str(V02_INPUT).expect("v0.2 fixture should parse");
+        let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture should parse");
         let exact = evaluate(&input).expect("v0.2 fixture should evaluate");
         let regret = evaluate_robust_regret(&exact, &input.scenarios)
             .expect("v0.2 robust regret should evaluate");
