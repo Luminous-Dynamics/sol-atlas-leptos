@@ -560,4 +560,59 @@ mod tests {
             assert!(errors.iter().any(|error| error.contains("feature-NNNN")));
         }
     }
+
+    #[test]
+    fn south_africa_source_catalog_has_versioned_provenance_and_no_ingested_layers() {
+        let catalog: Value = serde_json::from_str(include_str!(
+            "../data-sources/landscape/south-africa-johannesburg-v0.json"
+        ))
+        .expect("South African source catalog must be valid JSON");
+        let schema: Value = serde_json::from_str(include_str!(
+            "../schemas/landscape-source-catalog-v0.schema.json"
+        ))
+        .expect("source-catalog schema must be valid JSON");
+
+        assert_eq!(catalog["schema"], "luminous.landscape-source-catalog.v0");
+        assert_eq!(catalog["schema_uri"], schema["$id"]);
+        assert_eq!(
+            catalog["catalog_status"],
+            "metadata-only-not-ingested"
+        );
+        assert_eq!(
+            catalog["pilot"]["name"],
+            "Johannesburg / Highveld, Gauteng, South Africa"
+        );
+
+        let records = catalog["records"]
+            .as_array()
+            .expect("source records must be an array");
+        assert_eq!(records.len(), 6);
+        let mut ids = HashSet::with_capacity(records.len());
+        for record in records {
+            let id = record["id"].as_str().expect("source ID must be a string");
+            assert!(ids.insert(id), "duplicate source ID: {id}");
+            for field in ["publisher", "service_uri", "metadata_uri", "attribution"] {
+                assert!(
+                    record[field].as_str().is_some_and(|value| !value.trim().is_empty()),
+                    "source {id} has no {field}"
+                );
+            }
+            assert!(
+                record["license"]["status"].as_str().is_some(),
+                "source {id} has no explicit license state"
+            );
+            assert_eq!(record["ingestion_state"], "not-ingested");
+            assert!(
+                record["validation_gates"]
+                    .as_array()
+                    .is_some_and(|gates| !gates.is_empty()),
+                "source {id} has no validation gates"
+            );
+        }
+        assert_eq!(
+            schema["properties"]["catalog_status"]["enum"][0],
+            "metadata-only-not-ingested"
+        );
+        assert_eq!(schema["properties"]["records"]["items"]["additionalProperties"], false);
+    }
 }

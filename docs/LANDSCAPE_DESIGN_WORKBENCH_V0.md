@@ -87,6 +87,20 @@ The validator distinguishes `schematic-design-intent` from `synthetic-benchmark`
 - Benchmark implementation work: [LAND-BENCH-001](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/195).
 - Outcome/performance metric registry work: [LAND-METRICS-001](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/197).
 
+## South African pilot source catalog
+
+The first source catalog is [south-africa-johannesburg-v0.json](../data-sources/landscape/south-africa-johannesburg-v0.json), with a structural schema at [landscape-source-catalog-v0.schema.json](../schemas/landscape-source-catalog-v0.schema.json). A native test checks its schema link, unique source IDs, explicit license states, validation gates, and the invariant that the registry is metadata-only.
+
+Candidates include the Gauteng C-Plan v4 and the 2023 national biodiversity-priority service from SANBI BGIS; CHIRPS v3 daily rainfall; Copernicus DEM GLO-30; OpenStreetMap; and Sentinel-2 L2A imagery. These are not interchangeable sources and they have different spatial scales, update patterns, and legal/access requirements.
+
+- **SANBI biodiversity layers:** useful for screening conservation priorities, but not a substitute for a site ecological survey or an automatic legal decision. Verify redistribution terms for each service/layer.
+- **CHIRPS v3 rainfall:** regional/catchment time-series context. The Earth Engine catalog showed coverage through 31 July 2026 at review time; pin exact collection and observation window on ingestion.
+- **Copernicus DEM:** GLO-30 is a digital surface model, not automatically bare-earth terrain. The service access changed in August 2026; explicitly request the intended product and verify actual resolution, CRS, vertical datum, quality masks and access rights.
+- **OpenStreetMap:** preserve extract timestamp and ODbL attribution/share-alike obligations. Missing mapped data is not evidence that a feature does not exist.
+- **Sentinel-2:** use dated scene IDs, cloud/shadow masks and native 10/20/60 m band-resolution metadata. Imagery classification remains an observation/inference, not a field species inventory.
+
+The catalog records unresolved licensing and ingestion state deliberately. No layer should enter a simulation merely because the editor can render it. The dedicated ingestion contract is [LAND-DATA-001 #206](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/206).
+
 ## Rust-first architecture and repository boundaries
 
 ### Sol-Atlas — map and editor system of record
