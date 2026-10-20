@@ -788,7 +788,7 @@ mod tests {
     #[test]
     fn corrupted_known_answer_manifest_is_rejected() {
         let evaluation = evaluate(&fixture()).expect("fixture should evaluate");
-        let corrupted = EXPECTED.replace("\\"feasible_count\": 22", "\\"feasible_count\": 23");
+        let corrupted = EXPECTED.replace("\"feasible_count\": 22", "\"feasible_count\": 23");
         assert_ne!(corrupted, EXPECTED);
         assert!(check_expected(&evaluation, &corrupted).is_err());
     }
