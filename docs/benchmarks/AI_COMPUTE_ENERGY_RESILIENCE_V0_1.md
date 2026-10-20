@@ -78,6 +78,20 @@ A scenario declares:
 
 The semantic validator must additionally enforce cross-field rules the JSON Schema cannot fully express: unique IDs, array lengths aligned to the interval count, valid release/deadline bounds, service floors not exceeding required work, compatible units, finite values, and valid power/energy conversions. Never infer an absent interval, unit, resource or workload profile.
 
+
+## 4A. Executable reference evaluator
+
+The dependency-free Rust core includes a bounded reference evaluator and a native JSON CLI:
+
+```sh
+cargo run -p sol-atlas-core --bin ai_compute_energy_assess -- \
+  schemas/examples/ai-compute-energy-flexibility-four-interval.synthetic.json
+```
+
+The CLI emits a machine-readable JSON assessment to stdout. Exit codes are explicit: 0 for a completed feasible/capacity-limited assessment; 2 for protected-floor infeasibility; 3 for indeterminate required resource inputs; 4 for unsupported request shapes; 5 for invalid inputs; 64 for CLI usage errors; 65 for JSON parse errors; 66 for file-read errors; 70 for serialization errors.
+
+The evaluator's unit tests parse the committed synthetic JSON via `include_str!`, rather than maintaining a second copied fixture. This prevents the test fixture and the code-side request from silently drifting apart. The CLI is useful for deterministic local inspection and later integration with other stack components; it does not elevate synthetic data to physical evidence.
+
 ## 5. Synthetic oracle case
 
 The four-interval fixture uses abstract work units and invented limits. It must never be labelled as a real AI model, U.S. grid, Johannesburg facility, or industry result.
