@@ -221,6 +221,16 @@ Pin the exact raw corpus-manifest bytes by SHA-256 before assigning partitions. 
 
 A split validator can check internal integrity, not certify that a cluster is independent or that no semantic leakage remains. The experiment owner must document the intended generalization axis (new overpasses at known sites, unseen sites, unseen basins, new sensors, or future time periods) and choose group keys accordingly. Keep a second, access-controlled blind holdout for the final comparison where practical; do not repeatedly tune to it.
 
+### Post-intervention verification and realized mitigation
+
+A plume alert, a repair work order, and a claimed emissions reduction are different evidence types. Do not infer avoided methane directly from the count of alerts, a closed work order, or a single post-repair non-detection.
+
+For a first outcome contract, require a pinned intervention/work-order artifact, a pinned verification report, a reviewed association to the same stable source, one pre-intervention in-situ methane reading, and at least two post-intervention follow-ups across a predeclared time span. Follow-ups must use the same qualified instrument and processing method by default, with calibration valid at each observation time. Use a qualified cross-instrument comparison only when an independent calibration/bridging study is present and separately approved.
+
+When the baseline and all follow-ups are quantified, report the median post-repair rate and baseline-minus-median point difference. When post-repair readings are non-detections, retain their detection limits and report bounds instead of coercing them to zero. With declared symmetric absolute uncertainty bounds, a conservative sustained-reduction interval is formed from the baseline lower/upper bounds and the most conservative post-measurement bounds. A positive lower bound is evidence consistent with sustained rate reduction over the sampled windows, not proof of causal attribution or total tonnes avoided.
+
+Do not multiply that rate difference by an assumed operating duration. Estimating avoided mass requires an independently justified duration/activity model, temporal variability, repair scope, and uncertainty propagation. Report verified mitigation per inspection hour and per dollar only when both the reduction evidence and the measured effort/cost denominator are available.
+
 ## Reproducible experiment protocol
 
 Every evaluated run should emit a machine-readable receipt containing:
