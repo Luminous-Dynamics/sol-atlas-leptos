@@ -936,12 +936,18 @@ pub fn omit_scenario(input: &Input, scenario_id: &str) -> Result<Input, String> 
     if input.scenarios.len() <= 1 {
         return Err("cannot omit the only remaining scenario".to_owned());
     }
-    if !input.scenarios.iter().any(|scenario| scenario.id == scenario_id) {
+    if !input
+        .scenarios
+        .iter()
+        .any(|scenario| scenario.id == scenario_id)
+    {
         return Err(format!("unknown scenario ID: {scenario_id}"));
     }
 
     let mut omitted = input.clone();
-    omitted.scenarios.retain(|scenario| scenario.id != scenario_id);
+    omitted
+        .scenarios
+        .retain(|scenario| scenario.id != scenario_id);
     omitted
         .service_baseline_by_scenario
         .remove(scenario_id)
@@ -983,8 +989,7 @@ fn scenario_objective_ideal(
         match ideal.as_mut() {
             None => ideal = Some(outcome.clone()),
             Some(current) => {
-                current.economic_value_u =
-                    current.economic_value_u.max(outcome.economic_value_u);
+                current.economic_value_u = current.economic_value_u.max(outcome.economic_value_u);
                 current.essential_service_points = current
                     .essential_service_points
                     .max(outcome.essential_service_points);
@@ -1047,8 +1052,11 @@ pub fn evaluate_scenario_omission(
     let reduced_input = omit_scenario(input, scenario_id)?;
     let reduced = evaluate(&reduced_input)?;
 
-    let mut original_scenario_ids: Vec<String> =
-        input.scenarios.iter().map(|scenario| scenario.id.clone()).collect();
+    let mut original_scenario_ids: Vec<String> = input
+        .scenarios
+        .iter()
+        .map(|scenario| scenario.id.clone())
+        .collect();
     original_scenario_ids.sort();
     let mut reduced_scenario_ids: Vec<String> = reduced_input
         .scenarios
@@ -1075,22 +1083,14 @@ pub fn evaluate_scenario_omission(
         .iter()
         .map(|portfolio| portfolio.project_ids.clone())
         .collect();
-    let reference_frontier_ids: BTreeSet<String> = full
-        .pareto_frontier
-        .iter()
-        .map(portfolio_key)
-        .collect();
-    let reduced_frontier_ids: BTreeSet<String> = reduced
-        .pareto_frontier
-        .iter()
-        .map(portfolio_key)
-        .collect();
+    let reference_frontier_ids: BTreeSet<String> =
+        full.pareto_frontier.iter().map(portfolio_key).collect();
+    let reduced_frontier_ids: BTreeSet<String> =
+        reduced.pareto_frontier.iter().map(portfolio_key).collect();
     let frontier_id_intersection_count = reference_frontier_ids
         .intersection(&reduced_frontier_ids)
         .count();
-    let frontier_id_union_count = reference_frontier_ids
-        .union(&reduced_frontier_ids)
-        .count();
+    let frontier_id_union_count = reference_frontier_ids.union(&reduced_frontier_ids).count();
 
     let mut full_reference_infeasible_frontier_count = 0;
     let mut reduced_frontier = Vec::with_capacity(reduced.pareto_frontier.len());
@@ -1119,8 +1119,9 @@ pub fn evaluate_scenario_omission(
                 .get(reference_scenario_id)
                 .ok_or_else(|| format!("missing rescored outcome: {reference_scenario_id}"))?;
             let regret = objective_regret(ideal, outcome)?;
-            worst_case_regret.economic_value_u =
-                worst_case_regret.economic_value_u.max(regret.economic_value_u);
+            worst_case_regret.economic_value_u = worst_case_regret
+                .economic_value_u
+                .max(regret.economic_value_u);
             worst_case_regret.essential_service_points = worst_case_regret
                 .essential_service_points
                 .max(regret.essential_service_points);
@@ -1891,8 +1892,7 @@ mod tests {
 
     #[test]
     fn scenario_omission_rescores_frontier_on_the_full_reference_universe() {
-        let input: Input =
-            serde_json::from_str(V02_INPUT).expect("v0.2 fixture should parse");
+        let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture should parse");
         let omitted_id = input.scenarios[0].id.clone();
         let report = evaluate_scenario_omission(&input, &omitted_id)
             .expect("valid scenario omission should be evaluable");
@@ -1900,7 +1900,10 @@ mod tests {
         assert_eq!(report.omitted_scenario_id, omitted_id);
         assert_eq!(report.original_scenario_ids.len(), input.scenarios.len());
         assert_eq!(report.reduced_scenario_ids.len() + 1, input.scenarios.len());
-        assert_eq!(report.candidate_subset_count, input.enumeration.candidate_subset_count);
+        assert_eq!(
+            report.candidate_subset_count,
+            input.enumeration.candidate_subset_count
+        );
         assert_eq!(
             report.reference_frontier_project_ids.len(),
             evaluate(&input).unwrap().pareto_frontier.len()
@@ -1964,8 +1967,8 @@ mod tests {
         assert!(omit_scenario(&input, "absent-scenario").is_err());
         assert!(evaluate_scenario_omission(&input, "absent-scenario").is_err());
 
-        let one_scenario = omit_scenario(&input, &omitted_id)
-            .expect("one scenario can be removed from two");
+        let one_scenario =
+            omit_scenario(&input, &omitted_id).expect("one scenario can be removed from two");
         let remaining_id = one_scenario.scenarios[0].id.clone();
         assert!(omit_scenario(&one_scenario, &remaining_id).is_err());
 
