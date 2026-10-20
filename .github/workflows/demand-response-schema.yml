@@ -87,6 +87,6 @@ jobs:
           assert report["metrics"]["rsr_reference_metadata"]["sample_time_semantics"] == "prior_cycle_state"
           assert report["metrics"]["rsr_reference_metadata"]["denominator_convention"] == "reserve_plus_epsilon"
           assert report["metrics"]["rsr_reference_metadata"]["source_artifact_sha256"] == trace["rsr_reference"]["metadata"]["source_artifact_sha256"]
-          assert report["metrics"]["rsr_reference_metadata"]["source_config_manifest_sha256"] == trace["rsr_reference"]["metadata"]["source_config_manifest_sha256"]
+          assert report["metrics"]["rsr_reference_metadata"]["source_run_manifest_sha256"] == trace["rsr_reference"]["metadata"]["source_run_manifest_sha256"]
           print("PASS paired source-native vs same-row RSR paths; both schemas valid and timing mismatch remains observable")
           PY
