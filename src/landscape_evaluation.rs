@@ -643,7 +643,7 @@ fn valid_evaluation_id(value: &str) -> bool {
         && suffix
             .bytes()
             .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
-        && suffix.as_bytes().first().is_some_and(u8::is_ascii_lowercase_or_digit)
+        && suffix.as_bytes().first().is_some_and(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
 }
 
 fn valid_arm_id(value: &str) -> bool {
@@ -655,7 +655,7 @@ fn valid_arm_id(value: &str) -> bool {
         && suffix
             .bytes()
             .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
-        && suffix.as_bytes().first().is_some_and(u8::is_ascii_lowercase_or_digit)
+        && suffix.as_bytes().first().is_some_and(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
 }
 
 fn valid_metric_id(value: &str) -> bool {
