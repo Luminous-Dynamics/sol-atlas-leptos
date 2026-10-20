@@ -4,7 +4,7 @@
 
 ## Run the native core harness
 
-From repository root:
+From repository root, run a three-size quick set or the full matrix:
 
 \`\`\`sh
 GIT_SHA="$(git rev-parse HEAD)" \
@@ -15,6 +15,13 @@ cargo run --release \
   --records 1000 --blob-bytes 1024 --samples 11 \
   > offline-journal-bundle-bench.json
 \`\`\`
+
+\`\`\`sh
+bash scripts/bench-offline-journal-bundle.sh quick
+bash scripts/bench-offline-journal-bundle.sh full /path/to/evidence-dir
+\`\`\`
+
+The script writes one JSON report per cohort plus `environment.txt` and a `SHA256SUMS` manifest. It records the Git SHA, dirty-tree state, compiler/tool versions, OS, CPU and memory summary. Review the dirty-tree flag before comparing results, and do not publish a run from an uncommitted or mixed source tree as an exact release baseline.
 
 The program writes a single JSON report to stdout and diagnostics to stderr. The report includes the exact input dimensions, Rust version, OS/architecture, caller-provided host label and Git SHA, bundle bytes / bytes per record, integrity digest, all raw sample durations, percentile summaries, and correctness-oracle results. A run whose correctness oracle fails exits unsuccessfully.
 
@@ -44,9 +51,9 @@ Run a matrix, not a single cherry-picked size:
 | 10,000 | 32 KiB | 31 | realistic larger operation payloads |
 | 1,000 | 256 KiB | 31 | large-payload throughput without excessive fixture memory |
 | 100,000 | 1 KiB | 11+ | scalability/stress cohort |
-| 10,000 | 1 MiB | 11+ | maximum individual blob stress; record memory limits |
+| 100 | 1 MiB | 11+ | maximum individual blob stress; record memory limits |
 
-Large \`records × payload\` combinations grow memory rapidly and must only run on hosts that can safely retain both the records and encoded output. Report failed/out-of-memory runs; do not omit them without explanation.
+Large \`records × payload\` combinations grow memory rapidly and must only run on hosts that can safely retain both the records and encoded output. The 1 MiB payload case intentionally uses only 100 records to limit its default memory footprint. Report failed/out-of-memory runs; do not omit them without explanation.
 
 The initial proposed target is **under 1 second to validate a 10,000-record / 1 KiB-blob bundle on a named modern desktop**. This is a hypothesis to measure, not a published result or a universal device guarantee. Report time and memory; consider streaming/incremental formats if fully materialized snapshots become the bottleneck.
 
