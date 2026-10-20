@@ -259,7 +259,9 @@ pub fn structural_topology_sha256(graph: &TopologyGraph) -> Result<String, Strin
         .map(|neighbors| format!("degree:{}", neighbors.len())).collect();
     let mut colors = compress_structural_colors(&initial);
     // Descriptors include the prior color, so refinement can split but never merge classes.
-    for _ in 0..graph.nodes.len() {
+    // A fixed iteration budget bounds work on large graphs. This intentionally
+    // makes the signature a conservative candidate detector, not an isomorphism oracle.
+    for _ in 0..graph.nodes.len().min(32) {
         let signatures: Vec<String> = adjacency.iter().enumerate().map(|(node, neighbors)| {
             let mut neighbor_colors: Vec<usize> = neighbors.iter().map(|index| colors[*index]).collect();
             neighbor_colors.sort_unstable();
@@ -279,7 +281,7 @@ pub fn structural_topology_sha256(graph: &TopologyGraph) -> Result<String, Strin
     let mut node_colors = colors;
     node_colors.sort_unstable();
     canonical_json_sha256(&CanonicalStructuralTopology {
-        algorithm: "water-topology-wl-1-v1",
+        algorithm: "water-topology-wl-1-v1-r32",
         node_count: graph.nodes.len(),
         link_count: graph.links.len(),
         node_colors,
