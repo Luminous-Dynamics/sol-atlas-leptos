@@ -286,7 +286,8 @@ impl StagedImportRecordV1 {
     }
 
     fn matches_scope(&self, owner_scope: &str, operation_namespace: &str) -> bool {
-        self.operation.matches_scope(owner_scope, operation_namespace)
+        self.operation
+            .matches_scope(owner_scope, operation_namespace)
     }
 
     fn to_public(&self) -> StagedJournalOperation {
@@ -472,11 +473,9 @@ impl IndexedDbJournal {
         let mut candidates = Vec::with_capacity(bundle.records.len());
         for record in &bundle.records {
             let operation_id = record.operation_id().to_owned();
-            let entry = JournalEntry::from_snapshot_for_operation(
-                &operation_id,
-                record.snapshot.clone(),
-            )
-            .map_err(IndexedDbJournalError::from)?;
+            let entry =
+                JournalEntry::from_snapshot_for_operation(&operation_id, record.snapshot.clone())
+                    .map_err(IndexedDbJournalError::from)?;
             let canonical_payload =
                 std::str::from_utf8(entry.canonical_payload_utf8()).map_err(|error| {
                     IndexedDbJournalError(format!("canonical payload is not UTF-8: {error}"))
@@ -598,10 +597,8 @@ impl IndexedDbJournal {
             let staged_idempotency_keys = staged_idempotency_keys.clone();
             let transaction = transaction.clone();
             let callback = Closure::once_into_js(move |_event: JsValue| {
-                let value = match Reflect::get(
-                    &request_for_callback,
-                    &JsValue::from_str("result"),
-                ) {
+                let value = match Reflect::get(&request_for_callback, &JsValue::from_str("result"))
+                {
                     Ok(value) => value,
                     Err(error) => {
                         *output.borrow_mut() = Some(Err(js_error(error)));
@@ -635,11 +632,7 @@ impl IndexedDbJournal {
                     );
                 }
             });
-            if let Err(error) = Reflect::set(
-                &request,
-                &JsValue::from_str("onsuccess"),
-                &callback,
-            ) {
+            if let Err(error) = Reflect::set(&request, &JsValue::from_str("onsuccess"), &callback) {
                 let _ = call_method(&transaction, "abort", &[]);
                 return Err(js_error(error));
             }
@@ -698,9 +691,12 @@ impl IndexedDbJournal {
             let serialized = values.get(index).as_string().ok_or_else(|| {
                 IndexedDbJournalError("staged-import store contains a non-string record".into())
             })?;
-            let staged: StagedImportRecordV1 = serde_json::from_str(&serialized).map_err(|error| {
-                IndexedDbJournalError(format!("staged record {operation_id} is invalid: {error}"))
-            })?;
+            let staged: StagedImportRecordV1 =
+                serde_json::from_str(&serialized).map_err(|error| {
+                    IndexedDbJournalError(format!(
+                        "staged record {operation_id} is invalid: {error}"
+                    ))
+                })?;
             staged.validate(&operation_id)?;
             if staged.operation.owner_scope == owner_scope {
                 records.push(staged.to_public());
@@ -1702,8 +1698,7 @@ fn finish_bundle_stage_reads(
                     )));
                 }
                 if !live_key_exists
-                    || live_key.as_string().as_deref()
-                        != Some(candidate.operation_id.as_str())
+                    || live_key.as_string().as_deref() != Some(candidate.operation_id.as_str())
                 {
                     return Err(IndexedDbJournalError(format!(
                         "active operation {} has a missing or conflicting scoped idempotency index",
@@ -1718,8 +1713,8 @@ fn finish_bundle_stage_reads(
                             candidate.operation_id
                         ))
                     })?;
-                    let staged: StagedImportRecordV1 =
-                        serde_json::from_str(&serialized_staged).map_err(|error| {
+                    let staged: StagedImportRecordV1 = serde_json::from_str(&serialized_staged)
+                        .map_err(|error| {
                             IndexedDbJournalError(format!(
                                 "staged operation {} is invalid: {error}",
                                 candidate.operation_id
@@ -1803,8 +1798,7 @@ fn finish_bundle_stage_reads(
                     )));
                 }
                 if !staged_key_exists
-                    || staged_key.as_string().as_deref()
-                        != Some(candidate.operation_id.as_str())
+                    || staged_key.as_string().as_deref() != Some(candidate.operation_id.as_str())
                 {
                     return Err(IndexedDbJournalError(format!(
                         "staged operation {} has a missing or conflicting scoped idempotency index",
@@ -1862,9 +1856,11 @@ fn finish_bundle_stage_reads(
     }
 
     for (operation_id, idempotency_storage_key) in stale_staging_to_remove {
-        if let Err(error) =
-            call_method(staged_imports, "delete", &[JsValue::from_str(&operation_id)])
-        {
+        if let Err(error) = call_method(
+            staged_imports,
+            "delete",
+            &[JsValue::from_str(&operation_id)],
+        ) {
             *output.borrow_mut() = Some(Err(js_error(error)));
             let _ = call_method(transaction, "abort", &[]);
             return;
@@ -2376,7 +2372,6 @@ mod owner_scope_tests {
     }
 }
 
-
 #[cfg(test)]
 mod staged_import_tests {
     use super::{
@@ -2387,7 +2382,7 @@ mod staged_import_tests {
         REQUEST_FINGERPRINT_SCHEMA_VERSION, canonical_request_fingerprint_sha256,
     };
     use sol_atlas_core::offline_journal::{
-        OFFLINE_JOURNAL_SCHEMA_VERSION, JournalEntry, JournalState, OperationEnvelope,
+        JournalEntry, JournalState, OFFLINE_JOURNAL_SCHEMA_VERSION, OperationEnvelope,
         RequiredNullableOperationId,
     };
     use sol_atlas_core::offline_payload_digest::canonical_payload_digest_sha256;
