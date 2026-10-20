@@ -71,8 +71,7 @@
             "type": [
               "number",
               "null"
-            ],
-            "minimum": 0
+            ]
           },
           "ambient_temperature_c": {
             "type": [
