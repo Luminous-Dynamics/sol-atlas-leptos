@@ -88,6 +88,14 @@
       0,
       0,
       -0.8
-    ]
+    ],
+    "metadata": {
+      "source_name": "synthetic-known-answer",
+      "source_revision": "synthetic-fixture-v1",
+      "source_field": "signed_normalized_tracking_error",
+      "sample_time_semantics": "source_reported_series",
+      "denominator_convention": "source_native_unknown",
+      "normalization_note": "Synthetic input values are already normalized for the metric known-answer test; no source clock or denominator is implied."
+    }
   }
 }
