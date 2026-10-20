@@ -530,6 +530,8 @@ impl IndexedDbJournal {
                         }
                     };
                 let lease_request_for_callback = lease_request.clone();
+                let output_for_registration_error = output.clone();
+                let transaction_for_registration_error = transaction.clone();
                 let output = output.clone();
                 let operations = operations.clone();
                 let pending = pending.clone();
@@ -661,8 +663,8 @@ impl IndexedDbJournal {
                 if let Err(error) =
                     Reflect::set(&lease_request, &JsValue::from_str("onsuccess"), &callback)
                 {
-                    *output.borrow_mut() = Some(Err(js_error(error)));
-                    let _ = call_method(&transaction, "abort", &[]);
+                    *output_for_registration_error.borrow_mut() = Some(Err(js_error(error)));
+                    let _ = call_method(&transaction_for_registration_error, "abort", &[]);
                 }
             });
             Reflect::set(&request, &JsValue::from_str("onsuccess"), &callback).map_err(js_error)?;
