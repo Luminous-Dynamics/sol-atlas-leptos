@@ -574,10 +574,7 @@ mod tests {
 
         assert_eq!(catalog["schema"], "luminous.landscape-source-catalog.v0");
         assert_eq!(catalog["schema_uri"], schema["$id"]);
-        assert_eq!(
-            catalog["catalog_status"],
-            "metadata-only-not-ingested"
-        );
+        assert_eq!(catalog["catalog_status"], "metadata-only-not-ingested");
         assert_eq!(
             catalog["pilot"]["name"],
             "Johannesburg / Highveld, Gauteng, South Africa"
@@ -593,7 +590,9 @@ mod tests {
             assert!(ids.insert(id), "duplicate source ID: {id}");
             for field in ["publisher", "service_uri", "metadata_uri", "attribution"] {
                 assert!(
-                    record[field].as_str().is_some_and(|value| !value.trim().is_empty()),
+                    record[field]
+                        .as_str()
+                        .is_some_and(|value| !value.trim().is_empty()),
                     "source {id} has no {field}"
                 );
             }
@@ -613,6 +612,9 @@ mod tests {
             schema["properties"]["catalog_status"]["enum"][0],
             "metadata-only-not-ingested"
         );
-        assert_eq!(schema["properties"]["records"]["items"]["additionalProperties"], false);
+        assert_eq!(
+            schema["properties"]["records"]["items"]["additionalProperties"],
+            false
+        );
     }
 }
