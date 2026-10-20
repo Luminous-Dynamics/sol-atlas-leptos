@@ -1247,23 +1247,32 @@ mod tests {
     }
 
     #[test]
-    fn non_finite_derived_cost_rank_fails_closed_before_allocation() {
-        let mut request = fixture_request();
-        request.workloads[1].required_work_units = 1;
-        // The input is finite, but price × facility factor overflows in t2.
-        // Because cheaper intervals can meet the demand, that bad rank would
-        // otherwise be hidden by the final schedule's finite selected cost.
-        request.intervals[2].electricity_price_usd_per_kwh = Some(1.7e308);
+    fn non_finite_derived_objective_rank_fails_closed_before_allocation() {
+        for policy in [SchedulingPolicy::LowestCost, SchedulingPolicy::LowestCarbon] {
+            let mut request = fixture_request();
+            request.workloads[1].required_work_units = 1;
+            // Raw input is finite, but value × facility factor overflows in t2.
+            // That interval need not receive work for its bad rank to corrupt ordering.
+            match policy {
+                SchedulingPolicy::LowestCost => {
+                    request.intervals[2].electricity_price_usd_per_kwh = Some(1.7e308);
+                }
+                SchedulingPolicy::LowestCarbon => {
+                    request.intervals[2].grid_carbon_intensity_gco2_per_kwh = Some(1.7e308);
+                }
+                SchedulingPolicy::EarliestReady => unreachable!("only ranked policies are tested"),
+            }
 
-        let result = schedule_deferrable(&request, SchedulingPolicy::LowestCost);
-        assert_eq!(result.status, AssessmentStatus::Invalid);
-        assert_eq!(result.deferrable_work_units_by_interval, None);
-        assert!(
-            result
-                .blockers
-                .iter()
-                .any(|blocker| blocker == "interval_t2_derived_objective_per_unit_non_finite")
-        );
+            let result = schedule_deferrable(&request, policy);
+            assert_eq!(result.status, AssessmentStatus::Invalid);
+            assert_eq!(result.deferrable_work_units_by_interval, None);
+            assert!(
+                result
+                    .blockers
+                    .iter()
+                    .any(|blocker| blocker == "interval_t2_derived_objective_per_unit_non_finite")
+            );
+        }
     }
 
     #[test]
