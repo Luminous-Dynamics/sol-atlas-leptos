@@ -10,6 +10,7 @@ on:
       - "docs/research/SA-PORTFOLIO-SCENARIO-ROBUSTNESS-001.md"
       - "docs/research/fixtures/sa-economic-portfolio-v0.1*"
       - "docs/research/fixtures/sa-economic-portfolio-v0.2*"
+      - "docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1*"
       - "docs/research/schemas/sa-economic-portfolio-v0.1.schema.json"
       - "docs/research/schemas/sa-economic-portfolio-v0.2.schema.json"
       - ".github/workflows/sa-economic-portfolio-oracle.yml"
@@ -77,6 +78,30 @@ jobs:
           docs/research/fixtures/sa-economic-portfolio-v0.2-24-project.json
           docs/research/fixtures/sa-economic-portfolio-v0.2-24-project.search-expected.json
           > sa-economic-portfolio-v0.2-24-search-receipt.json
+
+      - name: Produce normal-scenario omission receipt
+        run: >-
+          cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --scenario-omission
+          docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.json
+          normal_reference
+          docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-omit-normal.expected.json
+          > sa-portfolio-scenario-omission-normal-receipt.json
+
+      - name: Produce stress-scenario omission receipt
+        run: >-
+          cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --scenario-omission
+          docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.json
+          heat_dry_power_stress
+          docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-omit-heat-dry.expected.json
+          > sa-portfolio-scenario-omission-stress-receipt.json
+
+      - name: Produce omitted-scenario floor-challenge receipt
+        run: >-
+          cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --scenario-omission
+          docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-floor-challenge.json
+          heat_dry_power_stress
+          docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-floor-challenge-omit-stress.expected.json
+          > sa-portfolio-scenario-omission-floor-challenge-receipt.json
 
       - name: Build optimized benchmark binary
         run: cargo build --release --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml
