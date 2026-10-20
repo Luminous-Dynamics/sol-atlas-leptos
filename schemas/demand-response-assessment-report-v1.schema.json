@@ -79,7 +79,8 @@
         "max_allowed_exceedance_fraction",
         "threshold_exceedance_count",
         "threshold_exceedance_fraction",
-        "tracking_requirement_satisfied"
+        "exceedance_rate_requirement_satisfied",
+        "p90_threshold_satisfied"
       ],
       "properties": {
         "sample_count": {
@@ -129,7 +130,10 @@
           "minimum": 0,
           "maximum": 1
         },
-        "tracking_requirement_satisfied": {
+        "exceedance_rate_requirement_satisfied": {
+          "type": "boolean"
+        },
+        "p90_threshold_satisfied": {
           "type": "boolean"
         }
       }
@@ -297,7 +301,8 @@
         "max_allowed_exceedance_fraction",
         "threshold_exceedance_count",
         "threshold_exceedance_fraction",
-        "tracking_requirement_satisfied"
+        "exceedance_rate_requirement_satisfied",
+        "p90_threshold_satisfied"
       ],
       "properties": {
         "sample_count": {
@@ -346,7 +351,10 @@
           "minimum": 0,
           "maximum": 1
         },
-        "tracking_requirement_satisfied": {
+        "exceedance_rate_requirement_satisfied": {
+          "type": "boolean"
+        },
+        "p90_threshold_satisfied": {
           "type": "boolean"
         }
       }
