@@ -1186,61 +1186,63 @@ mod tests {
         ];
 
         for prices in tariff_profiles {
-            let mut request = fixture_request();
-            request.workloads[1].required_work_units = 12;
-            for (interval, price) in request.intervals.iter_mut().zip(prices) {
-                interval.electricity_price_usd_per_kwh = Some(price);
-            }
+            for demand in 1..=20 {
+                let mut request = fixture_request();
+                request.workloads[1].required_work_units = demand;
+                for (interval, price) in request.intervals.iter_mut().zip(prices) {
+                    interval.electricity_price_usd_per_kwh = Some(price);
+                }
 
-            let capacity = assess(&request);
-            assert!(matches!(
-                capacity.status,
-                AssessmentStatus::Feasible | AssessmentStatus::CapacityLimited
-            ));
-            let capacities = capacity
-                .interval_assessments
-                .iter()
-                .map(|row| row.max_deferrable_work_units)
-                .collect::<Vec<_>>();
-            let unit_energy = request.workloads[0].energy_kwh_per_work_unit;
-            let per_unit_cost = request
-                .intervals
-                .iter()
-                .zip(prices)
-                .map(|(interval, price)| {
-                    price
-                        * interval
-                            .facility_energy_per_it_energy
-                            .expect("fixture declares facility factors")
-                        * unit_energy
-                })
-                .collect::<Vec<_>>();
-            let oracle = exhaustive_minimum_cost(&capacities, &per_unit_cost, 12);
-            let result = schedule_deferrable(&request, SchedulingPolicy::LowestCost);
-            let allocation = result
-                .deferrable_work_units_by_interval
-                .as_ref()
-                .expect("finite tariff profile must produce a schedule");
-
-            assert_eq!(result.status, AssessmentStatus::Feasible);
-            assert_eq!(allocation.iter().sum::<u64>(), 12);
-            assert!(allocation.iter().zip(&capacities).all(|(used, cap)| used <= cap));
-            assert_eq!(
-                result.protected_floor_work_units_by_interval,
-                Some(vec![6, 6, 6, 6])
-            );
-            assert!(
-                (result.modelled_electricity_cost_usd.expect("known tariffs") - oracle).abs()
-                    < 1.0e-8,
-                "scheduler objective must equal exhaustive optimum; prices={prices:?}, allocation={allocation:?}"
-            );
-            assert_eq!(
-                schedule_deferrable(&request, SchedulingPolicy::LowestCost)
+                let capacity = assess(&request);
+                assert!(matches!(
+                    capacity.status,
+                    AssessmentStatus::Feasible | AssessmentStatus::CapacityLimited
+                ));
+                let capacities = capacity
+                    .interval_assessments
+                    .iter()
+                    .map(|row| row.max_deferrable_work_units)
+                    .collect::<Vec<_>>();
+                let unit_energy = request.workloads[0].energy_kwh_per_work_unit;
+                let per_unit_cost = request
+                    .intervals
+                    .iter()
+                    .zip(prices)
+                    .map(|(interval, price)| {
+                        price
+                            * interval
+                                .facility_energy_per_it_energy
+                                .expect("fixture declares facility factors")
+                            * unit_energy
+                    })
+                    .collect::<Vec<_>>();
+                let oracle = exhaustive_minimum_cost(&capacities, &per_unit_cost, demand);
+                let result = schedule_deferrable(&request, SchedulingPolicy::LowestCost);
+                let allocation = result
                     .deferrable_work_units_by_interval
-                    .as_ref(),
-                Some(allocation),
-                "identical request bytes must produce the same allocation"
-            );
+                    .as_ref()
+                    .expect("finite tariff profile must produce a schedule");
+
+                assert_eq!(result.status, AssessmentStatus::Feasible);
+                assert_eq!(allocation.iter().sum::<u64>(), demand);
+                assert!(allocation.iter().zip(&capacities).all(|(used, cap)| used <= cap));
+                assert_eq!(
+                    result.protected_floor_work_units_by_interval,
+                    Some(vec![6, 6, 6, 6])
+                );
+                assert!(
+                    (result.modelled_electricity_cost_usd.expect("known tariffs") - oracle).abs()
+                        < 1.0e-8,
+                    "scheduler objective must equal exhaustive optimum; demand={demand}, prices={prices:?}, allocation={allocation:?}"
+                );
+                assert_eq!(
+                    schedule_deferrable(&request, SchedulingPolicy::LowestCost)
+                        .deferrable_work_units_by_interval
+                        .as_ref(),
+                    Some(allocation),
+                    "identical request bytes must produce the same allocation"
+                );
+            }
         }
     }
 
