@@ -160,7 +160,10 @@ pub fn evaluate_evidence_packet(
             EvidenceIssueCode::UnsupportedSchema,
             None,
             None,
-            format!("unsupported evidence packet schema {}", packet.schema_version),
+            format!(
+                "unsupported evidence packet schema {}",
+                packet.schema_version
+            ),
         ));
     }
     if packet.graph_id.trim().is_empty()
@@ -303,7 +306,10 @@ pub fn evaluate_evidence_packet(
             ));
         }
         if artifact.kind == EvidenceKind::Measurement
-            && artifact.unit.as_deref().is_none_or(|value| value.trim().is_empty())
+            && artifact
+                .unit
+                .as_deref()
+                .is_none_or(|value| value.trim().is_empty())
         {
             artifact_valid = false;
             issues.push(issue(
@@ -483,9 +489,9 @@ fn is_lowercase_sha256(value: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::{
-        evaluate_evidence_packet, EvidenceArtifactV1, EvidenceDecision, EvidenceIssueCode,
-        EvidenceKind, EvidenceRequirementV1, TaskEvidencePacketV1, VerificationContext,
-        TASK_EVIDENCE_SCHEMA_VERSION,
+        EvidenceArtifactV1, EvidenceDecision, EvidenceIssueCode, EvidenceKind,
+        EvidenceRequirementV1, TASK_EVIDENCE_SCHEMA_VERSION, TaskEvidencePacketV1,
+        VerificationContext, evaluate_evidence_packet,
     };
 
     fn requirement(id: &str, kind: EvidenceKind, independent: bool) -> EvidenceRequirementV1 {
@@ -547,10 +553,7 @@ mod tests {
         }
     }
 
-    fn has_issue(
-        evaluation: &super::EvidenceEvaluation,
-        code: EvidenceIssueCode,
-    ) -> bool {
+    fn has_issue(evaluation: &super::EvidenceEvaluation, code: EvidenceIssueCode) -> bool {
         evaluation.issues.iter().any(|item| item.code == code)
     }
 
@@ -610,7 +613,10 @@ mod tests {
         value.evidence[1].unit = None;
         value.evidence[1].instrument_ref = None;
         let result = evaluate_evidence_packet(&value, &context(Some("reviewer-02")));
-        assert!(has_issue(&result, EvidenceIssueCode::MeasurementMissingUnit));
+        assert!(has_issue(
+            &result,
+            EvidenceIssueCode::MeasurementMissingUnit
+        ));
         assert!(has_issue(
             &result,
             EvidenceIssueCode::MeasurementMissingInstrument
@@ -669,10 +675,15 @@ mod tests {
         assert!(has_issue(&result, EvidenceIssueCode::WrongEvidenceKind));
 
         let mut duplicate_requirement = packet();
-        duplicate_requirement.requirements.push(duplicate_requirement.requirements[0].clone());
+        duplicate_requirement
+            .requirements
+            .push(duplicate_requirement.requirements[0].clone());
         let result =
             evaluate_evidence_packet(&duplicate_requirement, &context(Some("reviewer-02")));
-        assert!(has_issue(&result, EvidenceIssueCode::DuplicateRequirementId));
+        assert!(has_issue(
+            &result,
+            EvidenceIssueCode::DuplicateRequirementId
+        ));
     }
 
     #[test]

@@ -8,8 +8,9 @@
 //! canonical-byte digest recomputation, authentication, or network I/O is measured.
 
 use sol_atlas_core::task_evidence::{
-    evaluate_evidence_packet, EvidenceArtifactV1, EvidenceDecision, EvidenceKind,
-    EvidenceRequirementV1, TaskEvidencePacketV1, VerificationContext, TASK_EVIDENCE_SCHEMA_VERSION,
+    EvidenceArtifactV1, EvidenceDecision, EvidenceKind, EvidenceRequirementV1,
+    TASK_EVIDENCE_SCHEMA_VERSION, TaskEvidencePacketV1, VerificationContext,
+    evaluate_evidence_packet,
 };
 use std::{env, hint::black_box, time::Instant};
 
@@ -25,29 +26,33 @@ fn kind(index: usize) -> EvidenceKind {
 }
 
 fn build(requirements_count: usize, evidence_count: usize) -> TaskEvidencePacketV1 {
-    let requirements: Vec<_> = (0..requirements_count).map(|i| EvidenceRequirementV1 {
-        requirement_id: format!("requirement-{i:05}"),
-        accepted_kind: kind(i),
-        required_procedure_revision: Some(7),
-        requires_independent_reviewer: i % 5 == 0,
-    }).collect();
-    let evidence = (0..evidence_count).map(|i| {
-        let req = i % requirements_count;
-        let evidence_kind = requirements[req].accepted_kind;
-        EvidenceArtifactV1 {
-            evidence_id: format!("evidence-{i:06}"),
-            requirement_id: requirements[req].requirement_id.clone(),
-            kind: evidence_kind,
-            source_ref: format!("urn:luminous:synthetic:evidence-{i:06}"),
-            digest_sha256: format!("{:064x}", i as u128 + 1),
-            recorded_by: "technician-01".to_owned(),
-            captured_at_unix_ms: Some(1_797_000_000_000 + i as u64),
-            unit: (evidence_kind == EvidenceKind::Measurement).then(|| "kPa".to_owned()),
-            instrument_ref: (evidence_kind == EvidenceKind::Measurement)
-                .then(|| format!("instrument:ref-{req:05}")),
-            procedure_revision: Some(7),
-        }
-    }).collect();
+    let requirements: Vec<_> = (0..requirements_count)
+        .map(|i| EvidenceRequirementV1 {
+            requirement_id: format!("requirement-{i:05}"),
+            accepted_kind: kind(i),
+            required_procedure_revision: Some(7),
+            requires_independent_reviewer: i % 5 == 0,
+        })
+        .collect();
+    let evidence = (0..evidence_count)
+        .map(|i| {
+            let req = i % requirements_count;
+            let evidence_kind = requirements[req].accepted_kind;
+            EvidenceArtifactV1 {
+                evidence_id: format!("evidence-{i:06}"),
+                requirement_id: requirements[req].requirement_id.clone(),
+                kind: evidence_kind,
+                source_ref: format!("urn:luminous:synthetic:evidence-{i:06}"),
+                digest_sha256: format!("{:064x}", i as u128 + 1),
+                recorded_by: "technician-01".to_owned(),
+                captured_at_unix_ms: Some(1_797_000_000_000 + i as u64),
+                unit: (evidence_kind == EvidenceKind::Measurement).then(|| "kPa".to_owned()),
+                instrument_ref: (evidence_kind == EvidenceKind::Measurement)
+                    .then(|| format!("instrument:ref-{req:05}")),
+                procedure_revision: Some(7),
+            }
+        })
+        .collect();
     TaskEvidencePacketV1 {
         schema_version: TASK_EVIDENCE_SCHEMA_VERSION,
         graph_id: "benchmark:evidence-v1".to_owned(),
@@ -71,13 +76,18 @@ fn run() -> Result<(), String> {
         return Err("usage: task_evidence_bench [samples] [requirements] [evidence]".into());
     }
     let parse = |i: usize, name: &str, default: usize| -> Result<usize, String> {
-        args.get(i).map_or(Ok(default), |v| v.parse().map_err(|_| format!("invalid {name}: {v}")))
+        args.get(i).map_or(Ok(default), |v| {
+            v.parse().map_err(|_| format!("invalid {name}: {v}"))
+        })
     };
     let samples = parse(0, "sample count", 30)?;
     let req_count = parse(1, "requirement count", 1_000)?;
     let evidence_count = parse(2, "evidence count", 10_000)?;
-    if !(1..=10_000).contains(&samples) || !(1..=100_000).contains(&req_count)
-        || evidence_count < req_count || evidence_count > 1_000_000 {
+    if !(1..=10_000).contains(&samples)
+        || !(1..=100_000).contains(&req_count)
+        || evidence_count < req_count
+        || evidence_count > 1_000_000
+    {
         return Err("samples must be 1..=10000, requirements 1..=100000, and evidence >= requirements and <= 1000000".into());
     }
 
@@ -91,7 +101,10 @@ fn run() -> Result<(), String> {
     for _ in 0..5 {
         let result = evaluate_evidence_packet(black_box(&packet), &context);
         if result.decision != EvidenceDecision::ReadyForQualifiedReview {
-            return Err(format!("generated packet failed validation: {:?}", result.issues.first()));
+            return Err(format!(
+                "generated packet failed validation: {:?}",
+                result.issues.first()
+            ));
         }
         black_box(result);
     }
@@ -102,7 +115,10 @@ fn run() -> Result<(), String> {
         let result = evaluate_evidence_packet(black_box(&packet), &context);
         raw_ns.push(start.elapsed().as_nanos());
         if result.decision != EvidenceDecision::ReadyForQualifiedReview {
-            return Err(format!("generated packet failed validation: {:?}", result.issues.first()));
+            return Err(format!(
+                "generated packet failed validation: {:?}",
+                result.issues.first()
+            ));
         }
         black_box(result);
     }
@@ -126,7 +142,10 @@ fn run() -> Result<(), String> {
             "raw": raw_ns
         }
     });
-    println!("{}", serde_json::to_string(&output).map_err(|error| error.to_string())?);
+    println!(
+        "{}",
+        serde_json::to_string(&output).map_err(|error| error.to_string())?
+    );
     Ok(())
 }
 
