@@ -18,6 +18,39 @@ use std::fs;
 use std::process;
 
 const MANIFEST_SCHEMA_VERSION: &str = "1.0";
+const PINNED_FLEXDC_REVISION: &str = "ea50bd582b5d1b55fcb09ea46899fa9d325cce3b";
+const PINNED_CONFIG_ARTIFACTS: [(&str, &str, &str); 6] = [
+    (
+        "experiment_config",
+        "configs/experiment/exp_low_util.ini",
+        "554bb80355e85fb0c3fbf73e4d8a4f1521fa2184",
+    ),
+    (
+        "cluster_config",
+        "configs/cluster/cluster.ini",
+        "9acf360f05e88e82e812c8d412979a91dcbe3399",
+    ),
+    (
+        "workload_config",
+        "configs/workload/W2-short-qos3445.ini",
+        "c7f5e7d9e91de0ef17a4995b4d07cd896dc436f1",
+    ),
+    (
+        "runtime_policy_config",
+        "configs/policy/example_flexDC_simulation.ini",
+        "8a12f500ed8116b99e7e6b79010d5ab76be85051",
+    ),
+    (
+        "power_signal",
+        "data/ISO24h.csv",
+        "6f7a8e4275d00ad43702f8a94d0a085b79f21f65",
+    ),
+    (
+        "optimization_weights",
+        "src/peacsim/output/optimization/W2-simulated_annealing_low_util_availability=False_20250308130817/opt_weights.csv",
+        "f84164c63ba4215f92bb41c174955ec6e041db85",
+    ),
+];
 const REQUIRED_CONFIG_ROLES: [&str; 6] = [
     "experiment_config",
     "cluster_config",
@@ -88,6 +121,11 @@ fn validate_manifest(manifest: &RunManifest) -> Result<(), String> {
             "manifest.source_revision must be a 40-character lowercase Git commit SHA".to_owned(),
         );
     }
+    if manifest.source_revision != PINNED_FLEXDC_REVISION {
+        return Err(format!(
+            "this adapter supports only pinned FlexDC-Sim revision {PINNED_FLEXDC_REVISION}"
+        ));
+    }
     if manifest.simulation_step_seconds == 0 {
         return Err("manifest.simulation_step_seconds must be positive".to_owned());
     }
@@ -140,8 +178,21 @@ fn validate_manifest(manifest: &RunManifest) -> Result<(), String> {
                 artifact.role
             ));
         }
+        let (expected_role, expected_path, expected_sha1) = PINNED_CONFIG_ARTIFACTS
+            .iter()
+            .find(|(role, _, _)| *role == artifact.role)
+            .expect("required role and pinned artifact table must stay aligned");
+        if artifact.path != *expected_path || artifact.git_blob_sha1 != *expected_sha1 {
+            return Err(format!(
+                "config artifact {:?} does not match the pinned path/blob identity",
+                expected_role
+            ));
+        }
     }
-    if seen_roles != required {
+    if REQUIRED_CONFIG_ROLES
+        .iter()
+        .any(|role| !seen_roles.contains(role))
+    {
         return Err("manifest is missing one or more required config artifact roles".to_owned());
     }
     Ok(())
