@@ -15,9 +15,10 @@
   ],
   "unit_profile": {
     "version": "landscape-units-v0",
-    "rule": "Use a declared unit vocabulary per property, preferably UCUM-compatible symbols. Do not convert units based only on matching labels.",
+    "rule": "Preserve the source unit symbol. A canonical unit alias/conversion must be a separately versioned, provenance-bearing activity; never convert from a label alone. Metric definitions may declare a canonical output unit, but a validated conversion is required before calculation.",
     "examples": [
-      "Cel",
+      "degC (SensorThings fixture/source symbol)",
+      "Cel (UCUM-style canonical Celsius unit)",
       "mm",
       "mm/h",
       "m3/s",
@@ -38,7 +39,7 @@
         {
           "id": "urn:luminous:landscape:surface-temperature",
           "label": "Surface temperature",
-          "unit": "Cel",
+          "unit": "degC",
           "result_kinds": [
             "quantity"
           ],
@@ -52,7 +53,7 @@
         {
           "id": "urn:luminous:landscape:air-temperature",
           "label": "Air temperature",
-          "unit": "Cel",
+          "unit": "degC",
           "result_kinds": [
             "quantity"
           ],
