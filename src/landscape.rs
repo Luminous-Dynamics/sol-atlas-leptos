@@ -366,10 +366,41 @@ mod tests {
             schema["properties"]["coordinate_frame"]["properties"]["kind"]["const"],
             FRAME_KIND
         );
-        assert_eq!(
-            schema["properties"]["geometry_status"]["const"],
-            GEOMETRY_STATUS
+        let geometry_statuses = schema["properties"]["geometry_status"]
+            ["enum"]
+            .as_array()
+            .unwrap();
+        assert!(
+            geometry_statuses
+                .iter()
+                .any(|value| value.as_str() == Some(GEOMETRY_STATUS))
         );
+        assert!(
+            geometry_statuses
+                .iter()
+                .any(|value| value.as_str() == Some(SYNTHETIC_GEOMETRY_STATUS))
+        );
+        let feature_properties = &schema["properties"]["features"]["items"]["properties"];
+        assert!(feature_properties["status"]["enum"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|value| value.as_str() == Some(DESIGN_INTENT_STATUS)));
+        assert!(feature_properties["status"]["enum"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|value| value.as_str() == Some(SYNTHETIC_GEOMETRY_STATUS)));
+        assert!(feature_properties["source"]["enum"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|value| value.as_str() == Some(USER_AUTHORED_SOURCE)));
+        assert!(feature_properties["source"]["enum"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|value| value.as_str() == Some(SYNTHETIC_SOURCE)));
         assert_eq!(
             schema["properties"]["features"]["items"]["properties"]["geometry_representation"]["const"],
             GEOMETRY_REPRESENTATION
