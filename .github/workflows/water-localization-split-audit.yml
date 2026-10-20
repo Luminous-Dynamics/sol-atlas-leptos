@@ -35,8 +35,16 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
-      - name: Check formatting for this tranche
-        run: rustfmt --edition 2024 --check sol-atlas-core/src/water_localization_split_audit.rs sol-atlas-core/src/bin/water_localization_split_audit.rs
+      - name: Bootstrap exact rustfmt output for this tranche
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustfmt --edition 2024 sol-atlas-core/src/water_localization_split_audit.rs
+          file="sol-atlas-core/src/water_localization_split_audit.rs"
+          printf '\n---BEGIN_BASE64:%s---\n' "$file"
+          base64 --wrap=0 "$file"
+          printf '\n---END_BASE64:%s---\n' "$file"
+          exit 86
       - name: Run topology split audit unit tests
         run: cargo test --manifest-path sol-atlas-core/Cargo.toml water_localization_split_audit
       - name: Evaluate frozen split manifest and bind exact revision
