@@ -17,7 +17,7 @@ The canonical JSON bundle contains:
 - records: records sorted by snapshot.envelope.operation_id, each containing operation_namespace and a full snapshot, including original canonical payload bytes, journal state and attempt count;
 - integrity_sha256: lowercase SHA-256 over RFC 8785 canonical UTF-8 bytes of the unsigned manifest (schema_version, owner_scope, records).
 
-The digest is stable across insignificant JSON whitespace and object-key ordering. Record ordering is explicitly normalized and then enforced. Duplicate operation IDs, unsupported schemas, empty scopes/namespaces, malformed state/attempt combinations, noncanonical payloads and payload-digest mismatches are rejected.
+The digest is stable across insignificant JSON whitespace and object-key ordering. Record ordering is explicitly normalized and then enforced. Duplicate operation IDs, duplicate idempotency keys within the same namespace, unsupported schemas, empty scopes/namespaces, malformed state/attempt combinations, noncanonical payloads and payload-digest mismatches are rejected. Because the bundle envelope is canonicalized as JCS JSON, expected/applied/current revision numbers must be within the IEEE-754 safe-integer range (at most 9,007,199,254,740,991); larger values are rejected explicitly rather than rounded.
 
 Rust API: sol_atlas_core::offline_journal_bundle::{OfflineJournalBundleV1, OfflineJournalBundleRecordV1}.
 
@@ -68,6 +68,8 @@ Owner scope prevents accidental cross-account restore but is not a credential. A
 | BND-12 | Terminal state has a forged receipt reference and recomputed bundle digest | Never promote it to an authenticated server result |
 | BND-13 | Restore/import repeated after success | No state reset and no duplicate logical server effect |
 | BND-14 | Lease record omitted from export | Restore reclaims through the regular lease protocol; no transferred token grants dispatch authority |
+| BND-15 | Same raw idempotency key in the same owner/namespace | Bundle validation rejects duplicate scoped keys before any staging transaction begins |
+| BND-16 | Revision counter above JCS safe integer range | Bundle codec returns a typed range error; it never hashes rounded revision values |
 
 ## Performance targets (proposed, not measured)
 
