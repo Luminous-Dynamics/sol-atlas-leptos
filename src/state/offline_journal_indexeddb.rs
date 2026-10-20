@@ -1076,8 +1076,8 @@ fn finish_insert_reads(
     transaction: &JsValue,
     operation_id: &str,
     idempotency_key: &str,
-    new_snapshot: &JournalEntrySnapshotV1,
-    new_snapshot_json: &str,
+    new_record: &StoredOperationV1,
+    new_record_json: &str,
     new_payload_bytes: &[u8],
 ) {
     let (existing, existing_idempotency, ready) = {
@@ -1099,38 +1099,44 @@ fn finish_insert_reads(
     let result = if !existing.is_undefined() && !existing.is_null() {
         match existing.as_string() {
             None => Err(IndexedDbJournalError(
-                "operation store contains a non-string snapshot".into(),
+                "operation store contains a non-string stored record".into(),
             )),
             Some(serialized) => {
-                let snapshot: Result<JournalEntrySnapshotV1, _> = serde_json::from_str(&serialized);
-                match snapshot {
+                let stored: Result<StoredOperationV1, _> = serde_json::from_str(&serialized);
+                match stored {
                     Err(error) => Err(IndexedDbJournalError(format!(
-                        "stored snapshot JSON invalid: {error}"
+                        "stored operation JSON invalid: {error}"
                     ))),
-                    Ok(snapshot) => match JournalEntry::from_snapshot_for_operation(
-                        operation_id,
-                        snapshot.clone(),
-                    ) {
-                        Err(error) => Err(IndexedDbJournalError::from(error)),
-                        Ok(existing_entry) => {
-                            let same_envelope = snapshot.envelope == new_snapshot.envelope;
-                            let same_payload =
-                                existing_entry.canonical_payload_utf8() == new_payload_bytes;
-                            if !same_envelope || !same_payload {
-                                Err(IndexedDbJournalError(
-                                    "operation ID is already bound to a different immutable envelope/payload".into(),
-                                ))
-                            } else if existing_idempotency.as_string().as_deref()
-                                != Some(operation_id)
-                            {
-                                Err(IndexedDbJournalError(
-                                    "idempotency index is missing or points to another operation"
-                                        .into(),
-                                ))
-                            } else {
-                                Ok(Some(serialized))
+                    Ok(stored) => match stored.validate() {
+                        Err(error) => Err(error),
+                        Ok(()) => match JournalEntry::from_snapshot_for_operation(
+                            operation_id,
+                            stored.snapshot.clone(),
+                        ) {
+                            Err(error) => Err(IndexedDbJournalError::from(error)),
+                            Ok(existing_entry) => {
+                                let same_envelope = stored.snapshot.envelope == new_record.snapshot.envelope;
+                                let same_payload =
+                                    existing_entry.canonical_payload_utf8() == new_payload_bytes;
+                                let same_owner = stored.owner_scope == new_record.owner_scope;
+                                let same_namespace =
+                                    stored.operation_namespace == new_record.operation_namespace;
+                                if !same_envelope || !same_payload || !same_owner || !same_namespace {
+                                    Err(IndexedDbJournalError(
+                                        "operation ID is already bound to different immutable content or owner scope".into(),
+                                    ))
+                                } else if existing_idempotency.as_string().as_deref()
+                                    != Some(operation_id)
+                                {
+                                    Err(IndexedDbJournalError(
+                                        "idempotency index is missing or points to another operation"
+                                            .into(),
+                                    ))
+                                } else {
+                                    Ok(Some(serialized))
+                                }
                             }
-                        }
+                        },
                     },
                 }
             }
@@ -1144,7 +1150,7 @@ fn finish_insert_reads(
             operations,
             "add",
             &[
-                JsValue::from_str(new_snapshot_json),
+                JsValue::from_str(new_record_json),
                 JsValue::from_str(operation_id),
             ],
         );
