@@ -8,8 +8,8 @@
 //! All math uses raw `[f32; N]` arrays to avoid dependency collisions
 //! between rendering backends (web-sys, glam/nalgebra).
 
-pub mod ai_compute_energy;
 pub mod aesthetics;
+pub mod ai_compute_energy;
 pub mod confluence;
 pub mod constants;
 pub mod data;
