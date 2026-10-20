@@ -15,6 +15,7 @@
     "family_count",
     "family_counts",
     "cases",
+    "topology_review_candidates",
     "issues",
     "claim_ceiling",
     "nonclaims"
@@ -26,7 +27,8 @@
     "run_state": {
       "enum": [
         "Passed",
-        "Rejected"
+        "Rejected",
+        "NeedsTopologyReview"
       ]
     },
     "benchmark_id": {
@@ -86,6 +88,12 @@
       "items": {
         "type": "string",
         "minLength": 1
+      }
+    },
+    "topology_review_candidates": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/topologyReviewCandidate"
       }
     }
   },
@@ -158,6 +166,7 @@
         "split",
         "topology_family_id",
         "topology_sha256",
+        "structural_topology_sha256",
         "scenario_spec_sha256",
         "observation_signature_sha256",
         "observed_reading_count",
@@ -198,6 +207,10 @@
         "missing_reading_count": {
           "type": "integer",
           "minimum": 0
+        },
+        "structural_topology_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
         }
       }
     },
@@ -223,6 +236,65 @@
             "string",
             "null"
           ]
+        }
+      }
+    },
+    "topologyReviewCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "structural_topology_sha256",
+        "family_a",
+        "split_a",
+        "case_ids_a",
+        "family_b",
+        "split_b",
+        "case_ids_b"
+      ],
+      "properties": {
+        "structural_topology_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "family_a": {
+          "type": "string",
+          "minLength": 1
+        },
+        "split_a": {
+          "enum": [
+            "train",
+            "calibration",
+            "test"
+          ]
+        },
+        "case_ids_a": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "family_b": {
+          "type": "string",
+          "minLength": 1
+        },
+        "split_b": {
+          "enum": [
+            "train",
+            "calibration",
+            "test"
+          ]
+        },
+        "case_ids_b": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       }
     }
@@ -267,6 +339,44 @@
       "then": {
         "properties": {
           "issues": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "run_state": {
+            "const": "Passed"
+          }
+        },
+        "required": [
+          "run_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "topology_review_candidates": {
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "run_state": {
+            "const": "NeedsTopologyReview"
+          }
+        },
+        "required": [
+          "run_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "topology_review_candidates": {
             "minItems": 1
           }
         }
