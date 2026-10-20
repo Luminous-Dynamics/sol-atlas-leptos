@@ -41,6 +41,21 @@ pub enum RequiredNullableOperationId {
 }
 
 impl OperationEnvelope {
+    /// Verify the supplied raw JSON payload against this envelope's digest.
+    ///
+    /// Call before persisting the operation or dispatching the request. The
+    /// digest's shape-only validation in `validate` is not a substitute for
+    /// recomputing it from the original payload bytes.
+    pub fn verify_payload_json(
+        &self,
+        payload_json: &str,
+    ) -> Result<(), crate::offline_payload_digest::PayloadDigestError> {
+        crate::offline_payload_digest::verify_payload_digest(
+            payload_json,
+            &self.payload_digest_sha256,
+        )
+    }
+
     pub fn validate(&self) -> Result<(), JournalError> {
         if self.schema_version != OFFLINE_JOURNAL_SCHEMA_VERSION {
             return Err(JournalError::UnsupportedSchemaVersion(self.schema_version));
@@ -524,6 +539,20 @@ mod tests {
             );
             assert_eq!(entry.state, JournalState::OutcomeUnknown);
         }
+    }
+
+    #[test]
+    fn operation_envelope_verifies_digest_against_raw_payload() {
+        let payload = r#"{ "b": 2, "a": 1.0 }"#;
+        let mut candidate = envelope();
+        candidate.payload_digest_sha256 =
+            crate::offline_payload_digest::canonical_payload_digest_sha256(payload).unwrap();
+
+        assert!(candidate.verify_payload_json(payload).is_ok());
+        assert!(matches!(
+            candidate.verify_payload_json(r#"{"a":1,"b":3}"#),
+            Err(crate::offline_payload_digest::PayloadDigestError::DigestMismatch { .. })
+        ));
     }
 
     #[test]

@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "description": "Synthetic offline-journal payload canonicalization contract vectors. Canonical bytes and SHA-256 are checked exactly; invalid values fail closed.",
+  "algorithm": "RFC 8785 JCS canonical UTF-8 bytes, then SHA-256 lowercase hexadecimal.",
+  "vectors": [
+    {
+      "case_id": "reordered_whitespace_and_integral_float",
+      "payload_json": "{ \"b\": 2, \"a\": 1.0 }",
+      "canonical_utf8": "{\"a\":1,\"b\":2}",
+      "sha256": "43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777"
+    },
+    {
+      "case_id": "ecmascript_number_edges",
+      "payload_json": "{\"threshold\":1e21,\"negative_zero\":-0.0,\"amount\":1.0,\"small\":0.000001}",
+      "canonical_utf8": "{\"amount\":1,\"negative_zero\":0,\"small\":0.000001,\"threshold\":1e+21}",
+      "sha256": "b1782840e72721be977b253533ea7d871a3821dd08d0c8263a569142530adcfa"
+    },
+    {
+      "case_id": "utf16_property_sorting",
+      "payload_json": "{\"\\uFB33\":1,\"😀\":2}",
+      "canonical_utf8": "{\"😀\":2,\"דּ\":1}",
+      "sha256": "ec4e7d8c2963caa38dccc3d42693719ac9c6ecd783891b583d333565620ac2be"
+    },
+    {
+      "case_id": "unicode_and_escaped_content",
+      "payload_json": "{\"message\":\"Iñtërnâtiônàlizætiøn☃\",\"currency\":\"€\"}",
+      "canonical_utf8": "{\"currency\":\"€\",\"message\":\"Iñtërnâtiônàlizætiøn☃\"}",
+      "sha256": "e6c5be385280f8225ba41dc27f9e8610302e0a22f3df12176840d369e4a551d2"
+    },
+    {
+      "case_id": "empty_object",
+      "payload_json": "{}",
+      "canonical_utf8": "{}",
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "case_id": "rfc8785_correctly_rounded_decimal_parse",
+      "payload_json": "{\"x\":333333333.33333329}",
+      "canonical_utf8": "{\"x\":333333333.3333333}",
+      "sha256": "edfae0a13a6160251052c8e984f35961c7f206619e8c0e74568fbbfb6439644e"
+    }
+  ],
+  "invalid_cases": [
+    {
+      "case_id": "duplicate_object_key",
+      "payload_json": "{\"a\":1,\"a\":2}"
+    },
+    {
+      "case_id": "duplicate_after_escape_decoding",
+      "payload_json": "{\"a\":1,\"\\u0061\":2}"
+    },
+    {
+      "case_id": "imprecise_integer",
+      "payload_json": "{\"amount\":9007199254740993}"
+    },
+    {
+      "case_id": "non_json_nan",
+      "payload_json": "{\"amount\":NaN}"
+    },
+    {
+      "case_id": "out_of_range_number",
+      "payload_json": "{\"amount\":1e400}"
+    },
+    {
+      "case_id": "trailing_data",
+      "payload_json": "{\"a\":1} {\"b\":2}"
+    }
+  ],
+  "number_vectors": [
+    {
+      "ieee754_hex": "0000000000000000",
+      "canonical": "0"
+    },
+    {
+      "ieee754_hex": "8000000000000000",
+      "canonical": "0"
+    },
+    {
+      "ieee754_hex": "0000000000000001",
+      "canonical": "5e-324"
+    },
+    {
+      "ieee754_hex": "8000000000000001",
+      "canonical": "-5e-324"
+    },
+    {
+      "ieee754_hex": "7fefffffffffffff",
+      "canonical": "1.7976931348623157e+308"
+    },
+    {
+      "ieee754_hex": "ffefffffffffffff",
+      "canonical": "-1.7976931348623157e+308"
+    },
+    {
+      "ieee754_hex": "4340000000000000",
+      "canonical": "9007199254740992"
+    },
+    {
+      "ieee754_hex": "c340000000000000",
+      "canonical": "-9007199254740992"
+    },
+    {
+      "ieee754_hex": "4430000000000000",
+      "canonical": "295147905179352830000"
+    },
+    {
+      "ieee754_hex": "7fffffffffffffff",
+      "canonical": null
+    },
+    {
+      "ieee754_hex": "7ff0000000000000",
+      "canonical": null
+    },
+    {
+      "ieee754_hex": "44b52d02c7e14af5",
+      "canonical": "9.999999999999997e+22"
+    },
+    {
+      "ieee754_hex": "44b52d02c7e14af6",
+      "canonical": "1e+23"
+    },
+    {
+      "ieee754_hex": "44b52d02c7e14af7",
+      "canonical": "1.0000000000000001e+23"
+    },
+    {
+      "ieee754_hex": "444b1ae4d6e2ef4e",
+      "canonical": "999999999999999700000"
+    },
+    {
+      "ieee754_hex": "444b1ae4d6e2ef4f",
+      "canonical": "999999999999999900000"
+    },
+    {
+      "ieee754_hex": "444b1ae4d6e2ef50",
+      "canonical": "1e+21"
+    },
+    {
+      "ieee754_hex": "3eb0c6f7a0b5ed8c",
+      "canonical": "9.999999999999997e-7"
+    },
+    {
+      "ieee754_hex": "3eb0c6f7a0b5ed8d",
+      "canonical": "0.000001"
+    },
+    {
+      "ieee754_hex": "41b3de4355555553",
+      "canonical": "333333333.3333332"
+    },
+    {
+      "ieee754_hex": "41b3de4355555554",
+      "canonical": "333333333.33333325"
+    },
+    {
+      "ieee754_hex": "41b3de4355555555",
+      "canonical": "333333333.3333333"
+    },
+    {
+      "ieee754_hex": "41b3de4355555556",
+      "canonical": "333333333.3333334"
+    },
+    {
+      "ieee754_hex": "41b3de4355555557",
+      "canonical": "333333333.33333343"
+    },
+    {
+      "ieee754_hex": "becbf647612f3696",
+      "canonical": "-0.0000033333333333333333"
+    },
+    {
+      "ieee754_hex": "43143ff3c1cb0959",
+      "canonical": "1424953923781206.2"
+    }
+  ]
+}
