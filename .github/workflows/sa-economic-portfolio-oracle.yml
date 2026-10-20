@@ -112,6 +112,14 @@ jobs:
           docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-withheld-compound-stress.expected.json
           > sa-portfolio-scenario-addition-compound-stress-receipt.json
 
+      - name: Produce no-effect scenario control receipt
+        run: >-
+          cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --scenario-addition
+          docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.json
+          docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-no-effect-control.json
+          docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-no-effect-control.expected.json
+          > sa-portfolio-scenario-addition-no-effect-receipt.json
+
       - name: Build optimized benchmark binary
         run: cargo build --release --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml
 
@@ -145,6 +153,7 @@ jobs:
             sa-portfolio-scenario-omission-stress-receipt.json
             sa-portfolio-scenario-omission-floor-challenge-receipt.json
             sa-portfolio-scenario-addition-compound-stress-receipt.json
+            sa-portfolio-scenario-addition-no-effect-receipt.json
             sa-economic-portfolio-v0.2-comparison-benchmark.json
             sa-economic-portfolio-v0.2-24-search-benchmark.json
           if-no-files-found: ignore
