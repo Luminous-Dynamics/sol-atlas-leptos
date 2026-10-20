@@ -987,7 +987,8 @@ mod tests {
                 id: (*id).to_owned(),
                 weight: None,
                 probability: None,
-                notes: "Deterministically generated synthetic stress case; no probability.".to_owned(),
+                notes: "Deterministically generated synthetic stress case; no probability."
+                    .to_owned(),
             })
             .collect();
         let service_baseline_by_scenario = scenario_ids
@@ -1239,8 +1240,7 @@ mod tests {
             let searched = evaluate_frontier_search(&input)
                 .expect("generated frontier search should evaluate");
             assert_eq!(
-                searched.pareto_frontier,
-                exact.pareto_frontier,
+                searched.pareto_frontier, exact.pareto_frontier,
                 "frontier mismatch for {project_count} generated projects"
             );
             assert_eq!(
@@ -1339,12 +1339,12 @@ mod tests {
             "unknown-gate decoys must never alter the known eight-project frontier"
         );
         assert_eq!(searched.pareto_frontier.len(), 4);
-        assert!(searched.pareto_frontier.iter().all(|portfolio| {
-            portfolio
-                .project_ids
+        assert!(
+            searched
+                .pareto_frontier
                 .iter()
-                .all(|id| !id.starts_with('N'))
-        }));
+                .all(|portfolio| { portfolio.project_ids.iter().all(|id| !id.starts_with('N')) })
+        );
         assert!(searched.stats.visited_nodes < 1_000_000);
         assert_eq!(
             searched.stats.feasible_portfolio_count,
