@@ -7,6 +7,9 @@ on:
       - "schemas/demand-response-trace-v1.schema.json"
       - "schemas/demand-response-assessment-report-v1.schema.json"
       - "schemas/examples/demand-response-trace-v1.synthetic.json"
+      - "schemas/flexdc-sim-run-manifest-v1.schema.json"
+      - "schemas/examples/flexdc-sim-run-manifest-v1.synthetic.json"
+      - "schemas/examples/flexdc-sim-power-trace.synthetic.csv"
       - "tools/validate_demand_response_schemas.py"
       - ".github/workflows/demand-response-schema.yml"
   pull_request:
@@ -14,6 +17,9 @@ on:
       - "schemas/demand-response-trace-v1.schema.json"
       - "schemas/demand-response-assessment-report-v1.schema.json"
       - "schemas/examples/demand-response-trace-v1.synthetic.json"
+      - "schemas/flexdc-sim-run-manifest-v1.schema.json"
+      - "schemas/examples/flexdc-sim-run-manifest-v1.synthetic.json"
+      - "schemas/examples/flexdc-sim-power-trace.synthetic.csv"
       - "tools/validate_demand_response_schemas.py"
       - ".github/workflows/demand-response-schema.yml"
   workflow_dispatch:
@@ -31,5 +37,5 @@ jobs:
           python-version: "3.13"
       - name: Install pinned JSON Schema validator (CI tooling only)
         run: python -m pip install --disable-pip-version-check "jsonschema[format]==4.26.0"
-      - name: Validate schemas, known-answer shape, and fail-closed mutations
+      - name: Validate metric contracts and FlexDC run-manifest schema
         run: python tools/validate_demand_response_schemas.py
