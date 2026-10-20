@@ -86,7 +86,10 @@ impl std::error::Error for MetricError {}
 ///
 /// p90_normalized_absolute_error uses linear interpolation at rank q * (n - 1),
 /// matching the default quantile behavior used by pandas in FlexDC-Sim's
-/// extract_power_metrics.py.
+/// extract_power_metrics.py. FlexDC-Sim adds 0.0001 to reserve in its runtime
+/// denominator; this helper uses positive reserve exactly and rejects zero so
+/// the small epsilon cannot mask an invalid reserve declaration. Exact parity
+/// comparisons must record that difference.
 #[derive(Clone, Debug, PartialEq)]
 pub struct RegulationTrackingAssessment {
     pub sample_count: usize,
