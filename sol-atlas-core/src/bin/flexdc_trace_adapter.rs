@@ -476,7 +476,7 @@ fn build_trace_input(power_csv: &[u8], manifest_bytes: &[u8]) -> Result<Value, S
                 "sample_time_semantics": "prior_cycle_state",
                 "denominator_convention": "reserve_plus_epsilon",
                 "source_artifact_sha256": artifact_sha256,
-                "source_config_manifest_sha256": manifest_sha256,
+                "source_run_manifest_sha256": manifest_sha256,
                 "normalization_note": normalization_note
             },
             "interval_ids": interval_ids,
@@ -586,7 +586,7 @@ mod tests {
             sha256_hex(TRACE.as_bytes())
         );
         assert_eq!(
-            output["rsr_reference"]["metadata"]["source_config_manifest_sha256"],
+            output["rsr_reference"]["metadata"]["source_run_manifest_sha256"],
             sha256_hex(MANIFEST.as_bytes())
         );
     }
