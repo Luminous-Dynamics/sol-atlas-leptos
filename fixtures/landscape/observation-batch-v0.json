@@ -63,7 +63,7 @@
       "location": {
         "kind": "opaque-site",
         "site_ref_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-        "precision_class": "site-only",
+        "precision_class": "site",
         "sensitivity": "restricted"
       },
       "privacy": {
@@ -284,7 +284,7 @@
       "location": {
         "kind": "opaque-site",
         "site_ref_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
-        "precision_class": "site-only",
+        "precision_class": "site",
         "sensitivity": "restricted"
       },
       "privacy": {
@@ -355,7 +355,7 @@
       "location": {
         "kind": "opaque-site",
         "site_ref_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
-        "precision_class": "site-only",
+        "precision_class": "site",
         "sensitivity": "restricted"
       },
       "privacy": {
