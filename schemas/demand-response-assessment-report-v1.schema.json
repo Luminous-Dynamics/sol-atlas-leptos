@@ -211,6 +211,7 @@
         "synthetic",
         "claim_ceiling",
         "rsr",
+        "rsr_reference",
         "edr"
       ],
       "properties": {
@@ -246,6 +247,16 @@
               "$ref": "#/$defs/edr"
             }
           ]
+        },
+        "rsr_reference": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/normalizedRsr"
+            }
+          ]
         }
       },
       "anyOf": [
@@ -262,8 +273,83 @@
               "type": "object"
             }
           }
+        },
+        {
+          "properties": {
+            "rsr_reference": {
+              "type": "object"
+            }
+          }
         }
       ]
+    },
+    "normalizedRsr": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sample_count",
+        "normalization_basis",
+        "normalized_absolute_errors",
+        "mean_normalized_absolute_error",
+        "p90_normalized_absolute_error",
+        "max_normalized_absolute_error",
+        "error_threshold",
+        "max_allowed_exceedance_fraction",
+        "threshold_exceedance_count",
+        "threshold_exceedance_fraction",
+        "tracking_requirement_satisfied"
+      ],
+      "properties": {
+        "sample_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "normalization_basis": {
+          "const": "source_normalized_error_series"
+        },
+        "normalized_absolute_errors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "mean_normalized_absolute_error": {
+          "type": "number",
+          "minimum": 0
+        },
+        "p90_normalized_absolute_error": {
+          "type": "number",
+          "minimum": 0
+        },
+        "max_normalized_absolute_error": {
+          "type": "number",
+          "minimum": 0
+        },
+        "error_threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "max_allowed_exceedance_fraction": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "threshold_exceedance_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "threshold_exceedance_fraction": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "tracking_requirement_satisfied": {
+          "type": "boolean"
+        }
+      }
     }
   }
 }
