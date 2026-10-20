@@ -174,6 +174,21 @@ pub enum ReconcileOutcome {
     DuplicateTerminalReply,
 }
 
+/// Versioned persistence representation of a complete immutable journal operation.
+///
+/// The payload string must contain canonical RFC 8785 JSON, not an arbitrary
+/// source spelling. Recovery re-canonicalizes it, demands byte-for-byte equality,
+/// and recomputes its digest before trusting either the payload or stored state.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct JournalEntrySnapshotV1 {
+    pub schema_version: u16,
+    pub envelope: OperationEnvelope,
+    pub canonical_payload_json: String,
+    pub state: JournalState,
+    pub attempt_count: u32,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct JournalEntry {
     envelope: OperationEnvelope,
