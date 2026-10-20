@@ -37,6 +37,8 @@ jobs:
           grep -q '"evaluation_status": "valid"' /tmp/methane-census-receipt.json
           grep -q '"true_positives": 1' /tmp/methane-census-receipt.json
           grep -Eq '"evaluator_binary_sha256": "[0-9a-f]{64}"' /tmp/methane-census-receipt.json
+          grep -q '"pod_profile": {' /tmp/methane-census-receipt.json
+          grep -q '"end_to_end_pod": 1.0' /tmp/methane-census-receipt.json
       - name: Smoke-test paired comparison receipt
         run: |
           cargo run --manifest-path tools/methane-action-contract/Cargo.toml --locked --bin methane-compare < tools/methane-action-contract/examples/synthetic-paired-comparison.json > /tmp/methane-comparison-receipt.json
