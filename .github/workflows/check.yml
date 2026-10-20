@@ -67,6 +67,9 @@ jobs:
       # separate sol-atlas-core package; the app-binary command does not run them.
       - name: Test core library and evaluator unit tests
         run: cargo test -p sol-atlas-core --lib
-      # Compile the new JSON CLI as well as all core library/test targets.
+      # Exercise the receipt-wrapped JSON report contract in the evaluator CLI.
+      - name: Test compute-energy assessment CLI
+        run: cargo test -p sol-atlas-core --bin ai_compute_energy_assess
+      # Compile the core library and every binary/test target.
       - name: Check core library, tests, and binaries
         run: cargo check -p sol-atlas-core --all-targets
