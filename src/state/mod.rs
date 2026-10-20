@@ -3,3 +3,4 @@
 // Commercial licensing: see COMMERCIAL_LICENSE.md at repository root
 pub mod data_state;
 pub mod globe_state;
+pub mod offline_journal_indexeddb;
