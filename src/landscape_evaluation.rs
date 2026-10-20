@@ -589,12 +589,30 @@ fn validate_privacy(value: Option<&Value>, errors: &mut Vec<String>) {
     ) {
         errors.push("$.privacy.consent_status: unsupported status".to_string());
     }
-    match value.get("consent_record_ref") {
-        Some(Value::Null) => {}
-        Some(Value::String(reference)) if reference.chars().count() <= 300 => {}
-        Some(_) => errors
-            .push("$.privacy.consent_record_ref: expected a string reference or null".to_string()),
-        None => errors.push("$.privacy.consent_record_ref: missing required field".to_string()),
+    let consent_reference_present = match value.get("consent_record_ref") {
+        Some(Value::Null) => false,
+        Some(Value::String(reference))
+            if !reference.trim().is_empty() && reference.chars().count() <= 300 =>
+        {
+            true
+        }
+        Some(_) => {
+            errors.push(
+                "$.privacy.consent_record_ref: expected a non-empty string reference or null"
+                    .to_string(),
+            );
+            false
+        }
+        None => {
+            errors.push("$.privacy.consent_record_ref: missing required field".to_string());
+            false
+        }
+    };
+    if matches!(consent, "approved" | "withdrawn") && !consent_reference_present {
+        errors.push(
+            "$.privacy.consent_record_ref: approved or withdrawn consent status requires an authoritative record reference"
+                .to_string(),
+        );
     }
     let aggregation_policy = value
         .get("aggregation_policy")
@@ -960,6 +978,25 @@ mod tests {
                 .iter()
                 .any(|error| error.contains("requires public location sensitivity"))
         );
+    }
+
+    #[test]
+    fn rejects_approved_consent_without_authority_record() {
+        let mut value = fixture();
+        value["privacy"]["consent_status"] = json!("approved");
+        value["privacy"]["consent_record_ref"] = Value::Null;
+        let errors = validate_plan(&value).unwrap_err();
+        assert!(errors.iter().any(|error| error.contains("requires an authoritative record reference")));
+    }
+
+    #[test]
+    fn accepts_public_release_with_explicit_consent_record() {
+        let mut value = fixture();
+        value["privacy"]["location_sensitivity"] = json!("public");
+        value["privacy"]["publication_policy"] = json!("public");
+        value["privacy"]["consent_status"] = json!("approved");
+        value["privacy"]["consent_record_ref"] = json!("mycelix-consent-ref-opaque-001");
+        assert_eq!(validate_plan(&value), Ok(()));
     }
 
     #[test]
