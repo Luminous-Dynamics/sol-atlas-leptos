@@ -1108,7 +1108,7 @@ pub fn evaluate_scenario_omission(
             continue;
         };
 
-        let reference_outcomes_by_scenario = (*reference_portfolio).outcomes.clone();
+        let reference_outcomes_by_scenario = reference_portfolio.outcomes.clone();
         let mut regret_by_scenario = BTreeMap::new();
         let mut worst_case_regret = ObjectiveVector::zero();
         for reference_scenario_id in &original_scenario_ids {
