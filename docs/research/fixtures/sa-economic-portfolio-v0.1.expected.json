@@ -1,0 +1,264 @@
+{
+  "schema_version": "sa-economic-portfolio-v0.1.expected",
+  "source_fixture": "docs/research/fixtures/sa-economic-portfolio-v0.1.json",
+  "evidence_class": "synthetic_exact_oracle",
+  "claim_ceiling": "Expected output for a finite synthetic contract test only; not South African estimates or a real development recommendation.",
+  "candidate_subsets": 256,
+  "rejected_subsets": 234,
+  "feasible_count": 22,
+  "feasible_portfolio_ids": [
+    [
+      "A",
+      "F",
+      "J"
+    ],
+    [
+      "A",
+      "F",
+      "J",
+      "R"
+    ],
+    [
+      "A",
+      "F",
+      "J",
+      "T"
+    ],
+    [
+      "A",
+      "F",
+      "R"
+    ],
+    [
+      "A",
+      "I",
+      "J",
+      "T"
+    ],
+    [
+      "A",
+      "J"
+    ],
+    [
+      "A",
+      "J",
+      "R"
+    ],
+    [
+      "A",
+      "J",
+      "T"
+    ],
+    [
+      "F",
+      "J"
+    ],
+    [
+      "F",
+      "J",
+      "R"
+    ],
+    [
+      "F",
+      "J",
+      "R",
+      "T"
+    ],
+    [
+      "F",
+      "J",
+      "T"
+    ],
+    [
+      "F",
+      "J",
+      "T",
+      "W"
+    ],
+    [
+      "F",
+      "T",
+      "W"
+    ],
+    [
+      "I",
+      "J",
+      "R",
+      "T"
+    ],
+    [
+      "I",
+      "J",
+      "T"
+    ],
+    [
+      "I",
+      "J",
+      "T",
+      "W"
+    ],
+    [
+      "I",
+      "T",
+      "W"
+    ],
+    [
+      "J",
+      "R"
+    ],
+    [
+      "J",
+      "R",
+      "T"
+    ],
+    [
+      "J",
+      "T",
+      "W"
+    ],
+    [
+      "T",
+      "W"
+    ]
+  ],
+  "pareto_frontier_count": 4,
+  "dominance_rule": "A dominates B only if A is no worse on every objective in every declared scenario and strictly better on at least one scenario-objective component. Scenario cases have no probability or weight.",
+  "pareto_frontier": [
+    {
+      "project_ids": [
+        "A",
+        "F",
+        "J",
+        "R"
+      ],
+      "period_cost_and_crew": {
+        "P1": {
+          "cost_u": 5,
+          "crew_u": 3
+        },
+        "P2": {
+          "cost_u": 5,
+          "crew_u": 2
+        }
+      },
+      "outcomes": {
+        "nominal": {
+          "economic_value_u": 10,
+          "essential_service_points": 9,
+          "paid_work_opportunity_points": 10,
+          "ecological_quality_points": 13
+        },
+        "hot_dry_grid_stress": {
+          "economic_value_u": 7,
+          "essential_service_points": 8,
+          "paid_work_opportunity_points": 10,
+          "ecological_quality_points": 13
+        }
+      }
+    },
+    {
+      "project_ids": [
+        "F",
+        "J",
+        "T",
+        "W"
+      ],
+      "period_cost_and_crew": {
+        "P1": {
+          "cost_u": 5,
+          "crew_u": 3
+        },
+        "P2": {
+          "cost_u": 5,
+          "crew_u": 2
+        }
+      },
+      "outcomes": {
+        "nominal": {
+          "economic_value_u": 11,
+          "essential_service_points": 12,
+          "paid_work_opportunity_points": 7,
+          "ecological_quality_points": 14
+        },
+        "hot_dry_grid_stress": {
+          "economic_value_u": 8,
+          "essential_service_points": 11,
+          "paid_work_opportunity_points": 7,
+          "ecological_quality_points": 14
+        }
+      }
+    },
+    {
+      "project_ids": [
+        "I",
+        "J",
+        "R",
+        "T"
+      ],
+      "period_cost_and_crew": {
+        "P1": {
+          "cost_u": 5,
+          "crew_u": 3
+        },
+        "P2": {
+          "cost_u": 6,
+          "crew_u": 3
+        }
+      },
+      "outcomes": {
+        "nominal": {
+          "economic_value_u": 17,
+          "essential_service_points": 7,
+          "paid_work_opportunity_points": 13,
+          "ecological_quality_points": 6
+        },
+        "hot_dry_grid_stress": {
+          "economic_value_u": 12,
+          "essential_service_points": 7,
+          "paid_work_opportunity_points": 13,
+          "ecological_quality_points": 6
+        }
+      }
+    },
+    {
+      "project_ids": [
+        "I",
+        "J",
+        "T",
+        "W"
+      ],
+      "period_cost_and_crew": {
+        "P1": {
+          "cost_u": 5,
+          "crew_u": 3
+        },
+        "P2": {
+          "cost_u": 6,
+          "crew_u": 3
+        }
+      },
+      "outcomes": {
+        "nominal": {
+          "economic_value_u": 21,
+          "essential_service_points": 12,
+          "paid_work_opportunity_points": 10,
+          "ecological_quality_points": 7
+        },
+        "hot_dry_grid_stress": {
+          "economic_value_u": 14,
+          "essential_service_points": 11,
+          "paid_work_opportunity_points": 10,
+          "ecological_quality_points": 7
+        }
+      }
+    }
+  ],
+  "negative_control_expectations": {
+    "project_X_selected_count": 0,
+    "portfolios_violating_period_budget_returned": 0,
+    "portfolios_violating_crew_cap_returned": 0,
+    "portfolios_missing_prerequisite_returned": 0,
+    "portfolios_below_service_floor_in_any_scenario_returned": 0,
+    "interaction_adjustments_applied_more_than_once": 0
+  }
+}
