@@ -87,6 +87,19 @@ def known_answer_report() -> dict[str, Any]:
             "threshold_exceedance_fraction": 0.1,
             "tracking_requirement_satisfied": False,
         },
+        "rsr_reference": {
+            "sample_count": 10,
+            "normalization_basis": "source_normalized_error_series",
+            "normalized_absolute_errors": errors,
+            "mean_normalized_absolute_error": 0.08,
+            "p90_normalized_absolute_error": 0.08,
+            "max_normalized_absolute_error": 0.8,
+            "error_threshold": 0.3,
+            "max_allowed_exceedance_fraction": 0.1,
+            "threshold_exceedance_count": 1,
+            "threshold_exceedance_fraction": 0.1,
+            "tracking_requirement_satisfied": False,
+        },
         "edr": {
             "sample_count": 3,
             "duration_hours": 3.0,
@@ -147,6 +160,14 @@ def main() -> int:
     mutation = copy.deepcopy(fixture)
     mutation["rsr"]["reserve_capacity_kw"] = 0
     expect_invalid("zero reserve is rejected by schema", input_validator, mutation)
+
+    mutation = copy.deepcopy(fixture)
+    mutation["rsr_reference"]["interval_ids"][1] = mutation["rsr_reference"]["interval_ids"][0]
+    expect_invalid(
+        "duplicate source-error sample identifiers are rejected",
+        input_validator,
+        mutation,
+    )
 
     mutation = copy.deepcopy(fixture)
     del mutation["rsr"]
