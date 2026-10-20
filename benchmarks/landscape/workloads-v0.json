@@ -15,7 +15,18 @@
       "Feature IDs are feature-0001 onward without reuse.",
       "Kinds are ordered: tree, planting-bed, water, path, built-element."
     ],
-    "geometry_warning": "These generated features are synthetic drawing units; no geographic or physical meaning."
+    "geometry_warning": "These generated features are synthetic drawing units; no geographic or physical meaning.",
+    "implementation": "src/landscape.rs::synthetic_benchmark_snapshot",
+    "output_contract": {
+      "schema": "luminous.landscape-design.v0",
+      "geometry_status": "synthetic-benchmark",
+      "feature_status": "synthetic-benchmark",
+      "feature_source": "synthetic-benchmark",
+      "coordinate_frame": "LOCAL_CARTESIAN_DRAWING_UNITS",
+      "georeferenced": false,
+      "reminder": "Synthetic benchmark scenes are not user-authored designs, real-world geometry or field observations."
+    },
+    "reproducibility": "The same feature_count and seed produce the same normalized serde_json snapshot. Validator acceptance is mandatory before benchmarking."
   },
   "workload_sizes": [
     {
