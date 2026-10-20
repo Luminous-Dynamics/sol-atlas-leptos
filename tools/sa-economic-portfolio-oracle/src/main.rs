@@ -1,7 +1,7 @@
 use sa_economic_portfolio_oracle::{
     FrontierSearchEvaluation, FrontierSearchStats, Input, Portfolio, RejectionCounts,
-    ScenarioOmissionReport, check_expected, evaluate, evaluate_frontier_search,
-    evaluate_scenario_omission,
+    ScenarioAdditionReport, ScenarioOmissionReport, ScenarioPatch, check_expected, evaluate,
+    evaluate_frontier_search, evaluate_scenario_addition, evaluate_scenario_omission,
 };
 use serde::Serialize;
 use sha2::{Digest, Sha256};
@@ -12,6 +12,19 @@ const DEFAULT_INPUT: &str =
     include_str!("../../../docs/research/fixtures/sa-economic-portfolio-v0.1.json");
 const DEFAULT_EXPECTED: &str =
     include_str!("../../../docs/research/fixtures/sa-economic-portfolio-v0.1.expected.json");
+
+#[derive(Serialize)]
+struct ScenarioAdditionReceipt<'a> {
+    schema_version: &'static str,
+    evidence_class: &'static str,
+    synthetic_only: bool,
+    claim_ceiling: &'static str,
+    input_sha256: String,
+    patch_sha256: String,
+    expected_sha256: String,
+    report: &'a ScenarioAdditionReport,
+    validation: &'static str,
+}
 
 #[derive(Serialize)]
 struct ScenarioOmissionReceipt<'a> {
@@ -116,6 +129,9 @@ struct Receipt<'a> {
 
 fn run() -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
+    if args.first().map(String::as_str) == Some("--scenario-addition") {
+        return run_scenario_addition(&args[1..]);
+    }
     if args.first().map(String::as_str) == Some("--scenario-omission") {
         return run_scenario_omission(&args[1..]);
     }
@@ -175,6 +191,54 @@ fn run() -> Result<(), String> {
         validation: "PASS: exact comparison with the supplied known-answer manifest",
     };
 
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&receipt).map_err(|error| error.to_string())?
+    );
+    Ok(())
+}
+
+fn run_scenario_addition(args: &[String]) -> Result<(), String> {
+    if args.len() != 3 {
+        return Err(
+            "usage: sa-economic-portfolio-oracle --scenario-addition INPUT.json PATCH.json EXPECTED.json"
+                .to_owned(),
+        );
+    }
+    let input_path = &args[0];
+    let patch_path = &args[1];
+    let expected_path = &args[2];
+    let input_raw = fs::read_to_string(input_path)
+        .map_err(|error| format!("cannot read input {input_path}: {error}"))?;
+    let patch_raw = fs::read_to_string(patch_path)
+        .map_err(|error| format!("cannot read scenario patch {patch_path}: {error}"))?;
+    let expected_raw = fs::read_to_string(expected_path)
+        .map_err(|error| format!("cannot read expected manifest {expected_path}: {error}"))?;
+    let input: Input = serde_json::from_str(&input_raw)
+        .map_err(|error| format!("invalid input JSON/contract: {error}"))?;
+    let patch: ScenarioPatch = serde_json::from_str(&patch_raw)
+        .map_err(|error| format!("invalid scenario patch JSON/contract: {error}"))?;
+    let report = evaluate_scenario_addition(&input, &patch)?;
+    let expected: serde_json::Value = serde_json::from_str(&expected_raw)
+        .map_err(|error| format!("invalid scenario-addition expected JSON: {error}"))?;
+    let actual = serde_json::to_value(&report).map_err(|error| error.to_string())?;
+    if actual != expected {
+        return Err(format!(
+            "scenario-addition report differs from frozen manifest {expected_path}"
+        ));
+    }
+
+    let receipt = ScenarioAdditionReceipt {
+        schema_version: "sa-economic-portfolio-scenario-addition-receipt-v0.1",
+        evidence_class: "synthetic_scenario_set_sensitivity",
+        synthetic_only: true,
+        claim_ceiling: "Exact withheld-scenario addition on one finite synthetic input; no scenario-completeness, field-validity or SOTA claim.",
+        input_sha256: digest_hex(&input_raw),
+        patch_sha256: digest_hex(&patch_raw),
+        expected_sha256: digest_hex(&expected_raw),
+        report: &report,
+        validation: "PASS: exact report equality with the supplied frozen scenario-addition manifest",
+    };
     println!(
         "{}",
         serde_json::to_string_pretty(&receipt).map_err(|error| error.to_string())?
