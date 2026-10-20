@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/flexdc-sim-run-manifest-v1.schema.json",
   "title": "FlexDC-Sim Reproducible Run Manifest v1",
-  "description": "Metadata needed to replay and interpret a source simulator trace. Config Git blob SHA-1s identify source objects but do not authenticate a run or establish physical measurement. The pinned AQA comparison profile uses P=24216 W and R=9626 W. A non-synthetic run must include the SHA-256 of its captured runtime environment; placeholder interpreter fields are intended only for synthetic contract fixtures.",
+  "description": "Metadata needed to replay and interpret a source simulator trace. Config Git blob SHA-1s identify source objects but do not authenticate a run or establish physical measurement. The pinned AQA comparison profile uses P=24216 W and R=9626 W. A non-synthetic run must include the SHA-256 of its captured runtime environment; placeholder interpreter fields are intended only for synthetic contract fixtures. Non-synthetic runs require a relative path and SHA-256 digest for the captured runtime manifest.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -14,6 +14,7 @@
     "random_seed",
     "qos_percentile",
     "runtime_environment_sha256",
+    "runtime_environment_manifest_path",
     "python_version",
     "power_cap_w",
     "regulation_reserve_w",
@@ -213,6 +214,15 @@
       "type": "number",
       "const": 0.9,
       "description": "Pinned simulator default used for the run manifest; set explicitly so the command is reproducible."
+    },
+    "runtime_environment_manifest_path": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "Relative path to the exact runtime environment manifest included with the run bundle; required for non-synthetic runs."
     }
   },
   "allOf": [
@@ -247,6 +257,27 @@
           "runtime_environment_sha256": {
             "type": "string",
             "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "synthetic": {
+            "const": false
+          }
+        },
+        "required": [
+          "synthetic"
+        ]
+      },
+      "then": {
+        "properties": {
+          "runtime_environment_manifest_path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
           }
         }
       }
