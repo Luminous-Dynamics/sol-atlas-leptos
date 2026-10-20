@@ -1,0 +1,570 @@
+{
+  "schema_version": 1,
+  "bootstrap_replicates": 1000,
+  "seed": 42,
+  "cases": [
+    {
+      "case_id": "positive-00",
+      "stratum_id": "synthetic-low-rate",
+      "cluster_id": "synthetic-site-00",
+      "reference": {
+        "state": "metered_emission",
+        "emission_rate_kg_h": 10
+      }
+    },
+    {
+      "case_id": "negative-00",
+      "stratum_id": "synthetic-background",
+      "cluster_id": "synthetic-site-00",
+      "reference": {
+        "state": "metered_zero"
+      }
+    },
+    {
+      "case_id": "positive-01",
+      "stratum_id": "synthetic-low-rate",
+      "cluster_id": "synthetic-site-01",
+      "reference": {
+        "state": "metered_emission",
+        "emission_rate_kg_h": 11
+      }
+    },
+    {
+      "case_id": "negative-01",
+      "stratum_id": "synthetic-background",
+      "cluster_id": "synthetic-site-01",
+      "reference": {
+        "state": "metered_zero"
+      }
+    },
+    {
+      "case_id": "positive-02",
+      "stratum_id": "synthetic-low-rate",
+      "cluster_id": "synthetic-site-02",
+      "reference": {
+        "state": "metered_emission",
+        "emission_rate_kg_h": 12
+      }
+    },
+    {
+      "case_id": "negative-02",
+      "stratum_id": "synthetic-background",
+      "cluster_id": "synthetic-site-02",
+      "reference": {
+        "state": "metered_zero"
+      }
+    },
+    {
+      "case_id": "positive-03",
+      "stratum_id": "synthetic-low-rate",
+      "cluster_id": "synthetic-site-03",
+      "reference": {
+        "state": "metered_emission",
+        "emission_rate_kg_h": 13
+      }
+    },
+    {
+      "case_id": "negative-03",
+      "stratum_id": "synthetic-background",
+      "cluster_id": "synthetic-site-03",
+      "reference": {
+        "state": "metered_zero"
+      }
+    },
+    {
+      "case_id": "positive-04",
+      "stratum_id": "synthetic-low-rate",
+      "cluster_id": "synthetic-site-04",
+      "reference": {
+        "state": "metered_emission",
+        "emission_rate_kg_h": 14
+      }
+    },
+    {
+      "case_id": "negative-04",
+      "stratum_id": "synthetic-background",
+      "cluster_id": "synthetic-site-04",
+      "reference": {
+        "state": "metered_zero"
+      }
+    },
+    {
+      "case_id": "positive-05",
+      "stratum_id": "synthetic-low-rate",
+      "cluster_id": "synthetic-site-05",
+      "reference": {
+        "state": "metered_emission",
+        "emission_rate_kg_h": 15
+      }
+    },
+    {
+      "case_id": "negative-05",
+      "stratum_id": "synthetic-background",
+      "cluster_id": "synthetic-site-05",
+      "reference": {
+        "state": "metered_zero"
+      }
+    },
+    {
+      "case_id": "positive-06",
+      "stratum_id": "synthetic-low-rate",
+      "cluster_id": "synthetic-site-06",
+      "reference": {
+        "state": "metered_emission",
+        "emission_rate_kg_h": 16
+      }
+    },
+    {
+      "case_id": "negative-06",
+      "stratum_id": "synthetic-background",
+      "cluster_id": "synthetic-site-06",
+      "reference": {
+        "state": "metered_zero"
+      }
+    },
+    {
+      "case_id": "positive-07",
+      "stratum_id": "synthetic-low-rate",
+      "cluster_id": "synthetic-site-07",
+      "reference": {
+        "state": "metered_emission",
+        "emission_rate_kg_h": 17
+      }
+    },
+    {
+      "case_id": "negative-07",
+      "stratum_id": "synthetic-background",
+      "cluster_id": "synthetic-site-07",
+      "reference": {
+        "state": "metered_zero"
+      }
+    },
+    {
+      "case_id": "positive-08",
+      "stratum_id": "synthetic-low-rate",
+      "cluster_id": "synthetic-site-08",
+      "reference": {
+        "state": "metered_emission",
+        "emission_rate_kg_h": 18
+      }
+    },
+    {
+      "case_id": "negative-08",
+      "stratum_id": "synthetic-background",
+      "cluster_id": "synthetic-site-08",
+      "reference": {
+        "state": "metered_zero"
+      }
+    },
+    {
+      "case_id": "positive-09",
+      "stratum_id": "synthetic-low-rate",
+      "cluster_id": "synthetic-site-09",
+      "reference": {
+        "state": "metered_emission",
+        "emission_rate_kg_h": 19
+      }
+    },
+    {
+      "case_id": "negative-09",
+      "stratum_id": "synthetic-background",
+      "cluster_id": "synthetic-site-09",
+      "reference": {
+        "state": "metered_zero"
+      }
+    }
+  ],
+  "baseline": {
+    "system_id": "synthetic-baseline-only",
+    "version": "0.0.0-synthetic",
+    "build_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "configuration_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "responses": [
+      {
+        "case_id": "positive-00",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "detected",
+          "emission_rate_kg_h": 10
+        }
+      },
+      {
+        "case_id": "negative-00",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "detected",
+          "emission_rate_kg_h": 0.8
+        }
+      },
+      {
+        "case_id": "positive-01",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      },
+      {
+        "case_id": "negative-01",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "detected",
+          "emission_rate_kg_h": 0.8
+        }
+      },
+      {
+        "case_id": "positive-02",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "detected",
+          "emission_rate_kg_h": 12
+        }
+      },
+      {
+        "case_id": "negative-02",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      },
+      {
+        "case_id": "positive-03",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      },
+      {
+        "case_id": "negative-03",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      },
+      {
+        "case_id": "positive-04",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "detected",
+          "emission_rate_kg_h": 14
+        }
+      },
+      {
+        "case_id": "negative-04",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      },
+      {
+        "case_id": "positive-05",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      },
+      {
+        "case_id": "negative-05",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      },
+      {
+        "case_id": "positive-06",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "detected",
+          "emission_rate_kg_h": 16
+        }
+      },
+      {
+        "case_id": "negative-06",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      },
+      {
+        "case_id": "positive-07",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      },
+      {
+        "case_id": "negative-07",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      },
+      {
+        "case_id": "positive-08",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "detected",
+          "emission_rate_kg_h": 18
+        }
+      },
+      {
+        "case_id": "negative-08",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      },
+      {
+        "case_id": "positive-09",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      },
+      {
+        "case_id": "negative-09",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      }
+    ]
+  },
+  "candidate": {
+    "system_id": "synthetic-candidate-only",
+    "version": "0.0.0-synthetic",
+    "build_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "configuration_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "responses": [
+      {
+        "case_id": "positive-00",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "detected",
+          "emission_rate_kg_h": 10
+        }
+      },
+      {
+        "case_id": "negative-00",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      },
+      {
+        "case_id": "positive-01",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "detected",
+          "emission_rate_kg_h": 11
+        }
+      },
+      {
+        "case_id": "negative-01",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      },
+      {
+        "case_id": "positive-02",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "detected",
+          "emission_rate_kg_h": 12
+        }
+      },
+      {
+        "case_id": "negative-02",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      },
+      {
+        "case_id": "positive-03",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "detected",
+          "emission_rate_kg_h": 13
+        }
+      },
+      {
+        "case_id": "negative-03",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      },
+      {
+        "case_id": "positive-04",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "detected",
+          "emission_rate_kg_h": 14
+        }
+      },
+      {
+        "case_id": "negative-04",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      },
+      {
+        "case_id": "positive-05",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "detected",
+          "emission_rate_kg_h": 15
+        }
+      },
+      {
+        "case_id": "negative-05",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      },
+      {
+        "case_id": "positive-06",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "detected",
+          "emission_rate_kg_h": 16
+        }
+      },
+      {
+        "case_id": "negative-06",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      },
+      {
+        "case_id": "positive-07",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "detected",
+          "emission_rate_kg_h": 17
+        }
+      },
+      {
+        "case_id": "negative-07",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      },
+      {
+        "case_id": "positive-08",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "detected",
+          "emission_rate_kg_h": 18
+        }
+      },
+      {
+        "case_id": "negative-08",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      },
+      {
+        "case_id": "positive-09",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "detected",
+          "emission_rate_kg_h": 19
+        }
+      },
+      {
+        "case_id": "negative-09",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      }
+    ]
+  }
+}

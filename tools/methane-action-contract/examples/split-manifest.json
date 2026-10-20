@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "corpus_sha256": "bb8a456e70b385123eb22f8fbc9603ad5b2477fca390ef098586b91d8d81540d",
+  "split_strategy": "group by site and source before model selection",
+  "assignments": [
+    {
+      "case_id": "train-a",
+      "cluster_id": "site-a",
+      "source_group_id": "source-a",
+      "case_artifact_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "split": "train"
+    },
+    {
+      "case_id": "train-b",
+      "cluster_id": "site-a",
+      "source_group_id": "source-b",
+      "case_artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "split": "train"
+    },
+    {
+      "case_id": "validation-a",
+      "cluster_id": "site-b",
+      "source_group_id": "source-c",
+      "case_artifact_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "split": "validation"
+    },
+    {
+      "case_id": "test-a",
+      "cluster_id": "site-c",
+      "source_group_id": "source-d",
+      "case_artifact_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "split": "test"
+    },
+    {
+      "case_id": "blind-a",
+      "cluster_id": "site-d",
+      "source_group_id": "source-e",
+      "case_artifact_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "split": "blind_test"
+    }
+  ]
+}

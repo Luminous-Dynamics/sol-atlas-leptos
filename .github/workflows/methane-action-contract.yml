@@ -1,0 +1,54 @@
+name: Methane action contract
+
+on:
+  pull_request:
+    paths:
+      - 'tools/methane-action-contract/**'
+      - '.github/workflows/methane-action-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tools/methane-action-contract/**'
+      - '.github/workflows/methane-action-contract.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: methane-action-contract-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Format
+        run: cargo fmt --manifest-path tools/methane-action-contract/Cargo.toml -- --check
+      - name: Test
+        run: cargo test --manifest-path tools/methane-action-contract/Cargo.toml --locked
+      - name: Clippy
+        run: cargo clippy --manifest-path tools/methane-action-contract/Cargo.toml --locked --all-targets -- -D warnings
+      - name: Smoke-test census JSON receipt
+        run: |
+          cargo run --manifest-path tools/methane-action-contract/Cargo.toml --locked --bin methane-census < tools/methane-action-contract/examples/synthetic-census.json > /tmp/methane-census-receipt.json
+          grep -q '"evaluation_status": "valid"' /tmp/methane-census-receipt.json
+          grep -q '"true_positives": 1' /tmp/methane-census-receipt.json
+          grep -Eq '"evaluator_binary_sha256": "[0-9a-f]{64}"' /tmp/methane-census-receipt.json
+          grep -q '"pod_profile": {' /tmp/methane-census-receipt.json
+          grep -q '"end_to_end_pod": 1.0' /tmp/methane-census-receipt.json
+      - name: Smoke-test paired comparison receipt
+        run: |
+          cargo run --manifest-path tools/methane-action-contract/Cargo.toml --locked --bin methane-compare < tools/methane-action-contract/examples/synthetic-paired-comparison.json > /tmp/methane-comparison-receipt.json
+          grep -q '"comparison_status": "valid"' /tmp/methane-comparison-receipt.json
+          grep -q '"cluster_count": 10' /tmp/methane-comparison-receipt.json
+          grep -q '"candidate_only_events": 5' /tmp/methane-comparison-receipt.json
+          grep -Eq '"evaluator_binary_sha256": "[0-9a-f]{64}"' /tmp/methane-comparison-receipt.json
+      - name: Smoke-test split leakage receipt
+        run: |
+          cargo run --manifest-path tools/methane-action-contract/Cargo.toml --locked --bin methane-split-check -- tools/methane-action-contract/examples/split-corpus.json tools/methane-action-contract/examples/split-manifest.json > /tmp/methane-split-receipt.json
+          grep -q '"validation_status": "valid"' /tmp/methane-split-receipt.json
+          grep -q '"corpus_records": 5' /tmp/methane-split-receipt.json
+          grep -Eq '"evaluator_binary_sha256": "[0-9a-f]{64}"' /tmp/methane-split-receipt.json

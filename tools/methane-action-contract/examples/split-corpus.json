@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "records": [
+    {
+      "case_id": "train-a",
+      "cluster_id": "site-a",
+      "source_group_id": "source-a",
+      "case_artifact_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "case_id": "train-b",
+      "cluster_id": "site-a",
+      "source_group_id": "source-b",
+      "case_artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    {
+      "case_id": "validation-a",
+      "cluster_id": "site-b",
+      "source_group_id": "source-c",
+      "case_artifact_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    },
+    {
+      "case_id": "test-a",
+      "cluster_id": "site-c",
+      "source_group_id": "source-d",
+      "case_artifact_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    {
+      "case_id": "blind-a",
+      "cluster_id": "site-d",
+      "source_group_id": "source-e",
+      "case_artifact_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "case_id": "synthetic-positive-1",
+      "stratum_id": "synthetic-low-rate",
+      "cluster_id": "synthetic-site-a",
+      "reference": {
+        "state": "metered_emission",
+        "emission_rate_kg_h": 10.0
+      }
+    },
+    {
+      "case_id": "synthetic-zero-1",
+      "stratum_id": "synthetic-background",
+      "cluster_id": "synthetic-site-b",
+      "reference": {
+        "state": "metered_zero"
+      }
+    }
+  ],
+  "rate_bands": [
+    {
+      "band_id": "synthetic-low",
+      "lower_kg_h": 0.0,
+      "upper_kg_h": 10.0
+    },
+    {
+      "band_id": "synthetic-medium-plus",
+      "lower_kg_h": 10.0,
+      "upper_kg_h": null
+    }
+  ],
+  "submission": {
+    "system_id": "synthetic-example-only",
+    "version": "0.0.0-synthetic",
+    "build_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "configuration_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "responses": [
+      {
+        "case_id": "synthetic-positive-1",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "detected",
+          "emission_rate_kg_h": 9.0
+        }
+      },
+      {
+        "case_id": "synthetic-zero-1",
+        "coverage": {
+          "state": "covered"
+        },
+        "disposition": {
+          "state": "explicit_non_detect"
+        }
+      }
+    ]
+  }
+}
