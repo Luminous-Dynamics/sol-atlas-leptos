@@ -99,7 +99,9 @@ pub fn validate_split_manifest(
         Ok(corpus) => corpus,
         Err(_) => {
             report.push("__corpus__", "invalid_corpus_json");
-            report.violations.sort_by(|a, b| (&a.record_id, a.code).cmp(&(&b.record_id, b.code)));
+            report
+                .violations
+                .sort_by(|a, b| (&a.record_id, a.code).cmp(&(&b.record_id, b.code)));
             return report;
         }
     };
@@ -215,7 +217,9 @@ pub fn validate_split_manifest(
         }
     }
 
-    report.violations.sort_by(|a, b| (&a.record_id, a.code).cmp(&(&b.record_id, b.code)));
+    report
+        .violations
+        .sort_by(|a, b| (&a.record_id, a.code).cmp(&(&b.record_id, b.code)));
     report.violations.dedup();
     report.valid = report.violations.is_empty();
     report
@@ -314,7 +318,13 @@ mod tests {
                     EvaluationSplit::Validation,
                 ),
                 assignment("test-a", "site-c", "source-d", 'd', EvaluationSplit::Test),
-                assignment("blind-a", "site-d", "source-e", 'e', EvaluationSplit::BlindTest),
+                assignment(
+                    "blind-a",
+                    "site-d",
+                    "source-e",
+                    'e',
+                    EvaluationSplit::BlindTest,
+                ),
             ],
         }
     }
@@ -347,7 +357,10 @@ mod tests {
         assert!(report.is_valid(), "{report:?}");
         assert_eq!(report.corpus_records, 5);
         assert_eq!(report.assignments, 5);
-        assert_eq!(report.computed_corpus_sha256.as_deref(), Some(manifest.corpus_sha256.as_str()));
+        assert_eq!(
+            report.computed_corpus_sha256.as_deref(),
+            Some(manifest.corpus_sha256.as_str())
+        );
     }
 
     #[test]
@@ -357,22 +370,38 @@ mod tests {
         let modified = [original.as_slice(), b" "].concat();
         let report = validate_split_manifest(&modified, &manifest);
         assert!(!report.is_valid());
-        assert!(report.violations.iter().any(|v| v.code == "corpus_digest_mismatch"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "corpus_digest_mismatch")
+        );
     }
 
     #[test]
     fn rejects_cluster_leakage_across_train_and_test() {
         let bytes = corpus_bytes();
         let mut manifest = manifest_for(&bytes);
-        manifest.assignments
+        manifest
+            .assignments
             .iter_mut()
             .find(|a| a.case_id == "test-a")
             .unwrap()
             .cluster_id = "site-a".into();
         // The assignment must also match the corpus identity, so both violations are expected.
         let report = validate_split_manifest(&bytes, &manifest);
-        assert!(report.violations.iter().any(|v| v.code == "assignment_cluster_mismatch"));
-        assert!(report.violations.iter().any(|v| v.code == "cluster_crosses_splits"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "assignment_cluster_mismatch")
+        );
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "cluster_crosses_splits")
+        );
     }
 
     #[test]
@@ -385,7 +414,12 @@ mod tests {
             .unwrap()
             .source_group_id = "source-a".into();
         let report = validate_split_manifest(&bytes, &manifest);
-        assert!(report.violations.iter().any(|v| v.code == "source_group_crosses_splits"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "source_group_crosses_splits")
+        );
     }
 
     #[test]
@@ -395,10 +429,19 @@ mod tests {
         corpus_value.records[3].case_artifact_sha256 = digest('a');
         let changed_bytes = serde_json::to_vec(&corpus_value).unwrap();
         let mut manifest = manifest_for(&changed_bytes);
-        let test_assignment = manifest.assignments.iter_mut().find(|a| a.case_id == "test-a").unwrap();
+        let test_assignment = manifest
+            .assignments
+            .iter_mut()
+            .find(|a| a.case_id == "test-a")
+            .unwrap();
         test_assignment.case_artifact_sha256 = digest('a');
         let report = validate_split_manifest(&changed_bytes, &manifest);
-        assert!(report.violations.iter().any(|v| v.code == "case_artifact_crosses_splits"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "case_artifact_crosses_splits")
+        );
     }
 
     #[test]
@@ -408,12 +451,31 @@ mod tests {
         manifest.assignments.pop();
         manifest.assignments.push(manifest.assignments[0].clone());
         manifest.assignments.push(assignment(
-            "unknown-case", "site-z", "source-z", 'f', EvaluationSplit::Test
+            "unknown-case",
+            "site-z",
+            "source-z",
+            'f',
+            EvaluationSplit::Test,
         ));
         let report = validate_split_manifest(&bytes, &manifest);
-        assert!(report.violations.iter().any(|v| v.code == "missing_case_assignment"));
-        assert!(report.violations.iter().any(|v| v.code == "duplicate_case_assignment"));
-        assert!(report.violations.iter().any(|v| v.code == "assignment_for_unknown_case"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "missing_case_assignment")
+        );
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "duplicate_case_assignment")
+        );
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "assignment_for_unknown_case")
+        );
     }
 
     #[test]
@@ -422,7 +484,12 @@ mod tests {
         let mut manifest = manifest_for(&bytes);
         manifest.assignments[0].case_artifact_sha256 = digest('f');
         let report = validate_split_manifest(&bytes, &manifest);
-        assert!(report.violations.iter().any(|v| v.code == "assignment_artifact_digest_mismatch"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "assignment_artifact_digest_mismatch")
+        );
     }
 
     #[test]
@@ -435,7 +502,12 @@ mod tests {
             }
         });
         let report = validate_split_manifest(&bytes, &manifest);
-        assert!(report.violations.iter().any(|v| v.code == "missing_validation_split"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "missing_validation_split")
+        );
     }
 
     #[test]
@@ -448,6 +520,11 @@ mod tests {
         };
         let report = validate_split_manifest(b"{not json", &manifest);
         assert!(!report.is_valid());
-        assert!(report.violations.iter().any(|v| v.code == "invalid_corpus_json"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "invalid_corpus_json")
+        );
     }
 }
