@@ -207,22 +207,20 @@ impl StoredOperationV1 {
     /// or fingerprint must fail closed before dispatch or reply reconciliation.
     fn validate_entry(&self, operation_id: &str) -> Result<JournalEntry, IndexedDbJournalError> {
         self.validate()?;
-        let entry = JournalEntry::from_snapshot_for_operation(
-            operation_id,
-            self.snapshot.clone(),
-        )
-        .map_err(IndexedDbJournalError::from)?;
-        let canonical_payload = std::str::from_utf8(entry.canonical_payload_utf8())
-            .map_err(|error| {
+        let entry = JournalEntry::from_snapshot_for_operation(operation_id, self.snapshot.clone())
+            .map_err(IndexedDbJournalError::from)?;
+        let canonical_payload =
+            std::str::from_utf8(entry.canonical_payload_utf8()).map_err(|error| {
                 IndexedDbJournalError(format!("canonical payload is not UTF-8: {error}"))
             })?;
-        let actual = sol_atlas_core::offline_idempotency_fingerprint::canonical_request_fingerprint_sha256(
-            &self.owner_scope,
-            &self.operation_namespace,
-            entry.envelope(),
-            canonical_payload,
-        )
-        .map_err(|error| IndexedDbJournalError(error.to_string()))?;
+        let actual =
+            sol_atlas_core::offline_idempotency_fingerprint::canonical_request_fingerprint_sha256(
+                &self.owner_scope,
+                &self.operation_namespace,
+                entry.envelope(),
+                canonical_payload,
+            )
+            .map_err(|error| IndexedDbJournalError(error.to_string()))?;
         if actual != self.request_fingerprint_sha256 {
             return Err(IndexedDbJournalError(
                 "stored request fingerprint does not match immutable operation content".into(),
@@ -388,8 +386,8 @@ impl IndexedDbJournal {
         }
         let new_entry = JournalEntry::prepare(envelope, payload_json)?;
         let new_snapshot = new_entry.to_snapshot()?;
-        let canonical_payload = std::str::from_utf8(new_entry.canonical_payload_utf8())
-            .map_err(|error| {
+        let canonical_payload =
+            std::str::from_utf8(new_entry.canonical_payload_utf8()).map_err(|error| {
                 IndexedDbJournalError(format!("canonical payload is not UTF-8: {error}"))
             })?;
         let request_fingerprint_sha256 =
@@ -1681,7 +1679,11 @@ mod owner_scope_tests {
 
         let mut changed_payload_binding = stored.clone();
         changed_payload_binding.snapshot.envelope.aggregate_id = "aggregate-other".to_owned();
-        assert!(changed_payload_binding.validate_entry("op-owner-test").is_err());
+        assert!(
+            changed_payload_binding
+                .validate_entry("op-owner-test")
+                .is_err()
+        );
     }
 
     #[test]
