@@ -93,7 +93,7 @@ The tests use invented fixtures only; they are not real observations or measurem
 
 ## Source adapters
 
-No source data are downloaded or redistributed by this crate. Candidate providers include UNEP's MARS plume/source exports and Carbon Mapper's data API. Check current access terms before use: UNEP's plume/source export is CC BY-NC-SA 4.0 and non-commercial, while Carbon Mapper's API warns about usage restrictions and possible uncalibrated Tanager first-light data.
+No source data are downloaded or redistributed by this crate. Candidate providers include UNEP's MARS plume/source exports and Carbon Mapper's data API. The current UNEP MARS dictionary says Sentinel-2, Landsat-8/9, EMIT, PRISMA and EnMAP plumes were requantified after 20 February 2026, and the export is CC BY-NC-SA 4.0 / non-commercial. Carbon Mapper warns that its API may contain uncalibrated Tanager first-light data. Pin retrieval/product versions, keep pre/post-requantification data distinct, preserve provider quality/calibration state, and verify current terms before use. Do not use MARS-derived assets in a commercial product unless separately established rights permit it.
 
 - [UNEP MARS plume/source data dictionary](https://methanedata.unep.org/dict-mars-plumes)
 - [Carbon Mapper API documentation](https://api.carbonmapper.org/api/v1/docs)
