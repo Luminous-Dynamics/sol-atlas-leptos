@@ -43,6 +43,10 @@ name = "water-localization-benchmark-evaluate"
 path = "src/bin/water_localization_benchmark_evaluate.rs"
 
 [[bin]]
+name = "water-localization-split-audit"
+path = "src/bin/water_localization_split_audit.rs"
+
+[[bin]]
 name = "water-sensor-placement-evaluate"
 path = "src/bin/water_sensor_placement_evaluate.rs"
 
