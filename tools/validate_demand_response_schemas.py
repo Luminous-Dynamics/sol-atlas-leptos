@@ -169,6 +169,10 @@ def main() -> int:
     expect_invalid("zero reserve is rejected by schema", input_validator, mutation)
 
     mutation = copy.deepcopy(fixture)
+    mutation["rsr"]["interval_ids"][0] = "   "
+    expect_invalid("whitespace-only sample identifiers are rejected", input_validator, mutation)
+
+    mutation = copy.deepcopy(fixture)
     mutation["rsr_reference"]["interval_ids"][1] = mutation["rsr_reference"]["interval_ids"][0]
     expect_invalid(
         "duplicate source-error sample identifiers are rejected",
@@ -195,7 +199,7 @@ def main() -> int:
     mutation["metrics"]["additional_score"] = 1000000
     expect_invalid("report rejects unknown metric fields", report_validator, mutation)
 
-    print("PASS 12 demand-response schema assertions completed; no external data used")
+    print("PASS 13 demand-response schema assertions completed; no external data used")
     return 0
 
 
