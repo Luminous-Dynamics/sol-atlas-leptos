@@ -153,13 +153,33 @@ mod tests {
     use super::build_run_output;
     use sol_atlas_core::ai_compute_energy::{Request, scenario_receipt};
 
-    #[test]
-    fn cli_output_binds_exact_input_to_separate_assessment() {
+    fn fixture_request_and_bytes() -> (&'static str, Request) {
         let fixture = include_str!(
             "../../../schemas/examples/ai-compute-energy-flexibility-four-interval.synthetic.json"
         );
         let request: Request =
             serde_json::from_str(fixture).expect("committed fixture should deserialize");
+        (fixture, request)
+    }
+
+    fn policy_assessment(policy: &str) -> serde_json::Value {
+        serde_json::json!({
+            "status": "feasible",
+            "policy": policy,
+            "protected_floor_work_units_by_interval": [6, 6, 6, 6],
+            "deferrable_work_units_by_interval": [12, 0, 0, 28],
+            "scheduled_work_units": 40,
+            "deferrable_it_energy_kwh": 20.0,
+            "deferrable_facility_energy_kwh": 23.0,
+            "modelled_electricity_cost_usd": 1.978,
+            "modelled_grid_carbon_gco2": 12305.0,
+            "blockers": []
+        })
+    }
+
+    #[test]
+    fn cli_output_binds_exact_input_to_separate_assessment() {
+        let (fixture, request) = fixture_request_and_bytes();
         let assessment = serde_json::json!({
             "status": "feasible",
             "scheduled_work_units": 40
@@ -181,5 +201,91 @@ mod tests {
             .as_str()
             .expect("verification boundary is text")
             .contains("does not validate"));
+    }
+
+    #[test]
+    fn report_schema_declares_every_receipt_and_frontier_field() {
+        let (fixture, request) = fixture_request_and_bytes();
+        let assessment = serde_json::json!({
+            "status": "feasible",
+            "policy_assessments": [
+                policy_assessment("lowest-cost"),
+                policy_assessment("lowest-carbon")
+            ],
+            "non_dominated_policies": ["lowest-cost", "lowest-carbon"],
+            "blockers": []
+        });
+        let output = build_run_output(fixture.as_bytes(), &request, "pareto", assessment);
+        let schema: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../schemas/ai-compute-energy-run-report-v1.schema.json"
+        ))
+        .expect("run report schema must be valid JSON");
+
+        assert_eq!(schema["properties"]["receipt"]["$ref"], "#/$defs/receipt");
+        assert_eq!(schema["properties"]["assessment"]["oneOf"][1]["$ref"], "#/$defs/frontierAssessment");
+        for key in output.as_object().expect("report envelope is object").keys() {
+            assert!(schema["properties"].get(key).is_some(), "root field {key} must be schema-declared");
+        }
+        for key in output["receipt"].as_object().expect("receipt is object").keys() {
+            assert!(
+                schema["$defs"]["receipt"]["properties"].get(key).is_some(),
+                "receipt field {key} must be schema-declared"
+            );
+        }
+        for key in output["assessment"]
+            .as_object()
+            .expect("frontier assessment is object")
+            .keys()
+        {
+            assert!(
+                schema["$defs"]["frontierAssessment"]["properties"]
+                    .get(key)
+                    .is_some(),
+                "frontier field {key} must be schema-declared"
+            );
+        }
+        for candidate in output["assessment"]["policy_assessments"]
+            .as_array()
+            .expect("policy list is array")
+        {
+            for key in candidate.as_object().expect("policy assessment is object").keys() {
+                assert!(
+                    schema["$defs"]["policyAssessment"]["properties"]
+                        .get(key)
+                        .is_some(),
+                    "policy assessment field {key} must be schema-declared"
+                );
+            }
+        }
+
+        fn assert_local_refs_resolve(value: &serde_json::Value, root: &serde_json::Value) {
+            match value {
+                serde_json::Value::Object(object) => {
+                    if let Some(reference) = object.get("$ref").and_then(|item| item.as_str()) {
+                        let mut target = root;
+                        for path_segment in reference
+                            .strip_prefix("#/")
+                            .expect("schema references must be local")
+                            .split('/')
+                        {
+                            target = target
+                                .get(path_segment)
+                                .unwrap_or_else(|| panic!("unresolved schema reference: {reference}"));
+                        }
+                        assert!(!target.is_null(), "schema reference must resolve: {reference}");
+                    }
+                    for child in object.values() {
+                        assert_local_refs_resolve(child, root);
+                    }
+                }
+                serde_json::Value::Array(items) => {
+                    for item in items {
+                        assert_local_refs_resolve(item, root);
+                    }
+                }
+                _ => {}
+            }
+        }
+        assert_local_refs_resolve(&schema, &schema);
     }
 }
