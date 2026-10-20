@@ -9,6 +9,7 @@ use crate::components::globe_canvas::GlobeCanvas;
 use crate::components::hud::Hud;
 use crate::components::info_panel::InfoPanel;
 use crate::components::layer_panel::LayerPanel;
+use crate::components::landscape_designer::LandscapeDesigner;
 use crate::components::planet_nav::PlanetNav;
 use crate::components::reactor_twin_demo::ReactorTwinDemo;
 use crate::components::timeline::Timeline;
@@ -30,6 +31,7 @@ pub fn App() -> impl IntoView {
             <Routes fallback=|| view! { <GlobeApp/> }>
                 <Route path=path!("/") view=GlobeApp/>
                 <Route path=path!("/labs/reactor-twin") view=ReactorTwinDemo/>
+                <Route path=path!("/design/landscape") view=LandscapeDesigner/>
             </Routes>
         </Router>
     }
