@@ -70,6 +70,27 @@ Observer references, instrument references and consent references are opaque SHA
 - All third-party adapters use mocked/offline fixtures in CI. No CI test depends on a live sensing server.
 - The evaluation plan stays separate: a plan declares how an observation will be interpreted; the observation carries what was recorded. Neither one proves impact or causality.
 
+
+## Read-only SensorThings adapter profile
+
+The initial adapter is a **pure JSON mapper**, not an HTTP client. Its fixture is `fixtures/landscape/sensorthings-observation-v1-1.json`, and implementation/tests live in `src/sensorthings_adapter.rs`.
+
+Profile v0 accepts an expanded Observation containing:
+- an OData Observation ID;
+- RFC3339 phenomenon time as an instant or one start/end interval;
+- RFC3339 result time with explicit UTC/offset and at most millisecond fractional precision;
+- finite numeric result;
+- expanded Datastream, Sensor, ObservedProperty and unit-of-measurement symbol;
+- caller-pinned source URI/version and SHA-256 of the exact raw bytes.
+
+Other result types, absent unit/sensor/observed-property metadata, unsupported timestamp precision, missing payload digest, and invalid site/project references fail closed. No HTTP requests, SensorThings Tasking/commands, or actuator paths are implemented.
+
+The adapter deliberately does not copy FeatureOfInterest coordinates. It emits an opaque site reference, private-only publication policy, unreviewed quality state, unknown calibration state, unknown measurement uncertainty, and a calibration-not-verified flag. This is a conservative ingest state, not a claim that the sensor reading is accepted or accurate.
+
+The mapping is recorded with profile ID `urn:luminous:adapter:ogc-sensorthings-sensing-1.1-landscape-v0`. In this v0, its output digest is SHA-256 of the mapped JSON value with an empty transformation list, serialized by the pinned `serde_json` Value serializer; it is not an RFC 8785/JCS digest. The raw input digest is supplied by the caller. A later canonical payload-digest contract should replace or formally pin this profile before cross-language digest equality is promised.
+
+Tests prove the sample FeatureOfInterest geometry is not copied into the adapted output, offset timestamps normalize consistently, sub-millisecond precision fails rather than being truncated, numeric-only result mapping fails closed for string results, and malformed source context is rejected.
+
 ## Cross-repository boundaries
 
 - **Sol-Atlas:** portable schema, batch import, validation, display, source and design snapshot references.
