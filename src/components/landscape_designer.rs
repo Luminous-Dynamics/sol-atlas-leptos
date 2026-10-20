@@ -46,7 +46,6 @@ impl FeatureKind {
             Self::BuiltElement => "built-element",
         }
     }
-
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
