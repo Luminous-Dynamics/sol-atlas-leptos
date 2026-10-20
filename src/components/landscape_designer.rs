@@ -148,6 +148,42 @@ fn remove_feature(features: &mut Vec<DesignFeature>, id: u32) -> Option<(usize, 
     Some((index, features.remove(index)))
 }
 
+/// Reapply one command removed from the undo stack. Conflicting/missing
+/// identities fail closed instead of silently corrupting edit history.
+fn redo_last_edit(
+    features: &mut Vec<DesignFeature>,
+    command: EditCommand,
+) -> Result<u32, String> {
+    match command {
+        EditCommand::Added { feature } => {
+            if features.iter().any(|existing| existing.id == feature.id) {
+                return Err(format!(
+                    "cannot redo add: feature ID {} already exists",
+                    feature.id
+                ));
+            }
+            features.push(feature);
+            Ok(feature.id)
+        }
+        EditCommand::Deleted { feature, .. } => {
+            let Some(index) = features.iter().position(|existing| existing.id == feature.id) else {
+                return Err(format!(
+                    "cannot redo delete: feature ID {} is missing",
+                    feature.id
+                ));
+            };
+            if features[index] != feature {
+                return Err(format!(
+                    "cannot redo delete: feature ID {} no longer matches the recorded command",
+                    feature.id
+                ));
+            }
+            features.remove(index);
+            Ok(feature.id)
+        }
+    }
+}
+
 /// Reverse one edit command. Deletion undo restores the element to its original
 /// position; addition undo removes only the feature created by that command.
 fn undo_last_edit(features: &mut Vec<DesignFeature>, command: EditCommand) -> u32 {
@@ -246,6 +282,7 @@ fn download_snapshot(content: &str) -> Result<(), String> {
 pub fn LandscapeDesigner() -> impl IntoView {
     let (features, set_features) = signal(starter_features());
     let (edit_history, set_edit_history) = signal(Vec::<EditCommand>::new());
+    let (redo_history, set_redo_history) = signal(Vec::<EditCommand>::new());
     let (selected_feature_id, set_selected_feature_id) = signal(None::<u32>);
     let (project_name, set_project_name) = signal("Untitled landscape".to_string());
     // Never reuse a feature ID after undo: downstream provenance will rely on
@@ -281,6 +318,7 @@ pub fn LandscapeDesigner() -> impl IntoView {
                 };
                 set_features.update(|items| items.push(feature));
                 set_edit_history.update(|history| history.push(EditCommand::Added { feature }));
+                set_redo_history.set(Vec::new());
                 set_selected_feature_id.set(Some(next_id));
                 set_export_text.set(String::new());
                 set_download_status.set(String::new());
@@ -335,6 +373,7 @@ pub fn LandscapeDesigner() -> impl IntoView {
         let mut current_features = features.get_untracked();
         let affected_id = undo_last_edit(&mut current_features, command);
         set_features.set(current_features);
+        set_redo_history.update(|history| history.push(command));
         match command {
             EditCommand::Added { .. } => {
                 if selected_feature_id.get_untracked() == Some(affected_id) {
@@ -347,6 +386,35 @@ pub fn LandscapeDesigner() -> impl IntoView {
         set_download_status.set(String::new());
     };
 
+    let redo = move |_| {
+        let Some(command) = redo_history.get_untracked().last().copied() else {
+            return;
+        };
+        let mut current_features = features.get_untracked();
+        match redo_last_edit(&mut current_features, command) {
+            Ok(affected_id) => {
+                set_redo_history.update(|history| {
+                    history.pop();
+                });
+                set_edit_history.update(|history| history.push(command));
+                set_features.set(current_features);
+                match command {
+                    EditCommand::Added { .. } => set_selected_feature_id.set(Some(affected_id)),
+                    EditCommand::Deleted { .. } => {
+                        if selected_feature_id.get_untracked() == Some(affected_id) {
+                            set_selected_feature_id.set(None);
+                        }
+                    }
+                }
+                set_export_text.set(String::new());
+                set_download_status.set(String::new());
+            }
+            Err(error) => {
+                set_download_status.set(format!("Redo blocked: {error}"));
+            }
+        }
+    };
+
     let delete_selected = move |_| {
         if let Some(id) = selected_feature_id.get_untracked() {
             let mut removed = None;
@@ -357,6 +425,7 @@ pub fn LandscapeDesigner() -> impl IntoView {
                 set_edit_history.update(|history| {
                     history.push(EditCommand::Deleted { feature, index });
                 });
+                set_redo_history.set(Vec::new());
             }
             set_selected_feature_id.set(None);
             set_export_text.set(String::new());
@@ -381,6 +450,7 @@ pub fn LandscapeDesigner() -> impl IntoView {
     let reset = move |_| {
         set_features.set(starter_features());
         set_edit_history.set(Vec::new());
+        set_redo_history.set(Vec::new());
         set_next_feature_id.set(8);
         set_selected_feature_id.set(None);
         set_project_name.set("Untitled landscape".to_string());
@@ -419,7 +489,8 @@ pub fn LandscapeDesigner() -> impl IntoView {
                 </div>
                 <div class="landscape-top-actions">
                     <span class="landscape-draft-mark"><span></span>" SCHEMATIC DRAFT"</span>
-                    <button class="landscape-button quiet" type="button" on:click=undo>"Undo"</button>
+                    <button class="landscape-button quiet" type="button" disabled=move || edit_history.get().is_empty() on:click=undo>"Undo"</button>
+                    <button class="landscape-button quiet" type="button" disabled=move || redo_history.get().is_empty() on:click=redo>"Redo"</button>
                     <button class="landscape-button primary" type="button" on:click=export_project>"Export snapshot"</button>
                 </div>
             </header>
@@ -504,6 +575,7 @@ pub fn LandscapeDesigner() -> impl IntoView {
                                 };
                                 set_features.update(|items| items.push(feature));
                                 set_edit_history.update(|history| history.push(EditCommand::Added { feature }));
+                                set_redo_history.set(Vec::new());
                                 set_selected_feature_id.set(Some(next_id));
                                 set_export_text.set(String::new());
                                 set_download_status.set(String::new());
