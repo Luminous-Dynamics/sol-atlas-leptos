@@ -108,6 +108,8 @@ def known_answer_report() -> dict[str, Any]:
             "source_field": "signed_normalized_tracking_error",
             "sample_time_semantics": "source_reported_series",
             "denominator_convention": "source_native_unknown",
+            "source_artifact_sha256": None,
+            "source_config_manifest_sha256": None,
             "normalization_note": (
                 "Synthetic values are pre-normalized; no source clock or "
                 "denominator is implied."
