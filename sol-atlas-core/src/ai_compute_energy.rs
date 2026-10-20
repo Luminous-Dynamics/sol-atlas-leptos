@@ -827,4 +827,73 @@ mod tests {
                 .any(|item| item == "interval_id_duplicate:t0")
         );
     }
+
+    #[test]
+    fn lowest_cost_schedule_shifts_flexible_work_without_changing_protected_floors() {
+        let mut request = fixture_request();
+        request.workloads[1].required_work_units = 40;
+
+        let earliest = schedule_deferrable(&request, SchedulingPolicy::EarliestReady);
+        let lowest_cost = schedule_deferrable(&request, SchedulingPolicy::LowestCost);
+
+        assert_eq!(earliest.status, AssessmentStatus::Feasible);
+        assert_eq!(lowest_cost.status, AssessmentStatus::Feasible);
+        assert_eq!(
+            earliest.deferrable_work_units_by_interval,
+            Some(vec![28, 8, 2, 2])
+        );
+        assert_eq!(
+            lowest_cost.deferrable_work_units_by_interval,
+            Some(vec![12, 0, 0, 28])
+        );
+        assert_eq!(
+            lowest_cost.protected_floor_work_units_by_interval,
+            Some(vec![6, 6, 6, 6])
+        );
+        let baseline_cost = earliest.modelled_electricity_cost_usd.unwrap();
+        let optimized_cost = lowest_cost.modelled_electricity_cost_usd.unwrap();
+        assert!((baseline_cost - 3.7).abs() < 1.0e-8);
+        assert!((optimized_cost - 1.978).abs() < 1.0e-8);
+        assert!(optimized_cost < baseline_cost);
+        assert_eq!(lowest_cost.scheduled_work_units, Some(40));
+    }
+
+    #[test]
+    fn lowest_carbon_schedule_differs_from_lowest_cost_schedule() {
+        let mut request = fixture_request();
+        request.workloads[1].required_work_units = 40;
+
+        let lowest_cost = schedule_deferrable(&request, SchedulingPolicy::LowestCost);
+        let lowest_carbon = schedule_deferrable(&request, SchedulingPolicy::LowestCarbon);
+
+        assert_eq!(
+            lowest_cost.deferrable_work_units_by_interval,
+            Some(vec![12, 0, 0, 28])
+        );
+        assert_eq!(
+            lowest_carbon.deferrable_work_units_by_interval,
+            Some(vec![2, 8, 2, 28])
+        );
+        assert!(
+            lowest_carbon.modelled_grid_carbon_gco2.unwrap()
+                < lowest_cost.modelled_grid_carbon_gco2.unwrap()
+        );
+        assert_eq!(lowest_carbon.scheduled_work_units, Some(40));
+    }
+
+    #[test]
+    fn carbon_policy_with_missing_factor_returns_indeterminate_without_schedule() {
+        let mut request = fixture_request();
+        request.workloads[1].required_work_units = 40;
+        request.intervals[2].grid_carbon_intensity_gco2_per_kwh = None;
+
+        let result = schedule_deferrable(&request, SchedulingPolicy::LowestCarbon);
+        assert_eq!(result.status, AssessmentStatus::Indeterminate);
+        assert_eq!(result.deferrable_work_units_by_interval, None);
+        assert_eq!(result.scheduled_work_units, None);
+        assert!(result.blockers.iter().any(|item| {
+            item == "interval_t2_grid_carbon_intensity_unknown"
+        }));
+    }
+
 }
