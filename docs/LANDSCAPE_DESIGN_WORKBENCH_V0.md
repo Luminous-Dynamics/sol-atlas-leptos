@@ -69,6 +69,8 @@ LOCAL_CARTESIAN_METRES is a project-local drawing frame, with canvas top-left as
 
 ### Strict Rust validation and edit history
 
+The validator distinguishes `schematic-design-intent` from `synthetic-benchmark` documents and requires feature `status`/`source` tags to match that document-level declaration. This prevents benchmark-generated scenes from masquerading as user-authored plans.
+
 - `src/landscape.rs` is a reusable, pure-Rust validation boundary for schema identity, coordinate-frame claims, scope, project name, allowed fields, unique IDs, feature kind/label coherence, anchor bounds, and design-intent tags.
 - The editor runs the validator before exposing a downloadable snapshot; failure clears the export payload and displays the validation errors.
 - Native tests cover malformed roots, unsupported scopes, duplicate IDs, out-of-bounds anchors, mismatched type/label, unknown fields, georeferencing claims and parity between Rust constants and the committed JSON Schema.
@@ -78,6 +80,7 @@ LOCAL_CARTESIAN_METRES is a project-local drawing frame, with canvas top-left as
 
 - JSON Schema: [schemas/landscape-design-v0.schema.json](../schemas/landscape-design-v0.schema.json). Every snapshot declares the schema URI as well as its schema version.
 - Canonical starter fixture: [fixtures/landscape/seed-landscape-v0.json](../fixtures/landscape/seed-landscape-v0.json), checked against the exporter by a native unit test.
+- The Rust generator `synthetic_benchmark_snapshot(feature_count, seed)` is implemented in `src/landscape.rs`, with determinism and size-bound tests. Its output is validated by the same snapshot validator as authored plans.
 - Frozen deterministic workload protocol: [benchmarks/landscape/workloads-v0.json](../benchmarks/landscape/workloads-v0.json). This defines feature counts, a seeded generator, action traces, raw measurements and negative controls. It contains no measured performance claims.
 - Initial performance metric registry: [metrics/landscape/registry-v0.json](../metrics/landscape/registry-v0.json), with schema [landscape-performance-registry-v0.schema.json](../schemas/landscape-performance-registry-v0.schema.json). This is a metric-definition contract only, not populated field data.
 - Benchmark implementation work: [LAND-BENCH-001](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/195).
