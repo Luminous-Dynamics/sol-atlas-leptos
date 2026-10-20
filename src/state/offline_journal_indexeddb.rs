@@ -522,13 +522,13 @@ impl IndexedDbJournal {
                 // keeping the transaction active without awaiting a Promise.
                 let lease_request =
                     match call_method(&leases, "get", &[JsValue::from_str(&expected_id)]) {
-                    Ok(value) => value,
-                    Err(error) => {
-                        *output.borrow_mut() = Some(Err(js_error(error)));
-                        let _ = call_method(&transaction, "abort", &[]);
-                        return;
-                    }
-                };
+                        Ok(value) => value,
+                        Err(error) => {
+                            *output.borrow_mut() = Some(Err(js_error(error)));
+                            let _ = call_method(&transaction, "abort", &[]);
+                            return;
+                        }
+                    };
                 let lease_request_for_callback = lease_request.clone();
                 let output = output.clone();
                 let operations = operations.clone();
@@ -736,15 +736,15 @@ impl IndexedDbJournal {
                     }
                 };
                 let mut lease: DispatchLeaseRecordV1 = match serde_json::from_str(&serialized) {
-                        Ok(value) => value,
-                        Err(error) => {
-                            *output.borrow_mut() = Some(Err(IndexedDbJournalError(format!(
-                                "stored dispatch lease JSON invalid: {error}"
-                            ))));
-                            let _ = call_method(&transaction, "abort", &[]);
-                            return;
-                        }
-                    };
+                    Ok(value) => value,
+                    Err(error) => {
+                        *output.borrow_mut() = Some(Err(IndexedDbJournalError(format!(
+                            "stored dispatch lease JSON invalid: {error}"
+                        ))));
+                        let _ = call_method(&transaction, "abort", &[]);
+                        return;
+                    }
+                };
                 if let Err(error) = lease.validate(&operation_id) {
                     *output.borrow_mut() = Some(Err(error));
                     let _ = call_method(&transaction, "abort", &[]);
