@@ -879,6 +879,77 @@ mod tests {
     }
 
     #[test]
+    fn redo_after_undo_restores_an_added_feature_exactly() {
+        let original = starter_features();
+        let added = DesignFeature {
+            id: 8,
+            x_du: 500,
+            y_du: 325,
+            kind: FeatureKind::Water,
+        };
+        let mut features = original.clone();
+        features.push(added);
+
+        assert_eq!(
+            undo_last_edit(&mut features, EditCommand::Added { feature: added }),
+            added.id
+        );
+        assert_eq!(features, original);
+        assert_eq!(
+            redo_last_edit(&mut features, EditCommand::Added { feature: added }),
+            Ok(added.id)
+        );
+        assert_eq!(features, [original, vec![added]].concat());
+    }
+
+    #[test]
+    fn redo_after_undo_restores_a_deletion_exactly() {
+        let original = starter_features();
+        let mut after_delete = original.clone();
+        let target = after_delete[2];
+        let (index, removed) = remove_feature(&mut after_delete, target.id).unwrap();
+        let expected_after_delete = after_delete.clone();
+
+        assert_eq!(
+            undo_last_edit(
+                &mut after_delete,
+                EditCommand::Deleted {
+                    feature: removed,
+                    index,
+                }
+            ),
+            target.id
+        );
+        assert_eq!(after_delete, original);
+        assert_eq!(
+            redo_last_edit(
+                &mut after_delete,
+                EditCommand::Deleted {
+                    feature: removed,
+                    index,
+                }
+            ),
+            Ok(target.id)
+        );
+        assert_eq!(after_delete, expected_after_delete);
+    }
+
+    #[test]
+    fn redo_fails_closed_on_feature_identity_conflict() {
+        let mut features = starter_features();
+        let original = features.clone();
+        let existing = features[0];
+
+        let result = redo_last_edit(
+            &mut features,
+            EditCommand::Added { feature: existing },
+        );
+
+        assert!(result.is_err());
+        assert_eq!(features, original);
+    }
+
+    #[test]
     fn every_design_tool_has_a_stable_machine_key() {
         let kinds = [
             FeatureKind::Tree,
