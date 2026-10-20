@@ -483,12 +483,12 @@ impl IndexedDbJournal {
         }
 
         JsFuture::from(transaction_done).await.map_err(js_error)?;
-        let saved = output
-            .borrow_mut()
-            .take()
-            .ok_or_else(|| IndexedDbJournalError("attempt transaction completed without an outcome".into()))??;
-        let snapshot: JournalEntrySnapshotV1 = serde_json::from_str(&saved)
-            .map_err(|error| IndexedDbJournalError(format!("stored snapshot JSON invalid: {error}")))?;
+        let saved = output.borrow_mut().take().ok_or_else(|| {
+            IndexedDbJournalError("attempt transaction completed without an outcome".into())
+        })??;
+        let snapshot: JournalEntrySnapshotV1 = serde_json::from_str(&saved).map_err(|error| {
+            IndexedDbJournalError(format!("stored snapshot JSON invalid: {error}"))
+        })?;
         let entry = JournalEntry::from_snapshot_for_operation(operation_id, snapshot)
             .map_err(IndexedDbJournalError::from)?;
         Ok(DispatchPermit {
@@ -620,10 +620,9 @@ impl IndexedDbJournal {
         }
 
         JsFuture::from(transaction_done).await.map_err(js_error)?;
-        output
-            .borrow_mut()
-            .take()
-            .ok_or_else(|| IndexedDbJournalError("reply transaction completed without an outcome".into()))?
+        output.borrow_mut().take().ok_or_else(|| {
+            IndexedDbJournalError("reply transaction completed without an outcome".into())
+        })?
     }
 
     /// Lists a bounded pending page. The pending index is deliberately only a
