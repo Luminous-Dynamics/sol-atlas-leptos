@@ -689,6 +689,125 @@ impl IndexedDbJournal {
         })
     }
 
+    /// Renew the current permit's lease without incrementing the attempt count.
+    ///
+    /// This is a compare-and-set operation. A lease that has expired or whose
+    /// owner token changed cannot be revived by a stale or suspended tab.
+    pub async fn renew_dispatch_lease(
+        &self,
+        permit: &mut DispatchPermit,
+    ) -> Result<(), IndexedDbJournalError> {
+        let (transaction, durability_policy) =
+            self.transaction(&[DISPATCH_LEASES], "readwrite")?;
+        let transaction_done = transaction_promise(transaction.clone());
+        let leases = object_store(&transaction, DISPATCH_LEASES)?;
+        let request = call_method(
+            &leases,
+            "get",
+            &[JsValue::from_str(&permit.operation_id)],
+        )
+        .map_err(js_error)?;
+        let output: Rc<RefCell<Option<Result<u64, IndexedDbJournalError>>>> =
+            Rc::new(RefCell::new(None));
+
+        {
+            let request_for_callback = request.clone();
+            let output = output.clone();
+            let leases = leases.clone();
+            let transaction = transaction.clone();
+            let operation_id = permit.operation_id.clone();
+            let owner_token = permit.lease_token.clone();
+            let callback = Closure::once_into_js(move |_event: JsValue| {
+                let raw = match Reflect::get(
+                    &request_for_callback,
+                    &JsValue::from_str("result"),
+                ) {
+                    Ok(value) => value,
+                    Err(error) => {
+                        *output.borrow_mut() = Some(Err(js_error(error)));
+                        return;
+                    }
+                };
+                if raw.is_null() || raw.is_undefined() {
+                    *output.borrow_mut() = Some(Err(IndexedDbJournalError(
+                        "dispatch lease no longer exists".into(),
+                    )));
+                    return;
+                }
+                let serialized = match raw.as_string() {
+                    Some(value) => value,
+                    None => {
+                        *output.borrow_mut() = Some(Err(IndexedDbJournalError(
+                            "dispatch lease record is not a string".into(),
+                        )));
+                        return;
+                    }
+                };
+                let mut lease: DispatchLeaseRecordV1 =
+                    match serde_json::from_str(&serialized) {
+                        Ok(value) => value,
+                        Err(error) => {
+                            *output.borrow_mut() = Some(Err(IndexedDbJournalError(format!(
+                                "stored dispatch lease JSON invalid: {error}"
+                            ))));
+                            let _ = call_method(&transaction, "abort", &[]);
+                            return;
+                        }
+                    };
+                if let Err(error) = lease.validate(&operation_id) {
+                    *output.borrow_mut() = Some(Err(error));
+                    let _ = call_method(&transaction, "abort", &[]);
+                    return;
+                }
+                let now_ms = match epoch_now_ms() {
+                    Ok(value) => value,
+                    Err(error) => {
+                        *output.borrow_mut() = Some(Err(error));
+                        let _ = call_method(&transaction, "abort", &[]);
+                        return;
+                    }
+                };
+                if lease.owner_token != owner_token || !lease.is_active_at(now_ms) {
+                    *output.borrow_mut() = Some(Err(IndexedDbJournalError(
+                        "dispatch lease ownership lost; reacquire before sending".into(),
+                    )));
+                    return;
+                }
+                lease.expires_at_ms = now_ms.saturating_add(DISPATCH_LEASE_DURATION_MS);
+                let new_expiry = lease.expires_at_ms;
+                let encoded = match serde_json::to_string(&lease) {
+                    Ok(value) => value,
+                    Err(error) => {
+                        *output.borrow_mut() = Some(Err(IndexedDbJournalError(format!(
+                            "dispatch lease serialization failed: {error}"
+                        ))));
+                        let _ = call_method(&transaction, "abort", &[]);
+                        return;
+                    }
+                };
+                if let Err(error) = call_method(
+                    &leases,
+                    "put",
+                    &[JsValue::from_str(&encoded), JsValue::from_str(&operation_id)],
+                ) {
+                    *output.borrow_mut() = Some(Err(js_error(error)));
+                    let _ = call_method(&transaction, "abort", &[]);
+                    return;
+                }
+                *output.borrow_mut() = Some(Ok(new_expiry));
+            });
+            Reflect::set(&request, &JsValue::from_str("onsuccess"), &callback)
+                .map_err(js_error)?;
+        }
+
+        JsFuture::from(transaction_done).await.map_err(js_error)?;
+        permit.lease_expires_at_ms = output.borrow_mut().take().ok_or_else(|| {
+            IndexedDbJournalError("lease renewal completed without an outcome".into())
+        })??;
+        permit.durability_policy = durability_policy;
+        Ok(())
+    }
+
     /// Applies a matching reply and its pending-index change in one transaction.
     /// Rejected/misbound replies leave the stored snapshot and indexes untouched.
     pub async fn apply_reply(
