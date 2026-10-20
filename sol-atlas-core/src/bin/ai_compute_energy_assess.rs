@@ -44,7 +44,7 @@ fn main() {
     let mut args = env::args_os().skip(1);
     let Some(path) = args.next() else {
         eprintln!(
-            "usage: ai_compute_energy_assess <scenario.json> [earliest-ready|lowest-cost|lowest-carbon]"
+            "usage: ai_compute_energy_assess <scenario.json> [earliest-ready|lowest-cost|lowest-carbon|pareto]"
         );
         process::exit(64);
     };
