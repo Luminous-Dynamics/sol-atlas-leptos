@@ -19,6 +19,7 @@ It intentionally returns `ReadyForQualifiedReview`, **not** `Verified`, `Safe`, 
 - Pinned procedure revision must agree at packet, requirement and artifact level.
 - Requirements needing an independent review block if the reviewer is missing or is also the recorder.
 - Completeness and issue ordering follow stable input order for reproducible UI and test output.
+- Requirement lookup is indexed by stable ID instead of rescanning all requirements for every artifact, avoiding quadratic lookup growth as packets scale.
 
 The reviewer ID in the evaluation context is an input from outside this pure module. It is not an authentication or qualification check. An adapter must verify identity/role with the authority source.
 
@@ -39,6 +40,16 @@ The Rust test corpus includes complete packet, missing evidence, stale graph rev
 | UX-01 | ≥95% correct interpretation of missing-evidence explanations | Moderated evaluation with technicians and qualified reviewers, stratified by trade |
 
 The numerical performance target is a hypothesis, not an observed result. Correctness and evidence completeness are hard gates; latency is optimized only after those gates hold.
+
+## Reproducible evaluation benchmark
+
+A Rust example generates deterministic synthetic packets and emits raw nanosecond samples with p50/p95/max, input cardinalities, host architecture/OS, build profile, and the completeness result:
+
+```sh
+cargo run --release --manifest-path sol-atlas-core/Cargo.toml --example task_evidence_bench -- 100 1000 10000
+```
+
+CI smoke-tests the runner on a small packet; that is not the 10,000-record performance result. Publish the exact source SHA and all raw samples from a named release-mode runner before comparing performance.
 
 ## Industry comparison and fair baseline
 

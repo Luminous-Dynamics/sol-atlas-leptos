@@ -11,7 +11,7 @@
 //! and the canonical service.
 
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 pub const TASK_EVIDENCE_SCHEMA_VERSION: u16 = 1;
 
@@ -216,6 +216,7 @@ pub fn evaluate_evidence_packet(
     }
 
     let mut requirement_ids = BTreeSet::new();
+    let mut requirements_by_id: BTreeMap<&str, &EvidenceRequirementV1> = BTreeMap::new();
     let mut requirements_valid = true;
     for requirement in &packet.requirements {
         if requirement.requirement_id.trim().is_empty()
@@ -228,6 +229,8 @@ pub fn evaluate_evidence_packet(
                 None,
                 "requirement identifier is empty or duplicated",
             ));
+        } else {
+            requirements_by_id.insert(requirement.requirement_id.as_str(), requirement);
         }
         if requirement.required_procedure_revision == Some(0) {
             requirements_valid = false;
@@ -334,10 +337,9 @@ pub fn evaluate_evidence_packet(
             ));
         }
 
-        let Some(requirement) = packet
-            .requirements
-            .iter()
-            .find(|item| item.requirement_id == artifact.requirement_id)
+        let Some(requirement) = requirements_by_id
+            .get(artifact.requirement_id.as_str())
+            .copied()
         else {
             artifact_valid = false;
             issues.push(issue(
