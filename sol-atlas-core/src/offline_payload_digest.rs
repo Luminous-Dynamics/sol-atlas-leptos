@@ -30,12 +30,17 @@ impl fmt::Display for PayloadDigestError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Canonicalization(error) => {
-                write!(formatter, "payload is not valid under the JCS profile: {error}")
+                write!(
+                    formatter,
+                    "payload is not valid under the JCS profile: {error}"
+                )
             }
             Self::InvalidExpectedDigest => {
                 formatter.write_str("expected payload digest must be 64 lowercase hex characters")
             }
-            Self::DigestMismatch => formatter.write_str("payload digest does not match canonical payload"),
+            Self::DigestMismatch => {
+                formatter.write_str("payload digest does not match canonical payload")
+            }
         }
     }
 }
@@ -117,15 +122,19 @@ mod tests {
         let first = payload_digest_sha256(r#"{"b":2,"a":1}"#).unwrap();
         let second = payload_digest_sha256(" { \"a\": 1.0, \"b\": 2 } ").unwrap();
 
-        assert_eq!(first, "43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777");
+        assert_eq!(
+            first,
+            "43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777"
+        );
         assert_eq!(first, second);
     }
 
     #[test]
     fn number_serialization_follows_jcs_profile() {
-        let canonical =
-            canonicalize_payload_json(r#"{"numbers":[1e21,0.000001,-0.0],"amount":1.0,"from":"€"}"#)
-                .unwrap();
+        let canonical = canonicalize_payload_json(
+            r#"{"numbers":[1e21,0.000001,-0.0],"amount":1.0,"from":"€"}"#,
+        )
+        .unwrap();
         assert_eq!(
             String::from_utf8(canonical).unwrap(),
             r#"{"amount":1,"from":"€","numbers":[1e+21,0.000001,0]}"#
