@@ -380,7 +380,9 @@ fn save_local_draft(content: &str) -> Result<(), String> {
         .ok_or_else(|| "This browser does not expose local storage".to_string())?;
     storage
         .set_item(LOCAL_DRAFT_STORAGE_KEY, content)
-        .map_err(|error| format!("Could not save local draft (storage may be full or blocked): {error:?}"))
+        .map_err(|error| {
+            format!("Could not save local draft (storage may be full or blocked): {error:?}")
+        })
 }
 
 fn load_local_draft() -> Result<Option<String>, String> {
@@ -597,7 +599,7 @@ pub fn LandscapeDesigner() -> impl IntoView {
         });
     };
 
-        let save_browser_project = move |_| {
+    let save_browser_project = move |_| {
         let name = normalized_project_name(&project_name.get_untracked());
         let value = snapshot_json(
             &name,
@@ -610,8 +612,9 @@ pub fn LandscapeDesigner() -> impl IntoView {
                 errors.join("; ")
             )),
             Ok(()) => match serde_json::to_string_pretty(&value) {
-                Err(error) => set_download_status
-                    .set(format!("Could not serialize local draft: {error}")),
+                Err(error) => {
+                    set_download_status.set(format!("Could not serialize local draft: {error}"))
+                }
                 Ok(content) => match save_local_draft(&content) {
                     Ok(()) => {
                         set_export_text.set(content);
