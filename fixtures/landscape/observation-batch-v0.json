@@ -1,0 +1,79 @@
+{
+  "schema": "luminous.landscape-observation-batch.v0",
+  "schema_uri": "https://luminousdynamics.io/schemas/landscape-observation-batch-v0.schema.json",
+  "batch_id": "obs-batch-synthetic-v0",
+  "created_at_unix_ms": 1792462000000,
+  "observations": [
+    {
+      "schema": "luminous.landscape-observation.v0",
+      "schema_uri": "https://luminousdynamics.io/schemas/landscape-observation-v0.schema.json",
+      "observation_id": "obs-synthetic-plant-survival-0001",
+      "source_event_id": "event-synthetic-plant-survival-0001",
+      "project_ref": {
+        "project_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "feature_id": "feature-0001",
+        "site_ref_sha256": null
+      },
+      "phenomenon_time": {
+        "start_unix_ms": 1792454400000,
+        "end_unix_ms": 1792458000000,
+        "clock_uncertainty_ms": 0
+      },
+      "result_time_unix_ms": 1792461600000,
+      "observed_property": {
+        "id": "urn:luminous:landscape:plant-survival-count",
+        "label": "Synthetic sample plants surviving",
+        "metric_id": null,
+        "unit": "count"
+      },
+      "result": {
+        "kind": "quantity",
+        "numeric_value": 17,
+        "unit": "count"
+      },
+      "evidence_class": "synthetic-test",
+      "source": {
+        "kind": "synthetic-fixture",
+        "source_id": "source-landscape-observation-fixture-v0",
+        "source_uri": "urn:luminous:synthetic:source:plant-survival",
+        "source_version": "fixture-v0",
+        "payload_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "method_uri": "urn:luminous:synthetic:method:plant-survival-v0",
+        "method_version": "0",
+        "observer_ref_sha256": null,
+        "instrument_ref_sha256": null
+      },
+      "quality": {
+        "state": "unreviewed",
+        "calibration_state": "not-required",
+        "flags": [
+          "synthetic-data"
+        ],
+        "uncertainty": {
+          "kind": "unknown",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "coverage_probability": null,
+          "unit": null,
+          "method_uri": null,
+          "reason_code": "synthetic-fixture-no-uncertainty"
+        }
+      },
+      "location": {
+        "kind": "opaque-site",
+        "site_ref_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "precision_class": "site-only",
+        "sensitivity": "restricted"
+      },
+      "privacy": {
+        "classification": "synthetic",
+        "publication_policy": "private-only",
+        "consent_record_ref_sha256": null,
+        "policy_version": "landscape-privacy-v0",
+        "consent_authority": "mycelix"
+      },
+      "transformations": []
+    }
+  ]
+}
