@@ -1070,6 +1070,81 @@ mod tests {
     }
 
     #[test]
+    fn structural_signature_ignores_node_and_link_labels_but_exact_digest_does_not() {
+        let (plan, _) = load_plan();
+        let original = plan.cases[0].topology.clone();
+        let mut renamed = original.clone();
+        let mapping = BTreeMap::from([
+            ("N1", "X9"),
+            ("N2", "X2"),
+            ("N3", "X7"),
+            ("N4", "X1"),
+        ]);
+        renamed.nodes = renamed.nodes.iter()
+            .map(|node| mapping[node.as_str()].to_owned())
+            .collect();
+        for (index, link) in renamed.links.iter_mut().enumerate() {
+            link.link_id = format!("pipe-renamed-{index}");
+            link.from_node_id = mapping[link.from_node_id.as_str()].to_owned();
+            link.to_node_id = mapping[link.to_node_id.as_str()].to_owned();
+        }
+        assert_ne!(
+            topology_sha256(&original).unwrap(),
+            topology_sha256(&renamed).unwrap(),
+            "the source-identity digest should remain label-sensitive"
+        );
+        assert_eq!(
+            structural_topology_sha256(&original).unwrap(),
+            structural_topology_sha256(&renamed).unwrap(),
+            "structural candidate signature must ignore names and link IDs"
+        );
+    }
+
+    #[test]
+    fn relabeled_isomorphic_graph_across_splits_requires_curator_review() {
+        let (mut plan, digest) = load_plan();
+        let mut variant = plan.cases[0].clone();
+        let mapping = BTreeMap::from([
+            ("N1", "X9"),
+            ("N2", "X2"),
+            ("N3", "X7"),
+            ("N4", "X1"),
+        ]);
+        variant.case_id = "TEST-RELABELLED-SOURCE".to_owned();
+        variant.split = "test".to_owned();
+        variant.topology_family_id = "relabeled-source-tree".to_owned();
+        variant.perturbation.scenario_seed = "seed-relabeled-source-unique".to_owned();
+        variant.topology.nodes = variant.topology.nodes.iter()
+            .map(|node| mapping[node.as_str()].to_owned())
+            .collect();
+        for (index, link) in variant.topology.links.iter_mut().enumerate() {
+            link.link_id = format!("pipe-renamed-{index}");
+            link.from_node_id = mapping[link.from_node_id.as_str()].to_owned();
+            link.to_node_id = mapping[link.to_node_id.as_str()].to_owned();
+        }
+        if let Some(target) = variant.perturbation.target_node_id.as_mut() {
+            *target = mapping[target.as_str()].to_owned();
+        }
+        for reading in &mut variant.sensor_readings {
+            reading.node_id = mapping[reading.node_id.as_str()].to_owned();
+        }
+        plan.test_topology_families
+            .push("relabeled-source-tree".to_owned());
+        plan.cases.push(variant);
+
+        let receipt = evaluate_split_plan(&plan, &digest);
+        assert_eq!(receipt.issues.len(), 0, "{:?}", receipt.issues);
+        assert_eq!(receipt.run_state, "NeedsTopologyReview");
+        assert_eq!(receipt.topology_review_candidates.len(), 1);
+        let candidate = &receipt.topology_review_candidates[0];
+        assert!(candidate.family_a == "source-tree" || candidate.family_b == "source-tree");
+        assert!(candidate.family_a == "relabeled-source-tree" || candidate.family_b == "relabeled-source-tree");
+        assert!(candidate.split_a != candidate.split_b);
+        assert!(candidate.case_ids_a.contains(&"TEST-RELABELLED-SOURCE".to_owned())
+            || candidate.case_ids_b.contains(&"TEST-RELABELLED-SOURCE".to_owned()));
+    }
+
+    #[test]
     fn exact_duplicate_topology_cannot_have_two_family_ids() {
         let (mut plan, digest) = load_plan();
         let mut copy = plan.cases[0].clone();
