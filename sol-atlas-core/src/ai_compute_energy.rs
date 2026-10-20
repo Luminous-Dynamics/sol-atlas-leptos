@@ -1056,9 +1056,8 @@ mod tests {
 
     fn fixture_request() -> Request {
         // Parse the exact committed JSON fixture instead of maintaining a
-        // second hand-copied request in Rust. Extra scenario-envelope fields
-        // are intentionally ignored by Request; this evaluator consumes only
-        // its bounded site/interval/workload projection.
+        // second hand-copied request in Rust. Request is the strict typed
+        // projection consumed by this evaluator; unknown keys must fail closed.
         serde_json::from_str(include_str!(
             "../../schemas/examples/ai-compute-energy-flexibility-four-interval.synthetic.json"
         ))
