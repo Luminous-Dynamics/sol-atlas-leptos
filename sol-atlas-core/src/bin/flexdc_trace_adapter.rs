@@ -191,7 +191,7 @@ fn validate_manifest(manifest: &RunManifest) -> Result<(), String> {
     }
     if REQUIRED_CONFIG_ROLES
         .iter()
-        .any(|role| !seen_roles.contains(role))
+        .any(|role| !seen_roles.contains(*role))
     {
         return Err("manifest is missing one or more required config artifact roles".to_owned());
     }
@@ -472,6 +472,36 @@ mod tests {
         assert!(validate_manifest(&manifest)
             .expect_err("uppercase revision must reject")
             .contains("lowercase Git commit SHA"));
+    }
+
+    #[test]
+    fn source_revision_must_match_the_pinned_reference_not_just_sha_shape() {
+        let mut manifest = parsed_manifest();
+        manifest.source_revision = "0000000000000000000000000000000000000000".to_owned();
+        assert!(
+            validate_manifest(&manifest)
+                .expect_err("different source revision must be rejected")
+                .contains("supports only pinned FlexDC-Sim revision")
+        );
+    }
+
+    #[test]
+    fn manifest_rejects_incompatible_simulation_and_signal_steps() {
+        let mut manifest = parsed_manifest();
+        manifest.signal_step_seconds = 3;
+        assert!(
+            validate_manifest(&manifest)
+                .expect_err("signal step not divisible by simulation step should reject")
+                .contains("positive multiple")
+        );
+        let mut manifest = parsed_manifest();
+        manifest.simulation_duration_seconds = 10;
+        manifest.simulation_step_seconds = 4;
+        assert!(
+            validate_manifest(&manifest)
+                .expect_err("non-divisible duration should reject")
+                .contains("must be divisible")
+        );
     }
 
     #[test]
