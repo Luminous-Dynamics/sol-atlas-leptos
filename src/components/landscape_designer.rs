@@ -137,6 +137,15 @@ fn starter_features() -> Vec<DesignFeature> {
     ]
 }
 
+fn normalized_project_name(value: &str) -> String {
+    let trimmed = value.trim();
+    if trimmed.is_empty() {
+        "Untitled landscape".to_string()
+    } else {
+        trimmed.to_string()
+    }
+}
+
 fn snapshot_json(project_name: &str, scale: LandscapeScale, features: &[DesignFeature]) -> Value {
     json!({
         "schema": "luminous.landscape-design.v0",
@@ -250,7 +259,7 @@ pub fn LandscapeDesigner() -> impl IntoView {
     };
 
     let export_project = move |_| {
-        let name = project_name.get_untracked();
+        let name = normalized_project_name(&project_name.get_untracked());
         let value = snapshot_json(
             &name,
             active_scale.get_untracked(),
@@ -491,6 +500,13 @@ pub fn LandscapeDesigner() -> impl IntoView {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn blank_project_names_fall_back_to_a_valid_default() {
+        assert_eq!(normalized_project_name(""), "Untitled landscape");
+        assert_eq!(normalized_project_name("   "), "Untitled landscape");
+        assert_eq!(normalized_project_name("  Meadow Commons  "), "Meadow Commons");
+    }
 
     #[test]
     fn snapshot_declares_local_frame_and_never_claims_georeferencing() {
