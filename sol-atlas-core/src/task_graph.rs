@@ -568,11 +568,7 @@ mod tests {
         let after_first_writer = task_graph.clone();
 
         assert_eq!(
-            task_graph.apply(
-                stale_revision,
-                "inspect",
-                TaskAction::ReportCompletion
-            ),
+            task_graph.apply(stale_revision, "inspect", TaskAction::ReportCompletion),
             Err(TaskGraphError::RevisionConflict {
                 expected_revision: stale_revision,
                 actual_revision: 2,
