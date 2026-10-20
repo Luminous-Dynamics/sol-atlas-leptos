@@ -215,6 +215,12 @@ Compare candidate-minus-baseline end-to-end recall and false-alert rate on cover
 
 The current Rust reference implementation withholds cluster-bootstrap intervals unless there are at least 10 independent clusters and at least 1,000 bootstrap replicates. These are conservative implementation gates, not universal evidence that any data set has enough independent information; the cluster definition and held-out sampling design remain decisive. If too few clusters exist, report point estimates with an explicit “interval omitted” note and do not promote the result as an uncertainty-qualified SOTA improvement. Reuse these paired comparisons on predeclared site/time holdouts; do not select the baseline or operating point after inspecting final holdout results.
 
+### Split integrity and leakage gate
+
+Pin the exact raw corpus-manifest bytes by SHA-256 before assigning partitions. Require every eligible case exactly once in train, validation, and test, with an optional separately controlled blind-test split. Split by dependence/source groups before fitting transformations, choosing thresholds, tuning hyperparameters, or comparing candidates. Reject any case manifest whose cluster identity, stable source group, or exact case-artifact digest crosses partitions. A row-level random split is not a defensible site-, source-, or campaign-generalization test when related observations can cross the boundary.
+
+A split validator can check internal integrity, not certify that a cluster is independent or that no semantic leakage remains. The experiment owner must document the intended generalization axis (new overpasses at known sites, unseen sites, unseen basins, new sensors, or future time periods) and choose group keys accordingly. Keep a second, access-controlled blind holdout for the final comparison where practical; do not repeatedly tune to it.
+
 ## Reproducible experiment protocol
 
 Every evaluated run should emit a machine-readable receipt containing:
