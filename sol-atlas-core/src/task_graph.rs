@@ -58,7 +58,16 @@ pub enum TaskAction {
 }
 
 impl TaskGraphV1 {
+    /// Validate graph invariants and cycle freedom.
+    ///
+    /// Structural checks and cycle detection are intentionally separate so
+    /// callers that need a topological order do not sort the same graph twice.
     pub fn validate(&self) -> Result<(), TaskGraphError> {
+        self.validate_structure()?;
+        self.topological_order_unchecked().map(|_| ())
+    }
+
+    fn validate_structure(&self) -> Result<(), TaskGraphError> {
         if self.schema_version != TASK_GRAPH_SCHEMA_VERSION {
             return Err(TaskGraphError::UnsupportedSchemaVersion(
                 self.schema_version,
@@ -111,12 +120,12 @@ impl TaskGraphV1 {
             }
         }
 
-        self.topological_order_unchecked().map(|_| ())
+        Ok(())
     }
 
     /// Return a stable topological order. Independent ties are resolved by task ID.
     pub fn topological_order(&self) -> Result<Vec<String>, TaskGraphError> {
-        self.validate()?;
+        self.validate_structure()?;
         self.topological_order_unchecked()
     }
 
