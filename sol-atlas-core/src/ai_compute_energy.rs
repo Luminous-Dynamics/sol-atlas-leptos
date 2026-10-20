@@ -1169,7 +1169,7 @@ mod tests {
             0,
             demand,
             capacities,
-            per_unit_cost,
+            per_unit_objective,
             &mut Vec::with_capacity(capacities.len()),
             &mut best,
         );
