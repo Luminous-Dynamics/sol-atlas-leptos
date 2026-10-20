@@ -163,6 +163,20 @@ pub fn scenario_receipt(
     })
 }
 
+/// Recompute a receipt from the raw input and assessment, returning false
+/// when any bound input, mode, metadata field, or assessment digest differs.
+/// Parsing uses the same strict request contract as the evaluator.
+pub fn verify_scenario_receipt(
+    raw_input: &[u8],
+    mode: &str,
+    assessment: &serde_json::Value,
+    supplied: &ScenarioReceipt,
+) -> Result<bool, serde_json::Error> {
+    let request: Request = serde_json::from_slice(raw_input)?;
+    let expected = scenario_receipt(raw_input, &request, mode, assessment)?;
+    Ok(expected == *supplied)
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AssessmentStatus {
@@ -1180,6 +1194,38 @@ mod tests {
         .expect("reformatted JSON assessment should serialize");
         assert_ne!(receipt.input_sha256, reformatted_receipt.input_sha256);
         assert_eq!(receipt.fixture_id, reformatted_receipt.fixture_id);
+
+        assert!(
+            verify_scenario_receipt(fixture.as_bytes(), "pareto", &assessment, &receipt)
+                .expect("valid input should verify")
+        );
+        assert!(
+            !verify_scenario_receipt(
+                reformatted.as_bytes(),
+                "pareto",
+                &assessment,
+                &receipt,
+            )
+            .expect("reformatted input should parse")
+        );
+        assert!(
+            !verify_scenario_receipt(
+                fixture.as_bytes(),
+                "lowest-cost",
+                &assessment,
+                &receipt,
+            )
+            .expect("original input should parse")
+        );
+        assert!(
+            !verify_scenario_receipt(
+                fixture.as_bytes(),
+                "pareto",
+                &changed_assessment,
+                &receipt,
+            )
+            .expect("original input should parse")
+        );
     }
 
     #[test]
