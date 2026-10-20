@@ -151,10 +151,11 @@ mod tests {
         ] {
             let from = parse_instant(record, from_pointer, &mut issues);
             let until = parse_instant(record, until_pointer, &mut issues);
-            if let (Some(from), Some(until)) = (from, until) {
-                if from >= until {
+            match (from, until) {
+                (Some(from), Some(until)) if from >= until => {
                     issues.push(format!("{label} must be strictly increasing"));
                 }
+                _ => {}
             }
         }
 
