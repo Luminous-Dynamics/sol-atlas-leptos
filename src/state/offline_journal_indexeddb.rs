@@ -509,22 +509,19 @@ impl IndexedDbJournal {
                         return;
                     }
                 };
-                let entry =
-                    match JournalEntry::from_snapshot_for_operation(&expected_id, snapshot) {
-                        Ok(value) => value,
-                        Err(error) => {
-                            *output.borrow_mut() = Some(Err(IndexedDbJournalError::from(error)));
-                            return;
-                        }
-                    };
+                let entry = match JournalEntry::from_snapshot_for_operation(&expected_id, snapshot)
+                {
+                    Ok(value) => value,
+                    Err(error) => {
+                        *output.borrow_mut() = Some(Err(IndexedDbJournalError::from(error)));
+                        return;
+                    }
+                };
 
                 // Chain the second read inside the first request's success event,
                 // keeping the transaction active without awaiting a Promise.
-                let lease_request = match call_method(
-                    &leases,
-                    "get",
-                    &[JsValue::from_str(&expected_id)],
-                ) {
+                let lease_request =
+                    match call_method(&leases, "get", &[JsValue::from_str(&expected_id)]) {
                     Ok(value) => value,
                     Err(error) => {
                         *output.borrow_mut() = Some(Err(js_error(error)));
@@ -566,17 +563,17 @@ impl IndexedDbJournal {
                                 return;
                             }
                         };
-                        let record: DispatchLeaseRecordV1 =
-                            match serde_json::from_str(&serialized) {
-                                Ok(value) => value,
-                                Err(error) => {
-                                    *output.borrow_mut() = Some(Err(IndexedDbJournalError(format!(
-                                        "stored dispatch lease JSON invalid: {error}"
-                                    ))));
-                                    let _ = call_method(&transaction, "abort", &[]);
-                                    return;
-                                }
-                            };
+                        let record: DispatchLeaseRecordV1 = match serde_json::from_str(&serialized)
+                        {
+                            Ok(value) => value,
+                            Err(error) => {
+                                *output.borrow_mut() = Some(Err(IndexedDbJournalError(format!(
+                                    "stored dispatch lease JSON invalid: {error}"
+                                ))));
+                                let _ = call_method(&transaction, "abort", &[]);
+                                return;
+                            }
+                        };
                         if let Err(error) = record.validate(&expected_id) {
                             *output.borrow_mut() = Some(Err(error));
                             let _ = call_method(&transaction, "abort", &[]);
@@ -700,16 +697,11 @@ impl IndexedDbJournal {
         &self,
         permit: &mut DispatchPermit,
     ) -> Result<(), IndexedDbJournalError> {
-        let (transaction, durability_policy) =
-            self.transaction(&[DISPATCH_LEASES], "readwrite")?;
+        let (transaction, durability_policy) = self.transaction(&[DISPATCH_LEASES], "readwrite")?;
         let transaction_done = transaction_promise(transaction.clone());
         let leases = object_store(&transaction, DISPATCH_LEASES)?;
-        let request = call_method(
-            &leases,
-            "get",
-            &[JsValue::from_str(&permit.operation_id)],
-        )
-        .map_err(js_error)?;
+        let request = call_method(&leases, "get", &[JsValue::from_str(&permit.operation_id)])
+            .map_err(js_error)?;
         let output: Rc<RefCell<Option<Result<u64, IndexedDbJournalError>>>> =
             Rc::new(RefCell::new(None));
 
@@ -721,10 +713,7 @@ impl IndexedDbJournal {
             let operation_id = permit.operation_id.clone();
             let owner_token = permit.lease_token.clone();
             let callback = Closure::once_into_js(move |_event: JsValue| {
-                let raw = match Reflect::get(
-                    &request_for_callback,
-                    &JsValue::from_str("result"),
-                ) {
+                let raw = match Reflect::get(&request_for_callback, &JsValue::from_str("result")) {
                     Ok(value) => value,
                     Err(error) => {
                         *output.borrow_mut() = Some(Err(js_error(error)));
@@ -746,8 +735,7 @@ impl IndexedDbJournal {
                         return;
                     }
                 };
-                let mut lease: DispatchLeaseRecordV1 =
-                    match serde_json::from_str(&serialized) {
+                let mut lease: DispatchLeaseRecordV1 = match serde_json::from_str(&serialized) {
                         Ok(value) => value,
                         Err(error) => {
                             *output.borrow_mut() = Some(Err(IndexedDbJournalError(format!(
@@ -791,7 +779,10 @@ impl IndexedDbJournal {
                 if let Err(error) = call_method(
                     &leases,
                     "put",
-                    &[JsValue::from_str(&encoded), JsValue::from_str(&operation_id)],
+                    &[
+                        JsValue::from_str(&encoded),
+                        JsValue::from_str(&operation_id),
+                    ],
                 ) {
                     *output.borrow_mut() = Some(Err(js_error(error)));
                     let _ = call_method(&transaction, "abort", &[]);
@@ -799,8 +790,7 @@ impl IndexedDbJournal {
                 }
                 *output.borrow_mut() = Some(Ok(new_expiry));
             });
-            Reflect::set(&request, &JsValue::from_str("onsuccess"), &callback)
-                .map_err(js_error)?;
+            Reflect::set(&request, &JsValue::from_str("onsuccess"), &callback).map_err(js_error)?;
         }
 
         JsFuture::from(transaction_done).await.map_err(js_error)?;
