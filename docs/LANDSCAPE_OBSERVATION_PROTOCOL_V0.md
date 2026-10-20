@@ -26,11 +26,11 @@ The native record is an **offline application envelope**, not an attempt to clon
 - Synthetic fixture: `fixtures/landscape/observation-batch-v0.json`
 - Rust validator/tests: `src/landscape_observation.rs`
 
-The batch validator enforces exact keys, stable opaque IDs, project/site references, observation/result time ordering, property/result unit agreement, explicit evidence class and source kind, digest syntax, coordinate bounds and CRS labels, quality/calibration state, uncertainty consistency, privacy policy, transformation-chain continuity and a 10,000-record batch limit.
+The canonical fixture covers all three location representations, all result kinds, and uncertainty states; its two-step transformation chain is checked. The batch validator enforces exact keys, stable opaque IDs, project/site references, observation/result time ordering, property/result unit agreement, explicit evidence class and source kind, digest syntax, coordinate bounds and CRS labels, quality/calibration state, uncertainty consistency, privacy policy, transformation-chain continuity and a 10,000-record batch limit.
 
 ### Idempotency rule
 
-- Same observation ID + identical record content is a recognized, reported duplicate; unique count remains unchanged.
+- Same observation ID + identical record content is a recognized, reported duplicate; `normalize_batch` returns the first copy in original order and the unique count remains unchanged.
 - Same observation ID + different content is a hard conflict. There is no last-write-wins behavior.
 - Stable source event ID and source-payload digest let later adapters trace a record back to its upstream event.
 - This v0 validator does not itself compute a digest over canonical JSON or verify a claimed source payload digest against retained source bytes. It checks digest syntax and lineage relationships only.
