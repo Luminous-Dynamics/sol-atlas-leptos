@@ -19,6 +19,18 @@
       }
     }
   ],
+  "rate_bands": [
+    {
+      "band_id": "synthetic-low",
+      "lower_kg_h": 0.0,
+      "upper_kg_h": 10.0
+    },
+    {
+      "band_id": "synthetic-medium-plus",
+      "lower_kg_h": 10.0,
+      "upper_kg_h": null
+    }
+  ],
   "submission": {
     "system_id": "synthetic-example-only",
     "version": "0.0.0-synthetic",
