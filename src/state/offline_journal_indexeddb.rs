@@ -449,18 +449,26 @@ impl IndexedDbJournal {
     /// entire transaction. Existing operation snapshots are never overwritten,
     /// so importing a stale bundle cannot roll a locally progressed row back.
     /// Dispatch leases are deliberately not imported.
-    pub async fn import_bundle(
+    /// Stages a validated bundle outside the active journal.
+    ///
+    /// Bundles have an unkeyed integrity digest, so their state/receipt fields
+    /// are not proof that an operation was or was not applied by the service.
+    /// This method therefore never writes imported rows to the live operation,
+    /// idempotency or pending stores, and never makes them dispatchable. Records
+    /// must be reconciled against the authoritative service before promotion.
+    pub async fn stage_bundle(
         &self,
         bundle: &OfflineJournalBundleV1,
         authenticated_owner_scope: &str,
-    ) -> Result<BundleImportReport, IndexedDbJournalError> {
+    ) -> Result<BundleStageReport, IndexedDbJournalError> {
         bundle
             .validate_for_owner(authenticated_owner_scope)
             .map_err(|error| IndexedDbJournalError(error.to_string()))?;
         if bundle.records.is_empty() {
-            return Ok(BundleImportReport::default());
+            return Ok(BundleStageReport::default());
         }
 
+        let mut seen_scoped_keys = std::collections::HashSet::with_capacity(bundle.records.len());
         let mut candidates = Vec::with_capacity(bundle.records.len());
         for record in &bundle.records {
             let operation_id = record.operation_id().to_owned();
@@ -496,59 +504,88 @@ impl IndexedDbJournal {
                 &record.operation_namespace,
                 &entry.envelope().idempotency_key,
             )?;
-            let serialized_record = serde_json::to_string(&stored).map_err(|error| {
-                IndexedDbJournalError(format!("import record serialization failed: {error}"))
+            if !seen_scoped_keys.insert(idempotency_storage_key.clone()) {
+                return Err(IndexedDbJournalError(format!(
+                    "bundle reuses scoped idempotency key for operation {operation_id}"
+                )));
+            }
+            let staged = StagedImportRecordV1 {
+                schema_version: STAGED_IMPORT_SCHEMA_VERSION,
+                source_bundle_sha256: bundle.integrity_sha256.clone(),
+                operation: stored,
+            };
+            staged.validate(&operation_id)?;
+            let serialized_staged = serde_json::to_string(&staged).map_err(|error| {
+                IndexedDbJournalError(format!("staged record serialization failed: {error}"))
             })?;
-            candidates.push(BundleImportCandidate {
+            candidates.push(BundleStageCandidate {
                 operation_id,
                 idempotency_storage_key,
-                stored,
-                serialized_record,
-                pending: is_pending(entry.state()),
+                staged,
+                serialized_staged,
             });
         }
 
-        let (transaction, _policy) = self.transaction(&STORE_NAMES, "readwrite")?;
+        let store_names = [
+            OPERATIONS,
+            IDEMPOTENCY_KEYS,
+            STAGED_IMPORTS,
+            STAGED_IMPORT_IDEMPOTENCY_KEYS,
+        ];
+        let (transaction, _policy) = self.transaction(&store_names, "readwrite")?;
         let transaction_done = transaction_promise(transaction.clone());
         let operations = object_store(&transaction, OPERATIONS)?;
         let idempotency_keys = object_store(&transaction, IDEMPOTENCY_KEYS)?;
-        let pending = object_store(&transaction, PENDING_OPERATIONS)?;
+        let staged_imports = object_store(&transaction, STAGED_IMPORTS)?;
+        let staged_idempotency_keys = object_store(&transaction, STAGED_IMPORT_IDEMPOTENCY_KEYS)?;
 
-        // Queue every read before installing handlers. Each success callback
-        // records one result; the final callback performs preflight and all
-        // writes synchronously while the IndexedDB transaction is still active.
-        let mut requests = Vec::with_capacity(candidates.len() * 3);
+        let mut requests = Vec::with_capacity(candidates.len() * 4);
         for (index, candidate) in candidates.iter().enumerate() {
-            let operation_request = call_method(
-                &operations,
-                "get",
-                &[JsValue::from_str(&candidate.operation_id)],
-            )
-            .map_err(js_error)?;
-            let idempotency_request = call_method(
-                &idempotency_keys,
-                "get",
-                &[JsValue::from_str(&candidate.idempotency_storage_key)],
-            )
-            .map_err(js_error)?;
-            let pending_request = call_method(
-                &pending,
-                "get",
-                &[JsValue::from_str(&candidate.operation_id)],
-            )
-            .map_err(js_error)?;
-            requests.push((operation_request, index * 3));
-            requests.push((idempotency_request, index * 3 + 1));
-            requests.push((pending_request, index * 3 + 2));
+            requests.push((
+                call_method(
+                    &operations,
+                    "get",
+                    &[JsValue::from_str(&candidate.operation_id)],
+                )
+                .map_err(js_error)?,
+                index * 4,
+            ));
+            requests.push((
+                call_method(
+                    &idempotency_keys,
+                    "get",
+                    &[JsValue::from_str(&candidate.idempotency_storage_key)],
+                )
+                .map_err(js_error)?,
+                index * 4 + 1,
+            ));
+            requests.push((
+                call_method(
+                    &staged_imports,
+                    "get",
+                    &[JsValue::from_str(&candidate.operation_id)],
+                )
+                .map_err(js_error)?,
+                index * 4 + 2,
+            ));
+            requests.push((
+                call_method(
+                    &staged_idempotency_keys,
+                    "get",
+                    &[JsValue::from_str(&candidate.idempotency_storage_key)],
+                )
+                .map_err(js_error)?,
+                index * 4 + 3,
+            ));
         }
 
-        let shared = Rc::new(RefCell::new(BundleImportReadState {
+        let shared = Rc::new(RefCell::new(BundleStageReadState {
             candidates,
             results: vec![None; requests.len()],
             completed: 0,
             decided: false,
         }));
-        let output: Rc<RefCell<Option<Result<BundleImportReport, IndexedDbJournalError>>>> =
+        let output: Rc<RefCell<Option<Result<BundleStageReport, IndexedDbJournalError>>>> =
             Rc::new(RefCell::new(None));
 
         for (request, result_index) in requests {
@@ -557,7 +594,8 @@ impl IndexedDbJournal {
             let output = output.clone();
             let operations = operations.clone();
             let idempotency_keys = idempotency_keys.clone();
-            let pending = pending.clone();
+            let staged_imports = staged_imports.clone();
+            let staged_idempotency_keys = staged_idempotency_keys.clone();
             let transaction = transaction.clone();
             let callback = Closure::once_into_js(move |_event: JsValue| {
                 let value = match Reflect::get(
@@ -586,12 +624,13 @@ impl IndexedDbJournal {
                     }
                 };
                 if all_reads_completed {
-                    finish_bundle_import_reads(
+                    finish_bundle_stage_reads(
                         &shared,
                         &output,
                         &operations,
                         &idempotency_keys,
-                        &pending,
+                        &staged_imports,
+                        &staged_idempotency_keys,
                         &transaction,
                     );
                 }
@@ -610,7 +649,7 @@ impl IndexedDbJournal {
         match transaction_result {
             Ok(_) => output.borrow_mut().take().ok_or_else(|| {
                 IndexedDbJournalError(
-                    "bundle import transaction completed without an outcome".into(),
+                    "bundle staging transaction completed without an outcome".into(),
                 )
             })?,
             Err(transaction_error) => match output.borrow_mut().take() {
@@ -618,6 +657,62 @@ impl IndexedDbJournal {
                 _ => Err(js_error(transaction_error)),
             },
         }
+    }
+
+    /// Lists untrusted, owner-scoped staged records for an explicit reconciliation UI.
+    /// It does not add the records to the dispatch queue or assert their outcomes.
+    pub async fn list_staged_imports(
+        &self,
+        owner_scope: &str,
+    ) -> Result<Vec<StagedJournalOperation>, IndexedDbJournalError> {
+        if owner_scope.trim().is_empty() {
+            return Err(IndexedDbJournalError(
+                "owner scope must not be empty for staged-import listing".into(),
+            ));
+        }
+        let (transaction, _policy) = self.transaction(&[STAGED_IMPORTS], "readonly")?;
+        let transaction_done = transaction_promise(transaction.clone());
+        let staged = object_store(&transaction, STAGED_IMPORTS)?;
+        let keys_request = call_method(&staged, "getAllKeys", &[]).map_err(js_error)?;
+        let values_request = call_method(&staged, "getAll", &[]).map_err(js_error)?;
+        let keys = JsFuture::from(request_promise(keys_request))
+            .await
+            .map_err(js_error)?;
+        let values = JsFuture::from(request_promise(values_request))
+            .await
+            .map_err(js_error)?;
+        JsFuture::from(transaction_done).await.map_err(js_error)?;
+        let keys = Array::from(&keys);
+        let values = Array::from(&values);
+        if keys.length() != values.length() {
+            return Err(IndexedDbJournalError(
+                "staged-import keys and values do not align".into(),
+            ));
+        }
+
+        let mut records = Vec::new();
+        for index in 0..keys.length() {
+            let operation_id = keys.get(index).as_string().ok_or_else(|| {
+                IndexedDbJournalError("staged-import store contains a non-string key".into())
+            })?;
+            let serialized = values.get(index).as_string().ok_or_else(|| {
+                IndexedDbJournalError("staged-import store contains a non-string record".into())
+            })?;
+            let staged: StagedImportRecordV1 = serde_json::from_str(&serialized).map_err(|error| {
+                IndexedDbJournalError(format!("staged record {operation_id} is invalid: {error}"))
+            })?;
+            staged.validate(&operation_id)?;
+            if staged.operation.owner_scope == owner_scope {
+                records.push(staged.to_public());
+            }
+        }
+        records.sort_by(|left, right| {
+            left.snapshot
+                .envelope
+                .operation_id
+                .cmp(&right.snapshot.envelope.operation_id)
+        });
+        Ok(records)
     }
 
     /// Exports a consistent, validated read snapshot for one owner scope.
