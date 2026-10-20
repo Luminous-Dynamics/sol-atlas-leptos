@@ -23,6 +23,8 @@ Object stores use out-of-line keys. Recovery checks the storage key against `env
 
 `begin_attempt(operation_id)` reads and validates the snapshot and lease under one readwrite transaction scoped to the operation, pending and dispatch-lease stores. If a still-active lease exists, it refuses to issue a second permit. Otherwise it writes a cryptographically random lease token with a 30-second expiry, the `OutcomeUnknown` snapshot, attempt count and pending marker in the same transaction. It returns a `DispatchPermit` **only after awaiting the transaction's `complete` event**. The permit contains the canonical payload bytes, digest, operation identity, attempt count, owner token and expiry. A transport should accept this permit and send its stored bytes rather than reconstructing a request from UI state. If `crypto.randomUUID()` is unavailable, lease creation fails closed.
 
+`renew_dispatch_lease(&mut permit)` extends the claim only while the stored owner token still matches and the lease has not expired. A suspended/stale holder cannot revive an expired lease. The caller must renew before the deadline when a legitimate request may exceed 30 seconds; this function does not start a heartbeat by itself.
+
 A permit is not a network result and is not proof that the payload reached the server. This draft does not include the network transport, cross-tab request scheduler, or server endpoint. The lease suppresses concurrent permits while active but cannot guarantee exactly-once dispatch: a suspended tab can resume after lease expiry, and a process can crash after sending but before receipt reconciliation. Server-side idempotency is still mandatory.
 
 ### Reply reconciliation
@@ -67,6 +69,7 @@ This draft adds no claim that the following browser-fault tests have run. They a
 | IDB-15 | Two tabs claim same operation concurrently | A browser test starts two readwrite claims from separate connections; at most one active lease is committed and at most one permit is returned while that lease remains active |
 | IDB-16 | Lease expiry / suspended tab | A second tab cannot claim before expiry but can reclaim after expiry; explicitly demonstrate that a paused original tab can resume later, so server-side idempotency remains mandatory |
 | IDB-17 | Missing secure UUID source | No fallback to predictable tokens; claim fails closed without mutating attempt count or pending state |
+| IDB-18 | Stale lease renewal | Renewal succeeds only with the current token before expiry; an expired lease or superseded token cannot be revived |
 
 ## Benchmarks
 
@@ -83,6 +86,6 @@ Integrity gates are absolute: zero sends after failed/indeterminate pre-dispatch
 ## Explicit limits
 
 - This adapter is currently a draft and is not wired into the product's UI or a live API.
-- It has not been browser-tested; WebAssembly compilation is still required.
-- No service authentication, signed receipt, authoritative server idempotency table, server payload digest verifier, network retry layer, encryption, export/backup or device-loss recovery is included.
+- Pure lease-policy tests cover expiry boundaries and malformed bindings, but the adapter has not been browser-tested; exact-head WebAssembly compilation plus two-tab/crash fault tests remain required.
+- No service authentication, signed receipt, authoritative server idempotency table, server payload digest verifier, network retry layer, automated lease heartbeat, encryption, export/backup or device-loss recovery is included. The proposed service contract and end-to-end acceptance gates are in `docs/offline-journal-server-contract.md`.
 - IndexedDB does not provide an unconditional power-loss guarantee simply because the application observed a completed transaction.
