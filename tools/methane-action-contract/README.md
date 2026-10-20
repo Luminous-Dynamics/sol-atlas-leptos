@@ -89,7 +89,15 @@ The validator recomputes canonical lowercase SHA-256 for exact source, terms, an
 
 A source/terms review is a recorded prerequisite, not legal advice or proof of reviewer identity. Adapters must fetch and preserve the actual bytes and relevant access metadata; the validator then recomputes their digests. Synthetic fixtures prove only contract behavior, not field truth.
 
-The tests use invented fixtures only; they are not real observations or measurement-validation evidence.
+All 66 Rust tests use invented fixtures only; they are not real observations, detector-performance results, calibration evidence, or field measurement validation.
+
+## Post-intervention mitigation assessment
+
+The `mitigation` module is a separate evidence gate for before/after methane-rate comparisons. It requires a submitter-declared verified intervention, exact-byte work-order and verification-report snapshots, reviewed associations from the same source, one baseline reading before completion, and repeated in-situ methane follow-ups after completion. By default, all readings must use the same instrument and processing method; calibration must be valid at each reading time. Follow-ups must meet the policy's minimum count and time span.
+
+When all post-intervention readings are quantified, the report gives the median follow-up rate and a baseline-minus-median rate difference. It also reports a conservative interval built from the declared symmetric **absolute uncertainty bounds**. Those bounds are not assumed to be Gaussian or 1-sigma. A non-detect follow-up keeps its detection limit as an upper bound and is never coerced to zero; in that case, the point reduction estimate is omitted. The report marks reduction supported by the sampled measurements only when the conservative lower bound exceeds zero across all follow-ups.
+
+This does **not** calculate total tonnes avoided, establish causal attribution, authenticate a field verifier, or prove that a repair remains effective outside the sampled windows. Do not annualize a rate reduction without a separate duration/activity model, temporal variability, and uncertainty propagation. The 10 module tests use entirely synthetic source, instrument, work-order and verification fixtures.
 
 ## Source adapters
 
