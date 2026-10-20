@@ -51,9 +51,39 @@ struct RsrInput {
     reserve_capacity_kw: f64,
 }
 
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+enum ErrorSeriesTimeSemantics {
+    SourceReportedSeries,
+    PriorCycleState,
+    ExplicitlyAligned,
+    Unknown,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+enum ErrorDenominatorConvention {
+    ExactReserve,
+    ReservePlusEpsilon,
+    SourceNativeUnknown,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+struct RsrReferenceMetadata {
+    source_name: String,
+    source_revision: String,
+    source_field: String,
+    sample_time_semantics: ErrorSeriesTimeSemantics,
+    denominator_convention: ErrorDenominatorConvention,
+    normalization_note: String,
+}
+
 #[derive(Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct RsrReferenceInput {
+    /// Metadata needed to interpret the source-normalized values.
+    metadata: RsrReferenceMetadata,
     /// Ordered unique sample identifiers from the reference tool's own error series.
     interval_ids: Vec<String>,
     /// Signed, already-normalized tracking error as emitted by the reference tool.
@@ -91,6 +121,7 @@ struct MetricsResult {
     claim_ceiling: String,
     rsr: Option<RegulationTrackingAssessment>,
     rsr_reference: Option<NormalizedErrorTrackingAssessment>,
+    rsr_reference_metadata: Option<RsrReferenceMetadata>,
     edr: Option<CurtailmentAssessment>,
 }
 
@@ -138,6 +169,20 @@ fn validate_interval_ids(
     Ok(())
 }
 
+fn validate_reference_metadata(metadata: &RsrReferenceMetadata) -> Result<(), String> {
+    for (field, value) in [
+        ("source_name", metadata.source_name.as_str()),
+        ("source_revision", metadata.source_revision.as_str()),
+        ("source_field", metadata.source_field.as_str()),
+        ("normalization_note", metadata.normalization_note.as_str()),
+    ] {
+        if value.trim().is_empty() {
+            return Err(format!("rsr_reference.metadata.{field} must not be blank"));
+        }
+    }
+    Ok(())
+}
+
 fn build_report(raw_input: &[u8], input: TraceInput) -> Result<RunReport, String> {
     if input.schema_version != INPUT_SCHEMA_VERSION {
         return Err(format!(
@@ -180,23 +225,23 @@ fn build_report(raw_input: &[u8], input: TraceInput) -> Result<RunReport, String
         None => None,
     };
 
-    let rsr_reference = match input.rsr_reference {
+    let (rsr_reference, rsr_reference_metadata) = match input.rsr_reference {
         Some(section) => {
             validate_interval_ids(
                 "rsr_reference",
                 &section.interval_ids,
                 section.signed_normalized_tracking_error.len(),
             )?;
-            Some(
-                assess_normalized_rsr_tracking_errors(
-                    &section.signed_normalized_tracking_error,
-                    RSR_NORMALIZED_ERROR_THRESHOLD,
-                    RSR_MAX_ERROR_EXCEEDANCE_FRACTION,
-                )
-                .map_err(|error| format!("normalized RSR assessment failed: {error}"))?,
+            validate_reference_metadata(&section.metadata)?;
+            let assessment = assess_normalized_rsr_tracking_errors(
+                &section.signed_normalized_tracking_error,
+                RSR_NORMALIZED_ERROR_THRESHOLD,
+                RSR_MAX_ERROR_EXCEEDANCE_FRACTION,
             )
+            .map_err(|error| format!("normalized RSR assessment failed: {error}"))?;
+            (Some(assessment), Some(section.metadata))
         }
-        None => None,
+        None => (None, None),
     };
 
     let edr = match input.edr {
@@ -235,6 +280,7 @@ fn build_report(raw_input: &[u8], input: TraceInput) -> Result<RunReport, String
         claim_ceiling: input.claim_ceiling.clone(),
         rsr,
         rsr_reference,
+        rsr_reference_metadata,
         edr,
     };
     let metrics_bytes = serde_json::to_vec(&metrics)
