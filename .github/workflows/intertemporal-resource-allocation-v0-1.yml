@@ -58,6 +58,7 @@ jobs:
             and .search_complete == true
             and .search_space_size == 64
             and .candidate_plans_examined == 64
+            and .feasible_plan_count == 37
             and .input_blockers == []
             and (.claim_ceiling | type == "string")
           ' "$root/optimal-1.json" >/dev/null
@@ -133,3 +134,48 @@ jobs:
             and .resource_steps == []
           ' "$root/impossible-loss-result.json" >/dev/null
           echo "INTERTEMPORAL_RESOURCE_ALLOCATION_V0_1_PASS"
+      - name: Build content-addressed qualification manifest
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/intertemporal"
+          fixture="schemas/examples/intertemporal-tank-two-step.synthetic.json"
+          request_schema="schemas/spatial-economic-intertemporal-allocation-v0.1.schema.json"
+          receipt_schema="schemas/spatial-economic-intertemporal-assessment-v0.1.schema.json"
+          cp "$fixture" "$root/input.synthetic.json"
+          cp "$request_schema" "$root/request.schema.json"
+          cp "$receipt_schema" "$root/assessment.schema.json"
+          jq -n \
+            --arg source_commit "$(git rev-parse HEAD)" \
+            --arg workflow_run_id "$GITHUB_RUN_ID" \
+            --arg input_sha256 "$(sha256sum "$root/input.synthetic.json" | cut -d ' ' -f 1)" \
+            --arg request_schema_sha256 "$(sha256sum "$root/request.schema.json" | cut -d ' ' -f 1)" \
+            --arg receipt_schema_sha256 "$(sha256sum "$root/assessment.schema.json" | cut -d ' ' -f 1)" \
+            --arg optimal_receipt_sha256 "$(sha256sum "$root/optimal-1.json" | cut -d ' ' -f 1)" \
+            --arg unknown_receipt_sha256 "$(sha256sum "$root/unknown.json" | cut -d ' ' -f 1)" \
+            --arg search_cap_receipt_sha256 "$(sha256sum "$root/search-cap-result.json" | cut -d ' ' -f 1)" \
+            --arg reserve_limited_receipt_sha256 "$(sha256sum "$root/reserve-limited-result.json" | cut -d ' ' -f 1)" \
+            --arg impossible_loss_receipt_sha256 "$(sha256sum "$root/impossible-loss-result.json" | cut -d ' ' -f 1)" \
+            '{
+              schema_version: "sol-atlas.intertemporal-qualification-manifest.v0.1",
+              source_commit: $source_commit,
+              workflow_run_id: $workflow_run_id,
+              input_sha256: $input_sha256,
+              request_schema_sha256: $request_schema_sha256,
+              receipt_schema_sha256: $receipt_schema_sha256,
+              optimal_receipt_sha256: $optimal_receipt_sha256,
+              unknown_receipt_sha256: $unknown_receipt_sha256,
+              search_cap_receipt_sha256: $search_cap_receipt_sha256,
+              reserve_limited_receipt_sha256: $reserve_limited_receipt_sha256,
+              impossible_loss_receipt_sha256: $impossible_loss_receipt_sha256,
+              qualification_scope: "Exact bounded allocation and declared integer-quanta accounting only"
+            }' > "$root/qualification-manifest.json"
+      - name: Upload exact-head inputs, receipts and digests
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: intertemporal-resource-allocation-v0-1-${{ github.sha }}
+          path: ${{ runner.temp }}/intertemporal/
+          if-no-files-found: error
+          retention-days: 30
