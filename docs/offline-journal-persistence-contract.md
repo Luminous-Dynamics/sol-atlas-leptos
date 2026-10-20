@@ -38,6 +38,14 @@ Use a maintained, standardized cryptographic scheme; do not invent a signature f
 
 Add separate fault cases for valid-but-wrong-service signatures, invalid signatures, unknown key IDs, key rotation/revocation, changed signed fields, duplicate receipt IDs and receipt lookup after a lost response. Do not label the existing reducer's binding tests as authentication tests.
 
+## Canonical payload hashing is a protocol invariant
+
+Protocol v2 pins JSON payload bytes to RFC 8785 JCS: parse the accepted I-JSON payload, reject duplicate object member names and disallowed values, canonicalize to UTF-8 bytes, then calculate SHA-256 over those bytes. Object member order must not change the digest; string contents are not silently Unicode-normalized; the numeric domain/serialization follows the pinned profile. A `serde_json::to_vec` or `JSON.stringify` call is not a substitute unless it is proven to implement the same profile exactly. The envelope schema version pins this choice; changing the profile requires a schema-version change.
+
+RFC 8785 is an Informational RFC rather than an Internet Standards Track RFC, so the protocol adopts its algorithm explicitly as a compatibility profile rather than implying a stronger standards status. See [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785.html).
+
+The current reducer only validates that the digest is 64 lowercase hex characters. It does **not** own the payload bytes or recompute their digest. The durable client adapter and authoritative service must independently compute/verify the pinned digest before persistence/dispatch and before applying any server-side idempotency entry. An idempotency table must not accept the same key with a different digest, aggregate, expected revision or other envelope identity.
+
 ## Conflict policy must follow data semantics
 
 Do not select one universal conflict resolver for every field. CRDTs are appropriate when concurrent changes have a well-defined merge meaning; they do not decide which of two incompatible real-world claims is true. Local-first design treats offline ownership and continued local work as core behavior, while CouchDB demonstrates that deterministic selection of a revision can coexist with retained conflicts that an application must still resolve. See [Ink & Switch: Local-first software](https://www.inkandswitch.com/essay/local-first/) and [Apache CouchDB: eventual consistency and conflicts](https://docs.couchdb.org/en/stable/intro/consistency.html).
@@ -110,6 +118,7 @@ The browser and native adapters should implement the same conformance suite, wit
 | PERSIST-05 | 100% conflict-resolution lineage integrity | Validate original operation, new operation ID/key, superseded ID, remote base revision, provenance and reason |
 | PERSIST-06 | Zero lost updates under two-tab races | Concurrent attempt/reconcile loops with deterministic barriers and randomized schedules |
 | PERSIST-07 | Zero unauthenticated replies accepted as authoritative | Attack corpus with spoofed service, invalid signature, unknown/revoked key and modified signed fields |
+| HASH-01 | Zero cross-runtime payload-digest divergence | Golden RFC 8785 vectors run against client and service; reordered keys must hash identically, content changes must change the digest, duplicate keys must be rejected; publish vectors and digest algorithm/profile version |
 | SEM-01 | Zero dropped independent additions or duplicate additive effects | Concurrent multi-replica edits with retries/reordering, compare canonical merged state and side-effect ledger |
 | SEM-02 | Zero automatic overwrite of designated safety/commitment fields | Two-writer races for each protected field class; assert preserved versions and review state |
 | PERF-01 | p95 cold recovery of 10,000 pending operations under 250 ms | **Initial hypothesis only**, measure per named browser/device/backend in optimized builds, publish raw samples and percentile method |
