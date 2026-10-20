@@ -6,7 +6,9 @@ on:
       - "tools/sa-economic-portfolio-oracle/**"
       - "docs/research/SA-ECONOMIC-PORTFOLIO-001.md"
       - "docs/research/fixtures/sa-economic-portfolio-v0.1*"
+      - "docs/research/fixtures/sa-economic-portfolio-v0.2*"
       - "docs/research/schemas/sa-economic-portfolio-v0.1.schema.json"
+      - "docs/research/schemas/sa-economic-portfolio-v0.2.schema.json"
       - ".github/workflows/sa-economic-portfolio-oracle.yml"
   push:
     branches: [main]
