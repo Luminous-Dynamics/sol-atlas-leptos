@@ -269,6 +269,37 @@ mod tests {
     }
 
     #[test]
+    fn schema_file_contract_matches_rust_constants() {
+        let schema: Value = serde_json::from_str(include_str!(
+            "../schemas/landscape-design-v0.schema.json"
+        ))
+        .expect("committed snapshot schema must be valid JSON");
+
+        assert_eq!(schema["$id"], SNAPSHOT_SCHEMA_URI);
+        assert_eq!(schema["properties"]["schema"]["const"], SNAPSHOT_SCHEMA);
+        assert_eq!(schema["properties"]["schema_uri"]["const"], SNAPSHOT_SCHEMA_URI);
+        assert_eq!(
+            schema["properties"]["coordinate_frame"]["properties"]["kind"]["const"],
+            FRAME_KIND
+        );
+        assert_eq!(
+            schema["properties"]["geometry_status"]["const"],
+            GEOMETRY_STATUS
+        );
+        assert_eq!(
+            schema["properties"]["features"]["items"]["properties"]["geometry_representation"]["const"],
+            GEOMETRY_REPRESENTATION
+        );
+        for required in ROOT_KEYS {
+            assert!(schema["required"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|entry| entry == required));
+        }
+    }
+
+    #[test]
     fn committed_v0_fixture_passes_document_validator() {
         assert_eq!(validate_snapshot(&fixture()), Ok(()));
     }
