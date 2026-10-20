@@ -168,12 +168,26 @@ impl TaskGraphV1 {
             .collect())
     }
 
-    /// Apply a local projection transition with deterministic dependency checks.
+    /// Apply a local projection transition only if the caller's snapshot is current.
     ///
-    /// This mutates only the in-memory graph. Persisting this state or treating
-    /// it as a confirmed physical/work-order transition requires an authoritative
-    /// service response and revision check.
-    pub fn apply(&mut self, task_id: &str, action: TaskAction) -> Result<(), TaskGraphError> {
+    /// The expected revision is an optimistic-concurrency precondition. A stale
+    /// command is rejected before any task or graph revision is mutated.
+    ///
+    /// This mutates only the in-memory graph. The canonical service must still
+    /// enforce an equivalent revision precondition, authorization and evidence
+    /// rules before accepting any real work-order transition.
+    pub fn apply(
+        &mut self,
+        expected_revision: u64,
+        task_id: &str,
+        action: TaskAction,
+    ) -> Result<(), TaskGraphError> {
+        if expected_revision != self.revision {
+            return Err(TaskGraphError::RevisionConflict {
+                expected_revision,
+                actual_revision: self.revision,
+            });
+        }
         self.validate()?;
         let index = self
             .tasks
@@ -307,6 +321,10 @@ pub enum TaskGraphError {
     },
     CycleDetected,
     TaskNotFound(String),
+    RevisionConflict {
+        expected_revision: u64,
+        actual_revision: u64,
+    },
     DependencyNotVerified {
         task_id: String,
         dependency_ids: Vec<String>,
@@ -352,6 +370,13 @@ impl fmt::Display for TaskGraphError {
             ),
             Self::CycleDetected => formatter.write_str("task graph contains a dependency cycle"),
             Self::TaskNotFound(task_id) => write!(formatter, "task {task_id} was not found"),
+            Self::RevisionConflict {
+                expected_revision,
+                actual_revision,
+            } => write!(
+                formatter,
+                "stale task-graph revision: expected {expected_revision}, current revision is {actual_revision}"
+            ),
             Self::DependencyNotVerified {
                 task_id,
                 dependency_ids,
@@ -443,9 +468,9 @@ mod tests {
             node("inspect", &[], 10, TaskStatus::Pending),
             node("test", &["inspect"], 20, TaskStatus::Pending),
         ]);
-        task_graph.apply("inspect", TaskAction::Start).unwrap();
+        task_graph.apply(1, "inspect", TaskAction::Start).unwrap();
         task_graph
-            .apply("inspect", TaskAction::ReportCompletion)
+            .apply(2, "inspect", TaskAction::ReportCompletion)
             .unwrap();
 
         assert_eq!(
@@ -454,7 +479,7 @@ mod tests {
         );
         assert_eq!(task_graph.ready_tasks().unwrap().len(), 0);
         assert_eq!(
-            task_graph.apply("test", TaskAction::Start),
+            task_graph.apply(3, "test", TaskAction::Start),
             Err(TaskGraphError::DependencyNotVerified {
                 task_id: "test".to_owned(),
                 dependency_ids: vec!["inspect".to_owned()],
@@ -462,7 +487,7 @@ mod tests {
         );
 
         task_graph
-            .apply("inspect", TaskAction::RecordVerification)
+            .apply(3, "inspect", TaskAction::RecordVerification)
             .unwrap();
         assert_eq!(
             task_graph
@@ -480,7 +505,7 @@ mod tests {
         let mut task_graph = graph(vec![node("inspect", &[], 1, TaskStatus::Pending)]);
         let before = task_graph.clone();
         assert_eq!(
-            task_graph.apply("inspect", TaskAction::RecordVerification),
+            task_graph.apply(1, "inspect", TaskAction::RecordVerification),
             Err(TaskGraphError::InvalidTransition {
                 task_id: "inspect".to_owned(),
                 action: TaskAction::RecordVerification,
@@ -524,7 +549,7 @@ mod tests {
             node("permit", &[], 1, TaskStatus::Pending),
             node("work", &["permit"], 1, TaskStatus::Pending),
         ]);
-        task_graph.apply("permit", TaskAction::Cancel).unwrap();
+        task_graph.apply(1, "permit", TaskAction::Cancel).unwrap();
         assert_eq!(
             task_graph.blocked_by("work").unwrap(),
             vec!["permit".to_owned()]
@@ -533,12 +558,36 @@ mod tests {
     }
 
     #[test]
+    fn stale_revision_action_is_rejected_without_mutating_graph() {
+        let mut task_graph = graph(vec![node("inspect", &[], 1, TaskStatus::Pending)]);
+        let stale_revision = task_graph.revision;
+
+        task_graph
+            .apply(stale_revision, "inspect", TaskAction::Start)
+            .unwrap();
+        let after_first_writer = task_graph.clone();
+
+        assert_eq!(
+            task_graph.apply(
+                stale_revision,
+                "inspect",
+                TaskAction::ReportCompletion
+            ),
+            Err(TaskGraphError::RevisionConflict {
+                expected_revision: stale_revision,
+                actual_revision: 2,
+            })
+        );
+        assert_eq!(task_graph, after_first_writer);
+    }
+
+    #[test]
     fn graph_revision_advances_once_per_accepted_transition() {
         let mut task_graph = graph(vec![node("inspect", &[], 1, TaskStatus::Pending)]);
-        task_graph.apply("inspect", TaskAction::Start).unwrap();
+        task_graph.apply(1, "inspect", TaskAction::Start).unwrap();
         assert_eq!(task_graph.revision, 2);
         task_graph
-            .apply("inspect", TaskAction::ReportCompletion)
+            .apply(2, "inspect", TaskAction::ReportCompletion)
             .unwrap();
         assert_eq!(task_graph.revision, 3);
     }
