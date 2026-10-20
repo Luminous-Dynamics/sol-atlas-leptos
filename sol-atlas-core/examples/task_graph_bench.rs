@@ -231,7 +231,9 @@ fn run() -> Result<(), String> {
         "benchmark_version": 3,
         "claim_ceiling": "local algorithm microbenchmark only; not end-to-end field-service or vendor comparison",
         "environment": {
-            "source_commit_sha": env::var("GITHUB_SHA").ok(),
+            "source_commit_sha": env::var("TASK_GRAPH_SOURCE_SHA")
+                .or_else(|_| env::var("GITHUB_SHA"))
+                .ok(),
             "os": env::consts::OS,
             "arch": env::consts::ARCH,
             "rust_package_version": env!("CARGO_PKG_VERSION"),

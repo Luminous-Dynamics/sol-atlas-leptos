@@ -69,6 +69,15 @@ ServiceNow Field Service already supports explicit task dependencies, including 
 
 Our narrow candidate is a deterministic, verifiable client-side ready frontier whose runtime index can be tested for parity and incremental transition cost, paired with evidence/verification semantics and a separate offline journal. That is an implementation hypothesis, not a claim of superiority over these products; v1 still lacks lag constraints, resource/skill scheduling, rework invalidation, canonical record integration and durable storage.
 
+## Release evidence workflow
+
+Pull requests touching the task-graph model, runner, fixtures or benchmark method trigger `.github/workflows/task-graph-benchmark.yml`. It pins the runner image to Ubuntu 24.04, runs the release profile for both graph shapes (100 samples × 10,000 tasks), validates sample counts/edge counts/profile/schema, and uploads:
+- `task-graph-benchmark.json`: complete raw latency samples and summary percentiles
+- `task-graph-benchmark-summary.json`: compact per-operation p50/p95/max for both graph shapes
+- `benchmark-environment.txt`: exact source SHA, Rust/Cargo identity, kernel and CPU information
+
+The artifact is a measurement of the GitHub-hosted runner used for that run, not a universal hardware guarantee. Compare runs only after accounting for runner/CPU, toolchain, source SHA, workload and sample method. The workflow deliberately records measurements rather than failing on an unmeasured speed target; regression thresholds should be added only after collecting a stable baseline.
+
 ## How to compare with industry fairly
 
 Enterprise field-service products already support complex work orders and offline work. This proposal does not claim that Microsoft Dynamics 365, Salesforce, or ServiceNow lack task sequencing or parallel workflow features. The comparison is narrower: how well does a tested dependency graph preserve the distinction between pending, active, reported completion and recorded verification; how deterministic is the ready-action set; and how well does it avoid avoidable serialization?
