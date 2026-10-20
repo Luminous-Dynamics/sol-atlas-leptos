@@ -343,9 +343,7 @@ fn snapshot_json(project_name: &str, scale: LandscapeScale, features: &[DesignFe
 const LOCAL_DRAFT_STORAGE_KEY: &str = "luminous.landscape-design.native-v0";
 const MAX_LOCAL_DRAFT_BYTES: usize = 2 * 1024 * 1024;
 
-/// Explicit, same-browser persistence. localStorage is not encrypted and may be
-/// cleared by the user/browser; users should download a JSON backup for portability.
-fn save_local_draft(content: &str) -> Result<(), String> {
+fn validate_local_draft_size(content: &str) -> Result<(), String> {
     if content.len() > MAX_LOCAL_DRAFT_BYTES {
         return Err(format!(
             "draft is {} bytes, above the v0 browser-storage limit of {} bytes; download the JSON file instead",
@@ -353,6 +351,13 @@ fn save_local_draft(content: &str) -> Result<(), String> {
             MAX_LOCAL_DRAFT_BYTES
         ));
     }
+    Ok(())
+}
+
+/// Explicit, same-browser persistence. localStorage is not encrypted and may be
+/// cleared by the user/browser; users should download a JSON backup for portability.
+fn save_local_draft(content: &str) -> Result<(), String> {
+    validate_local_draft_size(content)?;
     let window = web_sys::window().ok_or_else(|| "Browser window is unavailable".to_string())?;
     let storage = window
         .local_storage()
@@ -373,13 +378,9 @@ fn load_local_draft() -> Result<Option<String>, String> {
         .get_item(LOCAL_DRAFT_STORAGE_KEY)
         .map_err(|error| format!("Could not read local draft: {error:?}"))?;
     if let Some(content) = content.as_ref() {
-        if content.len() > MAX_LOCAL_DRAFT_BYTES {
-            return Err(format!(
-                "saved draft is {} bytes, above the v0 browser-storage limit of {} bytes; download a JSON backup and use file import",
-                content.len(),
-                MAX_LOCAL_DRAFT_BYTES
-            ));
-        }
+        validate_local_draft_size(content).map_err(|error| {
+            format!("saved {error}; download a JSON backup and use file import")
+        })?;
     }
     Ok(content)
 }
@@ -1054,8 +1055,13 @@ mod tests {
     #[test]
     fn browser_storage_draft_limit_is_explicitly_bounded() {
         assert_eq!(MAX_LOCAL_DRAFT_BYTES, 2 * 1024 * 1024);
+        assert!(validate_local_draft_size("").is_ok());
+        let at_limit = "x".repeat(MAX_LOCAL_DRAFT_BYTES);
+        assert!(validate_local_draft_size(&at_limit).is_ok());
         let over_limit = "x".repeat(MAX_LOCAL_DRAFT_BYTES + 1);
-        assert!(over_limit.len() > MAX_LOCAL_DRAFT_BYTES);
+        let error = validate_local_draft_size(&over_limit).unwrap_err();
+        assert!(error.contains("above the v0 browser-storage limit"));
+        assert!(error.contains("download the JSON file instead"));
     }
 
     #[test]
