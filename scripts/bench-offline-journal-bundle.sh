@@ -27,6 +27,11 @@ esac
 
 ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT"
+if [[ -d "$OUT_DIR" ]] && find "$OUT_DIR" -mindepth 1 -maxdepth 1 -print -quit | grep -q .; then
+  echo "output directory is not empty: $OUT_DIR" >&2
+  echo "choose a fresh directory to avoid mixing reports from different runs" >&2
+  exit 2
+fi
 mkdir -p "$OUT_DIR"
 
 GIT_SHA="$(git rev-parse HEAD)"
