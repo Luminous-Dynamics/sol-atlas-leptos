@@ -21,6 +21,7 @@ pub const DESIGN_INTENT_STATUS: &str = "design-intent";
 pub const USER_AUTHORED_SOURCE: &str = "user-authored-schematic";
 pub const SYNTHETIC_SOURCE: &str = "synthetic-benchmark";
 pub const GEOMETRY_REPRESENTATION: &str = "schematic-symbol-anchor-v0";
+pub const MAX_SNAPSHOT_FEATURES: usize = 100_000;
 
 const ROOT_KEYS: &[&str] = &[
     "schema",
@@ -47,7 +48,6 @@ const FEATURE_KEYS: &[&str] = &[
 /// benchmarks/landscape/workloads-v0.json. The output is benchmark data, not a
 /// user-authored proposal or a geospatial/physical model.
 pub fn synthetic_benchmark_snapshot(feature_count: usize, seed: u32) -> Result<Value, String> {
-    const MAX_FEATURES: usize = 100_000;
     const KINDS: [(&str, &str); 5] = [
         ("tree", "Canopy tree"),
         ("planting-bed", "Planting bed"),
@@ -56,9 +56,9 @@ pub fn synthetic_benchmark_snapshot(feature_count: usize, seed: u32) -> Result<V
         ("built-element", "Built element"),
     ];
 
-    if feature_count > MAX_FEATURES {
+    if feature_count > MAX_SNAPSHOT_FEATURES {
         return Err(format!(
-            "benchmark feature count {feature_count} exceeds the v0 limit {MAX_FEATURES}"
+            "benchmark feature count {feature_count} exceeds the v0 limit {MAX_SNAPSHOT_FEATURES}"
         ));
     }
 
@@ -177,6 +177,12 @@ pub fn validate_snapshot(value: &Value) -> Result<(), Vec<String>> {
     }
 
     match value.get("features").and_then(Value::as_array) {
+        Some(features) if features.len() > MAX_SNAPSHOT_FEATURES => {
+            errors.push(format!(
+                "$.features: feature count {} exceeds the v0 limit {MAX_SNAPSHOT_FEATURES}",
+                features.len()
+            ));
+        }
         Some(features) => {
             let mut ids = HashSet::with_capacity(features.len());
             for (index, feature) in features.iter().enumerate() {
@@ -450,6 +456,14 @@ mod tests {
     #[test]
     fn synthetic_benchmark_generator_enforces_size_ceiling() {
         assert!(synthetic_benchmark_snapshot(100_001, 1).is_err());
+    }
+
+    #[test]
+    fn rejects_snapshot_over_v0_feature_limit() {
+        let mut snapshot = fixture();
+        snapshot["features"] = Value::Array(vec![Value::Null; MAX_SNAPSHOT_FEATURES + 1]);
+        let errors = validate_snapshot(&snapshot).unwrap_err();
+        assert!(errors.iter().any(|error| error.contains("exceeds the v0 limit")));
     }
 
     #[test]
