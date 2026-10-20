@@ -197,8 +197,9 @@ mod tests {
 
         assert_eq!(output["assessment"], assessment);
         assert_eq!(output["receipt"]["mode"], "pareto");
-        let expected_receipt = scenario_receipt(fixture.as_bytes(), &request, "pareto", &assessment)
-            .expect("report receipt should serialize");
+        let expected_receipt =
+            scenario_receipt(fixture.as_bytes(), &request, "pareto", &assessment)
+                .expect("report receipt should serialize");
         assert_eq!(
             output["receipt"]["input_sha256"],
             expected_receipt.input_sha256
@@ -212,10 +213,12 @@ mod tests {
             "synthetic-four-interval-flexible-compute"
         );
         assert_eq!(output["receipt"]["synthetic"], true);
-        assert!(output["receipt"]["verification_boundary"]
-            .as_str()
-            .expect("verification boundary is text")
-            .contains("do not validate"));
+        assert!(
+            output["receipt"]["verification_boundary"]
+                .as_str()
+                .expect("verification boundary is text")
+                .contains("do not validate")
+        );
     }
 
     #[test]
@@ -287,11 +290,25 @@ mod tests {
         .expect("run report schema must be valid JSON");
 
         assert_eq!(schema["properties"]["receipt"]["$ref"], "#/$defs/receipt");
-        assert_eq!(schema["properties"]["assessment"]["oneOf"][1]["$ref"], "#/$defs/frontierAssessment");
-        for key in output.as_object().expect("report envelope is object").keys() {
-            assert!(schema["properties"].get(key).is_some(), "root field {key} must be schema-declared");
+        assert_eq!(
+            schema["properties"]["assessment"]["oneOf"][1]["$ref"],
+            "#/$defs/frontierAssessment"
+        );
+        for key in output
+            .as_object()
+            .expect("report envelope is object")
+            .keys()
+        {
+            assert!(
+                schema["properties"].get(key).is_some(),
+                "root field {key} must be schema-declared"
+            );
         }
-        for key in output["receipt"].as_object().expect("receipt is object").keys() {
+        for key in output["receipt"]
+            .as_object()
+            .expect("receipt is object")
+            .keys()
+        {
             assert!(
                 schema["$defs"]["receipt"]["properties"].get(key).is_some(),
                 "receipt field {key} must be schema-declared"
@@ -313,7 +330,11 @@ mod tests {
             .as_array()
             .expect("policy list is array")
         {
-            for key in candidate.as_object().expect("policy assessment is object").keys() {
+            for key in candidate
+                .as_object()
+                .expect("policy assessment is object")
+                .keys()
+            {
                 assert!(
                     schema["$defs"]["policyAssessment"]["properties"]
                         .get(key)
@@ -333,11 +354,14 @@ mod tests {
                             .expect("schema references must be local")
                             .split('/')
                         {
-                            target = target
-                                .get(path_segment)
-                                .unwrap_or_else(|| panic!("unresolved schema reference: {reference}"));
+                            target = target.get(path_segment).unwrap_or_else(|| {
+                                panic!("unresolved schema reference: {reference}")
+                            });
                         }
-                        assert!(!target.is_null(), "schema reference must resolve: {reference}");
+                        assert!(
+                            !target.is_null(),
+                            "schema reference must resolve: {reference}"
+                        );
                     }
                     for child in object.values() {
                         assert_local_refs_resolve(child, root);
