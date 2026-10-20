@@ -26,7 +26,7 @@ use sol_atlas_core::offline_journal::{
     JournalEntry, JournalEntrySnapshotV1, JournalError, JournalState, OperationEnvelope,
     ReconcileOutcome, ServiceReply,
 };
-use wasm_bindgen::{closure::Closure, JsCast, JsValue};
+use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 use wasm_bindgen_futures::JsFuture;
 
 /// Object-store names are part of database schema v1. This adapter uses
@@ -122,8 +122,8 @@ impl IndexedDbJournal {
     pub async fn open() -> Result<Self, IndexedDbJournalError> {
         let window = web_sys::window()
             .ok_or_else(|| IndexedDbJournalError("window is unavailable".into()))?;
-        let factory = Reflect::get(window.as_ref(), &JsValue::from_str("indexedDB"))
-            .map_err(js_error)?;
+        let factory =
+            Reflect::get(window.as_ref(), &JsValue::from_str("indexedDB")).map_err(js_error)?;
         if factory.is_null() || factory.is_undefined() {
             return Err(IndexedDbJournalError(
                 "IndexedDB is unavailable in this browser context".into(),
@@ -147,17 +147,13 @@ impl IndexedDbJournal {
             let error_reject = reject.clone();
             let upgrade_request = open_request.clone();
             let upgrade = Closure::once_into_js(move |_event: JsValue| {
-                let result = Reflect::get(
-                    &upgrade_request,
-                    &JsValue::from_str("result"),
-                );
+                let result = Reflect::get(&upgrade_request, &JsValue::from_str("result"));
                 match result.and_then(|database| ensure_stores(&database).map(|_| database)) {
                     Ok(_) => {}
                     Err(error) => {
-                        if let Ok(transaction) = Reflect::get(
-                            &upgrade_request,
-                            &JsValue::from_str("transaction"),
-                        ) {
+                        if let Ok(transaction) =
+                            Reflect::get(&upgrade_request, &JsValue::from_str("transaction"))
+                        {
                             let _ = call_method(&transaction, "abort", &[]);
                         }
                     }
@@ -180,11 +176,7 @@ impl IndexedDbJournal {
                     }
                 }
             });
-            let _ = Reflect::set(
-                &open_request,
-                &JsValue::from_str("onsuccess"),
-                &on_success,
-            );
+            let _ = Reflect::set(&open_request, &JsValue::from_str("onsuccess"), &on_success);
 
             let error_request = open_request.clone();
             let on_error = Closure::once_into_js(move |_event: JsValue| {
@@ -192,16 +184,10 @@ impl IndexedDbJournal {
                     .unwrap_or(JsValue::UNDEFINED);
                 let _ = error_reject.call1(&JsValue::UNDEFINED, &error);
             });
-            let _ = Reflect::set(
-                &open_request,
-                &JsValue::from_str("onerror"),
-                &on_error,
-            );
+            let _ = Reflect::set(&open_request, &JsValue::from_str("onerror"), &on_error);
         });
 
-        let database = JsFuture::from(open_promise)
-            .await
-            .map_err(js_error)?;
+        let database = JsFuture::from(open_promise).await.map_err(js_error)?;
         Ok(Self {
             database,
             last_durability_policy: Rc::new(Cell::new(DurabilityPolicy::StrictRequested)),
@@ -219,8 +205,7 @@ impl IndexedDbJournal {
         store_names: &[&str],
         mode: &str,
     ) -> Result<(JsValue, DurabilityPolicy), IndexedDbJournalError> {
-        let (transaction, policy) =
-            begin_transaction(&self.database, store_names, mode)?;
+        let (transaction, policy) = begin_transaction(&self.database, store_names, mode)?;
         self.last_durability_policy.set(policy);
         Ok((transaction, policy))
     }
@@ -235,8 +220,9 @@ impl IndexedDbJournal {
     ) -> Result<JournalEntry, IndexedDbJournalError> {
         let new_entry = JournalEntry::prepare(envelope, payload_json)?;
         let new_snapshot = new_entry.to_snapshot()?;
-        let new_snapshot_json = serde_json::to_string(&new_snapshot)
-            .map_err(|error| IndexedDbJournalError(format!("snapshot serialization failed: {error}")))?;
+        let new_snapshot_json = serde_json::to_string(&new_snapshot).map_err(|error| {
+            IndexedDbJournalError(format!("snapshot serialization failed: {error}"))
+        })?;
         let operation_id = new_entry.envelope().operation_id.clone();
         let idempotency_key = new_entry.envelope().idempotency_key.clone();
 
@@ -246,12 +232,9 @@ impl IndexedDbJournal {
         let idempotency_keys = object_store(&transaction, IDEMPOTENCY_KEYS)?;
         let pending = object_store(&transaction, PENDING_OPERATIONS)?;
 
-        let operation_request = call_method(
-            &operations,
-            "get",
-            &[JsValue::from_str(&operation_id)],
-        )
-        .map_err(js_error)?;
+        let operation_request =
+            call_method(&operations, "get", &[JsValue::from_str(&operation_id)])
+                .map_err(js_error)?;
         let key_request = call_method(
             &idempotency_keys,
             "get",
@@ -345,22 +328,18 @@ impl IndexedDbJournal {
                     &payload_bytes,
                 );
             });
-            Reflect::set(
-                &key_request,
-                &JsValue::from_str("onsuccess"),
-                &on_success,
-            )
-            .map_err(js_error)?;
+            Reflect::set(&key_request, &JsValue::from_str("onsuccess"), &on_success)
+                .map_err(js_error)?;
         }
 
-        JsFuture::from(transaction_done)
-            .await
-            .map_err(js_error)?;
+        JsFuture::from(transaction_done).await.map_err(js_error)?;
 
         match output.borrow_mut().take() {
             Some(Ok(Some(existing_snapshot))) => {
                 let snapshot: JournalEntrySnapshotV1 = serde_json::from_str(&existing_snapshot)
-                    .map_err(|error| IndexedDbJournalError(format!("stored snapshot JSON invalid: {error}")))?;
+                    .map_err(|error| {
+                        IndexedDbJournalError(format!("stored snapshot JSON invalid: {error}"))
+                    })?;
                 JournalEntry::from_snapshot_for_operation(&operation_id, snapshot)
                     .map_err(IndexedDbJournalError::from)
             }
@@ -380,18 +359,12 @@ impl IndexedDbJournal {
         let (transaction, _policy) = self.transaction(&[OPERATIONS], "readonly")?;
         let transaction_done = transaction_promise(transaction.clone());
         let operations = object_store(&transaction, OPERATIONS)?;
-        let request = call_method(
-            &operations,
-            "get",
-            &[JsValue::from_str(operation_id)],
-        )
-        .map_err(js_error)?;
+        let request = call_method(&operations, "get", &[JsValue::from_str(operation_id)])
+            .map_err(js_error)?;
         let result = JsFuture::from(request_promise(request))
             .await
             .map_err(js_error)?;
-        JsFuture::from(transaction_done)
-            .await
-            .map_err(js_error)?;
+        JsFuture::from(transaction_done).await.map_err(js_error)?;
 
         if result.is_undefined() || result.is_null() {
             return Ok(None);
@@ -399,8 +372,10 @@ impl IndexedDbJournal {
         let snapshot_json = result.as_string().ok_or_else(|| {
             IndexedDbJournalError("operation store contains a non-string snapshot".into())
         })?;
-        let snapshot: JournalEntrySnapshotV1 = serde_json::from_str(&snapshot_json)
-            .map_err(|error| IndexedDbJournalError(format!("stored snapshot JSON invalid: {error}")))?;
+        let snapshot: JournalEntrySnapshotV1 =
+            serde_json::from_str(&snapshot_json).map_err(|error| {
+                IndexedDbJournalError(format!("stored snapshot JSON invalid: {error}"))
+            })?;
         JournalEntry::from_snapshot_for_operation(operation_id, snapshot)
             .map(Some)
             .map_err(IndexedDbJournalError::from)
@@ -418,12 +393,8 @@ impl IndexedDbJournal {
         let transaction_done = transaction_promise(transaction.clone());
         let operations = object_store(&transaction, OPERATIONS)?;
         let pending = object_store(&transaction, PENDING_OPERATIONS)?;
-        let request = call_method(
-            &operations,
-            "get",
-            &[JsValue::from_str(operation_id)],
-        )
-        .map_err(js_error)?;
+        let request = call_method(&operations, "get", &[JsValue::from_str(operation_id)])
+            .map_err(js_error)?;
         let output: Rc<RefCell<Option<Result<String, IndexedDbJournalError>>>> =
             Rc::new(RefCell::new(None));
 
@@ -435,10 +406,7 @@ impl IndexedDbJournal {
             let transaction = transaction.clone();
             let expected_id = operation_id.to_owned();
             let callback = Closure::once_into_js(move |_event: JsValue| {
-                let raw = match Reflect::get(
-                    &request_for_callback,
-                    &JsValue::from_str("result"),
-                ) {
+                let raw = match Reflect::get(&request_for_callback, &JsValue::from_str("result")) {
                     Ok(value) => value,
                     Err(error) => {
                         *output.borrow_mut() = Some(Err(js_error(error)));
@@ -469,21 +437,21 @@ impl IndexedDbJournal {
                         return;
                     }
                 };
-                let mut entry = match JournalEntry::from_snapshot_for_operation(&expected_id, snapshot) {
-                    Ok(value) => value,
-                    Err(error) => {
-                        *output.borrow_mut() = Some(Err(IndexedDbJournalError::from(error)));
-                        return;
-                    }
-                };
+                let mut entry =
+                    match JournalEntry::from_snapshot_for_operation(&expected_id, snapshot) {
+                        Ok(value) => value,
+                        Err(error) => {
+                            *output.borrow_mut() = Some(Err(IndexedDbJournalError::from(error)));
+                            return;
+                        }
+                    };
                 if let Err(error) = entry.mark_attempt_started() {
                     *output.borrow_mut() = Some(Err(IndexedDbJournalError::from(error)));
                     return;
                 }
                 let saved = match entry.to_snapshot().and_then(|value| {
-                    serde_json::to_string(&value).map_err(|_| JournalError::InvalidSnapshot(
-                        "snapshot_serialization_failed",
-                    ))
+                    serde_json::to_string(&value)
+                        .map_err(|_| JournalError::InvalidSnapshot("snapshot_serialization_failed"))
                 }) {
                     Ok(value) => value,
                     Err(error) => {
@@ -511,17 +479,10 @@ impl IndexedDbJournal {
                 }
                 *output.borrow_mut() = Some(Ok(saved));
             });
-            Reflect::set(
-                &request,
-                &JsValue::from_str("onsuccess"),
-                &callback,
-            )
-            .map_err(js_error)?;
+            Reflect::set(&request, &JsValue::from_str("onsuccess"), &callback).map_err(js_error)?;
         }
 
-        JsFuture::from(transaction_done)
-            .await
-            .map_err(js_error)?;
+        JsFuture::from(transaction_done).await.map_err(js_error)?;
         let saved = output
             .borrow_mut()
             .take()
@@ -552,12 +513,8 @@ impl IndexedDbJournal {
         let transaction_done = transaction_promise(transaction.clone());
         let operations = object_store(&transaction, OPERATIONS)?;
         let pending = object_store(&transaction, PENDING_OPERATIONS)?;
-        let request = call_method(
-            &operations,
-            "get",
-            &[JsValue::from_str(operation_id)],
-        )
-        .map_err(js_error)?;
+        let request = call_method(&operations, "get", &[JsValue::from_str(operation_id)])
+            .map_err(js_error)?;
         let output: Rc<RefCell<Option<Result<ReconcileOutcome, IndexedDbJournalError>>>> =
             Rc::new(RefCell::new(None));
 
@@ -659,17 +616,10 @@ impl IndexedDbJournal {
                 }
                 *output.borrow_mut() = Some(Ok(outcome));
             });
-            Reflect::set(
-                &request,
-                &JsValue::from_str("onsuccess"),
-                &callback,
-            )
-            .map_err(js_error)?;
+            Reflect::set(&request, &JsValue::from_str("onsuccess"), &callback).map_err(js_error)?;
         }
 
-        JsFuture::from(transaction_done)
-            .await
-            .map_err(js_error)?;
+        JsFuture::from(transaction_done).await.map_err(js_error)?;
         output
             .borrow_mut()
             .take()
@@ -684,7 +634,9 @@ impl IndexedDbJournal {
         limit: usize,
     ) -> Result<IndexedDbJournalPage, IndexedDbJournalError> {
         if limit == 0 {
-            return Err(IndexedDbJournalError("page size must be greater than zero".into()));
+            return Err(IndexedDbJournalError(
+                "page size must be greater than zero".into(),
+            ));
         }
         let (transaction, _policy) = self.transaction(&[PENDING_OPERATIONS], "readonly")?;
         let transaction_done = transaction_promise(transaction.clone());
@@ -693,9 +645,7 @@ impl IndexedDbJournal {
         let values = JsFuture::from(request_promise(request))
             .await
             .map_err(js_error)?;
-        JsFuture::from(transaction_done)
-            .await
-            .map_err(js_error)?;
+        JsFuture::from(transaction_done).await.map_err(js_error)?;
 
         let mut ids = Array::from(&values)
             .iter()
@@ -719,11 +669,7 @@ impl IndexedDbJournal {
         }
         Ok(IndexedDbJournalPage {
             entries,
-            next_after_operation_id: if has_more {
-                ids.last().cloned()
-            } else {
-                None
-            },
+            next_after_operation_id: if has_more { ids.last().cloned() } else { None },
         })
     }
 }
@@ -782,7 +728,8 @@ fn finish_insert_reads(
                         Err(error) => Err(IndexedDbJournalError::from(error)),
                         Ok(existing_entry) => {
                             let same_envelope = snapshot.envelope == new_snapshot.envelope;
-                            let same_payload = existing_entry.canonical_payload_utf8() == new_payload_bytes;
+                            let same_payload =
+                                existing_entry.canonical_payload_utf8() == new_payload_bytes;
                             if !same_envelope || !same_payload {
                                 Err(IndexedDbJournalError(
                                     "operation ID is already bound to a different immutable envelope/payload".into(),
@@ -791,7 +738,8 @@ fn finish_insert_reads(
                                 != Some(operation_id)
                             {
                                 Err(IndexedDbJournalError(
-                                    "idempotency index is missing or points to another operation".into(),
+                                    "idempotency index is missing or points to another operation"
+                                        .into(),
                                 ))
                             } else {
                                 Ok(Some(serialized))
@@ -809,12 +757,18 @@ fn finish_insert_reads(
         let operations_add = call_method(
             operations,
             "add",
-            &[JsValue::from_str(new_snapshot_json), JsValue::from_str(operation_id)],
+            &[
+                JsValue::from_str(new_snapshot_json),
+                JsValue::from_str(operation_id),
+            ],
         );
         let key_add = call_method(
             idempotency_keys,
             "add",
-            &[JsValue::from_str(operation_id), JsValue::from_str(idempotency_key)],
+            &[
+                JsValue::from_str(operation_id),
+                JsValue::from_str(idempotency_key),
+            ],
         );
         let pending_add = call_method(
             pending,
@@ -868,36 +822,29 @@ fn begin_transaction(
     match call_method(
         database,
         "transaction",
-        &[names.clone().into(), JsValue::from_str(mode), options.into()],
+        &[
+            names.clone().into(),
+            JsValue::from_str(mode),
+            options.into(),
+        ],
     ) {
         Ok(transaction) => Ok((transaction, DurabilityPolicy::StrictRequested)),
-        Err(error) if js_error_name(&error).as_deref() == Some("TypeError") => {
-            call_method(
-                database,
-                "transaction",
-                &[names.into(), JsValue::from_str(mode)],
-            )
-            .map(|transaction| (transaction, DurabilityPolicy::BrowserDefaultFallback))
-            .map_err(js_error)
-        }
+        Err(error) if js_error_name(&error).as_deref() == Some("TypeError") => call_method(
+            database,
+            "transaction",
+            &[names.into(), JsValue::from_str(mode)],
+        )
+        .map(|transaction| (transaction, DurabilityPolicy::BrowserDefaultFallback))
+        .map_err(js_error),
         Err(error) => Err(js_error(error)),
     }
 }
 
 fn object_store(transaction: &JsValue, name: &str) -> Result<JsValue, IndexedDbJournalError> {
-    call_method(
-        transaction,
-        "objectStore",
-        &[JsValue::from_str(name)],
-    )
-    .map_err(js_error)
+    call_method(transaction, "objectStore", &[JsValue::from_str(name)]).map_err(js_error)
 }
 
-fn call_method(
-    receiver: &JsValue,
-    name: &str,
-    arguments: &[JsValue],
-) -> Result<JsValue, JsValue> {
+fn call_method(receiver: &JsValue, name: &str, arguments: &[JsValue]) -> Result<JsValue, JsValue> {
     let method = Reflect::get(receiver, &JsValue::from_str(name))?.dyn_into::<Function>()?;
     let array = Array::new();
     for argument in arguments {
@@ -922,24 +869,15 @@ fn request_promise(request: JsValue) -> Promise {
                 }
             }
         });
-        let _ = Reflect::set(
-            &request,
-            &JsValue::from_str("onsuccess"),
-            &on_success,
-        );
+        let _ = Reflect::set(&request, &JsValue::from_str("onsuccess"), &on_success);
 
         let error_request = request.clone();
         let on_error = Closure::once_into_js(move |_event: JsValue| {
-            let error =
-                Reflect::get(&error_request, &JsValue::from_str("error"))
-                    .unwrap_or(JsValue::UNDEFINED);
+            let error = Reflect::get(&error_request, &JsValue::from_str("error"))
+                .unwrap_or(JsValue::UNDEFINED);
             let _ = error_reject.call1(&JsValue::UNDEFINED, &error);
         });
-        let _ = Reflect::set(
-            &request,
-            &JsValue::from_str("onerror"),
-            &on_error,
-        );
+        let _ = Reflect::set(&request, &JsValue::from_str("onerror"), &on_error);
     })
 }
 
@@ -950,26 +888,15 @@ fn transaction_promise(transaction: JsValue) -> Promise {
         let on_complete = Closure::once_into_js(move |_event: JsValue| {
             let _ = completion_resolve.call1(&JsValue::UNDEFINED, &JsValue::UNDEFINED);
         });
-        let _ = Reflect::set(
-            &transaction,
-            &JsValue::from_str("oncomplete"),
-            &on_complete,
-        );
+        let _ = Reflect::set(&transaction, &JsValue::from_str("oncomplete"), &on_complete);
 
         let failed_transaction = transaction.clone();
         let on_abort = Closure::once_into_js(move |_event: JsValue| {
-            let error = Reflect::get(
-                &failed_transaction,
-                &JsValue::from_str("error"),
-            )
-            .unwrap_or(JsValue::UNDEFINED);
+            let error = Reflect::get(&failed_transaction, &JsValue::from_str("error"))
+                .unwrap_or(JsValue::UNDEFINED);
             let _ = abort_reject.call1(&JsValue::UNDEFINED, &error);
         });
-        let _ = Reflect::set(
-            &transaction,
-            &JsValue::from_str("onabort"),
-            &on_abort,
-        );
+        let _ = Reflect::set(&transaction, &JsValue::from_str("onabort"), &on_abort);
     })
 }
 
