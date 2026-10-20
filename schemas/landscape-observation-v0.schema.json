@@ -1,0 +1,634 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/landscape-observation-v0.schema.json",
+  "title": "Luminous Landscape Observation v0",
+  "description": "Portable field/sensor/remote-sensing observation envelope. Structural validity does not prove accuracy or consent. Coordinates and identity references have explicit privacy semantics.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_uri",
+    "observation_id",
+    "source_event_id",
+    "project_ref",
+    "phenomenon_time",
+    "result_time_unix_ms",
+    "observed_property",
+    "result",
+    "evidence_class",
+    "source",
+    "quality",
+    "location",
+    "privacy",
+    "transformations"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.landscape-observation.v0"
+    },
+    "schema_uri": {
+      "const": "https://luminousdynamics.io/schemas/landscape-observation-v0.schema.json"
+    },
+    "observation_id": {
+      "type": "string",
+      "pattern": "^obs-[A-Za-z0-9][A-Za-z0-9._:-]{7,123}$"
+    },
+    "source_event_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "project_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_snapshot_sha256",
+        "feature_id",
+        "site_ref_sha256"
+      ],
+      "properties": {
+        "project_snapshot_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "feature_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^feature-[0-9]{4,}$"
+        },
+        "site_ref_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "phenomenon_time": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start_unix_ms",
+        "end_unix_ms",
+        "clock_uncertainty_ms"
+      ],
+      "properties": {
+        "start_unix_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end_unix_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "clock_uncertainty_ms": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "result_time_unix_ms": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "observed_property": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "metric_id",
+        "unit"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "metric_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "unit": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "result": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "numeric_value",
+            "unit"
+          ],
+          "properties": {
+            "kind": {
+              "const": "quantity"
+            },
+            "numeric_value": {
+              "type": "number"
+            },
+            "unit": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "category_value",
+            "vocabulary_uri"
+          ],
+          "properties": {
+            "kind": {
+              "const": "category"
+            },
+            "category_value": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "vocabulary_uri": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "boolean_value"
+          ],
+          "properties": {
+            "kind": {
+              "const": "boolean"
+            },
+            "boolean_value": {
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
+    "evidence_class": {
+      "enum": [
+        "field-observation",
+        "sensor-observation",
+        "remote-sensing-classification",
+        "lab-analysis",
+        "community-report",
+        "synthetic-test",
+        "imported-observation"
+      ]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "source_id",
+        "source_uri",
+        "source_version",
+        "payload_sha256",
+        "method_uri",
+        "method_version",
+        "observer_ref_sha256",
+        "instrument_ref_sha256"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "human-protocol",
+            "sensor",
+            "remote-sensing-provider",
+            "laboratory",
+            "community",
+            "synthetic-fixture",
+            "external-adapter"
+          ]
+        },
+        "source_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "source_uri": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "source_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "payload_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "method_uri": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "method_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "observer_ref_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "instrument_ref_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "calibration_state",
+        "flags",
+        "uncertainty"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "unreviewed",
+            "accepted",
+            "flagged",
+            "rejected"
+          ]
+        },
+        "calibration_state": {
+          "enum": [
+            "current",
+            "stale",
+            "not-required",
+            "unknown"
+          ]
+        },
+        "flags": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 128,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
+          }
+        },
+        "uncertainty": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "value",
+            "lower_bound",
+            "upper_bound",
+            "coverage_probability",
+            "unit",
+            "method_uri",
+            "reason_code"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "standard-uncertainty",
+                "interval",
+                "qualitative",
+                "unknown",
+                "not-applicable"
+              ]
+            },
+            "value": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "lower_bound": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "upper_bound": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "coverage_probability": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 1
+            },
+            "unit": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "method_uri": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "maxLength": 2048
+            },
+            "reason_code": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
+            }
+          }
+        }
+      }
+    },
+    "location": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "crs",
+            "longitude_latitude_deg",
+            "precision_m",
+            "sensitivity"
+          ],
+          "properties": {
+            "kind": {
+              "const": "geographic-wgs84"
+            },
+            "crs": {
+              "const": "OGC:CRS84"
+            },
+            "longitude_latitude_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                },
+                {
+                  "type": "number",
+                  "minimum": -90,
+                  "maximum": 90
+                }
+              ],
+              "items": false
+            },
+            "precision_m": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "sensitivity": {
+              "enum": [
+                "public",
+                "coarse",
+                "restricted",
+                "sensitive"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "frame_id",
+            "units",
+            "coordinates_xy",
+            "precision_units",
+            "sensitivity"
+          ],
+          "properties": {
+            "kind": {
+              "const": "project-local"
+            },
+            "frame_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            "units": {
+              "enum": [
+                "drawing-unit",
+                "m",
+                "ft",
+                "other-declared"
+              ]
+            },
+            "coordinates_xy": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "items": false
+            },
+            "precision_units": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "sensitivity": {
+              "enum": [
+                "public",
+                "coarse",
+                "restricted",
+                "sensitive"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "site_ref_sha256",
+            "precision_class",
+            "sensitivity"
+          ],
+          "properties": {
+            "kind": {
+              "const": "opaque-site"
+            },
+            "site_ref_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "precision_class": {
+              "enum": [
+                "site",
+                "parcel",
+                "neighbourhood",
+                "catchment",
+                "region",
+                "redacted"
+              ]
+            },
+            "sensitivity": {
+              "enum": [
+                "public",
+                "coarse",
+                "restricted",
+                "sensitive"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "classification",
+        "publication_policy",
+        "consent_record_ref_sha256",
+        "policy_version",
+        "consent_authority"
+      ],
+      "properties": {
+        "classification": {
+          "enum": [
+            "public",
+            "private",
+            "sensitive",
+            "synthetic"
+          ]
+        },
+        "publication_policy": {
+          "enum": [
+            "private-only",
+            "aggregate-only",
+            "public-approved"
+          ]
+        },
+        "consent_record_ref_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "policy_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "consent_authority": {
+          "const": "mycelix"
+        }
+      }
+    },
+    "transformations": {
+      "type": "array",
+      "maxItems": 1024,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "activity_uri",
+          "activity_version",
+          "input_sha256",
+          "output_sha256",
+          "performed_at_unix_ms",
+          "agent_ref_sha256"
+        ],
+        "properties": {
+          "activity_uri": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "activity_version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "input_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "output_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "performed_at_unix_ms": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "agent_ref_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      }
+    }
+  }
+}
