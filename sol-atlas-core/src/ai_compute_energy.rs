@@ -1128,23 +1128,23 @@ mod tests {
         assert!((result.modelled_electricity_cost_usd.unwrap() - 0.298).abs() < 1.0e-8);
     }
 
-    fn exhaustive_minimum_cost(capacities: &[u64], per_unit_cost: &[f64], demand: u64) -> f64 {
+    fn exhaustive_minimum_objective(capacities: &[u64], per_unit_objective: &[f64], demand: u64) -> f64 {
         fn visit(
             index: usize,
             remaining: u64,
             capacities: &[u64],
-            per_unit_cost: &[f64],
+            per_unit_objective: &[f64],
             allocation: &mut Vec<u64>,
             best: &mut f64,
         ) {
             if index == capacities.len() {
                 if remaining == 0 {
-                    let cost = allocation
+                    let objective = allocation
                         .iter()
-                        .zip(per_unit_cost)
-                        .map(|(units, unit_cost)| *units as f64 * unit_cost)
+                        .zip(per_unit_objective)
+                        .map(|(units, unit_value)| *units as f64 * unit_value)
                         .sum::<f64>();
-                    *best = (*best).min(cost);
+                    *best = (*best).min(objective);
                 }
                 return;
             }
@@ -1155,7 +1155,7 @@ mod tests {
                     index + 1,
                     remaining - units,
                     capacities,
-                    per_unit_cost,
+                    per_unit_objective,
                     allocation,
                     best,
                 );
@@ -1163,7 +1163,7 @@ mod tests {
             }
         }
 
-        assert_eq!(capacities.len(), per_unit_cost.len());
+        assert_eq!(capacities.len(), per_unit_objective.len());
         let mut best = f64::INFINITY;
         visit(
             0,
@@ -1218,7 +1218,7 @@ mod tests {
                             * unit_energy
                     })
                     .collect::<Vec<_>>();
-                let oracle = exhaustive_minimum_cost(&capacities, &per_unit_cost, demand);
+                let oracle = exhaustive_minimum_objective(&capacities, &per_unit_cost, demand);
                 let result = schedule_deferrable(&request, SchedulingPolicy::LowestCost);
                 let allocation = result
                     .deferrable_work_units_by_interval
@@ -1248,6 +1248,85 @@ mod tests {
                         .as_ref(),
                     Some(allocation),
                     "identical request bytes must produce the same allocation"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn lowest_carbon_policy_matches_exhaustive_oracle_across_intensity_profiles() {
+        let intensity_profiles: [[f64; 4]; 6] = [
+            [1200.0, 700.0, 600.0, 250.0],
+            [250.0, 600.0, 700.0, 1200.0],
+            [0.0, 100.0, 300.0, 500.0],
+            [100.0, 0.0, 100.0, 0.0],
+            [100.0, 125.0, 150.0, 175.0],
+            [800.0, 200.0, 200.0, 800.0],
+        ];
+
+        for intensities in intensity_profiles {
+            for demand in 1..=20 {
+                let mut request = fixture_request();
+                request.workloads[1].required_work_units = demand;
+                for (interval, intensity) in request.intervals.iter_mut().zip(intensities) {
+                    interval.grid_carbon_intensity_gco2_per_kwh = Some(intensity);
+                }
+
+                let capacity = assess(&request);
+                assert!(matches!(
+                    capacity.status,
+                    AssessmentStatus::Feasible | AssessmentStatus::CapacityLimited
+                ));
+                let capacities = capacity
+                    .interval_assessments
+                    .iter()
+                    .map(|row| row.max_deferrable_work_units)
+                    .collect::<Vec<_>>();
+                let unit_energy = request.workloads[0].energy_kwh_per_work_unit;
+                let per_unit_emissions = request
+                    .intervals
+                    .iter()
+                    .zip(intensities)
+                    .map(|(interval, intensity)| {
+                        intensity
+                            * interval
+                                .facility_energy_per_it_energy
+                                .expect("fixture declares facility factors")
+                            * unit_energy
+                    })
+                    .collect::<Vec<_>>();
+                let oracle =
+                    exhaustive_minimum_objective(&capacities, &per_unit_emissions, demand);
+                let result = schedule_deferrable(&request, SchedulingPolicy::LowestCarbon);
+                let allocation = result
+                    .deferrable_work_units_by_interval
+                    .as_ref()
+                    .expect("finite carbon profile must produce a schedule");
+
+                assert_eq!(result.status, AssessmentStatus::Feasible);
+                assert_eq!(allocation.iter().sum::<u64>(), demand);
+                assert!(
+                    allocation
+                        .iter()
+                        .zip(&capacities)
+                        .all(|(used, cap)| used <= cap)
+                );
+                assert_eq!(
+                    result.protected_floor_work_units_by_interval,
+                    Some(vec![6, 6, 6, 6])
+                );
+                assert!(
+                    (result.modelled_grid_carbon_gco2.expect("known intensity factors") - oracle)
+                        .abs()
+                        < 1.0e-7,
+                    "carbon scheduler must match exhaustive optimum; demand={demand}, intensities={intensities:?}, allocation={allocation:?}"
+                );
+                assert_eq!(
+                    schedule_deferrable(&request, SchedulingPolicy::LowestCarbon)
+                        .deferrable_work_units_by_interval
+                        .as_ref(),
+                    Some(allocation),
+                    "identical request must yield identical carbon allocation"
                 );
             }
         }
