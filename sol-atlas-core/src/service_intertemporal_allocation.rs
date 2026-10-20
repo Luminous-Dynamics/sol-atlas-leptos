@@ -1522,6 +1522,12 @@ mod tests {
         );
         assert!(result.search_complete);
         assert_eq!(result.search_space_size, Some(4 * 4 * 2 * 2));
+        assert_eq!(
+            result.feasible_plan_count,
+            Some(37),
+            "independent enumeration found 37 plans satisfying all capacity and stock constraints"
+        );
+        assert_eq!(result.candidate_plans_examined, 64);
         assert_eq!(result.service_steps.len(), 4);
 
         let allocation: BTreeMap<_, _> = result
