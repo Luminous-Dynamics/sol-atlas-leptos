@@ -449,7 +449,10 @@ fn evaluate_subset(input: &Input, mask: u64) -> Result<SubsetEvaluation, String>
                 .get(dependency_id.as_str())
                 .ok_or_else(|| format!("unknown prerequisite {dependency_id}"))?;
             if !is_earlier(dependency, project) {
-                return Ok(None);
+                return Err(format!(
+                    "prerequisite {dependency_id} is not staged before dependent {}",
+                    project.id
+                ));
             }
         }
     }
@@ -785,7 +788,7 @@ mod tests {
     #[test]
     fn corrupted_known_answer_manifest_is_rejected() {
         let evaluation = evaluate(&fixture()).expect("fixture should evaluate");
-        let corrupted = EXPECTED.replace("\\"feasible_count\\": 22", "\\"feasible_count\\": 23");
+        let corrupted = EXPECTED.replace("\\"feasible_count\": 22", "\\"feasible_count\": 23");
         assert_ne!(corrupted, EXPECTED);
         assert!(check_expected(&evaluation, &corrupted).is_err());
     }
