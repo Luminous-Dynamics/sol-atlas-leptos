@@ -49,6 +49,19 @@ fn exit_code(status: AssessmentStatus) -> i32 {
     }
 }
 
+fn build_run_output(
+    raw_input: &[u8],
+    request: &Request,
+    mode: &str,
+    assessment: serde_json::Value,
+) -> serde_json::Value {
+    let receipt = scenario_receipt(raw_input, request, mode);
+    serde_json::json!({
+        "receipt": receipt,
+        "assessment": assessment,
+    })
+}
+
 fn main() {
     let mut args = env::args_os().skip(1);
     let Some(path) = args.next() else {
@@ -120,11 +133,7 @@ fn main() {
     } else {
         policy_name(policy)
     };
-    let receipt = scenario_receipt(content.as_bytes(), &request, mode);
-    let output = serde_json::json!({
-        "receipt": receipt,
-        "assessment": assessment,
-    });
+    let output = build_run_output(content.as_bytes(), &request, mode, assessment);
 
     match serde_json::to_string_pretty(&output) {
         Ok(json) => println!("{json}"),
@@ -136,5 +145,41 @@ fn main() {
 
     if status_code != 0 {
         process::exit(status_code);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::build_run_output;
+    use sol_atlas_core::ai_compute_energy::{Request, scenario_receipt};
+
+    #[test]
+    fn cli_output_binds_exact_input_to_separate_assessment() {
+        let fixture = include_str!(
+            "../../../schemas/examples/ai-compute-energy-flexibility-four-interval.synthetic.json"
+        );
+        let request: Request =
+            serde_json::from_str(fixture).expect("committed fixture should deserialize");
+        let assessment = serde_json::json!({
+            "status": "feasible",
+            "scheduled_work_units": 40
+        });
+        let output = build_run_output(fixture.as_bytes(), &request, "pareto", assessment.clone());
+
+        assert_eq!(output["assessment"], assessment);
+        assert_eq!(output["receipt"]["mode"], "pareto");
+        assert_eq!(
+            output["receipt"]["input_sha256"],
+            scenario_receipt(fixture.as_bytes(), &request, "pareto").input_sha256
+        );
+        assert_eq!(
+            output["receipt"]["fixture_id"],
+            "synthetic-four-interval-flexible-compute"
+        );
+        assert_eq!(output["receipt"]["synthetic"], true);
+        assert!(output["receipt"]["verification_boundary"]
+            .as_str()
+            .expect("verification boundary is text")
+            .contains("does not validate"));
     }
 }
