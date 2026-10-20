@@ -78,6 +78,23 @@ Pull requests touching the task-graph model, runner, fixtures or benchmark metho
 
 The artifact is a measurement of the GitHub-hosted runner used for that run, not a universal hardware guarantee. Compare runs only after accounting for runner/CPU, toolchain, source SHA, workload and sample method. The workflow deliberately records measurements rather than failing on an unmeasured speed target; regression thresholds should be added only after collecting a stable baseline.
 
+## First measured release baseline (2026-10-20)
+
+This is the first artifact captured by the release benchmark workflow, at exact source commit `b8def761e1fde6bb6550b3e93911a29e7b6e0c38`. [Workflow run 39407001243](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/39407001243) passed benchmark execution and schema/sample-count validation; the run uploaded raw and summarized JSON plus environment metadata.
+
+**Environment:** GitHub-hosted Ubuntu 24.04 runner, 4 reported vCPUs (AMD EPYC 7763 virtual machine), x86_64 Linux, Rust/Cargo 1.99.1, release profile, 5 warmup runs and 100 measured samples per operation. The artifact retains all raw nanosecond samples. These are measurements of this runner and source revision, not a universal performance guarantee.
+
+| Graph shape | Tasks / edges | Initial ready set | Reference `ready_tasks` p50 / p95 | Compiled `compiled_ready_tasks` p50 / p95 | Observed p50 / p95 query ratio | Index compile p50 / p95 |
+|---|---:|---:|---:|---:|---:|---:|
+| `fan_in_4` | 10,000 / 39,990 | 1 | 21.911 ms / 24.300 ms | 50 ns / 60 ns | 438,212× / 405,005× | 28.838 ms / 29.359 ms |
+| `independent_roots` | 10,000 / 0 | 10,000 | 5.466 ms / 5.568 ms | 48.071 µs / 58.340 µs | 113.71× / 95.44× | 7.822 ms / 7.913 ms |
+
+The very large ratio in the narrow-frontier case is shape-specific: the reference path revalidates and rescans all 10,000 tasks while the compiled query returns one ready task from an already-built index. The independent-root case exercises a wide ready set and still shows a repeated-query reduction, but materializing 10,000 task references takes measurable time. These ratios compare the same returned task-reference collection and release build, but only for this synthetic implementation.
+
+Using the observed p50 timings and treating compile cost as a one-time cost, the compiled representation pays for itself at approximately the **second** ready-frontier query for each tested shape. This estimate excludes index rebuilds caused by graph revision changes, persistence, serialization, browser/UI work and network operations. We have not yet measured incremental `apply` latency, correction-impact planning latency, memory use, realistic task-status distributions, or end-to-end mobile use.
+
+**Interpretation:** this supports retaining the compiled frontier for sessions that issue multiple queries per graph revision. It does not prove a general win over a commercial field-service product or justify unconditional compilation for one-shot or rapidly changing graphs. Next benchmark improvements should include transition-heavy workloads, graph revision rebuild rates, allocation/memory accounting, and impact-plan closure costs.
+
 ## How to compare with industry fairly
 
 Enterprise field-service products already support complex work orders and offline work. This proposal does not claim that Microsoft Dynamics 365, Salesforce, or ServiceNow lack task sequencing or parallel workflow features. The comparison is narrower: how well does a tested dependency graph preserve the distinction between pending, active, reported completion and recorded verification; how deterministic is the ready-action set; and how well does it avoid avoidable serialization?
