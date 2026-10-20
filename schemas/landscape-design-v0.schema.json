@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/landscape-design-v0.schema.json",
+  "title": "Luminous Landscape Design Snapshot v0",
+  "description": "Schematic design-intent snapshot. Coordinates are project-local arbitrary drawing units, not metres, a map CRS, or georeferenced coordinates.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "project_name",
+    "scope",
+    "coordinate_frame",
+    "geometry_status",
+    "features"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.landscape-design.v0"
+    },
+    "project_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "scope": {
+      "enum": [
+        "site-parcel",
+        "district",
+        "watershed",
+        "bioregion"
+      ]
+    },
+    "coordinate_frame": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "origin",
+        "x_axis",
+        "y_axis",
+        "georeferenced"
+      ],
+      "properties": {
+        "kind": {
+          "const": "LOCAL_CARTESIAN_DRAWING_UNITS"
+        },
+        "origin": {
+          "const": "canvas top-left"
+        },
+        "x_axis": {
+          "const": "right"
+        },
+        "y_axis": {
+          "const": "down"
+        },
+        "georeferenced": {
+          "const": false
+        }
+      }
+    },
+    "geometry_status": {
+      "const": "schematic-design-intent"
+    },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "label",
+          "x_du",
+          "y_du",
+          "status",
+          "source"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^feature-[0-9]{4,}$"
+          },
+          "kind": {
+            "enum": [
+              "tree",
+              "planting-bed",
+              "water",
+              "path",
+              "built-element"
+            ]
+          },
+          "label": {
+            "enum": [
+              "Canopy tree",
+              "Planting bed",
+              "Water feature",
+              "Path",
+              "Built element"
+            ]
+          },
+          "x_du": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "y_du": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 650
+          },
+          "status": {
+            "const": "design-intent"
+          },
+          "source": {
+            "const": "user-authored-schematic"
+          }
+        }
+      }
+    }
+  }
+}
