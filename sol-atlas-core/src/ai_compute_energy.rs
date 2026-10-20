@@ -790,7 +790,9 @@ pub fn schedule_deferrable(
                 * intervals[*right]
                     .facility_energy_per_it_energy
                     .unwrap_or(1.0);
-            left_score.total_cmp(&right_score).then_with(|| left.cmp(right))
+            left_score
+                .total_cmp(&right_score)
+                .then_with(|| left.cmp(right))
         }),
     }
 
