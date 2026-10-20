@@ -143,4 +143,29 @@ The adversarial 24-project case has a full universe of 16,777,216 subsets. Its 2
 
 The partition reconciles: 40 evaluated leaves + 16,777,176 pruned completions = 16,777,216. This adversarial fixture deliberately adds sixteen `UNKNOWN`-gated decoys that are immediately provable infeasible; it demonstrates accounting and negative-control behavior, not representative large-instance scaling.
 
+
+
+## 9. Warmed, order-alternated benchmark (methodology PR #247)
+
+The measurement protocol was then hardened and run on exact source head `b7148214db462ed52d5626f4da34e00812c0e4b7`, workflow [SA economic portfolio oracle run #39489050764](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/39489050764). The dedicated workflow passed formatting, Clippy with warnings denied, the full Rust test suite, exact/search receipts and both benchmark commands. The separate repository `Check` run was still in progress at the time of this record.
+
+Environment recorded in both benchmark receipts: GitHub Actions Linux/X64 runner; AMD EPYC 7763 64-Core Processor; 4 logical CPUs visible to the process; 16,766,414,848 bytes reported total memory; release build. Process high-water RSS was 3,522,560 bytes for the ten-project comparison process and 2,945,024 bytes for the 24-project search process. These are per-process high-water readings from this run, not peak RSS distributions across repeated isolated processes or evidence of production capacity.
+
+The new protocol ran **2 unmeasured warm-ups per algorithm** and alternated measurement order over **21 paired repetitions**:
+
+| Experiment | Measure | Exact subset evaluation | Frontier search |
+|---|---|---:|---:|
+| 10 projects | p50 algorithm latency | 449 µs | 151 µs |
+| 10 projects | p95 algorithm latency | 465 µs | 156 µs |
+| 10 projects | min / max | 428 / 477 µs | 146 / 157 µs |
+| 24-project adversarial fixture | p50 / p95 / max search latency | — | 81 / 113 / 128 µs |
+
+The warmed ten-project median ratio is about **2.98x** for this exact pair of code paths on this runner. The exact evaluator also returns all 82 feasible portfolios, whereas the search returns the 8-member frontier and proof-of-accounting counters; therefore this remains a benchmark of two defined outputs, not a claim that equivalent full-output tasks differ by 2.98x or that the method beats SOTA.
+
+On the 10-project input the frontier search still visited 305 nodes, evaluated 120 leaves and pruned 904 completions: 448 gate, 192 prerequisite, 264 budget; 120 + 904 = 1,024. All 21 exact/search pairs matched the pinned outcome frontier and exact known-answer manifest.
+
+On the adversarial 24-project input the candidate still represented all 16,777,216 subsets with 745 visited nodes and 40 evaluated leaves. The 16,777,176 pruned completions were 9,961,432 gate, 3,145,728 prerequisite and 3,670,016 budget prunes. Its four-member frontier matched the supplied reference every time. This fixture remains deliberately easy to prune; the timing is not a representative hard-instance claim.
+
+The initial un-warmed 434 µs / 139 µs ten-project numbers in section 8 are retained as historical baseline only. They must not be blended with the hardened-protocol samples above. The next performance threshold should wait for the independent, matched solver model tracked by [issue #248](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/248) and a wider structured/generated case suite.
+
 **Claim ceiling:** this is a synthetic contract and exact-search engineering exercise. It does not forecast GDP, jobs, real cost recovery, causal service improvement, or the optimal allocation of South African public resources.
