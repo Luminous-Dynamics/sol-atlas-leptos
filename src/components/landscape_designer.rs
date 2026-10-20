@@ -134,8 +134,13 @@ fn starter_features() -> Vec<DesignFeature> {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum EditCommand {
-    Added { feature: DesignFeature },
-    Deleted { feature: DesignFeature, index: usize },
+    Added {
+        feature: DesignFeature,
+    },
+    Deleted {
+        feature: DesignFeature,
+        index: usize,
+    },
 }
 
 /// Remove one feature while preserving enough information to undo the edit.
@@ -294,9 +299,8 @@ pub fn LandscapeDesigner() -> impl IntoView {
         match validate_snapshot(&value) {
             Ok(()) => {
                 set_export_text.set(
-                    serde_json::to_string_pretty(&value).unwrap_or_else(|error| {
-                        format!("Snapshot serialization failed: {error}")
-                    }),
+                    serde_json::to_string_pretty(&value)
+                        .unwrap_or_else(|error| format!("Snapshot serialization failed: {error}")),
                 );
                 set_download_status.set(String::new());
             }
