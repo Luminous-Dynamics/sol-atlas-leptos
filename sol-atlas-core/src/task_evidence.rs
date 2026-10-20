@@ -441,7 +441,9 @@ pub fn evaluate_evidence_packet(
                         "reviewer identity must be non-empty",
                     ));
                 }
-                Some(reviewer) if reviewer.trim() == artifact.recorded_by.trim() && artifact_valid => {
+                Some(reviewer)
+                    if reviewer.trim() == artifact.recorded_by.trim() && artifact_valid =>
+                {
                     artifact_valid = false;
                     issues.push(issue(
                         EvidenceIssueCode::ReviewerEqualsRecorder,
@@ -706,10 +708,7 @@ mod tests {
             &padded_self_review,
             EvidenceIssueCode::ReviewerEqualsRecorder
         ));
-        assert_eq!(
-            padded_self_review.decision,
-            EvidenceDecision::Incomplete
-        );
+        assert_eq!(padded_self_review.decision, EvidenceDecision::Incomplete);
     }
 
     #[test]
