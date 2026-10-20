@@ -853,20 +853,21 @@ mod tests {
             ));
         }
         for index in 64..128 {
+            let dependency = format!("task-{:03}", index % 64);
             tasks.push(node(
                 &format!("task-{index:03}"),
-                &[&format!("task-{:03}", index % 64)],
+                &[dependency.as_str()],
                 ((index * 19) % 101) as u8,
                 TaskStatus::Pending,
             ));
         }
         for index in 128..256 {
+            let access_dependency = format!("task-{:03}", index % 64);
+            let previous_dependency = format!("task-{:03}", index - 1);
+            let dependencies = [access_dependency.as_str(), previous_dependency.as_str()];
             tasks.push(node(
                 &format!("task-{index:03}"),
-                &[
-                    &format!("task-{:03}", index % 64),
-                    &format!("task-{:03}", index - 1),
-                ],
+                &dependencies,
                 ((index * 19) % 101) as u8,
                 TaskStatus::Pending,
             ));
