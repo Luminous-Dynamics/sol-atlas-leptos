@@ -101,6 +101,14 @@ Candidates include the Gauteng C-Plan v4 and the 2023 national biodiversity-prio
 
 The catalog records unresolved licensing and ingestion state deliberately. No layer should enter a simulation merely because the editor can render it. The dedicated ingestion contract is [LAND-DATA-001 #206](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/206).
 
+### Browser-local persistence in v0
+
+The editor now offers explicit **Save in browser** and **Load browser draft** actions. These use one versioned same-origin browser-local key; they do not sync to a server, and no autosave runs in the background. A loaded snapshot is fully parsed and validated before it replaces the current project.
+
+The v0 browser-storage path is deliberately capped at 2 MiB because localStorage quotas vary and it is not a suitable storage engine for very large spatial projects. Larger projects should use portable JSON export/import in this version. Browser-local storage is not encrypted, can be cleared by the browser, and should not hold sensitive land or participant details on shared devices.
+
+Follow-up: move durable project persistence to IndexedDB with transactional writes, versioned project IDs, chunking/large-file support, crash recovery, migration receipts, and quota/eviction handling. Do not simply raise the localStorage size limit and claim scale-out.
+
 ## Rust-first architecture and repository boundaries
 
 ### Sol-Atlas — map and editor system of record
@@ -210,6 +218,7 @@ Targets become product gates only after the reference hardware and benchmark har
 - One valid canvas click adds one feature; undo removes the latest; reset restores the exact starter fixtures.
 - Grid/context visibility toggles work independently of editing.
 - Export is valid JSON, deterministic for the same project and explicitly not georeferenced.
+ - Browser-local save/load is explicit, bounded to 2 MiB in v0, schema-validated, and preserves the current project when stored data is missing or invalid.
 - Tests cover schema, round-trip, feature IDs and machine keys; the exact PR head passes formatting, native tests and target wasm build.
 - No simulation, field-validated ecological result, construction compliance, terrain survey or QGIS/SketchUp parity is claimed by this prototype.
 
