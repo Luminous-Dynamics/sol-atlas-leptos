@@ -24,6 +24,7 @@ pub mod math;
 pub mod picking;
 pub mod simulation;
 pub mod solar_system;
+pub mod task_evidence;
 pub mod task_graph;
 pub mod timeline;
 pub mod types;
