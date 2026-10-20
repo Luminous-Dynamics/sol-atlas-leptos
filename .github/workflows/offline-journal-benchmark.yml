@@ -1,0 +1,94 @@
+name: Offline Journal Benchmark Smoke
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/offline-journal-benchmark.yml"
+      - "sol-atlas-core/examples/offline_journal_bundle_bench.rs"
+      - "sol-atlas-core/src/offline_journal_bundle.rs"
+      - "sol-atlas-core/src/offline_journal.rs"
+      - "sol-atlas-core/src/offline_payload_digest.rs"
+      - "sol-atlas-core/src/offline_idempotency_fingerprint.rs"
+      - "sol-atlas-core/fixtures/offline-journal-bundle-v1.json"
+      - "sol-atlas-core/schemas/offline-journal-bundle-v1.schema.json"
+      - "sol-atlas-core/Cargo.toml"
+      - "scripts/bench-offline-journal-bundle.sh"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: offline-journal-benchmark-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Validate benchmark matrix script syntax
+        run: bash -n scripts/bench-offline-journal-bundle.sh
+
+      - name: Execute release benchmark on deterministic smoke corpus
+        env:
+          GIT_SHA: ${{ github.event.pull_request.head.sha }}
+          HOST_LABEL: github-ubuntu-latest-smoke
+        run: |
+          cargo run --release \
+            --manifest-path sol-atlas-core/Cargo.toml \
+            --example offline_journal_bundle_bench -- \
+            --records 20 --blob-bytes 32 --samples 2 \
+            > offline-journal-benchmark-smoke.json
+
+      - name: Assert report schema, five stages, stable digest and sample counts
+        run: |
+          jq -e '
+            .schema_version == 1 and
+            .benchmark == "sol-atlas-offline-journal-bundle-v1" and
+            .parameters.records == 20 and
+            .parameters.blob_bytes_per_payload == 32 and
+            .parameters.samples == 2 and
+            .correctness.roundtrip_equal == true and
+            .correctness.record_count_preserved == true and
+            .correctness.owner_scope_preserved == true and
+            .correctness.integrity_digest_stable == true and
+            .correctness.canonical_bytes_stable == true and
+            .correctness.bare_serde_json_roundtrip_equal == true and
+            .correctness.canonical_hash_only_matches_bundle_digest == true and
+            (.stage_summaries | length == 5) and
+            (.raw_samples | length == 10) and
+            (.stage_summaries | all(.[]; .sample_count == 2))
+          ' offline-journal-benchmark-smoke.json
+
+      - name: Verify published bundle schema is valid JSON and has versioned semantic gates
+        if: ${{ hashFiles('sol-atlas-core/schemas/offline-journal-bundle-v1.schema.json') != '' }}
+        run: |
+          jq -e '
+            ."$schema" == "https://json-schema.org/draft/2020-12/schema" and
+            ."$id" == "urn:sol-atlas:offline-journal-bundle:1" and
+            .properties.schema_version.const == 1 and
+            .properties.records.items["$ref"] == "#/$defs/record" and
+            (."x-semantic-validation" | length >= 8)
+          ' sol-atlas-core/schemas/offline-journal-bundle-v1.schema.json
+
+      - name: Independently verify frozen manifest bytes with system sha256sum
+        if: ${{ hashFiles('sol-atlas-core/fixtures/offline-journal-bundle-v1.json') != '' }}
+        shell: bash
+        run: |
+          expected="$(jq -r '.integrity_sha256' sol-atlas-core/fixtures/offline-journal-bundle-v1.json)"
+          actual="$(printf '%s' "$(jq -r '.unsigned_manifest_canonical_utf8' sol-atlas-core/fixtures/offline-journal-bundle-v1.json)" | sha256sum | awk '{print $1}')"
+          test "$actual" = "$expected"
+
+      - name: Upload smoke report as CI evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: offline-journal-benchmark-smoke-${{ github.event.pull_request.head.sha }}
+          path: offline-journal-benchmark-smoke.json
+          if-no-files-found: error
+          retention-days: 14
