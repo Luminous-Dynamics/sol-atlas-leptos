@@ -184,7 +184,22 @@ pub fn LandscapeDesigner() -> impl IntoView {
     };
 
     view! {
-        <main class="landscape-workbench">
+        <main class="landscape-workbench" on:keydown=move |event: web_sys::KeyboardEvent| {
+            if let Some(target) = event.target() {
+                let element: web_sys::Element = target.unchecked_into();
+                let tag = element.tag_name();
+                if tag == "INPUT" || tag == "TEXTAREA" { return; }
+            }
+            match event.key().to_lowercase().as_str() {
+                "t" => set_active_tool.set(FeatureKind::Tree),
+                "p" => set_active_tool.set(FeatureKind::PlantingBed),
+                "w" => set_active_tool.set(FeatureKind::Water),
+                "l" => set_active_tool.set(FeatureKind::Path),
+                "b" => set_active_tool.set(FeatureKind::BuiltElement),
+                _ => return,
+            }
+            event.prevent_default();
+        }>
             <header class="landscape-topbar">
                 <div class="landscape-brand">
                     <A href="/" attr:class="landscape-back">"← Sol Atlas"</A>
@@ -252,7 +267,7 @@ pub fn LandscapeDesigner() -> impl IntoView {
                         <div class="landscape-stage-meta"><span>"LOCAL GRID"</span><span>"1000 × 650 m schematic"</span></div>
                     </div>
                     <div class="landscape-canvas-frame">
-                        <svg class="landscape-canvas" viewBox="0 0 1000 650" role="img" aria-label="Schematic landscape canvas. Click to place the selected design element." on:click=place_feature>
+                        <svg class="landscape-canvas" viewBox="0 0 1000 650" tabindex="0" role="application" aria-label="Schematic landscape canvas. Click to place the selected design element." on:click=place_feature>
                             <defs>
                                 <pattern id="landscape-grid" width="50" height="50" patternUnits="userSpaceOnUse">
                                     <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#7f9384" stroke-width="1" stroke-opacity="0.22"/>
