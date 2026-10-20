@@ -321,11 +321,13 @@ mod tests {
         assert_eq!(rsr.sample_count, 10);
         assert_eq!(rsr.threshold_exceedance_count, 1);
         assert_eq!(rsr.threshold_exceedance_fraction, 0.1);
-        assert!(!rsr.tracking_requirement_satisfied);
+        assert!(!rsr.exceedance_rate_requirement_satisfied);
+        assert!(rsr.p90_threshold_satisfied);
         assert!((rsr.p90_normalized_absolute_error - 0.08).abs() < 1.0e-12);
         assert_eq!(rsr_reference.sample_count, 10);
         assert!((rsr_reference.p90_normalized_absolute_error - 0.08).abs() < 1.0e-12);
-        assert!(!rsr_reference.tracking_requirement_satisfied);
+        assert!(!rsr_reference.exceedance_rate_requirement_satisfied);
+        assert!(rsr_reference.p90_threshold_satisfied);
 
         assert_eq!(edr.baseline_energy_kwh, 300.0);
         assert_eq!(edr.event_energy_kwh, 260.0);
@@ -454,8 +456,13 @@ mod tests {
         let value: Value =
             serde_json::to_value(report).expect("run report should serialize as JSON");
         assert_eq!(
-            value["metrics"]["rsr"]["tracking_requirement_satisfied"],
+            value["metrics"]["rsr"]["exceedance_rate_requirement_satisfied"],
             false
+        );
+        assert_eq!(value["metrics"]["rsr"]["p90_threshold_satisfied"], true);
+        assert_eq!(
+            value["metrics"]["rsr_reference"]["p90_threshold_satisfied"],
+            true
         );
         assert_eq!(
             value["metrics"]["rsr_reference"]["normalization_basis"],
