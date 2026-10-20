@@ -630,9 +630,14 @@ mod tests {
     fn rejects_positive_reference_outside_configured_bands() {
         let mut out_of_band = cases();
         out_of_band[0].reference = ReferenceState::MeteredEmission {
-            emission_rate_kg_h: 1000.0,
+            emission_rate_kg_h: 75.0,
         };
-        let report = build_pod_profile(&out_of_band, &submission(responses()), &bands());
+        let configured_bands = bands();
+        let report = build_pod_profile(
+            &out_of_band,
+            &submission(responses()),
+            &configured_bands[..2],
+        );
         assert!(!report.is_valid());
         assert!(report.profile.is_none());
         assert!(
