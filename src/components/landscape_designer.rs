@@ -57,8 +57,8 @@ impl FeatureKind {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct DesignFeature {
     id: u32,
-    x_m: u16,
-    y_m: u16,
+    x_du: u16,
+    y_du: u16,
     kind: FeatureKind,
 }
 
@@ -92,13 +92,13 @@ impl LandscapeScale {
 
 fn starter_features() -> Vec<DesignFeature> {
     vec![
-        DesignFeature { id: 1, x_m: 180, y_m: 160, kind: FeatureKind::Tree },
-        DesignFeature { id: 2, x_m: 245, y_m: 195, kind: FeatureKind::Tree },
-        DesignFeature { id: 3, x_m: 365, y_m: 250, kind: FeatureKind::PlantingBed },
-        DesignFeature { id: 4, x_m: 430, y_m: 285, kind: FeatureKind::Water },
-        DesignFeature { id: 5, x_m: 540, y_m: 360, kind: FeatureKind::Path },
-        DesignFeature { id: 6, x_m: 740, y_m: 190, kind: FeatureKind::BuiltElement },
-        DesignFeature { id: 7, x_m: 785, y_m: 420, kind: FeatureKind::Tree },
+        DesignFeature { id: 1, x_du: 180, y_du: 160, kind: FeatureKind::Tree },
+        DesignFeature { id: 2, x_du: 245, y_du: 195, kind: FeatureKind::Tree },
+        DesignFeature { id: 3, x_du: 365, y_du: 250, kind: FeatureKind::PlantingBed },
+        DesignFeature { id: 4, x_du: 430, y_du: 285, kind: FeatureKind::Water },
+        DesignFeature { id: 5, x_du: 540, y_du: 360, kind: FeatureKind::Path },
+        DesignFeature { id: 6, x_du: 740, y_du: 190, kind: FeatureKind::BuiltElement },
+        DesignFeature { id: 7, x_du: 785, y_du: 420, kind: FeatureKind::Tree },
     ]
 }
 
@@ -108,7 +108,7 @@ fn snapshot_json(project_name: &str, scale: LandscapeScale, features: &[DesignFe
         "project_name": project_name,
         "scope": scale.key(),
         "coordinate_frame": {
-            "kind": "LOCAL_CARTESIAN_METRES",
+            "kind": "LOCAL_CARTESIAN_DRAWING_UNITS",
             "origin": "canvas top-left",
             "x_axis": "right",
             "y_axis": "down",
@@ -119,8 +119,8 @@ fn snapshot_json(project_name: &str, scale: LandscapeScale, features: &[DesignFe
             "id": format!("feature-{:04}", feature.id),
             "kind": feature.kind.key(),
             "label": feature.kind.label(),
-            "x_m": feature.x_m,
-            "y_m": feature.y_m,
+            "x_du": feature.x_du,
+            "y_du": feature.y_du,
             "status": "design-intent",
             "source": "user-authored-schematic"
         })).collect::<Vec<_>>()
@@ -152,8 +152,8 @@ pub fn LandscapeDesigner() -> impl IntoView {
                 let next_id = features.get_untracked().iter().map(|item| item.id).max().unwrap_or(0) + 1;
                 set_features.update(|items| items.push(DesignFeature {
                     id: next_id,
-                    x_m: x,
-                    y_m: y,
+                    x_du: x,
+                    y_du: y,
                     kind: active_tool.get_untracked(),
                 }));
                 set_export_text.set(String::new());
@@ -253,7 +253,7 @@ pub fn LandscapeDesigner() -> impl IntoView {
 
                     <section class="landscape-section landscape-summary">
                         <p class="landscape-section-label">"CURRENT PLAN"</p>
-                        <div class="landscape-stat"><strong>{move || features.get().len()}</strong><span>"placed elements"</span></div>
+                        <div class="landscape-stat"><strong>{move || features.get().len().to_string()}</strong><span>"placed elements"</span></div>
                         <div class="landscape-stat"><strong>{move || active_scale.get().label()}</strong><span>"declared scale"</span></div>
                         <button class="landscape-button quiet full-width" type="button" on:click=reset>"Reset starter plan"</button>
                     </section>
@@ -265,7 +265,7 @@ pub fn LandscapeDesigner() -> impl IntoView {
                             <p class="landscape-kicker">"UNTITLED LANDSCAPE / CONCEPT 01"</p>
                             <h2>"Living systems plan"</h2>
                         </div>
-                        <div class="landscape-stage-meta"><span>"LOCAL GRID"</span><span>"1000 × 650 m schematic"</span></div>
+                        <div class="landscape-stage-meta"><span>"LOCAL GRID"</span><span>"1000 × 650 schematic units"</span></div>
                     </div>
                     <div class="landscape-canvas-frame">
                         <svg class="landscape-canvas" viewBox="0 0 1000 650" tabindex="0" role="application" aria-label="Schematic landscape canvas. Click to place the selected design element." on:click=place_feature>
@@ -286,10 +286,10 @@ pub fn LandscapeDesigner() -> impl IntoView {
                             <path d="M 45 45 L 935 45 L 955 595 L 65 610 Z" fill="#a6b59b" fill-opacity="0.12" stroke="#6f8a76" stroke-width="3" stroke-dasharray="12 8"/>
                             <text x="70" y="80" fill="#566a5b" font-size="17" letter-spacing="3">"CONCEPTUAL SITE BOUNDARY"</text>
                             <For each=move || features.get() key=|feature| feature.id children=move |feature: DesignFeature| {
-                                let x = feature.x_m.to_string();
-                                let y = feature.y_m.to_string();
-                                let left = feature.x_m.saturating_sub(17).to_string();
-                                let top = feature.y_m.saturating_sub(12).to_string();
+                                let x = feature.x_du.to_string();
+                                let y = feature.y_du.to_string();
+                                let left = feature.x_du.saturating_sub(17).to_string();
+                                let top = feature.y_du.saturating_sub(12).to_string();
                                 let title = feature.kind.label();
                                 match feature.kind {
                                     FeatureKind::Tree => view! {
@@ -302,27 +302,27 @@ pub fn LandscapeDesigner() -> impl IntoView {
                                     FeatureKind::PlantingBed => view! {
                                         <g>
                                             <rect x=left.clone() y=top.clone() width="34" height="24" rx="5" fill="#86a96f" stroke="#4f744d" stroke-width="2"/>
-                                            <path d=format!("M {} {} l 10 16 m 5 -16 l 10 16", feature.x_m.saturating_sub(12), feature.y_m.saturating_sub(8)) fill="none" stroke="#e6efd9" stroke-width="2"/>
+                                            <path d=format!("M {} {} l 10 16 m 5 -16 l 10 16", feature.x_du.saturating_sub(12), feature.y_du.saturating_sub(8)) fill="none" stroke="#e6efd9" stroke-width="2"/>
                                             <title>{title}</title>
                                         </g>
                                     }.into_any(),
                                     FeatureKind::Water => view! {
                                         <g>
-                                            <path d=format!("M {} {} C {} {}, {} {}, {} {} C {} {}, {} {}, {} {}", feature.x_m.saturating_sub(18), feature.y_m, feature.x_m.saturating_sub(10), feature.y_m.saturating_sub(19), feature.x_m.saturating_add(8), feature.y_m.saturating_sub(16), feature.x_m.saturating_add(18), feature.y_m, feature.x_m.saturating_add(25), feature.y_m.saturating_add(15), feature.x_m.saturating_sub(12), feature.y_m.saturating_add(17), feature.x_m.saturating_sub(18), feature.y_m) fill="#5caab4" stroke="#347780" stroke-width="2"/>
+                                            <path d=format!("M {} {} C {} {}, {} {}, {} {} C {} {}, {} {}, {} {}", feature.x_du.saturating_sub(18), feature.y_du, feature.x_du.saturating_sub(10), feature.y_du.saturating_sub(19), feature.x_du.saturating_add(8), feature.y_du.saturating_sub(16), feature.x_du.saturating_add(18), feature.y_du, feature.x_du.saturating_add(25), feature.y_du.saturating_add(15), feature.x_du.saturating_sub(12), feature.y_du.saturating_add(17), feature.x_du.saturating_sub(18), feature.y_du) fill="#5caab4" stroke="#347780" stroke-width="2"/>
                                             <title>{title}</title>
                                         </g>
                                     }.into_any(),
                                     FeatureKind::Path => view! {
                                         <g>
-                                            <path d=format!("M {} {} l 35 18", feature.x_m.saturating_sub(16), feature.y_m.saturating_sub(8)) fill="none" stroke="#c8b785" stroke-width="12" stroke-linecap="round"/>
-                                            <path d=format!("M {} {} l 35 18", feature.x_m.saturating_sub(16), feature.y_m.saturating_sub(8)) fill="none" stroke="#f1e7c6" stroke-width="2" stroke-linecap="round"/>
+                                            <path d=format!("M {} {} l 35 18", feature.x_du.saturating_sub(16), feature.y_du.saturating_sub(8)) fill="none" stroke="#c8b785" stroke-width="12" stroke-linecap="round"/>
+                                            <path d=format!("M {} {} l 35 18", feature.x_du.saturating_sub(16), feature.y_du.saturating_sub(8)) fill="none" stroke="#f1e7c6" stroke-width="2" stroke-linecap="round"/>
                                             <title>{title}</title>
                                         </g>
                                     }.into_any(),
                                     FeatureKind::BuiltElement => view! {
                                         <g>
                                             <rect x=left.clone() y=top.clone() width="34" height="24" rx="2" fill="#b4aaa0" stroke="#716961" stroke-width="2"/>
-                                            <path d=format!("M {} {} l 17 -11 l 17 11", feature.x_m.saturating_sub(17), feature.y_m.saturating_sub(12)) fill="none" stroke="#716961" stroke-width="2"/>
+                                            <path d=format!("M {} {} l 17 -11 l 17 11", feature.x_du.saturating_sub(17), feature.y_du.saturating_sub(12)) fill="none" stroke="#716961" stroke-width="2"/>
                                             <title>{title}</title>
                                         </g>
                                     }.into_any(),
@@ -338,7 +338,7 @@ pub fn LandscapeDesigner() -> impl IntoView {
                     <footer class="landscape-stage-footer">
                         <span><i class="status-dot"></i>"Editor ready"</span>
                         <span>"Selected tool: " {move || active_tool.get().label()}</span>
-                        <span>"Coordinate frame: local metres · not georeferenced"</span>
+                        <span>"Coordinate frame: local drawing units · not georeferenced"</span>
                     </footer>
                     <section class="landscape-export-panel">
                         <div class="landscape-export-header"><div><p class="landscape-section-label">"PORTABLE PROJECT SNAPSHOT"</p><h3>"Draft data"</h3></div><p>"Native JSON · schema v0"</p></div>
@@ -364,7 +364,7 @@ mod tests {
         let value = snapshot_json("fixture", LandscapeScale::Watershed, &features);
         assert_eq!(value["schema"], "luminous.landscape-design.v0");
         assert_eq!(value["scope"], "watershed");
-        assert_eq!(value["coordinate_frame"]["kind"], "LOCAL_CARTESIAN_METRES");
+        assert_eq!(value["coordinate_frame"]["kind"], "LOCAL_CARTESIAN_DRAWING_UNITS");
         assert_eq!(value["coordinate_frame"]["georeferenced"], false);
         assert_eq!(value["features"].as_array().unwrap().len(), 7);
     }
