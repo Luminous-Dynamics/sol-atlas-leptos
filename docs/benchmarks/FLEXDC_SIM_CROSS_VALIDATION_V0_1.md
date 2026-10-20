@@ -12,7 +12,7 @@
 - Reference paper: Acun et al., [*Investigating Power Consumption Flexibility of AI Data Centers for Demand Response Participation*](https://doi.org/10.1145/3744255.3798112), ACM E-Energy 2026.
 - This plan consumes the external simulator as a pinned baseline. No FlexDC-Sim implementation code is copied into the Rust production module and no external Python runtime dependency is added to Sol-Atlas.
 
-The paper reports 18%–55% power flexibility relative to average power for its evaluated RSR cases and up to 20% power reduction in its EDR cases. These are study-specific outputs from the authors' workloads, measured power-performance profiles and simulator setup—not a general law or a Sol-Atlas result. The paper defines normalized RSR error as `abs(P_measured - P_target) / reserve` and requires `Prob(error > 0.3) < 0.10`; the inequality is strict ([Acun et al., ACM E-Energy 2026](https://doi.org/10.1145/3744255.3798112)).
+The paper reports 18%–55% power flexibility relative to average power for its evaluated RSR cases and up to 20% power reduction in its EDR cases. These are study-specific outputs from the authors' workloads, measured power-performance profiles and simulator setup—not a general law or a Sol-Atlas result. The pinned implementation defines the normalized error as `abs(P_measured - P_target) / reserve` and calculates the linear-interpolated p90 of the absolute exported `trackingError` series; its runtime check flags violation when that p90 is greater than 0.3. We separately report the fraction of observations with error >0.3 and a strict `<10%` exceedance-rate statistic, but **do not treat that statistic as equivalent to the implementation's p90 check**. For example, one error of 0.8 among ten samples produces interpolated p90=0.08 (p90 criterion passes) while exactly 10% of samples exceed 0.3 (strict exceedance-rate criterion fails). These details follow the [pinned metric extractor](https://github.com/peaclab/flexdc-sim/blob/ea50bd582b5d1b55fcb09ea46899fa9d325cce3b/src/peacsim/extract_power_metrics.py), [pinned runtime policy](https://github.com/peaclab/flexdc-sim/blob/ea50bd582b5d1b55fcb09ea46899fa9d325cce3b/src/peacsim/aQA_runtimepolicy.py), and the [Acun et al. paper](https://doi.org/10.1145/3744255.3798112).
 
 ## 2. Pinned reference configuration artifacts
 
@@ -65,8 +65,9 @@ The same derived trace should be scored by both FlexDC-Sim's published outputs a
 
 | Metric | Calculation / comparison rule |
 |---|---|
-| RSR p90 normalized tracking error | Compare both the simulator's exported `trackingError` p90 and an explicitly rederived aligned-error p90; explain any mismatch |
-| RSR hard threshold | Fraction of samples where normalized error is strictly greater than 0.3; pass only when the fraction is strictly below 10% |
+| RSR reference decision | Compare exported `trackingError` p90 against 0.3 using the source's linear-interpolated quantile definition |
+| RSR exceedance-rate statistic | Separately report `count(error > 0.3) / n` and whether it is strictly below 10%; do not substitute it for FlexDC-Sim's p90 decision |
+| Recomputed aligned error | Independently compute errors only after documenting exact target/sample alignment and denominator; compare p90 and exceedance-rate outputs to the source-native series |
 | Target tracking | Mean absolute error, p90 error, max error, sign/ramp response and time above threshold |
 | QoS | Per-job-type QoS/deadline violations, unfinished/queued job counts, completed/accepted jobs, and sojourn time distribution |
 | EDR | Baseline/event kWh, gross curtailment, rebound, net reduction, peak overshoot and unserved/unfinished workloads |
