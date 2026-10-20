@@ -2030,6 +2030,7 @@ dependencies = [
  "mycelix-leptos-core",
  "serde",
  "serde_json",
+ "sha2",
  "sol-atlas-core",
  "wasm-bindgen",
  "wasm-bindgen-futures",
