@@ -141,11 +141,16 @@ def main() -> int:
     fixture = load_json(FIXTURE_PATH)
 
     expect_valid("committed synthetic trace fixture", input_validator, fixture)
+    report = known_answer_report()
     expect_valid(
         "synthetic known-answer report shape",
         report_validator,
-        known_answer_report(),
+        report,
     )
+    assert report["metrics"]["rsr"]["p90_threshold_satisfied"] is True
+    assert report["metrics"]["rsr"]["exceedance_rate_requirement_satisfied"] is False
+    assert report["metrics"]["rsr_reference"]["p90_threshold_satisfied"] is True
+    print("PASS p90 criterion and 10% exceedance criterion kept distinct")
 
     mutation = copy.deepcopy(fixture)
     mutation["claim_ceiling"] = "quality_accepted_work_per_kwh"
@@ -190,7 +195,7 @@ def main() -> int:
     mutation["metrics"]["additional_score"] = 1000000
     expect_invalid("report rejects unknown metric fields", report_validator, mutation)
 
-    print("PASS 11 demand-response schema assertions completed; no external data used")
+    print("PASS 12 demand-response schema assertions completed; no external data used")
     return 0
 
 
