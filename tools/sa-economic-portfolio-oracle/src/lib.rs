@@ -738,24 +738,26 @@ mod tests {
         let mut minimum = [i64::MAX; 4];
         let mut maximum = [i64::MIN; 4];
         for (_, values) in &entries {
-            for index in 0..4 {
-                minimum[index] = minimum[index].min(values[index]);
-                maximum[index] = maximum[index].max(values[index]);
+            for (index, value) in values.iter().enumerate() {
+                minimum[index] = minimum[index].min(*value);
+                maximum[index] = maximum[index].max(*value);
             }
         }
 
         let mut scored: Vec<(String, f64)> = entries
             .into_iter()
             .map(|(key, values)| {
-                let score = (0..4)
-                    .map(|index| {
+                let score = weights
+                    .iter()
+                    .enumerate()
+                    .map(|(index, weight)| {
                         let normalized = if maximum[index] == minimum[index] {
                             1.0
                         } else {
                             (values[index] - minimum[index]) as f64
                                 / (maximum[index] - minimum[index]) as f64
                         };
-                        weights[index] * normalized
+                        weight * normalized
                     })
                     .sum();
                 (key, score)
@@ -1051,17 +1053,15 @@ mod tests {
             vec!["F+J".to_owned(), "F+J+R".to_owned(), "J+R".to_owned()]
         );
 
-        let surviving_frontier: Vec<&Portfolio> = surviving
-            .iter()
-            .enumerate()
-            .filter(|(candidate_index, candidate)| {
-                !surviving.iter().enumerate().any(|(other_index, other)| {
-                    candidate_index != &other_index
-                        && dominates(other, candidate, &input.scenarios)
-                })
-            })
-            .map(|(_, portfolio)| *portfolio)
-            .collect();
+        let mut surviving_frontier: Vec<&Portfolio> = Vec::new();
+        for (candidate_index, candidate) in surviving.iter().enumerate() {
+            let is_dominated = surviving.iter().enumerate().any(|(other_index, other)| {
+                other_index != candidate_index && dominates(other, candidate, &input.scenarios)
+            });
+            if !is_dominated {
+                surviving_frontier.push(*candidate);
+            }
+        }
         assert_eq!(
             surviving_frontier
                 .iter()
