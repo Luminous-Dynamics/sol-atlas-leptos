@@ -22,17 +22,17 @@ These are capability references, not a benchmark result or a claim of parity.
 
 Route: **/design/landscape**.
 
-- Canvas: responsive 1000 × 650 schematic coordinate plane, illustrative boundary and contours.
+- Canvas: responsive 1000 × 650 local drawing-unit plane, illustrative boundary and contours.
 - Tools: canopy tree, planting bed, water feature, path, built element.
 - Interaction: select tool; click canvas to place; undo latest placement; reset to deterministic starter plan.
 - Scope context: site/parcel, district, watershed, bioregion. In v0 this labels the intended planning context; it does not rescale or georeference the geometry.
 - Layer controls: measurement grid and illustrative contours.
-- Export: visible, parseable native JSON draft snapshot with schema version, scope, stable feature IDs, local metre coordinates, source/status tags, and an explicit georeferenced=false declaration.
+- Export: visible, parseable native JSON draft snapshot with schema version, scope, stable feature IDs, local drawing-unit coordinates, source/status tags, and an explicit georeferenced=false declaration.
 - Local-first: this slice does not upload or remotely save the design.
 
 ### Coordinate contract
 
-LOCAL_CARTESIAN_METRES is a project-local drawing frame, with canvas top-left as origin, X rightward, and Y downward to match the screen. It is not a map CRS, surveyed boundary, or geographic claim. Never emit these coordinates as RFC 7946 longitude/latitude. A later GIS import/export path must preserve source CRS metadata, apply a real coordinate transform, and fail closed when transformation or datum-grid requirements are unsatisfied.
+LOCAL_CARTESIAN_METRES is a project-local drawing frame, with canvas top-left as origin, X rightward, and Y downward to match the screen. These are arbitrary drawing units, not metres, a map CRS, surveyed boundary, or geographic claim. Never emit these coordinates as RFC 7946 longitude/latitude. A later GIS import/export path must preserve source CRS metadata, apply a real coordinate transform, and fail closed when transformation or datum-grid requirements are unsatisfied.
 
 ### Native snapshot example
 
@@ -41,7 +41,7 @@ LOCAL_CARTESIAN_METRES is a project-local drawing frame, with canvas top-left as
       "project_name": "Untitled landscape",
       "scope": "site-parcel",
       "coordinate_frame": {
-        "kind": "LOCAL_CARTESIAN_METRES",
+        "kind": "LOCAL_CARTESIAN_DRAWING_UNITS",
         "origin": "canvas top-left",
         "x_axis": "right",
         "y_axis": "down",
@@ -52,8 +52,8 @@ LOCAL_CARTESIAN_METRES is a project-local drawing frame, with canvas top-left as
         {
           "id": "feature-0001",
           "kind": "tree",
-          "x_m": 180,
-          "y_m": 160,
+          "x_du": 180,
+          "y_du": 160,
           "status": "design-intent",
           "source": "user-authored-schematic"
         }
