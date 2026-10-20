@@ -161,6 +161,8 @@ struct StoredOperationV1 {
     schema_version: u16,
     owner_scope: String,
     operation_namespace: String,
+    request_fingerprint_schema_version: u16,
+    request_fingerprint_sha256: String,
     snapshot: JournalEntrySnapshotV1,
 }
 
@@ -181,11 +183,52 @@ impl StoredOperationV1 {
                 "stored operation has an empty namespace".into(),
             ));
         }
+        if self.request_fingerprint_schema_version
+            != sol_atlas_core::offline_idempotency_fingerprint::REQUEST_FINGERPRINT_SCHEMA_VERSION
+        {
+            return Err(IndexedDbJournalError(
+                "unsupported stored request fingerprint schema".into(),
+            ));
+        }
+        if !is_sha256_lower_hex(&self.request_fingerprint_sha256) {
+            return Err(IndexedDbJournalError(
+                "stored request fingerprint must be 64 lowercase hexadecimal characters".into(),
+            ));
+        }
         Ok(())
     }
 
     fn matches_scope(&self, owner_scope: &str, operation_namespace: &str) -> bool {
         self.owner_scope == owner_scope && self.operation_namespace == operation_namespace
+    }
+
+    /// Rebuilds the immutable entry and verifies the stored request fingerprint
+    /// over the exact canonical payload bytes. A changed scope, body, envelope,
+    /// or fingerprint must fail closed before dispatch or reply reconciliation.
+    fn validate_entry(&self, operation_id: &str) -> Result<JournalEntry, IndexedDbJournalError> {
+        self.validate()?;
+        let entry = JournalEntry::from_snapshot_for_operation(
+            operation_id,
+            self.snapshot.clone(),
+        )
+        .map_err(IndexedDbJournalError::from)?;
+        let canonical_payload = std::str::from_utf8(entry.canonical_payload_utf8())
+            .map_err(|error| {
+                IndexedDbJournalError(format!("canonical payload is not UTF-8: {error}"))
+            })?;
+        let actual = sol_atlas_core::offline_idempotency_fingerprint::canonical_request_fingerprint_sha256(
+            &self.owner_scope,
+            &self.operation_namespace,
+            entry.envelope(),
+            canonical_payload,
+        )
+        .map_err(|error| IndexedDbJournalError(error.to_string()))?;
+        if actual != self.request_fingerprint_sha256 {
+            return Err(IndexedDbJournalError(
+                "stored request fingerprint does not match immutable operation content".into(),
+            ));
+        }
+        Ok(entry)
     }
 }
 
@@ -1330,6 +1373,14 @@ fn scoped_idempotency_key(
     serde_json::to_string(&(owner_scope, operation_namespace, idempotency_key)).map_err(|error| {
         IndexedDbJournalError(format!("idempotency index key encoding failed: {error}"))
     })
+}
+
+fn is_sha256_lower_hex(value: &str) -> bool {
+    value.len() == 64
+        && value
+            .as_bytes()
+            .iter()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(byte))
 }
 
 fn is_pending(state: &JournalState) -> bool {
