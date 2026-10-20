@@ -60,6 +60,13 @@ LOCAL_CARTESIAN_METRES is a project-local drawing frame, with canvas top-left as
       ]
     }
 
+### Machine-readable contract and benchmark manifest
+
+- JSON Schema: [schemas/landscape-design-v0.schema.json](../schemas/landscape-design-v0.schema.json). Every snapshot declares the schema URI as well as its schema version.
+- Frozen deterministic workload protocol: [benchmarks/landscape/workloads-v0.json](../benchmarks/landscape/workloads-v0.json). This defines feature counts, a seeded generator, action traces, raw measurements and negative controls. It contains no measured performance claims.
+- Benchmark implementation work: [LAND-BENCH-001](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/195).
+- Outcome/performance metric registry work: [LAND-METRICS-001](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/197).
+
 ## Rust-first architecture and repository boundaries
 
 ### Sol-Atlas — map and editor system of record
