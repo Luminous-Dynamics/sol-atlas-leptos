@@ -35,6 +35,12 @@ A permit is not a network result and is not proof that the payload reached the s
 
 `load(operation_id, owner_scope, operation_namespace)` validates every recovered row and returns no visible record when the owner/namespace differs. `list_pending(owner_scope, operation_namespace, after, limit)` enumerates the shared scheduling index but returns only records bound to the requested owner and namespace; an empty page may still carry a cursor when the scanned rows belong to other accounts. The returned page is not snapshot-isolated because records may change while pages are fetched. A scheduler must restart full recovery scans from the beginning and call `begin_attempt` before any dispatch. A missing operation referenced by the pending index is a hard error rather than silently skipped.
 
+## Portable export
+
+`export_bundle(owner_scope)` reads `getAllKeys` and `getAll` for the operation store inside one readonly IndexedDB transaction, waits for transaction completion, checks that key/value results line up, validates every owner-bound record and checks each storage key against the snapshot's operation ID. Only after validation does it filter to the requested owner and build the canonical integrity-checked bundle. A corrupt or legacy snapshot-only row blocks export instead of silently disappearing.
+
+This is a consistent **read-only** export, not a backup system. It returns plaintext canonical JSON, does not upload it, does not mutate the journal and does not implement restore/import. Keep the bundle protected by the caller; payloads can contain sensitive information. The manifest digest detects accidental corruption, not malicious tampering.
+
 ## Durability truthfulness
 
 Every readwrite transaction requests `durability: "strict"` where the browser accepts the transaction-options overload. If the overload throws a `TypeError`, the adapter retries without options and records `BrowserDefaultFallback`. `DispatchPermit::durability_policy()` reports the policy used for that permit's pre-dispatch transaction. No strict-durability guarantee is claimed when the fallback is in effect.
