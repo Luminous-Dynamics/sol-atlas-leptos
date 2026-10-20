@@ -77,14 +77,16 @@ jobs:
 
       - name: Compare exact enumeration and search on ten-project fixture
         run: >-
-          target/release/sa-economic-portfolio-oracle --compare-bench
+          cargo run --release --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml --
+          --compare-bench
           docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.json
           docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.expected.json
           21 > sa-economic-portfolio-v0.2-comparison-benchmark.json
 
       - name: Measure 24-project adversarial search (21 repetitions)
         run: >-
-          target/release/sa-economic-portfolio-oracle --bench-search
+          cargo run --release --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml --
+          --bench-search
           docs/research/fixtures/sa-economic-portfolio-v0.2-24-project.json
           docs/research/fixtures/sa-economic-portfolio-v0.2-24-project.search-expected.json
           21 > sa-economic-portfolio-v0.2-24-search-benchmark.json
