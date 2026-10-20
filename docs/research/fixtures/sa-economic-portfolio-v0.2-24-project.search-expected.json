@@ -23,6 +23,10 @@
         "P2": {
           "cost_u": 5,
           "crew_u": 2
+        },
+        "P3": {
+          "cost_u": 0,
+          "crew_u": 0
         }
       },
       "outcomes": {
@@ -55,6 +59,10 @@
         "P2": {
           "cost_u": 5,
           "crew_u": 2
+        },
+        "P3": {
+          "cost_u": 0,
+          "crew_u": 0
         }
       },
       "outcomes": {
@@ -87,6 +95,10 @@
         "P2": {
           "cost_u": 6,
           "crew_u": 3
+        },
+        "P3": {
+          "cost_u": 0,
+          "crew_u": 0
         }
       },
       "outcomes": {
@@ -119,6 +131,10 @@
         "P2": {
           "cost_u": 6,
           "crew_u": 3
+        },
+        "P3": {
+          "cost_u": 0,
+          "crew_u": 0
         }
       },
       "outcomes": {
