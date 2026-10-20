@@ -31,12 +31,14 @@
     },
     "observation_id": {
       "type": "string",
-      "pattern": "^obs-[A-Za-z0-9][A-Za-z0-9._:-]{7,123}$"
+      "pattern": "^obs-[A-Za-z0-9][A-Za-z0-9._:-]{7,123}$",
+      "maxLength": 128
     },
     "source_event_id": {
       "type": "string",
       "minLength": 1,
-      "maxLength": 256
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9._:-]{1,256}$"
     },
     "project_ref": {
       "type": "object",
@@ -59,7 +61,8 @@
             "string",
             "null"
           ],
-          "pattern": "^feature-[0-9]{4,}$"
+          "pattern": "^feature-[0-9]{4,20}$",
+          "maxLength": 28
         },
         "site_ref_sha256": {
           "type": [
@@ -110,7 +113,8 @@
         "id": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 2048
+          "maxLength": 2048,
+          "pattern": "^(https?://.+|urn:.+)$"
         },
         "label": {
           "type": "string",
@@ -123,7 +127,8 @@
             "null"
           ],
           "minLength": 1,
-          "maxLength": 256
+          "maxLength": 256,
+          "pattern": "^[a-z0-9_-]+(\\.[a-z0-9_-]+)*$"
         },
         "unit": {
           "type": [
@@ -179,7 +184,8 @@
             "vocabulary_uri": {
               "type": "string",
               "minLength": 1,
-              "maxLength": 2048
+              "maxLength": 2048,
+              "pattern": "^(https?://.+|urn:.+)$"
             }
           }
         },
@@ -241,12 +247,14 @@
         "source_id": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 256
+          "maxLength": 256,
+          "pattern": "^[A-Za-z0-9._:-]{1,256}$"
         },
         "source_uri": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 2048
+          "maxLength": 2048,
+          "pattern": "^(https?://.+|urn:.+)$"
         },
         "source_version": {
           "type": "string",
@@ -260,7 +268,8 @@
         "method_uri": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 2048
+          "maxLength": 2048,
+          "pattern": "^(https?://.+|urn:.+)$"
         },
         "method_version": {
           "type": "string",
@@ -381,7 +390,8 @@
                 "null"
               ],
               "minLength": 1,
-              "maxLength": 2048
+              "maxLength": 2048,
+              "pattern": "^(https?://.+|urn:.+)$"
             },
             "reason_code": {
               "type": [
@@ -601,7 +611,8 @@
           "activity_uri": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 2048
+            "maxLength": 2048,
+            "pattern": "^(https?://.+|urn:.+)$"
           },
           "activity_version": {
             "type": "string",
