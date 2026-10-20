@@ -67,6 +67,21 @@ The current MLPerf Endpoints v1.0 guidance makes an important boundary explicit:
 
 A complementary grid-facing proposal, [*A net-grid-benefit test for interconnecting AI data centres* (npj Environmental Social Sciences, 4 June 2026)](https://www.nature.com/articles/s44432-026-00013-5), argues for evaluating interconnection contributions against a passive-load counterfactual, including auditable hour-by-hour clean-power matching with deliverability screens, verified fast frequency-response/regulation telemetry, and useful waste-heat recovery where feasible. We should benchmark these as distinct, verifiable services—not as automatic credits or a universal interconnection rule. A claimed grid-service benefit needs event telemetry, response latency, duration, rebound and a clear counterfactual.
 
+A practical capacity-state example: on 19 October 2026, Reuters reported Microsoft withdrew from a proposed 50 MW UK data-centre deal after grid-power connection timing shifted into the 2030s. This is evidence about one project, not a universal estimate. The model should therefore distinguish **announced**, **contracted**, **commissioned**, and **firm-deliverable** capacity, and only the last should count as assured supply for a scenario's declared interval and conditions. [Reuters, 19 October 2026](https://www.reuters.com/business/media-telecom/microsoft-pulls-out-uk-data-center-deal-with-nscale-telegraph-reports-2026-10-18/)
+
+### Grid contribution: prove additionality, not intent
+
+The next benchmark layer should compare a candidate's actions against a passive-load counterfactual with the **same accepted workload, quality, deadlines and facility boundary**. Report grid effects separately from private site cost:
+
+- **Locational relief:** MW and MWh reduced at the constrained node, affected hours, and the qualified grid model used. Do not assume that shifting demand automatically avoids generation or transmission investment.
+- **Response service:** event-triggered response latency, MW/min ramp, sustained MWh, duration, telemetry completeness, dispatch success rate, recovery time and rebound peaks.
+- **Clean-power deliverability:** hourly matching, location/connection deliverability and separately reported average versus marginal emissions factors. Annual contract matching alone does not prove hourly physical delivery.
+- **Resource burden:** water by source and local stress, storage degradation, heat actually accepted at usable temperature, and pumping/heat-pump energy. Optional heat revenue cannot count as cooling safety.
+- **No double-counting:** the same battery or interruptible load cannot be credited simultaneously for incompatible grid services; declare reserve commitments and availability windows.
+- **Distribution and robustness:** show whether shifting moves congestion or water stress to another region and how benefits change under outages, hot weather and uncertain grid factors.
+
+Accept a grid-service claim only when the baseline, boundary, telemetry, uncertainty and external solver/model version are explicit. A schedule can be optimal for the operator's local cost objective and still fail a system-level additionality test. That is why the scorecard retains the full Pareto set instead of manufacturing a single sustainability score.
+
 These sources motivate the problem and provide comparison context; they do not validate this synthetic model.
 
 
