@@ -698,11 +698,12 @@ impl IndexedDbJournal {
         operation_id: &str,
         reply: &ServiceReply,
     ) -> Result<ReconcileOutcome, IndexedDbJournalError> {
-        let store_names = [OPERATIONS, PENDING_OPERATIONS];
+        let store_names = [OPERATIONS, PENDING_OPERATIONS, DISPATCH_LEASES];
         let (transaction, _policy) = self.transaction(&store_names, "readwrite")?;
         let transaction_done = transaction_promise(transaction.clone());
         let operations = object_store(&transaction, OPERATIONS)?;
         let pending = object_store(&transaction, PENDING_OPERATIONS)?;
+        let leases = object_store(&transaction, DISPATCH_LEASES)?;
         let request = call_method(&operations, "get", &[JsValue::from_str(operation_id)])
             .map_err(js_error)?;
         let output: Rc<RefCell<Option<Result<ReconcileOutcome, IndexedDbJournalError>>>> =
@@ -713,6 +714,7 @@ impl IndexedDbJournal {
             let output = output.clone();
             let operations = operations.clone();
             let pending = pending.clone();
+            let leases = leases.clone();
             let transaction = transaction.clone();
             let op_id = operation_id.to_owned();
             let reply = reply.clone();
@@ -799,6 +801,13 @@ impl IndexedDbJournal {
                     }
                 } else if let Err(error) =
                     call_method(&pending, "delete", &[JsValue::from_str(&op_id)])
+                {
+                    *output.borrow_mut() = Some(Err(js_error(error)));
+                    let _ = call_method(&transaction, "abort", &[]);
+                    return;
+                }
+                if let Err(error) =
+                    call_method(&leases, "delete", &[JsValue::from_str(&op_id)])
                 {
                     *output.borrow_mut() = Some(Err(js_error(error)));
                     let _ = call_method(&transaction, "abort", &[]);
