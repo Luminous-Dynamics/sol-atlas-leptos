@@ -1530,3 +1530,92 @@ mod dispatch_lease_tests {
         assert!(no_lifetime.validate("op-lease-test").is_err());
     }
 }
+
+
+#[cfg(test)]
+mod owner_scope_tests {
+    use super::{
+        STORED_OPERATION_SCHEMA_VERSION, StoredOperationV1, require_scope, scoped_idempotency_key,
+    };
+    use sol_atlas_core::offline_journal::{
+        OFFLINE_JOURNAL_SCHEMA_VERSION, JournalEntry, OperationEnvelope,
+        RequiredNullableOperationId,
+    };
+    use sol_atlas_core::offline_payload_digest::canonical_payload_digest_sha256;
+
+    const PAYLOAD: &str = r#"{"x":1}"#;
+
+    fn stored_operation() -> StoredOperationV1 {
+        let envelope = OperationEnvelope {
+            schema_version: OFFLINE_JOURNAL_SCHEMA_VERSION,
+            operation_id: "op-owner-test".to_owned(),
+            aggregate_id: "aggregate-1".to_owned(),
+            expected_revision: 0,
+            payload_digest_sha256: canonical_payload_digest_sha256(PAYLOAD).unwrap(),
+            idempotency_key: "idem-1".to_owned(),
+            supersedes_operation_id: RequiredNullableOperationId::Null(()),
+        };
+        let entry = JournalEntry::prepare(envelope, PAYLOAD).unwrap();
+        StoredOperationV1 {
+            schema_version: STORED_OPERATION_SCHEMA_VERSION,
+            owner_scope: "tenant-a".to_owned(),
+            operation_namespace: "work-order.apply".to_owned(),
+            snapshot: entry.to_snapshot().unwrap(),
+        }
+    }
+
+    #[test]
+    fn stored_operation_requires_exact_owner_and_namespace() {
+        let stored = stored_operation();
+        assert!(stored.validate().is_ok());
+        assert!(stored.matches_scope("tenant-a", "work-order.apply"));
+        assert!(!stored.matches_scope("tenant-b", "work-order.apply"));
+        assert!(!stored.matches_scope("tenant-a", "work-order.cancel"));
+
+        assert!(require_scope("tenant-a", "work-order.apply").is_ok());
+        assert!(require_scope("  ", "work-order.apply").is_err());
+        assert!(require_scope("tenant-a", "").is_err());
+    }
+
+    #[test]
+    fn idempotency_index_keys_are_unique_by_owner_namespace_and_raw_key() {
+        let a = scoped_idempotency_key("tenant-a", "work-order.apply", "same-key").unwrap();
+        let b = scoped_idempotency_key("tenant-b", "work-order.apply", "same-key").unwrap();
+        let c = scoped_idempotency_key("tenant-a", "work-order.cancel", "same-key").unwrap();
+        let d = scoped_idempotency_key("tenant-a", "work-order.apply", "other-key").unwrap();
+        assert_ne!(a, b);
+        assert_ne!(a, c);
+        assert_ne!(a, d);
+
+        // JSON tuple serialization avoids collisions caused by ad-hoc delimiters.
+        let left = scoped_idempotency_key("tenant:a", "work-order.apply", "key").unwrap();
+        let right = scoped_idempotency_key("tenant", "a:work-order.apply", "key").unwrap();
+        assert_ne!(left, right);
+    }
+
+    #[test]
+    fn owner_bound_record_roundtrips_and_legacy_snapshot_is_not_a_record() {
+        let stored = stored_operation();
+        let serialized = serde_json::to_string(&stored).unwrap();
+        let decoded: StoredOperationV1 = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(decoded, stored);
+
+        let legacy_snapshot = serde_json::to_string(&stored.snapshot).unwrap();
+        assert!(serde_json::from_str::<StoredOperationV1>(&legacy_snapshot).is_err());
+    }
+
+    #[test]
+    fn owner_record_rejects_unknown_storage_schema_and_empty_scope() {
+        let mut unknown = stored_operation();
+        unknown.schema_version += 1;
+        assert!(unknown.validate().is_err());
+
+        let mut empty_owner = stored_operation();
+        empty_owner.owner_scope = " ".to_owned();
+        assert!(empty_owner.validate().is_err());
+
+        let mut empty_namespace = stored_operation();
+        empty_namespace.operation_namespace.clear();
+        assert!(empty_namespace.validate().is_err());
+    }
+}
