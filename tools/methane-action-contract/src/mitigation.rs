@@ -40,6 +40,17 @@ pub struct MitigationPolicy {
     pub minimum_followup_span_seconds: u64,
 }
 
+pub struct MitigationAssessmentRequest<'data, 'bytes> {
+    pub intervention: &'data InterventionRecord,
+    pub baseline_observation_id: &'data str,
+    pub followup_observation_ids: &'data [String],
+    pub observations: &'data [Observation],
+    pub associations: &'data [SourceAssociation],
+    pub required_use: DataUse,
+    pub artifact_snapshots: &'data [ArtifactSnapshot<'bytes>],
+    pub policy: MitigationPolicy,
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct MitigationEstimate {
     pub baseline_rate_kg_h: f64,
@@ -98,15 +109,18 @@ struct InterventionArtifactExpectation<'a> {
 /// This returns rate bounds only; it never extrapolates to tonnes avoided over an assumed
 /// duration.
 pub fn assess_mitigation(
-    intervention: &InterventionRecord,
-    baseline_observation_id: &str,
-    followup_observation_ids: &[String],
-    observations: &[Observation],
-    associations: &[SourceAssociation],
-    required_use: DataUse,
-    artifact_snapshots: &[ArtifactSnapshot<'_>],
-    policy: MitigationPolicy,
+    request: MitigationAssessmentRequest<'_, '_>,
 ) -> MitigationAssessmentReport {
+    let MitigationAssessmentRequest {
+        intervention,
+        baseline_observation_id,
+        followup_observation_ids,
+        observations,
+        associations,
+        required_use,
+        artifact_snapshots,
+        policy,
+    } = request;
     let mut report = MitigationAssessmentReport::default();
     let intervention_id = intervention.intervention_id.as_str();
 
@@ -736,19 +750,20 @@ mod tests {
         associations: &[SourceAssociation],
         artifacts: &[ArtifactSnapshot<'_>],
     ) -> MitigationAssessmentReport {
-        assess_mitigation(
+        let followup_ids = ["after-1".into(), "after-2".into()];
+        assess_mitigation(MitigationAssessmentRequest {
             intervention,
-            "before",
-            &["after-1".into(), "after-2".into()],
+            baseline_observation_id: "before",
+            followup_observation_ids: &followup_ids,
             observations,
             associations,
-            DataUse::ResearchNonCommercial,
-            artifacts,
-            MitigationPolicy {
+            required_use: DataUse::ResearchNonCommercial,
+            artifact_snapshots: artifacts,
+            policy: MitigationPolicy {
                 minimum_followup_count: 2,
                 minimum_followup_span_seconds: 86_400,
             },
-        )
+        })
     }
 
     #[test]
