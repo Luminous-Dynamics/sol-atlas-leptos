@@ -24,7 +24,7 @@ Route: **/design/landscape**.
 
 - Canvas: responsive 1000 × 650 local drawing-unit plane, illustrative boundary and contours.
 - Tools: canopy tree, planting bed, water feature, path, built element.
-- Interaction: select tool; click canvas to place; click an existing symbol to select it; inspect its anchor; delete the selected element; undo latest placement; reset to deterministic starter plan.
+- Interaction: select tool; click canvas to place; pointer or keyboard-select an existing symbol; inspect its anchor; delete the selected element; undo the last add/delete command; reset to deterministic starter plan.
 - Scope context: site/parcel, district, watershed, bioregion. In v0 this labels the intended planning context; it does not rescale or georeference the geometry.
 - Layer controls: measurement grid and illustrative contours.
 - Project metadata: editable project name in the UI.
@@ -66,6 +66,13 @@ LOCAL_CARTESIAN_METRES is a project-local drawing frame, with canvas top-left as
         }
       ]
     }
+
+### Strict Rust validation and edit history
+
+- `src/landscape.rs` is a reusable, pure-Rust validation boundary for schema identity, coordinate-frame claims, scope, project name, allowed fields, unique IDs, feature kind/label coherence, anchor bounds, and design-intent tags.
+- The editor runs the validator before exposing a downloadable snapshot; failure clears the export payload and displays the validation errors.
+- Native tests cover malformed roots, unsupported scopes, duplicate IDs, out-of-bounds anchors, mismatched type/label, unknown fields, georeferencing claims and parity between Rust constants and the committed JSON Schema.
+- Editor undo is command-aware: undoing an add removes only that addition; undoing a delete restores the removed feature at its original position. Symbol selection is keyboard accessible; Enter/Space select a focused symbol rather than creating an accidental new feature.
 
 ### Machine-readable contract and benchmark manifest
 
@@ -177,3 +184,6 @@ Targets become product gates only after the reference hardware and benchmark har
 
 
 The starter fixture is canonical only for the schematic v0 symbol-anchor representation; it does not carry surveyed geometry, physical dimensions, or measured impact values.
+
+
+Durable native save/load, real geometry types and CRS-safe interchange are tracked in [LAND-DOC-001](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/198). The v0 validator only qualifies the current schematic symbol-anchor format; it does not validate geospatial truth or ecological/engineering claims.
