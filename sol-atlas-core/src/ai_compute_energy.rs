@@ -206,7 +206,10 @@ pub fn assess(request: &Request) -> Assessment {
             ),
             ("cooling_water_limit_l", interval.cooling_water_limit_l),
             ("water_l_per_it_kwh", interval.water_l_per_it_kwh),
-            ("grid_carbon_intensity_gco2_per_kwh", interval.grid_carbon_intensity_gco2_per_kwh),
+            (
+                "grid_carbon_intensity_gco2_per_kwh",
+                interval.grid_carbon_intensity_gco2_per_kwh,
+            ),
         ] {
             if let Some(value) = value {
                 if !finite_nonnegative(value) {
@@ -507,7 +510,6 @@ pub fn assess(request: &Request) -> Assessment {
     }
 }
 
-
 /// Scheduling objective for homogeneous, fully horizon-flexible deferrable work.
 ///
 /// This transparent baseline ladder holds first-order interval capacity and
@@ -579,35 +581,52 @@ pub fn schedule_deferrable(
         AssessmentStatus::Feasible | AssessmentStatus::CapacityLimited
     ) {
         return DeferrableScheduleAssessment::no_schedule(
-            capacity.status, policy, capacity.blockers,
+            capacity.status,
+            policy,
+            capacity.blockers,
         );
     }
 
     let intervals = &request.intervals;
-    let per_interval_capacity = capacity.interval_assessments
-        .iter().map(|row| row.max_deferrable_work_units).collect::<Vec<_>>();
+    let per_interval_capacity = capacity
+        .interval_assessments
+        .iter()
+        .map(|row| row.max_deferrable_work_units)
+        .collect::<Vec<_>>();
 
     let mut blockers = Vec::new();
     match policy {
         SchedulingPolicy::EarliestReady => {}
         SchedulingPolicy::LowestCost => {
             for (index, interval) in intervals.iter().enumerate() {
-                if per_interval_capacity[index] > 0 && interval.electricity_price_usd_per_kwh.is_none() {
-                    blockers.push(format!("interval_{}_electricity_price_unknown", interval.id));
+                if per_interval_capacity[index] > 0
+                    && interval.electricity_price_usd_per_kwh.is_none()
+                {
+                    blockers.push(format!(
+                        "interval_{}_electricity_price_unknown",
+                        interval.id
+                    ));
                 }
             }
         }
         SchedulingPolicy::LowestCarbon => {
             for (index, interval) in intervals.iter().enumerate() {
-                if per_interval_capacity[index] > 0 && interval.grid_carbon_intensity_gco2_per_kwh.is_none() {
-                    blockers.push(format!("interval_{}_grid_carbon_intensity_unknown", interval.id));
+                if per_interval_capacity[index] > 0
+                    && interval.grid_carbon_intensity_gco2_per_kwh.is_none()
+                {
+                    blockers.push(format!(
+                        "interval_{}_grid_carbon_intensity_unknown",
+                        interval.id
+                    ));
                 }
             }
         }
     }
     if !blockers.is_empty() {
         return DeferrableScheduleAssessment::no_schedule(
-            AssessmentStatus::Indeterminate, policy, blockers,
+            AssessmentStatus::Indeterminate,
+            policy,
+            blockers,
         );
     }
 
@@ -615,36 +634,56 @@ pub fn schedule_deferrable(
     match policy {
         SchedulingPolicy::EarliestReady => {}
         SchedulingPolicy::LowestCost => order.sort_by(|left, right| {
-            let left_score = intervals[*left].electricity_price_usd_per_kwh.unwrap_or(0.0)
-                * intervals[*left].facility_energy_per_it_energy.unwrap_or(1.0);
-            let right_score = intervals[*right].electricity_price_usd_per_kwh.unwrap_or(0.0)
-                * intervals[*right].facility_energy_per_it_energy.unwrap_or(1.0);
+            let left_score = intervals[*left]
+                .electricity_price_usd_per_kwh
+                .unwrap_or(0.0)
+                * intervals[*left]
+                    .facility_energy_per_it_energy
+                    .unwrap_or(1.0);
+            let right_score = intervals[*right]
+                .electricity_price_usd_per_kwh
+                .unwrap_or(0.0)
+                * intervals[*right]
+                    .facility_energy_per_it_energy
+                    .unwrap_or(1.0);
             left_score.total_cmp(&right_score).then_with(|| left.cmp(right))
         }),
         SchedulingPolicy::LowestCarbon => order.sort_by(|left, right| {
-            let left_score = intervals[*left].grid_carbon_intensity_gco2_per_kwh.unwrap_or(0.0)
-                * intervals[*left].facility_energy_per_it_energy.unwrap_or(1.0);
-            let right_score = intervals[*right].grid_carbon_intensity_gco2_per_kwh.unwrap_or(0.0)
-                * intervals[*right].facility_energy_per_it_energy.unwrap_or(1.0);
+            let left_score = intervals[*left]
+                .grid_carbon_intensity_gco2_per_kwh
+                .unwrap_or(0.0)
+                * intervals[*left]
+                    .facility_energy_per_it_energy
+                    .unwrap_or(1.0);
+            let right_score = intervals[*right]
+                .grid_carbon_intensity_gco2_per_kwh
+                .unwrap_or(0.0)
+                * intervals[*right]
+                    .facility_energy_per_it_energy
+                    .unwrap_or(1.0);
             left_score.total_cmp(&right_score).then_with(|| left.cmp(right))
         }),
     }
 
     let Some(first_workload) = request.workloads.first() else {
         return DeferrableScheduleAssessment::no_schedule(
-            AssessmentStatus::Invalid, policy, vec!["workloads_empty".to_owned()],
+            AssessmentStatus::Invalid,
+            policy,
+            vec!["workloads_empty".to_owned()],
         );
     };
     let unit_energy = first_workload.energy_kwh_per_work_unit;
     if !unit_energy.is_finite() || unit_energy <= 0.0 {
         return DeferrableScheduleAssessment::no_schedule(
-            AssessmentStatus::Invalid, policy,
+            AssessmentStatus::Invalid,
+            policy,
             vec!["common_work_energy_coefficient_missing_or_invalid".to_owned()],
         );
     }
     let Some(scheduled_work_units) = capacity.max_deferrable_work_units else {
         return DeferrableScheduleAssessment::no_schedule(
-            AssessmentStatus::Invalid, policy,
+            AssessmentStatus::Invalid,
+            policy,
             vec!["capacity_evaluator_returned_no_deferrable_total".to_owned()],
         );
     };
@@ -658,7 +697,8 @@ pub fn schedule_deferrable(
     }
     if remaining != 0 {
         return DeferrableScheduleAssessment::no_schedule(
-            AssessmentStatus::Invalid, policy,
+            AssessmentStatus::Invalid,
+            policy,
             vec!["schedule_capacity_did_not_cover_declared_total".to_owned()],
         );
     }
@@ -666,10 +706,17 @@ pub fn schedule_deferrable(
     let mut protected_floor_work_units_by_interval = vec![0_u64; intervals.len()];
     for workload in &request.workloads {
         if workload.work_class == WorkClass::Protected {
-            for (index, units) in workload.minimum_accepted_units_by_interval.iter().copied().enumerate() {
-                let Some(total) = protected_floor_work_units_by_interval[index].checked_add(units) else {
+            for (index, units) in workload
+                .minimum_accepted_units_by_interval
+                .iter()
+                .copied()
+                .enumerate()
+            {
+                let Some(total) = protected_floor_work_units_by_interval[index].checked_add(units)
+                else {
                     return DeferrableScheduleAssessment::no_schedule(
-                        AssessmentStatus::Invalid, policy,
+                        AssessmentStatus::Invalid,
+                        policy,
                         vec!["protected_floor_interval_sum_overflow".to_owned()],
                     );
                 };
@@ -684,12 +731,20 @@ pub fn schedule_deferrable(
     let mut carbon_gco2 = 0.0_f64;
     let mut cost_known = true;
     let mut carbon_known = true;
-    for (index, units) in deferrable_work_units_by_interval.iter().copied().enumerate() {
+    for (index, units) in deferrable_work_units_by_interval
+        .iter()
+        .copied()
+        .enumerate()
+    {
         let interval = &intervals[index];
         let Some(factor) = interval.facility_energy_per_it_energy else {
             return DeferrableScheduleAssessment::no_schedule(
-                AssessmentStatus::Indeterminate, policy,
-                vec![format!("interval_{}_facility_energy_factor_unknown", interval.id)],
+                AssessmentStatus::Indeterminate,
+                policy,
+                vec![format!(
+                    "interval_{}_facility_energy_factor_unknown",
+                    interval.id
+                )],
             );
         };
         let interval_it_kwh = units as f64 * unit_energy;
@@ -709,7 +764,10 @@ pub fn schedule_deferrable(
             }
         }
     }
-    if [it_kwh, facility_kwh, cost_usd, carbon_gco2].iter().any(|x| !x.is_finite()) {
+    if [it_kwh, facility_kwh, cost_usd, carbon_gco2]
+        .iter()
+        .any(|x| !x.is_finite())
+    {
         return DeferrableScheduleAssessment::no_schedule(
             AssessmentStatus::Invalid, policy,
             vec!["schedule_derived_metric_non_finite".to_owned()],
@@ -901,11 +959,13 @@ mod tests {
         assert_eq!(result.status, AssessmentStatus::Indeterminate);
         assert_eq!(result.deferrable_work_units_by_interval, None);
         assert_eq!(result.scheduled_work_units, None);
-        assert!(result.blockers.iter().any(|item| {
-            item == "interval_t2_grid_carbon_intensity_unknown"
-        }));
+        assert!(
+            result
+                .blockers
+                .iter()
+                .any(|item| { item == "interval_t2_grid_carbon_intensity_unknown" })
+        );
     }
-
 
     #[test]
     fn lowest_cost_policy_accepts_negative_wholesale_price() {
@@ -921,5 +981,4 @@ mod tests {
         );
         assert!((result.modelled_electricity_cost_usd.unwrap() - 0.298).abs() < 1.0e-8);
     }
-
 }
