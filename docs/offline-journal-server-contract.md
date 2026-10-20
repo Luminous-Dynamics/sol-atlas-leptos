@@ -23,6 +23,8 @@ The server must accept the operation envelope and raw payload body, then indepen
    - explicit supersession/conflict lineage.
 4. Use the idempotency key as a unique, separately indexed ledger key; do not include the key itself inside the fingerprint material. Persist an authoritative server-computed fingerprint. Do not trust a client-supplied fingerprint without recomputation.
 
+The in-memory conformance oracle is now available in `sol-atlas_core::offline_idempotency_ledger_model::ReferenceIdempotencyLedger`. It models scoped key reservation, fingerprint conflicts, in-progress duplicates, stable byte-for-byte outcome replay, stale reservation fencing, and operation-ID uniqueness. It is intentionally not a durable server implementation.
+
 The shared Rust reference primitive is now available in `sol-atlas-core::offline_idempotency_fingerprint`:
 
 - `canonical_request_fingerprint_material` returns the exact canonical JCS UTF-8 bytes;
@@ -46,6 +48,8 @@ Suggested relational model (names are illustrative):
 - created/updated timestamps and published retention policy.
 
 The local IndexedDB idempotency index is also scope-qualified as `(owner_scope, operation_namespace, raw_idempotency_key)` using an unambiguous tuple encoding; the service ledger must use its own authenticated equivalent. This avoids accidental local collisions across independent tenants/routes but does not replace server-side uniqueness.
+
+The service should additionally enforce a unique operation identity such as `(tenant_id, operation_id)`, independent of the idempotency-key index. Otherwise a buggy or malicious client could submit the same stable operation ID under a freshly minted idempotency key and attempt the same logical effect again. In the reference model, a tenant-scoped operation ID is permanently bound to its first scoped idempotency key until a reservation is explicitly aborted before any effect commits; reusing that operation ID under another key or namespace is rejected. Production should enforce this with a database uniqueness constraint and a transactional operation-identity row/index, not an application-only read-before-write check.
 
 The database must enforce uniqueness; a read-before-insert check alone is racy. Every write is scoped to the authenticated principal/tenant. Never reveal another tenant's response when a key collides.
 
