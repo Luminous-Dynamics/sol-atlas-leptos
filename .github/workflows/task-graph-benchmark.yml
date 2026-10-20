@@ -42,6 +42,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p benchmark-output
           cargo generate-lockfile --manifest-path sol-atlas-core/Cargo.toml
           cargo metadata --manifest-path sol-atlas-core/Cargo.toml --locked --no-deps --format-version 1 > /dev/null
           cp sol-atlas-core/Cargo.lock benchmark-output/Cargo.lock
