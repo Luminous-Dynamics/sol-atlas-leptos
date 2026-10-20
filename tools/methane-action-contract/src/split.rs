@@ -233,10 +233,10 @@ fn register_split_owner<'a>(
     record_id: &str,
     violation_code: &'static str,
 ) {
-    if let Some(previous_split) = owners.insert(identity, split) {
-        if previous_split != split {
-            report.push(record_id, violation_code);
-        }
+    if let Some(previous_split) = owners.insert(identity, split)
+        && previous_split != split
+    {
+        report.push(record_id, violation_code);
     }
 }
 
@@ -447,7 +447,6 @@ mod tests {
 
     #[test]
     fn rejects_missing_duplicate_and_extra_assignments() {
-        let bytes = corpus_bytes();
         let mut manifest = manifest_for(&bytes);
         manifest.assignments.pop();
         manifest.assignments.push(manifest.assignments[0].clone());
