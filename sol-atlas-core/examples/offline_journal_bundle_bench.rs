@@ -132,7 +132,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let warmup_json = warmup.to_json()?;
     let _ = OfflineJournalBundleV1::from_json(&warmup_json)?;
 
-    let mut raw_samples = Vec::with_capacity(options.samples * 4);
+    let mut raw_samples = Vec::with_capacity(options.samples * 5);
     let mut bundle_bytes = 0usize;
     let mut bare_serde_json_bytes = 0usize;
     let mut canonical_hash_only_manifest_bytes = 0usize;
