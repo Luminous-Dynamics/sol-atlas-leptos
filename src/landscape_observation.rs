@@ -918,17 +918,20 @@ fn check_exact_keys(value: &Value, keys: &[&str], path: &str, errors: &mut Vec<S
         errors.push(format!("{path}: expected an object"));
         return false;
     };
+    let mut exact = true;
     for key in keys {
         if !object.contains_key(*key) {
             errors.push(format!("{path}.{key}: missing required field"));
+            exact = false;
         }
     }
     for key in object.keys() {
         if !keys.contains(&key.as_str()) {
             errors.push(format!("{path}.{key}: unknown field"));
+            exact = false;
         }
     }
-    true
+    exact
 }
 
 fn required_text<'a>(
@@ -1297,6 +1300,15 @@ mod tests {
 
         let errors = validate_batch(&batch).unwrap_err();
         assert!(errors.iter().any(|error| error.contains("requires project_snapshot_sha256")));
+    }
+
+    #[test]
+    fn missing_required_nested_object_fails_without_panicking() {
+        let mut batch = fixture();
+        only_observation_mut(&mut batch).as_object_mut().unwrap().remove("quality");
+
+        let errors = validate_batch(&batch).unwrap_err();
+        assert!(errors.iter().any(|error| error.contains("missing required field")));
     }
 
     #[test]
