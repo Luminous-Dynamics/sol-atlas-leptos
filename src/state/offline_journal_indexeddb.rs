@@ -148,13 +148,19 @@ struct DispatchLeaseRecordV1 {
 impl DispatchLeaseRecordV1 {
     fn validate(&self, expected_operation_id: &str) -> Result<(), IndexedDbJournalError> {
         if self.schema_version != DISPATCH_LEASE_SCHEMA_VERSION {
-            return Err(IndexedDbJournalError("unsupported dispatch lease schema".into()));
+            return Err(IndexedDbJournalError(
+                "unsupported dispatch lease schema".into(),
+            ));
         }
         if self.operation_id != expected_operation_id {
-            return Err(IndexedDbJournalError("dispatch lease operation ID mismatch".into()));
+            return Err(IndexedDbJournalError(
+                "dispatch lease operation ID mismatch".into(),
+            ));
         }
         if self.owner_token.trim().is_empty() || self.expires_at_ms <= self.acquired_at_ms {
-            return Err(IndexedDbJournalError("invalid dispatch lease record".into()));
+            return Err(IndexedDbJournalError(
+                "invalid dispatch lease record".into(),
+            ));
         }
         Ok(())
     }
@@ -503,8 +509,8 @@ impl IndexedDbJournal {
                         return;
                     }
                 };
-                let entry =
-                    match JournalEntry::from_snapshot_for_operation(&expected_id, snapshot) {
+                let entry = match JournalEntry::from_snapshot_for_operation(&expected_id, snapshot)
+                {
                         Ok(value) => value,
                         Err(error) => {
                             *output.borrow_mut() = Some(Err(IndexedDbJournalError::from(error)));
@@ -514,11 +520,8 @@ impl IndexedDbJournal {
 
                 // Chain the second read inside the first request's success event,
                 // keeping the transaction active without awaiting a Promise.
-                let lease_request = match call_method(
-                    &leases,
-                    "get",
-                    &[JsValue::from_str(&expected_id)],
-                ) {
+                let lease_request =
+                    match call_method(&leases, "get", &[JsValue::from_str(&expected_id)]) {
                     Ok(value) => value,
                     Err(error) => {
                         *output.borrow_mut() = Some(Err(js_error(error)));
@@ -560,8 +563,8 @@ impl IndexedDbJournal {
                                 return;
                             }
                         };
-                        let record: DispatchLeaseRecordV1 =
-                            match serde_json::from_str(&serialized) {
+                        let record: DispatchLeaseRecordV1 = match serde_json::from_str(&serialized)
+                        {
                                 Ok(value) => value,
                                 Err(error) => {
                                     *output.borrow_mut() = Some(Err(IndexedDbJournalError(
@@ -621,8 +624,9 @@ impl IndexedDbJournal {
                         return;
                     }
                     let saved = match entry.to_snapshot().and_then(|value| {
-                        serde_json::to_string(&value)
-                            .map_err(|_| JournalError::InvalidSnapshot("snapshot_serialization_failed"))
+                        serde_json::to_string(&value).map_err(|_| {
+                            JournalError::InvalidSnapshot("snapshot_serialization_failed")
+                        })
                     }) {
                         Ok(value) => value,
                         Err(error) => {
@@ -632,10 +636,7 @@ impl IndexedDbJournal {
                     };
 
                     // Both writes plus the pending marker commit or abort as a unit.
-                    for (store, value) in [
-                        (&leases, lease_json),
-                        (&operations, saved.clone()),
-                    ] {
+                    for (store, value) in [(&leases, lease_json), (&operations, saved.clone())] {
                         if let Err(error) = call_method(
                             store,
                             "put",
@@ -657,17 +658,14 @@ impl IndexedDbJournal {
                     }
                     *output.borrow_mut() = Some(Ok((saved, lease)));
                 });
-                if let Err(error) = Reflect::set(
-                    &lease_request,
-                    &JsValue::from_str("onsuccess"),
-                    &callback,
-                ) {
+                if let Err(error) =
+                    Reflect::set(&lease_request, &JsValue::from_str("onsuccess"), &callback)
+                {
                     *output.borrow_mut() = Some(Err(js_error(error)));
                     let _ = call_method(&transaction, "abort", &[]);
                 }
             });
-            Reflect::set(&request, &JsValue::from_str("onsuccess"), &callback)
-                .map_err(js_error)?;
+            Reflect::set(&request, &JsValue::from_str("onsuccess"), &callback).map_err(js_error)?;
         }
 
         JsFuture::from(transaction_done).await.map_err(js_error)?;
@@ -806,9 +804,7 @@ impl IndexedDbJournal {
                     let _ = call_method(&transaction, "abort", &[]);
                     return;
                 }
-                if let Err(error) =
-                    call_method(&leases, "delete", &[JsValue::from_str(&op_id)])
-                {
+                if let Err(error) = call_method(&leases, "delete", &[JsValue::from_str(&op_id)]) {
                     *output.borrow_mut() = Some(Err(js_error(error)));
                     let _ = call_method(&transaction, "abort", &[]);
                     return;
@@ -989,10 +985,9 @@ fn is_pending(state: &JournalState) -> bool {
 }
 
 fn secure_random_token() -> Result<String, IndexedDbJournalError> {
-    let window = web_sys::window()
-        .ok_or_else(|| IndexedDbJournalError("window is unavailable".into()))?;
-    let crypto = Reflect::get(window.as_ref(), &JsValue::from_str("crypto"))
-        .map_err(js_error)?;
+    let window =
+        web_sys::window().ok_or_else(|| IndexedDbJournalError("window is unavailable".into()))?;
+    let crypto = Reflect::get(window.as_ref(), &JsValue::from_str("crypto")).map_err(js_error)?;
     if crypto.is_null() || crypto.is_undefined() {
         return Err(IndexedDbJournalError(
             "secure browser crypto is unavailable; refusing to mint a dispatch lease".into(),
@@ -1149,9 +1144,7 @@ fn js_error_name(value: &JsValue) -> Option<String> {
 
 #[cfg(test)]
 mod dispatch_lease_tests {
-    use super::{
-        DISPATCH_LEASE_DURATION_MS, DISPATCH_LEASE_SCHEMA_VERSION, DispatchLeaseRecordV1,
-    };
+    use super::{DISPATCH_LEASE_DURATION_MS, DISPATCH_LEASE_SCHEMA_VERSION, DispatchLeaseRecordV1};
 
     fn valid_lease() -> DispatchLeaseRecordV1 {
         DispatchLeaseRecordV1 {
