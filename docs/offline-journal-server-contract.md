@@ -30,6 +30,8 @@ The shared Rust reference primitive is now available in `sol-atlas-core::offline
 
 Fingerprint schema v1 binds the tenant scope, operation namespace, envelope schema version, operation ID, aggregate ID, exact expected revision (encoded as decimal text to avoid unsafe IEEE-754 numbers), payload digest, and explicit nullable supersession lineage. It excludes the idempotency key because the server's unique ledger key indexes that fingerprint separately. The server must derive tenant/route scope from authenticated context, not accept an arbitrary client-selected scope as authoritative.
 
+The client-side IndexedDB record also persists an immutable `owner_scope` and `operation_namespace` next to each journal snapshot. Enqueue, pending scan, dispatch-lease renewal and reply reconciliation require an exact match to the current account/tenant and action namespace. A mismatch refuses automatic dispatch and hides the row from the other owner context. The local scope is a guard against accidental account-switch replay, not an authentication claim; the authoritative service must still derive its own tenant and route from the authenticated request and reject any mismatch against the intended operation scope. The dispatch permit exposes the shared request fingerprint so a transport can attach it for diagnostics/correlation, but the server must recompute it from the authenticated scope, route, envelope and body.
+
 The frozen eight-vector corpus at `sol-atlas-core/fixtures/offline-idempotency-fingerprint-v1.json` locks both canonical material bytes and resulting digests, including tenant/namespace changes, operation/aggregate/revision changes, lineage changes, and the separate-key rule. Independent service implementations should consume that same file and compare bytes and digests exactly. The Rust tests only establish the Rust implementation's conformance to this corpus; no second server runtime is implemented here.
 
 ## Durable ledger and atomic effects
@@ -42,6 +44,8 @@ Suggested relational model (names are illustrative):
 - status: `in_progress | applied | rejected | conflict`;
 - stable outcome / receipt ID, response status and replayable response body;
 - created/updated timestamps and published retention policy.
+
+The local IndexedDB idempotency index is also scope-qualified as `(owner_scope, operation_namespace, raw_idempotency_key)` using an unambiguous tuple encoding; the service ledger must use its own authenticated equivalent. This avoids accidental local collisions across independent tenants/routes but does not replace server-side uniqueness.
 
 The database must enforce uniqueness; a read-before-insert check alone is racy. Every write is scoped to the authenticated principal/tenant. Never reveal another tenant's response when a key collides.
 
