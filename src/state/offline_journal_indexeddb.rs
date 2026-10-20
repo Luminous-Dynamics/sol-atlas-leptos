@@ -954,8 +954,11 @@ impl IndexedDbJournal {
     pub async fn apply_reply(
         &self,
         operation_id: &str,
+        owner_scope: &str,
+        operation_namespace: &str,
         reply: &ServiceReply,
     ) -> Result<ReconcileOutcome, IndexedDbJournalError> {
+        require_scope(owner_scope, operation_namespace)?;
         let store_names = [OPERATIONS, PENDING_OPERATIONS, DISPATCH_LEASES];
         let (transaction, _policy) = self.transaction(&store_names, "readwrite")?;
         let transaction_done = transaction_promise(transaction.clone());
@@ -990,25 +993,38 @@ impl IndexedDbJournal {
                     ))));
                     return;
                 }
-                let snapshot_json = match raw.as_string() {
+                let stored_json = match raw.as_string() {
                     Some(value) => value,
                     None => {
                         *output.borrow_mut() = Some(Err(IndexedDbJournalError(
-                            "operation store contains a non-string snapshot".into(),
+                            "operation store contains a non-string owner-bound record".into(),
                         )));
                         return;
                     }
                 };
-                let snapshot: JournalEntrySnapshotV1 = match serde_json::from_str(&snapshot_json) {
+                let mut stored: StoredOperationV1 = match serde_json::from_str(&stored_json) {
                     Ok(value) => value,
                     Err(error) => {
                         *output.borrow_mut() = Some(Err(IndexedDbJournalError(format!(
-                            "stored snapshot JSON invalid: {error}"
+                            "stored operation JSON invalid: {error}"
                         ))));
                         return;
                     }
                 };
-                let mut entry = match JournalEntry::from_snapshot_for_operation(&op_id, snapshot) {
+                if let Err(error) = stored.validate() {
+                    *output.borrow_mut() = Some(Err(error));
+                    return;
+                }
+                if !stored.matches_scope(owner_scope, operation_namespace) {
+                    *output.borrow_mut() = Some(Err(IndexedDbJournalError(
+                        "operation is bound to a different owner scope or namespace".into(),
+                    )));
+                    return;
+                }
+                let mut entry = match JournalEntry::from_snapshot_for_operation(
+                    &op_id,
+                    stored.snapshot.clone(),
+                ) {
                     Ok(value) => value,
                     Err(error) => {
                         *output.borrow_mut() = Some(Err(IndexedDbJournalError::from(error)));
@@ -1022,18 +1038,18 @@ impl IndexedDbJournal {
                         return;
                     }
                 };
-                let new_snapshot = match entry.to_snapshot() {
+                stored.snapshot = match entry.to_snapshot() {
                     Ok(value) => value,
                     Err(error) => {
                         *output.borrow_mut() = Some(Err(IndexedDbJournalError::from(error)));
                         return;
                     }
                 };
-                let serialized = match serde_json::to_string(&new_snapshot) {
+                let serialized = match serde_json::to_string(&stored) {
                     Ok(value) => value,
                     Err(error) => {
                         *output.borrow_mut() = Some(Err(IndexedDbJournalError(format!(
-                            "snapshot serialization failed: {error}"
+                            "stored operation serialization failed: {error}"
                         ))));
                         return;
                     }
