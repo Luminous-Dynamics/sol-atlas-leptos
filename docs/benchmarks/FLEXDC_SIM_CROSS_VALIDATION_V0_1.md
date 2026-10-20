@@ -52,6 +52,25 @@ For source parity, use the `rsr_reference` input section of `demand_response_ass
 
 ## 4. Adapter and scorecard
 
+### Executable source adapter
+
+The new Rust binary `sol-atlas-core/src/bin/flexdc_trace_adapter.rs` converts a pinned FlexDC-Sim `power_trace.csv` into the strict input consumed by `demand_response_assess`:
+
+```sh
+cargo run -p sol-atlas-core --bin flexdc_trace_adapter -- \
+  /path/to/power_trace.csv /path/to/run-manifest.json > /tmp/flexdc-rsr-input.json
+cargo run -p sol-atlas-core --bin demand_response_assess -- \
+  /tmp/flexdc-rsr-input.json > /tmp/flexdc-rsr-report.json
+```
+
+The adapter supports only the numeric CSV export shape from the pinned source revision `ea50bd582b5d1b55fcb09ea46899fa9d325cce3b`. It is intentionally fail-closed: quoted CSV fields, missing headers, non-numeric/non-finite tracking errors, blank rows, a missing or duplicate time row, a nonuniform timestamp grid, mismatched manifest row count, and nonzero startup errors before the configured signal interval are rejected. It does not silently drop or resample records. The run manifest must pin six exact configuration references (experiment, cluster, workload, runtime policy, power signal and optimization weights) to the source commit's Git blob identities. Those SHA-1 IDs identify source objects; the adapter also hashes the exact manifest bytes and power-trace bytes with SHA-256 and carries both digests into the emitted input.
+
+The manifest must state the simulation duration/step, signal step, random seed, exact command, run identifier and source revision. The CLI output identifies `trackingError` as a signed source-native prior-cycle value, records the `R + 0.0001` denominator convention and original time values, and repeats the fact that the artifact is simulated—not wall-metered facility power. The trace input remains `synthetic: true` with `claim_ceiling: metric_accounting_only`. Artifact/config hashes bind identities but cannot prove that the stated run actually occurred.
+
+The committed 10-row CSV and run manifest are **synthetic adapter tests**, not an executed simulator run. The trace slice has nine zero errors and one 0.8 error to preserve the p90/exceedance disagreement. The run-manifest fixture names real source config Git blobs but explicitly states that the trace was not generated from those files. It must never be reported as FlexDC-Sim performance evidence.
+
+The schema workflow runs the adapter into the metric CLI and validates both produced JSON documents against the Draft 2020-12 input and report schemas. It also asserts the p90/strict-rate counterexample survives this end-to-end conversion. This verifies the adapter/metric contract; it does not execute the FlexDC-Sim repository or show a simulator parity result.
+
 Create a derived, versioned adapter input with one row per ordered sample and these required fields:
 
 - source repository commit, config blob hashes, seed, output artifact hashes and adapter version;
