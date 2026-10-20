@@ -164,7 +164,6 @@ fn snapshot_json(project_name: &str, scale: LandscapeScale, features: &[DesignFe
     })
 }
 
-
 /// Download a native JSON snapshot using a browser Blob (not a data URI).
 /// Blob URLs avoid the practical URL-length limits of embedding the whole
 /// project in an anchor's href.
@@ -258,6 +257,19 @@ pub fn LandscapeDesigner() -> impl IntoView {
             serde_json::to_string_pretty(&value)
                 .unwrap_or_else(|error| format!("Snapshot serialization failed: {error}")),
         );
+        set_download_status.set(String::new());
+    };
+
+    let download_project = move |_| {
+        let content = export_text.get_untracked();
+        if content.is_empty() {
+            set_download_status.set("Generate a snapshot before downloading.".to_string());
+            return;
+        }
+        set_download_status.set(match download_snapshot(&content) {
+            Ok(()) => "Download requested: landscape-design.json".to_string(),
+            Err(error) => format!("Download failed: {error}"),
+        });
     };
 
     let undo = move |_| {
@@ -275,6 +287,7 @@ pub fn LandscapeDesigner() -> impl IntoView {
         set_show_grid.set(true);
         set_show_context.set(true);
         set_export_text.set(String::new());
+        set_download_status.set(String::new());
     };
 
     view! {
@@ -471,7 +484,10 @@ mod tests {
         let features = starter_features();
         let value = snapshot_json("fixture", LandscapeScale::Watershed, &features);
         assert_eq!(value["schema"], "luminous.landscape-design.v0");
-        assert_eq!(value["schema_uri"], "https://luminousdynamics.io/schemas/landscape-design-v0.schema.json");
+        assert_eq!(
+            value["schema_uri"],
+            "https://luminousdynamics.io/schemas/landscape-design-v0.schema.json"
+        );
         assert_eq!(value["scope"], "watershed");
         assert_eq!(
             value["coordinate_frame"]["kind"],
