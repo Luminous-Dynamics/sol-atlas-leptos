@@ -341,10 +341,18 @@ fn snapshot_json(project_name: &str, scale: LandscapeScale, features: &[DesignFe
 }
 
 const LOCAL_DRAFT_STORAGE_KEY: &str = "luminous.landscape-design.native-v0";
+const MAX_LOCAL_DRAFT_BYTES: usize = 2 * 1024 * 1024;
 
 /// Explicit, same-browser persistence. localStorage is not encrypted and may be
 /// cleared by the user/browser; users should download a JSON backup for portability.
 fn save_local_draft(content: &str) -> Result<(), String> {
+    if content.len() > MAX_LOCAL_DRAFT_BYTES {
+        return Err(format!(
+            "draft is {} bytes, above the v0 browser-storage limit of {} bytes; download the JSON file instead",
+            content.len(),
+            MAX_LOCAL_DRAFT_BYTES
+        ));
+    }
     let window = web_sys::window().ok_or_else(|| "Browser window is unavailable".to_string())?;
     let storage = window
         .local_storage()
@@ -361,9 +369,19 @@ fn load_local_draft() -> Result<Option<String>, String> {
         .local_storage()
         .map_err(|error| format!("Could not access browser storage: {error:?}"))?
         .ok_or_else(|| "This browser does not expose local storage".to_string())?;
-    storage
+    let content = storage
         .get_item(LOCAL_DRAFT_STORAGE_KEY)
-        .map_err(|error| format!("Could not read local draft: {error:?}"))
+        .map_err(|error| format!("Could not read local draft: {error:?}"))?;
+    if let Some(content) = content.as_ref() {
+        if content.len() > MAX_LOCAL_DRAFT_BYTES {
+            return Err(format!(
+                "saved draft is {} bytes, above the v0 browser-storage limit of {} bytes; download a JSON backup and use file import",
+                content.len(),
+                MAX_LOCAL_DRAFT_BYTES
+            ));
+        }
+    }
+    Ok(content)
 }
 
 /// Download a native JSON snapshot using a browser Blob (not a data URI).
@@ -1032,6 +1050,13 @@ pub fn LandscapeDesigner() -> impl IntoView {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn browser_storage_draft_limit_is_explicitly_bounded() {
+        assert_eq!(MAX_LOCAL_DRAFT_BYTES, 2 * 1024 * 1024);
+        let over_limit = "x".repeat(MAX_LOCAL_DRAFT_BYTES + 1);
+        assert!(over_limit.len() > MAX_LOCAL_DRAFT_BYTES);
+    }
 
     #[test]
     fn native_import_restores_project_metadata_and_stable_feature_ids() {
