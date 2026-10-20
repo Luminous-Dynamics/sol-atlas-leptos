@@ -1,6 +1,6 @@
 # Offline Payload Digest v1
 
-**Status:** a Rust shared-core canonicalization/digest primitive and frozen conformance corpus are implemented in this branch. The production journal/storage/transport path does not yet make verification mandatory, and the authoritative service implementation is not part of this PR.
+**Status:** the Rust shared-core canonicalizer, digest verifier, frozen conformance corpus, and payload-bound in-memory journal-entry constructor are implemented in this branch. Durable storage/transport and the authoritative service integration are still separate work.
 
 ## Protocol
 
@@ -10,15 +10,16 @@ For a raw payload JSON string:
 2. Reject duplicate property names, malformed JSON, non-finite/out-of-model numbers, or values the implementation cannot represent faithfully.
 3. Produce RFC 8785 JCS canonical UTF-8 bytes.
 4. Compute SHA-256 over exactly those bytes and encode it as 64 lowercase hexadecimal characters.
-5. Compare the result against the immutable operation envelope's digest before persisting or dispatching the operation. The service must independently repeat the computation and reject idempotency-key reuse if any immutable operation binding differs.
+5. Compare the result against the immutable operation envelope's digest before persisting or dispatching the operation. `JournalEntry::prepare(envelope, payload_json)` now performs this check and retains the canonical bytes inside the entry. The service must independently repeat the computation and reject idempotency-key reuse if any immutable operation binding differs.
 
 Implementation surface:
 - `canonicalize_payload_json`
 - `canonical_payload_digest_sha256`
 - `verify_payload_digest`
 - `OperationEnvelope::verify_payload_json`
+- `JournalEntry::prepare(envelope, payload_json)`, which rejects digest mismatches and retains a private immutable canonical payload
 
-`OperationEnvelope::validate` continues to check only digest-string shape and other envelope fields. The caller must invoke payload verification explicitly; the reducer cannot recompute a digest without the original payload bytes. No transport/store adapter in this PR currently enforces that ordering automatically.
+`OperationEnvelope::validate` continues to check only digest-string shape and other envelope fields. `JournalEntry::prepare` adds the next fail-closed boundary: no entry is constructed unless the raw payload canonicalizes successfully and hashes to the envelope digest. The entry exposes stored canonical UTF-8 bytes for transport but does not permit callers to replace them. Durable storage must atomically persist the envelope, canonical bytes and state; retries must send the stored bytes, not rebuild from UI state. The authoritative service must independently repeat canonicalization and digest verification. This PR still does not implement a durable store or transport that enforces commit-before-send.
 
 ## Canonicalization profile
 
@@ -51,9 +52,10 @@ The fixtures are synthetic conformance data, not production telemetry. These tes
 | HASH-04 | Zero retry drift | Same operation ID/key reuses the same canonical payload digest; changed payload requires a new operation identity and key |
 | PERF-01 | Measure rather than assume hashing cost | Benchmark payload sizes 1 KiB, 32 KiB, 256 KiB and 1 MiB on a named browser/host, in optimized builds; report throughput, p50/p95/p99, allocations if measurable, and raw samples |
 | PERF-02 | Reproducible interop result | Artifact records source SHA, JCS dependency revision, SHA-256 implementation/version, fixture digest, target/runtime, exact commands and failure counterexamples |
+| HASH-05 | 100% immutable retry payload preservation | For each prepared entry, crash/reopen then retry; assert transmitted canonical bytes and digest exactly equal the originally persisted entry, with no reads from mutable UI state |
 
 Correctness gates are absolute. A low latency measurement must never compensate for a payload-digest mismatch. Performance thresholds should be established from baseline measurements on target field devices before being converted into hard release gates.
 
 ## Next integration step
 
-Make verification an unavoidable part of the durable journal ingress API and the service endpoint. Then build a crash/fault test where the same idempotency key is presented with: (a) identical raw JSON under different whitespace/key order, (b) a semantically changed payload, (c) duplicate-key JSON, and (d) a number that falls outside the accepted profile. The identical semantic payload must have the same digest; the remaining cases must fail closed before any side effect.
+Make storage persist the verified `(envelope, canonical payload bytes, state)` tuple atomically and make the transport resend the stored payload bytes. Make server verification an unavoidable part of the authoritative endpoint. Then build a crash/fault test where the same idempotency key is presented with: (a) identical raw JSON under different whitespace/key order, (b) a semantically changed payload, (c) duplicate-key JSON, and (d) a number that falls outside the accepted profile. The identical semantic payload must have the same digest; the remaining cases must fail closed before any side effect.
