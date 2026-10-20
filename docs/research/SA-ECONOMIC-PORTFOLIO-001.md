@@ -119,15 +119,25 @@ The receipt now partitions every rejected subset into exactly one **primary** re
 
 Mutation tests also create a crew-limited case with non-binding cost budgets, a tightened P1 budget, and a floor above all candidate outcomes. They assert the appropriate rejection accounting and verify that returned portfolios remain within the changed constraints. A corrupted known-answer manifest must be rejected.
 
-The authored Rust tests have **not** been represented as passing until the dedicated exact-head workflow completes. A separate evaluator used during fixture preparation parsed the committed JSON, checked the input against its schema, exhaustively enumerated all 256 subsets, and matched the frozen 22-portfolios / four-frontier manifest. This independent fixture check does not compile or execute the Rust crate.
+The exact-head Rust workflow for the original v0.1 and the baseline-ablation increment completed successfully: the base audit slice passed 11 tests; the baseline test slice passed 14 tests (formatting, Clippy with warnings denied, oracle tests and receipt generation). The added generalized v0.2 / frontier-search tests are new and remain unqualified until their own exact-head workflow completes. A separate JavaScript evaluator independently checked the v0.2 input/schema and produced the pinned 1,024-subset exact manifest; this does not compile or execute the new Rust search.
+
+### Generalized v0.2 and exact frontier-search candidate
+
+The next implementation slice is on [SA-PORTFOLIO-SCALE-001 (#230)](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/230). It keeps the v0.1 input and expected output immutable, while adding:
+- a general v0.2 synthetic contract accepting unique project/scenario IDs and ordered positive `Pn` periods, with the same typed objective/floor/resource semantics;
+- a generated ten-project / three-period fixture with 1,024 total subsets, an independently enumerated exact expected feasible set and frontier;
+- `evaluate_frontier_search`, which uses dependency-aware recursive search and prunes only branches proven infeasible from gate, prerequisite, cost or crew constraints. It retains an exact multi-scenario Pareto frontier and checks that leaves plus pruned subtrees account for the full (2^n) subset universe;
+- counters for visited nodes, evaluated leaves, feasible portfolios, protected-floor failures, pruned subsets by reason and frontier comparisons; and
+- regression-test plans for exact v0.1/v0.2 frontier equality plus a 24-project synthetic case with 16 unknown-gate decoys.
+
+This search has exponential worst-case behavior; it is not yet a demonstrated SOTA or runtime win. The documented 63-project limit is a mask representability bound, not a practical throughput guarantee.
 
 Next gates:
-1. Require a successful exact-head [SA economic portfolio oracle workflow](../../../.github/workflows/sa-economic-portfolio-oracle.yml); queued, missing or stale checks are not passes.
-2. Fix any compiler, formatting or test failures on a new exact head and rerun the workflow.
-3. Add mutation tests for budget overruns, each hard floor, interaction-rule revisions and corrupted expected manifests.
-4. Compare a transparent greedy, predeclared weighted-sum and individual-project-Pareto-then-budget baseline on the same corpus; freeze more cases before reporting scale.
-5. Add generated synthetic instances and compare larger cases against an independently configured MILP / CP-SAT / appropriate OR solver with matching constraints and budgets.
-6. Connect real Sol-Atlas service evidence only when source permissions, source-time semantics and domain-adapter gates pass.
+1. Run the exact-head workflow for the generalized input and frontier search; queued/missing/stale checks do not pass.
+2. Fix any compile, formatting, Clippy or behavioral failures without weakening acceptance conditions.
+3. Compare the exact-search and pruned-search frontiers on small frozen cases and ensure every subset is accounted for.
+4. Benchmark larger generated instances against an independently configured MILP / CP-SAT or suitable operations-research solver with the same constraints and compute budget; report exactness, p50/p95/max latency, peak memory, nodes visited/pruned, feasible count, frontier cardinality and solver gaps.
+5. Connect real Sol-Atlas service evidence only after permissions, domain-model gates, real owners and independent validation are in place.
 
 ## 8. Industry / research anchors
 
