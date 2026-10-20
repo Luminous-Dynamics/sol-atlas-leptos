@@ -15,7 +15,7 @@
 //!   70 = assessment could not be serialized
 
 use sol_atlas_core::ai_compute_energy::{
-    schedule_deferrable, AssessmentStatus, Request, SchedulingPolicy,
+    AssessmentStatus, Request, SchedulingPolicy, schedule_deferrable,
 };
 use std::env;
 use std::fs;
