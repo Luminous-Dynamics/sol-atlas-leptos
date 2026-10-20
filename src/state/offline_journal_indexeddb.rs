@@ -489,11 +489,11 @@ impl IndexedDbJournal {
         }
     }
 
-    /// Reads an operation and validates both its snapshot and its database key.
-    pub async fn load(
+    /// Reads and validates an operation record without revealing its owner scope.
+    async fn read_stored_operation(
         &self,
         operation_id: &str,
-    ) -> Result<Option<JournalEntry>, IndexedDbJournalError> {
+    ) -> Result<Option<StoredOperationV1>, IndexedDbJournalError> {
         let (transaction, _policy) = self.transaction(&[OPERATIONS], "readonly")?;
         let transaction_done = transaction_promise(transaction.clone());
         let operations = object_store(&transaction, OPERATIONS)?;
@@ -507,14 +507,37 @@ impl IndexedDbJournal {
         if result.is_undefined() || result.is_null() {
             return Ok(None);
         }
-        let snapshot_json = result.as_string().ok_or_else(|| {
-            IndexedDbJournalError("operation store contains a non-string snapshot".into())
+        let stored_json = result.as_string().ok_or_else(|| {
+            IndexedDbJournalError("operation store contains a non-string stored record".into())
         })?;
-        let snapshot: JournalEntrySnapshotV1 =
-            serde_json::from_str(&snapshot_json).map_err(|error| {
-                IndexedDbJournalError(format!("stored snapshot JSON invalid: {error}"))
-            })?;
-        JournalEntry::from_snapshot_for_operation(operation_id, snapshot)
+        let stored: StoredOperationV1 = serde_json::from_str(&stored_json).map_err(|error| {
+            IndexedDbJournalError(format!(
+                "stored operation is not an owner-bound v1 record; automatic dispatch is blocked: {error}"
+            ))
+        })?;
+        stored.validate()?;
+        JournalEntry::from_snapshot_for_operation(operation_id, stored.snapshot.clone())
+            .map_err(IndexedDbJournalError::from)?;
+        Ok(Some(stored))
+    }
+
+    /// Reads an operation only when its immutable owner and namespace match the
+    /// caller's current authenticated/account context. A mismatch appears absent
+    /// rather than revealing another owner's stored record.
+    pub async fn load(
+        &self,
+        operation_id: &str,
+        owner_scope: &str,
+        operation_namespace: &str,
+    ) -> Result<Option<JournalEntry>, IndexedDbJournalError> {
+        require_scope(owner_scope, operation_namespace)?;
+        let Some(stored) = self.read_stored_operation(operation_id).await? else {
+            return Ok(None);
+        };
+        if !stored.matches_scope(owner_scope, operation_namespace) {
+            return Ok(None);
+        }
+        JournalEntry::from_snapshot_for_operation(operation_id, stored.snapshot)
             .map(Some)
             .map_err(IndexedDbJournalError::from)
     }
