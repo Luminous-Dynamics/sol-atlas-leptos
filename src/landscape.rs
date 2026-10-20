@@ -463,7 +463,11 @@ mod tests {
         let mut snapshot = fixture();
         snapshot["features"] = Value::Array(vec![Value::Null; MAX_SNAPSHOT_FEATURES + 1]);
         let errors = validate_snapshot(&snapshot).unwrap_err();
-        assert!(errors.iter().any(|error| error.contains("exceeds the v0 limit")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("exceeds the v0 limit"))
+        );
     }
 
     #[test]
