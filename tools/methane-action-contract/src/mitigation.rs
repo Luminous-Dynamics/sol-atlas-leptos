@@ -81,6 +81,16 @@ struct RateBounds {
     upper: f64,
 }
 
+struct InterventionArtifactExpectation<'a> {
+    field: &'a str,
+    role: ArtifactRole,
+    uri: &'a str,
+    expected_sha256: &'a str,
+    missing_code: &'static str,
+    duplicate_code: &'static str,
+    mismatch_code: &'static str,
+}
+
 /// Assess a pre-intervention reading against repeated follow-ups for one source.
 ///
 /// All referenced observations must exist exactly once. The corpus must include the
@@ -142,26 +152,30 @@ pub fn assess_mitigation(
     validate_intervention_artifact(
         &mut report,
         intervention_id,
-        "work_order",
-        ArtifactRole::WorkOrder,
-        &intervention.work_order_uri,
-        &intervention.work_order_sha256,
+        InterventionArtifactExpectation {
+            field: "work_order",
+            role: ArtifactRole::WorkOrder,
+            uri: &intervention.work_order_uri,
+            expected_sha256: &intervention.work_order_sha256,
+            missing_code: "work_order_bytes_missing",
+            duplicate_code: "duplicate_work_order_snapshot",
+            mismatch_code: "work_order_digest_mismatch",
+        },
         artifact_snapshots,
-        "work_order_bytes_missing",
-        "duplicate_work_order_snapshot",
-        "work_order_digest_mismatch",
     );
     validate_intervention_artifact(
         &mut report,
         intervention_id,
-        "verification_report",
-        ArtifactRole::VerificationRecord,
-        &intervention.verification_report_uri,
-        &intervention.verification_report_sha256,
+        InterventionArtifactExpectation {
+            field: "verification_report",
+            role: ArtifactRole::VerificationRecord,
+            uri: &intervention.verification_report_uri,
+            expected_sha256: &intervention.verification_report_sha256,
+            missing_code: "verification_report_bytes_missing",
+            duplicate_code: "duplicate_verification_snapshot",
+            mismatch_code: "verification_report_digest_mismatch",
+        },
         artifact_snapshots,
-        "verification_report_bytes_missing",
-        "duplicate_verification_snapshot",
-        "verification_report_digest_mismatch",
     );
 
     let mut required_ids = Vec::with_capacity(followup_observation_ids.len() + 1);
@@ -409,37 +423,41 @@ pub fn assess_mitigation(
 fn validate_intervention_artifact(
     report: &mut MitigationAssessmentReport,
     record_id: &str,
-    field: &str,
-    role: ArtifactRole,
-    uri: &str,
-    expected_sha256: &str,
+    expectation: InterventionArtifactExpectation<'_>,
     snapshots: &[ArtifactSnapshot<'_>],
-    missing_code: &'static str,
-    duplicate_code: &'static str,
-    mismatch_code: &'static str,
 ) {
-    if !uri.starts_with("https://") {
-        report.push(record_id, field, "intervention_artifact_uri_not_https");
+    if !expectation.uri.starts_with("https://") {
+        report.push(
+            record_id,
+            expectation.field,
+            "intervention_artifact_uri_not_https",
+        );
     }
-    if !is_canonical_sha256(expected_sha256) {
-        report.push(record_id, field, "invalid_intervention_artifact_sha256");
+    if !is_canonical_sha256(expectation.expected_sha256) {
+        report.push(
+            record_id,
+            expectation.field,
+            "invalid_intervention_artifact_sha256",
+        );
     }
-    let mut matches = snapshots
-        .iter()
-        .filter(|snapshot| snapshot.role == role && snapshot.uri == uri);
+    let mut matches = snapshots.iter().filter(|snapshot| {
+        snapshot.role == expectation.role && snapshot.uri == expectation.uri
+    });
     let Some(snapshot) = matches.next() else {
-        report.push(record_id, field, missing_code);
+        report.push(record_id, expectation.field, expectation.missing_code);
         return;
     };
     if matches.next().is_some() {
-        report.push(record_id, field, duplicate_code);
+        report.push(record_id, expectation.field, expectation.duplicate_code);
         return;
     }
     if snapshot.bytes.is_empty() {
-        report.push(record_id, field, "empty_intervention_artifact");
+        report.push(record_id, expectation.field, "empty_intervention_artifact");
     }
-    if is_canonical_sha256(expected_sha256) && sha256_hex(snapshot.bytes) != expected_sha256 {
-        report.push(record_id, field, mismatch_code);
+    if is_canonical_sha256(expectation.expected_sha256)
+        && sha256_hex(snapshot.bytes) != expectation.expected_sha256
+    {
+        report.push(record_id, expectation.field, expectation.mismatch_code);
     }
 }
 
@@ -528,7 +546,7 @@ fn utc_timestamp_seconds(value: &str) -> Option<i64> {
 }
 
 fn is_leap_year(year: i64) -> bool {
-    year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
+    year.is_multiple_of(4) && (!year.is_multiple_of(100) || year.is_multiple_of(400))
 }
 
 fn is_canonical_sha256(value: &str) -> bool {
