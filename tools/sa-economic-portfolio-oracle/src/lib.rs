@@ -1955,8 +1955,7 @@ mod tests {
 
     #[test]
     fn scenario_omission_is_deterministic_and_fails_closed() {
-        let input: Input =
-            serde_json::from_str(V02_INPUT).expect("v0.2 fixture should parse");
+        let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture should parse");
         let omitted_id = input.scenarios[0].id.clone();
         let first = evaluate_scenario_omission(&input, &omitted_id)
             .expect("valid scenario omission should be evaluable");
@@ -1977,8 +1976,7 @@ mod tests {
 
     #[test]
     fn scenario_omission_is_invariant_to_scenario_row_order() {
-        let input: Input =
-            serde_json::from_str(V02_INPUT).expect("v0.2 fixture should parse");
+        let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture should parse");
         let omitted_id = input.scenarios[0].id.clone();
         let original = evaluate_scenario_omission(&input, &omitted_id)
             .expect("valid scenario omission should be evaluable");
