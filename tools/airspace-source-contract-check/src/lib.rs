@@ -128,7 +128,10 @@ mod tests {
             );
         }
 
-        if record.pointer("/validity/withdrawn").and_then(Value::as_bool) == Some(true)
+        if record
+            .pointer("/validity/withdrawn")
+            .and_then(Value::as_bool)
+            == Some(true)
             && applicability == Some("applicable")
         {
             issues.push("withdrawn source claims cannot remain applicable".to_owned());
@@ -226,8 +229,7 @@ mod tests {
     #[test]
     fn incomplete_coverage_cannot_be_labelled_complete() {
         let mut unknown = fixture("unknown-coverage-is-not-unrestricted");
-        unknown["assessment"]["coverage"] =
-            Value::String("complete_for_declared_scope".to_owned());
+        unknown["assessment"]["coverage"] = Value::String("complete_for_declared_scope".to_owned());
         assert!(!semantic_issues(&unknown).is_empty());
     }
 
@@ -241,10 +243,8 @@ mod tests {
     #[test]
     fn reversed_validity_interval_is_rejected() {
         let mut record = fixture("fresh-synthetic-record");
-        record["validity"]["effective_from"] =
-            Value::String("2026-10-22T00:00:00Z".to_owned());
-        record["validity"]["effective_until"] =
-            Value::String("2026-10-21T00:00:00Z".to_owned());
+        record["validity"]["effective_from"] = Value::String("2026-10-22T00:00:00Z".to_owned());
+        record["validity"]["effective_until"] = Value::String("2026-10-21T00:00:00Z".to_owned());
         assert!(!semantic_issues(&record).is_empty());
     }
 
@@ -252,8 +252,7 @@ mod tests {
     fn failed_source_authentication_cannot_be_promoted_to_authenticated() {
         let mut record = fixture("fresh-synthetic-record");
         record["source"]["authentication"]["state"] = Value::String("failed".to_owned());
-        record["assessment"]["source_authenticity"] =
-            Value::String("authenticated".to_owned());
+        record["assessment"]["source_authenticity"] = Value::String("authenticated".to_owned());
         assert!(!semantic_issues(&record).is_empty());
     }
 }
