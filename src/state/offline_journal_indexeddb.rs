@@ -555,7 +555,10 @@ impl IndexedDbJournal {
     pub async fn begin_attempt(
         &self,
         operation_id: &str,
+        owner_scope: &str,
+        operation_namespace: &str,
     ) -> Result<DispatchPermit, IndexedDbJournalError> {
+        require_scope(owner_scope, operation_namespace)?;
         let lease_token = secure_random_token()?;
         let store_names = [OPERATIONS, PENDING_OPERATIONS, DISPATCH_LEASES];
         let (transaction, durability_policy) = self.transaction(&store_names, "readwrite")?;
@@ -577,6 +580,8 @@ impl IndexedDbJournal {
             let leases = leases.clone();
             let transaction = transaction.clone();
             let expected_id = operation_id.to_owned();
+            let expected_owner_scope = owner_scope.to_owned();
+            let expected_namespace = operation_namespace.to_owned();
             let lease_token = lease_token.clone();
             let callback = Closure::once_into_js(move |_event: JsValue| {
                 let raw = match Reflect::get(&request_for_callback, &JsValue::from_str("result")) {
@@ -592,26 +597,38 @@ impl IndexedDbJournal {
                     ))));
                     return;
                 }
-                let snapshot_json = match raw.as_string() {
+                let stored_json = match raw.as_string() {
                     Some(value) => value,
                     None => {
                         *output.borrow_mut() = Some(Err(IndexedDbJournalError(
-                            "operation store contains a non-string snapshot".into(),
+                            "operation store contains a non-string owner-bound record".into(),
                         )));
                         return;
                     }
                 };
-                let snapshot: JournalEntrySnapshotV1 = match serde_json::from_str(&snapshot_json) {
+                let stored: StoredOperationV1 = match serde_json::from_str(&stored_json) {
                     Ok(value) => value,
                     Err(error) => {
                         *output.borrow_mut() = Some(Err(IndexedDbJournalError(format!(
-                            "stored snapshot JSON invalid: {error}"
+                            "stored operation is not an owner-bound v1 record: {error}"
                         ))));
                         return;
                     }
                 };
-                let entry = match JournalEntry::from_snapshot_for_operation(&expected_id, snapshot)
-                {
+                if let Err(error) = stored.validate() {
+                    *output.borrow_mut() = Some(Err(error));
+                    return;
+                }
+                if !stored.matches_scope(&expected_owner_scope, &expected_namespace) {
+                    *output.borrow_mut() = Some(Err(IndexedDbJournalError(
+                        "operation is bound to a different owner scope or namespace".into(),
+                    )));
+                    return;
+                }
+                let entry = match JournalEntry::from_snapshot_for_operation(
+                    &expected_id,
+                    stored.snapshot.clone(),
+                ) {
                     Ok(value) => value,
                     Err(error) => {
                         *output.borrow_mut() = Some(Err(IndexedDbJournalError::from(error)));
@@ -631,6 +648,7 @@ impl IndexedDbJournal {
                         }
                     };
                 let lease_request_for_callback = lease_request.clone();
+                let stored_record = stored;
                 let output_for_registration_error = output.clone();
                 let transaction_for_registration_error = transaction.clone();
                 let output = output.clone();
@@ -639,6 +657,8 @@ impl IndexedDbJournal {
                 let leases = leases.clone();
                 let transaction = transaction.clone();
                 let expected_id = expected_id.clone();
+                let expected_owner_scope = expected_owner_scope.clone();
+                let expected_namespace = expected_namespace.clone();
                 let lease_token = lease_token.clone();
                 let callback = Closure::once_into_js(move |_lease_event: JsValue| {
                     let raw_lease = match Reflect::get(
@@ -726,14 +746,20 @@ impl IndexedDbJournal {
                         *output.borrow_mut() = Some(Err(IndexedDbJournalError::from(error)));
                         return;
                     }
-                    let saved = match entry.to_snapshot().and_then(|value| {
-                        serde_json::to_string(&value).map_err(|_| {
-                            JournalError::InvalidSnapshot("snapshot_serialization_failed")
-                        })
-                    }) {
+                    let mut stored_record = stored_record;
+                    stored_record.snapshot = match entry.to_snapshot() {
                         Ok(value) => value,
                         Err(error) => {
                             *output.borrow_mut() = Some(Err(IndexedDbJournalError::from(error)));
+                            return;
+                        }
+                    };
+                    let saved = match serde_json::to_string(&stored_record) {
+                        Ok(value) => value,
+                        Err(error) => {
+                            *output.borrow_mut() = Some(Err(IndexedDbJournalError(format!(
+                                "stored operation serialization failed: {error}"
+                            ))));
                             return;
                         }
                     };
@@ -775,17 +801,36 @@ impl IndexedDbJournal {
         let (saved, lease) = output.borrow_mut().take().ok_or_else(|| {
             IndexedDbJournalError("attempt transaction completed without an outcome".into())
         })??;
-        let snapshot: JournalEntrySnapshotV1 = serde_json::from_str(&saved).map_err(|error| {
-            IndexedDbJournalError(format!("stored snapshot JSON invalid: {error}"))
+        let stored: StoredOperationV1 = serde_json::from_str(&saved).map_err(|error| {
+            IndexedDbJournalError(format!("stored operation JSON invalid: {error}"))
         })?;
-        let entry = JournalEntry::from_snapshot_for_operation(operation_id, snapshot)
+        stored.validate()?;
+        if !stored.matches_scope(owner_scope, operation_namespace) {
+            return Err(IndexedDbJournalError(
+                "operation owner scope changed before dispatch permit creation".into(),
+            ));
+        }
+        let entry = JournalEntry::from_snapshot_for_operation(operation_id, stored.snapshot)
             .map_err(IndexedDbJournalError::from)?;
+        let canonical_payload = std::str::from_utf8(entry.canonical_payload_utf8())
+            .map_err(|error| IndexedDbJournalError(format!("canonical payload is not UTF-8: {error}")))?;
+        let request_fingerprint_sha256 =
+            sol_atlas_core::offline_idempotency_fingerprint::canonical_request_fingerprint_sha256(
+                owner_scope,
+                operation_namespace,
+                entry.envelope(),
+                canonical_payload,
+            )
+            .map_err(|error| IndexedDbJournalError(error.to_string()))?;
         Ok(DispatchPermit {
             operation_id: entry.envelope().operation_id.clone(),
             idempotency_key: entry.envelope().idempotency_key.clone(),
             payload_digest_sha256: entry.envelope().payload_digest_sha256.clone(),
             canonical_payload_utf8: entry.canonical_payload_utf8().to_vec(),
             attempt_count: entry.attempt_count(),
+            owner_scope: owner_scope.to_owned(),
+            operation_namespace: operation_namespace.to_owned(),
+            request_fingerprint_sha256,
             lease_token: lease.owner_token,
             lease_expires_at_ms: lease.expires_at_ms,
             durability_policy,
