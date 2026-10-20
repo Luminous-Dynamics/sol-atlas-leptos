@@ -243,6 +243,22 @@ pub struct FrontierSearchEvaluation {
     pub pareto_frontier: Vec<Portfolio>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct PortfolioRegret {
+    pub portfolio: Portfolio,
+    pub scenario_regret: BTreeMap<String, ObjectiveVector>,
+    pub worst_case_regret: ObjectiveVector,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct RobustRegretEvaluation {
+    pub scenario_ideal_objectives: BTreeMap<String, ObjectiveVector>,
+    pub portfolio_regrets: Vec<PortfolioRegret>,
+    pub minimax_regret_frontier: Vec<PortfolioRegret>,
+}
+
 fn period_rank(period: &str) -> Option<u32> {
     period.strip_prefix('P')?.parse::<u32>().ok()
 }
@@ -897,6 +913,203 @@ pub fn evaluate_frontier_search(input: &Input) -> Result<FrontierSearchEvaluatio
         stats: accumulator.stats,
         pareto_frontier: accumulator.pareto_frontier,
     })
+}
+
+fn componentwise_max(left: &ObjectiveVector, right: &ObjectiveVector) -> ObjectiveVector {
+    ObjectiveVector {
+        economic_value_u: left.economic_value_u.max(right.economic_value_u),
+        essential_service_points: left
+            .essential_service_points
+            .max(right.essential_service_points),
+        paid_work_opportunity_points: left
+            .paid_work_opportunity_points
+            .max(right.paid_work_opportunity_points),
+        ecological_quality_points: left
+            .ecological_quality_points
+            .max(right.ecological_quality_points),
+    }
+}
+
+fn checked_regret(ideal: &ObjectiveVector, actual: &ObjectiveVector) -> Option<ObjectiveVector> {
+    Some(ObjectiveVector {
+        economic_value_u: ideal.economic_value_u.checked_sub(actual.economic_value_u)?,
+        essential_service_points: ideal
+            .essential_service_points
+            .checked_sub(actual.essential_service_points)?,
+        paid_work_opportunity_points: ideal
+            .paid_work_opportunity_points
+            .checked_sub(actual.paid_work_opportunity_points)?,
+        ecological_quality_points: ideal
+            .ecological_quality_points
+            .checked_sub(actual.ecological_quality_points)?,
+    })
+}
+
+fn componentwise_worst(
+    left: &ObjectiveVector,
+    right: &ObjectiveVector,
+) -> ObjectiveVector {
+    ObjectiveVector {
+        economic_value_u: left.economic_value_u.max(right.economic_value_u),
+        essential_service_points: left
+            .essential_service_points
+            .max(right.essential_service_points),
+        paid_work_opportunity_points: left
+            .paid_work_opportunity_points
+            .max(right.paid_work_opportunity_points),
+        ecological_quality_points: left
+            .ecological_quality_points
+            .max(right.ecological_quality_points),
+    }
+}
+
+fn regret_dominates(candidate: &PortfolioRegret, other: &PortfolioRegret) -> bool {
+    let a = &candidate.worst_case_regret;
+    let b = &other.worst_case_regret;
+    let no_worse = a.economic_value_u <= b.economic_value_u
+        && a.essential_service_points <= b.essential_service_points
+        && a.paid_work_opportunity_points <= b.paid_work_opportunity_points
+        && a.ecological_quality_points <= b.ecological_quality_points;
+    let strictly_better = a.economic_value_u < b.economic_value_u
+        || a.essential_service_points < b.essential_service_points
+        || a.paid_work_opportunity_points < b.paid_work_opportunity_points
+        || a.ecological_quality_points < b.ecological_quality_points;
+    no_worse && strictly_better
+}
+
+fn evaluate_robust_regret_from_frontier(
+    frontier: &[Portfolio],
+    scenarios: &[Scenario],
+) -> Result<RobustRegretEvaluation, String> {
+    if frontier.is_empty() {
+        return Err("cannot evaluate robust regret without a complete non-empty frontier".to_owned());
+    }
+    if scenarios.is_empty() {
+        return Err("cannot evaluate robust regret without declared scenarios".to_owned());
+    }
+
+    let scenario_ids: BTreeSet<String> =
+        scenarios.iter().map(|scenario| scenario.id.clone()).collect();
+    if scenario_ids.len() != scenarios.len()
+        || scenario_ids.iter().any(String::is_empty)
+    {
+        return Err("robust regret scenarios must have unique non-empty IDs".to_owned());
+    }
+    for portfolio in frontier {
+        let outcome_ids: BTreeSet<String> = portfolio.outcomes.keys().cloned().collect();
+        if outcome_ids != scenario_ids {
+            return Err(format!(
+                "portfolio {} does not cover exactly the declared regret scenarios",
+                portfolio_key(portfolio)
+            ));
+        }
+    }
+
+    // The complete outcome Pareto frontier preserves every scenario/objective maximum:
+    // a portfolio dominated in all scenario/objective components cannot define a higher ideal.
+    let mut scenario_ideal_objectives = BTreeMap::new();
+    for scenario in scenarios {
+        let first = frontier[0]
+            .outcomes
+            .get(&scenario.id)
+            .ok_or_else(|| format!("missing scenario {} on frontier", scenario.id))?
+            .clone();
+        let ideal = frontier.iter().skip(1).try_fold(first, |best, portfolio| {
+            let current = portfolio
+                .outcomes
+                .get(&scenario.id)
+                .ok_or_else(|| format!("missing scenario {} on frontier", scenario.id))?;
+            Ok::<ObjectiveVector, String>(componentwise_max(&best, current))
+        })?;
+        scenario_ideal_objectives.insert(scenario.id.clone(), ideal);
+    }
+
+    let mut portfolio_regrets = Vec::with_capacity(frontier.len());
+    for portfolio in frontier {
+        let mut scenario_regret = BTreeMap::new();
+        let mut worst_case_regret: Option<ObjectiveVector> = None;
+        for scenario in scenarios {
+            let ideal = scenario_ideal_objectives
+                .get(&scenario.id)
+                .ok_or_else(|| format!("missing ideal for scenario {}", scenario.id))?;
+            let actual = portfolio
+                .outcomes
+                .get(&scenario.id)
+                .ok_or_else(|| format!("missing outcome for scenario {}", scenario.id))?;
+            let regret = checked_regret(ideal, actual).ok_or_else(|| {
+                format!(
+                    "regret subtraction overflow for portfolio {} in scenario {}",
+                    portfolio_key(portfolio),
+                    scenario.id
+                )
+            })?;
+            if [
+                regret.economic_value_u,
+                regret.essential_service_points,
+                regret.paid_work_opportunity_points,
+                regret.ecological_quality_points,
+            ]
+            .iter()
+            .any(|value| *value < 0)
+            {
+                return Err("robust regret must be non-negative for every component".to_owned());
+            }
+            worst_case_regret = Some(match worst_case_regret {
+                Some(ref worst) => componentwise_worst(worst, &regret),
+                None => regret.clone(),
+            });
+            scenario_regret.insert(scenario.id.clone(), regret);
+        }
+        portfolio_regrets.push(PortfolioRegret {
+            portfolio: portfolio.clone(),
+            scenario_regret,
+            worst_case_regret: worst_case_regret
+                .ok_or_else(|| "no scenario regret values were generated".to_owned())?,
+        });
+    }
+    portfolio_regrets.sort_by_key(|entry| portfolio_key(&entry.portfolio));
+
+    let mut minimax_regret_frontier = Vec::new();
+    for (candidate_index, candidate) in portfolio_regrets.iter().enumerate() {
+        let dominated = portfolio_regrets
+            .iter()
+            .enumerate()
+            .any(|(other_index, other)| {
+                candidate_index != other_index && regret_dominates(other, candidate)
+            });
+        if !dominated {
+            minimax_regret_frontier.push(candidate.clone());
+        }
+    }
+    minimax_regret_frontier.sort_by_key(|entry| portfolio_key(&entry.portfolio));
+
+    Ok(RobustRegretEvaluation {
+        scenario_ideal_objectives,
+        portfolio_regrets,
+        minimax_regret_frontier,
+    })
+}
+
+/// Compute scenario-wise objective regret from the exact evaluator's complete Pareto frontier.
+///
+/// For a maximize objective j and scenario s, absolute regret is the gap between the best
+/// feasible value in s and the selected portfolio's value in s. The returned robust regret
+/// vector takes the maximum gap over the declared stress scenarios independently for each
+/// objective. Its frontier minimizes that vector componentwise; it does not select a scalar
+/// winner or assign probabilities to the stress scenarios.
+pub fn evaluate_robust_regret(
+    evaluation: &Evaluation,
+    scenarios: &[Scenario],
+) -> Result<RobustRegretEvaluation, String> {
+    evaluate_robust_regret_from_frontier(&evaluation.pareto_frontier, scenarios)
+}
+
+/// Compute scenario-wise objective regret from a complete dependency-aware search frontier.
+pub fn evaluate_robust_regret_from_search(
+    evaluation: &FrontierSearchEvaluation,
+    scenarios: &[Scenario],
+) -> Result<RobustRegretEvaluation, String> {
+    evaluate_robust_regret_from_frontier(&evaluation.pareto_frontier, scenarios)
 }
 
 pub fn check_expected(evaluation: &Evaluation, expected_raw: &str) -> Result<(), String> {
