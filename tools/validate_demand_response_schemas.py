@@ -154,6 +154,39 @@ def main() -> int:
     fixture = load_json(FIXTURE_PATH)
 
     expect_valid("committed synthetic trace fixture", input_validator, fixture)
+
+    # Shape-only metadata control. Placeholder hashes below are explicitly fake;
+    # this object does not attest that any FlexDC-Sim run or artifact exists.
+    flexdc_control = copy.deepcopy(fixture)
+    flexdc_meta = flexdc_control["rsr_reference"]["metadata"]
+    flexdc_meta.update(
+        {
+            "source_name": "FlexDC-Sim",
+            "source_revision": "ea50bd582b5d1b55fcb09ea46899fa9d325cce3b",
+            "source_field": "trackingError",
+            "sample_time_semantics": "prior_cycle_state",
+            "denominator_convention": "reserve_plus_epsilon",
+            "source_artifact_sha256": "a" * 64,
+            "source_config_manifest_sha256": "b" * 64,
+            "normalization_note": (
+                "Fictional validator control only; hashes are placeholders, "
+                "not an executed FlexDC-Sim artifact or config."
+            ),
+        }
+    )
+    expect_valid(
+        "fictional FlexDC source metadata shape (placeholder hashes only)",
+        input_validator,
+        flexdc_control,
+    )
+    mutation = copy.deepcopy(flexdc_control)
+    mutation["rsr_reference"]["metadata"]["source_artifact_sha256"] = None
+    expect_invalid(
+        "FlexDC source metadata requires raw-artifact and config-manifest digests",
+        input_validator,
+        mutation,
+    )
+
     report = known_answer_report()
     expect_valid(
         "synthetic known-answer report shape",
@@ -228,7 +261,7 @@ def main() -> int:
     mutation["metrics"]["additional_score"] = 1000000
     expect_invalid("report rejects unknown metric fields", report_validator, mutation)
 
-    print("PASS 15 demand-response schema assertions completed; no external data used")
+    print("PASS demand-response schema conformance and mutation checks completed; no external data used")
     return 0
 
 
