@@ -1,0 +1,346 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/spatial-economic-intertemporal-assessment-v0.1.schema.json",
+  "title": "Spatial-Economic Intertemporal Resource Allocation Assessment V0.1",
+  "description": "Receipt for an exact bounded reference evaluator. It is not a physical-model or operational-authority certificate.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_id",
+    "comparison_pair_id",
+    "design_role",
+    "scenario_id",
+    "failure_bundle_ids",
+    "policy",
+    "disposition",
+    "search_space_size",
+    "search_nodes_examined",
+    "feasible_plan_count",
+    "search_complete",
+    "service_steps",
+    "resource_steps",
+    "input_blockers",
+    "supporting_evidence_ids",
+    "assumption_ids",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "comparison_pair_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "design_role": {
+      "enum": [
+        "baseline",
+        "candidate"
+      ]
+    },
+    "scenario_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "failure_bundle_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "policy": {
+      "enum": [
+        "equal_coverage_leximin",
+        "fixed_priority",
+        "essential_floor_first"
+      ]
+    },
+    "disposition": {
+      "enum": [
+        "optimal",
+        "indeterminate_input",
+        "infeasible",
+        "search_cap_exceeded"
+      ]
+    },
+    "search_space_size": {
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "search_nodes_examined": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "feasible_plan_count": {
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 0
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "search_complete": {
+      "type": "boolean"
+    },
+    "service_steps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/serviceStep"
+      }
+    },
+    "resource_steps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/resourceStep"
+      }
+    },
+    "input_blockers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "supporting_evidence_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "assumption_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "$defs": {
+    "serviceStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service_id",
+        "community_id",
+        "step_id",
+        "demand_quanta",
+        "allocated_quanta",
+        "essential_floor_quanta",
+        "coverage_basis_points",
+        "floor_status"
+      ],
+      "properties": {
+        "service_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "community_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "step_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "demand_quanta": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "allocated_quanta": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "essential_floor_quanta": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "coverage_basis_points": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "floor_status": {
+          "type": "string",
+          "enum": [
+            "meets_floor",
+            "below_floor",
+            "indeterminate"
+          ]
+        }
+      }
+    },
+    "resourceStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resource_id",
+        "step_id",
+        "resource_unit",
+        "capacity_quanta",
+        "consumed_quanta",
+        "residual_capacity_quanta",
+        "opening_stock_quanta",
+        "inflow_quanta",
+        "loss_quanta",
+        "withdrawal_quanta",
+        "spill_quanta",
+        "ending_stock_quanta",
+        "balance_equation_holds"
+      ],
+      "properties": {
+        "resource_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "step_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resource_unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "capacity_quanta": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "consumed_quanta": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "residual_capacity_quanta": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "opening_stock_quanta": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "inflow_quanta": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "loss_quanta": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "withdrawal_quanta": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "spill_quanta": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ending_stock_quanta": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "balance_equation_holds": {
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
