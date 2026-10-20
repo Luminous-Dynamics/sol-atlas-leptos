@@ -1017,7 +1017,7 @@ mod tests {
                             (*scenario_id).to_owned(),
                             ObjectiveVector {
                                 economic_value_u: (i * 7 + s * 3) % 13 - 3,
-                                essential_service_points: (i * 3 + s * 2) % 3,
+                                essential_service_points: (i + s * 2) % 3,
                                 paid_work_opportunity_points: (i * 5 + s * 2) % 9,
                                 ecological_quality_points: (i * 2 + s * 5) % 11,
                             },
