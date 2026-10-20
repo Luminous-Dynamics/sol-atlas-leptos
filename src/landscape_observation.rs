@@ -1277,6 +1277,60 @@ mod tests {
     }
 
     #[test]
+    fn metric_observation_map_is_explicit_and_non_scoring() {
+        let mapping: Value = serde_json::from_str(include_str!(
+            "../metrics/landscape/observation-map-v0.json"
+        ))
+        .unwrap();
+        let mapping_schema: Value = serde_json::from_str(include_str!(
+            "../schemas/landscape-metric-observation-map-v0.schema.json"
+        ))
+        .unwrap();
+
+        assert_eq!(
+            mapping["schema"],
+            "luminous.landscape-metric-observation-map.v0"
+        );
+        assert_eq!(
+            mapping["schema_uri"],
+            mapping_schema["$id"]
+        );
+        assert_eq!(
+            mapping["registry_schema_uri"],
+            "https://luminousdynamics.io/schemas/landscape-performance-registry-v0.schema.json"
+        );
+        assert_eq!(
+            mapping["status"],
+            "cross-pr-dependency-not-yet-merged-or-validated-against-registry"
+        );
+
+        let entries = mapping["mappings"].as_array().unwrap();
+        assert_eq!(entries.len(), 8);
+        let mut metric_ids = HashSet::new();
+        for entry in entries {
+            let metric_id = entry["metric_id"].as_str().unwrap();
+            assert!(metric_ids.insert(metric_id));
+            assert!(!entry["prohibited_inferences"].as_array().unwrap().is_empty());
+            assert!(!entry["output_status"].as_str().unwrap().is_empty());
+        }
+
+        assert_eq!(
+            entries
+                .iter()
+                .find(|entry| entry["metric_id"] == "ecology.canopy_cover_fraction")
+                .unwrap()["support_status"],
+            "not-supported-v0-spatial-geometry"
+        );
+        assert_eq!(
+            entries
+                .iter()
+                .find(|entry| entry["metric_id"] == "stewardship.maintenance_assignment_coverage")
+                .unwrap()["support_status"],
+            "requires-governance-artifact"
+        );
+    }
+
+    #[test]
     fn schema_constants_match_committed_json_schemas() {
         let observation_schema: Value = serde_json::from_str(include_str!(
             "../schemas/landscape-observation-v0.schema.json"
