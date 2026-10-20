@@ -41,7 +41,11 @@ For each source and each materially different transformed dataset:
 - **Energy attribution:** `metered`, `calibrated_model`, `proxy`, or `unknown`, with boundary, instrument/model and uncertainty. Unknown remains unknown—not zero.
 - **Claim policy:** highest evidence-supported claim and explicit forbidden inferences.
 
-The schema rejects unknown fields. Its cross-field rules also restrict a planned artifact to a metadata-only claim ceiling; prevent proxy/unknown energy from producing measured-energy claims; require metered, normalized evidence for metered-energy claims; and require a measured quality rule plus facility-boundary metering for quality-accepted work per facility kWh.
+The schema rejects unknown fields. Its cross-field rules restrict planned artifacts to metadata-only claims; prevent proxy/unknown energy from supporting metered claims; require normalized artifacts, metered energy, an approved license review with terms, and a non-synthetic source kind for metered-energy claims; and require mapped canonical fields, recorded data-quality checks, a measured quality rule, and facility-boundary metering for quality-accepted work per facility kWh. These schema rules check required declarations and structure, not whether those declarations are truthful; that requires independent evidence review and measurement.
+
+## 3A. Executable schema validation
+
+The CI-only script `tools/validate_ai_compute_trace_intake.py` uses the pinned `jsonschema[format]` validator to validate the schema document against the Draft 2020-12 meta-schema, actively check `date-time` and `uri` formats, accept the planned metadata fixture and a fictional in-memory positive-control object, and reject deliberate mutations that attempt to overstate evidence. It is development tooling only; Sol-Atlas production code remains Rust. The positive control is explicitly fictional and exists only to exercise conditional schema branches—it is not a dataset, meter record, license review or benchmark result. This target-specific test does not replace the JSON Schema project's full language-agnostic conformance suite.
 
 ## 4. Fair comparison protocol
 
