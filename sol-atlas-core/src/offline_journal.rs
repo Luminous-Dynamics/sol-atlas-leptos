@@ -25,9 +25,8 @@ pub struct OperationEnvelope {
     pub payload_digest_sha256: String,
     /// Stable across retries; the service must bind it to this immutable envelope.
     pub idempotency_key: String,
-    /// Set only when a deliberate new operation resolves an earlier conflict.
-    #[serde(default)]
-    pub supersedes_operation_id: Option<String>,
+    /// Conflict lineage; null is explicit and the field must be present on the wire.
+    pub supersedes_operation_id: RequiredNullableOperationId,
 }
 
 /// A nullable string that must still be present on the wire.
@@ -41,15 +40,6 @@ pub enum RequiredNullableOperationId {
     Null(()),
 }
 
-impl RequiredNullableOperationId {
-    fn from_option(value: Option<String>) -> Self {
-        match value {
-            Some(value) => Self::Value(value),
-            None => Self::Null(()),
-        }
-    }
-}
-
 impl OperationEnvelope {
     pub fn validate(&self) -> Result<(), JournalError> {
         if self.schema_version != OFFLINE_JOURNAL_SCHEMA_VERSION {
@@ -58,7 +48,7 @@ impl OperationEnvelope {
         require_non_empty(&self.operation_id, "operation_id")?;
         require_non_empty(&self.aggregate_id, "aggregate_id")?;
         require_non_empty(&self.idempotency_key, "idempotency_key")?;
-        if let Some(parent) = &self.supersedes_operation_id {
+        if let RequiredNullableOperationId::Value(parent) = &self.supersedes_operation_id {
             require_non_empty(parent, "supersedes_operation_id")?;
         }
         let digest = self.payload_digest_sha256.as_bytes();
@@ -95,9 +85,7 @@ impl OperationBinding {
             expected_revision: envelope.expected_revision,
             payload_digest_sha256: envelope.payload_digest_sha256.clone(),
             idempotency_key: envelope.idempotency_key.clone(),
-            supersedes_operation_id: RequiredNullableOperationId::from_option(
-                envelope.supersedes_operation_id.clone(),
-            ),
+            supersedes_operation_id: envelope.supersedes_operation_id.clone(),
         }
     }
 }
@@ -341,8 +329,8 @@ impl JournalEntry {
                 "wrong_base_revision",
             ));
         }
-        if replacement.supersedes_operation_id.as_deref()
-            != Some(self.envelope.operation_id.as_str())
+        if replacement.supersedes_operation_id
+            != RequiredNullableOperationId::Value(self.envelope.operation_id.clone())
         {
             return Err(JournalError::ConflictResolutionMismatch(
                 "supersedes_reference_missing",
@@ -437,7 +425,7 @@ mod tests {
             expected_revision: 7,
             payload_digest_sha256: "a".repeat(64),
             idempotency_key: "idem-001".to_owned(),
-            supersedes_operation_id: None,
+            supersedes_operation_id: RequiredNullableOperationId::Null(()),
         }
     }
 
@@ -539,6 +527,27 @@ mod tests {
     }
 
     #[test]
+    fn operation_envelope_requires_explicit_null_for_missing_conflict_parent() {
+        let envelope = envelope();
+        let encoded = serde_json::to_value(&envelope).unwrap();
+        assert_eq!(encoded["supersedes_operation_id"], serde_json::Value::Null);
+        assert_eq!(
+            serde_json::from_value::<OperationEnvelope>(encoded.clone()).unwrap(),
+            envelope
+        );
+
+        let mut omitted = encoded;
+        omitted
+            .as_object_mut()
+            .unwrap()
+            .remove("supersedes_operation_id");
+        assert!(
+            serde_json::from_value::<OperationEnvelope>(omitted).is_err(),
+            "omitting nullable request lineage must not be accepted as explicit null"
+        );
+    }
+
+    #[test]
     fn operation_binding_requires_explicit_null_for_missing_conflict_parent() {
         let binding = operation_binding();
         let encoded = serde_json::to_value(&binding).unwrap();
@@ -598,7 +607,8 @@ mod tests {
         replacement.operation_id = "op-002".to_owned();
         replacement.idempotency_key = "idem-002".to_owned();
         replacement.expected_revision = 9;
-        replacement.supersedes_operation_id = Some("op-001".to_owned());
+        replacement.supersedes_operation_id =
+            RequiredNullableOperationId::Value("op-001".to_owned());
 
         let resolved = original.prepare_conflict_resolution(replacement).unwrap();
         assert_eq!(resolved.state, JournalState::Prepared);
@@ -626,7 +636,8 @@ mod tests {
 
         let mut replacement = envelope();
         replacement.expected_revision = 9;
-        replacement.supersedes_operation_id = Some("op-001".to_owned());
+        replacement.supersedes_operation_id =
+            RequiredNullableOperationId::Value("op-001".to_owned());
         assert!(matches!(
             original.prepare_conflict_resolution(replacement.clone()),
             Err(JournalError::ConflictResolutionMismatch(
