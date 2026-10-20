@@ -13,6 +13,7 @@
 
 /// A time interval. Missing required resource constraints must remain unknown.
 #[derive(Clone, Debug, PartialEq, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Interval {
     pub id: String,
     pub duration_hours: f64,
@@ -21,18 +22,27 @@ pub struct Interval {
     pub thermal_it_power_limit_kw: Option<f64>,
     pub cooling_water_limit_l: Option<f64>,
     pub water_l_per_it_kwh: Option<f64>,
-    /// Optional attributed electricity tariff. Required by LowestCost scheduling.
+    /// Optional attributed electricity tariff. Negative wholesale prices are valid.
     #[serde(default)]
     pub electricity_price_usd_per_kwh: Option<f64>,
-    /// Optional attributed interval carbon intensity. Required by LowestCarbon scheduling.
+    /// Optional attributed interval carbon intensity.
     #[serde(default)]
     pub grid_carbon_intensity_gco2_per_kwh: Option<f64>,
+    /// Context only; the thermal cap is supplied explicitly and is not inferred here.
+    #[serde(default)]
+    pub ambient_temperature_c: Option<f64>,
+    /// Scenario annotations only; hard outages must also be reflected in resource limits.
+    #[serde(default)]
+    pub failure_tags: Vec<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Site {
     pub site_id: String,
     pub it_power_capacity_kw: f64,
+    #[serde(default)]
+    pub region_id: Option<String>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Deserialize)]
@@ -43,6 +53,7 @@ pub enum WorkClass {
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Workload {
     pub workload_id: String,
     pub work_class: WorkClass,
@@ -53,13 +64,48 @@ pub struct Workload {
     /// Hard lower bound for each time interval. Protected work must equal its
     /// required units in total for this v0.1 contract.
     pub minimum_accepted_units_by_interval: Vec<u64>,
+    pub service_quality_profile_id: String,
+    pub interruptible: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct StorageProfile {
+    pub capacity_kwh: f64,
+    pub opening_stock_kwh: f64,
+    pub charge_limit_kw: f64,
+    pub discharge_limit_kw: f64,
+    pub round_trip_efficiency: f64,
+    pub terminal_reserve_kwh: f64,
+}
+
+#[derive(Clone, Debug, PartialEq, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct OracleExpectations {
+    pub protected_work_units: u64,
+    pub max_deferrable_work_units: u64,
+    pub resource_limits_hold: bool,
+}
+
+/// A typed projection of the v0.1 scenario envelope. The root and nested
+/// records reject unknown keys so a future physical constraint cannot silently
+/// disappear during deserialization.
+#[derive(Clone, Debug, PartialEq, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Request {
+    pub schema_version: String,
+    pub fixture_id: String,
+    pub synthetic: bool,
+    pub claim_ceiling: String,
     pub site: Site,
     pub intervals: Vec<Interval>,
     pub workloads: Vec<Workload>,
+    pub baseline_policy: String,
+    pub candidate_policies: Vec<String>,
+    #[serde(default)]
+    pub storage: Option<StorageProfile>,
+    #[serde(default)]
+    pub oracle_expectations: Option<OracleExpectations>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize)]
