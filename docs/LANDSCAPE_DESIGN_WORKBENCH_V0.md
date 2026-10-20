@@ -24,7 +24,7 @@ Route: **/design/landscape**.
 
 - Canvas: responsive 1000 × 650 local drawing-unit plane, illustrative boundary and contours.
 - Tools: canopy tree, planting bed, water feature, path, built element.
-- Interaction: select tool; click canvas to place; undo latest placement; reset to deterministic starter plan.
+- Interaction: select tool; click canvas to place; click an existing symbol to select it; inspect its anchor; delete the selected element; undo latest placement; reset to deterministic starter plan.
 - Scope context: site/parcel, district, watershed, bioregion. In v0 this labels the intended planning context; it does not rescale or georeference the geometry.
 - Layer controls: measurement grid and illustrative contours.
 - Project metadata: editable project name in the UI.
@@ -166,6 +166,7 @@ Targets become product gates only after the reference hardware and benchmark har
 - / route and /labs/reactor-twin still resolve.
 - /design/landscape renders on the existing Rust/Leptos stack.
 - All five tools and four scale contexts can be selected with accessible, visible state.
+- Selecting a symbol must not trigger placement; deleting one selected symbol removes only its ID and preserves unselected features.
 - One valid canvas click adds one feature; undo removes the latest; reset restores the exact starter fixtures.
 - Grid/context visibility toggles work independently of editing.
 - Export is valid JSON, deterministic for the same project and explicitly not georeferenced.
