@@ -620,10 +620,9 @@ mod tests {
 
     #[test]
     fn performance_metric_registry_is_traceable_and_definition_only() {
-        let registry: Value = serde_json::from_str(include_str!(
-            "../metrics/landscape/registry-v0.json"
-        ))
-        .expect("performance metric registry must be valid JSON");
+        let registry: Value =
+            serde_json::from_str(include_str!("../metrics/landscape/registry-v0.json"))
+                .expect("performance metric registry must be valid JSON");
         let schema: Value = serde_json::from_str(include_str!(
             "../schemas/landscape-performance-registry-v0.schema.json"
         ))
@@ -634,11 +633,11 @@ mod tests {
             "luminous.landscape-performance-registry.v0"
         );
         assert_eq!(registry["schema_uri"], schema["$id"]);
+        assert_eq!(registry["status"], "specification-only-no-field-values");
         assert_eq!(
-            registry["status"],
-            "specification-only-no-field-values"
+            schema["properties"]["metrics"]["items"]["additionalProperties"],
+            false
         );
-        assert_eq!(schema["properties"]["metrics"]["items"]["additionalProperties"], false);
 
         let metrics = registry["metrics"]
             .as_array()
@@ -654,13 +653,7 @@ mod tests {
                     .as_str()
                     .expect("metric family must be a string"),
             );
-            for field in [
-                "label",
-                "unit",
-                "semantic_type",
-                "formula",
-                "target_policy",
-            ] {
+            for field in ["label", "unit", "semantic_type", "formula", "target_policy"] {
                 assert!(
                     metric[field]
                         .as_str()
@@ -668,7 +661,11 @@ mod tests {
                     "metric {id} has no {field}"
                 );
             }
-            for field in ["required_inputs", "failure_modes", "uncertainty_requirements"] {
+            for field in [
+                "required_inputs",
+                "failure_modes",
+                "uncertainty_requirements",
+            ] {
                 assert!(
                     metric[field]
                         .as_array()
@@ -695,10 +692,9 @@ mod tests {
 
     #[test]
     fn benchmark_manifest_matches_generator_limits_without_claiming_results() {
-        let manifest: Value = serde_json::from_str(include_str!(
-            "../benchmarks/landscape/workloads-v0.json"
-        ))
-        .expect("landscape benchmark manifest must be valid JSON");
+        let manifest: Value =
+            serde_json::from_str(include_str!("../benchmarks/landscape/workloads-v0.json"))
+                .expect("landscape benchmark manifest must be valid JSON");
 
         assert_eq!(
             manifest["manifest_version"],
@@ -719,10 +715,7 @@ mod tests {
             .map(|size| size["feature_count"].as_u64().unwrap())
             .collect();
         assert_eq!(counts, [100, 1_000, 10_000, MAX_SNAPSHOT_FEATURES as u64]);
-        assert_eq!(
-            manifest["generator"]["initial_seed_hex"],
-            "0x4c414e44"
-        );
+        assert_eq!(manifest["generator"]["initial_seed_hex"], "0x4c414e44");
         assert_eq!(
             manifest["generator"]["geometry_warning"],
             "These generated features are synthetic drawing units; no geographic or physical meaning."
