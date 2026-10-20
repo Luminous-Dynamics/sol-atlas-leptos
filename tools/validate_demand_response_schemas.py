@@ -18,6 +18,10 @@ ROOT = Path(__file__).resolve().parents[1]
 INPUT_SCHEMA_PATH = ROOT / "schemas/demand-response-trace-v1.schema.json"
 REPORT_SCHEMA_PATH = ROOT / "schemas/demand-response-assessment-report-v1.schema.json"
 FIXTURE_PATH = ROOT / "schemas/examples/demand-response-trace-v1.synthetic.json"
+FLEXDC_MANIFEST_SCHEMA_PATH = ROOT / "schemas/flexdc-sim-run-manifest-v1.schema.json"
+FLEXDC_MANIFEST_FIXTURE_PATH = (
+    ROOT / "schemas/examples/flexdc-sim-run-manifest-v1.synthetic.json"
+)
 
 
 def load_json(path: Path) -> Any:
@@ -151,9 +155,40 @@ def known_answer_report() -> dict[str, Any]:
 def main() -> int:
     input_validator = validator_for(INPUT_SCHEMA_PATH)
     report_validator = validator_for(REPORT_SCHEMA_PATH)
+    flexdc_manifest_validator = validator_for(FLEXDC_MANIFEST_SCHEMA_PATH)
     fixture = load_json(FIXTURE_PATH)
+    flexdc_manifest = load_json(FLEXDC_MANIFEST_FIXTURE_PATH)
 
     expect_valid("committed synthetic trace fixture", input_validator, fixture)
+    expect_valid(
+        "synthetic FlexDC run-manifest fixture (placeholder blob IDs only)",
+        flexdc_manifest_validator,
+        flexdc_manifest,
+    )
+
+    manifest_mutation = copy.deepcopy(flexdc_manifest)
+    manifest_mutation["config_artifacts"][0]["git_blob_sha1"] = "not-a-git-blob"
+    expect_invalid(
+        "FlexDC run manifest rejects malformed config blob IDs",
+        flexdc_manifest_validator,
+        manifest_mutation,
+    )
+    manifest_mutation = copy.deepcopy(flexdc_manifest)
+    manifest_mutation["config_artifacts"].pop()
+    expect_invalid(
+        "FlexDC run manifest rejects missing config roles",
+        flexdc_manifest_validator,
+        manifest_mutation,
+    )
+    manifest_mutation = copy.deepcopy(flexdc_manifest)
+    manifest_mutation["config_artifacts"][1]["role"] = manifest_mutation[
+        "config_artifacts"
+    ][0]["role"]
+    expect_invalid(
+        "FlexDC run manifest rejects duplicate config roles",
+        flexdc_manifest_validator,
+        manifest_mutation,
+    )
 
     # Shape-only metadata control. Placeholder hashes below are explicitly fake;
     # this object does not attest that any FlexDC-Sim run or artifact exists.
@@ -261,7 +296,7 @@ def main() -> int:
     mutation["metrics"]["additional_score"] = 1000000
     expect_invalid("report rejects unknown metric fields", report_validator, mutation)
 
-    print("PASS demand-response schema conformance and mutation checks completed; no external data used")
+    print("PASS demand-response and FlexDC manifest schemas/mutations; no external data used")
     return 0
 
 
