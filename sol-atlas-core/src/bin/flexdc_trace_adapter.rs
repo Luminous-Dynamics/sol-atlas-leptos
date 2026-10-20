@@ -572,7 +572,7 @@ mod tests {
                 .expect_err("missing trackingError column must reject")
                 .contains("exactly one")
         );
-        let bad_time = TRACE.replace("5,10000.0,10000.0,0.0", "6,10000.0,10000.0,0.0");
+        let bad_time = TRACE.replace("5,6149.6,10000.0,0.0", "6,6149.6,10000.0,0.0");
         assert!(
             parse_power_trace(&bad_time, &manifest)
                 .expect_err("gap in timestamps must reject")
