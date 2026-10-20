@@ -1,0 +1,465 @@
+{
+  "schema": "luminous.landscape-metric-observation-map.v0",
+  "schema_uri": "https://luminousdynamics.io/schemas/landscape-metric-observation-map-v0.schema.json",
+  "registry_schema_uri": "https://luminousdynamics.io/schemas/landscape-performance-registry-v0.schema.json",
+  "registry_version": "landscape-performance-registry-v0",
+  "status": "cross-pr-dependency-not-yet-merged-or-validated-against-registry",
+  "purpose": "Declare which observations may support a registered landscape performance metric, and what data remain insufficient. This map does not calculate metrics or certify impact.",
+  "principles": [
+    "Observation ingestion never computes a landscape-performance metric by itself.",
+    "A supporting observation is not automatically an independent validation reference.",
+    "Missing, stale, uncalibrated, wrong-scale, or incompatible-unit inputs remain unknown/not-computable.",
+    "Modelled, observed, curated, synthetic and assumed inputs retain distinct evidence classes.",
+    "Only use an aggregation algorithm after its time/spatial coverage, unit conversions and missing-data policy are declared.",
+    "Do not combine the metric vector into a universal sustainability score."
+  ],
+  "unit_profile": {
+    "version": "landscape-units-v0",
+    "rule": "Use a declared unit vocabulary per property, preferably UCUM-compatible symbols. Do not convert units based only on matching labels.",
+    "examples": [
+      "Cel",
+      "mm",
+      "mm/h",
+      "m3/s",
+      "m3",
+      "W/m2",
+      "percent",
+      "kg",
+      "kgCO2e",
+      "kgCO2e/kg",
+      "ZAR@2026"
+    ]
+  },
+  "mappings": [
+    {
+      "metric_id": "heat.shade_fraction_at_declared_time",
+      "support_status": "supporting-observations-only",
+      "possible_observed_properties": [
+        {
+          "id": "urn:luminous:landscape:surface-temperature",
+          "label": "Surface temperature",
+          "unit": "Cel",
+          "result_kinds": [
+            "quantity"
+          ],
+          "minimum_evidence_classes": [
+            "field-observation",
+            "sensor-observation"
+          ],
+          "requires_time": true,
+          "requires_project_or_site_ref": true
+        },
+        {
+          "id": "urn:luminous:landscape:air-temperature",
+          "label": "Air temperature",
+          "unit": "Cel",
+          "result_kinds": [
+            "quantity"
+          ],
+          "minimum_evidence_classes": [
+            "field-observation",
+            "sensor-observation"
+          ],
+          "requires_time": true,
+          "requires_project_or_site_ref": true
+        },
+        {
+          "id": "urn:luminous:landscape:solar-irradiance",
+          "label": "Solar irradiance",
+          "unit": "W/m2",
+          "result_kinds": [
+            "quantity"
+          ],
+          "minimum_evidence_classes": [
+            "field-observation",
+            "sensor-observation"
+          ],
+          "requires_time": true,
+          "requires_project_or_site_ref": true
+        }
+      ],
+      "required_non_observation_inputs": [
+        "Georeferenced area of interest with area method",
+        "terrain/obstacle/canopy geometry",
+        "latitude/longitude and explicit local-time/timezone and date",
+        "pinned solar/shadow model"
+      ],
+      "required_method_contracts": [
+        "Declared shadow geometry method",
+        "Temporal matching window and missing-sample policy",
+        "Independent shade/temperature validation design"
+      ],
+      "permitted_claims": [
+        "Sensor values describe measured temperature/irradiance under their method and quality state."
+      ],
+      "prohibited_inferences": [
+        "Surface temperature is not a direct measurement of shade fraction.",
+        "A few point sensors cannot establish area-wide shade coverage.",
+        "Synthetic or modeled values cannot be displayed as field observations."
+      ],
+      "output_status": "not-computable-from-v0-observations-alone"
+    },
+    {
+      "metric_id": "water.event_runoff_volume",
+      "support_status": "supporting-observations-only",
+      "possible_observed_properties": [
+        {
+          "id": "urn:luminous:landscape:discharge-rate",
+          "label": "Discharge rate",
+          "unit": "m3/s",
+          "result_kinds": [
+            "quantity"
+          ],
+          "minimum_evidence_classes": [
+            "field-observation",
+            "sensor-observation"
+          ],
+          "requires_time": true,
+          "requires_project_or_site_ref": true
+        },
+        {
+          "id": "urn:luminous:landscape:rainfall-depth",
+          "label": "Rainfall depth",
+          "unit": "mm",
+          "result_kinds": [
+            "quantity"
+          ],
+          "minimum_evidence_classes": [
+            "field-observation",
+            "sensor-observation",
+            "remote-sensing-classification"
+          ],
+          "requires_time": true,
+          "requires_project_or_site_ref": true
+        },
+        {
+          "id": "urn:luminous:landscape:rainfall-intensity",
+          "label": "Rainfall intensity",
+          "unit": "mm/h",
+          "result_kinds": [
+            "quantity"
+          ],
+          "minimum_evidence_classes": [
+            "field-observation",
+            "sensor-observation"
+          ],
+          "requires_time": true,
+          "requires_project_or_site_ref": true
+        }
+      ],
+      "required_non_observation_inputs": [
+        "Delineated catchment geometry",
+        "Named event definition and boundary conditions",
+        "Sampling interval/gap policy",
+        "Flow-meter calibration or qualified rating curve when discharge is inferred",
+        "Pinned hydrology method/model and independent validation"
+      ],
+      "required_method_contracts": [
+        "Integrate discharge rate over event duration with explicit units",
+        "Account for irregular sampling and missing intervals",
+        "Keep event volume, peak discharge and modeled runoff separate"
+      ],
+      "permitted_claims": [
+        "Observed discharge and rainfall records within their quality/coverage envelope."
+      ],
+      "prohibited_inferences": [
+        "A single discharge value is not event runoff volume.",
+        "Rainfall alone does not establish runoff.",
+        "An uncalibrated stage-to-flow conversion is not an accepted discharge observation."
+      ],
+      "output_status": "requires-time-series-aggregation-and-qualified-catchment"
+    },
+    {
+      "metric_id": "ecology.canopy_cover_fraction",
+      "support_status": "not-supported-v0-spatial-geometry",
+      "possible_observed_properties": [
+        {
+          "id": "urn:luminous:landscape:tree-crown-classification",
+          "label": "Tree-crown classification",
+          "unit": null,
+          "result_kinds": [
+            "category"
+          ],
+          "minimum_evidence_classes": [
+            "remote-sensing-classification",
+            "field-observation"
+          ],
+          "requires_time": true,
+          "requires_project_or_site_ref": true
+        }
+      ],
+      "required_non_observation_inputs": [
+        "Crown polygon/segmented raster geometry with valid CRS and resolution",
+        "Area-of-interest polygon and overlap/edge rules",
+        "Imagery/source date and tree growth scenario if forecasting"
+      ],
+      "required_method_contracts": [
+        "A geometry-capable observation or raster feature contract",
+        "Classification accuracy assessment and class semantics",
+        "Area calculation method with uncertainty"
+      ],
+      "permitted_claims": [
+        "A categorized crown-related observation can support a future canopy workflow if its spatial payload and validation are supplied separately."
+      ],
+      "prohibited_inferences": [
+        "One location or category record cannot compute area-based canopy fraction.",
+        "Rendered tree symbols are not tree-crown polygons.",
+        "Plant counts are not canopy cover."
+      ],
+      "output_status": "not-computable-until-spatial-observation-geometry-exists"
+    },
+    {
+      "metric_id": "ecology.species_evidence_completeness",
+      "support_status": "candidate-feature-linked-evidence-inputs",
+      "possible_observed_properties": [
+        {
+          "id": "urn:luminous:landscape:species-identification",
+          "label": "Species identification",
+          "unit": null,
+          "result_kinds": [
+            "category"
+          ],
+          "minimum_evidence_classes": [
+            "field-observation",
+            "lab-analysis",
+            "imported-observation"
+          ],
+          "requires_time": true,
+          "requires_project_or_site_ref": true
+        },
+        {
+          "id": "urn:luminous:landscape:ecoregion-suitability-assessment",
+          "label": "Ecoregion suitability assessment",
+          "unit": null,
+          "result_kinds": [
+            "category",
+            "boolean"
+          ],
+          "minimum_evidence_classes": [
+            "field-observation",
+            "imported-observation"
+          ],
+          "requires_time": true,
+          "requires_project_or_site_ref": true
+        }
+      ],
+      "required_non_observation_inputs": [
+        "Planting schedule with intended denominator",
+        "Versioned taxonomy/vocabulary and provenance",
+        "Declared native/ecoregion suitability definition",
+        "Policy for unknown, conflicting and not-applicable identities"
+      ],
+      "required_method_contracts": [
+        "Bind identification to the exact design snapshot and feature ID where possible",
+        "Keep species identity separate from native/suitable/biodiversity-effect claims"
+      ],
+      "permitted_claims": [
+        "A source-backed species identification may satisfy one input-evidence requirement if the method and source are accepted."
+      ],
+      "prohibited_inferences": [
+        "Taxonomic identity alone does not prove native status or ecological suitability.",
+        "Species evidence completeness does not prove biodiversity gain.",
+        "Unknown species cannot be omitted from the denominator without a declared policy."
+      ],
+      "output_status": "candidate-input-only-not-a-biodiversity-outcome"
+    },
+    {
+      "metric_id": "access.maximum_path_grade",
+      "support_status": "supporting-observations-only",
+      "possible_observed_properties": [
+        {
+          "id": "urn:luminous:landscape:path-segment-grade",
+          "label": "Measured path segment grade",
+          "unit": "percent",
+          "result_kinds": [
+            "quantity"
+          ],
+          "minimum_evidence_classes": [
+            "field-observation",
+            "sensor-observation",
+            "imported-observation"
+          ],
+          "requires_time": false,
+          "requires_project_or_site_ref": true
+        },
+        {
+          "id": "urn:luminous:landscape:elevation",
+          "label": "Elevation",
+          "unit": "m",
+          "result_kinds": [
+            "quantity"
+          ],
+          "minimum_evidence_classes": [
+            "field-observation",
+            "sensor-observation",
+            "remote-sensing-classification",
+            "imported-observation"
+          ],
+          "requires_time": false,
+          "requires_project_or_site_ref": true
+        }
+      ],
+      "required_non_observation_inputs": [
+        "Authoritative path centerline and route continuity",
+        "Elevation profile with vertical datum and accuracy",
+        "Applicable accessibility jurisdiction/standard version",
+        "Surface and route conditions required by the standard"
+      ],
+      "required_method_contracts": [
+        "Declare segment boundaries/resolution and slope calculation",
+        "Check coverage along the full route before reporting a maximum",
+        "Separate engineering measurements from rendering geometry"
+      ],
+      "permitted_claims": [
+        "A validated local grade observation can describe one identified segment."
+      ],
+      "prohibited_inferences": [
+        "One grade sample cannot establish maximum grade for the whole route.",
+        "Rendered path strokes are not authoritative centerlines.",
+        "A slope value alone does not establish accessibility-standard compliance."
+      ],
+      "output_status": "requires-complete-route-geometry-and-standard-profile"
+    },
+    {
+      "metric_id": "materials.embodied_carbon_total",
+      "support_status": "supporting-inventory-evidence-only",
+      "possible_observed_properties": [
+        {
+          "id": "urn:luminous:landscape:material-mass",
+          "label": "Material mass",
+          "unit": "kg",
+          "result_kinds": [
+            "quantity"
+          ],
+          "minimum_evidence_classes": [
+            "field-observation",
+            "imported-observation"
+          ],
+          "requires_time": true,
+          "requires_project_or_site_ref": true
+        },
+        {
+          "id": "urn:luminous:landscape:embodied-carbon-factor",
+          "label": "Embodied-carbon factor",
+          "unit": "kgCO2e/kg",
+          "result_kinds": [
+            "quantity"
+          ],
+          "minimum_evidence_classes": [
+            "imported-observation",
+            "lab-analysis"
+          ],
+          "requires_time": true,
+          "requires_project_or_site_ref": false
+        }
+      ],
+      "required_non_observation_inputs": [
+        "Bill of quantities with scope and unit reconciliation",
+        "Product/EPD or declared LCI source and version",
+        "Life-cycle modules, geography and reference year",
+        "Biogenic carbon and substitution assumptions"
+      ],
+      "required_method_contracts": [
+        "Pin quantity dataset and factor dataset independently",
+        "Declare factor units and lifecycle boundary before multiplication",
+        "Propagate range/uncertainty to total"
+      ],
+      "permitted_claims": [
+        "A sourced quantity or emission-factor record can support a declared inventory calculation."
+      ],
+      "prohibited_inferences": [
+        "A quantity by itself is not embodied carbon.",
+        "Missing factor/EPD is not zero.",
+        "Incompatible EPD lifecycle modules cannot be summed without harmonization."
+      ],
+      "output_status": "requires-inventory-calculator-and-boundary-harmonization"
+    },
+    {
+      "metric_id": "stewardship.maintenance_assignment_coverage",
+      "support_status": "requires-governance-artifact",
+      "possible_observed_properties": [],
+      "required_non_observation_inputs": [
+        "Versioned maintenance obligations",
+        "Accepted role and authority basis",
+        "Cadence, trigger and resourcing commitments",
+        "Mycelix consent-aware stewardship record and access policy"
+      ],
+      "required_method_contracts": [
+        "Use the Mycelix stewardship profile for assignment/acceptance state",
+        "Record observed completion separately from the existence of a commitment"
+      ],
+      "permitted_claims": [
+        "Governance records can show a party accepted a defined maintenance obligation under a declared authority/consent context."
+      ],
+      "prohibited_inferences": [
+        "A sensor observation cannot establish that a person accepted an obligation.",
+        "Assigned maintenance does not prove execution or plant survival.",
+        "Identity, reputation or a vote does not establish land title."
+      ],
+      "output_status": "not-computable-from-sensor-observations"
+    },
+    {
+      "metric_id": "economics.lifecycle_cost_range",
+      "support_status": "supporting-estimate-inputs-only",
+      "possible_observed_properties": [
+        {
+          "id": "urn:luminous:landscape:material-unit-cost",
+          "label": "Material unit cost",
+          "unit": "currency@base-year",
+          "result_kinds": [
+            "quantity"
+          ],
+          "minimum_evidence_classes": [
+            "field-observation",
+            "imported-observation"
+          ],
+          "requires_time": true,
+          "requires_project_or_site_ref": true
+        },
+        {
+          "id": "urn:luminous:landscape:maintenance-cost",
+          "label": "Maintenance cost",
+          "unit": "currency@base-year",
+          "result_kinds": [
+            "quantity"
+          ],
+          "minimum_evidence_classes": [
+            "field-observation",
+            "imported-observation"
+          ],
+          "requires_time": true,
+          "requires_project_or_site_ref": true
+        }
+      ],
+      "required_non_observation_inputs": [
+        "Quantity takeoff",
+        "Declared currency/base year/geography and pricing date",
+        "Analysis horizon and discount/inflation conventions",
+        "Operating, replacement and end-of-life scenarios"
+      ],
+      "required_method_contracts": [
+        "Normalize currency and base-year only via declared conversion method",
+        "Provide low/base/high scenario ranges and sensitivity",
+        "Keep financial estimate separate from measured transaction/quotation evidence"
+      ],
+      "permitted_claims": [
+        "A sourced quote or historical cost observation can support a cost estimate within its date/geography scope."
+      ],
+      "prohibited_inferences": [
+        "One quote is not a lifecycle cost range.",
+        "Unknown cost cannot become zero.",
+        "Costs cannot be added across currency/base years without a declared conversion."
+      ],
+      "output_status": "requires-lifecycle-cost-model"
+    }
+  ],
+  "global_acceptance_rules": [
+    "Every mapping metric_id must match a metric in the versioned landscape metric registry before validation is enabled in a release.",
+    "Every observation used in a computation must match required units and evidence classes, have quality state/calibration semantics inspected, and be covered by an accepted method.",
+    "Observations linked to a design feature must pin the exact design snapshot digest; no feature ID is resolved against a different project snapshot.",
+    "No output metric is emitted when mandatory inputs are missing, stale, wrong-scale, uncalibrated where applicable, or conflicting.",
+    "Report model prediction, field observation, derived calculation and participant commitment in separate evidence classes.",
+    "Comparisons must pin baseline and proposal snapshots, the same forcing/boundary conditions and the computation version.",
+    "When the mapping or metric registry dependency has not been resolved to an exact schema/version, output remains not-computable."
+  ]
+}
