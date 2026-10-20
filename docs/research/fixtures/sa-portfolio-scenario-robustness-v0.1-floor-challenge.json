@@ -1,0 +1,384 @@
+{
+  "schema_version": "sa-economic-portfolio-v0.2",
+  "evidence_class": "synthetic",
+  "synthetic_only": true,
+  "claim_ceiling": "Adversarial synthetic scenario-omission floor challenge only; not a real-world impact or decision recommendation.",
+  "budgets_by_period": [
+    {
+      "period": "P1",
+      "cost_cap_u": 5,
+      "crew_cap_u": 3
+    },
+    {
+      "period": "P2",
+      "cost_cap_u": 6,
+      "crew_cap_u": 3
+    },
+    {
+      "period": "P3",
+      "cost_cap_u": 2,
+      "crew_cap_u": 1
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "normal_reference",
+      "weight": null,
+      "probability": null,
+      "notes": "Declared reference case; no probability assigned."
+    },
+    {
+      "id": "heat_dry_power_stress",
+      "weight": null,
+      "probability": null,
+      "notes": "Correlated stress case; not a probability-weighted forecast."
+    }
+  ],
+  "service_baseline_by_scenario": {
+    "normal_reference": 3,
+    "heat_dry_power_stress": 3
+  },
+  "mandatory_floors": [
+    {
+      "id": "essential_service_minimum",
+      "metric": "total_essential_service_points",
+      "direction": "minimize violation",
+      "threshold": 6,
+      "apply_to_each_scenario": true,
+      "source_class": "synthetic test invariant"
+    }
+  ],
+  "objective_schema": [
+    {
+      "id": "economic_value_u",
+      "direction": "maximize",
+      "unit": "synthetic economic-value units"
+    },
+    {
+      "id": "essential_service_points",
+      "direction": "maximize",
+      "unit": "synthetic service-index points"
+    },
+    {
+      "id": "paid_work_opportunity_points",
+      "direction": "maximize",
+      "unit": "synthetic opportunity-index points; not jobs or paid hours"
+    },
+    {
+      "id": "ecological_quality_points",
+      "direction": "maximize",
+      "unit": "synthetic ecological-index points"
+    }
+  ],
+  "projects": [
+    {
+      "id": "P00",
+      "name": "Telemetry foundation",
+      "period": "P1",
+      "stage_order": 1,
+      "cost_u": 2,
+      "crew_u": 1,
+      "requires": [],
+      "gate": "PASS",
+      "outcomes": {
+        "normal_reference": {
+          "economic_value_u": 0,
+          "essential_service_points": 0,
+          "paid_work_opportunity_points": 1,
+          "ecological_quality_points": 1
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 0,
+          "essential_service_points": 0,
+          "paid_work_opportunity_points": 1,
+          "ecological_quality_points": 1
+        }
+      },
+      "evidence_class": "synthetic"
+    },
+    {
+      "id": "P01",
+      "name": "Water repair",
+      "period": "P1",
+      "stage_order": 2,
+      "cost_u": 3,
+      "crew_u": 2,
+      "requires": [
+        "P00"
+      ],
+      "gate": "PASS",
+      "outcomes": {
+        "normal_reference": {
+          "economic_value_u": 7,
+          "essential_service_points": 5,
+          "paid_work_opportunity_points": 2,
+          "ecological_quality_points": 4
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 4,
+          "essential_service_points": 4,
+          "paid_work_opportunity_points": 2,
+          "ecological_quality_points": 4
+        }
+      },
+      "evidence_class": "synthetic"
+    },
+    {
+      "id": "P02",
+      "name": "Wastewater assessment",
+      "period": "P1",
+      "stage_order": 1,
+      "cost_u": 2,
+      "crew_u": 1,
+      "requires": [],
+      "gate": "PASS",
+      "outcomes": {
+        "normal_reference": {
+          "economic_value_u": 3,
+          "essential_service_points": 2,
+          "paid_work_opportunity_points": 1,
+          "ecological_quality_points": 4
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 1,
+          "essential_service_points": 1,
+          "paid_work_opportunity_points": 1,
+          "ecological_quality_points": 4
+        }
+      },
+      "evidence_class": "synthetic"
+    },
+    {
+      "id": "P03",
+      "name": "Industrial continuity",
+      "period": "P2",
+      "stage_order": 1,
+      "cost_u": 4,
+      "crew_u": 2,
+      "requires": [
+        "P00"
+      ],
+      "gate": "PASS",
+      "outcomes": {
+        "normal_reference": {
+          "economic_value_u": 10,
+          "essential_service_points": 1,
+          "paid_work_opportunity_points": 4,
+          "ecological_quality_points": 1
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 6,
+          "essential_service_points": 1,
+          "paid_work_opportunity_points": 4,
+          "ecological_quality_points": 1
+        }
+      },
+      "evidence_class": "synthetic"
+    },
+    {
+      "id": "P04",
+      "name": "Local repair workcell",
+      "period": "P1",
+      "stage_order": 1,
+      "cost_u": 3,
+      "crew_u": 2,
+      "requires": [],
+      "gate": "PASS",
+      "outcomes": {
+        "normal_reference": {
+          "economic_value_u": 4,
+          "essential_service_points": 1,
+          "paid_work_opportunity_points": 5,
+          "ecological_quality_points": 3
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 3,
+          "essential_service_points": 1,
+          "paid_work_opportunity_points": 5,
+          "ecological_quality_points": 3
+        }
+      },
+      "evidence_class": "synthetic"
+    },
+    {
+      "id": "P05",
+      "name": "Job-access analysis",
+      "period": "P2",
+      "stage_order": 1,
+      "cost_u": 2,
+      "crew_u": 1,
+      "requires": [],
+      "gate": "PASS",
+      "outcomes": {
+        "normal_reference": {
+          "economic_value_u": 3,
+          "essential_service_points": 2,
+          "paid_work_opportunity_points": 3,
+          "ecological_quality_points": 1
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 3,
+          "essential_service_points": 2,
+          "paid_work_opportunity_points": 3,
+          "ecological_quality_points": 1
+        }
+      },
+      "evidence_class": "synthetic"
+    },
+    {
+      "id": "P06",
+      "name": "Flood/ecology mitigation",
+      "period": "P2",
+      "stage_order": 1,
+      "cost_u": 3,
+      "crew_u": 1,
+      "requires": [],
+      "gate": "PASS",
+      "outcomes": {
+        "normal_reference": {
+          "economic_value_u": 0,
+          "essential_service_points": 1,
+          "paid_work_opportunity_points": 1,
+          "ecological_quality_points": 8
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 0,
+          "essential_service_points": 1,
+          "paid_work_opportunity_points": 1,
+          "ecological_quality_points": 8
+        }
+      },
+      "evidence_class": "synthetic"
+    },
+    {
+      "id": "P07",
+      "name": "Stale-evidence decoy",
+      "period": "P1",
+      "stage_order": 1,
+      "cost_u": 1,
+      "crew_u": 1,
+      "requires": [],
+      "gate": "UNKNOWN",
+      "outcomes": {
+        "normal_reference": {
+          "economic_value_u": 999,
+          "essential_service_points": 999,
+          "paid_work_opportunity_points": 999,
+          "ecological_quality_points": 999
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 999,
+          "essential_service_points": 999,
+          "paid_work_opportunity_points": 999,
+          "ecological_quality_points": 999
+        }
+      },
+      "evidence_class": "synthetic hostile negative control"
+    },
+    {
+      "id": "P08",
+      "name": "Adversarial stress-floor decoy",
+      "period": "P3",
+      "stage_order": 1,
+      "cost_u": 2,
+      "crew_u": 1,
+      "requires": [],
+      "gate": "PASS",
+      "outcomes": {
+        "normal_reference": {
+          "economic_value_u": 4,
+          "essential_service_points": 0,
+          "paid_work_opportunity_points": 1,
+          "ecological_quality_points": 2
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 4,
+          "essential_service_points": -6,
+          "paid_work_opportunity_points": 1,
+          "ecological_quality_points": 3
+        }
+      },
+      "evidence_class": "synthetic scenario-omission floor challenge"
+    },
+    {
+      "id": "P09",
+      "name": "Synthetic option 09",
+      "period": "P3",
+      "stage_order": 1,
+      "cost_u": 2,
+      "crew_u": 1,
+      "requires": [],
+      "gate": "PASS",
+      "outcomes": {
+        "normal_reference": {
+          "economic_value_u": 1,
+          "essential_service_points": 2,
+          "paid_work_opportunity_points": 4,
+          "ecological_quality_points": 4
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 1,
+          "essential_service_points": 2,
+          "paid_work_opportunity_points": 4,
+          "ecological_quality_points": 5
+        }
+      },
+      "evidence_class": "synthetic"
+    }
+  ],
+  "interaction_rules": [
+    {
+      "id": "T_W_COMPLEMENT",
+      "kind": "synergy",
+      "when_all_selected": [
+        "P00",
+        "P01"
+      ],
+      "objective_adjustment_by_scenario": {
+        "normal_reference": {
+          "economic_value_u": 1,
+          "essential_service_points": 1,
+          "paid_work_opportunity_points": 0,
+          "ecological_quality_points": 0
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 1,
+          "essential_service_points": 1,
+          "paid_work_opportunity_points": 0,
+          "ecological_quality_points": 0
+        }
+      },
+      "reason": "Synthetic complementarity test; apply once per portfolio."
+    },
+    {
+      "id": "A_F_ECOLOGY_OVERLAP",
+      "kind": "overlap_adjustment",
+      "when_all_selected": [
+        "P02",
+        "P06"
+      ],
+      "objective_adjustment_by_scenario": {
+        "normal_reference": {
+          "economic_value_u": 0,
+          "essential_service_points": 0,
+          "paid_work_opportunity_points": 0,
+          "ecological_quality_points": -3
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 0,
+          "essential_service_points": 0,
+          "paid_work_opportunity_points": 0,
+          "ecological_quality_points": -3
+        }
+      },
+      "reason": "Avoid double counting overlapping ecological benefit; apply exactly once per portfolio."
+    }
+  ],
+  "enumeration": {
+    "method": "complete subset enumeration",
+    "candidate_subset_count": 1024,
+    "over_cap_behavior": "structured error; never return a partial frontier as complete",
+    "objective_comparison": "scenario-wise componentwise maximization over every declared scenario and objective; scenario cases have no probabilities",
+    "canonicalization": "sort project IDs within each portfolio and sort portfolio ID tuples lexicographically"
+  }
+}
