@@ -1,0 +1,135 @@
+{
+  "schema_version": "1.0",
+  "intake_id": "google-clusterdata2019-power-planned",
+  "created_at": "2026-10-20T20:00:00+02:00",
+  "dataset": {
+    "name": "Google Borg ClusterData2019 plus May 2019 power traces",
+    "publisher": "Google Cluster Data",
+    "release": "ClusterData2019 (May 2019) + associated 57-domain power traces",
+    "source_kind": "public_trace",
+    "source_uri": "https://github.com/google/cluster-data",
+    "description": "Planned joint workload/power trace candidate. Official repository describes eight Borg cells in May 2019 and power traces for 57 power domains over the same month. Domain mapping, power-value semantics, exact file set and attribution are unverified; not an AI-only or GPU/facility-meter benchmark by assumption."
+  },
+  "license_gate": {
+    "status": "not_reviewed",
+    "decision": "metadata_only",
+    "license_identifier": null,
+    "terms_uri": null,
+    "reviewed_at": null,
+    "review_note": "The repository README states trace data/documentation are CC-BY, but the exact release files, attribution requirements and distribution terms must be reviewed before retrieval or redistribution."
+  },
+  "artifact": {
+    "state": "planned",
+    "raw_sha256": null,
+    "raw_bytes": null,
+    "retrieved_at": null,
+    "normalized_sha256": null,
+    "normalized_bytes": null
+  },
+  "time_scope": {
+    "timestamp_semantics": "unknown",
+    "start_utc": null,
+    "end_utc": null,
+    "source_timezone": null,
+    "source_time_unit": null,
+    "aggregation_interval_seconds": null,
+    "notes": "ClusterData2019 covers May 2019, but chosen file-level time origins, units, aggregation granularity, power/workload clock alignment and time zone must be verified against official schema and power documentation. Do not assume row-number alignment or one-to-one cell/domain mapping."
+  },
+  "field_mappings": [
+    {
+      "canonical_field": "task_arrival_time",
+      "mapping_status": "planned",
+      "source_field": null,
+      "source_unit": null,
+      "canonical_unit": "seconds_since_trace_origin",
+      "conversion_rule": "unresolved",
+      "records_checked": null,
+      "records_missing": null,
+      "notes": "Candidate workload field; exact table, event semantics and timestamp origin remain unverified."
+    },
+    {
+      "canonical_field": "task_resource_demand",
+      "mapping_status": "planned",
+      "source_field": null,
+      "source_unit": null,
+      "canonical_unit": null,
+      "conversion_rule": "unresolved",
+      "records_checked": null,
+      "records_missing": null,
+      "notes": "Do not infer AI/GPU demand or useful-work units from generic resource fields without a documented mapping."
+    },
+    {
+      "canonical_field": "power_domain_id",
+      "mapping_status": "planned",
+      "source_field": null,
+      "source_unit": null,
+      "canonical_unit": "source_domain_identifier",
+      "conversion_rule": "unresolved",
+      "records_checked": null,
+      "records_missing": null,
+      "notes": "Must verify power trace identifiers and any mapping to cells/machines; no one-to-one correspondence is assumed."
+    },
+    {
+      "canonical_field": "power_domain_value",
+      "mapping_status": "planned",
+      "source_field": null,
+      "source_unit": null,
+      "canonical_unit": null,
+      "conversion_rule": "unresolved",
+      "records_checked": null,
+      "records_missing": null,
+      "notes": "Exact power or energy unit, sample interval, semantics (metered/derived/normalized) and attribution class must be established from the source documentation."
+    }
+  ],
+  "workload_quality": {
+    "status": "separate_quality_gate_required",
+    "quality_metric": null,
+    "acceptance_rule": null,
+    "model_or_job_identity": null,
+    "notes": "Borg cluster workload traces are not inherently AI inference-quality or endpoint SLO traces. Quality-accepted AI work/kWh must remain unsupported absent a separate named model/dataset quality gate."
+  },
+  "energy_attribution": {
+    "class": "unknown",
+    "boundary": "unknown",
+    "metering_method": null,
+    "instrument_or_model": null,
+    "uncertainty_percent": null,
+    "notes": "Power traces are a promising paired source but values have not been inspected. Do not call them metered facility power or infer GPU energy before verifying source semantics, domains and measurement boundary."
+  },
+  "data_quality": {
+    "stage": "planned",
+    "records_read": null,
+    "records_kept": null,
+    "records_excluded": null,
+    "duplicate_records": null,
+    "missing_timestamps": null,
+    "out_of_scope_timestamps": null,
+    "measured_missingness_fraction": null,
+    "checks_run": [],
+    "notes": "No artifacts retrieved. File-level row counts, timestamp continuity, duplicates, sentinels, missingness and workload-to-power alignment are not yet known."
+  },
+  "transformation": {
+    "pipeline_id": null,
+    "pipeline_version": null,
+    "source_commit": null,
+    "config_sha256": null,
+    "normalization_notes": "No download or transformation has run. Pin exact raw files and SHA-256 digests, then document parser version/config and normalized artifact digest."
+  },
+  "claim_policy": {
+    "claim_ceiling": "metadata_only",
+    "allowed_claims": [
+      "The official Google Borg trace repository is registered as a candidate workload-plus-power source.",
+      "The next step is format, license/attribution, power-boundary and workload-to-domain mapping review."
+    ],
+    "prohibited_inferences": [
+      "unknown_energy_is_zero",
+      "generic_cpu_utilization_equals_ai_quality",
+      "provisioned_power_equals_measured_energy",
+      "annual_clean_energy_match_proves_hourly_deliverability",
+      "synthetic_results_are_facility_measurements",
+      "estimated_heat_is_recovered_heat",
+      "one_site_results_generalize_to_all_grids",
+      "workload_flexibility_always_reduces_generation_capacity"
+    ]
+  }
+}
