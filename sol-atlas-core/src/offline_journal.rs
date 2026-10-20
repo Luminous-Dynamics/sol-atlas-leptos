@@ -187,10 +187,7 @@ impl JournalEntry {
     /// The canonical UTF-8 bytes are retained with the envelope so a retry can
     /// resend exactly the payload that was hashed, rather than reconstructing it
     /// from potentially edited UI state.
-    pub fn prepare(
-        envelope: OperationEnvelope,
-        payload_json: &str,
-    ) -> Result<Self, JournalError> {
+    pub fn prepare(envelope: OperationEnvelope, payload_json: &str) -> Result<Self, JournalError> {
         envelope.validate()?;
         let payload = crate::offline_payload_digest::CanonicalPayload::from_json(payload_json)
             .map_err(|error| JournalError::PayloadCanonicalization(error.to_string()))?;
@@ -440,12 +437,12 @@ impl fmt::Display for JournalError {
             Self::InvalidPayloadDigest => {
                 formatter.write_str("payload digest must be 64 lowercase hexadecimal characters")
             }
-            Self::PayloadCanonicalization(reason) => {
-                write!(formatter, "payload cannot be represented under strict JCS: {reason}")
-            }
-            Self::PayloadDigestMismatch => {
-                formatter.write_str("canonical payload digest does not match the operation envelope")
-            }
+            Self::PayloadCanonicalization(reason) => write!(
+                formatter,
+                "payload cannot be represented under strict JCS: {reason}"
+            ),
+            Self::PayloadDigestMismatch => formatter
+                .write_str("canonical payload digest does not match the operation envelope"),
             Self::AttemptsExhausted => formatter.write_str("journal attempt counter exhausted"),
             Self::OperationIdentityChanged => {
                 formatter.write_str("retry changed immutable operation identity or payload")
@@ -486,9 +483,10 @@ mod tests {
             operation_id: "op-001".to_owned(),
             aggregate_id: "job-001".to_owned(),
             expected_revision: 7,
-            payload_digest_sha256:
-                crate::offline_payload_digest::canonical_payload_digest_sha256(payload_json())
-                    .unwrap(),
+            payload_digest_sha256: crate::offline_payload_digest::canonical_payload_digest_sha256(
+                payload_json(),
+            )
+            .unwrap(),
             idempotency_key: "idem-001".to_owned(),
             supersedes_operation_id: RequiredNullableOperationId::Null(()),
         }
@@ -726,7 +724,9 @@ mod tests {
         replacement.supersedes_operation_id =
             RequiredNullableOperationId::Value("op-001".to_owned());
 
-        let resolved = original.prepare_conflict_resolution(replacement, payload_json()).unwrap();
+        let resolved = original
+            .prepare_conflict_resolution(replacement, payload_json())
+            .unwrap();
         assert_eq!(resolved.state, JournalState::Prepared);
         assert_eq!(resolved.envelope.expected_revision, 9);
         assert_eq!(
