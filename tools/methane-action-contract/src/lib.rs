@@ -7,6 +7,7 @@
 pub mod census;
 pub mod comparison;
 pub mod mitigation;
+pub mod pod;
 pub mod split;
 
 use sha2::{Digest, Sha256};
