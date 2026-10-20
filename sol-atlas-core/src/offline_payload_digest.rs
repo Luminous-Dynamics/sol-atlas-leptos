@@ -131,6 +131,7 @@ mod tests {
     struct DigestCorpus {
         schema_version: u16,
         vectors: Vec<DigestVector>,
+        number_vectors: Vec<NumberVector>,
         invalid_cases: Vec<InvalidCase>,
     }
 
@@ -141,6 +142,13 @@ mod tests {
         payload_json: String,
         canonical_utf8: String,
         sha256: String,
+    }
+
+    #[derive(Debug, Deserialize)]
+    #[serde(deny_unknown_fields)]
+    struct NumberVector {
+        ieee754_hex: String,
+        canonical: Option<String>,
     }
 
     #[derive(Debug, Deserialize)]
@@ -179,6 +187,34 @@ mod tests {
                 "verification for {}",
                 vector.case_id
             );
+        }
+    }
+
+    #[test]
+    fn rfc8785_appendix_b_binary64_number_vectors_match_exactly() {
+        let corpus: DigestCorpus = serde_json::from_str(include_str!(
+            "../fixtures/offline-payload-digest-v1.json"
+        ))
+        .expect("payload digest corpus must match its frozen schema");
+
+        assert_eq!(corpus.number_vectors.len(), 26);
+        for vector in corpus.number_vectors {
+            let bits = u64::from_str_radix(&vector.ieee754_hex, 16)
+                .unwrap_or_else(|error| panic!("{}: {error}", vector.ieee754_hex));
+            let number = f64::from_bits(bits);
+            match vector.canonical {
+                Some(expected) => assert_eq!(
+                    jcs::to_string(&number).unwrap(),
+                    expected,
+                    "binary64 {:#018x}",
+                    bits
+                ),
+                None => assert!(
+                    jcs::to_string(&number).is_err(),
+                    "out-of-model binary64 {:#018x} must fail",
+                    bits
+                ),
+            }
         }
     }
 
