@@ -1,0 +1,159 @@
+# Landscape Design Workbench v0
+
+**Status:** initial interactive prototype; schematic design intent only.  
+**Primary surface:** Sol-Atlas (/design/landscape).  
+**Design principle:** from drawing objects to composing a living, evidence-aware landscape.
+
+## Why this product
+
+Current landscape-design tools already cover powerful terrain modeling, geolocation, 2D/3D authoring, planting schedules, CAD/BIM exchange, and presentation. This initiative should not claim to replace those capabilities in its first iteration. The opportunity is to connect visual design to the conditions a place depends on: water, catchments, heat and shade, soil/ecology, movement, services, biodiversity, maintenance, community ownership, and observed outcomes—while preserving the difference between a beautiful proposal and evidence that it will work.
+
+Competitive references to study against published capabilities:
+- SketchUp landscape architecture: terrain from contours, draping, geolocation, shadow study, interoperability — https://www.sketchup.com/en/industries/landscape-architecture
+- Vectorworks Landmark: integrated landscape plans, terrain, planting schedules, take-offs and 2D/3D workflows — https://www.vectorworks.net/en-US/start/landscape-design
+- QGIS: reference GIS capability baseline — https://qgis.org/
+- OGC API - Tiles: standardized tiled geospatial retrieval — https://ogcapi.ogc.org/tiles/
+- RFC 7946 GeoJSON: geographic feature interchange in WGS84 longitude/latitude — https://www.rfc-editor.org/rfc/rfc7946
+- OGC JSON-FG, released 2026-05-21, extends the GeoJSON model for richer feature/geometries use cases while maintaining GeoJSON compatibility — https://www.ogc.org/standards/json-fg/
+
+These are capability references, not a benchmark result or a claim of parity.
+
+## v0 interaction
+
+Route: **/design/landscape**.
+
+- Canvas: responsive 1000 × 650 schematic coordinate plane, illustrative boundary and contours.
+- Tools: canopy tree, planting bed, water feature, path, built element.
+- Interaction: select tool; click canvas to place; undo latest placement; reset to deterministic starter plan.
+- Scope context: site/parcel, district, watershed, bioregion. In v0 this labels the intended planning context; it does not rescale or georeference the geometry.
+- Layer controls: measurement grid and illustrative contours.
+- Export: visible, parseable native JSON draft snapshot with schema version, scope, stable feature IDs, local metre coordinates, source/status tags, and an explicit georeferenced=false declaration.
+- Local-first: this slice does not upload or remotely save the design.
+
+### Coordinate contract
+
+LOCAL_CARTESIAN_METRES is a project-local drawing frame, with canvas top-left as origin, X rightward, and Y downward to match the screen. It is not a map CRS, surveyed boundary, or geographic claim. Never emit these coordinates as RFC 7946 longitude/latitude. A later GIS import/export path must preserve source CRS metadata, apply a real coordinate transform, and fail closed when transformation or datum-grid requirements are unsatisfied.
+
+### Native snapshot example
+
+    {
+      "schema": "luminous.landscape-design.v0",
+      "project_name": "Untitled landscape",
+      "scope": "site-parcel",
+      "coordinate_frame": {
+        "kind": "LOCAL_CARTESIAN_METRES",
+        "origin": "canvas top-left",
+        "x_axis": "right",
+        "y_axis": "down",
+        "georeferenced": false
+      },
+      "geometry_status": "schematic-design-intent",
+      "features": [
+        {
+          "id": "feature-0001",
+          "kind": "tree",
+          "x_m": 180,
+          "y_m": 160,
+          "status": "design-intent",
+          "source": "user-authored-schematic"
+        }
+      ]
+    }
+
+## Rust-first architecture and repository boundaries
+
+### Sol-Atlas — map and editor system of record
+
+Own the Leptos UI, drawing tools, selection and history, layer visibility, project schema, coordinate-reference frames, spatial search, external dataset catalogues, tiling, import/export adapters, attribution, data currency, and map/render benchmarks. Use the existing application and route rather than starting a competing frontend or GIS abstraction.
+
+Possible later core module boundaries:
+- landscape::project: versioned native document and command history.
+- landscape::geometry: project-local geometry, units, validity and extents.
+- landscape::exchange: GeoJSON/JSON-FG/GeoPackage/CSV adapters where justified.
+- landscape::layers: source attribution, scale/resolution, confidence and freshness.
+- landscape::render: visual-only styling and decluttering, never a source of domain truth.
+
+Adopt Georust geo-types/operations when appropriate; use PROJ through the Rust proj bindings for actual CRS transformations where platform support permits. Make native/browser build implications explicit. Avoid adding a second general-purpose geometry kernel without a demonstrated gap.
+
+### Symtropy — physical and ecological scenario engine
+
+Own deterministic, seeded simulation and scenario contracts for surface-water pathways, infiltration and drainage, terrain modification/cut-fill, shade/microclimate, habitat connectivity, route/accessibility, disturbance, maintenance, and time-evolving growth. Each model reports assumptions, boundary conditions, validation status, ranges/uncertainty and out-of-domain conditions. Never derive flow, safety, yield or ecological feasibility from canvas appearance.
+
+### Symthaea — read-only reasoning and design critique
+
+Consume versioned project snapshots and scenario/evidence outputs. Generate alternatives and explain trade-offs (heat reduction versus water demand, habitat connectivity versus access, embodied materials versus lifetime maintenance, public access versus sensitive habitat). Require cited inputs, uncertainty and falsification questions. Recommendations must be replayable and never silently mutate the authoritative design or actuate physical systems.
+
+### Mycelix — provenance, participation and stewardship
+
+Own project identity and version history, who contributed or approved which change, evidence attestations, landholder/community consent, governance rules, maintenance commitments, monitoring observations, benefit distribution, and change disputes. Separate contributor identity, legal ownership, consent, and technical authorship. Default private projects to private; publish only explicit user-authorized artifacts.
+
+### Shared contracts, not duplicated subsystems
+
+- A design snapshot is a versioned artifact with source links/digests and project-frame metadata.
+- Simulation runs consume a pinned snapshot digest and return a typed result artifact; they do not write back over the authored plan.
+- Symthaea's recommendation references exact snapshot and result digests.
+- Mycelix attests decisions/observations without becoming a second geometry database.
+- Sol-Atlas renders facts, scenarios and proposals with distinct visual encodings; no unsupported single sustainability score.
+
+## Scale strategy: one document model, multiple spatial resolutions
+
+| Scale | Main design objects | Required context before decision-quality claims |
+|---|---|---|
+| Site / parcel | Buildings, canopy, beds, paths, water, soils, access, utilities | Survey/CRS, utilities, slope, water availability/quality, shade, soil, legal boundaries |
+| District / neighbourhood | Streets, greenways, public space, tree canopy, heat refuge, urban drainage | Network continuity, heat exposure, service access, ownership/maintenance, stormwater capacity |
+| Watershed / catchment | Subcatchments, streams/wetlands, infiltration, floodplain, retention, upstream interventions | DEM quality, drainage networks, rainfall IDF/time series, soils, calibrated hydrology and downstream impacts |
+| Bioregion / landscape | Habitat corridors, restoration mosaics, agricultural/urban/forest systems, fire and drought regimes | Ecological classification, connectivity and fragmentation, seasonal climate, land tenure/rights, disturbance and monitoring history |
+
+Do not simply zoom the parcel tool out and call it regional planning. Use scale-specific primitives, aggregation and source-resolution disclosures. A coarse dataset cannot support a precise parcel-level conclusion.
+
+## Benchmark methodology
+
+### Reproducible protocol
+
+For every benchmark run, persist: commit SHA, build profile, Rust/toolchain versions, browser/GPU/OS, hardware, scene manifest and digest, fixed seed, input data version/digest, viewport/device scale factor, cache state, command sequence, run count, and raw per-run observations. Separate cold-start and warmed steady-state; report p50/p95 and variation, not only best time. Freeze scene manifests and never compare unmatched styling/data.
+
+### Editor workload suite
+
+- 100 / 1,000 / 10,000 / 100,000 vector features.
+- Place, select, move, undo, toggle layers, pan, zoom, export and deterministic reload.
+- Mixed geometry: points, paths, polygons, overlapping labels and clustered tree symbols.
+- Valid and adversarial fixtures: empty project, duplicate IDs, invalid ring, missing CRS, stale source, non-finite input, huge extents, dense overlap, missing tile, offline reload.
+- Data integrity: round-trip coordinates, feature IDs/types/properties, CRS, units, attribution and provenance.
+- Accessibility: keyboard-only controls, visible focus, contrast, reduced motion, zoom/text scaling and assistive-technology labels.
+
+### Metrics
+
+- Interaction latency p50/p95; frame pacing and long frames; initial render and reload time; export time/size; memory high-water mark; spatial query latency; time to first useful view; errors and dropped/missing geometry; import/export round-trip correctness; accessibility task completion; user time to complete matched design tasks; number of unsupported claims exposed by adversarial review.
+
+### Initial targets (hypotheses to measure, not current results)
+
+- At 10,000 simple vector features on a pinned reference machine, local edit action p95 < 50 ms and p95 frame time <= 33 ms during steady-state pan/zoom.
+- Feature IDs, types, coordinates and CRS metadata survive native round-trip exactly.
+- 100% of unsupported/missing CRS scenarios fail closed with a visible error; no silent coordinate reinterpretation.
+- No user action requires a network connection for the local editing/export path.
+- No loss of authored features under undo/redo/reset/property edit tests.
+- 100,000 features is a stress case until measurement supports a product claim.
+
+Targets become product gates only after the reference hardware and benchmark harness are committed. Against QGIS/SketchUp/Vectorworks, first compare task workflows, interoperability and integrity—not claims of general speed or feature superiority.
+
+## Roadmap
+
+1. **v0 — schematic editor:** implemented in the first branch; interaction, scope controls, visible layers and native JSON snapshot.
+2. **v0.2 — project document:** explicit properties, stable IDs/UUIDs, command history, undo/redo, native save/load, validation and golden fixtures.
+3. **v0.3 — geospatial context:** real CRS-aware basemap/terrain import and source provenance, beginning with one documented South African pilot area; no fake coordinates.
+4. **v0.4 — decision layers:** water, shade, canopy, accessibility, land rights and habitat constraints using existing Sol-Atlas sources.
+5. **v0.5 — simulation handoff:** immutable project digest and Symtropy scenario manifest; compare modelled output with independent reference cases.
+6. **v0.6 — design critique:** Symthaea generates evidence-linked alternatives with stated trade-offs, sensitivity and uncertainty.
+7. **v0.7 — collaborative stewardship:** Mycelix decision history, consent, observation and maintenance commitments.
+8. **v1 — delivery package:** dimensioned drawings, planting/surface schedules, quantity takeoffs, accessible/public-review exports, reproducible scenarios and verification receipts.
+
+## First-slice acceptance criteria
+
+- / route and /labs/reactor-twin still resolve.
+- /design/landscape renders on the existing Rust/Leptos stack.
+- All five tools and four scale contexts can be selected with accessible, visible state.
+- One valid canvas click adds one feature; undo removes the latest; reset restores the exact starter fixtures.
+- Grid/context visibility toggles work independently of editing.
+- Export is valid JSON, deterministic for the same project and explicitly not georeferenced.
+- Tests cover schema, round-trip, feature IDs and machine keys; the exact PR head passes formatting, native tests and target wasm build.
+- No simulation, field-validated ecological result, construction compliance, terrain survey or QGIS/SketchUp parity is claimed by this prototype.
