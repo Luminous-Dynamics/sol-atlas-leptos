@@ -25,7 +25,9 @@ pub const OFFLINE_JOURNAL_BUNDLE_SCHEMA_VERSION: u16 = 1;
 #[derive(Debug)]
 pub enum OfflineJournalBundleError {
     EmptyOwnerScope,
-    EmptyNamespace { operation_id: String },
+    EmptyNamespace {
+        operation_id: String,
+    },
     UnsupportedSchemaVersion(u16),
     InvalidSnapshot {
         operation_id: String,
@@ -53,12 +55,18 @@ impl fmt::Display for OfflineJournalBundleError {
                 write!(formatter, "operation {operation_id} has an empty namespace")
             }
             Self::UnsupportedSchemaVersion(version) => {
-                write!(formatter, "unsupported offline journal bundle schema {version}")
+                write!(
+                    formatter,
+                    "unsupported offline journal bundle schema {version}"
+                )
             }
             Self::InvalidSnapshot {
                 operation_id,
                 reason,
-            } => write!(formatter, "operation {operation_id} snapshot is invalid: {reason}"),
+            } => write!(
+                formatter,
+                "operation {operation_id} snapshot is invalid: {reason}"
+            ),
             Self::DuplicateOperationId(operation_id) => {
                 write!(formatter, "bundle repeats operation ID {operation_id}")
             }
@@ -272,7 +280,7 @@ mod tests {
     };
     use crate::{
         offline_journal::{
-            OFFLINE_JOURNAL_SCHEMA_VERSION, JournalEntry, JournalEntrySnapshotV1,
+            JournalEntry, JournalEntrySnapshotV1, OFFLINE_JOURNAL_SCHEMA_VERSION,
             OperationEnvelope, RequiredNullableOperationId,
         },
         offline_payload_digest::canonical_payload_digest_sha256,
@@ -361,17 +369,11 @@ mod tests {
         let duplicate = record("same-op", "work-order.apply");
         let duplicate_again = duplicate.clone();
         assert!(matches!(
-            OfflineJournalBundleV1::create(
-                "tenant-001",
-                vec![duplicate, duplicate_again]
-            ),
+            OfflineJournalBundleV1::create("tenant-001", vec![duplicate, duplicate_again]),
             Err(OfflineJournalBundleError::DuplicateOperationId(_))
         ));
         assert!(matches!(
-            OfflineJournalBundleV1::create(
-                "tenant-001",
-                vec![record("op-1", "  ")]
-            ),
+            OfflineJournalBundleV1::create("tenant-001", vec![record("op-1", "  ")]),
             Err(OfflineJournalBundleError::EmptyNamespace { .. })
         ));
     }
