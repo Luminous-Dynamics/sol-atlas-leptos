@@ -1164,18 +1164,18 @@ mod tests {
         let assessment_bytes =
             serde_json::to_vec(&assessment).expect("assessment should serialize");
         assert_eq!(receipt.assessment_sha256, sha256_hex(&assessment_bytes));
-        let changed_assessment = serde_json::json!({"status": "feasible", "scheduled_work_units": 65});
-        let changed_receipt = scenario_receipt(
-            fixture.as_bytes(),
-            &request,
-            "pareto",
-            &changed_assessment,
-        )
-        .expect("changed JSON assessment should serialize");
+        let changed_assessment =
+            serde_json::json!({"status": "feasible", "scheduled_work_units": 65});
+        let changed_receipt =
+            scenario_receipt(fixture.as_bytes(), &request, "pareto", &changed_assessment)
+                .expect("changed JSON assessment should serialize");
         assert_ne!(receipt.assessment_sha256, changed_receipt.assessment_sha256);
         assert_eq!(receipt.mode, "pareto");
         assert_eq!(receipt.scenario_schema_version, "0.1");
-        assert_eq!(receipt.fixture_id, "synthetic-four-interval-flexible-compute");
+        assert_eq!(
+            receipt.fixture_id,
+            "synthetic-four-interval-flexible-compute"
+        );
         assert!(receipt.synthetic);
         assert_eq!(receipt.claim_ceiling, request.claim_ceiling);
         assert!(receipt.verification_boundary.contains("do not validate"));
