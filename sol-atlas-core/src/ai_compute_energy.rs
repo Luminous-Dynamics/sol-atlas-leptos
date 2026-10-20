@@ -394,7 +394,7 @@ pub fn assess(request: &Request) -> Assessment {
                     ));
                 }
                 if let Some(profile) = deferrable_quality_profile {
-                    if profile != workload.service_quality_profile_id {
+                    if profile != workload.service_quality_profile_id.as_str() {
                         unsupported.push(
                             "heterogeneous_deferrable_quality_profiles_unsupported_v0_1"
                                 .to_owned(),
