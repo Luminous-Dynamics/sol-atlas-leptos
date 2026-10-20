@@ -381,6 +381,40 @@ mod tests {
         assert!(serde_json::from_value::<ModelCredibilityHandoff>(value).is_err());
     }
 
+    // JSON Schema treats 8 and 8.0 as the same number. serde_json::Value equality
+    // preserves the lexical integer/float distinction, so compare numeric values
+    // semantically while retaining exact structure, strings, arrays, and keys.
+    fn json_values_semantically_equal(
+        expected: &serde_json::Value,
+        actual: &serde_json::Value,
+    ) -> bool {
+        use serde_json::Value;
+
+        match (expected, actual) {
+            (Value::Number(left), Value::Number(right)) => {
+                match (left.as_f64(), right.as_f64()) {
+                    (Some(left), Some(right)) => left == right,
+                    _ => left == right,
+                }
+            }
+            (Value::Array(left), Value::Array(right)) => {
+                left.len() == right.len()
+                    && left.iter().zip(right).all(|(left, right)| {
+                        json_values_semantically_equal(left, right)
+                    })
+            }
+            (Value::Object(left), Value::Object(right)) => {
+                left.len() == right.len()
+                    && left.iter().all(|(key, left_value)| {
+                        right.get(key).is_some_and(|right_value| {
+                            json_values_semantically_equal(left_value, right_value)
+                        })
+                    })
+            }
+            _ => expected == actual,
+        }
+    }
+
     #[test]
     fn schema_files_and_eligible_golden_pair_match_the_rust_contract() {
         let input_schema: serde_json::Value = serde_json::from_str(include_str!(
@@ -403,9 +437,11 @@ mod tests {
         ))
         .expect("eligible assessment fixture is valid JSON");
         let actual = assess_model_credibility_handoff(&input).expect("eligible fixture assesses");
-        assert_eq!(
-            expected,
-            serde_json::to_value(actual).expect("serialize eligible assessment")
+        let actual_json =
+            serde_json::to_value(actual).expect("serialize eligible assessment");
+        assert!(
+            json_values_semantically_equal(&expected, &actual_json),
+            "eligible assessment mismatch: expected {expected:#}, actual {actual_json:#}"
         );
     }
 
