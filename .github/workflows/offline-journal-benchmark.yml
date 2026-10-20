@@ -70,10 +70,10 @@ jobs:
         if: ${{ hashFiles('sol-atlas-core/schemas/offline-journal-bundle-v1.schema.json') != '' }}
         run: |
           jq -e '
-            ."\$schema" == "https://json-schema.org/draft/2020-12/schema" and
-            ."\$id" == "urn:sol-atlas:offline-journal-bundle:1" and
+            ."$schema" == "https://json-schema.org/draft/2020-12/schema" and
+            ."$id" == "urn:sol-atlas:offline-journal-bundle:1" and
             .properties.schema_version.const == 1 and
-            .properties.records.items["\$ref"] == "#/\$defs/record" and
+            .properties.records.items["$ref"] == "#/$defs/record" and
             (."x-semantic-validation" | length >= 8)
           ' sol-atlas-core/schemas/offline-journal-bundle-v1.schema.json
 
