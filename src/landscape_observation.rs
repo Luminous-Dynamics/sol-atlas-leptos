@@ -1164,6 +1164,51 @@ mod tests {
     }
 
     #[test]
+    fn fixture_covers_result_location_and_uncertainty_variants() {
+        let batch = fixture();
+        let observations = batch["observations"].as_array().unwrap();
+        let result_kinds: HashSet<&str> = observations
+            .iter()
+            .filter_map(|observation| observation["result"]["kind"].as_str())
+            .collect();
+        let location_kinds: HashSet<&str> = observations
+            .iter()
+            .filter_map(|observation| observation["location"]["kind"].as_str())
+            .collect();
+        let uncertainty_kinds: HashSet<&str> = observations
+            .iter()
+            .filter_map(|observation| observation["quality"]["uncertainty"]["kind"].as_str())
+            .collect();
+
+        assert_eq!(result_kinds, HashSet::from(["quantity", "category", "boolean"]));
+        assert_eq!(
+            location_kinds,
+            HashSet::from(["opaque-site", "geographic-wgs84", "project-local"])
+        );
+        assert_eq!(
+            uncertainty_kinds,
+            HashSet::from([
+                "unknown",
+                "interval",
+                "qualitative",
+                "not-applicable",
+                "standard-uncertainty"
+            ])
+        );
+        assert_eq!(observations[4]["transformations"].as_array().unwrap().len(), 2);
+    }
+
+    #[test]
+    fn oversized_batch_is_rejected_before_record_traversal() {
+        let mut batch = fixture();
+        let observation = batch["observations"][0].clone();
+        batch["observations"] = Value::Array(vec![observation; MAX_BATCH_OBSERVATIONS + 1]);
+
+        let errors = validate_batch(&batch).unwrap_err();
+        assert!(errors.iter().any(|error| error.contains("exceeds limit")));
+    }
+
+    #[test]
     fn schema_constants_match_committed_json_schemas() {
         let observation_schema: Value = serde_json::from_str(include_str!(
             "../schemas/landscape-observation-v0.schema.json"
