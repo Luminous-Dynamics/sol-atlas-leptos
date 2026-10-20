@@ -388,10 +388,25 @@ impl IndexedDbJournal {
         }
         let new_entry = JournalEntry::prepare(envelope, payload_json)?;
         let new_snapshot = new_entry.to_snapshot()?;
+        let canonical_payload = std::str::from_utf8(new_entry.canonical_payload_utf8())
+            .map_err(|error| {
+                IndexedDbJournalError(format!("canonical payload is not UTF-8: {error}"))
+            })?;
+        let request_fingerprint_sha256 =
+            sol_atlas_core::offline_idempotency_fingerprint::canonical_request_fingerprint_sha256(
+                owner_scope,
+                operation_namespace,
+                new_entry.envelope(),
+                canonical_payload,
+            )
+            .map_err(|error| IndexedDbJournalError(error.to_string()))?;
         let new_record = StoredOperationV1 {
             schema_version: STORED_OPERATION_SCHEMA_VERSION,
             owner_scope: owner_scope.to_owned(),
             operation_namespace: operation_namespace.to_owned(),
+            request_fingerprint_schema_version:
+                sol_atlas_core::offline_idempotency_fingerprint::REQUEST_FINGERPRINT_SCHEMA_VERSION,
+            request_fingerprint_sha256,
             snapshot: new_snapshot,
         };
         new_record.validate()?;
