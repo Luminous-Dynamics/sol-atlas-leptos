@@ -23,8 +23,11 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
-      - name: Checkout exact candidate
+      - name: Checkout exact candidate head
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -49,6 +52,9 @@ jobs:
           {
             echo "benchmark=field-task-graph-v1"
             echo "source_commit=$(git rev-parse HEAD)"
+            echo "event_sha=${GITHUB_SHA}"
+            echo "pull_request_head_sha=$(jq -r '.pull_request.head.sha // empty' "$GITHUB_EVENT_PATH")"
+            echo "pull_request_base_sha=$(jq -r '.pull_request.base.sha // empty' "$GITHUB_EVENT_PATH")"
             echo "source_branch=${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
             echo "workflow_run_id=${GITHUB_RUN_ID}"
             echo "workflow_run_attempt=${GITHUB_RUN_ATTEMPT}"
