@@ -24,7 +24,7 @@ Route: **/design/landscape**.
 
 - Canvas: responsive 1000 × 650 local drawing-unit plane, illustrative boundary and contours.
 - Tools: canopy tree, planting bed, water feature, path, built element.
-- Interaction: select tool; click canvas to place; pointer or keyboard-select an existing symbol; inspect its anchor; delete the selected element; undo the last add/delete command; reset to deterministic starter plan.
+- Interaction: select tool; click canvas to place; pointer or keyboard-select an existing symbol; inspect its anchor; delete the selected element; undo/redo the last add/delete command; reset to deterministic starter plan.
 - Scope context: site/parcel, district, watershed, bioregion. In v0 this labels the intended planning context; it does not rescale or georeference the geometry.
 - Layer controls: measurement grid and illustrative contours.
 - Project metadata: editable project name in the UI.
