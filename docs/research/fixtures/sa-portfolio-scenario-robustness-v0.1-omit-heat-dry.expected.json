@@ -1,0 +1,383 @@
+{
+  "omitted_scenario_id": "heat_dry_power_stress",
+  "original_scenario_ids": [
+    "heat_dry_power_stress",
+    "normal_reference"
+  ],
+  "reduced_scenario_ids": [
+    "normal_reference"
+  ],
+  "candidate_subset_count": 1024,
+  "reduced_feasible_portfolio_count": 90,
+  "reference_frontier_project_ids": [
+    [
+      "P00",
+      "P01",
+      "P03",
+      "P05",
+      "P08"
+    ],
+    [
+      "P00",
+      "P01",
+      "P03",
+      "P05",
+      "P09"
+    ],
+    [
+      "P00",
+      "P01",
+      "P05",
+      "P06",
+      "P08"
+    ],
+    [
+      "P00",
+      "P01",
+      "P05",
+      "P06",
+      "P09"
+    ],
+    [
+      "P00",
+      "P03",
+      "P04",
+      "P05",
+      "P08"
+    ],
+    [
+      "P00",
+      "P03",
+      "P04",
+      "P05",
+      "P09"
+    ],
+    [
+      "P02",
+      "P04",
+      "P05",
+      "P06",
+      "P08"
+    ],
+    [
+      "P02",
+      "P04",
+      "P05",
+      "P06",
+      "P09"
+    ]
+  ],
+  "reduced_frontier": [
+    {
+      "project_ids": [
+        "P00",
+        "P01",
+        "P03",
+        "P05",
+        "P08"
+      ],
+      "full_reference_feasible": true,
+      "reference_outcomes_by_scenario": {
+        "normal_reference": {
+          "economic_value_u": 25,
+          "essential_service_points": 12,
+          "paid_work_opportunity_points": 11,
+          "ecological_quality_points": 9
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 18,
+          "essential_service_points": 11,
+          "paid_work_opportunity_points": 11,
+          "ecological_quality_points": 10
+        }
+      },
+      "regret_by_scenario": {
+        "heat_dry_power_stress": {
+          "economic_value_u": 0,
+          "essential_service_points": 2,
+          "paid_work_opportunity_points": 6,
+          "ecological_quality_points": 9
+        },
+        "normal_reference": {
+          "economic_value_u": 0,
+          "essential_service_points": 2,
+          "paid_work_opportunity_points": 6,
+          "ecological_quality_points": 9
+        }
+      },
+      "worst_case_regret": {
+        "economic_value_u": 0,
+        "essential_service_points": 2,
+        "paid_work_opportunity_points": 6,
+        "ecological_quality_points": 9
+      }
+    },
+    {
+      "project_ids": [
+        "P00",
+        "P01",
+        "P03",
+        "P05",
+        "P09"
+      ],
+      "full_reference_feasible": true,
+      "reference_outcomes_by_scenario": {
+        "normal_reference": {
+          "economic_value_u": 22,
+          "essential_service_points": 14,
+          "paid_work_opportunity_points": 14,
+          "ecological_quality_points": 11
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 15,
+          "essential_service_points": 13,
+          "paid_work_opportunity_points": 14,
+          "ecological_quality_points": 12
+        }
+      },
+      "regret_by_scenario": {
+        "heat_dry_power_stress": {
+          "economic_value_u": 3,
+          "essential_service_points": 0,
+          "paid_work_opportunity_points": 3,
+          "ecological_quality_points": 7
+        },
+        "normal_reference": {
+          "economic_value_u": 3,
+          "essential_service_points": 0,
+          "paid_work_opportunity_points": 3,
+          "ecological_quality_points": 7
+        }
+      },
+      "worst_case_regret": {
+        "economic_value_u": 3,
+        "essential_service_points": 0,
+        "paid_work_opportunity_points": 3,
+        "ecological_quality_points": 7
+      }
+    },
+    {
+      "project_ids": [
+        "P00",
+        "P01",
+        "P05",
+        "P06",
+        "P08"
+      ],
+      "full_reference_feasible": true,
+      "reference_outcomes_by_scenario": {
+        "normal_reference": {
+          "economic_value_u": 15,
+          "essential_service_points": 12,
+          "paid_work_opportunity_points": 8,
+          "ecological_quality_points": 16
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 12,
+          "essential_service_points": 11,
+          "paid_work_opportunity_points": 8,
+          "ecological_quality_points": 17
+        }
+      },
+      "regret_by_scenario": {
+        "heat_dry_power_stress": {
+          "economic_value_u": 6,
+          "essential_service_points": 2,
+          "paid_work_opportunity_points": 9,
+          "ecological_quality_points": 2
+        },
+        "normal_reference": {
+          "economic_value_u": 10,
+          "essential_service_points": 2,
+          "paid_work_opportunity_points": 9,
+          "ecological_quality_points": 2
+        }
+      },
+      "worst_case_regret": {
+        "economic_value_u": 10,
+        "essential_service_points": 2,
+        "paid_work_opportunity_points": 9,
+        "ecological_quality_points": 2
+      }
+    },
+    {
+      "project_ids": [
+        "P00",
+        "P01",
+        "P05",
+        "P06",
+        "P09"
+      ],
+      "full_reference_feasible": true,
+      "reference_outcomes_by_scenario": {
+        "normal_reference": {
+          "economic_value_u": 12,
+          "essential_service_points": 14,
+          "paid_work_opportunity_points": 11,
+          "ecological_quality_points": 18
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 9,
+          "essential_service_points": 13,
+          "paid_work_opportunity_points": 11,
+          "ecological_quality_points": 19
+        }
+      },
+      "regret_by_scenario": {
+        "heat_dry_power_stress": {
+          "economic_value_u": 9,
+          "essential_service_points": 0,
+          "paid_work_opportunity_points": 6,
+          "ecological_quality_points": 0
+        },
+        "normal_reference": {
+          "economic_value_u": 13,
+          "essential_service_points": 0,
+          "paid_work_opportunity_points": 6,
+          "ecological_quality_points": 0
+        }
+      },
+      "worst_case_regret": {
+        "economic_value_u": 13,
+        "essential_service_points": 0,
+        "paid_work_opportunity_points": 6,
+        "ecological_quality_points": 0
+      }
+    },
+    {
+      "project_ids": [
+        "P00",
+        "P03",
+        "P04",
+        "P05",
+        "P09"
+      ],
+      "full_reference_feasible": true,
+      "reference_outcomes_by_scenario": {
+        "normal_reference": {
+          "economic_value_u": 18,
+          "essential_service_points": 9,
+          "paid_work_opportunity_points": 17,
+          "ecological_quality_points": 10
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 13,
+          "essential_service_points": 9,
+          "paid_work_opportunity_points": 17,
+          "ecological_quality_points": 11
+        }
+      },
+      "regret_by_scenario": {
+        "heat_dry_power_stress": {
+          "economic_value_u": 5,
+          "essential_service_points": 4,
+          "paid_work_opportunity_points": 0,
+          "ecological_quality_points": 8
+        },
+        "normal_reference": {
+          "economic_value_u": 7,
+          "essential_service_points": 5,
+          "paid_work_opportunity_points": 0,
+          "ecological_quality_points": 8
+        }
+      },
+      "worst_case_regret": {
+        "economic_value_u": 7,
+        "essential_service_points": 5,
+        "paid_work_opportunity_points": 0,
+        "ecological_quality_points": 8
+      }
+    },
+    {
+      "project_ids": [
+        "P02",
+        "P04",
+        "P05",
+        "P06",
+        "P08"
+      ],
+      "full_reference_feasible": true,
+      "reference_outcomes_by_scenario": {
+        "normal_reference": {
+          "economic_value_u": 14,
+          "essential_service_points": 9,
+          "paid_work_opportunity_points": 11,
+          "ecological_quality_points": 15
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 11,
+          "essential_service_points": 8,
+          "paid_work_opportunity_points": 11,
+          "ecological_quality_points": 16
+        }
+      },
+      "regret_by_scenario": {
+        "heat_dry_power_stress": {
+          "economic_value_u": 7,
+          "essential_service_points": 5,
+          "paid_work_opportunity_points": 6,
+          "ecological_quality_points": 3
+        },
+        "normal_reference": {
+          "economic_value_u": 11,
+          "essential_service_points": 5,
+          "paid_work_opportunity_points": 6,
+          "ecological_quality_points": 3
+        }
+      },
+      "worst_case_regret": {
+        "economic_value_u": 11,
+        "essential_service_points": 5,
+        "paid_work_opportunity_points": 6,
+        "ecological_quality_points": 3
+      }
+    },
+    {
+      "project_ids": [
+        "P02",
+        "P04",
+        "P05",
+        "P06",
+        "P09"
+      ],
+      "full_reference_feasible": true,
+      "reference_outcomes_by_scenario": {
+        "normal_reference": {
+          "economic_value_u": 11,
+          "essential_service_points": 11,
+          "paid_work_opportunity_points": 14,
+          "ecological_quality_points": 17
+        },
+        "heat_dry_power_stress": {
+          "economic_value_u": 8,
+          "essential_service_points": 10,
+          "paid_work_opportunity_points": 14,
+          "ecological_quality_points": 18
+        }
+      },
+      "regret_by_scenario": {
+        "heat_dry_power_stress": {
+          "economic_value_u": 10,
+          "essential_service_points": 3,
+          "paid_work_opportunity_points": 3,
+          "ecological_quality_points": 1
+        },
+        "normal_reference": {
+          "economic_value_u": 14,
+          "essential_service_points": 3,
+          "paid_work_opportunity_points": 3,
+          "ecological_quality_points": 1
+        }
+      },
+      "worst_case_regret": {
+        "economic_value_u": 14,
+        "essential_service_points": 3,
+        "paid_work_opportunity_points": 3,
+        "ecological_quality_points": 1
+      }
+    }
+  ],
+  "frontier_id_intersection_count": 7,
+  "frontier_id_union_count": 8,
+  "full_reference_infeasible_frontier_count": 0
+}
