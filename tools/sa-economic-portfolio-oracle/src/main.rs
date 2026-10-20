@@ -166,12 +166,14 @@ fn run() -> Result<(), String> {
     Ok(())
 }
 
-fn read_benchmark_args(args: &[String]) -> Result<(String, String, usize, String, String), String> {
+fn read_benchmark_args(
+    args: &[String],
+    mode: &str,
+) -> Result<(String, String, usize, String, String), String> {
     if args.len() < 2 || args.len() > 3 {
-        return Err(
-            "usage: sa-economic-portfolio-oracle --bench-search INPUT.json REFERENCE.json [REPEATS]"
-                .to_owned(),
-        );
+        return Err(format!(
+            "usage: sa-economic-portfolio-oracle --{mode} INPUT.json REFERENCE.json [REPEATS]"
+        ));
     }
     let input_path = args[0].clone();
     let reference_path = args[1].clone();
@@ -272,7 +274,7 @@ fn digest_hex(raw: &str) -> String {
 
 fn run_search_benchmark(args: &[String]) -> Result<(), String> {
     const WARMUP_RUNS: usize = 2;
-    let (_, _, repetitions, input_raw, reference_raw) = read_benchmark_args(args)?;
+    let (_, _, repetitions, input_raw, reference_raw) = read_benchmark_args(args, "bench-search")?;
     let input: Input = serde_json::from_str(&input_raw)
         .map_err(|error| format!("invalid input JSON/contract: {error}"))?;
     let expected_frontier = reference_frontier(&reference_raw)?;
@@ -427,6 +429,23 @@ fn run_comparison_benchmark(args: &[String]) -> Result<(), String> {
         serde_json::to_string_pretty(&receipt).map_err(|error| error.to_string())?
     );
     Ok(())
+}
+
+#[cfg(test)]
+mod benchmark_tests {
+    use super::*;
+
+    #[test]
+    fn nearest_rank_timing_summary_sorts_samples_and_records_warmups() {
+        let summary = percentiles(&[7, 1, 9, 3, 5], 5, 2);
+        assert_eq!(summary.repetitions, 5);
+        assert_eq!(summary.warmup_runs, 2);
+        assert_eq!(summary.samples_elapsed_micros, vec![1, 3, 5, 7, 9]);
+        assert_eq!(summary.min_elapsed_micros, 1);
+        assert_eq!(summary.p50_elapsed_micros, 5);
+        assert_eq!(summary.p95_elapsed_micros, 9);
+        assert_eq!(summary.max_elapsed_micros, 9);
+    }
 }
 
 fn run_search(args: &[String]) -> Result<(), String> {
