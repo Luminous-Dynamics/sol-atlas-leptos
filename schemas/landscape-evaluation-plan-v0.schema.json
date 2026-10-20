@@ -648,5 +648,6 @@
         }
       }
     }
-  ]
+  ],
+  "$comment": "Cross-field chronological requirements that JSON Schema cannot express portably are enforced by src/landscape_evaluation.rs and its tests. In particular, causal_analysis_plan.pre_registered_at_unix_s must be strictly earlier than time_windows.follow_up.start_unix_s and no later than created_at_unix_s."
 }
