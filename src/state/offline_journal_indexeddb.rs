@@ -15,7 +15,7 @@
 //! possible and must be handled by the product's recovery UX.
 
 use std::{
-    cell::RefCell,
+    cell::{Cell, RefCell},
     error::Error,
     fmt,
     rc::Rc,
@@ -72,6 +72,7 @@ pub struct DispatchPermit {
     payload_digest_sha256: String,
     canonical_payload_utf8: Vec<u8>,
     attempt_count: u32,
+    durability_policy: DurabilityPolicy,
 }
 
 impl DispatchPermit {
@@ -94,6 +95,11 @@ impl DispatchPermit {
     pub fn attempt_count(&self) -> u32 {
         self.attempt_count
     }
+
+    /// Durability policy used for the transaction that granted this permit.
+    pub fn durability_policy(&self) -> DurabilityPolicy {
+        self.durability_policy
+    }
 }
 
 /// A bounded page of pending operations. A later recovery pass should start
@@ -108,7 +114,7 @@ pub struct IndexedDbJournalPage {
 #[derive(Clone)]
 pub struct IndexedDbJournal {
     database: JsValue,
-    durability_policy: DurabilityPolicy,
+    last_durability_policy: Rc<Cell<DurabilityPolicy>>,
 }
 
 impl IndexedDbJournal {
@@ -136,6 +142,9 @@ impl IndexedDbJournal {
 
         let open_request = request.clone();
         let open_promise = Promise::new(&mut |resolve, reject| {
+            let success_resolve = resolve.clone();
+            let success_reject = reject.clone();
+            let error_reject = reject.clone();
             let upgrade_request = open_request.clone();
             let upgrade = Closure::once_into_js(move |_event: JsValue| {
                 let result = Reflect::get(
@@ -164,10 +173,10 @@ impl IndexedDbJournal {
             let on_success = Closure::once_into_js(move |_event: JsValue| {
                 match Reflect::get(&success_request, &JsValue::from_str("result")) {
                     Ok(database) => {
-                        let _ = resolve.call1(&JsValue::UNDEFINED, &database);
+                        let _ = success_resolve.call1(&JsValue::UNDEFINED, &database);
                     }
                     Err(error) => {
-                        let _ = reject.call1(&JsValue::UNDEFINED, &error);
+                        let _ = success_reject.call1(&JsValue::UNDEFINED, &error);
                     }
                 }
             });
@@ -181,7 +190,7 @@ impl IndexedDbJournal {
             let on_error = Closure::once_into_js(move |_event: JsValue| {
                 let error = Reflect::get(&error_request, &JsValue::from_str("error"))
                     .unwrap_or(JsValue::UNDEFINED);
-                let _ = reject.call1(&JsValue::UNDEFINED, &error);
+                let _ = error_reject.call1(&JsValue::UNDEFINED, &error);
             });
             let _ = Reflect::set(
                 &open_request,
@@ -195,16 +204,25 @@ impl IndexedDbJournal {
             .map_err(js_error)?;
         Ok(Self {
             database,
-            // Each critical write still requests strict durability. The
-            // transaction helper reports when the option was unavailable.
-            durability_policy: DurabilityPolicy::StrictRequested,
+            last_durability_policy: Rc::new(Cell::new(DurabilityPolicy::StrictRequested)),
         })
     }
 
     /// Last requested policy. A transaction may report a default fallback if
     /// the runtime does not support the strict durability option.
-    pub fn requested_durability_policy(&self) -> DurabilityPolicy {
-        self.durability_policy
+    pub fn last_transaction_durability_policy(&self) -> DurabilityPolicy {
+        self.last_durability_policy.get()
+    }
+
+    fn transaction(
+        &self,
+        store_names: &[&str],
+        mode: &str,
+    ) -> Result<(JsValue, DurabilityPolicy), IndexedDbJournalError> {
+        let (transaction, policy) =
+            begin_transaction(&self.database, store_names, mode)?;
+        self.last_durability_policy.set(policy);
+        Ok((transaction, policy))
     }
 
     /// Atomically writes a new prepared snapshot and enforces operation-ID and
@@ -222,11 +240,7 @@ impl IndexedDbJournal {
         let operation_id = new_entry.envelope().operation_id.clone();
         let idempotency_key = new_entry.envelope().idempotency_key.clone();
 
-        let (transaction, _policy) = begin_transaction(
-            &self.database,
-            &STORE_NAMES,
-            "readwrite",
-        )?;
+        let (transaction, _policy) = self.transaction(&STORE_NAMES, "readwrite")?;
         let transaction_done = transaction_promise(transaction.clone());
         let operations = object_store(&transaction, OPERATIONS)?;
         let idempotency_keys = object_store(&transaction, IDEMPOTENCY_KEYS)?;
@@ -363,7 +377,7 @@ impl IndexedDbJournal {
         &self,
         operation_id: &str,
     ) -> Result<Option<JournalEntry>, IndexedDbJournalError> {
-        let (transaction, _policy) = begin_transaction(&self.database, &[OPERATIONS], "readonly")?;
+        let (transaction, _policy) = self.transaction(&[OPERATIONS], "readonly")?;
         let transaction_done = transaction_promise(transaction.clone());
         let operations = object_store(&transaction, OPERATIONS)?;
         let request = call_method(
@@ -400,8 +414,7 @@ impl IndexedDbJournal {
         operation_id: &str,
     ) -> Result<DispatchPermit, IndexedDbJournalError> {
         let store_names = [OPERATIONS, PENDING_OPERATIONS];
-        let (transaction, _policy) =
-            begin_transaction(&self.database, &store_names, "readwrite")?;
+        let (transaction, durability_policy) = self.transaction(&store_names, "readwrite")?;
         let transaction_done = transaction_promise(transaction.clone());
         let operations = object_store(&transaction, OPERATIONS)?;
         let pending = object_store(&transaction, PENDING_OPERATIONS)?;
@@ -523,6 +536,7 @@ impl IndexedDbJournal {
             payload_digest_sha256: entry.envelope().payload_digest_sha256.clone(),
             canonical_payload_utf8: entry.canonical_payload_utf8().to_vec(),
             attempt_count: entry.attempt_count(),
+            durability_policy,
         })
     }
 
@@ -673,8 +687,7 @@ impl IndexedDbJournal {
         if limit == 0 {
             return Err(IndexedDbJournalError("page size must be greater than zero".into()));
         }
-        let (transaction, _policy) =
-            begin_transaction(&self.database, &[PENDING_OPERATIONS], "readonly")?;
+        let (transaction, _policy) = self.transaction(&[PENDING_OPERATIONS], "readonly")?;
         let transaction_done = transaction_promise(transaction.clone());
         let pending = object_store(&transaction, PENDING_OPERATIONS)?;
         let request = call_method(&pending, "getAllKeys", &[]).map_err(js_error)?;
@@ -896,14 +909,17 @@ fn call_method(
 
 fn request_promise(request: JsValue) -> Promise {
     Promise::new(&mut |resolve, reject| {
+        let success_resolve = resolve.clone();
+        let success_reject = reject.clone();
+        let error_reject = reject.clone();
         let success_request = request.clone();
         let on_success = Closure::once_into_js(move |_event: JsValue| {
             match Reflect::get(&success_request, &JsValue::from_str("result")) {
                 Ok(value) => {
-                    let _ = resolve.call1(&JsValue::UNDEFINED, &value);
+                    let _ = success_resolve.call1(&JsValue::UNDEFINED, &value);
                 }
                 Err(error) => {
-                    let _ = reject.call1(&JsValue::UNDEFINED, &error);
+                    let _ = success_reject.call1(&JsValue::UNDEFINED, &error);
                 }
             }
         });
@@ -918,7 +934,7 @@ fn request_promise(request: JsValue) -> Promise {
             let error =
                 Reflect::get(&error_request, &JsValue::from_str("error"))
                     .unwrap_or(JsValue::UNDEFINED);
-            let _ = reject.call1(&JsValue::UNDEFINED, &error);
+            let _ = error_reject.call1(&JsValue::UNDEFINED, &error);
         });
         let _ = Reflect::set(
             &request,
@@ -930,8 +946,10 @@ fn request_promise(request: JsValue) -> Promise {
 
 fn transaction_promise(transaction: JsValue) -> Promise {
     Promise::new(&mut |resolve, reject| {
+        let completion_resolve = resolve.clone();
+        let abort_reject = reject.clone();
         let on_complete = Closure::once_into_js(move |_event: JsValue| {
-            let _ = resolve.call1(&JsValue::UNDEFINED, &JsValue::UNDEFINED);
+            let _ = completion_resolve.call1(&JsValue::UNDEFINED, &JsValue::UNDEFINED);
         });
         let _ = Reflect::set(
             &transaction,
@@ -946,7 +964,7 @@ fn transaction_promise(transaction: JsValue) -> Promise {
                 &JsValue::from_str("error"),
             )
             .unwrap_or(JsValue::UNDEFINED);
-            let _ = reject.call1(&JsValue::UNDEFINED, &error);
+            let _ = abort_reject.call1(&JsValue::UNDEFINED, &error);
         });
         let _ = Reflect::set(
             &transaction,
