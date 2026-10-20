@@ -34,7 +34,7 @@ The Rust validator is a structural and policy-contract boundary. It checks the s
 | Matched comparison | Compare intervention and matched site(s) across time | No residual confounding; matching quality still needs evidence |
 | Before–after control–impact (BACI) | Predeclared difference-in-differences style analysis when assumptions hold | Causality by naming the design; parallel trends and other assumptions still need validation |
 
-Causal-estimation intent therefore requires a matched-comparison or BACI design, an intervention and comparison arm, a preregistered/approved plan, declared confounders, sensitivity checks, and independent review. This gate only qualifies the *plan shape*; results and inference require a later analysis/review artifact.
+Causal-estimation intent therefore requires a matched-comparison or BACI design, an intervention and comparison arm, a preregistered/approved plan, declared confounders, sensitivity checks, and independent review. The preregistration timestamp must be strictly earlier than the follow-up window start; a timestamp at or after that start is rejected. This gate only qualifies the *plan shape*; results and inference require a later analysis/review artifact.
 
 ## Evaluation-plan contents
 
@@ -66,7 +66,7 @@ Adapters are future work; the current module does not implement these network pr
 ## Acceptance gates
 
 - JSON Schema is valid JSON and its stable constants match the Rust module.
-- The canonical plan fixture passes; negative tests cover reversed windows, unsupported causal design, absent preregistration, retroactive registration, duplicate arms/site references/outcome IDs, blank units, target-band inversion, sensitive/public location conflict, unapproved or withdrawn consent, and unknown fields.
+- The canonical plan fixture passes; negative tests cover preregistration after follow-up starts, overlapping windows, reversed windows, unsupported causal design, absent preregistration, retroactive registration, duplicate arms/site references/outcome IDs, blank units, target-band inversion, sensitive/public location conflict, unapproved or withdrawn consent, and unknown fields.
 - Identical plan bytes yield identical validation results.
 - Schema breaking changes require a new version; changing a formula or study design never rewrites previous records.
 - Native tests, `cargo fmt --all --check` and the WASM target build pass on the exact commit.
