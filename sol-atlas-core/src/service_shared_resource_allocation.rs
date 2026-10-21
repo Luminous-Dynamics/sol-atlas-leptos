@@ -1711,4 +1711,164 @@ mod tests {
             assert_eq!(output, permuted_output, "case {case_index}: permutation");
         }
     }
+
+    #[test]
+    fn deterministic_heterogeneous_sparse_graphs_match_independent_grid_max_min_oracle() {
+        // This differential oracle deliberately does not reuse run_progressive_fill or its
+        // saturation bookkeeping. It enumerates all three-service coverage vectors on a finite
+        // grid, checks the original sparse resource inequalities directly, and maximizes the
+        // minimum coverage. Heterogeneous demands and usage coefficients exercise a gap left by
+        // the unit-demand/unit-coefficient oracle above. This is a bounded discretized oracle,
+        // not a continuous LP oracle or a proof of every later leximin stage.
+        const GRID: i32 = 40;
+        const SERVICE_COUNT: usize = 3;
+        const RESOURCE_COUNT: usize = 4;
+        const CASE_COUNT: usize = 32;
+        const COEFFICIENTS: [f64; 4] = [0.5, 1.0, 1.5, 2.0];
+
+        let mut seed = 0xb7e1_5162_8aed_2a6b_u64;
+        let mut next = || {
+            seed = seed
+                .wrapping_mul(6_364_136_223_846_793_005)
+                .wrapping_add(1_442_695_040_888_963_407);
+            seed
+        };
+
+        for case_index in 0..CASE_COUNT {
+            let mut input = request();
+            input.id = format!("heterogeneous-sparse-max-min-case-{case_index}");
+            input.services.clear();
+            input.resources.clear();
+            input.usages.clear();
+
+            let mut demand_values = Vec::with_capacity(SERVICE_COUNT);
+            for service_index in 0..SERVICE_COUNT {
+                let demand = 50.0 + (next() % 11) as f64 * 10.0;
+                demand_values.push(demand);
+                let mut item = service(
+                    &format!("service-{service_index}"),
+                    &format!("community-{}", service_index % 2),
+                    1,
+                    0.0,
+                );
+                item.demand_rate = measurement(
+                    &item.service_entity_id,
+                    demand,
+                    None,
+                    RATE_UNIT,
+                );
+                input.services.push(item);
+            }
+
+            let mut adjacency = vec![vec![false; SERVICE_COUNT]; RESOURCE_COUNT];
+            let mut coefficients =
+                vec![vec![1.0_f64; SERVICE_COUNT]; RESOURCE_COUNT];
+            for resource_index in 0..RESOURCE_COUNT {
+                for service_index in 0..SERVICE_COUNT {
+                    adjacency[resource_index][service_index] = next() % 100 < 55;
+                    coefficients[resource_index][service_index] =
+                        COEFFICIENTS[(next() % COEFFICIENTS.len() as u64) as usize];
+                }
+            }
+
+            // Guarantee every service is constrained and every declared resource is used.
+            // Keep those repairs explicit so the generated fixture itself remains auditable.
+            for service_index in 0..SERVICE_COUNT {
+                if !(0..RESOURCE_COUNT).any(|resource| adjacency[resource][service_index]) {
+                    adjacency[service_index % RESOURCE_COUNT][service_index] = true;
+                }
+            }
+            for resource_index in 0..RESOURCE_COUNT {
+                if !adjacency[resource_index].iter().any(|connected| *connected) {
+                    adjacency[resource_index][resource_index % SERVICE_COUNT] = true;
+                }
+            }
+
+            let mut capacity_values = Vec::with_capacity(RESOURCE_COUNT);
+            for resource_index in 0..RESOURCE_COUNT {
+                let capacity = 20.0 + (next() % 10) as f64 * 20.0;
+                capacity_values.push(capacity);
+                input.resources.push(resource(
+                    &format!("resource-{resource_index}"),
+                    capacity,
+                    None,
+                    RATE_UNIT,
+                ));
+                for service_index in 0..SERVICE_COUNT {
+                    if adjacency[resource_index][service_index] {
+                        input.usages.push(usage(
+                            &format!("use-{resource_index}-{service_index}"),
+                            &format!("resource-{resource_index}"),
+                            &format!("service-{service_index}"),
+                            coefficients[resource_index][service_index],
+                            "m3/h per (m3/h)",
+                        ));
+                    }
+                }
+            }
+
+            // Independent grid oracle for the first (max-min) leximin stage. Each candidate is
+            // judged directly against every resource inequality, not by a copy of the production
+            // saturation/freeze algorithm.
+            let mut best_minimum = 0_i32;
+            let mut found_feasible = false;
+            for a in 0..=GRID {
+                for b in 0..=GRID {
+                    for c in 0..=GRID {
+                        let candidate = [a, b, c];
+                        let feasible = (0..RESOURCE_COUNT).all(|resource_index| {
+                            let used = (0..SERVICE_COUNT)
+                                .filter(|service_index| {
+                                    adjacency[resource_index][*service_index]
+                                })
+                                .map(|service_index| {
+                                    coefficients[resource_index][service_index]
+                                        * demand_values[service_index]
+                                        * candidate[service_index] as f64
+                                        / GRID as f64
+                                })
+                                .sum::<f64>();
+                            used <= capacity_values[resource_index] + 1e-9
+                        });
+                        if !feasible {
+                            continue;
+                        }
+                        found_feasible = true;
+                        best_minimum = best_minimum.max(*candidate.iter().min().unwrap());
+                    }
+                }
+            }
+            assert!(found_feasible, "case {case_index} must have a feasible origin");
+
+            let output = assess_shared_resource_allocation(&input, &[])
+                .expect("generated heterogeneous sparse graph must be valid");
+            let actual_minimum = output
+                .services
+                .iter()
+                .map(|item| item.coverage_lower_bound)
+                .fold(f64::INFINITY, f64::min);
+            let oracle_minimum = best_minimum as f64 / GRID as f64;
+            assert!(
+                (actual_minimum - oracle_minimum).abs() <= 1.0 / GRID as f64 + 1e-6,
+                "case {case_index}: max-min coverage differs from the independent grid oracle; actual={actual_minimum}, grid={oracle_minimum}, adjacency={adjacency:?}, demand={demand_values:?}, coefficients={coefficients:?}, capacities={capacity_values:?}"
+            );
+
+            for item in &output.resources {
+                assert!(
+                    item.conservative_allocated_capacity <= item.capacity_lower_bound + 1e-7,
+                    "case {case_index}: resource {} was overspent",
+                    item.resource_id
+                );
+            }
+
+            let mut permuted = input.clone();
+            permuted.services.reverse();
+            permuted.resources.reverse();
+            permuted.usages.reverse();
+            let permuted_output = assess_shared_resource_allocation(&permuted, &[])
+                .expect("permuted heterogeneous sparse graph must be valid");
+            assert_eq!(output, permuted_output, "case {case_index}: permutation");
+        }
+    }
+
 }
