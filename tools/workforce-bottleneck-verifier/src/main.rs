@@ -878,10 +878,7 @@ mod tests {
             let mut fixture = fixture();
             fixture["cases"][0]["observations"][field] = json!(value);
             assert_eq!(
-                action_is_admissible(
-                    &fixture["cases"][0],
-                    "COLLECT_OR_REVALIDATE_EVIDENCE"
-                ),
+                action_is_admissible(&fixture["cases"][0], "COLLECT_OR_REVALIDATE_EVIDENCE"),
                 Some(true),
                 "{field}={value} must allow evidence revalidation"
             );
