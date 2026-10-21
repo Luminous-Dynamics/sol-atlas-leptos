@@ -61,6 +61,8 @@ pub struct Candidate {
     pub cost_units: u32,
     pub consent_status: ConsentStatus,
     pub access_status: AccessStatus,
+    pub consent_evidence_sha256: Option<String>,
+    pub access_authorization_sha256: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -84,6 +86,10 @@ pub struct CandidateDecision {
     pub candidate_id: String,
     pub decision: String,
     pub reason: Option<String>,
+    pub consent_status: ConsentStatus,
+    pub access_status: AccessStatus,
+    pub consent_evidence_sha256: Option<String>,
+    pub access_authorization_sha256: Option<String>,
     pub correlation_group: String,
     pub cost_units: u32,
     pub symmetric_kl_nats: f64,
@@ -303,6 +309,30 @@ pub fn validate_fixture(fixture: &Fixture) -> Result<(), Vec<String>> {
                 "{}: cost_units must be between 1 and {MAX_COST}",
                 candidate.candidate_id
             ));
+        }
+        match (candidate.consent_status, candidate.consent_evidence_sha256.as_deref()) {
+            (ConsentStatus::Granted, Some(digest)) if valid_digest(digest) => {}
+            (ConsentStatus::Denied | ConsentStatus::Unknown, None) => {}
+            (ConsentStatus::Granted, _) => errors.push(format!(
+                "{}: granted consent requires a valid consent_evidence_sha256",
+                candidate.candidate_id
+            )),
+            (ConsentStatus::Denied | ConsentStatus::Unknown, Some(_)) => errors.push(format!(
+                "{}: denied/unknown consent must not claim consent evidence",
+                candidate.candidate_id
+            )),
+        }
+        match (candidate.access_status, candidate.access_authorization_sha256.as_deref()) {
+            (AccessStatus::Authorized, Some(digest)) if valid_digest(digest) => {}
+            (AccessStatus::Denied | AccessStatus::Unknown, None) => {}
+            (AccessStatus::Authorized, _) => errors.push(format!(
+                "{}: authorized access requires a valid access_authorization_sha256",
+                candidate.candidate_id
+            )),
+            (AccessStatus::Denied | AccessStatus::Unknown, Some(_)) => errors.push(format!(
+                "{}: denied/unknown access must not claim authorization evidence",
+                candidate.candidate_id
+            )),
         }
         let score = candidate_score(candidate);
         if !score.symmetric_kl_nats.is_finite() || !score.weighted_discrimination_nats.is_finite() {
@@ -690,6 +720,10 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
             }
             .to_owned(),
             reason,
+            consent_status: candidate.consent_status,
+            access_status: candidate.access_status,
+            consent_evidence_sha256: candidate.consent_evidence_sha256.clone(),
+            access_authorization_sha256: candidate.access_authorization_sha256.clone(),
             correlation_group: candidate.correlation_group.clone(),
             cost_units: candidate.cost_units,
             symmetric_kl_nats: rounded(score.symmetric_kl_nats),
@@ -1022,6 +1056,25 @@ mod tests {
         let mut mismatched_version = fixture();
         mismatched_version.candidates[1].model_version = "9.9.9".to_owned();
         assert!(validate_fixture(&mismatched_version).is_err());
+    }
+
+    #[test]
+    fn consent_and_access_states_require_matching_evidence() {
+        let mut granted_without_digest = fixture();
+        granted_without_digest.candidates[0].consent_evidence_sha256 = None;
+        assert!(validate_fixture(&granted_without_digest).is_err());
+
+        let mut denied_with_digest = fixture();
+        denied_with_digest.candidates[4].consent_evidence_sha256 = Some("5".repeat(64));
+        assert!(validate_fixture(&denied_with_digest).is_err());
+
+        let mut authorized_without_digest = fixture();
+        authorized_without_digest.candidates[0].access_authorization_sha256 = None;
+        assert!(validate_fixture(&authorized_without_digest).is_err());
+
+        let mut unknown_access_with_digest = fixture();
+        unknown_access_with_digest.candidates[5].access_authorization_sha256 = Some("6".repeat(64));
+        assert!(validate_fixture(&unknown_access_with_digest).is_err());
     }
 
     #[test]
