@@ -1371,7 +1371,7 @@ pub fn LandscapeDesigner() -> impl IntoView {
                                                                             view! {
                                                                                 <li class="landscape-source-candidate">
                                                                                     <strong>{title}</strong>
-                                                                                    <p class="landscape-source-id">{id} · {ingestion}</p>
+                                                                                    <p class="landscape-source-id">{id}{" - "}{ingestion}</p>
                                                                                     <p class="landscape-metric-policy">{role}: {limitation}</p>
                                                                                 </li>
                                                                             }
