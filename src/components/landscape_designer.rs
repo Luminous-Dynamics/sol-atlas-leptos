@@ -1267,8 +1267,8 @@ mod tests {
     fn metric_registry_ui_contract_is_definition_only() {
         let cards = landscape_metric_cards().unwrap();
         assert_eq!(cards.len(), 8);
-        assert_eq!(cards.iter().map(|card| card.id.as_str()).collect::<HashSet<_>>().len(), 8);
-        assert_eq!(cards.iter().map(|card| card.family.as_str()).collect::<HashSet<_>>().len(), 7);
+        assert_eq!(cards.iter().map(|card| card.id.as_str()).collect::<std::collections::HashSet<_>>().len(), 8);
+        assert_eq!(cards.iter().map(|card| card.family.as_str()).collect::<std::collections::HashSet<_>>().len(), 7);
         assert!(cards.iter().all(|card| !card.required_inputs.is_empty()));
         assert!(cards.iter().all(|card| !card.target_policy.is_empty()));
     }
