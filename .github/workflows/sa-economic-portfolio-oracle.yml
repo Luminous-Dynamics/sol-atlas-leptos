@@ -9,10 +9,12 @@ on:
       - "docs/research/SA-PORTFOLIO-OR-SOLVER-BASELINE-001.md"
       - "docs/research/SA-PORTFOLIO-SCENARIO-ROBUSTNESS-001.md"
       - "docs/research/SA-PORTFOLIO-COUNTEREXAMPLE-DISCOVERY-001.md"
+      - "docs/research/SA-PORTFOLIO-CONSTRAINT-UNCERTAINTY-001.md"
       - "docs/research/fixtures/sa-economic-portfolio-v0.1*"
       - "docs/research/fixtures/sa-economic-portfolio-v0.2*"
       - "docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1*"
       - "docs/research/fixtures/sa-portfolio-counterexample-sweep-v0.1*"
+      - "docs/research/fixtures/sa-portfolio-capacity-sweep-v0.1*"
       - "docs/research/schemas/sa-economic-portfolio-v0.1.schema.json"
       - "docs/research/schemas/sa-economic-portfolio-v0.2.schema.json"
       - ".github/workflows/sa-economic-portfolio-oracle.yml"
@@ -140,6 +142,22 @@ jobs:
           docs/research/fixtures/sa-portfolio-counterexample-sweep-v0.1-no-effect.expected.json
           > sa-portfolio-counterexample-sweep-no-effect-receipt.json
 
+      - name: Produce P1 cost-cap capacity sweep receipt
+        run: >-
+          cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --capacity-sweep
+          docs/research/fixtures/sa-economic-portfolio-v0.2-resource-capacity.json
+          docs/research/fixtures/sa-portfolio-capacity-sweep-v0.1-p1-cost-config.json
+          docs/research/fixtures/sa-portfolio-capacity-sweep-v0.1-p1-cost.expected.json
+          > sa-portfolio-capacity-sweep-p1-cost-receipt.json
+
+      - name: Produce P1 crew-cap capacity sweep receipt
+        run: >-
+          cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --capacity-sweep
+          docs/research/fixtures/sa-economic-portfolio-v0.2-resource-capacity.json
+          docs/research/fixtures/sa-portfolio-capacity-sweep-v0.1-p1-crew-config.json
+          docs/research/fixtures/sa-portfolio-capacity-sweep-v0.1-p1-crew.expected.json
+          > sa-portfolio-capacity-sweep-p1-crew-receipt.json
+
       - name: Build optimized benchmark binary
         run: cargo build --release --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml
 
@@ -176,6 +194,8 @@ jobs:
             sa-portfolio-scenario-addition-no-effect-receipt.json
             sa-portfolio-counterexample-sweep-compound-receipt.json
             sa-portfolio-counterexample-sweep-no-effect-receipt.json
+            sa-portfolio-capacity-sweep-p1-cost-receipt.json
+            sa-portfolio-capacity-sweep-p1-crew-receipt.json
             sa-economic-portfolio-v0.2-comparison-benchmark.json
             sa-economic-portfolio-v0.2-24-search-benchmark.json
           if-no-files-found: ignore
