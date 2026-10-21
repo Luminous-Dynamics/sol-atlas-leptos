@@ -70,7 +70,7 @@ The two original v0.2 omission fixtures are deliberately useful controls: omitti
 
 ### Resource-capacity sensitivity sweep
 
-`--capacity-sweep INPUT.json CONFIG.json EXPECTED.json` varies one period's cost cap or crew cap over a strictly descending finite sequence. The first value must equal the input's existing cap, making the no-shock baseline an explicit negative control. Each cap is applied independently to a fresh copy of the unchanged input and evaluated exactly. The receipt includes all removed portfolio IDs, the exact frontier project-ID sets before and after each cap, frontier-ID intersection/union, attempted values and any remaining values. It verifies that tightening a cap never introduces feasible portfolios.
+`--capacity-sweep INPUT.json CONFIG.json EXPECTED.json` varies one period's cost cap or crew cap over a strictly descending finite sequence. The first value must equal the input's existing cap, making the no-shock baseline an explicit negative control. Each cap is applied independently to a fresh copy of the unchanged input and evaluated exactly. The receipt includes the selected sweep mode, explicit `domain_exhausted` flag, all removed portfolio IDs, exact frontier project-ID sets before and after each cap, frontier-ID intersection/union, attempted values and any remaining values. It verifies that tightening a cap never introduces feasible portfolios.
 
 The config selects one of two modes:
 
