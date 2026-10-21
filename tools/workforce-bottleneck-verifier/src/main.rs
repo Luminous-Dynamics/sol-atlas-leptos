@@ -27,6 +27,15 @@ struct BaselineReport {
     limitations: Vec<&'static str>,
 }
 
+#[derive(Debug, Serialize, PartialEq)]
+struct RuleBaselineReport {
+    name: &'static str,
+    cases_scored: usize,
+    exact_cause_set_matches: usize,
+    mismatch_case_ids: Vec<String>,
+    limitations: Vec<&'static str>,
+}
+
 #[derive(Debug, Serialize)]
 struct Report {
     status: &'static str,
@@ -38,6 +47,7 @@ struct Report {
     json_schema_validation: &'static str,
     cross_field_validation: &'static str,
     backlog_only_baseline: BaselineReport,
+    transparent_rule_baseline: RuleBaselineReport,
     claim_ceiling: &'static str,
 }
 
@@ -339,6 +349,105 @@ fn baseline_report(fixture: &Value) -> BaselineReport {
     }
 }
 
+fn rule_based_causes(case: &Value) -> BTreeSet<String> {
+    let observations = &case["observations"];
+    let mut causes = BTreeSet::new();
+
+    match as_string(observations, "funding_status") {
+        Some("absent") => {
+            causes.insert("FUNDING_OR_PAYER".to_string());
+        }
+        Some("unknown") => {
+            causes.insert("FUNDING_OR_PAYER".to_string());
+            causes.insert("EVIDENCE_INSUFFICIENT".to_string());
+        }
+        _ => {}
+    }
+
+    let required = observations
+        .get("required_task_capacity")
+        .and_then(Value::as_u64);
+    let available = observations
+        .get("available_task_ready_capacity")
+        .and_then(Value::as_u64);
+    if matches!((required, available), (Some(r), Some(a)) if r > a) {
+        causes.insert("SKILLS_CAPACITY".to_string());
+    }
+    if as_string(observations, "tools_and_spares") == Some("critical_spare_missing") {
+        causes.insert("TOOLS_OR_SPARES".to_string());
+    }
+    match as_string(observations, "authorization_status") {
+        Some("inspection_pending") => {
+            causes.insert("AUTHORIZATION_OR_SAFETY_GATE".to_string());
+        }
+        Some("unknown") => {
+            causes.insert("EVIDENCE_INSUFFICIENT".to_string());
+        }
+        _ => {}
+    }
+    if as_string(observations, "dispatch_status") == Some("travel_shift_mismatch") {
+        causes.insert("DISPATCH_OR_GEOGRAPHY".to_string());
+    }
+    if as_string(observations, "wage_and_shift_status") == Some("nonviable_synthetic") {
+        causes.insert("WAGE_OR_RETENTION".to_string());
+    }
+    if as_string(observations, "demand_status") == Some("duplicate_and_misrouted") {
+        causes.insert("DEMAND_DATA_QUALITY".to_string());
+    }
+    if as_string(observations, "credential_status") == Some("present_but_scope_mismatch")
+        || as_string(observations, "practical_assessment_status") == Some("missing")
+    {
+        causes.insert("PRACTICAL_COMPETENCE_UNVERIFIED".to_string());
+    }
+    if matches!(
+        as_string(observations, "evidence_status"),
+        Some("stale_and_conflicting" | "incomplete")
+    ) {
+        causes.insert("EVIDENCE_INSUFFICIENT".to_string());
+    }
+
+    let has_skills_cause = causes.contains("SKILLS_CAPACITY");
+    let has_complementary_blocker = [
+        "FUNDING_OR_PAYER",
+        "TOOLS_OR_SPARES",
+        "AUTHORIZATION_OR_SAFETY_GATE",
+    ]
+    .iter()
+    .any(|cause| causes.contains(*cause));
+    if has_skills_cause && has_complementary_blocker {
+        causes.insert("INTERACTING_BOTTLENECKS".to_string());
+    }
+    causes
+}
+
+fn rule_baseline_report(fixture: &Value) -> RuleBaselineReport {
+    let cases = fixture["cases"].as_array().expect("validated cases array");
+    let mismatch_case_ids: Vec<String> = cases
+        .iter()
+        .filter(|case| {
+            let expected: BTreeSet<String> = case["oracle"]["causes"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .filter_map(Value::as_str)
+                .map(str::to_string)
+                .collect();
+            rule_based_causes(case) != expected
+        })
+        .map(|case| case["id"].as_str().unwrap_or("<missing-id>").to_string())
+        .collect();
+    RuleBaselineReport {
+        name: "B3_TRANSPARENT_RULES",
+        cases_scored: cases.len(),
+        exact_cause_set_matches: cases.len() - mismatch_case_ids.len(),
+        mismatch_case_ids,
+        limitations: vec![
+            "Rules are authored against this handcrafted fixture; same-corpus agreement is a contract self-check, not held-out accuracy.",
+            "It does not select or authorize interventions and is not a field-tested diagnosis system.",
+        ],
+    }
+}
+
 fn run() -> Result<(), String> {
     let mut args = env::args().skip(1);
     let fixture_path = args.next().unwrap_or_else(|| FIXTURE_DEFAULT.to_string());
@@ -374,6 +483,7 @@ fn run() -> Result<(), String> {
         json_schema_validation: "PASS",
         cross_field_validation: "PASS",
         backlog_only_baseline: baseline_report(&fixture),
+        transparent_rule_baseline: rule_baseline_report(&fixture),
         claim_ceiling: "SYNTHETIC SOFTWARE-CONTRACT EVIDENCE ONLY; no real workforce or service claim",
     };
     println!(
@@ -444,6 +554,16 @@ mod tests {
             ]
         );
         assert_eq!(report.exact_cause_set_matches, 2);
+    }
+
+    #[test]
+    fn transparent_rules_match_the_handcrafted_oracle_contract() {
+        let value = fixture();
+        validate_for_test(&value).expect("fixture must validate");
+        let report = rule_baseline_report(&value);
+        assert_eq!(report.cases_scored, 12);
+        assert_eq!(report.exact_cause_set_matches, 12);
+        assert!(report.mismatch_case_ids.is_empty());
     }
 
     #[test]
