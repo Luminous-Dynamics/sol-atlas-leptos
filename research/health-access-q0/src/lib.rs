@@ -233,20 +233,20 @@ fn shortest_travel_minutes(case: &AccessCase, target: &str) -> Option<u32> {
             }
             if edge.directionality != Directionality::ReverseOnly {
                 let from_dist = *distance.get(edge.from_node.as_str())?;
-                if let Some(candidate) = from_dist.checked_add(edge.travel_time_minutes) {
-                    if candidate < *distance.get(edge.to_node.as_str())? {
-                        distance.insert(edge.to_node.as_str(), candidate);
-                        changed = true;
-                    }
+                if let Some(candidate) = from_dist.checked_add(edge.travel_time_minutes)
+                    && candidate < *distance.get(edge.to_node.as_str())?
+                {
+                    distance.insert(edge.to_node.as_str(), candidate);
+                    changed = true;
                 }
             }
             if edge.directionality != Directionality::ForwardOnly {
                 let to_dist = *distance.get(edge.to_node.as_str())?;
-                if let Some(candidate) = to_dist.checked_add(edge.travel_time_minutes) {
-                    if candidate < *distance.get(edge.from_node.as_str())? {
-                        distance.insert(edge.from_node.as_str(), candidate);
-                        changed = true;
-                    }
+                if let Some(candidate) = to_dist.checked_add(edge.travel_time_minutes)
+                    && candidate < *distance.get(edge.from_node.as_str())?
+                {
+                    distance.insert(edge.from_node.as_str(), candidate);
+                    changed = true;
                 }
             }
         }
