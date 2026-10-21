@@ -4,6 +4,7 @@
   "period": "P1",
   "resource": "crew",
   "baseline_capacity": 3,
+  "stop_on_first_counterexample": true,
   "domain_values": [
     3,
     2,
@@ -12,6 +13,7 @@
   ],
   "evaluation_budget": 4,
   "evaluation_count": 2,
+  "domain_exhausted": false,
   "attempted_values": [
     3,
     2
