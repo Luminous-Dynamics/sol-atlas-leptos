@@ -1,6 +1,6 @@
 # FlexDC-Sim Cross-Validation Plan v0.1
 
-**Status:** source/config files inspected and pinned; an automated pinned-reference workflow now executes FlexDC-Sim and validates its output through the Rust adapter/metric CLI. Do not claim a real simulator parity result until that workflow completes successfully and its artifact/metrics have been inspected.  
+**Status:** the pinned FlexDC-Sim reference workflow completed successfully (run #3 / ID `39518611387`, tested Sol-Atlas head `1267897bab2534100cded8f054740df81de40231`). It produced and validated paired source-native and same-row RSR metrics for 3,601 simulator samples. This is a reproducible simulator-metric result—not wall-metered facility energy, an evaluated alternative scheduler, or proof of grid benefit.  
 **Related code:** `sol-atlas-core/src/demand_response_metrics.rs` and the `demand_response_assess` CLI in this branch.  
 **Tracking work item:** [AI-COMP-ENERGY-003 / issue #256](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/256).
 
@@ -108,7 +108,43 @@ The same derived trace should be scored by both FlexDC-Sim's published outputs a
 - Do not claim that flexibility reduces generation or transmission capacity. This needs a separate power-system model and a declared passive-load counterfactual.
 - Do not claim SOTA superiority until the same workload, target, QoS, power boundary, target samples, hardware profile and measurement rule are matched against the strongest applicable baseline.
 
-## 6. Next execution gate
+## 6. First executed reference result
+
+The first actual pinned run was completed by GitHub Actions workflow [run #3 / ID `39518611387`](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/39518611387) at Sol-Atlas code head `1267897bab2534100cded8f054740df81de40231`. It checked out FlexDC-Sim commit `ea50bd582b5d1b55fcb09ea46899fa9d325cce3b`, used Python `3.10.16`, seed `20`, 3,600-second simulated duration with one-second steps and four-second signal granularity, AQA power cap (P=24{,}216\,W), reserve (R=9{,}626\,W), and QoS percentile 0.9. The run manifest has `synthetic: false` and includes the captured runtime-environment manifest and digest.
+
+**Evidence bundle:** [download the run artifacts](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/39518611387/artifacts/12310455207). The bundle contains the raw `power_trace.csv`, `job_table.csv`, `runtime-environment.txt`, exact `run-manifest.json`, adapted trace, receipt-wrapped assessment report and paired summary. Archive digest: `sha256:c3edb6e9f2db00b55a13c1f06c685a5c8624f8e4ce6a03f554626d46c9131501`.
+
+### Paired RSR results
+
+| Metric | Source-native `trackingError` | Same-row reconstructed `target`/`realSum` |
+|---|---:|---:|
+| Samples | 3,601 | 3,601 |
+| Mean absolute normalized error | 0.0508884 | 0.0427334 |
+| p90 absolute normalized error | 0.0630000 | 0.0602846 |
+| Maximum normalized error | 1.5040 | 1.500613 |
+| Samples with error > 0.3 | 123 / 3,601 | 122 / 3,601 |
+| Exceedance fraction | 3.4157% | 3.3879% |
+| P90 threshold (\leq 0.3) | Pass | Pass |
+| Supplementary strict exceedance rate <10% | Pass | Pass |
+
+Difference in p90 (same-row minus source-native): (-0.00271535). Do **not** interpret the slightly lower same-row value as a scheduler improvement. It is a comparison of two definitions over the same simulator run: FlexDC-Sim's signed source-native lagged series uses the prior signal cap and (R+0.0001); the reconstruction uses same-row `target`/`realSum` with exact declared (R). Both variants pass the p90 check in this scenario, and both have fewer than 10% of samples above 0.3. The difference is small here but the synthetic known-answer test demonstrates that it can reverse a pass/fail decision in other distributions.
+
+### Workload/QoS context
+
+The simulator's per-job-type p90 QoS degradation values were 2.400 (ResNet), 2.989 (GPT-2), 3.167 (Llama) and 4.614 (Bloom), against configured thresholds 3, 4, 4 and 5. No job type crossed its configured p90 threshold in this run. However, the simulator also reported a 1.69784% per-job QoS threshold exceedance ratio among 3,475 jobs (about 59 jobs). These are different QoS summaries; retain both rather than claim zero job-level misses. The mean execution slowdown by type was approximately 7.93%, 7.26%, 6.00% and 5.28%, respectively. These outputs describe the reference schedule only; they do not compare Sol-Atlas scheduling against it.
+
+### Provenance digests
+
+- `power_trace.csv`: SHA-256 `f70501a7b80a6bdcfbae120ebc7e3564c9e32606b164ca25fda6e38816627365`
+- `run-manifest.json`: SHA-256 `d94a7c5ad902ab25928d093acc90f80aa7af774eb5fd9904e4711053943c5912`
+- `runtime-environment.txt`: SHA-256 `919e9affff8da271991769d0c52726f1fb73b038860b7e6285434f4a98c07a40`
+- adapted input JSON: SHA-256 `7b047147567fd7fe712b5c6a95fa3db2fb96ce45070d1756d43fe5c5b5556d9c`
+- assessment report JSON: SHA-256 `7a6d3a1fd0dfacb32c1f47f43e4d2af0b674bf91b33ca70467aee6f2fba44c15`
+- report receipt: input SHA-256 `7b047147567fd7fe712b5c6a95fa3db2fb96ce45070d1756d43fe5c5b5556d9c`; metrics SHA-256 `33b44cb2536633afec86c3f613f5844e7efa5e07c84ee08285814c6cf88ae842`.
+
+The reference workflow passed its end-to-end schema checks. The associated repository Check at the same code head passed `fmt`, native tests/all-target compilation and the WASM check. This establishes reproducible execution and report-contract validity, not physical metrology. The emitted power series is modeled by FlexDC-Sim's job/server power-performance profiles and idle power, not wall-metered facility energy. No CO₂, water, facility overhead, or avoided-generation credit is inferred.
+
+## 7. Next execution gate
 
 1. The new `.github/workflows/flexdc-reference.yml` executes the pinned upstream simulator with exact Python/dependency versions and the reviewed configuration. It captures the full environment manifest, run manifest, power trace, job table, and receipt-bound paired RSR report as a GitHub Actions artifact.
 2. Inspect the exact-head run and its uploaded artifact. Confirm that the manifest’s config hashes, environment digest, row count and source revision match the workflow and that both output schemas validate.
