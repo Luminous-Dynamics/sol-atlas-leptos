@@ -322,7 +322,6 @@ pub struct CounterexampleSweepReport {
     pub remaining_values: Vec<i64>,
 }
 
-
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ScenarioOmissionReport {
     pub omitted_scenario_id: String,
