@@ -1,0 +1,322 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/schemas/workforce_active_evidence_v0_1.schema.json",
+  "title": "SA-WORKFORCE-ACTIVE-EVIDENCE scenario corpus v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "fixture_notice",
+    "schema_version",
+    "benchmark_id",
+    "synthetic_only",
+    "claim_ceiling",
+    "units",
+    "scenarios"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "benchmark_id": {
+      "const": "SA-WORKFORCE-ACTIVE-EVIDENCE-001"
+    },
+    "synthetic_only": {
+      "const": true
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 25
+    },
+    "units": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cash_currency",
+        "staff_effort",
+        "elapsed_delay"
+      ],
+      "properties": {
+        "cash_currency": {
+          "const": "ZAR cents"
+        },
+        "staff_effort": {
+          "const": "person-minutes"
+        },
+        "elapsed_delay": {
+          "const": "hours"
+        }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "$ref": "#/$defs/scenario"
+      }
+    },
+    "fixture_notice": {
+      "type": "string",
+      "minLength": 30
+    }
+  },
+  "$defs": {
+    "cost": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "staff_minutes",
+        "cash_zar_cents",
+        "delay_hours"
+      ],
+      "properties": {
+        "staff_minutes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cash_zar_cents": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "delay_hours": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "hypothesis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "description",
+        "decision_class"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_-]*$"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "decision_class": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$"
+        }
+      }
+    },
+    "outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome_id",
+        "compatible_hypotheses",
+        "kind"
+      ],
+      "properties": {
+        "outcome_id": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_-]*$"
+        },
+        "kind": {
+          "enum": [
+            "observed",
+            "unknown_or_unmodelled"
+          ]
+        },
+        "compatible_hypotheses": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_-]*$"
+          }
+        }
+      }
+    },
+    "query": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "description",
+        "permitted",
+        "access_basis",
+        "cost",
+        "outcomes"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_-]*$"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "permitted": {
+          "type": "boolean"
+        },
+        "access_basis": {
+          "enum": [
+            "synthetic_only",
+            "public_aggregate",
+            "employer_authorized",
+            "worker_consent",
+            "restricted_unavailable",
+            "prohibited_sensitive_inference"
+          ]
+        },
+        "denial_reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cost": {
+          "$ref": "#/$defs/cost"
+        },
+        "outcomes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/outcome"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "permitted": {
+                "const": false
+              }
+            },
+            "required": [
+              "permitted"
+            ]
+          },
+          "then": {
+            "required": [
+              "denial_reason"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "permitted": {
+                "const": true
+              }
+            },
+            "required": [
+              "permitted"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "denial_reason"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "frontier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reference_id",
+        "cost",
+        "policy_outline"
+      ],
+      "properties": {
+        "reference_id": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_-]*$"
+        },
+        "cost": {
+          "$ref": "#/$defs/cost"
+        },
+        "policy_outline": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "description",
+        "hypotheses",
+        "queries",
+        "budget",
+        "expected_status",
+        "expected_remaining_hypotheses"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_-]*$"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hypotheses": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "$ref": "#/$defs/hypothesis"
+          }
+        },
+        "queries": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/query"
+          }
+        },
+        "budget": {
+          "$ref": "#/$defs/cost"
+        },
+        "expected_status": {
+          "enum": [
+            "decision_resolved",
+            "stop_same_decision_class",
+            "abstain_no_permitted_discriminator",
+            "abstain_budget_exhausted",
+            "conditionally_resolved_unknown_outcome_abstains"
+          ]
+        },
+        "expected_remaining_hypotheses": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "hand_reference_frontier": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/frontier"
+          }
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

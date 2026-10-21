@@ -1,0 +1,520 @@
+{
+  "fixture_notice": "ALL VALUES ARE SYNTHETIC CONTRACT TEST DATA. They are not measured workforce data, local prices, real workers, observed outcomes or probabilities.",
+  "schema_version": "0.1.0",
+  "benchmark_id": "SA-WORKFORCE-ACTIVE-EVIDENCE-001",
+  "synthetic_only": true,
+  "claim_ceiling": "Synthetic acquisition-policy contract only; no field or SOTA effectiveness claim.",
+  "units": {
+    "cash_currency": "ZAR cents",
+    "staff_effort": "person-minutes",
+    "elapsed_delay": "hours"
+  },
+  "scenarios": [
+    {
+      "id": "AE-001",
+      "description": "Trade off cash expenditure against staff time and delay when separating funding, spare-part and skill-capacity hypotheses.",
+      "hypotheses": [
+        {
+          "id": "H_FUND",
+          "description": "No approved payer or budget is evidenced.",
+          "decision_class": "HOLD_ESTABLISH_FUNDING"
+        },
+        {
+          "id": "H_TOOLS",
+          "description": "A critical compatible spare is missing.",
+          "decision_class": "HOLD_RESOLVE_PART"
+        },
+        {
+          "id": "H_SKILL",
+          "description": "Task-ready capacity is below the requirement.",
+          "decision_class": "HOLD_SCOPE_CAPACITY_PATHWAY"
+        }
+      ],
+      "queries": [
+        {
+          "id": "Q_PAYER",
+          "description": "Verify approved payer/budget record in the authorized work context.",
+          "permitted": true,
+          "access_basis": "employer_authorized",
+          "cost": {
+            "staff_minutes": 20,
+            "cash_zar_cents": 0,
+            "delay_hours": 1
+          },
+          "outcomes": [
+            {
+              "outcome_id": "PAYER_ABSENT",
+              "kind": "observed",
+              "compatible_hypotheses": [
+                "H_FUND"
+              ]
+            },
+            {
+              "outcome_id": "PAYER_CONFIRMED",
+              "kind": "observed",
+              "compatible_hypotheses": [
+                "H_TOOLS",
+                "H_SKILL"
+              ]
+            },
+            {
+              "outcome_id": "PAYER_RECORD_UNCLEAR",
+              "kind": "unknown_or_unmodelled",
+              "compatible_hypotheses": [
+                "H_FUND",
+                "H_TOOLS",
+                "H_SKILL"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "Q_SPARES",
+          "description": "Check exact-model compatible spare inventory against an authorized inventory record.",
+          "permitted": true,
+          "access_basis": "employer_authorized",
+          "cost": {
+            "staff_minutes": 10,
+            "cash_zar_cents": 5000,
+            "delay_hours": 0
+          },
+          "outcomes": [
+            {
+              "outcome_id": "SPARE_MISSING",
+              "kind": "observed",
+              "compatible_hypotheses": [
+                "H_TOOLS"
+              ]
+            },
+            {
+              "outcome_id": "SPARE_AVAILABLE",
+              "kind": "observed",
+              "compatible_hypotheses": [
+                "H_FUND",
+                "H_SKILL"
+              ]
+            },
+            {
+              "outcome_id": "INVENTORY_UNCLEAR",
+              "kind": "unknown_or_unmodelled",
+              "compatible_hypotheses": [
+                "H_FUND",
+                "H_TOOLS",
+                "H_SKILL"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "Q_CAPACITY",
+          "description": "Run a scoped task-ready capacity assessment with appropriate human authorization.",
+          "permitted": true,
+          "access_basis": "worker_consent",
+          "cost": {
+            "staff_minutes": 50,
+            "cash_zar_cents": 0,
+            "delay_hours": 8
+          },
+          "outcomes": [
+            {
+              "outcome_id": "CAPACITY_GAP",
+              "kind": "observed",
+              "compatible_hypotheses": [
+                "H_SKILL"
+              ]
+            },
+            {
+              "outcome_id": "CAPACITY_SUFFICIENT",
+              "kind": "observed",
+              "compatible_hypotheses": [
+                "H_FUND",
+                "H_TOOLS"
+              ]
+            },
+            {
+              "outcome_id": "ASSESSMENT_UNCLEAR",
+              "kind": "unknown_or_unmodelled",
+              "compatible_hypotheses": [
+                "H_FUND",
+                "H_TOOLS",
+                "H_SKILL"
+              ]
+            }
+          ]
+        }
+      ],
+      "budget": {
+        "staff_minutes": 100,
+        "cash_zar_cents": 6000,
+        "delay_hours": 12
+      },
+      "expected_status": "conditionally_resolved_unknown_outcome_abstains",
+      "expected_remaining_hypotheses": [
+        "H_FUND",
+        "H_TOOLS",
+        "H_SKILL"
+      ],
+      "hand_reference_frontier": [
+        {
+          "reference_id": "PLAN_LOW_STAFF_FAST",
+          "cost": {
+            "staff_minutes": 30,
+            "cash_zar_cents": 5000,
+            "delay_hours": 1
+          },
+          "policy_outline": [
+            "Ask Q_SPARES first.",
+            "If SPARE_MISSING, stop with HOLD_RESOLVE_PART.",
+            "If SPARE_AVAILABLE, ask Q_PAYER; PAYER_ABSENT resolves H_FUND, and PAYER_CONFIRMED resolves H_SKILL within the remaining set."
+          ]
+        },
+        {
+          "reference_id": "PLAN_NO_CASH_HIGHER_STAFF",
+          "cost": {
+            "staff_minutes": 70,
+            "cash_zar_cents": 0,
+            "delay_hours": 9
+          },
+          "policy_outline": [
+            "Ask Q_PAYER first.",
+            "If PAYER_ABSENT, resolve H_FUND.",
+            "If PAYER_CONFIRMED, ask Q_CAPACITY; CAPACITY_GAP resolves H_SKILL and CAPACITY_SUFFICIENT resolves H_TOOLS within the remaining set."
+          ]
+        }
+      ],
+      "notes": [
+        "The listed vectors are hand-calculated reference policies, not results from a production solver.",
+        "The two vectors are incomparable: one uses less staff/time; the other avoids cash spending.",
+        "Unknown outcomes preserve all hypotheses and must trigger hold/revalidation rather than false certainty."
+      ]
+    },
+    {
+      "id": "AE-002",
+      "description": "Stop when remaining hypotheses imply the same safe operational decision, even if the underlying root cause remains uncertain.",
+      "hypotheses": [
+        {
+          "id": "H_FUND_UNKNOWN",
+          "description": "Payer record has not yet been verified.",
+          "decision_class": "HOLD_AND_REVALIDATE"
+        },
+        {
+          "id": "H_DEMAND_STALE",
+          "description": "Demand record may be stale and needs revalidation.",
+          "decision_class": "HOLD_AND_REVALIDATE"
+        }
+      ],
+      "queries": [
+        {
+          "id": "Q_DISTINGUISH_CAUSE",
+          "description": "Optional permitted audit that could distinguish which uncertainty caused the hold.",
+          "permitted": true,
+          "access_basis": "employer_authorized",
+          "cost": {
+            "staff_minutes": 40,
+            "cash_zar_cents": 0,
+            "delay_hours": 3
+          },
+          "outcomes": [
+            {
+              "outcome_id": "FUNDING_UNCONFIRMED",
+              "kind": "observed",
+              "compatible_hypotheses": [
+                "H_FUND_UNKNOWN"
+              ]
+            },
+            {
+              "outcome_id": "DEMAND_STALE",
+              "kind": "observed",
+              "compatible_hypotheses": [
+                "H_DEMAND_STALE"
+              ]
+            }
+          ]
+        }
+      ],
+      "budget": {
+        "staff_minutes": 50,
+        "cash_zar_cents": 0,
+        "delay_hours": 5
+      },
+      "expected_status": "stop_same_decision_class",
+      "expected_remaining_hypotheses": [
+        "H_FUND_UNKNOWN",
+        "H_DEMAND_STALE"
+      ],
+      "hand_reference_frontier": [],
+      "notes": [
+        "The correct policy makes zero queries: both hypotheses imply HOLD_AND_REVALIDATE.",
+        "Do not spend data or staff effort to identify an immaterial difference."
+      ]
+    },
+    {
+      "id": "AE-003",
+      "description": "No permitted query distinguishes hypotheses with materially different decisions; a prohibited individual-data join would appear informative but must never be selected.",
+      "hypotheses": [
+        {
+          "id": "H_SKILL_SHORTFALL",
+          "description": "Task-ready capacity may be insufficient.",
+          "decision_class": "SCOPE_TASK_READY_ASSESSMENT"
+        },
+        {
+          "id": "H_FUNDING_GAP",
+          "description": "No approved payer may exist.",
+          "decision_class": "HOLD_ESTABLISH_FUNDING"
+        }
+      ],
+      "queries": [
+        {
+          "id": "Q_PUBLIC_TITLE",
+          "description": "Look up a public occupation title crosswalk; it does not distinguish the two local operational hypotheses.",
+          "permitted": true,
+          "access_basis": "public_aggregate",
+          "cost": {
+            "staff_minutes": 5,
+            "cash_zar_cents": 0,
+            "delay_hours": 0
+          },
+          "outcomes": [
+            {
+              "outcome_id": "TITLE_MATCH",
+              "kind": "observed",
+              "compatible_hypotheses": [
+                "H_SKILL_SHORTFALL",
+                "H_FUNDING_GAP"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "Q_RESTRICTED_JOIN",
+          "description": "Join restricted survey microdata to individual worker records without access approval.",
+          "permitted": false,
+          "access_basis": "restricted_unavailable",
+          "denial_reason": "No data-owner approval or lawful linkage basis in this synthetic case.",
+          "cost": {
+            "staff_minutes": 1,
+            "cash_zar_cents": 0,
+            "delay_hours": 0
+          },
+          "outcomes": [
+            {
+              "outcome_id": "JOIN_RESULT_A",
+              "kind": "observed",
+              "compatible_hypotheses": [
+                "H_SKILL_SHORTFALL"
+              ]
+            },
+            {
+              "outcome_id": "JOIN_RESULT_B",
+              "kind": "observed",
+              "compatible_hypotheses": [
+                "H_FUNDING_GAP"
+              ]
+            }
+          ]
+        }
+      ],
+      "budget": {
+        "staff_minutes": 30,
+        "cash_zar_cents": 1000,
+        "delay_hours": 8
+      },
+      "expected_status": "abstain_no_permitted_discriminator",
+      "expected_remaining_hypotheses": [
+        "H_SKILL_SHORTFALL",
+        "H_FUNDING_GAP"
+      ],
+      "hand_reference_frontier": [],
+      "notes": [
+        "Q_RESTRICTED_JOIN must never be selected regardless of its apparent information gain or low cost.",
+        "Q_PUBLIC_TITLE does not change the safe decision because it leaves both decision classes live."
+      ]
+    },
+    {
+      "id": "AE-004",
+      "description": "Stale and contradictory public data should lead to authorized revalidation; an inaccessible personal financial lookup remains forbidden, and an unknown outcome must not narrow hypotheses.",
+      "hypotheses": [
+        {
+          "id": "H_PAYER_ACTIVE",
+          "description": "An authorized payer/budget approval remains active.",
+          "decision_class": "CONFIRM_FUNDED_WORK_AFTER_VERIFICATION"
+        },
+        {
+          "id": "H_PAYER_EXPIRED",
+          "description": "Payer/budget approval has expired or been withdrawn.",
+          "decision_class": "HOLD_ESTABLISH_FUNDING"
+        }
+      ],
+      "queries": [
+        {
+          "id": "Q_STALE_PUBLIC_PAGE",
+          "description": "Read a stale public summary that cannot distinguish current approval state.",
+          "permitted": true,
+          "access_basis": "public_aggregate",
+          "cost": {
+            "staff_minutes": 1,
+            "cash_zar_cents": 0,
+            "delay_hours": 0
+          },
+          "outcomes": [
+            {
+              "outcome_id": "OLD_RECORD_SAYS_ACTIVE",
+              "kind": "observed",
+              "compatible_hypotheses": [
+                "H_PAYER_ACTIVE",
+                "H_PAYER_EXPIRED"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "Q_AUTHORIZED_REVALIDATE",
+          "description": "Ask the legitimate budget owner to revalidate the approval as of the decision time.",
+          "permitted": true,
+          "access_basis": "employer_authorized",
+          "cost": {
+            "staff_minutes": 15,
+            "cash_zar_cents": 0,
+            "delay_hours": 2
+          },
+          "outcomes": [
+            {
+              "outcome_id": "OWNER_CONFIRMS_ACTIVE",
+              "kind": "observed",
+              "compatible_hypotheses": [
+                "H_PAYER_ACTIVE"
+              ]
+            },
+            {
+              "outcome_id": "OWNER_CONFIRMS_EXPIRED",
+              "kind": "observed",
+              "compatible_hypotheses": [
+                "H_PAYER_EXPIRED"
+              ]
+            },
+            {
+              "outcome_id": "OWNER_CANNOT_VERIFY",
+              "kind": "unknown_or_unmodelled",
+              "compatible_hypotheses": [
+                "H_PAYER_ACTIVE",
+                "H_PAYER_EXPIRED"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "Q_PERSONAL_BANK_LOOKUP",
+          "description": "Attempt to infer an individual worker's finances from a personal account.",
+          "permitted": false,
+          "access_basis": "prohibited_sensitive_inference",
+          "denial_reason": "Irrelevant sensitive personal-data inference; not an authorized source for employer funding approval.",
+          "cost": {
+            "staff_minutes": 1,
+            "cash_zar_cents": 0,
+            "delay_hours": 0
+          },
+          "outcomes": [
+            {
+              "outcome_id": "PERSONAL_LOOKUP_A",
+              "kind": "observed",
+              "compatible_hypotheses": [
+                "H_PAYER_ACTIVE"
+              ]
+            },
+            {
+              "outcome_id": "PERSONAL_LOOKUP_B",
+              "kind": "observed",
+              "compatible_hypotheses": [
+                "H_PAYER_EXPIRED"
+              ]
+            }
+          ]
+        }
+      ],
+      "budget": {
+        "staff_minutes": 20,
+        "cash_zar_cents": 1000,
+        "delay_hours": 3
+      },
+      "expected_status": "conditionally_resolved_unknown_outcome_abstains",
+      "expected_remaining_hypotheses": [
+        "H_PAYER_ACTIVE",
+        "H_PAYER_EXPIRED"
+      ],
+      "hand_reference_frontier": [],
+      "notes": [
+        "Q_STALE_PUBLIC_PAGE has no resolving value under the declared model and should not be repeated as if current.",
+        "Q_AUTHORIZED_REVALIDATE is the only permitted query that can resolve the decision.",
+        "An unknown result from Q_AUTHORIZED_REVALIDATE leaves both hypotheses live."
+      ]
+    },
+    {
+      "id": "AE-005",
+      "description": "A permitted query exists, but every decision-resolving path exceeds the declared staff budget; preserve uncertainty rather than emitting an unsubstantiated action.",
+      "hypotheses": [
+        {
+          "id": "H_TOOLS_SHORTAGE",
+          "description": "Critical spare is missing.",
+          "decision_class": "HOLD_RESOLVE_PART"
+        },
+        {
+          "id": "H_CAPACITY_SHORTAGE",
+          "description": "Task-ready capacity is insufficient.",
+          "decision_class": "HOLD_SCOPE_CAPACITY_PATHWAY"
+        }
+      ],
+      "queries": [
+        {
+          "id": "Q_EXPENSIVE_PHYSICAL_AUDIT",
+          "description": "Physical inventory and scoped task-capacity check requiring a specialist visit.",
+          "permitted": true,
+          "access_basis": "employer_authorized",
+          "cost": {
+            "staff_minutes": 90,
+            "cash_zar_cents": 8000,
+            "delay_hours": 10
+          },
+          "outcomes": [
+            {
+              "outcome_id": "SPARE_MISSING",
+              "kind": "observed",
+              "compatible_hypotheses": [
+                "H_TOOLS_SHORTAGE"
+              ]
+            },
+            {
+              "outcome_id": "CAPACITY_GAP",
+              "kind": "observed",
+              "compatible_hypotheses": [
+                "H_CAPACITY_SHORTAGE"
+              ]
+            },
+            {
+              "outcome_id": "AUDIT_UNCLEAR",
+              "kind": "unknown_or_unmodelled",
+              "compatible_hypotheses": [
+                "H_TOOLS_SHORTAGE",
+                "H_CAPACITY_SHORTAGE"
+              ]
+            }
+          ]
+        }
+      ],
+      "budget": {
+        "staff_minutes": 30,
+        "cash_zar_cents": 10000,
+        "delay_hours": 12
+      },
+      "expected_status": "abstain_budget_exhausted",
+      "expected_remaining_hypotheses": [
+        "H_TOOLS_SHORTAGE",
+        "H_CAPACITY_SHORTAGE"
+      ],
+      "hand_reference_frontier": [],
+      "notes": [
+        "The acquisition is not affordable under the staff budget; cash budget alone does not make it admissible.",
+        "An abstention must name the unresolved hypotheses and the resource constraint."
+      ]
+    }
+  ]
+}
