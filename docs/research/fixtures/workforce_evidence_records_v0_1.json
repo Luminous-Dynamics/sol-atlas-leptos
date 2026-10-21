@@ -1,0 +1,438 @@
+{
+  "schema_version": "0.1.0",
+  "profile_id": "SA-WORKFORCE-EVIDENCE-001-V0.1",
+  "claim_ceiling": "SYNTHETIC_TEST_ONLY; no actual labour-market estimate, job count, worker profile, shortage, or causal claim",
+  "records": [
+    {
+      "record_id": "WE-001",
+      "synthetic_only": true,
+      "observation_kind": "simulated_scenario",
+      "source": {
+        "source_id": "SYNTH-LABOUR-SUPPLY",
+        "publisher": "Synthetic benchmark fixture",
+        "source_version": "0.1",
+        "released_or_captured_on": "2026-10-21",
+        "retrieved_on": "2026-10-21",
+        "access_class": "synthetic",
+        "provenance_note": "Invented value constructed to test supply counts; not sourced from a real registry."
+      },
+      "period": {
+        "start_date": "2026-07-01",
+        "end_date": "2026-09-30",
+        "label": "synthetic quarter"
+      },
+      "geography": {
+        "level": "municipality",
+        "code": "SYNTH-MUNI-01",
+        "label": "Synthetic municipality A"
+      },
+      "measure": {
+        "metric_id": "registered_unemployed_count",
+        "value": 500,
+        "unit": "people",
+        "denominator": "people registered in the simulated system",
+        "population": "synthetic occupation cohort",
+        "definition": "Artificial count of registrations in a toy evidence source."
+      },
+      "uncertainty": {
+        "status": "synthetic_range",
+        "lower": 450,
+        "upper": 550,
+        "method_note": "Deliberately artificial bounds; not a statistical interval."
+      },
+      "freshness": {
+        "status": "fresh",
+        "evaluated_on": "2026-10-21",
+        "reason": "Synthetic source timestamp is in the fixture's reference period."
+      },
+      "taxonomy": {
+        "system": "OFO-compatible synthetic labels",
+        "version": "fixture-0.1",
+        "crosswalk_status": "approximate",
+        "crosswalk_note": "Artificial crosswalk; cannot imply equivalence to a real occupation."
+      },
+      "evidence_limits": [
+        "Registration is not current availability.",
+        "This number cannot establish task-ready capacity or an occupational shortage."
+      ],
+      "claim_ceiling": "Synthetic supply-count test only."
+    },
+    {
+      "record_id": "WE-002",
+      "synthetic_only": true,
+      "observation_kind": "simulated_scenario",
+      "source": {
+        "source_id": "SYNTH-OCCUPATION-LIST",
+        "publisher": "Synthetic benchmark fixture",
+        "source_version": "0.1",
+        "released_or_captured_on": "2026-10-21",
+        "retrieved_on": "2026-10-21",
+        "access_class": "synthetic",
+        "provenance_note": "Models a high-demand-list marker without claiming an official list entry."
+      },
+      "period": {
+        "start_date": "2026-01-01",
+        "end_date": "2026-12-31",
+        "label": "synthetic reference year"
+      },
+      "geography": {
+        "level": "national",
+        "code": null,
+        "label": "Synthetic country"
+      },
+      "measure": {
+        "metric_id": "high_demand_marker",
+        "value": 1,
+        "unit": "boolean-as-0-or-1",
+        "denominator": "occupation entries in the synthetic reference list",
+        "population": "synthetic occupation taxonomy",
+        "definition": "Artificial marker simulating that an occupation appears on a demand planning list."
+      },
+      "uncertainty": {
+        "status": "point_estimate",
+        "lower": null,
+        "upper": null,
+        "method_note": "Deterministic fixture value, not a probability."
+      },
+      "freshness": {
+        "status": "not_applicable",
+        "evaluated_on": "2026-10-21",
+        "reason": "The value is an invented test flag, not a periodically refreshed observation."
+      },
+      "taxonomy": {
+        "system": "OFO-compatible synthetic labels",
+        "version": "fixture-0.1",
+        "crosswalk_status": "not_mapped",
+        "crosswalk_note": "No real taxonomy code or occupation is represented."
+      },
+      "evidence_limits": [
+        "A high-demand planning flag is not a shortage label.",
+        "This record must not be used for recruitment or foreign-worker decisions."
+      ],
+      "claim_ceiling": "Synthetic taxonomy-proxy negative control."
+    },
+    {
+      "record_id": "WE-003",
+      "synthetic_only": true,
+      "observation_kind": "simulated_scenario",
+      "source": {
+        "source_id": "SYNTH-ADVERTS",
+        "publisher": "Synthetic benchmark fixture",
+        "source_version": "0.1",
+        "released_or_captured_on": "2026-10-21",
+        "retrieved_on": "2026-10-21",
+        "access_class": "synthetic",
+        "provenance_note": "Invented count of advertisements; deliberate duplicate and funding trap."
+      },
+      "period": {
+        "start_date": "2026-09-01",
+        "end_date": "2026-09-30",
+        "label": "synthetic advert month"
+      },
+      "geography": {
+        "level": "province",
+        "code": "SYNTH-PROV-01",
+        "label": "Synthetic province A"
+      },
+      "measure": {
+        "metric_id": "public_advert_count",
+        "value": 40,
+        "unit": "advertisements",
+        "denominator": "deduplicated ads have not yet been established",
+        "population": "synthetic public job-ad corpus",
+        "definition": "Artificial count before deduplication and funded-vacancy validation."
+      },
+      "uncertainty": {
+        "status": "synthetic_range",
+        "lower": 20,
+        "upper": 40,
+        "method_note": "Range is artificial and expresses potential duplicate sensitivity, not a confidence interval."
+      },
+      "freshness": {
+        "status": "unknown",
+        "evaluated_on": "2026-10-21",
+        "reason": "No authoritative closure/cancellation signal is present in this simulated source."
+      },
+      "taxonomy": {
+        "system": "Synthetic skills labels",
+        "version": "fixture-0.1",
+        "crosswalk_status": "ambiguous",
+        "crosswalk_note": "Advert labels deliberately do not reliably identify required task scope."
+      },
+      "evidence_limits": [
+        "Advertisements do not prove an approved budget or payer.",
+        "Duplicate rows and stale openings may inflate apparent demand.",
+        "No shortage inference is permitted from this record alone."
+      ],
+      "claim_ceiling": "Synthetic raw-advert negative control."
+    },
+    {
+      "record_id": "WE-004",
+      "synthetic_only": true,
+      "observation_kind": "simulated_scenario",
+      "source": {
+        "source_id": "SYNTH-FUNDED-ORDERS",
+        "publisher": "Synthetic benchmark fixture",
+        "source_version": "0.1",
+        "released_or_captured_on": "2026-10-21",
+        "retrieved_on": "2026-10-21",
+        "access_class": "synthetic",
+        "provenance_note": "Simulates externally verified, approved work orders in an artificial example."
+      },
+      "period": {
+        "start_date": "2026-10-01",
+        "end_date": "2026-10-31",
+        "label": "synthetic funding window"
+      },
+      "geography": {
+        "level": "municipality",
+        "code": "SYNTH-MUNI-01",
+        "label": "Synthetic municipality A"
+      },
+      "measure": {
+        "metric_id": "funded_open_vacancies",
+        "value": 8,
+        "unit": "vacancies",
+        "denominator": "approved and funded vacancies with an identified payer",
+        "population": "synthetic employer work orders",
+        "definition": "Artificial count that is funded within this test case; no real payer is asserted."
+      },
+      "uncertainty": {
+        "status": "point_estimate",
+        "lower": null,
+        "upper": null,
+        "method_note": "Fixture assumes the payer evidence is complete for testing gate semantics."
+      },
+      "freshness": {
+        "status": "fresh",
+        "evaluated_on": "2026-10-21",
+        "reason": "Synthetic approval record is dated to the reference date."
+      },
+      "taxonomy": {
+        "system": "Synthetic task profiles",
+        "version": "fixture-0.1",
+        "crosswalk_status": "exact",
+        "crosswalk_note": "Exact only within the artificial test ontology."
+      },
+      "evidence_limits": [
+        "Even funded vacancies do not prove worker scarcity or durable job creation."
+      ],
+      "claim_ceiling": "Synthetic funded-demand gate only."
+    },
+    {
+      "record_id": "WE-005",
+      "synthetic_only": true,
+      "observation_kind": "simulated_scenario",
+      "source": {
+        "source_id": "SYNTH-PRACTICAL-ASSESSMENTS",
+        "publisher": "Synthetic benchmark fixture",
+        "source_version": "0.1",
+        "released_or_captured_on": "2026-10-21",
+        "retrieved_on": "2026-10-21",
+        "access_class": "synthetic",
+        "provenance_note": "Invented count of people who passed a task-specific supervised practical assessment."
+      },
+      "period": {
+        "start_date": "2026-07-01",
+        "end_date": "2026-09-30",
+        "label": "synthetic assessment quarter"
+      },
+      "geography": {
+        "level": "municipality",
+        "code": "SYNTH-MUNI-01",
+        "label": "Synthetic municipality A"
+      },
+      "measure": {
+        "metric_id": "task_ready_assessed_people",
+        "value": 2,
+        "unit": "people",
+        "denominator": "participants assessed against the exact task profile",
+        "population": "synthetic assessment cohort",
+        "definition": "Artificial number of people whose observed practical assessment meets the defined task profile."
+      },
+      "uncertainty": {
+        "status": "synthetic_range",
+        "lower": 1,
+        "upper": 3,
+        "method_note": "Artificial sensitivity range, not a sampling interval."
+      },
+      "freshness": {
+        "status": "fresh",
+        "evaluated_on": "2026-10-21",
+        "reason": "Synthetic assessment date matches the reference window."
+      },
+      "taxonomy": {
+        "system": "Synthetic task profiles",
+        "version": "fixture-0.1",
+        "crosswalk_status": "exact",
+        "crosswalk_note": "Exact only inside the artificial test profile."
+      },
+      "evidence_limits": [
+        "Does not establish availability, willingness, licence scope or geographic accessibility."
+      ],
+      "claim_ceiling": "Synthetic task-readiness test only."
+    },
+    {
+      "record_id": "WE-006",
+      "synthetic_only": true,
+      "observation_kind": "simulated_scenario",
+      "source": {
+        "source_id": "SYNTH-WORK-CONDITIONS",
+        "publisher": "Synthetic benchmark fixture",
+        "source_version": "0.1",
+        "released_or_captured_on": "2026-10-21",
+        "retrieved_on": "2026-10-21",
+        "access_class": "synthetic",
+        "provenance_note": "Invented offer-decline rate used to test job-quality confounding."
+      },
+      "period": {
+        "start_date": "2026-08-01",
+        "end_date": "2026-10-21",
+        "label": "synthetic offer window"
+      },
+      "geography": {
+        "level": "province",
+        "code": "SYNTH-PROV-01",
+        "label": "Synthetic province A"
+      },
+      "measure": {
+        "metric_id": "offer_decline_share",
+        "value": 0.7,
+        "unit": "share",
+        "denominator": "documented offers in the synthetic cohort",
+        "population": "synthetic qualified-candidate offers",
+        "definition": "Artificial share of offers declined where pay, shift, safety and travel may be nonviable."
+      },
+      "uncertainty": {
+        "status": "synthetic_range",
+        "lower": 0.5,
+        "upper": 0.8,
+        "method_note": "Artificial range used as a stress interval, not a confidence interval."
+      },
+      "freshness": {
+        "status": "fresh",
+        "evaluated_on": "2026-10-21",
+        "reason": "Artificial observation window ends on the fixture date."
+      },
+      "taxonomy": {
+        "system": "Synthetic task profiles",
+        "version": "fixture-0.1",
+        "crosswalk_status": "not_applicable",
+        "crosswalk_note": "The metric measures offer conditions, not occupation mapping."
+      },
+      "evidence_limits": [
+        "Declines do not uniquely identify a cause without candidate and job-condition evidence.",
+        "This must not be interpreted as an individual willingness/risk score."
+      ],
+      "claim_ceiling": "Synthetic job-quality confounder."
+    },
+    {
+      "record_id": "WE-007",
+      "synthetic_only": true,
+      "observation_kind": "simulated_scenario",
+      "source": {
+        "source_id": "SYNTH-SERVICE-BACKLOG",
+        "publisher": "Synthetic benchmark fixture",
+        "source_version": "0.1",
+        "released_or_captured_on": "2026-10-21",
+        "retrieved_on": "2026-10-21",
+        "access_class": "synthetic",
+        "provenance_note": "Artificial service queue with duplicates and unapproved items."
+      },
+      "period": {
+        "start_date": "2026-10-01",
+        "end_date": "2026-10-21",
+        "label": "synthetic service window"
+      },
+      "geography": {
+        "level": "municipality",
+        "code": "SYNTH-MUNI-01",
+        "label": "Synthetic municipality A"
+      },
+      "measure": {
+        "metric_id": "reported_backlog_count",
+        "value": 120,
+        "unit": "reports",
+        "denominator": "unreconciled incoming reports",
+        "population": "synthetic maintenance reports",
+        "definition": "Artificial reported count before duplicate detection, approval, funding checks and verification."
+      },
+      "uncertainty": {
+        "status": "synthetic_range",
+        "lower": 60,
+        "upper": 120,
+        "method_note": "Artificial range illustrates how duplicate/invalid reports can distort the denominator."
+      },
+      "freshness": {
+        "status": "unknown",
+        "evaluated_on": "2026-10-21",
+        "reason": "No independently verified current queue snapshot is assumed."
+      },
+      "taxonomy": {
+        "system": "Synthetic service task codes",
+        "version": "fixture-0.1",
+        "crosswalk_status": "approximate",
+        "crosswalk_note": "A report code may not correspond one-to-one to a distinct job or occupational skill."
+      },
+      "evidence_limits": [
+        "Backlog rows are not necessarily distinct valid jobs.",
+        "A queue count is not proof of a skills shortage or funded demand."
+      ],
+      "claim_ceiling": "Synthetic backlog negative control."
+    },
+    {
+      "record_id": "WE-008",
+      "synthetic_only": true,
+      "observation_kind": "simulated_scenario",
+      "source": {
+        "source_id": "SYNTH-TRAINING-OUTCOMES",
+        "publisher": "Synthetic benchmark fixture",
+        "source_version": "0.1",
+        "released_or_captured_on": "2026-10-21",
+        "retrieved_on": "2026-10-21",
+        "access_class": "synthetic",
+        "provenance_note": "Invented cohort transition counts designed to prevent training completion being confused with employment impact."
+      },
+      "period": {
+        "start_date": "2026-01-01",
+        "end_date": "2026-12-31",
+        "label": "synthetic training cohort"
+      },
+      "geography": {
+        "level": "national",
+        "code": null,
+        "label": "Synthetic country"
+      },
+      "measure": {
+        "metric_id": "training_completion_count",
+        "value": 100,
+        "unit": "completions",
+        "denominator": "synthetic enrolment cohort",
+        "population": "synthetic training cohort",
+        "definition": "Artificial number of learners finishing a course; paid-placement and retention outcomes are separate measures."
+      },
+      "uncertainty": {
+        "status": "point_estimate",
+        "lower": null,
+        "upper": null,
+        "method_note": "Deterministic invented count, not a statistical estimate."
+      },
+      "freshness": {
+        "status": "not_applicable",
+        "evaluated_on": "2026-10-21",
+        "reason": "Synthetic illustrative cohort."
+      },
+      "taxonomy": {
+        "system": "Synthetic training task profiles",
+        "version": "fixture-0.1",
+        "crosswalk_status": "approximate",
+        "crosswalk_note": "A course label alone does not establish task-level equivalence."
+      },
+      "evidence_limits": [
+        "Training completion does not establish practical competence, paid placement, earnings or retention.",
+        "Do not describe this record as jobs created."
+      ],
+      "claim_ceiling": "Synthetic training-to-work denominator warning."
+    }
+  ]
+}
