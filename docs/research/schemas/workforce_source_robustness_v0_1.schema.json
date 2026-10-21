@@ -50,6 +50,7 @@
         "unit",
         "population",
         "scope_id",
+        "comparison_basis",
         "geography",
         "period_start",
         "period_end",
@@ -138,6 +139,10 @@
           }
         },
         "scope_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "comparison_basis": {
           "type": "string",
           "minLength": 1
         }
