@@ -264,6 +264,27 @@ The new Rust binary `sol-atlas-core/src/bin/flexdc_trace_adapter.rs` adapts the 
 
 
 
+### First executed FlexDC-Sim reference comparison
+
+The pinned workflow completed a real FlexDC-Sim simulator execution on Python 3.10.16, seed 20, the reviewed 3,600-second AQA profile and upstream source revision `ea50bd582b5d1b55fcb09ea46899fa9d325cce3b`. GitHub Actions [run #3 / ID 39518611387](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/39518611387) passed end-to-end schema validation and uploaded the [raw evidence bundle](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/39518611387/artifacts/12310455207).
+
+| Result over 3,601 simulator samples | Source-native `trackingError` | Same-row `target`/`realSum` reconstruction |
+|---|---:|---:|
+| Mean absolute normalized error | 0.0508884 | 0.0427334 |
+| p90 absolute normalized error | 0.0630000 | 0.0602846 |
+| Maximum normalized error | 1.5040 | 1.500613 |
+| Samples with error > 0.3 | 123 (3.4157%) | 122 (3.3879%) |
+| P90 threshold <= 0.3 | Pass | Pass |
+| Strict exceedance rate < 10% | Pass | Pass |
+
+The p90 difference (reconstructed minus source-native) is −0.00271535. It is a difference between metric constructions, **not an observed scheduler win**: FlexDC-Sim's source value uses prior-cycle power, the previous signal cap and (R+0.0001), whereas the comparison series uses same-row power and exact (R). Both views pass the reference p90 criterion in this particular run. The synthetic counterexample remains important because alternate error distributions can make the two decisions disagree.
+
+The source simulator reported per-job-type QoS p90 degradation 2.400/2.989/3.167/4.614 against thresholds 3/4/4/5 (no type-level p90 threshold exceeded). It also reported a 1.69784% per-job QoS threshold-exceedance ratio across 3,475 jobs, so this does not mean zero per-job misses. This is the reference scheduler alone; no Sol-Atlas alternative scheduler was compared in this run.
+
+Run receipts bind the CSV, run manifest, captured environment, adapted input and assessment report. The emitted power is modeled using simulator workload/server power-performance profiles and idle power—not a physical facility meter. The run does not establish facility kWh, PUE, AI-quality-accepted tokens/kWh, carbon or water use, causal grid benefit, avoided capacity, or SOTA superiority.
+
+
+
 
 - **RSR tracking:** for aligned power pairs, normalized absolute tracking error is `abs(measured_kW - target_kW) / reserve_kW`. For source-normalized errors such as FlexDC-Sim's signed `trackingError` column, the CLI scores the supplied series' absolute values without silently rebuilding source alignment or denominator. It reports two separate decisions: `p90_threshold_satisfied` matches the pinned implementation's interpolated p90 check (`p90 <= 0.3`), while `exceedance_rate_requirement_satisfied` is a supplementary strict criterion (`fraction(error > 0.3) < 10%`). They are not equivalent: one error of 0.8 among ten samples yields interpolated p90=0.08, so the p90 threshold passes while exactly 10% exceed the threshold and the strict rate criterion fails. The cross-validation run must report both rather than silently choosing whichever looks better.
 - **EDR curtailment:** compare an aligned declared baseline against event power and report baseline/event kWh, net energy reduction, gross curtailment energy, rebound energy, count of rebound intervals, and peak event power above baseline. A negative net reduction remains visible when rebound exceeds gross curtailment.
@@ -296,4 +317,4 @@ The active work item is [AI-COMP-ENERGY-003 / issue #256](https://github.com/Lum
 - [FlexDC-Sim — PEACLab demand-response simulator, pinned source revision](https://github.com/peaclab/flexdc-sim/tree/ea50bd582b5d1b55fcb09ea46899fa9d325cce3b) (BSD-3-Clause).
 - [Acun et al. (2026), *Investigating Power Consumption Flexibility of AI Data Centers for Demand Response Participation*, ACM E-Energy](https://doi.org/10.1145/3744255.3798112): RSR tracking formula and studied RSR/EDR flexibility outcomes.
 
-**Current result:** a bounded capacity evaluator, greedy reference scheduler, cost/carbon Pareto comparison, exact-input SHA-256 run receipt, exhaustive small-instance test oracle, synthetic fixture, and dependency-free RSR/EDR metric helpers with fail-closed input and overflow checks. No FlexDC-Sim run, matched trace, hardware experiment, measured facility improvement, production joint optimizer, or SOTA result is claimed.
+**Current result:** a bounded capacity evaluator, greedy reference scheduler, cost/carbon Pareto comparison, exact-input SHA-256 receipts, exhaustive small-instance test oracle, strict trace intake, paired RSR/EDR metric helpers and a first successfully executed pinned FlexDC-Sim simulator comparison. There is still no Sol-Atlas-vs-reference scheduler win, physical facility-meter result, quality-accepted AI work/kWh result, validated causal grid benefit, production joint optimizer, or SOTA-superiority claim.
