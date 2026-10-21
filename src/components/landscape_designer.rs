@@ -16,6 +16,7 @@ use leptos::prelude::*;
 use leptos_router::components::A;
 use serde_json::{Value, json};
 use wasm_bindgen::JsCast;
+use wasm_bindgen::closure::Closure;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum FeatureKind {
@@ -741,10 +742,21 @@ fn download_snapshot(content: &str) -> Result<(), String> {
         Ok(())
     })();
 
-    let cleanup = web_sys::Url::revoke_object_url(&url)
-        .map_err(|error| format!("Could not release download URL: {error:?}"));
     activation?;
-    cleanup?;
+
+    // Defer URL revocation so browser download handlers can resolve the Blob
+    // URL after the synthetic anchor click has returned.
+    let cleanup_url = url.clone();
+    let cleanup = Closure::once_into_js(move || {
+        let _ = web_sys::Url::revoke_object_url(&cleanup_url);
+    });
+    if let Err(error) = window.set_timeout_with_callback_and_timeout_and_arguments_0(
+        cleanup.unchecked_ref(),
+        1_000,
+    ) {
+        let _ = web_sys::Url::revoke_object_url(&url);
+        return Err(format!("Could not schedule download URL cleanup: {error:?}"));
+    }
     Ok(())
 }
 
