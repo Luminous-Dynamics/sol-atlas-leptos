@@ -10,8 +10,7 @@ use std::process::ExitCode;
 const EXPECTED_SCHEMA_VERSION: &str = "0.1.0";
 const EXPECTED_CORPUS_ID: &str = "SA-WORKFORCE-DIAG-001-V0.1";
 const EXPECTED_CASE_COUNT: usize = 12;
-const FIXTURE_DEFAULT: &str =
-    "docs/research/fixtures/workforce_bottleneck_scenarios_v0_1.json";
+const FIXTURE_DEFAULT: &str = "docs/research/fixtures/workforce_bottleneck_scenarios_v0_1.json";
 const SCHEMA_DEFAULT: &str =
     "docs/research/schemas/workforce_bottleneck_scenarios_v0_1.schema.json";
 
@@ -54,7 +53,11 @@ fn has_label(value: &Value, key: &str, expected: &str) -> bool {
 }
 
 fn contains_cause(case: &Value, expected: &str) -> bool {
-    has_label(case.get("oracle").unwrap_or(&Value::Null), "causes", expected)
+    has_label(
+        case.get("oracle").unwrap_or(&Value::Null),
+        "causes",
+        expected,
+    )
 }
 
 fn valid_intervention_label(label: &str) -> bool {
@@ -75,7 +78,10 @@ fn validate_schema(schema: &Value, fixture: &Value) -> Result<(), String> {
     if errors.is_empty() {
         Ok(())
     } else {
-        Err(format!("JSON Schema validation failed:\n{}", errors.join("\n")))
+        Err(format!(
+            "JSON Schema validation failed:\n{}",
+            errors.join("\n")
+        ))
     }
 }
 
@@ -83,9 +89,7 @@ fn validate_cross_fields(fixture: &Value) -> Result<(), Vec<String>> {
     let mut errors = Vec::new();
 
     if as_string(fixture, "schema_version") != Some(EXPECTED_SCHEMA_VERSION) {
-        errors.push(format!(
-            "schema_version must be {EXPECTED_SCHEMA_VERSION}"
-        ));
+        errors.push(format!("schema_version must be {EXPECTED_SCHEMA_VERSION}"));
     }
     if as_string(fixture, "corpus_id") != Some(EXPECTED_CORPUS_ID) {
         errors.push(format!("corpus_id must be {EXPECTED_CORPUS_ID}"));
@@ -121,8 +125,14 @@ fn validate_cross_fields(fixture: &Value) -> Result<(), Vec<String>> {
         }
 
         let observations = case.get("observations").unwrap_or(&Value::Null);
-        if observations.get("reported_backlog").and_then(Value::as_bool) != Some(true) {
-            errors.push(format!("{id}: reported_backlog must be explicitly true in v0.1"));
+        if observations
+            .get("reported_backlog")
+            .and_then(Value::as_bool)
+            != Some(true)
+        {
+            errors.push(format!(
+                "{id}: reported_backlog must be explicitly true in v0.1"
+            ));
         }
         let oracle = case.get("oracle").unwrap_or(&Value::Null);
         let causes = oracle
@@ -168,7 +178,9 @@ fn validate_cross_fields(fixture: &Value) -> Result<(), Vec<String>> {
             .chain(prohibited.iter())
             .any(|label| !valid_intervention_label(label))
         {
-            errors.push(format!("{id}: intervention labels must use UPPER_SNAKE_CASE"));
+            errors.push(format!(
+                "{id}: intervention labels must use UPPER_SNAKE_CASE"
+            ));
         }
 
         let required = observations
@@ -190,12 +202,14 @@ fn validate_cross_fields(fixture: &Value) -> Result<(), Vec<String>> {
             errors.push(format!("{id}: absent funding requires FUNDING_OR_PAYER"));
         }
         if funding == "unknown" && !contains_cause(case, "EVIDENCE_INSUFFICIENT") {
-            errors.push(format!("{id}: unknown funding requires EVIDENCE_INSUFFICIENT"));
+            errors.push(format!(
+                "{id}: unknown funding requires EVIDENCE_INSUFFICIENT"
+            ));
         }
         if matches!(funding, "absent" | "unknown")
-            && !prohibited.iter().any(|label| {
-                label.contains("UNFUNDED") || label.contains("FUNDED_JOB")
-            })
+            && !prohibited
+                .iter()
+                .any(|label| label.contains("UNFUNDED") || label.contains("FUNDED_JOB"))
         {
             errors.push(format!(
                 "{id}: absent/unknown funding must prohibit claiming the work is funded"
@@ -208,9 +222,7 @@ fn validate_cross_fields(fixture: &Value) -> Result<(), Vec<String>> {
             errors.push(format!("{id}: missing spare requires TOOLS_OR_SPARES"));
         }
         match as_string(observations, "authorization_status") {
-            Some("inspection_pending")
-                if !contains_cause(case, "AUTHORIZATION_OR_SAFETY_GATE") =>
-            {
+            Some("inspection_pending") if !contains_cause(case, "AUTHORIZATION_OR_SAFETY_GATE") => {
                 errors.push(format!(
                     "{id}: pending inspection requires AUTHORIZATION_OR_SAFETY_GATE"
                 ));
@@ -225,17 +237,23 @@ fn validate_cross_fields(fixture: &Value) -> Result<(), Vec<String>> {
         if as_string(observations, "dispatch_status") == Some("travel_shift_mismatch")
             && !contains_cause(case, "DISPATCH_OR_GEOGRAPHY")
         {
-            errors.push(format!("{id}: dispatch mismatch requires DISPATCH_OR_GEOGRAPHY"));
+            errors.push(format!(
+                "{id}: dispatch mismatch requires DISPATCH_OR_GEOGRAPHY"
+            ));
         }
         if as_string(observations, "wage_and_shift_status") == Some("nonviable_synthetic")
             && !contains_cause(case, "WAGE_OR_RETENTION")
         {
-            errors.push(format!("{id}: nonviable conditions require WAGE_OR_RETENTION"));
+            errors.push(format!(
+                "{id}: nonviable conditions require WAGE_OR_RETENTION"
+            ));
         }
         if as_string(observations, "demand_status") == Some("duplicate_and_misrouted")
             && !contains_cause(case, "DEMAND_DATA_QUALITY")
         {
-            errors.push(format!("{id}: duplicate demand requires DEMAND_DATA_QUALITY"));
+            errors.push(format!(
+                "{id}: duplicate demand requires DEMAND_DATA_QUALITY"
+            ));
         }
         if as_string(observations, "credential_status") == Some("present_but_scope_mismatch")
             && !contains_cause(case, "PRACTICAL_COMPETENCE_UNVERIFIED")
@@ -259,9 +277,7 @@ fn validate_cross_fields(fixture: &Value) -> Result<(), Vec<String>> {
                 "{id}: stale/conflicting or incomplete evidence requires EVIDENCE_INSUFFICIENT"
             ));
         }
-        if evidence != "complete"
-            && !admissible.contains(&"COLLECT_OR_REVALIDATE_EVIDENCE")
-        {
+        if evidence != "complete" && !admissible.contains(&"COLLECT_OR_REVALIDATE_EVIDENCE") {
             errors.push(format!(
                 "{id}: non-complete evidence must permit COLLECT_OR_REVALIDATE_EVIDENCE"
             ));
@@ -344,8 +360,14 @@ fn run() -> Result<(), String> {
 
     let report = Report {
         status: "STRUCTURAL_AND_CROSS_FIELD_PASS_NOT_FIELD_VALIDATION",
-        corpus_id: fixture["corpus_id"].as_str().unwrap_or_default().to_string(),
-        schema_version: fixture["schema_version"].as_str().unwrap_or_default().to_string(),
+        corpus_id: fixture["corpus_id"]
+            .as_str()
+            .unwrap_or_default()
+            .to_string(),
+        schema_version: fixture["schema_version"]
+            .as_str()
+            .unwrap_or_default()
+            .to_string(),
         case_count: fixture["cases"].as_array().map_or(0, Vec::len),
         fixture_sha256,
         schema_sha256,
