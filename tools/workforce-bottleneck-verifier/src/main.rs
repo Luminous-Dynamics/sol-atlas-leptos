@@ -886,7 +886,15 @@ mod tests {
                                         assert_eq!(
                                             inferred.contains("SKILLS_CAPACITY"),
                                             skill_gap,
-                                            "skill gap invariant failed: {skill_gap=}, {funding=}, {tools=}, {authorization=}, {dispatch=}, {wage=}, {demand=}, {evidence=}"
+                                            "skill gap invariant failed: skill_gap={:?}, funding={:?}, tools={:?}, authorization={:?}, dispatch={:?}, wage={:?}, demand={:?}, evidence={:?}",
+                                            skill_gap,
+                                            funding,
+                                            tools,
+                                            authorization,
+                                            dispatch,
+                                            wage,
+                                            demand,
+                                            evidence
                                         );
                                         assert_eq!(
                                             inferred.contains("FUNDING_OR_PAYER"),
