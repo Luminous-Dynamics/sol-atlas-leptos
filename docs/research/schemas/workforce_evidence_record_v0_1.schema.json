@@ -1,0 +1,387 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/schemas/workforce_evidence_record_v0_1.schema.json",
+  "title": "SA-WORKFORCE-EVIDENCE-001 record corpus v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "claim_ceiling",
+    "records"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "profile_id": {
+      "const": "SA-WORKFORCE-EVIDENCE-001-V0.1"
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 20
+    },
+    "records": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "$ref": "#/$defs/record"
+      }
+    }
+  },
+  "$defs": {
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_id",
+        "synthetic_only",
+        "observation_kind",
+        "source",
+        "period",
+        "geography",
+        "measure",
+        "uncertainty",
+        "freshness",
+        "taxonomy",
+        "evidence_limits",
+        "claim_ceiling"
+      ],
+      "properties": {
+        "record_id": {
+          "type": "string",
+          "pattern": "^WE-[0-9]{3}$"
+        },
+        "synthetic_only": {
+          "type": "boolean"
+        },
+        "observation_kind": {
+          "type": "string",
+          "enum": [
+            "survey_estimate",
+            "employer_verified",
+            "administrative_record",
+            "public_taxonomy_reference",
+            "model_estimate",
+            "forecast",
+            "simulated_scenario",
+            "unknown"
+          ]
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source_id",
+            "publisher",
+            "source_version",
+            "released_or_captured_on",
+            "retrieved_on",
+            "access_class",
+            "provenance_note"
+          ],
+          "properties": {
+            "source_id": {
+              "type": "string",
+              "minLength": 3
+            },
+            "publisher": {
+              "type": "string",
+              "minLength": 2
+            },
+            "source_version": {
+              "type": "string",
+              "minLength": 1
+            },
+            "released_or_captured_on": {
+              "type": "string",
+              "format": "date"
+            },
+            "retrieved_on": {
+              "type": "string",
+              "format": "date"
+            },
+            "access_class": {
+              "type": "string",
+              "enum": [
+                "public",
+                "licensed",
+                "restricted",
+                "authorized_local",
+                "synthetic"
+              ]
+            },
+            "url": {
+              "type": "string",
+              "format": "uri"
+            },
+            "source_digest_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "provenance_note": {
+              "type": "string",
+              "minLength": 8
+            }
+          }
+        },
+        "period": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "start_date",
+            "end_date",
+            "label"
+          ],
+          "properties": {
+            "start_date": {
+              "type": "string",
+              "format": "date"
+            },
+            "end_date": {
+              "type": "string",
+              "format": "date"
+            },
+            "label": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "geography": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "level",
+            "code",
+            "label"
+          ],
+          "properties": {
+            "level": {
+              "type": "string",
+              "enum": [
+                "national",
+                "province",
+                "municipality",
+                "district",
+                "neighborhood",
+                "site",
+                "non_geographic"
+              ]
+            },
+            "code": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "label": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "measure": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "metric_id",
+            "value",
+            "unit",
+            "denominator",
+            "population",
+            "definition"
+          ],
+          "properties": {
+            "metric_id": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "value": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "unit": {
+              "type": "string",
+              "minLength": 1
+            },
+            "denominator": {
+              "type": "string",
+              "minLength": 3
+            },
+            "population": {
+              "type": "string",
+              "minLength": 3
+            },
+            "definition": {
+              "type": "string",
+              "minLength": 8
+            }
+          }
+        },
+        "uncertainty": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "lower",
+            "upper",
+            "method_note"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "point_estimate",
+                "reported_interval",
+                "synthetic_range",
+                "unknown"
+              ]
+            },
+            "lower": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "upper": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "method_note": {
+              "type": "string",
+              "minLength": 3
+            }
+          }
+        },
+        "freshness": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "evaluated_on",
+            "reason"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "fresh",
+                "stale",
+                "unknown",
+                "not_applicable"
+              ]
+            },
+            "evaluated_on": {
+              "type": "string",
+              "format": "date"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 3
+            }
+          }
+        },
+        "taxonomy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "system",
+            "version",
+            "crosswalk_status",
+            "crosswalk_note"
+          ],
+          "properties": {
+            "system": {
+              "type": "string",
+              "minLength": 1
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1
+            },
+            "crosswalk_status": {
+              "type": "string",
+              "enum": [
+                "exact",
+                "approximate",
+                "ambiguous",
+                "not_mapped",
+                "not_applicable"
+              ]
+            },
+            "crosswalk_note": {
+              "type": "string",
+              "minLength": 3
+            }
+          }
+        },
+        "evidence_limits": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 5
+          }
+        },
+        "claim_ceiling": {
+          "type": "string",
+          "minLength": 12
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "synthetic_only": {
+                "const": true
+              }
+            },
+            "required": [
+              "synthetic_only"
+            ]
+          },
+          "then": {
+            "properties": {
+              "observation_kind": {
+                "const": "simulated_scenario"
+              },
+              "source": {
+                "properties": {
+                  "access_class": {
+                    "const": "synthetic"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "synthetic_only": {
+                "const": false
+              }
+            },
+            "required": [
+              "synthetic_only"
+            ]
+          },
+          "then": {
+            "properties": {
+              "source": {
+                "required": [
+                  "url"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
