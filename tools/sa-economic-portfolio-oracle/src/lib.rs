@@ -2957,6 +2957,7 @@ mod tests {
         config.stop_on_first_counterexample = false;
         let report = evaluate_capacity_sweep(&input, &config).unwrap();
         assert_eq!(report.status, CounterexampleSweepStatus::BudgetExhausted);
+        assert!(!report.domain_exhausted);
         assert_eq!(report.attempted_values, vec![3]);
         assert_eq!(report.remaining_values, vec![2, 1, 0]);
 
@@ -2964,6 +2965,7 @@ mod tests {
         config.max_evaluations = 2;
         let partially_swept = evaluate_capacity_sweep(&input, &config).unwrap();
         assert_eq!(partially_swept.status, CounterexampleSweepStatus::BudgetExhausted);
+        assert!(!partially_swept.domain_exhausted);
         assert_eq!(partially_swept.attempted_values, vec![3, 2]);
         assert_eq!(partially_swept.first_counterexample_capacity, Some(2));
         assert_eq!(partially_swept.remaining_values, vec![1, 0]);
