@@ -511,13 +511,23 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
         .candidates
         .iter()
         .filter(|candidate| eligible(candidate))
-        .map(|candidate| (candidate.spatial_stratum.as_str(), candidate.temporal_stratum.as_str()))
+        .map(|candidate| {
+            (
+                candidate.spatial_stratum.as_str(),
+                candidate.temporal_stratum.as_str(),
+            )
+        })
         .collect();
     let selected_strata: BTreeSet<(&str, &str)> = fixture
         .candidates
         .iter()
         .filter(|candidate| selected_set.contains(candidate.candidate_id.as_str()))
-        .map(|candidate| (candidate.spatial_stratum.as_str(), candidate.temporal_stratum.as_str()))
+        .map(|candidate| {
+            (
+                candidate.spatial_stratum.as_str(),
+                candidate.temporal_stratum.as_str(),
+            )
+        })
         .collect();
     let eligible_stratum_coverage_fraction = if eligible_strata.is_empty() {
         0.0
@@ -749,25 +759,16 @@ mod tests {
                 candidate.alternative_mean = candidate.baseline_mean + delta;
                 candidate.decision_weight = ((seed + index) % 4) as f64;
                 candidate.cost_units = (1 + ((seed * 3 + index * 2) % 5)) as u32;
-                candidate.correlation_group =
-                    format!("group-{}", (seed + index * 2) % 3);
+                candidate.correlation_group = format!("group-{}", (seed + index * 2) % 3);
             }
             validate_fixture(&fixture).expect("generated synthetic instance stays valid");
             let scores: BTreeMap<String, CandidateScore> = fixture
                 .candidates
                 .iter()
-                .map(|candidate| {
-                    (
-                        candidate.candidate_id.clone(),
-                        candidate_score(candidate),
-                    )
-                })
+                .map(|candidate| (candidate.candidate_id.clone(), candidate_score(candidate)))
                 .collect();
-            let actual = select_exact_budgeted(
-                &fixture.candidates,
-                &scores,
-                fixture.budget_cost_units,
-            );
+            let actual =
+                select_exact_budgeted(&fixture.candidates, &scores, fixture.budget_cost_units);
             let (oracle_cost, oracle) =
                 brute_force_oracle(&fixture.candidates, &scores, fixture.budget_cost_units);
             let actual_cost: u32 = fixture
@@ -815,7 +816,8 @@ mod tests {
     fn denied_access_and_unknown_consent_fail_closed() {
         let mut denied_access = fixture();
         denied_access.candidates[0].access_status = AccessStatus::Denied;
-        let report = evaluate_fixture(&denied_access, b"synthetic").expect("valid access control case");
+        let report =
+            evaluate_fixture(&denied_access, b"synthetic").expect("valid access control case");
         assert!(
             !report
                 .selected_candidate_ids
