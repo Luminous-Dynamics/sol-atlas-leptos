@@ -152,7 +152,7 @@ fn validate_contract(corpus: &Corpus) -> Result<(), String> {
     {
         errors.push("fixture notice must identify all values as synthetic".to_string());
     }
-    if !is_decision(&corpus.claim_ceiling) && corpus.claim_ceiling.trim().is_empty() {
+    if corpus.claim_ceiling.trim().is_empty() {
         errors.push("claim ceiling cannot be empty".to_string());
     }
 
