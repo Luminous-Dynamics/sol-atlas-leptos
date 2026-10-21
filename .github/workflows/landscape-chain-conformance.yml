@@ -70,10 +70,10 @@ jobs:
             .review_ranking_status == "no-defensible-ranking" and
             .recommendation_status == "no-ranking" and
             .passed_check_count == 13 and
-            .negative_controls_attempted == 7 and
-            .negative_controls_rejected == 7 and
+            .negative_controls_attempted == 8 and
+            .negative_controls_rejected == 8 and
             .negative_controls_unexpectedly_accepted == 0 and
-            ([.artifact_sha256[] | select(test("^[0-9a-f]{64}$"))] | length) == 13
+            ([.artifact_sha256[] | select(test("^[0-9a-f]{64}$"))] | length) == 14
           ' "$report"
 
       - name: Upload exact-revision report
