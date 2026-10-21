@@ -349,6 +349,8 @@ pub struct CapacitySweepAttempt {
     pub removed_portfolios: Vec<Vec<String>>,
     pub frontier_before: usize,
     pub frontier_after: usize,
+    pub frontier_before_project_ids: Vec<Vec<String>>,
+    pub frontier_after_project_ids: Vec<Vec<String>>,
     pub frontier_id_intersection_count: usize,
     pub frontier_id_union_count: usize,
     pub counterexample_found: bool,
@@ -1542,6 +1544,16 @@ pub fn evaluate_capacity_sweep(
 
         let frontier_ids: BTreeSet<String> =
             evaluation.pareto_frontier.iter().map(portfolio_key).collect();
+        let frontier_before_project_ids: Vec<Vec<String>> = baseline
+            .pareto_frontier
+            .iter()
+            .map(|portfolio| portfolio.project_ids.clone())
+            .collect();
+        let frontier_after_project_ids: Vec<Vec<String>> = evaluation
+            .pareto_frontier
+            .iter()
+            .map(|portfolio| portfolio.project_ids.clone())
+            .collect();
         let frontier_id_intersection_count = baseline_frontier_ids
             .intersection(&frontier_ids)
             .count();
@@ -1555,6 +1567,8 @@ pub fn evaluate_capacity_sweep(
             removed_portfolios,
             frontier_before: baseline.pareto_frontier.len(),
             frontier_after: evaluation.pareto_frontier.len(),
+            frontier_before_project_ids,
+            frontier_after_project_ids,
             frontier_id_intersection_count,
             frontier_id_union_count,
             counterexample_found,
