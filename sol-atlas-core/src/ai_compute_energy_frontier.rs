@@ -14,6 +14,8 @@ use crate::ai_compute_energy::{
 
 /// Hard upper bound on enumerated complete schedules; the exact Pareto pass is O(n²).
 pub const MAX_EXACT_FRONTIER_CANDIDATES: usize = 4_096;
+/// Limit recursion depth and worst-case traversal for the small-instance oracle.
+pub const MAX_EXACT_FRONTIER_INTERVALS: usize = 32;
 
 /// Objective included in an exact frontier comparison.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize)]
@@ -29,6 +31,10 @@ pub enum FrontierObjective {
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ExactFrontierError {
     InvalidCandidateLimit,
+    HorizonTooLong {
+        interval_count: usize,
+        max_intervals: usize,
+    },
     UnschedulableCapacity {
         status: AssessmentStatus,
     },
@@ -78,6 +84,12 @@ pub fn exact_pareto_frontier(
 ) -> Result<ExactParetoFrontier, ExactFrontierError> {
     if max_candidates == 0 || max_candidates > MAX_EXACT_FRONTIER_CANDIDATES {
         return Err(ExactFrontierError::InvalidCandidateLimit);
+    }
+    if request.intervals.len() > MAX_EXACT_FRONTIER_INTERVALS {
+        return Err(ExactFrontierError::HorizonTooLong {
+            interval_count: request.intervals.len(),
+            max_intervals: MAX_EXACT_FRONTIER_INTERVALS,
+        });
     }
 
     let capacity = assess(request);
@@ -472,6 +484,26 @@ mod tests {
             Err(ExactFrontierError::MissingObjectiveAttribution {
                 interval_id: "t0".to_owned(),
                 objective: FrontierObjective::GridCarbon,
+            })
+        );
+    }
+
+    #[test]
+    fn exact_frontier_rejects_horizons_above_the_recursion_bound() {
+        let mut request = fixture_request();
+        let template = request.intervals[0].clone();
+        request.intervals = (0..=MAX_EXACT_FRONTIER_INTERVALS)
+            .map(|index| {
+                let mut interval = template.clone();
+                interval.id = format!("t{index}");
+                interval
+            })
+            .collect();
+        assert_eq!(
+            exact_pareto_frontier(&request, 4096),
+            Err(ExactFrontierError::HorizonTooLong {
+                interval_count: MAX_EXACT_FRONTIER_INTERVALS + 1,
+                max_intervals: MAX_EXACT_FRONTIER_INTERVALS,
             })
         );
     }
