@@ -149,7 +149,10 @@ fn nonempty(value: &str) -> bool {
 pub fn validate_fixture(fixture: &Fixture) -> Result<(), Vec<String>> {
     let mut errors = Vec::new();
     if fixture.schema_version != FIXTURE_SCHEMA {
-        errors.push(format!("unsupported schema_version: {}", fixture.schema_version));
+        errors.push(format!(
+            "unsupported schema_version: {}",
+            fixture.schema_version
+        ));
     }
     if fixture.suite_id != SUITE_ID {
         errors.push(format!("unexpected suite_id: {}", fixture.suite_id));
@@ -161,7 +164,9 @@ pub fn validate_fixture(fixture: &Fixture) -> Result<(), Vec<String>> {
         errors.push(format!("claim_ceiling must be {CLAIM_CEILING}"));
     }
     if fixture.budget_cost_units == 0 || fixture.budget_cost_units > MAX_COST {
-        errors.push(format!("budget_cost_units must be between 1 and {MAX_COST}"));
+        errors.push(format!(
+            "budget_cost_units must be between 1 and {MAX_COST}"
+        ));
     }
     if fixture.candidates.is_empty() {
         errors.push("candidates must not be empty".to_owned());
@@ -173,7 +178,10 @@ pub fn validate_fixture(fixture: &Fixture) -> Result<(), Vec<String>> {
             errors.push("candidate_id must be non-empty".to_owned());
         }
         if !ids.insert(candidate.candidate_id.clone()) {
-            errors.push(format!("duplicate candidate_id: {}", candidate.candidate_id));
+            errors.push(format!(
+                "duplicate candidate_id: {}",
+                candidate.candidate_id
+            ));
         }
         for (name, value) in [
             ("metric_id", candidate.metric_id.as_str()),
@@ -182,10 +190,16 @@ pub fn validate_fixture(fixture: &Fixture) -> Result<(), Vec<String>> {
             ("temporal_stratum", candidate.temporal_stratum.as_str()),
             ("correlation_group", candidate.correlation_group.as_str()),
             ("baseline_model_id", candidate.baseline_model_id.as_str()),
-            ("alternative_model_id", candidate.alternative_model_id.as_str()),
+            (
+                "alternative_model_id",
+                candidate.alternative_model_id.as_str(),
+            ),
         ] {
             if !nonempty(value) {
-                errors.push(format!("{}: {name} must be non-empty", candidate.candidate_id));
+                errors.push(format!(
+                    "{}: {name} must be non-empty",
+                    candidate.candidate_id
+                ));
             }
         }
         if candidate.baseline_model_id == candidate.alternative_model_id {
@@ -223,7 +237,8 @@ pub fn validate_fixture(fixture: &Fixture) -> Result<(), Vec<String>> {
                 ));
             }
         }
-        if !bounded_finite(candidate.decision_weight, MAX_WEIGHT) || candidate.decision_weight < 0.0 {
+        if !bounded_finite(candidate.decision_weight, MAX_WEIGHT) || candidate.decision_weight < 0.0
+        {
             errors.push(format!(
                 "{}: decision_weight must be finite and between 0 and {MAX_WEIGHT:e}",
                 candidate.candidate_id
@@ -236,10 +251,11 @@ pub fn validate_fixture(fixture: &Fixture) -> Result<(), Vec<String>> {
             ));
         }
         let score = candidate_score(candidate);
-        if !score.symmetric_kl_nats.is_finite()
-            || !score.weighted_discrimination_nats.is_finite()
-        {
-            errors.push(format!("{}: discrimination score is not finite", candidate.candidate_id));
+        if !score.symmetric_kl_nats.is_finite() || !score.weighted_discrimination_nats.is_finite() {
+            errors.push(format!(
+                "{}: discrimination score is not finite",
+                candidate.candidate_id
+            ));
         }
     }
 
@@ -260,11 +276,9 @@ pub fn symmetric_kl_nats(candidate: &Candidate) -> f64 {
     let baseline_variance = candidate.baseline_sd.powi(2) + observation_variance;
     let alternative_variance = candidate.alternative_sd.powi(2) + observation_variance;
     let mean_delta = candidate.baseline_mean - candidate.alternative_mean;
-    let variance_term = baseline_variance / alternative_variance
-        + alternative_variance / baseline_variance
-        - 2.0;
-    let mean_term = mean_delta.powi(2)
-        * (1.0 / baseline_variance + 1.0 / alternative_variance);
+    let variance_term =
+        baseline_variance / alternative_variance + alternative_variance / baseline_variance - 2.0;
+    let mean_term = mean_delta.powi(2) * (1.0 / baseline_variance + 1.0 / alternative_variance);
     (0.25 * (variance_term + mean_term)).max(0.0)
 }
 
@@ -400,10 +414,10 @@ fn select_greedy_ratio(
         .filter(|candidate| eligible(candidate))
         .collect();
     ordered.sort_by(|left, right| {
-        let left_ratio = scores[&left.candidate_id].weighted_discrimination_nats
-            / left.cost_units as f64;
-        let right_ratio = scores[&right.candidate_id].weighted_discrimination_nats
-            / right.cost_units as f64;
+        let left_ratio =
+            scores[&left.candidate_id].weighted_discrimination_nats / left.cost_units as f64;
+        let right_ratio =
+            scores[&right.candidate_id].weighted_discrimination_nats / right.cost_units as f64;
         right_ratio
             .total_cmp(&left_ratio)
             .then_with(|| left.candidate_id.cmp(&right.candidate_id))
@@ -453,7 +467,11 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
         .iter()
         .map(|candidate| (candidate.candidate_id.clone(), candidate_score(candidate)))
         .collect();
-    let eligible_count = fixture.candidates.iter().filter(|candidate| eligible(candidate)).count();
+    let eligible_count = fixture
+        .candidates
+        .iter()
+        .filter(|candidate| eligible(candidate))
+        .count();
     let ineligible_count = fixture.candidates.len() - eligible_count;
     let selected = select_exact_budgeted(&fixture.candidates, &scores, fixture.budget_cost_units);
     let greedy_baseline =
@@ -506,7 +524,12 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
         };
         decisions.push(CandidateDecision {
             candidate_id: candidate.candidate_id.clone(),
-            decision: if is_selected { "selected" } else { "not_selected" }.to_owned(),
+            decision: if is_selected {
+                "selected"
+            } else {
+                "not_selected"
+            }
+            .to_owned(),
             reason,
             correlation_group: candidate.correlation_group.clone(),
             cost_units: candidate.cost_units,
@@ -547,14 +570,17 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
 
 pub fn run_fixture_dir(dir: &Path) -> Result<PlanReport, Vec<String>> {
     let fixture_path = dir.join("fixture.json");
-    let bytes = fs::read(&fixture_path)
-        .map_err(|error| vec![format!("could not read {}: {error}", fixture_path.display())])?;
+    let bytes = fs::read(&fixture_path).map_err(|error| {
+        vec![format!(
+            "could not read {}: {error}",
+            fixture_path.display()
+        )]
+    })?;
     evaluate_fixture_bytes(&bytes)
 }
 
 pub fn default_fixture_dir() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../fixtures/landscape/measurement-planning-v0")
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../fixtures/landscape/measurement-planning-v0")
 }
 
 #[cfg(test)]
@@ -594,7 +620,10 @@ mod tests {
             vec!["candidate-a-high-density".to_owned()]
         );
         assert_eq!(report.greedy_ratio_baseline_cost_units, 4);
-        close(report.greedy_ratio_baseline_weighted_discrimination_nats, 7.0);
+        close(
+            report.greedy_ratio_baseline_weighted_discrimination_nats,
+            7.0,
+        );
         close(report.exact_gain_over_greedy_ratio_baseline_nats, 3.0);
         assert_eq!(
             report
@@ -628,8 +657,16 @@ mod tests {
     #[test]
     fn denied_consent_and_unknown_access_never_get_selected() {
         let report = run_fixture_dir(&default_fixture_dir()).expect("selection report");
-        assert!(!report.selected_candidate_ids.contains(&"candidate-e-consent-denied".to_owned()));
-        assert!(!report.selected_candidate_ids.contains(&"candidate-f-access-unknown".to_owned()));
+        assert!(
+            !report
+                .selected_candidate_ids
+                .contains(&"candidate-e-consent-denied".to_owned())
+        );
+        assert!(
+            !report
+                .selected_candidate_ids
+                .contains(&"candidate-f-access-unknown".to_owned())
+        );
     }
 
     #[test]
