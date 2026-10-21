@@ -1,0 +1,449 @@
+{
+  "schema_version": "health-access-reference-corpus-v0.1",
+  "status": "synthetic_contract_only",
+  "units": {
+    "travel_time": "minutes",
+    "capacity": "service_units_per_open_window",
+    "demand": "service_units_per_open_window",
+    "time_of_day": "minutes_after_midnight"
+  },
+  "cases": [
+    {
+      "id": "verified_reachable_capacity",
+      "description": "Current evidence, requested service, ready facility, open window, and a verified route.",
+      "nodes": [
+        "neighborhood",
+        "clinic"
+      ],
+      "edges": [
+        {
+          "from": "neighborhood",
+          "to": "clinic",
+          "travel_time_minutes": 8,
+          "state": "available"
+        }
+      ],
+      "demand": {
+        "node": "neighborhood",
+        "service": "primary_care",
+        "units": 15
+      },
+      "facilities": [
+        {
+          "id": "clinic-a",
+          "node": "clinic",
+          "service": "primary_care",
+          "availability": "available",
+          "readiness": "ready",
+          "capacity_units": 20,
+          "source_id": "synthetic-source-a",
+          "evidence_age_days": 2,
+          "opens_minute": 0,
+          "closes_minute": 1440
+        }
+      ],
+      "evaluation_minute": 600,
+      "max_evidence_age_days": 30,
+      "max_travel_time_minutes": 30,
+      "expected": {
+        "eligible_facility_ids": [
+          "clinic-a"
+        ],
+        "reachable_capacity_units": 20,
+        "served_units": 15,
+        "unserved_units": 0
+      }
+    },
+    {
+      "id": "unknown_availability_is_not_capacity",
+      "description": "Unknown availability must not count even when nominal capacity is large.",
+      "nodes": [
+        "neighborhood",
+        "clinic"
+      ],
+      "edges": [
+        {
+          "from": "neighborhood",
+          "to": "clinic",
+          "travel_time_minutes": 4,
+          "state": "available"
+        }
+      ],
+      "demand": {
+        "node": "neighborhood",
+        "service": "primary_care",
+        "units": 5
+      },
+      "facilities": [
+        {
+          "id": "clinic-unknown",
+          "node": "clinic",
+          "service": "primary_care",
+          "availability": "unknown",
+          "readiness": "ready",
+          "capacity_units": 40,
+          "source_id": "synthetic-source-b",
+          "evidence_age_days": 1,
+          "opens_minute": 0,
+          "closes_minute": 1440
+        }
+      ],
+      "evaluation_minute": 600,
+      "max_evidence_age_days": 30,
+      "max_travel_time_minutes": 30,
+      "expected": {
+        "eligible_facility_ids": [],
+        "reachable_capacity_units": 0,
+        "served_units": 0,
+        "unserved_units": 5
+      }
+    },
+    {
+      "id": "disconnected_demand_stays_unserved",
+      "description": "Regional supply on a disconnected component does not serve local demand.",
+      "nodes": [
+        "neighborhood",
+        "other-region",
+        "remote-clinic"
+      ],
+      "edges": [
+        {
+          "from": "other-region",
+          "to": "remote-clinic",
+          "travel_time_minutes": 2,
+          "state": "available"
+        }
+      ],
+      "demand": {
+        "node": "neighborhood",
+        "service": "primary_care",
+        "units": 12
+      },
+      "facilities": [
+        {
+          "id": "remote-clinic-a",
+          "node": "remote-clinic",
+          "service": "primary_care",
+          "availability": "available",
+          "readiness": "ready",
+          "capacity_units": 100,
+          "source_id": "synthetic-source-c",
+          "evidence_age_days": 0,
+          "opens_minute": 0,
+          "closes_minute": 1440
+        }
+      ],
+      "evaluation_minute": 600,
+      "max_evidence_age_days": 30,
+      "max_travel_time_minutes": 30,
+      "expected": {
+        "eligible_facility_ids": [],
+        "reachable_capacity_units": 0,
+        "served_units": 0,
+        "unserved_units": 12
+      }
+    },
+    {
+      "id": "blocked_direct_route_uses_verified_detour",
+      "description": "A blocked direct route may be replaced by a verified available path within the travel-time budget.",
+      "nodes": [
+        "neighborhood",
+        "junction-a",
+        "junction-b",
+        "clinic"
+      ],
+      "edges": [
+        {
+          "from": "neighborhood",
+          "to": "clinic",
+          "travel_time_minutes": 2,
+          "state": "blocked"
+        },
+        {
+          "from": "neighborhood",
+          "to": "junction-a",
+          "travel_time_minutes": 6,
+          "state": "available"
+        },
+        {
+          "from": "junction-a",
+          "to": "junction-b",
+          "travel_time_minutes": 3,
+          "state": "available"
+        },
+        {
+          "from": "junction-b",
+          "to": "clinic",
+          "travel_time_minutes": 6,
+          "state": "available"
+        }
+      ],
+      "demand": {
+        "node": "neighborhood",
+        "service": "urgent_primary_care",
+        "units": 10
+      },
+      "facilities": [
+        {
+          "id": "clinic-detour",
+          "node": "clinic",
+          "service": "urgent_primary_care",
+          "availability": "available",
+          "readiness": "ready",
+          "capacity_units": 8,
+          "source_id": "synthetic-source-d",
+          "evidence_age_days": 3,
+          "opens_minute": 0,
+          "closes_minute": 1440
+        }
+      ],
+      "evaluation_minute": 600,
+      "max_evidence_age_days": 30,
+      "max_travel_time_minutes": 15,
+      "expected": {
+        "eligible_facility_ids": [
+          "clinic-detour"
+        ],
+        "reachable_capacity_units": 8,
+        "served_units": 8,
+        "unserved_units": 2
+      }
+    },
+    {
+      "id": "stale_evidence_is_not_verified_capacity",
+      "description": "A service listing beyond the configured freshness limit is not counted as confirmed capacity.",
+      "nodes": [
+        "neighborhood",
+        "clinic"
+      ],
+      "edges": [
+        {
+          "from": "neighborhood",
+          "to": "clinic",
+          "travel_time_minutes": 10,
+          "state": "available"
+        }
+      ],
+      "demand": {
+        "node": "neighborhood",
+        "service": "primary_care",
+        "units": 4
+      },
+      "facilities": [
+        {
+          "id": "clinic-stale",
+          "node": "clinic",
+          "service": "primary_care",
+          "availability": "available",
+          "readiness": "ready",
+          "capacity_units": 50,
+          "source_id": "synthetic-source-e",
+          "evidence_age_days": 91,
+          "opens_minute": 0,
+          "closes_minute": 1440
+        }
+      ],
+      "evaluation_minute": 600,
+      "max_evidence_age_days": 30,
+      "max_travel_time_minutes": 30,
+      "expected": {
+        "eligible_facility_ids": [],
+        "reachable_capacity_units": 0,
+        "served_units": 0,
+        "unserved_units": 4
+      }
+    },
+    {
+      "id": "closed_service_window_is_not_available_now",
+      "description": "A valid facility with a service window that excludes evaluation time is not counted.",
+      "nodes": [
+        "neighborhood",
+        "clinic"
+      ],
+      "edges": [
+        {
+          "from": "neighborhood",
+          "to": "clinic",
+          "travel_time_minutes": 3,
+          "state": "available"
+        }
+      ],
+      "demand": {
+        "node": "neighborhood",
+        "service": "primary_care",
+        "units": 7
+      },
+      "facilities": [
+        {
+          "id": "clinic-closed",
+          "node": "clinic",
+          "service": "primary_care",
+          "availability": "available",
+          "readiness": "ready",
+          "capacity_units": 25,
+          "source_id": "synthetic-source-f",
+          "evidence_age_days": 0,
+          "opens_minute": 0,
+          "closes_minute": 480
+        }
+      ],
+      "evaluation_minute": 600,
+      "max_evidence_age_days": 30,
+      "max_travel_time_minutes": 30,
+      "expected": {
+        "eligible_facility_ids": [],
+        "reachable_capacity_units": 0,
+        "served_units": 0,
+        "unserved_units": 7
+      }
+    },
+    {
+      "id": "sum_only_eligible_reachable_facilities",
+      "description": "Capacity sums only for facilities with matching service and fully eligible evidence.",
+      "nodes": [
+        "neighborhood",
+        "clinic-a",
+        "clinic-b",
+        "wrong-service",
+        "unknown-readiness"
+      ],
+      "edges": [
+        {
+          "from": "neighborhood",
+          "to": "clinic-a",
+          "travel_time_minutes": 5,
+          "state": "available"
+        },
+        {
+          "from": "neighborhood",
+          "to": "clinic-b",
+          "travel_time_minutes": 9,
+          "state": "available"
+        },
+        {
+          "from": "neighborhood",
+          "to": "wrong-service",
+          "travel_time_minutes": 2,
+          "state": "available"
+        },
+        {
+          "from": "neighborhood",
+          "to": "unknown-readiness",
+          "travel_time_minutes": 1,
+          "state": "available"
+        }
+      ],
+      "demand": {
+        "node": "neighborhood",
+        "service": "primary_care",
+        "units": 10
+      },
+      "facilities": [
+        {
+          "id": "clinic-a",
+          "node": "clinic-a",
+          "service": "primary_care",
+          "availability": "available",
+          "readiness": "ready",
+          "capacity_units": 4,
+          "source_id": "synthetic-source-g",
+          "evidence_age_days": 3,
+          "opens_minute": 0,
+          "closes_minute": 1440
+        },
+        {
+          "id": "clinic-b",
+          "node": "clinic-b",
+          "service": "primary_care",
+          "availability": "available",
+          "readiness": "ready",
+          "capacity_units": 9,
+          "source_id": "synthetic-source-h",
+          "evidence_age_days": 4,
+          "opens_minute": 0,
+          "closes_minute": 1440
+        },
+        {
+          "id": "clinic-wrong-service",
+          "node": "wrong-service",
+          "service": "maternity",
+          "availability": "available",
+          "readiness": "ready",
+          "capacity_units": 500,
+          "source_id": "synthetic-source-i",
+          "evidence_age_days": 0,
+          "opens_minute": 0,
+          "closes_minute": 1440
+        },
+        {
+          "id": "clinic-unknown-ready",
+          "node": "unknown-readiness",
+          "service": "primary_care",
+          "availability": "available",
+          "readiness": "unknown",
+          "capacity_units": 100,
+          "source_id": "synthetic-source-j",
+          "evidence_age_days": 0,
+          "opens_minute": 0,
+          "closes_minute": 1440
+        }
+      ],
+      "evaluation_minute": 600,
+      "max_evidence_age_days": 30,
+      "max_travel_time_minutes": 30,
+      "expected": {
+        "eligible_facility_ids": [
+          "clinic-a",
+          "clinic-b"
+        ],
+        "reachable_capacity_units": 13,
+        "served_units": 10,
+        "unserved_units": 0
+      }
+    },
+    {
+      "id": "over_budget_travel_time_is_not_reachable",
+      "description": "A verified facility beyond the permitted travel-time threshold does not count as reachable for this access contract.",
+      "nodes": [
+        "neighborhood",
+        "clinic"
+      ],
+      "edges": [
+        {
+          "from": "neighborhood",
+          "to": "clinic",
+          "travel_time_minutes": 45,
+          "state": "available"
+        }
+      ],
+      "demand": {
+        "node": "neighborhood",
+        "service": "primary_care",
+        "units": 6
+      },
+      "facilities": [
+        {
+          "id": "clinic-far",
+          "node": "clinic",
+          "service": "primary_care",
+          "availability": "available",
+          "readiness": "ready",
+          "capacity_units": 70,
+          "source_id": "synthetic-source-k",
+          "evidence_age_days": 0,
+          "opens_minute": 0,
+          "closes_minute": 1440
+        }
+      ],
+      "evaluation_minute": 600,
+      "max_evidence_age_days": 30,
+      "max_travel_time_minutes": 30,
+      "expected": {
+        "eligible_facility_ids": [],
+        "reachable_capacity_units": 0,
+        "served_units": 0,
+        "unserved_units": 6
+      }
+    }
+  ]
+}
