@@ -279,7 +279,6 @@ pub struct ScenarioAdditionReport {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct CounterexampleSweepConfig {
     pub schema_version: String,
@@ -372,6 +371,7 @@ pub struct CapacitySweepReport {
     pub remaining_values: Vec<i64>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ScenarioOmissionReport {
     pub omitted_scenario_id: String,
     pub original_scenario_ids: Vec<String>,
@@ -1610,7 +1610,10 @@ pub fn evaluate_counterexample_sweep(
     }
     if config.service_baseline_values.is_empty()
         || config.service_baseline_values.len() > 256
-        || config.service_baseline_values.iter().any(|value| *value < 0)
+        || config
+            .service_baseline_values
+            .iter()
+            .any(|value| *value < 0)
     {
         return Err("baseline domain must contain 1..=256 non-negative integers".to_owned());
     }
@@ -1625,7 +1628,9 @@ pub fn evaluate_counterexample_sweep(
     // Validate the template once before generating any mutations. IDs are
     // suffixed by the baseline value so every attempted scenario is replayable.
     let _ = add_scenario(input, template_patch)?;
-    let evaluation_budget = config.max_evaluations.min(config.service_baseline_values.len());
+    let evaluation_budget = config
+        .max_evaluations
+        .min(config.service_baseline_values.len());
     let mut attempts = Vec::new();
     let mut attempted_values = Vec::new();
     let mut first_counterexample_scenario_id = None;
@@ -2648,13 +2653,16 @@ mod tests {
     #[test]
     fn bounded_sweep_finds_pinned_counterexample_and_stops_honestly() {
         let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture parses");
-        let patch: ScenarioPatch = serde_json::from_str(WITHHELD_SCENARIO)
-            .expect("compound scenario patch parses");
+        let patch: ScenarioPatch =
+            serde_json::from_str(WITHHELD_SCENARIO).expect("compound scenario patch parses");
         let config: CounterexampleSweepConfig =
             serde_json::from_str(COUNTEREXAMPLE_CONFIG).expect("sweep config parses");
         let report = evaluate_counterexample_sweep(&input, &patch, &config)
             .expect("bounded sweep should evaluate");
-        assert_eq!(report.status, CounterexampleSweepStatus::CounterexampleFound);
+        assert_eq!(
+            report.status,
+            CounterexampleSweepStatus::CounterexampleFound
+        );
         assert!(report.first_counterexample_scenario_id.is_some());
         assert_eq!(report.evaluation_count, report.attempts.len());
         assert!(!report.attempts.is_empty());
@@ -2672,22 +2680,36 @@ mod tests {
     #[test]
     fn bounded_sweep_distinguishes_exhaustion_from_budget_exhaustion() {
         let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture parses");
-        let patch: ScenarioPatch = serde_json::from_str(NO_EFFECT_SCENARIO)
-            .expect("no-effect patch parses");
+        let patch: ScenarioPatch =
+            serde_json::from_str(NO_EFFECT_SCENARIO).expect("no-effect patch parses");
         let complete: CounterexampleSweepConfig =
             serde_json::from_str(NO_EFFECT_SWEEP_CONFIG).expect("no-effect config parses");
         let complete_report = evaluate_counterexample_sweep(&input, &patch, &complete).unwrap();
-        assert_eq!(complete_report.status, CounterexampleSweepStatus::DomainExhaustedNoCounterexample);
-        assert_eq!(complete_report.evaluation_count, complete.service_baseline_values.len());
+        assert_eq!(
+            complete_report.status,
+            CounterexampleSweepStatus::DomainExhaustedNoCounterexample
+        );
+        assert_eq!(
+            complete_report.evaluation_count,
+            complete.service_baseline_values.len()
+        );
         assert!(complete_report.first_counterexample_scenario_id.is_none());
         assert!(complete_report.remaining_values.is_empty());
-        assert!(complete_report.attempts.iter().all(|attempt| !attempt.counterexample_found));
+        assert!(
+            complete_report
+                .attempts
+                .iter()
+                .all(|attempt| !attempt.counterexample_found)
+        );
 
         let mut limited = complete.clone();
         limited.service_baseline_values = vec![3, 4, 5];
         limited.max_evaluations = 1;
         let limited_report = evaluate_counterexample_sweep(&input, &patch, &limited).unwrap();
-        assert_eq!(limited_report.status, CounterexampleSweepStatus::BudgetExhausted);
+        assert_eq!(
+            limited_report.status,
+            CounterexampleSweepStatus::BudgetExhausted
+        );
         assert_eq!(limited_report.evaluation_count, 1);
         assert_eq!(limited_report.remaining_values, vec![4, 5]);
         assert!(limited_report.first_counterexample_scenario_id.is_none());
@@ -2764,8 +2786,7 @@ mod tests {
                     input.budgets_by_period[index].period
                 );
 
-                let looser_evaluation =
-                    evaluate(&looser).expect("looser capacity input evaluates");
+                let looser_evaluation = evaluate(&looser).expect("looser capacity input evaluates");
                 let looser_ids: BTreeSet<String> = looser_evaluation
                     .feasible_portfolios
                     .iter()
