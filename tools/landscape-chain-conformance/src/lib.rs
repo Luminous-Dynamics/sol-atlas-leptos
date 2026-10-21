@@ -1563,6 +1563,75 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
                             .to_owned(),
                     );
                 }
+
+                let is_baseline_scenario =
+                    string_at(run, &["manifest_sha256"]) == Some(scenario_sha.as_str());
+                let alternative_index = if is_baseline_scenario { 0 } else { 1 };
+                let expected_alternative_id = string_at(
+                    &chain.review["alternatives"][alternative_index],
+                    &["alternative_id"],
+                )
+                .unwrap_or("");
+                let expected_design_sha = if is_baseline_scenario {
+                    project_sha.as_str()
+                } else {
+                    alternative_sha.as_str()
+                };
+                match run.get("pairing_context") {
+                    Some(context) if context.is_object() => {
+                        check_eq(
+                            &mut errors,
+                            context,
+                            &["alternative_id"],
+                            expected_alternative_id,
+                            "Symthaea paired-run alternative identity",
+                        );
+                        check_eq(
+                            &mut errors,
+                            context,
+                            &["design_snapshot_sha256"],
+                            expected_design_sha,
+                            "Symthaea paired-run design snapshot",
+                        );
+                        check_eq(
+                            &mut errors,
+                            context,
+                            &["boundary_conditions_sha256"],
+                            &boundary_sha,
+                            "Symthaea paired-run boundary conditions",
+                        );
+                        check_eq(
+                            &mut errors,
+                            context,
+                            &["evaluation_plan_sha256"],
+                            &evaluation_plan_sha,
+                            "Symthaea paired-run evaluation plan",
+                        );
+                        check_eq(
+                            &mut errors,
+                            context,
+                            &["metric_registry_sha256"],
+                            &metric_registry_sha,
+                            "Symthaea paired-run metric registry",
+                        );
+                        check_eq(
+                            &mut errors,
+                            context,
+                            &["scope"],
+                            string_at(&chain.project, &["scope"]).unwrap_or(""),
+                            "Symthaea paired-run scope",
+                        );
+                        if at(context, &["seed"]) != at(&chain.scenario, &["seed"]) {
+                            errors.push(
+                                "Symthaea paired-run seed differs from the pinned scenario seed"
+                                    .to_owned(),
+                            );
+                        }
+                    }
+                    _ => errors.push(
+                        "Symthaea scenario run requires a complete pairing_context".to_owned(),
+                    ),
+                }
                 if at(run, &["result_sha256"]).is_some() {
                     errors.push(
                         "blocked scenario run must not claim a qualified result digest".to_owned(),
