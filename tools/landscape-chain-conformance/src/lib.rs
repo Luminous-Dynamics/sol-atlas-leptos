@@ -832,6 +832,13 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
             String::new()
         }
     };
+    let alternative_scenario_sha = match canonical_sha256(&chain.alternative_scenario) {
+        Ok(digest) => digest,
+        Err(error) => {
+            errors.push(error);
+            String::new()
+        }
+    };
     let _stewardship_sha = match canonical_sha256(&chain.stewardship) {
         Ok(digest) => digest,
         Err(error) => {
@@ -1209,6 +1216,99 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
 
     check_eq(
         &mut errors,
+        &chain.alternative_scenario,
+        &["schema"],
+        SCENARIO_SCHEMA,
+        "alternative scenario manifest",
+    );
+    check_eq(
+        &mut errors,
+        &chain.alternative_scenario,
+        &["scenario_id"],
+        "scenario-landscape-alternative-synthetic-v0",
+        "alternative scenario identity",
+    );
+    check_eq(
+        &mut errors,
+        &chain.alternative_scenario,
+        &["design_snapshot", "sha256"],
+        &alternative_sha,
+        "alternative scenario snapshot reference",
+    );
+    check_eq(
+        &mut errors,
+        &chain.alternative_scenario,
+        &["design_snapshot", "schema"],
+        DESIGN_SCHEMA,
+        "alternative scenario snapshot schema",
+    );
+    check_eq(
+        &mut errors,
+        &chain.alternative_scenario,
+        &["design_snapshot", "schema_uri"],
+        DESIGN_SCHEMA_URI,
+        "alternative scenario snapshot schema URI",
+    );
+    if string_at(&chain.alternative_scenario, &["design_snapshot", "scope"])
+        != string_at(&chain.alternative, &["scope"])
+        || string_at(&chain.alternative_scenario, &["design_snapshot", "geometry_status"])
+            != string_at(&chain.alternative, &["geometry_status"])
+        || string_at(
+            &chain.alternative_scenario,
+            &["design_snapshot", "coordinate_frame_kind"],
+        ) != string_at(&chain.scenario, &["design_snapshot", "coordinate_frame_kind"])
+        || at(
+            &chain.alternative_scenario,
+            &["design_snapshot", "georeferenced"],
+        ) != at(&chain.alternative, &["coordinate_frame", "georeferenced"])
+        || at(&chain.alternative_scenario, &["design_snapshot", "feature_count"])
+            .and_then(Value::as_u64) != Some(feature_count(&chain.alternative) as u64)
+    {
+        errors.push("alternative scenario metadata diverges from exact alternative snapshot".to_owned());
+    }
+    check_eq(
+        &mut errors,
+        &chain.alternative_scenario,
+        &["boundary_conditions_sha256"],
+        &boundary_sha,
+        "alternative scenario boundary-condition reference",
+    );
+    check_eq(
+        &mut errors,
+        &chain.alternative_scenario,
+        &["evaluation_plan", "sha256"],
+        &evaluation_plan_sha,
+        "alternative scenario evaluation-plan reference",
+    );
+    check_eq(
+        &mut errors,
+        &chain.alternative_scenario,
+        &["evaluation_plan", "evaluation_id"],
+        "eval-site-demo-v0",
+        "alternative scenario evaluation identity",
+    );
+    if at(&chain.alternative_scenario, &["seed"]) != at(&chain.scenario, &["seed"])
+        || string_at(&chain.alternative_scenario, &["model_id"])
+            != string_at(&chain.scenario, &["model_id"])
+        || string_at(&chain.alternative_scenario, &["model_version"])
+            != string_at(&chain.scenario, &["model_version"])
+        || string_at(&chain.alternative_scenario, &["purpose"])
+            != string_at(&chain.scenario, &["purpose"])
+        || string_at(&chain.alternative_scenario, &["boundary_conditions_sha256"])
+            != string_at(&chain.scenario, &["boundary_conditions_sha256"])
+        || string_at(&chain.alternative_scenario, &["evaluation_plan", "sha256"])
+            != string_at(&chain.scenario, &["evaluation_plan", "sha256"])
+        || string_at(&chain.alternative_scenario, &["scenario_id"])
+            == string_at(&chain.scenario, &["scenario_id"])
+    {
+        errors.push(
+            "paired scenarios must use distinct IDs but identical model/version/seed, forcing, and evaluation plan"
+                .to_owned(),
+        );
+    }
+
+    check_eq(
+        &mut errors,
         &chain.stewardship,
         &["schema"],
         STEWARDSHIP_SCHEMA,
@@ -1394,36 +1494,55 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
     }
     let scenario_runs = records(&chain.review, &["inputs", "scenario_runs"]);
     match scenario_runs {
-        Some(runs) if runs.len() == 1 => {
-            check_eq(
-                &mut errors,
-                &runs[0],
-                &["manifest_sha256"],
-                &scenario_sha,
-                "Symthaea scenario-run reference",
-            );
-            check_eq(
-                &mut errors,
-                &runs[0],
-                &["status"],
-                "blocked",
-                "Symthaea scenario qualification status",
-            );
-            check_eq(
-                &mut errors,
-                &runs[0],
-                &["evidence_class"],
-                "synthetic",
-                "Symthaea scenario evidence class",
-            );
-            if at(&runs[0], &["result_sha256"]).is_some() {
+        Some(runs) if runs.len() == 2 => {
+            let actual_manifests: BTreeSet<&str> = runs
+                .iter()
+                .filter_map(|run| string_at(run, &["manifest_sha256"]))
+                .collect();
+            let expected_manifests: BTreeSet<&str> =
+                [scenario_sha.as_str(), alternative_scenario_sha.as_str()]
+                    .into_iter()
+                    .collect();
+            if actual_manifests != expected_manifests {
                 errors.push(
-                    "blocked scenario run must not claim a qualified result digest".to_owned(),
+                    "Symthaea review must pin both the exact baseline and alternative scenario manifests"
+                        .to_owned(),
                 );
+            }
+            for run in runs {
+                check_eq(
+                    &mut errors,
+                    run,
+                    &["status"],
+                    "blocked",
+                    "Symthaea scenario qualification status",
+                );
+                check_eq(
+                    &mut errors,
+                    run,
+                    &["evidence_class"],
+                    "synthetic",
+                    "Symthaea scenario evidence class",
+                );
+                if string_at(run, &["model_id"]) != string_at(&chain.scenario, &["model_id"])
+                    || string_at(run, &["model_version"])
+                        != string_at(&chain.scenario, &["model_version"])
+                    || string_at(run, &["purpose"]) != string_at(&chain.scenario, &["purpose"])
+                {
+                    errors.push(
+                        "paired Symthaea scenario records disagree with the shared model/version/purpose"
+                            .to_owned(),
+                    );
+                }
+                if at(run, &["result_sha256"]).is_some() {
+                    errors.push(
+                        "blocked scenario run must not claim a qualified result digest".to_owned(),
+                    );
+                }
             }
         }
         _ => errors.push(
-            "Symthaea review must retain exactly one blocked, pinned scenario record".to_owned(),
+            "Symthaea review must retain exactly two blocked, pinned scenario records".to_owned(),
         ),
     }
     check_eq(
@@ -1501,6 +1620,7 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
         ("evaluation plan", evaluation_plan_sha),
         ("observation batch", observations_sha),
         ("scenario manifest", scenario_sha),
+        ("alternative scenario manifest", alternative_scenario_sha),
     ] {
         if !digest_is_well_formed(&digest) {
             errors.push(format!("{label}: invalid generated digest"));
@@ -1548,6 +1668,11 @@ fn negative_control_results(chain: &ChainArtifacts) -> NegativeControlSummary {
         "scenario-review-digest-conflict".to_owned(),
         scenario_disagreement,
     ));
+
+    let mut paired_forcing_mismatch = chain.clone();
+    paired_forcing_mismatch.alternative_scenario["boundary_conditions_sha256"] =
+        json!("d".repeat(64));
+    cases.push(("paired-scenario-forcing-mismatch".to_owned(), paired_forcing_mismatch));
 
     let mut crosswalk_unit_mismatch = chain.clone();
     crosswalk_unit_mismatch.observations["observations"][1]["observed_property"]["unit"] =
@@ -1648,6 +1773,10 @@ pub fn run_conformance(dir: &Path) -> Result<ConformanceReport, Vec<String>> {
         canonical_sha256(&chain.scenario).map_err(|error| vec![error])?,
     );
     artifact_sha256.insert(
+        "alternative_scenario_manifest".to_owned(),
+        canonical_sha256(&chain.alternative_scenario).map_err(|error| vec![error])?,
+    );
+    artifact_sha256.insert(
         "stewardship_record".to_owned(),
         canonical_sha256(&chain.stewardship).map_err(|error| vec![error])?,
     );
@@ -1676,7 +1805,8 @@ pub fn run_conformance(dir: &Path) -> Result<ConformanceReport, Vec<String>> {
         "every observation binds the project digest and an existing feature identifier".to_owned(),
         "observation evidence remains synthetic and cannot be relabelled as observed".to_owned(),
         "scenario manifest binds design, boundary conditions, and exact normalized evaluation-plan bytes".to_owned(),
-        "Mycelix stewardship binds the same project and scenario, with private and non-sensitive defaults".to_owned(),
+        "baseline and alternative scenarios use the same model/version/seed, forcing bytes, and evaluation plan".to_owned(),
+        "Mycelix stewardship binds the same project and baseline scenario, with private and non-sensitive defaults".to_owned(),
         "Symthaea review binds both alternatives, metric registry, source catalog, and scenario manifest".to_owned(),
         "unqualified source catalog and metrics keep consequence-bearing assessments blocked".to_owned(),
         "observation properties are checked against the declared metric crosswalk and evidence class".to_owned(),
@@ -1709,6 +1839,9 @@ pub fn run_conformance(dir: &Path) -> Result<ConformanceReport, Vec<String>> {
             .unwrap_or("unknown")
             .to_owned(),
         scenario_execution_status: "BLOCKED_NOT_EXECUTED".to_owned(),
+        paired_scenario_count: records(&chain.review, &["inputs", "scenario_runs"]).map_or(0, Vec::len),
+        paired_scenarios_share_boundary_conditions: string_at(&chain.scenario, &["boundary_conditions_sha256"])
+            == string_at(&chain.alternative_scenario, &["boundary_conditions_sha256"]),
         review_ranking_status: string_at(&chain.review, &["comparison", "ranking_status"])
             .unwrap_or("unknown")
             .to_owned(),
