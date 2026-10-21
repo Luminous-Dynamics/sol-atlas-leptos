@@ -85,8 +85,9 @@ jobs:
             (.uniform_baseline_best_weighted_discrimination_nats - 10.0 | abs) < 0.000001 and
             (.uniform_baseline_mean_stratum_coverage_fraction - 0.53125 | abs) < 0.000001 and
             (.exact_gain_over_uniform_mean_nats - 1.21875 | abs) < 0.000001 and
-            ([.decisions[] | select(.candidate_id == "candidate-e-consent-denied" and .reason == "consent_denied")] | length) == 1 and
-            ([.decisions[] | select(.candidate_id == "candidate-f-access-unknown" and .reason == "access_unknown")] | length) == 1 and
+            ([.decisions[] | select(.candidate_id == "candidate-e-consent-denied" and .reason == "consent_denied" and .consent_status == "denied" and .consent_evidence_sha256 == null)] | length) == 1 and
+            ([.decisions[] | select(.candidate_id == "candidate-f-access-unknown" and .reason == "access_unknown" and .access_status == "unknown" and .access_authorization_sha256 == null)] | length) == 1 and
+            ([.decisions[] | select(.candidate_id == "candidate-a-high-density" and (.consent_evidence_sha256 | test("^[0-9a-f]{64}$")) and (.access_authorization_sha256 | test("^[0-9a-f]{64}$")))] | length) == 1 and
             ([.decisions[] | select(.decision == "selected" and (.reason == null))] | length) == 2
           ' "$report"
 
