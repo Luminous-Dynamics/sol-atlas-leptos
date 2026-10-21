@@ -24,7 +24,8 @@
         "dispatch_status": "feasible",
         "wage_and_shift_status": "viable",
         "evidence_status": "complete",
-        "reported_backlog": true
+        "reported_backlog": true,
+        "qualified_supervisor_available": true
       },
       "oracle": {
         "causes": [
@@ -268,7 +269,8 @@
         "authorization_status": "valid_for_scope",
         "dispatch_status": "feasible",
         "evidence_status": "complete",
-        "reported_backlog": true
+        "reported_backlog": true,
+        "qualified_supervisor_available": true
       },
       "oracle": {
         "causes": [
