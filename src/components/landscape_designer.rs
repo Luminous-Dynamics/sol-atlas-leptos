@@ -378,10 +378,15 @@ fn landscape_metric_cards() -> Result<Vec<LandscapeMetricCard>, String> {
             .as_str()
             .filter(|value| !value.trim().is_empty())
             .ok_or_else(|| format!("Landscape source {id} has no license status"))?;
-        if source_map.iter().any(|(candidate_id, _, _)| candidate_id == id) {
+        if source_map.iter().any(|(candidate_id, _, _, _)| candidate_id == id) {
             return Err(format!("Landscape source catalog has duplicate ID {id}"));
         }
-        source_map.push((id.to_string(), title.to_string(), ingestion_state.to_string(), license_status.to_string()));
+        source_map.push((
+            id.to_string(),
+            title.to_string(),
+            ingestion_state.to_string(),
+            license_status.to_string(),
+        ));
     }
 
     let entries = registry["metrics"]
