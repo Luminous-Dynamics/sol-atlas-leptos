@@ -111,7 +111,17 @@ Do not set runtime/scale claims before a repeatable run exists. When a Rust impl
 
 ## 8. Industry / SOTA comparison without overclaiming
 
-Commercial field-service and workforce-management suites are relevant comparators for dispatch, scheduling, inventory and work orders. O*NET/ESCO are occupational reference systems. Operations-research methods are relevant to constrained assignment and scheduling. They solve overlapping but not identical problems; a single blended leaderboard would be misleading.
+Commercial incumbents already cover important parts of the scheduling problem:
+
+- **Microsoft Dynamics 365 Field Service:** Universal Resource Scheduling and the separately licensed Resource Scheduling Optimization add-on cover resource/requirement matching, work-order booking, locations, time windows, and configurable optimization goals. Official docs: https://learn.microsoft.com/en-us/dynamics365/field-service/universal-resource-scheduling-for-field-service and https://learn.microsoft.com/en-us/dynamics365/field-service/rso-configuration
+- **ServiceNow Field Service Management:** dynamic scheduling can assign work using configured criteria such as skills, travel time, and priority; its broader FSM scope includes schedules, crews, inventory/equipment, work orders, and dispatch. Official docs: https://www.servicenow.com/docs/r/field-service-management/field-service-scheduling/setting-up-scheduling-methods.html and https://www.servicenow.com/docs/r/field-service-management/use-fsm.html
+- **Salesforce Field Service:** scheduling policies, work rules, and objectives determine resource/time-slot candidates using such factors as qualifications, proximity, urgency, and travel. Official docs: https://help.salesforce.com/s/articleView?id=service.pfs_customization.htm&language=en_US and https://help.salesforce.com/s/articleView?id=sf.pfs_scheduling.htm&language=en_US&type=5
+- **O*NET / ESCO:** occupational/task/skill-reference systems, not field-service execution engines. See https://www.onetcenter.org/database.html and https://esco.ec.europa.eu/en/classification
+- **Operations-research solvers:** useful for constrained assignment, routing, scheduling, and exact small-instance oracles where model assumptions match the case.
+
+These pages establish that the products expose the listed features; they do not establish comparative measured performance on our cases. Configure each baseline honestly, name the edition/version/constraints/costs, and compare on identical inputs. If equivalent access or data is unavailable, use a qualitative capability map rather than invented scores.
+
+The intended gap is **pre-scheduling diagnosis plus an evidence-bound bridge to verified work and fair paid-work pathways**: identify whether the blocker is skills, money, parts, authorization, demand data, dispatch, or job quality, then pass only admissible tasks to an existing scheduler. The project should integrate with or complement mature dispatch engines before attempting to replace them. A single blended leaderboard across unlike systems would be misleading.
 
 A fair comparison requires the same frozen tasks, evidence quality, resource limits, hard gates and decision horizon; disclosed product/algorithm/version/configuration and cost; identical scoring and blind cases; predictive quality plus admissibility/worker/service outcomes; explicit handling of missing/stale data; and independent reproduction.
 
