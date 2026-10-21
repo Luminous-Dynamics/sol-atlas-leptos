@@ -151,6 +151,10 @@ jobs:
           cargo run -p sol-atlas-core --bin demand_response_assess -- \
             artifacts/flexdc-reference/adapted-trace.json \
             > artifacts/flexdc-reference/assessment-report.json
+      # Install report-validation tooling only after the simulation environment has
+      # been captured; do not let validator packages contaminate that run receipt.
+      - name: Install pinned JSON Schema validation tooling
+        run: python -m pip install --disable-pip-version-check "jsonschema[format]==4.26.0"
       - name: Validate outputs and write paired comparison summary
         run: |
           python - <<'PY'
