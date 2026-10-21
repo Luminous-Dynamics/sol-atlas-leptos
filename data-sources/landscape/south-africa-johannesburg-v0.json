@@ -370,6 +370,8 @@
     "https://dataspace.copernicus.eu/news/2026-8-25-copernicus-dem-30m-view-service-update",
     "https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM",
     "https://www.openstreetmap.org/copyright",
-    "https://developers.google.com/earth-engine/datasets/catalog/sentinel-2"
+    "https://developers.google.com/earth-engine/datasets/catalog/sentinel-2",
+    "https://ngigeoportal.dlrrd.gov.za/cdngiportal/",
+    "https://ngi.dlrrd.gov.za/index.php/what-we-do/maps-and-geospatial-information"
   ]
 }
