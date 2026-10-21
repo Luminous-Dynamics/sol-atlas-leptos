@@ -144,6 +144,7 @@ struct ReferenceFrontier {
 struct ScenarioReceipt {
     scenario_id: String,
     hypothesis_count: usize,
+    budget: Cost,
     permitted_query_count: usize,
     states_explored: usize,
     policy_combinations_explored: usize,
@@ -818,6 +819,7 @@ fn verify_values(
         receipts.push(ScenarioReceipt {
             scenario_id: scenario.id.clone(),
             hypothesis_count: scenario.hypotheses.len(),
+            budget: scenario.budget,
             permitted_query_count: scenario.queries.iter().filter(|q| q.permitted).count(),
             states_explored: solver.states_explored,
             policy_combinations_explored: solver.policy_combinations_explored,
@@ -943,22 +945,7 @@ mod tests {
         assert_eq!(report.status, "SYNTHETIC_ONLY_EXACT_ADAPTIVE_ORACLE_PASS");
         assert_eq!(report.scenario_count, 5);
         assert!(report.scenarios.iter().all(|scenario| {
-            !scenario.frontier.is_empty()
-                && scenario
-                    .frontier
-                    .iter()
-                    .all(|policy| policy.worst_case_cost.fits(
-                        scenario
-                            .frontier
-                            .iter()
-                            .find(|candidate| candidate == policy)
-                            .map(|_| Cost {
-                                staff_minutes: u32::MAX,
-                                cash_zar_cents: u32::MAX,
-                                delay_hours: u32::MAX
-                            })
-                            .unwrap_or_default()
-                    ))
+            scenario.frontier.iter().all(|policy| policy.worst_case_cost.fits(scenario.budget))
         }));
     }
 
