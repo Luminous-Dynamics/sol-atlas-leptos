@@ -28,7 +28,7 @@ The one-per-correlation-group rule is a conservative v0.1 anti-redundancy constr
 
 ## Frozen synthetic benchmark
 
-Budget: 6 cost units. The fixture includes candidates where greedy ranking by score-per-cost would choose a cost-4 candidate first and finish with score 7, while the exact constrained solution chooses two cost-3 candidates with a total score of 10. Those numbers are synthetic algorithm oracles, not empirical performance or money.
+Budget: 6 cost units. The report calculates a score-per-cost greedy baseline as well as the exact constrained optimum. In this fixture the greedy baseline selects the cost-4 candidate with score 7; exact budgeted selection chooses two cost-3 candidates with total score 10, a synthetic gain of 3 discrimination-nats. These are algorithm oracles, not empirical performance, cash costs, or a landscape benefit.
 
 Known-answer checks cover the Gaussian symmetric-KL equation, exact budgeted selection, one-per-group selection, fail-closed consent/access, duplicate IDs, the synthetic-only claim ceiling, input digests and deterministic reports.
 
