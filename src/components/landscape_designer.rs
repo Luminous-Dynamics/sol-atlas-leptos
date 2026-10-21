@@ -330,10 +330,18 @@ struct LandscapeMetricCard {
 /// Read only metric definitions. This deliberately fails closed if a future
 /// registry adds values or loses the v0 schema/status contract.
 fn landscape_metric_cards() -> Result<Vec<LandscapeMetricCard>, String> {
-    let registry: Value = serde_json::from_str(include_str!(
-        "../../metrics/landscape/registry-v0.json"
-    ))
-    .map_err(|error| format!("Performance registry is invalid JSON: {error}"))?;
+    parse_landscape_metric_cards(
+        include_str!("../../metrics/landscape/registry-v0.json"),
+        include_str!("../../data-sources/landscape/south-africa-johannesburg-v0.json"),
+    )
+}
+
+fn parse_landscape_metric_cards(
+    registry_json: &str,
+    catalog_json: &str,
+) -> Result<Vec<LandscapeMetricCard>, String> {
+    let registry: Value = serde_json::from_str(registry_json)
+        .map_err(|error| format!("Performance registry is invalid JSON: {error}"))?;
 
     if registry["schema"] != "luminous.landscape-performance-registry.v0"
         || registry["schema_uri"]
@@ -346,10 +354,8 @@ fn landscape_metric_cards() -> Result<Vec<LandscapeMetricCard>, String> {
         );
     }
 
-    let catalog: Value = serde_json::from_str(include_str!(
-        "../../data-sources/landscape/south-africa-johannesburg-v0.json"
-    ))
-    .map_err(|error| format!("Landscape source catalog is invalid JSON: {error}"))?;
+    let catalog: Value = serde_json::from_str(catalog_json)
+        .map_err(|error| format!("Landscape source catalog is invalid JSON: {error}"))?;
     if catalog["schema"] != "luminous.landscape-source-catalog.v0"
         || catalog["catalog_status"] != "metadata-only-not-ingested"
     {
@@ -1446,6 +1452,68 @@ mod tests {
         assert_eq!(cards.iter().map(|card| card.family.as_str()).collect::<std::collections::HashSet<_>>().len(), 7);
         assert!(cards.iter().all(|card| !card.required_inputs.is_empty()));
         assert!(cards.iter().all(|card| !card.target_policy.is_empty()));
+    }
+
+    #[test]
+    fn metric_registry_rejects_unknown_candidate_source_ids() {
+        let mut registry: Value = serde_json::from_str(include_str!(
+            "../../metrics/landscape/registry-v0.json"
+        ))
+        .unwrap();
+        let catalog = include_str!(
+            "../../data-sources/landscape/south-africa-johannesburg-v0.json"
+        );
+        registry["metrics"][0]["candidate_sources"][0]["source_id"] =
+            serde_json::json!("unknown.dataset");
+        let errors = parse_landscape_metric_cards(&registry.to_string(), catalog).unwrap_err();
+        assert!(errors.contains("Performance metric heat.shade_fraction_at_declared_time references unknown catalog source unknown.dataset"));
+    }
+
+    #[test]
+    fn metric_registry_rejects_duplicate_candidate_source_references() {
+        let mut registry: Value = serde_json::from_str(include_str!(
+            "../../metrics/landscape/registry-v0.json"
+        ))
+        .unwrap();
+        let catalog = include_str!(
+            "../../data-sources/landscape/south-africa-johannesburg-v0.json"
+        );
+        let duplicate = registry["metrics"][0]["candidate_sources"][0].clone();
+        registry["metrics"][0]["candidate_sources"]
+            .as_array_mut()
+            .unwrap()
+            .push(duplicate);
+        let errors = parse_landscape_metric_cards(&registry.to_string(), catalog).unwrap_err();
+        assert!(errors.iter().any(|error| error.contains("duplicate candidate source ID")));
+    }
+
+    #[test]
+    fn metric_registry_rejects_embedded_results_or_ingested_catalog_claims() {
+        let mut registry: Value = serde_json::from_str(include_str!(
+            "../../metrics/landscape/registry-v0.json"
+        ))
+        .unwrap();
+        let catalog = include_str!(
+            "../../data-sources/landscape/south-africa-johannesburg-v0.json"
+        );
+        registry["metrics"][0]["value"] = serde_json::json!(0.0);
+        let errors = parse_landscape_metric_cards(&registry.to_string(), catalog).unwrap_err();
+        assert!(errors.iter().any(|error| error.contains("embeds a value")));
+
+        let mut valid_registry: Value = serde_json::from_str(include_str!(
+            "../../metrics/landscape/registry-v0.json"
+        ))
+        .unwrap();
+        let mut catalog_value: Value = serde_json::from_str(catalog).unwrap();
+        catalog_value["catalog_status"] = serde_json::json!("qualified");
+        let errors = parse_landscape_metric_cards(
+            &valid_registry.to_string(),
+            &catalog_value.to_string(),
+        )
+        .unwrap_err();
+        assert!(errors.contains(&"Landscape source catalog is not in the expected metadata-only v0 state".to_string()));
+        valid_registry["metrics"][0]["candidate_sources"][0]["source_id"] =
+            serde_json::json!("unused");
     }
 
     #[test]
