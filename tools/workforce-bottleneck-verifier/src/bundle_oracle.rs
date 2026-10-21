@@ -92,9 +92,7 @@ fn can_obtain_inspection(p: &Problem) -> bool {
 }
 
 fn can_redesign_route(p: &Problem) -> bool {
-    p.blockers.contains(&Blocker::Dispatch)
-        && p.evidence_complete
-        && p.worker_consultation
+    p.blockers.contains(&Blocker::Dispatch) && p.evidence_complete && p.worker_consultation
 }
 
 fn can_remediate_job_quality(p: &Problem) -> bool {
@@ -171,17 +169,19 @@ fn solve(p: &Problem) -> Decision {
             continue;
         }
 
-        let selected_are_eligible = ACTIONS.iter().enumerate().all(|(i, action)| {
-            mask & (1usize << i) == 0 || (action.eligible)(p)
-        });
+        let selected_are_eligible = ACTIONS
+            .iter()
+            .enumerate()
+            .all(|(i, action)| mask & (1usize << i) == 0 || (action.eligible)(p));
         if !selected_are_eligible {
             continue;
         }
 
         let clears_every_blocker = p.blockers.iter().all(|blocker| {
-            ACTIONS.iter().enumerate().any(|(i, action)| {
-                mask & (1usize << i) != 0 && action.clears.contains(blocker)
-            })
+            ACTIONS
+                .iter()
+                .enumerate()
+                .any(|(i, action)| mask & (1usize << i) != 0 && action.clears.contains(blocker))
         });
         if clears_every_blocker {
             feasible.push(mask);
@@ -194,9 +194,10 @@ fn solve(p: &Problem) -> Decision {
         .iter()
         .copied()
         .filter(|mask| {
-            !feasible.iter().copied().any(|other| {
-                other != *mask && (other & *mask) == other
-            })
+            !feasible
+                .iter()
+                .copied()
+                .any(|other| other != *mask && (other & *mask) == other)
         })
         .collect();
 
@@ -270,12 +271,34 @@ fn reference_cases() -> Vec<Reference> {
 
     vec![
         Reference {
-            problem: problem("BND-001", &[S], C, true, true, false, false, false, true, true),
+            problem: problem(
+                "BND-001",
+                &[S],
+                C,
+                true,
+                true,
+                false,
+                false,
+                false,
+                true,
+                true,
+            ),
             status: E,
             bundles: vec![vec!["SUPERVISED_SKILL_DEVELOPMENT"]],
         },
         Reference {
-            problem: problem("BND-002", &[S], C, true, true, true, false, false, true, true),
+            problem: problem(
+                "BND-002",
+                &[S],
+                C,
+                true,
+                true,
+                true,
+                false,
+                false,
+                true,
+                true,
+            ),
             status: E,
             bundles: vec![
                 vec!["QUALIFIED_REDEPLOYMENT"],
@@ -283,7 +306,18 @@ fn reference_cases() -> Vec<Reference> {
             ],
         },
         Reference {
-            problem: problem("BND-003", &[S, P], C, true, true, true, true, false, true, true),
+            problem: problem(
+                "BND-003",
+                &[S, P],
+                C,
+                true,
+                true,
+                true,
+                true,
+                false,
+                true,
+                true,
+            ),
             status: E,
             bundles: vec![
                 vec![
@@ -297,47 +331,146 @@ fn reference_cases() -> Vec<Reference> {
             ],
         },
         Reference {
-            problem: problem("BND-004", &[A], C, true, false, false, false, true, false, false),
+            problem: problem(
+                "BND-004",
+                &[A],
+                C,
+                true,
+                false,
+                false,
+                false,
+                true,
+                false,
+                false,
+            ),
             status: E,
             bundles: vec![vec!["OBTAIN_QUALIFIED_INSPECTION_OR_AUTHORIZATION"]],
         },
         Reference {
-            problem: problem("BND-005", &[T], C, true, false, false, false, false, true, false),
+            problem: problem(
+                "BND-005",
+                &[T],
+                C,
+                true,
+                false,
+                false,
+                false,
+                false,
+                true,
+                false,
+            ),
             status: E,
             bundles: vec![vec!["REDESIGN_ROUTE_OR_SHIFT_WITH_WORKER_INPUT"]],
         },
         Reference {
-            problem: problem("BND-006", &[J], C, true, false, false, false, false, true, true),
+            problem: problem(
+                "BND-006",
+                &[J],
+                C,
+                true,
+                false,
+                false,
+                false,
+                false,
+                true,
+                true,
+            ),
             status: E,
             bundles: vec![vec!["REMEDIATE_JOB_QUALITY_WITH_WORKER_CONSULTATION"]],
         },
         Reference {
-            problem: problem("BND-007", &[D], C, true, false, false, false, false, false, false),
+            problem: problem(
+                "BND-007",
+                &[D],
+                C,
+                true,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+            ),
             status: E,
             bundles: vec![vec!["DEDUPE_AND_VALIDATE_DEMAND"]],
         },
         Reference {
-            problem: problem("BND-008", &[S], X, true, true, true, false, false, true, true),
+            problem: problem(
+                "BND-008",
+                &[S],
+                X,
+                true,
+                true,
+                true,
+                false,
+                false,
+                true,
+                true,
+            ),
             status: FA,
             bundles: vec![],
         },
         Reference {
-            problem: problem("BND-009", &[S], U, false, true, true, false, false, true, true),
+            problem: problem(
+                "BND-009",
+                &[S],
+                U,
+                false,
+                true,
+                true,
+                false,
+                false,
+                true,
+                true,
+            ),
             status: FU,
             bundles: vec![],
         },
         Reference {
-            problem: problem("BND-010", &[P], C, true, false, false, false, false, false, false),
+            problem: problem(
+                "BND-010",
+                &[P],
+                C,
+                true,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+            ),
             status: N,
             bundles: vec![],
         },
         Reference {
-            problem: problem("BND-011", &[S, P], C, true, false, false, true, false, true, true),
+            problem: problem(
+                "BND-011",
+                &[S, P],
+                C,
+                true,
+                false,
+                false,
+                true,
+                false,
+                true,
+                true,
+            ),
             status: N,
             bundles: vec![],
         },
         Reference {
-            problem: problem("BND-012", &[T, J], C, true, false, false, false, false, true, true),
+            problem: problem(
+                "BND-012",
+                &[T, J],
+                C,
+                true,
+                false,
+                false,
+                false,
+                false,
+                true,
+                true,
+            ),
             status: E,
             bundles: vec![vec![
                 "REDESIGN_ROUTE_OR_SHIFT_WITH_WORKER_INPUT",
@@ -345,17 +478,50 @@ fn reference_cases() -> Vec<Reference> {
             ]],
         },
         Reference {
-            problem: problem("BND-013", &[S], C, true, false, false, false, false, true, true),
+            problem: problem(
+                "BND-013",
+                &[S],
+                C,
+                true,
+                false,
+                false,
+                false,
+                false,
+                true,
+                true,
+            ),
             status: N,
             bundles: vec![],
         },
         Reference {
-            problem: problem("BND-014", &[A], C, true, false, false, false, false, true, true),
+            problem: problem(
+                "BND-014",
+                &[A],
+                C,
+                true,
+                false,
+                false,
+                false,
+                false,
+                true,
+                true,
+            ),
             status: N,
             bundles: vec![],
         },
         Reference {
-            problem: problem("BND-015", &[S], C, false, true, true, false, false, true, true),
+            problem: problem(
+                "BND-015",
+                &[S],
+                C,
+                false,
+                true,
+                true,
+                false,
+                false,
+                true,
+                true,
+            ),
             status: H,
             bundles: vec![],
         },
@@ -436,12 +602,13 @@ mod tests {
         assert_eq!(decision.status, Status::ExecutableBundles);
         assert_eq!(decision.bundles.len(), 2);
         for bundle in decision.bundles {
-            assert!(bundle
-                .iter()
-                .any(|action| action.contains("PROCURE_OR_QUALIFY")));
+            assert!(
+                bundle
+                    .iter()
+                    .any(|action| action.contains("PROCURE_OR_QUALIFY"))
+            );
             assert!(bundle.iter().any(|action| {
-                *action == "SUPERVISED_SKILL_DEVELOPMENT"
-                    || *action == "QUALIFIED_REDEPLOYMENT"
+                *action == "SUPERVISED_SKILL_DEVELOPMENT" || *action == "QUALIFIED_REDEPLOYMENT"
             }));
         }
     }
@@ -486,7 +653,11 @@ mod tests {
                         .flat_map(|action| action.clears.iter().copied())
                         .collect();
                     assert!(
-                        !case.problem.blockers.iter().all(|blocker| cleared.contains(blocker)),
+                        !case
+                            .problem
+                            .blockers
+                            .iter()
+                            .all(|blocker| cleared.contains(blocker)),
                         "{} bundle {:?} is not minimal",
                         case.problem.id,
                         bundle
