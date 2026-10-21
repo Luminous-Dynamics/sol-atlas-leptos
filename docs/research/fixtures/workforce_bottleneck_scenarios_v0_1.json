@@ -1,0 +1,392 @@
+{
+  "schema_version": "0.1.0",
+  "corpus_id": "SA-WORKFORCE-DIAG-001-V0.1",
+  "claim_ceiling": "SYNTHETIC_TEST_ONLY; no real shortage, jobs, cost savings, service outcome, competence, authorization, or causal claim",
+  "units": {
+    "staff_count": "synthetic workers available in declared task/time window",
+    "work_items": "synthetic work items",
+    "wait_hours": "synthetic hours",
+    "currency": "not represented; no South African monetary estimates"
+  },
+  "cases": [
+    {
+      "id": "WBD-001",
+      "domain": "water_maintenance",
+      "summary": "True task-ready capacity shortfall; work funded, tools and authorization ready.",
+      "synthetic_only": true,
+      "observations": {
+        "demand_status": "validated",
+        "funding_status": "confirmed_synthetic",
+        "required_task_capacity": 4,
+        "available_task_ready_capacity": 2,
+        "tools_and_spares": "available",
+        "authorization_status": "valid_for_scope",
+        "dispatch_status": "feasible",
+        "wage_and_shift_status": "viable",
+        "evidence_status": "complete",
+        "reported_backlog": true,
+        "qualified_supervisor_available": true
+      },
+      "oracle": {
+        "causes": [
+          "SKILLS_CAPACITY"
+        ],
+        "admissible_interventions": [
+          "SUPERVISED_SKILL_DEVELOPMENT",
+          "QUALIFIED_REDEPLOYMENT_OR_FUNDED_HIRING"
+        ],
+        "prohibited_interventions": [
+          "CLAIM_SHORTAGE_PROVEN_BY_VACANCY_COUNT_ALONE"
+        ],
+        "disposition": "DIAGNOSE_AND_INTERVENE"
+      }
+    },
+    {
+      "id": "WBD-002",
+      "domain": "water_maintenance",
+      "summary": "Backlog exists, but no payer or approved budget is evidenced.",
+      "synthetic_only": true,
+      "observations": {
+        "demand_status": "validated",
+        "funding_status": "absent",
+        "required_task_capacity": 3,
+        "available_task_ready_capacity": 5,
+        "tools_and_spares": "available",
+        "authorization_status": "valid_for_scope",
+        "dispatch_status": "feasible",
+        "wage_and_shift_status": "unknown",
+        "evidence_status": "complete",
+        "reported_backlog": true
+      },
+      "oracle": {
+        "causes": [
+          "FUNDING_OR_PAYER"
+        ],
+        "admissible_interventions": [
+          "ESTABLISH_LAWFUL_FUNDING_AND_PROCUREMENT"
+        ],
+        "prohibited_interventions": [
+          "COUNT_AS_FUNDED_JOB",
+          "RECOMMEND_TRAINING_AS_PRIMARY_REMEDY"
+        ],
+        "disposition": "FUNDING_GATE_BLOCKS_EXECUTION"
+      }
+    },
+    {
+      "id": "WBD-003",
+      "domain": "electricity_maintenance",
+      "summary": "Funded job and task-ready worker exist; a required spare is unavailable.",
+      "synthetic_only": true,
+      "observations": {
+        "demand_status": "validated",
+        "funding_status": "confirmed_synthetic",
+        "required_task_capacity": 1,
+        "available_task_ready_capacity": 1,
+        "tools_and_spares": "critical_spare_missing",
+        "authorization_status": "valid_for_scope",
+        "dispatch_status": "feasible",
+        "evidence_status": "complete",
+        "reported_backlog": true
+      },
+      "oracle": {
+        "causes": [
+          "TOOLS_OR_SPARES"
+        ],
+        "admissible_interventions": [
+          "PROCURE_OR_QUALIFY_VALID_PART_SUBSTITUTE"
+        ],
+        "prohibited_interventions": [
+          "MARK_REPAIR_COMPLETE_WITHOUT_VERIFICATION",
+          "RECOMMEND_TRAINING_AS_PRIMARY_REMEDY"
+        ],
+        "disposition": "RESOURCE_GATE_BLOCKS_COMPLETION"
+      }
+    },
+    {
+      "id": "WBD-004",
+      "domain": "electricity_maintenance",
+      "summary": "Capacity and tools exist; required inspection authorization is absent.",
+      "synthetic_only": true,
+      "observations": {
+        "demand_status": "validated",
+        "funding_status": "confirmed_synthetic",
+        "required_task_capacity": 1,
+        "available_task_ready_capacity": 2,
+        "tools_and_spares": "available",
+        "authorization_status": "inspection_pending",
+        "dispatch_status": "feasible",
+        "evidence_status": "complete",
+        "reported_backlog": true
+      },
+      "oracle": {
+        "causes": [
+          "AUTHORIZATION_OR_SAFETY_GATE"
+        ],
+        "admissible_interventions": [
+          "OBTAIN_QUALIFIED_INSPECTION_OR_AUTHORIZATION",
+          "BLOCK_EXECUTION_UNTIL_GATE_PASSES"
+        ],
+        "prohibited_interventions": [
+          "BYPASS_INSPECTION",
+          "TREAT_AI_ADVICE_AS_AUTHORIZATION"
+        ],
+        "disposition": "BLOCK_EXECUTION"
+      }
+    },
+    {
+      "id": "WBD-005",
+      "domain": "water_maintenance",
+      "summary": "Aggregate capacity is enough, but travel and shift windows make dispatch infeasible.",
+      "synthetic_only": true,
+      "observations": {
+        "demand_status": "validated",
+        "funding_status": "confirmed_synthetic",
+        "required_task_capacity": 3,
+        "available_task_ready_capacity": 4,
+        "tools_and_spares": "available",
+        "authorization_status": "valid_for_scope",
+        "dispatch_status": "travel_shift_mismatch",
+        "evidence_status": "complete",
+        "reported_backlog": true
+      },
+      "oracle": {
+        "causes": [
+          "DISPATCH_OR_GEOGRAPHY"
+        ],
+        "admissible_interventions": [
+          "REDESIGN_ROUTE_OR_SHIFT_WITH_WORKER_INPUT"
+        ],
+        "prohibited_interventions": [
+          "ASSERT_REGIONAL_SKILLS_SHORTAGE_FROM_LOCAL_DELAY_ALONE"
+        ],
+        "disposition": "REDESIGN_DISPATCH"
+      }
+    },
+    {
+      "id": "WBD-006",
+      "domain": "construction_maintenance",
+      "summary": "Qualified workers are available, but shift/pay/conditions are nonviable and retention is poor.",
+      "synthetic_only": true,
+      "observations": {
+        "demand_status": "validated",
+        "funding_status": "confirmed_synthetic",
+        "required_task_capacity": 3,
+        "available_task_ready_capacity": 5,
+        "tools_and_spares": "available",
+        "authorization_status": "valid_for_scope",
+        "dispatch_status": "feasible",
+        "wage_and_shift_status": "nonviable_synthetic",
+        "evidence_status": "complete",
+        "reported_backlog": true
+      },
+      "oracle": {
+        "causes": [
+          "WAGE_OR_RETENTION"
+        ],
+        "admissible_interventions": [
+          "REVIEW_COMPENSATION_SHIFT_SAFETY_AND_RETENTION_WITH_WORKERS"
+        ],
+        "prohibited_interventions": [
+          "LABEL_AS_SKILLS_SHORTAGE_WITHOUT_EVIDENCE",
+          "USE_UNPAID_LABOUR_AS_FIX"
+        ],
+        "disposition": "REVIEW_JOB_QUALITY"
+      }
+    },
+    {
+      "id": "WBD-007",
+      "domain": "water_maintenance",
+      "summary": "Conflicting reports and stale asset observations prevent a reliable diagnosis.",
+      "synthetic_only": true,
+      "observations": {
+        "demand_status": "conflicting",
+        "funding_status": "confirmed_synthetic",
+        "required_task_capacity": null,
+        "available_task_ready_capacity": null,
+        "tools_and_spares": "unknown",
+        "authorization_status": "unknown",
+        "dispatch_status": "unknown",
+        "evidence_status": "stale_and_conflicting",
+        "reported_backlog": true
+      },
+      "oracle": {
+        "causes": [
+          "EVIDENCE_INSUFFICIENT"
+        ],
+        "admissible_interventions": [
+          "COLLECT_OR_REVALIDATE_EVIDENCE"
+        ],
+        "prohibited_interventions": [
+          "ASSERT_SINGLE_ROOT_CAUSE",
+          "INVENT_PROBABILITIES"
+        ],
+        "disposition": "ABSTAIN_AND_GATHER_EVIDENCE"
+      }
+    },
+    {
+      "id": "WBD-008",
+      "domain": "electricity_maintenance",
+      "summary": "Novice needs diagnostic help; qualified supervisor, funding, tools and safe oversight exist.",
+      "synthetic_only": true,
+      "observations": {
+        "demand_status": "validated",
+        "funding_status": "confirmed_synthetic",
+        "required_task_capacity": 1,
+        "available_task_ready_capacity": 0,
+        "novice_present": true,
+        "qualified_supervisor_available": true,
+        "tools_and_spares": "available",
+        "authorization_status": "supervised_scope_valid",
+        "evidence_status": "complete",
+        "reported_backlog": true
+      },
+      "oracle": {
+        "causes": [
+          "SKILLS_CAPACITY"
+        ],
+        "admissible_interventions": [
+          "HUMAN_AI_DIAGNOSTIC_ASSIST",
+          "SUPERVISED_SKILL_DEVELOPMENT"
+        ],
+        "prohibited_interventions": [
+          "UNSUPERVISED_REGULATED_EXECUTION",
+          "COUNT_AI_OUTPUT_AS_COMPETENCE"
+        ],
+        "disposition": "SUPERVISED_ASSIST_AND_LEARN"
+      }
+    },
+    {
+      "id": "WBD-009",
+      "domain": "water_maintenance",
+      "summary": "Task-ready capacity and required spares are both insufficient.",
+      "synthetic_only": true,
+      "observations": {
+        "demand_status": "validated",
+        "funding_status": "confirmed_synthetic",
+        "required_task_capacity": 3,
+        "available_task_ready_capacity": 1,
+        "tools_and_spares": "critical_spare_missing",
+        "authorization_status": "valid_for_scope",
+        "dispatch_status": "feasible",
+        "evidence_status": "complete",
+        "reported_backlog": true,
+        "qualified_supervisor_available": true
+      },
+      "oracle": {
+        "causes": [
+          "SKILLS_CAPACITY",
+          "TOOLS_OR_SPARES",
+          "INTERACTING_BOTTLENECKS"
+        ],
+        "admissible_interventions": [
+          "COMBINED_INTERVENTIONS",
+          "SUPERVISED_SKILL_DEVELOPMENT",
+          "PROCURE_OR_QUALIFY_VALID_PART_SUBSTITUTE"
+        ],
+        "prohibited_interventions": [
+          "CLAIM_ONE_INTERVENTION_UNLOCKS_COMPLETION",
+          "MARK_WORK_COMPLETE_BEFORE_ALL_GATES_PASS"
+        ],
+        "disposition": "PLAN_DEPENDENT_INTERVENTION_BUNDLE"
+      }
+    },
+    {
+      "id": "WBD-010",
+      "domain": "water_maintenance",
+      "summary": "Duplicate or misrouted reports inflate the apparent backlog; true demand is unreconciled.",
+      "synthetic_only": true,
+      "observations": {
+        "demand_status": "duplicate_and_misrouted",
+        "funding_status": "confirmed_synthetic",
+        "required_task_capacity": null,
+        "available_task_ready_capacity": 4,
+        "tools_and_spares": "available",
+        "authorization_status": "valid_for_scope",
+        "evidence_status": "partial",
+        "reported_backlog": true
+      },
+      "oracle": {
+        "causes": [
+          "DEMAND_DATA_QUALITY"
+        ],
+        "admissible_interventions": [
+          "DEDUPE_AND_VALIDATE_DEMAND",
+          "COLLECT_OR_REVALIDATE_EVIDENCE"
+        ],
+        "prohibited_interventions": [
+          "STAFF_TO_RAW_TICKET_COUNT",
+          "REPORT_DUPLICATES_AS_DISTINCT_REPAIRS"
+        ],
+        "disposition": "CLEAN_DEMAND_BEFORE_ALLOCATION"
+      }
+    },
+    {
+      "id": "WBD-011",
+      "domain": "electricity_maintenance",
+      "summary": "Credential exists, but current practical ability for this task is unverified.",
+      "synthetic_only": true,
+      "observations": {
+        "demand_status": "validated",
+        "funding_status": "confirmed_synthetic",
+        "required_task_capacity": 1,
+        "available_task_ready_capacity": null,
+        "credential_status": "present_but_scope_mismatch",
+        "practical_assessment_status": "missing",
+        "tools_and_spares": "available",
+        "authorization_status": "unknown",
+        "evidence_status": "incomplete",
+        "reported_backlog": true
+      },
+      "oracle": {
+        "causes": [
+          "PRACTICAL_COMPETENCE_UNVERIFIED",
+          "EVIDENCE_INSUFFICIENT"
+        ],
+        "admissible_interventions": [
+          "SCOPED_PRACTICAL_ASSESSMENT",
+          "COLLECT_OR_REVALIDATE_EVIDENCE"
+        ],
+        "prohibited_interventions": [
+          "TREAT_CREDENTIAL_AS_PROOF_OF_ALL_TASK_COMPETENCE",
+          "ASSUME_AUTHORIZATION"
+        ],
+        "disposition": "VERIFY_SCOPE_AND_COMPETENCE"
+      }
+    },
+    {
+      "id": "WBD-012",
+      "domain": "electricity_maintenance",
+      "summary": "Partial task-ready capacity shortfall; funding is unknown and a required inspection is confirmed pending.",
+      "synthetic_only": true,
+      "observations": {
+        "demand_status": "validated",
+        "funding_status": "unknown",
+        "required_task_capacity": 3,
+        "available_task_ready_capacity": 2,
+        "tools_and_spares": "available",
+        "authorization_status": "inspection_pending",
+        "dispatch_status": "feasible",
+        "evidence_status": "partial",
+        "reported_backlog": true
+      },
+      "oracle": {
+        "causes": [
+          "SKILLS_CAPACITY",
+          "AUTHORIZATION_OR_SAFETY_GATE",
+          "EVIDENCE_INSUFFICIENT",
+          "INTERACTING_BOTTLENECKS"
+        ],
+        "admissible_interventions": [
+          "COLLECT_OR_REVALIDATE_EVIDENCE",
+          "OBTAIN_QUALIFIED_INSPECTION_OR_AUTHORIZATION"
+        ],
+        "prohibited_interventions": [
+          "SCHEDULE_UNFUNDED_WORK_AS_CONFIRMED",
+          "BYPASS_AUTHORIZATION",
+          "CLAIM_SKILLS_ARE_THE_ONLY_CAUSE"
+        ],
+        "disposition": "BOUNDED_DIAGNOSIS_AND_GATE_REMEDIATION"
+      }
+    }
+  ]
+}
