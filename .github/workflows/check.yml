@@ -20,6 +20,8 @@ jobs:
         with:
           components: rustfmt
       - run: cargo fmt --all --check
+      - name: Check standalone landscape chain conformance formatting
+        run: cargo fmt --manifest-path tools/landscape-chain-conformance/Cargo.toml -- --check
 
   check-wasm:
     runs-on: ubuntu-latest
@@ -65,3 +67,37 @@ jobs:
       # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
       # `cargo test --lib` fails with "no library targets found".
       - run: cargo test --bin sol-atlas-leptos
+      - name: Test standalone landscape chain conformance
+        run: cargo test --locked --manifest-path tools/landscape-chain-conformance/Cargo.toml
+      - name: Verify synthetic landscape artifact chain
+        shell: bash
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/landscape-chain-conformance.json"
+          cargo run --locked --manifest-path tools/landscape-chain-conformance/Cargo.toml -- > "$report"
+          jq -e '
+            .schema_version == "luminous.landscape-chain-conformance-report.v0.1" and
+            .suite_id == "LANDSCAPE-CHAIN-CONFORMANCE-V0.1" and
+            .conformance_status == "PASS_SYNTHETIC_CONTRACT_CONFORMANCE_ONLY" and
+            .data_origin == "synthetic_fixture" and
+            .claim_ceiling == "SYNTHETIC_STRUCTURAL_CONFORMANCE_ONLY" and
+            .upstream_pinned_contract_count == 8 and
+            .project_feature_count == 7 and
+            .observation_count == 4 and
+            .scenario_execution_status == "BLOCKED_NOT_EXECUTED" and
+            .source_catalog_status == "metadata-only-not-ingested" and
+            .review_ranking_status == "no-defensible-ranking" and
+            .recommendation_status == "no-ranking" and
+            .passed_check_count == 12 and
+            .negative_controls_attempted == 7 and
+            .negative_controls_rejected == 7 and
+            .negative_controls_unexpectedly_accepted == 0 and
+            ([.artifact_sha256[] | select(test("^[0-9a-f]{64}$"))] | length) == 13
+          ' "$report"
+      - name: Upload synthetic chain report
+        uses: actions/upload-artifact@v4
+        with:
+          name: landscape-chain-conformance-v0-1
+          path: ${{ runner.temp }}/landscape-chain-conformance.json
+          if-no-files-found: error
+          retention-days: 30
