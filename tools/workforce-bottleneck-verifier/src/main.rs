@@ -1,3 +1,4 @@
+mod bundle_oracle;
 use jsonschema::validator_for;
 use serde::Serialize;
 use serde_json::{Value, json};
@@ -48,6 +49,7 @@ struct Report {
     cross_field_validation: &'static str,
     backlog_only_baseline: BaselineReport,
     transparent_rule_baseline: RuleBaselineReport,
+    intervention_bundle_oracle: bundle_oracle::BundleOracleSummary,
     claim_ceiling: &'static str,
 }
 
@@ -655,6 +657,7 @@ fn run() -> Result<(), String> {
         cross_field_validation: "PASS",
         backlog_only_baseline: baseline_report(&fixture),
         transparent_rule_baseline: rule_baseline_report(&fixture),
+        intervention_bundle_oracle: bundle_oracle::verify_reference_suite()?,
         claim_ceiling: "SYNTHETIC SOFTWARE-CONTRACT EVIDENCE ONLY; no real workforce or service claim",
     };
     println!(
