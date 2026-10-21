@@ -24,6 +24,7 @@ Research anchors:
 - World Bank, From Demand to Delivery (14 Aug 2026): https://www.worldbank.org/en/news/feature/2026/08/14/from-demand-to-delivery-strengthening-south-africas-digital-skills
 - O*NET database and task/skill descriptors: https://www.onetcenter.org/database.html
 - European Commission ESCO classification: https://esco.ec.europa.eu/en/classification
+- NIST, The TEVV-Athlon Framework for Evaluating AI Systems (announced 7 Aug 2026; initial public draft comment window through 6 Oct 2026): https://www.nist.gov/artificial-intelligence/ai-research/tevv-athlon-framework-evaluating-ai-systems
 
 O*NET and ESCO are useful reference systems, but their coverage and occupational relationships must not be silently treated as South African local truth. Record taxonomy versions and crosswalk provenance. A taxonomy match does not prove a person is practically competent, available, willing to accept the working conditions, or authorized to perform regulated work.
 
@@ -112,7 +113,23 @@ cargo run --manifest-path tools/workforce-bottleneck-verifier/Cargo.toml -- \
 
 The initial CI workflow runs those same format, test, and receipt steps. A successful structural receipt is deliberately labelled `STRUCTURAL_AND_CROSS_FIELD_PASS_NOT_FIELD_VALIDATION`. It does not validate the real-world causal interpretation of the oracle labels, predict the efficacy of interventions, or measure a field outcome. The backlog-only baseline's synthetic known-answer expectations are 12 backlog cases, 4 cases whose declared cause set includes skills capacity, 8 false shortage labels, and 2 exact cause-set matches. Its output must remain visibly marked as a weak synthetic comparator.
 
-## 8. Acceptance gates
+## 8. Exact intervention-bundle oracle
+
+A second, separate reference implementation lives in `tools/workforce-bottleneck-verifier/src/bundle_oracle.rs`. It exhaustively enumerates every subset of a seven-action synthetic catalogue (`2^7 = 128` subsets for each ready scenario), checks which actions are admissible under the declared preconditions, and returns all **inclusion-minimal** bundles that clear every confirmed blocker. It is not a second production allocator or a weighted-sum optimizer.
+
+The 15 hand-calculated scenarios cover:
+- one skill gap with supervised training;
+- alternative skill remedies (qualified redeployment or supervised training);
+- skill gap plus missing spares, which requires both blocker classes to be covered;
+- pending inspection, dispatch conflict, job-quality problems, and duplicate demand;
+- absent versus unknown funding, incomplete evidence, missing procurement authority, missing supervision, and unavailable qualified capacity;
+- interacting dispatch and job-quality constraints.
+
+The known-answer suite currently specifies 10 minimal bundles across 8 executable scenarios. Funding-absent, funding-unknown, and evidence-incomplete scenarios must produce a hold state with no executable bundle. An intervention cannot manufacture a payer, turn an unknown into a fact, bypass inspection, or make a missing supervisor appear. The oracle tests a small declared action space; it does not estimate success probabilities, cost-effectiveness in a real workplace, or whether an intervention will work in the field.
+
+The verifier's machine receipt runs this exact suite after schema and cross-field validation. The suite must match the hand-authored expected status and all minimal bundles exactly; any mismatch fails closed.
+
+## 9. Acceptance gates
 
 - 100% exact cause-set and intervention-admissibility agreement with the independent oracle on the frozen v0.1 fixture.
 - Zero false SKILLS_CAPACITY diagnoses in the specified critical negative controls.
@@ -125,7 +142,7 @@ The initial CI workflow runs those same format, test, and receipt steps. A succe
 
 Do not set runtime/scale claims before a repeatable run exists. When a Rust implementation is added, report median and p95 runtime, peak memory, corpus counts, hardware/toolchain and candidate-versus-oracle agreement.
 
-## 9. Industry / SOTA comparison without overclaiming
+## 10. Industry / SOTA comparison without overclaiming
 
 Commercial incumbents already cover important parts of the scheduling problem:
 
@@ -143,12 +160,12 @@ A fair comparison requires the same frozen tasks, evidence quality, resource lim
 
 The differentiator to test is not “our model is smarter.” It is whether the integrated stack reduces false shortage diagnoses and unlocks more safely verified work than a vacancy heuristic, taxonomy matcher, transparent rules and a real incumbent workflow. If commercial products cannot be tested on identical inputs, report a qualitative capability map, not a numeric SOTA claim.
 
-## 10. Field-study gate
+## 11. Field-study gate
 
 Do not move from synthetic results to local operational claims until a legitimate service owner confirms data access, scope, permissions, baseline definitions and independent outcome verification. Pre-register a phased or randomized comparison where feasible. Include worker representatives and affected communities; measure worker earnings and conditions, not only employer costs/output. Protect personal data and provide correction/appeal routes.
 
 Candidate interventions must be funded and authorized. Training counts as successful employment only when there is a real payer, fair compensation, evidenced paid work, verified scope/quality and retention follow-up. Planned placements, issued credentials or task recommendations alone do not count as jobs created.
 
-## 11. Claim ceiling
+## 12. Claim ceiling
 
 This is a software-contract and synthetic benchmark. It does not establish a real regional skills shortage, predict individual employability, certify practical competence, authorize regulated work, prove causal impact or claim SOTA. The first outcome is structural correctness and honest uncertainty. Real impact remains unmeasured until evaluated with an authorized partner and independent evidence.
