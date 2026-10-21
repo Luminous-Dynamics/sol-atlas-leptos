@@ -185,9 +185,12 @@ fn validate_contract(corpus: &Corpus) -> Result<(), String> {
                     scenario.id, source.id
                 ));
             }
-            if source.period_start > source.period_end {
+            if !valid_iso_date(&source.period_start)
+                || !valid_iso_date(&source.period_end)
+                || source.period_start > source.period_end
+            {
                 errors.push(format!(
-                    "{} / {}: period_start must not follow period_end",
+                    "{} / {}: source reference period must be valid ordered ISO dates",
                     scenario.id, source.id
                 ));
             }
@@ -412,15 +415,40 @@ fn string_parameter(perturbation: &Perturbation) -> Result<String, String> {
         })
 }
 
-fn valid_iso_date_shape(value: &str) -> bool {
+fn valid_iso_date(value: &str) -> bool {
     let bytes = value.as_bytes();
-    bytes.len() == 10
-        && bytes[4] == b'-'
-        && bytes[7] == b'-'
-        && bytes
+    if bytes.len() != 10
+        || bytes[4] != b'-'
+        || bytes[7] != b'-'
+        || !bytes
             .iter()
             .enumerate()
             .all(|(index, byte)| matches!(index, 4 | 7) || byte.is_ascii_digit())
+    {
+        return false;
+    }
+
+    let Ok(year) = value[0..4].parse::<u32>() else {
+        return false;
+    };
+    let Ok(month) = value[5..7].parse::<u32>() else {
+        return false;
+    };
+    let Ok(day) = value[8..10].parse::<u32>() else {
+        return false;
+    };
+    if year == 0 || !(1..=12).contains(&month) || day == 0 {
+        return false;
+    }
+    let leap_year = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+    let last_day = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if leap_year => 29,
+        2 => 28,
+        _ => return false,
+    };
+    day <= last_day
 }
 
 fn validate_transformed_sources(
@@ -447,8 +475,8 @@ fn validate_transformed_sources(
                 source.id
             ));
         }
-        if !valid_iso_date_shape(&source.period_start)
-            || !valid_iso_date_shape(&source.period_end)
+        if !valid_iso_date(&source.period_start)
+            || !valid_iso_date(&source.period_end)
             || source.period_start > source.period_end
         {
             return Err(format!(
@@ -622,8 +650,8 @@ fn apply_perturbation(
             let (start, end) = period.split_once('/').ok_or_else(|| {
                 format!("{}: period parameter must be start/end", perturbation.id)
             })?;
-            if !valid_iso_date_shape(start)
-                || !valid_iso_date_shape(end)
+            if !valid_iso_date(start)
+                || !valid_iso_date(end)
                 || start > end
             {
                 return Err(format!("{}: invalid reference period", perturbation.id));
@@ -932,6 +960,13 @@ mod tests {
 
         let (mut fixture, schema) = fixture_and_schema();
         fixture["synthetic_only"] = Value::Bool(false);
+        assert!(verify_values(&schema, &fixture).is_err());
+    }
+
+    #[test]
+    fn invalid_calendar_dates_fail_closed() {
+        let (mut fixture, schema) = fixture_and_schema();
+        fixture["scenarios"][0]["sources"][0]["period_start"] = json!("2026-02-30");
         assert!(verify_values(&schema, &fixture).is_err());
     }
 
