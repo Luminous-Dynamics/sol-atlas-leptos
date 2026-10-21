@@ -92,7 +92,7 @@ jobs:
             .source_catalog_status == "metadata-only-not-ingested" and
             .review_ranking_status == "no-defensible-ranking" and
             .recommendation_status == "no-ranking" and
-            .passed_check_count == 13 and
+            .passed_check_count == 14 and
             .negative_controls_attempted == 8 and
             .negative_controls_rejected == 8 and
             .negative_controls_unexpectedly_accepted == 0 and
