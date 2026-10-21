@@ -2472,6 +2472,36 @@ mod tests {
     }
 
     #[test]
+    fn higher_service_baseline_never_removes_feasible_portfolios() {
+        let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture parses");
+        let template: ScenarioPatch =
+            serde_json::from_str(WITHHELD_SCENARIO).expect("compound template parses");
+        let config: CounterexampleSweepConfig =
+            serde_json::from_str(COUNTEREXAMPLE_CONFIG).expect("sweep config parses");
+
+        let mut prior_high_baseline_ids: Option<BTreeSet<String>> = None;
+        for baseline in config.service_baseline_values {
+            let mut patch = template.clone();
+            patch.scenario.id = format!("{}_baseline_{}", template.scenario.id, baseline);
+            patch.service_baseline = baseline;
+            let augmented = add_scenario(&input, &patch).expect("mutation should be valid");
+            let evaluated = evaluate(&augmented).expect("mutated input should evaluate");
+            let current_ids: BTreeSet<String> = evaluated
+                .feasible_portfolios
+                .iter()
+                .map(portfolio_key)
+                .collect();
+            if let Some(high_ids) = &prior_high_baseline_ids {
+                assert!(
+                    current_ids.is_subset(high_ids),
+                    "lowering service baseline to {baseline} must not add feasible portfolios"
+                );
+            }
+            prior_high_baseline_ids = Some(current_ids);
+        }
+    }
+
+    #[test]
     fn interaction_adjustments_are_applied_once_per_selected_pair() {
         let evaluation = evaluate(&fixture()).expect("fixture should evaluate");
         let portfolio = evaluation
