@@ -279,6 +279,44 @@ pub struct ScenarioAdditionReport {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct CounterexampleSweepConfig {
+    pub schema_version: String,
+    /// Ordered, finite service-baseline domain. Ordering is part of the replay contract.
+    pub service_baseline_values: Vec<i64>,
+    pub max_evaluations: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct CounterexampleSweepAttempt {
+    pub service_baseline: i64,
+    pub scenario_id: String,
+    pub feasible_before: usize,
+    pub feasible_after: usize,
+    pub removed_feasible_count: usize,
+    pub frontier_before: usize,
+    pub frontier_after: usize,
+    pub frontier_id_intersection_count: usize,
+    pub frontier_id_union_count: usize,
+    pub counterexample_found: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct CounterexampleSweepReport {
+    pub schema_version: String,
+    /// COUNTEREXAMPLE_FOUND, DOMAIN_EXHAUSTED_NO_COUNTEREXAMPLE, or BUDGET_EXHAUSTED.
+    pub status: String,
+    pub domain_values: Vec<i64>,
+    pub evaluation_budget: usize,
+    pub evaluation_count: usize,
+    pub attempted_values: Vec<i64>,
+    pub attempts: Vec<CounterexampleSweepAttempt>,
+    pub first_counterexample_scenario_id: Option<String>,
+    pub remaining_values: Vec<i64>,
+}
+
+
 pub struct ScenarioOmissionReport {
     pub omitted_scenario_id: String,
     pub original_scenario_ids: Vec<String>,
@@ -1341,6 +1379,97 @@ pub fn evaluate_scenario_addition(
     })
 }
 
+/// Enumerate a caller-declared, finite service-baseline mutation domain.
+/// The first mutation that removes any previously feasible portfolio is a
+/// counterexample to the claim that the original scenario set was sufficient
+/// for that portfolio set. Exhaustion only certifies the declared finite domain.
+pub fn evaluate_counterexample_sweep(
+    input: &Input,
+    template_patch: &ScenarioPatch,
+    config: &CounterexampleSweepConfig,
+) -> Result<CounterexampleSweepReport, String> {
+    validate_input(input)?;
+    if input.schema_version != "sa-economic-portfolio-v0.2" {
+        return Err("counterexample sweep requires a v0.2 input contract".to_owned());
+    }
+    if config.schema_version != "sa-portfolio-counterexample-sweep-v0.1" {
+        return Err("unsupported counterexample-sweep config schema".to_owned());
+    }
+    if config.service_baseline_values.is_empty()
+        || config.service_baseline_values.len() > 256
+        || config.service_baseline_values.iter().any(|value| *value < 0)
+    {
+        return Err("baseline domain must contain 1..=256 non-negative integers".to_owned());
+    }
+    let unique_values: BTreeSet<i64> = config.service_baseline_values.iter().copied().collect();
+    if unique_values.len() != config.service_baseline_values.len() {
+        return Err("baseline domain contains duplicate values".to_owned());
+    }
+    if config.max_evaluations == 0 {
+        return Err("evaluation budget must be at least one".to_owned());
+    }
+
+    // Validate the template once before generating any mutations. IDs are
+    // suffixed by the baseline value so every attempted scenario is replayable.
+    let _ = add_scenario(input, template_patch)?;
+    let evaluation_budget = config.max_evaluations.min(config.service_baseline_values.len());
+    let mut attempts = Vec::new();
+    let mut attempted_values = Vec::new();
+    let mut first_counterexample_scenario_id = None;
+    let mut remaining_values = Vec::new();
+
+    for (index, baseline) in config.service_baseline_values.iter().copied().enumerate() {
+        if attempts.len() >= evaluation_budget {
+            remaining_values.extend(config.service_baseline_values[index..].iter().copied());
+            break;
+        }
+        let mut patch = template_patch.clone();
+        patch.scenario.id = format!("{}_baseline_{}", template_patch.scenario.id, baseline);
+        patch.service_baseline = baseline;
+        let report = evaluate_scenario_addition(input, &patch)?;
+        let removed_feasible_count = report.original_feasible_removed_by_addition.len();
+        let counterexample_found = removed_feasible_count > 0;
+        attempts.push(CounterexampleSweepAttempt {
+            service_baseline: baseline,
+            scenario_id: patch.scenario.id.clone(),
+            feasible_before: report.original_feasible_portfolio_count,
+            feasible_after: report.augmented_feasible_portfolio_count,
+            removed_feasible_count,
+            frontier_before: report.original_frontier_project_ids.len(),
+            frontier_after: report.augmented_frontier_project_ids.len(),
+            frontier_id_intersection_count: report.frontier_id_intersection_count,
+            frontier_id_union_count: report.frontier_id_union_count,
+            counterexample_found,
+        });
+        attempted_values.push(baseline);
+        if counterexample_found {
+            first_counterexample_scenario_id = Some(patch.scenario.id);
+            remaining_values.extend(config.service_baseline_values[index + 1..].iter().copied());
+            break;
+        }
+    }
+
+    let status = if first_counterexample_scenario_id.is_some() {
+        "COUNTEREXAMPLE_FOUND"
+    } else if !remaining_values.is_empty() {
+        "BUDGET_EXHAUSTED"
+    } else {
+        "DOMAIN_EXHAUSTED_NO_COUNTEREXAMPLE"
+    };
+
+    Ok(CounterexampleSweepReport {
+        schema_version: "sa-portfolio-counterexample-sweep-report-v0.1".to_owned(),
+        status: status.to_owned(),
+        domain_values: config.service_baseline_values.clone(),
+        evaluation_budget,
+        evaluation_count: attempts.len(),
+        attempted_values,
+        attempts,
+        first_counterexample_scenario_id,
+        remaining_values,
+    })
+}
+
 pub fn check_expected(evaluation: &Evaluation, expected_raw: &str) -> Result<(), String> {
     let expected: serde_json::Value =
         serde_json::from_str(expected_raw).map_err(|error| error.to_string())?;
@@ -1421,6 +1550,12 @@ mod tests {
     );
     const NO_EFFECT_SCENARIO: &str = include_str!(
         "../../../docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-no-effect-control.json"
+    );
+    const COUNTEREXAMPLE_CONFIG: &str = include_str!(
+        "../../../docs/research/fixtures/sa-portfolio-counterexample-sweep-v0.1-compound-config.json"
+    );
+    const NO_EFFECT_SWEEP_CONFIG: &str = include_str!(
+        "../../../docs/research/fixtures/sa-portfolio-counterexample-sweep-v0.1-no-effect-config.json"
     );
 
     fn fixture() -> Input {
@@ -2286,6 +2421,54 @@ mod tests {
             report.original_frontier_project_ids,
             report.augmented_frontier_project_ids
         );
+    }
+
+    #[test]
+    fn bounded_sweep_finds_pinned_counterexample_and_stops_honestly() {
+        let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture parses");
+        let patch: ScenarioPatch = serde_json::from_str(WITHHELD_SCENARIO)
+            .expect("compound scenario patch parses");
+        let config: CounterexampleSweepConfig =
+            serde_json::from_str(COUNTEREXAMPLE_CONFIG).expect("sweep config parses");
+        let report = evaluate_counterexample_sweep(&input, &patch, &config)
+            .expect("bounded sweep should evaluate");
+        assert_eq!(report.status, "COUNTEREXAMPLE_FOUND");
+        assert!(report.first_counterexample_scenario_id.is_some());
+        assert_eq!(report.evaluation_count, report.attempts.len());
+        assert!(!report.attempts.is_empty());
+        assert_eq!(
+            report.attempts.last().unwrap().scenario_id,
+            report.first_counterexample_scenario_id.clone().unwrap()
+        );
+        assert!(report.attempts.last().unwrap().counterexample_found);
+        assert_eq!(
+            report.attempted_values.len() + report.remaining_values.len(),
+            report.domain_values.len()
+        );
+    }
+
+    #[test]
+    fn bounded_sweep_distinguishes_exhaustion_from_budget_exhaustion() {
+        let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture parses");
+        let patch: ScenarioPatch = serde_json::from_str(NO_EFFECT_SCENARIO)
+            .expect("no-effect patch parses");
+        let complete: CounterexampleSweepConfig =
+            serde_json::from_str(NO_EFFECT_SWEEP_CONFIG).expect("no-effect config parses");
+        let complete_report = evaluate_counterexample_sweep(&input, &patch, &complete).unwrap();
+        assert_eq!(complete_report.status, "DOMAIN_EXHAUSTED_NO_COUNTEREXAMPLE");
+        assert_eq!(complete_report.evaluation_count, complete.service_baseline_values.len());
+        assert!(complete_report.first_counterexample_scenario_id.is_none());
+        assert!(complete_report.remaining_values.is_empty());
+        assert!(complete_report.attempts.iter().all(|attempt| !attempt.counterexample_found));
+
+        let mut limited = complete.clone();
+        limited.service_baseline_values = vec![3, 4, 5];
+        limited.max_evaluations = 1;
+        let limited_report = evaluate_counterexample_sweep(&input, &patch, &limited).unwrap();
+        assert_eq!(limited_report.status, "BUDGET_EXHAUSTED");
+        assert_eq!(limited_report.evaluation_count, 1);
+        assert_eq!(limited_report.remaining_values, vec![4, 5]);
+        assert!(limited_report.first_counterexample_scenario_id.is_none());
     }
 
     #[test]
