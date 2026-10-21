@@ -14,6 +14,10 @@
     "project_feature_count",
     "observation_count",
     "metric_definition_count",
+    "metric_observation_mapping_count",
+    "observations_matching_crosswalk_count",
+    "eligible_supporting_observation_count",
+    "unmapped_observation_count",
     "source_catalog_record_count",
     "source_catalog_status",
     "scenario_execution_status",
@@ -110,6 +114,22 @@
         "type": "string",
         "pattern": "^[0-9a-f]{64}$"
       }
+    },
+    "metric_observation_mapping_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "observations_matching_crosswalk_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "eligible_supporting_observation_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "unmapped_observation_count": {
+      "type": "integer",
+      "minimum": 0
     }
   }
 }
