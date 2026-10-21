@@ -1996,7 +1996,7 @@ mod tests {
         );
         assert_eq!(report.data_origin, "synthetic_fixture");
         assert_eq!(report.claim_ceiling, CLAIM_CEILING);
-        assert_eq!(report.upstream_pinned_contract_count, 9);
+        assert_eq!(report.upstream_pinned_contract_count, 10);
         assert_eq!(report.project_feature_count, 7);
         assert_eq!(report.observation_count, 5);
         assert_eq!(report.metric_observation_mapping_count, 8);
