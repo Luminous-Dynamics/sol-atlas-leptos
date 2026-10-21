@@ -1888,16 +1888,18 @@ mod tests {
         assert_eq!(report.observations_matching_crosswalk_count, 1);
         assert_eq!(report.eligible_supporting_observation_count, 0);
         assert_eq!(report.unmapped_observation_count, 3);
-        assert_eq!(report.negative_controls_attempted, 8);
-        assert_eq!(report.negative_controls_rejected, 8);
+        assert_eq!(report.negative_controls_attempted, 9);
+        assert_eq!(report.negative_controls_rejected, 9);
         assert_eq!(report.negative_controls_unexpectedly_accepted, 0);
         assert_eq!(report.source_catalog_status, "metadata-only-not-ingested");
         assert_eq!(report.scenario_execution_status, "BLOCKED_NOT_EXECUTED");
+        assert_eq!(report.paired_scenario_count, 2);
+        assert!(report.paired_scenarios_share_boundary_conditions);
         assert_eq!(report.review_ranking_status, "no-defensible-ranking");
         assert_eq!(report.recommendation_status, "no-ranking");
         assert_eq!(report.passed_check_count, report.checks.len());
-        assert_eq!(report.passed_check_count, 14);
-        assert_eq!(report.artifact_sha256.len(), 14);
+        assert_eq!(report.passed_check_count, 15);
+        assert_eq!(report.artifact_sha256.len(), 15);
         assert_eq!(report.template_input_sha256.len(), 9);
         assert!(
             report
@@ -1905,6 +1907,13 @@ mod tests {
                 .values()
                 .all(|value| digest_is_well_formed(value))
         );
+    }
+
+    #[test]
+    fn paired_scenario_forcing_mismatch_is_rejected() {
+        let mut chain = fixture();
+        chain.alternative_scenario["boundary_conditions_sha256"] = json!("d".repeat(64));
+        assert!(!validate_chain(&chain).is_empty());
     }
 
     #[test]
