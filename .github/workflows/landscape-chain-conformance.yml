@@ -68,14 +68,16 @@ jobs:
             .eligible_supporting_observation_count == 0 and
             .unmapped_observation_count == 3 and
             .scenario_execution_status == "BLOCKED_NOT_EXECUTED" and
+            .paired_scenario_count == 2 and
+            .paired_scenarios_share_boundary_conditions == true and
             .source_catalog_status == "metadata-only-not-ingested" and
             .review_ranking_status == "no-defensible-ranking" and
             .recommendation_status == "no-ranking" and
-            .passed_check_count == 14 and
-            .negative_controls_attempted == 8 and
-            .negative_controls_rejected == 8 and
+            .passed_check_count == 15 and
+            .negative_controls_attempted == 9 and
+            .negative_controls_rejected == 9 and
             .negative_controls_unexpectedly_accepted == 0 and
-            ([.artifact_sha256[] | select(test("^[0-9a-f]{64}$"))] | length) == 14
+            ([.artifact_sha256[] | select(test("^[0-9a-f]{64}$"))] | length) == 15
           ' "$report"
 
       - name: Upload exact-revision report
