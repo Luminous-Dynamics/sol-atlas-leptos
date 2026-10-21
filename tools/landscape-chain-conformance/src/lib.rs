@@ -1966,6 +1966,13 @@ fn negative_control_results(chain: &ChainArtifacts) -> NegativeControlSummary {
         scenario_disagreement,
     ));
 
+    let mut unauthorized_measurement = chain.clone();
+    unauthorized_measurement.measurement_authorization["consent_status"] = json!("granted");
+    cases.push((
+        "unverified-consent-claimed-granted".to_owned(),
+        unauthorized_measurement,
+    ));
+
     let mut paired_review_context_mismatch = chain.clone();
     paired_review_context_mismatch.review["inputs"]["scenario_runs"][1]["pairing_context"]["seed"] =
         json!(8);
@@ -2069,6 +2076,10 @@ pub fn run_conformance(dir: &Path) -> Result<ConformanceReport, Vec<String>> {
         sha256_hex(&chain.source_catalog_bytes),
     );
     artifact_sha256.insert(
+        "measurement_authorization_record".to_owned(),
+        canonical_sha256(&chain.measurement_authorization).map_err(|error| vec![error])?,
+    );
+    artifact_sha256.insert(
         "evaluation_plan".to_owned(),
         canonical_sha256(&chain.evaluation_plan).map_err(|error| vec![error])?,
     );
@@ -2106,6 +2117,10 @@ pub fn run_conformance(dir: &Path) -> Result<ConformanceReport, Vec<String>> {
         "source-catalog.json".to_owned(),
         sha256_hex(&chain.source_catalog_bytes),
     );
+    template_input_sha256.insert(
+        "measurement-authorization-template.json".to_owned(),
+        sha256_hex(&chain.measurement_authorization_template_bytes),
+    );
 
     let checks = vec![
         "exact design and alternative snapshot bytes are separately digested".to_owned(),
@@ -2115,13 +2130,14 @@ pub fn run_conformance(dir: &Path) -> Result<ConformanceReport, Vec<String>> {
         "scenario manifest binds design, boundary conditions, and exact normalized evaluation-plan bytes".to_owned(),
         "baseline and alternative scenarios use the same model/version/seed, forcing bytes, and evaluation plan".to_owned(),
         "Mycelix stewardship binds the same project and baseline scenario, with private and non-sensitive defaults".to_owned(),
+        "Mycelix authorization binds exact project/site/metric while unknown consent and access remain blocked".to_owned(),
         "Symthaea review binds both alternatives, metric registry, source catalog, and the paired scenario contexts".to_owned(),
         "unqualified source catalog and metrics keep consequence-bearing assessments blocked".to_owned(),
         "observation properties are checked against the declared metric crosswalk and evidence class".to_owned(),
         "review correctly abstains from ranking while scenario execution remains blocked".to_owned(),
         "all upstream contract inputs cite immutable draft commit SHAs".to_owned(),
         "observation crosswalk metric IDs resolve against the pinned registry, while synthetic observations remain ineligible".to_owned(),
-        "ten adversarial cross-reference/privacy/crosswalk/paired-context/claim controls are rejected".to_owned(),
+        "eleven adversarial cross-reference/privacy/crosswalk/permission/paired-context/claim controls are rejected".to_owned(),
         "report emits exact SHA-256 digests for every artifact in the synthetic chain".to_owned(),
     ];
 
@@ -2146,6 +2162,25 @@ pub fn run_conformance(dir: &Path) -> Result<ConformanceReport, Vec<String>> {
         source_catalog_status: string_at(&chain.source_catalog, &["catalog_status"])
             .unwrap_or("unknown")
             .to_owned(),
+        measurement_consent_status: string_at(
+            &chain.measurement_authorization,
+            &["consent_status"],
+        )
+        .unwrap_or("unknown")
+        .to_owned(),
+        site_access_status: string_at(
+            &chain.measurement_authorization,
+            &["site_access_status"],
+        )
+        .unwrap_or("unknown")
+        .to_owned(),
+        measurement_authorization_verification_status: string_at(
+            &chain.measurement_authorization,
+            &["verification_status"],
+        )
+        .unwrap_or("unknown")
+        .to_owned(),
+        measurement_operation_authorized_by_harness: false,
         scenario_execution_status: "BLOCKED_NOT_EXECUTED".to_owned(),
         paired_scenario_count: records(&chain.review, &["inputs", "scenario_runs"])
             .map_or(0, Vec::len),
@@ -2195,26 +2230,30 @@ mod tests {
         );
         assert_eq!(report.data_origin, "synthetic_fixture");
         assert_eq!(report.claim_ceiling, CLAIM_CEILING);
-        assert_eq!(report.upstream_pinned_contract_count, 10);
+        assert_eq!(report.upstream_pinned_contract_count, 13);
         assert_eq!(report.project_feature_count, 7);
         assert_eq!(report.observation_count, 5);
         assert_eq!(report.metric_observation_mapping_count, 8);
         assert_eq!(report.observations_matching_crosswalk_count, 1);
         assert_eq!(report.eligible_supporting_observation_count, 0);
         assert_eq!(report.unmapped_observation_count, 4);
-        assert_eq!(report.negative_controls_attempted, 10);
-        assert_eq!(report.negative_controls_rejected, 10);
+        assert_eq!(report.negative_controls_attempted, 11);
+        assert_eq!(report.negative_controls_rejected, 11);
         assert_eq!(report.negative_controls_unexpectedly_accepted, 0);
         assert_eq!(report.source_catalog_status, "metadata-only-not-ingested");
+        assert_eq!(report.measurement_consent_status, "unknown");
+        assert_eq!(report.site_access_status, "unknown");
+        assert_eq!(report.measurement_authorization_verification_status, "not-verified");
+        assert!(!report.measurement_operation_authorized_by_harness);
         assert_eq!(report.scenario_execution_status, "BLOCKED_NOT_EXECUTED");
         assert_eq!(report.paired_scenario_count, 2);
         assert!(report.paired_scenarios_share_boundary_conditions);
         assert_eq!(report.review_ranking_status, "no-defensible-ranking");
         assert_eq!(report.recommendation_status, "no-ranking");
         assert_eq!(report.passed_check_count, report.checks.len());
-        assert_eq!(report.passed_check_count, 15);
-        assert_eq!(report.artifact_sha256.len(), 15);
-        assert_eq!(report.template_input_sha256.len(), 9);
+        assert_eq!(report.passed_check_count, 16);
+        assert_eq!(report.artifact_sha256.len(), 16);
+        assert_eq!(report.template_input_sha256.len(), 10);
         assert!(
             report
                 .artifact_sha256
