@@ -43,6 +43,7 @@ struct Source {
     unit: String,
     population: String,
     scope_id: String,
+    comparison_basis: String,
     geography: String,
     period_start: String,
     period_end: String,
@@ -197,6 +198,7 @@ fn validate_contract(corpus: &Corpus) -> Result<(), String> {
             if source.unit.trim().is_empty()
                 || source.population.trim().is_empty()
                 || source.scope_id.trim().is_empty()
+                || source.comparison_basis.trim().is_empty()
                 || source.geography.trim().is_empty()
                 || source.denominator.trim().is_empty()
                 || source.limitations.is_empty()
@@ -360,6 +362,8 @@ fn derive_decision(sources: &[Source]) -> String {
             || funded.period_start != capacity.period_start
             || funded.period_end != capacity.period_end
             || funded.scope_id != capacity.scope_id
+            || funded.unit != capacity.unit
+            || funded.comparison_basis != capacity.comparison_basis
         {
             return "fragile_or_indeterminate".to_string();
         }
@@ -486,6 +490,7 @@ fn validate_transformed_sources(
         }
         if source.population.trim().is_empty()
             || source.scope_id.trim().is_empty()
+            || source.comparison_basis.trim().is_empty()
             || source.geography.trim().is_empty()
             || source.unit.trim().is_empty()
             || source.denominator.trim().is_empty()
@@ -961,6 +966,50 @@ mod tests {
         let (mut fixture, schema) = fixture_and_schema();
         fixture["synthetic_only"] = Value::Bool(false);
         assert!(verify_values(&schema, &fixture).is_err());
+    }
+
+    #[test]
+    fn incompatible_comparison_units_do_not_confirm_a_gap() {
+        let (fixture_value, _schema) = fixture_and_schema();
+        let mut corpus: Corpus =
+            serde_json::from_value(fixture_value).expect("fixture type decoding");
+        let scenario = corpus
+            .scenarios
+            .iter_mut()
+            .find(|scenario| scenario.id == "SR-001")
+            .expect("SR-001 exists");
+        let capacity = scenario
+            .sources
+            .iter_mut()
+            .find(|source| source.id == "CAPACITY")
+            .expect("CAPACITY source exists");
+        capacity.unit = "people".to_string();
+        assert_eq!(
+            derive_decision(&scenario.sources),
+            "fragile_or_indeterminate"
+        );
+    }
+
+    #[test]
+    fn incompatible_comparison_basis_does_not_confirm_a_gap() {
+        let (fixture_value, _schema) = fixture_and_schema();
+        let mut corpus: Corpus =
+            serde_json::from_value(fixture_value).expect("fixture type decoding");
+        let scenario = corpus
+            .scenarios
+            .iter_mut()
+            .find(|scenario| scenario.id == "SR-001")
+            .expect("SR-001 exists");
+        let capacity = scenario
+            .sources
+            .iter_mut()
+            .find(|source| source.id == "CAPACITY")
+            .expect("CAPACITY source exists");
+        capacity.comparison_basis = "different-normalization-v2".to_string();
+        assert_eq!(
+            derive_decision(&scenario.sources),
+            "fragile_or_indeterminate"
+        );
     }
 
     #[test]
