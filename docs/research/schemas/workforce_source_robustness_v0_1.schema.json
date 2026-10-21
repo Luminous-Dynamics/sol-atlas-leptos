@@ -49,6 +49,7 @@
         "value",
         "unit",
         "population",
+        "scope_id",
         "geography",
         "period_start",
         "period_end",
@@ -135,6 +136,10 @@
             "type": "string",
             "minLength": 1
           }
+        },
+        "scope_id": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },
