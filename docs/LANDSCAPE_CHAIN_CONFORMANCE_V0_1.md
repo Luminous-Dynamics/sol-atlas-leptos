@@ -41,7 +41,7 @@ The benchmark checks:
 6. Paired-counterfactual scenario integrity: the baseline and alternative bind to different exact design snapshots but identical boundary-condition bytes, model ID/version, seed, purpose, and evaluation plan. Both results stay blocked until the physical model is qualified.
 7. Mycelix linkage to the same project and scenario, with private/no-coordinate-disclosure defaults and no claimed publication consent.
 8. Symthaea linkage to the same baseline and alternate design, metric registry, source catalog, and both paired scenarios; consequence-bearing metrics remain blocked, scenario results remain unexecuted, and the review abstains from ranking.
-9. Nine negative controls: stale project digest in an observation, scope mismatch, missing feature ID, synthetic-to-observed relabel, public exact-sensitive-location exposure, scenario digest disagreement, and a one-byte snapshot mutation, an observation with units incompatible with its mapped property, and a paired-scenario boundary-condition mismatch.
+9. Ten negative controls: stale project digest in an observation, scope mismatch, missing feature ID, synthetic-to-observed relabel, public exact-sensitive-location exposure, scenario digest disagreement, and a one-byte snapshot mutation, an observation with units incompatible with its mapped property, a paired-scenario boundary-condition mismatch, and scenario-review seed drift between the two paired runs.
 
 ## Reproduction
 
