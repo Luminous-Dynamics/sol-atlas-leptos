@@ -105,6 +105,59 @@ impl LandscapeScale {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct LandscapeScaleReadiness {
+    summary: &'static str,
+    requirements: &'static [&'static str],
+}
+
+/// Explain minimum evidence needed before a design at the selected scale can
+/// support a real-world decision. This is guidance only, never a readiness pass.
+fn scale_readiness(scale: LandscapeScale) -> LandscapeScaleReadiness {
+    match scale {
+        LandscapeScale::Site => LandscapeScaleReadiness {
+            summary: "A site concept needs measured boundaries and local conditions before quantities, grading, planting or access can be assessed.",
+            requirements: &[
+                "Surveyed boundary and explicit CRS / datum",
+                "Terrain and slope evidence at site-appropriate resolution",
+                "Soils, drainage, water supply and utility constraints",
+                "Species-level planting schedule and establishment assumptions",
+                "Access standards, land rights and maintenance responsibilities",
+            ],
+        },
+        LandscapeScale::District => LandscapeScaleReadiness {
+            summary: "District planning must preserve network continuity, public-service access, heat exposure and who will maintain shared infrastructure.",
+            requirements: &[
+                "CRS-qualified street, parcel and public-space geometry",
+                "Tree canopy / heat exposure layers with date and resolution",
+                "Pedestrian/cycling networks and service-access data",
+                "Ownership, maintenance responsibility and public-access constraints",
+                "Population and equity data with privacy-safe aggregation",
+            ],
+        },
+        LandscapeScale::Watershed => LandscapeScaleReadiness {
+            summary: "A watershed scenario needs a hydrologic boundary and rainfall, soils, drainage and downstream conditions that support the chosen model.",
+            requirements: &[
+                "Validated DEM with vertical reference, resolution and uncertainty",
+                "Catchment boundaries, channels, culverts and drainage connectivity",
+                "Event rainfall or IDF data and initial soil-moisture conditions",
+                "Soil / infiltration and imperviousness parameters with provenance",
+                "Downstream boundary conditions and independent calibration data",
+            ],
+        },
+        LandscapeScale::Bioregion => LandscapeScaleReadiness {
+            summary: "Bioregional plans depend on ecology and tenure across time; coarse regional layers cannot certify parcel-level suitability.",
+            requirements: &[
+                "Ecoregion and land-cover classification with observation dates",
+                "Habitat corridors, fragmentation and species records",
+                "Seasonal climate, drought, fire and disturbance context",
+                "Land tenure, Indigenous/community rights and stewardship governance",
+                "Long-term monitoring plan, source licenses and uncertainty statements",
+            ],
+        },
+    }
+}
+
 fn starter_features() -> Vec<DesignFeature> {
     vec![
         DesignFeature {
@@ -1071,6 +1124,20 @@ pub fn LandscapeDesigner() -> impl IntoView {
                         </div>
                     </section>
 
+                    <section class="landscape-scope-readiness" aria-label="Requirements for selected planning scale">
+                        <p class="landscape-section-label">"SCOPE READINESS / REQUIRED EVIDENCE"</p>
+                        <h3>{move || active_scale.get().label()}</h3>
+                        <p class="landscape-muted">{move || scale_readiness(active_scale.get()).summary}</p>
+                        <ul class="landscape-scope-requirements">
+                            <For
+                                each=move || scale_readiness(active_scale.get()).requirements.iter().map(|value| (*value).to_string()).collect::<Vec<_>>()
+                                key=|requirement| requirement.clone()
+                                children=move |requirement: String| view! { <li>{requirement}</li> }
+                            />
+                        </ul>
+                        <p class="landscape-scope-blocker">"Current status: schematic-only. None of these requirements are satisfied or certified by this canvas."</p>
+                    </section>
+
                     <section class="landscape-section">
                         <p class="landscape-section-label">"02 / PLACE ELEMENTS"</p>
                         <h2>"Design palette"</h2>
@@ -1815,6 +1882,22 @@ mod tests {
 
         assert!(result.is_err());
         assert_eq!(features, original);
+    }
+
+    #[test]
+    fn all_scale_profiles_require_distinct_evidence_and_never_claim_readiness() {
+        let profiles = [
+            LandscapeScale::Site,
+            LandscapeScale::District,
+            LandscapeScale::Watershed,
+            LandscapeScale::Bioregion,
+        ]
+        .map(scale_readiness);
+        assert!(profiles.iter().all(|profile| profile.requirements.len() >= 5));
+        assert!(profiles.iter().all(|profile| !profile.summary.trim().is_empty()));
+        assert_ne!(profiles[0].requirements, profiles[1].requirements);
+        assert_ne!(profiles[1].requirements, profiles[2].requirements);
+        assert_ne!(profiles[2].requirements, profiles[3].requirements);
     }
 
     #[test]
