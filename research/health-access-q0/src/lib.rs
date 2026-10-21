@@ -176,7 +176,10 @@ pub fn validate_case(case: &AccessCase) -> Result<(), String> {
         return Err(format!("{}: node list must not be empty", case.id));
     }
     if case.evaluation_minute >= 1440 {
-        return Err(format!("{}: departure minute must be within the day", case.id));
+        return Err(format!(
+            "{}: departure minute must be within the day",
+            case.id
+        ));
     }
     if case.demand.units == 0 {
         return Err(format!("{}: demand units must be positive", case.id));
@@ -189,8 +192,7 @@ pub fn validate_case(case: &AccessCase) -> Result<(), String> {
         return Err(format!("{}: demand node is undeclared", case.id));
     }
     for edge in &case.edges {
-        if !node_set.contains(edge.from_node.as_str())
-            || !node_set.contains(edge.to_node.as_str())
+        if !node_set.contains(edge.from_node.as_str()) || !node_set.contains(edge.to_node.as_str())
         {
             return Err(format!("{}: edge endpoint is undeclared", case.id));
         }
@@ -204,7 +206,10 @@ pub fn validate_case(case: &AccessCase) -> Result<(), String> {
             return Err(format!("{}: facility node is undeclared", case.id));
         }
         if facility.opens_minute >= facility.closes_minute || facility.closes_minute > 1440 {
-            return Err(format!("{}: invalid service window for {}", case.id, facility.id));
+            return Err(format!(
+                "{}: invalid service window for {}",
+                case.id, facility.id
+            ));
         }
     }
     Ok(())
@@ -268,11 +273,14 @@ pub fn evaluate_case(case: &AccessCase) -> Result<AuditResult, String> {
                 && facility.evidence_age_days <= case.max_evidence_age_days
                 && shortest_travel_minutes(case, facility.node.as_str()).is_some_and(|minutes| {
                     minutes <= case.max_travel_time_minutes
-                        && case.evaluation_minute.checked_add(minutes).is_some_and(|arrival| {
-                            arrival < 1440
-                                && arrival >= facility.opens_minute
-                                && arrival < facility.closes_minute
-                        })
+                        && case
+                            .evaluation_minute
+                            .checked_add(minutes)
+                            .is_some_and(|arrival| {
+                                arrival < 1440
+                                    && arrival >= facility.opens_minute
+                                    && arrival < facility.closes_minute
+                            })
                 })
         })
         .collect();
@@ -289,7 +297,10 @@ pub fn evaluate_case(case: &AccessCase) -> Result<AuditResult, String> {
 
     Ok(AuditResult {
         case_id: case.id.clone(),
-        eligible_facility_ids: eligible.iter().map(|facility| facility.id.clone()).collect(),
+        eligible_facility_ids: eligible
+            .iter()
+            .map(|facility| facility.id.clone())
+            .collect(),
         reachable_capacity_units,
         served_units,
         unserved_units,
@@ -329,13 +340,20 @@ mod tests {
                 case.id
             );
             assert_eq!(
-                result.reachable_capacity_units,
-                case.expected.reachable_capacity_units,
+                result.reachable_capacity_units, case.expected.reachable_capacity_units,
                 "{} capacity",
                 case.id
             );
-            assert_eq!(result.served_units, case.expected.served_units, "{} served", case.id);
-            assert_eq!(result.unserved_units, case.expected.unserved_units, "{} unserved", case.id);
+            assert_eq!(
+                result.served_units, case.expected.served_units,
+                "{} served",
+                case.id
+            );
+            assert_eq!(
+                result.unserved_units, case.expected.unserved_units,
+                "{} unserved",
+                case.id
+            );
         }
     }
 
