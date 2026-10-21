@@ -572,15 +572,20 @@ fn rule_based_causes(case: &Value) -> BTreeSet<String> {
         causes.insert("EVIDENCE_INSUFFICIENT".to_string());
     }
 
-    let has_skills_cause = causes.contains("SKILLS_CAPACITY");
-    let has_complementary_blocker = [
+    let confirmed_blocker_count = [
+        "SKILLS_CAPACITY",
         "FUNDING_OR_PAYER",
         "TOOLS_OR_SPARES",
         "AUTHORIZATION_OR_SAFETY_GATE",
+        "DISPATCH_OR_GEOGRAPHY",
+        "WAGE_OR_RETENTION",
+        "DEMAND_DATA_QUALITY",
+        "PRACTICAL_COMPETENCE_UNVERIFIED",
     ]
     .iter()
-    .any(|cause| causes.contains(*cause));
-    if has_skills_cause && has_complementary_blocker {
+    .filter(|cause| causes.contains(*cause))
+    .count();
+    if confirmed_blocker_count >= 2 {
         causes.insert("INTERACTING_BOTTLENECKS".to_string());
     }
     causes
@@ -936,10 +941,19 @@ mod tests {
                                         ) {
                                             assert!(inferred.contains("EVIDENCE_INSUFFICIENT"));
                                         }
-                                        let interaction_expected = skill_gap
-                                            && (funding == "absent"
-                                                || tools == "critical_spare_missing"
-                                                || authorization == "inspection_pending");
+                                        let confirmed_blocker_count = [
+                                            skill_gap,
+                                            funding == "absent",
+                                            tools == "critical_spare_missing",
+                                            authorization == "inspection_pending",
+                                            dispatch == "travel_shift_mismatch",
+                                            wage == "nonviable_synthetic",
+                                            demand == "duplicate_and_misrouted",
+                                        ]
+                                        .into_iter()
+                                        .filter(|is_blocked| *is_blocked)
+                                        .count();
+                                        let interaction_expected = confirmed_blocker_count >= 2;
                                         assert_eq!(
                                             inferred.contains("INTERACTING_BOTTLENECKS"),
                                             interaction_expected
