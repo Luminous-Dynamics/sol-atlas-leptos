@@ -23,7 +23,7 @@ cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --cap
   docs/research/fixtures/sa-portfolio-capacity-sweep-v0.1-p1-crew.expected.json
 ```
 
-The config is versioned and selects one period and resource dimension (`cost` or `crew`). It contains a strictly descending, finite, non-negative sequence of capacity values; the first value must equal the actual cap in the input, so every domain begins with a no-shock negative control. Each value is applied independently to a fresh copy of the unchanged input and evaluated using the same exact evaluator.
+The config is versioned and selects one period and resource dimension (`cost` or `crew`). It contains a strictly descending, finite, non-negative sequence of capacity values; the first value must equal the actual cap in the input, so every domain begins with a no-shock negative control. Each value is applied independently to a fresh copy of the unchanged input and evaluated using the same exact evaluator. The explicit `stop_on_first_counterexample` switch chooses between early-stop threshold search and a complete sensitivity curve. A full-curve run that exhausts its budget with values remaining returns `BUDGET_EXHAUSTED`, even if a first counterexample capacity was already recorded.
 
 The full report includes the baseline capacity, ordered domain, every attempted capacity, before/after feasible counts, sorted IDs of portfolios excluded by each attempt, exact frontier project-ID sets before and after each capacity, frontier size and ID intersection/union, stop state, and all unattempted values. The CLI requires complete equality with an independently frozen expected report before emitting a receipt with input/config/expected SHA-256 digests.
 
@@ -41,16 +41,19 @@ The original ten-project fixture had highly coupled resource values/caps, causin
 
 Independent subset enumeration was used to derive the expected reports, after which the JSON reports were frozen in the repository.
 
-| Exact cap sweep | Baseline feasible | First tighter cap | Feasible after | Excluded baseline-feasible portfolios | Frontier size after | Frontier ID intersection / union |
-|---|---:|---:|---:|---:|---:|---:|
-| P1 cost cap: 6 → 5 | 82 | 5 | 72 | 10 | 8 | 6 / 10 |
-| P1 crew cap: 3 → 2 | 82 | 2 | 42 | 40 | 6 | 0 / 14 |
+| Sweep mode | Dimension | Cap sequence evaluated | Feasible portfolios at each cap | Full-sweep frontier sizes |
+|---|---|---|---|---|
+| Early-stop | P1 cost | 6, 5 | 82, 72 | 8, 8 |
+| Full curve | P1 cost | 6, 5, 4, 3 | 82, 72, 30, 30 | 8, 8, 6, 6 |
+| Early-stop | P1 crew | 3, 2 | 82, 42 | 8, 6 |
+| Full curve | P1 crew | 3, 2, 1, 0 | 82, 42, 22, 5 | 8, 6, 4, 2 |
 
-Each sweep evaluates the baseline cap first, observes no feasible-set or frontier change, then stops at the first tighter cap that removes a baseline-feasible portfolio. Two lower values remain unattempted in each configured four-value domain. The two dimensions produce deliberately different reports; identical outcome values do not mean resource constraints are interchangeable.
+The independently frozen full reports carry every excluded portfolio ID and both the original/updated frontier IDs. Early-stop mode uses two evaluations per dimension and lists the two lower caps unattempted. Full-curve mode evaluates all four values and records a complete capacity-to-feasibility step function. The two resource dimensions produce deliberately different transitions; identical objective outcomes do not make the constraints interchangeable.
 
 ## 4. Metamorphic and acceptance tests
 
 - Baseline-cap evaluation preserves the full feasible set and frontier IDs exactly.
+- Early-stop and full-curve modes agree on all overlapping capacity points; full-curve mode evaluates every configured point when budget permits.
 - Tightening any cost or crew cap cannot add feasible portfolios; relaxing a cap cannot remove any baseline-feasible portfolio.
 - The capacity fixture separates cost and crew effects; the pinned removal counts must differ.
 - Removed portfolio IDs reconcile with the feasible-set count difference exactly.
