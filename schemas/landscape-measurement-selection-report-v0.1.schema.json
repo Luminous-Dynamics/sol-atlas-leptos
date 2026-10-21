@@ -179,6 +179,10 @@
         "candidate_id",
         "decision",
         "reason",
+        "access_authorization_sha256",
+        "consent_evidence_sha256",
+        "access_status",
+        "consent_status",
         "correlation_group",
         "cost_units",
         "symmetric_kl_nats",
@@ -216,6 +220,40 @@
         "weighted_discrimination_nats": {
           "type": "number",
           "minimum": 0
+        },
+        "consent_status": {
+          "enum": [
+            "granted",
+            "denied",
+            "unknown"
+          ]
+        },
+        "access_status": {
+          "enum": [
+            "authorized",
+            "denied",
+            "unknown"
+          ]
+        },
+        "consent_evidence_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "access_authorization_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
     }
