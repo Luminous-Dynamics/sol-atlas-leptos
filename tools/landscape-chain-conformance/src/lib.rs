@@ -521,8 +521,14 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
     let purpose = string_at(&scenario, &["purpose"])
         .ok_or_else(|| vec!["scenario.purpose is missing".to_owned()])?
         .to_owned();
-    let baseline_review_alternative_id = string_value(review["alternatives"][0].get("alternative_id")).to_owned();
-    let alternative_review_alternative_id = string_value(review["alternatives"][1].get("alternative_id")).to_owned();
+    let baseline_review_alternative_id = review["alternatives"][0]["alternative_id"]
+        .as_str()
+        .unwrap_or("")
+        .to_owned();
+    let alternative_review_alternative_id = review["alternatives"][1]["alternative_id"]
+        .as_str()
+        .unwrap_or("")
+        .to_owned();
     review["inputs"]["scenario_runs"] = json!([
         {
             "system": "symtropy",
