@@ -277,6 +277,76 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
     let metric_registry_sha = sha256_hex(&metric_registry_bytes);
     let source_catalog_sha = sha256_hex(&source_catalog_bytes);
 
+    let permission_metric = records(&metric_registry, &["metrics"])
+        .and_then(|metrics| metrics.first())
+        .ok_or_else(|| vec!["metric registry requires at least one metric for permission binding".to_owned()])?;
+    let permission_metric_id = string_at(permission_metric, &["id"])
+        .ok_or_else(|| vec!["permission metric requires an id".to_owned()])?
+        .to_owned();
+    let permission_metric_unit = string_at(permission_metric, &["unit"])
+        .ok_or_else(|| vec!["permission metric requires a unit".to_owned()])?
+        .to_owned();
+    set_str(
+        &mut measurement_authorization,
+        &["project_snapshot_sha256"],
+        &project_sha,
+    )
+    .map_err(|error| vec![error])?;
+    set_str(
+        &mut measurement_authorization,
+        &["site_ref_sha256"],
+        &intervention_site_sha,
+    )
+    .map_err(|error| vec![error])?;
+    set_str(
+        &mut measurement_authorization,
+        &["metric_id"],
+        &permission_metric_id,
+    )
+    .map_err(|error| vec![error])?;
+    set_str(
+        &mut measurement_authorization,
+        &["unit"],
+        &permission_metric_unit,
+    )
+    .map_err(|error| vec![error])?;
+    set_str(&mut measurement_authorization, &["consent_status"], "unknown")
+        .map_err(|error| vec![error])?;
+    set_at(
+        &mut measurement_authorization,
+        &["consent_evidence_sha256"],
+        Value::Null,
+    )
+    .map_err(|error| vec![error])?;
+    set_str(&mut measurement_authorization, &["site_access_status"], "unknown")
+        .map_err(|error| vec![error])?;
+    set_at(
+        &mut measurement_authorization,
+        &["site_access_evidence_sha256"],
+        Value::Null,
+    )
+    .map_err(|error| vec![error])?;
+    set_str(
+        &mut measurement_authorization,
+        &["publication_consent_status"],
+        "not-requested",
+    )
+    .map_err(|error| vec![error])?;
+    set_at(
+        &mut measurement_authorization,
+        &["publication_consent_evidence_sha256"],
+        Value::Null,
+    )
+    .map_err(|error| vec![error])?;
+    set_str(&mut measurement_authorization, &["publication_policy"], "private")
+        .map_err(|error| vec![error])?;
+    set_str(&mut measurement_authorization, &["coordinate_disclosure"], "none")
+        .map_err(|error| vec![error])?;
+    set_str(&mut measurement_authorization, &["evidence_class"], "synthetic")
+        .map_err(|error| vec![error])?;
+    set_str(&mut measurement_authorization, &["verification_status"], "not-verified")
+        .map_err(|error| vec![error])?;
+
     let intervention_arm = evaluation_plan
         .get_mut("arms")
         .and_then(Value::as_array_mut)
