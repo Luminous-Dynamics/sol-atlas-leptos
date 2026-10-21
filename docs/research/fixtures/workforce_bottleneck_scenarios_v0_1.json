@@ -372,14 +372,12 @@
       "oracle": {
         "causes": [
           "SKILLS_CAPACITY",
-          "FUNDING_OR_PAYER",
           "AUTHORIZATION_OR_SAFETY_GATE",
           "EVIDENCE_INSUFFICIENT",
           "INTERACTING_BOTTLENECKS"
         ],
         "admissible_interventions": [
           "COLLECT_OR_REVALIDATE_EVIDENCE",
-          "ESTABLISH_LAWFUL_FUNDING_AND_PROCUREMENT",
           "OBTAIN_QUALIFIED_INSPECTION_OR_AUTHORIZATION"
         ],
         "prohibited_interventions": [
