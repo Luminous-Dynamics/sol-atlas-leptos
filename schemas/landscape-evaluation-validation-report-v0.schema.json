@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/landscape-evaluation-validation-report-v0.schema.json",
+  "title": "Luminous Landscape Evaluation Validation Report v0",
+  "description": "Deterministic output of the native evaluation-plan checker. A valid status indicates structural contract qualification only, not impact, legal consent, scientific adequacy or causal identification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "report_schema",
+    "schema_uri",
+    "plan_schema_uri",
+    "input_sha256",
+    "input_bytes",
+    "evaluation_id",
+    "valid",
+    "errors",
+    "interpretation_limit"
+  ],
+  "properties": {
+    "report_schema": {
+      "const": "luminous.landscape-evaluation-validation-report.v0"
+    },
+    "schema_uri": {
+      "const": "https://luminousdynamics.io/schemas/landscape-evaluation-validation-report-v0.schema.json"
+    },
+    "plan_schema_uri": {
+      "const": "https://luminousdynamics.io/schemas/landscape-evaluation-plan-v0.schema.json"
+    },
+    "input_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "input_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "evaluation_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 65
+    },
+    "valid": {
+      "type": "boolean"
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "interpretation_limit": {
+      "const": "validation-does-not-prove-impact-or-causality"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "valid": {
+            "const": true
+          }
+        },
+        "required": [
+          "valid"
+        ]
+      },
+      "then": {
+        "properties": {
+          "errors": {
+            "maxItems": 0
+          }
+        }
+      }
+    }
+  ]
+}
