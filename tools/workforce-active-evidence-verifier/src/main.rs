@@ -16,8 +16,7 @@ const MAX_POLICY_COMBINATIONS: usize = 100_000;
 const MAX_FRONTIER_PER_STATE: usize = 128;
 const FIXTURE_DEFAULT: &str =
     "docs/research/fixtures/workforce_active_evidence_scenarios_v0_1.json";
-const SCHEMA_DEFAULT: &str =
-    "docs/research/schemas/workforce_active_evidence_v0_1.schema.json";
+const SCHEMA_DEFAULT: &str = "docs/research/schemas/workforce_active_evidence_v0_1.schema.json";
 
 #[derive(Debug, Clone, Copy, Default, Deserialize, Serialize, PartialEq, Eq, PartialOrd, Ord)]
 struct Cost {
@@ -181,7 +180,10 @@ fn validate_schema(schema: &Value, corpus: &Value) -> Result<(), String> {
     if errors.is_empty() {
         Ok(())
     } else {
-        Err(format!("JSON Schema validation failed:\n{}", errors.join("\n")))
+        Err(format!(
+            "JSON Schema validation failed:\n{}",
+            errors.join("\n")
+        ))
     }
 }
 
@@ -253,10 +255,7 @@ fn validate_contract(corpus: &Corpus) -> Result<(), String> {
         let mut query_ids = BTreeSet::new();
         for query in &scenario.queries {
             if !query_ids.insert(query.id.clone()) {
-                errors.push(format!(
-                    "{}: duplicate query ID {}",
-                    scenario.id, query.id
-                ));
+                errors.push(format!("{}: duplicate query ID {}", scenario.id, query.id));
             }
             let access_forbidden = matches!(
                 query.access_basis.as_str(),
@@ -274,7 +273,13 @@ fn validate_contract(corpus: &Corpus) -> Result<(), String> {
                     scenario.id, query.id
                 ));
             }
-            if !query.permitted && query.denial_reason.as_deref().unwrap_or("").trim().is_empty()
+            if !query.permitted
+                && query
+                    .denial_reason
+                    .as_deref()
+                    .unwrap_or("")
+                    .trim()
+                    .is_empty()
             {
                 errors.push(format!(
                     "{} / {}: forbidden query needs a denial_reason",
@@ -342,7 +347,12 @@ fn validate_contract(corpus: &Corpus) -> Result<(), String> {
                 ));
             }
             for hypothesis_id in &hypothesis_ids {
-                if known_counts.get(hypothesis_id.as_str()).copied().unwrap_or(0) != 1 {
+                if known_counts
+                    .get(hypothesis_id.as_str())
+                    .copied()
+                    .unwrap_or(0)
+                    != 1
+                {
                     errors.push(format!(
                         "{} / {}: observed outcomes must partition hypothesis {} exactly once",
                         scenario.id, query.id, hypothesis_id
@@ -499,7 +509,8 @@ impl<'a> Solver<'a> {
                 }),
             };
             let result = vec![terminal];
-            self.memo.insert((belief, available_queries), result.clone());
+            self.memo
+                .insert((belief, available_queries), result.clone());
             return Ok(result);
         }
 
@@ -531,7 +542,11 @@ impl<'a> Solver<'a> {
                     continue;
                 }
                 let child_frontier = self.solve(child_belief, remaining_queries)?;
-                branches.push((outcome.outcome_id.clone(), outcome.kind.clone(), child_frontier));
+                branches.push((
+                    outcome.outcome_id.clone(),
+                    outcome.kind.clone(),
+                    child_frontier,
+                ));
             }
             if branches.is_empty() {
                 continue;
@@ -539,13 +554,7 @@ impl<'a> Solver<'a> {
             branches.sort_by(|a, b| a.0.cmp(&b.0));
 
             let mut combinations = Vec::new();
-            self.combine_branch_policies(
-                &query,
-                &branches,
-                0,
-                &mut Vec::new(),
-                &mut combinations,
-            )?;
+            self.combine_branch_policies(&query, &branches, 0, &mut Vec::new(), &mut combinations)?;
             candidates.extend(combinations);
         }
 
@@ -606,13 +615,7 @@ impl<'a> Solver<'a> {
         let (outcome_id, kind, child_policies) = &branches[branch_index];
         for child_policy in child_policies {
             selected.push((outcome_id.clone(), kind.clone(), child_policy.clone()));
-            self.combine_branch_policies(
-                query,
-                branches,
-                branch_index + 1,
-                selected,
-                output,
-            )?;
+            self.combine_branch_policies(query, branches, branch_index + 1, selected, output)?;
             selected.pop();
         }
         Ok(())
@@ -645,9 +648,7 @@ fn combined_resolution_class(branches: &[(String, String, Policy)]) -> Resolutio
     } else if observed.iter().any(|class| {
         matches!(
             class,
-            ResolutionClass::Partial
-                | ResolutionClass::Conditional
-                | ResolutionClass::Guaranteed
+            ResolutionClass::Partial | ResolutionClass::Conditional | ResolutionClass::Guaranteed
         )
     }) {
         ResolutionClass::Partial
@@ -663,16 +664,11 @@ fn policy_key(policy: &Policy) -> String {
 fn pareto_prune(mut candidates: Vec<Policy>, budget: Cost) -> Result<Vec<Policy>, String> {
     candidates.retain(|policy| policy.worst_case_cost.fits(budget));
     candidates.sort_by(|a, b| {
-        (
-            a.resolution_class,
-            a.worst_case_cost,
-            policy_key(a),
-        )
-            .cmp(&(
-                b.resolution_class,
-                b.worst_case_cost,
-                policy_key(b),
-            ))
+        (a.resolution_class, a.worst_case_cost, policy_key(a)).cmp(&(
+            b.resolution_class,
+            b.worst_case_cost,
+            policy_key(b),
+        ))
     });
 
     let mut frontier: Vec<Policy> = Vec::new();
@@ -699,24 +695,16 @@ fn pareto_prune(mut candidates: Vec<Policy>, budget: Cost) -> Result<Vec<Policy>
         }
     }
     frontier.sort_by(|a, b| {
-        (
-            a.resolution_class,
-            a.worst_case_cost,
-            policy_key(a),
-        )
-            .cmp(&(
-                b.resolution_class,
-                b.worst_case_cost,
-                policy_key(b),
-            ))
+        (a.resolution_class, a.worst_case_cost, policy_key(a)).cmp(&(
+            b.resolution_class,
+            b.worst_case_cost,
+            policy_key(b),
+        ))
     });
     Ok(frontier)
 }
 
-fn validate_expected_status(
-    scenario: &Scenario,
-    frontier: &[Policy],
-) -> Result<(), String> {
+fn validate_expected_status(scenario: &Scenario, frontier: &[Policy]) -> Result<(), String> {
     let has_guaranteed = frontier
         .iter()
         .any(|policy| policy.resolution_class == ResolutionClass::Guaranteed);
@@ -789,17 +777,10 @@ fn validate_expected_status(
 }
 
 fn cost_key(cost: Cost) -> (u32, u32, u32) {
-    (
-        cost.staff_minutes,
-        cost.cash_zar_cents,
-        cost.delay_hours,
-    )
+    (cost.staff_minutes, cost.cash_zar_cents, cost.delay_hours)
 }
 
-fn validate_reference_frontier(
-    scenario: &Scenario,
-    frontier: &[Policy],
-) -> Result<(), String> {
+fn validate_reference_frontier(scenario: &Scenario, frontier: &[Policy]) -> Result<(), String> {
     if scenario.hand_reference_frontier.is_empty() {
         return Ok(());
     }
@@ -879,28 +860,19 @@ fn verify_values(
 
 fn run() -> Result<(), String> {
     let mut args = env::args().skip(1);
-    let fixture_path = args
-        .next()
-        .unwrap_or_else(|| FIXTURE_DEFAULT.to_string());
-    let schema_path = args
-        .next()
-        .unwrap_or_else(|| SCHEMA_DEFAULT.to_string());
+    let fixture_path = args.next().unwrap_or_else(|| FIXTURE_DEFAULT.to_string());
+    let schema_path = args.next().unwrap_or_else(|| SCHEMA_DEFAULT.to_string());
 
-    let fixture_bytes = fs::read(&fixture_path)
-        .map_err(|error| format!("cannot read {fixture_path}: {error}"))?;
-    let schema_bytes = fs::read(&schema_path)
-        .map_err(|error| format!("cannot read {schema_path}: {error}"))?;
+    let fixture_bytes =
+        fs::read(&fixture_path).map_err(|error| format!("cannot read {fixture_path}: {error}"))?;
+    let schema_bytes =
+        fs::read(&schema_path).map_err(|error| format!("cannot read {schema_path}: {error}"))?;
     let fixture_value: Value = serde_json::from_slice(&fixture_bytes)
         .map_err(|error| format!("fixture JSON is invalid: {error}"))?;
     let schema_value: Value = serde_json::from_slice(&schema_bytes)
         .map_err(|error| format!("schema JSON is invalid: {error}"))?;
 
-    let report = verify_values(
-        &schema_value,
-        &fixture_value,
-        &fixture_bytes,
-        &schema_bytes,
-    )?;
+    let report = verify_values(&schema_value, &fixture_value, &fixture_bytes, &schema_bytes)?;
     println!(
         "{}",
         serde_json::to_string_pretty(&report)
@@ -923,8 +895,9 @@ fn main() -> ExitCode {
 mod tests {
     use super::*;
 
-    const FIXTURE: &str =
-        include_str!("../../../docs/research/fixtures/workforce_active_evidence_scenarios_v0_1.json");
+    const FIXTURE: &str = include_str!(
+        "../../../docs/research/fixtures/workforce_active_evidence_scenarios_v0_1.json"
+    );
     const SCHEMA: &str =
         include_str!("../../../docs/research/schemas/workforce_active_evidence_v0_1.schema.json");
 
@@ -972,7 +945,10 @@ mod tests {
         assert_eq!(report.status, "SYNTHETIC_ONLY_EXACT_ADAPTIVE_ORACLE_PASS");
         assert_eq!(report.scenario_count, 5);
         assert!(report.scenarios.iter().all(|scenario| {
-            scenario.frontier.iter().all(|policy| policy.worst_case_cost.fits(scenario.budget))
+            scenario
+                .frontier
+                .iter()
+                .all(|policy| policy.worst_case_cost.fits(scenario.budget))
         }));
     }
 
@@ -990,11 +966,12 @@ mod tests {
         assert_eq!(costs, vec![(30, 5000, 1), (70, 0, 9)]);
         assert!(scenario.frontier.iter().any(|policy| {
             policy.resolution_class == ResolutionClass::Partial
-                && policy.worst_case_cost == Cost {
-                    staff_minutes: 10,
-                    cash_zar_cents: 5000,
-                    delay_hours: 0
-                }
+                && policy.worst_case_cost
+                    == Cost {
+                        staff_minutes: 10,
+                        cash_zar_cents: 5000,
+                        delay_hours: 0,
+                    }
         }));
     }
 
@@ -1020,9 +997,11 @@ mod tests {
                 collect_query_ids(&policy.tree, &mut selected);
             }
         }
-        assert!(!selected.iter().any(|id| {
-            id == "Q_RESTRICTED_JOIN" || id == "Q_PERSONAL_BANK_LOOKUP"
-        }));
+        assert!(
+            !selected
+                .iter()
+                .any(|id| { id == "Q_RESTRICTED_JOIN" || id == "Q_PERSONAL_BANK_LOOKUP" })
+        );
     }
 
     #[test]
@@ -1030,15 +1009,20 @@ mod tests {
         let report = test_report();
         for id in ["AE-003", "AE-005"] {
             let scenario = find_scenario(&report, id);
-            assert!(scenario
-                .frontier
-                .iter()
-                .all(|policy| policy.resolution_class == ResolutionClass::Unresolved));
+            assert!(
+                scenario
+                    .frontier
+                    .iter()
+                    .all(|policy| policy.resolution_class == ResolutionClass::Unresolved)
+            );
         }
         let ae005 = find_scenario(&report, "AE-005");
-        assert!(ae005.frontier.iter().all(|policy| {
-            policy.tree["kind"] == "abstain"
-        }));
+        assert!(
+            ae005
+                .frontier
+                .iter()
+                .all(|policy| { policy.tree["kind"] == "abstain" })
+        );
     }
 
     #[test]
