@@ -68,6 +68,24 @@ cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --sce
 
 The two original v0.2 omission fixtures are deliberately useful controls: omitting `normal_reference` keeps 82 feasible portfolios and its eight frontier IDs; omitting `heat_dry_power_stress` admits 90 feasible portfolios and changes frontier membership to seven IDs. The dedicated floor challenge changes one synthetic stress-service contribution so that omitting that scenario produces seven reduced-frontier candidates, three of which fail the full-reference hard floor. These are arbitrary test units, not claims about real service delivery or scenario likelihood. The expected JSON manifests are frozen from a separate exhaustive enumeration, not calculated by the Rust scenario-omission function.
 
+### Resource-capacity sensitivity sweep
+
+`--capacity-sweep INPUT.json CONFIG.json EXPECTED.json` varies one period's cost cap or crew cap over a strictly descending finite sequence. The first value must equal the input's existing cap, making the no-shock baseline an explicit negative control. Each subsequent tighter cap is evaluated independently against the unchanged baseline input. The receipt reports portfolios excluded, exact frontier-ID turnover, attempted values and any remaining values. It verifies feasibility-set monotonicity and fails closed if a tighter cap adds a feasible portfolio.
+
+```sh
+cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --capacity-sweep \
+  docs/research/fixtures/sa-economic-portfolio-v0.2-resource-capacity.json \
+  docs/research/fixtures/sa-portfolio-capacity-sweep-v0.1-p1-cost-config.json \
+  docs/research/fixtures/sa-portfolio-capacity-sweep-v0.1-p1-cost.expected.json
+
+cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --capacity-sweep \
+  docs/research/fixtures/sa-economic-portfolio-v0.2-resource-capacity.json \
+  docs/research/fixtures/sa-portfolio-capacity-sweep-v0.1-p1-crew-config.json \
+  docs/research/fixtures/sa-portfolio-capacity-sweep-v0.1-p1-crew.expected.json
+```
+
+The purpose-built synthetic fixture makes cost and crew constraints non-interchangeable. Its baseline has 82 feasible portfolios and an eight-member frontier. Reducing P1's cost cap from 6 to 5 excludes 10 portfolios (72 remain; frontier-ID intersection/union is 6/10). Reducing P1's crew cap from 3 to 2 excludes 40 portfolios (42 remain; frontier-ID intersection/union is 0/14). Both stop at the first counterexample and list lower unattempted caps; neither result is a real capacity forecast. The exact JSON receipts pin the excluded portfolio IDs.
+
 ### Bounded counterexample sweep
 
 `--counterexample-sweep INPUT.json TEMPLATE_PATCH.json CONFIG.json EXPECTED.json` explores an ordered, finite list of non-negative integer service-baseline values using the existing exact evaluator. Each attempted mutation receives a stable scenario ID suffix; the receipt hashes the input, template, config and expected report. It stops on the first portfolio removed by the newly added scenario, or reports `DOMAIN_EXHAUSTED_NO_COUNTEREXAMPLE` only after every configured value is checked. If the budget ends first, status is `BUDGET_EXHAUSTED` and unattempted values are listed. The sweep is not a global real-world robustness proof.
