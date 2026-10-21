@@ -1275,7 +1275,7 @@ mod tests {
 
     #[test]
     fn evidence_readiness_reports_catalogued_candidates_not_ingested_layers() {
-        assert_eq!(landscape_source_status().unwrap(), (6, 0));
+        assert_eq!(landscape_source_status().unwrap(), (7, 0));
     }
 
     #[test]
