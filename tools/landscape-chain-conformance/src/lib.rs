@@ -1557,7 +1557,7 @@ mod tests {
         assert_eq!(report.conformance_status, "PASS_SYNTHETIC_CONTRACT_CONFORMANCE_ONLY");
         assert_eq!(report.data_origin, "synthetic_fixture");
         assert_eq!(report.claim_ceiling, CLAIM_CEILING);
-                assert_eq!(report.upstream_pinned_contract_count, 9);
+        assert_eq!(report.upstream_pinned_contract_count, 9);
         assert_eq!(report.project_feature_count, 7);
         assert_eq!(report.observation_count, 4);
         assert_eq!(report.metric_observation_mapping_count, 8);
@@ -1571,7 +1571,18 @@ mod tests {
         assert_eq!(report.scenario_execution_status, "BLOCKED_NOT_EXECUTED");
         assert_eq!(report.review_ranking_status, "no-defensible-ranking");
         assert_eq!(report.recommendation_status, "no-ranking");
+        assert_eq!(report.passed_check_count, report.checks.len());
+        assert_eq!(report.passed_check_count, 14);
+        assert_eq!(report.artifact_sha256.len(), 14);
+        assert_eq!(report.template_input_sha256.len(), 9);
         assert!(report.artifact_sha256.values().all(|value| digest_is_well_formed(value)));
+    }
+
+    #[test]
+    fn observation_crosswalk_unit_mismatch_is_rejected() {
+        let mut chain = fixture();
+        chain.observations["observations"][1]["observed_property"]["unit"] = json!("mm");
+        assert!(validate_chain(&chain).iter().any(|error| error.contains("units do not match crosswalk property")));
     }
 
     #[test]
