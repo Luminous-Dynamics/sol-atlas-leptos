@@ -338,6 +338,9 @@ pub struct CapacitySweepConfig {
     /// Strictly descending values; the first must equal the input's current cap.
     pub capacity_values: Vec<i64>,
     pub max_evaluations: usize,
+    /// When true, stop at the first cap that excludes a baseline-feasible portfolio.
+    /// When false, traverse the full domain (or stop only when the evaluation budget is spent).
+    pub stop_on_first_counterexample: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -1574,17 +1577,19 @@ pub fn evaluate_capacity_sweep(
             counterexample_found,
         });
         attempted_values.push(capacity);
-        if counterexample_found {
+        if counterexample_found && first_counterexample_capacity.is_none() {
             first_counterexample_capacity = Some(capacity);
+        }
+        if counterexample_found && config.stop_on_first_counterexample {
             remaining_values.extend(config.capacity_values[index + 1..].iter().copied());
             break;
         }
     }
 
-    let status = if first_counterexample_capacity.is_some() {
-        CounterexampleSweepStatus::CounterexampleFound
-    } else if !remaining_values.is_empty() {
+    let status = if !remaining_values.is_empty() && attempts.len() >= evaluation_budget {
         CounterexampleSweepStatus::BudgetExhausted
+    } else if first_counterexample_capacity.is_some() {
+        CounterexampleSweepStatus::CounterexampleFound
     } else {
         CounterexampleSweepStatus::DomainExhaustedNoCounterexample
     };
@@ -2882,10 +2887,19 @@ mod tests {
 
         config.capacity_values = vec![3, 2, 1, 0];
         config.max_evaluations = 1;
+        config.stop_on_first_counterexample = false;
         let report = evaluate_capacity_sweep(&input, &config).unwrap();
         assert_eq!(report.status, CounterexampleSweepStatus::BudgetExhausted);
         assert_eq!(report.attempted_values, vec![3]);
         assert_eq!(report.remaining_values, vec![2, 1, 0]);
+
+        config.capacity_values = vec![3, 2, 1, 0];
+        config.max_evaluations = 2;
+        let partially_swept = evaluate_capacity_sweep(&input, &config).unwrap();
+        assert_eq!(partially_swept.status, CounterexampleSweepStatus::BudgetExhausted);
+        assert_eq!(partially_swept.attempted_values, vec![3, 2]);
+        assert_eq!(partially_swept.first_counterexample_capacity, Some(2));
+        assert_eq!(partially_swept.remaining_values, vec![1, 0]);
     }
 
     #[test]
