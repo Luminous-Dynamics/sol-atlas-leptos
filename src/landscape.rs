@@ -652,9 +652,10 @@ mod tests {
             .expect("metric definitions must be an array");
         assert_eq!(metrics.len(), 8);
 
-        let catalog: Value =
-            serde_json::from_str(include_str!("../data-sources/landscape/south-africa-johannesburg-v0.json"))
-                .expect("landscape source catalog must be valid JSON");
+        let catalog: Value = serde_json::from_str(include_str!(
+            "../data-sources/landscape/south-africa-johannesburg-v0.json"
+        ))
+        .expect("landscape source catalog must be valid JSON");
         let source_records = catalog["records"]
             .as_array()
             .expect("source records must be an array");
@@ -662,7 +663,11 @@ mod tests {
             .iter()
             .map(|record| record["id"].as_str().expect("source ID must be a string"))
             .collect();
-        assert_eq!(source_ids.len(), source_records.len(), "source IDs must be unique");
+        assert_eq!(
+            source_ids.len(),
+            source_records.len(),
+            "source IDs must be unique"
+        );
 
         let mut ids = HashSet::with_capacity(metrics.len());
         let mut families = HashSet::with_capacity(7);
@@ -716,26 +721,39 @@ mod tests {
                 let source_id = candidate["source_id"]
                     .as_str()
                     .expect("candidate source ID must be a string");
-                assert!(source_ids.contains(source_id), "metric {id} references unknown source {source_id}");
-                assert!(metric_source_ids.insert(source_id), "metric {id} repeats source {source_id}");
                 assert!(
-                    candidate["role"].as_str().is_some_and(|value| !value.trim().is_empty()),
+                    source_ids.contains(source_id),
+                    "metric {id} references unknown source {source_id}"
+                );
+                assert!(
+                    metric_source_ids.insert(source_id),
+                    "metric {id} repeats source {source_id}"
+                );
+                assert!(
+                    candidate["role"]
+                        .as_str()
+                        .is_some_and(|value| !value.trim().is_empty()),
                     "metric {id} candidate {source_id} must explain its role"
                 );
                 assert!(
-                    candidate["limitation"].as_str().is_some_and(|value| !value.trim().is_empty()),
+                    candidate["limitation"]
+                        .as_str()
+                        .is_some_and(|value| !value.trim().is_empty()),
                     "metric {id} candidate {source_id} must state limitations"
                 );
-                let catalog_record = source_records.iter().find(|record| record["id"] == source_id)
+                let catalog_record = source_records
+                    .iter()
+                    .find(|record| record["id"] == source_id)
                     .expect("candidate source reference must match a catalog record");
                 assert_eq!(
-                    catalog_record["ingestion_state"],
-                    "not-ingested",
+                    catalog_record["ingestion_state"], "not-ingested",
                     "candidate source {source_id} must not be promoted to available data by a metric link"
                 );
             }
             assert!(
-                metric["unprovided_inputs"].as_array().is_some_and(|values| !values.is_empty()),
+                metric["unprovided_inputs"]
+                    .as_array()
+                    .is_some_and(|values| !values.is_empty()),
                 "metric {id} must explicitly list evidence gaps"
             );
         }
