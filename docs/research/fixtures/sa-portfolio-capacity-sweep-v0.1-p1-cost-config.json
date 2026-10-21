@@ -1,0 +1,12 @@
+{
+  "schema_version": "sa-portfolio-capacity-sweep-v0.1",
+  "period": "P1",
+  "resource": "cost",
+  "capacity_values": [
+    5,
+    4,
+    3,
+    2
+  ],
+  "max_evaluations": 4
+}
