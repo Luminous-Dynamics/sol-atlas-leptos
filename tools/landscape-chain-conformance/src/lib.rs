@@ -33,6 +33,7 @@ pub struct ChainArtifacts {
     intervention_site_bytes: Vec<u8>,
     comparison_site_bytes: Vec<u8>,
     metric_registry_bytes: Vec<u8>,
+    metric_observation_map_bytes: Vec<u8>,
     source_catalog_bytes: Vec<u8>,
     upstream_manifest_bytes: Vec<u8>,
     project: Value,
@@ -41,6 +42,7 @@ pub struct ChainArtifacts {
     intervention_site: Value,
     comparison_site: Value,
     metric_registry: Value,
+    metric_observation_map: Value,
     source_catalog: Value,
     upstream_manifest: Value,
     evaluation_plan: Value,
@@ -62,6 +64,10 @@ pub struct ConformanceReport {
     pub project_feature_count: usize,
     pub observation_count: usize,
     pub metric_definition_count: usize,
+    pub metric_observation_mapping_count: usize,
+    pub observations_matching_crosswalk_count: usize,
+    pub eligible_supporting_observation_count: usize,
+    pub unmapped_observation_count: usize,
     pub source_catalog_record_count: usize,
     pub source_catalog_status: String,
     pub scenario_execution_status: String,
@@ -238,6 +244,8 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
         read_json(dir, "site-comparison.json").map_err(|error| vec![error])?;
     let (metric_registry_bytes, metric_registry) =
         read_json(dir, "metric-registry.json").map_err(|error| vec![error])?;
+    let (metric_observation_map_bytes, metric_observation_map) =
+        read_json(dir, "metric-observation-map.json").map_err(|error| vec![error])?;
     let (source_catalog_bytes, source_catalog) =
         read_json(dir, "source-catalog.json").map_err(|error| vec![error])?;
     let (upstream_manifest_bytes, upstream_manifest) =
@@ -259,6 +267,7 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
     let intervention_site_sha = sha256_hex(&intervention_site_bytes);
     let comparison_site_sha = sha256_hex(&comparison_site_bytes);
     let metric_registry_sha = sha256_hex(&metric_registry_bytes);
+    let metric_observation_map_sha = sha256_hex(&metric_observation_map_bytes);
     let source_catalog_sha = sha256_hex(&source_catalog_bytes);
 
     let intervention_arm = evaluation_plan
@@ -514,6 +523,7 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
         ("scenario-manifest-template.json", &scenario_template_bytes),
         ("stewardship-template.json", &stewardship_template_bytes),
         ("review-template.json", &review_template_bytes),
+        ("metric-observation-map.json", &metric_observation_map_bytes),
         ("upstream-contract-manifest.json", &upstream_manifest_bytes),
     ]);
 
@@ -529,6 +539,7 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
             intervention_site_bytes,
             comparison_site_bytes,
             metric_registry_bytes,
+            metric_observation_map_bytes,
             source_catalog_bytes,
             upstream_manifest_bytes,
             project,
@@ -537,6 +548,7 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
             intervention_site,
             comparison_site,
             metric_registry,
+            metric_observation_map,
             source_catalog,
             upstream_manifest,
             evaluation_plan,
@@ -549,6 +561,82 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
     } else {
         Err(construction_errors)
     }
+}
+
+fn registry_metric_ids(registry: &Value) -> BTreeSet<&str> {
+    records(registry, &["metrics"])
+        .into_iter()
+        .flatten()
+        .filter_map(|metric| string_at(metric, &["id"]))
+        .collect()
+}
+
+fn observation_crosswalk_match_count(chain: &ChainArtifacts) -> usize {
+    let mappings = records(&chain.metric_observation_map, &["mappings"]);
+    let observations = records(&chain.observations, &["observations"]);
+    let Some(mappings) = mappings else { return 0 };
+    let Some(observations) = observations else { return 0 };
+    observations
+        .iter()
+        .filter(|observation| {
+            let Some(property_id) = string_at(observation, &["observed_property", "id"]) else {
+                return false;
+            };
+            mappings.iter().any(|mapping| {
+                records(mapping, &["possible_observed_properties"])
+                    .is_some_and(|properties| {
+                        properties.iter().any(|property| {
+                            string_at(property, &["id"]) == Some(property_id)
+                        })
+                    })
+            })
+        })
+        .count()
+}
+
+fn eligible_supporting_observation_count(chain: &ChainArtifacts) -> usize {
+    let mappings = records(&chain.metric_observation_map, &["mappings"]);
+    let observations = records(&chain.observations, &["observations"]);
+    let Some(mappings) = mappings else { return 0 };
+    let Some(observations) = observations else { return 0 };
+    observations
+        .iter()
+        .filter(|observation| {
+            let property_id = string_at(observation, &["observed_property", "id"]);
+            let evidence_class = string_at(observation, &["evidence_class"]);
+            let Some(property_id) = property_id else { return false };
+            let Some(evidence_class) = evidence_class else { return false };
+            if matches!(evidence_class, "synthetic-test" | "synthetic-fixture") {
+                return false;
+            }
+            mappings.iter().any(|mapping| {
+                records(mapping, &["possible_observed_properties"])
+                    .is_some_and(|properties| properties.iter().any(|property| {
+                        string_at(property, &["id"]) == Some(property_id)
+                            && records(property, &["minimum_evidence_classes"])
+                                .is_some_and(|classes| {
+                                    classes.iter().any(|class| class.as_str() == Some(evidence_class))
+                                })
+                            && string_at(observation, &["observed_property", "unit"])
+                                == string_at(property, &["unit"])
+                            && string_at(observation, &["result", "kind"])
+                                .is_some_and(|kind| {
+                                    records(property, &["result_kinds"])
+                                        .is_some_and(|kinds| {
+                                            kinds.iter().any(|expected| expected.as_str() == Some(kind))
+                                        })
+                                })
+                    }))
+            })
+        })
+        .count()
+}
+
+fn unmapped_observation_count(chain: &ChainArtifacts) -> usize {
+    records(&chain.observations, &["observations"])
+        .map_or(0, |observations| {
+            observations.len().saturating_sub(observation_crosswalk_match_count(chain))
+        })
 }
 
 pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
@@ -586,6 +674,67 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
     if !matches!(parsed_metric_registry, Ok(parsed) if parsed == chain.metric_registry) {
         errors.push("metric registry object differs from its exact source bytes".to_owned());
     }
+    let parsed_metric_observation_map =
+        parse_json(&chain.metric_observation_map_bytes, "metric-observation-map.json");
+    if !matches!(parsed_metric_observation_map, Ok(parsed) if parsed == chain.metric_observation_map) {
+        errors.push("metric-observation crosswalk object differs from its exact source bytes".to_owned());
+    }
+    check_eq(
+        &mut errors,
+        &chain.metric_observation_map,
+        &["schema"],
+        "luminous.landscape-metric-observation-map.v0",
+        "metric-observation crosswalk",
+    );
+    check_eq(
+        &mut errors,
+        &chain.metric_observation_map,
+        &["schema_uri"],
+        "https://luminousdynamics.io/schemas/landscape-metric-observation-map-v0.schema.json",
+        "metric-observation crosswalk",
+    );
+    check_eq(
+        &mut errors,
+        &chain.metric_observation_map,
+        &["registry_schema_uri"],
+        "https://luminousdynamics.io/schemas/landscape-performance-registry-v0.schema.json",
+        "metric-observation crosswalk registry schema",
+    );
+    check_eq(
+        &mut errors,
+        &chain.metric_observation_map,
+        &["registry_version"],
+        "landscape-performance-registry-v0",
+        "metric-observation crosswalk registry version",
+    );
+    if let Some(mappings) = records(&chain.metric_observation_map, &["mappings"]) {
+        let registry_ids = registry_metric_ids(&chain.metric_registry);
+        let mut mapped_metric_ids = BTreeSet::new();
+        for mapping in mappings {
+            if let Some(metric_id) = string_at(mapping, &["metric_id"]) {
+                if !registry_ids.contains(metric_id) {
+                    errors.push(format!("crosswalk references metric {metric_id} absent from the pinned metric registry"));
+                }
+                if !mapped_metric_ids.insert(metric_id) {
+                    errors.push(format!("crosswalk contains duplicate metric mapping: {metric_id}"));
+                }
+            } else {
+                errors.push("crosswalk mapping is missing metric_id".to_owned());
+            }
+        }
+    } else {
+        errors.push("metric-observation crosswalk requires mappings[]".to_owned());
+    }
+    let crosswalk_matches = observation_crosswalk_match_count(chain);
+    let crosswalk_eligible = eligible_supporting_observation_count(chain);
+    if crosswalk_eligible != 0 && chain.observations["observations"].as_array().is_some_and(|rows| {
+        rows.iter().any(|row| matches!(string_at(row, &["evidence_class"]), Some("synthetic-test" | "synthetic-fixture")))
+    }) {
+        errors.push("synthetic observation unexpectedly counted as eligible metric support".to_owned());
+    }
+    if crosswalk_matches + unmapped_observation_count(chain) != observation_count {
+        errors.push("crosswalk match census does not equal total observation count".to_owned());
+    }
     let parsed_source_catalog = parse_json(&chain.source_catalog_bytes, "source-catalog.json");
     if !matches!(parsed_source_catalog, Ok(parsed) if parsed == chain.source_catalog) {
         errors.push("source catalog object differs from its exact source bytes".to_owned());
@@ -597,6 +746,7 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
     let intervention_site_sha = sha256_hex(&chain.intervention_site_bytes);
     let comparison_site_sha = sha256_hex(&chain.comparison_site_bytes);
     let metric_registry_sha = sha256_hex(&chain.metric_registry_bytes);
+    let metric_observation_map_sha = sha256_hex(&chain.metric_observation_map_bytes);
     let source_catalog_sha = sha256_hex(&chain.source_catalog_bytes);
     let evaluation_plan_sha = match canonical_sha256(&chain.evaluation_plan) {
         Ok(digest) => digest,
@@ -619,6 +769,7 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
             String::new()
         }
     };
+    let observations = records(&chain.observations, &["observations"]);
     let _stewardship_sha = match canonical_sha256(&chain.stewardship) {
         Ok(digest) => digest,
         Err(error) => {
@@ -1146,6 +1297,10 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
     }
 
     // These variables intentionally force all evidence roots to have well-formed exact hashes.
+    if !digest_is_well_formed(&metric_observation_map_sha) {
+        errors.push("metric-observation crosswalk: invalid generated digest".to_owned());
+    }
+
     for (label, digest) in [
         ("project snapshot", project_sha),
         ("alternative snapshot", alternative_sha),
@@ -1248,6 +1403,7 @@ pub fn run_conformance(dir: &Path) -> Result<ConformanceReport, Vec<String>> {
     artifact_sha256.insert("comparison_site_reference".to_owned(), sha256_hex(&chain.comparison_site_bytes));
     artifact_sha256.insert("boundary_conditions".to_owned(), sha256_hex(&chain.boundary_bytes));
     artifact_sha256.insert("metric_registry".to_owned(), sha256_hex(&chain.metric_registry_bytes));
+    artifact_sha256.insert("metric_observation_map".to_owned(), sha256_hex(&chain.metric_observation_map_bytes));
     artifact_sha256.insert("source_catalog".to_owned(), sha256_hex(&chain.source_catalog_bytes));
     artifact_sha256.insert("evaluation_plan".to_owned(), canonical_sha256(&chain.evaluation_plan).map_err(|error| vec![error])?);
     artifact_sha256.insert("observation_batch".to_owned(), canonical_sha256(&chain.observations).map_err(|error| vec![error])?);
@@ -1275,8 +1431,10 @@ pub fn run_conformance(dir: &Path) -> Result<ConformanceReport, Vec<String>> {
         "Mycelix stewardship binds the same project and scenario, with private and non-sensitive defaults".to_owned(),
         "Symthaea review binds both alternatives, metric registry, source catalog, and scenario manifest".to_owned(),
         "unqualified source catalog and metrics keep consequence-bearing assessments blocked".to_owned(),
+        "observation properties are checked against the declared metric crosswalk and evidence class".to_owned(),
         "review correctly abstains from ranking while scenario execution remains blocked".to_owned(),
         "all upstream contract inputs cite immutable draft commit SHAs".to_owned(),
+        "observation crosswalk metric IDs resolve against the pinned registry, while synthetic observations remain ineligible".to_owned(),
         "seven adversarial cross-reference/privacy/claim controls are rejected".to_owned(),
         "report emits exact SHA-256 digests for every artifact in the synthetic chain".to_owned(),
     ];
@@ -1291,6 +1449,10 @@ pub fn run_conformance(dir: &Path) -> Result<ConformanceReport, Vec<String>> {
         project_feature_count: feature_count(&chain.project),
         observation_count: records(&chain.observations, &["observations"]).map_or(0, Vec::len),
         metric_definition_count: records(&chain.metric_registry, &["metrics"]).map_or(0, Vec::len),
+        metric_observation_mapping_count: records(&chain.metric_observation_map, &["mappings"]).map_or(0, Vec::len),
+        observations_matching_crosswalk_count: observation_crosswalk_match_count(&chain),
+        eligible_supporting_observation_count: eligible_supporting_observation_count(&chain),
+        unmapped_observation_count: unmapped_observation_count(&chain),
         source_catalog_record_count: records(&chain.source_catalog, &["records"]).map_or(0, Vec::len),
         source_catalog_status: string_at(&chain.source_catalog, &["catalog_status"]).unwrap_or("unknown").to_owned(),
         scenario_execution_status: "BLOCKED_NOT_EXECUTED".to_owned(),
@@ -1327,9 +1489,13 @@ mod tests {
         assert_eq!(report.conformance_status, "PASS_SYNTHETIC_CONTRACT_CONFORMANCE_ONLY");
         assert_eq!(report.data_origin, "synthetic_fixture");
         assert_eq!(report.claim_ceiling, CLAIM_CEILING);
-        assert_eq!(report.upstream_pinned_contract_count, 8);
+                assert_eq!(report.upstream_pinned_contract_count, 9);
         assert_eq!(report.project_feature_count, 7);
         assert_eq!(report.observation_count, 4);
+        assert_eq!(report.metric_observation_mapping_count, 8);
+        assert_eq!(report.observations_matching_crosswalk_count, 1);
+        assert_eq!(report.eligible_supporting_observation_count, 0);
+        assert_eq!(report.unmapped_observation_count, 3);
         assert_eq!(report.negative_controls_attempted, 7);
         assert_eq!(report.negative_controls_rejected, 7);
         assert_eq!(report.negative_controls_unexpectedly_accepted, 0);
