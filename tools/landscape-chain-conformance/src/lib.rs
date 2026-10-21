@@ -37,6 +37,7 @@ pub struct ChainArtifacts {
     metric_registry_bytes: Vec<u8>,
     metric_observation_map_bytes: Vec<u8>,
     source_catalog_bytes: Vec<u8>,
+    measurement_authorization_template_bytes: Vec<u8>,
     upstream_manifest_bytes: Vec<u8>,
     project: Value,
     alternative: Value,
@@ -46,6 +47,7 @@ pub struct ChainArtifacts {
     metric_registry: Value,
     metric_observation_map: Value,
     source_catalog: Value,
+    measurement_authorization: Value,
     upstream_manifest: Value,
     evaluation_plan: Value,
     observations: Value,
@@ -73,6 +75,10 @@ pub struct ConformanceReport {
     pub unmapped_observation_count: usize,
     pub source_catalog_record_count: usize,
     pub source_catalog_status: String,
+    pub measurement_consent_status: String,
+    pub site_access_status: String,
+    pub measurement_authorization_verification_status: String,
+    pub measurement_operation_authorized_by_harness: bool,
     pub scenario_execution_status: String,
     pub paired_scenario_count: usize,
     pub paired_scenarios_share_boundary_conditions: bool,
@@ -248,6 +254,8 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
         read_json(dir, "metric-observation-map.json").map_err(|error| vec![error])?;
     let (source_catalog_bytes, source_catalog) =
         read_json(dir, "source-catalog.json").map_err(|error| vec![error])?;
+    let (measurement_authorization_template_bytes, mut measurement_authorization) =
+        read_json(dir, "measurement-authorization-template.json").map_err(|error| vec![error])?;
     let (upstream_manifest_bytes, upstream_manifest) =
         read_json(dir, "upstream-contract-manifest.json").map_err(|error| vec![error])?;
     let (eval_template_bytes, mut evaluation_plan) =
