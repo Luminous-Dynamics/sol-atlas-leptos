@@ -384,6 +384,28 @@ fn parse_landscape_metric_cards(
             .as_str()
             .filter(|value| !value.trim().is_empty())
             .ok_or_else(|| format!("Landscape source {id} has no license status"))?;
+        if !matches!(
+            ingestion_state,
+            "not-ingested" | "metadata-verified" | "ingested" | "blocked"
+        ) {
+            return Err(format!(
+                "Landscape source {id} has unsupported ingestion_state {ingestion_state:?}"
+            ));
+        }
+        if !matches!(
+            license_status,
+            "review-required"
+                | "review-required-for-product-specific-terms"
+                | "registration-and-license-check-required"
+                | "open-data-with-obligations"
+                | "verify-selected-provider-terms"
+                | "verified-open"
+                | "denied"
+        ) {
+            return Err(format!(
+                "Landscape source {id} has unsupported license status {license_status:?}"
+            ));
+        }
         if source_map.iter().any(|(candidate_id, _, _, _)| candidate_id == id) {
             return Err(format!("Landscape source catalog has duplicate ID {id}"));
         }
@@ -1470,6 +1492,18 @@ mod tests {
     }
 
     #[test]
+    fn source_catalog_rejects_unknown_license_status() {
+        let registry = include_str!("../../metrics/landscape/registry-v0.json");
+        let mut catalog: Value = serde_json::from_str(include_str!(
+            "../../data-sources/landscape/south-africa-johannesburg-v0.json"
+        ))
+        .unwrap();
+        catalog["records"][0]["license"]["status"] = serde_json::json!("looks-fine");
+        let errors = parse_landscape_metric_cards(registry, &catalog.to_string()).unwrap_err();
+        assert!(errors.iter().any(|error| error.contains("unsupported license status")));
+    }
+
+    #[test]
     fn metric_registry_rejects_duplicate_candidate_source_references() {
         let mut registry: Value = serde_json::from_str(include_str!(
             "../../metrics/landscape/registry-v0.json"
@@ -1500,7 +1534,7 @@ mod tests {
         let errors = parse_landscape_metric_cards(&registry.to_string(), catalog).unwrap_err();
         assert!(errors.iter().any(|error| error.contains("embeds a value")));
 
-        let mut valid_registry: Value = serde_json::from_str(include_str!(
+        let valid_registry: Value = serde_json::from_str(include_str!(
             "../../metrics/landscape/registry-v0.json"
         ))
         .unwrap();
@@ -1512,8 +1546,6 @@ mod tests {
         )
         .unwrap_err();
         assert!(errors.contains(&"Landscape source catalog is not in the expected metadata-only v0 state".to_string()));
-        valid_registry["metrics"][0]["candidate_sources"][0]["source_id"] =
-            serde_json::json!("unused");
     }
 
     #[test]
