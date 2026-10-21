@@ -48,7 +48,7 @@ Each synthetic case contains:
 
 Costs along a branch add. A policy's conservative vector is the component-wise worst case over its possible paths. Pareto dominance requires being no worse in all dimensions and strictly better in at least one. Two policies with incomparable cost vectors remain on the frontier. Do not average cost/benefit across unweighted synthetic scenario counts.
 
-Queries must not be repeated in a single path. The tiny-instance exact solver, when implemented, must enumerate all permitted adaptive policies up to a declared cap; it must emit an explicit limit status rather than return a silently truncated frontier.
+Queries must not be repeated in a single path. The tiny-instance exact Rust solver enumerates permitted adaptive policies up to a declared cap; it emits an explicit limit status rather than returning a silently truncated frontier. Its resolution tiers distinguish (a) guaranteed resolution on every possible branch, (b) conditional resolution on every modeled observed branch with abstention permitted for unknown/unmodelled outcomes, (c) partial resolution where some observed branches remain unresolved, and (d) no observed-branch resolution. Pareto cost vectors are kept separate within each tier so a cheap partial policy cannot masquerade as an equally useful conditional policy.
 
 ## Baselines and comparisons
 
