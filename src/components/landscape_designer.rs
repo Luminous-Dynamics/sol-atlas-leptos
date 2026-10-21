@@ -1181,6 +1181,78 @@ pub fn LandscapeDesigner() -> impl IntoView {
                         }}
                         <p class="landscape-download-status" role="status" aria-live="polite">{move || download_status.get()}</p>
                     </section>
+
+                    <section class="landscape-metric-panel" aria-label="Landscape performance metric registry">
+                        <div class="landscape-metric-panel-head">
+                            <div>
+                                <p class="landscape-section-label">"OUTCOME METRICS / EVIDENCE CONTRACT"</p>
+                                <h3>"What would success mean?"</h3>
+                            </div>
+                            <span class="landscape-metric-status-badge">"DEFINITION ONLY"</span>
+                        </div>
+                        <p class="landscape-muted">"No environmental or social outcome is calculated for this schematic plan. These versioned definitions show which evidence would be needed before any metric could be reported."</p>
+                        {match metric_cards.clone() {
+                            Ok(metrics) => {
+                                let definition_count = metrics.len().to_string();
+                                view! {
+                                    <>
+                                        <div class="landscape-metric-summary">
+                                            <strong>{definition_count}</strong>
+                                            <span>"metric definitions"</span>
+                                            <span class="landscape-metric-zero">"0 values computed by v0"</span>
+                                        </div>
+                                        <div class="landscape-metric-grid">
+                                            <For
+                                                each=move || metrics.clone()
+                                                key=|metric| metric.id.clone()
+                                                children=move |metric: LandscapeMetricCard| {
+                                                    let family = metric.family.clone();
+                                                    let label = metric.label.clone();
+                                                    let unit = metric.unit.clone();
+                                                    let status = match metric.status.as_str() {
+                                                        "requires-myclix-stewardship-contract" => "Needs stewardship contract",
+                                                        _ => "Not computed",
+                                                    };
+                                                    let policy = metric.target_policy.clone();
+                                                    let required_inputs = metric.required_inputs.clone();
+                                                    let input_count = required_inputs.len().to_string();
+                                                    view! {
+                                                        <article class="landscape-metric-card">
+                                                            <div class="landscape-metric-card-meta">
+                                                                <span class="landscape-metric-family">{family}</span>
+                                                                <span class="landscape-metric-card-status">{status}</span>
+                                                            </div>
+                                                            <h4>{label}</h4>
+                                                            <p class="landscape-metric-unit">"Unit: " {unit}</p>
+                                                            <details>
+                                                                <summary>"Required inputs (" {input_count} ")"</summary>
+                                                                <ul>
+                                                                    <For
+                                                                        each=move || required_inputs.clone()
+                                                                        key=|input| input.clone()
+                                                                        children=move |input: String| view! { <li>{input}</li> }
+                                                                    />
+                                                                </ul>
+                                                            </details>
+                                                            <details>
+                                                                <summary>"Target / decision policy"</summary>
+                                                                <p class="landscape-metric-policy">{policy}</p>
+                                                            </details>
+                                                        </article>
+                                                    }
+                                                }
+                                            />
+                                        </div>
+                                    </>
+                                }.into_any()
+                            }
+                            Err(error) => view! {
+                                <p class="landscape-evidence-blocked" role="status">
+                                    "METRIC REGISTRY INVALID · no outcome definitions shown. " {error}
+                                </p>
+                            }.into_any()
+                        }}
+                    </section>
                 </section>
             </div>
         </main>
