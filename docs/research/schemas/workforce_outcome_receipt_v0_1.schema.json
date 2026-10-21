@@ -1,0 +1,327 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/schemas/workforce_outcome_receipt_v0_1.schema.json",
+  "title": "Workforce outcome evaluation receipt v0.1",
+  "description": "Aggregate evaluation receipt. Synthetic fixtures are contract tests, never observed impact.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "evidence_class",
+    "synthetic_only",
+    "evaluation_design",
+    "population",
+    "window",
+    "metric_contract_sha256",
+    "policy_results",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "workforce-outcome-receipt-v0.1"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "evidence_class": {
+      "enum": [
+        "synthetic",
+        "authorized_retrospective",
+        "prospective_pilot",
+        "independent_replication"
+      ]
+    },
+    "synthetic_only": {
+      "type": "boolean"
+    },
+    "evaluation_design": {
+      "enum": [
+        "synthetic_contract",
+        "retrospective_replay",
+        "randomized_pilot",
+        "stepped_wedge",
+        "matched_comparison",
+        "interrupted_time_series",
+        "difference_in_differences",
+        "independent_replication"
+      ]
+    },
+    "population": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit",
+        "description",
+        "geography",
+        "period_start",
+        "period_end",
+        "denominator_definition"
+      ],
+      "properties": {
+        "unit": {
+          "enum": [
+            "case",
+            "work_order",
+            "vacancy",
+            "placement",
+            "service_event",
+            "aggregate_cohort"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "geography": {
+          "type": "string",
+          "minLength": 1
+        },
+        "period_start": {
+          "type": "string",
+          "format": "date"
+        },
+        "period_end": {
+          "type": "string",
+          "format": "date"
+        },
+        "denominator_definition": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision_cutoff",
+        "outcome_followup_days"
+      ],
+      "properties": {
+        "decision_cutoff": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "outcome_followup_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3650
+        },
+        "outcome_windows_days": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3650
+          }
+        }
+      }
+    },
+    "source_snapshot_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "metric_contract_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "code_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "preregistration_uri": {
+      "type": "string",
+      "format": "uri"
+    },
+    "independent_review": {
+      "type": "boolean"
+    },
+    "policy_results": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "policy_id",
+          "role",
+          "policy_sha256",
+          "case_count",
+          "diagnosed_count",
+          "abstained_count",
+          "correct_cause_set_count",
+          "false_shortage_count",
+          "false_surplus_count",
+          "unsafe_action_count",
+          "action_precondition_failure_count",
+          "action_completed_count",
+          "verified_restoration_count",
+          "paid_work_verified_count",
+          "missing_outcome_count"
+        ],
+        "properties": {
+          "policy_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "role": {
+            "enum": [
+              "incumbent",
+              "proxy_baseline",
+              "transparent_rules",
+              "expert_panel",
+              "candidate",
+              "scheduler_comparator"
+            ]
+          },
+          "policy_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "case_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "diagnosed_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "abstained_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "correct_cause_set_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "false_shortage_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "false_surplus_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "unsafe_action_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "action_precondition_failure_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "action_completed_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "verified_restoration_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "paid_work_verified_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "missing_outcome_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 2000
+          }
+        }
+      }
+    },
+    "confounding_and_deviations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 2000
+      }
+    },
+    "claim_ceiling": {
+      "enum": [
+        "synthetic_contract_only",
+        "descriptive_association_only",
+        "causal_claim_supported_by_preregistered_design",
+        "incomplete_or_indeterminate"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "synthetic_only": {
+            "const": true
+          }
+        },
+        "required": [
+          "synthetic_only"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evidence_class": {
+            "const": "synthetic"
+          },
+          "evaluation_design": {
+            "const": "synthetic_contract"
+          },
+          "claim_ceiling": {
+            "const": "synthetic_contract_only"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "synthetic_only": {
+            "const": false
+          }
+        },
+        "required": [
+          "synthetic_only"
+        ]
+      },
+      "then": {
+        "required": [
+          "source_snapshot_sha256",
+          "code_sha256",
+          "preregistration_uri",
+          "independent_review"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "evidence_class": {
+            "enum": [
+              "prospective_pilot",
+              "independent_replication"
+            ]
+          }
+        },
+        "required": [
+          "evidence_class"
+        ]
+      },
+      "then": {
+        "properties": {
+          "independent_review": {
+            "const": true
+          }
+        }
+      }
+    }
+  ]
+}
