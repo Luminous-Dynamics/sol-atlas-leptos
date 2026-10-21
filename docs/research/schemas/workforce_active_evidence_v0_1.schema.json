@@ -287,7 +287,8 @@
             "decision_resolved",
             "stop_same_decision_class",
             "abstain_no_permitted_discriminator",
-            "abstain_budget_exhausted"
+            "abstain_budget_exhausted",
+            "conditionally_resolved_unknown_outcome_abstains"
           ]
         },
         "expected_remaining_hypotheses": {
