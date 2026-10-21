@@ -9,7 +9,7 @@
 //! returned or described as exact.
 
 use crate::ai_compute_energy::{
-    assess, AssessmentStatus, Request, SchedulingPolicy, schedule_deferrable,
+    AssessmentStatus, Request, SchedulingPolicy, assess, schedule_deferrable,
 };
 
 /// Hard upper bound on enumerated complete schedules; the exact Pareto pass is O(n²).
@@ -29,15 +29,21 @@ pub enum FrontierObjective {
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ExactFrontierError {
     InvalidCandidateLimit,
-    UnschedulableCapacity { status: AssessmentStatus },
+    UnschedulableCapacity {
+        status: AssessmentStatus,
+    },
     MissingObjectiveAttribution {
         interval_id: String,
         objective: FrontierObjective,
     },
-    NonFiniteDerivedObjective { interval_id: String },
+    NonFiniteDerivedObjective {
+        interval_id: String,
+    },
     CapacityOverflow,
     WorkUnitMagnitudeUnsupported,
-    CandidateLimitExceeded { limit: usize },
+    CandidateLimitExceeded {
+        limit: usize,
+    },
 }
 
 /// One non-dominated feasible allocation. Objective values cover deferrable work only.
@@ -83,11 +89,12 @@ pub fn exact_pareto_frontier(
             status: capacity.status,
         });
     }
-    let scheduled_work_units = capacity
-        .max_deferrable_work_units
-        .ok_or(ExactFrontierError::UnschedulableCapacity {
-            status: capacity.status,
-        })?;
+    let scheduled_work_units =
+        capacity
+            .max_deferrable_work_units
+            .ok_or(ExactFrontierError::UnschedulableCapacity {
+                status: capacity.status,
+            })?;
     // Floating-point objective reporting cannot preserve every integer above 2^53.
     if scheduled_work_units > (1_u64 << 53) {
         return Err(ExactFrontierError::WorkUnitMagnitudeUnsupported);
@@ -119,12 +126,12 @@ pub fn exact_pareto_frontier(
         if capacities[index] == 0 {
             continue;
         }
-        let factor = interval
-            .facility_energy_per_it_energy
-            .ok_or_else(|| ExactFrontierError::MissingObjectiveAttribution {
+        let factor = interval.facility_energy_per_it_energy.ok_or_else(|| {
+            ExactFrontierError::MissingObjectiveAttribution {
                 interval_id: interval.id.clone(),
                 objective: FrontierObjective::FacilityEnergy,
-            })?;
+            }
+        })?;
         let price = interval.electricity_price_usd_per_kwh.ok_or_else(|| {
             ExactFrontierError::MissingObjectiveAttribution {
                 interval_id: interval.id.clone(),
@@ -140,10 +147,7 @@ pub fn exact_pareto_frontier(
         let unit_facility_energy = factor * unit_energy_kwh;
         let unit_cost = unit_facility_energy * price;
         let unit_carbon = unit_facility_energy * carbon;
-        if !unit_facility_energy.is_finite()
-            || !unit_cost.is_finite()
-            || !unit_carbon.is_finite()
-        {
+        if !unit_facility_energy.is_finite() || !unit_cost.is_finite() || !unit_carbon.is_finite() {
             return Err(ExactFrontierError::NonFiniteDerivedObjective {
                 interval_id: interval.id.clone(),
             });
@@ -178,7 +182,11 @@ pub fn exact_pareto_frontier(
 
     let mut evaluated = Vec::with_capacity(allocations.len());
     for allocation in allocations {
-        evaluated.push(score_allocation(request, &allocation, scheduled_work_units)?);
+        evaluated.push(score_allocation(
+            request,
+            &allocation,
+            scheduled_work_units,
+        )?);
     }
 
     let mut schedules = Vec::new();
@@ -206,7 +214,10 @@ pub fn exact_pareto_frontier(
         left.electricity_cost_usd
             .total_cmp(&right.electricity_cost_usd)
             .then_with(|| left.grid_carbon_gco2.total_cmp(&right.grid_carbon_gco2))
-            .then_with(|| left.facility_energy_kwh.total_cmp(&right.facility_energy_kwh))
+            .then_with(|| {
+                left.facility_energy_kwh
+                    .total_cmp(&right.facility_energy_kwh)
+            })
             .then_with(|| {
                 left.deferrable_work_units_by_interval
                     .cmp(&right.deferrable_work_units_by_interval)
@@ -277,12 +288,12 @@ fn score_allocation(
             continue;
         }
         let interval = &request.intervals[index];
-        let factor = interval
-            .facility_energy_per_it_energy
-            .ok_or_else(|| ExactFrontierError::MissingObjectiveAttribution {
+        let factor = interval.facility_energy_per_it_energy.ok_or_else(|| {
+            ExactFrontierError::MissingObjectiveAttribution {
                 interval_id: interval.id.clone(),
                 objective: FrontierObjective::FacilityEnergy,
-            })?;
+            }
+        })?;
         let price = interval.electricity_price_usd_per_kwh.ok_or_else(|| {
             ExactFrontierError::MissingObjectiveAttribution {
                 interval_id: interval.id.clone(),
@@ -330,9 +341,17 @@ fn strictly_dominates(left: &ExactParetoSchedule, right: &ExactParetoSchedule) -
 }
 
 fn same_objectives(left: &ExactParetoSchedule, right: &ExactParetoSchedule) -> bool {
-    left.facility_energy_kwh.total_cmp(&right.facility_energy_kwh).is_eq()
-        && left.electricity_cost_usd.total_cmp(&right.electricity_cost_usd).is_eq()
-        && left.grid_carbon_gco2.total_cmp(&right.grid_carbon_gco2).is_eq()
+    left.facility_energy_kwh
+        .total_cmp(&right.facility_energy_kwh)
+        .is_eq()
+        && left
+            .electricity_cost_usd
+            .total_cmp(&right.electricity_cost_usd)
+            .is_eq()
+        && left
+            .grid_carbon_gco2
+            .total_cmp(&right.grid_carbon_gco2)
+            .is_eq()
 }
 
 #[cfg(test)]
@@ -362,12 +381,18 @@ mod tests {
         assert_eq!(request.workloads[1].work_class, WorkClass::Deferrable);
 
         let frontier = exact_pareto_frontier(&request, 4096).expect("bounded exact search");
-        assert!(frontier.schedules.len() >= 2, "price/carbon conflict should retain trade-offs");
+        assert!(
+            frontier.schedules.len() >= 2,
+            "price/carbon conflict should retain trade-offs"
+        );
         assert!(frontier.evaluated_schedule_count > frontier.schedules.len());
         for candidate in &frontier.schedules {
             assert_eq!(candidate.scheduled_work_units, 10);
             assert_eq!(
-                candidate.deferrable_work_units_by_interval.iter().sum::<u64>(),
+                candidate
+                    .deferrable_work_units_by_interval
+                    .iter()
+                    .sum::<u64>(),
                 10
             );
             assert!(candidate.facility_energy_kwh.is_finite());
