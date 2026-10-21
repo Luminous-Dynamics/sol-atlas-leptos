@@ -866,6 +866,7 @@ mod tests {
         let wage_states = ["viable", "nonviable_synthetic", "unknown"];
         let demand_states = ["validated", "duplicate_and_misrouted", "conflicting"];
         let evidence_states = ["complete", "partial", "stale_and_conflicting", "incomplete"];
+        let template = fixture()["cases"][0].clone();
         let mut checked = 0usize;
 
         for skill_gap in [false, true] {
@@ -876,7 +877,7 @@ mod tests {
                             for wage in wage_states {
                                 for demand in demand_states {
                                     for evidence in evidence_states {
-                                        let mut case = fixture()["cases"][0].clone();
+                                        let mut case = template.clone();
                                         case["observations"]["required_task_capacity"] =
                                             json!(if skill_gap { 3 } else { 1 });
                                         case["observations"]["available_task_ready_capacity"] =
