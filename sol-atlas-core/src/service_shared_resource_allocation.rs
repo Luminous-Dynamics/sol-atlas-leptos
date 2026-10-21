@@ -1751,18 +1751,12 @@ mod tests {
                     1,
                     0.0,
                 );
-                item.demand_rate = measurement(
-                    &item.service_entity_id,
-                    demand,
-                    None,
-                    RATE_UNIT,
-                );
+                item.demand_rate = measurement(&item.service_entity_id, demand, None, RATE_UNIT);
                 input.services.push(item);
             }
 
             let mut adjacency = vec![vec![false; SERVICE_COUNT]; RESOURCE_COUNT];
-            let mut coefficients =
-                vec![vec![1.0_f64; SERVICE_COUNT]; RESOURCE_COUNT];
+            let mut coefficients = vec![vec![1.0_f64; SERVICE_COUNT]; RESOURCE_COUNT];
             for resource_index in 0..RESOURCE_COUNT {
                 for service_index in 0..SERVICE_COUNT {
                     adjacency[resource_index][service_index] = next() % 100 < 55;
@@ -1818,9 +1812,7 @@ mod tests {
                         let candidate = [a, b, c];
                         let feasible = (0..RESOURCE_COUNT).all(|resource_index| {
                             let used = (0..SERVICE_COUNT)
-                                .filter(|service_index| {
-                                    adjacency[resource_index][*service_index]
-                                })
+                                .filter(|service_index| adjacency[resource_index][*service_index])
                                 .map(|service_index| {
                                     coefficients[resource_index][service_index]
                                         * demand_values[service_index]
@@ -1838,7 +1830,10 @@ mod tests {
                     }
                 }
             }
-            assert!(found_feasible, "case {case_index} must have a feasible origin");
+            assert!(
+                found_feasible,
+                "case {case_index} must have a feasible origin"
+            );
 
             let output = assess_shared_resource_allocation(&input, &[])
                 .expect("generated heterogeneous sparse graph must be valid");
@@ -1870,5 +1865,4 @@ mod tests {
             assert_eq!(output, permuted_output, "case {case_index}: permutation");
         }
     }
-
 }
