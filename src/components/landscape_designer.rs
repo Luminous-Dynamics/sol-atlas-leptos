@@ -305,6 +305,15 @@ fn parse_import_snapshot(value: &Value) -> Result<ImportedSnapshot, String> {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+struct LandscapeCandidateSource {
+    id: String,
+    title: String,
+    ingestion_state: String,
+    role: String,
+    limitation: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
 struct LandscapeMetricCard {
     id: String,
     family: String,
@@ -313,6 +322,8 @@ struct LandscapeMetricCard {
     status: String,
     target_policy: String,
     required_inputs: Vec<String>,
+    candidate_sources: Vec<LandscapeCandidateSource>,
+    unprovided_inputs: Vec<String>,
 }
 
 /// Read only metric definitions. This deliberately fails closed if a future
@@ -332,6 +343,40 @@ fn landscape_metric_cards() -> Result<Vec<LandscapeMetricCard>, String> {
             "Performance registry does not match the versioned definition-only contract"
                 .to_string(),
         );
+    }
+
+    let catalog: Value = serde_json::from_str(include_str!(
+        "../../data-sources/landscape/south-africa-johannesburg-v0.json"
+    ))
+    .map_err(|error| format!("Landscape source catalog is invalid JSON: {error}"))?;
+    if catalog["schema"] != "luminous.landscape-source-catalog.v0"
+        || catalog["catalog_status"] != "metadata-only-not-ingested"
+    {
+        return Err(
+            "Landscape source catalog is not in the expected metadata-only v0 state".to_string()
+        );
+    }
+    let source_records = catalog["records"]
+        .as_array()
+        .ok_or_else(|| "Landscape source catalog has no records array".to_string())?;
+    let mut source_map: Vec<(String, String, String)> = Vec::with_capacity(source_records.len());
+    for record in source_records {
+        let id = record["id"]
+            .as_str()
+            .filter(|value| !value.trim().is_empty())
+            .ok_or_else(|| "Landscape source catalog has a record without an ID".to_string())?;
+        let title = record["title"]
+            .as_str()
+            .filter(|value| !value.trim().is_empty())
+            .ok_or_else(|| format!("Landscape source {id} has no title"))?;
+        let ingestion_state = record["ingestion_state"]
+            .as_str()
+            .filter(|value| !value.trim().is_empty())
+            .ok_or_else(|| format!("Landscape source {id} has no ingestion_state"))?;
+        if source_map.iter().any(|(candidate_id, _, _)| candidate_id == id) {
+            return Err(format!("Landscape source catalog has duplicate ID {id}"));
+        }
+        source_map.push((id.to_string(), title.to_string(), ingestion_state.to_string()));
     }
 
     let entries = registry["metrics"]
@@ -377,6 +422,67 @@ fn landscape_metric_cards() -> Result<Vec<LandscapeMetricCard>, String> {
             required_inputs.push(value.to_string());
         }
 
+        let candidate_source_values = entry["candidate_sources"]
+            .as_array()
+            .ok_or_else(|| format!("Performance metric {id} has no candidate_sources array"))?;
+        let mut candidate_sources = Vec::with_capacity(candidate_source_values.len());
+        let mut seen_source_ids = Vec::with_capacity(candidate_source_values.len());
+        for (source_index, candidate) in candidate_source_values.iter().enumerate() {
+            let source_id = candidate["source_id"]
+                .as_str()
+                .filter(|value| !value.trim().is_empty())
+                .ok_or_else(|| {
+                    format!("Performance metric {id} has an invalid source_id at candidate {source_index}")
+                })?;
+            if seen_source_ids.iter().any(|seen| seen == source_id) {
+                return Err(format!(
+                    "Performance metric {id} has duplicate candidate source ID {source_id}"
+                ));
+            }
+            seen_source_ids.push(source_id.to_string());
+            let (catalog_title, ingestion_state) = source_map
+                .iter()
+                .find(|(known_id, _, _)| known_id == source_id)
+                .map(|(_, title, state)| (title.clone(), state.clone()))
+                .ok_or_else(|| {
+                    format!(
+                        "Performance metric {id} references unknown catalog source {source_id}"
+                    )
+                })?;
+            let role = candidate["role"]
+                .as_str()
+                .filter(|value| !value.trim().is_empty())
+                .ok_or_else(|| format!("Performance metric {id} candidate {source_id} has no role"))?;
+            let limitation = candidate["limitation"]
+                .as_str()
+                .filter(|value| !value.trim().is_empty())
+                .ok_or_else(|| {
+                    format!("Performance metric {id} candidate {source_id} has no limitation")
+                })?;
+            candidate_sources.push(LandscapeCandidateSource {
+                id: source_id.to_string(),
+                title: catalog_title,
+                ingestion_state,
+                role: role.to_string(),
+                limitation: limitation.to_string(),
+            });
+        }
+
+        let unprovided_values = entry["unprovided_inputs"]
+            .as_array()
+            .filter(|values| !values.is_empty())
+            .ok_or_else(|| format!("Performance metric {id} has no unprovided_inputs"))?;
+        let mut unprovided_inputs = Vec::with_capacity(unprovided_values.len());
+        for (input_index, input) in unprovided_values.iter().enumerate() {
+            let value = input
+                .as_str()
+                .filter(|text| !text.trim().is_empty())
+                .ok_or_else(|| {
+                    format!("Performance metric {id} has invalid unprovided input at index {input_index}")
+                })?;
+            unprovided_inputs.push(value.to_string());
+        }
+
         let status = read_string("v0_status")?;
         if !matches!(
             status.as_str(),
@@ -395,6 +501,8 @@ fn landscape_metric_cards() -> Result<Vec<LandscapeMetricCard>, String> {
             status,
             target_policy: read_string("target_policy")?,
             required_inputs,
+            candidate_sources,
+            unprovided_inputs,
         });
     }
 
