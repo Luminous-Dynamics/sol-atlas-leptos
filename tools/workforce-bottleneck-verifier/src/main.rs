@@ -318,15 +318,13 @@ fn action_is_admissible(case: &Value, action: &str) -> Option<bool> {
     let funding = as_string(observations, "funding_status").unwrap_or("");
     let evidence = as_string(observations, "evidence_status").unwrap_or("");
     let authorization = as_string(observations, "authorization_status").unwrap_or("");
-    let supervisor_available =
-        observations.get("qualified_supervisor_available").and_then(Value::as_bool)
-            == Some(true);
+    let supervisor_available = observations
+        .get("qualified_supervisor_available")
+        .and_then(Value::as_bool)
+        == Some(true);
     let has_skill_gap = skill_capacity_gap(case);
     let funded = funding == "confirmed_synthetic";
-    let scope_is_safe = matches!(
-        authorization,
-        "valid_for_scope" | "supervised_scope_valid"
-    );
+    let scope_is_safe = matches!(authorization, "valid_for_scope" | "supervised_scope_valid");
 
     match action {
         "SUPERVISED_SKILL_DEVELOPMENT" => Some(
@@ -347,14 +345,11 @@ fn action_is_admissible(case: &Value, action: &str) -> Option<bool> {
                 && evidence == "complete"
                 && as_string(observations, "tools_and_spares") == Some("available"),
         ),
-        "ESTABLISH_LAWFUL_FUNDING_AND_PROCUREMENT" => {
-            Some(matches!(funding, "absent" | "unknown"))
-        }
+        "ESTABLISH_LAWFUL_FUNDING_AND_PROCUREMENT" => Some(matches!(funding, "absent" | "unknown")),
         "PROCURE_OR_QUALIFY_VALID_PART_SUBSTITUTE" => {
             Some(as_string(observations, "tools_and_spares") == Some("critical_spare_missing"))
         }
-        "OBTAIN_QUALIFIED_INSPECTION_OR_AUTHORIZATION"
-        | "BLOCK_EXECUTION_UNTIL_GATE_PASSES" => {
+        "OBTAIN_QUALIFIED_INSPECTION_OR_AUTHORIZATION" | "BLOCK_EXECUTION_UNTIL_GATE_PASSES" => {
             Some(authorization == "inspection_pending")
         }
         "REDESIGN_ROUTE_OR_SHIFT_WITH_WORKER_INPUT" => {
