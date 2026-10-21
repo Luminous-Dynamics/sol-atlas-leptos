@@ -583,7 +583,7 @@ fn rule_based_causes(case: &Value) -> BTreeSet<String> {
         "PRACTICAL_COMPETENCE_UNVERIFIED",
     ]
     .iter()
-    .filter(|cause| causes.contains(*cause))
+    .filter(|cause| causes.contains(**cause))
     .count();
     if confirmed_blocker_count >= 2 {
         causes.insert("INTERACTING_BOTTLENECKS".to_string());
@@ -908,7 +908,7 @@ mod tests {
                                         assert_eq!(
                                             inferred.contains("FUNDING_OR_PAYER"),
                                             funding == "absent",
-                                            "funding absence must be distinguished from unknown: {funding=}"
+                                            "funding absence must be distinguished from unknown: funding={:?}", funding
                                         );
                                         if funding == "unknown" {
                                             assert!(inferred.contains("EVIDENCE_INSUFFICIENT"));
