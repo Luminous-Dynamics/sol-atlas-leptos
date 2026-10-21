@@ -6,7 +6,7 @@
 //! It does not validate a physical landscape model or replace upstream validators.
 
 use serde::Serialize;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -16,9 +16,11 @@ const REPORT_SCHEMA: &str = "luminous.landscape-chain-conformance-report.v0.1";
 const SUITE_ID: &str = "LANDSCAPE-CHAIN-CONFORMANCE-V0.1";
 const CLAIM_CEILING: &str = "SYNTHETIC_STRUCTURAL_CONFORMANCE_ONLY";
 const DESIGN_SCHEMA: &str = "luminous.landscape-design.v0";
-const DESIGN_SCHEMA_URI: &str = "https://luminousdynamics.io/schemas/landscape-design-v0.schema.json";
+const DESIGN_SCHEMA_URI: &str =
+    "https://luminousdynamics.io/schemas/landscape-design-v0.schema.json";
 const EVAL_SCHEMA: &str = "luminous.landscape-evaluation-plan.v0";
-const EVAL_SCHEMA_URI: &str = "https://luminousdynamics.io/schemas/landscape-evaluation-plan-v0.schema.json";
+const EVAL_SCHEMA_URI: &str =
+    "https://luminousdynamics.io/schemas/landscape-evaluation-plan-v0.schema.json";
 const OBS_BATCH_SCHEMA: &str = "luminous.landscape-observation-batch.v0";
 const SCENARIO_SCHEMA: &str = "luminous.landscape-scenario-manifest.v0";
 const STEWARDSHIP_SCHEMA: &str = "mycelix.landscape-stewardship-profile.v0";
@@ -155,13 +157,7 @@ fn set_str(value: &mut Value, path: &[&str], new_value: &str) -> Result<(), Stri
     set_at(value, path, json!(new_value))
 }
 
-fn check_eq(
-    errors: &mut Vec<String>,
-    value: &Value,
-    path: &[&str],
-    expected: &str,
-    label: &str,
-) {
+fn check_eq(errors: &mut Vec<String>, value: &Value, path: &[&str], expected: &str, label: &str) {
     match string_at(value, path) {
         Some(actual) if actual == expected => {}
         Some(actual) => errors.push(format!("{label}: expected {expected:?}, found {actual:?}")),
@@ -190,7 +186,9 @@ fn digest_is_well_formed(value: &str) -> bool {
 
 fn require_digest(errors: &mut Vec<String>, value: Option<&str>, label: &str) {
     if !value.is_some_and(digest_is_well_formed) {
-        errors.push(format!("{label}: expected a 64-character lowercase SHA-256 digest"));
+        errors.push(format!(
+            "{label}: expected a 64-character lowercase SHA-256 digest"
+        ));
     }
 }
 
@@ -232,12 +230,11 @@ fn template_digest_map(items: &[(&str, &[u8])]) -> BTreeMap<String, String> {
 
 pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
     let mut construction_errors = Vec::new();
-    let (project_bytes, project) = read_json(dir, "project.json")
-        .map_err(|error| vec![error])?;
-    let (alternative_bytes, alternative) = read_json(dir, "alternative.json")
-        .map_err(|error| vec![error])?;
-    let (boundary_bytes, boundary) = read_json(dir, "boundary-conditions.json")
-        .map_err(|error| vec![error])?;
+    let (project_bytes, project) = read_json(dir, "project.json").map_err(|error| vec![error])?;
+    let (alternative_bytes, alternative) =
+        read_json(dir, "alternative.json").map_err(|error| vec![error])?;
+    let (boundary_bytes, boundary) =
+        read_json(dir, "boundary-conditions.json").map_err(|error| vec![error])?;
     let (intervention_site_bytes, intervention_site) =
         read_json(dir, "site-intervention.json").map_err(|error| vec![error])?;
     let (comparison_site_bytes, comparison_site) =
@@ -274,25 +271,35 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
         .get_mut("arms")
         .and_then(Value::as_array_mut)
         .and_then(|arms| arms.get_mut(0))
-        .ok_or_else(|| vec!["evaluation-plan template requires at least one intervention arm".to_owned()])?;
+        .ok_or_else(|| {
+            vec!["evaluation-plan template requires at least one intervention arm".to_owned()]
+        })?;
     intervention_arm["site_ref_sha256"] = json!(intervention_site_sha);
     let comparison_arm = evaluation_plan
         .get_mut("arms")
         .and_then(Value::as_array_mut)
         .and_then(|arms| arms.get_mut(1))
-        .ok_or_else(|| vec!["evaluation-plan template requires a second comparison arm".to_owned()])?;
+        .ok_or_else(|| {
+            vec!["evaluation-plan template requires a second comparison arm".to_owned()]
+        })?;
     comparison_arm["site_ref_sha256"] = json!(comparison_site_sha);
-    set_str(&mut evaluation_plan, &["project_snapshot_sha256"], &project_sha)
-        .map_err(|error| vec![error])?;
+    set_str(
+        &mut evaluation_plan,
+        &["project_snapshot_sha256"],
+        &project_sha,
+    )
+    .map_err(|error| vec![error])?;
     let scope = string_at(&project, &["scope"])
         .ok_or_else(|| vec!["project.scope is missing".to_owned()])?
         .to_owned();
-    set_str(&mut evaluation_plan, &["project_scope"], &scope)
-        .map_err(|error| vec![error])?;
-    set_str(&mut evaluation_plan, &["evaluation_id"], "eval-site-demo-v0")
-        .map_err(|error| vec![error])?;
-    let evaluation_plan_sha = canonical_sha256(&evaluation_plan)
-        .map_err(|error| vec![error])?;
+    set_str(&mut evaluation_plan, &["project_scope"], &scope).map_err(|error| vec![error])?;
+    set_str(
+        &mut evaluation_plan,
+        &["evaluation_id"],
+        "eval-site-demo-v0",
+    )
+    .map_err(|error| vec![error])?;
+    let evaluation_plan_sha = canonical_sha256(&evaluation_plan).map_err(|error| vec![error])?;
 
     let observation_rows = observations
         .get_mut("observations")
@@ -312,18 +319,9 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
     let coordinate_frame_kind = string_at(&project, &["coordinate_frame", "kind"])
         .ok_or_else(|| vec!["project.coordinate_frame.kind is missing".to_owned()])?
         .to_owned();
-    set_str(
-        &mut scenario,
-        &["design_snapshot", "sha256"],
-        &project_sha,
-    )
-    .map_err(|error| vec![error])?;
-    set_str(
-        &mut scenario,
-        &["design_snapshot", "scope"],
-        &scope,
-    )
-    .map_err(|error| vec![error])?;
+    set_str(&mut scenario, &["design_snapshot", "sha256"], &project_sha)
+        .map_err(|error| vec![error])?;
+    set_str(&mut scenario, &["design_snapshot", "scope"], &scope).map_err(|error| vec![error])?;
     set_str(
         &mut scenario,
         &["design_snapshot", "geometry_status"],
@@ -366,8 +364,7 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
         "eval-site-demo-v0",
     )
     .map_err(|error| vec![error])?;
-    let scenario_sha = canonical_sha256(&scenario)
-        .map_err(|error| vec![error])?;
+    let scenario_sha = canonical_sha256(&scenario).map_err(|error| vec![error])?;
 
     set_str(
         &mut stewardship,
@@ -395,18 +392,20 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
         &geometry_status,
     )
     .map_err(|error| vec![error])?;
-    set_str(&mut stewardship, &["record_type"], "scenario-review")
-        .map_err(|error| vec![error])?;
-    set_str(&mut stewardship, &["evidence_class"], "synthetic")
-        .map_err(|error| vec![error])?;
+    set_str(&mut stewardship, &["record_type"], "scenario-review").map_err(|error| vec![error])?;
+    set_str(&mut stewardship, &["evidence_class"], "synthetic").map_err(|error| vec![error])?;
     set_str(
         &mut stewardship,
         &["actor_authority", "publication_consent"],
         "not-requested",
     )
     .map_err(|error| vec![error])?;
-    set_str(&mut stewardship, &["access_policy", "visibility"], "private")
-        .map_err(|error| vec![error])?;
+    set_str(
+        &mut stewardship,
+        &["access_policy", "visibility"],
+        "private",
+    )
+    .map_err(|error| vec![error])?;
     set_str(
         &mut stewardship,
         &["access_policy", "coordinate_disclosure"],
@@ -427,8 +426,7 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
         "purpose": scenario["purpose"],
         "evidence_class": "synthetic"
     });
-    let stewardship_sha = canonical_sha256(&stewardship)
-        .map_err(|error| vec![error])?;
+    let stewardship_sha = canonical_sha256(&stewardship).map_err(|error| vec![error])?;
 
     set_str(
         &mut review,
@@ -436,12 +434,8 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
         &project_sha,
     )
     .map_err(|error| vec![error])?;
-    set_str(
-        &mut review,
-        &["inputs", "baseline_design", "scope"],
-        &scope,
-    )
-    .map_err(|error| vec![error])?;
+    set_str(&mut review, &["inputs", "baseline_design", "scope"], &scope)
+        .map_err(|error| vec![error])?;
     set_str(
         &mut review,
         &["inputs", "baseline_design", "coordinate_frame_kind"],
@@ -478,7 +472,9 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
         .and_then(Value::as_array_mut)
         .ok_or_else(|| vec!["review template requires alternatives[]".to_owned()])?;
     if alternatives.len() < 2 {
-        return Err(vec!["review template requires at least two alternatives".to_owned()]);
+        return Err(vec![
+            "review template requires at least two alternatives".to_owned(),
+        ]);
     }
     alternatives[0]["snapshot_sha256"] = json!(project_sha);
     alternatives[0]["scope"] = json!(scope);
@@ -529,7 +525,8 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
 
     // Construction-time checks catch unanticipated template changes before report generation.
     if project_sha == alternative_sha {
-        construction_errors.push("baseline and alternative must be distinct exact byte sequences".to_owned());
+        construction_errors
+            .push("baseline and alternative must be distinct exact byte sequences".to_owned());
     }
     if construction_errors.is_empty() {
         Ok(ChainArtifacts {
@@ -575,7 +572,9 @@ fn observation_crosswalk_match_count(chain: &ChainArtifacts) -> usize {
     let mappings = records(&chain.metric_observation_map, &["mappings"]);
     let observations = records(&chain.observations, &["observations"]);
     let Some(mappings) = mappings else { return 0 };
-    let Some(observations) = observations else { return 0 };
+    let Some(observations) = observations else {
+        return 0;
+    };
     observations
         .iter()
         .filter(|observation| {
@@ -583,12 +582,11 @@ fn observation_crosswalk_match_count(chain: &ChainArtifacts) -> usize {
                 return false;
             };
             mappings.iter().any(|mapping| {
-                records(mapping, &["possible_observed_properties"])
-                    .is_some_and(|properties| {
-                        properties.iter().any(|property| {
-                            string_at(property, &["id"]) == Some(property_id)
-                        })
-                    })
+                records(mapping, &["possible_observed_properties"]).is_some_and(|properties| {
+                    properties
+                        .iter()
+                        .any(|property| string_at(property, &["id"]) == Some(property_id))
+                })
             })
         })
         .count()
@@ -598,45 +596,54 @@ fn eligible_supporting_observation_count(chain: &ChainArtifacts) -> usize {
     let mappings = records(&chain.metric_observation_map, &["mappings"]);
     let observations = records(&chain.observations, &["observations"]);
     let Some(mappings) = mappings else { return 0 };
-    let Some(observations) = observations else { return 0 };
+    let Some(observations) = observations else {
+        return 0;
+    };
     observations
         .iter()
         .filter(|observation| {
             let property_id = string_at(observation, &["observed_property", "id"]);
             let evidence_class = string_at(observation, &["evidence_class"]);
-            let Some(property_id) = property_id else { return false };
-            let Some(evidence_class) = evidence_class else { return false };
+            let Some(property_id) = property_id else {
+                return false;
+            };
+            let Some(evidence_class) = evidence_class else {
+                return false;
+            };
             if matches!(evidence_class, "synthetic-test" | "synthetic-fixture") {
                 return false;
             }
             mappings.iter().any(|mapping| {
-                records(mapping, &["possible_observed_properties"])
-                    .is_some_and(|properties| properties.iter().any(|property| {
+                records(mapping, &["possible_observed_properties"]).is_some_and(|properties| {
+                    properties.iter().any(|property| {
                         string_at(property, &["id"]) == Some(property_id)
-                            && records(property, &["minimum_evidence_classes"])
-                                .is_some_and(|classes| {
-                                    classes.iter().any(|class| class.as_str() == Some(evidence_class))
-                                })
+                            && records(property, &["minimum_evidence_classes"]).is_some_and(
+                                |classes| {
+                                    classes
+                                        .iter()
+                                        .any(|class| class.as_str() == Some(evidence_class))
+                                },
+                            )
                             && string_at(observation, &["observed_property", "unit"])
                                 == string_at(property, &["unit"])
-                            && string_at(observation, &["result", "kind"])
-                                .is_some_and(|kind| {
-                                    records(property, &["result_kinds"])
-                                        .is_some_and(|kinds| {
-                                            kinds.iter().any(|expected| expected.as_str() == Some(kind))
-                                        })
+                            && string_at(observation, &["result", "kind"]).is_some_and(|kind| {
+                                records(property, &["result_kinds"]).is_some_and(|kinds| {
+                                    kinds.iter().any(|expected| expected.as_str() == Some(kind))
                                 })
-                    }))
+                            })
+                    })
+                })
             })
         })
         .count()
 }
 
 fn unmapped_observation_count(chain: &ChainArtifacts) -> usize {
-    records(&chain.observations, &["observations"])
-        .map_or(0, |observations| {
-            observations.len().saturating_sub(observation_crosswalk_match_count(chain))
-        })
+    records(&chain.observations, &["observations"]).map_or(0, |observations| {
+        observations
+            .len()
+            .saturating_sub(observation_crosswalk_match_count(chain))
+    })
 }
 
 fn validate_observation_crosswalk(chain: &ChainArtifacts) -> Vec<String> {
@@ -707,19 +714,24 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
     let parsed_project = parse_json(&chain.project_bytes, "project.json");
     match parsed_project {
         Ok(parsed) if parsed == chain.project => {}
-        Ok(_) => errors.push("project snapshot object differs from its exact source bytes".to_owned()),
+        Ok(_) => {
+            errors.push("project snapshot object differs from its exact source bytes".to_owned())
+        }
         Err(error) => errors.push(error),
     }
     let parsed_alternative = parse_json(&chain.alternative_bytes, "alternative.json");
     match parsed_alternative {
         Ok(parsed) if parsed == chain.alternative => {}
-        Ok(_) => errors.push("alternative snapshot object differs from its exact source bytes".to_owned()),
+        Ok(_) => errors
+            .push("alternative snapshot object differs from its exact source bytes".to_owned()),
         Err(error) => errors.push(error),
     }
     let parsed_boundary = parse_json(&chain.boundary_bytes, "boundary-conditions.json");
     match parsed_boundary {
         Ok(parsed) if parsed == chain.boundary => {}
-        Ok(_) => errors.push("boundary conditions object differs from its exact source bytes".to_owned()),
+        Ok(_) => {
+            errors.push("boundary conditions object differs from its exact source bytes".to_owned())
+        }
         Err(error) => errors.push(error),
     }
     let parsed_sites = [
@@ -736,10 +748,15 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
     if !matches!(parsed_metric_registry, Ok(parsed) if parsed == chain.metric_registry) {
         errors.push("metric registry object differs from its exact source bytes".to_owned());
     }
-    let parsed_metric_observation_map =
-        parse_json(&chain.metric_observation_map_bytes, "metric-observation-map.json");
-    if !matches!(parsed_metric_observation_map, Ok(parsed) if parsed == chain.metric_observation_map) {
-        errors.push("metric-observation crosswalk object differs from its exact source bytes".to_owned());
+    let parsed_metric_observation_map = parse_json(
+        &chain.metric_observation_map_bytes,
+        "metric-observation-map.json",
+    );
+    if !matches!(parsed_metric_observation_map, Ok(parsed) if parsed == chain.metric_observation_map)
+    {
+        errors.push(
+            "metric-observation crosswalk object differs from its exact source bytes".to_owned(),
+        );
     }
     let parsed_source_catalog = parse_json(&chain.source_catalog_bytes, "source-catalog.json");
     if !matches!(parsed_source_catalog, Ok(parsed) if parsed == chain.source_catalog) {
@@ -790,7 +807,13 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
         }
     };
 
-    check_eq(&mut errors, &chain.project, &["schema"], DESIGN_SCHEMA, "project");
+    check_eq(
+        &mut errors,
+        &chain.project,
+        &["schema"],
+        DESIGN_SCHEMA,
+        "project",
+    );
     check_eq(
         &mut errors,
         &chain.project,
@@ -848,7 +871,9 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
         }
     };
     if project_features.is_empty() {
-        errors.push("project snapshot must contain at least one uniquely identified feature".to_owned());
+        errors.push(
+            "project snapshot must contain at least one uniquely identified feature".to_owned(),
+        );
     }
     if project_features == alternative_features && project_sha == alternative_sha {
         errors.push("alternative must have a distinct snapshot identity".to_owned());
@@ -872,7 +897,13 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
         ("intervention site", &chain.intervention_site),
         ("comparison site", &chain.comparison_site),
     ] {
-        check_eq(&mut errors, site, &["data_origin"], "synthetic_fixture", label);
+        check_eq(
+            &mut errors,
+            site,
+            &["data_origin"],
+            "synthetic_fixture",
+            label,
+        );
         check_eq(&mut errors, site, &["scope"], "site-parcel", label);
         check_eq(
             &mut errors,
@@ -881,7 +912,12 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
             LOCAL_FRAME,
             label,
         );
-        check_false(&mut errors, site, &["coordinate_frame", "georeferenced"], label);
+        check_false(
+            &mut errors,
+            site,
+            &["coordinate_frame", "georeferenced"],
+            label,
+        );
     }
 
     check_eq(
@@ -908,16 +944,24 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
     if string_at(&chain.evaluation_plan, &["project_scope"])
         != string_at(&chain.project, &["scope"])
     {
-        errors.push("evaluation plan scope does not match the referenced project snapshot".to_owned());
+        errors.push(
+            "evaluation plan scope does not match the referenced project snapshot".to_owned(),
+        );
     }
     let arms = records(&chain.evaluation_plan, &["arms"]);
     match arms {
         Some(arms) if arms.len() == 2 => {
             if string_at(&arms[0], &["site_ref_sha256"]) != Some(intervention_site_sha.as_str()) {
-                errors.push("evaluation intervention arm does not reference exact intervention-site bytes".to_owned());
+                errors.push(
+                    "evaluation intervention arm does not reference exact intervention-site bytes"
+                        .to_owned(),
+                );
             }
             if string_at(&arms[1], &["site_ref_sha256"]) != Some(comparison_site_sha.as_str()) {
-                errors.push("evaluation comparison arm does not reference exact comparison-site bytes".to_owned());
+                errors.push(
+                    "evaluation comparison arm does not reference exact comparison-site bytes"
+                        .to_owned(),
+                );
             }
         }
         _ => errors.push("evaluation plan must contain exactly two pinned site arms".to_owned()),
@@ -943,9 +987,7 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
                     &project_sha,
                     "observation project reference",
                 );
-                if let Some(feature_id) =
-                    string_at(row, &["project_ref", "feature_id"])
-                {
+                if let Some(feature_id) = string_at(row, &["project_ref", "feature_id"]) {
                     if !project_features.contains(feature_id) {
                         errors.push(format!(
                             "observation {} references missing project feature {feature_id}",
@@ -1019,7 +1061,9 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
                     errors.push(format!("crosswalk references metric {metric_id} absent from the pinned metric registry"));
                 }
                 if !mapped_metric_ids.insert(metric_id) {
-                    errors.push(format!("crosswalk contains duplicate metric mapping: {metric_id}"));
+                    errors.push(format!(
+                        "crosswalk contains duplicate metric mapping: {metric_id}"
+                    ));
                 }
             } else {
                 errors.push("crosswalk mapping is missing metric_id".to_owned());
@@ -1031,10 +1075,21 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
     errors.extend(validate_observation_crosswalk(chain));
     let crosswalk_matches = observation_crosswalk_match_count(chain);
     let crosswalk_eligible = eligible_supporting_observation_count(chain);
-    if crosswalk_eligible != 0 && chain.observations["observations"].as_array().is_some_and(|rows| {
-        rows.iter().any(|row| matches!(string_at(row, &["evidence_class"]), Some("synthetic-test" | "synthetic-fixture")))
-    }) {
-        errors.push("synthetic observation unexpectedly counted as eligible metric support".to_owned());
+    if crosswalk_eligible != 0
+        && chain.observations["observations"]
+            .as_array()
+            .is_some_and(|rows| {
+                rows.iter().any(|row| {
+                    matches!(
+                        string_at(row, &["evidence_class"]),
+                        Some("synthetic-test" | "synthetic-fixture")
+                    )
+                })
+            })
+    {
+        errors.push(
+            "synthetic observation unexpectedly counted as eligible metric support".to_owned(),
+        );
     }
     if crosswalk_matches + unmapped_observation_count(chain) != observation_count {
         errors.push("crosswalk match census does not equal total observation count".to_owned());
@@ -1078,8 +1133,8 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
         ) != Some(LOCAL_FRAME)
         || at(&chain.scenario, &["design_snapshot", "georeferenced"])
             != at(&chain.project, &["coordinate_frame", "georeferenced"])
-        || at(&chain.scenario, &["design_snapshot", "feature_count"])
-            .and_then(Value::as_u64) != Some(feature_count(&chain.project) as u64)
+        || at(&chain.scenario, &["design_snapshot", "feature_count"]).and_then(Value::as_u64)
+            != Some(feature_count(&chain.project) as u64)
     {
         errors.push("scenario snapshot metadata diverges from exact project snapshot".to_owned());
     }
@@ -1101,7 +1156,10 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
         string_at(&chain.scenario, &["purpose"]),
         Some("schema-qualification" | "synthetic-benchmark")
     ) {
-        errors.push("scenario purpose exceeds the v0 synthetic/schema-qualification claim ceiling".to_owned());
+        errors.push(
+            "scenario purpose exceeds the v0 synthetic/schema-qualification claim ceiling"
+                .to_owned(),
+        );
     }
     require_digest(
         &mut errors,
@@ -1241,15 +1299,24 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
                 .iter()
                 .filter_map(|alternative| string_at(alternative, &["snapshot_sha256"]))
                 .collect();
-            if !digests.contains(project_sha.as_str()) || !digests.contains(alternative_sha.as_str()) {
-                errors.push("Symthaea review alternatives do not bind both exact design snapshots".to_owned());
+            if !digests.contains(project_sha.as_str())
+                || !digests.contains(alternative_sha.as_str())
+            {
+                errors.push(
+                    "Symthaea review alternatives do not bind both exact design snapshots"
+                        .to_owned(),
+                );
             }
             for alternative in alternatives {
                 if string_at(alternative, &["scope"]) != string_at(&chain.project, &["scope"])
                     || string_at(alternative, &["coordinate_frame_kind"]) != Some(LOCAL_FRAME)
-                    || string_at(alternative, &["geometry_status"]) != Some("schematic-design-intent")
+                    || string_at(alternative, &["geometry_status"])
+                        != Some("schematic-design-intent")
                 {
-                    errors.push("Symthaea alternative scope/frame/geometry metadata is inconsistent".to_owned());
+                    errors.push(
+                        "Symthaea alternative scope/frame/geometry metadata is inconsistent"
+                            .to_owned(),
+                    );
                     break;
                 }
             }
@@ -1266,7 +1333,9 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
             for candidate in candidates {
                 if let Some(source_id) = string_at(candidate, &["source_id"]) {
                     if !catalog_ids.contains(source_id) {
-                        errors.push(format!("Symthaea review references unknown source catalog ID {source_id}"));
+                        errors.push(format!(
+                            "Symthaea review references unknown source catalog ID {source_id}"
+                        ));
                     }
                 } else {
                     errors.push("Symthaea candidate source is missing source_id".to_owned());
@@ -1308,10 +1377,14 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
                 "Symthaea scenario evidence class",
             );
             if at(&runs[0], &["result_sha256"]).is_some() {
-                errors.push("blocked scenario run must not claim a qualified result digest".to_owned());
+                errors.push(
+                    "blocked scenario run must not claim a qualified result digest".to_owned(),
+                );
             }
         }
-        _ => errors.push("Symthaea review must retain exactly one blocked, pinned scenario record".to_owned()),
+        _ => errors.push(
+            "Symthaea review must retain exactly one blocked, pinned scenario record".to_owned(),
+        ),
     }
     check_eq(
         &mut errors,
@@ -1327,7 +1400,12 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
         "no-ranking",
         "Symthaea recommendation status",
     );
-    check_true(&mut errors, &chain.review, &["authority", "read_only"], "Symthaea authority");
+    check_true(
+        &mut errors,
+        &chain.review,
+        &["authority", "read_only"],
+        "Symthaea authority",
+    );
     check_false(
         &mut errors,
         &chain.review,
@@ -1341,22 +1419,30 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
         "Symthaea authority",
     );
 
-    if string_at(&chain.metric_registry, &["status"])
-        != Some("specification-only-no-field-values")
+    if string_at(&chain.metric_registry, &["status"]) != Some("specification-only-no-field-values")
     {
-        errors.push("metric registry must remain definitions-only with no fabricated field values".to_owned());
+        errors.push(
+            "metric registry must remain definitions-only with no fabricated field values"
+                .to_owned(),
+        );
     }
     let upstream_contracts = records(&chain.upstream_manifest, &["source_contracts"]);
     match upstream_contracts {
         Some(rows) if rows.len() >= 6 => {
             for row in rows {
                 let commit = string_at(row, &["commit_sha"]);
-                if !commit.is_some_and(|sha| sha.len() == 40 && sha.chars().all(|ch| ch.is_ascii_hexdigit())) {
-                    errors.push("upstream source manifest contains an unpinned draft commit".to_owned());
+                if !commit.is_some_and(|sha| {
+                    sha.len() == 40 && sha.chars().all(|ch| ch.is_ascii_hexdigit())
+                }) {
+                    errors.push(
+                        "upstream source manifest contains an unpinned draft commit".to_owned(),
+                    );
                 }
             }
         }
-        _ => errors.push("upstream source manifest must pin at least six upstream contract revisions".to_owned()),
+        _ => errors.push(
+            "upstream source manifest must pin at least six upstream contract revisions".to_owned(),
+        ),
     }
 
     // These variables intentionally force all evidence roots to have well-formed exact hashes.
@@ -1391,7 +1477,10 @@ fn negative_control_results(chain: &ChainArtifacts) -> NegativeControlSummary {
     let mut stale_observation = chain.clone();
     stale_observation.observations["observations"][0]["project_ref"]["project_snapshot_sha256"] =
         json!("f".repeat(64));
-    cases.push(("stale-observation-project-digest".to_owned(), stale_observation));
+    cases.push((
+        "stale-observation-project-digest".to_owned(),
+        stale_observation,
+    ));
 
     let mut wrong_scope = chain.clone();
     wrong_scope.evaluation_plan["project_scope"] = json!("watershed");
@@ -1415,12 +1504,18 @@ fn negative_control_results(chain: &ChainArtifacts) -> NegativeControlSummary {
     let mut scenario_disagreement = chain.clone();
     scenario_disagreement.review["inputs"]["scenario_runs"][0]["manifest_sha256"] =
         json!("e".repeat(64));
-    cases.push(("scenario-review-digest-conflict".to_owned(), scenario_disagreement));
+    cases.push((
+        "scenario-review-digest-conflict".to_owned(),
+        scenario_disagreement,
+    ));
 
     let mut crosswalk_unit_mismatch = chain.clone();
     crosswalk_unit_mismatch.observations["observations"][1]["observed_property"]["unit"] =
         json!("mm");
-    cases.push(("observation-crosswalk-unit-mismatch".to_owned(), crosswalk_unit_mismatch));
+    cases.push((
+        "observation-crosswalk-unit-mismatch".to_owned(),
+        crosswalk_unit_mismatch,
+    ));
 
     let mut changed_snapshot_bytes = chain.clone();
     if let Some(position) = changed_snapshot_bytes
@@ -1430,7 +1525,10 @@ fn negative_control_results(chain: &ChainArtifacts) -> NegativeControlSummary {
     {
         changed_snapshot_bytes.project_bytes[position] = b"c";
     }
-    cases.push(("one-byte-project-snapshot-change".to_owned(), changed_snapshot_bytes));
+    cases.push((
+        "one-byte-project-snapshot-change".to_owned(),
+        changed_snapshot_bytes,
+    ));
 
     let mut result = NegativeControlSummary {
         attempted: cases.len(),
@@ -1465,20 +1563,62 @@ pub fn run_conformance(dir: &Path) -> Result<ConformanceReport, Vec<String>> {
     }
 
     let mut artifact_sha256 = BTreeMap::new();
-    artifact_sha256.insert("project_snapshot".to_owned(), sha256_hex(&chain.project_bytes));
-    artifact_sha256.insert("alternative_snapshot".to_owned(), sha256_hex(&chain.alternative_bytes));
-    artifact_sha256.insert("intervention_site_reference".to_owned(), sha256_hex(&chain.intervention_site_bytes));
-    artifact_sha256.insert("comparison_site_reference".to_owned(), sha256_hex(&chain.comparison_site_bytes));
-    artifact_sha256.insert("boundary_conditions".to_owned(), sha256_hex(&chain.boundary_bytes));
-    artifact_sha256.insert("metric_registry".to_owned(), sha256_hex(&chain.metric_registry_bytes));
-    artifact_sha256.insert("metric_observation_map".to_owned(), sha256_hex(&chain.metric_observation_map_bytes));
-    artifact_sha256.insert("source_catalog".to_owned(), sha256_hex(&chain.source_catalog_bytes));
-    artifact_sha256.insert("evaluation_plan".to_owned(), canonical_sha256(&chain.evaluation_plan).map_err(|error| vec![error])?);
-    artifact_sha256.insert("observation_batch".to_owned(), canonical_sha256(&chain.observations).map_err(|error| vec![error])?);
-    artifact_sha256.insert("scenario_manifest".to_owned(), canonical_sha256(&chain.scenario).map_err(|error| vec![error])?);
-    artifact_sha256.insert("stewardship_record".to_owned(), canonical_sha256(&chain.stewardship).map_err(|error| vec![error])?);
-    artifact_sha256.insert("alternative_review".to_owned(), canonical_sha256(&chain.review).map_err(|error| vec![error])?);
-    artifact_sha256.insert("upstream_contract_manifest".to_owned(), sha256_hex(&chain.upstream_manifest_bytes));
+    artifact_sha256.insert(
+        "project_snapshot".to_owned(),
+        sha256_hex(&chain.project_bytes),
+    );
+    artifact_sha256.insert(
+        "alternative_snapshot".to_owned(),
+        sha256_hex(&chain.alternative_bytes),
+    );
+    artifact_sha256.insert(
+        "intervention_site_reference".to_owned(),
+        sha256_hex(&chain.intervention_site_bytes),
+    );
+    artifact_sha256.insert(
+        "comparison_site_reference".to_owned(),
+        sha256_hex(&chain.comparison_site_bytes),
+    );
+    artifact_sha256.insert(
+        "boundary_conditions".to_owned(),
+        sha256_hex(&chain.boundary_bytes),
+    );
+    artifact_sha256.insert(
+        "metric_registry".to_owned(),
+        sha256_hex(&chain.metric_registry_bytes),
+    );
+    artifact_sha256.insert(
+        "metric_observation_map".to_owned(),
+        sha256_hex(&chain.metric_observation_map_bytes),
+    );
+    artifact_sha256.insert(
+        "source_catalog".to_owned(),
+        sha256_hex(&chain.source_catalog_bytes),
+    );
+    artifact_sha256.insert(
+        "evaluation_plan".to_owned(),
+        canonical_sha256(&chain.evaluation_plan).map_err(|error| vec![error])?,
+    );
+    artifact_sha256.insert(
+        "observation_batch".to_owned(),
+        canonical_sha256(&chain.observations).map_err(|error| vec![error])?,
+    );
+    artifact_sha256.insert(
+        "scenario_manifest".to_owned(),
+        canonical_sha256(&chain.scenario).map_err(|error| vec![error])?,
+    );
+    artifact_sha256.insert(
+        "stewardship_record".to_owned(),
+        canonical_sha256(&chain.stewardship).map_err(|error| vec![error])?,
+    );
+    artifact_sha256.insert(
+        "alternative_review".to_owned(),
+        canonical_sha256(&chain.review).map_err(|error| vec![error])?,
+    );
+    artifact_sha256.insert(
+        "upstream_contract_manifest".to_owned(),
+        sha256_hex(&chain.upstream_manifest_bytes),
+    );
 
     let mut template_input_sha256 = chain.template_digests.clone();
     template_input_sha256.insert(
@@ -1513,19 +1653,28 @@ pub fn run_conformance(dir: &Path) -> Result<ConformanceReport, Vec<String>> {
         conformance_status: "PASS_SYNTHETIC_CONTRACT_CONFORMANCE_ONLY".to_owned(),
         data_origin: "synthetic_fixture".to_owned(),
         claim_ceiling: CLAIM_CEILING.to_owned(),
-        upstream_pinned_contract_count: records(&chain.upstream_manifest, &["source_contracts"]).map_or(0, Vec::len),
+        upstream_pinned_contract_count: records(&chain.upstream_manifest, &["source_contracts"])
+            .map_or(0, Vec::len),
         project_feature_count: feature_count(&chain.project),
         observation_count: records(&chain.observations, &["observations"]).map_or(0, Vec::len),
         metric_definition_count: records(&chain.metric_registry, &["metrics"]).map_or(0, Vec::len),
-        metric_observation_mapping_count: records(&chain.metric_observation_map, &["mappings"]).map_or(0, Vec::len),
+        metric_observation_mapping_count: records(&chain.metric_observation_map, &["mappings"])
+            .map_or(0, Vec::len),
         observations_matching_crosswalk_count: observation_crosswalk_match_count(&chain),
         eligible_supporting_observation_count: eligible_supporting_observation_count(&chain),
         unmapped_observation_count: unmapped_observation_count(&chain),
-        source_catalog_record_count: records(&chain.source_catalog, &["records"]).map_or(0, Vec::len),
-        source_catalog_status: string_at(&chain.source_catalog, &["catalog_status"]).unwrap_or("unknown").to_owned(),
+        source_catalog_record_count: records(&chain.source_catalog, &["records"])
+            .map_or(0, Vec::len),
+        source_catalog_status: string_at(&chain.source_catalog, &["catalog_status"])
+            .unwrap_or("unknown")
+            .to_owned(),
         scenario_execution_status: "BLOCKED_NOT_EXECUTED".to_owned(),
-        review_ranking_status: string_at(&chain.review, &["comparison", "ranking_status"]).unwrap_or("unknown").to_owned(),
-        recommendation_status: string_at(&chain.review, &["recommendation", "status"]).unwrap_or("unknown").to_owned(),
+        review_ranking_status: string_at(&chain.review, &["comparison", "ranking_status"])
+            .unwrap_or("unknown")
+            .to_owned(),
+        recommendation_status: string_at(&chain.review, &["recommendation", "status"])
+            .unwrap_or("unknown")
+            .to_owned(),
         passed_check_count: checks.len(),
         checks,
         negative_controls_attempted: negative_controls.attempted,
@@ -1537,8 +1686,7 @@ pub fn run_conformance(dir: &Path) -> Result<ConformanceReport, Vec<String>> {
 }
 
 pub fn default_fixture_dir() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../fixtures/landscape/chain-conformance-v0")
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../fixtures/landscape/chain-conformance-v0")
 }
 
 #[cfg(test)]
@@ -1554,7 +1702,10 @@ mod tests {
         let chain = fixture();
         assert!(validate_chain(&chain).is_empty());
         let report = run_conformance(&default_fixture_dir()).expect("report passes");
-        assert_eq!(report.conformance_status, "PASS_SYNTHETIC_CONTRACT_CONFORMANCE_ONLY");
+        assert_eq!(
+            report.conformance_status,
+            "PASS_SYNTHETIC_CONTRACT_CONFORMANCE_ONLY"
+        );
         assert_eq!(report.data_origin, "synthetic_fixture");
         assert_eq!(report.claim_ceiling, CLAIM_CEILING);
         assert_eq!(report.upstream_pinned_contract_count, 9);
@@ -1575,14 +1726,23 @@ mod tests {
         assert_eq!(report.passed_check_count, 14);
         assert_eq!(report.artifact_sha256.len(), 14);
         assert_eq!(report.template_input_sha256.len(), 9);
-        assert!(report.artifact_sha256.values().all(|value| digest_is_well_formed(value)));
+        assert!(
+            report
+                .artifact_sha256
+                .values()
+                .all(|value| digest_is_well_formed(value))
+        );
     }
 
     #[test]
     fn observation_crosswalk_unit_mismatch_is_rejected() {
         let mut chain = fixture();
         chain.observations["observations"][1]["observed_property"]["unit"] = json!("mm");
-        assert!(validate_chain(&chain).iter().any(|error| error.contains("units do not match crosswalk property")));
+        assert!(
+            validate_chain(&chain)
+                .iter()
+                .any(|error| error.contains("units do not match crosswalk property"))
+        );
     }
 
     #[test]
@@ -1606,7 +1766,11 @@ mod tests {
         chain.project_bytes[position] = b"c";
         let errors = validate_chain(&chain);
         assert!(!errors.is_empty());
-        assert!(errors.iter().any(|error| error.contains("exact source bytes")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("exact source bytes"))
+        );
     }
 
     #[test]
@@ -1651,8 +1815,7 @@ mod tests {
     #[test]
     fn conflicting_scenario_digest_is_rejected() {
         let mut chain = fixture();
-        chain.review["inputs"]["scenario_runs"][0]["manifest_sha256"] =
-            json!("e".repeat(64));
+        chain.review["inputs"]["scenario_runs"][0]["manifest_sha256"] = json!("e".repeat(64));
         assert!(!validate_chain(&chain).is_empty());
     }
 }
