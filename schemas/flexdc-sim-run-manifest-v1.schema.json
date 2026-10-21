@@ -224,7 +224,7 @@
         "null"
       ],
       "minLength": 1,
-      "pattern": "\\S",
+      "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(/|$)).+$",
       "description": "Relative path to the exact runtime environment manifest included with the run bundle; required for non-synthetic runs."
     },
     "effective_policy_name": {
@@ -242,7 +242,7 @@
         "null"
       ],
       "minLength": 1,
-      "pattern": "\\S",
+      "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(/|$)).+$",
       "description": "Relative path to the exact effective policy INI used in the run; non-synthetic runs require it."
     },
     "effective_policy_config_sha256": {
