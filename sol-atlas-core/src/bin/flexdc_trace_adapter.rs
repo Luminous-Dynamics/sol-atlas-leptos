@@ -70,6 +70,9 @@ struct RunManifest {
     schema_version: String,
     run_id: String,
     synthetic: bool,
+    effective_policy_name: String,
+    effective_policy_config_path: Option<String>,
+    effective_policy_config_sha256: Option<String>,
     source_revision: String,
     simulator_command: String,
     random_seed: u64,
@@ -136,6 +139,54 @@ fn validate_manifest(manifest: &RunManifest) -> Result<(), String> {
         return Err(format!(
             "this adapter supports only pinned FlexDC-Sim revision {PINNED_FLEXDC_REVISION}"
         ));
+    }
+    if !["AQA", "proportional-cap", "priority-cap", "flex-resource"]
+        .contains(&manifest.effective_policy_name.as_str())
+    {
+        return Err(format!(
+            "unsupported effective_policy_name {:?}",
+            manifest.effective_policy_name
+        ));
+    }
+    if let Some(path) = manifest.effective_policy_config_path.as_deref() {
+        if path.trim().is_empty()
+            || path.starts_with('/')
+            || path.starts_with('\\')
+            || path.contains('\\n')
+            || path.contains('\\r')
+            || path
+                .split(|character| character == '/' || character == '\\\\')
+                .any(|component| component == "..")
+        {
+            return Err(
+                "manifest.effective_policy_config_path must be a safe relative artifact path"
+                    .to_owned(),
+            );
+        }
+    }
+    match (
+        manifest.effective_policy_config_path.as_deref(),
+        manifest.effective_policy_config_sha256.as_deref(),
+    ) {
+        (Some(_), Some(digest)) if !is_lower_hex(digest, 64) => {
+            return Err(
+                "manifest.effective_policy_config_sha256 must be 64-character lowercase SHA-256 hex"
+                    .to_owned(),
+            );
+        }
+        (None, _) | (_, None) if !manifest.synthetic => {
+            return Err(
+                "non-synthetic runs require effective policy config path and SHA-256 digest"
+                    .to_owned(),
+            );
+        }
+        (Some(_), None) | (None, Some(_)) if manifest.synthetic => {
+            return Err(
+                "synthetic manifests must set both effective policy config path and digest, or neither"
+                    .to_owned(),
+            );
+        }
+        _ => {}
     }
     let python_version_parts = manifest.python_version.split('.').collect::<Vec<_>>();
     if python_version_parts.len() != 3
@@ -434,6 +485,7 @@ fn build_trace_input(
     power_csv: &[u8],
     manifest_bytes: &[u8],
     runtime_environment_bytes: Option<&[u8]>,
+    effective_policy_config_bytes: Option<&[u8]>,
 ) -> Result<Value, String> {
     let manifest: RunManifest = serde_json::from_slice(manifest_bytes)
         .map_err(|error| format!("could not parse strict run manifest JSON: {error}"))?;
@@ -467,6 +519,31 @@ fn build_trace_input(
         }
     }
 
+    match (
+        manifest.effective_policy_config_path.as_deref(),
+        manifest.effective_policy_config_sha256.as_deref(),
+        effective_policy_config_bytes,
+    ) {
+        (Some(_), Some(expected_digest), Some(config_bytes)) => {
+            if sha256_hex(config_bytes) != expected_digest {
+                return Err(
+                    "effective policy config bytes do not match the declared SHA-256".to_owned(),
+                );
+            }
+        }
+        (None, None, None) if manifest.synthetic => {}
+        (None, None, None) => {
+            return Err(
+                "non-synthetic runs require an effective policy config artifact".to_owned(),
+            );
+        }
+        _ => {
+            return Err(
+                "effective policy config path, digest and provided bytes must agree".to_owned(),
+            );
+        }
+    }
+
     let csv_text = std::str::from_utf8(power_csv)
         .map_err(|error| format!("power trace must be UTF-8 CSV: {error}"))?;
     let (interval_ids, target_power_kw, measured_power_kw, signed_errors) =
@@ -475,9 +552,12 @@ fn build_trace_input(
     let manifest_sha256 = sha256_hex(manifest_bytes);
     let reserve_capacity_kw = manifest.regulation_reserve_w / 1000.0;
     let normalization_note = format!(
-        "FlexDC-Sim source commit {}; run {}; command {}; random seed {}; Python {}; runtime environment artifact {:?} SHA-256={:?}; QoS percentile {}; configured power cap P={} W and reserve R={} W. The exported trackingError is the source-native signed normalized error from prior-cycle real_power and previous signal cap, divided by R + 0.0001. Same-row target/realSum values are separately converted from W to kW and paired with exact configured R for the rederived RSR view. Startup rows before signal step {} seconds are zero. Time is preserved in seconds as interval IDs with no resampling. power_trace.csv SHA-256={artifact_sha256}; exact run-manifest JSON SHA-256={manifest_sha256}. {} This is simulator output, not wall-metered facility power.",
+        "FlexDC-Sim source commit {}; run {}; effective policy {}; effective policy config artifact {:?} SHA-256={:?}; command {}; random seed {}; Python {}; runtime environment artifact {:?} SHA-256={:?}; QoS percentile {}; configured power cap P={} W and reserve R={} W. The exported trackingError is the source-native signed normalized error from prior-cycle real_power and previous signal cap, divided by R + 0.0001. Same-row target/realSum values are separately converted from W to kW and paired with exact configured R for the rederived RSR view. Startup rows before signal step {} seconds are zero. Time is preserved in seconds as interval IDs with no resampling. power_trace.csv SHA-256={artifact_sha256}; exact run-manifest JSON SHA-256={manifest_sha256}. {} This is simulator output, not wall-metered facility power.",
         manifest.source_revision,
         manifest.run_id,
+        manifest.effective_policy_name,
+        manifest.effective_policy_config_path,
+        manifest.effective_policy_config_sha256,
         manifest.simulator_command,
         manifest.random_seed,
         manifest.python_version,
@@ -577,10 +657,30 @@ fn main() {
         None => None,
     };
 
+    // Effective policy config bytes are read from the run bundle and checked against
+    // the exact digest recorded in the manifest; the original source config blob
+    // remains separately pinned in config_artifacts as the template provenance.
+    let effective_policy_config_bytes =
+        match manifest.effective_policy_config_path.as_deref() {
+            Some(relative_path) => {
+                let manifest_file = Path::new(&manifest_path);
+                let bundle_dir = manifest_file.parent().unwrap_or_else(|| Path::new("."));
+                match fs::read(bundle_dir.join(relative_path)) {
+                    Ok(bytes) => Some(bytes),
+                    Err(error) => {
+                        eprintln!("could not read effective policy config: {error}");
+                        process::exit(66);
+                    }
+                }
+            }
+            None => None,
+        };
+
     let input = match build_trace_input(
         &power_csv,
         &manifest_bytes,
         runtime_environment_bytes.as_deref(),
+        effective_policy_config_bytes.as_deref(),
     ) {
         Ok(value) => value,
         Err(error) => {
@@ -612,7 +712,7 @@ mod tests {
 
     #[test]
     fn known_answer_trace_preserves_source_errors_and_receipt_digests() {
-        let output = build_trace_input(TRACE.as_bytes(), MANIFEST.as_bytes(), None)
+        let output = build_trace_input(TRACE.as_bytes(), MANIFEST.as_bytes(), None, None)
             .expect("known-answer FlexDC-Sim trace should adapt");
         assert_eq!(output["synthetic"], true);
         assert_eq!(output["claim_ceiling"], "metric_accounting_only");
