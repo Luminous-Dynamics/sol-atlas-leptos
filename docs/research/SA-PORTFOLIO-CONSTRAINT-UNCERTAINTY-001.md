@@ -25,7 +25,7 @@ cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --cap
 
 The config is versioned and selects one period and resource dimension (`cost` or `crew`). It contains a strictly descending, finite, non-negative sequence of capacity values; the first value must equal the actual cap in the input, so every domain begins with a no-shock negative control. Each value is applied independently to a fresh copy of the unchanged input and evaluated using the same exact evaluator.
 
-The full report includes the baseline capacity, ordered domain, every attempted capacity, before/after feasible counts, the sorted IDs of portfolios excluded by each attempt, frontier size and ID intersection/union, stop state, and all unattempted values. The CLI requires complete equality with an independently frozen expected report before emitting a receipt with input/config/expected SHA-256 digests.
+The full report includes the baseline capacity, ordered domain, every attempted capacity, before/after feasible counts, sorted IDs of portfolios excluded by each attempt, exact frontier project-ID sets before and after each capacity, frontier size and ID intersection/union, stop state, and all unattempted values. The CLI requires complete equality with an independently frozen expected report before emitting a receipt with input/config/expected SHA-256 digests.
 
 Stop semantics reuse the typed `CounterexampleSweepStatus` contract:
 
