@@ -28,6 +28,11 @@
     "greedy_ratio_baseline_cost_units",
     "greedy_ratio_baseline_weighted_discrimination_nats",
     "exact_gain_over_greedy_ratio_baseline_nats",
+    "uniform_baseline_replicates",
+    "uniform_baseline_mean_weighted_discrimination_nats",
+    "uniform_baseline_best_weighted_discrimination_nats",
+    "uniform_baseline_mean_stratum_coverage_fraction",
+    "exact_gain_over_uniform_mean_nats",
     "decisions"
   ],
   "properties": {
@@ -133,6 +138,27 @@
       "type": "number",
       "minimum": 0,
       "maximum": 1
+    },
+    "uniform_baseline_replicates": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "uniform_baseline_mean_weighted_discrimination_nats": {
+      "type": "number",
+      "minimum": 0
+    },
+    "uniform_baseline_best_weighted_discrimination_nats": {
+      "type": "number",
+      "minimum": 0
+    },
+    "uniform_baseline_mean_stratum_coverage_fraction": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "exact_gain_over_uniform_mean_nats": {
+      "type": "number",
+      "minimum": 0
     }
   },
   "$defs": {
