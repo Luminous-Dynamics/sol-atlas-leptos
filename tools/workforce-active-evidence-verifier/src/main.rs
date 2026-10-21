@@ -522,7 +522,7 @@ impl<'a> Solver<'a> {
                 continue;
             }
             let remaining_queries = available_queries & !(1u64 << query_index);
-            let mut branches: Vec<(String, Vec<Policy>)> = Vec::new();
+            let mut branches: Vec<(String, String, Vec<Policy>)> = Vec::new();
 
             for outcome in &query.outcomes {
                 let outcome_mask = self.mask_for_ids(&outcome.compatible_hypotheses)?;
