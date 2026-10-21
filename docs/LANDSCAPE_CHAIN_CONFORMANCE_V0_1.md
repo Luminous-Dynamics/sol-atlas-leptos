@@ -37,7 +37,7 @@ The benchmark checks:
 6. Scenario linkage to design bytes, boundary-condition bytes and normalized evaluation-plan bytes.
 7. Mycelix linkage to the same project and scenario, with private/no-coordinate-disclosure defaults and no claimed publication consent.
 8. Symthaea linkage to the same baseline and alternate design, metric registry, source catalog and scenario; consequence-bearing metrics remain blocked, the scenario result remains unexecuted, and the review abstains from ranking.
-9. Seven negative controls: stale project digest in an observation, scope mismatch, missing feature ID, synthetic-to-observed relabel, public exact-sensitive-location exposure, scenario digest disagreement, and a one-byte snapshot mutation.
+9. Eight negative controls: stale project digest in an observation, scope mismatch, missing feature ID, synthetic-to-observed relabel, public exact-sensitive-location exposure, scenario digest disagreement, and a one-byte snapshot mutation, and an observation with units incompatible with its mapped property.
 
 ## Reproduction
 
