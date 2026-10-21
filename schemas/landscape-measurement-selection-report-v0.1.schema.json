@@ -21,6 +21,10 @@
     "eligible_not_selected_count",
     "selected_candidate_ids",
     "total_weighted_discrimination_nats",
+    "greedy_ratio_baseline_selected_candidate_ids",
+    "greedy_ratio_baseline_cost_units",
+    "greedy_ratio_baseline_weighted_discrimination_nats",
+    "exact_gain_over_greedy_ratio_baseline_nats",
     "decisions"
   ],
   "properties": {
@@ -93,6 +97,26 @@
       "items": {
         "$ref": "#/$defs/decision"
       }
+    },
+    "greedy_ratio_baseline_selected_candidate_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "greedy_ratio_baseline_cost_units": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "greedy_ratio_baseline_weighted_discrimination_nats": {
+      "type": "number",
+      "minimum": 0
+    },
+    "exact_gain_over_greedy_ratio_baseline_nats": {
+      "type": "number",
+      "minimum": 0
     }
   },
   "$defs": {
