@@ -180,7 +180,9 @@ pub fn validate_case(case: &AccessCase) -> Result<(), String> {
         return Err(format!("{}: demand node is undeclared", case.id));
     }
     for edge in &case.edges {
-        if !node_set.contains(edge.from_node.as_str()) || !node_set.contains(edge.to_node.as_str()) {
+        if !node_set.contains(edge.from_node.as_str())
+            || !node_set.contains(edge.to_node.as_str())
+        {
             return Err(format!("{}: edge endpoint is undeclared", case.id));
         }
     }
@@ -309,7 +311,12 @@ mod tests {
                 "{} eligible facilities",
                 case.id
             );
-            assert_eq!(result.reachable_capacity_units, case.expected.reachable_capacity_units, "{} capacity", case.id);
+            assert_eq!(
+                result.reachable_capacity_units,
+                case.expected.reachable_capacity_units,
+                "{} capacity",
+                case.id
+            );
             assert_eq!(result.served_units, case.expected.served_units, "{} served", case.id);
             assert_eq!(result.unserved_units, case.expected.unserved_units, "{} unserved", case.id);
         }
