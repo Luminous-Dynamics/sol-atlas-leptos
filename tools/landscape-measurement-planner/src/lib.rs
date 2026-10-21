@@ -760,6 +760,20 @@ mod tests {
             7.0,
         );
         close(report.exact_gain_over_greedy_ratio_baseline_nats, 3.0);
+        assert_eq!(report.uniform_baseline_replicates, 64);
+        close(
+            report.uniform_baseline_mean_weighted_discrimination_nats,
+            8.78125,
+        );
+        close(
+            report.uniform_baseline_best_weighted_discrimination_nats,
+            10.0,
+        );
+        close(
+            report.uniform_baseline_mean_stratum_coverage_fraction,
+            0.53125,
+        );
+        close(report.exact_gain_over_uniform_mean_nats, 1.21875);
         assert_eq!(
             report
                 .decisions
