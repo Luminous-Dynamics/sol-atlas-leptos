@@ -412,7 +412,6 @@ fn action_is_prohibited(case: &Value, action: &str) -> Option<bool> {
             Some(matches!(funding, "absent" | "unknown"))
         }
         "RECOMMEND_TRAINING_AS_PRIMARY_REMEDY" => Some(!has_skill_gap || !funded),
-        "TREAT_CREDENTIAL_AS_PROOF_OF_ALL_TASK_COMPETENCE" => Some(true),
         "LABEL_AS_SKILLS_SHORTAGE_WITHOUT_EVIDENCE" => {
             Some(!has_skill_gap || evidence != "complete")
         }
@@ -772,5 +771,35 @@ mod tests {
         let mut value = fixture();
         value["cases"][0]["observations"]["unrecognized_observation"] = Value::Bool(true);
         assert!(validate_schema(&schema(), &value).is_err());
+    }
+
+    #[test]
+    fn intervention_guard_rejects_training_as_a_fix_for_unfunded_non_shortage_work() {
+        let mut value = fixture();
+        value["cases"][1]["oracle"]["admissible_interventions"]
+            .as_array_mut()
+            .expect("admissible interventions array")
+            .push(Value::String("SUPERVISED_SKILL_DEVELOPMENT".to_string()));
+        assert!(validate_cross_fields(&value).is_err());
+    }
+
+    #[test]
+    fn intervention_guard_rejects_unrecognized_actions_fail_closed() {
+        let mut value = fixture();
+        value["cases"][0]["oracle"]["admissible_interventions"]
+            .as_array_mut()
+            .expect("admissible interventions array")
+            .push(Value::String("MAGIC_AUTOMATIC_JOB_CREATION".to_string()));
+        assert!(validate_cross_fields(&value).is_err());
+    }
+
+    #[test]
+    fn intervention_guard_rejects_funded_job_claim_when_funding_is_confirmed() {
+        let mut value = fixture();
+        value["cases"][0]["oracle"]["prohibited_interventions"]
+            .as_array_mut()
+            .expect("prohibited interventions array")
+            .push(Value::String("COUNT_AS_FUNDED_JOB".to_string()));
+        assert!(validate_cross_fields(&value).is_err());
     }
 }
