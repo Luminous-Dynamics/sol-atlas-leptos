@@ -47,8 +47,10 @@ pub struct Candidate {
     /// Candidates in the same group are treated as redundant for v0.1:
     /// the optimizer may choose at most one of them.
     pub correlation_group: String,
-    pub baseline_model_id: String,
-    pub alternative_model_id: String,
+    pub model_family_id: String,
+    pub model_version: String,
+    pub baseline_scenario_sha256: String,
+    pub alternative_scenario_sha256: String,
     pub baseline_mean: f64,
     pub alternative_mean: f64,
     pub baseline_sd: f64,
@@ -185,6 +187,31 @@ pub fn validate_fixture(fixture: &Fixture) -> Result<(), Vec<String>> {
     }
 
     let mut ids = BTreeSet::new();
+    let mut model_by_metric_unit: BTreeMap<(String, String), (String, String)> = BTreeMap::new();
+    if let Some(first) = fixture.candidates.first() {
+        for candidate in &fixture.candidates {
+            if candidate.baseline_scenario_sha256 != first.baseline_scenario_sha256
+                || candidate.alternative_scenario_sha256 != first.alternative_scenario_sha256
+            {
+                errors.push(format!(
+                    "{}: all candidates must compare the same pinned baseline/alternative scenario pair",
+                    candidate.candidate_id
+                ));
+            }
+            let key = (candidate.metric_id.clone(), candidate.unit.clone());
+            let family = (candidate.model_family_id.clone(), candidate.model_version.clone());
+            if let Some(existing) = model_by_metric_unit.get(&key) {
+                if existing != &family {
+                    errors.push(format!(
+                        "{}: model family/version differs within metric {} ({})",
+                        candidate.candidate_id, key.0, key.1
+                    ));
+                }
+            } else {
+                model_by_metric_unit.insert(key, family);
+            }
+        }
+    }
     for candidate in &fixture.candidates {
         if !nonempty(&candidate.candidate_id) {
             errors.push("candidate_id must be non-empty".to_owned());
@@ -201,11 +228,8 @@ pub fn validate_fixture(fixture: &Fixture) -> Result<(), Vec<String>> {
             ("spatial_stratum", candidate.spatial_stratum.as_str()),
             ("temporal_stratum", candidate.temporal_stratum.as_str()),
             ("correlation_group", candidate.correlation_group.as_str()),
-            ("baseline_model_id", candidate.baseline_model_id.as_str()),
-            (
-                "alternative_model_id",
-                candidate.alternative_model_id.as_str(),
-            ),
+            ("model_family_id", candidate.model_family_id.as_str()),
+            ("model_version", candidate.model_version.as_str()),
         ] {
             if !nonempty(value) {
                 errors.push(format!(
@@ -214,9 +238,27 @@ pub fn validate_fixture(fixture: &Fixture) -> Result<(), Vec<String>> {
                 ));
             }
         }
-        if candidate.baseline_model_id == candidate.alternative_model_id {
+        if !valid_digest(&candidate.site_ref_sha256) {
             errors.push(format!(
-                "{}: baseline and alternative model IDs must differ",
+                "{}: site_ref_sha256 must be 64 lowercase hexadecimal characters",
+                candidate.candidate_id
+            ));
+        }
+        if !valid_digest(&candidate.baseline_scenario_sha256) {
+            errors.push(format!(
+                "{}: baseline_scenario_sha256 must be 64 lowercase hexadecimal characters",
+                candidate.candidate_id
+            ));
+        }
+        if !valid_digest(&candidate.alternative_scenario_sha256) {
+            errors.push(format!(
+                "{}: alternative_scenario_sha256 must be 64 lowercase hexadecimal characters",
+                candidate.candidate_id
+            ));
+        }
+        if candidate.baseline_scenario_sha256 == candidate.alternative_scenario_sha256 {
+            errors.push(format!(
+                "{}: baseline and alternative scenario digests must differ",
                 candidate.candidate_id
             ));
         }
@@ -953,6 +995,29 @@ mod tests {
                 .and_then(|decision| decision.reason.as_deref()),
             Some("consent_unknown")
         );
+    }
+
+    #[test]
+    fn paired_scenario_digests_must_be_distinct_and_global() {
+        let mut identical_pair = fixture();
+        identical_pair.candidates[0].alternative_scenario_sha256 =
+            identical_pair.candidates[0].baseline_scenario_sha256.clone();
+        assert!(validate_fixture(&identical_pair).is_err());
+
+        let mut inconsistent_pair = fixture();
+        inconsistent_pair.candidates[1].alternative_scenario_sha256 = "3".repeat(64);
+        assert!(validate_fixture(&inconsistent_pair).is_err());
+    }
+
+    #[test]
+    fn repeated_metric_unit_requires_same_model_family_and_version() {
+        let mut mismatched = fixture();
+        mismatched.candidates[1].model_family_id = "different-model-family".to_owned();
+        assert!(validate_fixture(&mismatched).is_err());
+
+        let mut mismatched_version = fixture();
+        mismatched_version.candidates[1].model_version = "9.9.9".to_owned();
+        assert!(validate_fixture(&mismatched_version).is_err());
     }
 
     #[test]
