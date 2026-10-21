@@ -21,6 +21,8 @@
     "source_catalog_record_count",
     "source_catalog_status",
     "scenario_execution_status",
+    "paired_scenario_count",
+    "paired_scenarios_share_boundary_conditions",
     "review_ranking_status",
     "recommendation_status",
     "passed_check_count",
@@ -130,6 +132,13 @@
     "unmapped_observation_count": {
       "type": "integer",
       "minimum": 0
+    },
+    "paired_scenario_count": {
+      "type": "integer",
+      "minimum": 2
+    },
+    "paired_scenarios_share_boundary_conditions": {
+      "const": true
     }
   }
 }
