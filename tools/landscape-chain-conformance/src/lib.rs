@@ -521,6 +521,8 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
     let purpose = string_at(&scenario, &["purpose"])
         .ok_or_else(|| vec!["scenario.purpose is missing".to_owned()])?
         .to_owned();
+    let baseline_review_alternative_id = string_value(review["alternatives"][0].get("alternative_id")).to_owned();
+    let alternative_review_alternative_id = string_value(review["alternatives"][1].get("alternative_id")).to_owned();
     review["inputs"]["scenario_runs"] = json!([
         {
             "system": "symtropy",
@@ -530,6 +532,15 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
             "status": "blocked",
             "model_id": model_id,
             "model_version": model_version,
+            "pairing_context": {
+                "alternative_id": baseline_review_alternative_id,
+                "design_snapshot_sha256": project_sha,
+                "boundary_conditions_sha256": boundary_sha,
+                "evaluation_plan_sha256": evaluation_plan_sha,
+                "metric_registry_sha256": metric_registry_sha,
+                "seed": scenario["seed"],
+                "scope": scope
+            },
             "limitations": [
                 "Baseline scenario is schema-qualified only; it has not run a physical landscape model.",
                 "Design uses schematic local drawing units and is not georeferenced."
@@ -543,6 +554,15 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
             "status": "blocked",
             "model_id": model_id,
             "model_version": model_version,
+            "pairing_context": {
+                "alternative_id": alternative_review_alternative_id,
+                "design_snapshot_sha256": alternative_sha,
+                "boundary_conditions_sha256": boundary_sha,
+                "evaluation_plan_sha256": evaluation_plan_sha,
+                "metric_registry_sha256": metric_registry_sha,
+                "seed": scenario["seed"],
+                "scope": scope
+            },
             "limitations": [
                 "Alternative scenario is schema-qualified only; it has not run a physical landscape model.",
                 "Design uses schematic local drawing units and is not georeferenced."
