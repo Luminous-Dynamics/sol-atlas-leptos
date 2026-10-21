@@ -86,6 +86,7 @@ The validator distinguishes `schematic-design-intent` from `synthetic-benchmark`
 - Interoperability profile: [docs/LANDSCAPE_INTEROPERABILITY_PROFILE_V0.md](LANDSCAPE_INTEROPERABILITY_PROFILE_V0.md), which maps data families to OGC/STAC standards and sets source-ingestion gates.
 - Cross-repository conformance matrix: [LANDSCAPE_CROSS_REPO_CONFORMANCE_V0.md](LANDSCAPE_CROSS_REPO_CONFORMANCE_V0.md), mapping snapshot, evaluation, scenario, observation, review and stewardship artifacts to fail-closed acceptance tests; tracked by [LAND-CONFORMANCE-001 #244](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/244).
 - Initial performance metric registry: [metrics/landscape/registry-v0.json](../metrics/landscape/registry-v0.json), with schema [landscape-performance-registry-v0.schema.json](../schemas/landscape-performance-registry-v0.schema.json). This is a metric-definition contract only, not populated field data.
+- Each metric also lists source-catalog candidate references with explicit roles and limitations plus its unprovided inputs. Candidate references are not ingested, validated inputs; the UI displays their current ingestion state and still-missing requirements, and metric outputs remain unavailable.
 - Benchmark implementation work: [LAND-BENCH-001](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/195).
 - Outcome/performance metric registry work: [LAND-METRICS-001](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/197).
 
@@ -242,3 +243,6 @@ The starter fixture is canonical only for the schematic v0 symbol-anchor represe
 
 
 Durable native save/load, real geometry types and CRS-safe interchange are tracked in [LAND-DOC-001](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/198). The v0 validator only qualifies the current schematic symbol-anchor format; it does not validate geospatial truth or ecological/engineering claims.
+
+
+Candidate source coverage is a screening aid, not an assertion of analytical readiness. Several critical inputs (survey geometry, field species records, site soils, flow measurements, EPDs, local costs and Mycelix consent records) are not available in the catalog. A metric becomes computable only after the full required-input contract, data freshness, licensing, CRS/resolution, uncertainty and independent validation gates pass.
