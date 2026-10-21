@@ -68,6 +68,28 @@ cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --sce
 
 The two original v0.2 omission fixtures are deliberately useful controls: omitting `normal_reference` keeps 82 feasible portfolios and its eight frontier IDs; omitting `heat_dry_power_stress` admits 90 feasible portfolios and changes frontier membership to seven IDs. The dedicated floor challenge changes one synthetic stress-service contribution so that omitting that scenario produces seven reduced-frontier candidates, three of which fail the full-reference hard floor. These are arbitrary test units, not claims about real service delivery or scenario likelihood. The expected JSON manifests are frozen from a separate exhaustive enumeration, not calculated by the Rust scenario-omission function.
 
+### Bounded counterexample sweep
+
+`--counterexample-sweep INPUT.json TEMPLATE_PATCH.json CONFIG.json EXPECTED.json` explores an ordered, finite list of non-negative integer service-baseline values using the existing exact evaluator. Each attempted mutation receives a stable scenario ID suffix; the receipt hashes the input, template, config and expected report. It stops on the first portfolio removed by the newly added scenario, or reports `DOMAIN_EXHAUSTED_NO_COUNTEREXAMPLE` only after every configured value is checked. If the budget ends first, status is `BUDGET_EXHAUSTED` and unattempted values are listed. The sweep is not a global real-world robustness proof.
+
+```sh
+cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --counterexample-sweep \
+  docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.json \
+  docs/research/fixtures/sa-portfolio-counterexample-sweep-v0.1-compound-template.json \
+  docs/research/fixtures/sa-portfolio-counterexample-sweep-v0.1-compound-config.json \
+  docs/research/fixtures/sa-portfolio-counterexample-sweep-v0.1-compound.expected.json
+
+cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --counterexample-sweep \
+  docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.json \
+  docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-no-effect-control.json \
+  docs/research/fixtures/sa-portfolio-counterexample-sweep-v0.1-no-effect-config.json \
+  docs/research/fixtures/sa-portfolio-counterexample-sweep-v0.1-no-effect.expected.json
+```
+
+A further metamorphic test varies each period's cost cap and crew cap by one unit. For every dimension, tightening a cap must yield a feasible portfolio set that is a subset of baseline; relaxing a cap must preserve every baseline-feasible portfolio. This checks monotonicity of hard resource constraints, not the predictive validity of any resource forecast.
+
+The synthetic compound fixture checks baseline 10 first (no feasibility change), then baseline 9 (two formerly feasible portfolios violate the protected service floor). It stops after two of nine configured values and reports the seven remaining values; it does not claim the domain was exhausted. The exact duplicate-scenario control checks baseline 3, preserves all 82 feasible portfolios and all eight frontier IDs, and only then returns `DOMAIN_EXHAUSTED_NO_COUNTEREXAMPLE`. A separate unit test confirms that a one-evaluation cap on a larger no-effect domain returns `BUDGET_EXHAUSTED`, never a robustness pass.
+
 ### Withheld-scenario addition
 
 The `--scenario-addition INPUT.json PATCH.json EXPECTED.json` mode adds a fully declared withheld scenario, recomputes exact feasibility/frontier on the augmented scenario universe, compares the original and augmented feasible sets, and emits a receipt with SHA-256 digests for the input, patch and expected report. It fails closed unless the complete report exactly matches the frozen independent manifest.

@@ -1,0 +1,85 @@
+{
+  "scenario": {
+    "id": "bounded_compound_service_probe",
+    "weight": null,
+    "probability": null,
+    "notes": "Template for a bounded synthetic service-baseline sweep. Outcomes combine heat/drought service pressure and grid scarcity; this template does not perturb crew caps or imply scenario probabilities."
+  },
+  "service_baseline": 2,
+  "project_outcomes_by_id": {
+    "P00": {
+      "economic_value_u": 0,
+      "essential_service_points": 0,
+      "paid_work_opportunity_points": 1,
+      "ecological_quality_points": 0
+    },
+    "P01": {
+      "economic_value_u": 3,
+      "essential_service_points": 3,
+      "paid_work_opportunity_points": 2,
+      "ecological_quality_points": 2
+    },
+    "P02": {
+      "economic_value_u": 1,
+      "essential_service_points": 2,
+      "paid_work_opportunity_points": 1,
+      "ecological_quality_points": 4
+    },
+    "P03": {
+      "economic_value_u": 7,
+      "essential_service_points": -1,
+      "paid_work_opportunity_points": 1,
+      "ecological_quality_points": -1
+    },
+    "P04": {
+      "economic_value_u": 1,
+      "essential_service_points": 0,
+      "paid_work_opportunity_points": 5,
+      "ecological_quality_points": 1
+    },
+    "P05": {
+      "economic_value_u": 2,
+      "essential_service_points": 1,
+      "paid_work_opportunity_points": 3,
+      "ecological_quality_points": 1
+    },
+    "P06": {
+      "economic_value_u": 0,
+      "essential_service_points": 3,
+      "paid_work_opportunity_points": 1,
+      "ecological_quality_points": 8
+    },
+    "P07": {
+      "economic_value_u": 999,
+      "essential_service_points": 999,
+      "paid_work_opportunity_points": 999,
+      "ecological_quality_points": 999
+    },
+    "P08": {
+      "economic_value_u": 4,
+      "essential_service_points": -4,
+      "paid_work_opportunity_points": 1,
+      "ecological_quality_points": 2
+    },
+    "P09": {
+      "economic_value_u": 1,
+      "essential_service_points": 2,
+      "paid_work_opportunity_points": 4,
+      "ecological_quality_points": 5
+    }
+  },
+  "interaction_adjustments_by_rule_id": {
+    "T_W_COMPLEMENT": {
+      "economic_value_u": 1,
+      "essential_service_points": 1,
+      "paid_work_opportunity_points": 0,
+      "ecological_quality_points": 0
+    },
+    "A_F_ECOLOGY_OVERLAP": {
+      "economic_value_u": 0,
+      "essential_service_points": 0,
+      "paid_work_opportunity_points": 0,
+      "ecological_quality_points": -3
+    }
+  }
+}

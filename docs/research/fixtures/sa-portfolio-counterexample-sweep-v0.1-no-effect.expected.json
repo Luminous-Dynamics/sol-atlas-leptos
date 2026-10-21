@@ -1,0 +1,28 @@
+{
+  "schema_version": "sa-portfolio-counterexample-sweep-report-v0.1",
+  "status": "DOMAIN_EXHAUSTED_NO_COUNTEREXAMPLE",
+  "domain_values": [
+    3
+  ],
+  "evaluation_budget": 1,
+  "evaluation_count": 1,
+  "attempted_values": [
+    3
+  ],
+  "attempts": [
+    {
+      "service_baseline": 3,
+      "scenario_id": "duplicate_normal_negative_control_baseline_3",
+      "feasible_before": 82,
+      "feasible_after": 82,
+      "removed_feasible_count": 0,
+      "frontier_before": 8,
+      "frontier_after": 8,
+      "frontier_id_intersection_count": 8,
+      "frontier_id_union_count": 8,
+      "counterexample_found": false
+    }
+  ],
+  "first_counterexample_scenario_id": null,
+  "remaining_values": []
+}

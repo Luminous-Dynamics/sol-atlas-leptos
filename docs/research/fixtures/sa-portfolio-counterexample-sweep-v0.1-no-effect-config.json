@@ -1,0 +1,7 @@
+{
+  "schema_version": "sa-portfolio-counterexample-sweep-v0.1",
+  "service_baseline_values": [
+    3
+  ],
+  "max_evaluations": 1
+}
