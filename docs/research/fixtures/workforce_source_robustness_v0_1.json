@@ -26,7 +26,8 @@
           "limitations": [
             "authored fixture",
             "not real municipal data"
-          ]
+          ],
+          "scope_id": "water-maintenance-task-scope-01"
         },
         {
           "id": "CAPACITY",
@@ -45,7 +46,8 @@
           "limitations": [
             "authored fixture",
             "task scope is synthetic"
-          ]
+          ],
+          "scope_id": "water-maintenance-task-scope-01"
         },
         {
           "id": "ADS",
@@ -64,7 +66,8 @@
           "limitations": [
             "duplicates intentionally possible",
             "coverage is not representative"
-          ]
+          ],
+          "scope_id": "online-posting-capture-scope-01"
         }
       ],
       "baseline_decision": "confirmed_task_capacity_gap",
@@ -113,7 +116,8 @@
           "limitations": [
             "duplicates unknown",
             "not a census of hiring"
-          ]
+          ],
+          "scope_id": "recruitment-context-02"
         },
         {
           "id": "INTENT",
@@ -132,7 +136,8 @@
           "limitations": [
             "voluntary response",
             "intentions not approvals"
-          ]
+          ],
+          "scope_id": "recruitment-context-02"
         },
         {
           "id": "NOFUNDED",
@@ -151,7 +156,8 @@
           "limitations": [
             "only covers supplied authorized work set",
             "zero here is synthetic"
-          ]
+          ],
+          "scope_id": "recruitment-context-02"
         }
       ],
       "baseline_decision": "no_confirmed_shortage",
@@ -200,7 +206,8 @@
           "limitations": [
             "reposts not reliably deduplicated",
             "turnover may drive repeat ads"
-          ]
+          ],
+          "scope_id": "repeated-vacancy-job-quality-context-03"
         },
         {
           "id": "DECLINES",
@@ -219,7 +226,8 @@
           "limitations": [
             "synthetic ratio",
             "does not describe real workers"
-          ]
+          ],
+          "scope_id": "repeated-vacancy-job-quality-context-03"
         },
         {
           "id": "INTCOND",
@@ -238,7 +246,8 @@
           "limitations": [
             "quality and turnover label synthetic",
             "no personal data"
-          ]
+          ],
+          "scope_id": "repeated-vacancy-job-quality-context-03"
         }
       ],
       "baseline_decision": "job_quality_confounding",
@@ -287,7 +296,8 @@
           "limitations": [
             "ambiguous job titles",
             "synthetic mapping counts"
-          ]
+          ],
+          "scope_id": "job-title-crosswalk-set-04"
         },
         {
           "id": "MAPB",
@@ -306,7 +316,8 @@
           "limitations": [
             "alternative plausible mapping",
             "not validated OFO crosswalk"
-          ]
+          ],
+          "scope_id": "job-title-crosswalk-set-04"
         }
       ],
       "baseline_decision": "fragile_or_indeterminate",
@@ -347,7 +358,8 @@
           "limitations": [
             "too old for current operational conclusion",
             "source reference period is prior year"
-          ]
+          ],
+          "scope_id": "old-approved-work-scope-05"
         },
         {
           "id": "CURRENTADS",
@@ -366,7 +378,8 @@
           "limitations": [
             "different period than stale funded evidence",
             "coverage is incomplete"
-          ]
+          ],
+          "scope_id": "current-online-posting-scope-05"
         }
       ],
       "baseline_decision": "fragile_or_indeterminate",
@@ -416,7 +429,8 @@
             "informal hiring not observed",
             "rural coverage not observed",
             "platform coverage shifts"
-          ]
+          ],
+          "scope_id": "urban-online-coverage-scope-06"
         },
         {
           "id": "SURV",
@@ -436,7 +450,8 @@
             "geography differs",
             "not all people task-ready or available",
             "not comparable denominator"
-          ]
+          ],
+          "scope_id": "national-registered-population-scope-06"
         }
       ],
       "baseline_decision": "fragile_or_indeterminate",
