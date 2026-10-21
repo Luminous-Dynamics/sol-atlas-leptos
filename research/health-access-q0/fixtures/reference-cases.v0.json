@@ -20,7 +20,8 @@
           "from": "neighborhood",
           "to": "clinic",
           "travel_time_minutes": 8,
-          "state": "available"
+          "state": "available",
+          "directionality": "forward_only"
         }
       ],
       "demand": {
@@ -66,7 +67,8 @@
           "from": "neighborhood",
           "to": "clinic",
           "travel_time_minutes": 4,
-          "state": "available"
+          "state": "available",
+          "directionality": "both"
         }
       ],
       "demand": {
@@ -111,7 +113,8 @@
           "from": "other-region",
           "to": "remote-clinic",
           "travel_time_minutes": 2,
-          "state": "available"
+          "state": "available",
+          "directionality": "both"
         }
       ],
       "demand": {
@@ -157,25 +160,29 @@
           "from": "neighborhood",
           "to": "clinic",
           "travel_time_minutes": 2,
-          "state": "blocked"
+          "state": "blocked",
+          "directionality": "both"
         },
         {
           "from": "neighborhood",
           "to": "junction-a",
           "travel_time_minutes": 6,
-          "state": "available"
+          "state": "available",
+          "directionality": "both"
         },
         {
           "from": "junction-a",
           "to": "junction-b",
           "travel_time_minutes": 3,
-          "state": "available"
+          "state": "available",
+          "directionality": "both"
         },
         {
           "from": "junction-b",
           "to": "clinic",
           "travel_time_minutes": 6,
-          "state": "available"
+          "state": "available",
+          "directionality": "both"
         }
       ],
       "demand": {
@@ -221,7 +228,8 @@
           "from": "neighborhood",
           "to": "clinic",
           "travel_time_minutes": 10,
-          "state": "available"
+          "state": "available",
+          "directionality": "both"
         }
       ],
       "demand": {
@@ -265,7 +273,8 @@
           "from": "neighborhood",
           "to": "clinic",
           "travel_time_minutes": 3,
-          "state": "available"
+          "state": "available",
+          "directionality": "both"
         }
       ],
       "demand": {
@@ -312,25 +321,29 @@
           "from": "neighborhood",
           "to": "clinic-a",
           "travel_time_minutes": 5,
-          "state": "available"
+          "state": "available",
+          "directionality": "both"
         },
         {
           "from": "neighborhood",
           "to": "clinic-b",
           "travel_time_minutes": 9,
-          "state": "available"
+          "state": "available",
+          "directionality": "both"
         },
         {
           "from": "neighborhood",
           "to": "wrong-service",
           "travel_time_minutes": 2,
-          "state": "available"
+          "state": "available",
+          "directionality": "both"
         },
         {
           "from": "neighborhood",
           "to": "unknown-readiness",
           "travel_time_minutes": 1,
-          "state": "available"
+          "state": "available",
+          "directionality": "both"
         }
       ],
       "demand": {
@@ -413,7 +426,8 @@
           "from": "neighborhood",
           "to": "clinic",
           "travel_time_minutes": 45,
-          "state": "available"
+          "state": "available",
+          "directionality": "both"
         }
       ],
       "demand": {
@@ -443,6 +457,51 @@
         "reachable_capacity_units": 0,
         "served_units": 0,
         "unserved_units": 6
+      }
+    },
+    {
+      "id": "arriving_after_closing_is_not_reachable",
+      "description": "A facility open at departure but closed by arrival is not serviceable for this trip.",
+      "nodes": [
+        "neighborhood",
+        "clinic"
+      ],
+      "edges": [
+        {
+          "from": "neighborhood",
+          "to": "clinic",
+          "travel_time_minutes": 15,
+          "state": "available",
+          "directionality": "forward_only"
+        }
+      ],
+      "demand": {
+        "node": "neighborhood",
+        "service": "primary_care",
+        "units": 8
+      },
+      "facilities": [
+        {
+          "id": "clinic-closing-during-trip",
+          "node": "clinic",
+          "service": "primary_care",
+          "availability": "available",
+          "readiness": "ready",
+          "capacity_units": 25,
+          "source_id": "synthetic-source-l",
+          "evidence_age_days": 0,
+          "opens_minute": 0,
+          "closes_minute": 480
+        }
+      ],
+      "evaluation_minute": 470,
+      "max_evidence_age_days": 30,
+      "max_travel_time_minutes": 30,
+      "expected": {
+        "eligible_facility_ids": [],
+        "reachable_capacity_units": 0,
+        "served_units": 0,
+        "unserved_units": 8
       }
     }
   ]
