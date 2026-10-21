@@ -1251,20 +1251,31 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
     );
     if string_at(&chain.alternative_scenario, &["design_snapshot", "scope"])
         != string_at(&chain.alternative, &["scope"])
-        || string_at(&chain.alternative_scenario, &["design_snapshot", "geometry_status"])
-            != string_at(&chain.alternative, &["geometry_status"])
+        || string_at(
+            &chain.alternative_scenario,
+            &["design_snapshot", "geometry_status"],
+        ) != string_at(&chain.alternative, &["geometry_status"])
         || string_at(
             &chain.alternative_scenario,
             &["design_snapshot", "coordinate_frame_kind"],
-        ) != string_at(&chain.scenario, &["design_snapshot", "coordinate_frame_kind"])
+        ) != string_at(
+            &chain.scenario,
+            &["design_snapshot", "coordinate_frame_kind"],
+        )
         || at(
             &chain.alternative_scenario,
             &["design_snapshot", "georeferenced"],
         ) != at(&chain.alternative, &["coordinate_frame", "georeferenced"])
-        || at(&chain.alternative_scenario, &["design_snapshot", "feature_count"])
-            .and_then(Value::as_u64) != Some(feature_count(&chain.alternative) as u64)
+        || at(
+            &chain.alternative_scenario,
+            &["design_snapshot", "feature_count"],
+        )
+        .and_then(Value::as_u64)
+            != Some(feature_count(&chain.alternative) as u64)
     {
-        errors.push("alternative scenario metadata diverges from exact alternative snapshot".to_owned());
+        errors.push(
+            "alternative scenario metadata diverges from exact alternative snapshot".to_owned(),
+        );
     }
     check_eq(
         &mut errors,
@@ -1672,7 +1683,10 @@ fn negative_control_results(chain: &ChainArtifacts) -> NegativeControlSummary {
     let mut paired_forcing_mismatch = chain.clone();
     paired_forcing_mismatch.alternative_scenario["boundary_conditions_sha256"] =
         json!("d".repeat(64));
-    cases.push(("paired-scenario-forcing-mismatch".to_owned(), paired_forcing_mismatch));
+    cases.push((
+        "paired-scenario-forcing-mismatch".to_owned(),
+        paired_forcing_mismatch,
+    ));
 
     let mut crosswalk_unit_mismatch = chain.clone();
     crosswalk_unit_mismatch.observations["observations"][1]["observed_property"]["unit"] =
@@ -1839,9 +1853,15 @@ pub fn run_conformance(dir: &Path) -> Result<ConformanceReport, Vec<String>> {
             .unwrap_or("unknown")
             .to_owned(),
         scenario_execution_status: "BLOCKED_NOT_EXECUTED".to_owned(),
-        paired_scenario_count: records(&chain.review, &["inputs", "scenario_runs"]).map_or(0, Vec::len),
-        paired_scenarios_share_boundary_conditions: string_at(&chain.scenario, &["boundary_conditions_sha256"])
-            == string_at(&chain.alternative_scenario, &["boundary_conditions_sha256"]),
+        paired_scenario_count: records(&chain.review, &["inputs", "scenario_runs"])
+            .map_or(0, Vec::len),
+        paired_scenarios_share_boundary_conditions: string_at(
+            &chain.scenario,
+            &["boundary_conditions_sha256"],
+        ) == string_at(
+            &chain.alternative_scenario,
+            &["boundary_conditions_sha256"],
+        ),
         review_ranking_status: string_at(&chain.review, &["comparison", "ranking_status"])
             .unwrap_or("unknown")
             .to_owned(),
