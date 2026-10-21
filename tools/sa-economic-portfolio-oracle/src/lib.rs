@@ -2830,7 +2830,16 @@ mod tests {
                 report.baseline_capacity
             );
             assert!(!report.attempts.first().unwrap().counterexample_found);
+            assert_eq!(
+                report.attempts.first().unwrap().frontier_before_project_ids,
+                report.attempts.first().unwrap().frontier_after_project_ids,
+                "baseline cap must preserve exact frontier IDs"
+            );
             assert!(report.attempts.last().unwrap().counterexample_found);
+            assert_eq!(
+                report.attempts.last().unwrap().frontier_after,
+                report.attempts.last().unwrap().frontier_after_project_ids.len()
+            );
             assert!(report.first_counterexample_capacity.is_some());
             assert_eq!(report.evaluation_count, report.attempts.len());
             assert_eq!(
