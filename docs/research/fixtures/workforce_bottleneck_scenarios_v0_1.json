@@ -354,7 +354,7 @@
     {
       "id": "WBD-012",
       "domain": "electricity_maintenance",
-      "summary": "Partial capacity shortfall plus unconfirmed funding and missing authorization evidence.",
+      "summary": "Partial task-ready capacity shortfall; funding is unknown and a required inspection is confirmed pending.",
       "synthetic_only": true,
       "observations": {
         "demand_status": "validated",
@@ -362,7 +362,7 @@
         "required_task_capacity": 3,
         "available_task_ready_capacity": 2,
         "tools_and_spares": "available",
-        "authorization_status": "unknown",
+        "authorization_status": "inspection_pending",
         "dispatch_status": "feasible",
         "evidence_status": "partial",
         "reported_backlog": true
