@@ -708,14 +708,26 @@ fn validate_expected_status(
     let has_resolving_policy = has_guaranteed || has_conditional;
 
     match scenario.expected_status.as_str() {
-        "decision_resolved" if !has_guaranteed => Err(format!(
-            "{}: expected a guaranteed decision-resolving policy",
-            scenario.id
-        )),
-        "conditionally_resolved_unknown_outcome_abstains" if !has_conditional => Err(format!(
-            "{}: expected a conditional policy that abstains on unresolved outcomes",
-            scenario.id
-        )),
+        "decision_resolved" => {
+            if has_guaranteed {
+                Ok(())
+            } else {
+                Err(format!(
+                    "{}: expected a guaranteed decision-resolving policy",
+                    scenario.id
+                ))
+            }
+        }
+        "conditionally_resolved_unknown_outcome_abstains" => {
+            if has_conditional {
+                Ok(())
+            } else {
+                Err(format!(
+                    "{}: expected a conditional policy that abstains on unresolved outcomes",
+                    scenario.id
+                ))
+            }
+        }
         "stop_same_decision_class" => {
             let decisions: BTreeSet<&str> = scenario
                 .hypotheses
@@ -741,18 +753,16 @@ fn validate_expected_status(
             }
             Ok(())
         }
-        "abstain_no_permitted_discriminator" | "abstain_budget_exhausted"
-            if has_resolving_policy =>
-        {
-            Err(format!(
-                "{}: expected abstention, but a resolving policy was found",
-                scenario.id
-            ))
+        "abstain_no_permitted_discriminator" | "abstain_budget_exhausted" => {
+            if has_resolving_policy {
+                Err(format!(
+                    "{}: expected abstention, but a resolving policy was found",
+                    scenario.id
+                ))
+            } else {
+                Ok(())
+            }
         }
-        "decision_resolved"
-        | "conditionally_resolved_unknown_outcome_abstains"
-        | "abstain_no_permitted_discriminator"
-        | "abstain_budget_exhausted" => Ok(()),
         other => Err(format!(
             "{}: unsupported expected_status {other}",
             scenario.id
@@ -809,10 +819,9 @@ fn verify_values(
     let mut receipts = Vec::new();
     for scenario in &corpus.scenarios {
         let mut solver = Solver::new(scenario);
-        let frontier = solver.solve(
-            solver.all_hypotheses_mask(),
-            solver.all_queries_mask(),
-        )?;
+        let initial_hypotheses = solver.all_hypotheses_mask();
+        let initial_queries = solver.all_queries_mask();
+        let frontier = solver.solve(initial_hypotheses, initial_queries)?;
         validate_expected_status(scenario, &frontier)?;
         validate_reference_frontier(scenario, &frontier)?;
 
