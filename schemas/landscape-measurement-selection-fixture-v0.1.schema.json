@@ -72,7 +72,9 @@
         "decision_weight",
         "cost_units",
         "consent_status",
-        "access_status"
+        "access_status",
+        "access_authorization_sha256",
+        "consent_evidence_sha256"
       ],
       "properties": {
         "candidate_id": {
@@ -149,8 +151,76 @@
         },
         "alternative_scenario_sha256": {
           "$ref": "#/$defs/sha256"
+        },
+        "consent_evidence_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "access_authorization_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "consent_status": {
+                "const": "granted"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "consent_evidence_sha256": {
+                "$ref": "#/$defs/sha256"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "consent_evidence_sha256": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "access_status": {
+                "const": "authorized"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "access_authorization_sha256": {
+                "$ref": "#/$defs/sha256"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "access_authorization_sha256": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }
