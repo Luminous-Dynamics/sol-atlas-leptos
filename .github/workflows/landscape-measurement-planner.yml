@@ -61,6 +61,8 @@ jobs:
             .data_origin == "synthetic_fixture" and
             .claim_ceiling == "SYNTHETIC_SELECTION_ONLY" and
             .input_sha256 == $digest and
+            .baseline_scenario_sha256 == "1111111111111111111111111111111111111111111111111111111111111111" and
+            .alternative_scenario_sha256 == "2222222222222222222222222222222222222222222222222222222222222222" and
             .budget_cost_units == 6 and
             .selected_cost_units == 6 and
             .unspent_budget_units == 0 and
