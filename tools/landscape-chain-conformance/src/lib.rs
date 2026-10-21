@@ -660,6 +660,10 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
         ("scenario-manifest-template.json", &scenario_template_bytes),
         ("stewardship-template.json", &stewardship_template_bytes),
         ("review-template.json", &review_template_bytes),
+        (
+            "measurement-authorization-template.json",
+            &measurement_authorization_template_bytes,
+        ),
         ("metric-observation-map.json", &metric_observation_map_bytes),
         ("upstream-contract-manifest.json", &upstream_manifest_bytes),
     ]);
@@ -679,6 +683,7 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
             metric_registry_bytes,
             metric_observation_map_bytes,
             source_catalog_bytes,
+            measurement_authorization_template_bytes,
             upstream_manifest_bytes,
             project,
             alternative,
@@ -688,6 +693,7 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
             metric_registry,
             metric_observation_map,
             source_catalog,
+            measurement_authorization,
             upstream_manifest,
             evaluation_plan,
             observations,
