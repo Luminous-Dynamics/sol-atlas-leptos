@@ -28,6 +28,14 @@
       "git_blob_sha": "55b413220387b8c8ca9a8b420d8e54afc0f7d5a9"
     },
     {
+      "source_id": "sol-atlas-metric-observation-crosswalk",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 216,
+      "commit_sha": "3a4ea35d4c45323dd66b1a477ce83d11975d6e55",
+      "source_path": "metrics/landscape/observation-map-v0.json",
+      "git_blob_sha": "cad9b18dc4bd152bec4f0c43e5f87563bd3406db"
+    },
+    {
       "source_id": "sol-atlas-observation-batch",
       "repository": "Luminous-Dynamics/sol-atlas-leptos",
       "pull_request": 216,
