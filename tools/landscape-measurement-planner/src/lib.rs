@@ -1025,6 +1025,21 @@ mod tests {
     }
 
     #[test]
+    fn malformed_digests_and_invalid_variances_fail_closed() {
+        let mut bad_site_digest = fixture();
+        bad_site_digest.candidates[0].site_ref_sha256 = "not-a-digest".to_owned();
+        assert!(validate_fixture(&bad_site_digest).is_err());
+
+        let mut bad_scenario_digest = fixture();
+        bad_scenario_digest.candidates[0].baseline_scenario_sha256 = "g".repeat(64);
+        assert!(validate_fixture(&bad_scenario_digest).is_err());
+
+        let mut zero_variance = fixture();
+        zero_variance.candidates[0].baseline_sd = 0.0;
+        assert!(validate_fixture(&zero_variance).is_err());
+    }
+
+    #[test]
     fn metric_id_cannot_mix_units_or_model_versions() {
         let mut mixed_units = fixture();
         mixed_units.candidates[1].unit = "kelvin".to_owned();
