@@ -292,6 +292,7 @@ fn validate_cross_fields(fixture: &Value) -> Result<(), Vec<String>> {
                 "{id}: non-complete evidence must permit COLLECT_OR_REVALIDATE_EVIDENCE"
             ));
         }
+        errors.extend(validate_action_labels(case));
     }
 
     if errors.is_empty() {
@@ -299,6 +300,177 @@ fn validate_cross_fields(fixture: &Value) -> Result<(), Vec<String>> {
     } else {
         Err(errors)
     }
+}
+
+fn skill_capacity_gap(case: &Value) -> bool {
+    let observations = &case["observations"];
+    let required = observations
+        .get("required_task_capacity")
+        .and_then(Value::as_u64);
+    let available = observations
+        .get("available_task_ready_capacity")
+        .and_then(Value::as_u64);
+    matches!((required, available), (Some(r), Some(a)) if r > a)
+}
+
+fn action_is_admissible(case: &Value, action: &str) -> Option<bool> {
+    let observations = &case["observations"];
+    let funding = as_string(observations, "funding_status").unwrap_or("");
+    let evidence = as_string(observations, "evidence_status").unwrap_or("");
+    let authorization = as_string(observations, "authorization_status").unwrap_or("");
+    let supervisor_available =
+        observations.get("qualified_supervisor_available").and_then(Value::as_bool)
+            == Some(true);
+    let has_skill_gap = skill_capacity_gap(case);
+    let funded = funding == "confirmed_synthetic";
+    let scope_is_safe = matches!(
+        authorization,
+        "valid_for_scope" | "supervised_scope_valid"
+    );
+
+    match action {
+        "SUPERVISED_SKILL_DEVELOPMENT" => Some(
+            has_skill_gap
+                && funded
+                && supervisor_available
+                && scope_is_safe
+                && evidence == "complete",
+        ),
+        "QUALIFIED_REDEPLOYMENT_OR_FUNDED_HIRING" => {
+            Some(has_skill_gap && funded && evidence == "complete")
+        }
+        "HUMAN_AI_DIAGNOSTIC_ASSIST" => Some(
+            observations.get("novice_present").and_then(Value::as_bool) == Some(true)
+                && supervisor_available
+                && authorization == "supervised_scope_valid"
+                && funded
+                && evidence == "complete"
+                && as_string(observations, "tools_and_spares") == Some("available"),
+        ),
+        "ESTABLISH_LAWFUL_FUNDING_AND_PROCUREMENT" => {
+            Some(matches!(funding, "absent" | "unknown"))
+        }
+        "PROCURE_OR_QUALIFY_VALID_PART_SUBSTITUTE" => {
+            Some(as_string(observations, "tools_and_spares") == Some("critical_spare_missing"))
+        }
+        "OBTAIN_QUALIFIED_INSPECTION_OR_AUTHORIZATION"
+        | "BLOCK_EXECUTION_UNTIL_GATE_PASSES" => {
+            Some(authorization == "inspection_pending")
+        }
+        "REDESIGN_ROUTE_OR_SHIFT_WITH_WORKER_INPUT" => {
+            Some(as_string(observations, "dispatch_status") == Some("travel_shift_mismatch"))
+        }
+        "REVIEW_COMPENSATION_SHIFT_SAFETY_AND_RETENTION_WITH_WORKERS" => {
+            Some(as_string(observations, "wage_and_shift_status") == Some("nonviable_synthetic"))
+        }
+        "COLLECT_OR_REVALIDATE_EVIDENCE" => Some(evidence != "complete"),
+        "DEDUPE_AND_VALIDATE_DEMAND" => {
+            Some(as_string(observations, "demand_status") == Some("duplicate_and_misrouted"))
+        }
+        "SCOPED_PRACTICAL_ASSESSMENT" => Some(
+            as_string(observations, "credential_status") == Some("present_but_scope_mismatch")
+                || as_string(observations, "practical_assessment_status") == Some("missing"),
+        ),
+        "COMBINED_INTERVENTIONS" => Some(
+            has_skill_gap
+                && as_string(observations, "tools_and_spares") == Some("critical_spare_missing"),
+        ),
+        _ => None,
+    }
+}
+
+fn action_is_prohibited(case: &Value, action: &str) -> Option<bool> {
+    let observations = &case["observations"];
+    let funding = as_string(observations, "funding_status").unwrap_or("");
+    let evidence = as_string(observations, "evidence_status").unwrap_or("");
+    let authorization = as_string(observations, "authorization_status").unwrap_or("");
+    let causes = rule_based_causes(case);
+    let multiple_causes = causes.len() > 1;
+    let has_skill_gap = causes.contains("SKILLS_CAPACITY");
+    let funded = funding == "confirmed_synthetic";
+    let duplicate_demand =
+        as_string(observations, "demand_status") == Some("duplicate_and_misrouted");
+    let interacting = causes.contains("INTERACTING_BOTTLENECKS");
+    let a_mandatory_gate_is_blocked = !funded
+        || authorization == "inspection_pending"
+        || as_string(observations, "tools_and_spares") == Some("critical_spare_missing")
+        || skill_capacity_gap(case);
+
+    match action {
+        "CLAIM_SHORTAGE_PROVEN_BY_VACANCY_COUNT_ALONE"
+        | "ASSERT_REGIONAL_SKILLS_SHORTAGE_FROM_LOCAL_DELAY_ALONE"
+        | "MARK_REPAIR_COMPLETE_WITHOUT_VERIFICATION"
+        | "BYPASS_INSPECTION"
+        | "BYPASS_AUTHORIZATION"
+        | "TREAT_AI_ADVICE_AS_AUTHORIZATION"
+        | "INVENT_PROBABILITIES"
+        | "UNSUPERVISED_REGULATED_EXECUTION"
+        | "COUNT_AI_OUTPUT_AS_COMPETENCE"
+        | "USE_UNPAID_LABOUR_AS_FIX"
+        | "TREAT_CREDENTIAL_AS_PROOF_OF_ALL_TASK_COMPETENCE" => Some(true),
+        "COUNT_AS_FUNDED_JOB" | "SCHEDULE_UNFUNDED_WORK_AS_CONFIRMED" => {
+            Some(matches!(funding, "absent" | "unknown"))
+        }
+        "RECOMMEND_TRAINING_AS_PRIMARY_REMEDY" => Some(!has_skill_gap || !funded),
+        "TREAT_CREDENTIAL_AS_PROOF_OF_ALL_TASK_COMPETENCE" => Some(true),
+        "LABEL_AS_SKILLS_SHORTAGE_WITHOUT_EVIDENCE" => {
+            Some(!has_skill_gap || evidence != "complete")
+        }
+        "ASSERT_SINGLE_ROOT_CAUSE" => Some(multiple_causes || evidence != "complete"),
+        "CLAIM_SKILLS_ARE_THE_ONLY_CAUSE" => Some(multiple_causes || evidence != "complete"),
+        "CLAIM_ONE_INTERVENTION_UNLOCKS_COMPLETION"
+        | "MARK_WORK_COMPLETE_BEFORE_BOTH_GATES_PASS" => Some(interacting),
+        "MARK_WORK_COMPLETE_BEFORE_ALL_GATES_PASS" => Some(a_mandatory_gate_is_blocked),
+        "STAFF_TO_RAW_TICKET_COUNT" | "REPORT_DUPLICATES_AS_DISTINCT_REPAIRS" => {
+            Some(duplicate_demand)
+        }
+        "ASSUME_AUTHORIZATION" => Some(!matches!(
+            authorization,
+            "valid_for_scope" | "supervised_scope_valid"
+        )),
+        _ => None,
+    }
+}
+
+fn validate_action_labels(case: &Value) -> Vec<String> {
+    let mut errors = Vec::new();
+    let id = as_string(case, "id").unwrap_or("<missing-id>");
+    let oracle = case.get("oracle").unwrap_or(&Value::Null);
+    for action in oracle
+        .get("admissible_interventions")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(Value::as_str)
+    {
+        match action_is_admissible(case, action) {
+            Some(true) => {}
+            Some(false) => errors.push(format!(
+                "{id}: admissible intervention {action} fails its declared preconditions"
+            )),
+            None => errors.push(format!(
+                "{id}: no fail-closed precondition rule for admissible intervention {action}"
+            )),
+        }
+    }
+    for action in oracle
+        .get("prohibited_interventions")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(Value::as_str)
+    {
+        match action_is_prohibited(case, action) {
+            Some(true) => {}
+            Some(false) => errors.push(format!(
+                "{id}: prohibited intervention {action} is not justified by its guard condition"
+            )),
+            None => errors.push(format!(
+                "{id}: no fail-closed prohibition rule for intervention {action}"
+            )),
+        }
+    }
+    errors
 }
 
 fn baseline_report(fixture: &Value) -> BaselineReport {
