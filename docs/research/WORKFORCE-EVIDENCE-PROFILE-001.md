@@ -44,7 +44,7 @@ Every evidence record must include:
 - freshness, uncertainty/interval status, taxonomy system/version, and any crosswalk status;
 - explicit evidence limits and a claim ceiling.
 
-A crosswalk between OFO, O*NET, ESCO or another taxonomy is versioned and lossy unless proven otherwise. It must expose ambiguity; same label or string similarity does not imply equivalent tasks, licences or proficiency. A credential is not evidence of current practical performance outside the assessed scope.
+A crosswalk between OFO, O*NET, ESCO or another taxonomy is versioned and lossy unless proven otherwise. It must expose ambiguity; same label or string similarity does not imply equivalent tasks, licences or proficiency. A credential is not evidence of current practical performance outside the assessed scope. For bounded practical-skill evidence, reuse Mycelix [EMB-SKILL-001 #3031](https://github.com/Luminous-Dynamics/mycelix/issues/3031) rather than creating another skill registry; its scope, embodiment, evaluation protocol, held-out evidence and execution authority stay distinct. To evaluate whether assistance actually improves repair outcomes, compose with Symthaea [HUMAN-TOOL-001 #7983](https://github.com/Luminous-Dynamics/symthaea/issues/7983). This profile is a labour-market evidence layer, not either system's competence or repair authority.
 
 The strict schema is [workforce_evidence_record_v0_1.schema.json](schemas/workforce_evidence_record_v0_1.schema.json). Its companion [synthetic fixture](fixtures/workforce_evidence_records_v0_1.json) uses only invented test values and must never be described as an actual occupational or regional estimate.
 
