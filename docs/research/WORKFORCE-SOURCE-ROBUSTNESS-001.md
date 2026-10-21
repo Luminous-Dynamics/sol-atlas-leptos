@@ -93,9 +93,13 @@ Use the same input cutoff, occupation mapping and decision definition for every 
 - Every output includes source IDs/digests, period, geography, population, denominator, mapping version, freshness, perturbation ID and claim ceiling.
 - Synthetic results stay synthetic-only and do not imply local vacancy rates or job creation.
 
-## Next implementation step
+## Implemented evaluation slice
 
-Add a Rust-first deterministic evaluator after schema/fixture review. It should replay perturbations, compare decision labels to the frozen expected result and emit a content-digested receipt. The evaluator must be fail-closed on unknown operation names, absent source references, negative/overflowing counts, missing expected outcomes and unsupported claims. If the exact estimator is not defined, the receipt should say contract-only instead of pretending the synthetic source corpus is real evidence.
+The Rust crate `tools/workforce-source-robustness-verifier/` now validates the JSON Schema and cross-field source/perturbation IDs, replays the declared synthetic perturbations, derives one of the four explicit decision classes, and emits a receipt with source-fixture and schema SHA-256 digests. The dedicated workflow gates formatting, unit tests and receipt generation.
+
+The first evaluator includes deterministic tests for all six baseline cases and eleven perturbations, extreme ad-volume inflation, removal of funded-demand evidence, taxonomy/time-period fragility, invalid schema fields, duplicate source IDs and input-order invariance. Post-perturbation sources are rechecked for finite non-negative values, bounded age, valid date shape/order, unique IDs and required comparability metadata. Unsupported operations, malformed parameters and absent source references fail closed.
+
+These tests validate a synthetic contract, not empirical source bias. Do not convert the deterministic rule thresholds into a production shortage index; later work needs a legitimate source owner, coverage analysis and independent real-data evaluation.
 
 ## Claim ceiling
 
