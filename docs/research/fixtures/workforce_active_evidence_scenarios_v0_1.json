@@ -148,7 +148,7 @@
         "cash_zar_cents": 6000,
         "delay_hours": 12
       },
-      "expected_status": "decision_resolved",
+      "expected_status": "conditionally_resolved_unknown_outcome_abstains",
       "expected_remaining_hypotheses": [
         "H_FUND",
         "H_TOOLS",
@@ -436,7 +436,7 @@
         "cash_zar_cents": 1000,
         "delay_hours": 3
       },
-      "expected_status": "decision_resolved",
+      "expected_status": "conditionally_resolved_unknown_outcome_abstains",
       "expected_remaining_hypotheses": [
         "H_PAYER_ACTIVE",
         "H_PAYER_EXPIRED"
