@@ -843,4 +843,102 @@ mod tests {
             Some(true)
         );
     }
+
+    #[test]
+    fn diagnostic_invariants_hold_across_cartesian_blocker_sweep() {
+        let funding_states = ["confirmed_synthetic", "absent", "unknown"];
+        let tool_states = ["available", "critical_spare_missing", "unknown"];
+        let authorization_states = [
+            "valid_for_scope",
+            "inspection_pending",
+            "supervised_scope_valid",
+            "unknown",
+        ];
+        let dispatch_states = ["feasible", "travel_shift_mismatch", "unknown"];
+        let wage_states = ["viable", "nonviable_synthetic", "unknown"];
+        let demand_states = ["validated", "duplicate_and_misrouted", "conflicting"];
+        let evidence_states = ["complete", "partial", "stale_and_conflicting", "incomplete"];
+        let mut checked = 0usize;
+
+        for skill_gap in [false, true] {
+            for funding in funding_states {
+                for tools in tool_states {
+                    for authorization in authorization_states {
+                        for dispatch in dispatch_states {
+                            for wage in wage_states {
+                                for demand in demand_states {
+                                    for evidence in evidence_states {
+                                        let mut case = fixture()["cases"][0].clone();
+                                        case["observations"]["required_task_capacity"] =
+                                            json!(if skill_gap { 3 } else { 1 });
+                                        case["observations"]["available_task_ready_capacity"] =
+                                            json!(if skill_gap { 1 } else { 3 });
+                                        case["observations"]["funding_status"] = json!(funding);
+                                        case["observations"]["tools_and_spares"] = json!(tools);
+                                        case["observations"]["authorization_status"] =
+                                            json!(authorization);
+                                        case["observations"]["dispatch_status"] = json!(dispatch);
+                                        case["observations"]["wage_and_shift_status"] = json!(wage);
+                                        case["observations"]["demand_status"] = json!(demand);
+                                        case["observations"]["evidence_status"] = json!(evidence);
+
+                                        let inferred = rule_based_causes(&case);
+                                        assert_eq!(
+                                            inferred.contains("SKILLS_CAPACITY"),
+                                            skill_gap,
+                                            "skill gap invariant failed: {skill_gap=}, {funding=}, {tools=}, {authorization=}, {dispatch=}, {wage=}, {demand=}, {evidence=}"
+                                        );
+                                        assert_eq!(
+                                            inferred.contains("FUNDING_OR_PAYER"),
+                                            funding == "absent",
+                                            "funding absence must be distinguished from unknown: {funding=}"
+                                        );
+                                        if funding == "unknown" {
+                                            assert!(inferred.contains("EVIDENCE_INSUFFICIENT"));
+                                        }
+                                        assert_eq!(
+                                            inferred.contains("TOOLS_OR_SPARES"),
+                                            tools == "critical_spare_missing"
+                                        );
+                                        assert_eq!(
+                                            inferred.contains("AUTHORIZATION_OR_SAFETY_GATE"),
+                                            authorization == "inspection_pending"
+                                        );
+                                        if authorization == "unknown" {
+                                            assert!(inferred.contains("EVIDENCE_INSUFFICIENT"));
+                                        }
+                                        assert_eq!(
+                                            inferred.contains("DISPATCH_OR_GEOGRAPHY"),
+                                            dispatch == "travel_shift_mismatch"
+                                        );
+                                        assert_eq!(
+                                            inferred.contains("WAGE_OR_RETENTION"),
+                                            wage == "nonviable_synthetic"
+                                        );
+                                        assert_eq!(
+                                            inferred.contains("DEMAND_DATA_QUALITY"),
+                                            demand == "duplicate_and_misrouted"
+                                        );
+                                        if matches!(evidence, "stale_and_conflicting" | "incomplete") {
+                                            assert!(inferred.contains("EVIDENCE_INSUFFICIENT"));
+                                        }
+                                        let interaction_expected = skill_gap
+                                            && (funding == "absent"
+                                                || tools == "critical_spare_missing"
+                                                || authorization == "inspection_pending");
+                                        assert_eq!(
+                                            inferred.contains("INTERACTING_BOTTLENECKS"),
+                                            interaction_expected
+                                        );
+                                        checked += 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        assert_eq!(checked, 7_776);
+    }
 }
