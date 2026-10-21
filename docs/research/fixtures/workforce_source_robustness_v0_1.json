@@ -14,7 +14,7 @@
           "family": "employer_workflow",
           "measure": "funded_vacancies",
           "value": 4,
-          "unit": "positions",
+          "unit": "person-shift slots",
           "population": "synthetic municipal water-maintenance vacancies",
           "geography": "synthetic-region-A",
           "period_start": "2026-01-01",
@@ -27,14 +27,15 @@
             "authored fixture",
             "not real municipal data"
           ],
-          "scope_id": "water-maintenance-task-scope-01"
+          "scope_id": "water-maintenance-task-scope-01",
+          "comparison_basis": "funded slot count normalized to one required qualified person-shift per slot; basis-v1"
         },
         {
           "id": "CAPACITY",
           "family": "task_assessment",
           "measure": "task_ready_capacity",
           "value": 2,
-          "unit": "task-ready workers for required scope",
+          "unit": "person-shift slots",
           "population": "synthetic authorized candidate pool",
           "geography": "synthetic-region-A",
           "period_start": "2026-01-01",
@@ -47,7 +48,8 @@
             "authored fixture",
             "task scope is synthetic"
           ],
-          "scope_id": "water-maintenance-task-scope-01"
+          "scope_id": "water-maintenance-task-scope-01",
+          "comparison_basis": "funded slot count normalized to one required qualified person-shift per slot; basis-v1"
         },
         {
           "id": "ADS",
@@ -67,7 +69,8 @@
             "duplicates intentionally possible",
             "coverage is not representative"
           ],
-          "scope_id": "online-posting-capture-scope-01"
+          "scope_id": "online-posting-capture-scope-01",
+          "comparison_basis": "posting record count only; not comparable to funded slots; ads-v1"
         }
       ],
       "baseline_decision": "confirmed_task_capacity_gap",
@@ -117,7 +120,8 @@
             "duplicates unknown",
             "not a census of hiring"
           ],
-          "scope_id": "recruitment-context-02"
+          "scope_id": "recruitment-context-02",
+          "comparison_basis": "posting record count only; not comparable to funded slots; ads-v1"
         },
         {
           "id": "INTENT",
@@ -137,7 +141,8 @@
             "voluntary response",
             "intentions not approvals"
           ],
-          "scope_id": "recruitment-context-02"
+          "scope_id": "recruitment-context-02",
+          "comparison_basis": "respondent intention measure; not comparable to funded slots; intention-v1"
         },
         {
           "id": "NOFUNDED",
@@ -157,7 +162,8 @@
             "only covers supplied authorized work set",
             "zero here is synthetic"
           ],
-          "scope_id": "recruitment-context-02"
+          "scope_id": "recruitment-context-02",
+          "comparison_basis": "verified approved positions in supplied synthetic work set; funding-v1"
         }
       ],
       "baseline_decision": "no_confirmed_shortage",
@@ -207,7 +213,8 @@
             "reposts not reliably deduplicated",
             "turnover may drive repeat ads"
           ],
-          "scope_id": "repeated-vacancy-job-quality-context-03"
+          "scope_id": "repeated-vacancy-job-quality-context-03",
+          "comparison_basis": "reposted ad record count only; not comparable to job slots; repost-v1"
         },
         {
           "id": "DECLINES",
@@ -227,14 +234,15 @@
             "synthetic ratio",
             "does not describe real workers"
           ],
-          "scope_id": "repeated-vacancy-job-quality-context-03"
+          "scope_id": "repeated-vacancy-job-quality-context-03",
+          "comparison_basis": "share of synthetic offers declined; quality-v1"
         },
         {
           "id": "INTCOND",
           "family": "employer_survey",
           "measure": "turnover_rate_pct",
           "value": 55,
-          "unit": "percent annualized synthetic turnover",
+          "unit": "percent annualized turnover",
           "population": "synthetic repeated-vacancy job set",
           "geography": "synthetic-region-C",
           "period_start": "2026-03-01",
@@ -247,7 +255,8 @@
             "quality and turnover label synthetic",
             "no personal data"
           ],
-          "scope_id": "repeated-vacancy-job-quality-context-03"
+          "scope_id": "repeated-vacancy-job-quality-context-03",
+          "comparison_basis": "synthetic turnover share; quality-v1"
         }
       ],
       "baseline_decision": "job_quality_confounding",
@@ -297,7 +306,8 @@
             "ambiguous job titles",
             "synthetic mapping counts"
           ],
-          "scope_id": "job-title-crosswalk-set-04"
+          "scope_id": "job-title-crosswalk-set-04",
+          "comparison_basis": "count of title records mapped by crosswalk version; taxonomy-v1"
         },
         {
           "id": "MAPB",
@@ -317,7 +327,8 @@
             "alternative plausible mapping",
             "not validated OFO crosswalk"
           ],
-          "scope_id": "job-title-crosswalk-set-04"
+          "scope_id": "job-title-crosswalk-set-04",
+          "comparison_basis": "count of same title records mapped by crosswalk version; taxonomy-v1"
         }
       ],
       "baseline_decision": "fragile_or_indeterminate",
@@ -346,7 +357,7 @@
           "family": "official_admin",
           "measure": "funded_vacancies",
           "value": 12,
-          "unit": "positions",
+          "unit": "funded positions",
           "population": "synthetic approved vacancy extract",
           "geography": "synthetic-region-E",
           "period_start": "2025-01-01",
@@ -359,14 +370,15 @@
             "too old for current operational conclusion",
             "source reference period is prior year"
           ],
-          "scope_id": "old-approved-work-scope-05"
+          "scope_id": "old-approved-work-scope-05",
+          "comparison_basis": "old work approval count; stale period; funding-v1"
         },
         {
           "id": "CURRENTADS",
           "family": "job_ads",
           "measure": "online_ads",
           "value": 90,
-          "unit": "records",
+          "unit": "ad records",
           "population": "synthetic captured current postings",
           "geography": "synthetic-region-E",
           "period_start": "2026-04-01",
@@ -379,7 +391,8 @@
             "different period than stale funded evidence",
             "coverage is incomplete"
           ],
-          "scope_id": "current-online-posting-scope-05"
+          "scope_id": "current-online-posting-scope-05",
+          "comparison_basis": "online ad records only; current but nonrepresentative; ads-v1"
         }
       ],
       "baseline_decision": "fragile_or_indeterminate",
@@ -430,7 +443,8 @@
             "rural coverage not observed",
             "platform coverage shifts"
           ],
-          "scope_id": "urban-online-coverage-scope-06"
+          "scope_id": "urban-online-coverage-scope-06",
+          "comparison_basis": "formal urban online posting count; not comparable to registered supply; ads-v1"
         },
         {
           "id": "SURV",
@@ -451,7 +465,8 @@
             "not all people task-ready or available",
             "not comparable denominator"
           ],
-          "scope_id": "national-registered-population-scope-06"
+          "scope_id": "national-registered-population-scope-06",
+          "comparison_basis": "national registered people count; not task-ready local availability; supply-v1"
         }
       ],
       "baseline_decision": "fragile_or_indeterminate",
