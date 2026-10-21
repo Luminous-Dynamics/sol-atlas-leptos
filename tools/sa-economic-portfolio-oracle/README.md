@@ -70,7 +70,7 @@ The two original v0.2 omission fixtures are deliberately useful controls: omitti
 
 ### Resource-capacity sensitivity sweep
 
-`--capacity-sweep INPUT.json CONFIG.json EXPECTED.json` varies one period's cost cap or crew cap over a strictly descending finite sequence. The first value must equal the input's existing cap, making the no-shock baseline an explicit negative control. Each subsequent tighter cap is evaluated independently against the unchanged baseline input. The receipt reports portfolios excluded, exact frontier-ID turnover, attempted values and any remaining values. It verifies feasibility-set monotonicity and fails closed if a tighter cap adds a feasible portfolio.
+`--capacity-sweep INPUT.json CONFIG.json EXPECTED.json` varies one period's cost cap or crew cap over a strictly descending finite sequence. The first value must equal the input's existing cap, making the no-shock baseline an explicit negative control. Each subsequent tighter cap is evaluated independently against the unchanged baseline input. The receipt reports portfolios excluded, exact frontier-ID sets before and after each cap, frontier-ID intersection/union, attempted values and any remaining values. It verifies feasibility-set monotonicity and fails closed if a tighter cap adds a feasible portfolio.
 
 ```sh
 cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --capacity-sweep \
