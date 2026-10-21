@@ -70,21 +70,47 @@ The two original v0.2 omission fixtures are deliberately useful controls: omitti
 
 ### Resource-capacity sensitivity sweep
 
-`--capacity-sweep INPUT.json CONFIG.json EXPECTED.json` varies one period's cost cap or crew cap over a strictly descending finite sequence. The first value must equal the input's existing cap, making the no-shock baseline an explicit negative control. Each subsequent tighter cap is evaluated independently against the unchanged baseline input. The receipt reports portfolios excluded, exact frontier-ID sets before and after each cap, frontier-ID intersection/union, attempted values and any remaining values. It verifies feasibility-set monotonicity and fails closed if a tighter cap adds a feasible portfolio.
+`--capacity-sweep INPUT.json CONFIG.json EXPECTED.json` varies one period's cost cap or crew cap over a strictly descending finite sequence. The first value must equal the input's existing cap, making the no-shock baseline an explicit negative control. Each cap is applied independently to a fresh copy of the unchanged input and evaluated exactly. The receipt includes all removed portfolio IDs, the exact frontier project-ID sets before and after each cap, frontier-ID intersection/union, attempted values and any remaining values. It verifies that tightening a cap never introduces feasible portfolios.
+
+The config selects one of two modes:
+
+- `stop_on_first_counterexample: true` identifies the first cap that excludes any baseline-feasible portfolio and lists the untested suffix.
+- `stop_on_first_counterexample: false` computes the entire cap-to-feasibility curve, unless the evaluation budget is exhausted. A partial curve reports `BUDGET_EXHAUSTED` even when an earlier cap already excluded portfolios; the receipt still records `first_counterexample_capacity`.
 
 ```sh
+# Early-stop threshold search
 cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --capacity-sweep \
   docs/research/fixtures/sa-economic-portfolio-v0.2-resource-capacity.json \
   docs/research/fixtures/sa-portfolio-capacity-sweep-v0.1-p1-cost-config.json \
   docs/research/fixtures/sa-portfolio-capacity-sweep-v0.1-p1-cost.expected.json
 
+# Full cost-cap sensitivity curve
 cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --capacity-sweep \
   docs/research/fixtures/sa-economic-portfolio-v0.2-resource-capacity.json \
-  docs/research/fixtures/sa-portfolio-capacity-sweep-v0.1-p1-crew-config.json \
-  docs/research/fixtures/sa-portfolio-capacity-sweep-v0.1-p1-crew.expected.json
+  docs/research/fixtures/sa-portfolio-capacity-sweep-v0.1-p1-cost-full-config.json \
+  docs/research/fixtures/sa-portfolio-capacity-sweep-v0.1-p1-cost-full.expected.json
+
+# Full crew-cap sensitivity curve
+cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --capacity-sweep \
+  docs/research/fixtures/sa-economic-portfolio-v0.2-resource-capacity.json \
+  docs/research/fixtures/sa-portfolio-capacity-sweep-v0.1-p1-crew-full-config.json \
+  docs/research/fixtures/sa-portfolio-capacity-sweep-v0.1-p1-crew-full.expected.json
 ```
 
-The purpose-built synthetic fixture makes cost and crew constraints non-interchangeable. Its baseline has 82 feasible portfolios and an eight-member frontier. Reducing P1's cost cap from 6 to 5 excludes 10 portfolios (72 remain; frontier-ID intersection/union is 6/10). Reducing P1's crew cap from 3 to 2 excludes 40 portfolios (42 remain; frontier-ID intersection/union is 0/14). Both stop at the first counterexample and list lower unattempted caps; neither result is a real capacity forecast. The exact JSON receipts pin the excluded portfolio IDs.
+The purpose-built synthetic fixture makes cost and crew constraints non-interchangeable. It changes the P1 cost cap to 6 and P02 cost to 3 while holding every scenario outcome fixed. The baseline has 82 feasible portfolios and an eight-member frontier. Exhaustively checking four cap values gives:
+
+| Dimension | Capacity | Feasible portfolios | Excluded vs. baseline | Frontier size | Frontier ID intersection / union vs. baseline |
+|---|---:|---:|---:|---:|---:|
+| P1 cost | 6 | 82 | 0 | 8 | 8 / 8 |
+| P1 cost | 5 | 72 | 10 | 8 | 6 / 10 |
+| P1 cost | 4 | 30 | 52 | 6 | 0 / 14 |
+| P1 cost | 3 | 30 | 52 | 6 | 0 / 14 |
+| P1 crew | 3 | 82 | 0 | 8 | 8 / 8 |
+| P1 crew | 2 | 42 | 40 | 6 | 0 / 14 |
+| P1 crew | 1 | 22 | 60 | 4 | 0 / 12 |
+| P1 crew | 0 | 5 | 77 | 2 | 0 / 10 |
+
+The early-stop searches require two evaluations each: baseline plus first binding cap. Full curves require all four; the complete manifests freeze every excluded portfolio ID and both frontier ID sets at each point. These values are synthetic test constraints, not field-calibrated capacity estimates.
 
 ### Bounded counterexample sweep
 
