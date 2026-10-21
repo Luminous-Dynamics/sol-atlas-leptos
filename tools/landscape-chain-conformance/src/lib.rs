@@ -639,6 +639,68 @@ fn unmapped_observation_count(chain: &ChainArtifacts) -> usize {
         })
 }
 
+fn validate_observation_crosswalk(chain: &ChainArtifacts) -> Vec<String> {
+    let mut errors = Vec::new();
+    let Some(mappings) = records(&chain.metric_observation_map, &["mappings"]) else {
+        return vec!["metric-observation crosswalk requires mappings[]".to_owned()];
+    };
+    let Some(observations) = records(&chain.observations, &["observations"]) else {
+        return vec!["observation batch requires observations[]".to_owned()];
+    };
+
+    for observation in observations {
+        let observation_id = string_at(observation, &["observation_id"]).unwrap_or("<unknown>");
+        let Some(property_id) = string_at(observation, &["observed_property", "id"]) else {
+            errors.push(format!("{observation_id}: observed property ID is missing"));
+            continue;
+        };
+        for mapping in mappings {
+            let metric_id = string_at(mapping, &["metric_id"]).unwrap_or("<unknown-metric>");
+            let Some(properties) = records(mapping, &["possible_observed_properties"]) else {
+                continue;
+            };
+            for property in properties {
+                if string_at(property, &["id"]) != Some(property_id) {
+                    continue;
+                }
+
+                let declared_unit = string_at(property, &["unit"]);
+                let observed_unit = string_at(observation, &["observed_property", "unit"]);
+                let result_unit = string_at(observation, &["result", "unit"]);
+                if observed_unit != declared_unit || result_unit != declared_unit {
+                    errors.push(format!(
+                        "{observation_id}: units do not match crosswalk property {property_id} for metric {metric_id}"
+                    ));
+                }
+
+                let result_kind = string_at(observation, &["result", "kind"]);
+                let kind_allowed = result_kind.is_some_and(|kind| {
+                    records(property, &["result_kinds"]).is_some_and(|kinds| {
+                        kinds.iter().any(|expected| expected.as_str() == Some(kind))
+                    })
+                });
+                if !kind_allowed {
+                    errors.push(format!(
+                        "{observation_id}: result kind does not match crosswalk property {property_id} for metric {metric_id}"
+                    ));
+                }
+
+                if let Some(observation_metric_id) =
+                    string_at(observation, &["observed_property", "metric_id"])
+                {
+                    if observation_metric_id != metric_id {
+                        errors.push(format!(
+                            "{observation_id}: explicit metric ID conflicts with crosswalk mapping {metric_id}"
+                        ));
+                    }
+                }
+            }
+        }
+    }
+    errors.sort();
+    errors
+}
+
 pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
     let mut errors = Vec::new();
 
@@ -966,6 +1028,7 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
     } else {
         errors.push("metric-observation crosswalk requires mappings[]".to_owned());
     }
+    errors.extend(validate_observation_crosswalk(chain));
     let crosswalk_matches = observation_crosswalk_match_count(chain);
     let crosswalk_eligible = eligible_supporting_observation_count(chain);
     if crosswalk_eligible != 0 && chain.observations["observations"].as_array().is_some_and(|rows| {
@@ -1354,6 +1417,11 @@ fn negative_control_results(chain: &ChainArtifacts) -> NegativeControlSummary {
         json!("e".repeat(64));
     cases.push(("scenario-review-digest-conflict".to_owned(), scenario_disagreement));
 
+    let mut crosswalk_unit_mismatch = chain.clone();
+    crosswalk_unit_mismatch.observations["observations"][1]["observed_property"]["unit"] =
+        json!("mm");
+    cases.push(("observation-crosswalk-unit-mismatch".to_owned(), crosswalk_unit_mismatch));
+
     let mut changed_snapshot_bytes = chain.clone();
     if let Some(position) = changed_snapshot_bytes
         .project_bytes
@@ -1435,7 +1503,7 @@ pub fn run_conformance(dir: &Path) -> Result<ConformanceReport, Vec<String>> {
         "review correctly abstains from ranking while scenario execution remains blocked".to_owned(),
         "all upstream contract inputs cite immutable draft commit SHAs".to_owned(),
         "observation crosswalk metric IDs resolve against the pinned registry, while synthetic observations remain ineligible".to_owned(),
-        "seven adversarial cross-reference/privacy/claim controls are rejected".to_owned(),
+        "eight adversarial cross-reference/privacy/crosswalk/claim controls are rejected".to_owned(),
         "report emits exact SHA-256 digests for every artifact in the synthetic chain".to_owned(),
     ];
 
@@ -1496,8 +1564,8 @@ mod tests {
         assert_eq!(report.observations_matching_crosswalk_count, 1);
         assert_eq!(report.eligible_supporting_observation_count, 0);
         assert_eq!(report.unmapped_observation_count, 3);
-        assert_eq!(report.negative_controls_attempted, 7);
-        assert_eq!(report.negative_controls_rejected, 7);
+        assert_eq!(report.negative_controls_attempted, 8);
+        assert_eq!(report.negative_controls_rejected, 8);
         assert_eq!(report.negative_controls_unexpectedly_accepted, 0);
         assert_eq!(report.source_catalog_status, "metadata-only-not-ingested");
         assert_eq!(report.scenario_execution_status, "BLOCKED_NOT_EXECUTED");
