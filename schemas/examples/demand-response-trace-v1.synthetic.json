@@ -1,0 +1,103 @@
+{
+  "schema_version": "1.0",
+  "fixture_id": "synthetic-demand-response-rsr-edr-known-answer-v1",
+  "synthetic": true,
+  "claim_ceiling": "metric_accounting_only",
+  "rsr": {
+    "interval_ids": [
+      "r0",
+      "r1",
+      "r2",
+      "r3",
+      "r4",
+      "r5",
+      "r6",
+      "r7",
+      "r8",
+      "r9"
+    ],
+    "target_power_kw": [
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100
+    ],
+    "measured_power_kw": [
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      108
+    ],
+    "reserve_capacity_kw": 10
+  },
+  "edr": {
+    "interval_ids": [
+      "e0",
+      "e1",
+      "e2"
+    ],
+    "baseline_power_kw": [
+      100,
+      100,
+      100
+    ],
+    "event_power_kw": [
+      80,
+      110,
+      70
+    ],
+    "interval_duration_hours": [
+      1,
+      1,
+      1
+    ]
+  },
+  "rsr_reference": {
+    "interval_ids": [
+      "rr0",
+      "rr1",
+      "rr2",
+      "rr3",
+      "rr4",
+      "rr5",
+      "rr6",
+      "rr7",
+      "rr8",
+      "rr9"
+    ],
+    "signed_normalized_tracking_error": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      -0.8
+    ],
+    "metadata": {
+      "source_name": "synthetic-known-answer",
+      "source_revision": "synthetic-fixture-v1",
+      "source_field": "signed_normalized_tracking_error",
+      "sample_time_semantics": "source_reported_series",
+      "denominator_convention": "source_native_unknown",
+      "normalization_note": "Synthetic input values are already normalized for the metric known-answer test; no source clock or denominator is implied.",
+      "source_artifact_sha256": null,
+      "source_run_manifest_sha256": null
+    }
+  }
+}

@@ -1,0 +1,340 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/flexdc-sim-run-manifest-v1.schema.json",
+  "title": "FlexDC-Sim Reproducible Run Manifest v1",
+  "description": "Metadata needed to replay and interpret a source simulator trace. Config Git blob SHA-1s identify source objects but do not authenticate a run or establish physical measurement. The pinned AQA comparison profile uses P=24216 W and R=9626 W. A non-synthetic run must include the SHA-256 of its captured runtime environment; placeholder interpreter fields are intended only for synthetic contract fixtures. Non-synthetic runs require a relative path and SHA-256 digest for the captured runtime manifest. The effective policy name/config path/SHA-256 are separate from the pinned source policy template blob identity.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "effective_policy_config_sha256",
+    "effective_policy_config_path",
+    "effective_policy_name",
+    "synthetic",
+    "source_revision",
+    "simulator_command",
+    "random_seed",
+    "qos_percentile",
+    "runtime_environment_sha256",
+    "runtime_environment_manifest_path",
+    "python_version",
+    "power_cap_w",
+    "regulation_reserve_w",
+    "simulation_duration_seconds",
+    "simulation_step_seconds",
+    "signal_step_seconds",
+    "config_artifacts",
+    "notes"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "source_revision": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "simulator_command": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "random_seed": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "simulation_duration_seconds": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "simulation_step_seconds": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "signal_step_seconds": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "config_artifacts": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "role",
+          "path",
+          "git_blob_sha1"
+        ],
+        "properties": {
+          "role": {
+            "enum": [
+              "experiment_config",
+              "cluster_config",
+              "workload_config",
+              "runtime_policy_config",
+              "power_signal",
+              "optimization_weights"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          },
+          "git_blob_sha1": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{40}$"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "contains": {
+            "properties": {
+              "role": {
+                "const": "experiment_config"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "role": {
+                "const": "cluster_config"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "role": {
+                "const": "workload_config"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "role": {
+                "const": "runtime_policy_config"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "role": {
+                "const": "power_signal"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "role": {
+                "const": "optimization_weights"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        }
+      ]
+    },
+    "notes": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "power_cap_w": {
+      "type": "number",
+      "const": 24216
+    },
+    "regulation_reserve_w": {
+      "type": "number",
+      "const": 9626
+    },
+    "synthetic": {
+      "type": "boolean",
+      "description": "True only for generated fixtures. A replay of actual FlexDC-Sim output must set false; this flag does not imply physical facility metering."
+    },
+    "python_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Exact interpreter major.minor.patch version; placeholders are allowed only in synthetic manifests."
+    },
+    "runtime_environment_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 of exact Python/runtime environment manifest (for example a normalized complete package lock or pip-freeze manifest). Must be present for a non-synthetic run."
+    },
+    "qos_percentile": {
+      "type": "number",
+      "const": 0.9,
+      "description": "Pinned simulator default used for the run manifest; set explicitly so the command is reproducible."
+    },
+    "runtime_environment_manifest_path": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(/|$)).+$",
+      "description": "Relative path to the exact runtime environment manifest included with the run bundle; required for non-synthetic runs."
+    },
+    "effective_policy_name": {
+      "enum": [
+        "AQA",
+        "proportional-cap",
+        "priority-cap",
+        "flex-resource"
+      ],
+      "description": "Actual effective runtime policy selected for this execution, not merely the source template name."
+    },
+    "effective_policy_config_path": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(/|$)).+$",
+      "description": "Relative path to the exact effective policy INI used in the run; non-synthetic runs require it."
+    },
+    "effective_policy_config_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 of the actual effective policy INI bytes; non-synthetic runs require it."
+    }
+  },
+  "allOf": [
+    {
+      "properties": {
+        "simulation_step_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "signal_step_seconds": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    {
+      "description": "The adapter additionally checks divisibility of the time grid and consistency of CSV row count."
+    },
+    {
+      "if": {
+        "properties": {
+          "synthetic": {
+            "const": false
+          }
+        },
+        "required": [
+          "synthetic"
+        ]
+      },
+      "then": {
+        "properties": {
+          "runtime_environment_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "synthetic": {
+            "const": false
+          }
+        },
+        "required": [
+          "synthetic"
+        ]
+      },
+      "then": {
+        "properties": {
+          "runtime_environment_manifest_path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "synthetic": {
+            "const": false
+          }
+        },
+        "required": [
+          "synthetic"
+        ]
+      },
+      "then": {
+        "properties": {
+          "effective_policy_config_path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          },
+          "effective_policy_config_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      }
+    }
+  ]
+}

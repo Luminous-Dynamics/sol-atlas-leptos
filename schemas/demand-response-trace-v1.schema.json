@@ -1,0 +1,302 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/demand-response-trace-v1.schema.json",
+  "title": "Demand Response Metric Trace Input v1",
+  "description": "Aligned RSR tracking and/or EDR curtailment observations. Metrics are arithmetic only and do not establish metering integrity, causal counterfactual validity, or physical grid service qualification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "fixture_id",
+    "synthetic",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "fixture_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "synthetic": {
+      "type": "boolean"
+    },
+    "claim_ceiling": {
+      "const": "metric_accounting_only"
+    },
+    "rsr": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/rsr"
+        }
+      ]
+    },
+    "edr": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/edr"
+        }
+      ]
+    },
+    "rsr_reference": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/rsrReference"
+        }
+      ]
+    }
+  },
+  "anyOf": [
+    {
+      "required": [
+        "rsr"
+      ],
+      "properties": {
+        "rsr": {
+          "$ref": "#/$defs/rsr"
+        }
+      }
+    },
+    {
+      "required": [
+        "edr"
+      ],
+      "properties": {
+        "edr": {
+          "$ref": "#/$defs/edr"
+        }
+      }
+    },
+    {
+      "required": [
+        "rsr_reference"
+      ],
+      "properties": {
+        "rsr_reference": {
+          "$ref": "#/$defs/rsrReference"
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "intervalIds": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "\\S"
+      }
+    },
+    "powerSeries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "minimum": 0
+      }
+    },
+    "rsr": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "interval_ids",
+        "target_power_kw",
+        "measured_power_kw",
+        "reserve_capacity_kw"
+      ],
+      "properties": {
+        "interval_ids": {
+          "$ref": "#/$defs/intervalIds"
+        },
+        "target_power_kw": {
+          "$ref": "#/$defs/powerSeries"
+        },
+        "measured_power_kw": {
+          "$ref": "#/$defs/powerSeries"
+        },
+        "reserve_capacity_kw": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "edr": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "interval_ids",
+        "baseline_power_kw",
+        "event_power_kw",
+        "interval_duration_hours"
+      ],
+      "properties": {
+        "interval_ids": {
+          "$ref": "#/$defs/intervalIds"
+        },
+        "baseline_power_kw": {
+          "$ref": "#/$defs/powerSeries"
+        },
+        "event_power_kw": {
+          "$ref": "#/$defs/powerSeries"
+        },
+        "interval_duration_hours": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        }
+      }
+    },
+    "normalizedErrorSeries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": [
+          "number",
+          "null"
+        ]
+      }
+    },
+    "rsrReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "interval_ids",
+        "signed_normalized_tracking_error",
+        "metadata"
+      ],
+      "properties": {
+        "interval_ids": {
+          "$ref": "#/$defs/intervalIds"
+        },
+        "signed_normalized_tracking_error": {
+          "$ref": "#/$defs/normalizedErrorSeries"
+        },
+        "metadata": {
+          "$ref": "#/$defs/rsrReferenceMetadata"
+        }
+      }
+    },
+    "rsrReferenceMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_name",
+        "source_revision",
+        "source_field",
+        "sample_time_semantics",
+        "denominator_convention",
+        "normalization_note",
+        "source_artifact_sha256",
+        "source_run_manifest_sha256"
+      ],
+      "properties": {
+        "source_name": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "source_revision": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "source_field": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "sample_time_semantics": {
+          "enum": [
+            "source_reported_series",
+            "prior_cycle_state",
+            "explicitly_aligned",
+            "unknown"
+          ]
+        },
+        "denominator_convention": {
+          "enum": [
+            "exact_reserve",
+            "reserve_plus_epsilon",
+            "source_native_unknown"
+          ]
+        },
+        "normalization_note": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "source_artifact_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "source_run_manifest_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "source_name": {
+                "const": "FlexDC-Sim"
+              }
+            },
+            "required": [
+              "source_name"
+            ]
+          },
+          "then": {
+            "properties": {
+              "source_revision": {
+                "pattern": "^[a-f0-9]{40}$"
+              },
+              "source_field": {
+                "const": "trackingError"
+              },
+              "sample_time_semantics": {
+                "const": "prior_cycle_state"
+              },
+              "denominator_convention": {
+                "const": "reserve_plus_epsilon"
+              },
+              "source_artifact_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "source_run_manifest_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
