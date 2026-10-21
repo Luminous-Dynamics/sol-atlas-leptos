@@ -2502,6 +2502,63 @@ mod tests {
     }
 
     #[test]
+    fn tighter_period_cost_or_crew_caps_cannot_add_feasible_portfolios() {
+        let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture parses");
+        let baseline = evaluate(&input).expect("baseline fixture evaluates");
+        let baseline_ids: BTreeSet<String> = baseline
+            .feasible_portfolios
+            .iter()
+            .map(portfolio_key)
+            .collect();
+
+        for index in 0..input.budgets_by_period.len() {
+            for resource in ["cost", "crew"] {
+                let mut tighter = input.clone();
+                let mut looser = input.clone();
+                match resource {
+                    "cost" => {
+                        assert!(input.budgets_by_period[index].cost_cap_u > 0);
+                        tighter.budgets_by_period[index].cost_cap_u -= 1;
+                        looser.budgets_by_period[index].cost_cap_u += 1;
+                    }
+                    "crew" => {
+                        assert!(input.budgets_by_period[index].crew_cap_u > 0);
+                        tighter.budgets_by_period[index].crew_cap_u -= 1;
+                        looser.budgets_by_period[index].crew_cap_u += 1;
+                    }
+                    _ => unreachable!("test only supplies known resource dimensions"),
+                }
+
+                let tighter_evaluation =
+                    evaluate(&tighter).expect("tighter capacity input evaluates");
+                let tighter_ids: BTreeSet<String> = tighter_evaluation
+                    .feasible_portfolios
+                    .iter()
+                    .map(portfolio_key)
+                    .collect();
+                assert!(
+                    tighter_ids.is_subset(&baseline_ids),
+                    "tightening {resource} cap in {} cannot add feasible portfolios",
+                    input.budgets_by_period[index].period
+                );
+
+                let looser_evaluation =
+                    evaluate(&looser).expect("looser capacity input evaluates");
+                let looser_ids: BTreeSet<String> = looser_evaluation
+                    .feasible_portfolios
+                    .iter()
+                    .map(portfolio_key)
+                    .collect();
+                assert!(
+                    baseline_ids.is_subset(&looser_ids),
+                    "relaxing {resource} cap in {} cannot remove baseline-feasible portfolios",
+                    input.budgets_by_period[index].period
+                );
+            }
+        }
+    }
+
+    #[test]
     fn interaction_adjustments_are_applied_once_per_selected_pair() {
         let evaluation = evaluate(&fixture()).expect("fixture should evaluate");
         let portfolio = evaluation
