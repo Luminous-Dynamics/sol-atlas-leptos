@@ -105,6 +105,10 @@ pub struct PlanReport {
     pub eligible_not_selected_count: usize,
     pub selected_candidate_ids: Vec<String>,
     pub total_weighted_discrimination_nats: f64,
+    pub greedy_ratio_baseline_selected_candidate_ids: Vec<String>,
+    pub greedy_ratio_baseline_cost_units: u32,
+    pub greedy_ratio_baseline_weighted_discrimination_nats: f64,
+    pub exact_gain_over_greedy_ratio_baseline_nats: f64,
     pub decisions: Vec<CandidateDecision>,
 }
 
@@ -386,6 +390,49 @@ fn select_exact_budgeted(
     best
 }
 
+fn select_greedy_ratio(
+    candidates: &[Candidate],
+    scores: &BTreeMap<String, CandidateScore>,
+    budget: u32,
+) -> PlanState {
+    let mut ordered: Vec<&Candidate> = candidates
+        .iter()
+        .filter(|candidate| eligible(candidate))
+        .collect();
+    ordered.sort_by(|left, right| {
+        let left_ratio = scores[&left.candidate_id].weighted_discrimination_nats
+            / left.cost_units as f64;
+        let right_ratio = scores[&right.candidate_id].weighted_discrimination_nats
+            / right.cost_units as f64;
+        right_ratio
+            .total_cmp(&left_ratio)
+            .then_with(|| left.candidate_id.cmp(&right.candidate_id))
+    });
+
+    let mut selected_ids = Vec::new();
+    let mut selected_groups = BTreeSet::new();
+    let mut spent = 0u32;
+    let mut weighted_discrimination_nats = 0.0;
+    for candidate in ordered {
+        if selected_groups.contains(candidate.correlation_group.as_str()) {
+            continue;
+        }
+        if spent + candidate.cost_units > budget {
+            continue;
+        }
+        spent += candidate.cost_units;
+        selected_groups.insert(candidate.correlation_group.as_str());
+        selected_ids.push(candidate.candidate_id.clone());
+        weighted_discrimination_nats +=
+            scores[&candidate.candidate_id].weighted_discrimination_nats;
+    }
+    selected_ids.sort();
+    PlanState {
+        weighted_discrimination_nats,
+        selected_ids,
+    }
+}
+
 fn rounded(value: f64) -> f64 {
     let value = (value * 1.0e9).round() / 1.0e9;
     if value == 0.0 { 0.0 } else { value }
@@ -409,11 +456,24 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
     let eligible_count = fixture.candidates.iter().filter(|candidate| eligible(candidate)).count();
     let ineligible_count = fixture.candidates.len() - eligible_count;
     let selected = select_exact_budgeted(&fixture.candidates, &scores, fixture.budget_cost_units);
+    let greedy_baseline =
+        select_greedy_ratio(&fixture.candidates, &scores, fixture.budget_cost_units);
     let selected_set: BTreeSet<&str> = selected.selected_ids.iter().map(String::as_str).collect();
     let selected_cost_units = fixture
         .candidates
         .iter()
         .filter(|candidate| selected_set.contains(candidate.candidate_id.as_str()))
+        .map(|candidate| candidate.cost_units)
+        .sum::<u32>();
+    let greedy_baseline_cost_units = fixture
+        .candidates
+        .iter()
+        .filter(|candidate| {
+            greedy_baseline
+                .selected_ids
+                .iter()
+                .any(|id| id == &candidate.candidate_id)
+        })
         .map(|candidate| candidate.cost_units)
         .sum::<u32>();
     let selected_groups: BTreeSet<&str> = fixture
@@ -473,6 +533,14 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
         eligible_not_selected_count: eligible_count - selected.selected_ids.len(),
         selected_candidate_ids: selected.selected_ids,
         total_weighted_discrimination_nats: rounded(selected.weighted_discrimination_nats),
+        greedy_ratio_baseline_selected_candidate_ids: greedy_baseline.selected_ids,
+        greedy_ratio_baseline_cost_units,
+        greedy_ratio_baseline_weighted_discrimination_nats: rounded(
+            greedy_baseline.weighted_discrimination_nats,
+        ),
+        exact_gain_over_greedy_ratio_baseline_nats: rounded(
+            selected.weighted_discrimination_nats - greedy_baseline.weighted_discrimination_nats,
+        ),
         decisions,
     })
 }
@@ -521,6 +589,13 @@ mod tests {
             ]
         );
         close(report.total_weighted_discrimination_nats, 10.0);
+        assert_eq!(
+            report.greedy_ratio_baseline_selected_candidate_ids,
+            vec!["candidate-a-high-density".to_owned()]
+        );
+        assert_eq!(report.greedy_ratio_baseline_cost_units, 4);
+        close(report.greedy_ratio_baseline_weighted_discrimination_nats, 7.0);
+        close(report.exact_gain_over_greedy_ratio_baseline_nats, 3.0);
         assert_eq!(
             report
                 .decisions
