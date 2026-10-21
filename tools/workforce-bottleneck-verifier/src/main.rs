@@ -835,7 +835,10 @@ mod tests {
         assert!(inferred.contains("EVIDENCE_INSUFFICIENT"));
         assert!(!inferred.contains("FUNDING_OR_PAYER"));
         assert_eq!(
-            action_is_admissible(&value["cases"][1], "ESTABLISH_LAWFUL_FUNDING_AND_PROCUREMENT"),
+            action_is_admissible(
+                &value["cases"][1],
+                "ESTABLISH_LAWFUL_FUNDING_AND_PROCUREMENT"
+            ),
             Some(false)
         );
         assert_eq!(
@@ -927,7 +930,10 @@ mod tests {
                                             inferred.contains("DEMAND_DATA_QUALITY"),
                                             demand == "duplicate_and_misrouted"
                                         );
-                                        if matches!(evidence, "stale_and_conflicting" | "incomplete") {
+                                        if matches!(
+                                            evidence,
+                                            "stale_and_conflicting" | "incomplete"
+                                        ) {
                                             assert!(inferred.contains("EVIDENCE_INSUFFICIENT"));
                                         }
                                         let interaction_expected = skill_gap
