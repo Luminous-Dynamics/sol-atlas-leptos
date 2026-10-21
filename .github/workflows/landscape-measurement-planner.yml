@@ -71,6 +71,10 @@ jobs:
             .eligible_not_selected_count == 2 and
             .selected_candidate_ids == ["candidate-b-north-replica", "candidate-c-south-sensor"] and
             (.total_weighted_discrimination_nats - 10.0 | abs) < 0.000001 and
+            .greedy_ratio_baseline_selected_candidate_ids == ["candidate-a-high-density"] and
+            .greedy_ratio_baseline_cost_units == 4 and
+            (.greedy_ratio_baseline_weighted_discrimination_nats - 7.0 | abs) < 0.000001 and
+            (.exact_gain_over_greedy_ratio_baseline_nats - 3.0 | abs) < 0.000001 and
             ([.decisions[] | select(.candidate_id == "candidate-e-consent-denied" and .reason == "consent_denied")] | length) == 1 and
             ([.decisions[] | select(.candidate_id == "candidate-f-access-unknown" and .reason == "access_unknown")] | length) == 1 and
             ([.decisions[] | select(.decision == "selected" and (.reason == null))] | length) == 2
