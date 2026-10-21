@@ -73,6 +73,7 @@ impl Cost {
 #[serde(rename_all = "snake_case")]
 enum ResolutionClass {
     Unresolved,
+    Partial,
     Conditional,
     Guaranteed,
 }
@@ -530,7 +531,7 @@ impl<'a> Solver<'a> {
                     continue;
                 }
                 let child_frontier = self.solve(child_belief, remaining_queries)?;
-                branches.push((outcome.outcome_id.clone(), child_frontier));
+                branches.push((outcome.outcome_id.clone(), outcome.kind.clone(), child_frontier));
             }
             if branches.is_empty() {
                 continue;
@@ -557,9 +558,9 @@ impl<'a> Solver<'a> {
     fn combine_branch_policies(
         &mut self,
         query: &Query,
-        branches: &[(String, Vec<Policy>)],
+        branches: &[(String, String, Vec<Policy>)],
         branch_index: usize,
-        selected: &mut Vec<(String, Policy)>,
+        selected: &mut Vec<(String, String, Policy)>,
         output: &mut Vec<Policy>,
     ) -> Result<(), String> {
         if branch_index == branches.len() {
@@ -570,14 +571,9 @@ impl<'a> Solver<'a> {
                     self.scenario.id
                 ));
             }
-            let quality = combined_resolution_class(
-                &selected
-                    .iter()
-                    .map(|(_, policy)| policy.resolution_class)
-                    .collect::<Vec<_>>(),
-            );
+            let quality = combined_resolution_class(selected);
             let mut worst_child_cost = Cost::default();
-            for (_, policy) in selected.iter() {
+            for (_, _, policy) in selected.iter() {
                 worst_child_cost = worst_child_cost.component_max(policy.worst_case_cost);
             }
             let total_cost = query.cost.checked_add(worst_child_cost)?;
@@ -586,9 +582,10 @@ impl<'a> Solver<'a> {
             }
             let branches_json: Vec<Value> = selected
                 .iter()
-                .map(|(outcome_id, policy)| {
+                .map(|(outcome_id, kind, policy)| {
                     json!({
                         "outcome_id": outcome_id,
+                        "kind": kind,
                         "policy": &policy.tree
                     })
                 })
@@ -606,9 +603,9 @@ impl<'a> Solver<'a> {
             return Ok(());
         }
 
-        let (outcome_id, child_policies) = &branches[branch_index];
+        let (outcome_id, kind, child_policies) = &branches[branch_index];
         for child_policy in child_policies {
-            selected.push((outcome_id.clone(), child_policy.clone()));
+            selected.push((outcome_id.clone(), kind.clone(), child_policy.clone()));
             self.combine_branch_policies(
                 query,
                 branches,
@@ -622,19 +619,40 @@ impl<'a> Solver<'a> {
     }
 }
 
-fn combined_resolution_class(classes: &[ResolutionClass]) -> ResolutionClass {
-    if classes
+fn combined_resolution_class(branches: &[(String, String, Policy)]) -> ResolutionClass {
+    if branches
         .iter()
-        .all(|class| *class == ResolutionClass::Guaranteed)
+        .all(|(_, _, policy)| policy.resolution_class == ResolutionClass::Guaranteed)
     {
-        ResolutionClass::Guaranteed
-    } else if classes
+        return ResolutionClass::Guaranteed;
+    }
+
+    let observed: Vec<ResolutionClass> = branches
         .iter()
-        .all(|class| *class == ResolutionClass::Unresolved)
+        .filter(|(_, kind, _)| kind == "observed")
+        .map(|(_, _, policy)| policy.resolution_class)
+        .collect();
+
+    if !observed.is_empty()
+        && observed.iter().all(|class| {
+            matches!(
+                class,
+                ResolutionClass::Conditional | ResolutionClass::Guaranteed
+            )
+        })
     {
-        ResolutionClass::Unresolved
-    } else {
         ResolutionClass::Conditional
+    } else if observed.iter().any(|class| {
+        matches!(
+            class,
+            ResolutionClass::Partial
+                | ResolutionClass::Conditional
+                | ResolutionClass::Guaranteed
+        )
+    }) {
+        ResolutionClass::Partial
+    } else {
+        ResolutionClass::Unresolved
     }
 }
 
@@ -851,7 +869,7 @@ fn verify_values(
         limitations: vec![
             "All cases and costs are synthetic contract inputs, not measured labour-market facts.",
             "Resolution classes distinguish guaranteed decisions, conditional resolution with abstention, and unresolved cases; there are no invented hypothesis probabilities.",
-            "The Pareto frontier minimizes staff effort, cash cost, and delay separately within each resolution class.",
+            "The Pareto frontier minimizes staff effort, cash cost, and delay separately within each resolution class (unresolved, partial observed-branch resolution, conditional resolution with unknown-outcome abstention, or guaranteed).",
             "The exact oracle is bounded and fails closed on any state, combination, or frontier limit.",
             "A solver pass establishes consistency with this synthetic contract only, not field validity, causal impact, or SOTA superiority.",
         ],
@@ -970,6 +988,14 @@ mod tests {
             .collect();
         costs.sort();
         assert_eq!(costs, vec![(30, 5000, 1), (70, 0, 9)]);
+        assert!(scenario.frontier.iter().any(|policy| {
+            policy.resolution_class == ResolutionClass::Partial
+                && policy.worst_case_cost == Cost {
+                    staff_minutes: 10,
+                    cash_zar_cents: 5000,
+                    delay_hours: 0
+                }
+        }));
     }
 
     #[test]
