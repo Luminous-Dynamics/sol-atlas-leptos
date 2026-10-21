@@ -361,7 +361,7 @@ mod tests {
 
     fn fixture_request() -> Request {
         serde_json::from_str(include_str!(
-            "../schemas/examples/ai-compute-energy-flexibility-four-interval.synthetic.json"
+            "../../schemas/examples/ai-compute-energy-flexibility-four-interval.synthetic.json"
         ))
         .expect("checked-in synthetic scenario must parse")
     }
