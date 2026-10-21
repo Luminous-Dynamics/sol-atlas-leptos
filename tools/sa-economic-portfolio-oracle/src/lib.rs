@@ -303,10 +303,17 @@ pub struct CounterexampleSweepAttempt {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum CounterexampleSweepStatus {
+    CounterexampleFound,
+    DomainExhaustedNoCounterexample,
+    BudgetExhausted,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CounterexampleSweepReport {
     pub schema_version: String,
-    /// COUNTEREXAMPLE_FOUND, DOMAIN_EXHAUSTED_NO_COUNTEREXAMPLE, or BUDGET_EXHAUSTED.
-    pub status: String,
+    pub status: CounterexampleSweepStatus,
     pub domain_values: Vec<i64>,
     pub evaluation_budget: usize,
     pub evaluation_count: usize,
@@ -1450,16 +1457,16 @@ pub fn evaluate_counterexample_sweep(
     }
 
     let status = if first_counterexample_scenario_id.is_some() {
-        "COUNTEREXAMPLE_FOUND"
+        CounterexampleSweepStatus::CounterexampleFound
     } else if !remaining_values.is_empty() {
-        "BUDGET_EXHAUSTED"
+        CounterexampleSweepStatus::BudgetExhausted
     } else {
-        "DOMAIN_EXHAUSTED_NO_COUNTEREXAMPLE"
+        CounterexampleSweepStatus::DomainExhaustedNoCounterexample
     };
 
     Ok(CounterexampleSweepReport {
         schema_version: "sa-portfolio-counterexample-sweep-report-v0.1".to_owned(),
-        status: status.to_owned(),
+        status,
         domain_values: config.service_baseline_values.clone(),
         evaluation_budget,
         evaluation_count: attempts.len(),
@@ -2432,7 +2439,7 @@ mod tests {
             serde_json::from_str(COUNTEREXAMPLE_CONFIG).expect("sweep config parses");
         let report = evaluate_counterexample_sweep(&input, &patch, &config)
             .expect("bounded sweep should evaluate");
-        assert_eq!(report.status, "COUNTEREXAMPLE_FOUND");
+        assert_eq!(report.status, CounterexampleSweepStatus::CounterexampleFound);
         assert!(report.first_counterexample_scenario_id.is_some());
         assert_eq!(report.evaluation_count, report.attempts.len());
         assert!(!report.attempts.is_empty());
@@ -2455,7 +2462,7 @@ mod tests {
         let complete: CounterexampleSweepConfig =
             serde_json::from_str(NO_EFFECT_SWEEP_CONFIG).expect("no-effect config parses");
         let complete_report = evaluate_counterexample_sweep(&input, &patch, &complete).unwrap();
-        assert_eq!(complete_report.status, "DOMAIN_EXHAUSTED_NO_COUNTEREXAMPLE");
+        assert_eq!(complete_report.status, CounterexampleSweepStatus::DomainExhaustedNoCounterexample);
         assert_eq!(complete_report.evaluation_count, complete.service_baseline_values.len());
         assert!(complete_report.first_counterexample_scenario_id.is_none());
         assert!(complete_report.remaining_values.is_empty());
@@ -2465,7 +2472,7 @@ mod tests {
         limited.service_baseline_values = vec![3, 4, 5];
         limited.max_evaluations = 1;
         let limited_report = evaluate_counterexample_sweep(&input, &patch, &limited).unwrap();
-        assert_eq!(limited_report.status, "BUDGET_EXHAUSTED");
+        assert_eq!(limited_report.status, CounterexampleSweepStatus::BudgetExhausted);
         assert_eq!(limited_report.evaluation_count, 1);
         assert_eq!(limited_report.remaining_values, vec![4, 5]);
         assert!(limited_report.first_counterexample_scenario_id.is_none());
