@@ -142,7 +142,27 @@ The simulator's per-job-type p90 QoS degradation values were 2.400 (ResNet), 2.9
 - assessment report JSON: SHA-256 `7a6d3a1fd0dfacb32c1f47f43e4d2af0b674bf91b33ca70467aee6f2fba44c15`
 - report receipt: input SHA-256 `7b047147567fd7fe712b5c6a95fa3db2fb96ce45070d1756d43fe5c5b5556d9c`; metrics SHA-256 `33b44cb2536633afec86c3f613f5844e7efa5e07c84ee08285814c6cf88ae842`.
 
-The reference workflow passed its end-to-end schema checks. The associated repository Check at the same code head passed `fmt`, native tests/all-target compilation and the WASM check. This establishes reproducible execution and report-contract validity, not physical metrology. The emitted power series is modeled by FlexDC-Sim's job/server power-performance profiles and idle power, not wall-metered facility energy. No CO₂, water, facility overhead, or avoided-generation credit is inferred.
+### Repeatability check across two executions
+
+Two separate hosted executions used the same pinned FlexDC-Sim source, configuration objects, Python/runtime environment and seed:
+
+- [Run #2 / ID `39518389277`](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/39518389277) produced the simulator outputs, adapter input and Rust assessment, but its final schema-validation step failed because `jsonschema` had not yet been installed in the FlexDC Python environment. The evidence bundle was preserved: [run #2 artifacts](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/39518389277/artifacts/12309495876).
+- [Run #3 / ID `39518611387`](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/39518611387) passed the complete workflow after schema tooling was installed after the simulator environment had been captured.
+
+The simulator-side files below were byte-identical between these independent executions:
+
+| Artifact | Run-to-run equality |
+|---|---|
+| `power_trace.csv` | SHA-256 identical: `f70501a7b80a6bdcfbae120ebc7e3564c9e32606b164ca25fda6e38816627365` |
+| `job_table.csv` | SHA-256 identical: `9665656fcdedea5499ab2eae2a88435e86288baeee7e84163a7dc828682b5000` |
+| `qos_summary.csv` | SHA-256 identical: `6c9a49a32a20881aa64a7208a923317800ad8ff31fe93efb081800ee6b810d7b` |
+| `runtime-environment.txt` | SHA-256 identical: `919e9affff8da271991769d0c52726f1fb73b038860b7e6285434f4a98c07a40` |
+| Source-native RSR result object | Byte-equivalent metric fields |
+| Same-row reconstructed RSR result object | Byte-equivalent metric fields |
+
+The run manifest, adapted JSON and final report differ because they include the run ID, Sol-Atlas revision and manifest/input digests; those differences are expected and useful. This is evidence of deterministic replay for this exact seed/config/environment pair, not evidence that other seeds or environments behave identically. It also does not establish physical metrology.
+
+The reference workflow passed its end-to-end schema checks. The associated repository Check at the tested code head passed `fmt`, native tests/all-target compilation and the WASM check. This establishes reproducible execution and report-contract validity, not physical metrology. The emitted power series is modeled by FlexDC-Sim's job/server power-performance profiles and idle power, not wall-metered facility energy. No CO₂, water, facility overhead, or avoided-generation credit is inferred.
 
 ## 7. Next execution gate
 
