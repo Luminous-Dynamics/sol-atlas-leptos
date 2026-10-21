@@ -434,7 +434,8 @@ mod tests {
     #[test]
     fn cross_field_contract_rejects_duplicate_case_ids() {
         let mut value = fixture();
-        value["cases"][1]["id"] = value["cases"][0]["id"].clone();
+        let first_id = value["cases"][0]["id"].clone();
+        value["cases"][1]["id"] = first_id;
         assert!(validate_cross_fields(&value).is_err());
     }
 
