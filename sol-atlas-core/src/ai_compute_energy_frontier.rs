@@ -4,9 +4,9 @@
 //! compare heuristic policies against the complete feasible allocation set for
 //! small cases. This is not a production scheduler or a substitute for MILP/CP-SAT.
 //! It requires homogeneous interruptible work, a full-horizon window, complete
-//! objective attribution for every interval with residual capacity, and a strict
-//! candidate cap. If the exact search exceeds its budget, no partial frontier is
-//! returned or described as exact.
+//! objective attribution for every interval with residual capacity, a strict
+//! candidate cap, and a 32-interval horizon ceiling. Exceeding either bound fails
+//! closed; no partial frontier is returned or described as exact.
 
 use crate::ai_compute_energy::{
     AssessmentStatus, Request, SchedulingPolicy, assess, schedule_deferrable,
