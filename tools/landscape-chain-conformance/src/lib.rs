@@ -759,10 +759,10 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
     let arms = records(&chain.evaluation_plan, &["arms"]);
     match arms {
         Some(arms) if arms.len() == 2 => {
-            if string_at(&arms[0], &["site_ref_sha256"]) != Some(&intervention_site_sha) {
+            if string_at(&arms[0], &["site_ref_sha256"]) != Some(intervention_site_sha.as_str()) {
                 errors.push("evaluation intervention arm does not reference exact intervention-site bytes".to_owned());
             }
-            if string_at(&arms[1], &["site_ref_sha256"]) != Some(&comparison_site_sha) {
+            if string_at(&arms[1], &["site_ref_sha256"]) != Some(comparison_site_sha.as_str()) {
                 errors.push("evaluation comparison arm does not reference exact comparison-site bytes".to_owned());
             }
         }
