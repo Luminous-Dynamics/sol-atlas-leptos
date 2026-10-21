@@ -70,7 +70,7 @@ The v0.1 corpus contains 12 hand-authored cases, emphasizing confounding and neg
 11. credential exists but task-specific practical competence is unverified;
 12. multiple constraints and missing critical evidence require a bounded result rather than an invented single cause.
 
-The JSON fixture stores synthetic observations, expected cause sets, admissible and prohibited intervention labels, and a required disposition. These labels are a tiny oracle, not empirical claims about actual workers or services. Values are artificial; every case is marked SYNTHETIC_TEST_ONLY.
+The JSON fixture stores synthetic observations, expected cause sets, admissible and prohibited intervention labels, and a required disposition. Its strict structural schema is [workforce_bottleneck_scenarios_v0_1.schema.json](schemas/workforce_bottleneck_scenarios_v0_1.schema.json). These labels are a tiny oracle, not empirical claims about actual workers or services. Values are artificial; every case is marked SYNTHETIC_TEST_ONLY.
 
 ## 6. Baselines and protocol
 
