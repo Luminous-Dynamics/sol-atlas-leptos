@@ -15,8 +15,7 @@ use crate::landscape::{
 use leptos::prelude::*;
 use leptos_router::components::A;
 use serde_json::{Value, json};
-use wasm_bindgen::JsCast;
-use wasm_bindgen::closure::Closure;
+use wasm_bindgen::{closure::Closure, JsCast};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum FeatureKind {
