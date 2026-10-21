@@ -1,0 +1,57 @@
+{
+  "schema_version": "sa-portfolio-counterexample-sweep-report-v0.1",
+  "status": "COUNTEREXAMPLE_FOUND",
+  "domain_values": [
+    10,
+    9,
+    8,
+    7,
+    6,
+    5,
+    4,
+    3,
+    2
+  ],
+  "evaluation_budget": 9,
+  "evaluation_count": 2,
+  "attempted_values": [
+    10,
+    9
+  ],
+  "attempts": [
+    {
+      "service_baseline": 10,
+      "scenario_id": "bounded_compound_service_probe_baseline_10",
+      "feasible_before": 82,
+      "feasible_after": 82,
+      "removed_feasible_count": 0,
+      "frontier_before": 8,
+      "frontier_after": 9,
+      "frontier_id_intersection_count": 8,
+      "frontier_id_union_count": 9,
+      "counterexample_found": false
+    },
+    {
+      "service_baseline": 9,
+      "scenario_id": "bounded_compound_service_probe_baseline_9",
+      "feasible_before": 82,
+      "feasible_after": 80,
+      "removed_feasible_count": 2,
+      "frontier_before": 8,
+      "frontier_after": 8,
+      "frontier_id_intersection_count": 7,
+      "frontier_id_union_count": 9,
+      "counterexample_found": true
+    }
+  ],
+  "first_counterexample_scenario_id": "bounded_compound_service_probe_baseline_9",
+  "remaining_values": [
+    8,
+    7,
+    6,
+    5,
+    4,
+    3,
+    2
+  ]
+}
