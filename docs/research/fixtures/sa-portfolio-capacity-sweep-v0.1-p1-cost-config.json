@@ -3,10 +3,10 @@
   "period": "P1",
   "resource": "cost",
   "capacity_values": [
+    6,
     5,
     4,
-    3,
-    2
+    3
   ],
   "max_evaluations": 4
 }
