@@ -46,5 +46,8 @@
   "python_version": "3.10.0",
   "runtime_environment_sha256": null,
   "qos_percentile": 0.9,
-  "runtime_environment_manifest_path": null
+  "runtime_environment_manifest_path": null,
+  "effective_policy_name": "AQA",
+  "effective_policy_config_path": null,
+  "effective_policy_config_sha256": null
 }
