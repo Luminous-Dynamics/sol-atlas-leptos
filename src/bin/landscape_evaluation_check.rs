@@ -12,7 +12,7 @@
 mod landscape_evaluation;
 
 use landscape_evaluation::{INTERPRETATION_LIMIT, PLAN_SCHEMA_URI, validate_plan};
-use serde_json::Value;
+use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::env;
 use std::fs;
@@ -129,9 +129,18 @@ mod tests {
         .unwrap();
         let report = validate_bytes(&valid_fixture());
         assert_eq!(schema["$id"], REPORT_SCHEMA_URI);
-        assert_eq!(schema["properties"]["report_schema"]["const"], REPORT_SCHEMA);
-        assert_eq!(report["report_schema"], schema["properties"]["report_schema"]["const"]);
-        assert_eq!(report["schema_uri"], schema["properties"]["schema_uri"]["const"]);
+        assert_eq!(
+            schema["properties"]["report_schema"]["const"],
+            REPORT_SCHEMA
+        );
+        assert_eq!(
+            report["report_schema"],
+            schema["properties"]["report_schema"]["const"]
+        );
+        assert_eq!(
+            report["schema_uri"],
+            schema["properties"]["schema_uri"]["const"]
+        );
     }
 
     #[test]
@@ -155,7 +164,12 @@ mod tests {
 
         assert_eq!(report["valid"], false);
         assert_eq!(report["input_sha256"].as_str().unwrap().len(), 64);
-        assert!(report["errors"][0].as_str().unwrap().contains("invalid JSON"));
+        assert!(
+            report["errors"][0]
+                .as_str()
+                .unwrap()
+                .contains("invalid JSON")
+        );
     }
 
     #[test]
@@ -167,13 +181,21 @@ mod tests {
         let report = validate_bytes(&bytes);
 
         assert_eq!(report["valid"], false);
-        assert_eq!(report["input_sha256"], format!("{:x}", Sha256::digest(&bytes)));
+        assert_eq!(
+            report["input_sha256"],
+            format!("{:x}", Sha256::digest(&bytes))
+        );
         let errors = report["errors"].as_array().unwrap();
+        assert!(
+            errors
+                .iter()
+                .any(|error| { error.as_str().unwrap().contains("unknown field") })
+        );
         assert!(errors.iter().any(|error| {
-            error.as_str().unwrap().contains("unknown field")
-        }));
-        assert!(errors.iter().any(|error| {
-            error.as_str().unwrap().contains("unsupported planning scope")
+            error
+                .as_str()
+                .unwrap()
+                .contains("unsupported planning scope")
         }));
     }
 
