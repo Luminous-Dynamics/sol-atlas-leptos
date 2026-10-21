@@ -22,7 +22,7 @@ The frozen fixture represents candidate site/metric/time measurements with:
 
 For the baseline and alternative predictive distributions, observation noise is added to the respective variances. The planner computes the **symmetrized KL divergence** between these two Gaussian distributions and multiplies it by the explicitly supplied decision weight. This is a distribution-separation proxy, expressed in nats; it is not mutual information, expected posterior decision regret, or real-world utility.
 
-An exact dynamic program selects the maximum total weighted discrimination score under the integer budget while selecting at most one candidate per declared correlation group. The result uses deterministic tie-breaking, records exclusions/rejections with reasons, and hashes the exact fixture bytes.
+An exact dynamic program selects the maximum total weighted discrimination score under the integer budget while selecting at most one candidate per declared correlation group. The result uses deterministic tie-breaking, records exclusions/rejections with reasons, reports eligible spatial-temporal stratum coverage, and hashes the exact fixture bytes. Coverage is descriptive in v0.1—not a minimum-coverage constraint—so a high discrimination score cannot be mistaken for representative sampling.
 
 The one-per-correlation-group rule is a conservative v0.1 anti-redundancy constraint. The planner does not estimate spatial covariance; group definitions must be supplied by a domain-appropriate method. It also assumes candidate scores can be added across different groups. That assumption needs to be replaced by a calibrated covariance-aware design before making claims about real sensor-network optimality.
 
@@ -30,7 +30,7 @@ The one-per-correlation-group rule is a conservative v0.1 anti-redundancy constr
 
 Budget: 6 cost units. The report calculates a score-per-cost greedy baseline as well as the exact constrained optimum. In this fixture the greedy baseline selects the cost-4 candidate with score 7; exact budgeted selection chooses two cost-3 candidates with total score 10, a synthetic gain of 3 discrimination-nats. These are algorithm oracles, not empirical performance, cash costs, or a landscape benefit.
 
-Known-answer checks cover the Gaussian symmetric-KL equation, exact budgeted selection, one-per-group selection, fail-closed consent/access, duplicate IDs, the synthetic-only claim ceiling, input digests and deterministic reports. An independent exhaustive-enumeration oracle checks the dynamic program across 24 deterministic six-candidate problem variants, enumerating all 64 subsets per case (1,536 subsets total) across differing budgets, costs, decision weights, and correlation assignments.
+Known-answer checks cover the Gaussian symmetric-KL equation, exact budgeted selection, one-per-group selection, fail-closed consent/access, duplicate IDs, the synthetic-only claim ceiling, input digests and deterministic reports. An independent exhaustive-enumeration oracle checks the dynamic program across 24 deterministic six-candidate problem variants, enumerating all 64 subsets per case (1,536 subsets total) across differing budgets, costs, decision weights, and correlation assignments. The frozen report also checks the coverage denominator (three eligible spatial-temporal strata) and selected-stratum fraction (two thirds).
 
 ## Benchmark ladder
 
