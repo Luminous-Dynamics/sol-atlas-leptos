@@ -1,0 +1,85 @@
+name: Landscape Measurement Planner
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "tools/landscape-measurement-planner/**"
+      - "fixtures/landscape/measurement-planning-v0/**"
+      - "schemas/landscape-measurement-selection-*.schema.json"
+      - "docs/LANDSCAPE_MEASUREMENT_VALUE_OF_INFORMATION_V0_1.md"
+      - ".github/workflows/landscape-measurement-planner.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "tools/landscape-measurement-planner/**"
+      - "fixtures/landscape/measurement-planning-v0/**"
+      - "schemas/landscape-measurement-selection-*.schema.json"
+      - "docs/LANDSCAPE_MEASUREMENT_VALUE_OF_INFORMATION_V0_1.md"
+      - ".github/workflows/landscape-measurement-planner.yml"
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  synthetic-measurement-selection:
+    name: Exact-head budgeted measurement selection oracle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out exact PR head
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Install pinned Rust toolchain
+        run: |
+          rustup toolchain install 1.96.0 --profile minimal --component rustfmt
+          rustup default 1.96.0
+
+      - name: Check formatting
+        run: cargo fmt --manifest-path tools/landscape-measurement-planner/Cargo.toml -- --check
+
+      - name: Run tests with pinned dependencies
+        run: cargo test --locked --manifest-path tools/landscape-measurement-planner/Cargo.toml
+
+      - name: Emit and check exact-revision synthetic plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture="fixtures/landscape/measurement-planning-v0/fixture.json"
+          report="$RUNNER_TEMP/landscape-measurement-selection.json"
+          expected_sha256="$(sha256sum "$fixture" | cut -d ' ' -f 1)"
+          cargo run --locked --manifest-path tools/landscape-measurement-planner/Cargo.toml -- "$PWD/fixtures/landscape/measurement-planning-v0" > "$report"
+          jq -e --arg digest "$expected_sha256" '
+            .schema_version == "luminous.landscape_measurement_selection_report.v0.1" and
+            .suite_id == "LANDSCAPE-MEASUREMENT-PLANNER-V0.1" and
+            .conformance_status == "PASS_SYNTHETIC_SELECTION_ONLY" and
+            .data_origin == "synthetic_fixture" and
+            .claim_ceiling == "SYNTHETIC_SELECTION_ONLY" and
+            .input_sha256 == $digest and
+            .budget_cost_units == 6 and
+            .selected_cost_units == 6 and
+            .unspent_budget_units == 0 and
+            .candidate_count == 6 and
+            .eligible_candidate_count == 4 and
+            .ineligible_candidate_count == 2 and
+            .selected_candidate_count == 2 and
+            .eligible_not_selected_count == 2 and
+            .selected_candidate_ids == ["candidate-b-north-replica", "candidate-c-south-sensor"] and
+            (.total_weighted_discrimination_nats - 10.0 | abs) < 0.000001 and
+            ([.decisions[] | select(.candidate_id == "candidate-e-consent-denied" and .reason == "consent_denied")] | length) == 1 and
+            ([.decisions[] | select(.candidate_id == "candidate-f-access-unknown" and .reason == "access_unknown")] | length) == 1 and
+            ([.decisions[] | select(.decision == "selected" and (.reason == null))] | length) == 2
+          ' "$report"
+
+      - name: Upload exact-revision report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: landscape-measurement-selection-v0-1
+          path: ${{ runner.temp }}/landscape-measurement-selection.json
+          if-no-files-found: error
+          retention-days: 30
