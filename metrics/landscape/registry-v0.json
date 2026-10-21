@@ -51,6 +51,29 @@
       "target_policy": "set by project objectives and required time windows; never silently assume noon represents all heat exposure",
       "external_references": [
         "https://www.landscapeperformance.org/guide-to-evaluate-performance"
+      ],
+      "candidate_sources": [
+        {
+          "source_id": "terrain.copernicus-dem-glo30",
+          "role": "terrain-context",
+          "limitation": "A 30 m digital surface model is regional terrain context, not a site-grade terrain or building/canopy model; exact tile CRS, vertical datum, quality and terms must be verified."
+        },
+        {
+          "source_id": "imagery.sentinel-2-l2a",
+          "role": "land-cover-context",
+          "limitation": "10–60 m bands and seasonal/cloud effects do not provide accurate individual-tree crowns, obstacle heights or surveyed shadows."
+        },
+        {
+          "source_id": "ngi.cdngi-topo-orthophoto",
+          "role": "local-map-candidate",
+          "limitation": "Exact orthophoto/topographic product, acquisition date, CRS, map scale and redistribution rights must be checked; it is not presumed to be a survey."
+        }
+      ],
+      "unprovided_inputs": [
+        "Georeferenced area-of-interest geometry and qualified area method",
+        "Current surveyed or validated 3D obstacles/canopy geometry",
+        "Latitude/longitude, date, local time and time-zone inputs",
+        "Validated shadow algorithm and independent reference checks"
       ]
     },
     {
@@ -89,6 +112,29 @@
       "target_policy": "compare named baseline and proposal under identical event inputs; do not infer runoff reduction from green-colored drawing symbols",
       "external_references": [
         "https://www.landscapeperformance.org/guide-to-evaluate-performance"
+      ],
+      "candidate_sources": [
+        {
+          "source_id": "climate.chirps-v3-daily-reanalysis",
+          "role": "rainfall-context",
+          "limitation": "Daily 0.05-degree rainfall context is not a design-storm hyetograph, local gauge record or calibrated runoff boundary condition."
+        },
+        {
+          "source_id": "terrain.copernicus-dem-glo30",
+          "role": "terrain-context",
+          "limitation": "A 30 m surface model may include buildings and vegetation; it cannot establish small-site drainage paths or invert elevations."
+        },
+        {
+          "source_id": "ngi.cdngi-topo-orthophoto",
+          "role": "topographic-context",
+          "limitation": "Exact product scale, date, contour/elevation availability, vertical reference, licence and accuracy must be checked."
+        }
+      ],
+      "unprovided_inputs": [
+        "Site catchment and drainage network geometry",
+        "Soil/infiltration and imperviousness measurements",
+        "Local rainfall intensity-duration-frequency data or validated event hyetograph",
+        "Initial conditions, calibrated model and independent discharge/volume reference"
       ]
     },
     {
@@ -126,6 +172,24 @@
       "target_policy": "state target and time horizon separately from existing observed canopy",
       "external_references": [
         "https://www.landscapeperformance.org/guide-to-evaluate-performance"
+      ],
+      "candidate_sources": [
+        {
+          "source_id": "imagery.sentinel-2-l2a",
+          "role": "vegetation-context",
+          "limitation": "Multispectral 10–60 m imagery supports broader vegetation screening but is not itself an individual-tree crown footprint inventory."
+        },
+        {
+          "source_id": "ngi.cdngi-topo-orthophoto",
+          "role": "aerial-image-candidate",
+          "limitation": "Exact orthophoto product/resolution/date and rights must be verified; crown delineation and field validation are still required."
+        }
+      ],
+      "unprovided_inputs": [
+        "Valid area of interest and spatial frame",
+        "Observed tree-crown polygons or validated species/age-specific crown models",
+        "Tree establishment date and growth assumptions",
+        "Overlap union method, source dates and independent crown reference"
       ]
     },
     {
@@ -162,6 +226,24 @@
       "target_policy": "species appropriateness and biodiversity effects require separate metrics; completeness is not a biodiversity gain score",
       "external_references": [
         "https://doi.org/10.1016/j.landurbplan.2024.105215"
+      ],
+      "candidate_sources": [
+        {
+          "source_id": "sanbi.gauteng-cplan-v4",
+          "role": "ecological-constraint-context",
+          "limitation": "Regional CBA/ESA planning classes are not a taxonomic species inventory or proof of native status for a planting list."
+        },
+        {
+          "source_id": "sanbi.national-biodiversity-priority-areas-2023",
+          "role": "biodiversity-priority-context",
+          "limitation": "Priority-area layers guide screening; they do not identify the species in the authored planting schedule."
+        }
+      ],
+      "unprovided_inputs": [
+        "Species-level planting schedule",
+        "Versioned taxonomic reference",
+        "Local flora/native-origin source at the target ecoregion",
+        "Field or curator verification and explicit treatment of unknown species"
       ]
     },
     {
@@ -195,7 +277,25 @@
         "segment length and calculation method"
       ],
       "target_policy": "threshold is jurisdiction/project-specific; do not claim compliance without the applicable standard and complete required checks",
-      "external_references": []
+      "external_references": [],
+      "candidate_sources": [
+        {
+          "source_id": "base.osm-vector",
+          "role": "route-context",
+          "limitation": "OSM road/trail geometry may be incomplete or stale and does not establish route grade, surface condition or accessibility compliance."
+        },
+        {
+          "source_id": "ngi.cdngi-topo-orthophoto",
+          "role": "topographic-context",
+          "limitation": "Product scale/elevation data and rights are unqualified until the exact map or orthophoto asset and metadata are selected."
+        }
+      ],
+      "unprovided_inputs": [
+        "Designed or surveyed path centerline (not rendered stroke width)",
+        "Elevation profile with vertical/horizontal units and accuracy",
+        "Applicable jurisdictional accessibility standard and version",
+        "Surface, route continuity and landing/cross-slope checks required by that standard"
+      ]
     },
     {
       "id": "materials.embodied_carbon_total",
@@ -233,6 +333,13 @@
       "target_policy": "report range and per-scope breakdown; compare alternatives under the same boundary and dataset versions",
       "external_references": [
         "https://app-help.vectorworks.net/2026/eng/VW2026_Guide/Sustainability/The_Sustainability_Dashboard.htm"
+      ],
+      "candidate_sources": [],
+      "unprovided_inputs": [
+        "Versioned material/product EPD or declared lifecycle-inventory factors",
+        "Quantity take-off tied to real geometry and units",
+        "Geographic/year validity of emission factors",
+        "Explicit lifecycle stages, reuse/substitution and biogenic-carbon accounting boundaries"
       ]
     },
     {
@@ -268,7 +375,14 @@
         "known funding/resource gaps"
       ],
       "target_policy": "coverage does not prove maintenance execution or survival; report observed completion separately",
-      "external_references": []
+      "external_references": [],
+      "candidate_sources": [],
+      "unprovided_inputs": [
+        "Versioned maintenance obligations and accepted assignments",
+        "Mycelix consent/role/authority record reference",
+        "Monitoring cadence, trigger and review/expiry policy",
+        "Privacy policy for people, land and sensitive ecology records"
+      ]
     },
     {
       "id": "economics.lifecycle_cost_range",
@@ -305,6 +419,13 @@
       "target_policy": "publish low/base/high range with assumptions; do not merge cost with ecology or equity into an opaque scalar",
       "external_references": [
         "https://www.landscapeperformance.org/guide-to-evaluate-performance"
+      ],
+      "candidate_sources": [],
+      "unprovided_inputs": [
+        "Geometric quantity take-off and local supplier/labour rates",
+        "Source geography, currency and price base year",
+        "Operations/maintenance/replacement schedule",
+        "Analysis horizon, inflation and discounting conventions"
       ]
     }
   ],
