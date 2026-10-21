@@ -345,7 +345,7 @@ fn action_is_admissible(case: &Value, action: &str) -> Option<bool> {
                 && evidence == "complete"
                 && as_string(observations, "tools_and_spares") == Some("available"),
         ),
-        "ESTABLISH_LAWFUL_FUNDING_AND_PROCUREMENT" => Some(matches!(funding, "absent" | "unknown")),
+        "ESTABLISH_LAWFUL_FUNDING_AND_PROCUREMENT" => Some(funding == "absent"),
         "PROCURE_OR_QUALIFY_VALID_PART_SUBSTITUTE" => {
             Some(as_string(observations, "tools_and_spares") == Some("critical_spare_missing"))
         }
@@ -524,7 +524,7 @@ fn rule_based_causes(case: &Value) -> BTreeSet<String> {
             causes.insert("FUNDING_OR_PAYER".to_string());
         }
         Some("unknown") => {
-            causes.insert("FUNDING_OR_PAYER".to_string());
+            // Unknown is an epistemic state, not evidence that a payer is absent.
             causes.insert("EVIDENCE_INSUFFICIENT".to_string());
         }
         _ => {}
@@ -825,5 +825,22 @@ mod tests {
         let inferred = rule_based_causes(&value["cases"][3]);
         assert!(inferred.contains("EVIDENCE_INSUFFICIENT"));
         assert!(!inferred.contains("AUTHORIZATION_OR_SAFETY_GATE"));
+    }
+
+    #[test]
+    fn unknown_funding_is_uncertainty_not_confirmed_absence() {
+        let mut value = fixture();
+        value["cases"][1]["observations"]["funding_status"] = json!("unknown");
+        let inferred = rule_based_causes(&value["cases"][1]);
+        assert!(inferred.contains("EVIDENCE_INSUFFICIENT"));
+        assert!(!inferred.contains("FUNDING_OR_PAYER"));
+        assert_eq!(
+            action_is_admissible(&value["cases"][1], "ESTABLISH_LAWFUL_FUNDING_AND_PROCUREMENT"),
+            Some(false)
+        );
+        assert_eq!(
+            action_is_admissible(&value["cases"][1], "COLLECT_OR_REVALIDATE_EVIDENCE"),
+            Some(true)
+        );
     }
 }
