@@ -86,6 +86,8 @@ cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --cou
   docs/research/fixtures/sa-portfolio-counterexample-sweep-v0.1-no-effect.expected.json
 ```
 
+A further metamorphic test varies each period's cost cap and crew cap by one unit. For every dimension, tightening a cap must yield a feasible portfolio set that is a subset of baseline; relaxing a cap must preserve every baseline-feasible portfolio. This checks monotonicity of hard resource constraints, not the predictive validity of any resource forecast.
+
 The synthetic compound fixture checks baseline 10 first (no feasibility change), then baseline 9 (two formerly feasible portfolios violate the protected service floor). It stops after two of nine configured values and reports the seven remaining values; it does not claim the domain was exhausted. The exact duplicate-scenario control checks baseline 3, preserves all 82 feasible portfolios and all eight frontier IDs, and only then returns `DOMAIN_EXHAUSTED_NO_COUNTEREXAMPLE`. A separate unit test confirms that a one-evaluation cap on a larger no-effect domain returns `BUDGET_EXHAUSTED`, never a robustness pass.
 
 ### Withheld-scenario addition
