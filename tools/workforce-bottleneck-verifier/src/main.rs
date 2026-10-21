@@ -864,6 +864,31 @@ mod tests {
     }
 
     #[test]
+    fn unknown_operational_states_allow_evidence_revalidation() {
+        let mutations = [
+            ("funding_status", "unknown"),
+            ("tools_and_spares", "unknown"),
+            ("authorization_status", "unknown"),
+            ("dispatch_status", "unknown"),
+            ("wage_and_shift_status", "unknown"),
+            ("demand_status", "conflicting"),
+        ];
+
+        for (field, value) in mutations {
+            let mut fixture = fixture();
+            fixture["cases"][0]["observations"][field] = json!(value);
+            assert_eq!(
+                action_is_admissible(
+                    &fixture["cases"][0],
+                    "COLLECT_OR_REVALIDATE_EVIDENCE"
+                ),
+                Some(true),
+                "{field}={value} must allow evidence revalidation"
+            );
+        }
+    }
+
+    #[test]
     fn diagnostic_invariants_hold_across_cartesian_blocker_sweep() {
         let funding_states = ["confirmed_synthetic", "absent", "unknown"];
         let tool_states = ["available", "critical_spare_missing", "unknown"];
