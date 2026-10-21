@@ -447,6 +447,12 @@ fn apply_perturbation(
             }
         }
         "drop_source" => {
+            if perturbation.parameter.as_bool() != Some(true) {
+                return Err(format!(
+                    "{}: drop_source requires parameter=true",
+                    perturbation.id
+                ));
+            }
             sources.retain(|source| source.id != perturbation.source_id);
         }
         "reduce_coverage" => {
@@ -540,6 +546,12 @@ fn apply_perturbation(
             source.family = "derived_synthetic".to_string();
         }
         "leave_source_family_out" => {
+            if perturbation.parameter.as_bool() != Some(true) {
+                return Err(format!(
+                    "{}: leave_source_family_out requires parameter=true",
+                    perturbation.id
+                ));
+            }
             let family = target.family.clone();
             sources.retain(|source| source.family != family);
         }
@@ -764,6 +776,50 @@ mod tests {
             "confirmed_task_capacity_gap"
         );
         let _ = schema;
+    }
+
+    #[test]
+    fn extreme_ad_volume_cannot_create_a_confirmed_shortage_by_itself() {
+        let (fixture, _schema) = fixture_and_schema();
+        let mut corpus: Corpus =
+            serde_json::from_value(fixture).expect("fixture type decoding");
+        let scenario = corpus
+            .scenarios
+            .iter_mut()
+            .find(|scenario| scenario.id == "SR-002")
+            .expect("SR-002 exists");
+        let ads = scenario
+            .sources
+            .iter_mut()
+            .find(|source| source.id == "ADS2")
+            .expect("ADS2 exists");
+        ads.value = 1_000_000_000.0;
+        assert_eq!(derive_decision(&scenario.sources), "no_confirmed_shortage");
+    }
+
+    #[test]
+    fn source_and_perturbation_order_does_not_change_semantic_receipt() {
+        let (fixture, schema) = fixture_and_schema();
+        let original = verify_values(&schema, &fixture).expect("original corpus verifies");
+        let mut permuted = fixture.clone();
+        let scenarios = permuted["scenarios"]
+            .as_array_mut()
+            .expect("scenario array");
+        scenarios.reverse();
+        for scenario in scenarios {
+            scenario["sources"]
+                .as_array_mut()
+                .expect("source array")
+                .reverse();
+            scenario["perturbations"]
+                .as_array_mut()
+                .expect("perturbation array")
+                .reverse();
+        }
+        let reordered = verify_values(&schema, &permuted).expect("permuted corpus verifies");
+        assert_eq!(original.scenarios, reordered.scenarios);
+        assert_eq!(original.pass_count, reordered.pass_count);
+        assert_eq!(original.fail_count, reordered.fail_count);
     }
 
     #[test]
