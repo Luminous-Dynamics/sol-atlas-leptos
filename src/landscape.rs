@@ -575,6 +575,14 @@ mod tests {
         assert_eq!(catalog["schema"], "luminous.landscape-source-catalog.v0");
         assert_eq!(catalog["schema_uri"], schema["$id"]);
         assert_eq!(catalog["catalog_status"], "metadata-only-not-ingested");
+        let ngi = catalog["records"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|record| record["id"] == "ngi.cdngi-topo-orthophoto")
+            .expect("CD:NGI should be catalogued as a candidate source");
+        assert_eq!(ngi["ingestion_state"], "not-ingested");
+        assert_eq!(ngi["license"]["status"], "review-required");
         assert_eq!(
             catalog["pilot"]["name"],
             "Johannesburg / Highveld, Gauteng, South Africa"
@@ -583,7 +591,7 @@ mod tests {
         let records = catalog["records"]
             .as_array()
             .expect("source records must be an array");
-        assert_eq!(records.len(), 6);
+        assert_eq!(records.len(), 7);
         let mut ids = HashSet::with_capacity(records.len());
         for record in records {
             let id = record["id"].as_str().expect("source ID must be a string");
