@@ -1767,6 +1767,14 @@ fn negative_control_results(chain: &ChainArtifacts) -> NegativeControlSummary {
         scenario_disagreement,
     ));
 
+    let mut paired_review_context_mismatch = chain.clone();
+    paired_review_context_mismatch.review["inputs"]["scenario_runs"][1]["pairing_context"]["seed"] =
+        json!(8);
+    cases.push((
+        "paired-review-seed-mismatch".to_owned(),
+        paired_review_context_mismatch,
+    ));
+
     let mut paired_forcing_mismatch = chain.clone();
     paired_forcing_mismatch.alternative_scenario["boundary_conditions_sha256"] =
         json!("d".repeat(64));
@@ -1908,13 +1916,13 @@ pub fn run_conformance(dir: &Path) -> Result<ConformanceReport, Vec<String>> {
         "scenario manifest binds design, boundary conditions, and exact normalized evaluation-plan bytes".to_owned(),
         "baseline and alternative scenarios use the same model/version/seed, forcing bytes, and evaluation plan".to_owned(),
         "Mycelix stewardship binds the same project and baseline scenario, with private and non-sensitive defaults".to_owned(),
-        "Symthaea review binds both alternatives, metric registry, source catalog, and scenario manifest".to_owned(),
+        "Symthaea review binds both alternatives, metric registry, source catalog, and the paired scenario contexts".to_owned(),
         "unqualified source catalog and metrics keep consequence-bearing assessments blocked".to_owned(),
         "observation properties are checked against the declared metric crosswalk and evidence class".to_owned(),
         "review correctly abstains from ranking while scenario execution remains blocked".to_owned(),
         "all upstream contract inputs cite immutable draft commit SHAs".to_owned(),
         "observation crosswalk metric IDs resolve against the pinned registry, while synthetic observations remain ineligible".to_owned(),
-        "eight adversarial cross-reference/privacy/crosswalk/claim controls are rejected".to_owned(),
+        "ten adversarial cross-reference/privacy/crosswalk/paired-context/claim controls are rejected".to_owned(),
         "report emits exact SHA-256 digests for every artifact in the synthetic chain".to_owned(),
     ];
 
@@ -1995,8 +2003,8 @@ mod tests {
         assert_eq!(report.observations_matching_crosswalk_count, 1);
         assert_eq!(report.eligible_supporting_observation_count, 0);
         assert_eq!(report.unmapped_observation_count, 4);
-        assert_eq!(report.negative_controls_attempted, 9);
-        assert_eq!(report.negative_controls_rejected, 9);
+        assert_eq!(report.negative_controls_attempted, 10);
+        assert_eq!(report.negative_controls_rejected, 10);
         assert_eq!(report.negative_controls_unexpectedly_accepted, 0);
         assert_eq!(report.source_catalog_status, "metadata-only-not-ingested");
         assert_eq!(report.scenario_execution_status, "BLOCKED_NOT_EXECUTED");
