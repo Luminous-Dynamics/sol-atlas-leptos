@@ -1324,6 +1324,15 @@ pub fn LandscapeDesigner() -> impl IntoView {
                                                     let policy = metric.target_policy.clone();
                                                     let required_inputs = metric.required_inputs.clone();
                                                     let input_count = required_inputs.len().to_string();
+                                                    let candidate_sources = metric.candidate_sources.clone();
+                                                    let candidate_count = candidate_sources.len().to_string();
+                                                    let unprovided_inputs = metric.unprovided_inputs.clone();
+                                                    let unprovided_count = unprovided_inputs.len().to_string();
+                                                    let candidate_intro = if candidate_sources.is_empty() {
+                                                        "No relevant candidate source is catalogued for this metric yet; a new source and validation path are required.".to_string()
+                                                    } else {
+                                                        "These are candidate references only. None are ingested in the v0 catalog; their presence does not satisfy the metric's required inputs.".to_string()
+                                                    };
                                                     view! {
                                                         <article class="landscape-metric-card">
                                                             <div class="landscape-metric-card-meta">
@@ -1337,6 +1346,45 @@ pub fn LandscapeDesigner() -> impl IntoView {
                                                                 <ul>
                                                                     <For
                                                                         each=move || required_inputs.clone()
+                                                                        key=|input| input.clone()
+                                                                        children=move |input: String| view! { <li>{input}</li> }
+                                                                    />
+                                                                </ul>
+                                                            </details>
+                                                            <details>
+                                                                <summary>"Candidate sources (" {candidate_count} ")"</summary>
+                                                                <p class="landscape-metric-policy">{candidate_intro}</p>
+                                                                <ul class="landscape-source-candidate-list">
+                                                                    <For
+                                                                        each=move || candidate_sources.clone()
+                                                                        key=|source| source.id.clone()
+                                                                        children=move |source: LandscapeCandidateSource| {
+                                                                            let id = source.id.clone();
+                                                                            let title = source.title.clone();
+                                                                            let role = source.role.clone();
+                                                                            let limitation = source.limitation.clone();
+                                                                            let ingestion = match source.ingestion_state.as_str() {
+                                                                                "not-ingested" => "Candidate only · not ingested".to_string(),
+                                                                                "ingested" => "Ingested · model qualification still required".to_string(),
+                                                                                other => format!("Catalog state: {other} · review required"),
+                                                                            };
+                                                                            view! {
+                                                                                <li class="landscape-source-candidate">
+                                                                                    <strong>{title}</strong>
+                                                                                    <p class="landscape-source-id">{id} · {ingestion}</p>
+                                                                                    <p class="landscape-metric-policy">{role}: {limitation}</p>
+                                                                                </li>
+                                                                            }
+                                                                        }
+                                                                    />
+                                                                </ul>
+                                                            </details>
+                                                            <details>
+                                                                <summary>"Evidence gaps (" {unprovided_count} ")"</summary>
+                                                                <p class="landscape-metric-policy">"These required inputs are not supplied by the current schematic editor or candidate-source catalog."</p>
+                                                                <ul>
+                                                                    <For
+                                                                        each=move || unprovided_inputs.clone()
                                                                         key=|input| input.clone()
                                                                         children=move |input: String| view! { <li>{input}</li> }
                                                                     />
