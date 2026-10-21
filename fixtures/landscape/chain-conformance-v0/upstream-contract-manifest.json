@@ -7,7 +7,7 @@
       "source_id": "mycelix-measurement-authorization-fixture",
       "repository": "Luminous-Dynamics/mycelix",
       "pull_request": 5298,
-      "commit_sha": "832a0322194150594db1fbc85d0f43bb4b9a5ce8",
+      "commit_sha": "1c8f43373bd38de779775588588142d5c20e8e87",
       "source_path": "mycelix-desci/fixtures/landscape-measurement-authorization-v0.public.example.json",
       "git_blob_sha": "ed35b8f8c78c30ab9cf0ee9a6187b7869aa4a6b4"
     },
@@ -15,15 +15,15 @@
       "source_id": "mycelix-measurement-authorization-safety-gate",
       "repository": "Luminous-Dynamics/mycelix",
       "pull_request": 5298,
-      "commit_sha": "832a0322194150594db1fbc85d0f43bb4b9a5ce8",
+      "commit_sha": "1c8f43373bd38de779775588588142d5c20e8e87",
       "source_path": "mycelix-desci/src/core/src/landscape_measurement_authorization.rs",
-      "git_blob_sha": "1769a7a35742cd0c93b70f30874ca0ea765455be"
+      "git_blob_sha": "6043b232c41200ae6986e99f3a94d22864acdc98"
     },
     {
       "source_id": "mycelix-measurement-authorization-schema",
       "repository": "Luminous-Dynamics/mycelix",
       "pull_request": 5298,
-      "commit_sha": "832a0322194150594db1fbc85d0f43bb4b9a5ce8",
+      "commit_sha": "1c8f43373bd38de779775588588142d5c20e8e87",
       "source_path": "mycelix-desci/schemas/landscape-measurement-authorization-v0.schema.json",
       "git_blob_sha": "85cca0168f04434e8fe7da421667b6e3715cc12a"
     },
@@ -31,7 +31,7 @@
       "source_id": "mycelix-stewardship-profile",
       "repository": "Luminous-Dynamics/mycelix",
       "pull_request": 5298,
-      "commit_sha": "832a0322194150594db1fbc85d0f43bb4b9a5ce8",
+      "commit_sha": "1c8f43373bd38de779775588588142d5c20e8e87",
       "source_path": "mycelix-desci/fixtures/landscape-stewardship-profile-v0.public.example.json",
       "git_blob_sha": "7e136bfc37b0a93cbb3485d5cab56710c08fdcab"
     },
