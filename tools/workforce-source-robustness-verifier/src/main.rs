@@ -409,6 +409,64 @@ fn string_parameter(perturbation: &Perturbation) -> Result<String, String> {
         })
 }
 
+fn valid_iso_date_shape(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    bytes.len() == 10
+        && bytes[4] == b'-'
+        && bytes[7] == b'-'
+        && bytes
+            .iter()
+            .enumerate()
+            .all(|(index, byte)| matches!(index, 4 | 7) || byte.is_ascii_digit())
+}
+
+fn validate_transformed_sources(
+    perturbation_id: &str,
+    sources: &[Source],
+) -> Result<(), String> {
+    let mut ids = BTreeSet::new();
+    for source in sources {
+        if !ids.insert(source.id.as_str()) {
+            return Err(format!(
+                "{perturbation_id}: transformation created duplicate source ID {}",
+                source.id
+            ));
+        }
+        if !source.value.is_finite() || source.value < 0.0 {
+            return Err(format!(
+                "{perturbation_id}: transformed source {} has an invalid value",
+                source.id
+            ));
+        }
+        if source.age_days > 36500 {
+            return Err(format!(
+                "{perturbation_id}: transformed source {} exceeds the age bound",
+                source.id
+            ));
+        }
+        if !valid_iso_date_shape(&source.period_start)
+            || !valid_iso_date_shape(&source.period_end)
+            || source.period_start > source.period_end
+        {
+            return Err(format!(
+                "{perturbation_id}: transformed source {} has an invalid reference period",
+                source.id
+            ));
+        }
+        if source.population.trim().is_empty()
+            || source.geography.trim().is_empty()
+            || source.unit.trim().is_empty()
+            || source.denominator.trim().is_empty()
+        {
+            return Err(format!(
+                "{perturbation_id}: transformed source {} lacks comparability metadata",
+                source.id
+            ));
+        }
+    }
+    Ok(())
+}
+
 fn apply_perturbation(
     scenario: &Scenario,
     perturbation: &Perturbation,
@@ -560,7 +618,10 @@ fn apply_perturbation(
             let (start, end) = period.split_once('/').ok_or_else(|| {
                 format!("{}: period parameter must be start/end", perturbation.id)
             })?;
-            if start > end || start.len() != 10 || end.len() != 10 {
+            if !valid_iso_date_shape(start)
+                || !valid_iso_date_shape(end)
+                || start > end
+            {
                 return Err(format!("{}: invalid reference period", perturbation.id));
             }
             let source = sources
@@ -584,6 +645,7 @@ fn apply_perturbation(
         other => return Err(format!("{}: unsupported operation {other}", perturbation.id)),
     }
 
+    validate_transformed_sources(&perturbation.id, &sources)?;
     Ok(sources)
 }
 
