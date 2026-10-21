@@ -96,7 +96,23 @@ Do not tune on expected labels and report those same cases as held out. V0.1 mea
 7. **Distributional slices:** geography/access, evidence completeness, task family and worker pathway where lawfully supported. Avoid individual risk scores and protected-attribute shortcuts.
 8. **Later field endpoints:** verified completion time, first-time fix, repeat work, service restoration, fully accounted cost per verified resolution, worker pay/payment delays, safety, training progression and 6/12-month job retention.
 
-## 7. Acceptance gates
+## 7. Executable structural verifier
+
+The standalone Rust tool lives in `tools/workforce-bottleneck-verifier/`. It validates the frozen corpus against the committed JSON Schema, checks cross-field invariants (including capacity shortfalls, funding and authorization gaps, missing spares, dispatch conflicts, unverified competence, incomplete evidence, unique IDs, and admissible/prohibited-label disjointness), and emits SHA-256 digests for both inputs.
+
+Reproduce the structural receipt from the repository root:
+
+```sh
+cargo fmt --manifest-path tools/workforce-bottleneck-verifier/Cargo.toml -- --check
+cargo test --manifest-path tools/workforce-bottleneck-verifier/Cargo.toml
+cargo run --manifest-path tools/workforce-bottleneck-verifier/Cargo.toml -- \
+  docs/research/fixtures/workforce_bottleneck_scenarios_v0_1.json \
+  docs/research/schemas/workforce_bottleneck_scenarios_v0_1.schema.json
+```
+
+The initial CI workflow runs those same format, test, and receipt steps. A successful structural receipt is deliberately labelled `STRUCTURAL_AND_CROSS_FIELD_PASS_NOT_FIELD_VALIDATION`. It does not validate the real-world causal interpretation of the oracle labels, predict the efficacy of interventions, or measure a field outcome. The backlog-only baseline's synthetic known-answer expectations are 12 backlog cases, 4 cases whose declared cause set includes skills capacity, 8 false shortage labels, and 2 exact cause-set matches. Its output must remain visibly marked as a weak synthetic comparator.
+
+## 8. Acceptance gates
 
 - 100% exact cause-set and intervention-admissibility agreement with the independent oracle on the frozen v0.1 fixture.
 - Zero false SKILLS_CAPACITY diagnoses in the specified critical negative controls.
@@ -109,7 +125,7 @@ Do not tune on expected labels and report those same cases as held out. V0.1 mea
 
 Do not set runtime/scale claims before a repeatable run exists. When a Rust implementation is added, report median and p95 runtime, peak memory, corpus counts, hardware/toolchain and candidate-versus-oracle agreement.
 
-## 8. Industry / SOTA comparison without overclaiming
+## 9. Industry / SOTA comparison without overclaiming
 
 Commercial incumbents already cover important parts of the scheduling problem:
 
@@ -127,12 +143,12 @@ A fair comparison requires the same frozen tasks, evidence quality, resource lim
 
 The differentiator to test is not “our model is smarter.” It is whether the integrated stack reduces false shortage diagnoses and unlocks more safely verified work than a vacancy heuristic, taxonomy matcher, transparent rules and a real incumbent workflow. If commercial products cannot be tested on identical inputs, report a qualitative capability map, not a numeric SOTA claim.
 
-## 9. Field-study gate
+## 10. Field-study gate
 
 Do not move from synthetic results to local operational claims until a legitimate service owner confirms data access, scope, permissions, baseline definitions and independent outcome verification. Pre-register a phased or randomized comparison where feasible. Include worker representatives and affected communities; measure worker earnings and conditions, not only employer costs/output. Protect personal data and provide correction/appeal routes.
 
 Candidate interventions must be funded and authorized. Training counts as successful employment only when there is a real payer, fair compensation, evidenced paid work, verified scope/quality and retention follow-up. Planned placements, issued credentials or task recommendations alone do not count as jobs created.
 
-## 10. Claim ceiling
+## 11. Claim ceiling
 
 This is a software-contract and synthetic benchmark. It does not establish a real regional skills shortage, predict individual employability, certify practical competence, authorize regulated work, prove causal impact or claim SOTA. The first outcome is structural correctness and honest uncertainty. Real impact remains unmeasured until evaluated with an authorized partner and independent evidence.
