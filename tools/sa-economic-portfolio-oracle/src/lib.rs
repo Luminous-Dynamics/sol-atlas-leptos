@@ -1776,6 +1776,9 @@ mod tests {
     const CREW_CAPACITY_CONFIG: &str = include_str!(
         "../../../docs/research/fixtures/sa-portfolio-capacity-sweep-v0.1-p1-crew-config.json"
     );
+    const CAPACITY_INPUT: &str = include_str!(
+        "../../../docs/research/fixtures/sa-economic-portfolio-v0.2-resource-capacity.json"
+    );
 
     fn fixture() -> Input {
         serde_json::from_str(INPUT).expect("synthetic portfolio fixture should parse")
@@ -2779,7 +2782,9 @@ mod tests {
 
     #[test]
     fn capacity_sweep_finds_removed_portfolios_and_preserves_strict_stop_semantics() {
-        let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture parses");
+        let input: Input =
+            serde_json::from_str(CAPACITY_INPUT).expect("capacity-distinguishing fixture parses");
+        let mut first_counterexample_removed_counts = Vec::new();
         for raw in [COST_CAPACITY_CONFIG, CREW_CAPACITY_CONFIG] {
             let config: CapacitySweepConfig =
                 serde_json::from_str(raw).expect("capacity config parses");
@@ -2802,12 +2807,20 @@ mod tests {
                 report.attempts.last().unwrap().removed_feasible_count,
                 report.attempts.last().unwrap().removed_portfolios.len()
             );
+            first_counterexample_removed_counts
+                .push(report.attempts.last().unwrap().removed_feasible_count);
         }
+        assert_ne!(
+            first_counterexample_removed_counts[0],
+            first_counterexample_removed_counts[1],
+            "cost and crew cap challenges must be discriminating, not the same constraint in disguise"
+        );
     }
 
     #[test]
     fn capacity_sweep_rejects_invalid_order_and_reports_budget_exhaustion() {
-        let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture parses");
+        let input: Input =
+            serde_json::from_str(CAPACITY_INPUT).expect("capacity-distinguishing fixture parses");
         let mut config: CapacitySweepConfig =
             serde_json::from_str(CREW_CAPACITY_CONFIG).expect("crew config parses");
         let mut invalid = config.clone();
