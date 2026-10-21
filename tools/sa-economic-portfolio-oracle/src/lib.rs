@@ -1473,7 +1473,10 @@ pub fn evaluate_capacity_sweep(
     };
     if config.capacity_values.is_empty()
         || config.capacity_values.len() > 256
-        || config.capacity_values.iter().any(|capacity| *capacity < 0)
+        || config
+            .capacity_values
+            .iter()
+            .any(|capacity| *capacity < 0)
     {
         return Err("capacity domain must contain 1..=256 non-negative integers".to_owned());
     }
@@ -1499,7 +1502,9 @@ pub fn evaluate_capacity_sweep(
         .collect();
     let baseline_frontier_ids: BTreeSet<String> =
         baseline.pareto_frontier.iter().map(portfolio_key).collect();
-    let evaluation_budget = config.max_evaluations.min(config.capacity_values.len());
+    let evaluation_budget = config
+        .max_evaluations
+        .min(config.capacity_values.len());
     let mut attempts = Vec::new();
     let mut attempted_values = Vec::new();
     let mut first_counterexample_capacity = None;
@@ -1545,8 +1550,11 @@ pub fn evaluate_capacity_sweep(
             ));
         }
 
-        let frontier_ids: BTreeSet<String> =
-            evaluation.pareto_frontier.iter().map(portfolio_key).collect();
+        let frontier_ids: BTreeSet<String> = evaluation
+            .pareto_frontier
+            .iter()
+            .map(portfolio_key)
+            .collect();
         let frontier_before_project_ids: Vec<Vec<String>> = baseline
             .pareto_frontier
             .iter()
@@ -1557,9 +1565,8 @@ pub fn evaluate_capacity_sweep(
             .iter()
             .map(|portfolio| portfolio.project_ids.clone())
             .collect();
-        let frontier_id_intersection_count = baseline_frontier_ids
-            .intersection(&frontier_ids)
-            .count();
+        let frontier_id_intersection_count =
+            baseline_frontier_ids.intersection(&frontier_ids).count();
         let frontier_id_union_count = baseline_frontier_ids.union(&frontier_ids).count();
         let counterexample_found = !removed_portfolios.is_empty();
         attempts.push(CapacitySweepAttempt {
@@ -2837,9 +2844,12 @@ mod tests {
         for raw in [COST_CAPACITY_CONFIG, CREW_CAPACITY_CONFIG] {
             let config: CapacitySweepConfig =
                 serde_json::from_str(raw).expect("capacity config parses");
-            let report = evaluate_capacity_sweep(&input, &config)
-                .expect("capacity sweep should evaluate");
-            assert_eq!(report.status, CounterexampleSweepStatus::CounterexampleFound);
+            let report =
+                evaluate_capacity_sweep(&input, &config).expect("capacity sweep should evaluate");
+            assert_eq!(
+                report.status,
+                CounterexampleSweepStatus::CounterexampleFound
+            );
             assert_eq!(
                 report.attempts.first().unwrap().capacity,
                 report.baseline_capacity
@@ -2869,8 +2879,7 @@ mod tests {
                 .push(report.attempts.last().unwrap().removed_feasible_count);
         }
         assert_ne!(
-            first_counterexample_removed_counts[0],
-            first_counterexample_removed_counts[1],
+            first_counterexample_removed_counts[0], first_counterexample_removed_counts[1],
             "cost and crew cap challenges must be discriminating, not the same constraint in disguise"
         );
     }
