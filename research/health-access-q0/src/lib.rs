@@ -3,7 +3,7 @@ use sha2::{Digest, Sha256};
 use std::collections::{HashMap, HashSet};
 
 pub const EXPECTED_CORPUS_SHA256: &str =
-    "59ee559cb4624f25103c153876d89bf64a91a3c7fc2027a10f238359e9826fd5";
+    "2a43fd9beacb5b3bee616571c9ae1b0effc44e0b5f9129385d65e650719af54d";
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -47,6 +47,7 @@ pub struct Edge {
     pub to_node: String,
     pub travel_time_minutes: u32,
     pub state: EdgeState,
+    pub directionality: Directionality,
 }
 
 #[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
@@ -55,6 +56,14 @@ pub enum EdgeState {
     Available,
     Blocked,
     Unknown,
+}
+
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum Directionality {
+    Both,
+    ForwardOnly,
+    ReverseOnly,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -167,7 +176,7 @@ pub fn validate_case(case: &AccessCase) -> Result<(), String> {
         return Err(format!("{}: node list must not be empty", case.id));
     }
     if case.evaluation_minute >= 1440 {
-        return Err(format!("{}: evaluation_minute must be within the day", case.id));
+        return Err(format!("{}: departure minute must be within the day", case.id));
     }
     if case.demand.units == 0 {
         return Err(format!("{}: demand units must be positive", case.id));
@@ -209,26 +218,30 @@ fn shortest_travel_minutes(case: &AccessCase, target: &str) -> Option<u32> {
         .collect();
     distance.insert(case.demand.node.as_str(), 0);
 
-    // Bellman-Ford over undirected available edges. Fixture graphs are small;
-    // this intentionally favors auditable simplicity over performance.
+    // Bellman-Ford over available edges with explicit directionality. Fixture
+    // graphs are small; auditable simplicity matters more than performance.
     for _ in 0..case.nodes.len().saturating_sub(1) {
         let mut changed = false;
         for edge in &case.edges {
             if edge.state != EdgeState::Available {
                 continue;
             }
-            let from_dist = *distance.get(edge.from_node.as_str())?;
-            if let Some(candidate) = from_dist.checked_add(edge.travel_time_minutes) {
-                if candidate < *distance.get(edge.to_node.as_str())? {
-                    distance.insert(edge.to_node.as_str(), candidate);
-                    changed = true;
+            if edge.directionality != Directionality::ReverseOnly {
+                let from_dist = *distance.get(edge.from_node.as_str())?;
+                if let Some(candidate) = from_dist.checked_add(edge.travel_time_minutes) {
+                    if candidate < *distance.get(edge.to_node.as_str())? {
+                        distance.insert(edge.to_node.as_str(), candidate);
+                        changed = true;
+                    }
                 }
             }
-            let to_dist = *distance.get(edge.to_node.as_str())?;
-            if let Some(candidate) = to_dist.checked_add(edge.travel_time_minutes) {
-                if candidate < *distance.get(edge.from_node.as_str())? {
-                    distance.insert(edge.from_node.as_str(), candidate);
-                    changed = true;
+            if edge.directionality != Directionality::ForwardOnly {
+                let to_dist = *distance.get(edge.to_node.as_str())?;
+                if let Some(candidate) = to_dist.checked_add(edge.travel_time_minutes) {
+                    if candidate < *distance.get(edge.from_node.as_str())? {
+                        distance.insert(edge.from_node.as_str(), candidate);
+                        changed = true;
+                    }
                 }
             }
         }
@@ -253,10 +266,14 @@ pub fn evaluate_case(case: &AccessCase) -> Result<AuditResult, String> {
                 && facility.readiness == Readiness::Ready
                 && !facility.source_id.trim().is_empty()
                 && facility.evidence_age_days <= case.max_evidence_age_days
-                && case.evaluation_minute >= facility.opens_minute
-                && case.evaluation_minute < facility.closes_minute
-                && shortest_travel_minutes(case, facility.node.as_str())
-                    .is_some_and(|minutes| minutes <= case.max_travel_time_minutes)
+                && shortest_travel_minutes(case, facility.node.as_str()).is_some_and(|minutes| {
+                    minutes <= case.max_travel_time_minutes
+                        && case.evaluation_minute.checked_add(minutes).is_some_and(|arrival| {
+                            arrival < 1440
+                                && arrival >= facility.opens_minute
+                                && arrival < facility.closes_minute
+                        })
+                })
         })
         .collect();
     eligible.sort_by(|left, right| left.id.cmp(&right.id));
@@ -296,7 +313,7 @@ mod tests {
 
     #[test]
     fn fixture_digest_is_pinned() {
-        assert_eq!(FIXTURE.len(), 12_127);
+        assert_eq!(FIXTURE.len(), 13_881);
         assert_eq!(sha256(FIXTURE), EXPECTED_CORPUS_SHA256);
     }
 
@@ -385,6 +402,16 @@ mod tests {
         let mut scenario = corpus().cases.remove(0);
         scenario.edges[0].to_node = "undeclared-node".to_string();
         assert!(validate_case(&scenario).is_err());
+    }
+
+    #[test]
+    fn reverse_only_route_does_not_grant_outbound_access() {
+        let mut scenario = corpus().cases.remove(0);
+        scenario.edges[0].directionality = Directionality::ReverseOnly;
+        let result = evaluate_case(&scenario).unwrap();
+        assert!(result.eligible_facility_ids.is_empty());
+        assert_eq!(result.reachable_capacity_units, 0);
+        assert_eq!(result.unserved_units, scenario.demand.units);
     }
 
     #[test]
