@@ -583,7 +583,7 @@ fn rule_based_causes(case: &Value) -> BTreeSet<String> {
         "PRACTICAL_COMPETENCE_UNVERIFIED",
     ]
     .iter()
-    .filter(|cause| causes.contains(***cause))
+    .filter(|cause| causes.contains(**cause))
     .count();
     if confirmed_blocker_count >= 2 {
         causes.insert("INTERACTING_BOTTLENECKS".to_string());
