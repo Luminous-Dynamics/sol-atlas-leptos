@@ -632,6 +632,12 @@ mod tests {
         assert_eq!(report.ineligible_candidate_count, 2);
         assert_eq!(report.selected_candidate_count, 2);
         assert_eq!(report.eligible_not_selected_count, 2);
+        assert_eq!(report.eligible_spatial_temporal_stratum_count, 3);
+        assert_eq!(report.selected_spatial_temporal_stratum_count, 2);
+        close(
+            report.eligible_spatial_temporal_stratum_coverage_fraction,
+            2.0 / 3.0,
+        );
         assert_eq!(
             report.selected_candidate_ids,
             vec![
