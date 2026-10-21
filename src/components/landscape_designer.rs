@@ -1430,6 +1430,29 @@ mod tests {
     }
 
     #[test]
+    fn metric_candidate_sources_resolve_to_catalogued_records_and_are_not_ingested() {
+        let cards = landscape_metric_cards().unwrap();
+        let source_count = cards
+            .iter()
+            .map(|card| card.candidate_sources.len())
+            .sum::<usize>();
+        assert_eq!(source_count, 12);
+        assert!(cards.iter().all(|card| !card.unprovided_inputs.is_empty()));
+        assert!(cards.iter().flat_map(|card| card.candidate_sources.iter()).all(|source| {
+            !source.id.is_empty()
+                && !source.title.is_empty()
+                && !source.role.is_empty()
+                && !source.limitation.is_empty()
+                && source.ingestion_state == "not-ingested"
+        }));
+        assert!(
+            cards
+                .iter()
+                .any(|card| card.candidate_sources.is_empty() && !card.unprovided_inputs.is_empty())
+        );
+    }
+
+    #[test]
     fn evidence_readiness_reports_catalogued_candidates_not_ingested_layers() {
         assert_eq!(landscape_source_status().unwrap(), (7, 0));
     }
