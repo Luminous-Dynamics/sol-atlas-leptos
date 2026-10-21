@@ -23,7 +23,8 @@
         "authorization_status": "valid_for_scope",
         "dispatch_status": "feasible",
         "wage_and_shift_status": "viable",
-        "evidence_status": "complete"
+        "evidence_status": "complete",
+        "reported_backlog": true
       },
       "oracle": {
         "causes": [
@@ -53,7 +54,8 @@
         "authorization_status": "valid_for_scope",
         "dispatch_status": "feasible",
         "wage_and_shift_status": "unknown",
-        "evidence_status": "complete"
+        "evidence_status": "complete",
+        "reported_backlog": true
       },
       "oracle": {
         "causes": [
@@ -82,7 +84,8 @@
         "tools_and_spares": "critical_spare_missing",
         "authorization_status": "valid_for_scope",
         "dispatch_status": "feasible",
-        "evidence_status": "complete"
+        "evidence_status": "complete",
+        "reported_backlog": true
       },
       "oracle": {
         "causes": [
@@ -111,7 +114,8 @@
         "tools_and_spares": "available",
         "authorization_status": "inspection_pending",
         "dispatch_status": "feasible",
-        "evidence_status": "complete"
+        "evidence_status": "complete",
+        "reported_backlog": true
       },
       "oracle": {
         "causes": [
@@ -141,7 +145,8 @@
         "tools_and_spares": "available",
         "authorization_status": "valid_for_scope",
         "dispatch_status": "travel_shift_mismatch",
-        "evidence_status": "complete"
+        "evidence_status": "complete",
+        "reported_backlog": true
       },
       "oracle": {
         "causes": [
@@ -170,7 +175,8 @@
         "authorization_status": "valid_for_scope",
         "dispatch_status": "feasible",
         "wage_and_shift_status": "nonviable_synthetic",
-        "evidence_status": "complete"
+        "evidence_status": "complete",
+        "reported_backlog": true
       },
       "oracle": {
         "causes": [
@@ -199,7 +205,8 @@
         "tools_and_spares": "unknown",
         "authorization_status": "unknown",
         "dispatch_status": "unknown",
-        "evidence_status": "stale_and_conflicting"
+        "evidence_status": "stale_and_conflicting",
+        "reported_backlog": true
       },
       "oracle": {
         "causes": [
@@ -229,7 +236,8 @@
         "qualified_supervisor_available": true,
         "tools_and_spares": "available",
         "authorization_status": "supervised_scope_valid",
-        "evidence_status": "complete"
+        "evidence_status": "complete",
+        "reported_backlog": true
       },
       "oracle": {
         "causes": [
@@ -259,7 +267,8 @@
         "tools_and_spares": "critical_spare_missing",
         "authorization_status": "valid_for_scope",
         "dispatch_status": "feasible",
-        "evidence_status": "complete"
+        "evidence_status": "complete",
+        "reported_backlog": true
       },
       "oracle": {
         "causes": [
@@ -291,7 +300,8 @@
         "available_task_ready_capacity": 4,
         "tools_and_spares": "available",
         "authorization_status": "valid_for_scope",
-        "evidence_status": "partial"
+        "evidence_status": "partial",
+        "reported_backlog": true
       },
       "oracle": {
         "causes": [
@@ -322,7 +332,8 @@
         "practical_assessment_status": "missing",
         "tools_and_spares": "available",
         "authorization_status": "unknown",
-        "evidence_status": "incomplete"
+        "evidence_status": "incomplete",
+        "reported_backlog": true
       },
       "oracle": {
         "causes": [
@@ -353,7 +364,8 @@
         "tools_and_spares": "available",
         "authorization_status": "unknown",
         "dispatch_status": "feasible",
-        "evidence_status": "partial"
+        "evidence_status": "partial",
+        "reported_backlog": true
       },
       "oracle": {
         "causes": [
