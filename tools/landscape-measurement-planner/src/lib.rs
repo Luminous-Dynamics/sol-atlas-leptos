@@ -113,6 +113,11 @@ pub struct PlanReport {
     pub greedy_ratio_baseline_cost_units: u32,
     pub greedy_ratio_baseline_weighted_discrimination_nats: f64,
     pub exact_gain_over_greedy_ratio_baseline_nats: f64,
+    pub uniform_baseline_replicates: usize,
+    pub uniform_baseline_mean_weighted_discrimination_nats: f64,
+    pub uniform_baseline_best_weighted_discrimination_nats: f64,
+    pub uniform_baseline_mean_stratum_coverage_fraction: f64,
+    pub exact_gain_over_uniform_mean_nats: f64,
     pub decisions: Vec<CandidateDecision>,
 }
 
@@ -411,25 +416,11 @@ fn select_exact_budgeted(
     best
 }
 
-fn select_greedy_ratio(
-    candidates: &[Candidate],
+fn select_in_order(
+    ordered: Vec<&Candidate>,
     scores: &BTreeMap<String, CandidateScore>,
     budget: u32,
 ) -> PlanState {
-    let mut ordered: Vec<&Candidate> = candidates
-        .iter()
-        .filter(|candidate| eligible(candidate))
-        .collect();
-    ordered.sort_by(|left, right| {
-        let left_ratio =
-            scores[&left.candidate_id].weighted_discrimination_nats / left.cost_units as f64;
-        let right_ratio =
-            scores[&right.candidate_id].weighted_discrimination_nats / right.cost_units as f64;
-        right_ratio
-            .total_cmp(&left_ratio)
-            .then_with(|| left.candidate_id.cmp(&right.candidate_id))
-    });
-
     let mut selected_ids = Vec::new();
     let mut selected_groups = BTreeSet::new();
     let mut spent = 0u32;
@@ -451,6 +442,78 @@ fn select_greedy_ratio(
     PlanState {
         weighted_discrimination_nats,
         selected_ids,
+    }
+}
+
+fn select_greedy_ratio(
+    candidates: &[Candidate],
+    scores: &BTreeMap<String, CandidateScore>,
+    budget: u32,
+) -> PlanState {
+    let mut ordered: Vec<&Candidate> = candidates
+        .iter()
+        .filter(|candidate| eligible(candidate))
+        .collect();
+    ordered.sort_by(|left, right| {
+        let left_ratio =
+            scores[&left.candidate_id].weighted_discrimination_nats / left.cost_units as f64;
+        let right_ratio =
+            scores[&right.candidate_id].weighted_discrimination_nats / right.cost_units as f64;
+        right_ratio
+            .total_cmp(&left_ratio)
+            .then_with(|| left.candidate_id.cmp(&right.candidate_id))
+    });
+    select_in_order(ordered, scores, budget)
+}
+
+fn select_seeded_uniform(
+    candidates: &[Candidate],
+    scores: &BTreeMap<String, CandidateScore>,
+    budget: u32,
+    seed: u64,
+) -> PlanState {
+    let mut ordered: Vec<&Candidate> = candidates
+        .iter()
+        .filter(|candidate| eligible(candidate))
+        .collect();
+    ordered.sort_by(|left, right| left.candidate_id.cmp(&right.candidate_id));
+    let mut state = seed ^ 0x9E37_79B9_7F4A_7C15;
+    for index in (1..ordered.len()).rev() {
+        state = state
+            .wrapping_mul(6_364_136_223_846_793_005)
+            .wrapping_add(1_442_695_040_888_963_407);
+        let other = (state as usize) % (index + 1);
+        ordered.swap(index, other);
+    }
+    select_in_order(ordered, scores, budget)
+}
+
+fn stratum_coverage_fraction(candidates: &[Candidate], selected_ids: &[String]) -> f64 {
+    let eligible_strata: BTreeSet<(&str, &str)> = candidates
+        .iter()
+        .filter(|candidate| eligible(candidate))
+        .map(|candidate| {
+            (
+                candidate.spatial_stratum.as_str(),
+                candidate.temporal_stratum.as_str(),
+            )
+        })
+        .collect();
+    let selected: BTreeSet<&str> = selected_ids.iter().map(String::as_str).collect();
+    let selected_strata: BTreeSet<(&str, &str)> = candidates
+        .iter()
+        .filter(|candidate| selected.contains(candidate.candidate_id.as_str()))
+        .map(|candidate| {
+            (
+                candidate.spatial_stratum.as_str(),
+                candidate.temporal_stratum.as_str(),
+            )
+        })
+        .collect();
+    if eligible_strata.is_empty() {
+        0.0
+    } else {
+        selected_strata.len() as f64 / eligible_strata.len() as f64
     }
 }
 
@@ -483,6 +546,26 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
     let selected = select_exact_budgeted(&fixture.candidates, &scores, fixture.budget_cost_units);
     let greedy_baseline =
         select_greedy_ratio(&fixture.candidates, &scores, fixture.budget_cost_units);
+    const UNIFORM_REPLICATES: u64 = 64;
+    let uniform_plans: Vec<PlanState> = (0..UNIFORM_REPLICATES)
+        .map(|seed| {
+            select_seeded_uniform(&fixture.candidates, &scores, fixture.budget_cost_units, seed)
+        })
+        .collect();
+    let uniform_mean_score = uniform_plans
+        .iter()
+        .map(|plan| plan.weighted_discrimination_nats)
+        .sum::<f64>()
+        / UNIFORM_REPLICATES as f64;
+    let uniform_best_score = uniform_plans
+        .iter()
+        .map(|plan| plan.weighted_discrimination_nats)
+        .fold(0.0_f64, f64::max);
+    let uniform_mean_coverage = uniform_plans
+        .iter()
+        .map(|plan| stratum_coverage_fraction(&fixture.candidates, &plan.selected_ids))
+        .sum::<f64>()
+        / UNIFORM_REPLICATES as f64;
     let selected_set: BTreeSet<&str> = selected.selected_ids.iter().map(String::as_str).collect();
     let selected_cost_units = fixture
         .candidates
@@ -602,6 +685,13 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
         ),
         exact_gain_over_greedy_ratio_baseline_nats: rounded(
             selected.weighted_discrimination_nats - greedy_baseline.weighted_discrimination_nats,
+        ),
+        uniform_baseline_replicates: UNIFORM_REPLICATES as usize,
+        uniform_baseline_mean_weighted_discrimination_nats: rounded(uniform_mean_score),
+        uniform_baseline_best_weighted_discrimination_nats: rounded(uniform_best_score),
+        uniform_baseline_mean_stratum_coverage_fraction: rounded(uniform_mean_coverage),
+        exact_gain_over_uniform_mean_nats: rounded(
+            selected.weighted_discrimination_nats - uniform_mean_score,
         ),
         decisions,
     })
