@@ -189,7 +189,7 @@ pub fn validate_fixture(fixture: &Fixture) -> Result<(), Vec<String>> {
     }
 
     let mut ids = BTreeSet::new();
-    let mut model_by_metric_unit: BTreeMap<(String, String), (String, String)> = BTreeMap::new();
+    let mut model_by_metric: BTreeMap<String, (String, String, String)> = BTreeMap::new();
     if let Some(first) = fixture.candidates.first() {
         for candidate in &fixture.candidates {
             if candidate.baseline_scenario_sha256 != first.baseline_scenario_sha256
@@ -200,17 +200,21 @@ pub fn validate_fixture(fixture: &Fixture) -> Result<(), Vec<String>> {
                     candidate.candidate_id
                 ));
             }
-            let key = (candidate.metric_id.clone(), candidate.unit.clone());
-            let family = (candidate.model_family_id.clone(), candidate.model_version.clone());
-            if let Some(existing) = model_by_metric_unit.get(&key) {
+            let key = candidate.metric_id.clone();
+            let family = (
+                candidate.unit.clone(),
+                candidate.model_family_id.clone(),
+                candidate.model_version.clone(),
+            );
+            if let Some(existing) = model_by_metric.get(&key) {
                 if existing != &family {
                     errors.push(format!(
-                        "{}: model family/version differs within metric {} ({})",
-                        candidate.candidate_id, key.0, key.1
+                        "{}: unit/model-family/model-version contract differs within metric {}",
+                        candidate.candidate_id, key
                     ));
                 }
             } else {
-                model_by_metric_unit.insert(key, family);
+                model_by_metric.insert(key, family);
             }
         }
     }
@@ -1018,6 +1022,17 @@ mod tests {
         let mut mismatched_version = fixture();
         mismatched_version.candidates[1].model_version = "9.9.9".to_owned();
         assert!(validate_fixture(&mismatched_version).is_err());
+    }
+
+    #[test]
+    fn metric_id_cannot_mix_units_or_model_versions() {
+        let mut mixed_units = fixture();
+        mixed_units.candidates[1].unit = "kelvin".to_owned();
+        assert!(validate_fixture(&mixed_units).is_err());
+
+        let mut mixed_versions = fixture();
+        mixed_versions.candidates[1].model_version = "9.9.9".to_owned();
+        assert!(validate_fixture(&mixed_versions).is_err());
     }
 
     #[test]
