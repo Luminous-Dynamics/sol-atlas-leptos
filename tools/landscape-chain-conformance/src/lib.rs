@@ -679,62 +679,6 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
     if !matches!(parsed_metric_observation_map, Ok(parsed) if parsed == chain.metric_observation_map) {
         errors.push("metric-observation crosswalk object differs from its exact source bytes".to_owned());
     }
-    check_eq(
-        &mut errors,
-        &chain.metric_observation_map,
-        &["schema"],
-        "luminous.landscape-metric-observation-map.v0",
-        "metric-observation crosswalk",
-    );
-    check_eq(
-        &mut errors,
-        &chain.metric_observation_map,
-        &["schema_uri"],
-        "https://luminousdynamics.io/schemas/landscape-metric-observation-map-v0.schema.json",
-        "metric-observation crosswalk",
-    );
-    check_eq(
-        &mut errors,
-        &chain.metric_observation_map,
-        &["registry_schema_uri"],
-        "https://luminousdynamics.io/schemas/landscape-performance-registry-v0.schema.json",
-        "metric-observation crosswalk registry schema",
-    );
-    check_eq(
-        &mut errors,
-        &chain.metric_observation_map,
-        &["registry_version"],
-        "landscape-performance-registry-v0",
-        "metric-observation crosswalk registry version",
-    );
-    if let Some(mappings) = records(&chain.metric_observation_map, &["mappings"]) {
-        let registry_ids = registry_metric_ids(&chain.metric_registry);
-        let mut mapped_metric_ids = BTreeSet::new();
-        for mapping in mappings {
-            if let Some(metric_id) = string_at(mapping, &["metric_id"]) {
-                if !registry_ids.contains(metric_id) {
-                    errors.push(format!("crosswalk references metric {metric_id} absent from the pinned metric registry"));
-                }
-                if !mapped_metric_ids.insert(metric_id) {
-                    errors.push(format!("crosswalk contains duplicate metric mapping: {metric_id}"));
-                }
-            } else {
-                errors.push("crosswalk mapping is missing metric_id".to_owned());
-            }
-        }
-    } else {
-        errors.push("metric-observation crosswalk requires mappings[]".to_owned());
-    }
-    let crosswalk_matches = observation_crosswalk_match_count(chain);
-    let crosswalk_eligible = eligible_supporting_observation_count(chain);
-    if crosswalk_eligible != 0 && chain.observations["observations"].as_array().is_some_and(|rows| {
-        rows.iter().any(|row| matches!(string_at(row, &["evidence_class"]), Some("synthetic-test" | "synthetic-fixture")))
-    }) {
-        errors.push("synthetic observation unexpectedly counted as eligible metric support".to_owned());
-    }
-    if crosswalk_matches + unmapped_observation_count(chain) != observation_count {
-        errors.push("crosswalk match census does not equal total observation count".to_owned());
-    }
     let parsed_source_catalog = parse_json(&chain.source_catalog_bytes, "source-catalog.json");
     if !matches!(parsed_source_catalog, Ok(parsed) if parsed == chain.source_catalog) {
         errors.push("source catalog object differs from its exact source bytes".to_owned());
@@ -769,7 +713,6 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
             String::new()
         }
     };
-    let observations = records(&chain.observations, &["observations"]);
     let _stewardship_sha = match canonical_sha256(&chain.stewardship) {
         Ok(digest) => digest,
         Err(error) => {
@@ -975,6 +918,63 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
     }
     if observation_count == 0 {
         errors.push("observation batch must contain at least one observation".to_owned());
+    }
+
+    check_eq(
+        &mut errors,
+        &chain.metric_observation_map,
+        &["schema"],
+        "luminous.landscape-metric-observation-map.v0",
+        "metric-observation crosswalk",
+    );
+    check_eq(
+        &mut errors,
+        &chain.metric_observation_map,
+        &["schema_uri"],
+        "https://luminousdynamics.io/schemas/landscape-metric-observation-map-v0.schema.json",
+        "metric-observation crosswalk",
+    );
+    check_eq(
+        &mut errors,
+        &chain.metric_observation_map,
+        &["registry_schema_uri"],
+        "https://luminousdynamics.io/schemas/landscape-performance-registry-v0.schema.json",
+        "metric-observation crosswalk registry schema",
+    );
+    check_eq(
+        &mut errors,
+        &chain.metric_observation_map,
+        &["registry_version"],
+        "landscape-performance-registry-v0",
+        "metric-observation crosswalk registry version",
+    );
+    if let Some(mappings) = records(&chain.metric_observation_map, &["mappings"]) {
+        let registry_ids = registry_metric_ids(&chain.metric_registry);
+        let mut mapped_metric_ids = BTreeSet::new();
+        for mapping in mappings {
+            if let Some(metric_id) = string_at(mapping, &["metric_id"]) {
+                if !registry_ids.contains(metric_id) {
+                    errors.push(format!("crosswalk references metric {metric_id} absent from the pinned metric registry"));
+                }
+                if !mapped_metric_ids.insert(metric_id) {
+                    errors.push(format!("crosswalk contains duplicate metric mapping: {metric_id}"));
+                }
+            } else {
+                errors.push("crosswalk mapping is missing metric_id".to_owned());
+            }
+        }
+    } else {
+        errors.push("metric-observation crosswalk requires mappings[]".to_owned());
+    }
+    let crosswalk_matches = observation_crosswalk_match_count(chain);
+    let crosswalk_eligible = eligible_supporting_observation_count(chain);
+    if crosswalk_eligible != 0 && chain.observations["observations"].as_array().is_some_and(|rows| {
+        rows.iter().any(|row| matches!(string_at(row, &["evidence_class"]), Some("synthetic-test" | "synthetic-fixture")))
+    }) {
+        errors.push("synthetic observation unexpectedly counted as eligible metric support".to_owned());
+    }
+    if crosswalk_matches + unmapped_observation_count(chain) != observation_count {
+        errors.push("crosswalk match census does not equal total observation count".to_owned());
     }
 
     check_eq(
