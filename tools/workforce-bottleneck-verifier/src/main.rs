@@ -797,4 +797,33 @@ mod tests {
             .push(Value::String("COUNT_AS_FUNDED_JOB".to_string()));
         assert!(validate_cross_fields(&value).is_err());
     }
+
+    #[test]
+    fn capacity_signal_mutation_changes_diagnosis() {
+        let mut value = fixture();
+        let original = rule_based_causes(&value["cases"][0]);
+        assert!(original.contains("SKILLS_CAPACITY"));
+
+        value["cases"][0]["observations"]["required_task_capacity"] = json!(2);
+        value["cases"][0]["observations"]["available_task_ready_capacity"] = json!(4);
+        let mutated = rule_based_causes(&value["cases"][0]);
+        assert!(!mutated.contains("SKILLS_CAPACITY"));
+        assert_ne!(original, mutated);
+    }
+
+    #[test]
+    fn supervised_training_fails_closed_without_qualified_supervisor() {
+        let mut value = fixture();
+        value["cases"][0]["observations"]["qualified_supervisor_available"] = Value::Bool(false);
+        assert!(validate_cross_fields(&value).is_err());
+    }
+
+    #[test]
+    fn unknown_authorization_is_uncertainty_not_confirmed_gate_failure() {
+        let mut value = fixture();
+        value["cases"][3]["observations"]["authorization_status"] = json!("unknown");
+        let inferred = rule_based_causes(&value["cases"][3]);
+        assert!(inferred.contains("EVIDENCE_INSUFFICIENT"));
+        assert!(!inferred.contains("AUTHORIZATION_OR_SAFETY_GATE"));
+    }
 }
