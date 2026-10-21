@@ -50,6 +50,7 @@ pub struct ChainArtifacts {
     evaluation_plan: Value,
     observations: Value,
     scenario: Value,
+    alternative_scenario: Value,
     stewardship: Value,
     review: Value,
     template_digests: BTreeMap<String, String>,
@@ -73,6 +74,8 @@ pub struct ConformanceReport {
     pub source_catalog_record_count: usize,
     pub source_catalog_status: String,
     pub scenario_execution_status: String,
+    pub paired_scenario_count: usize,
+    pub paired_scenarios_share_boundary_conditions: bool,
     pub review_ranking_status: String,
     pub recommendation_status: String,
     pub passed_check_count: usize,
@@ -365,6 +368,27 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
     )
     .map_err(|error| vec![error])?;
     let scenario_sha = canonical_sha256(&scenario).map_err(|error| vec![error])?;
+    let mut alternative_scenario = scenario.clone();
+    set_str(
+        &mut alternative_scenario,
+        &["scenario_id"],
+        "scenario-landscape-alternative-synthetic-v0",
+    )
+    .map_err(|error| vec![error])?;
+    set_str(
+        &mut alternative_scenario,
+        &["design_snapshot", "sha256"],
+        &alternative_sha,
+    )
+    .map_err(|error| vec![error])?;
+    set_at(
+        &mut alternative_scenario,
+        &["design_snapshot", "feature_count"],
+        json!(feature_count(&alternative)),
+    )
+    .map_err(|error| vec![error])?;
+    let alternative_scenario_sha =
+        canonical_sha256(&alternative_scenario).map_err(|error| vec![error])?;
 
     set_str(
         &mut stewardship,
@@ -499,19 +523,34 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
     let purpose = string_at(&scenario, &["purpose"])
         .ok_or_else(|| vec!["scenario.purpose is missing".to_owned()])?
         .to_owned();
-    review["inputs"]["scenario_runs"] = json!([{
-        "system": "symtropy",
-        "manifest_sha256": scenario_sha,
-        "purpose": purpose,
-        "evidence_class": "synthetic",
-        "status": "blocked",
-        "model_id": model_id,
-        "model_version": model_version,
-        "limitations": [
-            "Scenario is schema-qualified only; it has not run a physical landscape model.",
-            "Design uses schematic local drawing units and is not georeferenced."
-        ]
-    }]);
+    review["inputs"]["scenario_runs"] = json!([
+        {
+            "system": "symtropy",
+            "manifest_sha256": scenario_sha,
+            "purpose": purpose,
+            "evidence_class": "synthetic",
+            "status": "blocked",
+            "model_id": model_id,
+            "model_version": model_version,
+            "limitations": [
+                "Baseline scenario is schema-qualified only; it has not run a physical landscape model.",
+                "Design uses schematic local drawing units and is not georeferenced."
+            ]
+        },
+        {
+            "system": "symtropy",
+            "manifest_sha256": alternative_scenario_sha,
+            "purpose": purpose,
+            "evidence_class": "synthetic",
+            "status": "blocked",
+            "model_id": model_id,
+            "model_version": model_version,
+            "limitations": [
+                "Alternative scenario is schema-qualified only; it has not run a physical landscape model.",
+                "Design uses schematic local drawing units and is not georeferenced."
+            ]
+        }
+    ]);
 
     let template_digests = template_digest_map(&[
         ("evaluation-plan-template.json", &eval_template_bytes),
@@ -551,6 +590,7 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
             evaluation_plan,
             observations,
             scenario,
+            alternative_scenario,
             stewardship,
             review,
             template_digests,
