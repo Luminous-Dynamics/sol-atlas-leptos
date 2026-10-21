@@ -1586,7 +1586,11 @@ pub fn evaluate_capacity_sweep(
         }
     }
 
-    let status = if !remaining_values.is_empty() && attempts.len() >= evaluation_budget {
+    let status = if config.stop_on_first_counterexample
+        && first_counterexample_capacity.is_some()
+    {
+        CounterexampleSweepStatus::CounterexampleFound
+    } else if !remaining_values.is_empty() && attempts.len() >= evaluation_budget {
         CounterexampleSweepStatus::BudgetExhausted
     } else if first_counterexample_capacity.is_some() {
         CounterexampleSweepStatus::CounterexampleFound
@@ -2919,6 +2923,17 @@ mod tests {
         );
         assert_eq!(exhausted.attempted_values, vec![3]);
         assert!(exhausted.remaining_values.is_empty());
+
+        config.capacity_values = vec![3, 2, 1, 0];
+        config.max_evaluations = 2;
+        config.stop_on_first_counterexample = true;
+        let early_stop = evaluate_capacity_sweep(&input, &config).unwrap();
+        assert_eq!(
+            early_stop.status,
+            CounterexampleSweepStatus::CounterexampleFound
+        );
+        assert_eq!(early_stop.first_counterexample_capacity, Some(2));
+        assert_eq!(early_stop.remaining_values, vec![1, 0]);
 
         config.capacity_values = vec![3, 2, 1, 0];
         config.max_evaluations = 1;
