@@ -30,12 +30,12 @@ The one-per-correlation-group rule is a conservative v0.1 anti-redundancy constr
 
 Budget: 6 cost units. The report calculates a score-per-cost greedy baseline as well as the exact constrained optimum. In this fixture the greedy baseline selects the cost-4 candidate with score 7; exact budgeted selection chooses two cost-3 candidates with total score 10, a synthetic gain of 3 discrimination-nats. These are algorithm oracles, not empirical performance, cash costs, or a landscape benefit.
 
-Known-answer checks cover the Gaussian symmetric-KL equation, exact budgeted selection, one-per-group selection, fail-closed consent/access, duplicate IDs, the synthetic-only claim ceiling, input digests and deterministic reports.
+Known-answer checks cover the Gaussian symmetric-KL equation, exact budgeted selection, one-per-group selection, fail-closed consent/access, duplicate IDs, the synthetic-only claim ceiling, input digests and deterministic reports. An independent exhaustive-enumeration oracle checks the dynamic program across 24 deterministic six-candidate problem variants, enumerating all 64 subsets per case (1,536 subsets total) across differing budgets, costs, decision weights, and correlation assignments.
 
 ## Benchmark ladder
 
 1. **Contract integrity:** malformed distributions, missing source digests, unknown consent/access, duplicate IDs, and zero-variance values are rejected.
-2. **Small exact oracle:** compare the dynamic program with exhaustive enumeration for randomly generated small problems; require identical optimal score and deterministic tie-breaking.
+2. **Small exact oracle (implemented in v0.1):** compare the dynamic program with exhaustive enumeration across 24 deterministic generated six-candidate problems and budgets; require identical optimal score and selected IDs. Extend coverage with property-based generation and independent oracle implementations before scaling candidate counts.
 3. **Heuristic baselines:** compare exact selection with uniform/coverage sampling, max predicted variance, raw mean-gap ranking, and greedy discrimination-per-cost. Report total weighted score, cost, stratum coverage and runtime separately.
 4. **Redundancy/uncertainty:** add validated spatial covariance, conditional information gain, uncertainty calibration, measurement error and model-form discrepancy. Keep correlated observations from being counted as independent information.
 5. **Decision utility:** only after the objective is preregistered, compare expected decision loss/regret against baseline plans in held-out simulations and prospective field trials.
