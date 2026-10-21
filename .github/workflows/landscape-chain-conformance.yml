@@ -1,0 +1,81 @@
+name: Landscape Chain Conformance
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "tools/landscape-chain-conformance/**"
+      - "fixtures/landscape/chain-conformance-v0/**"
+      - "docs/LANDSCAPE_CHAIN_CONFORMANCE_V0_1.md"
+      - "schemas/landscape-chain-conformance-report-v0.1.schema.json"
+      - ".github/workflows/landscape-chain-conformance.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "tools/landscape-chain-conformance/**"
+      - "fixtures/landscape/chain-conformance-v0/**"
+      - "docs/LANDSCAPE_CHAIN_CONFORMANCE_V0_1.md"
+      - "schemas/landscape-chain-conformance-report-v0.1.schema.json"
+      - ".github/workflows/landscape-chain-conformance.yml"
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  chain-conformance:
+    name: Exact-head synthetic artifact-chain conformance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the exact PR head
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Install pinned Rust toolchain
+        run: |
+          rustup toolchain install 1.96.0 --profile minimal --component rustfmt
+          rustup default 1.96.0
+
+      - name: Check formatting
+        run: cargo fmt --manifest-path tools/landscape-chain-conformance/Cargo.toml -- --check
+
+      - name: Run tests
+        run: cargo test --locked --manifest-path tools/landscape-chain-conformance/Cargo.toml
+
+      - name: Emit and check the frozen conformance report
+        shell: bash
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/landscape-chain-conformance.json"
+          cargo run --locked --manifest-path tools/landscape-chain-conformance/Cargo.toml -- > "$report"
+          jq -e '
+            .schema_version == "luminous.landscape-chain-conformance-report.v0.1" and
+            .suite_id == "LANDSCAPE-CHAIN-CONFORMANCE-V0.1" and
+            .conformance_status == "PASS_SYNTHETIC_CONTRACT_CONFORMANCE_ONLY" and
+            .data_origin == "synthetic_fixture" and
+            .claim_ceiling == "SYNTHETIC_STRUCTURAL_CONFORMANCE_ONLY" and
+            .upstream_pinned_contract_count == 7 and
+            .project_feature_count == 7 and
+            .observation_count == 4 and
+            .scenario_execution_status == "BLOCKED_NOT_EXECUTED" and
+            .source_catalog_status == "metadata-only-not-ingested" and
+            .review_ranking_status == "no-defensible-ranking" and
+            .recommendation_status == "no-ranking" and
+            .passed_check_count == 12 and
+            .negative_controls_attempted == 7 and
+            .negative_controls_rejected == 7 and
+            .negative_controls_unexpectedly_accepted == 0 and
+            ([.artifact_sha256[] | select(test("^[0-9a-f]{64}$"))] | length) == 13
+          ' "$report"
+
+      - name: Upload exact-revision report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: landscape-chain-conformance-v0-1
+          path: ${{ runner.temp }}/landscape-chain-conformance.json
+          if-no-files-found: error
+          retention-days: 30
