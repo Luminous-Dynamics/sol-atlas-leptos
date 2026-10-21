@@ -22,6 +22,7 @@ const MAX_ABS_MEAN: f64 = 1.0e9;
 const MAX_SD: f64 = 1.0e6;
 const MAX_WEIGHT: f64 = 1.0e6;
 const MAX_COST: u32 = 100_000;
+const MAX_CANDIDATES: usize = 1_000;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -173,6 +174,9 @@ pub fn validate_fixture(fixture: &Fixture) -> Result<(), Vec<String>> {
     }
     if fixture.candidates.is_empty() {
         errors.push("candidates must not be empty".to_owned());
+    }
+    if fixture.candidates.len() > MAX_CANDIDATES {
+        errors.push(format!("candidates must not exceed {MAX_CANDIDATES}"));
     }
 
     let mut ids = BTreeSet::new();
@@ -804,6 +808,44 @@ mod tests {
             !report
                 .selected_candidate_ids
                 .contains(&"candidate-f-access-unknown".to_owned())
+        );
+    }
+
+    #[test]
+    fn denied_access_and_unknown_consent_fail_closed() {
+        let mut denied_access = fixture();
+        denied_access.candidates[0].access_status = AccessStatus::Denied;
+        let report = evaluate_fixture(&denied_access, b"synthetic").expect("valid access control case");
+        assert!(
+            !report
+                .selected_candidate_ids
+                .contains(&"candidate-a-high-density".to_owned())
+        );
+        assert_eq!(
+            report
+                .decisions
+                .iter()
+                .find(|decision| decision.candidate_id == "candidate-a-high-density")
+                .and_then(|decision| decision.reason.as_deref()),
+            Some("access_denied")
+        );
+
+        let mut unknown_consent = fixture();
+        unknown_consent.candidates[0].consent_status = ConsentStatus::Unknown;
+        let report =
+            evaluate_fixture(&unknown_consent, b"synthetic").expect("valid consent control case");
+        assert!(
+            !report
+                .selected_candidate_ids
+                .contains(&"candidate-a-high-density".to_owned())
+        );
+        assert_eq!(
+            report
+                .decisions
+                .iter()
+                .find(|decision| decision.candidate_id == "candidate-a-high-density")
+                .and_then(|decision| decision.reason.as_deref()),
+            Some("consent_unknown")
         );
     }
 
