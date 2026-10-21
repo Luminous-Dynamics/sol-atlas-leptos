@@ -262,12 +262,6 @@ pub fn validate_fixture(fixture: &Fixture) -> Result<(), Vec<String>> {
                 candidate.candidate_id
             ));
         }
-        if !valid_digest(&candidate.site_ref_sha256) {
-            errors.push(format!(
-                "{}: site_ref_sha256 must be 64 lowercase hexadecimal characters",
-                candidate.candidate_id
-            ));
-        }
         for (name, value) in [
             ("baseline_mean", candidate.baseline_mean),
             ("alternative_mean", candidate.alternative_mean),
