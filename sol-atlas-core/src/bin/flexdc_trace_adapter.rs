@@ -152,10 +152,10 @@ fn validate_manifest(manifest: &RunManifest) -> Result<(), String> {
         if path.trim().is_empty()
             || path.starts_with('/')
             || path.starts_with('\\')
-            || path.contains('\\n')
-            || path.contains('\\r')
+            || path.contains('\n')
+            || path.contains('\r')
             || path
-                .split(|character| character == '/' || character == '\\\\')
+                .split(|character| character == '/' || character == '\\')
                 .any(|component| component == "..")
         {
             return Err(
@@ -771,13 +771,19 @@ mod tests {
             serde_json::json!("run-001/runtime-environment.txt");
         manifest_value["runtime_environment_sha256"] =
             serde_json::json!(sha256_hex(environment_bytes));
+        let policy_bytes = b"[policy]\nname = AQA\n[bid]\np = 24216\nr = 9626\n[parameters]\n";
+        manifest_value["effective_policy_name"] = serde_json::Value::String("AQA".to_owned());
+        manifest_value["effective_policy_config_path"] =
+            serde_json::json!("effective-policy.ini");
+        manifest_value["effective_policy_config_sha256"] =
+            serde_json::json!(sha256_hex(policy_bytes));
         let real_run_manifest =
             serde_json::to_vec(&manifest_value).expect("manifest JSON should serialize");
-
         let output = build_trace_input(
             TRACE.as_bytes(),
             &real_run_manifest,
             Some(environment_bytes),
+            Some(policy_bytes),
         )
         .expect("complete non-synthetic environment receipt should adapt");
         assert_eq!(output["synthetic"], false);
@@ -788,6 +794,7 @@ mod tests {
                 TRACE.as_bytes(),
                 &real_run_manifest,
                 Some(wrong_environment),
+                Some(policy_bytes),
             )
             .expect_err("environment bytes inconsistent with manifest digest must reject")
             .contains("do not match the declared SHA-256")
