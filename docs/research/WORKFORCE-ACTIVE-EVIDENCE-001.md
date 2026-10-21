@@ -16,7 +16,7 @@ This is the workforce-specific application of active feature acquisition (AFA). 
 
 ## Non-negotiable distinction: root-cause certainty vs decision certainty
 
-A policy may stop even when it has not identified the unique underlying cause. If every remaining plausible hypothesis implies the same safe, authorized operational decision, further investigation is not necessary for that decision. Conversely, a high-confidence-looking prediction is not sufficient when unresolved hypotheses imply materially different actions.
+A policy may stop even when it has not identified the unique underlying cause. If every remaining plausible hypothesis implies the same safe, authorized operational decision, further investigation is not necessary for that decision. Conversely, a high-confidence-looking prediction is not sufficient when unresolved hypotheses imply materially different actions. The fixture’s expected_remaining_hypotheses field records the residual set on the relevant unresolved or unknown-outcome branch; a policy that resolves all fully observed branches may still have to abstain if an unmodelled outcome occurs.
 
 The stopping rule is therefore based on **decision-class agreement**, not only the number of remaining root-cause labels.
 
