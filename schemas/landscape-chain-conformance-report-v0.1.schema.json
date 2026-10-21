@@ -20,6 +20,10 @@
     "unmapped_observation_count",
     "source_catalog_record_count",
     "source_catalog_status",
+    "measurement_consent_status",
+    "site_access_status",
+    "measurement_authorization_verification_status",
+    "measurement_operation_authorized_by_harness",
     "scenario_execution_status",
     "paired_scenario_count",
     "paired_scenarios_share_boundary_conditions",
@@ -139,6 +143,18 @@
     },
     "paired_scenarios_share_boundary_conditions": {
       "const": true
+    },
+    "measurement_consent_status": {
+      "const": "unknown"
+    },
+    "site_access_status": {
+      "const": "unknown"
+    },
+    "measurement_authorization_verification_status": {
+      "const": "not-verified"
+    },
+    "measurement_operation_authorized_by_harness": {
+      "const": false
     }
   }
 }
