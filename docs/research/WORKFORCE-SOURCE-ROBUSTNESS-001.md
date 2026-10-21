@@ -27,12 +27,12 @@ Sources:
 
 This first version owns only source-perturbation cases, the source-sensitivity contract and a synthetic result manifest. It does not create a new source registry, publish a composite shortage score, scrape restricted vacancy systems, identify individual workers, or infer an individual's employability.
 
-It must compose the source metadata/access limits from PR #272, not duplicate source ownership. It must compose the diagnosis labels and action gates from PR #268, not authorize action. If task-ready supply cannot be measured using authorized comparable evidence, say so; do not fill the gap with credential counts or demographic proxies.
+It must compose the source metadata/access limits from PR #272, not duplicate source ownership. It must compose the diagnosis labels and action gates from PR #268, not authorize action. Funded work and task-ready capacity must share the same explicit task-scope identifier as well as aligned geography and period before they can support a task-capacity-gap decision. If task-ready supply cannot be measured using authorized comparable evidence, say so; do not fill the gap with credential counts or demographic proxies.
 
 ## Source record contract
 
 Every source must state:
-- source family, source period, geography and population;
+- source family, source period, geography, population and explicit task-scope identifier;
 - measure, value and unit, with a named denominator where applicable;
 - access class and freshness/age of the source;
 - coverage or sampling limitation and taxonomy/version caveat;
