@@ -60,8 +60,10 @@
         "temporal_stratum",
         "site_ref_sha256",
         "correlation_group",
-        "baseline_model_id",
-        "alternative_model_id",
+        "model_family_id",
+        "model_version",
+        "baseline_scenario_sha256",
+        "alternative_scenario_sha256",
         "baseline_mean",
         "alternative_mean",
         "baseline_sd",
@@ -92,12 +94,6 @@
           "$ref": "#/$defs/sha256"
         },
         "correlation_group": {
-          "$ref": "#/$defs/nonempty"
-        },
-        "baseline_model_id": {
-          "$ref": "#/$defs/nonempty"
-        },
-        "alternative_model_id": {
           "$ref": "#/$defs/nonempty"
         },
         "baseline_mean": {
@@ -141,6 +137,18 @@
             "denied",
             "unknown"
           ]
+        },
+        "model_family_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "model_version": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "baseline_scenario_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "alternative_scenario_sha256": {
+          "$ref": "#/$defs/sha256"
         }
       }
     }
