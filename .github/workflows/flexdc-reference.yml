@@ -65,10 +65,14 @@ jobs:
           run_name="flexdc-reference-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           echo "FLEXDC_RUN_NAME=$run_name" >> "$GITHUB_ENV"
           mkdir -p output/simulation
+          # Preserve and actually use the effective policy config whose bytes
+          # and SHA-256 will travel with the run manifest.
+          cp ../../configs/policy/example_flexDC_simulation.ini \
+            "$GITHUB_WORKSPACE/artifacts/flexdc-reference/effective-policy.ini"
           python run_simulator.py \
             --experiment-config ../../configs/experiment/exp_low_util.ini \
             --cluster-config ../../configs/cluster/cluster.ini \
-            --policy-config ../../configs/policy/example_flexDC_simulation.ini \
+            --policy-config "$GITHUB_WORKSPACE/artifacts/flexdc-reference/effective-policy.ini" \
             --job-config ../../configs/workload/W2-short-qos3445.ini \
             --output-dir "$run_name" \
             --qos-percentile 0.9 \
@@ -97,11 +101,13 @@ jobs:
           bundle = Path("artifacts/flexdc-reference")
           environment_bytes = (bundle / "runtime-environment.txt").read_bytes()
           environment_sha256 = hashlib.sha256(environment_bytes).hexdigest()
+          effective_policy_bytes = (bundle / "effective-policy.ini").read_bytes()
+          effective_policy_sha256 = hashlib.sha256(effective_policy_bytes).hexdigest()
           command = (
               "python run_simulator.py "
               "--experiment-config ../../configs/experiment/exp_low_util.ini "
               "--cluster-config ../../configs/cluster/cluster.ini "
-              "--policy-config ../../configs/policy/example_flexDC_simulation.ini "
+              f"--policy-config {bundle.resolve() / 'effective-policy.ini'} "
               "--job-config ../../configs/workload/W2-short-qos3445.ini "
               f"--output-dir {os.environ['FLEXDC_RUN_NAME']} --qos-percentile 0.9"
           )
@@ -109,6 +115,9 @@ jobs:
               "schema_version": "1.0",
               "run_id": f"gha-{os.environ['GITHUB_RUN_ID']}-{os.environ['GITHUB_RUN_ATTEMPT']}",
               "synthetic": False,
+              "effective_policy_name": "AQA",
+              "effective_policy_config_path": "effective-policy.ini",
+              "effective_policy_config_sha256": effective_policy_sha256,
               "source_revision": "ea50bd582b5d1b55fcb09ea46899fa9d325cce3b",
               "simulator_command": command,
               "random_seed": 20,
