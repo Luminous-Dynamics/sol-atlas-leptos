@@ -58,7 +58,7 @@ jobs:
             .conformance_status == "PASS_SYNTHETIC_CONTRACT_CONFORMANCE_ONLY" and
             .data_origin == "synthetic_fixture" and
             .claim_ceiling == "SYNTHETIC_STRUCTURAL_CONFORMANCE_ONLY" and
-            .upstream_pinned_contract_count == 7 and
+            .upstream_pinned_contract_count == 8 and
             .project_feature_count == 7 and
             .observation_count == 4 and
             .scenario_execution_status == "BLOCKED_NOT_EXECUTED" and
