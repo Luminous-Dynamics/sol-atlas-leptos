@@ -120,6 +120,24 @@ jobs:
           docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-no-effect-control.expected.json
           > sa-portfolio-scenario-addition-no-effect-receipt.json
 
+      - name: Produce bounded compound counterexample sweep receipt
+        run: >-
+          cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --counterexample-sweep
+          docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.json
+          docs/research/fixtures/sa-portfolio-counterexample-sweep-v0.1-compound-template.json
+          docs/research/fixtures/sa-portfolio-counterexample-sweep-v0.1-compound-config.json
+          docs/research/fixtures/sa-portfolio-counterexample-sweep-v0.1-compound.expected.json
+          > sa-portfolio-counterexample-sweep-compound-receipt.json
+
+      - name: Produce bounded no-effect sweep receipt
+        run: >-
+          cargo run --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml -- --counterexample-sweep
+          docs/research/fixtures/sa-economic-portfolio-v0.2-10-project.json
+          docs/research/fixtures/sa-portfolio-scenario-robustness-v0.1-no-effect-control.json
+          docs/research/fixtures/sa-portfolio-counterexample-sweep-v0.1-no-effect-config.json
+          docs/research/fixtures/sa-portfolio-counterexample-sweep-v0.1-no-effect.expected.json
+          > sa-portfolio-counterexample-sweep-no-effect-receipt.json
+
       - name: Build optimized benchmark binary
         run: cargo build --release --manifest-path tools/sa-economic-portfolio-oracle/Cargo.toml
 
@@ -154,6 +172,8 @@ jobs:
             sa-portfolio-scenario-omission-floor-challenge-receipt.json
             sa-portfolio-scenario-addition-compound-stress-receipt.json
             sa-portfolio-scenario-addition-no-effect-receipt.json
+            sa-portfolio-counterexample-sweep-compound-receipt.json
+            sa-portfolio-counterexample-sweep-no-effect-receipt.json
             sa-economic-portfolio-v0.2-comparison-benchmark.json
             sa-economic-portfolio-v0.2-24-search-benchmark.json
           if-no-files-found: ignore
