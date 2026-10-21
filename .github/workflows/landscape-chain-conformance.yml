@@ -58,14 +58,18 @@ jobs:
             .conformance_status == "PASS_SYNTHETIC_CONTRACT_CONFORMANCE_ONLY" and
             .data_origin == "synthetic_fixture" and
             .claim_ceiling == "SYNTHETIC_STRUCTURAL_CONFORMANCE_ONLY" and
-            .upstream_pinned_contract_count == 8 and
+            .upstream_pinned_contract_count == 9 and
             .project_feature_count == 7 and
             .observation_count == 4 and
+            .metric_observation_mapping_count == 8 and
+            .observations_matching_crosswalk_count == 1 and
+            .eligible_supporting_observation_count == 0 and
+            .unmapped_observation_count == 3 and
             .scenario_execution_status == "BLOCKED_NOT_EXECUTED" and
             .source_catalog_status == "metadata-only-not-ingested" and
             .review_ranking_status == "no-defensible-ranking" and
             .recommendation_status == "no-ranking" and
-            .passed_check_count == 12 and
+            .passed_check_count == 13 and
             .negative_controls_attempted == 7 and
             .negative_controls_rejected == 7 and
             .negative_controls_unexpectedly_accepted == 0 and
