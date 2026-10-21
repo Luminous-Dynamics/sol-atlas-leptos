@@ -4,6 +4,14 @@
   "note": "Upstream commits are pinned for provenance. Local fixture templates are synthetic adapters; this harness does not claim to run each upstream repository's validator.",
   "source_contracts": [
     {
+      "source_id": "mycelix-stewardship-profile",
+      "repository": "Luminous-Dynamics/mycelix",
+      "pull_request": 5298,
+      "commit_sha": "95bb7dba7e049331432c9da1386e393219b48b46",
+      "source_path": "mycelix-desci/fixtures/landscape-stewardship-profile-v0.public.example.json",
+      "git_blob_sha": "7e136bfc37b0a93cbb3485d5cab56710c08fdcab"
+    },
+    {
       "source_id": "sol-atlas-design",
       "repository": "Luminous-Dynamics/sol-atlas-leptos",
       "pull_request": 191,
@@ -28,19 +36,20 @@
       "git_blob_sha": "b9ef6aec0ca75ec6814c8bda7292001f3b4d2171"
     },
     {
-      "source_id": "sol-atlas-performance-registry-and-source-catalog",
+      "source_id": "sol-atlas-performance-registry",
       "repository": "Luminous-Dynamics/sol-atlas-leptos",
       "pull_request": 191,
       "commit_sha": "9c2d924b5d8fa42e1a0fa67f83bd6e0db553e894",
-      "source_path": "metrics/landscape/registry-v0.json; data-sources/landscape/south-africa-johannesburg-v0.json"
+      "source_path": "metrics/landscape/registry-v0.json",
+      "git_blob_sha": "1c002c496a5ea7a719e3e8f1fcb56417a3a7654b"
     },
     {
-      "source_id": "symtropy-scenario-contract",
-      "repository": "Luminous-Dynamics/symtropy",
-      "pull_request": 2322,
-      "commit_sha": "e6bf202910b5c6c62ff4852a52dd1285c7ffba85",
-      "source_path": "schemas/landscape-scenario-manifest-v0.schema.json",
-      "git_blob_sha": "8e60fa8d903165776b2d1880bcf9904155b2e515"
+      "source_id": "sol-atlas-source-catalog",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 191,
+      "commit_sha": "9c2d924b5d8fa42e1a0fa67f83bd6e0db553e894",
+      "source_path": "data-sources/landscape/south-africa-johannesburg-v0.json",
+      "git_blob_sha": "520a6e3b57b4c2f0761f0bc20b1756c34106410d"
     },
     {
       "source_id": "symthaea-alternative-review",
@@ -51,12 +60,12 @@
       "git_blob_sha": "b04b244e6be97421f50500ead6353943d069f3e2"
     },
     {
-      "source_id": "mycelix-stewardship-profile",
-      "repository": "Luminous-Dynamics/mycelix",
-      "pull_request": 5298,
-      "commit_sha": "95bb7dba7e049331432c9da1386e393219b48b46",
-      "source_path": "mycelix-desci/fixtures/landscape-stewardship-profile-v0.public.example.json",
-      "git_blob_sha": "7e136bfc37b0a93cbb3485d5cab56710c08fdcab"
+      "source_id": "symtropy-scenario-contract",
+      "repository": "Luminous-Dynamics/symtropy",
+      "pull_request": 2322,
+      "commit_sha": "e6bf202910b5c6c62ff4852a52dd1285c7ffba85",
+      "source_path": "schemas/landscape-scenario-manifest-v0.schema.json",
+      "git_blob_sha": "8e60fa8d903165776b2d1880bcf9904155b2e515"
     }
   ]
 }
