@@ -19,6 +19,9 @@
     "ineligible_candidate_count",
     "selected_candidate_count",
     "eligible_not_selected_count",
+    "eligible_spatial_temporal_stratum_count",
+    "selected_spatial_temporal_stratum_count",
+    "eligible_spatial_temporal_stratum_coverage_fraction",
     "selected_candidate_ids",
     "total_weighted_discrimination_nats",
     "greedy_ratio_baseline_selected_candidate_ids",
@@ -117,6 +120,19 @@
     "exact_gain_over_greedy_ratio_baseline_nats": {
       "type": "number",
       "minimum": 0
+    },
+    "eligible_spatial_temporal_stratum_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "selected_spatial_temporal_stratum_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "eligible_spatial_temporal_stratum_coverage_fraction": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
     }
   },
   "$defs": {
