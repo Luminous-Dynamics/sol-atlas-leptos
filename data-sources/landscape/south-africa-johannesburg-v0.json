@@ -294,6 +294,52 @@
         "Report effective pixel size and valid-data fraction per output.",
         "Separate observed imagery classification from inferred land-cover class."
       ]
+    },
+    {
+      "id": "ngi.cdngi-topo-orthophoto",
+      "title": "National Geo-spatial Information (CD:NGI) topographic maps and orthophoto products",
+      "publisher": "National Geo-spatial Information, Department of Land Reform and Rural Development, South Africa",
+      "service_uri": "https://ngigeoportal.dlrrd.gov.za/cdngiportal/",
+      "metadata_uri": "https://ngi.dlrrd.gov.za/index.php/what-we-do/maps-and-geospatial-information",
+      "access_protocol": "Official geoportal; select and inspect each product/sheet before retrieval. No service endpoint or bulk-download behavior is assumed by this catalog.",
+      "reported_geometry": "Product-dependent raster orthophotos, topographic maps and other geospatial products; exact asset type must be recorded per sheet",
+      "reported_crs": "Product-specific; official map-series references Hartebeesthoek94 datum/WGS84 ellipsoid, but the actual file CRS and axis order must be inspected for each product",
+      "supported_service_formats": [],
+      "spatial_suitability": [
+        "site-parcel-context",
+        "district",
+        "watershed",
+        "bioregion"
+      ],
+      "temporal_currency": {
+        "source_version": "Exact map sheet, product series, edition and orthophoto acquisition date must be selected and pinned before use",
+        "access_checked": "2026-10-21",
+        "observed_at": null,
+        "refresh_policy": "Record exact sheet/product ID, edition/acquisition date and metadata. Do not treat portal access time as observation date."
+      },
+      "attribution": "Use the attribution and copyright notice supplied with the exact CD:NGI product; preserve it with any derived layer.",
+      "license": {
+        "status": "review-required",
+        "note": "Official availability does not by itself establish permission for automated retrieval, offline bundling, redistribution or derivative products. Verify product-specific terms with CD:NGI before ingestion.",
+        "uri": "https://ngi.dlrrd.gov.za/index.php/what-we-do/maps-and-geospatial-information"
+      },
+      "uses": [
+        "Candidate authoritative local context for topographic features and orthophoto-based site screening after exact product, currency, CRS and terms are verified.",
+        "Potential higher-detail validation reference for regional/coarse remote-sensing context, subject to scale and accuracy checks."
+      ],
+      "not_for": [
+        "Assuming all products are downloadable or freely redistributable.",
+        "Treating imagery or 1:50,000 mapping as a current cadastral survey, utility locate or construction-grade elevation model.",
+        "Claiming site-scale geometric accuracy without the product specification and independent control."
+      ],
+      "ingestion_state": "not-ingested",
+      "validation_gates": [
+        "Open the exact geoportal product and record its identifier, title, edition/acquisition date and technical metadata.",
+        "Obtain the actual dataset terms and written permission where required for caching, redistribution and derivative use.",
+        "Record actual CRS, axis order, vertical datum if relevant, pixel size/map scale, accuracy and no-data behavior.",
+        "Validate representative features/elevations against an independent trusted survey or authoritative reference before any engineering use.",
+        "Keep source attribution attached to rendered views and exports."
+      ]
     }
   ],
   "integration_contract": {
