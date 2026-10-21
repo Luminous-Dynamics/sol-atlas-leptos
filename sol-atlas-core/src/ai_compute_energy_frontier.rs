@@ -355,6 +355,10 @@ mod tests {
     fn exact_frontier_contains_only_nondominated_integer_schedules() {
         let mut request = fixture_request();
         request.workloads[1].required_work_units = 10;
+        request.intervals[0].electricity_price_usd_per_kwh = Some(0.02);
+        request.intervals[1].electricity_price_usd_per_kwh = Some(0.30);
+        request.intervals[2].electricity_price_usd_per_kwh = Some(0.40);
+        request.intervals[3].electricity_price_usd_per_kwh = Some(0.50);
         assert_eq!(request.workloads[1].work_class, WorkClass::Deferrable);
 
         let frontier = exact_pareto_frontier(&request, 4096).expect("bounded exact search");
@@ -386,6 +390,10 @@ mod tests {
     fn exact_frontier_is_deterministic_and_covers_reference_policies() {
         let mut request = fixture_request();
         request.workloads[1].required_work_units = 10;
+        request.intervals[0].electricity_price_usd_per_kwh = Some(0.02);
+        request.intervals[1].electricity_price_usd_per_kwh = Some(0.30);
+        request.intervals[2].electricity_price_usd_per_kwh = Some(0.40);
+        request.intervals[3].electricity_price_usd_per_kwh = Some(0.50);
 
         let frontier = exact_pareto_frontier(&request, 4096).expect("bounded exact search");
         assert_eq!(
@@ -398,8 +406,7 @@ mod tests {
             SchedulingPolicy::LowestCost,
             SchedulingPolicy::LowestCarbon,
         ] {
-            let baseline =
-                schedule_deferrable(&request, policy).expect("policy returns assessment");
+            let baseline = schedule_deferrable(&request, policy);
             let cost = baseline
                 .modelled_electricity_cost_usd
                 .expect("fixture declares prices");
