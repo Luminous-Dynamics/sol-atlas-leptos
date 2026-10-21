@@ -10,6 +10,7 @@
 
 pub mod aesthetics;
 pub mod ai_compute_energy;
+pub mod ai_compute_energy_frontier;
 pub mod confluence;
 pub mod constants;
 pub mod data;
