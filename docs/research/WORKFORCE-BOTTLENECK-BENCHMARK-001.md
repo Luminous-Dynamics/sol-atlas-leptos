@@ -42,7 +42,7 @@ O*NET and ESCO are useful reference systems, but their coverage and occupational
 | EVIDENCE_INSUFFICIENT | Missing, stale, contradictory, biased or unrepresentative evidence prevents a defensible diagnosis | Collect/revalidate evidence and abstain from unsupported specificity |
 | INTERACTING_BOTTLENECKS | Two or more constraints jointly limit completion | Explicit dependency-aware bundle; verify every precondition |
 
-Causes are not mutually exclusive. Preserve cause sets and an unknown state. Do not force one “root cause” when several constraints bind or evidence cannot distinguish them.
+Causes are not mutually exclusive. Preserve cause sets and an unknown state. Do not force one “root cause” when several constraints bind or evidence cannot distinguish them. The interaction flag is derived only when at least two confirmed operational blockers coexist; `EVIDENCE_INSUFFICIENT` is an uncertainty state, not itself a second operational blocker. Unknown funding or authorization must not be treated as confirmed absence or a confirmed gate failure.
 
 ## 4. System responsibilities
 
