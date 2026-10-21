@@ -445,6 +445,11 @@ fn parse_landscape_metric_cards(
                 "Landscape source {id} has unsupported ingestion_state {ingestion_state:?}"
             ));
         }
+        if ingestion_state != "not-ingested" {
+            return Err(format!(
+                "Landscape source catalog declares metadata-only status but source {id} has ingestion_state {ingestion_state:?}"
+            ));
+        }
         if !matches!(
             license_status,
             "review-required"
@@ -1556,6 +1561,18 @@ mod tests {
             serde_json::json!("unknown.dataset");
         let errors = parse_landscape_metric_cards(&registry.to_string(), catalog).unwrap_err();
         assert!(errors.contains("Performance metric heat.shade_fraction_at_declared_time references unknown catalog source unknown.dataset"));
+    }
+
+    #[test]
+    fn metadata_only_catalog_rejects_individually_ingested_sources() {
+        let registry = include_str!("../../metrics/landscape/registry-v0.json");
+        let mut catalog: Value = serde_json::from_str(include_str!(
+            "../../data-sources/landscape/south-africa-johannesburg-v0.json"
+        ))
+        .unwrap();
+        catalog["records"][0]["ingestion_state"] = serde_json::json!("ingested");
+        let errors = parse_landscape_metric_cards(registry, &catalog.to_string()).unwrap_err();
+        assert!(errors.iter().any(|error| error.contains("declares metadata-only status but source")));
     }
 
     #[test]
