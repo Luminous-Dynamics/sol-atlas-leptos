@@ -1,0 +1,41 @@
+name: Health Access Q0
+
+on:
+  pull_request:
+    paths:
+      - "research/health-access-q0/**"
+      - "docs/research/health-access/**"
+      - ".github/workflows/health-access-q0.yml"
+  push:
+    branches: [main]
+    paths:
+      - "research/health-access-q0/**"
+      - "docs/research/health-access/**"
+      - ".github/workflows/health-access-q0.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  q0-reference-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out exact pull-request head or pushed revision
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        run: |
+          rustup toolchain install 1.96.0 --profile minimal --component rustfmt --component clippy
+          rustup default 1.96.0
+          rustc --version
+          cargo --version
+
+      - name: Verify exact fixture, tests, lint, and receipt
+        env:
+          HEALTH_ACCESS_CODE_REVISION: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: bash research/health-access-q0/verify.sh
