@@ -366,9 +366,11 @@ pub struct CapacitySweepReport {
     pub period: String,
     pub resource: CapacityResource,
     pub baseline_capacity: i64,
+    pub stop_on_first_counterexample: bool,
     pub domain_values: Vec<i64>,
     pub evaluation_budget: usize,
     pub evaluation_count: usize,
+    pub domain_exhausted: bool,
     pub attempted_values: Vec<i64>,
     pub attempts: Vec<CapacitySweepAttempt>,
     pub first_counterexample_capacity: Option<i64>,
@@ -1611,9 +1613,11 @@ pub fn evaluate_capacity_sweep(
         period: config.period.clone(),
         resource: config.resource,
         baseline_capacity,
+        stop_on_first_counterexample: config.stop_on_first_counterexample,
         domain_values: config.capacity_values.clone(),
         evaluation_budget,
         evaluation_count: attempts.len(),
+        domain_exhausted: attempts.len() == config.capacity_values.len(),
         attempted_values,
         attempts,
         first_counterexample_capacity,
@@ -2899,7 +2903,9 @@ mod tests {
                 .expect("full sweep should evaluate");
             assert_eq!(report.resource, resource);
             assert_eq!(report.status, CounterexampleSweepStatus::CounterexampleFound);
+            assert!(!report.stop_on_first_counterexample);
             assert_eq!(report.evaluation_count, config.capacity_values.len());
+            assert!(report.domain_exhausted);
             assert!(report.remaining_values.is_empty());
             assert_eq!(report.first_counterexample_capacity, Some(expected_first));
             assert_eq!(
@@ -2941,6 +2947,8 @@ mod tests {
             early_stop.status,
             CounterexampleSweepStatus::CounterexampleFound
         );
+        assert!(early_stop.stop_on_first_counterexample);
+        assert!(!early_stop.domain_exhausted);
         assert_eq!(early_stop.first_counterexample_capacity, Some(2));
         assert_eq!(early_stop.remaining_values, vec![1, 0]);
 
