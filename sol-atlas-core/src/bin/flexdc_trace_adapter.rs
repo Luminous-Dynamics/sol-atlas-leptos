@@ -661,19 +661,19 @@ fn main() {
     // the exact digest recorded in the manifest; the original source config blob
     // remains separately pinned in config_artifacts as the template provenance.
     let effective_policy_config_bytes = match manifest.effective_policy_config_path.as_deref() {
-            Some(relative_path) => {
-                let manifest_file = Path::new(&manifest_path);
-                let bundle_dir = manifest_file.parent().unwrap_or_else(|| Path::new("."));
-                match fs::read(bundle_dir.join(relative_path)) {
-                    Ok(bytes) => Some(bytes),
-                    Err(error) => {
-                        eprintln!("could not read effective policy config: {error}");
-                        process::exit(66);
-                    }
+        Some(relative_path) => {
+            let manifest_file = Path::new(&manifest_path);
+            let bundle_dir = manifest_file.parent().unwrap_or_else(|| Path::new("."));
+            match fs::read(bundle_dir.join(relative_path)) {
+                Ok(bytes) => Some(bytes),
+                Err(error) => {
+                    eprintln!("could not read effective policy config: {error}");
+                    process::exit(66);
                 }
             }
-            None => None,
-        };
+        }
+        None => None,
+    };
 
     let input = match build_trace_input(
         &power_csv,
@@ -775,8 +775,8 @@ mod tests {
         manifest_value["effective_policy_config_path"] = serde_json::json!("effective-policy.ini");
         manifest_value["effective_policy_config_sha256"] =
             serde_json::json!(sha256_hex(policy_bytes));
-        let real_run_manifest = serde_json::to_vec(&manifest_value)
-            .expect("manifest JSON should serialize");
+        let real_run_manifest =
+            serde_json::to_vec(&manifest_value).expect("manifest JSON should serialize");
         let output = build_trace_input(
             TRACE.as_bytes(),
             &real_run_manifest,
