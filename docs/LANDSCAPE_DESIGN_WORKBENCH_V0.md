@@ -38,7 +38,7 @@ The rendered marks are symbols. A feature snapshot currently stores a symbol anc
 
 ### Coordinate contract
 
-LOCAL_CARTESIAN_METRES is a project-local drawing frame, with canvas top-left as origin, X rightward, and Y downward to match the screen. These are arbitrary drawing units, not metres, a map CRS, surveyed boundary, or geographic claim. Never emit these coordinates as RFC 7946 longitude/latitude. A later GIS import/export path must preserve source CRS metadata, apply a real coordinate transform, and fail closed when transformation or datum-grid requirements are unsatisfied.
+LOCAL_CARTESIAN_DRAWING_UNITS is a project-local drawing frame, with canvas top-left as origin, X rightward, and Y downward to match the screen. These are arbitrary drawing units, not metres, a map CRS, surveyed boundary, or geographic claim. Never emit these coordinates as RFC 7946 longitude/latitude. A later GIS import/export path must preserve source CRS metadata, apply a real coordinate transform, and fail closed when transformation or datum-grid requirements are unsatisfied.
 
 ### Native snapshot example
 
@@ -93,7 +93,7 @@ The validator distinguishes `schematic-design-intent` from `synthetic-benchmark`
 
 The first source catalog is [south-africa-johannesburg-v0.json](../data-sources/landscape/south-africa-johannesburg-v0.json), with a structural schema at [landscape-source-catalog-v0.schema.json](../schemas/landscape-source-catalog-v0.schema.json). A native test checks its schema link, unique source IDs, explicit license states, validation gates, and the invariant that the registry is metadata-only.
 
-Candidates include the Gauteng C-Plan v4 and the 2023 national biodiversity-priority service from SANBI BGIS; CHIRPS v3 daily rainfall; Copernicus DEM GLO-30; OpenStreetMap; and Sentinel-2 L2A imagery. These are not interchangeable sources and they have different spatial scales, update patterns, and legal/access requirements.
+Candidates include the Gauteng C-Plan v4 and the 2023 national biodiversity-priority service from SANBI BGIS; CHIRPS v3 daily rainfall; Copernicus DEM GLO-30; OpenStreetMap; Sentinel-2 L2A imagery; and National Geo-spatial Information (CD:NGI) topographic-map and orthophoto products. CD:NGI is catalogued as a candidate only: exact product edition, technical metadata, access terms and reuse permissions still require review. These are not interchangeable sources and they have different spatial scales, update patterns, and legal/access requirements.
 
 - **SANBI biodiversity layers:** useful for screening conservation priorities, but not a substitute for a site ecological survey or an automatic legal decision. Verify redistribution terms for each service/layer.
 - **CHIRPS v3 rainfall:** regional/catchment time-series context. The Earth Engine catalog showed coverage through 31 July 2026 at review time; pin exact collection and observation window on ingestion.
@@ -105,7 +105,7 @@ The catalog records unresolved licensing and ingestion state deliberately. No la
 
 ### Evidence readiness is a first-class editor state
 
-The sidebar reads the versioned Johannesburg/Highveld source catalog and counts catalogued records separately from records marked ingested. In v0 the catalog is metadata-only: a candidate URL is not a downloaded or license-cleared dataset. When no records are ingested, the UI must state that analysis is blocked rather than showing favorable defaults.
+The sidebar reads the versioned Johannesburg/Highveld source catalog and counts catalogued records separately from records marked ingested. The outcome-metric panel reads the versioned performance registry and displays required input groups and target policies, but it never derives values from symbol counts or metadata alone. In v0 the catalog is metadata-only: a candidate URL is not a downloaded or license-cleared dataset. When no records are ingested, the UI must state that analysis is blocked rather than showing favorable defaults.
 
 Before any source can support a model, qualify license/attribution, source version and observation date, CRS/axis order/units/vertical datum, spatial/temporal resolution, no-data and quality masks, and an independent reference. Visualizing a candidate layer is not the same as qualifying it for simulation.
 
