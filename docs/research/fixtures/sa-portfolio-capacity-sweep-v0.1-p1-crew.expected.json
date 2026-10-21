@@ -1,0 +1,289 @@
+{
+  "schema_version": "sa-portfolio-capacity-sweep-report-v0.1",
+  "status": "COUNTEREXAMPLE_FOUND",
+  "period": "P1",
+  "resource": "crew",
+  "baseline_capacity": 3,
+  "domain_values": [
+    3,
+    2,
+    1,
+    0
+  ],
+  "evaluation_budget": 4,
+  "evaluation_count": 2,
+  "attempted_values": [
+    3,
+    2
+  ],
+  "attempts": [
+    {
+      "capacity": 3,
+      "feasible_before": 82,
+      "feasible_after": 82,
+      "removed_feasible_count": 0,
+      "removed_portfolios": [],
+      "frontier_before": 8,
+      "frontier_after": 8,
+      "frontier_id_intersection_count": 8,
+      "frontier_id_union_count": 8,
+      "counterexample_found": false
+    },
+    {
+      "capacity": 2,
+      "feasible_before": 82,
+      "feasible_after": 42,
+      "removed_feasible_count": 40,
+      "removed_portfolios": [
+        [
+          "P00",
+          "P01"
+        ],
+        [
+          "P00",
+          "P01",
+          "P03"
+        ],
+        [
+          "P00",
+          "P01",
+          "P03",
+          "P05"
+        ],
+        [
+          "P00",
+          "P01",
+          "P03",
+          "P05",
+          "P08"
+        ],
+        [
+          "P00",
+          "P01",
+          "P03",
+          "P05",
+          "P09"
+        ],
+        [
+          "P00",
+          "P01",
+          "P03",
+          "P08"
+        ],
+        [
+          "P00",
+          "P01",
+          "P03",
+          "P09"
+        ],
+        [
+          "P00",
+          "P01",
+          "P05"
+        ],
+        [
+          "P00",
+          "P01",
+          "P05",
+          "P06"
+        ],
+        [
+          "P00",
+          "P01",
+          "P05",
+          "P06",
+          "P08"
+        ],
+        [
+          "P00",
+          "P01",
+          "P05",
+          "P06",
+          "P09"
+        ],
+        [
+          "P00",
+          "P01",
+          "P05",
+          "P08"
+        ],
+        [
+          "P00",
+          "P01",
+          "P05",
+          "P09"
+        ],
+        [
+          "P00",
+          "P01",
+          "P06"
+        ],
+        [
+          "P00",
+          "P01",
+          "P06",
+          "P08"
+        ],
+        [
+          "P00",
+          "P01",
+          "P06",
+          "P09"
+        ],
+        [
+          "P00",
+          "P01",
+          "P08"
+        ],
+        [
+          "P00",
+          "P01",
+          "P09"
+        ],
+        [
+          "P00",
+          "P03",
+          "P04",
+          "P05"
+        ],
+        [
+          "P00",
+          "P03",
+          "P04",
+          "P05",
+          "P08"
+        ],
+        [
+          "P00",
+          "P03",
+          "P04",
+          "P05",
+          "P09"
+        ],
+        [
+          "P00",
+          "P03",
+          "P04",
+          "P09"
+        ],
+        [
+          "P00",
+          "P04",
+          "P05"
+        ],
+        [
+          "P00",
+          "P04",
+          "P05",
+          "P06"
+        ],
+        [
+          "P00",
+          "P04",
+          "P05",
+          "P06",
+          "P08"
+        ],
+        [
+          "P00",
+          "P04",
+          "P05",
+          "P06",
+          "P09"
+        ],
+        [
+          "P00",
+          "P04",
+          "P05",
+          "P08"
+        ],
+        [
+          "P00",
+          "P04",
+          "P05",
+          "P09"
+        ],
+        [
+          "P00",
+          "P04",
+          "P06",
+          "P09"
+        ],
+        [
+          "P00",
+          "P04",
+          "P09"
+        ],
+        [
+          "P02",
+          "P04",
+          "P05"
+        ],
+        [
+          "P02",
+          "P04",
+          "P05",
+          "P06"
+        ],
+        [
+          "P02",
+          "P04",
+          "P05",
+          "P06",
+          "P08"
+        ],
+        [
+          "P02",
+          "P04",
+          "P05",
+          "P06",
+          "P09"
+        ],
+        [
+          "P02",
+          "P04",
+          "P05",
+          "P08"
+        ],
+        [
+          "P02",
+          "P04",
+          "P05",
+          "P09"
+        ],
+        [
+          "P02",
+          "P04",
+          "P06"
+        ],
+        [
+          "P02",
+          "P04",
+          "P06",
+          "P08"
+        ],
+        [
+          "P02",
+          "P04",
+          "P06",
+          "P09"
+        ],
+        [
+          "P02",
+          "P04",
+          "P09"
+        ]
+      ],
+      "frontier_before": 8,
+      "frontier_after": 6,
+      "frontier_id_intersection_count": 0,
+      "frontier_id_union_count": 14,
+      "counterexample_found": true
+    }
+  ],
+  "first_counterexample_capacity": 2,
+  "remaining_values": [
+    1,
+    0
+  ]
+}
