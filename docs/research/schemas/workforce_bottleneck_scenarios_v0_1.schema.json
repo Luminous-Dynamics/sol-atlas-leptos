@@ -134,7 +134,8 @@
           "required": [
             "demand_status",
             "funding_status",
-            "evidence_status"
+            "evidence_status",
+            "reported_backlog"
           ],
           "properties": {
             "demand_status": {
@@ -226,6 +227,9 @@
               "enum": [
                 "missing"
               ]
+            },
+            "reported_backlog": {
+              "type": "boolean"
             }
           }
         },
