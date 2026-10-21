@@ -44,16 +44,14 @@ jobs:
         run: cargo fmt --manifest-path tools/landscape-chain-conformance/Cargo.toml -- --check
 
       - name: Run tests
-        run: cargo test --manifest-path tools/landscape-chain-conformance/Cargo.toml
-      - name: Capture resolved standalone lockfile (temporary bootstrap)
-        run: cat tools/landscape-chain-conformance/Cargo.lock
+        run: cargo test --locked --manifest-path tools/landscape-chain-conformance/Cargo.toml
 
       - name: Emit and check the frozen conformance report
         shell: bash
         run: |
           set -euo pipefail
           report="$RUNNER_TEMP/landscape-chain-conformance.json"
-          cargo run --manifest-path tools/landscape-chain-conformance/Cargo.toml -- > "$report"
+          cargo run --locked --manifest-path tools/landscape-chain-conformance/Cargo.toml -- > "$report"
           jq -e '
             .schema_version == "luminous.landscape-chain-conformance-report.v0.1" and
             .suite_id == "LANDSCAPE-CHAIN-CONFORMANCE-V0.1" and
