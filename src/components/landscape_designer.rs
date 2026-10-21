@@ -309,6 +309,7 @@ struct LandscapeCandidateSource {
     id: String,
     title: String,
     ingestion_state: String,
+    license_status: String,
     role: String,
     limitation: String,
 }
@@ -359,7 +360,7 @@ fn landscape_metric_cards() -> Result<Vec<LandscapeMetricCard>, String> {
     let source_records = catalog["records"]
         .as_array()
         .ok_or_else(|| "Landscape source catalog has no records array".to_string())?;
-    let mut source_map: Vec<(String, String, String)> = Vec::with_capacity(source_records.len());
+    let mut source_map: Vec<(String, String, String, String)> = Vec::with_capacity(source_records.len());
     for record in source_records {
         let id = record["id"]
             .as_str()
@@ -373,10 +374,14 @@ fn landscape_metric_cards() -> Result<Vec<LandscapeMetricCard>, String> {
             .as_str()
             .filter(|value| !value.trim().is_empty())
             .ok_or_else(|| format!("Landscape source {id} has no ingestion_state"))?;
+        let license_status = record["license"]["status"]
+            .as_str()
+            .filter(|value| !value.trim().is_empty())
+            .ok_or_else(|| format!("Landscape source {id} has no license status"))?;
         if source_map.iter().any(|(candidate_id, _, _)| candidate_id == id) {
             return Err(format!("Landscape source catalog has duplicate ID {id}"));
         }
-        source_map.push((id.to_string(), title.to_string(), ingestion_state.to_string()));
+        source_map.push((id.to_string(), title.to_string(), ingestion_state.to_string(), license_status.to_string()));
     }
 
     let entries = registry["metrics"]
@@ -440,10 +445,10 @@ fn landscape_metric_cards() -> Result<Vec<LandscapeMetricCard>, String> {
                 ));
             }
             seen_source_ids.push(source_id.to_string());
-            let (catalog_title, ingestion_state) = source_map
+            let (catalog_title, ingestion_state, license_status) = source_map
                 .iter()
                 .find(|(known_id, _, _)| known_id == source_id)
-                .map(|(_, title, state)| (title.clone(), state.clone()))
+                .map(|(_, title, state, license)| (title.clone(), state.clone(), license.clone()))
                 .ok_or_else(|| {
                     format!(
                         "Performance metric {id} references unknown catalog source {source_id}"
@@ -463,6 +468,7 @@ fn landscape_metric_cards() -> Result<Vec<LandscapeMetricCard>, String> {
                 id: source_id.to_string(),
                 title: catalog_title,
                 ingestion_state,
+                license_status,
                 role: role.to_string(),
                 limitation: limitation.to_string(),
             });
@@ -1364,14 +1370,20 @@ pub fn LandscapeDesigner() -> impl IntoView {
                                                                             let role = source.role.clone();
                                                                             let limitation = source.limitation.clone();
                                                                             let ingestion = match source.ingestion_state.as_str() {
-                                                                                "not-ingested" => "Candidate only · not ingested".to_string(),
-                                                                                "ingested" => "Ingested · model qualification still required".to_string(),
-                                                                                other => format!("Catalog state: {other} · review required"),
+                                                                                "not-ingested" => "Candidate only; not ingested".to_string(),
+                                                                                "ingested" => "Ingested; model qualification still required".to_string(),
+                                                                                other => format!("Catalog state: {other}; review required"),
                                                                             };
+                                                                            let license = match source.license_status.as_str() {
+                                                                                "verified-open" => "licence verified".to_string(),
+                                                                                "denied" => "licence denies planned use".to_string(),
+                                                                                other => format!("licence state: {other}"),
+                                                                            };
+                                                                            let source_status = format!("{ingestion}; {license}");
                                                                             view! {
                                                                                 <li class="landscape-source-candidate">
                                                                                     <strong>{title}</strong>
-                                                                                    <p class="landscape-source-id">{id}{" - "}{ingestion}</p>
+                                                                                    <p class="landscape-source-id">{id}{" - "}{source_status}</p>
                                                                                     <p class="landscape-metric-policy">{role}: {limitation}</p>
                                                                                 </li>
                                                                             }
@@ -1443,8 +1455,14 @@ mod tests {
                 && !source.title.is_empty()
                 && !source.role.is_empty()
                 && !source.limitation.is_empty()
+                && !source.license_status.is_empty()
                 && source.ingestion_state == "not-ingested"
         }));
+        assert!(cards
+            .iter()
+            .flat_map(|card| card.candidate_sources.iter())
+            .any(|source| source.id == "ngi.cdngi-topo-orthophoto"
+                && source.license_status == "review-required"));
         assert!(
             cards
                 .iter()
