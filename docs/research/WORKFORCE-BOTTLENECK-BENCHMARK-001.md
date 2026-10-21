@@ -77,7 +77,7 @@ The JSON fixture stores synthetic observations, expected cause sets, admissible 
 Use the same frozen input and evaluation split for every comparator:
 
 - **B0 — incumbent practice:** current documented workflow, only where a real service owner supplies a valid baseline.
-- **B1 — vacancy/backlog heuristic:** assumes worker shortage; intentionally weak to expose false-shortage errors.
+- **B1 — vacancy/backlog heuristic:** assumes worker shortage; intentionally weak to expose false-shortage errors. The standalone Rust verifier emits a reproducible receipt for this synthetic baseline. Because all 12 frozen cases have a reported backlog, B1 predicts `SKILLS_CAPACITY` as the only cause in all 12 cases. The authored oracle contains a skills-capacity cause in 4 cases, so this deliberately weak baseline generates 8 false shortage diagnoses (8/12, 66.7% of its positive predictions) and exactly matches the complete cause set in only 2/12 cases. These are calculated properties of an artificial fixture, not industry performance or a measured error rate in a real workforce.
 - **B2 — taxonomy matching:** fixed version of an occupational/skills reference plus disclosed local crosswalks and limitations.
 - **B3 — transparent rule baseline:** reviewable human-readable rules.
 - **B4 — independent exact oracle:** exhaustive feasible intervention combinations on the tiny frozen corpus. Keep it separate from candidate selection logic.
