@@ -19,7 +19,7 @@ The frozen fixture represents candidate site/metric/time measurements with:
 - A measurement-noise standard deviation.
 - An explicit decision weight and integer cost.
 - A digest-bound opaque site reference, spatial/temporal stratum, and a declared correlation group.
-- Explicit consent and access states. Only `consent_status=granted` plus `access_status=authorized` is selectable; denied/unknown status fails closed.
+- Explicit consent and access states, each bound to an evidence digest when positive. `consent_status=granted` requires a valid `consent_evidence_sha256`; `access_status=authorized` requires a valid `access_authorization_sha256`; denied/unknown states must not claim positive authorization evidence. Only granted + authorized candidates are selectable. Fixture digests are synthetic placeholders—not valid permission to access any real site.
 
 For the baseline and alternative predictive distributions, observation noise is added to the respective variances. The planner computes the **symmetrized KL divergence** between these two Gaussian distributions and multiplies it by the explicitly supplied decision weight. This is a distribution-separation proxy, expressed in nats; it is not mutual information, expected posterior decision regret, or real-world utility.
 
