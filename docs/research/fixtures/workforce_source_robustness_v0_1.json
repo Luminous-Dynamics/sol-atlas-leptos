@@ -160,7 +160,7 @@
           "id": "SR-002-P1",
           "source_id": "INTENT",
           "operation": "replace_employer_sample",
-          "parameter": "small-enterprise-responses-removed",
+          "parameter": "replace_with_empty_sample",
           "expected_decision": "no_confirmed_shortage",
           "rationale": "Changing the intention-to-hire sample cannot turn zero funded positions into current funded demand."
         },
