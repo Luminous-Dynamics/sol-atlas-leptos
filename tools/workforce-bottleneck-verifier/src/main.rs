@@ -360,7 +360,15 @@ fn action_is_admissible(case: &Value, action: &str) -> Option<bool> {
         "REVIEW_COMPENSATION_SHIFT_SAFETY_AND_RETENTION_WITH_WORKERS" => {
             Some(as_string(observations, "wage_and_shift_status") == Some("nonviable_synthetic"))
         }
-        "COLLECT_OR_REVALIDATE_EVIDENCE" => Some(evidence != "complete"),
+        "COLLECT_OR_REVALIDATE_EVIDENCE" => Some(
+            evidence != "complete"
+                || funding == "unknown"
+                || as_string(observations, "tools_and_spares") == Some("unknown")
+                || authorization == "unknown"
+                || as_string(observations, "dispatch_status") == Some("unknown")
+                || as_string(observations, "wage_and_shift_status") == Some("unknown")
+                || as_string(observations, "demand_status") == Some("conflicting"),
+        ),
         "DEDUPE_AND_VALIDATE_DEMAND" => {
             Some(as_string(observations, "demand_status") == Some("duplicate_and_misrouted"))
         }
