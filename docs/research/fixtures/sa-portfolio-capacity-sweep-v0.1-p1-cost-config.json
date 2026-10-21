@@ -8,5 +8,6 @@
     4,
     3
   ],
-  "max_evaluations": 4
+  "max_evaluations": 4,
+  "stop_on_first_counterexample": true
 }
