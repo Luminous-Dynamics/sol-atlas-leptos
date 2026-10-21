@@ -464,7 +464,7 @@ fn parse_landscape_metric_cards(
                 "Landscape source {id} has unsupported license status {license_status:?}"
             ));
         }
-        if source_map.iter().any(|(candidate_id, _, _, _)| candidate_id == id) {
+        if source_map.iter().any(|entry| entry.0.as_str() == id) {
             return Err(format!("Landscape source catalog has duplicate ID {id}"));
         }
         source_map.push((
@@ -538,7 +538,7 @@ fn parse_landscape_metric_cards(
             seen_source_ids.push(source_id.to_string());
             let (catalog_title, ingestion_state, license_status) = source_map
                 .iter()
-                .find(|(known_id, _, _, _)| known_id == source_id)
+                .find(|entry| entry.0.as_str() == source_id)
                 .map(|(_, title, state, license)| {
                     (title.clone(), state.clone(), license.clone())
                 })
