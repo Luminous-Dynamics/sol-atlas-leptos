@@ -2827,6 +2827,16 @@ mod tests {
         invalid.capacity_values = vec![3, 3, 2];
         assert!(evaluate_capacity_sweep(&input, &invalid).is_err());
 
+        config.capacity_values = vec![3];
+        config.max_evaluations = 1;
+        let exhausted = evaluate_capacity_sweep(&input, &config).unwrap();
+        assert_eq!(
+            exhausted.status,
+            CounterexampleSweepStatus::DomainExhaustedNoCounterexample
+        );
+        assert_eq!(exhausted.attempted_values, vec![3]);
+        assert!(exhausted.remaining_values.is_empty());
+
         config.capacity_values = vec![3, 2, 1, 0];
         config.max_evaluations = 1;
         let report = evaluate_capacity_sweep(&input, &config).unwrap();
