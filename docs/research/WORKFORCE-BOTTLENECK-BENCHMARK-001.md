@@ -14,7 +14,7 @@ This is an integration contract and benchmark, not a second portfolio optimizer,
 
 ## 2. Why this is a useful missing layer
 
-South Africa's Department of Higher Education and Training explicitly states that its 2024 National List of Occupations in High Demand is not a scarce-skills list. It supports enrolment planning and other workforce decisions; some occupations with unusually high registered-unemployed counts warrant investigation. A national occupation label cannot establish a local, task-specific, time-specific shortage.
+South Africa's Department of Higher Education and Training explicitly states that its 2024 National List of Occupations in High Demand is not a scarce-skills list. It supports enrolment planning and other workforce decisions; some occupations with unusually high registered-unemployed counts warrant investigation. A national occupation label cannot establish a local, task-specific, time-specific shortage. Likewise, `funding_status=unknown` is not a confirmed `FUNDING_OR_PAYER` blocker: permit evidence gathering, keep the task ineligible for a funded-job claim, and do not prescribe a funding/procurement action until absence of funding is evidenced. Confirmed absence and unknown status are distinct states.
 
 The World Bank's 14 August 2026 account of South Africa's digital-skills pipeline describes simultaneous unemployment and unfilled digital vacancies, with constraints spanning foundational skills, education alignment, and workplace learning. This supports a multi-cause diagnostic framing; it does not validate this benchmark or prove that an AI system fixes those constraints.
 
