@@ -304,6 +304,103 @@ fn parse_import_snapshot(value: &Value) -> Result<ImportedSnapshot, String> {
     })
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct LandscapeMetricCard {
+    id: String,
+    family: String,
+    label: String,
+    unit: String,
+    status: String,
+    target_policy: String,
+    required_inputs: Vec<String>,
+}
+
+/// Read only metric definitions. This deliberately fails closed if a future
+/// registry adds values or loses the v0 schema/status contract.
+fn landscape_metric_cards() -> Result<Vec<LandscapeMetricCard>, String> {
+    let registry: Value = serde_json::from_str(include_str!(
+        "../../metrics/landscape/registry-v0.json"
+    ))
+    .map_err(|error| format!("Performance registry is invalid JSON: {error}"))?;
+
+    if registry["schema"] != "luminous.landscape-performance-registry.v0"
+        || registry["schema_uri"]
+            != "https://luminousdynamics.io/schemas/landscape-performance-registry-v0.schema.json"
+        || registry["status"] != "specification-only-no-field-values"
+    {
+        return Err(
+            "Performance registry does not match the versioned definition-only contract"
+                .to_string(),
+        );
+    }
+
+    let entries = registry["metrics"]
+        .as_array()
+        .ok_or_else(|| "Performance registry has no metrics array".to_string())?;
+    if entries.is_empty() || entries.len() > 100 {
+        return Err("Performance registry metric count is outside the supported v0 bounds".to_string());
+    }
+
+    let mut cards = Vec::with_capacity(entries.len());
+    let mut ids = Vec::with_capacity(entries.len());
+    for (index, entry) in entries.iter().enumerate() {
+        if entry.get("value").is_some() || entry.get("measured_value").is_some() {
+            return Err(format!(
+                "Performance metric at index {index} embeds a value; v0 accepts definitions only"
+            ));
+        }
+
+        let read_string = |key: &str| -> Result<String, String> {
+            entry
+                .get(key)
+                .and_then(Value::as_str)
+                .filter(|value| !value.trim().is_empty())
+                .map(str::to_string)
+                .ok_or_else(|| format!("Performance metric {index} has no valid {key}"))
+        };
+
+        let id = read_string("id")?;
+        if ids.contains(&id) {
+            return Err(format!("Performance registry contains duplicate metric ID {id}"));
+        }
+        ids.push(id.clone());
+
+        let required_values = entry["required_inputs"]
+            .as_array()
+            .filter(|values| !values.is_empty())
+            .ok_or_else(|| format!("Performance metric {id} has no required_inputs"))?;
+        let mut required_inputs = Vec::with_capacity(required_values.len());
+        for (input_index, input) in required_values.iter().enumerate() {
+            let value = input.as_str().filter(|text| !text.trim().is_empty()).ok_or_else(|| {
+                format!("Performance metric {id} has invalid required input at index {input_index}")
+            })?;
+            required_inputs.push(value.to_string());
+        }
+
+        let status = read_string("v0_status")?;
+        if !matches!(
+            status.as_str(),
+            "not-computable" | "requires-myclix-stewardship-contract"
+        ) {
+            return Err(format!(
+                "Performance metric {id} has unsupported v0 status {status:?}"
+            ));
+        }
+
+        cards.push(LandscapeMetricCard {
+            id,
+            family: read_string("family")?,
+            label: read_string("label")?,
+            unit: read_string("unit")?,
+            status,
+            target_policy: read_string("target_policy")?,
+            required_inputs,
+        });
+    }
+
+    Ok(cards)
+}
+
 fn landscape_source_status() -> Result<(usize, usize), String> {
     let catalog: Value = serde_json::from_str(include_str!(
         "../../data-sources/landscape/south-africa-johannesburg-v0.json"
@@ -446,6 +543,7 @@ fn download_snapshot(content: &str) -> Result<(), String> {
 
 #[component]
 pub fn LandscapeDesigner() -> impl IntoView {
+    let metric_cards = landscape_metric_cards();
     let (features, set_features) = signal(starter_features());
     let (edit_history, set_edit_history) = signal(Vec::<EditCommand>::new());
     let (redo_history, set_redo_history) = signal(Vec::<EditCommand>::new());
@@ -1092,6 +1190,16 @@ pub fn LandscapeDesigner() -> impl IntoView {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn metric_registry_ui_contract_is_definition_only() {
+        let cards = landscape_metric_cards().unwrap();
+        assert_eq!(cards.len(), 8);
+        assert_eq!(cards.iter().map(|card| card.id.as_str()).collect::<HashSet<_>>().len(), 8);
+        assert_eq!(cards.iter().map(|card| card.family.as_str()).collect::<HashSet<_>>().len(), 7);
+        assert!(cards.iter().all(|card| !card.required_inputs.is_empty()));
+        assert!(cards.iter().all(|card| !card.target_policy.is_empty()));
+    }
 
     #[test]
     fn evidence_readiness_reports_catalogued_candidates_not_ingested_layers() {
