@@ -98,6 +98,8 @@ pub struct PlanReport {
     pub data_origin: String,
     pub claim_ceiling: String,
     pub input_sha256: String,
+    pub baseline_scenario_sha256: String,
+    pub alternative_scenario_sha256: String,
     pub budget_cost_units: u32,
     pub selected_cost_units: u32,
     pub unspent_budget_units: u32,
@@ -699,6 +701,8 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
         data_origin: "synthetic_fixture".to_owned(),
         claim_ceiling: CLAIM_CEILING.to_owned(),
         input_sha256: sha256_hex(input_bytes),
+        baseline_scenario_sha256: fixture.candidates[0].baseline_scenario_sha256.clone(),
+        alternative_scenario_sha256: fixture.candidates[0].alternative_scenario_sha256.clone(),
         budget_cost_units: fixture.budget_cost_units,
         selected_cost_units,
         unspent_budget_units: fixture.budget_cost_units - selected_cost_units,
@@ -765,6 +769,8 @@ mod tests {
         assert_eq!(report.data_origin, "synthetic_fixture");
         assert_eq!(report.claim_ceiling, CLAIM_CEILING);
         assert_eq!(report.budget_cost_units, 6);
+        assert_eq!(report.baseline_scenario_sha256, "1".repeat(64));
+        assert_eq!(report.alternative_scenario_sha256, "2".repeat(64));
         assert_eq!(report.selected_cost_units, 6);
         assert_eq!(report.unspent_budget_units, 0);
         assert_eq!(report.candidate_count, 6);
