@@ -34,10 +34,10 @@ The benchmark checks:
 3. Evaluation-plan linkage to the precise project, scope and intervention/comparison site-reference bytes.
 4. Observation linkage to the project digest and an existing feature ID, preserving the synthetic evidence class.
 5. Metric-observation crosswalk linkage: each mapped metric ID must exist in the pinned metric registry; each observation property is matched against declared property IDs, units and result kinds. Synthetic observations remain ineligible as real metric support, even when their property is recognized. In the frozen fixture, one of four properties matches a declared mapping, none qualifies as real evidence, and three remain unmapped; this is deliberately not a computed landscape result.
-6. Scenario linkage to design bytes, boundary-condition bytes and normalized evaluation-plan bytes.
+6. Paired-counterfactual scenario integrity: the baseline and alternative bind to different exact design snapshots but identical boundary-condition bytes, model ID/version, seed, purpose, and evaluation plan. Both results stay blocked until the physical model is qualified.
 7. Mycelix linkage to the same project and scenario, with private/no-coordinate-disclosure defaults and no claimed publication consent.
-8. Symthaea linkage to the same baseline and alternate design, metric registry, source catalog and scenario; consequence-bearing metrics remain blocked, the scenario result remains unexecuted, and the review abstains from ranking.
-9. Eight negative controls: stale project digest in an observation, scope mismatch, missing feature ID, synthetic-to-observed relabel, public exact-sensitive-location exposure, scenario digest disagreement, and a one-byte snapshot mutation, and an observation with units incompatible with its mapped property.
+8. Symthaea linkage to the same baseline and alternate design, metric registry, source catalog, and both paired scenarios; consequence-bearing metrics remain blocked, scenario results remain unexecuted, and the review abstains from ranking.
+9. Nine negative controls: stale project digest in an observation, scope mismatch, missing feature ID, synthetic-to-observed relabel, public exact-sensitive-location exposure, scenario digest disagreement, and a one-byte snapshot mutation, an observation with units incompatible with its mapped property, and a paired-scenario boundary-condition mismatch.
 
 ## Reproduction
 
