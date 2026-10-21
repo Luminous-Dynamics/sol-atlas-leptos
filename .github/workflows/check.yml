@@ -85,11 +85,11 @@ jobs:
             .claim_ceiling == "SYNTHETIC_STRUCTURAL_CONFORMANCE_ONLY" and
             .upstream_pinned_contract_count == 9 and
             .project_feature_count == 7 and
-            .observation_count == 4 and
+            .observation_count == 5 and
             .metric_observation_mapping_count == 8 and
             .observations_matching_crosswalk_count == 1 and
             .eligible_supporting_observation_count == 0 and
-            .unmapped_observation_count == 3 and
+            .unmapped_observation_count == 4 and
             .scenario_execution_status == "BLOCKED_NOT_EXECUTED" and
             .paired_scenario_count == 2 and
             .paired_scenarios_share_boundary_conditions == true and
