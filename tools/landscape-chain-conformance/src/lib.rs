@@ -297,9 +297,6 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
         )
         .map_err(|error| vec![error])?;
     }
-    let observation_batch_sha = canonical_sha256(&observations)
-        .map_err(|error| vec![error])?;
-
     let geometry_status = string_at(&project, &["geometry_status"])
         .ok_or_else(|| vec!["project.geometry_status is missing".to_owned()])?
         .to_owned();
