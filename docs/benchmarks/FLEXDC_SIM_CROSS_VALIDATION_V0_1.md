@@ -110,7 +110,7 @@ The same derived trace should be scored by both FlexDC-Sim's published outputs a
 
 ## 6. First executed reference result
 
-The first actual pinned run was completed by GitHub Actions workflow [run #3 / ID `39518611387`](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/39518611387) at Sol-Atlas code head `1267897bab2534100cded8f054740df81de40231`. It checked out FlexDC-Sim commit `ea50bd582b5d1b55fcb09ea46899fa9d325cce3b`, used Python `3.10.16`, seed `20`, 3,600-second simulated duration with one-second steps and four-second signal granularity, AQA power cap (P=24{,}216\,W), reserve (R=9{,}626\,W), and QoS percentile 0.9. The run manifest has `synthetic: false` and includes the captured runtime-environment manifest and digest.
+The first actual pinned run was completed by GitHub Actions workflow [run #3 / ID `39518611387`](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/39518611387) at Sol-Atlas code head `1267897bab2534100cded8f054740df81de40231`. It checked out FlexDC-Sim commit `ea50bd582b5d1b55fcb09ea46899fa9d325cce3b`, used Python `3.10.16`, seed `20`, 3,600-second simulated duration with one-second steps and four-second signal granularity, AQA power cap P=24,216 W, reserve R=9,626 W, and QoS percentile 0.9. The run manifest has `synthetic: false` and includes the captured runtime-environment manifest and digest.
 
 **Evidence bundle:** [download the run artifacts](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/39518611387/artifacts/12310455207). The bundle contains the raw `power_trace.csv`, `job_table.csv`, `runtime-environment.txt`, exact `run-manifest.json`, adapted trace, receipt-wrapped assessment report and paired summary. Archive digest: `sha256:c3edb6e9f2db00b55a13c1f06c685a5c8624f8e4ce6a03f554626d46c9131501`.
 
@@ -124,10 +124,10 @@ The first actual pinned run was completed by GitHub Actions workflow [run #3 / I
 | Maximum normalized error | 1.5040 | 1.500613 |
 | Samples with error > 0.3 | 123 / 3,601 | 122 / 3,601 |
 | Exceedance fraction | 3.4157% | 3.3879% |
-| P90 threshold (\leq 0.3) | Pass | Pass |
+| P90 threshold (p90 ≤ 0.3) | Pass | Pass |
 | Supplementary strict exceedance rate <10% | Pass | Pass |
 
-Difference in p90 (same-row minus source-native): (-0.00271535). Do **not** interpret the slightly lower same-row value as a scheduler improvement. It is a comparison of two definitions over the same simulator run: FlexDC-Sim's signed source-native lagged series uses the prior signal cap and (R+0.0001); the reconstruction uses same-row `target`/`realSum` with exact declared (R). Both variants pass the p90 check in this scenario, and both have fewer than 10% of samples above 0.3. The difference is small here but the synthetic known-answer test demonstrates that it can reverse a pass/fail decision in other distributions.
+Difference in p90 (same-row minus source-native): −0.00271535. Do **not** interpret the slightly lower same-row value as a scheduler improvement. It is a comparison of two definitions over the same simulator run: FlexDC-Sim's signed source-native lagged series uses the prior signal cap and `R + 0.0001`; the reconstruction uses same-row `target`/`realSum` with exact declared `R`. Both variants pass the p90 check in this scenario, and both have fewer than 10% of samples above 0.3. The difference is small here but the synthetic known-answer test demonstrates that it can reverse a pass/fail decision in other distributions.
 
 ### Workload/QoS context
 
