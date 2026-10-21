@@ -452,8 +452,10 @@ fn landscape_metric_cards() -> Result<Vec<LandscapeMetricCard>, String> {
             seen_source_ids.push(source_id.to_string());
             let (catalog_title, ingestion_state, license_status) = source_map
                 .iter()
-                .find(|(known_id, _, _)| known_id == source_id)
-                .map(|(_, title, state, license)| (title.clone(), state.clone(), license.clone()))
+                .find(|(known_id, _, _, _)| known_id == source_id)
+                .map(|(_, title, state, license)| {
+                    (title.clone(), state.clone(), license.clone())
+                })
                 .ok_or_else(|| {
                     format!(
                         "Performance metric {id} references unknown catalog source {source_id}"
