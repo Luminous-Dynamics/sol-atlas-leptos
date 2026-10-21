@@ -759,7 +759,7 @@ mod tests {
 
     #[test]
     fn adapter_preserves_manifest_synthetic_flag_and_verifies_env_bytes() {
-        let output = build_trace_input(TRACE.as_bytes(), MANIFEST.as_bytes(), None)
+        let output = build_trace_input(TRACE.as_bytes(), MANIFEST.as_bytes(), None, None)
             .expect("synthetic fixture should adapt");
         assert_eq!(output["synthetic"], true);
 
@@ -788,6 +788,18 @@ mod tests {
         .expect("complete non-synthetic environment receipt should adapt");
         assert_eq!(output["synthetic"], false);
 
+        let wrong_policy_bytes = b"[policy]\nname = priority-cap\n";
+        assert!(
+            build_trace_input(
+                TRACE.as_bytes(),
+                &real_run_manifest,
+                Some(environment_bytes),
+                Some(wrong_policy_bytes),
+            )
+            .expect_err("effective policy config digest mismatch must reject")
+            .contains("effective policy config bytes do not match")
+        );
+
         let wrong_environment = b"Python 3.10.0\\nother-package==9.9.9\\n";
         assert!(
             build_trace_input(
@@ -803,7 +815,7 @@ mod tests {
 
     #[test]
     fn source_native_and_same_row_metrics_are_deliberately_distinct() {
-        let output = build_trace_input(TRACE.as_bytes(), MANIFEST.as_bytes(), None)
+        let output = build_trace_input(TRACE.as_bytes(), MANIFEST.as_bytes(), None, None)
             .expect("paired known-answer trace should adapt");
         let aligned = output["rsr"]["target_power_kw"]
             .as_array()
