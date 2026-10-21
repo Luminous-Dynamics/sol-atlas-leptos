@@ -280,6 +280,8 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
         .to_owned();
     set_str(&mut evaluation_plan, &["project_scope"], &scope)
         .map_err(|error| vec![error])?;
+    set_str(&mut evaluation_plan, &["evaluation_id"], "eval-site-demo-v0")
+        .map_err(|error| vec![error])?;
     let evaluation_plan_sha = canonical_sha256(&evaluation_plan)
         .map_err(|error| vec![error])?;
 
@@ -350,6 +352,12 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
         &mut scenario,
         &["evaluation_plan", "sha256"],
         &evaluation_plan_sha,
+    )
+    .map_err(|error| vec![error])?;
+    set_str(
+        &mut scenario,
+        &["evaluation_plan", "evaluation_id"],
+        "eval-site-demo-v0",
     )
     .map_err(|error| vec![error])?;
     let scenario_sha = canonical_sha256(&scenario)
