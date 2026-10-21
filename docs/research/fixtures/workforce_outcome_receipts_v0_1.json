@@ -1,0 +1,92 @@
+{
+  "fixture_notice": "ALL VALUES BELOW ARE SYNTHETIC CONTRACT TEST DATA. They are not measured performance, local estimates, field observations, or evidence of impact.",
+  "receipts": [
+    {
+      "schema_version": "workforce-outcome-receipt-v0.1",
+      "run_id": "SYN-OUTCOME-001",
+      "evidence_class": "synthetic",
+      "synthetic_only": true,
+      "evaluation_design": "synthetic_contract",
+      "population": {
+        "unit": "case",
+        "description": "Toy mixed workforce bottleneck cases including negative controls",
+        "geography": "synthetic-only",
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-31",
+        "denominator_definition": "All 24 hand-authored synthetic cases in this fixture"
+      },
+      "window": {
+        "decision_cutoff": "2026-01-31T23:59:00Z",
+        "outcome_followup_days": 90,
+        "outcome_windows_days": [
+          30,
+          90
+        ]
+      },
+      "source_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "metric_contract_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "code_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "policy_results": [
+        {
+          "policy_id": "B1-proxy",
+          "role": "proxy_baseline",
+          "policy_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+          "case_count": 24,
+          "diagnosed_count": 24,
+          "abstained_count": 0,
+          "correct_cause_set_count": 4,
+          "false_shortage_count": 14,
+          "false_surplus_count": 1,
+          "unsafe_action_count": 3,
+          "action_precondition_failure_count": 6,
+          "action_completed_count": 8,
+          "verified_restoration_count": 5,
+          "paid_work_verified_count": 2,
+          "missing_outcome_count": 4,
+          "notes": "Toy values only; demonstrates that proxy counts and outcome counts have separate denominators."
+        },
+        {
+          "policy_id": "B2-transparent",
+          "role": "transparent_rules",
+          "policy_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+          "case_count": 24,
+          "diagnosed_count": 16,
+          "abstained_count": 8,
+          "correct_cause_set_count": 14,
+          "false_shortage_count": 0,
+          "false_surplus_count": 0,
+          "unsafe_action_count": 0,
+          "action_precondition_failure_count": 1,
+          "action_completed_count": 7,
+          "verified_restoration_count": 6,
+          "paid_work_verified_count": 3,
+          "missing_outcome_count": 5,
+          "notes": "Toy values only; abstentions remain visible and are not silently discarded."
+        },
+        {
+          "policy_id": "candidate",
+          "role": "candidate",
+          "policy_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+          "case_count": 24,
+          "diagnosed_count": 18,
+          "abstained_count": 6,
+          "correct_cause_set_count": 16,
+          "false_shortage_count": 0,
+          "false_surplus_count": 0,
+          "unsafe_action_count": 0,
+          "action_precondition_failure_count": 0,
+          "action_completed_count": 9,
+          "verified_restoration_count": 7,
+          "paid_work_verified_count": 4,
+          "missing_outcome_count": 3,
+          "notes": "Toy values only. These counts cannot support a comparative or causal claim."
+        }
+      ],
+      "confounding_and_deviations": [
+        "Synthetic-only fixture; no external validity.",
+        "All policy counts are independently authored test inputs, not model-run measurements."
+      ],
+      "claim_ceiling": "synthetic_contract_only"
+    }
+  ]
+}
