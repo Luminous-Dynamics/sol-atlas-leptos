@@ -1,0 +1,110 @@
+{
+  "schema_version": "sa-portfolio-capacity-sweep-report-v0.1",
+  "status": "COUNTEREXAMPLE_FOUND",
+  "period": "P1",
+  "resource": "cost",
+  "baseline_capacity": 6,
+  "domain_values": [
+    6,
+    5,
+    4,
+    3
+  ],
+  "evaluation_budget": 4,
+  "evaluation_count": 2,
+  "attempted_values": [
+    6,
+    5
+  ],
+  "attempts": [
+    {
+      "capacity": 6,
+      "feasible_before": 82,
+      "feasible_after": 82,
+      "removed_feasible_count": 0,
+      "removed_portfolios": [],
+      "frontier_before": 8,
+      "frontier_after": 8,
+      "frontier_id_intersection_count": 8,
+      "frontier_id_union_count": 8,
+      "counterexample_found": false
+    },
+    {
+      "capacity": 5,
+      "feasible_before": 82,
+      "feasible_after": 72,
+      "removed_feasible_count": 10,
+      "removed_portfolios": [
+        [
+          "P02",
+          "P04",
+          "P05"
+        ],
+        [
+          "P02",
+          "P04",
+          "P05",
+          "P06"
+        ],
+        [
+          "P02",
+          "P04",
+          "P05",
+          "P06",
+          "P08"
+        ],
+        [
+          "P02",
+          "P04",
+          "P05",
+          "P06",
+          "P09"
+        ],
+        [
+          "P02",
+          "P04",
+          "P05",
+          "P08"
+        ],
+        [
+          "P02",
+          "P04",
+          "P05",
+          "P09"
+        ],
+        [
+          "P02",
+          "P04",
+          "P06"
+        ],
+        [
+          "P02",
+          "P04",
+          "P06",
+          "P08"
+        ],
+        [
+          "P02",
+          "P04",
+          "P06",
+          "P09"
+        ],
+        [
+          "P02",
+          "P04",
+          "P09"
+        ]
+      ],
+      "frontier_before": 8,
+      "frontier_after": 8,
+      "frontier_id_intersection_count": 6,
+      "frontier_id_union_count": 10,
+      "counterexample_found": true
+    }
+  ],
+  "first_counterexample_capacity": 5,
+  "remaining_values": [
+    4,
+    3
+  ]
+}
