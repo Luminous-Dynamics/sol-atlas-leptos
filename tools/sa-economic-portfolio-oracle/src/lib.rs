@@ -324,6 +324,54 @@ pub struct CounterexampleSweepReport {
 }
 
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum CapacityResource {
+    Cost,
+    Crew,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct CapacitySweepConfig {
+    pub schema_version: String,
+    pub period: String,
+    pub resource: CapacityResource,
+    /// Strictly descending values; the first must equal the input's current cap.
+    pub capacity_values: Vec<i64>,
+    pub max_evaluations: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct CapacitySweepAttempt {
+    pub capacity: i64,
+    pub feasible_before: usize,
+    pub feasible_after: usize,
+    pub removed_feasible_count: usize,
+    pub removed_portfolios: Vec<Vec<String>>,
+    pub frontier_before: usize,
+    pub frontier_after: usize,
+    pub frontier_id_intersection_count: usize,
+    pub frontier_id_union_count: usize,
+    pub counterexample_found: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct CapacitySweepReport {
+    pub schema_version: String,
+    pub status: CounterexampleSweepStatus,
+    pub period: String,
+    pub resource: CapacityResource,
+    pub baseline_capacity: i64,
+    pub domain_values: Vec<i64>,
+    pub evaluation_budget: usize,
+    pub evaluation_count: usize,
+    pub attempted_values: Vec<i64>,
+    pub attempts: Vec<CapacitySweepAttempt>,
+    pub first_counterexample_capacity: Option<i64>,
+    pub remaining_values: Vec<i64>,
+}
+
 pub struct ScenarioOmissionReport {
     pub omitted_scenario_id: String,
     pub original_scenario_ids: Vec<String>,
@@ -1386,6 +1434,164 @@ pub fn evaluate_scenario_addition(
     })
 }
 
+/// Sweep a declared, strictly descending resource-capacity sequence. The
+/// first value equals the current input cap, so the no-shock control is explicit.
+/// A counterexample is any capacity that excludes a baseline-feasible portfolio.
+pub fn evaluate_capacity_sweep(
+    input: &Input,
+    config: &CapacitySweepConfig,
+) -> Result<CapacitySweepReport, String> {
+    validate_input(input)?;
+    if input.schema_version != "sa-economic-portfolio-v0.2" {
+        return Err("capacity sweep requires a v0.2 input contract".to_owned());
+    }
+    if config.schema_version != "sa-portfolio-capacity-sweep-v0.1" {
+        return Err("unsupported capacity-sweep config schema".to_owned());
+    }
+    if config.period.trim().is_empty() {
+        return Err("capacity sweep period ID must be non-empty".to_owned());
+    }
+    let matching_periods: Vec<usize> = input
+        .budgets_by_period
+        .iter()
+        .enumerate()
+        .filter_map(|(index, budget)| (budget.period == config.period).then_some(index))
+        .collect();
+    let [period_index] = matching_periods.as_slice() else {
+        return Err(format!(
+            "capacity sweep must identify exactly one period: {}",
+            config.period
+        ));
+    };
+    let baseline_capacity = match config.resource {
+        CapacityResource::Cost => input.budgets_by_period[*period_index].cost_cap_u,
+        CapacityResource::Crew => input.budgets_by_period[*period_index].crew_cap_u,
+    };
+    if config.capacity_values.is_empty()
+        || config.capacity_values.len() > 256
+        || config.capacity_values.iter().any(|capacity| *capacity < 0)
+    {
+        return Err("capacity domain must contain 1..=256 non-negative integers".to_owned());
+    }
+    if config.capacity_values[0] != baseline_capacity {
+        return Err("first capacity value must equal the input's baseline cap".to_owned());
+    }
+    if config
+        .capacity_values
+        .windows(2)
+        .any(|pair| pair[0] <= pair[1])
+    {
+        return Err("capacity domain must be strictly descending with no duplicates".to_owned());
+    }
+    if config.max_evaluations == 0 {
+        return Err("evaluation budget must be at least one".to_owned());
+    }
+
+    let baseline = evaluate(input)?;
+    let baseline_ids: BTreeSet<String> = baseline
+        .feasible_portfolios
+        .iter()
+        .map(portfolio_key)
+        .collect();
+    let baseline_frontier_ids: BTreeSet<String> =
+        baseline.pareto_frontier.iter().map(portfolio_key).collect();
+    let evaluation_budget = config.max_evaluations.min(config.capacity_values.len());
+    let mut attempts = Vec::new();
+    let mut attempted_values = Vec::new();
+    let mut first_counterexample_capacity = None;
+    let mut remaining_values = Vec::new();
+
+    for (index, capacity) in config.capacity_values.iter().copied().enumerate() {
+        if attempts.len() >= evaluation_budget {
+            remaining_values.extend(config.capacity_values[index..].iter().copied());
+            break;
+        }
+        let mut mutated = input.clone();
+        match config.resource {
+            CapacityResource::Cost => {
+                mutated.budgets_by_period[*period_index].cost_cap_u = capacity;
+            }
+            CapacityResource::Crew => {
+                mutated.budgets_by_period[*period_index].crew_cap_u = capacity;
+            }
+        }
+        let evaluation = evaluate(&mutated)?;
+        let mutated_ids: BTreeSet<String> = evaluation
+            .feasible_portfolios
+            .iter()
+            .map(portfolio_key)
+            .collect();
+        let mut removed_portfolios: Vec<Vec<String>> = baseline
+            .feasible_portfolios
+            .iter()
+            .filter(|portfolio| !mutated_ids.contains(&portfolio_key(portfolio)))
+            .map(|portfolio| portfolio.project_ids.clone())
+            .collect();
+        removed_portfolios.sort();
+        if evaluation.feasible_portfolios.len() > baseline.feasible_portfolios.len()
+            || !mutated_ids.is_subset(&baseline_ids)
+        {
+            return Err(format!(
+                "tightening {} cap in {} unexpectedly added feasible portfolios",
+                match config.resource {
+                    CapacityResource::Cost => "cost",
+                    CapacityResource::Crew => "crew",
+                },
+                config.period
+            ));
+        }
+
+        let frontier_ids: BTreeSet<String> =
+            evaluation.pareto_frontier.iter().map(portfolio_key).collect();
+        let frontier_id_intersection_count = baseline_frontier_ids
+            .intersection(&frontier_ids)
+            .count();
+        let frontier_id_union_count = baseline_frontier_ids.union(&frontier_ids).count();
+        let counterexample_found = !removed_portfolios.is_empty();
+        attempts.push(CapacitySweepAttempt {
+            capacity,
+            feasible_before: baseline.feasible_portfolios.len(),
+            feasible_after: evaluation.feasible_portfolios.len(),
+            removed_feasible_count: removed_portfolios.len(),
+            removed_portfolios,
+            frontier_before: baseline.pareto_frontier.len(),
+            frontier_after: evaluation.pareto_frontier.len(),
+            frontier_id_intersection_count,
+            frontier_id_union_count,
+            counterexample_found,
+        });
+        attempted_values.push(capacity);
+        if counterexample_found {
+            first_counterexample_capacity = Some(capacity);
+            remaining_values.extend(config.capacity_values[index + 1..].iter().copied());
+            break;
+        }
+    }
+
+    let status = if first_counterexample_capacity.is_some() {
+        CounterexampleSweepStatus::CounterexampleFound
+    } else if !remaining_values.is_empty() {
+        CounterexampleSweepStatus::BudgetExhausted
+    } else {
+        CounterexampleSweepStatus::DomainExhaustedNoCounterexample
+    };
+
+    Ok(CapacitySweepReport {
+        schema_version: "sa-portfolio-capacity-sweep-report-v0.1".to_owned(),
+        status,
+        period: config.period.clone(),
+        resource: config.resource,
+        baseline_capacity,
+        domain_values: config.capacity_values.clone(),
+        evaluation_budget,
+        evaluation_count: attempts.len(),
+        attempted_values,
+        attempts,
+        first_counterexample_capacity,
+        remaining_values,
+    })
+}
+
 /// Enumerate a caller-declared, finite service-baseline mutation domain.
 /// The first mutation that removes any previously feasible portfolio is a
 /// counterexample to the claim that the original scenario set was sufficient
@@ -1563,6 +1769,12 @@ mod tests {
     );
     const NO_EFFECT_SWEEP_CONFIG: &str = include_str!(
         "../../../docs/research/fixtures/sa-portfolio-counterexample-sweep-v0.1-no-effect-config.json"
+    );
+    const COST_CAPACITY_CONFIG: &str = include_str!(
+        "../../../docs/research/fixtures/sa-portfolio-capacity-sweep-v0.1-p1-cost-config.json"
+    );
+    const CREW_CAPACITY_CONFIG: &str = include_str!(
+        "../../../docs/research/fixtures/sa-portfolio-capacity-sweep-v0.1-p1-crew-config.json"
     );
 
     fn fixture() -> Input {
@@ -2563,6 +2775,51 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn capacity_sweep_finds_removed_portfolios_and_preserves_strict_stop_semantics() {
+        let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture parses");
+        for raw in [COST_CAPACITY_CONFIG, CREW_CAPACITY_CONFIG] {
+            let config: CapacitySweepConfig =
+                serde_json::from_str(raw).expect("capacity config parses");
+            let report = evaluate_capacity_sweep(&input, &config)
+                .expect("capacity sweep should evaluate");
+            assert_eq!(report.status, CounterexampleSweepStatus::CounterexampleFound);
+            assert_eq!(
+                report.attempts.first().unwrap().capacity,
+                report.baseline_capacity
+            );
+            assert!(!report.attempts.first().unwrap().counterexample_found);
+            assert!(report.attempts.last().unwrap().counterexample_found);
+            assert!(report.first_counterexample_capacity.is_some());
+            assert_eq!(report.evaluation_count, report.attempts.len());
+            assert_eq!(
+                report.attempted_values.len() + report.remaining_values.len(),
+                report.domain_values.len()
+            );
+            assert_eq!(
+                report.attempts.last().unwrap().removed_feasible_count,
+                report.attempts.last().unwrap().removed_portfolios.len()
+            );
+        }
+    }
+
+    #[test]
+    fn capacity_sweep_rejects_invalid_order_and_reports_budget_exhaustion() {
+        let input: Input = serde_json::from_str(V02_INPUT).expect("v0.2 fixture parses");
+        let mut config: CapacitySweepConfig =
+            serde_json::from_str(CREW_CAPACITY_CONFIG).expect("crew config parses");
+        let mut invalid = config.clone();
+        invalid.capacity_values = vec![3, 3, 2];
+        assert!(evaluate_capacity_sweep(&input, &invalid).is_err());
+
+        config.capacity_values = vec![3, 2, 1, 0];
+        config.max_evaluations = 1;
+        let report = evaluate_capacity_sweep(&input, &config).unwrap();
+        assert_eq!(report.status, CounterexampleSweepStatus::BudgetExhausted);
+        assert_eq!(report.attempted_values, vec![3]);
+        assert_eq!(report.remaining_values, vec![2, 1, 0]);
     }
 
     #[test]
