@@ -11,6 +11,8 @@
     "data_origin",
     "claim_ceiling",
     "input_sha256",
+    "baseline_scenario_sha256",
+    "alternative_scenario_sha256",
     "budget_cost_units",
     "selected_cost_units",
     "unspent_budget_units",
@@ -159,6 +161,14 @@
     "exact_gain_over_uniform_mean_nats": {
       "type": "number",
       "minimum": 0
+    },
+    "baseline_scenario_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "alternative_scenario_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
     }
   },
   "$defs": {
