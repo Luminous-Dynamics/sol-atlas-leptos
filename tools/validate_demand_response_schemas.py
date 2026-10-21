@@ -225,6 +225,32 @@ def main() -> int:
         manifest_mutation,
     )
 
+    manifest_mutation = copy.deepcopy(flexdc_manifest)
+    manifest_mutation["synthetic"] = False
+    manifest_mutation["runtime_environment_sha256"] = "a" * 64
+    manifest_mutation["runtime_environment_manifest_path"] = "runtime-environment.txt"
+    expect_invalid(
+        "non-synthetic FlexDC manifest requires effective policy config path and digest",
+        flexdc_manifest_validator,
+        manifest_mutation,
+    )
+
+    manifest_mutation = copy.deepcopy(flexdc_manifest)
+    manifest_mutation["effective_policy_name"] = "unreviewed-policy"
+    expect_invalid(
+        "FlexDC manifest rejects unknown policy profiles",
+        flexdc_manifest_validator,
+        manifest_mutation,
+    )
+
+    manifest_mutation = copy.deepcopy(flexdc_manifest)
+    manifest_mutation["effective_policy_config_path"] = "../policy.ini"
+    expect_invalid(
+        "effective policy config path cannot traverse outside the run bundle",
+        flexdc_manifest_validator,
+        manifest_mutation,
+    )
+
     # Shape-only metadata control. SHA-256 values below are explicitly fake;
     # this object does not attest that any FlexDC-Sim run or artifact exists.
     flexdc_control = copy.deepcopy(fixture)
