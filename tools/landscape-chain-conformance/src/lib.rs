@@ -1511,6 +1511,115 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
 
     check_eq(
         &mut errors,
+        &chain.measurement_authorization,
+        &["schema"],
+        "mycelix.landscape-measurement-authorization.v0",
+        "Mycelix measurement authorization",
+    );
+    check_eq(
+        &mut errors,
+        &chain.measurement_authorization,
+        &["schema_uri"],
+        "https://luminousdynamics.io/schemas/landscape-measurement-authorization-v0.schema.json",
+        "Mycelix measurement authorization",
+    );
+    check_eq(
+        &mut errors,
+        &chain.measurement_authorization,
+        &["project_snapshot_sha256"],
+        &project_sha,
+        "Mycelix measurement authorization project reference",
+    );
+    check_eq(
+        &mut errors,
+        &chain.measurement_authorization,
+        &["site_ref_sha256"],
+        &intervention_site_sha,
+        "Mycelix measurement authorization site reference",
+    );
+    let permission_metric = records(&chain.metric_registry, &["metrics"])
+        .and_then(|metrics| metrics.first());
+    if let Some(permission_metric) = permission_metric {
+        check_eq(
+            &mut errors,
+            &chain.measurement_authorization,
+            &["metric_id"],
+            string_at(permission_metric, &["id"]).unwrap_or(""),
+            "Mycelix measurement authorization metric",
+        );
+        check_eq(
+            &mut errors,
+            &chain.measurement_authorization,
+            &["unit"],
+            string_at(permission_metric, &["unit"]).unwrap_or(""),
+            "Mycelix measurement authorization unit",
+        );
+    } else {
+        errors.push("Mycelix authorization cannot bind a metric when the registry is empty".to_owned());
+    }
+    check_eq(
+        &mut errors,
+        &chain.measurement_authorization,
+        &["consent_status"],
+        "unknown",
+        "Mycelix measurement consent",
+    );
+    check_eq(
+        &mut errors,
+        &chain.measurement_authorization,
+        &["site_access_status"],
+        "unknown",
+        "Mycelix site-access status",
+    );
+    check_eq(
+        &mut errors,
+        &chain.measurement_authorization,
+        &["publication_consent_status"],
+        "not-requested",
+        "Mycelix publication consent",
+    );
+    check_eq(
+        &mut errors,
+        &chain.measurement_authorization,
+        &["publication_policy"],
+        "private",
+        "Mycelix publication policy",
+    );
+    check_eq(
+        &mut errors,
+        &chain.measurement_authorization,
+        &["coordinate_disclosure"],
+        "none",
+        "Mycelix coordinate-disclosure policy",
+    );
+    check_eq(
+        &mut errors,
+        &chain.measurement_authorization,
+        &["evidence_class"],
+        "synthetic",
+        "Mycelix authorization evidence class",
+    );
+    check_eq(
+        &mut errors,
+        &chain.measurement_authorization,
+        &["verification_status"],
+        "not-verified",
+        "Mycelix authorization verification status",
+    );
+    for field in [
+        "consent_evidence_sha256",
+        "site_access_evidence_sha256",
+        "publication_consent_evidence_sha256",
+    ] {
+        if !at(&chain.measurement_authorization, &[field]).is_some_and(Value::is_null) {
+            errors.push(format!(
+                "Mycelix authorization {field} must remain null while positive permission is unverified"
+            ));
+        }
+    }
+
+    check_eq(
+        &mut errors,
         &chain.review,
         &["schema"],
         REVIEW_SCHEMA,
