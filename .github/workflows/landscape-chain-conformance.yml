@@ -58,7 +58,7 @@ jobs:
             .conformance_status == "PASS_SYNTHETIC_CONTRACT_CONFORMANCE_ONLY" and
             .data_origin == "synthetic_fixture" and
             .claim_ceiling == "SYNTHETIC_STRUCTURAL_CONFORMANCE_ONLY" and
-            .upstream_pinned_contract_count == 10 and
+            .upstream_pinned_contract_count == 13 and
             .project_feature_count == 7 and
             .observation_count == 5 and
             .metric_observation_mapping_count == 8 and
@@ -69,13 +69,17 @@ jobs:
             .paired_scenario_count == 2 and
             .paired_scenarios_share_boundary_conditions == true and
             .source_catalog_status == "metadata-only-not-ingested" and
+            .measurement_consent_status == "unknown" and
+            .site_access_status == "unknown" and
+            .measurement_authorization_verification_status == "not-verified" and
+            .measurement_operation_authorized_by_harness == false and
             .review_ranking_status == "no-defensible-ranking" and
             .recommendation_status == "no-ranking" and
-            .passed_check_count == 15 and
-            .negative_controls_attempted == 10 and
-            .negative_controls_rejected == 10 and
+            .passed_check_count == 16 and
+            .negative_controls_attempted == 11 and
+            .negative_controls_rejected == 11 and
             .negative_controls_unexpectedly_accepted == 0 and
-            ([.artifact_sha256[] | select(test("^[0-9a-f]{64}$"))] | length) == 15
+            ([.artifact_sha256[] | select(test("^[0-9a-f]{64}$"))] | length) == 16
           ' "$report"
 
       - name: Upload exact-revision report
