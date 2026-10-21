@@ -362,7 +362,7 @@ mod tests {
         assert_eq!(request.workloads[1].work_class, WorkClass::Deferrable);
 
         let frontier = exact_pareto_frontier(&request, 4096).expect("bounded exact search");
-        assert!(!frontier.schedules.is_empty());
+        assert!(frontier.schedules.len() >= 2, "price/carbon conflict should retain trade-offs");
         assert!(frontier.evaluated_schedule_count > frontier.schedules.len());
         for candidate in &frontier.schedules {
             assert_eq!(candidate.scheduled_work_units, 10);
