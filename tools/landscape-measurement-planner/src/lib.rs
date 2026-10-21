@@ -643,6 +643,113 @@ mod tests {
         );
     }
 
+    fn brute_force_oracle(
+        candidates: &[Candidate],
+        scores: &BTreeMap<String, CandidateScore>,
+        budget: u32,
+    ) -> (u32, PlanState) {
+        assert!(candidates.len() <= 20);
+        let empty = PlanState {
+            weighted_discrimination_nats: 0.0,
+            selected_ids: Vec::new(),
+        };
+        let mut best_cost = 0;
+        let mut best = empty;
+        for mask in 0usize..(1usize << candidates.len()) {
+            let mut ids = Vec::new();
+            let mut groups = BTreeSet::new();
+            let mut cost = 0u32;
+            let mut score = 0.0;
+            let mut feasible = true;
+            for (index, candidate) in candidates.iter().enumerate() {
+                if mask & (1usize << index) == 0 {
+                    continue;
+                }
+                if !eligible(candidate) || !groups.insert(candidate.correlation_group.as_str()) {
+                    feasible = false;
+                    break;
+                }
+                cost += candidate.cost_units;
+                if cost > budget {
+                    feasible = false;
+                    break;
+                }
+                score += scores[&candidate.candidate_id].weighted_discrimination_nats;
+                ids.push(candidate.candidate_id.clone());
+            }
+            if !feasible {
+                continue;
+            }
+            ids.sort();
+            let score_order = score.total_cmp(&best.weighted_discrimination_nats);
+            let should_replace = match score_order {
+                std::cmp::Ordering::Greater => true,
+                std::cmp::Ordering::Less => false,
+                std::cmp::Ordering::Equal if cost < best_cost => true,
+                std::cmp::Ordering::Equal if cost > best_cost => false,
+                std::cmp::Ordering::Equal => {
+                    ids.len() < best.selected_ids.len()
+                        || (ids.len() == best.selected_ids.len() && ids < best.selected_ids)
+                }
+            };
+            if should_replace {
+                best_cost = cost;
+                best = PlanState {
+                    weighted_discrimination_nats: score,
+                    selected_ids: ids,
+                };
+            }
+        }
+        (best_cost, best)
+    }
+
+    #[test]
+    fn exact_dynamic_program_matches_exhaustive_oracle_across_small_problem_family() {
+        for seed in 0..24usize {
+            let mut fixture = fixture();
+            fixture.budget_cost_units = (1 + (seed % 10)) as u32;
+            for (index, candidate) in fixture.candidates.iter_mut().enumerate() {
+                let delta = ((seed + index * 3) % 7) as f64;
+                candidate.baseline_mean = 20.0 + index as f64;
+                candidate.alternative_mean = candidate.baseline_mean + delta;
+                candidate.decision_weight = ((seed + index) % 4) as f64;
+                candidate.cost_units = (1 + ((seed * 3 + index * 2) % 5)) as u32;
+                candidate.correlation_group =
+                    format!("group-{}", (seed + index * 2) % 3);
+            }
+            validate_fixture(&fixture).expect("generated synthetic instance stays valid");
+            let scores: BTreeMap<String, CandidateScore> = fixture
+                .candidates
+                .iter()
+                .map(|candidate| {
+                    (
+                        candidate.candidate_id.clone(),
+                        candidate_score(candidate),
+                    )
+                })
+                .collect();
+            let actual = select_exact_budgeted(
+                &fixture.candidates,
+                &scores,
+                fixture.budget_cost_units,
+            );
+            let (oracle_cost, oracle) =
+                brute_force_oracle(&fixture.candidates, &scores, fixture.budget_cost_units);
+            let actual_cost: u32 = fixture
+                .candidates
+                .iter()
+                .filter(|candidate| actual.selected_ids.contains(&candidate.candidate_id))
+                .map(|candidate| candidate.cost_units)
+                .sum();
+            assert_eq!(actual_cost, oracle_cost, "seed={seed}");
+            assert_eq!(actual.selected_ids, oracle.selected_ids, "seed={seed}");
+            close(
+                actual.weighted_discrimination_nats,
+                oracle.weighted_discrimination_nats,
+            );
+        }
+    }
+
     #[test]
     fn symmetric_kl_known_answer_is_nine_nats() {
         let mut candidate = fixture().candidates[0].clone();
