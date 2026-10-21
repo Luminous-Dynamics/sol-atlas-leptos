@@ -103,6 +103,9 @@ pub struct PlanReport {
     pub ineligible_candidate_count: usize,
     pub selected_candidate_count: usize,
     pub eligible_not_selected_count: usize,
+    pub eligible_spatial_temporal_stratum_count: usize,
+    pub selected_spatial_temporal_stratum_count: usize,
+    pub eligible_spatial_temporal_stratum_coverage_fraction: f64,
     pub selected_candidate_ids: Vec<String>,
     pub total_weighted_discrimination_nats: f64,
     pub greedy_ratio_baseline_selected_candidate_ids: Vec<String>,
@@ -500,6 +503,23 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
         .filter(|candidate| selected_set.contains(candidate.candidate_id.as_str()))
         .map(|candidate| candidate.correlation_group.as_str())
         .collect();
+    let eligible_strata: BTreeSet<(&str, &str)> = fixture
+        .candidates
+        .iter()
+        .filter(|candidate| eligible(candidate))
+        .map(|candidate| (candidate.spatial_stratum.as_str(), candidate.temporal_stratum.as_str()))
+        .collect();
+    let selected_strata: BTreeSet<(&str, &str)> = fixture
+        .candidates
+        .iter()
+        .filter(|candidate| selected_set.contains(candidate.candidate_id.as_str()))
+        .map(|candidate| (candidate.spatial_stratum.as_str(), candidate.temporal_stratum.as_str()))
+        .collect();
+    let eligible_stratum_coverage_fraction = if eligible_strata.is_empty() {
+        0.0
+    } else {
+        selected_strata.len() as f64 / eligible_strata.len() as f64
+    };
 
     let mut decisions = Vec::new();
     for candidate in &fixture.candidates {
@@ -554,6 +574,11 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
         ineligible_candidate_count: ineligible_count,
         selected_candidate_count: selected.selected_ids.len(),
         eligible_not_selected_count: eligible_count - selected.selected_ids.len(),
+        eligible_spatial_temporal_stratum_count: eligible_strata.len(),
+        selected_spatial_temporal_stratum_count: selected_strata.len(),
+        eligible_spatial_temporal_stratum_coverage_fraction: rounded(
+            eligible_stratum_coverage_fraction,
+        ),
         selected_candidate_ids: selected.selected_ids,
         total_weighted_discrimination_nats: rounded(selected.weighted_discrimination_nats),
         greedy_ratio_baseline_selected_candidate_ids: greedy_baseline.selected_ids,
