@@ -47,6 +47,24 @@ For South African and other water-stressed regions, use regional water scarcity 
 
 The quality model must not infer wine taste or beer flavor directly from broad climate maps unless a separate dataset links the specific source, harvest, chemistry and blind sensory target, with held-out-region validation.
 
+## Quantitative spatial-vs-temporal validation baseline
+
+A directly relevant precision-viticulture study combined Landsat 8 imagery and weather data to predict grapevine water status in a Merlot vineyard over two growing seasons, using measurements from 24 experimental units. With block-out cross-validation for spatial mapping, the paper reports NRMSE of 2.7% for stem water potential, 16.2% for stomatal conductance and 11.2% for net assimilation. Temporal date-out forecasting was harder; the report gives NRMSE of 6.8% for stem water potential after adding ground data at one spatial location, 53.4% for stomatal conductance and 25.5% for net assimilation.
+
+Reference: Laroche-Pinel et al. (2024), *Assessing the spatial-temporal performance of machine learning in predicting grapevine water status from Landsat 8 imagery via block-out and date-out cross-validation*, Agricultural Water Management 306, 109163, https://doi.org/10.1016/j.agwat.2024.109163.
+
+These values illustrate why a single "terroir model accuracy" score is misleading. They are different endpoints and validation regimes from a particular site, not a universal vineyard leaderboard. They are not Luminous Dynamics results and are not an irrigation recommendation. The article also reports that the date-out case benefits from ground measurements; any comparison must match what ground inputs are available at inference time.
+
+A fair benchmark ladder is therefore:
+
+1. **Reproduction:** recover the original target definitions, sampling support, feature cutoffs and spatial/date folds before trying to beat reported figures.
+2. **Spatial mapping:** hold out spatial blocks with buffers informed by spatial dependence; keep repeated pixels, plots and same-date measurements from one experimental unit grouped.
+3. **Temporal forecast:** leave out future measurement dates; exclude future imagery, later weather summaries and post-outcome variables. Report each endpoint separately.
+4. **Transfer:** lock an independent vineyard/site or harvest season out from all model selection when the data support it; report sample counts, native resolution, uncertainty and coverage.
+5. **Decision value:** only after empirical forecast qualification, compare a locally reviewed resource-allocation policy against the existing grower/operator baseline, with water-rights/ecological constraints and a prospective outcome. Predicting plant water status does not on its own prove yield gain, flavor improvement or water saved.
+
+Proposed research stretch after like-for-like reproduction: at least 10% relative error reduction versus the strongest pre-registered baseline on a locked spatial or temporal holdout, without worsening subgroup calibration or coverage. That is a proposed target—not an observed result—and spatial mapping gains do not satisfy the temporal or external-transfer gate.
+
 ## Acceptance and negative controls
 
 - CRS, units, source version, resolution and temporal coverage are required and validated before comparing layers.
