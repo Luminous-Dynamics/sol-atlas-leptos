@@ -6,7 +6,7 @@
 
 Traditional monitoring often starts by spreading sensors uniformly or sampling where it is easiest. A decision-centric alternative asks: **which feasible, authorized observation is most likely to distinguish the decision-relevant landscape alternatives, given the budget?**
 
-Recent research supports studying measurement design as an optimization problem, without implying that a result from one setting generalizes everywhere. A 2026 urban-temperature study used terrain/land-cover-informed sensor placement in a WRF observing-system simulation experiment and reported comparable reconstruction accuracy with about 200 optimized stations versus more than 300 uniformly distributed stations in that setting: https://doi.org/10.1007/s44327-026-00308-x. An earlier heat-monitoring study compared entropy, prediction error, and value-of-information objectives and found that different objectives lead to different sensor layouts: https://doi.org/10.1016/j.buildenv.2018.05.059. An uncertainty-aware built-environment digital-twin position paper argues for linking data quality, model-form assumptions, calibration, benchmark residuals and decision tolerance throughout the lifecycle: https://doi.org/10.1016/j.dte.2026.100140.
+Recent research supports studying measurement design as an optimization problem, without implying that a result from one setting generalizes everywhere. A June 2026 urban-temperature study used terrain/land-cover-informed placement in a 250 m WRF observing-system simulation experiment and reported comparable reconstruction accuracy with about 200 optimized stations versus more than 300 uniformly distributed stations in that Sofia case: https://doi.org/10.1007/s44327-026-00308-x. A January 2026 PM2.5 study explicitly formulated placement around value of information and misclassification costs: https://doi.org/10.1088/1748-9326/ae2b89. An earlier heat-monitoring study compared entropy, prediction error, and value-of-information objectives and found different objectives can produce different layouts: https://doi.org/10.1016/j.buildenv.2018.05.059. An uncertainty-aware built-environment digital-twin position paper argues for linking data quality, model-form assumptions, calibration, benchmark residuals and decision tolerance throughout the lifecycle: https://doi.org/10.1016/j.dte.2026.100140.
 
 Those studies motivate the question; they do not validate this planner or justify transplanting their layouts/accuracy into Johannesburg.
 
@@ -15,6 +15,7 @@ Those studies motivate the question; they do not validate this planner or justif
 The frozen fixture represents candidate site/metric/time measurements with:
 
 - Separate baseline and alternative predictive means and standard deviations.
+- One shared model-family/version for both alternatives within each metric/unit, plus distinct SHA-256 digests for the baseline and alternative scenario snapshots. Every candidate in the same campaign must bind to that same scenario pair; this prevents a model-version change from being mistaken for a design effect.
 - A measurement-noise standard deviation.
 - An explicit decision weight and integer cost.
 - A digest-bound opaque site reference, spatial/temporal stratum, and a declared correlation group.
