@@ -5,6 +5,7 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
+    "fixture_notice",
     "schema_version",
     "benchmark_id",
     "synthetic_only",
@@ -52,6 +53,10 @@
       "items": {
         "$ref": "#/$defs/scenario"
       }
+    },
+    "fixture_notice": {
+      "type": "string",
+      "minLength": 30
     }
   },
   "$defs": {
