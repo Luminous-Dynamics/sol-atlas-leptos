@@ -1548,3 +1548,40 @@ canvas#globe-canvas.has-hover {
     line-height: 1.45;
     overflow-wrap: anywhere;
 }
+
+
+/* ─── Scale-aware evidence gates: scopes are not just zoom labels ────── */
+.landscape-scope-readiness {
+    margin: -2px 0 20px;
+    padding: 13px 12px;
+    border: 1px solid #d8e1d4;
+    border-radius: 8px;
+    background: #eef2e9;
+}
+.landscape-scope-readiness h3 {
+    margin-top: 5px;
+    color: #31543b;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 17px;
+    font-weight: 500;
+}
+.landscape-scope-requirements {
+    display: grid;
+    gap: 7px;
+    margin-top: 11px;
+    padding-left: 17px;
+    color: #5f7463;
+    font-size: 10px;
+    line-height: 1.45;
+}
+.landscape-scope-requirements li::marker {
+    color: #8d9e82;
+}
+.landscape-scope-blocker {
+    margin-top: 12px;
+    padding-top: 9px;
+    border-top: 1px solid #d9e1d4;
+    color: #987944;
+    font-size: 9px;
+    line-height: 1.45;
+}
