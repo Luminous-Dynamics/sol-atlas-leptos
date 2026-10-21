@@ -660,8 +660,7 @@ fn main() {
     // Effective policy config bytes are read from the run bundle and checked against
     // the exact digest recorded in the manifest; the original source config blob
     // remains separately pinned in config_artifacts as the template provenance.
-    let effective_policy_config_bytes =
-        match manifest.effective_policy_config_path.as_deref() {
+    let effective_policy_config_bytes = match manifest.effective_policy_config_path.as_deref() {
             Some(relative_path) => {
                 let manifest_file = Path::new(&manifest_path);
                 let bundle_dir = manifest_file.parent().unwrap_or_else(|| Path::new("."));
@@ -773,12 +772,11 @@ mod tests {
             serde_json::json!(sha256_hex(environment_bytes));
         let policy_bytes = b"[policy]\nname = AQA\n[bid]\np = 24216\nr = 9626\n[parameters]\n";
         manifest_value["effective_policy_name"] = serde_json::Value::String("AQA".to_owned());
-        manifest_value["effective_policy_config_path"] =
-            serde_json::json!("effective-policy.ini");
+        manifest_value["effective_policy_config_path"] = serde_json::json!("effective-policy.ini");
         manifest_value["effective_policy_config_sha256"] =
             serde_json::json!(sha256_hex(policy_bytes));
-        let real_run_manifest =
-            serde_json::to_vec(&manifest_value).expect("manifest JSON should serialize");
+        let real_run_manifest = serde_json::to_vec(&manifest_value)
+            .expect("manifest JSON should serialize");
         let output = build_trace_input(
             TRACE.as_bytes(),
             &real_run_manifest,
@@ -892,6 +890,10 @@ mod tests {
     fn non_synthetic_run_requires_hashed_runtime_environment() {
         let mut manifest = parsed_manifest();
         manifest.synthetic = false;
+        // Satisfy the independent effective-policy requirement so this test
+        // actually exercises the missing runtime environment receipt.
+        manifest.effective_policy_config_path = Some("effective-policy.ini".to_owned());
+        manifest.effective_policy_config_sha256 = Some("b".repeat(64));
         assert!(
             validate_manifest(&manifest)
                 .expect_err("unhashed non-synthetic runtime must reject")
