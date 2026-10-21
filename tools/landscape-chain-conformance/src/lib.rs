@@ -669,6 +669,7 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
         &mut errors,
         &chain.boundary,
         &["schema"],
+        "luminous.landscape-boundary-conditions.v0.1",
         "boundary conditions",
     );
     check_eq(
