@@ -63,9 +63,17 @@
       "source_id": "symthaea-alternative-review",
       "repository": "Luminous-Dynamics/symthaea",
       "pull_request": 8248,
-      "commit_sha": "0f0070331fe6cf2f8a86ab1b6337da432ef33081",
+      "commit_sha": "f4731d30e60f28911baab8ddc4dd5fe58ed19cd5",
       "source_path": "fixtures/landscape/review-unranked-v0.json",
-      "git_blob_sha": "b04b244e6be97421f50500ead6353943d069f3e2"
+      "git_blob_sha": "2114b50f07c0647bfcec3d3e561eda343010fcf8"
+    },
+    {
+      "source_id": "symthaea-alternative-review-schema",
+      "repository": "Luminous-Dynamics/symthaea",
+      "pull_request": 8248,
+      "commit_sha": "f4731d30e60f28911baab8ddc4dd5fe58ed19cd5",
+      "source_path": "schemas/landscape-alternative-review-v0.schema.json",
+      "git_blob_sha": "683b4b717a3d6fe81bf8aec758f2f41cdfd19b3c"
     },
     {
       "source_id": "symtropy-scenario-contract",
