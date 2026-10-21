@@ -1,0 +1,377 @@
+{
+  "schema": "luminous.landscape-source-catalog.v0",
+  "schema_uri": "https://luminousdynamics.io/schemas/landscape-source-catalog-v0.schema.json",
+  "catalog_id": "south-africa-johannesburg-highveld-v0",
+  "catalog_status": "metadata-only-not-ingested",
+  "reviewed_on": "2026-10-20",
+  "scope": [
+    "site-parcel",
+    "district",
+    "watershed",
+    "bioregion"
+  ],
+  "principles": [
+    "A URL is a candidate source, not proof that its terms permit redistribution or its content is fit for a particular scale.",
+    "Do not convert missing CRS, date, license, resolution, or source metadata into a valid-looking layer.",
+    "Source availability, legal permission, attribution, resolution, currency, and scientific suitability are independent gates.",
+    "Regional biodiversity plans guide screening but do not replace statutory interpretation, landholder consent, or on-site ecological survey.",
+    "Medium/coarse remote-sensing layers are not site survey or construction geometry.",
+    "Every ingested source must later be pinned by exact source URI, observation date/version, retrieval time, content digest, CRS, transform, and attribution."
+  ],
+  "pilot": {
+    "name": "Johannesburg / Highveld, Gauteng, South Africa",
+    "purpose": "Validate multi-scale design and source-provenance workflows before making parcel-specific claims.",
+    "known_limitation": "This registry records candidate public services and metadata only. No source layer has been downloaded, legally cleared for redistribution, or field-validated by this catalog."
+  },
+  "records": [
+    {
+      "id": "sanbi.gauteng-cplan-v4",
+      "title": "Gauteng Critical Biodiversity Areas / Ecological Support Areas Conservation Plan v4",
+      "publisher": "SANBI BGIS; source attribution in the service identifies Gauteng Department of Environment and Ecosol GIS",
+      "service_uri": "https://bgismaps.sanbi.org/server/rest/services/2024_Gauteng_CBA_Map/MapServer/0",
+      "metadata_uri": "https://bgismaps.sanbi.org/server/rest/services/2024_Gauteng_CBA_Map/MapServer/0/iteminfo",
+      "access_protocol": "ArcGIS REST Feature Layer",
+      "reported_geometry": "polygon",
+      "reported_crs": "EPSG:4326",
+      "supported_service_formats": [
+        "JSON",
+        "GeoJSON",
+        "PBF"
+      ],
+      "spatial_suitability": [
+        "district",
+        "watershed",
+        "bioregion",
+        "site-screening-only"
+      ],
+      "temporal_currency": {
+        "source_version": "Gauteng C-Plan v4; service identifies a 2023 planning revision",
+        "access_checked": "2026-10-20",
+        "observed_at": null,
+        "refresh_policy": "unknown; re-check item metadata and official custodian before each ingestion"
+      },
+      "attribution": "The service metadata reports Gauteng Department of Environment (GDEnv) and Ecosol GIS copyright.",
+      "license": {
+        "status": "review-required",
+        "note": "Service metadata exposes copyright and query formats but this catalog has not established redistribution rights or a complete dataset license. Do not bundle or republish the underlying layer until terms are verified.",
+        "uri": null
+      },
+      "uses": [
+        "Flag proposed interventions intersecting conservation-plan categories for further review.",
+        "Show source category, method/reference and date to the designer."
+      ],
+      "not_for": [
+        "Declaring legal zoning or development approval outcome.",
+        "Replacing site-level species inventory, habitat-condition survey or permission from rights-holders.",
+        "Calculating biodiversity gain from symbol counts."
+      ],
+      "ingestion_state": "not-ingested",
+      "validation_gates": [
+        "Verify source license, redistribution and caching permissions with custodian.",
+        "Pin retrieval date, layer definition, field schema, object counts and response digest.",
+        "Verify axis order and an independent known-location sample.",
+        "Render only at a declared scale, with a caution that site screening is not ground verification."
+      ]
+    },
+    {
+      "id": "sanbi.national-biodiversity-priority-areas-2023",
+      "title": "National Biodiversity Priority Areas 2023 composite map services",
+      "publisher": "South African National Biodiversity Institute (SANBI) BGIS",
+      "service_uri": "https://bgismaps.sanbi.org/server/rest/services/BGIS_Projects/2023_Biodiversity_Priority_Areas_Map/MapServer",
+      "metadata_uri": "https://bgismaps.sanbi.org/server/rest/services/BGIS_Projects/2023_Biodiversity_Priority_Areas_Map/MapServer/layers",
+      "access_protocol": "ArcGIS REST MapServer and Feature Layers",
+      "reported_geometry": "mixed polygon and line layers",
+      "reported_crs": "EPSG:4326",
+      "supported_service_formats": [
+        "JSON",
+        "GeoJSON",
+        "PBF where enabled per layer"
+      ],
+      "spatial_suitability": [
+        "watershed",
+        "bioregion",
+        "national-screening",
+        "site-screening-only"
+      ],
+      "temporal_currency": {
+        "source_version": "2023 biodiversity priority areas composite",
+        "access_checked": "2026-10-20",
+        "observed_at": null,
+        "refresh_policy": "review source-layer versions and custodians before every ingestion"
+      },
+      "attribution": "SANBI is identified as the service copyright owner.",
+      "license": {
+        "status": "review-required",
+        "note": "Publicly queryable service does not by itself establish redistribution rights for offline bundles or derivative datasets.",
+        "uri": null
+      },
+      "uses": [
+        "Regional screening for protected areas, CBA/ESA, wetlands, rivers, and strategic water-source areas.",
+        "Show ecological constraints and data gaps before scenario generation."
+      ],
+      "not_for": [
+        "Parcel certification or a substitute for official planning and environmental review.",
+        "Treating all displayed priority classes as legally identical restrictions.",
+        "Computing an overall ecological score without category-specific method and uncertainty."
+      ],
+      "ingestion_state": "not-ingested",
+      "validation_gates": [
+        "Verify licenses for each layer, not only the composite service.",
+        "Pin layer IDs and source metadata; layers may be updated independently.",
+        "Record source scale, version/date, and no-data behavior.",
+        "Compare select features against custodian documentation."
+      ]
+    },
+    {
+      "id": "climate.chirps-v3-daily-reanalysis",
+      "title": "CHIRPS v3 daily rainfall reanalysis",
+      "publisher": "Climate Hazards Center / UCSB; catalogued in Google Earth Engine",
+      "service_uri": "https://developers.google.com/earth-engine/datasets/catalog/UCSB-CHC_CHIRPS_V3_DAILY_RNL",
+      "metadata_uri": "https://developers.google.com/earth-engine/datasets/catalog/UCSB-CHC_CHIRPS_V3_DAILY_RNL",
+      "access_protocol": "Google Earth Engine collection (UCSB-CHC/CHIRPS/V3/DAILY_RNL)",
+      "reported_geometry": "0.05-degree gridded rainfall time series",
+      "reported_crs": "dataset metadata must be inspected and pinned at retrieval",
+      "spatial_suitability": [
+        "watershed",
+        "bioregion",
+        "regional-climate-context"
+      ],
+      "temporal_currency": {
+        "source_version": "CHIRPS v3 daily reanalysis; Earth Engine catalog showed coverage through 2026-07-31 at review time",
+        "access_checked": "2026-10-20",
+        "observed_at": "1981-01-01 through 2026-07-31 according to the catalog at review time",
+        "refresh_policy": "record exact collection version and observation window; check catalog for updates"
+      },
+      "attribution": "Cite the Climate Hazards Center/UCSB data product and Google Earth Engine catalog when used.",
+      "license": {
+        "status": "review-required-for-product-specific-terms",
+        "note": "Do not carry a blanket public-domain assertion from another CHIRPS version to this v3 reanalysis without verifying the specific product terms.",
+        "uri": null
+      },
+      "uses": [
+        "Historical daily rainfall context and drought-season scenario inputs at regional/catchment screening scales.",
+        "Temporal stratification for scenarios and sensitivity analysis."
+      ],
+      "not_for": [
+        "Parcel-level rainfall measurement or replacement for local gauges.",
+        "A design-storm hyetograph without appropriate event/statistical analysis.",
+        "Direct calibration claim for a local runoff solver."
+      ],
+      "ingestion_state": "not-ingested",
+      "validation_gates": [
+        "Verify version-specific terms and Earth Engine access conditions.",
+        "Record collection ID, observation window, units, no-data masks, processing version, and retrieval time.",
+        "Compare a sample against an independent gauge/reference dataset before calibration use.",
+        "Disclose grid scale; do not imply 0.05-degree cells resolve property microclimates."
+      ]
+    },
+    {
+      "id": "terrain.copernicus-dem-glo30",
+      "title": "Copernicus DEM GLO-30 (digital surface model)",
+      "publisher": "Copernicus / ESA with DLR and Airbus source contributions",
+      "service_uri": "https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM",
+      "metadata_uri": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/DEM.html",
+      "access_protocol": "Copernicus Data Space Browser / API / bulk access subject to current account eligibility and license conditions",
+      "reported_geometry": "30-metre global digital surface model",
+      "reported_crs": "native download products differ; pin actual tile CRS and vertical datum per asset",
+      "spatial_suitability": [
+        "watershed",
+        "district",
+        "regional-terrain-screening"
+      ],
+      "temporal_currency": {
+        "source_version": "GLO-30; source acquisition mainly 2011–2015 according to current product documentation",
+        "access_checked": "2026-10-20",
+        "observed_at": "source acquisition 2011–2015, with infill sources as described in product handbook",
+        "refresh_policy": "pin exact tile/product version and any infill/quality masks"
+      },
+      "attribution": "Apply the source notice required by the selected Copernicus DEM product license; preserve source and modification notice in exports.",
+      "license": {
+        "status": "registration-and-license-check-required",
+        "note": "On 2026-08-25 the Copernicus Data Space announced new access restrictions for the GLO-30 view service and a 90-metre fallback when the requested instance is unspecified. Choose the explicit instance and verify current access rights instead of assuming a 30-metre default.",
+        "uri": "https://dataspace.copernicus.eu/news/2026-8-25-copernicus-dem-30m-view-service-update"
+      },
+      "uses": [
+        "Regional terrain context, catchment hypotheses and broad slope screening after CRS/datum checks.",
+        "Help identify where high-resolution survey or lidar is necessary."
+      ],
+      "not_for": [
+        "Bare-earth terrain without filtering/validation: this is a surface model that may include vegetation and buildings.",
+        "Construction grading, drainage certification, flood level, or accessibility compliance.",
+        "Parcel design with precision finer than the data's proven accuracy."
+      ],
+      "ingestion_state": "not-ingested",
+      "validation_gates": [
+        "Request GLO-30 explicitly and verify current account/license access.",
+        "Store actual raster CRS, vertical datum, pixel alignment, acquisition/product version, quality/error/infill masks and checksum.",
+        "Compare representative spot elevations with a trustworthy local control or better survey data.",
+        "Mark DSM versus terrain interpretation distinctly in layer metadata."
+      ]
+    },
+    {
+      "id": "base.osm-vector",
+      "title": "OpenStreetMap vector data",
+      "publisher": "OpenStreetMap contributors",
+      "service_uri": "https://www.openstreetmap.org/",
+      "metadata_uri": "https://www.openstreetmap.org/copyright",
+      "access_protocol": "Use a permitted extract or an approved API; do not treat standard map tiles as a bulk-download API.",
+      "reported_geometry": "mixed points, lines and polygons depending on mapped feature",
+      "reported_crs": "published geographic data commonly uses WGS84; preserve exact source/extract metadata during ingestion",
+      "spatial_suitability": [
+        "site-parcel-context",
+        "district",
+        "watershed",
+        "bioregion"
+      ],
+      "temporal_currency": {
+        "source_version": "changes continuously; exact extract timestamp required",
+        "access_checked": "2026-10-20",
+        "observed_at": null,
+        "refresh_policy": "pin extract timestamp/sequence and source digest"
+      },
+      "attribution": "Display '© OpenStreetMap contributors' and link to https://www.openstreetmap.org/copyright.",
+      "license": {
+        "status": "open-data-with-obligations",
+        "note": "ODbL 1.0 applies; attribution is required and database/derivative distribution can trigger share-alike obligations. Review the specific use case before combining or redistributing layers.",
+        "uri": "https://www.openstreetmap.org/copyright"
+      },
+      "uses": [
+        "Road, trail, mapped building, public-space and connectivity context.",
+        "Identify missing or stale map features for field verification."
+      ],
+      "not_for": [
+        "Cadastral ownership, statutory boundaries, utility location, or guarantees that a mapped footpath is accessible.",
+        "Treating unmapped as nonexistent."
+      ],
+      "ingestion_state": "not-ingested",
+      "validation_gates": [
+        "Store extract timestamp, attribution and ODbL obligations with the dataset.",
+        "Inspect regional completeness and tagging consistency.",
+        "Compare routes/features to local authoritative sources and field observations.",
+        "Preserve missing-data state separately from negative/absent factual claims."
+      ]
+    },
+    {
+      "id": "imagery.sentinel-2-l2a",
+      "title": "Copernicus Sentinel-2 Level-2A surface reflectance",
+      "publisher": "European Union Copernicus Programme / ESA",
+      "service_uri": "https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-sentinel-data/sentinel-2",
+      "metadata_uri": "https://developers.google.com/earth-engine/datasets/catalog/sentinel-2",
+      "access_protocol": "Copernicus Data Space or a separately governed analysis provider; retain source-specific metadata",
+      "reported_geometry": "multispectral raster; visible/NIR bands at 10 m, red-edge/SWIR at 20 m, additional bands at 60 m",
+      "reported_crs": "per product tile; preserve projection, transform and pixel alignment from each asset",
+      "spatial_suitability": [
+        "district",
+        "watershed",
+        "bioregion",
+        "site-screening-only"
+      ],
+      "temporal_currency": {
+        "source_version": "Sentinel-2 L2A; provider/catalogue coverage and processing baseline must be pinned for every query",
+        "access_checked": "2026-10-20",
+        "observed_at": null,
+        "refresh_policy": "record scene IDs, acquisition dates, cloud/shadow masks, processing baseline and retrieval date"
+      },
+      "attribution": "Follow the selected Copernicus/product access terms and cite the exact scene/product.",
+      "license": {
+        "status": "verify-selected-provider-terms",
+        "note": "Keep the Copernicus source identity separate from the terms of any third-party hosting/analysis platform.",
+        "uri": "https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-sentinel-data/sentinel-2"
+      },
+      "uses": [
+        "Multi-date vegetation/land-cover change screening, with cloud, shadow and season controls.",
+        "Prioritizing sites for ground inspection and measuring broad cover trends."
+      ],
+      "not_for": [
+        "Individually identifying all trees or understory species from 10-m pixels.",
+        "A species list or biodiversity gain calculation without independent field/reference evidence.",
+        "Parcel-level imperviousness precision claims without appropriate validation and scale analysis."
+      ],
+      "ingestion_state": "not-ingested",
+      "validation_gates": [
+        "Pin exact scene IDs, dates, CRS/transform, cloud/shadow mask, processing baseline and source terms.",
+        "Test indices against known examples and independently interpreted reference sites.",
+        "Report effective pixel size and valid-data fraction per output.",
+        "Separate observed imagery classification from inferred land-cover class."
+      ]
+    },
+    {
+      "id": "ngi.cdngi-topo-orthophoto",
+      "title": "National Geo-spatial Information (CD:NGI) topographic maps and orthophoto products",
+      "publisher": "National Geo-spatial Information, Department of Land Reform and Rural Development, South Africa",
+      "service_uri": "https://ngigeoportal.dlrrd.gov.za/cdngiportal/",
+      "metadata_uri": "https://ngi.dlrrd.gov.za/index.php/what-we-do/maps-and-geospatial-information",
+      "access_protocol": "Official geoportal; select and inspect each product/sheet before retrieval. No service endpoint or bulk-download behavior is assumed by this catalog.",
+      "reported_geometry": "Product-dependent raster orthophotos, topographic maps and other geospatial products; exact asset type must be recorded per sheet",
+      "reported_crs": "Product-specific; official map-series references Hartebeesthoek94 datum/WGS84 ellipsoid, but the actual file CRS and axis order must be inspected for each product",
+      "supported_service_formats": [],
+      "spatial_suitability": [
+        "site-parcel-context",
+        "district",
+        "watershed",
+        "bioregion"
+      ],
+      "temporal_currency": {
+        "source_version": "Exact map sheet, product series, edition and orthophoto acquisition date must be selected and pinned before use",
+        "access_checked": "2026-10-21",
+        "observed_at": null,
+        "refresh_policy": "Record exact sheet/product ID, edition/acquisition date and metadata. Do not treat portal access time as observation date."
+      },
+      "attribution": "Use the attribution and copyright notice supplied with the exact CD:NGI product; preserve it with any derived layer.",
+      "license": {
+        "status": "review-required",
+        "note": "Official availability does not by itself establish permission for automated retrieval, offline bundling, redistribution or derivative products. Verify product-specific terms with CD:NGI before ingestion.",
+        "uri": "https://ngi.dlrrd.gov.za/index.php/what-we-do/maps-and-geospatial-information"
+      },
+      "uses": [
+        "Candidate authoritative local context for topographic features and orthophoto-based site screening after exact product, currency, CRS and terms are verified.",
+        "Potential higher-detail validation reference for regional/coarse remote-sensing context, subject to scale and accuracy checks."
+      ],
+      "not_for": [
+        "Assuming all products are downloadable or freely redistributable.",
+        "Treating imagery or 1:50,000 mapping as a current cadastral survey, utility locate or construction-grade elevation model.",
+        "Claiming site-scale geometric accuracy without the product specification and independent control."
+      ],
+      "ingestion_state": "not-ingested",
+      "validation_gates": [
+        "Open the exact geoportal product and record its identifier, title, edition/acquisition date and technical metadata.",
+        "Obtain the actual dataset terms and written permission where required for caching, redistribution and derivative use.",
+        "Record actual CRS, axis order, vertical datum if relevant, pixel size/map scale, accuracy and no-data behavior.",
+        "Validate representative features/elevations against an independent trusted survey or authoritative reference before any engineering use.",
+        "Keep source attribution attached to rendered views and exports."
+      ]
+    }
+  ],
+  "integration_contract": {
+    "required_before_ingestion": [
+      "source and layer identity",
+      "license/access decision and attribution text",
+      "source version/observation date and retrieval time",
+      "content digest",
+      "CRS/axis order/units/vertical datum if applicable",
+      "native resolution and valid use scales",
+      "no-data and quality masks",
+      "validation reference and known limitations"
+    ],
+    "required_visual_distinctions": [
+      "user-authored design intent",
+      "authoritative or curated source data",
+      "observed remote sensing",
+      "modelled result",
+      "synthetic benchmark",
+      "missing/unknown data"
+    ],
+    "rule": "A source may be visualized with a caution before model use, but a model must refuse inputs failing its CRS, resolution, license, date, or quality requirements."
+  },
+  "references": [
+    "https://bgismaps.sanbi.org/server/rest/services/2024_Gauteng_CBA_Map/MapServer/0",
+    "https://bgismaps.sanbi.org/server/rest/services/BGIS_Projects/2023_Biodiversity_Priority_Areas_Map/MapServer",
+    "https://developers.google.com/earth-engine/datasets/catalog/UCSB-CHC_CHIRPS_V3_DAILY_RNL",
+    "https://dataspace.copernicus.eu/news/2026-8-25-copernicus-dem-30m-view-service-update",
+    "https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM",
+    "https://www.openstreetmap.org/copyright",
+    "https://developers.google.com/earth-engine/datasets/catalog/sentinel-2",
+    "https://ngigeoportal.dlrrd.gov.za/cdngiportal/",
+    "https://ngi.dlrrd.gov.za/index.php/what-we-do/maps-and-geospatial-information"
+  ]
+}

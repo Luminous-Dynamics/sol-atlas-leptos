@@ -5,6 +5,17 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      run_full_landscape_benchmark:
+        description: "Run the full 100/1k/10k/100k native landscape benchmark"
+        required: false
+        type: boolean
+        default: false
+      benchmark_samples:
+        description: "Samples per size for the full native benchmark (1..100)"
+        required: false
+        type: number
+        default: 20
 
 concurrency:
   group: check-${{ github.ref }}
@@ -65,3 +76,43 @@ jobs:
       # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
       # `cargo test --lib` fails with "no library targets found".
       - run: cargo test --bin sol-atlas-leptos
+      # Native-only synthetic workload; feature-gated so it never becomes a WASM/browser target.
+      - run: cargo test --features landscape-bench --bin landscape-bench
+      - name: Smoke-test native landscape benchmark report
+        run: |
+          cargo run --release --features landscape-bench --bin landscape-bench -- --counts 100,1000 --samples 2 > "$RUNNER_TEMP/landscape-kernel-smoke.json"
+          jq -e '
+            .report_schema == "luminous.landscape-benchmark-report-v0" and
+            .benchmark_kind == "native-landscape-document-kernel" and
+            (.results | length == 2) and
+            ([.results[].raw_samples | length] | all(. == 2)) and
+            ([.results[].normalized_snapshot_sha256] | length == 2)
+          ' "$RUNNER_TEMP/landscape-kernel-smoke.json"
+      - name: Run full native landscape benchmark
+        if: github.event_name == 'workflow_dispatch' && inputs.run_full_landscape_benchmark == true
+        env:
+          REQUESTED_SAMPLES: ${{ inputs.benchmark_samples }}
+        run: |
+          if ! [[ "$REQUESTED_SAMPLES" =~ ^[0-9]+$ ]] || (( REQUESTED_SAMPLES < 1 || REQUESTED_SAMPLES > 100 )); then
+            echo "benchmark_samples must be an integer from 1 to 100" >&2
+            exit 2
+          fi
+          cargo run --release --features landscape-bench --bin landscape-bench -- --samples "$REQUESTED_SAMPLES" --out "$RUNNER_TEMP/landscape-kernel-full.json"
+          jq -e --argjson samples "$REQUESTED_SAMPLES" '
+            .report_schema == "luminous.landscape-benchmark-report-v0" and
+            .benchmark_kind == "native-landscape-document-kernel" and
+            ([.results[].feature_count] | sort == [100,1000,10000,100000]) and
+            ([.results[] | (.sample_count == $samples and (.raw_samples | length == $samples))] | all) and
+            ([.results[].normalized_snapshot_sha256 | test("^[0-9a-f]{64}$")] | all) and
+            ([.results[].raw_samples[].total_kernel_ns] | length > 0)
+          ' "$RUNNER_TEMP/landscape-kernel-full.json"
+      - name: Upload raw landscape benchmark reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: landscape-benchmark-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/landscape-kernel-smoke.json
+            ${{ runner.temp }}/landscape-kernel-full.json
+          if-no-files-found: warn
+          retention-days: 90

@@ -4,6 +4,7 @@
 mod app;
 mod components;
 mod data;
+mod landscape;
 mod renderer;
 mod state;
 mod vitality;
