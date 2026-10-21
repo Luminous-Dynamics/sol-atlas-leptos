@@ -1799,6 +1799,12 @@ mod tests {
     const CREW_CAPACITY_CONFIG: &str = include_str!(
         "../../../docs/research/fixtures/sa-portfolio-capacity-sweep-v0.1-p1-crew-config.json"
     );
+    const COST_CAPACITY_FULL_CONFIG: &str = include_str!(
+        "../../../docs/research/fixtures/sa-portfolio-capacity-sweep-v0.1-p1-cost-full-config.json"
+    );
+    const CREW_CAPACITY_FULL_CONFIG: &str = include_str!(
+        "../../../docs/research/fixtures/sa-portfolio-capacity-sweep-v0.1-p1-crew-full-config.json"
+    );
     const CAPACITY_INPUT: &str = include_str!(
         "../../../docs/research/fixtures/sa-economic-portfolio-v0.2-resource-capacity.json"
     );
@@ -2863,6 +2869,35 @@ mod tests {
             first_counterexample_removed_counts[1],
             "cost and crew cap challenges must be discriminating, not the same constraint in disguise"
         );
+    }
+
+    #[test]
+    fn full_capacity_sweep_records_every_step_of_the_sensitivity_curve() {
+        let input: Input =
+            serde_json::from_str(CAPACITY_INPUT).expect("capacity fixture parses");
+        for (raw, resource, expected_counts, expected_first) in [
+            (COST_CAPACITY_FULL_CONFIG, CapacityResource::Cost, vec![82, 72, 30, 30], 5),
+            (CREW_CAPACITY_FULL_CONFIG, CapacityResource::Crew, vec![82, 42, 22, 5], 2),
+        ] {
+            let config: CapacitySweepConfig =
+                serde_json::from_str(raw).expect("full-sweep config parses");
+            assert!(!config.stop_on_first_counterexample);
+            let report = evaluate_capacity_sweep(&input, &config)
+                .expect("full sweep should evaluate");
+            assert_eq!(report.resource, resource);
+            assert_eq!(report.status, CounterexampleSweepStatus::CounterexampleFound);
+            assert_eq!(report.evaluation_count, config.capacity_values.len());
+            assert!(report.remaining_values.is_empty());
+            assert_eq!(report.first_counterexample_capacity, Some(expected_first));
+            assert_eq!(
+                report
+                    .attempts
+                    .iter()
+                    .map(|attempt| attempt.feasible_after)
+                    .collect::<Vec<_>>(),
+                expected_counts
+            );
+        }
     }
 
     #[test]
