@@ -267,7 +267,6 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
     let intervention_site_sha = sha256_hex(&intervention_site_bytes);
     let comparison_site_sha = sha256_hex(&comparison_site_bytes);
     let metric_registry_sha = sha256_hex(&metric_registry_bytes);
-    let metric_observation_map_sha = sha256_hex(&metric_observation_map_bytes);
     let source_catalog_sha = sha256_hex(&source_catalog_bytes);
 
     let intervention_arm = evaluation_plan
@@ -450,7 +449,6 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
         "purpose": scenario["purpose"],
         "evidence_class": "synthetic"
     });
-    let stewardship_sha = canonical_sha256(&stewardship).map_err(|error| vec![error])?;
 
     set_str(
         &mut review,
@@ -1702,7 +1700,7 @@ fn negative_control_results(chain: &ChainArtifacts) -> NegativeControlSummary {
         .windows(b"Canopy tree".len())
         .position(|window| window == b"Canopy tree")
     {
-        changed_snapshot_bytes.project_bytes[position] = b"c";
+        changed_snapshot_bytes.project_bytes[position] = b'c';
     }
     cases.push((
         "one-byte-project-snapshot-change".to_owned(),
@@ -1965,7 +1963,7 @@ mod tests {
             .windows(b"Canopy tree".len())
             .position(|window| window == b"Canopy tree")
             .expect("fixture includes known label");
-        chain.project_bytes[position] = b"c";
+        chain.project_bytes[position] = b'c';
         let errors = validate_chain(&chain);
         assert!(!errors.is_empty());
         assert!(
