@@ -69,6 +69,9 @@ jobs:
             .ineligible_candidate_count == 2 and
             .selected_candidate_count == 2 and
             .eligible_not_selected_count == 2 and
+            .eligible_spatial_temporal_stratum_count == 3 and
+            .selected_spatial_temporal_stratum_count == 2 and
+            (.eligible_spatial_temporal_stratum_coverage_fraction - 0.666666667 | abs) < 0.000001 and
             .selected_candidate_ids == ["candidate-b-north-replica", "candidate-c-south-sensor"] and
             (.total_weighted_discrimination_nats - 10.0 | abs) < 0.000001 and
             .greedy_ratio_baseline_selected_candidate_ids == ["candidate-a-high-density"] and
