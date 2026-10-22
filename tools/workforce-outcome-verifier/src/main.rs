@@ -434,9 +434,9 @@ fn run() -> Result<(), String> {
         receipts,
         limitations: vec![
             "The fixture policy counts and all outcomes are synthetic contract inputs.",
-            "Gross paid-work events are reconciled to their selected policy; they are not net additional jobs.",
-            "The synthetic-only contract intentionally leaves counterfactual additionality unestimated.",
-            "A verifier pass does not validate real sources, establish causality, or demonstrate SOTA superiority.",
+            "Gross paid-work events are not net additional jobs.",
+            "Synthetic data cannot estimate counterfactual additionality.",
+            "A pass does not prove real sources, causality or SOTA superiority.",
         ],
         claim_ceiling: "synthetic_contract_only",
     };
