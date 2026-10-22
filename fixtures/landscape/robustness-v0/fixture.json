@@ -98,5 +98,161 @@
       "alternative_id": "strategy-c",
       "utility_points": 72
     }
+  ],
+  "critical_constraints": [
+    {
+      "constraint_id": "water_service_floor",
+      "label": "Water demand must remain within the project-approved supply ceiling"
+    },
+    {
+      "constraint_id": "accessible_route_continuity",
+      "label": "At least one continuous accessible route must remain available"
+    }
+  ],
+  "constraint_outcomes": [
+    {
+      "scenario_id": "baseline",
+      "alternative_id": "strategy-a",
+      "constraint_id": "water_service_floor",
+      "satisfied": true
+    },
+    {
+      "scenario_id": "baseline",
+      "alternative_id": "strategy-a",
+      "constraint_id": "accessible_route_continuity",
+      "satisfied": true
+    },
+    {
+      "scenario_id": "baseline",
+      "alternative_id": "strategy-b",
+      "constraint_id": "water_service_floor",
+      "satisfied": true
+    },
+    {
+      "scenario_id": "baseline",
+      "alternative_id": "strategy-b",
+      "constraint_id": "accessible_route_continuity",
+      "satisfied": true
+    },
+    {
+      "scenario_id": "baseline",
+      "alternative_id": "strategy-c",
+      "constraint_id": "water_service_floor",
+      "satisfied": true
+    },
+    {
+      "scenario_id": "baseline",
+      "alternative_id": "strategy-c",
+      "constraint_id": "accessible_route_continuity",
+      "satisfied": true
+    },
+    {
+      "scenario_id": "extreme_rain",
+      "alternative_id": "strategy-a",
+      "constraint_id": "water_service_floor",
+      "satisfied": true
+    },
+    {
+      "scenario_id": "extreme_rain",
+      "alternative_id": "strategy-a",
+      "constraint_id": "accessible_route_continuity",
+      "satisfied": true
+    },
+    {
+      "scenario_id": "extreme_rain",
+      "alternative_id": "strategy-b",
+      "constraint_id": "water_service_floor",
+      "satisfied": true
+    },
+    {
+      "scenario_id": "extreme_rain",
+      "alternative_id": "strategy-b",
+      "constraint_id": "accessible_route_continuity",
+      "satisfied": false
+    },
+    {
+      "scenario_id": "extreme_rain",
+      "alternative_id": "strategy-c",
+      "constraint_id": "water_service_floor",
+      "satisfied": true
+    },
+    {
+      "scenario_id": "extreme_rain",
+      "alternative_id": "strategy-c",
+      "constraint_id": "accessible_route_continuity",
+      "satisfied": true
+    },
+    {
+      "scenario_id": "heat_drought",
+      "alternative_id": "strategy-a",
+      "constraint_id": "water_service_floor",
+      "satisfied": true
+    },
+    {
+      "scenario_id": "heat_drought",
+      "alternative_id": "strategy-a",
+      "constraint_id": "accessible_route_continuity",
+      "satisfied": true
+    },
+    {
+      "scenario_id": "heat_drought",
+      "alternative_id": "strategy-b",
+      "constraint_id": "water_service_floor",
+      "satisfied": false
+    },
+    {
+      "scenario_id": "heat_drought",
+      "alternative_id": "strategy-b",
+      "constraint_id": "accessible_route_continuity",
+      "satisfied": true
+    },
+    {
+      "scenario_id": "heat_drought",
+      "alternative_id": "strategy-c",
+      "constraint_id": "water_service_floor",
+      "satisfied": true
+    },
+    {
+      "scenario_id": "heat_drought",
+      "alternative_id": "strategy-c",
+      "constraint_id": "accessible_route_continuity",
+      "satisfied": true
+    },
+    {
+      "scenario_id": "maintenance_shock",
+      "alternative_id": "strategy-a",
+      "constraint_id": "water_service_floor",
+      "satisfied": true
+    },
+    {
+      "scenario_id": "maintenance_shock",
+      "alternative_id": "strategy-a",
+      "constraint_id": "accessible_route_continuity",
+      "satisfied": true
+    },
+    {
+      "scenario_id": "maintenance_shock",
+      "alternative_id": "strategy-b",
+      "constraint_id": "water_service_floor",
+      "satisfied": true
+    },
+    {
+      "scenario_id": "maintenance_shock",
+      "alternative_id": "strategy-b",
+      "constraint_id": "accessible_route_continuity",
+      "satisfied": false
+    },
+    {
+      "scenario_id": "maintenance_shock",
+      "alternative_id": "strategy-c",
+      "constraint_id": "water_service_floor",
+      "satisfied": true
+    },
+    {
+      "scenario_id": "maintenance_shock",
+      "alternative_id": "strategy-c",
+      "constraint_id": "accessible_route_continuity",
+      "satisfied": false
+    }
   ]
 }
