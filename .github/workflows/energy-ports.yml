@@ -1,0 +1,88 @@
+name: Typed energy-port graph accounting
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "sol-atlas-core/src/energy_ports.rs"
+      - "sol-atlas-core/src/bin/energy_ports_assess.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/energy-ports-*.schema.json"
+      - "schemas/examples/energy-ports-*.synthetic.json"
+      - "docs/benchmarks/ENERGY_PORTS_V0_1.md"
+      - ".github/workflows/energy-ports.yml"
+  pull_request:
+    paths:
+      - "sol-atlas-core/src/energy_ports.rs"
+      - "sol-atlas-core/src/bin/energy_ports_assess.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/energy-ports-*.schema.json"
+      - "schemas/examples/energy-ports-*.synthetic.json"
+      - "docs/benchmarks/ENERGY_PORTS_V0_1.md"
+      - ".github/workflows/energy-ports.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  energy-ports:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-energy-ports-${{ hashFiles('**/Cargo.lock') }}
+      - name: Run graph accounting and negative-control tests
+        run: cargo test -p sol-atlas-core --lib energy_ports
+      - name: Run receipt-wrapped graph CLI tests
+        run: cargo test -p sol-atlas-core --bin energy_ports_assess
+      - name: Produce frozen synthetic cogeneration graph report
+        run: cargo run -p sol-atlas-core --bin energy_ports_assess -- schemas/examples/energy-ports-chp.synthetic.json > /tmp/energy-ports-report.json
+      - name: Install pinned JSON Schema validator (CI tooling only)
+        run: python -m pip install --disable-pip-version-check "jsonschema[format]==4.26.0"
+      - name: Validate schemas, source identity, co-product attribution, and graph closure
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator, FormatChecker
+
+          fixture_bytes = Path("schemas/examples/energy-ports-chp.synthetic.json").read_bytes()
+          request = json.loads(fixture_bytes)
+          report = json.loads(Path("/tmp/energy-ports-report.json").read_text())
+          request_schema = json.loads(Path("schemas/energy-ports-request-v0.1.schema.json").read_text())
+          report_schema = json.loads(Path("schemas/energy-ports-report-v1.schema.json").read_text())
+          Draft202012Validator.check_schema(request_schema)
+          Draft202012Validator.check_schema(report_schema)
+          Draft202012Validator(request_schema, format_checker=FormatChecker()).validate(request)
+          Draft202012Validator(report_schema, format_checker=FormatChecker()).validate(report)
+
+          assessment = report["assessment"]
+          receipt = report["receipt"]
+          assert hashlib.sha256(fixture_bytes).hexdigest() == receipt["input_sha256"]
+          encoded_assessment = json.dumps(assessment, separators=(",", ":"), ensure_ascii=False).encode()
+          assert hashlib.sha256(encoded_assessment).hexdigest() == receipt["assessment_sha256"]
+          assert assessment["external_input_energy_kwh"] == 100.0
+          assert assessment["routed_energy_kwh"] == 15.0
+          assert assessment["terminal_useful_service_kwh"] == 49.0
+          assert assessment["terminal_rejected_kwh"] == 51.0
+          assert assessment["terminal_disposition_energy_kwh"] == 100.0
+          assert abs(assessment["system_balance_residual_kwh"]) < 1e-9
+          heat = next(p for p in assessment["output_ports"] if p["node_id"] == "chp" and p["port_id"] == "heat-coproduct")
+          assert heat["energy_kwh"] == 45.0
+          assert heat["routed_energy_kwh"] == 15.0
+          assert heat["terminal_remainder_kwh"] == 30.0
+          assert len([p for p in assessment["input_ports"] if p["external_source_id"] == "fuel-batch-001"]) == 1
+          assert "not authenticated metering" in assessment["claim_ceiling"]
+          print("energy-port schemas, source identity, co-product attribution and graph closure passed")
+          PY
