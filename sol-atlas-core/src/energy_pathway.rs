@@ -138,9 +138,11 @@ pub enum EnergyPathwayError {
 /// `source_energy_kwh = conversion_loss_kwh + curtailed_energy_kwh
 /// + gross_delivered_energy_kwh` (within floating-point tolerance) for the
 /// single modelled stream. Auxiliary electricity is a separate external input.
-/// When the final product is electricity, `net_electric_output_kwh` is gross
-/// delivered electricity minus those auxiliary loads; it can be negative and
-/// therefore signals net electric consumption under the declared boundary.
+/// When a non-electric source produces a final electrical stream,
+/// `net_electric_output_kwh` is gross delivered electricity minus auxiliary loads.
+/// It is not populated for electricity-fed pathways, because this single-stream
+/// contract does not treat delivered electricity as new generation or subtract the
+/// original electrical input from the output.
 #[derive(Clone, Debug, PartialEq, serde::Serialize)]
 pub struct EnergyPathwayAssessment {
     pub assessment_schema_version: String,
@@ -342,7 +344,8 @@ pub fn assess_energy_pathway(
         total_conversion_loss_kwh: conversion_loss,
         total_curtailed_energy_kwh: curtailed_energy,
         total_auxiliary_electricity_kwh: auxiliary_electricity,
-        net_electric_output_kwh: (delivered_form == EnergyForm::Electricity)
+        net_electric_output_kwh: (request.source_form != EnergyForm::Electricity
+            && delivered_form == EnergyForm::Electricity)
             .then_some(gross_delivered - auxiliary_electricity),
         stream_balance_residual_kwh: balance_residual,
         stages: stage_results,
@@ -456,6 +459,22 @@ mod tests {
         assert_eq!(assessment.gross_delivered_energy_kwh, 0.0);
         assert_eq!(assessment.total_conversion_loss_kwh, 0.0);
         assert_eq!(assessment.total_auxiliary_electricity_kwh, 0.0);
+    }
+
+
+    #[test]
+    fn electricity_delivery_is_not_mislabeled_as_new_generation() {
+        let distribution = stage(
+            "distribution",
+            EnergyForm::Electricity,
+            EnergyForm::Electricity,
+            0.95,
+            100.0,
+            0.0,
+        );
+        let assessment = assess_energy_pathway(&request(100.0, vec![distribution])).unwrap();
+        assert_eq!(assessment.gross_delivered_energy_kwh, 95.0);
+        assert_eq!(assessment.net_electric_output_kwh, None);
     }
 
     #[test]
