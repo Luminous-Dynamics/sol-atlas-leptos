@@ -32,7 +32,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "assessment_schema_version", "storage_id", "carrier", "synthetic", "claim_ceiling",
+        "assessment_schema_version", "storage_id", "carrier", "thermal_temperature_c", "synthetic", "claim_ceiling",
         "initial_energy_kwh", "final_energy_kwh", "capacity_kwh", "terminal_reserve_kwh",
         "terminal_reserve_met", "terminal_reserve_shortfall_kwh", "total_charge_accepted_kwh",
         "total_charge_curtailed_kwh", "total_discharge_delivered_kwh", "total_discharge_unserved_kwh",
@@ -44,6 +44,7 @@
         "assessment_schema_version": { "const": "1" },
         "storage_id": { "type": "string", "minLength": 1 },
         "carrier": { "type": "string", "enum": ["electricity", "thermal_heat"] },
+        "thermal_temperature_c": { "type": ["number", "null"] },
         "synthetic": { "type": "boolean" },
         "claim_ceiling": { "type": "string", "minLength": 1 },
         "initial_energy_kwh": { "type": "number", "minimum": 0 },
