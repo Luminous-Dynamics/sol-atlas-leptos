@@ -537,7 +537,10 @@ fn run() -> Result<(), String> {
             .map_err(|error| format!("report serialization failed: {error}"))?
     );
     if report.status != "SYNTHETIC_CALIBRATION_CONTRACT_PASS" {
-        return Err("calibration metrics or negative-control gates disagree with the frozen reference".to_string());
+        return Err(
+            "calibration metrics or negative-control gates disagree with the frozen reference"
+                .to_string(),
+        );
     }
     Ok(())
 }
@@ -640,7 +643,8 @@ mod tests {
     #[test]
     fn duplicate_case_model_pair_is_rejected() {
         let (mut fixture, schema) = loaded();
-        fixture["cases"][0]["forecasts"][1] = fixture["cases"][0]["forecasts"][0].clone();
+        let duplicate = fixture["cases"][0]["forecasts"][0].clone();
+        fixture["cases"][0]["forecasts"][1] = duplicate;
         let bytes = serde_json::to_vec(&fixture).expect("fixture serializes");
         let schema_bytes = serde_json::to_vec(&schema).expect("schema serializes");
         assert!(verify_values(&schema, &fixture, &bytes, &schema_bytes).is_err());
