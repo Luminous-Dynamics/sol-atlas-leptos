@@ -23,6 +23,8 @@ South Africa's national unemployment rate and local occupational demand describe
 - World Bank, *From Demand to Delivery* (14 Aug 2026): https://www.worldbank.org/en/news/feature/2026/08/14/from-demand-to-delivery-strengthening-south-africas-digital-skills
 - NIST, *TEVV-Athlon Framework for Evaluating AI Systems* (2026 draft): https://www.nist.gov/artificial-intelligence/ai-research/tevv-athlon-framework-evaluating-ai-systems
 - OECD, *Digital Government Outlook 2026*, impact measurement and user feedback: https://www.oecd.org/en/publications/digital-government-outlook_0496b2bc-en/full-report/adopting-and-governing-ai-in-government_7ef312a9.html
+- OECD, Jobs Strategy evaluation literature on deadweight, displacement and substitution effects in labour-market programmes: https://www.oecd.org/content/dam/oecd/en/about/programmes/jobs-strategy/JobsStudy1941679.pdf
+- UNU-WIDER, *The effect of wage subsidies on job retention: Evidence from South Africa during the COVID-19 pandemic* (quasi-experimental difference-in-differences evaluation): https://www.wider.unu.edu/publication/effect-wage-subsidies-job-retention
 
 Commercial field-service products such as Dynamics 365 Resource Scheduling Optimization, Salesforce Field Service and ServiceNow Dynamic Scheduling provide relevant operational comparators for skills/availability/travel/priority-constrained scheduling. They are not direct evidence of workforce-shortage diagnosis or causal employment impact. Compare like for like on shared tasks and budgets; do not claim to outperform a vendor based on a different task or an unverified fixture.
 - https://learn.microsoft.com/en-us/dynamics365/field-service/rso-overview
