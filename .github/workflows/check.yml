@@ -91,6 +91,9 @@ jobs:
       # Verify multi-output energy routing, attribution and graph closure.
       - name: Test typed energy-port graph CLI
         run: cargo test -p sol-atlas-core --bin energy_ports_assess
+      # Useful-service labels must match explicit demand and preserve shortfall.
+      - name: Test demand-matched energy service CLI
+        run: cargo test -p sol-atlas-core --bin energy_service_assess
       # Ensure useful service claims match demand and unmet loads stay explicit.
       - name: Test demand-matched energy service CLI
         run: cargo test -p sol-atlas-core --bin energy_service_assess
