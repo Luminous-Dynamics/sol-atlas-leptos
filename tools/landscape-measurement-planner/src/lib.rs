@@ -545,16 +545,11 @@ fn select_exact_budgeted(
     best
 }
 
-fn select_exact_coverage_constrained(
+fn select_exact_coverage_frontier_plans(
     candidates: &[Candidate],
     scores: &BTreeMap<String, CandidateScore>,
     budget: u32,
-    minimum_coverage_fraction: f64,
-) -> Result<Option<PlanState>, &'static str> {
-    if minimum_coverage_fraction == 0.0 {
-        return Ok(None);
-    }
-
+) -> Result<Vec<Option<(u32, PlanState)>>, &'static str> {
     let eligible_strata: BTreeSet<(&str, &str)> = candidates
         .iter()
         .filter(|candidate| eligible(candidate))
@@ -563,14 +558,15 @@ fn select_exact_coverage_constrained(
             candidate.temporal_stratum.as_str(),
         ))
         .collect();
-    if eligible_strata.is_empty() {
-        return Ok(None);
+    let stratum_count = eligible_strata.len();
+    let mut frontier: Vec<Option<(u32, PlanState)>> = vec![None; stratum_count + 1];
+    if stratum_count == 0 {
+        return Ok(frontier);
     }
-    if eligible_strata.len() > MAX_COVERAGE_STRATA {
+    if stratum_count > MAX_COVERAGE_STRATA {
         return Err("coverage_stratum_limit");
     }
-    let required_strata = ((minimum_coverage_fraction * eligible_strata.len() as f64) - 1.0e-12)
-        .ceil() as usize;
+
     let stratum_indexes: BTreeMap<(&str, &str), usize> = eligible_strata
         .iter()
         .enumerate()
@@ -588,9 +584,9 @@ fn select_exact_coverage_constrained(
         group.sort_by(|left, right| left.candidate_id.cmp(&right.candidate_id));
     }
 
-    // Exact DP state retains the covered-stratum bitmask as well as cost.
-    // The fixed state/transition caps are explicit v0.1 resource bounds; if
-    // exceeded, report an incomplete constraint result rather than a false pass.
+    // One exact state map generates the entire coverage-versus-score frontier.
+    // The fixed state/transition caps are explicit resource bounds; exceeding
+    // either cap returns a reason instead of a partial or falsely qualified plan.
     let mut states: BTreeMap<(u32, u64), PlanState> = BTreeMap::new();
     states.insert(
         (0, 0),
@@ -642,19 +638,64 @@ fn select_exact_coverage_constrained(
         }
     }
 
-    let mut best: Option<(u32, PlanState)> = None;
+    // First retain the best plan with exactly k covered strata, then compute
+    // suffix optima: frontier[k] is the best plan with coverage >= k strata.
+    let mut best_exact: Vec<Option<(u32, PlanState)>> = vec![None; stratum_count + 1];
     for ((cost, mask), state) in &states {
-        if (mask.count_ones() as usize) < required_strata {
+        let covered = mask.count_ones() as usize;
+        if covered == 0 {
             continue;
         }
-        let replace = best.as_ref().is_none_or(|(best_cost, best_state)| {
+        let slot = &mut best_exact[covered];
+        if slot.as_ref().is_none_or(|(best_cost, best_state)| {
             better_final(*cost, state, *best_cost, best_state)
-        });
-        if replace {
-            best = Some((*cost, state.clone()));
+        }) {
+            *slot = Some((*cost, state.clone()));
         }
     }
-    Ok(best.map(|(_, state)| state))
+    for minimum_strata in (1..=stratum_count).rev() {
+        let exact = best_exact[minimum_strata].clone();
+        let higher = if minimum_strata < stratum_count {
+            frontier[minimum_strata + 1].clone()
+        } else {
+            None
+        };
+        frontier[minimum_strata] = match (exact, higher) {
+            (Some(left), Some(right)) => {
+                if better_final(left.0, &left.1, right.0, &right.1) {
+                    Some(left)
+                } else {
+                    Some(right)
+                }
+            }
+            (Some(plan), None) | (None, Some(plan)) => Some(plan),
+            (None, None) => None,
+        };
+    }
+    Ok(frontier)
+}
+
+fn select_exact_coverage_constrained(
+    candidates: &[Candidate],
+    scores: &BTreeMap<String, CandidateScore>,
+    budget: u32,
+    minimum_coverage_fraction: f64,
+) -> Result<Option<PlanState>, &'static str> {
+    if minimum_coverage_fraction == 0.0 {
+        return Ok(None);
+    }
+    let stratum_count = eligible_strata_count(candidates);
+    if stratum_count == 0 {
+        return Ok(None);
+    }
+    let required_strata =
+        ((minimum_coverage_fraction * stratum_count as f64) - 1.0e-12).ceil() as usize;
+    let frontier = select_exact_coverage_frontier_plans(candidates, scores, budget)?;
+    Ok(frontier
+        .get(required_strata)
+        .cloned()
+        .flatten()
+        .map(|(_, plan)| plan))
 }
 
 fn select_in_order(
