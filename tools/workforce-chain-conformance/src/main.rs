@@ -338,7 +338,10 @@ fn safe_repo_path(root: &Path, relative: &str, schema_path: bool) -> Result<Path
     };
     let canonical_parent = fs::canonicalize(&allowed_parent)
         .map_err(|_| "allowed_artifact_directory_unavailable".to_string())?;
-    if !canonical_parent.starts_with(&canonical_root)
+    // Equality, not just starts_with(root), rejects a parent directory redirected
+    // by a symlink to a different directory inside the checkout.
+    if canonical_parent != allowed_parent
+        || !canonical_parent.starts_with(&canonical_root)
         || !canonical_candidate.starts_with(&canonical_parent)
     {
         return Err(if schema_path {
