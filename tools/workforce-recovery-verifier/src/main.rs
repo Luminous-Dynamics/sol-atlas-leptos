@@ -726,7 +726,8 @@ mod tests {
     #[test]
     fn tool_failure_is_reported_and_recovery_replaces_the_unavailable_bundle() {
         let (fixture, schema) = loaded();
-        let receipt = find(&report(&fixture, &schema), "RC-001");
+        let full_report = report(&fixture, &schema);
+        let receipt = find(&full_report, "RC-001");
         assert_eq!(receipt.baseline_status, "service_and_resource_infeasible");
         assert_eq!(
             receipt.frontier[0].added_bundle_ids,
