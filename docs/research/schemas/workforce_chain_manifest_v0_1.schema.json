@@ -109,7 +109,7 @@
         },
         "artifact_path": {
           "type": "string",
-          "minLength": 1
+          "pattern": "^docs/research/synthetic/workforce_chain_artifacts/[A-Z][A-Z0-9_-]*\\.json$"
         },
         "pinned_artifact_sha256": {
           "type": "string",
@@ -120,8 +120,7 @@
           "pattern": "^[a-f0-9]{64}$"
         },
         "schema_path": {
-          "type": "string",
-          "minLength": 1
+          "const": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json"
         },
         "pinned_schema_sha256": {
           "type": "string",
