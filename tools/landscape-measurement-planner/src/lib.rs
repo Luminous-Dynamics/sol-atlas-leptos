@@ -642,7 +642,7 @@ fn select_exact_coverage_constrained(
 
     let mut best: Option<(u32, PlanState)> = None;
     for ((cost, mask), state) in &states {
-        if mask.count_ones() as usize < required_strata {
+        if (mask.count_ones() as usize) < required_strata {
             continue;
         }
         let replace = best.as_ref().is_none_or(|(best_cost, best_state)| {
@@ -1049,27 +1049,47 @@ mod tests {
         assert_eq!(report.budget_cost_units, 6);
         assert_eq!(report.baseline_scenario_sha256, "1".repeat(64));
         assert_eq!(report.alternative_scenario_sha256, "2".repeat(64));
-        assert_eq!(report.selected_cost_units, 6);
-        assert_eq!(report.unspent_budget_units, 0);
+        assert_eq!(report.selected_cost_units, 4);
+        assert_eq!(report.unspent_budget_units, 2);
         assert_eq!(report.candidate_count, 6);
         assert_eq!(report.eligible_candidate_count, 4);
         assert_eq!(report.ineligible_candidate_count, 2);
-        assert_eq!(report.selected_candidate_count, 2);
-        assert_eq!(report.eligible_not_selected_count, 2);
+        assert_eq!(report.selected_candidate_count, 1);
+        assert_eq!(report.eligible_not_selected_count, 3);
         assert_eq!(report.eligible_spatial_temporal_stratum_count, 3);
-        assert_eq!(report.selected_spatial_temporal_stratum_count, 2);
+        assert_eq!(report.selected_spatial_temporal_stratum_count, 1);
         close(
             report.eligible_spatial_temporal_stratum_coverage_fraction,
             2.0 / 3.0,
         );
         assert_eq!(
+            report.minimum_spatial_temporal_coverage_fraction,
+            2.0 / 3.0
+        );
+        assert_eq!(report.required_spatial_temporal_stratum_count, 2);
+        assert_eq!(report.coverage_constraint_status, "satisfied");
+        assert_eq!(
             report.selected_candidate_ids,
-            vec![
+            vec!["candidate-a-high-density".to_owned()]
+        );
+        close(report.total_weighted_discrimination_nats, 11.0);
+        assert_eq!(
+            report.coverage_constrained_selected_candidate_ids,
+            Some(vec![
                 "candidate-b-north-replica".to_owned(),
                 "candidate-c-south-sensor".to_owned()
-            ]
+            ])
         );
-        close(report.total_weighted_discrimination_nats, 10.0);
+        assert_eq!(report.coverage_constrained_cost_units, Some(6));
+        close(
+            report.coverage_constrained_stratum_coverage_fraction.unwrap(),
+            2.0 / 3.0,
+        );
+        close(
+            report.coverage_constrained_weighted_discrimination_nats.unwrap(),
+            10.0,
+        );
+        close(report.coverage_constraint_score_loss_nats.unwrap(), 1.0);
         assert_eq!(
             report.greedy_ratio_baseline_selected_candidate_ids,
             vec!["candidate-a-high-density".to_owned()]
@@ -1077,23 +1097,23 @@ mod tests {
         assert_eq!(report.greedy_ratio_baseline_cost_units, 4);
         close(
             report.greedy_ratio_baseline_weighted_discrimination_nats,
-            7.0,
+            11.0,
         );
-        close(report.exact_gain_over_greedy_ratio_baseline_nats, 3.0);
+        close(report.exact_gain_over_greedy_ratio_baseline_nats, 0.0);
         assert_eq!(report.uniform_baseline_replicates, 64);
         close(
             report.uniform_baseline_mean_weighted_discrimination_nats,
-            8.78125,
+            10.40625,
         );
         close(
             report.uniform_baseline_best_weighted_discrimination_nats,
-            10.0,
+            11.0,
         );
         close(
             report.uniform_baseline_mean_stratum_coverage_fraction,
             0.53125,
         );
-        close(report.exact_gain_over_uniform_mean_nats, 1.21875);
+        close(report.exact_gain_over_uniform_mean_nats, 0.59375);
         assert_eq!(
             report
                 .decisions
@@ -1208,6 +1228,40 @@ mod tests {
                 oracle.weighted_discrimination_nats,
             );
         }
+    }
+
+    #[test]
+    fn coverage_constraint_reports_infeasible_when_budget_cannot_cover_all_strata() {
+        let mut fixture = fixture();
+        fixture.minimum_spatial_temporal_coverage_fraction = 1.0;
+        let report = evaluate_fixture(&fixture, b"synthetic").expect("valid infeasible request");
+        assert_eq!(report.coverage_constraint_status, "infeasible");
+        assert_eq!(report.required_spatial_temporal_stratum_count, 3);
+        assert!(report.coverage_constrained_selected_candidate_ids.is_none());
+        assert!(report.coverage_constraint_score_loss_nats.is_none());
+        // The unconstrained recommendation remains visible but is never
+        // represented as satisfying the requested coverage constraint.
+        assert_eq!(
+            report.selected_candidate_ids,
+            vec!["candidate-a-high-density".to_owned()]
+        );
+        close(report.eligible_spatial_temporal_stratum_coverage_fraction, 1.0 / 3.0);
+    }
+
+    #[test]
+    fn zero_coverage_constraint_is_explicitly_disabled() {
+        let mut fixture = fixture();
+        fixture.minimum_spatial_temporal_coverage_fraction = 0.0;
+        let report = evaluate_fixture(&fixture, b"synthetic").expect("zero floor");
+        assert_eq!(report.coverage_constraint_status, "not_required");
+        assert!(report.coverage_constrained_selected_candidate_ids.is_none());
+    }
+
+    #[test]
+    fn coverage_constraint_rejects_out_of_range_fraction() {
+        let mut fixture = fixture();
+        fixture.minimum_spatial_temporal_coverage_fraction = 1.01;
+        assert!(validate_fixture(&fixture).is_err());
     }
 
     #[test]
