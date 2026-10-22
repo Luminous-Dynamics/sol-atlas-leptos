@@ -103,3 +103,95 @@ jobs:
       # Compile the core library and every binary/test target.
       - name: Check core library, tests, and binaries
         run: cargo check -p sol-atlas-core --all-targets
+      # Produce deterministic known-answer reports from frozen energy fixtures.
+      - name: Produce thermal exergy report
+        run: cargo run -p sol-atlas-core --bin thermal_exergy_assess -- schemas/examples/thermal-exergy-80c.synthetic.json > /tmp/thermal-exergy-report.json
+      - name: Produce typed energy-port report
+        run: cargo run -p sol-atlas-core --bin energy_ports_assess -- schemas/examples/energy-ports-chp.synthetic.json > /tmp/energy-ports-report.json
+      - name: Produce demand-matched service report
+        run: cargo run -p sol-atlas-core --bin energy_service_assess -- schemas/examples/energy-service-chp.synthetic.json > /tmp/energy-service-report.json
+      - name: Install pinned JSON Schema validator (CI tooling only)
+        run: python -m pip install --disable-pip-version-check "jsonschema[format]==4.26.0"
+      - name: Validate energy schemas, receipts and cross-ledger known answers
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import re
+          from pathlib import Path
+          from jsonschema import Draft202012Validator, FormatChecker
+
+          cases = [
+              {
+                  "name": "thermal-exergy",
+                  "fixture": "schemas/examples/thermal-exergy-80c.synthetic.json",
+                  "request_schema": "schemas/thermal-exergy-request-v0.1.schema.json",
+                  "report_schema": "schemas/thermal-exergy-report-v1.schema.json",
+                  "report": "/tmp/thermal-exergy-report.json",
+              },
+              {
+                  "name": "energy-ports",
+                  "fixture": "schemas/examples/energy-ports-chp.synthetic.json",
+                  "request_schema": "schemas/energy-ports-request-v0.1.schema.json",
+                  "report_schema": "schemas/energy-ports-report-v1.schema.json",
+                  "report": "/tmp/energy-ports-report.json",
+              },
+              {
+                  "name": "energy-service",
+                  "fixture": "schemas/examples/energy-service-chp.synthetic.json",
+                  "request_schema": "schemas/energy-service-request-v0.1.schema.json",
+                  "report_schema": "schemas/energy-service-report-v1.schema.json",
+                  "report": "/tmp/energy-service-report.json",
+              },
+          ]
+
+          reports = {}
+          for case in cases:
+              raw = Path(case["fixture"]).read_bytes()
+              request = json.loads(raw)
+              report = json.loads(Path(case["report"]).read_text())
+              request_schema = json.loads(Path(case["request_schema"]).read_text())
+              report_schema = json.loads(Path(case["report_schema"]).read_text())
+              Draft202012Validator.check_schema(request_schema)
+              Draft202012Validator.check_schema(report_schema)
+              Draft202012Validator(request_schema, format_checker=FormatChecker()).validate(request)
+              Draft202012Validator(report_schema, format_checker=FormatChecker()).validate(report)
+
+              receipt = report["receipt"]
+              assert hashlib.sha256(raw).hexdigest() == receipt["input_sha256"], case["name"]
+              assert re.fullmatch(r"[a-f0-9]{64}", receipt["assessment_sha256"]), case["name"]
+              assert receipt["input_bytes"] == len(raw), case["name"]
+              assert receipt["synthetic"] is True, case["name"]
+              reports[case["name"]] = report["assessment"]
+
+          exergy = reports["thermal-exergy"]
+          assert abs(exergy["thermal_exergy_kwh"] - 6.795979045731277) < 1e-12
+          assert abs(exergy["exergy_fraction"] - (60.0 / 353.15)) < 1e-14
+          assert exergy["thermal_exergy_kwh"] <= exergy["heat_quantity_kwh"]
+
+          ports = reports["energy-ports"]
+          assert ports["external_input_energy_kwh"] == 100.0
+          assert ports["routed_energy_kwh"] == 15.0
+          assert ports["terminal_useful_service_kwh"] == 49.0
+          assert ports["terminal_rejected_kwh"] == 51.0
+          assert ports["terminal_disposition_energy_kwh"] == 100.0
+          assert abs(ports["system_balance_residual_kwh"]) < 1e-9
+
+          service = reports["energy-service"]
+          graph = service["graph"]
+          services = service["services"]
+          assert graph["external_input_energy_kwh"] == 100.0
+          assert graph["terminal_disposition_energy_kwh"] == 100.0
+          assert services["total_requested_service_kwh"] == 60.0
+          assert services["total_delivered_service_kwh"] == 49.0
+          assert services["total_unserved_service_kwh"] == 11.0
+          assert services["essential_unserved_service_kwh"] == 11.0
+          assert abs(graph["system_balance_residual_kwh"]) < 1e-9
+          assert abs(services["service_balance_residual_kwh"]) < 1e-9
+          demands = {item["service_id"]: item for item in services["demands"]}
+          assert demands["electric-service"]["delivered_energy_kwh"] == 35.0
+          assert demands["electric-service"]["unserved_energy_kwh"] == 5.0
+          assert demands["process-heat-service"]["delivered_energy_kwh"] == 14.0
+          assert demands["process-heat-service"]["unserved_energy_kwh"] == 6.0
+          print("energy schema validation, receipt binding and cross-ledger known answers passed")
+          PY
