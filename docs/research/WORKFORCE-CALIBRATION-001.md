@@ -23,6 +23,20 @@ Each frozen case has an independently authored synthetic outcome and predictions
 - **Perturbation evaluation:** future versions rerun the same frozen cases under source duplication, source loss, stale evidence, taxonomy changes and denominator/scope mismatch.
 - **Uncertainty of comparisons:** future empirical comparisons require a time-based held-out split, paired uncertainty intervals and minimum sample disclosure; no superiority claim from this synthetic v0.1.
 
+## Synthetic metric smoke-test results
+
+The frozen 12-case fixture produces these reference summaries; they are checks of the evaluator, **not** evidence that one real forecasting method outperforms another.
+
+| Synthetic profile | Coverage | Brier (lower is better) | Log loss (lower is better) | Decision errors at 0.5 |
+|---|---:|---:|---:|---:|
+| Constant 0.5 baseline | 100% | 0.250000 | 0.693147 | 6/12 |
+| Transparent rules | 100% | 0.122925 | 0.427234 | 0/12 |
+| Overconfident control | 100% | 0.162083 | 0.672632 | 2/12 |
+| Abstaining rules | 75% | 0.102200 | 0.382168 | 0/9 |
+| All-abstain control | 0% | Not defined | Not defined | Not defined |
+
+The overconfident control demonstrates the intended penalty: despite only two threshold decision errors, its Brier and log-loss scores are worse than the transparent rules profile because the errors are confident. The all-abstain control cannot pass because coverage is zero. The abstaining profile's scores use only its nine issued forecasts, so its lower scores **must not be interpreted as a win over the 100%-coverage rules profile without the coverage/utility trade-off**. These figures arise from hand-authored synthetic probabilities and labels.
+
 ## Hard invariants
 
 - A forecast is pinned to case scope, model/policy ID and prediction status. Missing or unknown labels are not negative outcomes.
