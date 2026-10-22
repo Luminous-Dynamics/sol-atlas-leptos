@@ -47,6 +47,12 @@ struct Case {
     payment_evidence_status: String,
     causal_design_status: String,
     counterfactual_basis: String,
+    additionality_status: String,
+    net_additional_paid_hours_estimate: Option<f64>,
+    displacement_status: String,
+    substitution_status: String,
+    deadweight_status: String,
+    spillover_status: String,
     preregistration_status: String,
     expected_verdict: String,
     expected_failure_codes: Vec<String>,
@@ -373,6 +379,20 @@ fn check_case(corpus_synthetic_only: bool, case: &Case) -> (Vec<String>, String)
     {
         failures.insert("payment_evidence_missing".to_string());
     }
+
+    if case.requested_claim_type == "paid_work_outcome"
+        && case.requested_claim_strength == "causal_impact"
+    {
+        if case.additionality_status != "estimated_with_preregistered_counterfactual"
+            || case.net_additional_paid_hours_estimate.is_none()
+            || case.displacement_status == "not_assessed"
+            || case.substitution_status == "not_assessed"
+            || case.deadweight_status == "not_assessed"
+            || case.spillover_status == "not_assessed"
+        {
+            failures.insert("additionality_not_assessed".to_string());
+        }
+    }
     if case.requested_claim_type == "causal_impact"
         || case.requested_claim_strength == "causal_impact"
     {
@@ -549,8 +569,8 @@ mod tests {
         let (fixture, schema) = loaded();
         let receipt = report(&fixture, &schema);
         assert_eq!(receipt.status, "SYNTHETIC_CHAIN_CONFORMANCE_PASS");
-        assert_eq!(receipt.case_count, 12);
-        assert_eq!(receipt.cases_passed, 12);
+        assert_eq!(receipt.case_count, 13);
+        assert_eq!(receipt.cases_passed, 13);
         assert_eq!(receipt.cases_failed, 0);
     }
 
@@ -618,6 +638,18 @@ mod tests {
         assert_eq!(
             find_case(&report(&fixture, &schema), "WC-007").failure_codes,
             vec!["service_outcome_unverified"]
+        );
+    }
+
+    #[test]
+    fn paid_work_causal_claim_needs_net_additionality_assessment() {
+        let (fixture, schema) = loaded();
+        assert_eq!(
+            find_case(&report(&fixture, &schema), "WC-013").failure_codes,
+            vec![
+                "additionality_not_assessed",
+                "claim_exceeds_evidence_ceiling"
+            ]
         );
     }
 
