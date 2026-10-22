@@ -1033,11 +1033,14 @@ mod tests {
     #[test]
     fn essential_deficit_runs_reset_after_service_recovers() {
         let mut request = fixture();
+        request.intervals[2].services[0].delivered_energy_kwh = 10.0;
         request.intervals[3].services[0].delivered_energy_kwh = 9.0;
         let assessment = assess_energy_reliability(&request).unwrap();
-        assert_eq!(assessment.essential_deficit_interval_count, 3);
-        assert_eq!(assessment.essential_deficit_duration_seconds, 10_800);
-        assert_eq!(assessment.longest_consecutive_essential_deficit_seconds, 7_200);
-        assert_eq!(assessment.longest_consecutive_outage_essential_deficit_seconds, 7_200);
+        assert_eq!(assessment.essential_deficit_interval_count, 2);
+        assert_eq!(assessment.essential_deficit_duration_seconds, 7_200);
+        assert_eq!(assessment.longest_consecutive_essential_deficit_seconds, 3_600);
+        assert_eq!(assessment.outage_essential_deficit_interval_count, 1);
+        assert_eq!(assessment.outage_essential_deficit_duration_seconds, 3_600);
+        assert_eq!(assessment.longest_consecutive_outage_essential_deficit_seconds, 3_600);
     }
 }
