@@ -5,7 +5,7 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "schema_version", "storage_id", "synthetic", "carrier", "capacity_kwh",
+    "schema_version", "storage_id", "synthetic", "carrier", "thermal_temperature_c", "capacity_kwh",
     "opening_energy_kwh", "max_charge_power_kw", "max_discharge_power_kw",
     "charge_efficiency", "discharge_efficiency", "standing_loss_fraction_per_hour",
     "terminal_reserve_kwh", "evidence_class", "intervals"
@@ -15,6 +15,7 @@
     "storage_id": { "type": "string", "minLength": 1 },
     "synthetic": { "type": "boolean" },
     "carrier": { "type": "string", "enum": ["electricity", "thermal_heat"] },
+    "thermal_temperature_c": { "type": ["number", "null"] },
     "capacity_kwh": { "type": "number", "minimum": 0 },
     "opening_energy_kwh": { "type": "number", "minimum": 0 },
     "max_charge_power_kw": { "type": "number", "minimum": 0 },
@@ -62,6 +63,18 @@
     }
   },
   "allOf": [
+    {
+      "if": {
+        "properties": { "carrier": { "const": "thermal_heat" } },
+        "required": ["carrier"]
+      },
+      "then": {
+        "properties": { "thermal_temperature_c": { "type": "number" } }
+      },
+      "else": {
+        "properties": { "thermal_temperature_c": { "type": "null" } }
+      }
+    },
     {
       "if": {
         "properties": {
