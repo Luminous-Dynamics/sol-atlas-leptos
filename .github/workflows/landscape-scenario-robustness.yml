@@ -66,6 +66,9 @@ jobs:
             .input_sha256 == $digest and
             .scenario_count == 4 and
             .alternative_count == 3 and
+            (.critical_constraints | length) == 2 and
+            (.constraint_summaries[] | select(.constraint_id == "water_service_floor") | .passed_outcome_count == 11 and .failed_outcome_count == 1) and
+            (.constraint_summaries[] | select(.constraint_id == "accessible_route_continuity") | .passed_outcome_count == 9 and .failed_outcome_count == 3) and
             (.scorecards[] | select(.alternative_id == "strategy-a") | (.blocking_constraint_violations | length) == 0 and .robustly_qualified == true) and
             (.scorecards[] | select(.alternative_id == "strategy-b") | (.blocking_constraint_violations | length) == 3 and .robustly_qualified == false) and
             (.scorecards[] | select(.alternative_id == "strategy-c") | (.blocking_constraint_violations | length) == 1 and .robustly_qualified == false) and
