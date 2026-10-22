@@ -9,10 +9,8 @@ use std::process::ExitCode;
 
 const EXPECTED_SCHEMA_VERSION: &str = "0.1.0";
 const EXPECTED_BENCHMARK_ID: &str = "SA-WORKFORCE-SOURCE-ROBUSTNESS-001";
-const FIXTURE_DEFAULT: &str =
-    "docs/research/fixtures/workforce_source_robustness_v0_1.json";
-const SCHEMA_DEFAULT: &str =
-    "docs/research/schemas/workforce_source_robustness_v0_1.schema.json";
+const FIXTURE_DEFAULT: &str = "docs/research/fixtures/workforce_source_robustness_v0_1.json";
+const SCHEMA_DEFAULT: &str = "docs/research/schemas/workforce_source_robustness_v0_1.schema.json";
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 struct Corpus {
@@ -216,7 +214,10 @@ fn validate_contract(corpus: &Corpus) -> Result<(), String> {
             ));
         }
         if scenario.expected_invariants.is_empty() {
-            errors.push(format!("{}: expected_invariants cannot be empty", scenario.id));
+            errors.push(format!(
+                "{}: expected_invariants cannot be empty",
+                scenario.id
+            ));
         }
 
         let mut perturbation_ids = BTreeSet::new();
@@ -455,10 +456,7 @@ fn valid_iso_date(value: &str) -> bool {
     day <= last_day
 }
 
-fn validate_transformed_sources(
-    perturbation_id: &str,
-    sources: &[Source],
-) -> Result<(), String> {
+fn validate_transformed_sources(perturbation_id: &str, sources: &[Source]) -> Result<(), String> {
     let mut ids = BTreeSet::new();
     for source in sources {
         if !ids.insert(source.id.as_str()) {
@@ -588,7 +586,10 @@ fn apply_perturbation(
         "mark_stale" => {
             let age = numeric_parameter(perturbation)?;
             if age < 0.0 || age.fract() != 0.0 || age > 36500.0 {
-                return Err(format!("{}: age_days must be an integer from 0 to 36500", perturbation.id));
+                return Err(format!(
+                    "{}: age_days must be an integer from 0 to 36500",
+                    perturbation.id
+                ));
             }
             let source = sources
                 .iter_mut()
@@ -599,7 +600,10 @@ fn apply_perturbation(
         "alternate_taxonomy_mapping" => {
             let crosswalk = string_parameter(perturbation)?;
             if crosswalk.trim().is_empty() {
-                return Err(format!("{}: crosswalk identifier is empty", perturbation.id));
+                return Err(format!(
+                    "{}: crosswalk identifier is empty",
+                    perturbation.id
+                ));
             }
             let source = sources
                 .iter_mut()
@@ -625,11 +629,11 @@ fn apply_perturbation(
                 .get("unit")
                 .and_then(Value::as_str)
                 .ok_or_else(|| format!("{}: missing unit", perturbation.id))?;
-            if !matches!(
-                measure,
-                "offer_decline_share_pct" | "turnover_rate_pct"
-            ) {
-                return Err(format!("{}: unsupported job-quality measure", perturbation.id));
+            if !matches!(measure, "offer_decline_share_pct" | "turnover_rate_pct") {
+                return Err(format!(
+                    "{}: unsupported job-quality measure",
+                    perturbation.id
+                ));
             }
             let source = sources
                 .iter_mut()
@@ -655,10 +659,7 @@ fn apply_perturbation(
             let (start, end) = period.split_once('/').ok_or_else(|| {
                 format!("{}: period parameter must be start/end", perturbation.id)
             })?;
-            if !valid_iso_date(start)
-                || !valid_iso_date(end)
-                || start > end
-            {
+            if !valid_iso_date(start) || !valid_iso_date(end) || start > end {
                 return Err(format!("{}: invalid reference period", perturbation.id));
             }
             let source = sources
@@ -679,7 +680,12 @@ fn apply_perturbation(
                 .expect("target exists in cloned sources");
             source.denominator = denominator;
         }
-        other => return Err(format!("{}: unsupported operation {other}", perturbation.id)),
+        other => {
+            return Err(format!(
+                "{}: unsupported operation {other}",
+                perturbation.id
+            ));
+        }
     }
 
     validate_transformed_sources(&perturbation.id, &sources)?;
@@ -817,12 +823,10 @@ fn main() -> ExitCode {
 mod tests {
     use super::*;
 
-    const FIXTURE: &str = include_str!(
-        "../../../docs/research/fixtures/workforce_source_robustness_v0_1.json"
-    );
-    const SCHEMA: &str = include_str!(
-        "../../../docs/research/schemas/workforce_source_robustness_v0_1.schema.json"
-    );
+    const FIXTURE: &str =
+        include_str!("../../../docs/research/fixtures/workforce_source_robustness_v0_1.json");
+    const SCHEMA: &str =
+        include_str!("../../../docs/research/schemas/workforce_source_robustness_v0_1.schema.json");
 
     fn fixture_and_schema() -> (Value, Value) {
         (
@@ -861,8 +865,7 @@ mod tests {
     #[test]
     fn removing_funded_evidence_never_preserves_a_confirmed_gap() {
         let (fixture_value, schema) = fixture_and_schema();
-        let corpus: Corpus =
-            serde_json::from_value(fixture_value.clone()).expect("fixture typed");
+        let corpus: Corpus = serde_json::from_value(fixture_value.clone()).expect("fixture typed");
         let scenario = corpus
             .scenarios
             .iter()
@@ -880,8 +883,7 @@ mod tests {
     #[test]
     fn extreme_ad_volume_cannot_create_a_confirmed_shortage_by_itself() {
         let (fixture, _schema) = fixture_and_schema();
-        let mut corpus: Corpus =
-            serde_json::from_value(fixture).expect("fixture type decoding");
+        let mut corpus: Corpus = serde_json::from_value(fixture).expect("fixture type decoding");
         let scenario = corpus
             .scenarios
             .iter_mut()
