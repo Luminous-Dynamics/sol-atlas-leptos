@@ -24,6 +24,14 @@
     "eligible_spatial_temporal_stratum_count",
     "selected_spatial_temporal_stratum_count",
     "eligible_spatial_temporal_stratum_coverage_fraction",
+    "minimum_spatial_temporal_coverage_fraction",
+    "required_spatial_temporal_stratum_count",
+    "coverage_constraint_status",
+    "coverage_constrained_selected_candidate_ids",
+    "coverage_constrained_cost_units",
+    "coverage_constrained_stratum_coverage_fraction",
+    "coverage_constrained_weighted_discrimination_nats",
+    "coverage_constraint_score_loss_nats",
     "selected_candidate_ids",
     "total_weighted_discrimination_nats",
     "greedy_ratio_baseline_selected_candidate_ids",
@@ -169,6 +177,81 @@
     "alternative_scenario_sha256": {
       "type": "string",
       "pattern": "^[0-9a-f]{64}$"
+    },
+    "minimum_spatial_temporal_coverage_fraction": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "required_spatial_temporal_stratum_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "coverage_constraint_status": {
+      "enum": [
+        "not_required",
+        "satisfied",
+        "infeasible",
+        "state_limit_exceeded"
+      ]
+    },
+    "coverage_constrained_selected_candidate_ids": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "coverage_constrained_cost_units": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "coverage_constrained_stratum_coverage_fraction": {
+      "anyOf": [
+        {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "coverage_constrained_weighted_discrimination_nats": {
+      "anyOf": [
+        {
+          "type": "number",
+          "minimum": 0
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "coverage_constraint_score_loss_nats": {
+      "anyOf": [
+        {
+          "type": "number",
+          "minimum": 0
+        },
+        {
+          "type": "null"
+        }
+      ]
     }
   },
   "$defs": {
