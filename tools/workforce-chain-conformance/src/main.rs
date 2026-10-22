@@ -301,7 +301,54 @@ fn safe_repo_path(root: &Path, relative: &str, schema_path: bool) -> Result<Path
     } else if !relative_path.starts_with("docs/research/synthetic/workforce_chain_artifacts") {
         return Err("unsafe_artifact_path".to_string());
     }
-    Ok(root.join(relative_path))
+
+    // Reject symlinks at the file itself and validate canonical parents too:
+    // a lexically safe path can escape its intended directory through a symlink.
+    let candidate = root.join(relative_path);
+    let metadata = fs::symlink_metadata(&candidate)
+        .map_err(|_| if schema_path {
+            "schema_file_missing".to_string()
+        } else {
+            "artifact_file_missing".to_string()
+        })?;
+    if metadata.file_type().is_symlink() {
+        return Err(if schema_path {
+            "unsafe_schema_symlink".to_string()
+        } else {
+            "unsafe_artifact_symlink".to_string()
+        });
+    }
+
+    let canonical_root =
+        fs::canonicalize(root).map_err(|_| "repository_root_unavailable".to_string())?;
+    let canonical_candidate =
+        fs::canonicalize(&candidate).map_err(|_| "artifact_path_unresolvable".to_string())?;
+    if !canonical_candidate.starts_with(&canonical_root) {
+        return Err(if schema_path {
+            "unsafe_schema_path".to_string()
+        } else {
+            "unsafe_artifact_path".to_string()
+        });
+    }
+
+    let allowed_parent = if schema_path {
+        canonical_root.join("docs/research/schemas")
+    } else {
+        canonical_root.join("docs/research/synthetic/workforce_chain_artifacts")
+    };
+    let canonical_parent = fs::canonicalize(&allowed_parent)
+        .map_err(|_| "allowed_artifact_directory_unavailable".to_string())?;
+    if !canonical_parent.starts_with(&canonical_root)
+        || !canonical_candidate.starts_with(&canonical_parent)
+    {
+        return Err(if schema_path {
+            "unsafe_schema_path".to_string()
+        } else {
+            "unsafe_artifact_path".to_string()
+        });
+    }
+
+    Ok(canonical_candidate)
 }
 
 fn verify_stage_files(root: &Path, stage: &Stage, failures: &mut BTreeSet<String>) {
@@ -681,6 +728,25 @@ mod tests {
         assert_eq!(receipt.case_count, 14);
         assert_eq!(receipt.cases_passed, 14);
         assert_eq!(receipt.cases_failed, 0);
+    }
+
+    #[test]
+    fn artifact_paths_reject_parent_traversal_and_wrong_schema_locations() {
+        let root = repository_root();
+        assert_eq!(
+            safe_repo_path(
+                &root,
+                "docs/research/synthetic/workforce_chain_artifacts/../../../../Cargo.toml",
+                false
+            )
+            .expect_err("parent traversal is rejected"),
+            "unsafe_artifact_path"
+        );
+        assert_eq!(
+            safe_repo_path(&root, "docs/research/schemas/workforce_chain_manifest_v0_1.schema.json", true)
+                .expect_err("manifest schema is not a stage schema"),
+            "unsafe_schema_path"
+        );
     }
 
     #[test]
