@@ -675,8 +675,12 @@ mod tests {
         verify_values(schema, fixture, &bytes, &schema_bytes).expect("portfolio fixture verifies")
     }
 
-    fn find(receipt: &Report, id: &str) -> &ScenarioReceipt {
-        receipt.scenarios.iter().find(|scenario| scenario.scenario_id == id).expect("scenario exists")
+    fn find<'a>(receipt: &'a Report, id: &str) -> &'a ScenarioReceipt {
+        receipt
+            .scenarios
+            .iter()
+            .find(|scenario| scenario.scenario_id == id)
+            .expect("scenario exists")
     }
 
     #[test]
@@ -729,7 +733,7 @@ mod tests {
         assert_eq!(scenario.feasible_portfolio_count, 1);
         assert_eq!(
             scenario.frontier[0].selected_intervention_ids,
-            vec!["INSPECT_WATER", "WATER_AFTER_INSPECTION"]
+            vec!["INSPECT_WATER".to_string(), "WATER_AFTER_INSPECTION".to_string()]
         );
         assert!(!scenario.frontier[0].selected_intervention_ids.contains(&"WATER_UNFUNDED".to_string()));
     }
