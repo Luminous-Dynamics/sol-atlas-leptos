@@ -79,6 +79,9 @@ jobs:
       # Exercise the source-to-service energy accounting known-answer fixtures.
       - name: Test energy pathway accounting CLI
         run: cargo test -p sol-atlas-core --bin energy_pathway_assess
+      # Check multi-stream source-heat + electrical-work accounting for heat pumps.
+      - name: Test multi-stream heat pump CLI
+        run: cargo test -p sol-atlas-core --bin heat_pump_assess
       # Compile the core library and every binary/test target.
       - name: Check core library, tests, and binaries
         run: cargo check -p sol-atlas-core --all-targets
