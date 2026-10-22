@@ -172,7 +172,13 @@
       "counterfactual_basis": "",
       "preregistration_status": "not_applicable",
       "expected_verdict": "conformant",
-      "expected_failure_codes": []
+      "expected_failure_codes": [],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
     },
     {
       "id": "WC-002",
@@ -343,7 +349,13 @@
       "expected_verdict": "rejected",
       "expected_failure_codes": [
         "stale_artifact_digest"
-      ]
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
     },
     {
       "id": "WC-003",
@@ -514,7 +526,13 @@
       "expected_verdict": "rejected",
       "expected_failure_codes": [
         "scope_mismatch"
-      ]
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
     },
     {
       "id": "WC-004",
@@ -685,7 +703,13 @@
       "expected_verdict": "rejected",
       "expected_failure_codes": [
         "unpermitted_evidence_query"
-      ]
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
     },
     {
       "id": "WC-005",
@@ -857,7 +881,13 @@
       "expected_failure_codes": [
         "claim_exceeds_evidence_ceiling",
         "causal_design_missing"
-      ]
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
     },
     {
       "id": "WC-006",
@@ -1028,7 +1058,13 @@
       "expected_verdict": "rejected",
       "expected_failure_codes": [
         "payment_evidence_missing"
-      ]
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
     },
     {
       "id": "WC-007",
@@ -1199,7 +1235,13 @@
       "expected_verdict": "rejected",
       "expected_failure_codes": [
         "service_outcome_unverified"
-      ]
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
     },
     {
       "id": "WC-008",
@@ -1351,7 +1393,13 @@
       "expected_failure_codes": [
         "missing_required_stage",
         "broken_chain_link"
-      ]
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
     },
     {
       "id": "WC-009",
@@ -1522,7 +1570,13 @@
       "expected_verdict": "rejected",
       "expected_failure_codes": [
         "authorization_not_positive"
-      ]
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
     },
     {
       "id": "WC-010",
@@ -1693,7 +1747,13 @@
       "expected_verdict": "rejected",
       "expected_failure_codes": [
         "scope_mismatch"
-      ]
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
     },
     {
       "id": "WC-011",
@@ -1865,7 +1925,13 @@
       "expected_failure_codes": [
         "claim_exceeds_evidence_ceiling",
         "synthetic_fixture_stage_relabelled"
-      ]
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
     },
     {
       "id": "WC-012",
@@ -2036,7 +2102,191 @@
       "expected_verdict": "rejected",
       "expected_failure_codes": [
         "stale_schema_digest"
-      ]
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
+    },
+    {
+      "id": "WC-013",
+      "description": "A paid-work causal claim has payment and a registered design, but net additionality and displacement/substitution are not assessed.",
+      "stages": [
+        {
+          "stage_id": "SOURCE",
+          "stage_type": "source_profile",
+          "artifact_path": "docs/research/synthetic/source.json",
+          "pinned_artifact_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "observed_artifact_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "schema_path": "docs/research/schemas/source_profile_v0_1.schema.json",
+          "pinned_schema_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "observed_schema_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ACQUIRE",
+          "stage_type": "active_evidence",
+          "artifact_path": "docs/research/synthetic/acquire.json",
+          "pinned_artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "observed_artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "schema_path": "docs/research/schemas/active_evidence_v0_1.schema.json",
+          "pinned_schema_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "observed_schema_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "DIAGNOSE",
+          "stage_type": "diagnosis",
+          "artifact_path": "docs/research/synthetic/diagnose.json",
+          "pinned_artifact_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "observed_artifact_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "schema_path": "docs/research/schemas/diagnosis_v0_1.schema.json",
+          "pinned_schema_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "observed_schema_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "INTERVENE",
+          "stage_type": "intervention",
+          "artifact_path": "docs/research/synthetic/intervene.json",
+          "pinned_artifact_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "observed_artifact_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "schema_path": "docs/research/schemas/intervention_v0_1.schema.json",
+          "pinned_schema_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "observed_schema_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "OUTCOME",
+          "stage_type": "outcome",
+          "artifact_path": "docs/research/synthetic/outcome.json",
+          "pinned_artifact_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "observed_artifact_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "schema_path": "docs/research/schemas/outcome_v0_1.schema.json",
+          "pinned_schema_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "observed_schema_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ROBUST",
+          "stage_type": "robustness",
+          "artifact_path": "docs/research/synthetic/robust.json",
+          "pinned_artifact_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "observed_artifact_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "schema_path": "docs/research/schemas/robustness_v0_1.schema.json",
+          "pinned_schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "observed_schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        }
+      ],
+      "links": [
+        {
+          "from_stage_id": "SOURCE",
+          "to_stage_id": "ACQUIRE",
+          "required": true
+        },
+        {
+          "from_stage_id": "ACQUIRE",
+          "to_stage_id": "DIAGNOSE",
+          "required": true
+        },
+        {
+          "from_stage_id": "DIAGNOSE",
+          "to_stage_id": "INTERVENE",
+          "required": true
+        },
+        {
+          "from_stage_id": "INTERVENE",
+          "to_stage_id": "OUTCOME",
+          "required": true
+        },
+        {
+          "from_stage_id": "OUTCOME",
+          "to_stage_id": "ROBUST",
+          "required": true
+        }
+      ],
+      "requested_claim_type": "paid_work_outcome",
+      "requested_claim_strength": "causal_impact",
+      "used_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "permitted_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "authorization_status": "permitted",
+      "service_verification_status": "not_applicable",
+      "payment_evidence_status": "verified_payment_evidence",
+      "causal_design_status": "registered_credible",
+      "counterfactual_basis": "synthetic example counterfactual; not observed impact",
+      "preregistration_status": "verified",
+      "expected_verdict": "rejected",
+      "expected_failure_codes": [
+        "additionality_not_assessed",
+        "claim_exceeds_evidence_ceiling"
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
     }
   ]
 }
