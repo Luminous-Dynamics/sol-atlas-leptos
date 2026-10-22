@@ -1179,6 +1179,47 @@ mod tests {
         assert_eq!(report.required_spatial_temporal_stratum_count, 2);
         assert_eq!(report.coverage_constraint_status, "satisfied");
         assert_eq!(report.coverage_constraint_limit_reason, None);
+        assert_eq!(report.coverage_frontier_status, "complete");
+        assert_eq!(report.coverage_frontier_limit_reason, None);
+        assert_eq!(report.coverage_frontier.len(), 3);
+        assert_eq!(report.coverage_frontier[0].required_spatial_temporal_stratum_count, 1);
+        assert_eq!(report.coverage_frontier[0].status, "satisfied");
+        assert_eq!(
+            report.coverage_frontier[0].selected_candidate_ids,
+            Some(vec!["candidate-a-high-density".to_owned()])
+        );
+        close(
+            report.coverage_frontier[0].weighted_discrimination_nats.unwrap(),
+            11.0,
+        );
+        close(
+            report.coverage_frontier[0].achieved_coverage_fraction.unwrap(),
+            1.0 / 3.0,
+        );
+        close(
+            report.coverage_frontier[0].score_loss_from_unconstrained_nats.unwrap(),
+            0.0,
+        );
+        assert_eq!(report.coverage_frontier[1].required_spatial_temporal_stratum_count, 2);
+        assert_eq!(report.coverage_frontier[1].status, "satisfied");
+        assert_eq!(
+            report.coverage_frontier[1].selected_candidate_ids,
+            Some(vec![
+                "candidate-b-north-replica".to_owned(),
+                "candidate-c-south-sensor".to_owned()
+            ])
+        );
+        close(
+            report.coverage_frontier[1].weighted_discrimination_nats.unwrap(),
+            10.0,
+        );
+        close(
+            report.coverage_frontier[1].score_loss_from_unconstrained_nats.unwrap(),
+            1.0,
+        );
+        assert_eq!(report.coverage_frontier[2].required_spatial_temporal_stratum_count, 3);
+        assert_eq!(report.coverage_frontier[2].status, "infeasible");
+        assert!(report.coverage_frontier[2].selected_candidate_ids.is_none());
         assert_eq!(
             report.selected_candidate_ids,
             vec!["candidate-a-high-density".to_owned()]
@@ -1476,6 +1517,8 @@ mod tests {
         let report = evaluate_fixture(&fixture, b"synthetic").expect("valid infeasible request");
         assert_eq!(report.coverage_constraint_status, "infeasible");
         assert_eq!(report.coverage_constraint_limit_reason, None);
+        assert_eq!(report.coverage_frontier_status, "complete");
+        assert_eq!(report.coverage_frontier[2].status, "infeasible");
         assert_eq!(report.required_spatial_temporal_stratum_count, 3);
         assert!(report.coverage_constrained_selected_candidate_ids.is_none());
         assert!(report.coverage_constraint_score_loss_nats.is_none());
@@ -1510,6 +1553,12 @@ mod tests {
             report.coverage_constraint_limit_reason.as_deref(),
             Some("coverage_stratum_limit")
         );
+        assert_eq!(report.coverage_frontier_status, "state_limit_exceeded");
+        assert_eq!(
+            report.coverage_frontier_limit_reason.as_deref(),
+            Some("coverage_stratum_limit")
+        );
+        assert!(report.coverage_frontier.is_empty());
         assert!(report.coverage_constrained_selected_candidate_ids.is_none());
         assert_eq!(report.selected_candidate_count, 21);
         assert!(!report.coverage_constraint_status.eq("satisfied"));
@@ -1537,6 +1586,12 @@ mod tests {
             report.coverage_constraint_limit_reason.as_deref(),
             Some("coverage_state_limit")
         );
+        assert_eq!(report.coverage_frontier_status, "state_limit_exceeded");
+        assert_eq!(
+            report.coverage_frontier_limit_reason.as_deref(),
+            Some("coverage_state_limit")
+        );
+        assert!(report.coverage_frontier.is_empty());
         assert!(report.coverage_constrained_selected_candidate_ids.is_none());
     }
 
