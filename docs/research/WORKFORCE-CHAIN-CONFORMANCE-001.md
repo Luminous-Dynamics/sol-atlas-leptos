@@ -31,6 +31,7 @@ This evaluator owns only the chain manifest, adapter conformance and chain-level
 - Unknown, stale, contradictory or missing is distinct from observed zero, confirmed absence, a failed action and successful completion.
 - A service-restoration claim requires independent verification; work-order closure is not sufficient by itself.
 - A paid-work claim requires the declared payment evidence class; training completion or a job offer does not suffice.
+- A causal paid-work claim additionally requires a net-additionality estimate and explicit displacement, substitution, deadweight and spillover assessment. Gross paid events cannot silently become net jobs or hours created.
 - A causal-impact claim requires a registered credible comparison design, a preregistered primary outcome and a declared counterfactual basis, in addition to adequate outcome evidence.
 - A SHA-256 digest proves byte identity, not consent, permission, competence, authorization or truth.
 - A failed or incomplete chain must state a machine-readable reason and demote the claim to its supported ceiling; no silent auto-repair or ranking.
