@@ -27,6 +27,8 @@ pub struct RobustnessFixture {
     pub scenarios: Vec<Scenario>,
     pub alternatives: Vec<Alternative>,
     pub outcomes: Vec<Outcome>,
+    pub critical_constraints: Vec<CriticalConstraint>,
+    pub constraint_outcomes: Vec<ConstraintOutcome>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -49,6 +51,29 @@ pub struct Outcome {
     pub scenario_id: String,
     pub alternative_id: String,
     pub utility_points: f64,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CriticalConstraint {
+    pub constraint_id: String,
+    pub label: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConstraintOutcome {
+    pub scenario_id: String,
+    pub alternative_id: String,
+    pub constraint_id: String,
+    pub satisfied: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct ConstraintViolation {
+    pub scenario_id: String,
+    pub constraint_id: String,
+    pub label: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -94,6 +119,7 @@ pub struct AlternativeScorecard {
     /// Descriptive average regret over the listed scenario set. No scenario probabilities are assumed.
     pub unweighted_mean_regret_points: f64,
     pub robustly_qualified: bool,
+    pub blocking_constraint_violations: Vec<ConstraintViolation>,
     pub scenario_utilities: Vec<ScenarioUtility>,
 }
 
@@ -131,6 +157,12 @@ pub struct RobustnessReport {
     pub maximin_winner: String,
     /// Winner under the declared minimax-regret policy. This may differ from maximin.
     pub minimax_regret_winner: String,
+    /// Best utility-maximizing alternative among those passing all hard constraints
+    /// in every scenario and meeting the worst-case utility threshold.
+    pub feasible_maximin_winner: Option<String>,
+    /// Minimax-regret alternative among those passing all hard constraints
+    /// in every scenario and meeting the worst-case utility threshold.
+    pub feasible_minimax_regret_winner: Option<String>,
     /// Leave-one-scenario-out diagnostic; this is not a reweighted expected score.
     pub scenario_omission_audit: Vec<ScenarioOmissionResult>,
     pub maximin_omission_stability_fraction: f64,
