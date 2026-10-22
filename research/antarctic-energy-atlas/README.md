@@ -55,3 +55,15 @@ UI aggregation and map selection may filter or display records, but must not sil
 - DCCEEW Annual Report 2024–25, Table 73: https://www.dcceew.gov.au/sites/default/files/documents/annual-report-2024-25.pdf
 - Copernicus ERA5 hourly single-level reanalysis, DOI 10.24381/cds.adbb2d47: https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels?tab=overview
 - Implementation contract: [Sol Atlas issue #304](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/304)
+
+
+## Explicit source-metadata discrepancies (not yet resolved)
+
+The AADC electricity evidence does not currently resolve to one unambiguous time range:
+- Indicator 59 display table: January 1986–February 2016, 1,432 points.
+- The same Indicator 59 page's metadata note: data start 1 January 1990.
+- Linked SOE_SFU metadata record, DOI 10.26179/5d38f549336a7: a January 1993–February 2016 snapshot, with temporal coverage starting in January 1993.
+
+The fuel record separately describes a January 1993–February 2016 archived snapshot while its temporal-coverage field starts 1 January 1990. AADC's fuel citation-instructions page gives 2001/Version 1, while current fuel metadata details show 2019 for the same DOI; the electricity record gives 2001 and lists a 2019 revision date. These could reflect historical display data, later snapshots or citation-record changes, but the raw files and lineage must be inspected and the citation-year discrepancy clarified with the originator rather than guessed.
+
+The machine-readable manifest preserves these values as unresolved. Do not collapse them into one presumed canonical start date or citation year.
