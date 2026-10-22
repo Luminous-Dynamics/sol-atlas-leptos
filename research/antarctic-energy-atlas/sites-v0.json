@@ -66,12 +66,27 @@
       "temporal_support_reported": "monthly",
       "access_status": "landing page displays a login requirement; verify linked archive access and ingest the actual file before use",
       "metadata_conflict": {
-        "display_table_span": "1986-01 through 2016-02",
-        "display_table_point_count": 1432,
-        "metadata_temporal_start": "1990-01-01",
-        "status": "unresolved_until_raw_file_inspection"
+        "status": "unresolved_until_raw_file_and_source_record_reconciliation",
+        "display_indicator_page": {
+          "url": "https://data.aad.gov.au/aadc/soe/display_indicator.cfm?soe_id=59",
+          "displayed_span": "1986-01 through 2016-02",
+          "displayed_point_count": 1432,
+          "same_page_metadata_start": "1990-01-01"
+        },
+        "linked_SOE_SFU_record": {
+          "url": "https://data.aad.gov.au/metadata/records/SOE_SFU",
+          "archive_description_span": "1993-01 through 2016-02",
+          "temporal_coverage_start": "1993-01-01",
+          "temporal_coverage_stop": "2016-02-29",
+          "citation_year": 2001,
+          "created_date": "2001-05-17",
+          "revision_date": "2019-07-25"
+        },
+        "note": "These may describe a display history and a later snapshot rather than one identical underlying file. Do not choose a time range until the exact downloadable artifact and row coverage are inspected."
       },
-      "evidence_class": "measurement_metadata_only_not_observation_data"
+      "evidence_class": "measurement_metadata_only_not_observation_data",
+      "linked_metadata_record_url": "https://data.aad.gov.au/metadata/records/SOE_SFU",
+      "doi": "10.26179/5d38f549336a7"
     },
     {
       "id": "aad-soe-generator-boiler-fuel-monthly",
@@ -85,11 +100,33 @@
       "metadata_conflict": {
         "archive_description_span": "1993-01 through 2016-02",
         "archive_description_point_count": 916,
-        "metadata_temporal_start": "1990-01-01",
-        "status": "unresolved_until_raw_file_inspection"
+        "temporal_coverage_start": "1990-01-01",
+        "temporal_coverage_stop": "2016-02-29",
+        "citation_years_reported": [
+          2001,
+          2019
+        ],
+        "status": "unresolved_until_raw_file_and_originator_reconciliation",
+        "note": "The citation instructions and current metadata detail display different years for the same DOI. Preserve both; do not infer whether the difference is a citation error or a revision/publication-date distinction."
       },
       "evidence_class": "measurement_metadata_only_not_observation_data",
-      "boundary": "Combined generator sets and boilers, not generator-only fuel; do not attribute to station vehicles, shipping or aviation."
+      "boundary": "Combined generator sets and boilers, not generator-only fuel; do not attribute to station vehicles, shipping or aviation.",
+      "citation_records": [
+        {
+          "id": "aadc-fuel-citation-instructions",
+          "url": "https://data.aad.gov.au/metadata/records/SOE_generator_boiler_fuel_usage/citation",
+          "citation_year": 2001,
+          "citation_text": "Ratcliffe, G., Sheers, R. and Bonnice, J. (2001), Monthly fuel usage of the generator sets and boilers at Australian Antarctic Stations, Version 1."
+        },
+        {
+          "id": "aadc-fuel-current-metadata-details",
+          "url": "https://data.aad.gov.au/metadata/records/SOE_generator_boiler_fuel_usage",
+          "citation_year": 2019,
+          "created_date": "2001-05-18",
+          "revision_date": "2019-07-17",
+          "citation_text": "Ratcliffe, G., Sheers, R. and Bonnice, J. (2019), Monthly fuel usage of the generator sets and boilers at Australian Antarctic Stations, Version 1."
+        }
+      ]
     },
     {
       "id": "dcceew-aad-fy2024-25-table73",
@@ -118,5 +155,11 @@
     "Historical temporal-coverage conflicts remain visible until resolved from raw bytes.",
     "Reanalysis remains separate from on-site measurement.",
     "No record is marked ingested until bytes, SHA-256, licence, schema and coverage are checked."
-  ]
+  ],
+  "metadata_stewardship": {
+    "required_before_applying_aadc_data": "Contact the data originator to discuss intended use, per the citation instructions.",
+    "status": "not_confirmed",
+    "source_url": "https://data.aad.gov.au/metadata/records/SOE_generator_boiler_fuel_usage/citation",
+    "note": "Public access and CC BY 4.0 do not prove the originator-contact step has occurred."
+  }
 }
