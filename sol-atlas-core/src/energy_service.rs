@@ -208,7 +208,6 @@ pub fn assess_energy_services(
 
     let mut service_ids = BTreeSet::new();
     let mut claimed_outputs = BTreeSet::<(String, String)>::new();
-    let mut claimed_output_energy = 0.0;
     let mut demand_assessments = Vec::with_capacity(demands.len());
     let mut total_requested_service_kwh = 0.0;
     let mut total_delivered_service_kwh = 0.0;
@@ -370,15 +369,6 @@ pub fn assess_energy_services(
                 }
             }
         }
-        if let Some(source) = &demand.source_output {
-            claimed_output_energy += delivered_energy_kwh;
-            if !claimed_output_energy.is_finite() {
-                return Err(EnergyServiceError::NonFiniteDerivedValue {
-                    context: "claimed terminal output energy".to_owned(),
-                });
-            }
-            let _ = source;
-        }
 
         demand_assessments.push(EnergyServiceDemandAssessment {
             service_id: demand.service_id.clone(),
@@ -522,14 +512,14 @@ mod tests {
                             EnergyOutputPort {
                                 port_id: "heat".to_owned(),
                                 form: EnergyForm::ThermalHeat,
-                                energy_kwh: 45.0,
+                                energy_kwh: 14.0,
                                 temperature_c: Some(80.0),
-                                remainder_disposition: EnergyPortDisposition::Rejected,
+                                remainder_disposition: EnergyPortDisposition::UsefulService,
                             },
                             EnergyOutputPort {
                                 port_id: "exhaust".to_owned(),
                                 form: EnergyForm::ThermalHeat,
-                                energy_kwh: 20.0,
+                                energy_kwh: 51.0,
                                 temperature_c: Some(150.0),
                                 remainder_disposition: EnergyPortDisposition::Rejected,
                             },
@@ -558,7 +548,10 @@ mod tests {
                     requested_energy_kwh: 20.0,
                     required_form: EnergyForm::ThermalHeat,
                     minimum_temperature_c: Some(75.0),
-                    source_output: None,
+                    source_output: Some(ServiceOutputRef {
+                        node_id: "chp".to_owned(),
+                        port_id: "heat".to_owned(),
+                    }),
                 },
             ],
         }
@@ -570,27 +563,24 @@ mod tests {
         assert_eq!(assessment.graph.external_input_energy_kwh, 100.0);
         assert_eq!(assessment.graph.terminal_disposition_energy_kwh, 100.0);
         assert_eq!(assessment.services.total_requested_service_kwh, 60.0);
-        assert_eq!(assessment.services.total_delivered_service_kwh, 35.0);
-        assert_eq!(assessment.services.total_unserved_service_kwh, 25.0);
-        assert_eq!(assessment.services.essential_unserved_service_kwh, 25.0);
+        assert_eq!(assessment.services.total_delivered_service_kwh, 49.0);
+        assert_eq!(assessment.services.total_unserved_service_kwh, 11.0);
+        assert_eq!(assessment.services.essential_unserved_service_kwh, 11.0);
         let electricity = assessment.services.demands.iter()
             .find(|demand| demand.service_id == "electric-service").unwrap();
         assert_eq!(electricity.delivered_energy_kwh, 35.0);
         assert_eq!(electricity.unserved_energy_kwh, 5.0);
         let heat = assessment.services.demands.iter()
             .find(|demand| demand.service_id == "process-heat-service").unwrap();
-        assert_eq!(heat.delivered_energy_kwh, 0.0);
-        assert_eq!(heat.unserved_energy_kwh, 20.0);
+        assert_eq!(heat.delivered_energy_kwh, 14.0);
+        assert_eq!(heat.unserved_energy_kwh, 6.0);
         assert!(assessment.services.service_balance_residual_kwh.abs() < 1.0e-9);
     }
 
     #[test]
     fn thermal_service_uses_temperature_grade_not_energy_quantity_alone() {
         let mut request = fixture();
-        request.demands[1].source_output = Some(ServiceOutputRef {
-            node_id: "chp".to_owned(),
-            port_id: "heat".to_owned(),
-        });
+        request.demands[1].minimum_temperature_c = Some(85.0);
         let result = assess_energy_service_scenario(&request);
         assert!(matches!(result, Err(EnergyServiceError::ServiceTemperatureInsufficient { .. })));
     }
@@ -613,6 +603,20 @@ mod tests {
             assess_energy_service_scenario(&request),
             Err(EnergyServiceError::MissingDemandForUsefulOutput { .. })
         ));
+    }
+
+    #[test]
+    fn demand_without_a_source_is_reported_fully_unserved() {
+        let mut request = fixture();
+        request.demands[1].source_output = None;
+        // A useful output may not remain unlinked. Mark the heat stream rejected
+        // in this negative control to isolate the independent demand shortfall.
+        request.graph.nodes[0].outputs[1].remainder_disposition = EnergyPortDisposition::Rejected;
+        let assessment = assess_energy_service_scenario(&request).unwrap();
+        let heat = assessment.services.demands.iter()
+            .find(|demand| demand.service_id == "process-heat-service").unwrap();
+        assert_eq!(heat.delivered_energy_kwh, 0.0);
+        assert_eq!(heat.unserved_energy_kwh, 20.0);
     }
 
     #[test]
