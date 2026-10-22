@@ -12,6 +12,7 @@ on:
       - "schemas/examples/energy-service-*.synthetic.json"
       - "schemas/energy-ports-*.schema.json"
       - "schemas/examples/energy-ports-*.synthetic.json"
+      - "docs/benchmarks/ENERGY_SERVICE_V0_1.md"
       - ".github/workflows/energy-service.yml"
   pull_request:
     paths:
@@ -23,6 +24,7 @@ on:
       - "schemas/examples/energy-service-*.synthetic.json"
       - "schemas/energy-ports-*.schema.json"
       - "schemas/examples/energy-ports-*.synthetic.json"
+      - "docs/benchmarks/ENERGY_SERVICE_V0_1.md"
       - ".github/workflows/energy-service.yml"
   workflow_dispatch:
 
