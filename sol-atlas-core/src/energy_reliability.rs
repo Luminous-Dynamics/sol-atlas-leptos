@@ -522,7 +522,10 @@ pub fn assess_energy_reliability(
                 - unserved;
             if !unserved.is_finite() || !residual.is_finite() {
                 return Err(EnergyReliabilityError::NonFiniteDerivedValue {
-                    context: format!("service {} interval {}", service.service_id, interval.interval_id),
+                    context: format!(
+                        "service {} interval {}",
+                        service.service_id, interval.interval_id
+                    ),
                 });
             }
             for (total, value, label) in [
@@ -535,8 +538,16 @@ pub fn assess_energy_reliability(
 
             let summary = summary_by_id.get_mut(&service.service_id).unwrap();
             for (total, value, label) in [
-                (&mut summary.requested_energy_kwh, sample.requested_energy_kwh, "service requested"),
-                (&mut summary.delivered_energy_kwh, sample.delivered_energy_kwh, "service delivered"),
+                (
+                    &mut summary.requested_energy_kwh,
+                    sample.requested_energy_kwh,
+                    "service requested",
+                ),
+                (
+                    &mut summary.delivered_energy_kwh,
+                    sample.delivered_energy_kwh,
+                    "service delivered",
+                ),
                 (&mut summary.unserved_energy_kwh, unserved, "service unserved"),
             ] {
                 add_finite(total, value, label)?;
@@ -545,20 +556,56 @@ pub fn assess_energy_reliability(
 
             if service.essential {
                 for (total, value, label) in [
-                    (&mut interval_essential_requested, sample.requested_energy_kwh, "interval essential requested"),
-                    (&mut interval_essential_delivered, sample.delivered_energy_kwh, "interval essential delivered"),
-                    (&mut interval_essential_unserved, unserved, "interval essential unserved"),
-                    (&mut essential_requested_service_kwh, sample.requested_energy_kwh, "essential requested"),
-                    (&mut essential_delivered_service_kwh, sample.delivered_energy_kwh, "essential delivered"),
-                    (&mut essential_unserved_service_kwh, unserved, "essential unserved"),
+                    (
+                        &mut interval_essential_requested,
+                        sample.requested_energy_kwh,
+                        "interval essential requested",
+                    ),
+                    (
+                        &mut interval_essential_delivered,
+                        sample.delivered_energy_kwh,
+                        "interval essential delivered",
+                    ),
+                    (
+                        &mut interval_essential_unserved,
+                        unserved,
+                        "interval essential unserved",
+                    ),
+                    (
+                        &mut essential_requested_service_kwh,
+                        sample.requested_energy_kwh,
+                        "essential requested",
+                    ),
+                    (
+                        &mut essential_delivered_service_kwh,
+                        sample.delivered_energy_kwh,
+                        "essential delivered",
+                    ),
+                    (
+                        &mut essential_unserved_service_kwh,
+                        unserved,
+                        "essential unserved",
+                    ),
                 ] {
                     add_finite(total, value, label)?;
                 }
                 if interval.grid_outage {
                     for (total, value, label) in [
-                        (&mut outage_essential_requested_service_kwh, sample.requested_energy_kwh, "outage essential requested"),
-                        (&mut outage_essential_delivered_service_kwh, sample.delivered_energy_kwh, "outage essential delivered"),
-                        (&mut outage_essential_unserved_service_kwh, unserved, "outage essential unserved"),
+                        (
+                            &mut outage_essential_requested_service_kwh,
+                            sample.requested_energy_kwh,
+                            "outage essential requested",
+                        ),
+                        (
+                            &mut outage_essential_delivered_service_kwh,
+                            sample.delivered_energy_kwh,
+                            "outage essential delivered",
+                        ),
+                        (
+                            &mut outage_essential_unserved_service_kwh,
+                            unserved,
+                            "outage essential unserved",
+                        ),
                     ] {
                         add_finite(total, value, label)?;
                     }
@@ -656,9 +703,30 @@ pub fn assess_energy_reliability(
     }
 
     for (total, value, label) in [
-        (&mut total_requested_service_kwh, summary_by_id.values().map(|s| s.requested_energy_kwh).sum::<f64>(), "all requested"),
-        (&mut total_delivered_service_kwh, summary_by_id.values().map(|s| s.delivered_energy_kwh).sum::<f64>(), "all delivered"),
-        (&mut total_unserved_service_kwh, summary_by_id.values().map(|s| s.unserved_energy_kwh).sum::<f64>(), "all unserved"),
+        (
+            &mut total_requested_service_kwh,
+            summary_by_id
+                .values()
+                .map(|summary| summary.requested_energy_kwh)
+                .sum::<f64>(),
+            "all requested",
+        ),
+        (
+            &mut total_delivered_service_kwh,
+            summary_by_id
+                .values()
+                .map(|summary| summary.delivered_energy_kwh)
+                .sum::<f64>(),
+            "all delivered",
+        ),
+        (
+            &mut total_unserved_service_kwh,
+            summary_by_id
+                .values()
+                .map(|summary| summary.unserved_energy_kwh)
+                .sum::<f64>(),
+            "all unserved",
+        ),
     ] {
         *total = value;
         if !total.is_finite() {
@@ -674,11 +742,13 @@ pub fn assess_energy_reliability(
                 context: format!("service residual {}", summary.service_id),
             });
         }
-        summary.delivery_fraction = fraction(summary.delivered_energy_kwh, summary.requested_energy_kwh);
+        summary.delivery_fraction =
+            fraction(summary.delivered_energy_kwh, summary.requested_energy_kwh);
     }
 
-    let essential_service_balance_residual_kwh =
-        essential_requested_service_kwh - essential_delivered_service_kwh - essential_unserved_service_kwh;
+    let essential_service_balance_residual_kwh = essential_requested_service_kwh
+        - essential_delivered_service_kwh
+        - essential_unserved_service_kwh;
     let total_service_balance_residual_kwh =
         total_requested_service_kwh - total_delivered_service_kwh - total_unserved_service_kwh;
     if !essential_service_balance_residual_kwh.is_finite()
@@ -731,7 +801,10 @@ pub fn assess_energy_reliability(
         total_requested_service_kwh,
         total_delivered_service_kwh,
         total_unserved_service_kwh,
-        total_delivery_fraction: fraction(total_delivered_service_kwh, total_requested_service_kwh),
+        total_delivery_fraction: fraction(
+            total_delivered_service_kwh,
+            total_requested_service_kwh,
+        ),
         essential_requested_service_kwh,
         essential_delivered_service_kwh,
         essential_unserved_service_kwh,
