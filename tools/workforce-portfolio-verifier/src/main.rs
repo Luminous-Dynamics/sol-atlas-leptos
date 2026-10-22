@@ -11,10 +11,8 @@ const EXPECTED_SCHEMA_VERSION: &str = "0.1.0";
 const EXPECTED_BENCHMARK_ID: &str = "SA-WORKFORCE-PORTFOLIO-001";
 const MAX_INTERVENTIONS: usize = 20;
 const MAX_SUBSETS: usize = 1 << MAX_INTERVENTIONS;
-const FIXTURE_DEFAULT: &str =
-    "docs/research/fixtures/workforce_portfolio_scenarios_v0_1.json";
-const SCHEMA_DEFAULT: &str =
-    "docs/research/schemas/workforce_portfolio_v0_1.schema.json";
+const FIXTURE_DEFAULT: &str = "docs/research/fixtures/workforce_portfolio_scenarios_v0_1.json";
+const SCHEMA_DEFAULT: &str = "docs/research/schemas/workforce_portfolio_v0_1.schema.json";
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, Eq, PartialOrd, Ord)]
 struct PortfolioVector {
@@ -125,7 +123,11 @@ impl ServiceVector {
             "health_units" => &mut self.health_units,
             "housing_units" => &mut self.housing_units,
             "other_service_units" => &mut self.other_service_units,
-            other => return Err(format!("{scenario_id}: unsupported service category {other}")),
+            other => {
+                return Err(format!(
+                    "{scenario_id}: unsupported service category {other}"
+                ));
+            }
         };
         *target = target.checked_add(units).ok_or_else(|| {
             format!("{scenario_id}: integer overflow while accumulating {category}")
@@ -282,9 +284,7 @@ fn validate_contract(corpus: &Corpus) -> Result<(), String> {
         if !scenario_ids.insert(scenario.id.clone()) {
             errors.push(format!("duplicate scenario ID {}", scenario.id));
         }
-        if scenario.interventions.is_empty()
-            || scenario.interventions.len() > MAX_INTERVENTIONS
-        {
+        if scenario.interventions.is_empty() || scenario.interventions.len() > MAX_INTERVENTIONS {
             errors.push(format!(
                 "{}: intervention count must be between 1 and {MAX_INTERVENTIONS}",
                 scenario.id
@@ -304,7 +304,10 @@ fn validate_contract(corpus: &Corpus) -> Result<(), String> {
                     scenario.id, intervention.id
                 ));
             }
-            if intervention.requires_selected_interventions.contains(&intervention.id) {
+            if intervention
+                .requires_selected_interventions
+                .contains(&intervention.id)
+            {
                 errors.push(format!(
                     "{} / {}: self-dependency is forbidden",
                     scenario.id, intervention.id
@@ -360,14 +363,18 @@ fn canonicalize(corpus: &mut Corpus) {
         for portfolio in &mut scenario.expected_frontier {
             portfolio.selected_intervention_ids.sort();
         }
-        scenario
-            .expected_frontier
-            .sort_by(|a, b| a.selected_intervention_ids.cmp(&b.selected_intervention_ids));
+        scenario.expected_frontier.sort_by(|a, b| {
+            a.selected_intervention_ids
+                .cmp(&b.selected_intervention_ids)
+        });
     }
 }
 
 fn selected_is_structurally_valid(selected: &[&Intervention]) -> bool {
-    if selected.iter().any(|intervention| !intervention.selectable()) {
+    if selected
+        .iter()
+        .any(|intervention| !intervention.selectable())
+    {
         return false;
     }
     let mut case_ids = BTreeSet::new();
@@ -376,8 +383,10 @@ fn selected_is_structurally_valid(selected: &[&Intervention]) -> bool {
             return false;
         }
     }
-    let selected_ids: BTreeSet<&str> =
-        selected.iter().map(|intervention| intervention.id.as_str()).collect();
+    let selected_ids: BTreeSet<&str> = selected
+        .iter()
+        .map(|intervention| intervention.id.as_str())
+        .collect();
     selected.iter().all(|intervention| {
         intervention
             .requires_selected_interventions
@@ -416,8 +425,12 @@ fn compute_portfolio(
 fn portfolio_dominates(left: &PortfolioSummary, right: &PortfolioSummary) -> bool {
     let benefits_ok = left.service_benefits.dominates(&right.service_benefits);
     let costs_ok = left.cost_vector.componentwise_le(&right.cost_vector);
-    let strict_benefit = left.service_benefits.strictly_better_than(&right.service_benefits);
-    let strict_cost = left.cost_vector.componentwise_strictly_better(&right.cost_vector);
+    let strict_benefit = left
+        .service_benefits
+        .strictly_better_than(&right.service_benefits);
+    let strict_cost = left
+        .cost_vector
+        .componentwise_strictly_better(&right.cost_vector);
     benefits_ok && costs_ok && (strict_benefit || strict_cost)
 }
 
@@ -458,7 +471,9 @@ fn pareto_frontier(mut feasible: Vec<PortfolioSummary>) -> Vec<PortfolioSummary>
     frontier
 }
 
-fn solve_scenario(scenario: &Scenario) -> Result<(String, Vec<String>, usize, Vec<PortfolioSummary>), String> {
+fn solve_scenario(
+    scenario: &Scenario,
+) -> Result<(String, Vec<String>, usize, Vec<PortfolioSummary>), String> {
     if scenario.interventions.len() > MAX_INTERVENTIONS {
         return Err(format!(
             "{}: oracle_limit_exceeded; {} interventions exceeds cap {}",
@@ -469,7 +484,12 @@ fn solve_scenario(scenario: &Scenario) -> Result<(String, Vec<String>, usize, Ve
     }
     let subset_count = 1usize
         .checked_shl(scenario.interventions.len() as u32)
-        .ok_or_else(|| format!("{}: oracle_limit_exceeded while computing subsets", scenario.id))?;
+        .ok_or_else(|| {
+            format!(
+                "{}: oracle_limit_exceeded while computing subsets",
+                scenario.id
+            )
+        })?;
     if subset_count > MAX_SUBSETS {
         return Err(format!(
             "{}: oracle_limit_exceeded: {} subsets exceeds cap {}",
@@ -560,7 +580,12 @@ fn solve_scenario(scenario: &Scenario) -> Result<(String, Vec<String>, usize, Ve
     Ok((status.to_string(), codes, 0, Vec::new()))
 }
 
-fn verify_values(schema: &Value, fixture: &Value, fixture_bytes: &[u8], schema_bytes: &[u8]) -> Result<Report, String> {
+fn verify_values(
+    schema: &Value,
+    fixture: &Value,
+    fixture_bytes: &[u8],
+    schema_bytes: &[u8],
+) -> Result<Report, String> {
     validate_schema(schema, fixture)?;
     let mut corpus: Corpus = serde_json::from_value(fixture.clone())
         .map_err(|error| format!("portfolio corpus type decoding failed: {error}"))?;
@@ -655,12 +680,10 @@ fn main() -> ExitCode {
 mod tests {
     use super::*;
 
-    const FIXTURE: &str = include_str!(
-        "../../../docs/research/fixtures/workforce_portfolio_scenarios_v0_1.json"
-    );
-    const SCHEMA: &str = include_str!(
-        "../../../docs/research/schemas/workforce_portfolio_v0_1.schema.json"
-    );
+    const FIXTURE: &str =
+        include_str!("../../../docs/research/fixtures/workforce_portfolio_scenarios_v0_1.json");
+    const SCHEMA: &str =
+        include_str!("../../../docs/research/schemas/workforce_portfolio_v0_1.schema.json");
 
     fn loaded() -> (Value, Value) {
         (
@@ -701,7 +724,9 @@ mod tests {
         assert_eq!(scenario.feasible_portfolio_count, 3);
         assert_eq!(scenario.frontier.len(), 3);
         assert!(!scenario.frontier.iter().any(|portfolio| {
-            portfolio.selected_intervention_ids.contains(&"HEALTH_UNCERTAIN".to_string())
+            portfolio
+                .selected_intervention_ids
+                .contains(&"HEALTH_UNCERTAIN".to_string())
         }));
     }
 
@@ -712,14 +737,20 @@ mod tests {
         let scenario = find(&report, "PF-002");
         assert_eq!(scenario.status, "infeasible_essential_floor");
         assert!(scenario.frontier.is_empty());
-        assert_eq!(scenario.infeasibility_codes, vec!["essential_service_floor_unmet"]);
+        assert_eq!(
+            scenario.infeasibility_codes,
+            vec!["essential_service_floor_unmet"]
+        );
     }
 
     #[test]
     fn shared_capacity_and_worker_burden_are_hard_infeasibility_gates() {
         let (fixture, schema) = loaded();
         let report = report(&fixture, &schema);
-        assert_eq!(find(&report, "PF-003").status, "infeasible_resource_capacity");
+        assert_eq!(
+            find(&report, "PF-003").status,
+            "infeasible_resource_capacity"
+        );
         assert_eq!(find(&report, "PF-004").status, "infeasible_worker_burden");
         assert!(find(&report, "PF-003").frontier.is_empty());
         assert!(find(&report, "PF-004").frontier.is_empty());
@@ -733,9 +764,16 @@ mod tests {
         assert_eq!(scenario.feasible_portfolio_count, 1);
         assert_eq!(
             scenario.frontier[0].selected_intervention_ids,
-            vec!["INSPECT_WATER".to_string(), "WATER_AFTER_INSPECTION".to_string()]
+            vec![
+                "INSPECT_WATER".to_string(),
+                "WATER_AFTER_INSPECTION".to_string()
+            ]
         );
-        assert!(!scenario.frontier[0].selected_intervention_ids.contains(&"WATER_UNFUNDED".to_string()));
+        assert!(
+            !scenario.frontier[0]
+                .selected_intervention_ids
+                .contains(&"WATER_UNFUNDED".to_string())
+        );
     }
 
     #[test]
@@ -743,12 +781,23 @@ mod tests {
         let (fixture, schema) = loaded();
         let original = report(&fixture, &schema);
         let mut permuted = fixture.clone();
-        permuted["scenarios"].as_array_mut().expect("scenarios").reverse();
+        permuted["scenarios"]
+            .as_array_mut()
+            .expect("scenarios")
+            .reverse();
         for scenario in permuted["scenarios"].as_array_mut().expect("scenarios") {
-            scenario["interventions"].as_array_mut().expect("interventions").reverse();
-            for intervention in scenario["interventions"].as_array_mut().expect("interventions") {
+            scenario["interventions"]
+                .as_array_mut()
+                .expect("interventions")
+                .reverse();
+            for intervention in scenario["interventions"]
+                .as_array_mut()
+                .expect("interventions")
+            {
                 intervention["requires_selected_interventions"]
-                    .as_array_mut().expect("dependencies").reverse();
+                    .as_array_mut()
+                    .expect("dependencies")
+                    .reverse();
             }
         }
         let reordered = report(&permuted, &schema);
