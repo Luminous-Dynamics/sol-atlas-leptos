@@ -52,6 +52,14 @@ const REQUIRED_UPSTREAM_SOURCE_IDS: &[&str] = &[
     "symthaea-alternative-review",
     "symthaea-alternative-review-code",
     "symthaea-alternative-review-schema",
+    "symtropy-landscape-dependency-cli",
+    "symtropy-landscape-dependency-code",
+    "symtropy-landscape-dependency-fixture",
+    "symtropy-landscape-dependency-input-schema",
+    "symtropy-landscape-dependency-lockfile",
+    "symtropy-landscape-dependency-manifest",
+    "symtropy-landscape-dependency-report-schema",
+    "symtropy-landscape-dependency-semantics",
     "symtropy-scenario-contract",
 ];
 
@@ -1985,6 +1993,8 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
                         Some("mycelix")
                     } else if source_id.starts_with("symthaea-alternative-review") {
                         Some("symthaea-alternative-review")
+                    } else if source_id.starts_with("symtropy-landscape-dependency-") {
+                        Some("symtropy-landscape-dependency-graph")
                     } else {
                         None
                     };
@@ -2250,6 +2260,7 @@ pub fn run_conformance(dir: &Path) -> Result<ConformanceReport, Vec<String>> {
         "measurement planner code, fixture and both JSON schemas are pinned to one exact draft revision".to_owned(),
         "scenario robustness code, utility method, fixture and both schemas are pinned to one exact draft revision".to_owned(),
         "Symthaea review binds both alternatives, metric registry, source catalog, paired scenario contexts, and its pinned verifier code".to_owned(),
+        "Symtropy SETS dependency graph, CLI, lockfile, semantics and schemas are pinned to one exact draft revision".to_owned(),
         "unqualified source catalog and metrics keep consequence-bearing assessments blocked".to_owned(),
         "observation properties are checked against the declared metric crosswalk and evidence class".to_owned(),
         "review correctly abstains from ranking while scenario execution remains blocked".to_owned(),
@@ -2345,7 +2356,7 @@ mod tests {
         );
         assert_eq!(report.data_origin, "synthetic_fixture");
         assert_eq!(report.claim_ceiling, CLAIM_CEILING);
-        assert_eq!(report.upstream_pinned_contract_count, 26);
+        assert_eq!(report.upstream_pinned_contract_count, 34);
         assert_eq!(report.project_feature_count, 7);
         assert_eq!(report.observation_count, 5);
         assert_eq!(report.metric_observation_mapping_count, 8);
@@ -2369,7 +2380,7 @@ mod tests {
         assert_eq!(report.review_ranking_status, "no-defensible-ranking");
         assert_eq!(report.recommendation_status, "no-ranking");
         assert_eq!(report.passed_check_count, report.checks.len());
-        assert_eq!(report.passed_check_count, 19);
+        assert_eq!(report.passed_check_count, 20);
         assert_eq!(report.artifact_sha256.len(), 16);
         assert_eq!(report.template_input_sha256.len(), 10);
         assert!(
@@ -2412,6 +2423,19 @@ mod tests {
         }
         assert!(validate_chain(&split_robustness_group).iter().any(|error| {
             error.contains("sol-atlas-scenario-robustness must pin all related artifacts")
+        }));
+
+        let mut split_symtropy_group = fixture();
+        for row in split_symtropy_group.upstream_manifest["source_contracts"]
+            .as_array_mut()
+            .expect("source contracts array")
+        {
+            if row["source_id"] == "symtropy-landscape-dependency-lockfile" {
+                row["commit_sha"] = json!("c".repeat(40));
+            }
+        }
+        assert!(validate_chain(&split_symtropy_group).iter().any(|error| {
+            error.contains("symtropy-landscape-dependency-graph must pin all related artifacts")
         }));
 
         let mut split_planner_group = fixture();
