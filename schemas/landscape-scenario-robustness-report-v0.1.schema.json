@@ -21,7 +21,9 @@
     "minimax_regret_winner",
     "scenario_omission_audit",
     "maximin_omission_stability_fraction",
-    "minimax_regret_omission_stability_fraction"
+    "minimax_regret_omission_stability_fraction",
+    "feasible_maximin_winner",
+    "feasible_minimax_regret_winner"
   ],
   "properties": {
     "schema_version": {
@@ -76,6 +78,7 @@
           "maximum_regret_points",
           "unweighted_mean_regret_points",
           "robustly_qualified",
+          "blocking_constraint_violations",
           "scenario_utilities"
         ],
         "properties": {
@@ -132,6 +135,29 @@
                   "type": "number",
                   "minimum": 0,
                   "maximum": 100
+                }
+              }
+            }
+          },
+          "blocking_constraint_violations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scenario_id",
+                "constraint_id",
+                "label"
+              ],
+              "properties": {
+                "scenario_id": {
+                  "type": "string"
+                },
+                "constraint_id": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
                 }
               }
             }
@@ -218,6 +244,28 @@
       "type": "number",
       "minimum": 0,
       "maximum": 1
+    },
+    "feasible_maximin_winner": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "feasible_minimax_regret_winner": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
     }
   }
 }
