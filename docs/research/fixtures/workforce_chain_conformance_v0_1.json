@@ -1,0 +1,2470 @@
+{
+  "fixture_notice": "ALL VALUES AND DIGESTS ARE SYNTHETIC CONTRACT TEST DATA. They do not pin actual upstream artifacts or prove any real workforce observation.",
+  "schema_version": "0.1.0",
+  "benchmark_id": "SA-WORKFORCE-CHAIN-CONFORMANCE-001",
+  "synthetic_only": true,
+  "claim_ceiling": "synthetic_contract_only",
+  "cases": [
+    {
+      "id": "WC-001",
+      "description": "All six synthetic stages are linked, pinned and scoped consistently.",
+      "stages": [
+        {
+          "stage_id": "SOURCE",
+          "stage_type": "source_profile",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/SOURCE.json",
+          "pinned_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "observed_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ACQUIRE",
+          "stage_type": "active_evidence",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ACQUIRE.json",
+          "pinned_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "observed_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "DIAGNOSE",
+          "stage_type": "diagnosis",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/DIAGNOSE.json",
+          "pinned_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "observed_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "INTERVENE",
+          "stage_type": "intervention",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/INTERVENE.json",
+          "pinned_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "observed_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "OUTCOME",
+          "stage_type": "outcome",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/OUTCOME.json",
+          "pinned_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "observed_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ROBUST",
+          "stage_type": "robustness",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ROBUST.json",
+          "pinned_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "observed_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        }
+      ],
+      "links": [
+        {
+          "from_stage_id": "SOURCE",
+          "to_stage_id": "ACQUIRE",
+          "required": true
+        },
+        {
+          "from_stage_id": "ACQUIRE",
+          "to_stage_id": "DIAGNOSE",
+          "required": true
+        },
+        {
+          "from_stage_id": "DIAGNOSE",
+          "to_stage_id": "INTERVENE",
+          "required": true
+        },
+        {
+          "from_stage_id": "INTERVENE",
+          "to_stage_id": "OUTCOME",
+          "required": true
+        },
+        {
+          "from_stage_id": "OUTCOME",
+          "to_stage_id": "ROBUST",
+          "required": true
+        }
+      ],
+      "requested_claim_type": "diagnosis",
+      "requested_claim_strength": "synthetic_contract_only",
+      "used_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "permitted_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "authorization_status": "permitted",
+      "service_verification_status": "not_applicable",
+      "payment_evidence_status": "not_applicable",
+      "causal_design_status": "not_applicable",
+      "counterfactual_basis": "",
+      "preregistration_status": "not_applicable",
+      "expected_verdict": "conformant",
+      "expected_failure_codes": [],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
+    },
+    {
+      "id": "WC-002",
+      "description": "A stale active-evidence artifact digest invalidates the chain.",
+      "stages": [
+        {
+          "stage_id": "SOURCE",
+          "stage_type": "source_profile",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/SOURCE.json",
+          "pinned_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "observed_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ACQUIRE",
+          "stage_type": "active_evidence",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ACQUIRE.json",
+          "pinned_artifact_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+          "observed_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "DIAGNOSE",
+          "stage_type": "diagnosis",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/DIAGNOSE.json",
+          "pinned_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "observed_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "INTERVENE",
+          "stage_type": "intervention",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/INTERVENE.json",
+          "pinned_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "observed_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "OUTCOME",
+          "stage_type": "outcome",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/OUTCOME.json",
+          "pinned_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "observed_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ROBUST",
+          "stage_type": "robustness",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ROBUST.json",
+          "pinned_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "observed_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        }
+      ],
+      "links": [
+        {
+          "from_stage_id": "SOURCE",
+          "to_stage_id": "ACQUIRE",
+          "required": true
+        },
+        {
+          "from_stage_id": "ACQUIRE",
+          "to_stage_id": "DIAGNOSE",
+          "required": true
+        },
+        {
+          "from_stage_id": "DIAGNOSE",
+          "to_stage_id": "INTERVENE",
+          "required": true
+        },
+        {
+          "from_stage_id": "INTERVENE",
+          "to_stage_id": "OUTCOME",
+          "required": true
+        },
+        {
+          "from_stage_id": "OUTCOME",
+          "to_stage_id": "ROBUST",
+          "required": true
+        }
+      ],
+      "requested_claim_type": "diagnosis",
+      "requested_claim_strength": "synthetic_contract_only",
+      "used_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "permitted_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "authorization_status": "permitted",
+      "service_verification_status": "not_applicable",
+      "payment_evidence_status": "not_applicable",
+      "causal_design_status": "not_applicable",
+      "counterfactual_basis": "",
+      "preregistration_status": "not_applicable",
+      "expected_verdict": "rejected",
+      "expected_failure_codes": [
+        "stale_artifact_digest"
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
+    },
+    {
+      "id": "WC-003",
+      "description": "An intervention uses a different task scope from diagnosis.",
+      "stages": [
+        {
+          "stage_id": "SOURCE",
+          "stage_type": "source_profile",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/SOURCE.json",
+          "pinned_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "observed_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ACQUIRE",
+          "stage_type": "active_evidence",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ACQUIRE.json",
+          "pinned_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "observed_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "DIAGNOSE",
+          "stage_type": "diagnosis",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/DIAGNOSE.json",
+          "pinned_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "observed_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "INTERVENE",
+          "stage_type": "intervention",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/INTERVENE.json",
+          "pinned_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "observed_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-OTHER",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "OUTCOME",
+          "stage_type": "outcome",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/OUTCOME.json",
+          "pinned_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "observed_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ROBUST",
+          "stage_type": "robustness",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ROBUST.json",
+          "pinned_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "observed_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        }
+      ],
+      "links": [
+        {
+          "from_stage_id": "SOURCE",
+          "to_stage_id": "ACQUIRE",
+          "required": true
+        },
+        {
+          "from_stage_id": "ACQUIRE",
+          "to_stage_id": "DIAGNOSE",
+          "required": true
+        },
+        {
+          "from_stage_id": "DIAGNOSE",
+          "to_stage_id": "INTERVENE",
+          "required": true
+        },
+        {
+          "from_stage_id": "INTERVENE",
+          "to_stage_id": "OUTCOME",
+          "required": true
+        },
+        {
+          "from_stage_id": "OUTCOME",
+          "to_stage_id": "ROBUST",
+          "required": true
+        }
+      ],
+      "requested_claim_type": "diagnosis",
+      "requested_claim_strength": "synthetic_contract_only",
+      "used_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "permitted_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "authorization_status": "permitted",
+      "service_verification_status": "not_applicable",
+      "payment_evidence_status": "not_applicable",
+      "causal_design_status": "not_applicable",
+      "counterfactual_basis": "",
+      "preregistration_status": "not_applicable",
+      "expected_verdict": "rejected",
+      "expected_failure_codes": [
+        "scope_mismatch"
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
+    },
+    {
+      "id": "WC-004",
+      "description": "A restricted query was used despite not being in the permitted-query set.",
+      "stages": [
+        {
+          "stage_id": "SOURCE",
+          "stage_type": "source_profile",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/SOURCE.json",
+          "pinned_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "observed_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ACQUIRE",
+          "stage_type": "active_evidence",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ACQUIRE.json",
+          "pinned_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "observed_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "DIAGNOSE",
+          "stage_type": "diagnosis",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/DIAGNOSE.json",
+          "pinned_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "observed_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "INTERVENE",
+          "stage_type": "intervention",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/INTERVENE.json",
+          "pinned_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "observed_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "OUTCOME",
+          "stage_type": "outcome",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/OUTCOME.json",
+          "pinned_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "observed_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ROBUST",
+          "stage_type": "robustness",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ROBUST.json",
+          "pinned_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "observed_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        }
+      ],
+      "links": [
+        {
+          "from_stage_id": "SOURCE",
+          "to_stage_id": "ACQUIRE",
+          "required": true
+        },
+        {
+          "from_stage_id": "ACQUIRE",
+          "to_stage_id": "DIAGNOSE",
+          "required": true
+        },
+        {
+          "from_stage_id": "DIAGNOSE",
+          "to_stage_id": "INTERVENE",
+          "required": true
+        },
+        {
+          "from_stage_id": "INTERVENE",
+          "to_stage_id": "OUTCOME",
+          "required": true
+        },
+        {
+          "from_stage_id": "OUTCOME",
+          "to_stage_id": "ROBUST",
+          "required": true
+        }
+      ],
+      "requested_claim_type": "diagnosis",
+      "requested_claim_strength": "synthetic_contract_only",
+      "used_query_ids": [
+        "Q_RESTRICTED_JOIN"
+      ],
+      "permitted_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "authorization_status": "permitted",
+      "service_verification_status": "not_applicable",
+      "payment_evidence_status": "not_applicable",
+      "causal_design_status": "not_applicable",
+      "counterfactual_basis": "",
+      "preregistration_status": "not_applicable",
+      "expected_verdict": "rejected",
+      "expected_failure_codes": [
+        "unpermitted_evidence_query"
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
+    },
+    {
+      "id": "WC-005",
+      "description": "Synthetic-only evidence attempts to support a causal-impact claim without a registered design.",
+      "stages": [
+        {
+          "stage_id": "SOURCE",
+          "stage_type": "source_profile",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/SOURCE.json",
+          "pinned_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "observed_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ACQUIRE",
+          "stage_type": "active_evidence",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ACQUIRE.json",
+          "pinned_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "observed_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "DIAGNOSE",
+          "stage_type": "diagnosis",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/DIAGNOSE.json",
+          "pinned_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "observed_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "INTERVENE",
+          "stage_type": "intervention",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/INTERVENE.json",
+          "pinned_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "observed_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "OUTCOME",
+          "stage_type": "outcome",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/OUTCOME.json",
+          "pinned_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "observed_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ROBUST",
+          "stage_type": "robustness",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ROBUST.json",
+          "pinned_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "observed_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        }
+      ],
+      "links": [
+        {
+          "from_stage_id": "SOURCE",
+          "to_stage_id": "ACQUIRE",
+          "required": true
+        },
+        {
+          "from_stage_id": "ACQUIRE",
+          "to_stage_id": "DIAGNOSE",
+          "required": true
+        },
+        {
+          "from_stage_id": "DIAGNOSE",
+          "to_stage_id": "INTERVENE",
+          "required": true
+        },
+        {
+          "from_stage_id": "INTERVENE",
+          "to_stage_id": "OUTCOME",
+          "required": true
+        },
+        {
+          "from_stage_id": "OUTCOME",
+          "to_stage_id": "ROBUST",
+          "required": true
+        }
+      ],
+      "requested_claim_type": "causal_impact",
+      "requested_claim_strength": "causal_impact",
+      "used_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "permitted_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "authorization_status": "permitted",
+      "service_verification_status": "not_applicable",
+      "payment_evidence_status": "not_applicable",
+      "causal_design_status": "missing",
+      "counterfactual_basis": "",
+      "preregistration_status": "missing",
+      "expected_verdict": "rejected",
+      "expected_failure_codes": [
+        "claim_exceeds_evidence_ceiling",
+        "causal_design_missing"
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
+    },
+    {
+      "id": "WC-006",
+      "description": "A paid-work outcome is asserted without verified payment evidence.",
+      "stages": [
+        {
+          "stage_id": "SOURCE",
+          "stage_type": "source_profile",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/SOURCE.json",
+          "pinned_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "observed_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ACQUIRE",
+          "stage_type": "active_evidence",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ACQUIRE.json",
+          "pinned_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "observed_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "DIAGNOSE",
+          "stage_type": "diagnosis",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/DIAGNOSE.json",
+          "pinned_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "observed_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "INTERVENE",
+          "stage_type": "intervention",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/INTERVENE.json",
+          "pinned_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "observed_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "OUTCOME",
+          "stage_type": "outcome",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/OUTCOME.json",
+          "pinned_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "observed_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ROBUST",
+          "stage_type": "robustness",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ROBUST.json",
+          "pinned_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "observed_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        }
+      ],
+      "links": [
+        {
+          "from_stage_id": "SOURCE",
+          "to_stage_id": "ACQUIRE",
+          "required": true
+        },
+        {
+          "from_stage_id": "ACQUIRE",
+          "to_stage_id": "DIAGNOSE",
+          "required": true
+        },
+        {
+          "from_stage_id": "DIAGNOSE",
+          "to_stage_id": "INTERVENE",
+          "required": true
+        },
+        {
+          "from_stage_id": "INTERVENE",
+          "to_stage_id": "OUTCOME",
+          "required": true
+        },
+        {
+          "from_stage_id": "OUTCOME",
+          "to_stage_id": "ROBUST",
+          "required": true
+        }
+      ],
+      "requested_claim_type": "paid_work_outcome",
+      "requested_claim_strength": "synthetic_contract_only",
+      "used_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "permitted_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "authorization_status": "permitted",
+      "service_verification_status": "not_applicable",
+      "payment_evidence_status": "missing",
+      "causal_design_status": "not_applicable",
+      "counterfactual_basis": "",
+      "preregistration_status": "not_applicable",
+      "expected_verdict": "rejected",
+      "expected_failure_codes": [
+        "payment_evidence_missing"
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
+    },
+    {
+      "id": "WC-007",
+      "description": "A service-restoration claim lacks independent verification.",
+      "stages": [
+        {
+          "stage_id": "SOURCE",
+          "stage_type": "source_profile",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/SOURCE.json",
+          "pinned_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "observed_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ACQUIRE",
+          "stage_type": "active_evidence",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ACQUIRE.json",
+          "pinned_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "observed_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "DIAGNOSE",
+          "stage_type": "diagnosis",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/DIAGNOSE.json",
+          "pinned_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "observed_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "INTERVENE",
+          "stage_type": "intervention",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/INTERVENE.json",
+          "pinned_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "observed_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "OUTCOME",
+          "stage_type": "outcome",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/OUTCOME.json",
+          "pinned_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "observed_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ROBUST",
+          "stage_type": "robustness",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ROBUST.json",
+          "pinned_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "observed_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        }
+      ],
+      "links": [
+        {
+          "from_stage_id": "SOURCE",
+          "to_stage_id": "ACQUIRE",
+          "required": true
+        },
+        {
+          "from_stage_id": "ACQUIRE",
+          "to_stage_id": "DIAGNOSE",
+          "required": true
+        },
+        {
+          "from_stage_id": "DIAGNOSE",
+          "to_stage_id": "INTERVENE",
+          "required": true
+        },
+        {
+          "from_stage_id": "INTERVENE",
+          "to_stage_id": "OUTCOME",
+          "required": true
+        },
+        {
+          "from_stage_id": "OUTCOME",
+          "to_stage_id": "ROBUST",
+          "required": true
+        }
+      ],
+      "requested_claim_type": "service_restoration",
+      "requested_claim_strength": "synthetic_contract_only",
+      "used_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "permitted_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "authorization_status": "permitted",
+      "service_verification_status": "not_verified",
+      "payment_evidence_status": "not_applicable",
+      "causal_design_status": "not_applicable",
+      "counterfactual_basis": "",
+      "preregistration_status": "not_applicable",
+      "expected_verdict": "rejected",
+      "expected_failure_codes": [
+        "service_outcome_unverified"
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
+    },
+    {
+      "id": "WC-008",
+      "description": "The required intervention stage is absent and chain links cannot remain complete.",
+      "stages": [
+        {
+          "stage_id": "SOURCE",
+          "stage_type": "source_profile",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/SOURCE.json",
+          "pinned_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "observed_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ACQUIRE",
+          "stage_type": "active_evidence",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ACQUIRE.json",
+          "pinned_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "observed_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "DIAGNOSE",
+          "stage_type": "diagnosis",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/DIAGNOSE.json",
+          "pinned_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "observed_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "OUTCOME",
+          "stage_type": "outcome",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/OUTCOME.json",
+          "pinned_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "observed_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ROBUST",
+          "stage_type": "robustness",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ROBUST.json",
+          "pinned_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "observed_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        }
+      ],
+      "links": [
+        {
+          "from_stage_id": "SOURCE",
+          "to_stage_id": "ACQUIRE",
+          "required": true
+        },
+        {
+          "from_stage_id": "ACQUIRE",
+          "to_stage_id": "DIAGNOSE",
+          "required": true
+        },
+        {
+          "from_stage_id": "DIAGNOSE",
+          "to_stage_id": "INTERVENE",
+          "required": true
+        },
+        {
+          "from_stage_id": "INTERVENE",
+          "to_stage_id": "OUTCOME",
+          "required": true
+        },
+        {
+          "from_stage_id": "OUTCOME",
+          "to_stage_id": "ROBUST",
+          "required": true
+        }
+      ],
+      "requested_claim_type": "diagnosis",
+      "requested_claim_strength": "synthetic_contract_only",
+      "used_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "permitted_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "authorization_status": "permitted",
+      "service_verification_status": "not_applicable",
+      "payment_evidence_status": "not_applicable",
+      "causal_design_status": "not_applicable",
+      "counterfactual_basis": "",
+      "preregistration_status": "not_applicable",
+      "expected_verdict": "rejected",
+      "expected_failure_codes": [
+        "missing_required_stage",
+        "broken_chain_link"
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
+    },
+    {
+      "id": "WC-009",
+      "description": "The evidence is marked unknown for authorization even though a query was used.",
+      "stages": [
+        {
+          "stage_id": "SOURCE",
+          "stage_type": "source_profile",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/SOURCE.json",
+          "pinned_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "observed_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ACQUIRE",
+          "stage_type": "active_evidence",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ACQUIRE.json",
+          "pinned_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "observed_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "DIAGNOSE",
+          "stage_type": "diagnosis",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/DIAGNOSE.json",
+          "pinned_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "observed_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "INTERVENE",
+          "stage_type": "intervention",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/INTERVENE.json",
+          "pinned_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "observed_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "OUTCOME",
+          "stage_type": "outcome",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/OUTCOME.json",
+          "pinned_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "observed_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ROBUST",
+          "stage_type": "robustness",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ROBUST.json",
+          "pinned_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "observed_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        }
+      ],
+      "links": [
+        {
+          "from_stage_id": "SOURCE",
+          "to_stage_id": "ACQUIRE",
+          "required": true
+        },
+        {
+          "from_stage_id": "ACQUIRE",
+          "to_stage_id": "DIAGNOSE",
+          "required": true
+        },
+        {
+          "from_stage_id": "DIAGNOSE",
+          "to_stage_id": "INTERVENE",
+          "required": true
+        },
+        {
+          "from_stage_id": "INTERVENE",
+          "to_stage_id": "OUTCOME",
+          "required": true
+        },
+        {
+          "from_stage_id": "OUTCOME",
+          "to_stage_id": "ROBUST",
+          "required": true
+        }
+      ],
+      "requested_claim_type": "diagnosis",
+      "requested_claim_strength": "synthetic_contract_only",
+      "used_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "permitted_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "authorization_status": "unknown",
+      "service_verification_status": "not_applicable",
+      "payment_evidence_status": "not_applicable",
+      "causal_design_status": "not_applicable",
+      "counterfactual_basis": "",
+      "preregistration_status": "not_applicable",
+      "expected_verdict": "rejected",
+      "expected_failure_codes": [
+        "authorization_not_positive"
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
+    },
+    {
+      "id": "WC-010",
+      "description": "The source profile and outcome stages disagree on observation period.",
+      "stages": [
+        {
+          "stage_id": "SOURCE",
+          "stage_type": "source_profile",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/SOURCE.json",
+          "pinned_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "observed_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ACQUIRE",
+          "stage_type": "active_evidence",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ACQUIRE.json",
+          "pinned_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "observed_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "DIAGNOSE",
+          "stage_type": "diagnosis",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/DIAGNOSE.json",
+          "pinned_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "observed_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "INTERVENE",
+          "stage_type": "intervention",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/INTERVENE.json",
+          "pinned_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "observed_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "OUTCOME",
+          "stage_type": "outcome",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/OUTCOME.json",
+          "pinned_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "observed_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-02-28",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ROBUST",
+          "stage_type": "robustness",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ROBUST.json",
+          "pinned_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "observed_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        }
+      ],
+      "links": [
+        {
+          "from_stage_id": "SOURCE",
+          "to_stage_id": "ACQUIRE",
+          "required": true
+        },
+        {
+          "from_stage_id": "ACQUIRE",
+          "to_stage_id": "DIAGNOSE",
+          "required": true
+        },
+        {
+          "from_stage_id": "DIAGNOSE",
+          "to_stage_id": "INTERVENE",
+          "required": true
+        },
+        {
+          "from_stage_id": "INTERVENE",
+          "to_stage_id": "OUTCOME",
+          "required": true
+        },
+        {
+          "from_stage_id": "OUTCOME",
+          "to_stage_id": "ROBUST",
+          "required": true
+        }
+      ],
+      "requested_claim_type": "diagnosis",
+      "requested_claim_strength": "synthetic_contract_only",
+      "used_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "permitted_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "authorization_status": "permitted",
+      "service_verification_status": "not_applicable",
+      "payment_evidence_status": "not_applicable",
+      "causal_design_status": "not_applicable",
+      "counterfactual_basis": "",
+      "preregistration_status": "not_applicable",
+      "expected_verdict": "rejected",
+      "expected_failure_codes": [
+        "scope_mismatch"
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
+    },
+    {
+      "id": "WC-011",
+      "description": "A synthetic fixture stage is mislabeled as an authorized observation and attempts to promote the claim.",
+      "stages": [
+        {
+          "stage_id": "SOURCE",
+          "stage_type": "source_profile",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/SOURCE.json",
+          "pinned_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "observed_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ACQUIRE",
+          "stage_type": "active_evidence",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ACQUIRE.json",
+          "pinned_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "observed_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "DIAGNOSE",
+          "stage_type": "diagnosis",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/DIAGNOSE.json",
+          "pinned_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "observed_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "authorized_observation",
+          "claim_ceiling": "descriptive_association_only"
+        },
+        {
+          "stage_id": "INTERVENE",
+          "stage_type": "intervention",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/INTERVENE.json",
+          "pinned_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "observed_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "OUTCOME",
+          "stage_type": "outcome",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/OUTCOME.json",
+          "pinned_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "observed_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ROBUST",
+          "stage_type": "robustness",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ROBUST.json",
+          "pinned_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "observed_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        }
+      ],
+      "links": [
+        {
+          "from_stage_id": "SOURCE",
+          "to_stage_id": "ACQUIRE",
+          "required": true
+        },
+        {
+          "from_stage_id": "ACQUIRE",
+          "to_stage_id": "DIAGNOSE",
+          "required": true
+        },
+        {
+          "from_stage_id": "DIAGNOSE",
+          "to_stage_id": "INTERVENE",
+          "required": true
+        },
+        {
+          "from_stage_id": "INTERVENE",
+          "to_stage_id": "OUTCOME",
+          "required": true
+        },
+        {
+          "from_stage_id": "OUTCOME",
+          "to_stage_id": "ROBUST",
+          "required": true
+        }
+      ],
+      "requested_claim_type": "diagnosis",
+      "requested_claim_strength": "descriptive_association_only",
+      "used_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "permitted_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "authorization_status": "permitted",
+      "service_verification_status": "not_applicable",
+      "payment_evidence_status": "not_applicable",
+      "causal_design_status": "not_applicable",
+      "counterfactual_basis": "",
+      "preregistration_status": "not_applicable",
+      "expected_verdict": "rejected",
+      "expected_failure_codes": [
+        "artifact_payload_mismatch",
+        "claim_exceeds_evidence_ceiling",
+        "synthetic_fixture_stage_relabelled"
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
+    },
+    {
+      "id": "WC-012",
+      "description": "A source profile schema digest differs from the pinned schema digest.",
+      "stages": [
+        {
+          "stage_id": "SOURCE",
+          "stage_type": "source_profile",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/SOURCE.json",
+          "pinned_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "observed_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ACQUIRE",
+          "stage_type": "active_evidence",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ACQUIRE.json",
+          "pinned_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "observed_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "DIAGNOSE",
+          "stage_type": "diagnosis",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/DIAGNOSE.json",
+          "pinned_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "observed_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "INTERVENE",
+          "stage_type": "intervention",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/INTERVENE.json",
+          "pinned_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "observed_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "OUTCOME",
+          "stage_type": "outcome",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/OUTCOME.json",
+          "pinned_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "observed_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ROBUST",
+          "stage_type": "robustness",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ROBUST.json",
+          "pinned_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "observed_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        }
+      ],
+      "links": [
+        {
+          "from_stage_id": "SOURCE",
+          "to_stage_id": "ACQUIRE",
+          "required": true
+        },
+        {
+          "from_stage_id": "ACQUIRE",
+          "to_stage_id": "DIAGNOSE",
+          "required": true
+        },
+        {
+          "from_stage_id": "DIAGNOSE",
+          "to_stage_id": "INTERVENE",
+          "required": true
+        },
+        {
+          "from_stage_id": "INTERVENE",
+          "to_stage_id": "OUTCOME",
+          "required": true
+        },
+        {
+          "from_stage_id": "OUTCOME",
+          "to_stage_id": "ROBUST",
+          "required": true
+        }
+      ],
+      "requested_claim_type": "diagnosis",
+      "requested_claim_strength": "synthetic_contract_only",
+      "used_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "permitted_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "authorization_status": "permitted",
+      "service_verification_status": "not_applicable",
+      "payment_evidence_status": "not_applicable",
+      "causal_design_status": "not_applicable",
+      "counterfactual_basis": "",
+      "preregistration_status": "not_applicable",
+      "expected_verdict": "rejected",
+      "expected_failure_codes": [
+        "stale_schema_digest"
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
+    },
+    {
+      "id": "WC-013",
+      "description": "A paid-work causal claim has payment and a registered design, but net additionality and displacement/substitution are not assessed.",
+      "stages": [
+        {
+          "stage_id": "SOURCE",
+          "stage_type": "source_profile",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/SOURCE.json",
+          "pinned_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "observed_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ACQUIRE",
+          "stage_type": "active_evidence",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ACQUIRE.json",
+          "pinned_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "observed_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "DIAGNOSE",
+          "stage_type": "diagnosis",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/DIAGNOSE.json",
+          "pinned_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "observed_artifact_sha256": "4337a3fe30a9913e227e0c48cfb77805c14edac555245aa0cac09de65afda7de",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "INTERVENE",
+          "stage_type": "intervention",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/INTERVENE.json",
+          "pinned_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "observed_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "OUTCOME",
+          "stage_type": "outcome",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/OUTCOME.json",
+          "pinned_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "observed_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ROBUST",
+          "stage_type": "robustness",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ROBUST.json",
+          "pinned_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "observed_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        }
+      ],
+      "links": [
+        {
+          "from_stage_id": "SOURCE",
+          "to_stage_id": "ACQUIRE",
+          "required": true
+        },
+        {
+          "from_stage_id": "ACQUIRE",
+          "to_stage_id": "DIAGNOSE",
+          "required": true
+        },
+        {
+          "from_stage_id": "DIAGNOSE",
+          "to_stage_id": "INTERVENE",
+          "required": true
+        },
+        {
+          "from_stage_id": "INTERVENE",
+          "to_stage_id": "OUTCOME",
+          "required": true
+        },
+        {
+          "from_stage_id": "OUTCOME",
+          "to_stage_id": "ROBUST",
+          "required": true
+        }
+      ],
+      "requested_claim_type": "paid_work_outcome",
+      "requested_claim_strength": "causal_impact",
+      "used_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "permitted_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "authorization_status": "permitted",
+      "service_verification_status": "not_applicable",
+      "payment_evidence_status": "verified_payment_evidence",
+      "causal_design_status": "registered_credible",
+      "counterfactual_basis": "synthetic example counterfactual; not observed impact",
+      "preregistration_status": "verified",
+      "expected_verdict": "rejected",
+      "expected_failure_codes": [
+        "additionality_not_assessed",
+        "claim_exceeds_evidence_ceiling"
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
+    },
+    {
+      "id": "WC-014",
+      "description": "A stage points at the byte-valid but wrong stage artifact; the payload identity must be checked even when the digest is correct.",
+      "stages": [
+        {
+          "stage_id": "SOURCE",
+          "stage_type": "source_profile",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/SOURCE.json",
+          "pinned_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "observed_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ACQUIRE",
+          "stage_type": "active_evidence",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ACQUIRE.json",
+          "pinned_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "observed_artifact_sha256": "10f2a6f3e128c61769417a8e626d1f106f281a0ea8292e53a99a7f58a05731f7",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "DIAGNOSE",
+          "stage_type": "diagnosis",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/SOURCE.json",
+          "pinned_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "observed_artifact_sha256": "e21e40a3fab2337af77fadead42580288679d10c3e8f61b80ed86ce55e713e2c",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "INTERVENE",
+          "stage_type": "intervention",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/INTERVENE.json",
+          "pinned_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "observed_artifact_sha256": "b7857bc925c7b2faf11a980f83940b83f26d2bed0907e9a02e60e85481fb1e04",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "OUTCOME",
+          "stage_type": "outcome",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/OUTCOME.json",
+          "pinned_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "observed_artifact_sha256": "485cc1fd19c190901ee7982d7e8f0055bbd9821ec529534813a1b938dc77c477",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        },
+        {
+          "stage_id": "ROBUST",
+          "stage_type": "robustness",
+          "artifact_path": "docs/research/synthetic/workforce_chain_artifacts/ROBUST.json",
+          "pinned_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "observed_artifact_sha256": "478232b69c0597b76add575736ba696d925dc78ce38e53bbd60582b74c57340e",
+          "schema_path": "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+          "pinned_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "observed_schema_sha256": "26e28d5c805379e02fd7d10a491a359927717ac3332e7e6220e299d7a3da6074",
+          "scope": {
+            "case_scope_id": "CASE-SYN-001",
+            "task_scope_id": "TASK-SYN-WATER-01",
+            "geography": "ZA-GP-SYNTHETIC",
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "decision_cutoff": "2026-01-31T23:59:00Z"
+          },
+          "evidence_class": "synthetic",
+          "claim_ceiling": "synthetic_contract_only"
+        }
+      ],
+      "links": [
+        {
+          "from_stage_id": "SOURCE",
+          "to_stage_id": "ACQUIRE",
+          "required": true
+        },
+        {
+          "from_stage_id": "ACQUIRE",
+          "to_stage_id": "DIAGNOSE",
+          "required": true
+        },
+        {
+          "from_stage_id": "DIAGNOSE",
+          "to_stage_id": "INTERVENE",
+          "required": true
+        },
+        {
+          "from_stage_id": "INTERVENE",
+          "to_stage_id": "OUTCOME",
+          "required": true
+        },
+        {
+          "from_stage_id": "OUTCOME",
+          "to_stage_id": "ROBUST",
+          "required": true
+        }
+      ],
+      "requested_claim_type": "diagnosis",
+      "requested_claim_strength": "synthetic_contract_only",
+      "used_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "permitted_query_ids": [
+        "Q_PUBLIC_BUDGET"
+      ],
+      "authorization_status": "permitted",
+      "service_verification_status": "not_applicable",
+      "payment_evidence_status": "not_applicable",
+      "causal_design_status": "not_applicable",
+      "counterfactual_basis": "",
+      "preregistration_status": "not_applicable",
+      "expected_verdict": "rejected",
+      "expected_failure_codes": [
+        "artifact_payload_mismatch"
+      ],
+      "additionality_status": "not_assessed",
+      "net_additional_paid_hours_estimate": null,
+      "displacement_status": "not_assessed",
+      "substitution_status": "not_assessed",
+      "deadweight_status": "not_assessed",
+      "spillover_status": "not_assessed"
+    }
+  ]
+}

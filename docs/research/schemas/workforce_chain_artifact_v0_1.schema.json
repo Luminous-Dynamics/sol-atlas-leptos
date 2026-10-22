@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/schemas/workforce_chain_artifact_v0_1.schema.json",
+  "title": "Synthetic workforce chain stage artifact v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_contract_version",
+    "stage_id",
+    "stage_type",
+    "evidence_class",
+    "claim_ceiling",
+    "fixture_only"
+  ],
+  "properties": {
+    "artifact_contract_version": {
+      "const": "workforce-chain-stage-v0.1"
+    },
+    "stage_id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_-]*$"
+    },
+    "stage_type": {
+      "enum": [
+        "source_profile",
+        "active_evidence",
+        "diagnosis",
+        "intervention",
+        "outcome",
+        "robustness"
+      ]
+    },
+    "evidence_class": {
+      "const": "synthetic"
+    },
+    "claim_ceiling": {
+      "const": "synthetic_contract_only"
+    },
+    "fixture_only": {
+      "const": true
+    }
+  }
+}
