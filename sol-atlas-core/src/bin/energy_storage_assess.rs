@@ -4,7 +4,9 @@
 
 use serde::Serialize;
 use sha2::{Digest, Sha256};
-use sol_atlas_core::energy_storage::{EnergyStorageAssessment, EnergyStorageRequest, assess_energy_storage};
+use sol_atlas_core::energy_storage::{
+    EnergyStorageAssessment, EnergyStorageRequest, assess_energy_storage,
+};
 use std::{env, error::Error, fs, io};
 
 #[derive(Debug, Serialize)]
