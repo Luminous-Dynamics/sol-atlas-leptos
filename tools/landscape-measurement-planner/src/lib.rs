@@ -1062,6 +1062,7 @@ mod tests {
         );
         assert_eq!(report.required_spatial_temporal_stratum_count, 2);
         assert_eq!(report.coverage_constraint_status, "satisfied");
+        assert_eq!(report.coverage_constraint_limit_reason, None);
         assert_eq!(
             report.selected_candidate_ids,
             vec!["candidate-a-high-density".to_owned()]
@@ -1338,6 +1339,7 @@ mod tests {
         fixture.minimum_spatial_temporal_coverage_fraction = 1.0;
         let report = evaluate_fixture(&fixture, b"synthetic").expect("valid infeasible request");
         assert_eq!(report.coverage_constraint_status, "infeasible");
+        assert_eq!(report.coverage_constraint_limit_reason, None);
         assert_eq!(report.required_spatial_temporal_stratum_count, 3);
         assert!(report.coverage_constrained_selected_candidate_ids.is_none());
         assert!(report.coverage_constraint_score_loss_nats.is_none());
