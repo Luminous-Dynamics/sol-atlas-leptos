@@ -6,6 +6,7 @@ on:
     paths:
       - "sol-atlas-core/src/energy_storage.rs"
       - "sol-atlas-core/src/bin/energy_storage_assess.rs"
+      - "sol-atlas-core/tests/heat_pump_storage_coupling.rs"
       - "sol-atlas-core/src/lib.rs"
       - "schemas/energy-storage-*.schema.json"
       - "schemas/examples/energy-storage-*.synthetic.json"
@@ -43,6 +44,8 @@ jobs:
           key: ${{ runner.os }}-energy-storage-${{ hashFiles('**/Cargo.lock') }}
       - name: Run storage trajectory regression tests
         run: cargo test -p sol-atlas-core --bin energy_storage_assess
+      - name: Run coupled heat pump and thermal storage regression
+        run: cargo test -p sol-atlas-core --test heat_pump_storage_coupling
       - name: Produce the frozen synthetic trajectory
         run: cargo run -p sol-atlas-core --bin energy_storage_assess -- schemas/examples/energy-storage-trajectory.synthetic.json > /tmp/energy-storage-report.json
       - name: Install pinned JSON Schema validator (CI tooling only)
