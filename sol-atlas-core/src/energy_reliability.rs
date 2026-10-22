@@ -433,6 +433,11 @@ pub fn assess_energy_reliability(
     let mut essential_intervals_fully_met_count = 0_usize;
 
     for interval in &request.intervals {
+        let samples_by_id = interval
+            .services
+            .iter()
+            .map(|sample| (sample.service_id.as_str(), sample))
+            .collect::<BTreeMap<_, _>>();
         let mut samples_out = Vec::with_capacity(interval.services.len());
         let mut interval_requested = 0.0;
         let mut interval_delivered = 0.0;
@@ -442,10 +447,9 @@ pub fn assess_energy_reliability(
         let mut interval_essential_unserved = 0.0;
 
         for service in &request.services {
-            let sample = interval
-                .services
-                .iter()
-                .find(|sample| sample.service_id == service.service_id)
+            let sample = samples_by_id
+                .get(service.service_id.as_str())
+                .copied()
                 .expect("validated interval has exactly one sample for every service");
             if !finite_nonnegative(sample.requested_energy_kwh) {
                 return Err(EnergyReliabilityError::InvalidEnergyValue {
