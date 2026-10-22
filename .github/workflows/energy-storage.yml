@@ -1,0 +1,86 @@
+name: Stateful energy storage accounting
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "sol-atlas-core/src/energy_storage.rs"
+      - "sol-atlas-core/src/bin/energy_storage_assess.rs"
+      - "sol-atlas-core/tests/heat_pump_storage_coupling.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/energy-storage-*.schema.json"
+      - "schemas/examples/energy-storage-*.synthetic.json"
+      - "docs/benchmarks/ENERGY_STORAGE_STATE_V0_1.md"
+      - ".github/workflows/energy-storage.yml"
+  pull_request:
+    paths:
+      - "sol-atlas-core/src/energy_storage.rs"
+      - "sol-atlas-core/src/bin/energy_storage_assess.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/energy-storage-*.schema.json"
+      - "schemas/examples/energy-storage-*.synthetic.json"
+      - "docs/benchmarks/ENERGY_STORAGE_STATE_V0_1.md"
+      - ".github/workflows/energy-storage.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  energy-storage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-energy-storage-${{ hashFiles('**/Cargo.lock') }}
+      - name: Run storage trajectory regression tests
+        run: cargo test -p sol-atlas-core --bin energy_storage_assess
+      - name: Run coupled heat pump and thermal storage regression
+        run: cargo test -p sol-atlas-core --test heat_pump_storage_coupling
+      - name: Produce the frozen synthetic trajectory
+        run: cargo run -p sol-atlas-core --bin energy_storage_assess -- schemas/examples/energy-storage-trajectory.synthetic.json > /tmp/energy-storage-report.json
+      - name: Install pinned JSON Schema validator (CI tooling only)
+        run: python -m pip install --disable-pip-version-check "jsonschema[format]==4.26.0"
+      - name: Validate schemas, stored-state continuity, losses and digest bindings
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator, FormatChecker
+
+          fixture_bytes = Path("schemas/examples/energy-storage-trajectory.synthetic.json").read_bytes()
+          request = json.loads(fixture_bytes)
+          report = json.loads(Path("/tmp/energy-storage-report.json").read_text())
+          request_schema = json.loads(Path("schemas/energy-storage-request-v0.1.schema.json").read_text())
+          report_schema = json.loads(Path("schemas/energy-storage-report-v1.schema.json").read_text())
+          Draft202012Validator.check_schema(request_schema)
+          Draft202012Validator.check_schema(report_schema)
+          Draft202012Validator(request_schema, format_checker=FormatChecker()).validate(request)
+          Draft202012Validator(report_schema, format_checker=FormatChecker()).validate(report)
+
+          assessment = report["assessment"]
+          receipt = report["receipt"]
+          assert hashlib.sha256(fixture_bytes).hexdigest() == receipt["input_sha256"]
+          encoded_assessment = json.dumps(assessment, separators=(",", ":"), ensure_ascii=False).encode()
+          assert hashlib.sha256(encoded_assessment).hexdigest() == receipt["assessment_sha256"]
+          assert abs(assessment["final_energy_kwh"] - 3.91) < 1e-9
+          assert assessment["total_charge_accepted_kwh"] == 10.0
+          assert assessment["total_discharge_delivered_kwh"] == 4.0
+          assert abs(assessment["total_loss_kwh"] - 2.09) < 1e-9
+          assert assessment["terminal_reserve_met"] is True
+          assert abs(assessment["trajectory_balance_residual_kwh"]) < 1e-9
+          assert abs(assessment["intervals"][0]["closing_energy_kwh"] - 9.0) < 1e-9
+          assert abs(assessment["intervals"][1]["standing_loss_kwh"] - 0.09) < 1e-9
+          assert "no device metering" in assessment["claim_ceiling"]
+          print("storage schemas, state continuity, energy balance and digest bindings passed")
+          PY

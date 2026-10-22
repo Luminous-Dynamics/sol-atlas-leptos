@@ -1,0 +1,32 @@
+{
+  "schema_version": "energy-storage-v0.1",
+  "storage_id": "synthetic-battery-trajectory",
+  "synthetic": true,
+  "carrier": "electricity",
+  "thermal_temperature_c": null,
+  "capacity_kwh": 20.0,
+  "opening_energy_kwh": 0.0,
+  "max_charge_power_kw": 12.0,
+  "max_discharge_power_kw": 10.0,
+  "charge_efficiency": 0.9,
+  "discharge_efficiency": 0.8,
+  "standing_loss_fraction_per_hour": 0.01,
+  "terminal_reserve_kwh": 3.5,
+  "evidence_class": "analyst_assumption",
+  "evidence_ref": null,
+  "evidence_as_of": null,
+  "intervals": [
+    {
+      "interval_id": "charge-hour",
+      "duration_hours": 1.0,
+      "charge_available_kwh": 10.0,
+      "discharge_requested_kwh": 0.0
+    },
+    {
+      "interval_id": "discharge-hour",
+      "duration_hours": 1.0,
+      "charge_available_kwh": 0.0,
+      "discharge_requested_kwh": 4.0
+    }
+  ]
+}

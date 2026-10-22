@@ -17,6 +17,7 @@ pub mod data;
 pub mod demand_response_metrics;
 pub mod economics;
 pub mod energy_trading;
+pub mod energy_storage;
 pub mod energy_pathway;
 pub mod geo;
 pub mod lod;
