@@ -7,6 +7,7 @@ on:
       - "sol-atlas-core/src/energy_dispatch.rs"
       - "sol-atlas-core/src/energy_dispatch_baseline.rs"
       - "sol-atlas-core/src/energy_dispatch_verifier.rs"
+      - "sol-atlas-core/src/energy_dispatch_verifier.rs"
       - "sol-atlas-core/src/bin/energy_dispatch_regret.rs"
       - "sol-atlas-core/src/lib.rs"
       - "schemas/energy-dispatch-*.schema.json"
@@ -18,6 +19,7 @@ on:
     paths:
       - "sol-atlas-core/src/energy_dispatch.rs"
       - "sol-atlas-core/src/energy_dispatch_baseline.rs"
+      - "sol-atlas-core/src/energy_dispatch_verifier.rs"
       - "sol-atlas-core/src/bin/energy_dispatch_regret.rs"
       - "sol-atlas-core/src/lib.rs"
       - "schemas/energy-dispatch-*.schema.json"
