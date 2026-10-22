@@ -71,7 +71,8 @@ fn heat_pump_to_thermal_store_to_later_load_closes_each_boundary() {
             },
         ],
     };
-    let storage = assess_energy_storage(&store).expect("synthetic thermal-store case should be valid");
+    let storage =
+        assess_energy_storage(&store).expect("synthetic thermal-store case should be valid");
 
     assert!(storage.intervals[0].closing_energy_kwh <= storage.capacity_kwh);
     assert!((storage.total_discharge_delivered_kwh - 10.0).abs() < TOLERANCE);
