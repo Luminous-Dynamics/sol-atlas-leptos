@@ -1,0 +1,57 @@
+name: Robotics Terrain Evidence Contract
+
+on:
+  push:
+    branches: ["feat/robotics-terrain-evidence-envelope-v0-1"]
+    paths:
+      - "sol-atlas-core/src/robotics_terrain.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/robotics/robotics_terrain_evidence_v0_1.schema.json"
+      - "docs/research/ROBOTICS_TERRAIN_EVIDENCE_HANDOFF_V0_1.md"
+      - ".github/workflows/robotics-terrain-evidence.yml"
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "sol-atlas-core/src/robotics_terrain.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/robotics/robotics_terrain_evidence_v0_1.schema.json"
+      - "docs/research/ROBOTICS_TERRAIN_EVIDENCE_HANDOFF_V0_1.md"
+      - ".github/workflows/robotics-terrain-evidence.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: robotics-terrain-evidence-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  terrain-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # pinned action revision
+        with:
+          toolchain: 1.96.0
+
+      - name: Assert exact source revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+
+      - name: Check format
+        run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml -- --check
+
+      - name: Test terrain evidence contract
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml
+
+      - name: Parse terrain evidence schema
+        run: python3 -c 'import json; json.load(open("schemas/robotics/robotics_terrain_evidence_v0_1.schema.json"))'
