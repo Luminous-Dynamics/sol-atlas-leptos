@@ -358,8 +358,11 @@ pub fn assess_energy_pathway(
         assessment_schema_version: "1".to_owned(),
         scenario_id: request.scenario_id.clone(),
         synthetic: request.synthetic,
-        claim_ceiling: "calculated scenario; no physical meter verification or source authentication"
-            .to_owned(),
+        claim_ceiling: concat!(
+            "calculated scenario; no physical meter verification ",
+            "or source authentication",
+        )
+        .to_owned(),
         source_form: request.source_form,
         source_energy_kwh: request.source_energy_kwh,
         source_evidence_class: request.source_evidence_class,
