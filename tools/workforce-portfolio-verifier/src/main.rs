@@ -60,6 +60,21 @@ impl PortfolioVector {
             && self.cash_zar_cents <= caps.cash_zar_cents
     }
 
+    fn componentwise_le(&self, other: &Self) -> bool {
+        self.qualified_person_shifts <= other.qualified_person_shifts
+            && self.supervisor_hours <= other.supervisor_hours
+            && self.tool_kits <= other.tool_kits
+            && self.dispatch_hours <= other.dispatch_hours
+            && self.cash_zar_cents <= other.cash_zar_cents
+            && self.staff_minutes <= other.staff_minutes
+            && self.delay_hours <= other.delay_hours
+            && self.worker_burden_hours <= other.worker_burden_hours
+    }
+
+    fn componentwise_strictly_better(&self, other: &Self) -> bool {
+        self.componentwise_le(other) && self != other
+    }
+
     fn as_resource_caps(&self) -> ResourceCaps {
         ResourceCaps {
             qualified_person_shifts: self.qualified_person_shifts,
@@ -400,9 +415,9 @@ fn compute_portfolio(
 
 fn portfolio_dominates(left: &PortfolioSummary, right: &PortfolioSummary) -> bool {
     let benefits_ok = left.service_benefits.dominates(&right.service_benefits);
-    let costs_ok = left.cost_vector <= right.cost_vector;
+    let costs_ok = left.cost_vector.componentwise_le(&right.cost_vector);
     let strict_benefit = left.service_benefits.strictly_better_than(&right.service_benefits);
-    let strict_cost = left.cost_vector < right.cost_vector;
+    let strict_cost = left.cost_vector.componentwise_strictly_better(&right.cost_vector);
     benefits_ok && costs_ok && (strict_benefit || strict_cost)
 }
 
@@ -455,6 +470,12 @@ fn solve_scenario(scenario: &Scenario) -> Result<(String, Vec<String>, usize, Ve
     let subset_count = 1usize
         .checked_shl(scenario.interventions.len() as u32)
         .ok_or_else(|| format!("{}: oracle_limit_exceeded while computing subsets", scenario.id))?;
+    if subset_count > MAX_SUBSETS {
+        return Err(format!(
+            "{}: oracle_limit_exceeded: {} subsets exceeds cap {}",
+            scenario.id, subset_count, MAX_SUBSETS
+        ));
+    }
 
     let mut feasible_count = 0usize;
     let mut feasible_portfolios = Vec::new();
