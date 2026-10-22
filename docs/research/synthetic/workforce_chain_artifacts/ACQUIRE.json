@@ -1,0 +1,8 @@
+{
+  "artifact_contract_version": "workforce-chain-stage-v0.1",
+  "stage_id": "ACQUIRE",
+  "stage_type": "active_evidence",
+  "evidence_class": "synthetic",
+  "claim_ceiling": "synthetic_contract_only",
+  "fixture_only": true
+}
