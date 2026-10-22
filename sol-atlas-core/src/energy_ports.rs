@@ -360,9 +360,10 @@ pub fn assess_energy_ports(
                     port_id: port.port_id.clone(),
                 });
             }
-            if !finite_nonnegative(port.external_energy_kwh)
-                || port.external_energy_kwh > port.energy_kwh + tolerance(port.external_energy_kwh, port.energy_kwh)
-            {
+            let external_exceeds_declared = port.external_energy_kwh
+                > port.energy_kwh
+                    + tolerance(port.external_energy_kwh, port.energy_kwh);
+            if !finite_nonnegative(port.external_energy_kwh) || external_exceeds_declared {
                 return Err(EnergyPortsError::InvalidExternalEnergy {
                     node_id: node.node_id.clone(),
                     port_id: port.port_id.clone(),
@@ -480,7 +481,11 @@ pub fn assess_energy_ports(
     // Check a deterministic topological traversal before evaluating flow semantics.
     let mut ready = VecDeque::new();
     let mut node_order = (0..request.nodes.len()).collect::<Vec<_>>();
-    node_order.sort_by(|left, right| request.nodes[*left].node_id.cmp(&request.nodes[*right].node_id));
+    node_order.sort_by(|left, right| {
+        request.nodes[*left]
+            .node_id
+            .cmp(&request.nodes[*right].node_id)
+    });
     for index in &node_order {
         if indegree[*index] == 0 {
             ready.push_back(*index);
@@ -509,8 +514,16 @@ pub fn assess_energy_ports(
     for (edge, from_index, to_index) in &resolved_edges {
         let source = &request.nodes[*from_index];
         let target = &request.nodes[*to_index];
-        let source_port = source.outputs.iter().find(|port| port.port_id == edge.from_port_id).unwrap();
-        let target_port = target.inputs.iter().find(|port| port.port_id == edge.to_port_id).unwrap();
+        let source_port = source
+            .outputs
+            .iter()
+            .find(|port| port.port_id == edge.from_port_id)
+            .unwrap();
+        let target_port = target
+            .inputs
+            .iter()
+            .find(|port| port.port_id == edge.to_port_id)
+            .unwrap();
         if source_port.form != target_port.form {
             return Err(EnergyPortsError::EnergyFormMismatch {
                 edge_id: edge.edge_id.clone(),
@@ -771,7 +784,10 @@ mod tests {
             nodes: vec![
                 EnergyPortNode {
                     node_id: "chp".to_owned(),
-                    boundary_description: "fuel input to net electricity and thermal outputs".to_owned(),
+                    boundary_description: concat!(
+                        "fuel input to net electricity and thermal outputs"
+                    )
+                    .to_owned(),
                     evidence_class: EvidenceClass::AnalystAssumption,
                     evidence_ref: None,
                     evidence_as_of: None,
