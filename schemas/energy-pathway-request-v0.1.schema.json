@@ -5,13 +5,16 @@
   "description": "A bounded single-stream source-to-service energy accounting request. Storage state and heat-pump COP are outside this schema's model scope.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "scenario_id", "synthetic", "source_form", "source_energy_kwh", "stages"],
+  "required": ["schema_version", "scenario_id", "synthetic", "source_form", "source_energy_kwh", "source_evidence_class", "stages"],
   "properties": {
     "schema_version": { "const": "energy-pathway-v0.1" },
     "scenario_id": { "type": "string", "minLength": 1 },
     "synthetic": { "type": "boolean" },
     "source_form": { "$ref": "#/$defs/energyForm" },
     "source_energy_kwh": { "type": "number", "minimum": 0 },
+    "source_evidence_class": { "$ref": "#/$defs/evidenceClass" },
+    "source_evidence_ref": { "type": ["string", "null"] },
+    "source_evidence_as_of": { "type": ["string", "null"] },
     "stages": {
       "type": "array",
       "minItems": 1,
