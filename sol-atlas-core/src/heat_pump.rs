@@ -197,10 +197,16 @@ pub fn assess_heat_pump(
     let useful_heat_delivered = gross_heat_output - distribution_loss;
     let total_electricity_consumed =
         compressor_electricity_used + request.auxiliary_electricity_kwh;
-    let compressor_cop = (compressor_electricity_used > 0.0)
-        .then_some(gross_heat_output / compressor_electricity_used);
-    let system_cop = (total_electricity_consumed > 0.0)
-        .then_some(useful_heat_delivered / total_electricity_consumed);
+    let compressor_cop = if compressor_electricity_used > 0.0 {
+        Some(gross_heat_output / compressor_electricity_used)
+    } else {
+        None
+    };
+    let system_cop = if total_electricity_consumed > 0.0 {
+        Some(useful_heat_delivered / total_electricity_consumed)
+    } else {
+        None
+    };
     let carnot_cop_upper_bound = delivery_kelvin / (delivery_kelvin - source_kelvin);
     let first_law_balance_residual =
         source_heat_used + compressor_electricity_used - distribution_loss - useful_heat_delivered;
@@ -238,7 +244,11 @@ pub fn assess_heat_pump(
         assessment_schema_version: "1".to_owned(),
         scenario_id: request.scenario_id.clone(),
         synthetic: request.synthetic,
-        claim_ceiling: "calculated steady-state scenario; no physical meter verification or source authentication".to_owned(),
+        claim_ceiling: concat!(
+            "calculated steady-state scenario; no physical meter verification ",
+            "or source authentication",
+        )
+        .to_owned(),
         temperatures: request.temperatures,
         source_heat_available_kwh: request.source_heat_available_kwh,
         source_heat_used_kwh: source_heat_used,
