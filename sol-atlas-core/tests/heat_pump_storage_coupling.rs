@@ -45,6 +45,7 @@ fn heat_pump_to_thermal_store_to_later_load_closes_each_boundary() {
         storage_id: "synthetic-thermal-store".to_owned(),
         synthetic: true,
         carrier: StorageCarrier::ThermalHeat,
+        thermal_temperature_c: Some(80.0),
         capacity_kwh: 20.0,
         opening_energy_kwh: 0.0,
         max_charge_power_kw: 50.0,
