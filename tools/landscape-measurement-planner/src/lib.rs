@@ -310,7 +310,10 @@ pub fn validate_fixture(fixture: &Fixture) -> Result<(), Vec<String>> {
                 candidate.candidate_id
             ));
         }
-        match (candidate.consent_status, candidate.consent_evidence_sha256.as_deref()) {
+        match (
+            candidate.consent_status,
+            candidate.consent_evidence_sha256.as_deref(),
+        ) {
             (ConsentStatus::Granted, Some(digest)) if valid_digest(digest) => {}
             (ConsentStatus::Denied | ConsentStatus::Unknown, None) => {}
             (ConsentStatus::Granted, _) => errors.push(format!(
@@ -322,7 +325,10 @@ pub fn validate_fixture(fixture: &Fixture) -> Result<(), Vec<String>> {
                 candidate.candidate_id
             )),
         }
-        match (candidate.access_status, candidate.access_authorization_sha256.as_deref()) {
+        match (
+            candidate.access_status,
+            candidate.access_authorization_sha256.as_deref(),
+        ) {
             (AccessStatus::Authorized, Some(digest)) if valid_digest(digest) => {}
             (AccessStatus::Denied | AccessStatus::Unknown, None) => {}
             (AccessStatus::Authorized, _) => errors.push(format!(
@@ -621,7 +627,12 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
     const UNIFORM_REPLICATES: u64 = 64;
     let uniform_plans: Vec<PlanState> = (0..UNIFORM_REPLICATES)
         .map(|seed| {
-            select_seeded_uniform(&fixture.candidates, &scores, fixture.budget_cost_units, seed)
+            select_seeded_uniform(
+                &fixture.candidates,
+                &scores,
+                fixture.budget_cost_units,
+                seed,
+            )
         })
         .collect();
     let uniform_mean_score = uniform_plans
@@ -1038,8 +1049,9 @@ mod tests {
     #[test]
     fn paired_scenario_digests_must_be_distinct_and_global() {
         let mut identical_pair = fixture();
-        identical_pair.candidates[0].alternative_scenario_sha256 =
-            identical_pair.candidates[0].baseline_scenario_sha256.clone();
+        identical_pair.candidates[0].alternative_scenario_sha256 = identical_pair.candidates[0]
+            .baseline_scenario_sha256
+            .clone();
         assert!(validate_fixture(&identical_pair).is_err());
 
         let mut inconsistent_pair = fixture();
