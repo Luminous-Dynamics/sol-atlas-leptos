@@ -616,6 +616,9 @@ fn select_exact_coverage_constrained(
                 if better_for_same_cost(&proposed, slot) {
                     *slot = proposed;
                 }
+                if next.len() > MAX_COVERAGE_DP_STATES {
+                    return Err("coverage_state_limit");
+                }
             }
         }
         states = next;
@@ -1377,6 +1380,31 @@ mod tests {
         assert!(report.coverage_constrained_selected_candidate_ids.is_none());
         assert_eq!(report.selected_candidate_count, 21);
         assert!(!report.coverage_constraint_status.eq("satisfied"));
+    }
+
+    #[test]
+    fn coverage_search_state_cap_is_reported_explicitly() {
+        let mut fixture = fixture();
+        fixture.budget_cost_units = 20;
+        fixture.minimum_spatial_temporal_coverage_fraction = 1.0;
+        let template = fixture.candidates[0].clone();
+        fixture.candidates = (0..20)
+            .map(|index| {
+                let mut candidate = template.clone();
+                candidate.candidate_id = format!("state-candidate-{index:02}");
+                candidate.spatial_stratum = format!("state-stratum-{index:02}");
+                candidate.correlation_group = format!("state-group-{index:02}");
+                candidate.cost_units = 1;
+                candidate
+            })
+            .collect();
+        let report = evaluate_fixture(&fixture, b"synthetic").expect("valid 20-stratum fixture");
+        assert_eq!(report.coverage_constraint_status, "state_limit_exceeded");
+        assert_eq!(
+            report.coverage_constraint_limit_reason.as_deref(),
+            Some("coverage_state_limit")
+        );
+        assert!(report.coverage_constrained_selected_candidate_ids.is_none());
     }
 
     #[test]
