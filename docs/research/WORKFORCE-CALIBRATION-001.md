@@ -12,6 +12,12 @@ The target event for v0.1 is explicitly binary: **a task-scoped capacity gap is 
 
 Each frozen case has an independently authored synthetic outcome and predictions from five policies: constant-prevalence baseline, transparent rules, deliberately overconfident negative control, abstaining rules, and an all-abstain negative control. Forecasts include a status and reason so an abstention cannot disappear from denominators.
 
+## Boundary with official labour statistics
+
+Official Statistics South Africa QLFS results are useful macroeconomic context but are not ground-truth labels for this benchmark's 30-day, task-scoped event. For example, the official Q2 2026 release reports an unemployment rate of 33.6% and composite labour-underutilisation measure LU4 of 46.3% ([Stats SA QLFS Q2 2026](https://www.statssa.gov.za/?PPN=P0211&SCH=74512&page_id=1856)). These national aggregates must not be substituted for a local task/skill/region capacity-gap outcome, used to retroactively label the synthetic fixtures, or treated as a calibrated prior probability for an individual case. Doing so would mix different populations, observation units, and target events.
+
+Before any real-world calibration claim, a separate versioned data contract must identify (1) the forecast unit and geography, (2) the exact skill/task taxonomy and revision, (3) prediction cutoff and target horizon, (4) an independently adjudicated outcome source and its publication/revision time, (5) source coverage and missingness, (6) duplicates and linked records, and (7) the policy for late, corrected, or unavailable outcomes. Train/calibration/test partitions must be chronological by prediction cutoff and grouped so that records derived from the same underlying source event cannot leak across partitions. Aggregate QLFS series may provide context or a clearly scoped aggregate target, but only after defining and validating that different target explicitly.
+
 ## Metrics
 
 - **Brier score:** mean squared probability error, lower is better.
