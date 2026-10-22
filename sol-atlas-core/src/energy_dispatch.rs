@@ -726,7 +726,9 @@ mod tests {
             let assessment = match result {
                 Ok(assessment) => assessment,
                 Err(EnergyDispatchError::NoFeasibleSchedules) => continue,
-                Err(other) => panic!("seed {seed} must not fail for an unrelated reason: {other:?}"),
+                Err(other) => panic!(
+                    "seed {seed} must not fail for an unrelated reason: {other:?}"
+                ),
             };
             assert!(assessment.search_is_exact);
             assert!(assessment.pareto_frontier_complete);
@@ -750,7 +752,10 @@ mod tests {
                     let expected_discharge = u64::from(step.battery_soc_withdrawal_quanta)
                         * u64::from(request.battery.discharge_efficiency_numerator)
                         / u64::from(request.battery.discharge_efficiency_denominator);
-                    assert_eq!(u64::from(step.battery_discharge_delivered_quanta), expected_discharge);
+                    assert_eq!(
+                        u64::from(step.battery_discharge_delivered_quanta),
+                        expected_discharge
+                    );
                     assert_eq!(step.grid_outage, input.grid_outage);
                     if input.grid_outage {
                         assert_eq!(step.grid_import_quanta, 0);
