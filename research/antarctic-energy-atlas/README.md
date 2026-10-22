@@ -50,7 +50,7 @@ UI aggregation and map selection may filter or display records, but must not sil
 
 - AADC SOE Indicator 59 — monthly station electricity: https://data.aad.gov.au/aadc/soe/display_indicator.cfm?soe_id=59
 - AADC SOE Indicator 56 — monthly generator/boiler fuel: https://data.aad.gov.au/aadc/soe/display_indicator.cfm?soe_id=56
-- AADC monthly fuel metadata and citation (2019, DOI 10.26179/5d2ea1b98cba3): https://data.aad.gov.au/metadata/records/SOE_generator_boiler_fuel_usage
+- AADC monthly fuel metadata and citation (2001, Version 1, DOI 10.26179/5d2ea1b98cba3): https://data.aad.gov.au/metadata/records/SOE_generator_boiler_fuel_usage
 - AADC linked archive endpoint advertised by Indicator 59: https://data.aad.gov.au/aadc/portal/download_file.cfm?file_id=1272
 - DCCEEW Annual Report 2024–25, Table 73: https://www.dcceew.gov.au/sites/default/files/documents/annual-report-2024-25.pdf
 - Copernicus ERA5 hourly single-level reanalysis, DOI 10.24381/cds.adbb2d47: https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels?tab=overview
