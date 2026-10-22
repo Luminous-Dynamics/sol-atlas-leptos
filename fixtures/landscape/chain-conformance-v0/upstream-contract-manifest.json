@@ -52,6 +52,38 @@
       "git_blob_sha": "55b413220387b8c8ca9a8b420d8e54afc0f7d5a9"
     },
     {
+      "source_id": "sol-atlas-measurement-planner-code",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 275,
+      "commit_sha": "4a2e589271dc42c5d8e248792f4da86ca293000a",
+      "source_path": "tools/landscape-measurement-planner/src/lib.rs",
+      "git_blob_sha": "1a80bbf7890700b45c879279908d7ac86d65a2d2"
+    },
+    {
+      "source_id": "sol-atlas-measurement-planner-fixture",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 275,
+      "commit_sha": "4a2e589271dc42c5d8e248792f4da86ca293000a",
+      "source_path": "fixtures/landscape/measurement-planning-v0/fixture.json",
+      "git_blob_sha": "d6937a6019756f0b20a41218b1bd54ba43841776"
+    },
+    {
+      "source_id": "sol-atlas-measurement-planner-input-schema",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 275,
+      "commit_sha": "4a2e589271dc42c5d8e248792f4da86ca293000a",
+      "source_path": "schemas/landscape-measurement-selection-fixture-v0.1.schema.json",
+      "git_blob_sha": "674a11230b5c498ab71a190e125353e36388835f"
+    },
+    {
+      "source_id": "sol-atlas-measurement-planner-report-schema",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 275,
+      "commit_sha": "4a2e589271dc42c5d8e248792f4da86ca293000a",
+      "source_path": "schemas/landscape-measurement-selection-report-v0.1.schema.json",
+      "git_blob_sha": "be12a6577e25141cfd60b4703f68eda74213b0a8"
+    },
+    {
       "source_id": "sol-atlas-metric-observation-crosswalk",
       "repository": "Luminous-Dynamics/sol-atlas-leptos",
       "pull_request": 216,
