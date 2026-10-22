@@ -46,6 +46,10 @@ The strength vocabulary is intentionally small:
 
 Not every claim is interchangeable: a paid-work claim has an additional payment-evidence gate even if its overall strength is not higher than an operational outcome. Gates are conjunctive; a higher strength is not earned by averaging scores across stages.
 
+### Digest semantics in v0.1
+
+The fixture's per-stage `observed_*_sha256` values are synthetic stand-ins for adapter-reported digests. This version checks that those reported digests match their pins and hashes the manifest/schema bytes in its own receipt; it does **not** read or hash the upstream files named by `artifact_path` / `schema_path`. A production adapter must compute each digest from the actual bytes at a pinned repository revision before the chain can be called artifact-integrity verified. The current claim ceiling remains synthetic-contract-only.
+
 ## Negative controls
 
 The v0.1 corpus must reject:
