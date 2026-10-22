@@ -33,7 +33,7 @@
       "additionalProperties": false,
       "required": [
         "assessment_schema_version", "scenario_id", "synthetic", "claim_ceiling",
-        "source_form", "source_energy_kwh", "delivered_form", "gross_delivered_energy_kwh",
+        "source_form", "source_energy_kwh", "source_evidence_class", "source_evidence_ref", "source_evidence_as_of", "delivered_form", "gross_delivered_energy_kwh",
         "total_conversion_loss_kwh", "total_curtailed_energy_kwh", "total_auxiliary_electricity_kwh",
         "net_electric_output_kwh", "stream_balance_residual_kwh", "stages"
       ],
@@ -44,6 +44,9 @@
         "claim_ceiling": { "type": "string", "minLength": 1 },
         "source_form": { "$ref": "#/$defs/energyForm" },
         "source_energy_kwh": { "type": "number", "minimum": 0 },
+        "source_evidence_class": { "$ref": "#/$defs/evidenceClass" },
+        "source_evidence_ref": { "type": ["string", "null"] },
+        "source_evidence_as_of": { "type": ["string", "null"] },
         "delivered_form": { "$ref": "#/$defs/energyForm" },
         "gross_delivered_energy_kwh": { "type": "number", "minimum": 0 },
         "total_conversion_loss_kwh": { "type": "number", "minimum": 0 },
