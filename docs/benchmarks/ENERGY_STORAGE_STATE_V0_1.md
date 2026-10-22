@@ -17,7 +17,7 @@ The model therefore:
 - Rejects simultaneous nonzero charge/discharge requests within one interval to prevent artificial same-timestep arbitrage; finer sub-interval resolution can represent legitimate within-hour switching.
 - Marks the output as calculated scenario evidence, not measured state-of-charge or verified device performance.
 
-This is deliberately a same-carrier model for electricity and useful heat. Hydrogen production/consumption, pumped-hydro hydraulic state, and coupled thermal/electrical conversion require explicit process models and should not be smuggled into this contract as a generic efficiency.
+This is deliberately a same-carrier model for electricity and useful heat. Thermal storage must declare one fixed temperature grade; the thermal intervals are assumed to enter/leave at that grade. v0.1 does not model stratification, cooling/heat-up of the storage medium, or heat transfer across unequal temperatures, so it must not be used to evaluate temperature mismatches. The coupled heat-pump fixture matches the store's 80°C grade to the heat pump's useful-delivery grade. Hydrogen production/consumption, pumped-hydro hydraulic state, and coupled thermal/electrical conversion require explicit process models and should not be smuggled into this contract as a generic efficiency.
 
 ## 2. Frozen two-interval synthetic fixture
 
@@ -63,6 +63,7 @@ The test requires the heat-pump and storage balances to close independently, che
 - Charge/discharge efficiencies must lie in (0, 1]; standing loss fraction must lie in [0, 1].
 - Each duration must be finite and positive; each energy/power field must be finite and nonnegative.
 - Charge and discharge cannot both be requested in the same interval in v0.1.
+- Thermal stores must declare a finite absolute temperature grade; electric stores must not declare one. Thermal service comparisons require compatible declared grades.
 - A hard input power limit is multiplied by that interval's duration. Energy capacity and power capacity must never be conflated.
 - Storage inventory cannot be created without an accepted charge input, and no discharge may exceed retained inventory times discharge efficiency.
 - Unserved demand and terminal reserve shortfall must remain visible; the evaluator must not label them as served or rewrite them away.
@@ -98,11 +99,12 @@ Do not compare annual round-trip efficiency to hourly dispatch performance, or m
 
 ## 7. Next tranche
 
-1. Calibrate charge/discharge efficiency and standing losses by temperature, state of charge, power and technology from public or licensed measured datasets.
-2. Add multi-rate/timestamp semantics, explicit gap detection, and unit-typed input/output power limits.
-3. Add cycle aging/degradation and replacement, with parameter provenance and uncertainty intervals.
-4. Extend the current synthetic heat-pump → thermal-store coupling into timestamped site profiles while preserving separate carrier boundaries.
+1. Expand thermal storage beyond the declared fixed-grade abstraction to explicitly model temperature profile, stratification, heat-transfer approach and temperature-dependent standing loss.
+2. Calibrate charge/discharge efficiency and standing losses by temperature, state of charge, power and technology from public or licensed measured datasets.
+3. Add multi-rate/timestamp semantics, explicit gap detection, and unit-typed input/output power limits.
+4. Add cycle aging/degradation and replacement, with parameter provenance and uncertainty intervals.
+5. Extend the current synthetic heat-pump → thermal-store coupling into timestamped site profiles while preserving separate carrier boundaries.
 5. Compare the coupled model against SAM on compatible storage/solar cases, REopt for site dispatch, and PyPSA for intertemporal/network portfolios.
-6. Add exact small-instance dispatch as an oracle before introducing larger heuristics; score feasibility, service deficits, regret, runtime and energy accounting on identical cases.
+7. Add exact small-instance dispatch as an oracle before introducing larger heuristics; score feasibility, service deficits, regret, runtime and energy accounting on identical cases.
 
 **Rule:** storage shifts energy through time; it does not create energy. A simulation must preserve that fact at each transition and over the complete trajectory.
