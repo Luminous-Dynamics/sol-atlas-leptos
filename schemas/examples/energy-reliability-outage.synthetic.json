@@ -1,0 +1,75 @@
+{
+  "schema_version": "energy-reliability-v0.1",
+  "trace_id": "synthetic-four-hour-outage-trace",
+  "synthetic": true,
+  "evidence_class": "analyst_assumption",
+  "evidence_ref": null,
+  "evidence_as_of": null,
+  "services": [
+    {
+      "service_id": "essential-electricity",
+      "description": "essential electrical load",
+      "essential": true,
+      "required_form": "electricity",
+      "minimum_temperature_c": null
+    }
+  ],
+  "intervals": [
+    {
+      "interval_id": "normal-1",
+      "start_unix_seconds": 1800000000,
+      "duration_seconds": 3600,
+      "grid_outage": false,
+      "services": [
+        {
+          "service_id": "essential-electricity",
+          "requested_energy_kwh": 10.0,
+          "delivered_energy_kwh": 10.0,
+          "delivered_temperature_c": null
+        }
+      ]
+    },
+    {
+      "interval_id": "outage-1",
+      "start_unix_seconds": 1800003600,
+      "duration_seconds": 3600,
+      "grid_outage": true,
+      "services": [
+        {
+          "service_id": "essential-electricity",
+          "requested_energy_kwh": 10.0,
+          "delivered_energy_kwh": 8.0,
+          "delivered_temperature_c": null
+        }
+      ]
+    },
+    {
+      "interval_id": "outage-2",
+      "start_unix_seconds": 1800007200,
+      "duration_seconds": 3600,
+      "grid_outage": true,
+      "services": [
+        {
+          "service_id": "essential-electricity",
+          "requested_energy_kwh": 10.0,
+          "delivered_energy_kwh": 0.0,
+          "delivered_temperature_c": null
+        }
+      ]
+    },
+    {
+      "interval_id": "normal-2",
+      "start_unix_seconds": 1800010800,
+      "duration_seconds": 3600,
+      "grid_outage": false,
+      "services": [
+        {
+          "service_id": "essential-electricity",
+          "requested_energy_kwh": 10.0,
+          "delivered_energy_kwh": 10.0,
+          "delivered_temperature_c": null
+        }
+      ]
+    }
+  ]
+}

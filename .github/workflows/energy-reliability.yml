@@ -1,0 +1,96 @@
+name: Chronological essential-service reliability
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "sol-atlas-core/src/energy_reliability.rs"
+      - "sol-atlas-core/src/bin/energy_reliability_assess.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/energy-reliability-*.schema.json"
+      - "schemas/examples/energy-reliability-*.synthetic.json"
+      - "docs/benchmarks/ENERGY_RELIABILITY_V0_1.md"
+      - ".github/workflows/energy-reliability.yml"
+  pull_request:
+    paths:
+      - "sol-atlas-core/src/energy_reliability.rs"
+      - "sol-atlas-core/src/bin/energy_reliability_assess.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/energy-reliability-*.schema.json"
+      - "schemas/examples/energy-reliability-*.synthetic.json"
+      - "docs/benchmarks/ENERGY_RELIABILITY_V0_1.md"
+      - ".github/workflows/energy-reliability.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reliability:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-energy-reliability-${{ hashFiles('**/Cargo.lock') }}
+      - name: Run chronological reliability and negative-control tests
+        run: cargo test -p sol-atlas-core --lib energy_reliability
+      - name: Run receipt-wrapped reliability CLI tests
+        run: cargo test -p sol-atlas-core --bin energy_reliability_assess
+      - name: Produce frozen synthetic outage report
+        run: cargo run -p sol-atlas-core --bin energy_reliability_assess -- schemas/examples/energy-reliability-outage.synthetic.json > /tmp/energy-reliability-report.json
+      - name: Install pinned JSON Schema validator (CI tooling only)
+        run: python -m pip install --disable-pip-version-check "jsonschema[format]==4.26.0"
+      - name: Validate request, report, receipt, chronology metrics and outage known answers
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator, FormatChecker
+
+          fixture_path = Path("schemas/examples/energy-reliability-outage.synthetic.json")
+          raw = fixture_path.read_bytes()
+          request = json.loads(raw)
+          report = json.loads(Path("/tmp/energy-reliability-report.json").read_text())
+          request_schema = json.loads(Path("schemas/energy-reliability-request-v0.1.schema.json").read_text())
+          report_schema = json.loads(Path("schemas/energy-reliability-report-v1.schema.json").read_text())
+          Draft202012Validator.check_schema(request_schema)
+          Draft202012Validator.check_schema(report_schema)
+          Draft202012Validator(request_schema, format_checker=FormatChecker()).validate(request)
+          Draft202012Validator(report_schema, format_checker=FormatChecker()).validate(report)
+
+          receipt = report["receipt"]
+          assessment = report["assessment"]
+          assert hashlib.sha256(raw).hexdigest() == receipt["input_sha256"]
+          encoded_assessment = json.dumps(assessment, separators=(",", ":"), ensure_ascii=False).encode()
+          assert hashlib.sha256(encoded_assessment).hexdigest() == receipt["assessment_sha256"]
+          assert receipt["input_bytes"] == len(raw)
+          assert receipt["synthetic"] is True
+          assert assessment["interval_count"] == 4
+          assert assessment["total_duration_seconds"] == 14400
+          assert assessment["grid_outage_interval_count"] == 2
+          assert assessment["grid_outage_duration_seconds"] == 7200
+          assert assessment["total_requested_service_kwh"] == 40.0
+          assert assessment["total_delivered_service_kwh"] == 28.0
+          assert assessment["total_unserved_service_kwh"] == 12.0
+          assert assessment["outage_essential_requested_service_kwh"] == 20.0
+          assert assessment["outage_essential_delivered_service_kwh"] == 8.0
+          assert assessment["outage_essential_unserved_service_kwh"] == 12.0
+          assert abs(assessment["outage_essential_delivery_fraction"] - 0.4) < 1e-12
+          assert assessment["essential_deficit_interval_count"] == 2
+          assert assessment["longest_consecutive_essential_deficit_seconds"] == 7200
+          assert assessment["longest_consecutive_outage_essential_deficit_seconds"] == 7200
+          assert abs(assessment["total_service_balance_residual_kwh"]) < 1e-9
+          assert abs(assessment["essential_service_balance_residual_kwh"]) < 1e-9
+          assert "not independently authenticated" in assessment["claim_ceiling"]
+          print("energy reliability schemas, receipt binding and outage metrics passed")
+          PY

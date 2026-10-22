@@ -94,9 +94,9 @@ jobs:
       # Useful-service labels must match explicit demand and preserve shortfall.
       - name: Test demand-matched energy service CLI
         run: cargo test -p sol-atlas-core --bin energy_service_assess
-      # Ensure useful service claims match demand and unmet loads stay explicit.
-      - name: Test demand-matched energy service CLI
-        run: cargo test -p sol-atlas-core --bin energy_service_assess
+      # Audit chronological essential service and outage-linked deficit runs.
+      - name: Test chronological energy reliability CLI
+        run: cargo test -p sol-atlas-core --bin energy_reliability_assess
       # Prove the heat-pump useful-heat stream composes with the thermal store state machine.
       - name: Test coupled heat pump and thermal storage
         run: cargo test -p sol-atlas-core --test heat_pump_storage_coupling
@@ -110,6 +110,8 @@ jobs:
         run: cargo run -p sol-atlas-core --bin energy_ports_assess -- schemas/examples/energy-ports-chp.synthetic.json > /tmp/energy-ports-report.json
       - name: Produce demand-matched service report
         run: cargo run -p sol-atlas-core --bin energy_service_assess -- schemas/examples/energy-service-chp.synthetic.json > /tmp/energy-service-report.json
+      - name: Produce chronological reliability report
+        run: cargo run -p sol-atlas-core --bin energy_reliability_assess -- schemas/examples/energy-reliability-outage.synthetic.json > /tmp/energy-reliability-report.json
       - name: Install pinned JSON Schema validator (CI tooling only)
         run: python -m pip install --disable-pip-version-check "jsonschema[format]==4.26.0"
       - name: Validate energy schemas, receipts and cross-ledger known answers
@@ -142,6 +144,13 @@ jobs:
                   "request_schema": "schemas/energy-service-request-v0.1.schema.json",
                   "report_schema": "schemas/energy-service-report-v1.schema.json",
                   "report": "/tmp/energy-service-report.json",
+              },
+              {
+                  "name": "energy-reliability",
+                  "fixture": "schemas/examples/energy-reliability-outage.synthetic.json",
+                  "request_schema": "schemas/energy-reliability-request-v0.1.schema.json",
+                  "report_schema": "schemas/energy-reliability-report-v1.schema.json",
+                  "report": "/tmp/energy-reliability-report.json",
               },
           ]
 
@@ -193,5 +202,20 @@ jobs:
           assert demands["electric-service"]["unserved_energy_kwh"] == 5.0
           assert demands["process-heat-service"]["delivered_energy_kwh"] == 14.0
           assert demands["process-heat-service"]["unserved_energy_kwh"] == 6.0
-          print("energy schema validation, receipt binding and cross-ledger known answers passed")
+          reliability = reports["energy-reliability"]
+          assert reliability["interval_count"] == 4
+          assert reliability["total_duration_seconds"] == 14_400
+          assert reliability["grid_outage_interval_count"] == 2
+          assert reliability["grid_outage_duration_seconds"] == 7_200
+          assert reliability["total_requested_service_kwh"] == 40.0
+          assert reliability["total_delivered_service_kwh"] == 28.0
+          assert reliability["total_unserved_service_kwh"] == 12.0
+          assert reliability["outage_essential_requested_service_kwh"] == 20.0
+          assert reliability["outage_essential_delivered_service_kwh"] == 8.0
+          assert reliability["outage_essential_unserved_service_kwh"] == 12.0
+          assert abs(reliability["outage_essential_delivery_fraction"] - 0.4) < 1e-12
+          assert reliability["longest_consecutive_essential_deficit_seconds"] == 7_200
+          assert reliability["longest_consecutive_outage_essential_deficit_seconds"] == 7_200
+          assert abs(reliability["total_service_balance_residual_kwh"]) < 1e-9
+          print("energy schema validation, receipts, service balances and outage-reliability known answers passed")
           PY
