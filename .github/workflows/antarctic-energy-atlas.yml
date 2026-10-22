@@ -1,0 +1,37 @@
+name: Antarctic Energy Atlas Metadata V0
+
+on:
+  pull_request:
+    paths:
+      - "research/antarctic-energy-atlas/**"
+      - "scripts/check-antarctic-energy-atlas.sh"
+      - ".github/workflows/antarctic-energy-atlas.yml"
+  push:
+    branches: [main]
+    paths:
+      - "research/antarctic-energy-atlas/**"
+      - "scripts/check-antarctic-energy-atlas.sh"
+      - ".github/workflows/antarctic-energy-atlas.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: antarctic-energy-atlas-v0-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  spatial-evidence-metadata:
+    name: Validate site locators and observation support
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out exact source revision
+        uses: actions/checkout@v4
+
+      - name: Verify jq is available
+        run: command -v jq
+
+      - name: Validate spatial evidence semantics and negative controls
+        run: bash scripts/check-antarctic-energy-atlas.sh
