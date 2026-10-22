@@ -28,6 +28,9 @@
     "required_spatial_temporal_stratum_count",
     "coverage_constraint_status",
     "coverage_constraint_limit_reason",
+    "coverage_frontier_status",
+    "coverage_frontier_limit_reason",
+    "coverage_frontier",
     "coverage_constrained_selected_candidate_ids",
     "coverage_constrained_cost_units",
     "coverage_constrained_stratum_coverage_fraction",
@@ -267,6 +270,120 @@
           ]
         }
       ]
+    },
+    "coverage_frontier_status": {
+      "enum": [
+        "complete",
+        "state_limit_exceeded"
+      ]
+    },
+    "coverage_frontier_limit_reason": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "enum": [
+            "coverage_stratum_limit",
+            "coverage_state_limit",
+            "coverage_transition_limit"
+          ]
+        }
+      ]
+    },
+    "coverage_frontier": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "minimum_coverage_fraction",
+          "required_spatial_temporal_stratum_count",
+          "status",
+          "selected_candidate_ids",
+          "selected_cost_units",
+          "achieved_coverage_fraction",
+          "weighted_discrimination_nats",
+          "score_loss_from_unconstrained_nats"
+        ],
+        "properties": {
+          "minimum_coverage_fraction": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "required_spatial_temporal_stratum_count": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
+          },
+          "status": {
+            "enum": [
+              "satisfied",
+              "infeasible"
+            ]
+          },
+          "selected_candidate_ids": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "selected_cost_units": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "achieved_coverage_fraction": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "weighted_discrimination_nats": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "score_loss_from_unconstrained_nats": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      }
     }
   },
   "$defs": {
