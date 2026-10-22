@@ -126,6 +126,7 @@ pub struct PlanReport {
     pub minimum_spatial_temporal_coverage_fraction: f64,
     pub required_spatial_temporal_stratum_count: usize,
     pub coverage_constraint_status: String,
+    pub coverage_constraint_limit_reason: Option<String>,
     pub coverage_constrained_selected_candidate_ids: Option<Vec<String>>,
     pub coverage_constrained_cost_units: Option<u32>,
     pub coverage_constrained_stratum_coverage_fraction: Option<f64>,
@@ -217,23 +218,6 @@ pub fn validate_fixture(fixture: &Fixture) -> Result<(), Vec<String>> {
                 .to_owned(),
         );
     }
-    let eligible_strata: BTreeSet<(&str, &str)> = fixture
-        .candidates
-        .iter()
-        .filter(|candidate| eligible(candidate))
-        .map(|candidate| (
-            candidate.spatial_stratum.as_str(),
-            candidate.temporal_stratum.as_str(),
-        ))
-        .collect();
-    if fixture.minimum_spatial_temporal_coverage_fraction > 0.0
-        && eligible_strata.len() > MAX_COVERAGE_STRATA
-    {
-        errors.push(format!(
-            "v0.1 exact coverage constraint supports at most {MAX_COVERAGE_STRATA} eligible spatial-temporal strata"
-        ));
-    }
-
     let mut ids = BTreeSet::new();
     let mut model_by_metric: BTreeMap<String, (String, String, String)> = BTreeMap::new();
     if let Some(first) = fixture.candidates.first() {
@@ -787,31 +771,40 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
         * eligible_strata_count(&fixture.candidates) as f64)
         - 1.0e-12)
         .ceil() as usize;
-    let (coverage_constraint_status, coverage_constrained, coverage_constrained_cost) =
-        if fixture.minimum_spatial_temporal_coverage_fraction == 0.0 {
-            ("not_required".to_owned(), None, None)
-        } else {
-            match select_exact_coverage_constrained(
-                &fixture.candidates,
-                &scores,
-                fixture.budget_cost_units,
-                fixture.minimum_spatial_temporal_coverage_fraction,
-            ) {
-                Ok(Some(plan)) => {
-                    let selected_ids: BTreeSet<&str> =
-                        plan.selected_ids.iter().map(String::as_str).collect();
-                    let cost = fixture
-                        .candidates
-                        .iter()
-                        .filter(|candidate| selected_ids.contains(candidate.candidate_id.as_str()))
-                        .map(|candidate| candidate.cost_units)
-                        .sum::<u32>();
-                    ("satisfied".to_owned(), Some(plan), Some(cost))
-                }
-                Ok(None) => ("infeasible".to_owned(), None, None),
-                Err(_) => ("state_limit_exceeded".to_owned(), None, None),
+    let (
+        coverage_constraint_status,
+        coverage_constraint_limit_reason,
+        coverage_constrained,
+        coverage_constrained_cost,
+    ) = if fixture.minimum_spatial_temporal_coverage_fraction == 0.0 {
+        ("not_required".to_owned(), None, None, None)
+    } else {
+        match select_exact_coverage_constrained(
+            &fixture.candidates,
+            &scores,
+            fixture.budget_cost_units,
+            fixture.minimum_spatial_temporal_coverage_fraction,
+        ) {
+            Ok(Some(plan)) => {
+                let selected_ids: BTreeSet<&str> =
+                    plan.selected_ids.iter().map(String::as_str).collect();
+                let cost = fixture
+                    .candidates
+                    .iter()
+                    .filter(|candidate| selected_ids.contains(candidate.candidate_id.as_str()))
+                    .map(|candidate| candidate.cost_units)
+                    .sum::<u32>();
+                ("satisfied".to_owned(), None, Some(plan), Some(cost))
             }
-        };
+            Ok(None) => ("infeasible".to_owned(), None, None, None),
+            Err(reason) => (
+                "state_limit_exceeded".to_owned(),
+                Some(reason.to_owned()),
+                None,
+                None,
+            ),
+        }
+    };
     let coverage_constrained_strata: BTreeSet<(&str, &str)> = coverage_constrained
         .as_ref()
         .map(|plan| {
@@ -981,6 +974,7 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
         ),
         required_spatial_temporal_stratum_count: required_spatial_temporal_strata,
         coverage_constraint_status,
+        coverage_constraint_limit_reason,
         coverage_constrained_selected_candidate_ids: coverage_constrained
             .as_ref()
             .map(|plan| plan.selected_ids.clone()),
@@ -1354,6 +1348,33 @@ mod tests {
             vec!["candidate-a-high-density".to_owned()]
         );
         close(report.selected_spatial_temporal_stratum_coverage_fraction, 1.0 / 3.0);
+    }
+
+    #[test]
+    fn coverage_state_limit_is_reported_without_claiming_constraint_success() {
+        let mut fixture = fixture();
+        fixture.budget_cost_units = 21;
+        fixture.minimum_spatial_temporal_coverage_fraction = 1.0;
+        let template = fixture.candidates[0].clone();
+        fixture.candidates = (0..21)
+            .map(|index| {
+                let mut candidate = template.clone();
+                candidate.candidate_id = format!("coverage-candidate-{index:02}");
+                candidate.spatial_stratum = format!("stratum-{index:02}");
+                candidate.correlation_group = format!("coverage-group-{index:02}");
+                candidate.cost_units = 1;
+                candidate
+            })
+            .collect();
+        let report = evaluate_fixture(&fixture, b"synthetic").expect("valid bounded fixture");
+        assert_eq!(report.coverage_constraint_status, "state_limit_exceeded");
+        assert_eq!(
+            report.coverage_constraint_limit_reason.as_deref(),
+            Some("coverage_stratum_limit")
+        );
+        assert!(report.coverage_constrained_selected_candidate_ids.is_none());
+        assert_eq!(report.selected_candidate_count, 21);
+        assert!(!report.coverage_constraint_status.eq("satisfied"));
     }
 
     #[test]
