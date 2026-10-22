@@ -3,6 +3,7 @@
   "storage_id": "synthetic-battery-trajectory",
   "synthetic": true,
   "carrier": "electricity",
+  "thermal_temperature_c": null,
   "capacity_kwh": 20.0,
   "opening_energy_kwh": 0.0,
   "max_charge_power_kw": 12.0,
