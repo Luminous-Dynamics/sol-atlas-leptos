@@ -333,7 +333,8 @@ pub fn assess_energy_pathway(
         assessment_schema_version: "1".to_owned(),
         scenario_id: request.scenario_id.clone(),
         synthetic: request.synthetic,
-        claim_ceiling: "calculated scenario; no physical meter verification or source authentication".to_owned(),
+        claim_ceiling: "calculated scenario; no physical meter verification or source authentication"
+            .to_owned(),
         source_form: request.source_form,
         source_energy_kwh: request.source_energy_kwh,
         delivered_form,
@@ -407,7 +408,8 @@ mod tests {
             1_000.0,
             0.005,
         );
-        let assessment = assess_energy_pathway(&request(100.0, vec![heat_engine, distribution])).unwrap();
+        let assessment =
+            assess_energy_pathway(&request(100.0, vec![heat_engine, distribution])).unwrap();
         assert!((assessment.gross_delivered_energy_kwh - 38.0).abs() < NUMERIC_TOLERANCE);
         assert!((assessment.total_conversion_loss_kwh - 62.0).abs() < NUMERIC_TOLERANCE);
         assert!((assessment.total_auxiliary_electricity_kwh - 3.2).abs() < NUMERIC_TOLERANCE);
@@ -467,7 +469,14 @@ mod tests {
 
     #[test]
     fn rejects_non_finite_efficiency() {
-        let stage = stage("bad", EnergyForm::Chemical, EnergyForm::Electricity, f64::NAN, 100.0, 0.0);
+        let stage = stage(
+            "bad",
+            EnergyForm::Chemical,
+            EnergyForm::Electricity,
+            f64::NAN,
+            100.0,
+            0.0,
+        );
         assert!(matches!(
             assess_energy_pathway(&request(100.0, vec![stage])),
             Err(EnergyPathwayError::InvalidEfficiency { .. })
@@ -486,7 +495,14 @@ mod tests {
 
     #[test]
     fn heat_engine_requires_reservoirs_and_carnot_bound() {
-        let missing = stage("engine", EnergyForm::ThermalHeat, EnergyForm::Electricity, 0.4, 100.0, 0.0);
+        let missing = stage(
+            "engine",
+            EnergyForm::ThermalHeat,
+            EnergyForm::Electricity,
+            0.4,
+            100.0,
+            0.0,
+        );
         assert!(matches!(
             assess_energy_pathway(&request(100.0, vec![missing])),
             Err(EnergyPathwayError::MissingThermalEngineLimits { .. })
