@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/thermal-exergy-report-v1.schema.json",
+  "title": "Thermal exergy assessment report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["receipt", "assessment"],
+  "properties": {
+    "receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "receipt_schema_version", "evaluator_version", "digest_algorithm", "digest_scope",
+        "input_sha256", "assessment_sha256", "input_bytes", "scenario_id", "synthetic",
+        "claim_ceiling", "verification_boundary"
+      ],
+      "properties": {
+        "receipt_schema_version": { "const": "1" },
+        "evaluator_version": { "const": "thermal-exergy-v0.1" },
+        "digest_algorithm": { "const": "SHA-256" },
+        "digest_scope": { "const": "exact_input_bytes_and_compact_assessment_json" },
+        "input_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "assessment_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "input_bytes": { "type": "integer", "minimum": 0 },
+        "scenario_id": { "type": "string", "minLength": 1 },
+        "synthetic": { "type": "boolean" },
+        "claim_ceiling": { "type": "string", "minLength": 1 },
+        "verification_boundary": { "type": "string", "minLength": 1 }
+      }
+    },
+    "assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assessment_schema_version", "scenario_id", "synthetic", "claim_ceiling",
+        "heat_quantity_kwh", "heat_temperature_c", "reference_environment_temperature_c",
+        "heat_temperature_kelvin", "reference_environment_temperature_kelvin",
+        "exergy_fraction", "thermal_exergy_kwh", "energy_minus_exergy_kwh",
+        "evidence_class", "evidence_ref", "evidence_as_of"
+      ],
+      "properties": {
+        "assessment_schema_version": { "const": "1" },
+        "scenario_id": { "type": "string", "minLength": 1 },
+        "synthetic": { "type": "boolean" },
+        "claim_ceiling": { "type": "string", "minLength": 1 },
+        "heat_quantity_kwh": { "type": "number", "minimum": 0 },
+        "heat_temperature_c": { "type": "number" },
+        "reference_environment_temperature_c": { "type": "number" },
+        "heat_temperature_kelvin": { "type": "number", "exclusiveMinimum": 0 },
+        "reference_environment_temperature_kelvin": { "type": "number", "exclusiveMinimum": 0 },
+        "exergy_fraction": { "type": "number", "minimum": 0, "maximum": 1 },
+        "thermal_exergy_kwh": { "type": "number", "minimum": 0 },
+        "energy_minus_exergy_kwh": { "type": "number", "minimum": 0 },
+        "evidence_class": {
+          "type": "string",
+          "enum": ["analyst_assumption", "published_model", "component_test", "field_pilot", "operating_plant", "replicated_fleet", "independently_audited"]
+        },
+        "evidence_ref": { "type": ["string", "null"] },
+        "evidence_as_of": { "type": ["string", "null"] }
+      }
+    }
+  }
+}
