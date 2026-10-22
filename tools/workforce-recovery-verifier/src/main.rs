@@ -10,10 +10,8 @@ use std::process::ExitCode;
 const EXPECTED_SCHEMA_VERSION: &str = "0.1.0";
 const EXPECTED_BENCHMARK_ID: &str = "SA-WORKFORCE-RECOVERY-001";
 const MAX_INTERVENTIONS: usize = 16;
-const FIXTURE_DEFAULT: &str =
-    "docs/research/fixtures/workforce_recovery_scenarios_v0_1.json";
-const SCHEMA_DEFAULT: &str =
-    "docs/research/schemas/workforce_recovery_v0_1.schema.json";
+const FIXTURE_DEFAULT: &str = "docs/research/fixtures/workforce_recovery_scenarios_v0_1.json";
+const SCHEMA_DEFAULT: &str = "docs/research/schemas/workforce_recovery_v0_1.schema.json";
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, Eq, PartialOrd, Ord)]
 struct Resources {
@@ -125,11 +123,15 @@ impl Services {
             "health_units" => &mut self.health_units,
             "housing_units" => &mut self.housing_units,
             "other_service_units" => &mut self.other_service_units,
-            _ => return Err(format!("{scenario_id}: unsupported service category {category}")),
+            _ => {
+                return Err(format!(
+                    "{scenario_id}: unsupported service category {category}"
+                ));
+            }
         };
-        *target = target.checked_add(units).ok_or_else(|| {
-            format!("{scenario_id}: integer overflow while adding {category}")
-        })?;
+        *target = target
+            .checked_add(units)
+            .ok_or_else(|| format!("{scenario_id}: integer overflow while adding {category}"))?;
         Ok(())
     }
 
@@ -303,7 +305,10 @@ fn validate_contract(corpus: &Corpus) -> Result<(), String> {
         let mut intervention_ids = BTreeSet::new();
         for item in &scenario.interventions {
             if !intervention_ids.insert(item.id.clone()) {
-                errors.push(format!("{}: duplicate intervention ID {}", scenario.id, item.id));
+                errors.push(format!(
+                    "{}: duplicate intervention ID {}",
+                    scenario.id, item.id
+                ));
             }
             if item.requires_selected_interventions.contains(&item.id) {
                 errors.push(format!("{}: self dependency on {}", scenario.id, item.id));
@@ -327,14 +332,22 @@ fn validate_contract(corpus: &Corpus) -> Result<(), String> {
                 ));
             }
         }
-        if scenario.baseline_plan_ids.iter().collect::<BTreeSet<_>>().len()
+        if scenario
+            .baseline_plan_ids
+            .iter()
+            .collect::<BTreeSet<_>>()
+            .len()
             != scenario.baseline_plan_ids.len()
         {
             errors.push(format!("{}: duplicate baseline ID", scenario.id));
         }
     }
 
-    if errors.is_empty() { Ok(()) } else { Err(errors.join("\n")) }
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        Err(errors.join("\n"))
+    }
 }
 
 fn canonicalize(corpus: &mut Corpus) {
@@ -353,14 +366,18 @@ fn canonicalize(corpus: &mut Corpus) {
             item.removed_bundle_ids.sort();
         }
         scenario.expected_frontier.sort_by(|a, b| {
-            a.selected_intervention_ids.cmp(&b.selected_intervention_ids)
+            a.selected_intervention_ids
+                .cmp(&b.selected_intervention_ids)
         });
     }
 }
 
 fn baseline_assessment(scenario: &Scenario) -> Result<(String, Vec<String>), String> {
-    let baseline_ids: BTreeSet<&str> =
-        scenario.baseline_plan_ids.iter().map(String::as_str).collect();
+    let baseline_ids: BTreeSet<&str> = scenario
+        .baseline_plan_ids
+        .iter()
+        .map(String::as_str)
+        .collect();
     let mut resource_use = Resources::default();
     let mut services = Services::default();
     let mut costs = Costs::default();
@@ -375,7 +392,11 @@ fn baseline_assessment(scenario: &Scenario) -> Result<(String, Vec<String>), Str
         resource_use = resource_use.checked_add(&item.resource_demand, &scenario.id)?;
         costs = costs.checked_add(&item.cost_demand, &scenario.id)?;
         if item.selectable() {
-            services.checked_add_service(&item.service_category, item.service_units, &scenario.id)?;
+            services.checked_add_service(
+                &item.service_category,
+                item.service_units,
+                &scenario.id,
+            )?;
         }
     }
 
@@ -431,12 +452,16 @@ fn selected_structure_valid(selected: &[&Intervention]) -> bool {
 }
 
 fn component_dominates(left: &FrontierItem, right: &FrontierItem) -> bool {
-    let services_ok = left.service_benefits.componentwise_ge(&right.service_benefits);
+    let services_ok = left
+        .service_benefits
+        .componentwise_ge(&right.service_benefits);
     let resources_ok = left.resource_use.componentwise_le(&right.resource_use);
     let costs_ok = left.cost_vector.componentwise_le(&right.cost_vector);
     let changes_ok = left.added_bundle_ids.len() <= right.added_bundle_ids.len()
         && left.removed_bundle_ids.len() <= right.removed_bundle_ids.len();
-    let strict = left.service_benefits.strictly_better(&right.service_benefits)
+    let strict = left
+        .service_benefits
+        .strictly_better(&right.service_benefits)
         || left.resource_use.strictly_better(&right.resource_use)
         || left.cost_vector.strictly_better(&right.cost_vector)
         || left.added_bundle_ids.len() < right.added_bundle_ids.len()
@@ -444,7 +469,10 @@ fn component_dominates(left: &FrontierItem, right: &FrontierItem) -> bool {
     services_ok && resources_ok && costs_ok && changes_ok && strict
 }
 
-fn create_portfolio(scenario: &Scenario, selected: &[&Intervention]) -> Result<FrontierItem, String> {
+fn create_portfolio(
+    scenario: &Scenario,
+    selected: &[&Intervention],
+) -> Result<FrontierItem, String> {
     let mut resources = Resources::default();
     let mut costs = Costs::default();
     let mut services = Services::default();
@@ -458,8 +486,11 @@ fn create_portfolio(scenario: &Scenario, selected: &[&Intervention]) -> Result<F
     }
     selected_ids.sort();
 
-    let baseline: BTreeSet<&str> =
-        scenario.baseline_plan_ids.iter().map(String::as_str).collect();
+    let baseline: BTreeSet<&str> = scenario
+        .baseline_plan_ids
+        .iter()
+        .map(String::as_str)
+        .collect();
     let selected_set: BTreeSet<&str> = selected_ids.iter().map(String::as_str).collect();
     let mut added: Vec<String> = selected_set
         .difference(&baseline)
@@ -536,7 +567,10 @@ fn solve_recovery(
     }
 
     if feasible_count > 0 {
-        feasible.sort_by(|a, b| a.selected_intervention_ids.cmp(&b.selected_intervention_ids));
+        feasible.sort_by(|a, b| {
+            a.selected_intervention_ids
+                .cmp(&b.selected_intervention_ids)
+        });
         let frontier = feasible
             .iter()
             .filter(|candidate| {
@@ -548,7 +582,10 @@ fn solve_recovery(
             .cloned()
             .collect::<Vec<_>>();
         let mut frontier = frontier;
-        frontier.sort_by(|a, b| a.selected_intervention_ids.cmp(&b.selected_intervention_ids));
+        frontier.sort_by(|a, b| {
+            a.selected_intervention_ids
+                .cmp(&b.selected_intervention_ids)
+        });
         return Ok(("feasible".to_string(), Vec::new(), feasible_count, frontier));
     }
 
@@ -668,7 +705,10 @@ fn run() -> Result<(), String> {
             .map_err(|error| format!("report serialization failed: {error}"))?
     );
     if report.scenarios_failed > 0 {
-        return Err(format!("{} recovery cases disagree with reference", report.scenarios_failed));
+        return Err(format!(
+            "{} recovery cases disagree with reference",
+            report.scenarios_failed
+        ));
     }
     Ok(())
 }
@@ -688,12 +728,10 @@ mod tests {
     use super::*;
     use serde_json::json;
 
-    const FIXTURE: &str = include_str!(
-        "../../../docs/research/fixtures/workforce_recovery_scenarios_v0_1.json"
-    );
-    const SCHEMA: &str = include_str!(
-        "../../../docs/research/schemas/workforce_recovery_v0_1.schema.json"
-    );
+    const FIXTURE: &str =
+        include_str!("../../../docs/research/fixtures/workforce_recovery_scenarios_v0_1.json");
+    const SCHEMA: &str =
+        include_str!("../../../docs/research/schemas/workforce_recovery_v0_1.schema.json");
 
     fn loaded() -> (Value, Value) {
         (
@@ -710,7 +748,11 @@ mod tests {
     }
 
     fn find<'a>(report: &'a Report, id: &str) -> &'a ScenarioReceipt {
-        report.scenarios.iter().find(|item| item.scenario_id == id).expect("scenario exists")
+        report
+            .scenarios
+            .iter()
+            .find(|item| item.scenario_id == id)
+            .expect("scenario exists")
     }
 
     #[test]
@@ -755,9 +797,18 @@ mod tests {
     fn resource_authority_and_worker_burden_fail_closed() {
         let (fixture, schema) = loaded();
         let receipt = report(&fixture, &schema);
-        assert_eq!(find(&receipt, "RC-003").recovery_status, "infeasible_resource_capacity");
-        assert_eq!(find(&receipt, "RC-004").recovery_status, "infeasible_essential_floor");
-        assert_eq!(find(&receipt, "RC-005").recovery_status, "infeasible_worker_burden");
+        assert_eq!(
+            find(&receipt, "RC-003").recovery_status,
+            "infeasible_resource_capacity"
+        );
+        assert_eq!(
+            find(&receipt, "RC-004").recovery_status,
+            "infeasible_essential_floor"
+        );
+        assert_eq!(
+            find(&receipt, "RC-005").recovery_status,
+            "infeasible_worker_burden"
+        );
         assert!(find(&receipt, "RC-004").frontier.is_empty());
         assert!(find(&receipt, "RC-005").frontier.is_empty());
     }
@@ -767,10 +818,19 @@ mod tests {
         let (fixture, schema) = loaded();
         let original = report(&fixture, &schema);
         let mut permuted = fixture.clone();
-        permuted["scenarios"].as_array_mut().expect("scenarios").reverse();
+        permuted["scenarios"]
+            .as_array_mut()
+            .expect("scenarios")
+            .reverse();
         for scenario in permuted["scenarios"].as_array_mut().expect("scenarios") {
-            scenario["interventions"].as_array_mut().expect("interventions").reverse();
-            scenario["baseline_plan_ids"].as_array_mut().expect("baseline IDs").reverse();
+            scenario["interventions"]
+                .as_array_mut()
+                .expect("interventions")
+                .reverse();
+            scenario["baseline_plan_ids"]
+                .as_array_mut()
+                .expect("baseline IDs")
+                .reverse();
         }
         let reordered = report(&permuted, &schema);
         assert_eq!(original.scenarios, reordered.scenarios);
@@ -784,13 +844,11 @@ mod tests {
         let recovered = find(&report, "RC-003");
         assert_eq!(recovered.recovery_status, "feasible");
         assert_eq!(recovered.feasible_portfolio_count, 1);
-        assert!(recovered.frontier[0]
-            .service_benefits
-            .meets(&Services {
-                essential_water_units: 1,
-                essential_power_units: 1,
-                ..Services::default()
-            }));
+        assert!(recovered.frontier[0].service_benefits.meets(&Services {
+            essential_water_units: 1,
+            essential_power_units: 1,
+            ..Services::default()
+        }));
     }
 
     #[test]
@@ -836,9 +894,9 @@ mod tests {
         let recovery = find(&report, "RC-001");
         assert_eq!(recovery.recovery_status, "infeasible_essential_floor");
         assert!(recovery.frontier.is_empty());
-        assert!(!recovery
-            .frontier
-            .iter()
-            .any(|item| item.selected_intervention_ids.contains(&"WATER_LOW".to_string())));
+        assert!(!recovery.frontier.iter().any(|item| {
+            item.selected_intervention_ids
+                .contains(&"WATER_LOW".to_string())
+        }));
     }
 }
