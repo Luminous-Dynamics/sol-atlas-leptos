@@ -743,6 +743,7 @@ mod tests {
         assert_eq!(
             find_case(&report(&fixture, &schema), "WC-011").failure_codes,
             vec![
+                "artifact_payload_mismatch",
                 "claim_exceeds_evidence_ceiling",
                 "synthetic_fixture_stage_relabelled"
             ]
@@ -780,6 +781,15 @@ mod tests {
         assert_eq!(
             find_case(&report(&fixture, &schema), "WC-008").failure_codes,
             vec!["broken_chain_link", "missing_required_stage"]
+        );
+    }
+
+    #[test]
+    fn byte_valid_wrong_stage_artifact_is_rejected() {
+        let (fixture, schema) = loaded();
+        assert_eq!(
+            find_case(&report(&fixture, &schema), "WC-014").failure_codes,
+            vec!["artifact_payload_mismatch"]
         );
     }
 
