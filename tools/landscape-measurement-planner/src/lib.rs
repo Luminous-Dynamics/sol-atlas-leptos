@@ -23,6 +23,9 @@ const MAX_SD: f64 = 1.0e6;
 const MAX_WEIGHT: f64 = 1.0e6;
 const MAX_COST: u32 = 100_000;
 const MAX_CANDIDATES: usize = 1_000;
+const MAX_COVERAGE_STRATA: usize = 20;
+const MAX_COVERAGE_DP_STATES: usize = 100_000;
+const MAX_COVERAGE_DP_TRANSITIONS: usize = 2_000_000;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -32,6 +35,9 @@ pub struct Fixture {
     pub data_origin: String,
     pub claim_ceiling: String,
     pub budget_cost_units: u32,
+    /// Minimum fraction of consent/access-eligible spatial-temporal strata the
+    /// selected campaign must cover. Zero disables the constraint.
+    pub minimum_spatial_temporal_coverage_fraction: f64,
     pub candidates: Vec<Candidate>,
 }
 
@@ -117,6 +123,14 @@ pub struct PlanReport {
     pub eligible_spatial_temporal_stratum_count: usize,
     pub selected_spatial_temporal_stratum_count: usize,
     pub eligible_spatial_temporal_stratum_coverage_fraction: f64,
+    pub minimum_spatial_temporal_coverage_fraction: f64,
+    pub required_spatial_temporal_stratum_count: usize,
+    pub coverage_constraint_status: String,
+    pub coverage_constrained_selected_candidate_ids: Option<Vec<String>>,
+    pub coverage_constrained_cost_units: Option<u32>,
+    pub coverage_constrained_stratum_coverage_fraction: Option<f64>,
+    pub coverage_constrained_weighted_discrimination_nats: Option<f64>,
+    pub coverage_constraint_score_loss_nats: Option<f64>,
     pub selected_candidate_ids: Vec<String>,
     pub total_weighted_discrimination_nats: f64,
     pub greedy_ratio_baseline_selected_candidate_ids: Vec<String>,
@@ -192,6 +206,32 @@ pub fn validate_fixture(fixture: &Fixture) -> Result<(), Vec<String>> {
     }
     if fixture.candidates.len() > MAX_CANDIDATES {
         errors.push(format!("candidates must not exceed {MAX_CANDIDATES}"));
+    }
+    if !fixture
+        .minimum_spatial_temporal_coverage_fraction
+        .is_finite()
+        || !(0.0..=1.0).contains(&fixture.minimum_spatial_temporal_coverage_fraction)
+    {
+        errors.push(
+            "minimum_spatial_temporal_coverage_fraction must be finite and in [0, 1]"
+                .to_owned(),
+        );
+    }
+    let eligible_strata: BTreeSet<(&str, &str)> = fixture
+        .candidates
+        .iter()
+        .filter(|candidate| eligible(candidate))
+        .map(|candidate| (
+            candidate.spatial_stratum.as_str(),
+            candidate.temporal_stratum.as_str(),
+        ))
+        .collect();
+    if fixture.minimum_spatial_temporal_coverage_fraction > 0.0
+        && eligible_strata.len() > MAX_COVERAGE_STRATA
+    {
+        errors.push(format!(
+            "v0.1 exact coverage constraint supports at most {MAX_COVERAGE_STRATA} eligible spatial-temporal strata"
+        ));
     }
 
     let mut ids = BTreeSet::new();
@@ -425,6 +465,18 @@ fn better_final(
     }
 }
 
+fn eligible_strata_count(candidates: &[Candidate]) -> usize {
+    candidates
+        .iter()
+        .filter(|candidate| eligible(candidate))
+        .map(|candidate| (
+            candidate.spatial_stratum.as_str(),
+            candidate.temporal_stratum.as_str(),
+        ))
+        .collect::<BTreeSet<_>>()
+        .len()
+}
+
 fn select_exact_budgeted(
     candidates: &[Candidate],
     scores: &BTreeMap<String, CandidateScore>,
@@ -492,6 +544,115 @@ fn select_exact_budgeted(
         }
     }
     best
+}
+
+fn select_exact_coverage_constrained(
+    candidates: &[Candidate],
+    scores: &BTreeMap<String, CandidateScore>,
+    budget: u32,
+    minimum_coverage_fraction: f64,
+) -> Result<Option<PlanState>, &'static str> {
+    if minimum_coverage_fraction == 0.0 {
+        return Ok(None);
+    }
+
+    let eligible_strata: BTreeSet<(&str, &str)> = candidates
+        .iter()
+        .filter(|candidate| eligible(candidate))
+        .map(|candidate| (
+            candidate.spatial_stratum.as_str(),
+            candidate.temporal_stratum.as_str(),
+        ))
+        .collect();
+    if eligible_strata.is_empty() {
+        return Ok(None);
+    }
+    if eligible_strata.len() > MAX_COVERAGE_STRATA {
+        return Err("coverage_stratum_limit");
+    }
+    let required_strata = ((minimum_coverage_fraction * eligible_strata.len() as f64) - 1.0e-12)
+        .ceil() as usize;
+    let stratum_indexes: BTreeMap<(&str, &str), usize> = eligible_strata
+        .iter()
+        .enumerate()
+        .map(|(index, stratum)| (*stratum, index))
+        .collect();
+
+    let mut by_group: BTreeMap<&str, Vec<&Candidate>> = BTreeMap::new();
+    for candidate in candidates.iter().filter(|candidate| eligible(candidate)) {
+        by_group
+            .entry(candidate.correlation_group.as_str())
+            .or_default()
+            .push(candidate);
+    }
+    for group in by_group.values_mut() {
+        group.sort_by(|left, right| left.candidate_id.cmp(&right.candidate_id));
+    }
+
+    // Exact DP state retains the covered-stratum bitmask as well as cost.
+    // The fixed state/transition caps are explicit v0.1 resource bounds; if
+    // exceeded, report an incomplete constraint result rather than a false pass.
+    let mut states: BTreeMap<(u32, u64), PlanState> = BTreeMap::new();
+    states.insert(
+        (0, 0),
+        PlanState {
+            weighted_discrimination_nats: 0.0,
+            selected_ids: Vec::new(),
+        },
+    );
+    let mut transitions = 0usize;
+    for candidates_in_group in by_group.values() {
+        let previous = states.clone();
+        let mut next = previous.clone();
+        for ((spent, covered_mask), state) in &previous {
+            for candidate in candidates_in_group {
+                transitions += 1;
+                if transitions > MAX_COVERAGE_DP_TRANSITIONS {
+                    return Err("coverage_transition_limit");
+                }
+                let new_cost = *spent + candidate.cost_units;
+                if new_cost > budget {
+                    continue;
+                }
+                let stratum = (
+                    candidate.spatial_stratum.as_str(),
+                    candidate.temporal_stratum.as_str(),
+                );
+                let bit = 1u64 << stratum_indexes[&stratum];
+                let new_mask = *covered_mask | bit;
+                let mut selected_ids = state.selected_ids.clone();
+                selected_ids.push(candidate.candidate_id.clone());
+                selected_ids.sort();
+                let proposed = PlanState {
+                    weighted_discrimination_nats: state.weighted_discrimination_nats
+                        + scores[&candidate.candidate_id].weighted_discrimination_nats,
+                    selected_ids,
+                };
+                let slot = next.entry((new_cost, new_mask)).or_insert_with(|| proposed.clone());
+                if better_for_same_cost(&proposed, slot) {
+                    *slot = proposed;
+                }
+            }
+        }
+        states = next;
+        if states.len() > MAX_COVERAGE_DP_STATES {
+            return Err("coverage_state_limit");
+        }
+    }
+
+    let mut best: Option<(u32, PlanState)> = None;
+    for ((cost, mask), state) in &states {
+        if mask.count_ones() as usize < required_strata {
+            continue;
+        }
+        let replace = best.as_ref().is_none_or(|(best_cost, best_state)| {
+            better_final(*cost, state, *best_cost, best_state)
+        });
+        if replace {
+            best = Some((*cost, state.clone()));
+        }
+    }
+    Ok(best.map(|(_, state)| state))
 }
 
 fn select_in_order(
@@ -622,6 +783,56 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
         .count();
     let ineligible_count = fixture.candidates.len() - eligible_count;
     let selected = select_exact_budgeted(&fixture.candidates, &scores, fixture.budget_cost_units);
+    let required_spatial_temporal_strata = ((fixture.minimum_spatial_temporal_coverage_fraction
+        * eligible_strata_count(&fixture.candidates) as f64)
+        - 1.0e-12)
+        .ceil() as usize;
+    let (coverage_constraint_status, coverage_constrained, coverage_constrained_cost) =
+        if fixture.minimum_spatial_temporal_coverage_fraction == 0.0 {
+            ("not_required".to_owned(), None, None)
+        } else {
+            match select_exact_coverage_constrained(
+                &fixture.candidates,
+                &scores,
+                fixture.budget_cost_units,
+                fixture.minimum_spatial_temporal_coverage_fraction,
+            ) {
+                Ok(Some(plan)) => {
+                    let selected_ids: BTreeSet<&str> =
+                        plan.selected_ids.iter().map(String::as_str).collect();
+                    let cost = fixture
+                        .candidates
+                        .iter()
+                        .filter(|candidate| selected_ids.contains(candidate.candidate_id.as_str()))
+                        .map(|candidate| candidate.cost_units)
+                        .sum::<u32>();
+                    ("satisfied".to_owned(), Some(plan), Some(cost))
+                }
+                Ok(None) => ("infeasible".to_owned(), None, None),
+                Err(_) => ("state_limit_exceeded".to_owned(), None, None),
+            }
+        };
+    let coverage_constrained_strata: BTreeSet<(&str, &str)> = coverage_constrained
+        .as_ref()
+        .map(|plan| {
+            let selected_ids: BTreeSet<&str> =
+                plan.selected_ids.iter().map(String::as_str).collect();
+            fixture
+                .candidates
+                .iter()
+                .filter(|candidate| selected_ids.contains(candidate.candidate_id.as_str()))
+                .map(|candidate| (
+                    candidate.spatial_stratum.as_str(),
+                    candidate.temporal_stratum.as_str(),
+                ))
+                .collect()
+        })
+        .unwrap_or_default();
+    let coverage_constrained_coverage_fraction = if eligible_strata.is_empty() {
+        0.0
+    } else {
+        coverage_constrained_strata.len() as f64 / eligible_strata.len() as f64
+    };
     let greedy_baseline =
         select_greedy_ratio(&fixture.candidates, &scores, fixture.budget_cost_units);
     const UNIFORM_REPLICATES: u64 = 64;
@@ -765,6 +976,24 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
         eligible_spatial_temporal_stratum_coverage_fraction: rounded(
             eligible_stratum_coverage_fraction,
         ),
+        minimum_spatial_temporal_coverage_fraction: rounded(
+            fixture.minimum_spatial_temporal_coverage_fraction,
+        ),
+        required_spatial_temporal_stratum_count: required_spatial_temporal_strata,
+        coverage_constraint_status,
+        coverage_constrained_selected_candidate_ids: coverage_constrained
+            .as_ref()
+            .map(|plan| plan.selected_ids.clone()),
+        coverage_constrained_cost_units: coverage_constrained_cost,
+        coverage_constrained_stratum_coverage_fraction: coverage_constrained
+            .as_ref()
+            .map(|_| rounded(coverage_constrained_coverage_fraction)),
+        coverage_constrained_weighted_discrimination_nats: coverage_constrained
+            .as_ref()
+            .map(|plan| rounded(plan.weighted_discrimination_nats)),
+        coverage_constraint_score_loss_nats: coverage_constrained
+            .as_ref()
+            .map(|plan| rounded((selected.weighted_discrimination_nats - plan.weighted_discrimination_nats).max(0.0))),
         selected_candidate_ids: selected.selected_ids,
         total_weighted_discrimination_nats: rounded(selected.weighted_discrimination_nats),
         greedy_ratio_baseline_selected_candidate_ids: greedy_baseline.selected_ids,
