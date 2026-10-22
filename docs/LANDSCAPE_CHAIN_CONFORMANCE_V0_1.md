@@ -66,7 +66,7 @@ The first gate is the synthetic structural contract. Passing it must not make a 
 
 ## Upstream dependencies pinned for this proposal
 
-The manifest records seventeen pinned input/contract sources, including the separate metric-to-observation crosswalk, Symthaea review schema/fixture, Mycelix measurement-authorization schema/fixture/Rust gate, and Sol-Atlas measurement-planner implementation/fixture/input-schema/report-schema. The planner artifacts are pinned to one exact draft head and exact Git blob per file. These are draft branches, not all merged releases. The harness's adapters are deliberately schema-specific; it does not claim to invoke the upstream validators. Before enabling it as a cross-repository release gate, follow each upstream PR revision, align schema versions, and run the authoritative validator from each owner repository.
+The manifest records twenty-two pinned input/contract sources, including the separate metric-to-observation crosswalk, Symthaea review schema/fixture, Mycelix measurement-authorization schema/fixture/Rust gate, and Sol-Atlas measurement-planner implementation/fixture/input-schema/report-schema. The planner artifacts are pinned to one exact draft head and exact Git blob per file. These are draft branches, not all merged releases. The harness's adapters are deliberately schema-specific; it does not claim to invoke the upstream validators. Before enabling it as a cross-repository release gate, follow each upstream PR revision, align schema versions, and run the authoritative validator from each owner repository.
 
 ## Boundaries
 
