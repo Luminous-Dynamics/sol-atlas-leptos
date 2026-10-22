@@ -17,7 +17,7 @@ Scenarios carry **no probabilities**. The arithmetic average over the listed sce
 
 ## Frozen synthetic example
 
-Four scenarios are included: typical growing season, intense rainfall, compound heat/drought, and maintenance-capacity reduction. The fixture uses a six-by-six style test scale (0–100 utility points); its values are synthetic and not derived from field or model data.
+Four scenarios are included: typical growing season, intense rainfall, compound heat/drought, and maintenance-capacity reduction. Two non-compensatory critical constraints are checked in every scenario/alternative pair: a water-service ceiling and accessible-route continuity. The frozen matrix has 11/12 passing outcomes for water service and 9/12 for route continuity. These are synthetic constraint oracles—not measurements or legal standards—and the project must define defensible, stakeholder-reviewed thresholds before field use. The fixture uses a declared 0–100 utility test scale; its values are synthetic and not derived from field or model data.
 
 | Alternative | Worst-case utility | Unweighted mean | Maximum regret | Hard-constraint violations | Deployable under v0.1 gate? |
 |---|---:|---:|---:|---:|---|
