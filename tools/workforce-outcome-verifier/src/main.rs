@@ -187,10 +187,10 @@ fn validate_receipt_contract(receipt: &Value) -> Vec<String> {
         policy.get("policy_id").and_then(Value::as_str) == Some(additionality_policy_id)
     });
 
-    let mut linked_paid_count = u64::MAX;
     match selected_policy {
         Some(policy) => {
-            linked_paid_count = count_at(policy, "paid_work_verified_count").unwrap_or(u64::MAX);
+            let linked_paid_count =
+                count_at(policy, "paid_work_verified_count").unwrap_or(u64::MAX);
             if linked_paid_count != gross_events {
                 violations.insert("gross_paid_work_count_mismatch".to_string());
             }
