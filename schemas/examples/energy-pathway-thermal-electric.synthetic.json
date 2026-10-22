@@ -4,6 +4,9 @@
   "synthetic": true,
   "source_form": "thermal_heat",
   "source_energy_kwh": 100.0,
+  "source_evidence_class": "analyst_assumption",
+  "source_evidence_ref": null,
+  "source_evidence_as_of": null,
   "stages": [
     {
       "stage_id": "heat-engine",
