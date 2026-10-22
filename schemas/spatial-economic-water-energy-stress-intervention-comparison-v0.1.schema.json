@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-water-energy-stress-intervention-comparison-v0.1.schema.json",
+  "title": "Spatial-Economic Paired Joint-Failure Intervention Comparison Request",
+  "description": "Baseline and candidate stress sweeps must use the same declared failure suite, time grid, service-cell mappings, beneficiary weights, communities and protected floors.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "baseline",
+    "candidate"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "baseline": {
+      "$ref": "https://luminousdynamics.io/schemas/spatial-economic-water-energy-stress-sweep-v0.1.schema.json"
+    },
+    "candidate": {
+      "$ref": "https://luminousdynamics.io/schemas/spatial-economic-water-energy-stress-sweep-v0.1.schema.json"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-common-cause-domain-v0.1.schema.json",
+  "title": "Spatial-Economic Common-Cause Domains",
+  "description": "Declared shared failure mechanisms and their affected entity sets. Membership is a model claim, not proof of failure or a quantitative reliability model.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["domains"],
+  "properties": {
+    "domains": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/domain" }
+    }
+  },
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "domain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "cause_entity_id", "mechanism", "member_entity_ids", "supporting_evidence_ids"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "cause_entity_id": { "type": "string", "minLength": 1 },
+        "mechanism": {
+          "enum": ["shared_power", "shared_control", "shared_network", "shared_site", "flood", "heat", "fire", "shared_supplier", "shared_workforce", "cyber", "other"]
+        },
+        "member_entity_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "supporting_evidence_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "valid_from": { "$ref": "#/$defs/timestamp" },
+        "valid_until": { "$ref": "#/$defs/timestamp" }
+      }
+    }
+  }
+}

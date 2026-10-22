@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-relation-v0.1.schema.json",
+  "title": "Spatial-Economic Relation",
+  "description": "A typed relationship claim. Supporting evidence references provide traceability but do not independently prove the relationship.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "subject_entity_id",
+    "kind",
+    "object_entity_id",
+    "supporting_evidence_ids"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "subject_entity_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "kind": {
+      "enum": [
+        "depends_on",
+        "supplied_by",
+        "served_by",
+        "routes_through",
+        "located_at",
+        "produces",
+        "transports",
+        "commits_to",
+        "delivers_to",
+        "owned_by"
+      ]
+    },
+    "object_entity_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "valid_from": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "valid_until": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "supporting_evidence_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    }
+  }
+}

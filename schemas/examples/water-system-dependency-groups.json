@@ -1,0 +1,25 @@
+{
+  "groups": [
+    {
+      "id": "synthetic-pump-power-resilience",
+      "dependent_entity_id": "synthetic-pump-east",
+      "logic": {
+        "mode": "any_one"
+      },
+      "relation_ids": [
+        "synthetic-edge-pump-power",
+        "synthetic-edge-pump-backup-power"
+      ]
+    },
+    {
+      "id": "synthetic-field-requires-pump",
+      "dependent_entity_id": "synthetic-field-north",
+      "logic": {
+        "mode": "all_required"
+      },
+      "relation_ids": [
+        "synthetic-edge-field-pump"
+      ]
+    }
+  ]
+}
