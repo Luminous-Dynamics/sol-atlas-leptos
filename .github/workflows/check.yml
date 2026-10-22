@@ -82,6 +82,9 @@ jobs:
       # Check multi-stream source-heat + electrical-work accounting for heat pumps.
       - name: Test multi-stream heat pump CLI
         run: cargo test -p sol-atlas-core --bin heat_pump_assess
+      # Verify inter-temporal storage state, limits, losses and service shortfall.
+      - name: Test energy storage trajectory CLI
+        run: cargo test -p sol-atlas-core --bin energy_storage_assess
       # Compile the core library and every binary/test target.
       - name: Check core library, tests, and binaries
         run: cargo check -p sol-atlas-core --all-targets
