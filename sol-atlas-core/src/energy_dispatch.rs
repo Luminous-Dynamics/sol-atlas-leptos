@@ -692,6 +692,107 @@ mod tests {
     }
 
     #[test]
+    fn deterministic_64_case_sweep_rechecks_state_balance_frontier_and_receipts() {
+        for seed in 0..64_u16 {
+            let mut request = fixture_request();
+            request.case_id = format!("synthetic-dispatch-sweep-{seed}");
+            request.max_candidate_expansions = 100_000;
+            request.battery.capacity_quanta = 4;
+            request.battery.initial_soc_quanta = (seed / 3) % 5;
+            request.battery.charge_input_limit_quanta = 3;
+            request.battery.discharge_withdrawal_limit_quanta = 3;
+            request.battery.terminal_reserve_quanta = seed % 5;
+            request.battery.charge_efficiency_numerator = 1;
+            request.battery.charge_efficiency_denominator = if seed % 2 == 0 { 1 } else { 2 };
+            request.battery.discharge_efficiency_numerator = 1;
+            request.battery.discharge_efficiency_denominator = if seed % 3 == 0 { 1 } else { 2 };
+
+            request.intervals[0].pv_available_quanta = seed % 4;
+            request.intervals[0].grid_import_limit_quanta = seed % 3;
+            request.intervals[0].essential_demand_quanta = (seed / 2) % 3;
+            request.intervals[0].flexible_demand_quanta = (seed / 3) % 2;
+            request.intervals[0].grid_cost_units_per_quantum = u32::from(seed % 3 + 1);
+            request.intervals[0].grid_carbon_grams_per_quantum = u32::from(seed % 4);
+            request.intervals[1].grid_outage = seed % 2 == 0;
+            request.intervals[1].pv_available_quanta = (seed / 3) % 4;
+            request.intervals[1].grid_import_limit_quanta = (seed / 4) % 3;
+            request.intervals[1].essential_demand_quanta = (seed / 5) % 4;
+            request.intervals[1].flexible_demand_quanta = (seed / 7) % 3;
+            request.intervals[1].grid_cost_units_per_quantum = u32::from(seed % 5);
+            request.intervals[1].grid_carbon_grams_per_quantum = u32::from(seed % 6);
+
+            let result = assess_energy_dispatch(&request);
+            let assessment = match result {
+                Ok(assessment) => assessment,
+                Err(EnergyDispatchError::NoFeasibleSchedules) => continue,
+                Err(other) => panic!("seed {seed} must not fail for an unrelated reason: {other:?}"),
+            };
+            assert!(assessment.search_is_exact);
+            assert!(assessment.pareto_frontier_complete);
+            assert!(assessment.evaluated_action_expansions <= request.max_candidate_expansions);
+
+            for (index, alternative) in assessment.pareto_alternatives.iter().enumerate() {
+                let mut expected_soc = request.battery.initial_soc_quanta;
+                for (step, input) in alternative.schedule.iter().zip(&request.intervals) {
+                    assert_eq!(step.battery_soc_before_quanta, expected_soc);
+                    assert!(step.battery_soc_after_quanta <= request.battery.capacity_quanta);
+                    assert!(step.battery_soc_withdrawal_quanta <= step.battery_soc_before_quanta);
+                    assert!(!(step.battery_charge_input_quanta > 0
+                        && step.battery_soc_withdrawal_quanta > 0));
+                    let gained = u64::from(step.battery_charge_input_quanta)
+                        * u64::from(request.battery.charge_efficiency_numerator)
+                        / u64::from(request.battery.charge_efficiency_denominator);
+                    let expected_after = u32::from(step.battery_soc_before_quanta)
+                        - u32::from(step.battery_soc_withdrawal_quanta)
+                        + gained as u32;
+                    assert_eq!(u32::from(step.battery_soc_after_quanta), expected_after);
+                    let expected_discharge = u64::from(step.battery_soc_withdrawal_quanta)
+                        * u64::from(request.battery.discharge_efficiency_numerator)
+                        / u64::from(request.battery.discharge_efficiency_denominator);
+                    assert_eq!(u64::from(step.battery_discharge_delivered_quanta), expected_discharge);
+                    assert_eq!(step.grid_outage, input.grid_outage);
+                    if input.grid_outage {
+                        assert_eq!(step.grid_import_quanta, 0);
+                    }
+                    assert_eq!(
+                        u64::from(step.pv_used_quanta)
+                            + u64::from(step.grid_import_quanta)
+                            + u64::from(step.battery_discharge_delivered_quanta),
+                        u64::from(step.essential_served_quanta)
+                            + u64::from(step.flexible_served_quanta)
+                            + u64::from(step.battery_charge_input_quanta)
+                    );
+                    assert_eq!(
+                        step.pv_used_quanta + step.pv_curtailed_quanta,
+                        step.pv_available_quanta
+                    );
+                    assert_eq!(
+                        step.essential_served_quanta + step.essential_unserved_quanta,
+                        step.essential_demand_quanta
+                    );
+                    assert_eq!(
+                        step.flexible_served_quanta + step.flexible_unserved_quanta,
+                        step.flexible_demand_quanta
+                    );
+                    assert_eq!(step.bus_energy_balance_residual_quanta, 0);
+                    expected_soc = step.battery_soc_after_quanta;
+                }
+                assert!(expected_soc >= request.battery.terminal_reserve_quanta);
+                for (other_index, other) in assessment.pareto_alternatives.iter().enumerate() {
+                    if index != other_index {
+                        assert!(!alternative.objective.strictly_dominates(&other.objective));
+                    }
+                }
+            }
+
+            let encoded_first = serde_json::to_vec(&assessment).expect("assessment serializes");
+            let rerun = assess_energy_dispatch(&request).expect("same case remains feasible");
+            let encoded_second = serde_json::to_vec(&rerun).expect("rerun serializes");
+            assert_eq!(encoded_first, encoded_second, "seed {seed} must be deterministic");
+        }
+    }
+
+    #[test]
     fn non_assumption_evidence_requires_a_reference() {
         let mut request = fixture_request();
         request.evidence_class = EvidenceClass::PublishedModel;
