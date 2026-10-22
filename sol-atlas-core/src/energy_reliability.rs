@@ -988,6 +988,115 @@ mod tests {
     }
 
     #[test]
+    fn deterministic_generated_traces_preserve_aggregate_invariants() {
+        for seed in 0..64_u32 {
+            let mut request = fixture();
+            request.trace_id = format!("generated-trace-{seed}");
+            let mut expected_requested = 0.0;
+            let mut expected_delivered = 0.0;
+            let mut expected_unserved = 0.0;
+            let mut expected_outage_requested = 0.0;
+            let mut expected_outage_delivered = 0.0;
+            let mut expected_outage_unserved = 0.0;
+
+            for (index, interval) in request.intervals.iter_mut().enumerate() {
+                interval.grid_outage = (seed as usize + index) % 3 == 0;
+                let requested = ((seed as usize * 7 + index * 5) % 19) as f64 / 2.0;
+                let delivery_ratio = ((seed as usize + index * 2) % 4) as f64 / 3.0;
+                let delivered = requested * delivery_ratio;
+                interval.services[0].requested_energy_kwh = requested;
+                interval.services[0].delivered_energy_kwh = delivered;
+                expected_requested += requested;
+                expected_delivered += delivered;
+                expected_unserved += requested - delivered;
+                if interval.grid_outage {
+                    expected_outage_requested += requested;
+                    expected_outage_delivered += delivered;
+                    expected_outage_unserved += requested - delivered;
+                }
+            }
+
+            let assessment = assess_energy_reliability(&request).unwrap();
+            assert!((assessment.total_requested_service_kwh - expected_requested).abs() < 1e-9);
+            assert!((assessment.total_delivered_service_kwh - expected_delivered).abs() < 1e-9);
+            assert!((assessment.total_unserved_service_kwh - expected_unserved).abs() < 1e-9);
+            assert!(
+                (assessment.outage_essential_requested_service_kwh - expected_outage_requested)
+                    .abs()
+                    < 1e-9
+            );
+            assert!(
+                (assessment.outage_essential_delivered_service_kwh - expected_outage_delivered)
+                    .abs()
+                    < 1e-9
+            );
+            assert!(
+                (assessment.outage_essential_unserved_service_kwh - expected_outage_unserved)
+                    .abs()
+                    < 1e-9
+            );
+            assert!(
+                assessment.total_unserved_service_kwh
+                    <= assessment.total_requested_service_kwh + 1e-9
+            );
+            assert!(
+                assessment.longest_consecutive_essential_deficit_seconds
+                    <= assessment.total_duration_seconds
+            );
+            assert!(
+                assessment.longest_consecutive_outage_essential_deficit_seconds
+                    <= assessment.grid_outage_duration_seconds
+            );
+            assert!(assessment.total_service_balance_residual_kwh.abs() < 1e-9);
+        }
+    }
+
+    #[test]
+    fn splitting_intervals_preserves_energy_and_continuous_deficit_duration() {
+        let request = fixture();
+        let baseline = assess_energy_reliability(&request).unwrap();
+        let mut split = request.clone();
+        split.intervals.clear();
+
+        for interval in &request.intervals {
+            let mut first = interval.clone();
+            let mut second = interval.clone();
+            first.interval_id = format!("{}-a", interval.interval_id);
+            second.interval_id = format!("{}-b", interval.interval_id);
+            first.duration_seconds = interval.duration_seconds / 2;
+            second.duration_seconds = interval.duration_seconds - first.duration_seconds;
+            second.start_unix_seconds = interval.start_unix_seconds
+                + i64::try_from(first.duration_seconds).unwrap();
+            for sample in &mut first.services {
+                sample.requested_energy_kwh /= 2.0;
+                sample.delivered_energy_kwh /= 2.0;
+            }
+            for sample in &mut second.services {
+                sample.requested_energy_kwh /= 2.0;
+                sample.delivered_energy_kwh /= 2.0;
+            }
+            split.intervals.push(first);
+            split.intervals.push(second);
+        }
+
+        let refined = assess_energy_reliability(&split).unwrap();
+        assert_eq!(refined.total_duration_seconds, baseline.total_duration_seconds);
+        assert_eq!(refined.grid_outage_duration_seconds, baseline.grid_outage_duration_seconds);
+        assert_eq!(refined.essential_deficit_duration_seconds, baseline.essential_deficit_duration_seconds);
+        assert_eq!(
+            refined.longest_consecutive_essential_deficit_seconds,
+            baseline.longest_consecutive_essential_deficit_seconds
+        );
+        assert_eq!(
+            refined.longest_consecutive_outage_essential_deficit_seconds,
+            baseline.longest_consecutive_outage_essential_deficit_seconds
+        );
+        assert!((refined.total_requested_service_kwh - baseline.total_requested_service_kwh).abs() < 1e-9);
+        assert!((refined.total_delivered_service_kwh - baseline.total_delivered_service_kwh).abs() < 1e-9);
+        assert!((refined.total_unserved_service_kwh - baseline.total_unserved_service_kwh).abs() < 1e-9);
+    }
+
+    #[test]
     fn thermal_delivery_below_grade_fails_closed() {
         let mut request = fixture();
         request.services[0].required_form = EnergyForm::ThermalHeat;
