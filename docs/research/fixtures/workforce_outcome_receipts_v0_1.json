@@ -86,7 +86,22 @@
         "Synthetic-only fixture; no external validity.",
         "All policy counts are independently authored test inputs, not model-run measurements."
       ],
-      "claim_ceiling": "synthetic_contract_only"
+      "claim_ceiling": "synthetic_contract_only",
+      "additionality_assessment": {
+        "status": "not_assessed",
+        "gross_paid_work_events": 4,
+        "net_additional_paid_hours_estimate": null,
+        "net_additional_interval_hours": null,
+        "displacement_status": "not_assessed",
+        "substitution_status": "not_assessed",
+        "deadweight_status": "not_assessed",
+        "spillover_status": "not_assessed",
+        "comparison_design": "none",
+        "counterfactual_basis": "",
+        "preregistration_status": "not_registered",
+        "independent_review": false,
+        "claim_ceiling": "synthetic_contract_only"
+      }
     }
   ]
 }
