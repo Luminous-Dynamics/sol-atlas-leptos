@@ -40,8 +40,15 @@ audit_manifest() {
     and ([.sites[] | select(.id == "aad-macquarie") | .site_class] == ["subantarctic_island"])
     and ([.observation_sources[] | select(.id == "dcceew-aad-fy2024-25-table73") | .spatial_support] == ["australian_antarctic_division_program_aggregate"])
     and ([.observation_sources[] | select(.id == "dcceew-aad-fy2024-25-table73") | .site_ids] == [[]])
-    and ([.observation_sources[] | select(.id == "aad-soe-electricity-monthly") | .metadata_conflict.status] == ["unresolved_until_raw_file_inspection"])
-    and ([.observation_sources[] | select(.id == "aad-soe-generator-boiler-fuel-monthly") | .metadata_conflict.status] == ["unresolved_until_raw_file_inspection"])
+    and ([.observation_sources[] | select(.id == "aad-soe-electricity-monthly") | .metadata_conflict.status] == ["unresolved_until_raw_file_and_source_record_reconciliation"])
+    and ([.observation_sources[] | select(.id == "aad-soe-electricity-monthly") | .metadata_conflict.linked_SOE_SFU_record.archive_description_span] == ["1993-01 through 2016-02"])
+    and ([.observation_sources[] | select(.id == "aad-soe-electricity-monthly") | .metadata_conflict.display_indicator_page.displayed_span] == ["1986-01 through 2016-02"])
+    and ([.observation_sources[] | select(.id == "aad-soe-electricity-monthly") | .metadata_conflict.display_indicator_page.same_page_metadata_start] == ["1990-01-01"])
+    and ([.observation_sources[] | select(.id == "aad-soe-electricity-monthly") | .doi] == ["10.26179/5d38f549336a7"])
+    and ([.observation_sources[] | select(.id == "aad-soe-generator-boiler-fuel-monthly") | .metadata_conflict.status] == ["unresolved_until_raw_file_and_originator_reconciliation"])
+    and ([.observation_sources[] | select(.id == "aad-soe-generator-boiler-fuel-monthly") | .metadata_conflict.citation_years_reported] == [[2001,2019]])
+    and ([.observation_sources[] | select(.id == "aad-soe-generator-boiler-fuel-monthly") | .citation_records | map(.citation_year)] == [[2001,2019]])
+    and ([.metadata_stewardship.status] == ["not_confirmed"])
     and ([.observation_sources[] | select(.id == "copernicus-era5-hourly-single-levels") | .evidence_class] == ["reanalysis_not_site_measurement"])
     and ([.observation_sources[] | select(.id == "copernicus-era5-hourly-single-levels") | .spatial_support] == ["gridded_reanalysis"])
     and all(.controls_required_before_ui[]; type == "string")
@@ -73,6 +80,9 @@ echo "PASS: source-only station locator manifest; program aggregate and gridded 
 expect_rejected "Macquarie Island reclassified as continental Antarctic station" '.sites |= map(if .id == "aad-macquarie" then .site_class = "antarctic_station" else . end)'
 expect_rejected "programme annual aggregate joined to Casey" '.observation_sources |= map(if .id == "dcceew-aad-fy2024-25-table73" then .site_ids = ["aad-casey"] else . end)'
 expect_rejected "historical temporal conflict silently resolved" '.observation_sources |= map(if .id == "aad-soe-electricity-monthly" then .metadata_conflict.status = "resolved" else . end)'
+expect_rejected "electricity data span overwritten by another record" '.observation_sources |= map(if .id == "aad-soe-electricity-monthly" then .metadata_conflict.linked_SOE_SFU_record.archive_description_span = "1986-01 through 2016-02" else . end)'
+expect_rejected "fuel citation-year conflict silently collapsed" '.observation_sources |= map(if .id == "aad-soe-generator-boiler-fuel-monthly" then .metadata_conflict.citation_years_reported = [2019] else . end)'
+expect_rejected "AADC originator contact falsely claimed" '.metadata_stewardship.status = "confirmed"'
 expect_rejected "ERA5 relabeled as site measurement" '.observation_sources |= map(if .id == "copernicus-era5-hourly-single-levels" then .evidence_class = "site_measured" else . end)'
 expect_rejected "source-only locator falsely marked as ingested observations" '.sites[0].measured_energy_observations_ingested = true'
 expect_rejected "coordinate altered from source metadata" '.sites |= map(if .id == "aad-casey" then .lat = -60.0 else . end)'
