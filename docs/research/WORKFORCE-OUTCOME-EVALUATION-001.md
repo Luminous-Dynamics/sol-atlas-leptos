@@ -61,6 +61,8 @@ Freeze case definitions and input snapshots. Keep candidate outputs hidden from 
 
 **Paid-work outcomes:** only count a paid-work event when the evidence contract verifies the payer/contractual route, paid hours or earnings, payment status, period and worker consent/permission. Report time-to-payment, acceptance/decline, hours, job terms/conditions and 3/6/12-month retention when legitimately observable. Training completion and credential issuance are intermediate outcomes, not job outcomes.
 
+**Additionality, displacement and job quality:** gross paid-work events are not net additional employment. A placement can represent deadweight (the hire would have happened anyway), substitution (one worker replaces another), displacement (activity is diverted from another employer/service), or a temporary subsidized job that ends when the support ends. A causal job-creation claim needs an explicit counterfactual and must report gross work events separately from the estimated incremental paid hours/jobs, uncertainty interval, displacement, substitution, deadweight and relevant positive/negative spillovers. Unknown effects stay unknown; zero observed displacement is not proof that displacement is absent. A synthetic receipt must leave net additional hours unestimated and mark these effects not assessed.
+
 **Harm and service guardrails:** unsafe recommendations, essential-service floor regressions, false exclusion, accessibility failures, worker-reported conditions, appeal/correction path, privacy incidents and unreasonable work intensification. Subgroup analysis requires lawful and justified data, sufficient sample sizes, privacy protection and predeclared slices.
 
 **Cost and operational load:** staff minutes, elapsed time, data-acquisition expense, compute/tool expense and incremental implementation burden. Do not call a model better if its accuracy gain requires hidden labour, longer decision time or unaffordable data collection.
@@ -85,6 +87,7 @@ Additional rules:
 - No confirmed-shortage conclusion may arise solely from a high-demand marker, raw advert count or service backlog.
 - Unknown funding/authorization never becomes confirmed absence/failure; mandatory safety/authorization preconditions fail closed.
 - No event is counted as paid work without declared payment evidence and valid observation period.
+- Gross paid-work events are never called net additional jobs/hours without a declared counterfactual; causal additionality requires preregistration, uncertainty and explicit displacement/substitution/deadweight status.
 - Every report includes data/metric/policy/code digests, observation window, denominator, missingness, decision coverage and claim ceiling.
 - No superiority claim unless a preregistered primary outcome, matched baseline, uncertainty, cost/resource measures and safety guardrails jointly support it.
 - No generalization claim from one synthetic corpus or one site.
