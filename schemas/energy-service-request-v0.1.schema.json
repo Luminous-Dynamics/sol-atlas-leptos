@@ -1,0 +1,475 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/energy-service-request-v0.1.schema.json",
+  "title": "Demand-matched energy service request v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "scenario_id",
+    "synthetic",
+    "graph",
+    "demands"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "energy-service-v0.1"
+    },
+    "scenario_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "synthetic": {
+      "type": "boolean"
+    },
+    "graph": {
+      "$ref": "#/$defs/graphRequest"
+    },
+    "demands": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/serviceDemand"
+      }
+    }
+  },
+  "$defs": {
+    "energyForm": {
+      "type": "string",
+      "enum": [
+        "electricity",
+        "thermal_heat",
+        "mechanical",
+        "chemical",
+        "radiant"
+      ]
+    },
+    "evidenceClass": {
+      "type": "string",
+      "enum": [
+        "analyst_assumption",
+        "published_model",
+        "component_test",
+        "field_pilot",
+        "operating_plant",
+        "replicated_fleet",
+        "independently_audited"
+      ]
+    },
+    "disposition": {
+      "type": "string",
+      "enum": [
+        "useful_service",
+        "rejected",
+        "unconverted_resource",
+        "curtailed"
+      ]
+    },
+    "inputPort": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "port_id",
+        "form",
+        "energy_kwh",
+        "external_energy_kwh",
+        "external_source_id",
+        "temperature_c"
+      ],
+      "properties": {
+        "port_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "form": {
+          "$ref": "#/$defs/energyForm"
+        },
+        "energy_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "external_energy_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "external_source_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "temperature_c": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "form": {
+                "const": "thermal_heat"
+              }
+            },
+            "required": [
+              "form"
+            ]
+          },
+          "then": {
+            "properties": {
+              "temperature_c": {
+                "type": "number"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "temperature_c": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "external_energy_kwh": {
+                "exclusiveMinimum": 0
+              }
+            },
+            "required": [
+              "external_energy_kwh"
+            ]
+          },
+          "then": {
+            "required": [
+              "external_source_id"
+            ],
+            "properties": {
+              "external_source_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "external_source_id": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "outputPort": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "port_id",
+        "form",
+        "energy_kwh",
+        "temperature_c",
+        "remainder_disposition"
+      ],
+      "properties": {
+        "port_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "form": {
+          "$ref": "#/$defs/energyForm"
+        },
+        "energy_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "temperature_c": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "remainder_disposition": {
+          "$ref": "#/$defs/disposition"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "form": {
+                "const": "thermal_heat"
+              }
+            },
+            "required": [
+              "form"
+            ]
+          },
+          "then": {
+            "properties": {
+              "temperature_c": {
+                "type": "number"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "temperature_c": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "node_id",
+        "boundary_description",
+        "evidence_class",
+        "inputs",
+        "outputs"
+      ],
+      "properties": {
+        "node_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "boundary_description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_class": {
+          "$ref": "#/$defs/evidenceClass"
+        },
+        "evidence_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "evidence_as_of": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "inputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/inputPort"
+          }
+        },
+        "outputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/outputPort"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "evidence_class": {
+                "not": {
+                  "const": "analyst_assumption"
+                }
+              }
+            },
+            "required": [
+              "evidence_class"
+            ]
+          },
+          "then": {
+            "required": [
+              "evidence_ref"
+            ],
+            "properties": {
+              "evidence_ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "edge_id",
+        "from_node_id",
+        "from_port_id",
+        "to_node_id",
+        "to_port_id",
+        "energy_kwh"
+      ],
+      "properties": {
+        "edge_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "from_node_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "from_port_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "to_node_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "to_port_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "energy_kwh": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "graphRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "scenario_id",
+        "synthetic",
+        "nodes",
+        "edges"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "energy-ports-v0.1"
+        },
+        "scenario_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "synthetic": {
+          "type": "boolean"
+        },
+        "nodes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/node"
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/edge"
+          }
+        }
+      }
+    },
+    "serviceOutputRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "node_id",
+        "port_id"
+      ],
+      "properties": {
+        "node_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "port_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "serviceDemand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service_id",
+        "description",
+        "essential",
+        "requested_energy_kwh",
+        "required_form",
+        "minimum_temperature_c",
+        "source_output"
+      ],
+      "properties": {
+        "service_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "essential": {
+          "type": "boolean"
+        },
+        "requested_energy_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "required_form": {
+          "$ref": "#/$defs/energyForm"
+        },
+        "minimum_temperature_c": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "source_output": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/serviceOutputRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "required_form": {
+                "const": "thermal_heat"
+              }
+            },
+            "required": [
+              "required_form"
+            ]
+          },
+          "then": {
+            "properties": {
+              "minimum_temperature_c": {
+                "type": "number"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "minimum_temperature_c": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

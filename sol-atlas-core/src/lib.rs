@@ -20,6 +20,7 @@ pub mod energy_trading;
 pub mod energy_storage;
 pub mod energy_pathway;
 pub mod energy_ports;
+pub mod energy_service;
 pub mod geo;
 pub mod lod;
 pub mod mycelix_flows;
