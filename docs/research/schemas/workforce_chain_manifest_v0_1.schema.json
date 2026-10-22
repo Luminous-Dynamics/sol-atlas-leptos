@@ -192,7 +192,13 @@
         "counterfactual_basis",
         "preregistration_status",
         "expected_verdict",
-        "expected_failure_codes"
+        "expected_failure_codes",
+        "additionality_status",
+        "net_additional_paid_hours_estimate",
+        "displacement_status",
+        "substitution_status",
+        "deadweight_status",
+        "spillover_status"
       ],
       "properties": {
         "id": {
@@ -305,6 +311,53 @@
             "type": "string",
             "pattern": "^[a-z][a-z0-9_]*$"
           }
+        },
+        "additionality_status": {
+          "enum": [
+            "not_assessed",
+            "descriptive_only",
+            "estimated_with_preregistered_counterfactual"
+          ]
+        },
+        "net_additional_paid_hours_estimate": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "displacement_status": {
+          "enum": [
+            "not_assessed",
+            "no_material_displacement_evidence_with_limits",
+            "possible_displacement",
+            "measured_displacement"
+          ]
+        },
+        "substitution_status": {
+          "enum": [
+            "not_assessed",
+            "no_material_substitution_evidence_with_limits",
+            "possible_substitution",
+            "measured_substitution"
+          ]
+        },
+        "deadweight_status": {
+          "enum": [
+            "not_assessed",
+            "no_material_deadweight_evidence_with_limits",
+            "possible_deadweight",
+            "measured_deadweight"
+          ]
+        },
+        "spillover_status": {
+          "enum": [
+            "not_assessed",
+            "not_detected_with_limits",
+            "positive_spillover",
+            "negative_spillover",
+            "mixed_spillovers",
+            "unresolved"
+          ]
         }
       }
     }
