@@ -165,7 +165,10 @@ fn build_baseline_schedule(
             let upper = pv_remaining.min(battery.charge_input_limit_quanta);
             for candidate in (1..=upper).rev() {
                 let gain = charge_gain(candidate, request);
-                if gain > 0 && u32::from(soc) + u32::from(gain) <= u32::from(battery.capacity_quanta) {
+                if gain > 0
+                    && u32::from(soc) + u32::from(gain)
+                        <= u32::from(battery.capacity_quanta)
+                {
                     charge_input = candidate;
                     gained_soc = gain;
                     break;
@@ -258,7 +261,9 @@ pub fn assess_dispatch_regret(
 
     let baseline_result = build_baseline_schedule(request).and_then(|schedule| {
         crate::energy_dispatch_verifier::verify_dispatch_schedule(request, &schedule)
-            .map_err(|errors| format!("independent verifier rejected baseline: {}", errors.join("; ")))?;
+            .map_err(|errors| {
+                format!("independent verifier rejected baseline: {}", errors.join("; "))
+            })?;
         Ok(schedule)
     });
     match baseline_result {
@@ -321,7 +326,8 @@ pub fn assess_dispatch_regret(
             baseline_schedule: None,
             lexicographic_oracle_schedule: reference.schedule.clone(),
             interpretation: concat!(
-                "The heuristic failed a hard constraint; no objective regret vector is fabricated. ",
+                "The heuristic failed a hard constraint; no objective regret vector ",
+                "is fabricated. ",
                 "Count this case as a baseline feasibility failure."
             )
             .to_owned(),
@@ -356,7 +362,11 @@ mod tests {
             0
         );
         assert_eq!(
-            report.objective_deltas_vs_lexicographic_oracle.as_ref().unwrap().essential_unserved_quanta,
+            report
+                .objective_deltas_vs_lexicographic_oracle
+                .as_ref()
+                .unwrap()
+                .essential_unserved_quanta,
             0
         );
         assert_eq!(report.baseline_schedule.as_ref().unwrap().len(), 2);
