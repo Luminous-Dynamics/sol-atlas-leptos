@@ -465,10 +465,10 @@ pub fn assess_energy_reliability(
                     field: "delivered_energy_kwh".to_owned(),
                 });
             }
-            if sample.delivered_energy_kwh
-                > sample.requested_energy_kwh
-                    + tolerance(sample.delivered_energy_kwh, sample.requested_energy_kwh)
-            {
+            // These are declared interval observations, not solver-derived values:
+            // any delivery above the request is an overclaim, including tiny values
+            // against zero demand. Numerical tolerance is reserved for computed sums.
+            if sample.delivered_energy_kwh > sample.requested_energy_kwh {
                 return Err(EnergyReliabilityError::DeliveredExceedsDemand {
                     interval_id: interval.interval_id.clone(),
                     service_id: service.service_id.clone(),
@@ -577,10 +577,9 @@ pub fn assess_energy_reliability(
             });
         }
 
-        let essential_deficit = interval_essential_unserved > tolerance(
-            interval_essential_requested,
-            interval_essential_delivered,
-        );
+        // Unserved energy is computed from declared sample values, so any positive
+        // essential shortfall is a service deficit even when smaller than balance tolerance.
+        let essential_deficit = interval_essential_unserved > 0.0;
         if essential_deficit {
             essential_deficit_interval_count += 1;
             essential_deficit_duration_seconds = essential_deficit_duration_seconds
@@ -846,6 +845,28 @@ mod tests {
             assess_energy_reliability(&request),
             Err(EnergyReliabilityError::DeliveredExceedsDemand { .. })
         ));
+    }
+
+    #[test]
+    fn any_positive_delivery_above_zero_demand_is_rejected() {
+        let mut request = fixture();
+        request.intervals[0].services[0].requested_energy_kwh = 0.0;
+        request.intervals[0].services[0].delivered_energy_kwh = 1.0e-12;
+        assert!(matches!(
+            assess_energy_reliability(&request),
+            Err(EnergyReliabilityError::DeliveredExceedsDemand { .. })
+        ));
+    }
+
+    #[test]
+    fn positive_micro_shortfall_still_counts_as_a_service_deficit() {
+        let mut request = fixture();
+        request.intervals[0].services[0].requested_energy_kwh = 1.0e-10;
+        request.intervals[0].services[0].delivered_energy_kwh = 0.0;
+        let assessment = assess_energy_reliability(&request).unwrap();
+        assert_eq!(assessment.essential_deficit_interval_count, 3);
+        assert_eq!(assessment.essential_deficit_duration_seconds, 10_800);
+        assert_eq!(assessment.longest_consecutive_essential_deficit_seconds, 7_200);
     }
 
     #[test]
