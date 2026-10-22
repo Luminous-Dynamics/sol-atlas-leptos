@@ -103,6 +103,18 @@ pub struct CandidateDecision {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct CoverageFrontierPoint {
+    pub minimum_coverage_fraction: f64,
+    pub required_spatial_temporal_stratum_count: usize,
+    pub status: String,
+    pub selected_candidate_ids: Option<Vec<String>>,
+    pub selected_cost_units: Option<u32>,
+    pub achieved_coverage_fraction: Option<f64>,
+    pub weighted_discrimination_nats: Option<f64>,
+    pub score_loss_from_unconstrained_nats: Option<f64>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct PlanReport {
     pub schema_version: String,
     pub suite_id: String,
@@ -127,6 +139,9 @@ pub struct PlanReport {
     pub required_spatial_temporal_stratum_count: usize,
     pub coverage_constraint_status: String,
     pub coverage_constraint_limit_reason: Option<String>,
+    pub coverage_frontier_status: String,
+    pub coverage_frontier_limit_reason: Option<String>,
+    pub coverage_frontier: Vec<CoverageFrontierPoint>,
     pub coverage_constrained_selected_candidate_ids: Option<Vec<String>>,
     pub coverage_constrained_cost_units: Option<u32>,
     pub coverage_constrained_stratum_coverage_fraction: Option<f64>,
