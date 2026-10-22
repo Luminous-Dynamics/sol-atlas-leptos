@@ -1,0 +1,25 @@
+{
+  "schema": "luminous.landscape-scenario-manifest.v0",
+  "scenario_id": "scenario-landscape-chain-synthetic-v0",
+  "design_snapshot": {
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "schema": "luminous.landscape-design.v0",
+    "schema_uri": "https://luminousdynamics.io/schemas/landscape-design-v0.schema.json",
+    "scope": "site-parcel",
+    "geometry_status": "schematic-design-intent",
+    "coordinate_frame_kind": "LOCAL_CARTESIAN_DRAWING_UNITS",
+    "georeferenced": false,
+    "feature_count": 7
+  },
+  "model_id": "landscape-contract-scenario",
+  "model_version": "0.1.0",
+  "purpose": "schema-qualification",
+  "seed": 7,
+  "boundary_conditions_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "evaluation_plan": {
+    "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "schema": "luminous.landscape-evaluation-plan.v0",
+    "schema_uri": "https://luminousdynamics.io/schemas/landscape-evaluation-plan-v0.schema.json",
+    "evaluation_id": "eval-watershed-demo-v0"
+  }
+}

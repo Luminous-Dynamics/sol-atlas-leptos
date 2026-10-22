@@ -1,0 +1,319 @@
+{
+  "schema_version": "luminous.landscape-cross-repo-source-manifest.v0.1",
+  "status": "pinned_draft_contract_fixtures_not_merged_release",
+  "note": "Upstream commits are pinned for provenance. Local fixture templates are synthetic adapters; this harness does not claim to run each upstream repository's validator.",
+  "source_contracts": [
+    {
+      "source_id": "mycelix-measurement-authorization-fixture",
+      "repository": "Luminous-Dynamics/mycelix",
+      "pull_request": 5298,
+      "commit_sha": "5182b9928647facf3af336148968cf415520c53a",
+      "source_path": "mycelix-desci/fixtures/landscape-measurement-authorization-v0.public.example.json",
+      "git_blob_sha": "ed35b8f8c78c30ab9cf0ee9a6187b7869aa4a6b4"
+    },
+    {
+      "source_id": "mycelix-measurement-authorization-safety-gate",
+      "repository": "Luminous-Dynamics/mycelix",
+      "pull_request": 5298,
+      "commit_sha": "5182b9928647facf3af336148968cf415520c53a",
+      "source_path": "mycelix-desci/src/core/src/landscape_measurement_authorization.rs",
+      "git_blob_sha": "63d30702c7ec362386549d864c2e77bb1440f0fb"
+    },
+    {
+      "source_id": "mycelix-measurement-authorization-schema",
+      "repository": "Luminous-Dynamics/mycelix",
+      "pull_request": 5298,
+      "commit_sha": "5182b9928647facf3af336148968cf415520c53a",
+      "source_path": "mycelix-desci/schemas/landscape-measurement-authorization-v0.schema.json",
+      "git_blob_sha": "85cca0168f04434e8fe7da421667b6e3715cc12a"
+    },
+    {
+      "source_id": "mycelix-stewardship-profile",
+      "repository": "Luminous-Dynamics/mycelix",
+      "pull_request": 5298,
+      "commit_sha": "5182b9928647facf3af336148968cf415520c53a",
+      "source_path": "mycelix-desci/fixtures/landscape-stewardship-profile-v0.public.example.json",
+      "git_blob_sha": "7e136bfc37b0a93cbb3485d5cab56710c08fdcab"
+    },
+    {
+      "source_id": "sol-atlas-design",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 191,
+      "commit_sha": "9c2d924b5d8fa42e1a0fa67f83bd6e0db553e894",
+      "source_path": "fixtures/landscape/seed-landscape-v0.json",
+      "git_blob_sha": "d16de158b1a8e614ef7b706f996e632a7086088f"
+    },
+    {
+      "source_id": "sol-atlas-evaluation-plan",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 210,
+      "commit_sha": "e0d8edcd2d8bc2292d48b86d266445c09a3a927b",
+      "source_path": "fixtures/landscape/evaluation-plan-v0.json",
+      "git_blob_sha": "55b413220387b8c8ca9a8b420d8e54afc0f7d5a9"
+    },
+    {
+      "source_id": "sol-atlas-landscape-robustness-code",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 289,
+      "commit_sha": "a0e21e67df69085dde33fa91a3aefdb3f1fdae08",
+      "source_path": "tools/landscape-scenario-robustness/src/lib.rs",
+      "git_blob_sha": "b88d0f1cd692ad4a8ee09b5ce434c8741ed21574"
+    },
+    {
+      "source_id": "sol-atlas-landscape-robustness-fixture",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 289,
+      "commit_sha": "a0e21e67df69085dde33fa91a3aefdb3f1fdae08",
+      "source_path": "fixtures/landscape/robustness-v0/fixture.json",
+      "git_blob_sha": "43bf258c1e31eb4cfe1b583b9a72c44734bbb001"
+    },
+    {
+      "source_id": "sol-atlas-landscape-robustness-input-schema",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 289,
+      "commit_sha": "a0e21e67df69085dde33fa91a3aefdb3f1fdae08",
+      "source_path": "schemas/landscape-scenario-robustness-fixture-v0.1.schema.json",
+      "git_blob_sha": "dad4cd1d9841634a5e3f5c2301c1c85fb2b9996b"
+    },
+    {
+      "source_id": "sol-atlas-landscape-robustness-report-schema",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 289,
+      "commit_sha": "a0e21e67df69085dde33fa91a3aefdb3f1fdae08",
+      "source_path": "schemas/landscape-scenario-robustness-report-v0.1.schema.json",
+      "git_blob_sha": "3e5f1d32fe45215fb6472131b9a6b0cba9ea0063"
+    },
+    {
+      "source_id": "sol-atlas-landscape-utility-method",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 289,
+      "commit_sha": "a0e21e67df69085dde33fa91a3aefdb3f1fdae08",
+      "source_path": "schemas/landscape-utility-method-v0.schema.json",
+      "git_blob_sha": "068569c0b5c4e4d603948cfc4f7cadb6e2c950b6"
+    },
+    {
+      "source_id": "sol-atlas-measurement-planner-code",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 275,
+      "commit_sha": "1307e985d1a0ab5278155c86dd2e89cb15dafd82",
+      "source_path": "tools/landscape-measurement-planner/src/lib.rs",
+      "git_blob_sha": "ea24799f91fe19097717851aacbf8b671cab274b"
+    },
+    {
+      "source_id": "sol-atlas-measurement-planner-fixture",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 275,
+      "commit_sha": "1307e985d1a0ab5278155c86dd2e89cb15dafd82",
+      "source_path": "fixtures/landscape/measurement-planning-v0/fixture.json",
+      "git_blob_sha": "d6937a6019756f0b20a41218b1bd54ba43841776"
+    },
+    {
+      "source_id": "sol-atlas-measurement-planner-input-schema",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 275,
+      "commit_sha": "1307e985d1a0ab5278155c86dd2e89cb15dafd82",
+      "source_path": "schemas/landscape-measurement-selection-fixture-v0.1.schema.json",
+      "git_blob_sha": "674a11230b5c498ab71a190e125353e36388835f"
+    },
+    {
+      "source_id": "sol-atlas-measurement-planner-report-schema",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 275,
+      "commit_sha": "1307e985d1a0ab5278155c86dd2e89cb15dafd82",
+      "source_path": "schemas/landscape-measurement-selection-report-v0.1.schema.json",
+      "git_blob_sha": "ce9c0ce91a4c6a7fe982e3e48f23818a92b82bb0"
+    },
+    {
+      "source_id": "sol-atlas-metric-observation-crosswalk",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 216,
+      "commit_sha": "3a4ea35d4c45323dd66b1a477ce83d11975d6e55",
+      "source_path": "metrics/landscape/observation-map-v0.json",
+      "git_blob_sha": "cad9b18dc4bd152bec4f0c43e5f87563bd3406db"
+    },
+    {
+      "source_id": "sol-atlas-observation-batch",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 216,
+      "commit_sha": "3a4ea35d4c45323dd66b1a477ce83d11975d6e55",
+      "source_path": "fixtures/landscape/observation-batch-v0.json",
+      "git_blob_sha": "b9ef6aec0ca75ec6814c8bda7292001f3b4d2171"
+    },
+    {
+      "source_id": "sol-atlas-performance-registry",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 191,
+      "commit_sha": "9c2d924b5d8fa42e1a0fa67f83bd6e0db553e894",
+      "source_path": "metrics/landscape/registry-v0.json",
+      "git_blob_sha": "1c002c496a5ea7a719e3e8f1fcb56417a3a7654b"
+    },
+    {
+      "source_id": "sol-atlas-scenario-robustness-cli",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 289,
+      "commit_sha": "f4cb87bf537958ef978d167ba6693802b878d67c",
+      "source_path": "tools/landscape-scenario-robustness/src/main.rs",
+      "git_blob_sha": "5abac0f939dcc3b5f896b5f9b0d8177c3dea89f6"
+    },
+    {
+      "source_id": "sol-atlas-scenario-robustness-code",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 289,
+      "commit_sha": "f4cb87bf537958ef978d167ba6693802b878d67c",
+      "source_path": "tools/landscape-scenario-robustness/src/lib.rs",
+      "git_blob_sha": "c7afdd7f92c6385a7ba4f6015632a57d5991a7b1"
+    },
+    {
+      "source_id": "sol-atlas-scenario-robustness-fixture",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 289,
+      "commit_sha": "f4cb87bf537958ef978d167ba6693802b878d67c",
+      "source_path": "fixtures/landscape/robustness-v0/fixture.json",
+      "git_blob_sha": "1b801599ec9deb98c42c77219bb4621959dfaf10"
+    },
+    {
+      "source_id": "sol-atlas-scenario-robustness-input-schema",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 289,
+      "commit_sha": "f4cb87bf537958ef978d167ba6693802b878d67c",
+      "source_path": "schemas/landscape-scenario-robustness-fixture-v0.1.schema.json",
+      "git_blob_sha": "99d226927305a1508a15b23a5017623d60c5f59f"
+    },
+    {
+      "source_id": "sol-atlas-scenario-robustness-lockfile",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 289,
+      "commit_sha": "f4cb87bf537958ef978d167ba6693802b878d67c",
+      "source_path": "tools/landscape-scenario-robustness/Cargo.lock",
+      "git_blob_sha": "90c8afdf1cbba02a792c8177c777d26a115c002a"
+    },
+    {
+      "source_id": "sol-atlas-scenario-robustness-manifest",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 289,
+      "commit_sha": "f4cb87bf537958ef978d167ba6693802b878d67c",
+      "source_path": "tools/landscape-scenario-robustness/Cargo.toml",
+      "git_blob_sha": "8f0208dd0fded6d90a95e97780cdc94c615aff1f"
+    },
+    {
+      "source_id": "sol-atlas-scenario-robustness-report-schema",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 289,
+      "commit_sha": "f4cb87bf537958ef978d167ba6693802b878d67c",
+      "source_path": "schemas/landscape-scenario-robustness-report-v0.1.schema.json",
+      "git_blob_sha": "1e25994d7bf3c7c98315fc71d8d9b7da3a169890"
+    },
+    {
+      "source_id": "sol-atlas-source-catalog",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 191,
+      "commit_sha": "9c2d924b5d8fa42e1a0fa67f83bd6e0db553e894",
+      "source_path": "data-sources/landscape/south-africa-johannesburg-v0.json",
+      "git_blob_sha": "520a6e3b57b4c2f0761f0bc20b1756c34106410d"
+    },
+    {
+      "source_id": "sol-atlas-utility-method",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 289,
+      "commit_sha": "f4cb87bf537958ef978d167ba6693802b878d67c",
+      "source_path": "schemas/landscape-utility-method-v0.schema.json",
+      "git_blob_sha": "068569c0b5c4e4d603948cfc4f7cadb6e2c950b6"
+    },
+    {
+      "source_id": "symthaea-alternative-review",
+      "repository": "Luminous-Dynamics/symthaea",
+      "pull_request": 8248,
+      "commit_sha": "118fb6979c887888459e2b3d4b554ca177328d93",
+      "source_path": "fixtures/landscape/review-unranked-v0.json",
+      "git_blob_sha": "2114b50f07c0647bfcec3d3e561eda343010fcf8"
+    },
+    {
+      "source_id": "symthaea-alternative-review-code",
+      "repository": "Luminous-Dynamics/symthaea",
+      "pull_request": 8248,
+      "commit_sha": "118fb6979c887888459e2b3d4b554ca177328d93",
+      "source_path": "crates/domains/symthaea-landscape-review/src/lib.rs",
+      "git_blob_sha": "c64182b00ad272a97d70760f1459f10303123850"
+    },
+    {
+      "source_id": "symthaea-alternative-review-schema",
+      "repository": "Luminous-Dynamics/symthaea",
+      "pull_request": 8248,
+      "commit_sha": "118fb6979c887888459e2b3d4b554ca177328d93",
+      "source_path": "schemas/landscape-alternative-review-v0.schema.json",
+      "git_blob_sha": "683b4b717a3d6fe81bf8aec758f2f41cdfd19b3c"
+    },
+    {
+      "source_id": "symtropy-landscape-dependency-cli",
+      "repository": "Luminous-Dynamics/symtropy",
+      "pull_request": 2673,
+      "commit_sha": "af68deadf633ffae42b2c22c585a933fece650bd",
+      "source_path": "tools/landscape-dependency-graph/src/main.rs",
+      "git_blob_sha": "2b2ec905f0062eabc3ed66323ef2c48d8337e6bc"
+    },
+    {
+      "source_id": "symtropy-landscape-dependency-code",
+      "repository": "Luminous-Dynamics/symtropy",
+      "pull_request": 2673,
+      "commit_sha": "af68deadf633ffae42b2c22c585a933fece650bd",
+      "source_path": "tools/landscape-dependency-graph/src/lib.rs",
+      "git_blob_sha": "2d6b20489d8511d8ff8d8e318c083ac25fae5b2f"
+    },
+    {
+      "source_id": "symtropy-landscape-dependency-fixture",
+      "repository": "Luminous-Dynamics/symtropy",
+      "pull_request": 2673,
+      "commit_sha": "af68deadf633ffae42b2c22c585a933fece650bd",
+      "source_path": "fixtures/landscape/dependency-graph-v0/fixture.json",
+      "git_blob_sha": "9914f9a95191f9223acd3e6ef2cb4269fa974d67"
+    },
+    {
+      "source_id": "symtropy-landscape-dependency-input-schema",
+      "repository": "Luminous-Dynamics/symtropy",
+      "pull_request": 2673,
+      "commit_sha": "af68deadf633ffae42b2c22c585a933fece650bd",
+      "source_path": "schemas/landscape-dependency-graph-fixture-v0.1.schema.json",
+      "git_blob_sha": "d0c86d952fde2a65859ae504592fb8c16df1733a"
+    },
+    {
+      "source_id": "symtropy-landscape-dependency-lockfile",
+      "repository": "Luminous-Dynamics/symtropy",
+      "pull_request": 2673,
+      "commit_sha": "af68deadf633ffae42b2c22c585a933fece650bd",
+      "source_path": "tools/landscape-dependency-graph/Cargo.lock",
+      "git_blob_sha": "02cdc6af0c4f63b79ac04baa51547a6b4a383003"
+    },
+    {
+      "source_id": "symtropy-landscape-dependency-manifest",
+      "repository": "Luminous-Dynamics/symtropy",
+      "pull_request": 2673,
+      "commit_sha": "af68deadf633ffae42b2c22c585a933fece650bd",
+      "source_path": "tools/landscape-dependency-graph/Cargo.toml",
+      "git_blob_sha": "cb6587618ffe3bc95c86a9297928a5a7e86536d6"
+    },
+    {
+      "source_id": "symtropy-landscape-dependency-report-schema",
+      "repository": "Luminous-Dynamics/symtropy",
+      "pull_request": 2673,
+      "commit_sha": "af68deadf633ffae42b2c22c585a933fece650bd",
+      "source_path": "schemas/landscape-dependency-graph-report-v0.1.schema.json",
+      "git_blob_sha": "231cb0954f3a90f0b4ef9f3ebe494544a6730e61"
+    },
+    {
+      "source_id": "symtropy-landscape-dependency-semantics",
+      "repository": "Luminous-Dynamics/symtropy",
+      "pull_request": 2673,
+      "commit_sha": "af68deadf633ffae42b2c22c585a933fece650bd",
+      "source_path": "docs/LANDSCAPE_DEPENDENCY_SEMANTICS_V0.json",
+      "git_blob_sha": "78271b74542e0d7141275fc75baf67dfcd97332b"
+    },
+    {
+      "source_id": "symtropy-scenario-contract",
+      "repository": "Luminous-Dynamics/symtropy",
+      "pull_request": 2322,
+      "commit_sha": "af68deadf633ffae42b2c22c585a933fece650bd",
+      "source_path": "schemas/landscape-scenario-manifest-v0.schema.json",
+      "git_blob_sha": "8e60fa8d903165776b2d1880bcf9904155b2e515"
+    }
+  ]
+}
