@@ -2383,7 +2383,8 @@ mod tests {
             .upstream_manifest["source_contracts"]
             .as_array_mut()
             .expect("source contracts array");
-        rows[1]["source_id"] = rows[0]["source_id"].clone();
+        let duplicate_id = rows[0]["source_id"].clone();
+        rows[1]["source_id"] = duplicate_id;
         assert!(
             validate_chain(&duplicate_source)
                 .iter()
@@ -2396,7 +2397,9 @@ mod tests {
         assert!(
             validate_chain(&malformed_blob)
                 .iter()
-                .any(|error| error.contains("git_blob_sha must be a 40-character lowercase Git object SHA"))
+                .any(|error| {
+                    error.contains("git_blob_sha must be a 40-character lowercase Git object SHA")
+                })
         );
 
         let mut split_planner_group = fixture();
@@ -2411,7 +2414,9 @@ mod tests {
         assert!(
             validate_chain(&split_planner_group)
                 .iter()
-                .any(|error| error.contains("sol-atlas-measurement-planner must pin all related artifacts"))
+                .any(|error| {
+                    error.contains("sol-atlas-measurement-planner must pin all related artifacts")
+                })
         );
     }
 
