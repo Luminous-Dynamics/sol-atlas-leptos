@@ -79,6 +79,16 @@ pub struct ScenarioResult {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct ScenarioOmissionResult {
+    pub omitted_scenario_id: String,
+    pub remaining_scenario_count: usize,
+    pub maximin_winner: String,
+    pub minimax_regret_winner: String,
+    pub maximin_winner_changed: bool,
+    pub minimax_regret_winner_changed: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct RobustnessReport {
     pub schema_version: String,
     pub suite_id: String,
@@ -96,6 +106,10 @@ pub struct RobustnessReport {
     pub maximin_winner: String,
     /// Winner under the declared minimax-regret policy. This may differ from maximin.
     pub minimax_regret_winner: String,
+    /// Leave-one-scenario-out diagnostic; this is not a reweighted expected score.
+    pub scenario_omission_audit: Vec<ScenarioOmissionResult>,
+    pub maximin_omission_stability_fraction: f64,
+    pub minimax_regret_omission_stability_fraction: f64,
 }
 
 pub fn sha256_hex(bytes: &[u8]) -> String {
@@ -227,6 +241,58 @@ pub fn validate_fixture(fixture: &RobustnessFixture) -> Result<(), Vec<String>> 
     }
 }
 
+fn choose_winners_for_scenarios(
+    scenario_ids: &[&str],
+    alternatives: &[&Alternative],
+    utility_by_pair: &BTreeMap<(&str, &str), f64>,
+) -> (String, String) {
+    let mut maximin_winner = String::new();
+    let mut maximin_score = f64::NEG_INFINITY;
+    let mut minimax_regret_winner = String::new();
+    let mut minimax_regret_score = f64::INFINITY;
+
+    for alternative in alternatives {
+        let worst_case = scenario_ids
+            .iter()
+            .map(|scenario_id| {
+                utility_by_pair[&(*scenario_id, alternative.alternative_id.as_str())]
+            })
+            .fold(f64::INFINITY, f64::min);
+        if worst_case > maximin_score
+            || (worst_case.total_cmp(&maximin_score).is_eq()
+                && (maximin_winner.is_empty()
+                    || alternative.alternative_id < maximin_winner))
+        {
+            maximin_score = worst_case;
+            maximin_winner = alternative.alternative_id.clone();
+        }
+
+        let maximum_regret = scenario_ids
+            .iter()
+            .map(|scenario_id| {
+                let best_in_scenario = alternatives
+                    .iter()
+                    .map(|candidate| {
+                        utility_by_pair[&(*scenario_id, candidate.alternative_id.as_str())]
+                    })
+                    .fold(f64::NEG_INFINITY, f64::max);
+                best_in_scenario
+                    - utility_by_pair[&(*scenario_id, alternative.alternative_id.as_str())]
+            })
+            .fold(0.0_f64, f64::max);
+        if maximum_regret < minimax_regret_score
+            || (maximum_regret.total_cmp(&minimax_regret_score).is_eq()
+                && (minimax_regret_winner.is_empty()
+                    || alternative.alternative_id < minimax_regret_winner))
+        {
+            minimax_regret_score = maximum_regret;
+            minimax_regret_winner = alternative.alternative_id.clone();
+        }
+    }
+
+    (maximin_winner, minimax_regret_winner)
+}
+
 pub fn evaluate_fixture_bytes(
     fixture_bytes: &[u8],
     utility_method_bytes: &[u8],
@@ -336,6 +402,42 @@ pub fn evaluate_fixture_bytes(
         })
         .map(|scorecard| scorecard.alternative_id.clone())
         .unwrap_or_default();
+    // Test the composition sensitivity of each decision rule by removing one
+    // declared scenario at a time. Remaining cases are not reweighted and are
+    // not interpreted as probabilities.
+    let mut scenario_omission_audit = Vec::with_capacity(scenario_ids.len());
+    let mut maximin_stable_count = 0usize;
+    let mut minimax_regret_stable_count = 0usize;
+    for omitted_scenario_id in &scenario_ids {
+        let remaining_scenarios: Vec<&str> = scenario_ids
+            .iter()
+            .copied()
+            .filter(|scenario_id| scenario_id != omitted_scenario_id)
+            .collect();
+        let (omitted_maximin_winner, omitted_minimax_regret_winner) =
+            choose_winners_for_scenarios(&remaining_scenarios, &alternatives, &utility_by_pair);
+        let maximin_winner_changed = omitted_maximin_winner != maximin_winner;
+        let minimax_regret_winner_changed =
+            omitted_minimax_regret_winner != minimax_regret_winner;
+        if !maximin_winner_changed {
+            maximin_stable_count += 1;
+        }
+        if !minimax_regret_winner_changed {
+            minimax_regret_stable_count += 1;
+        }
+        scenario_omission_audit.push(ScenarioOmissionResult {
+            omitted_scenario_id: (*omitted_scenario_id).to_owned(),
+            remaining_scenario_count: remaining_scenarios.len(),
+            maximin_winner: omitted_maximin_winner,
+            minimax_regret_winner: omitted_minimax_regret_winner,
+            maximin_winner_changed,
+            minimax_regret_winner_changed,
+        });
+    }
+    let maximin_omission_stability_fraction =
+        maximin_stable_count as f64 / scenario_omission_audit.len() as f64;
+    let minimax_regret_omission_stability_fraction =
+        minimax_regret_stable_count as f64 / scenario_omission_audit.len() as f64;
     let scenario_results = scenario_ids
         .iter()
         .map(|scenario_id| ScenarioResult {
@@ -359,6 +461,11 @@ pub fn evaluate_fixture_bytes(
         scenario_results,
         maximin_winner,
         minimax_regret_winner,
+        scenario_omission_audit,
+        maximin_omission_stability_fraction: rounded(maximin_omission_stability_fraction),
+        minimax_regret_omission_stability_fraction: rounded(
+            minimax_regret_omission_stability_fraction,
+        ),
     })
 }
 
@@ -408,6 +515,27 @@ mod tests {
         assert_eq!(report.alternative_count, 3);
         assert_eq!(report.maximin_winner, "strategy-c");
         assert_eq!(report.minimax_regret_winner, "strategy-a");
+        assert_eq!(report.scenario_omission_audit.len(), 4);
+        close(report.maximin_omission_stability_fraction, 0.75);
+        close(report.minimax_regret_omission_stability_fraction, 1.0);
+        assert_eq!(report.scenario_omission_audit[0].omitted_scenario_id, "baseline");
+        assert_eq!(report.scenario_omission_audit[0].maximin_winner, "strategy-c");
+        assert!(!report.scenario_omission_audit[0].maximin_winner_changed);
+        assert_eq!(
+            report.scenario_omission_audit[1].omitted_scenario_id,
+            "extreme_rain"
+        );
+        assert_eq!(report.scenario_omission_audit[1].maximin_winner, "strategy-a");
+        assert!(report.scenario_omission_audit[1].maximin_winner_changed);
+        assert_eq!(
+            report.scenario_omission_audit[1].minimax_regret_winner,
+            "strategy-a"
+        );
+        assert!(!report.scenario_omission_audit[1].minimax_regret_winner_changed);
+        assert!(report
+            .scenario_omission_audit
+            .iter()
+            .all(|entry| entry.remaining_scenario_count == 3));
         let a = report
             .scorecards
             .iter()
