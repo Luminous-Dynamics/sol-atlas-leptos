@@ -33,6 +33,10 @@ pub struct EnergyInputPort {
     pub energy_kwh: f64,
     /// Portion supplied across the graph boundary rather than by another node.
     pub external_energy_kwh: f64,
+    /// Unique identity for this external supply stream. Re-used streams must be
+    /// represented once and split through ordinary graph edges, never duplicated.
+    #[serde(default)]
+    pub external_source_id: Option<String>,
     /// Required for thermal heat; prohibited for other forms in v0.1.
     #[serde(default)]
     pub temperature_c: Option<f64>,
@@ -108,6 +112,9 @@ pub enum EnergyPortsError {
     DuplicateOutputPortId { node_id: String, port_id: String },
     InvalidPortEnergy { node_id: String, port_id: String },
     InvalidExternalEnergy { node_id: String, port_id: String },
+    MissingExternalSourceId { node_id: String, port_id: String },
+    UnexpectedExternalSourceId { node_id: String, port_id: String },
+    DuplicateExternalSourceId { source_id: String },
     MissingThermalTemperature { node_id: String, port_id: String },
     UnexpectedTemperature { node_id: String, port_id: String },
     InvalidAbsoluteTemperature { node_id: String, port_id: String },
@@ -159,6 +166,18 @@ pub struct EnergyPortNodeAssessment {
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Serialize)]
+pub struct EnergyInputPortAssessment {
+    pub node_id: String,
+    pub port_id: String,
+    pub form: EnergyForm,
+    pub energy_kwh: f64,
+    pub external_energy_kwh: f64,
+    pub external_source_id: Option<String>,
+    pub routed_energy_kwh: f64,
+    pub temperature_c: Option<f64>,
+}
+
+#[derive(Clone, Debug, PartialEq, serde::Serialize)]
 pub struct EnergyPortEdgeAssessment {
     pub edge_id: String,
     pub from_node_id: String,
@@ -197,6 +216,7 @@ pub struct EnergyPortsAssessment {
     pub terminal_disposition_energy_kwh: f64,
     pub system_balance_residual_kwh: f64,
     pub nodes: Vec<EnergyPortNodeAssessment>,
+    pub input_ports: Vec<EnergyInputPortAssessment>,
     pub edges: Vec<EnergyPortEdgeAssessment>,
     pub output_ports: Vec<EnergyOutputPortAssessment>,
 }
@@ -287,6 +307,7 @@ pub fn assess_energy_ports(
     let mut node_indices = BTreeMap::<String, usize>::new();
     let mut input_ids = BTreeSet::<(String, String)>::new();
     let mut output_ids = BTreeSet::<(String, String)>::new();
+    let mut external_source_ids = BTreeSet::<String>::new();
 
     for (index, node) in request.nodes.iter().enumerate() {
         if node.node_id.trim().is_empty() {
@@ -343,6 +364,30 @@ pub fn assess_energy_ports(
                 || port.external_energy_kwh > port.energy_kwh + tolerance(port.external_energy_kwh, port.energy_kwh)
             {
                 return Err(EnergyPortsError::InvalidExternalEnergy {
+                    node_id: node.node_id.clone(),
+                    port_id: port.port_id.clone(),
+                });
+            }
+            if port.external_energy_kwh > 0.0 {
+                let Some(source_id) = port.external_source_id.as_deref() else {
+                    return Err(EnergyPortsError::MissingExternalSourceId {
+                        node_id: node.node_id.clone(),
+                        port_id: port.port_id.clone(),
+                    });
+                };
+                if source_id.trim().is_empty() {
+                    return Err(EnergyPortsError::MissingExternalSourceId {
+                        node_id: node.node_id.clone(),
+                        port_id: port.port_id.clone(),
+                    });
+                }
+                if !external_source_ids.insert(source_id.to_owned()) {
+                    return Err(EnergyPortsError::DuplicateExternalSourceId {
+                        source_id: source_id.to_owned(),
+                    });
+                }
+            } else if port.external_source_id.is_some() {
+                return Err(EnergyPortsError::UnexpectedExternalSourceId {
                     node_id: node.node_id.clone(),
                     port_id: port.port_id.clone(),
                 });
@@ -586,6 +631,29 @@ pub fn assess_energy_ports(
         });
     }
 
+    let mut input_port_assessments = Vec::new();
+    for node in &request.nodes {
+        for input in &node.inputs {
+            let routed = incoming_by_input
+                .get(&(node.node_id.clone(), input.port_id.clone()))
+                .copied()
+                .unwrap_or(0.0);
+            input_port_assessments.push(EnergyInputPortAssessment {
+                node_id: node.node_id.clone(),
+                port_id: input.port_id.clone(),
+                form: input.form,
+                energy_kwh: input.energy_kwh,
+                external_energy_kwh: input.external_energy_kwh,
+                external_source_id: input.external_source_id.clone(),
+                routed_energy_kwh: routed,
+                temperature_c: input.temperature_c,
+            });
+        }
+    }
+    input_port_assessments.sort_by(|left, right| {
+        (&left.node_id, &left.port_id).cmp(&(&right.node_id, &right.port_id))
+    });
+
     let mut output_port_assessments = Vec::new();
     let mut terminal_useful_service_kwh = 0.0;
     let mut terminal_rejected_kwh = 0.0;
@@ -685,6 +753,7 @@ pub fn assess_energy_ports(
         terminal_disposition_energy_kwh,
         system_balance_residual_kwh,
         nodes: node_assessments,
+        input_ports: input_port_assessments,
         edges: edge_assessments,
         output_ports: output_port_assessments,
     })
@@ -711,6 +780,7 @@ mod tests {
                         form: EnergyForm::Chemical,
                         energy_kwh: 100.0,
                         external_energy_kwh: 100.0,
+                        external_source_id: Some("fuel-batch-001".to_owned()),
                         temperature_c: None,
                     }],
                     outputs: vec![
@@ -748,6 +818,7 @@ mod tests {
                         form: EnergyForm::ThermalHeat,
                         energy_kwh: 15.0,
                         external_energy_kwh: 0.0,
+                        external_source_id: None,
                         temperature_c: Some(80.0),
                     }],
                     outputs: vec![
@@ -861,6 +932,7 @@ mod tests {
                 form: EnergyForm::Electricity,
                 energy_kwh: 1.0,
                 external_energy_kwh: 0.0,
+                external_source_id: None,
                 temperature_c: None,
             }],
             outputs: vec![EnergyOutputPort {
@@ -899,6 +971,28 @@ mod tests {
             assess_energy_ports(&request),
             Err(EnergyPortsError::GraphCycleDetected)
         );
+    }
+
+    #[test]
+    fn external_source_identity_cannot_be_counted_twice() {
+        let mut request = chp_fixture();
+        request.nodes[1].inputs[0].energy_kwh = 16.0;
+        request.nodes[1].inputs[0].external_energy_kwh = 1.0;
+        request.nodes[1].inputs[0].external_source_id = Some("fuel-batch-001".to_owned());
+        assert!(matches!(
+            assess_energy_ports(&request),
+            Err(EnergyPortsError::DuplicateExternalSourceId { .. })
+        ));
+    }
+
+    #[test]
+    fn positive_external_supply_requires_an_identity() {
+        let mut request = chp_fixture();
+        request.nodes[0].inputs[0].external_source_id = None;
+        assert!(matches!(
+            assess_energy_ports(&request),
+            Err(EnergyPortsError::MissingExternalSourceId { .. })
+        ));
     }
 
     #[test]
