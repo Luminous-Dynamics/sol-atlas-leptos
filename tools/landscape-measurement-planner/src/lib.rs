@@ -122,7 +122,7 @@ pub struct PlanReport {
     pub eligible_not_selected_count: usize,
     pub eligible_spatial_temporal_stratum_count: usize,
     pub selected_spatial_temporal_stratum_count: usize,
-    pub eligible_spatial_temporal_stratum_coverage_fraction: f64,
+    pub selected_spatial_temporal_stratum_coverage_fraction: f64,
     pub minimum_spatial_temporal_coverage_fraction: f64,
     pub required_spatial_temporal_stratum_count: usize,
     pub coverage_constraint_status: String,
@@ -973,7 +973,7 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
         eligible_not_selected_count: eligible_count - selected.selected_ids.len(),
         eligible_spatial_temporal_stratum_count: eligible_strata.len(),
         selected_spatial_temporal_stratum_count: selected_strata.len(),
-        eligible_spatial_temporal_stratum_coverage_fraction: rounded(
+        selected_spatial_temporal_stratum_coverage_fraction: rounded(
             eligible_stratum_coverage_fraction,
         ),
         minimum_spatial_temporal_coverage_fraction: rounded(
@@ -1059,8 +1059,8 @@ mod tests {
         assert_eq!(report.eligible_spatial_temporal_stratum_count, 3);
         assert_eq!(report.selected_spatial_temporal_stratum_count, 1);
         close(
-            report.eligible_spatial_temporal_stratum_coverage_fraction,
-            2.0 / 3.0,
+            report.selected_spatial_temporal_stratum_coverage_fraction,
+            1.0 / 3.0,
         );
         assert_eq!(
             report.minimum_spatial_temporal_coverage_fraction,
@@ -1353,7 +1353,7 @@ mod tests {
             report.selected_candidate_ids,
             vec!["candidate-a-high-density".to_owned()]
         );
-        close(report.eligible_spatial_temporal_stratum_coverage_fraction, 1.0 / 3.0);
+        close(report.selected_spatial_temporal_stratum_coverage_fraction, 1.0 / 3.0);
     }
 
     #[test]
