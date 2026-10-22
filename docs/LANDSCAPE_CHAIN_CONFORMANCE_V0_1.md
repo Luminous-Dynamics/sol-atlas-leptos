@@ -66,7 +66,7 @@ The first gate is the synthetic structural contract. Passing it must not make a 
 
 ## Upstream dependencies pinned for this proposal
 
-The manifest records twenty-two pinned input/contract sources, including the metric-to-observation crosswalk, Symthaea review schema/fixture, Mycelix measurement-authorization schema/fixture/Rust gate, Sol-Atlas measurement-planner implementation/fixture/input schema/report schema, and scenario-robustness implementation/utility method/fixture/input schema/report schema. Validation requires unique source IDs, non-empty repository/path fields, 40-character lowercase Git commit/blob SHAs, all 22 expected source IDs, and one shared revision within each related contract group. The harness validates the manifest structure and hash/linkage coherence; it does not download upstream repositories or independently prove that each remote commit/blob matches the declared contents.
+The manifest records thirty-nine pinned input/contract sources, including the metric-to-observation crosswalk, Symthaea review schema/fixture, Mycelix measurement-authorization schema/fixture/Rust gate, Sol-Atlas measurement-planner implementation/fixture/input schema/report schema, and scenario-robustness implementation/utility method/fixture/input schema/report schema. Validation requires unique source IDs, non-empty repository/path fields, 40-character lowercase Git commit/blob SHAs, all 39 expected source IDs, and one shared revision within each related contract group. The harness validates the manifest structure and hash/linkage coherence; it does not download upstream repositories or independently prove that each remote commit/blob matches the declared contents.
 
 ## Boundaries
 
