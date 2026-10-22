@@ -1,0 +1,329 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/landscape-scenario-robustness-report-v0.1.schema.json",
+  "title": "Landscape Scenario Robustness Report v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "suite_id",
+    "conformance_status",
+    "data_origin",
+    "claim_ceiling",
+    "input_sha256",
+    "utility_method_sha256",
+    "scenario_count",
+    "alternative_count",
+    "minimum_worst_case_utility_points",
+    "critical_constraints",
+    "constraint_summaries",
+    "scorecards",
+    "scenario_results",
+    "maximin_winner",
+    "minimax_regret_winner",
+    "scenario_omission_audit",
+    "maximin_omission_stability_fraction",
+    "minimax_regret_omission_stability_fraction",
+    "feasible_maximin_winner",
+    "feasible_minimax_regret_winner"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.landscape_scenario_robustness_report.v0.1"
+    },
+    "suite_id": {
+      "const": "LANDSCAPE-SCENARIO-ROBUSTNESS-V0.1"
+    },
+    "conformance_status": {
+      "const": "PASS_SYNTHETIC_SCENARIO_ROBUSTNESS_ONLY"
+    },
+    "data_origin": {
+      "const": "synthetic_fixture"
+    },
+    "claim_ceiling": {
+      "const": "SCENARIO_ROBUSTNESS_ONLY"
+    },
+    "input_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "utility_method_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "scenario_count": {
+      "type": "integer",
+      "minimum": 2,
+      "maximum": 20
+    },
+    "alternative_count": {
+      "type": "integer",
+      "minimum": 2,
+      "maximum": 50
+    },
+    "minimum_worst_case_utility_points": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "scorecards": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "alternative_id",
+          "label",
+          "worst_case_utility_points",
+          "unweighted_mean_utility_points",
+          "maximum_regret_points",
+          "unweighted_mean_regret_points",
+          "robustly_qualified",
+          "blocking_constraint_violations",
+          "scenario_utilities"
+        ],
+        "properties": {
+          "alternative_id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "worst_case_utility_points": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "unweighted_mean_utility_points": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "maximum_regret_points": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "unweighted_mean_regret_points": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "robustly_qualified": {
+            "type": "boolean"
+          },
+          "scenario_utilities": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scenario_id",
+                "utility_points",
+                "regret_points"
+              ],
+              "properties": {
+                "scenario_id": {
+                  "type": "string"
+                },
+                "utility_points": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "regret_points": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100
+                }
+              }
+            }
+          },
+          "blocking_constraint_violations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scenario_id",
+                "constraint_id",
+                "label"
+              ],
+              "properties": {
+                "scenario_id": {
+                  "type": "string"
+                },
+                "constraint_id": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "scenario_results": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "scenario_id",
+          "best_utility_points"
+        ],
+        "properties": {
+          "scenario_id": {
+            "type": "string"
+          },
+          "best_utility_points": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          }
+        }
+      }
+    },
+    "maximin_winner": {
+      "type": "string",
+      "minLength": 1
+    },
+    "minimax_regret_winner": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scenario_omission_audit": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "omitted_scenario_id",
+          "remaining_scenario_count",
+          "maximin_winner",
+          "minimax_regret_winner",
+          "maximin_winner_changed",
+          "minimax_regret_winner_changed"
+        ],
+        "properties": {
+          "omitted_scenario_id": {
+            "type": "string"
+          },
+          "remaining_scenario_count": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 19
+          },
+          "maximin_winner": {
+            "type": "string"
+          },
+          "minimax_regret_winner": {
+            "type": "string"
+          },
+          "maximin_winner_changed": {
+            "type": "boolean"
+          },
+          "minimax_regret_winner_changed": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "maximin_omission_stability_fraction": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "minimax_regret_omission_stability_fraction": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "feasible_maximin_winner": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "feasible_minimax_regret_winner": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "critical_constraints": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "constraint_id",
+          "label"
+        ],
+        "properties": {
+          "constraint_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "constraint_summaries": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "constraint_id",
+          "label",
+          "passed_outcome_count",
+          "failed_outcome_count"
+        ],
+        "properties": {
+          "constraint_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "passed_outcome_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "failed_outcome_count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    }
+  }
+}
