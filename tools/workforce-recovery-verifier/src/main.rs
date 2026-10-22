@@ -373,11 +373,6 @@ fn canonicalize(corpus: &mut Corpus) {
 }
 
 fn baseline_assessment(scenario: &Scenario) -> Result<(String, Vec<String>), String> {
-    let baseline_ids: BTreeSet<&str> = scenario
-        .baseline_plan_ids
-        .iter()
-        .map(String::as_str)
-        .collect();
     let mut resource_use = Resources::default();
     let mut services = Services::default();
     let mut costs = Costs::default();
@@ -784,7 +779,8 @@ mod tests {
     #[test]
     fn a_higher_service_floor_invalidates_the_frozen_plan() {
         let (fixture, schema) = loaded();
-        let receipt = find(&report(&fixture, &schema), "RC-002");
+        let full_report = report(&fixture, &schema);
+        let receipt = find(&full_report, "RC-002");
         assert_eq!(receipt.baseline_status, "service_floor_unmet");
         assert_eq!(receipt.recovery_status, "feasible");
         assert_eq!(
