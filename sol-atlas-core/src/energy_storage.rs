@@ -218,7 +218,7 @@ pub fn assess_energy_storage(
     {
         return Err(EnergyStorageError::InvalidStandingLoss);
     }
-    if request.opening_energy_kwh > request.capacity_kwh + NUMERIC_TOLERANCE {
+    if request.opening_energy_kwh > request.capacity_kwh {
         return Err(EnergyStorageError::OpeningStateExceedsCapacity);
     }
     if request.terminal_reserve_kwh > request.capacity_kwh {
