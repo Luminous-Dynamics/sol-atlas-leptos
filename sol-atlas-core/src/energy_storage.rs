@@ -544,8 +544,16 @@ mod tests {
         request.opening_energy_kwh = 3.0;
         request.standing_loss_fraction_per_hour = 0.0;
         let assessment = assess_energy_storage(&request).unwrap();
-        assert!((assessment.intervals[0].charge_accepted_kwh - 2.5).abs() < NUMERIC_TOLERANCE);
-        assert!((assessment.intervals[0].charge_curtailed_kwh - 7.5).abs() < NUMERIC_TOLERANCE);
+        let expected_accepted = 2.0 / request.charge_efficiency;
+        let expected_curtailed = 10.0 - expected_accepted;
+        assert!(
+            (assessment.intervals[0].charge_accepted_kwh - expected_accepted).abs()
+                < NUMERIC_TOLERANCE
+        );
+        assert!(
+            (assessment.intervals[0].charge_curtailed_kwh - expected_curtailed).abs()
+                < NUMERIC_TOLERANCE
+        );
         assert!((assessment.final_energy_kwh - 5.0).abs() < NUMERIC_TOLERANCE);
         assert!(assessment.trajectory_balance_residual_kwh.abs() < NUMERIC_TOLERANCE);
     }
