@@ -10,6 +10,7 @@
     "data_origin",
     "claim_ceiling",
     "budget_cost_units",
+    "minimum_spatial_temporal_coverage_fraction",
     "candidates"
   ],
   "properties": {
@@ -37,6 +38,11 @@
       "items": {
         "$ref": "#/$defs/candidate"
       }
+    },
+    "minimum_spatial_temporal_coverage_fraction": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
     }
   },
   "$defs": {
