@@ -27,7 +27,7 @@ Four scenarios are included: typical growing season, intense rainfall, compound 
 
 **The important result is policy disagreement:** maximin selects `strategy-c` because its worst-case utility is 72, while minimax regret selects `strategy-a` because its maximum scenario regret is 10. Neither is a universal winner. They encode different risk preferences and remain contingent on the scenario set and the declared utility transformation.
 
-The CLI report binds the exact fixture bytes and utility-method bytes. Unit tests verify the hand-calculated metrics, both decision rules, deterministic serialization, missing and duplicate scenario/alternative pairs, out-of-range scores, observed-data relabelling, and utility-method digest tampering.
+A second diagnostic removes each scenario once and recomputes both decision rules without reweighting the remaining cases. For this panel, maximin preserves its full-set winner in 3/4 omissions (75%), while minimax regret preserves its full-set winner in 4/4 (100%); omitting the extreme-rain case switches maximin from strategy-c to strategy-a. This is sensitivity to the declared scenario panel, not statistical confidence or evidence that one future is more likely. The CLI report binds the exact fixture bytes and utility-method bytes. Unit tests verify the hand-calculated metrics, both decision rules, leave-one-out outcomes, deterministic serialization, missing and duplicate scenario/alternative pairs, out-of-range scores, observed-data relabelling, and utility-method digest tampering.
 
 ## Benchmarks to pursue
 
