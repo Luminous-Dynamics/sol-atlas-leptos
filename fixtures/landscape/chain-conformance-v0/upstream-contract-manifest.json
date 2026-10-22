@@ -7,7 +7,7 @@
       "source_id": "mycelix-measurement-authorization-fixture",
       "repository": "Luminous-Dynamics/mycelix",
       "pull_request": 5298,
-      "commit_sha": "60b80e3af115f946a22768ad63a850982cbb6204",
+      "commit_sha": "6c28da8afc1e9006c86d739a48d5cacd8966512d",
       "source_path": "mycelix-desci/fixtures/landscape-measurement-authorization-v0.public.example.json",
       "git_blob_sha": "ed35b8f8c78c30ab9cf0ee9a6187b7869aa4a6b4"
     },
@@ -15,7 +15,7 @@
       "source_id": "mycelix-measurement-authorization-safety-gate",
       "repository": "Luminous-Dynamics/mycelix",
       "pull_request": 5298,
-      "commit_sha": "60b80e3af115f946a22768ad63a850982cbb6204",
+      "commit_sha": "6c28da8afc1e9006c86d739a48d5cacd8966512d",
       "source_path": "mycelix-desci/src/core/src/landscape_measurement_authorization.rs",
       "git_blob_sha": "c866048aeabd6810b53a929c85d911bf93a4b8f9"
     },
@@ -23,7 +23,7 @@
       "source_id": "mycelix-measurement-authorization-schema",
       "repository": "Luminous-Dynamics/mycelix",
       "pull_request": 5298,
-      "commit_sha": "60b80e3af115f946a22768ad63a850982cbb6204",
+      "commit_sha": "6c28da8afc1e9006c86d739a48d5cacd8966512d",
       "source_path": "mycelix-desci/schemas/landscape-measurement-authorization-v0.schema.json",
       "git_blob_sha": "85cca0168f04434e8fe7da421667b6e3715cc12a"
     },
@@ -31,7 +31,7 @@
       "source_id": "mycelix-stewardship-profile",
       "repository": "Luminous-Dynamics/mycelix",
       "pull_request": 5298,
-      "commit_sha": "60b80e3af115f946a22768ad63a850982cbb6204",
+      "commit_sha": "6c28da8afc1e9006c86d739a48d5cacd8966512d",
       "source_path": "mycelix-desci/fixtures/landscape-stewardship-profile-v0.public.example.json",
       "git_blob_sha": "7e136bfc37b0a93cbb3485d5cab56710c08fdcab"
     },
@@ -159,7 +159,7 @@
       "source_id": "symthaea-alternative-review",
       "repository": "Luminous-Dynamics/symthaea",
       "pull_request": 8248,
-      "commit_sha": "f4731d30e60f28911baab8ddc4dd5fe58ed19cd5",
+      "commit_sha": "1e65eaf855a3c16596c77abc607ef5c8779d0239",
       "source_path": "fixtures/landscape/review-unranked-v0.json",
       "git_blob_sha": "2114b50f07c0647bfcec3d3e561eda343010fcf8"
     },
@@ -167,7 +167,7 @@
       "source_id": "symthaea-alternative-review-schema",
       "repository": "Luminous-Dynamics/symthaea",
       "pull_request": 8248,
-      "commit_sha": "f4731d30e60f28911baab8ddc4dd5fe58ed19cd5",
+      "commit_sha": "1e65eaf855a3c16596c77abc607ef5c8779d0239",
       "source_path": "schemas/landscape-alternative-review-v0.schema.json",
       "git_blob_sha": "683b4b717a3d6fe81bf8aec758f2f41cdfd19b3c"
     },
