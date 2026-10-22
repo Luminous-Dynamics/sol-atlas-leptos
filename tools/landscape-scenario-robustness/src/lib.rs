@@ -260,8 +260,7 @@ fn choose_winners_for_scenarios(
             .fold(f64::INFINITY, f64::min);
         if worst_case > maximin_score
             || (worst_case.total_cmp(&maximin_score).is_eq()
-                && (maximin_winner.is_empty()
-                    || alternative.alternative_id < maximin_winner))
+                && (maximin_winner.is_empty() || alternative.alternative_id < maximin_winner))
         {
             maximin_score = worst_case;
             maximin_winner = alternative.alternative_id.clone();
@@ -344,9 +343,7 @@ pub fn evaluate_fixture_bytes(
     for alternative in &alternatives {
         let raw_utilities: Vec<f64> = scenario_ids
             .iter()
-            .map(|scenario_id| {
-                utility_by_pair[&(scenario_id, alternative.alternative_id.as_str())]
-            })
+            .map(|scenario_id| utility_by_pair[&(scenario_id, alternative.alternative_id.as_str())])
             .collect();
         let scenario_utilities: Vec<ScenarioUtility> = scenario_ids
             .iter()
@@ -361,10 +358,7 @@ pub fn evaluate_fixture_bytes(
             .collect();
         // Make decisions from raw validated values. Rounding is presentation
         // only; it must not create artificial ties that then fall to ID order.
-        let worst_case_utility = raw_utilities
-            .iter()
-            .copied()
-            .fold(f64::INFINITY, f64::min);
+        let worst_case_utility = raw_utilities.iter().copied().fold(f64::INFINITY, f64::min);
         let mean_utility = raw_utilities.iter().sum::<f64>() / raw_utilities.len() as f64;
         let raw_regrets: Vec<f64> = scenario_ids
             .iter()
@@ -404,8 +398,7 @@ pub fn evaluate_fixture_bytes(
         let (omitted_maximin_winner, omitted_minimax_regret_winner) =
             choose_winners_for_scenarios(&remaining_scenarios, &alternatives, &utility_by_pair);
         let maximin_winner_changed = omitted_maximin_winner != maximin_winner;
-        let minimax_regret_winner_changed =
-            omitted_minimax_regret_winner != minimax_regret_winner;
+        let minimax_regret_winner_changed = omitted_minimax_regret_winner != minimax_regret_winner;
         if !maximin_winner_changed {
             maximin_stable_count += 1;
         }
@@ -505,24 +498,35 @@ mod tests {
         assert_eq!(report.scenario_omission_audit.len(), 4);
         close(report.maximin_omission_stability_fraction, 0.75);
         close(report.minimax_regret_omission_stability_fraction, 1.0);
-        assert_eq!(report.scenario_omission_audit[0].omitted_scenario_id, "baseline");
-        assert_eq!(report.scenario_omission_audit[0].maximin_winner, "strategy-c");
+        assert_eq!(
+            report.scenario_omission_audit[0].omitted_scenario_id,
+            "baseline"
+        );
+        assert_eq!(
+            report.scenario_omission_audit[0].maximin_winner,
+            "strategy-c"
+        );
         assert!(!report.scenario_omission_audit[0].maximin_winner_changed);
         assert_eq!(
             report.scenario_omission_audit[1].omitted_scenario_id,
             "extreme_rain"
         );
-        assert_eq!(report.scenario_omission_audit[1].maximin_winner, "strategy-a");
+        assert_eq!(
+            report.scenario_omission_audit[1].maximin_winner,
+            "strategy-a"
+        );
         assert!(report.scenario_omission_audit[1].maximin_winner_changed);
         assert_eq!(
             report.scenario_omission_audit[1].minimax_regret_winner,
             "strategy-a"
         );
         assert!(!report.scenario_omission_audit[1].minimax_regret_winner_changed);
-        assert!(report
-            .scenario_omission_audit
-            .iter()
-            .all(|entry| entry.remaining_scenario_count == 3));
+        assert!(
+            report
+                .scenario_omission_audit
+                .iter()
+                .all(|entry| entry.remaining_scenario_count == 3)
+        );
         let a = report
             .scorecards
             .iter()
@@ -616,7 +620,10 @@ mod tests {
             .unwrap();
         close(alpha.worst_case_utility_points, 50.0);
         close(beta.worst_case_utility_points, 50.0);
-        assert_eq!(alpha.worst_case_utility_points, beta.worst_case_utility_points);
+        assert_eq!(
+            alpha.worst_case_utility_points,
+            beta.worst_case_utility_points
+        );
     }
 
     #[test]
