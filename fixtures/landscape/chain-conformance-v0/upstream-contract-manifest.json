@@ -55,15 +55,15 @@
       "source_id": "sol-atlas-measurement-planner-code",
       "repository": "Luminous-Dynamics/sol-atlas-leptos",
       "pull_request": 275,
-      "commit_sha": "9ef3e9ee22ca23e090d5b88bb5eb496d689778c2",
+      "commit_sha": "78b8d7a6fa3860757210031e914c9c4e88e67345",
       "source_path": "tools/landscape-measurement-planner/src/lib.rs",
-      "git_blob_sha": "2b6d1d7ef43a5a07be3e05e2e901796cb067702c"
+      "git_blob_sha": "11aed14a957c49159e4187dad8470f76e75e7543"
     },
     {
       "source_id": "sol-atlas-measurement-planner-fixture",
       "repository": "Luminous-Dynamics/sol-atlas-leptos",
       "pull_request": 275,
-      "commit_sha": "9ef3e9ee22ca23e090d5b88bb5eb496d689778c2",
+      "commit_sha": "78b8d7a6fa3860757210031e914c9c4e88e67345",
       "source_path": "fixtures/landscape/measurement-planning-v0/fixture.json",
       "git_blob_sha": "d6937a6019756f0b20a41218b1bd54ba43841776"
     },
@@ -71,7 +71,7 @@
       "source_id": "sol-atlas-measurement-planner-input-schema",
       "repository": "Luminous-Dynamics/sol-atlas-leptos",
       "pull_request": 275,
-      "commit_sha": "9ef3e9ee22ca23e090d5b88bb5eb496d689778c2",
+      "commit_sha": "78b8d7a6fa3860757210031e914c9c4e88e67345",
       "source_path": "schemas/landscape-measurement-selection-fixture-v0.1.schema.json",
       "git_blob_sha": "674a11230b5c498ab71a190e125353e36388835f"
     },
@@ -79,7 +79,7 @@
       "source_id": "sol-atlas-measurement-planner-report-schema",
       "repository": "Luminous-Dynamics/sol-atlas-leptos",
       "pull_request": 275,
-      "commit_sha": "9ef3e9ee22ca23e090d5b88bb5eb496d689778c2",
+      "commit_sha": "78b8d7a6fa3860757210031e914c9c4e88e67345",
       "source_path": "schemas/landscape-measurement-selection-report-v0.1.schema.json",
       "git_blob_sha": "ce9c0ce91a4c6a7fe982e3e48f23818a92b82bb0"
     },
