@@ -161,6 +161,7 @@ pub enum EnergyDispatchError {
     CandidateExpansionCapExceeded { cap: u64 },
     ParetoFrontierCapExceeded { cap: usize },
     ArithmeticOverflow { context: String },
+    ScheduleVerificationFailed { reason: String },
     NoFeasibleSchedules,
 }
 
