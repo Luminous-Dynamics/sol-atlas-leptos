@@ -1,0 +1,572 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/robotics/robotics_terrain_evidence_v0_1.schema.json",
+  "title": "Robotics Terrain Evidence Envelope v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "evidence_ref",
+    "site_ref",
+    "coordinate_frame_ref",
+    "map_snapshot_sha256",
+    "terrain_tile_sha256",
+    "terrain_model_id",
+    "terrain_model_version",
+    "evidence_class",
+    "state",
+    "surface",
+    "sensor_modality",
+    "observed_at_unix_seconds",
+    "as_of_unix_seconds",
+    "valid_until_unix_seconds",
+    "slope_deg",
+    "cross_slope_deg",
+    "step_height_m",
+    "rut_depth_m",
+    "coverage",
+    "uncertainty",
+    "raw_observation_sha256",
+    "calibration_ref",
+    "hardware_configuration_ref",
+    "reviewer_ref",
+    "source_evidence_refs",
+    "hazards"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "evidence_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "site_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque site reference; do not store raw coordinates in this envelope."
+    },
+    "coordinate_frame_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "map_snapshot_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "terrain_tile_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "terrain_model_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "terrain_model_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evidence_class": {
+      "enum": [
+        "synthetic_fixture",
+        "simulator",
+        "hardware_in_loop",
+        "physical_field",
+        "independently_reviewed"
+      ]
+    },
+    "state": {
+      "enum": [
+        "available",
+        "unknown",
+        "stale",
+        "conflicting",
+        "outside_coverage"
+      ]
+    },
+    "surface": {
+      "enum": [
+        "paved",
+        "gravel",
+        "grass",
+        "sand",
+        "mud",
+        "snow_ice",
+        "rock",
+        "wet_rock",
+        "forest_floor",
+        "rubble",
+        "soft_soil",
+        "loose_slope",
+        "shallow_water_edge",
+        "mixed",
+        "unknown"
+      ]
+    },
+    "sensor_modality": {
+      "enum": [
+        "lidar",
+        "camera",
+        "rgbd_camera",
+        "radar",
+        "ultrasonic",
+        "inertial",
+        "wheel_odometry",
+        "satellite_positioning",
+        "human_survey",
+        "fused",
+        "unknown"
+      ]
+    },
+    "observed_at_unix_seconds": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "as_of_unix_seconds": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "valid_until_unix_seconds": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "slope_deg": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 90
+    },
+    "cross_slope_deg": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 90
+    },
+    "step_height_m": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "rut_depth_m": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "coverage": {
+      "enum": [
+        "validated",
+        "partially_validated",
+        "unvalidated",
+        "outside_coverage",
+        "unknown"
+      ]
+    },
+    "uncertainty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "radius_m",
+        "confidence_level"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "not_assessed",
+            "qualitative_low",
+            "qualitative_moderate",
+            "qualitative_high",
+            "quantified_absolute_bound"
+          ]
+        },
+        "radius_m": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "confidence_level": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "quantified_absolute_bound"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "radius_m": {
+                "type": "number",
+                "minimum": 0
+              },
+              "confidence_level": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "not_assessed",
+                  "qualitative_low",
+                  "qualitative_moderate",
+                  "qualitative_high"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "radius_m": {
+                "type": "null"
+              },
+              "confidence_level": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "raw_observation_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "calibration_ref": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "hardware_configuration_ref": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "reviewer_ref": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "source_evidence_refs": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "hazards": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/hazard"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "const": "available"
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "surface": {
+            "not": {
+              "const": "unknown"
+            }
+          },
+          "sensor_modality": {
+            "not": {
+              "const": "unknown"
+            }
+          },
+          "coverage": {
+            "enum": [
+              "validated",
+              "partially_validated",
+              "unvalidated"
+            ]
+          },
+          "source_evidence_refs": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "const": "outside_coverage"
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "coverage": {
+            "const": "outside_coverage"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "coverage": {
+            "not": {
+              "const": "outside_coverage"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "not": {
+              "const": "unknown"
+            }
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "source_evidence_refs": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "evidence_class": {
+            "enum": [
+              "hardware_in_loop",
+              "physical_field",
+              "independently_reviewed"
+            ]
+          }
+        },
+        "required": [
+          "evidence_class"
+        ]
+      },
+      "then": {
+        "properties": {
+          "raw_observation_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "calibration_ref": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "evidence_class": {
+            "enum": [
+              "hardware_in_loop",
+              "physical_field"
+            ]
+          }
+        },
+        "required": [
+          "evidence_class"
+        ]
+      },
+      "then": {
+        "properties": {
+          "hardware_configuration_ref": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "evidence_class": {
+            "const": "independently_reviewed"
+          }
+        },
+        "required": [
+          "evidence_class"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reviewer_ref": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "hazard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hazard_ref",
+        "kind",
+        "state",
+        "confidence",
+        "source_evidence_refs"
+      ],
+      "properties": {
+        "hazard_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "drop_or_void",
+            "unstable_surface",
+            "water_edge",
+            "low_clearance",
+            "dynamic_obstacle",
+            "debris",
+            "other"
+          ]
+        },
+        "state": {
+          "enum": [
+            "detected",
+            "absent",
+            "unknown",
+            "stale",
+            "conflicting"
+          ]
+        },
+        "confidence": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "source_evidence_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "detected",
+                  "absent"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "confidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "source_evidence_refs": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "unknown",
+                  "stale",
+                  "conflicting"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "confidence": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
