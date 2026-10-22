@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/heat-pump-request-v0.1.schema.json",
+  "title": "Multi-stream heat pump request v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "scenario_id", "synthetic", "temperatures",
+    "source_heat_available_kwh", "max_source_heat_kwh",
+    "compressor_electricity_available_kwh", "max_compressor_electricity_kwh",
+    "auxiliary_electricity_kwh", "distribution_loss_fraction", "evidence_class"
+  ],
+  "properties": {
+    "schema_version": { "const": "heat-pump-v0.1" },
+    "scenario_id": { "type": "string", "minLength": 1 },
+    "synthetic": { "type": "boolean" },
+    "temperatures": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_c", "delivery_c"],
+      "properties": {
+        "source_c": { "type": "number" },
+        "delivery_c": { "type": "number" }
+      }
+    },
+    "source_heat_available_kwh": { "type": "number", "minimum": 0 },
+    "max_source_heat_kwh": { "type": "number", "minimum": 0 },
+    "compressor_electricity_available_kwh": { "type": "number", "minimum": 0 },
+    "max_compressor_electricity_kwh": { "type": "number", "minimum": 0 },
+    "auxiliary_electricity_kwh": { "type": "number", "minimum": 0 },
+    "distribution_loss_fraction": { "type": "number", "minimum": 0, "maximum": 1 },
+    "evidence_class": {
+      "type": "string",
+      "enum": ["analyst_assumption", "published_model", "component_test", "field_pilot", "operating_plant", "replicated_fleet", "independently_audited"]
+    },
+    "evidence_ref": { "type": ["string", "null"] },
+    "evidence_as_of": { "type": ["string", "null"] }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "evidence_class": { "not": { "const": "analyst_assumption" } }
+        },
+        "required": ["evidence_class"]
+      },
+      "then": {
+        "required": ["evidence_ref"],
+        "properties": {
+          "evidence_ref": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  ]
+}

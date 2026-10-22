@@ -1,0 +1,84 @@
+name: Multi-stream heat-pump accounting
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "sol-atlas-core/src/heat_pump.rs"
+      - "sol-atlas-core/src/bin/heat_pump_assess.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/heat-pump-*.schema.json"
+      - "schemas/examples/heat-pump-*.synthetic.json"
+      - "docs/benchmarks/HEAT_PUMP_MULTISTREAM_V0_1.md"
+      - ".github/workflows/heat-pump.yml"
+  pull_request:
+    paths:
+      - "sol-atlas-core/src/heat_pump.rs"
+      - "sol-atlas-core/src/bin/heat_pump_assess.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/heat-pump-*.schema.json"
+      - "schemas/examples/heat-pump-*.synthetic.json"
+      - "docs/benchmarks/HEAT_PUMP_MULTISTREAM_V0_1.md"
+      - ".github/workflows/heat-pump.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  heat-pump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-heat-pump-${{ hashFiles('**/Cargo.lock') }}
+      - name: Run multi-stream heat-pump regression tests
+        run: cargo test -p sol-atlas-core --bin heat_pump_assess
+      - name: Produce the frozen synthetic assessment
+        run: cargo run -p sol-atlas-core --bin heat_pump_assess -- schemas/examples/heat-pump-multistream.synthetic.json > /tmp/heat-pump-report.json
+      - name: Install pinned JSON Schema validator (CI tooling only)
+        run: python -m pip install --disable-pip-version-check "jsonschema[format]==4.26.0"
+      - name: Validate schemas, first law, COP, and receipt digests
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator, FormatChecker
+
+          root = Path(".")
+          fixture_bytes = Path("schemas/examples/heat-pump-multistream.synthetic.json").read_bytes()
+          request = json.loads(fixture_bytes)
+          report = json.loads(Path("/tmp/heat-pump-report.json").read_text())
+          req_schema = json.loads(Path("schemas/heat-pump-request-v0.1.schema.json").read_text())
+          report_schema = json.loads(Path("schemas/heat-pump-report-v1.schema.json").read_text())
+          Draft202012Validator.check_schema(req_schema)
+          Draft202012Validator.check_schema(report_schema)
+          Draft202012Validator(req_schema, format_checker=FormatChecker()).validate(request)
+          Draft202012Validator(report_schema, format_checker=FormatChecker()).validate(report)
+
+          assessment = report["assessment"]
+          receipt = report["receipt"]
+          assert hashlib.sha256(fixture_bytes).hexdigest() == receipt["input_sha256"]
+          encoded_assessment = json.dumps(assessment, separators=(",", ":"), ensure_ascii=False).encode()
+          assert hashlib.sha256(encoded_assessment).hexdigest() == receipt["assessment_sha256"]
+          assert assessment["gross_heat_output_kwh"] == 40.0
+          assert assessment["distribution_loss_kwh"] == 4.0
+          assert assessment["useful_heat_delivered_kwh"] == 36.0
+          assert assessment["compressor_cop"] == 4.0
+          assert abs(assessment["system_cop"] - (36.0 / 11.0)) < 1e-12
+          assert assessment["compressor_cop"] <= assessment["carnot_cop_upper_bound"]
+          assert abs(assessment["first_law_balance_residual_kwh"]) <= 1e-9
+          assert receipt["synthetic"] is True
+          assert "not authenticate evidence" in receipt["verification_boundary"]
+          print("heat-pump schemas, known-answer physics, COP bounds, and digest bindings passed")
+          PY
