@@ -814,8 +814,10 @@ mod tests {
     #[test]
     fn exact_zero_and_one_probabilities_have_finite_log_loss() {
         let (mut fixture, schema) = loaded();
-        fixture["cases"][0]["forecasts"][0]["probability"] = json!(1.0);
-        fixture["cases"][1]["forecasts"][0]["probability"] = json!(0.0);
+        // Deliberately make exact-certainty forecasts wrong for both labels:
+        // CAL-001 is positive but gets p=0; CAL-002 is negative but gets p=1.
+        fixture["cases"][0]["forecasts"][0]["probability"] = json!(0.0);
+        fixture["cases"][1]["forecasts"][0]["probability"] = json!(1.0);
         let bytes = serde_json::to_vec(&fixture).expect("fixture serializes");
         let schema_bytes = serde_json::to_vec(&schema).expect("schema serializes");
         let report = verify_values(&schema, &fixture, &bytes, &schema_bytes)
@@ -825,6 +827,8 @@ mod tests {
             .iter()
             .find(|metric| metric.model_id == "constant_prevalence")
             .expect("metric exists");
-        assert!(metric.log_loss.unwrap().is_finite());
+        let loss = metric.log_loss.expect("issued forecasts have log loss");
+        assert!(loss.is_finite());
+        assert!(loss > 30.0, "wrong exact-certainty predictions must be severely penalized");
     }
 }
