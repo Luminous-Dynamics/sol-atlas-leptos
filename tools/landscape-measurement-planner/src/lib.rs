@@ -944,10 +944,10 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
                 .collect()
         })
         .unwrap_or_default();
-    let coverage_constrained_coverage_fraction = if eligible_strata.is_empty() {
+    let coverage_constrained_coverage_fraction = if eligible_strata_total == 0 {
         0.0
     } else {
-        coverage_constrained_strata.len() as f64 / eligible_strata.len() as f64
+        coverage_constrained_strata.len() as f64 / eligible_strata_total as f64
     };
     let greedy_baseline =
         select_greedy_ratio(&fixture.candidates, &scores, fixture.budget_cost_units);
@@ -1120,7 +1120,7 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
         selected_candidate_ids: selected.selected_ids,
         total_weighted_discrimination_nats: rounded(selected.weighted_discrimination_nats),
         greedy_ratio_baseline_selected_candidate_ids: greedy_baseline.selected_ids,
-        greedy_ratio_baseline_cost_units,
+        greedy_ratio_baseline_cost_units: greedy_baseline_cost_units,
         greedy_ratio_baseline_weighted_discrimination_nats: rounded(
             greedy_baseline.weighted_discrimination_nats,
         ),
