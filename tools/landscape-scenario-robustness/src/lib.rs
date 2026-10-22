@@ -15,7 +15,7 @@ const CLAIM_CEILING: &str = "SCENARIO_ROBUSTNESS_ONLY";
 const MAX_SCENARIOS: usize = 20;
 const MAX_ALTERNATIVES: usize = 50;
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct RobustnessFixture {
     pub schema_version: String,
@@ -31,21 +31,21 @@ pub struct RobustnessFixture {
     pub constraint_outcomes: Vec<ConstraintOutcome>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Scenario {
     pub scenario_id: String,
     pub label: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Alternative {
     pub alternative_id: String,
     pub label: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Outcome {
     pub scenario_id: String,
@@ -60,7 +60,7 @@ pub struct CriticalConstraint {
     pub label: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConstraintOutcome {
     pub scenario_id: String,
