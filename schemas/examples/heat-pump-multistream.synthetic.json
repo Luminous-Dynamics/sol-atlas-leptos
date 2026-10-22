@@ -1,0 +1,18 @@
+{
+  "schema_version": "heat-pump-v0.1",
+  "scenario_id": "synthetic-heat-pump-known-answer",
+  "synthetic": true,
+  "temperatures": {
+    "source_c": 20.0,
+    "delivery_c": 80.0
+  },
+  "source_heat_available_kwh": 30.0,
+  "max_source_heat_kwh": 30.0,
+  "compressor_electricity_available_kwh": 10.0,
+  "max_compressor_electricity_kwh": 10.0,
+  "auxiliary_electricity_kwh": 1.0,
+  "distribution_loss_fraction": 0.1,
+  "evidence_class": "analyst_assumption",
+  "evidence_ref": null,
+  "evidence_as_of": null
+}
