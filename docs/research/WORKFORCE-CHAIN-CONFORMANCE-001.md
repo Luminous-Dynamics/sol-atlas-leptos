@@ -49,7 +49,7 @@ Not every claim is interchangeable: a paid-work claim has an additional payment-
 
 ### Digest semantics in v0.1
 
-The verifier now reads each synthetic stage artifact and its referenced stage schema from the local working tree, calculates SHA-256 over the actual bytes, compares actual bytes against both the reported and pinned digests, validates the artifact against its stage schema, and verifies stage ID/type/evidence-class/claim-ceiling identity. The fixture includes separate negative controls for stale pins and byte-valid but wrong-stage artifacts. The paths are restricted to the synthetic artifact directory and one known schema path; verification performs no network reads.
+The verifier now reads each synthetic stage artifact and its referenced stage schema from the local working tree, calculates SHA-256 over the actual bytes, compares actual bytes against both the reported and pinned digests, validates the artifact against its stage schema, and verifies stage ID/type/evidence-class/claim-ceiling identity. The fixture includes separate negative controls for stale pins and byte-valid but wrong-stage artifacts. The paths are restricted to the synthetic artifact directory and one known schema path; parent traversal, file-level symlinks and canonical paths escaping the intended repository subdirectories are rejected. Verification performs no network reads.
 
 The current artifacts are deliberately synthetic stand-ins for upstream adapter payloads; passing these tests establishes byte-level integrity for these fixture files, not integrity or truth of the real upstream PR artifacts. A production adapter still needs to pin and verify actual upstream repository revisions and artifacts. The claim ceiling remains synthetic-contract-only.
 
