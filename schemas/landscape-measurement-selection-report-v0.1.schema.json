@@ -23,7 +23,7 @@
     "eligible_not_selected_count",
     "eligible_spatial_temporal_stratum_count",
     "selected_spatial_temporal_stratum_count",
-    "eligible_spatial_temporal_stratum_coverage_fraction",
+    "selected_spatial_temporal_stratum_coverage_fraction",
     "minimum_spatial_temporal_coverage_fraction",
     "required_spatial_temporal_stratum_count",
     "coverage_constraint_status",
@@ -144,7 +144,7 @@
       "type": "integer",
       "minimum": 0
     },
-    "eligible_spatial_temporal_stratum_coverage_fraction": {
+    "selected_spatial_temporal_stratum_coverage_fraction": {
       "type": "number",
       "minimum": 0,
       "maximum": 1
