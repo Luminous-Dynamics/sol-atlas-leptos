@@ -47,7 +47,17 @@ Check:
 
 For this fixture, `0 + 10 = 3.91 + 4 + 0.09 + 1 + 1`. The expected values are analytically calculated test answers, not a measured battery result.
 
-## 3. Fail-closed correctness gates
+## 3. Coupled reference case
+
+The integration test `sol-atlas-core/tests/heat_pump_storage_coupling.rs` composes the heat-pump and storage contracts across three boundaries:
+
+1. A synthetic heat pump uses 30 kWh source heat plus 10 kWh compressor electricity, losing 4 kWh in distribution and delivering 36 kWh useful heat.
+2. The thermal store accepts only as much of that 36 kWh as its 20 kWh capacity and 90% charging efficiency permit; the excess remains explicit as curtailed input.
+3. In the next interval, the store delivers 10 kWh useful heat at 80% discharge efficiency and retains 7.5 kWh of stored energy.
+
+The test requires the heat-pump and storage balances to close independently, checks that the heat output splits into accepted and curtailed charging energy, and checks the store's accepted input against final inventory, useful discharge and modeled losses. The case remains synthetic; it proves interface accounting under the declared assumptions, not plant behavior.
+
+## 4. Fail-closed correctness gates
 
 - Opening inventory must not materially exceed capacity; closing inventory must remain in the physical range.
 - Charge/discharge efficiencies must lie in (0, 1]; standing loss fraction must lie in [0, 1].
@@ -60,7 +70,7 @@ For this fixture, `0 + 10 = 3.91 + 4 + 0.09 + 1 + 1`. The expected values are an
 - Deterministic re-run bytes, unknown-field rejection, schema conformance and receipt verification are test gates.
 - The 1e-9 kWh balance target applies to unit-scale fixtures; large-scale comparisons need a declared scale-aware absolute/relative tolerance.
 
-## 4. Competitive positioning
+## 5. Competitive positioning
 
 This contract is an accounting layer, not a substitute for existing device, site or network software.
 
@@ -72,7 +82,7 @@ This contract is an accounting layer, not a substitute for existing device, site
 
 Our differentiation should be auditable state continuity, first-law invariants, explicit service-deficit accounting, evidence boundaries and deterministic fixtures that can cross-check larger models. We should not claim better dispatch economics than REopt or PyPSA without a matched evaluation.
 
-## 5. Benchmark ladder
+## 6. Benchmark ladder
 
 | Stage | Proposed target | Required evidence |
 |---|---|---|
@@ -86,12 +96,12 @@ Our differentiation should be auditable state continuity, first-law invariants, 
 
 Do not compare annual round-trip efficiency to hourly dispatch performance, or modelled storage capacity to a field-metered service claim. Preserve assumptions about time resolution, degradation, temperature, ambient conditions, lifetime, replacement and warranty.
 
-## 6. Next tranche
+## 7. Next tranche
 
 1. Calibrate charge/discharge efficiency and standing losses by temperature, state of charge, power and technology from public or licensed measured datasets.
 2. Add multi-rate/timestamp semantics, explicit gap detection, and unit-typed input/output power limits.
 3. Add cycle aging/degradation and replacement, with parameter provenance and uncertainty intervals.
-4. Couple the store to the heat-pump and energy-pathway modules while preserving separate carrier boundaries.
+4. Extend the current synthetic heat-pump → thermal-store coupling into timestamped site profiles while preserving separate carrier boundaries.
 5. Compare the coupled model against SAM on compatible storage/solar cases, REopt for site dispatch, and PyPSA for intertemporal/network portfolios.
 6. Add exact small-instance dispatch as an oracle before introducing larger heuristics; score feasibility, service deficits, regret, runtime and energy accounting on identical cases.
 
