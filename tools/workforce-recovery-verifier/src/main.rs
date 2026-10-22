@@ -798,12 +798,16 @@ mod tests {
     }
 
     #[test]
-    fn unavailable_or_unknown_candidate_cannot_be_selected_to_fix_a_floor() {
+    fn unknown_funding_cannot_be_selected_to_restore_an_essential_floor() {
         let (mut fixture, schema) = loaded();
-        fixture["scenarios"][3]["interventions"][0]["funding_state"] = json!("unknown");
-        let fixture_bytes = serde_json::to_vec(&fixture).expect("fixture serializes");
-        let schema_bytes = serde_json::to_vec(&schema).expect("schema serializes");
-        let err = verify_values(&schema, &fixture, &fixture_bytes, &schema_bytes);
-        assert!(err.is_err() || find(&report(&fixture, &schema), "RC-004").frontier.is_empty());
+        fixture["scenarios"][0]["interventions"][0]["funding_state"] = json!("unknown");
+        let report = report(&fixture, &schema);
+        let recovery = find(&report, "RC-001");
+        assert_eq!(recovery.recovery_status, "infeasible_essential_floor");
+        assert!(recovery.frontier.is_empty());
+        assert!(!recovery
+            .frontier
+            .iter()
+            .any(|item| item.selected_intervention_ids.contains(&"WATER_LOW".to_string())));
     }
 }
