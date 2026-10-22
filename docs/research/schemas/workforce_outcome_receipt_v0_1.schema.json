@@ -259,6 +259,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
+        "policy_id",
         "status",
         "gross_paid_work_events",
         "net_additional_paid_hours_estimate",
@@ -376,6 +377,11 @@
             "causal_claim_supported_by_preregistered_design",
             "incomplete_or_indeterminate"
           ]
+        },
+        "policy_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Policy result whose gross paid-work event count is assessed."
         }
       }
     }
