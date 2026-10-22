@@ -70,5 +70,16 @@ jobs:
             (.scorecards[] | select(.alternative_id == "strategy-b") | .worst_case_utility_points == 40 and .unweighted_mean_utility_points == 59.25 and .maximum_regret_points == 35 and .robustly_qualified == false) and
             (.scorecards[] | select(.alternative_id == "strategy-c") | .worst_case_utility_points == 72 and .unweighted_mean_utility_points == 73.75 and .maximum_regret_points == 17 and .unweighted_mean_regret_points == 6.5 and .robustly_qualified == true) and
             .maximin_winner == "strategy-c" and
-            .minimax_regret_winner == "strategy-a"
+            .minimax_regret_winner == "strategy-a" and
+            (.maximin_omission_stability_fraction - 0.75 | abs) < 0.000001 and
+            (.minimax_regret_omission_stability_fraction - 1.0 | abs) < 0.000001 and
+            (.scenario_omission_audit | length) == 4 and
+            .scenario_omission_audit[0].omitted_scenario_id == "baseline" and
+            .scenario_omission_audit[0].maximin_winner == "strategy-c" and
+            .scenario_omission_audit[0].maximin_winner_changed == false and
+            .scenario_omission_audit[1].omitted_scenario_id == "extreme_rain" and
+            .scenario_omission_audit[1].maximin_winner == "strategy-a" and
+            .scenario_omission_audit[1].maximin_winner_changed == true and
+            (.scenario_omission_audit | all(.[]; .remaining_scenario_count == 3)) and
+            (.scenario_omission_audit | all(.[]; .minimax_regret_winner == "strategy-a" and .minimax_regret_winner_changed == false))
           ' "$report"
