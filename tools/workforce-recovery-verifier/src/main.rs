@@ -674,8 +674,8 @@ fn verify_values(
         limitations: vec![
             "All disruption conditions, intervention bundles and outcome units are synthetic.",
             "The exact recovery frontier is a tiny-instance oracle, not a production rescheduler.",
-            "No individual worker-reliability prediction or invasive employee-monitoring data is used.",
-            "A passing fixture does not establish real service resilience, jobs created or SOTA superiority.",
+            "No individual reliability prediction or invasive monitoring is used.",
+            "A pass does not prove service resilience, jobs created or SOTA superiority.",
         ],
         claim_ceiling: corpus.claim_ceiling,
     })
