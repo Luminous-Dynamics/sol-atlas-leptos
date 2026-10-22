@@ -28,12 +28,13 @@
     "inputPort": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["port_id", "form", "energy_kwh", "external_energy_kwh", "temperature_c"],
+      "required": ["port_id", "form", "energy_kwh", "external_energy_kwh", "external_source_id", "temperature_c"],
       "properties": {
         "port_id": { "type": "string", "minLength": 1 },
         "form": { "$ref": "#/$defs/energyForm" },
         "energy_kwh": { "type": "number", "minimum": 0 },
         "external_energy_kwh": { "type": "number", "minimum": 0 },
+        "external_source_id": { "type": ["string", "null"] },
         "temperature_c": { "type": ["number", "null"] }
       },
       "allOf": [
@@ -41,6 +42,17 @@
           "if": { "properties": { "form": { "const": "thermal_heat" } }, "required": ["form"] },
           "then": { "properties": { "temperature_c": { "type": "number" } } },
           "else": { "properties": { "temperature_c": { "type": "null" } } }
+        },
+        {
+          "if": {
+            "properties": { "external_energy_kwh": { "exclusiveMinimum": 0 } },
+            "required": ["external_energy_kwh"]
+          },
+          "then": {
+            "required": ["external_source_id"],
+            "properties": { "external_source_id": { "type": "string", "minLength": 1 } }
+          },
+          "else": { "properties": { "external_source_id": { "type": "null" } } }
         }
       ]
     },
