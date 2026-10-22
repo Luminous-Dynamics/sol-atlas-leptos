@@ -64,31 +64,39 @@ jobs:
             .baseline_scenario_sha256 == "1111111111111111111111111111111111111111111111111111111111111111" and
             .alternative_scenario_sha256 == "2222222222222222222222222222222222222222222222222222222222222222" and
             .budget_cost_units == 6 and
-            .selected_cost_units == 6 and
-            .unspent_budget_units == 0 and
+            .selected_cost_units == 4 and
+            .unspent_budget_units == 2 and
             .candidate_count == 6 and
             .eligible_candidate_count == 4 and
             .ineligible_candidate_count == 2 and
-            .selected_candidate_count == 2 and
-            .eligible_not_selected_count == 2 and
+            .selected_candidate_count == 1 and
+            .eligible_not_selected_count == 3 and
             .eligible_spatial_temporal_stratum_count == 3 and
-            .selected_spatial_temporal_stratum_count == 2 and
+            .selected_spatial_temporal_stratum_count == 1 and
             (.eligible_spatial_temporal_stratum_coverage_fraction - 0.666666667 | abs) < 0.000001 and
-            .selected_candidate_ids == ["candidate-b-north-replica", "candidate-c-south-sensor"] and
-            (.total_weighted_discrimination_nats - 10.0 | abs) < 0.000001 and
+            .selected_candidate_ids == ["candidate-a-high-density"] and
+            (.total_weighted_discrimination_nats - 11.0 | abs) < 0.000001 and
+            (.minimum_spatial_temporal_coverage_fraction - 0.666666667 | abs) < 0.000001 and
+            .required_spatial_temporal_stratum_count == 2 and
+            .coverage_constraint_status == "satisfied" and
+            .coverage_constrained_selected_candidate_ids == ["candidate-b-north-replica", "candidate-c-south-sensor"] and
+            .coverage_constrained_cost_units == 6 and
+            (.coverage_constrained_stratum_coverage_fraction - 0.666666667 | abs) < 0.000001 and
+            (.coverage_constrained_weighted_discrimination_nats - 10.0 | abs) < 0.000001 and
+            (.coverage_constraint_score_loss_nats - 1.0 | abs) < 0.000001 and
             .greedy_ratio_baseline_selected_candidate_ids == ["candidate-a-high-density"] and
             .greedy_ratio_baseline_cost_units == 4 and
-            (.greedy_ratio_baseline_weighted_discrimination_nats - 7.0 | abs) < 0.000001 and
-            (.exact_gain_over_greedy_ratio_baseline_nats - 3.0 | abs) < 0.000001 and
+            (.greedy_ratio_baseline_weighted_discrimination_nats - 11.0 | abs) < 0.000001 and
+            (.exact_gain_over_greedy_ratio_baseline_nats - 0.0 | abs) < 0.000001 and
             .uniform_baseline_replicates == 64 and
-            (.uniform_baseline_mean_weighted_discrimination_nats - 8.78125 | abs) < 0.000001 and
-            (.uniform_baseline_best_weighted_discrimination_nats - 10.0 | abs) < 0.000001 and
+            (.uniform_baseline_mean_weighted_discrimination_nats - 10.40625 | abs) < 0.000001 and
+            (.uniform_baseline_best_weighted_discrimination_nats - 11.0 | abs) < 0.000001 and
             (.uniform_baseline_mean_stratum_coverage_fraction - 0.53125 | abs) < 0.000001 and
-            (.exact_gain_over_uniform_mean_nats - 1.21875 | abs) < 0.000001 and
+            (.exact_gain_over_uniform_mean_nats - 0.59375 | abs) < 0.000001 and
             ([.decisions[] | select(.candidate_id == "candidate-e-consent-denied" and .reason == "consent_denied" and .consent_status == "denied" and .consent_evidence_sha256 == null)] | length) == 1 and
             ([.decisions[] | select(.candidate_id == "candidate-f-access-unknown" and .reason == "access_unknown" and .access_status == "unknown" and .access_authorization_sha256 == null)] | length) == 1 and
             ([.decisions[] | select(.candidate_id == "candidate-a-high-density" and (.consent_evidence_sha256 | test("^[0-9a-f]{64}$")) and (.access_authorization_sha256 | test("^[0-9a-f]{64}$")))] | length) == 1 and
-            ([.decisions[] | select(.decision == "selected" and (.reason == null))] | length) == 2
+            ([.decisions[] | select(.decision == "selected" and (.reason == null))] | length) == 1
           ' "$report"
 
       - name: Upload exact-revision report
