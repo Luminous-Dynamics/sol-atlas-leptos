@@ -302,7 +302,10 @@ pub fn validate_fixture(fixture: &RobustnessFixture) -> Result<(), Vec<String>> 
     }
     let mut constraint_ids = BTreeSet::new();
     if fixture.critical_constraints.is_empty() || fixture.critical_constraints.len() > 20 {
-        errors.push("critical_constraints must contain 1..=20 explicit non-compensatory constraints".to_owned());
+        errors.push(
+            "critical_constraints must contain 1..=20 explicit non-compensatory constraints"
+                .to_owned(),
+        );
     }
     for constraint in &fixture.critical_constraints {
         if !nonempty(&constraint.constraint_id) || !nonempty(&constraint.label) {
@@ -316,13 +319,22 @@ pub fn validate_fixture(fixture: &RobustnessFixture) -> Result<(), Vec<String>> 
     let mut constraint_pairs = BTreeSet::new();
     for outcome in &fixture.constraint_outcomes {
         if !scenario_ids.contains(outcome.scenario_id.as_str()) {
-            errors.push(format!("constraint outcome references unknown scenario: {}", outcome.scenario_id));
+            errors.push(format!(
+                "constraint outcome references unknown scenario: {}",
+                outcome.scenario_id
+            ));
         }
         if !alternative_ids.contains(outcome.alternative_id.as_str()) {
-            errors.push(format!("constraint outcome references unknown alternative: {}", outcome.alternative_id));
+            errors.push(format!(
+                "constraint outcome references unknown alternative: {}",
+                outcome.alternative_id
+            ));
         }
         if !constraint_ids.contains(outcome.constraint_id.as_str()) {
-            errors.push(format!("constraint outcome references unknown constraint: {}", outcome.constraint_id));
+            errors.push(format!(
+                "constraint outcome references unknown constraint: {}",
+                outcome.constraint_id
+            ));
         }
         if !constraint_pairs.insert((
             outcome.scenario_id.as_str(),
@@ -455,7 +467,9 @@ pub fn validate_utility_method_bytes(
         errors.push("utility method missing_data must be fail_closed".to_owned());
     }
     if method.claim_ceiling != "scenario_robustness_only_not_real_world_impact" {
-        errors.push("utility method claim_ceiling exceeds or contradicts the v0.1 scope".to_owned());
+        errors.push(
+            "utility method claim_ceiling exceeds or contradicts the v0.1 scope".to_owned(),
+        );
     }
     if errors.is_empty() {
         Ok(method)
@@ -554,7 +568,7 @@ pub fn evaluate_fixture_bytes(
             .push(ConstraintViolation {
                 scenario_id: outcome.scenario_id.clone(),
                 constraint_id: outcome.constraint_id.clone(),
-                label: constraint_labels[ outcome.constraint_id.as_str() ].to_owned(),
+                label: constraint_labels[outcome.constraint_id.as_str()].to_owned(),
             });
     }
 
@@ -832,7 +846,10 @@ mod tests {
         assert!(!c.robustly_qualified);
         assert_eq!(c.blocking_constraint_violations.len(), 1);
         assert_eq!(c.blocking_constraint_violations[0].scenario_id, "maintenance_shock");
-        assert_eq!(c.blocking_constraint_violations[0].constraint_id, "accessible_route_continuity");
+        assert_eq!(
+            c.blocking_constraint_violations[0].constraint_id,
+            "accessible_route_continuity"
+        );
     }
 
     #[test]
@@ -938,10 +955,16 @@ mod tests {
         let mut fixture: RobustnessFixture =
             serde_json::from_slice(&fixture_bytes()).expect("fixture parses");
         fixture.constraint_outcomes.pop();
-        assert!(validate_fixture(&fixture)
-            .unwrap_err()
-            .iter()
-            .any(|error| error.contains("exactly one result for every scenario/alternative/constraint tuple")));
+        assert!(
+            validate_fixture(&fixture)
+                .unwrap_err()
+                .iter()
+                .any(|error| {
+                    error.contains(
+                        "exactly one result for every scenario/alternative/constraint tuple"
+                    )
+                })
+        );
     }
 
     #[test]
@@ -952,11 +975,17 @@ mod tests {
             outcome.satisfied = false;
         }
         let bytes = serde_json::to_vec(&fixture).expect("fixture JSON");
-        let report = evaluate_fixture_bytes(&bytes, &method_bytes()).expect("valid but infeasible panel");
+        let report = evaluate_fixture_bytes(&bytes, &method_bytes())
+            .expect("valid but infeasible panel");
         assert_eq!(report.maximin_winner, "strategy-c");
         assert_eq!(report.feasible_maximin_winner, None);
         assert_eq!(report.feasible_minimax_regret_winner, None);
-        assert!(report.scorecards.iter().all(|scorecard| !scorecard.robustly_qualified));
+        assert!(
+            report
+                .scorecards
+                .iter()
+                .all(|scorecard| !scorecard.robustly_qualified)
+        );
     }
 
     #[test]
