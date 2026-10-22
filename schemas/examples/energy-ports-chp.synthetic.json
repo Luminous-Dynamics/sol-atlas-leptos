@@ -15,6 +15,7 @@
           "form": "chemical",
           "energy_kwh": 100.0,
           "external_energy_kwh": 100.0,
+          "external_source_id": "fuel-batch-001",
           "temperature_c": null
         }
       ],
@@ -54,6 +55,7 @@
           "form": "thermal_heat",
           "energy_kwh": 15.0,
           "external_energy_kwh": 0.0,
+          "external_source_id": null,
           "temperature_c": 80.0
         }
       ],
