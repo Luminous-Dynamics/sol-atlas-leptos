@@ -1,4 +1,4 @@
-name: Workforce forecast calibration verifier
+name: Workforce calibration and abstention verifier
 
 on:
   pull_request:
@@ -40,7 +40,7 @@ jobs:
           components: rustfmt
       - name: Check formatting
         run: cargo fmt --manifest-path tools/workforce-calibration-verifier/Cargo.toml -- --check
-      - name: Run calibration and abstention tests
+      - name: Run calibration metric tests
         run: cargo test --manifest-path tools/workforce-calibration-verifier/Cargo.toml
       - name: Produce synthetic-only calibration receipt
         run: cargo run --manifest-path tools/workforce-calibration-verifier/Cargo.toml -- docs/research/fixtures/workforce_calibration_cases_v0_1.json docs/research/schemas/workforce_calibration_v0_1.schema.json
