@@ -92,7 +92,7 @@ This fixture is synthetic and deterministic. It proves accounting behavior, not 
 | Numerical safety | negative, non-finite, overflowed aggregate or invalid duration values reject |
 | Complexity | use indexed service samples; target O(I × S log S) time and O(I × S) report storage for I intervals and S services |
 
-Next add property-based traces and a separate performance benchmark at 8,760 hourly intervals, multiple services, and sub-hourly outage windows. Performance targets must record hardware, toolchain, sample size and measurement method; never report a speedup from an unpinned run.
+The Rust test suite now includes a deterministic sweep over 64 generated traces and a timestep-refinement test that splits intervals while preserving energy and outage/deficit durations. Next add larger property-generated traces and a separate performance benchmark at 8,760 hourly intervals, multiple services, and sub-hourly outage windows. Performance targets must record hardware, toolchain, sample size and measurement method; never report a speedup from an unpinned run.
 
 ## Industry comparison: where this layer fits
 
