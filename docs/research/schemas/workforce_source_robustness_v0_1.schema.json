@@ -1,0 +1,261 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/schemas/workforce_source_robustness_v0_1.schema.json",
+  "title": "SA-WORKFORCE-SOURCE-ROBUSTNESS scenario corpus v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "fixture_notice",
+    "schema_version",
+    "benchmark_id",
+    "synthetic_only",
+    "claim_ceiling",
+    "scenarios"
+  ],
+  "properties": {
+    "fixture_notice": {
+      "type": "string",
+      "minLength": 30
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "benchmark_id": {
+      "const": "SA-WORKFORCE-SOURCE-ROBUSTNESS-001"
+    },
+    "synthetic_only": {
+      "const": true
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 20
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "$ref": "#/$defs/scenario"
+      }
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "family",
+        "measure",
+        "value",
+        "unit",
+        "population",
+        "scope_id",
+        "comparison_basis",
+        "geography",
+        "period_start",
+        "period_end",
+        "denominator",
+        "access_class",
+        "age_days",
+        "limitations"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_-]*$"
+        },
+        "family": {
+          "enum": [
+            "official_survey",
+            "official_admin",
+            "job_ads",
+            "employer_survey",
+            "employer_workflow",
+            "task_assessment",
+            "derived_synthetic"
+          ]
+        },
+        "measure": {
+          "enum": [
+            "online_ads",
+            "funded_vacancies",
+            "task_ready_capacity",
+            "employer_hiring_intention",
+            "median_wage_change_pct",
+            "vacancy_duration_days",
+            "offer_decline_share_pct",
+            "turnover_rate_pct",
+            "taxonomy_mapping_count",
+            "registered_supply",
+            "training_completions"
+          ]
+        },
+        "value": {
+          "type": "number",
+          "minimum": 0
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "population": {
+          "type": "string",
+          "minLength": 1
+        },
+        "geography": {
+          "type": "string",
+          "minLength": 1
+        },
+        "period_start": {
+          "type": "string",
+          "format": "date"
+        },
+        "period_end": {
+          "type": "string",
+          "format": "date"
+        },
+        "denominator": {
+          "type": "string",
+          "minLength": 1
+        },
+        "access_class": {
+          "const": "synthetic"
+        },
+        "age_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 36500
+        },
+        "taxonomy_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "scope_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "comparison_basis": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "perturbation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "source_id",
+        "operation",
+        "parameter",
+        "expected_decision",
+        "rationale"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_-]*$"
+        },
+        "source_id": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_-]*$"
+        },
+        "operation": {
+          "enum": [
+            "multiply_online_ads",
+            "drop_source",
+            "reduce_coverage",
+            "replace_employer_sample",
+            "mark_stale",
+            "alternate_taxonomy_mapping",
+            "introduce_job_quality_confounder",
+            "leave_source_family_out",
+            "change_reference_period",
+            "change_denominator"
+          ]
+        },
+        "parameter": {
+          "type": [
+            "number",
+            "string",
+            "boolean",
+            "object",
+            "null"
+          ]
+        },
+        "expected_decision": {
+          "enum": [
+            "confirmed_task_capacity_gap",
+            "no_confirmed_shortage",
+            "job_quality_confounding",
+            "fragile_or_indeterminate"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "description",
+        "sources",
+        "baseline_decision",
+        "perturbations",
+        "expected_invariants"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_-]*$"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/source"
+          }
+        },
+        "baseline_decision": {
+          "enum": [
+            "confirmed_task_capacity_gap",
+            "no_confirmed_shortage",
+            "job_quality_confounding",
+            "fragile_or_indeterminate"
+          ]
+        },
+        "perturbations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/perturbation"
+          }
+        },
+        "expected_invariants": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

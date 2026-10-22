@@ -1,0 +1,498 @@
+{
+  "fixture_notice": "ALL VALUES ARE SYNTHETIC CONTRACT DATA. These numbers are not observed vacancy counts, wage changes, local labour-market estimates or probabilities.",
+  "schema_version": "0.1.0",
+  "benchmark_id": "SA-WORKFORCE-SOURCE-ROBUSTNESS-001",
+  "synthetic_only": true,
+  "claim_ceiling": "Synthetic source robustness only; no real representativeness or shortage claim.",
+  "scenarios": [
+    {
+      "id": "SR-001",
+      "description": "Independent evidence shows a funded task-capacity gap; duplicate online ads must not inflate funded positions.",
+      "sources": [
+        {
+          "id": "FUNDED",
+          "family": "employer_workflow",
+          "measure": "funded_vacancies",
+          "value": 4,
+          "unit": "person-shift slots",
+          "population": "synthetic municipal water-maintenance vacancies",
+          "geography": "synthetic-region-A",
+          "period_start": "2026-01-01",
+          "period_end": "2026-01-31",
+          "denominator": "all approved funded work orders in period",
+          "access_class": "synthetic",
+          "age_days": 2,
+          "taxonomy_version": "OFO-synthetic-v1",
+          "limitations": [
+            "authored fixture",
+            "not real municipal data"
+          ],
+          "scope_id": "water-maintenance-task-scope-01",
+          "comparison_basis": "funded slot count normalized to one required qualified person-shift per slot; basis-v1"
+        },
+        {
+          "id": "CAPACITY",
+          "family": "task_assessment",
+          "measure": "task_ready_capacity",
+          "value": 2,
+          "unit": "person-shift slots",
+          "population": "synthetic authorized candidate pool",
+          "geography": "synthetic-region-A",
+          "period_start": "2026-01-01",
+          "period_end": "2026-01-31",
+          "denominator": "workers assessed for the same task scope and shift",
+          "access_class": "synthetic",
+          "age_days": 3,
+          "taxonomy_version": "TASK-scope-v1",
+          "limitations": [
+            "authored fixture",
+            "task scope is synthetic"
+          ],
+          "scope_id": "water-maintenance-task-scope-01",
+          "comparison_basis": "funded slot count normalized to one required qualified person-shift per slot; basis-v1"
+        },
+        {
+          "id": "ADS",
+          "family": "job_ads",
+          "measure": "online_ads",
+          "value": 40,
+          "unit": "ad records",
+          "population": "synthetic online posting set",
+          "geography": "synthetic-region-A",
+          "period_start": "2026-01-01",
+          "period_end": "2026-01-31",
+          "denominator": "captured postings in covered sources",
+          "access_class": "synthetic",
+          "age_days": 1,
+          "taxonomy_version": "PROVIDER-to-OFO-synthetic-v1",
+          "limitations": [
+            "duplicates intentionally possible",
+            "coverage is not representative"
+          ],
+          "scope_id": "online-posting-capture-scope-01",
+          "comparison_basis": "posting record count only; not comparable to funded slots; ads-v1"
+        }
+      ],
+      "baseline_decision": "confirmed_task_capacity_gap",
+      "perturbations": [
+        {
+          "id": "SR-001-P1",
+          "source_id": "ADS",
+          "operation": "multiply_online_ads",
+          "parameter": 5,
+          "expected_decision": "confirmed_task_capacity_gap",
+          "rationale": "Only the ad-record count changes; independent funded positions and task-ready capacity remain unchanged."
+        },
+        {
+          "id": "SR-001-P2",
+          "source_id": "ADS",
+          "operation": "drop_source",
+          "parameter": true,
+          "expected_decision": "confirmed_task_capacity_gap",
+          "rationale": "The funded-work and comparable task-ready-capacity evidence still establishes the synthetic gap without ads."
+        }
+      ],
+      "expected_invariants": [
+        "Verified funded-position count remains 4 regardless of duplicated ad records.",
+        "Raw online ad count is not treated as funded headcount.",
+        "Decision is grounded in same-scope funded work and task-ready capacity, not ad volume."
+      ]
+    },
+    {
+      "id": "SR-002",
+      "description": "Large advertisement volume and employer intentions do not establish current funded work when payer evidence is absent.",
+      "sources": [
+        {
+          "id": "ADS2",
+          "family": "job_ads",
+          "measure": "online_ads",
+          "value": 250,
+          "unit": "ad records",
+          "population": "synthetic mixed online postings",
+          "geography": "synthetic-region-B",
+          "period_start": "2026-02-01",
+          "period_end": "2026-02-28",
+          "denominator": "captured online records only",
+          "access_class": "synthetic",
+          "age_days": 7,
+          "taxonomy_version": "PROVIDER-to-OFO-synthetic-v1",
+          "limitations": [
+            "duplicates unknown",
+            "not a census of hiring"
+          ],
+          "scope_id": "recruitment-context-02",
+          "comparison_basis": "posting record count only; not comparable to funded slots; ads-v1"
+        },
+        {
+          "id": "INTENT",
+          "family": "employer_survey",
+          "measure": "employer_hiring_intention",
+          "value": 75,
+          "unit": "employer-intention responses",
+          "population": "synthetic voluntary responding employers",
+          "geography": "synthetic-region-B",
+          "period_start": "2026-02-01",
+          "period_end": "2026-02-28",
+          "denominator": "respondents in hypothetical stakeholder-network survey",
+          "access_class": "synthetic",
+          "age_days": 12,
+          "taxonomy_version": "OFO-synthetic-v1",
+          "limitations": [
+            "voluntary response",
+            "intentions not approvals"
+          ],
+          "scope_id": "recruitment-context-02",
+          "comparison_basis": "respondent intention measure; not comparable to funded slots; intention-v1"
+        },
+        {
+          "id": "NOFUNDED",
+          "family": "employer_workflow",
+          "measure": "funded_vacancies",
+          "value": 0,
+          "unit": "approved funded positions",
+          "population": "synthetic authorized employer work set",
+          "geography": "synthetic-region-B",
+          "period_start": "2026-02-01",
+          "period_end": "2026-02-28",
+          "denominator": "positions verified as approved/funded in this synthetic example",
+          "access_class": "synthetic",
+          "age_days": 2,
+          "taxonomy_version": "OFO-synthetic-v1",
+          "limitations": [
+            "only covers supplied authorized work set",
+            "zero here is synthetic"
+          ],
+          "scope_id": "recruitment-context-02",
+          "comparison_basis": "verified approved positions in supplied synthetic work set; funding-v1"
+        }
+      ],
+      "baseline_decision": "no_confirmed_shortage",
+      "perturbations": [
+        {
+          "id": "SR-002-P1",
+          "source_id": "INTENT",
+          "operation": "replace_employer_sample",
+          "parameter": "replace_with_empty_sample",
+          "expected_decision": "no_confirmed_shortage",
+          "rationale": "Changing the intention-to-hire sample cannot turn zero funded positions into current funded demand."
+        },
+        {
+          "id": "SR-002-P2",
+          "source_id": "ADS2",
+          "operation": "multiply_online_ads",
+          "parameter": 4,
+          "expected_decision": "no_confirmed_shortage",
+          "rationale": "An ad-count multiplication without funded-position evidence does not establish a shortage."
+        }
+      ],
+      "expected_invariants": [
+        "No confirmed shortage from advertisements or employer intentions alone.",
+        "A proxy-heavy source cannot override absent independent funded-demand evidence.",
+        "No-confirmed-shortage means not established, not proof that no shortage exists."
+      ]
+    },
+    {
+      "id": "SR-003",
+      "description": "Repeat vacancies have high offer-decline share and nonviable synthetic shift/pay conditions, so job-quality confounding must remain visible.",
+      "sources": [
+        {
+          "id": "ADS3",
+          "family": "job_ads",
+          "measure": "online_ads",
+          "value": 85,
+          "unit": "ad records",
+          "population": "synthetic repeatedly advertised jobs",
+          "geography": "synthetic-region-C",
+          "period_start": "2026-03-01",
+          "period_end": "2026-03-31",
+          "denominator": "captured ads, reposts included",
+          "access_class": "synthetic",
+          "age_days": 4,
+          "taxonomy_version": "PROVIDER-to-OFO-synthetic-v1",
+          "limitations": [
+            "reposts not reliably deduplicated",
+            "turnover may drive repeat ads"
+          ],
+          "scope_id": "repeated-vacancy-job-quality-context-03",
+          "comparison_basis": "reposted ad record count only; not comparable to job slots; repost-v1"
+        },
+        {
+          "id": "DECLINES",
+          "family": "employer_workflow",
+          "measure": "offer_decline_share_pct",
+          "value": 70,
+          "unit": "percent of offers declined",
+          "population": "synthetic job offers",
+          "geography": "synthetic-region-C",
+          "period_start": "2026-03-01",
+          "period_end": "2026-03-31",
+          "denominator": "all offers in the synthetic observation period",
+          "access_class": "synthetic",
+          "age_days": 2,
+          "taxonomy_version": "WORKFLOW-synthetic-v1",
+          "limitations": [
+            "synthetic ratio",
+            "does not describe real workers"
+          ],
+          "scope_id": "repeated-vacancy-job-quality-context-03",
+          "comparison_basis": "share of synthetic offers declined; quality-v1"
+        },
+        {
+          "id": "INTCOND",
+          "family": "employer_survey",
+          "measure": "turnover_rate_pct",
+          "value": 55,
+          "unit": "percent annualized turnover",
+          "population": "synthetic repeated-vacancy job set",
+          "geography": "synthetic-region-C",
+          "period_start": "2026-03-01",
+          "period_end": "2026-03-31",
+          "denominator": "positions in synthetic job set",
+          "access_class": "synthetic",
+          "age_days": 6,
+          "taxonomy_version": "OFO-synthetic-v1",
+          "limitations": [
+            "quality and turnover label synthetic",
+            "no personal data"
+          ],
+          "scope_id": "repeated-vacancy-job-quality-context-03",
+          "comparison_basis": "synthetic turnover share; quality-v1"
+        }
+      ],
+      "baseline_decision": "job_quality_confounding",
+      "perturbations": [
+        {
+          "id": "SR-003-P1",
+          "source_id": "ADS3",
+          "operation": "multiply_online_ads",
+          "parameter": 3,
+          "expected_decision": "job_quality_confounding",
+          "rationale": "Repeated posting cannot erase observed synthetic offer-decline and turnover signals."
+        },
+        {
+          "id": "SR-003-P2",
+          "source_id": "DECLINES",
+          "operation": "drop_source",
+          "parameter": true,
+          "expected_decision": "fragile_or_indeterminate",
+          "rationale": "Removing a key job-quality measure leaves the remaining evidence unable to separate skill shortage from poor retention conditions."
+        }
+      ],
+      "expected_invariants": [
+        "High vacancy/repost activity is not, by itself, a skill-shortage label.",
+        "High declines/turnover are a confounder signal, not proof that skills are sufficient.",
+        "Dropping key confounder evidence must not silently retain a confident causal interpretation."
+      ]
+    },
+    {
+      "id": "SR-004",
+      "description": "Alternate occupational mappings change a synthetic occupation ranking; the result must disclose taxonomy sensitivity.",
+      "sources": [
+        {
+          "id": "MAPA",
+          "family": "derived_synthetic",
+          "measure": "taxonomy_mapping_count",
+          "value": 18,
+          "unit": "mapped ads under crosswalk A",
+          "population": "synthetic task-title set",
+          "geography": "synthetic-region-D",
+          "period_start": "2026-04-01",
+          "period_end": "2026-04-30",
+          "denominator": "40 synthetic job-title records",
+          "access_class": "synthetic",
+          "age_days": 5,
+          "taxonomy_version": "crosswalk-A",
+          "limitations": [
+            "ambiguous job titles",
+            "synthetic mapping counts"
+          ],
+          "scope_id": "job-title-crosswalk-set-04",
+          "comparison_basis": "count of title records mapped by crosswalk version; taxonomy-v1"
+        },
+        {
+          "id": "MAPB",
+          "family": "derived_synthetic",
+          "measure": "taxonomy_mapping_count",
+          "value": 9,
+          "unit": "mapped ads under crosswalk B",
+          "population": "same synthetic task-title set",
+          "geography": "synthetic-region-D",
+          "period_start": "2026-04-01",
+          "period_end": "2026-04-30",
+          "denominator": "same 40 synthetic job-title records",
+          "access_class": "synthetic",
+          "age_days": 5,
+          "taxonomy_version": "crosswalk-B",
+          "limitations": [
+            "alternative plausible mapping",
+            "not validated OFO crosswalk"
+          ],
+          "scope_id": "job-title-crosswalk-set-04",
+          "comparison_basis": "count of same title records mapped by crosswalk version; taxonomy-v1"
+        }
+      ],
+      "baseline_decision": "fragile_or_indeterminate",
+      "perturbations": [
+        {
+          "id": "SR-004-P1",
+          "source_id": "MAPA",
+          "operation": "alternate_taxonomy_mapping",
+          "parameter": "crosswalk-B",
+          "expected_decision": "fragile_or_indeterminate",
+          "rationale": "The ranking changes under a plausible taxonomy crosswalk; publish the sensitivity instead of a precise rank."
+        }
+      ],
+      "expected_invariants": [
+        "No precise occupation ranking when plausible mappings materially change the result.",
+        "Always disclose taxonomy versions and denominator.",
+        "Do not claim that an occupational title is a unique task or skill."
+      ]
+    },
+    {
+      "id": "SR-005",
+      "description": "Removing a stale source or misaligning time periods should make the conclusion indeterminate rather than yield a falsely precise composite.",
+      "sources": [
+        {
+          "id": "STALEFUNDED",
+          "family": "official_admin",
+          "measure": "funded_vacancies",
+          "value": 12,
+          "unit": "funded positions",
+          "population": "synthetic approved vacancy extract",
+          "geography": "synthetic-region-E",
+          "period_start": "2025-01-01",
+          "period_end": "2025-03-31",
+          "denominator": "all rows in the old synthetic extract",
+          "access_class": "synthetic",
+          "age_days": 420,
+          "taxonomy_version": "OFO-synthetic-v1",
+          "limitations": [
+            "too old for current operational conclusion",
+            "source reference period is prior year"
+          ],
+          "scope_id": "old-approved-work-scope-05",
+          "comparison_basis": "old work approval count; stale period; funding-v1"
+        },
+        {
+          "id": "CURRENTADS",
+          "family": "job_ads",
+          "measure": "online_ads",
+          "value": 90,
+          "unit": "ad records",
+          "population": "synthetic captured current postings",
+          "geography": "synthetic-region-E",
+          "period_start": "2026-04-01",
+          "period_end": "2026-04-30",
+          "denominator": "captured online postings in current period",
+          "access_class": "synthetic",
+          "age_days": 3,
+          "taxonomy_version": "PROVIDER-to-OFO-synthetic-v1",
+          "limitations": [
+            "different period than stale funded evidence",
+            "coverage is incomplete"
+          ],
+          "scope_id": "current-online-posting-scope-05",
+          "comparison_basis": "online ad records only; current but nonrepresentative; ads-v1"
+        }
+      ],
+      "baseline_decision": "fragile_or_indeterminate",
+      "perturbations": [
+        {
+          "id": "SR-005-P1",
+          "source_id": "STALEFUNDED",
+          "operation": "mark_stale",
+          "parameter": 600,
+          "expected_decision": "fragile_or_indeterminate",
+          "rationale": "The old funding record cannot validate the current vacancy set."
+        },
+        {
+          "id": "SR-005-P2",
+          "source_id": "CURRENTADS",
+          "operation": "change_reference_period",
+          "parameter": "2025-01-01/2025-03-31",
+          "expected_decision": "fragile_or_indeterminate",
+          "rationale": "Changing the reference period without matching denominators does not identify the current state."
+        }
+      ],
+      "expected_invariants": [
+        "Never silently merge mismatched reference periods.",
+        "A stale funded-work source cannot independently establish current demand.",
+        "Missing comparable evidence leads to an explicit fragile/indeterminate result."
+      ]
+    },
+    {
+      "id": "SR-006",
+      "description": "One posting provider covers urban formal employers only; coverage reduction means the source cannot represent informal or rural demand/supply.",
+      "sources": [
+        {
+          "id": "ONLINEONLY",
+          "family": "job_ads",
+          "measure": "online_ads",
+          "value": 120,
+          "unit": "ad records",
+          "population": "synthetic formal online employers",
+          "geography": "synthetic urban region-F",
+          "period_start": "2026-05-01",
+          "period_end": "2026-05-31",
+          "denominator": "provider-captured formal online ads",
+          "access_class": "synthetic",
+          "age_days": 4,
+          "taxonomy_version": "PROVIDER-to-OFO-synthetic-v1",
+          "limitations": [
+            "informal hiring not observed",
+            "rural coverage not observed",
+            "platform coverage shifts"
+          ],
+          "scope_id": "urban-online-coverage-scope-06",
+          "comparison_basis": "formal urban online posting count; not comparable to registered supply; ads-v1"
+        },
+        {
+          "id": "SURV",
+          "family": "official_survey",
+          "measure": "registered_supply",
+          "value": 800,
+          "unit": "people",
+          "population": "synthetic national registered-worker aggregate",
+          "geography": "synthetic nation",
+          "period_start": "2026-01-01",
+          "period_end": "2026-03-31",
+          "denominator": "registered people in a different national population",
+          "access_class": "synthetic",
+          "age_days": 40,
+          "taxonomy_version": "OFO-synthetic-v1",
+          "limitations": [
+            "geography differs",
+            "not all people task-ready or available",
+            "not comparable denominator"
+          ],
+          "scope_id": "national-registered-population-scope-06",
+          "comparison_basis": "national registered people count; not task-ready local availability; supply-v1"
+        }
+      ],
+      "baseline_decision": "fragile_or_indeterminate",
+      "perturbations": [
+        {
+          "id": "SR-006-P1",
+          "source_id": "ONLINEONLY",
+          "operation": "reduce_coverage",
+          "parameter": 0.4,
+          "expected_decision": "fragile_or_indeterminate",
+          "rationale": "The source is a selective channel and cannot establish a representative local demand rate."
+        },
+        {
+          "id": "SR-006-P2",
+          "source_id": "SURV",
+          "operation": "change_denominator",
+          "parameter": "task-ready available people in urban region-F and matching period",
+          "expected_decision": "fragile_or_indeterminate",
+          "rationale": "The provided aggregate does not have the denominator needed to assert local task-ready supply."
+        }
+      ],
+      "expected_invariants": [
+        "A national registered-supply count is not local task-ready availability.",
+        "Online coverage is not treated as representative absent a valid sampling model.",
+        "No conclusion is strengthened merely because one high-volume source dominates."
+      ]
+    }
+  ]
+}
