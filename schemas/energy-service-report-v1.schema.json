@@ -556,6 +556,62 @@
                         }
                       }
                     }
+                  },
+                  {
+                    "if": {
+                      "properties": {
+                        "source_node_id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "source_node_id"
+                      ]
+                    },
+                    "then": {
+                      "properties": {
+                        "source_port_id": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "else": {
+                      "properties": {
+                        "source_port_id": {
+                          "type": "null"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": {
+                        "required_form": {
+                          "const": "thermal_heat"
+                        },
+                        "source_node_id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "required_form",
+                        "source_node_id"
+                      ]
+                    },
+                    "then": {
+                      "properties": {
+                        "delivered_temperature_c": {
+                          "type": "number"
+                        }
+                      }
+                    },
+                    "else": {
+                      "properties": {
+                        "delivered_temperature_c": {
+                          "type": "null"
+                        }
+                      }
+                    }
                   }
                 ]
               }
