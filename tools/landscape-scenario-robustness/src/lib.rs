@@ -119,7 +119,10 @@ fn nonempty(value: &str) -> bool {
 pub fn validate_fixture(fixture: &RobustnessFixture) -> Result<(), Vec<String>> {
     let mut errors = Vec::new();
     if fixture.schema_version != FIXTURE_SCHEMA {
-        errors.push(format!("unsupported schema_version: {}", fixture.schema_version));
+        errors.push(format!(
+            "unsupported schema_version: {}",
+            fixture.schema_version
+        ));
     }
     if fixture.suite_id != SUITE_ID {
         errors.push(format!("unexpected suite_id: {}", fixture.suite_id));
@@ -139,10 +142,14 @@ pub fn validate_fixture(fixture: &RobustnessFixture) -> Result<(), Vec<String>> 
         errors.push("minimum_worst_case_utility_points must be finite and in [0, 100]".to_owned());
     }
     if fixture.scenarios.len() < 2 || fixture.scenarios.len() > MAX_SCENARIOS {
-        errors.push(format!("scenarios must contain 2..={MAX_SCENARIOS} entries"));
+        errors.push(format!(
+            "scenarios must contain 2..={MAX_SCENARIOS} entries"
+        ));
     }
     if fixture.alternatives.len() < 2 || fixture.alternatives.len() > MAX_ALTERNATIVES {
-        errors.push(format!("alternatives must contain 2..={MAX_ALTERNATIVES} entries"));
+        errors.push(format!(
+            "alternatives must contain 2..={MAX_ALTERNATIVES} entries"
+        ));
     }
 
     let mut scenario_ids = BTreeSet::new();
@@ -160,17 +167,26 @@ pub fn validate_fixture(fixture: &RobustnessFixture) -> Result<(), Vec<String>> 
             errors.push("alternative IDs and labels must be non-empty".to_owned());
         }
         if !alternative_ids.insert(alternative.alternative_id.as_str()) {
-            errors.push(format!("duplicate alternative_id: {}", alternative.alternative_id));
+            errors.push(format!(
+                "duplicate alternative_id: {}",
+                alternative.alternative_id
+            ));
         }
     }
 
     let mut pairs = BTreeSet::new();
     for outcome in &fixture.outcomes {
         if !scenario_ids.contains(outcome.scenario_id.as_str()) {
-            errors.push(format!("outcome references unknown scenario: {}", outcome.scenario_id));
+            errors.push(format!(
+                "outcome references unknown scenario: {}",
+                outcome.scenario_id
+            ));
         }
         if !alternative_ids.contains(outcome.alternative_id.as_str()) {
-            errors.push(format!("outcome references unknown alternative: {}", outcome.alternative_id));
+            errors.push(format!(
+                "outcome references unknown alternative: {}",
+                outcome.alternative_id
+            ));
         }
         if !outcome.utility_points.is_finite() || !(0.0..=100.0).contains(&outcome.utility_points) {
             errors.push(format!(
@@ -178,14 +194,20 @@ pub fn validate_fixture(fixture: &RobustnessFixture) -> Result<(), Vec<String>> 
                 outcome.scenario_id, outcome.alternative_id
             ));
         }
-        if !pairs.insert((outcome.scenario_id.as_str(), outcome.alternative_id.as_str())) {
+        if !pairs.insert((
+            outcome.scenario_id.as_str(),
+            outcome.alternative_id.as_str(),
+        )) {
             errors.push(format!(
                 "duplicate outcome for scenario {} and alternative {}",
                 outcome.scenario_id, outcome.alternative_id
             ));
         }
     }
-    let expected_pairs = fixture.scenarios.len().saturating_mul(fixture.alternatives.len());
+    let expected_pairs = fixture
+        .scenarios
+        .len()
+        .saturating_mul(fixture.alternatives.len());
     if pairs.len() != expected_pairs {
         errors.push(format!(
             "outcomes must contain exactly one result for every scenario/alternative pair: expected {expected_pairs}, found {}",
@@ -220,8 +242,11 @@ pub fn evaluate_fixture_bytes(
         )]);
     }
 
-    let mut scenario_ids: Vec<&str> =
-        fixture.scenarios.iter().map(|scenario| scenario.scenario_id.as_str()).collect();
+    let mut scenario_ids: Vec<&str> = fixture
+        .scenarios
+        .iter()
+        .map(|scenario| scenario.scenario_id.as_str())
+        .collect();
     scenario_ids.sort_unstable();
     let mut alternatives: Vec<&Alternative> = fixture.alternatives.iter().collect();
     alternatives.sort_by(|left, right| left.alternative_id.cmp(&right.alternative_id));
@@ -229,7 +254,10 @@ pub fn evaluate_fixture_bytes(
     let mut utility_by_pair: BTreeMap<(&str, &str), f64> = BTreeMap::new();
     for outcome in &fixture.outcomes {
         utility_by_pair.insert(
-            (outcome.scenario_id.as_str(), outcome.alternative_id.as_str()),
+            (
+                outcome.scenario_id.as_str(),
+                outcome.alternative_id.as_str(),
+            ),
             outcome.utility_points,
         );
     }
@@ -238,7 +266,9 @@ pub fn evaluate_fixture_bytes(
         .map(|scenario_id| {
             let best = alternatives
                 .iter()
-                .map(|alternative| utility_by_pair[&(scenario_id, alternative.alternative_id.as_str())])
+                .map(|alternative| {
+                    utility_by_pair[&(scenario_id, alternative.alternative_id.as_str())]
+                })
                 .fold(f64::NEG_INFINITY, f64::max);
             (*scenario_id, best)
         })
@@ -368,15 +398,31 @@ mod tests {
 
     #[test]
     fn frozen_fixture_exposes_mean_versus_robustness_tradeoff() {
-        let report = evaluate_fixture_bytes(&fixture_bytes(), &method_bytes()).expect("fixture report");
-        assert_eq!(report.conformance_status, "PASS_SYNTHETIC_SCENARIO_ROBUSTNESS_ONLY");
+        let report =
+            evaluate_fixture_bytes(&fixture_bytes(), &method_bytes()).expect("fixture report");
+        assert_eq!(
+            report.conformance_status,
+            "PASS_SYNTHETIC_SCENARIO_ROBUSTNESS_ONLY"
+        );
         assert_eq!(report.scenario_count, 4);
         assert_eq!(report.alternative_count, 3);
         assert_eq!(report.maximin_winner, "strategy-c");
         assert_eq!(report.minimax_regret_winner, "strategy-a");
-        let a = report.scorecards.iter().find(|item| item.alternative_id == "strategy-a").unwrap();
-        let b = report.scorecards.iter().find(|item| item.alternative_id == "strategy-b").unwrap();
-        let c = report.scorecards.iter().find(|item| item.alternative_id == "strategy-c").unwrap();
+        let a = report
+            .scorecards
+            .iter()
+            .find(|item| item.alternative_id == "strategy-a")
+            .unwrap();
+        let b = report
+            .scorecards
+            .iter()
+            .find(|item| item.alternative_id == "strategy-b")
+            .unwrap();
+        let c = report
+            .scorecards
+            .iter()
+            .find(|item| item.alternative_id == "strategy-c")
+            .unwrap();
         close(a.worst_case_utility_points, 70.0);
         close(a.unweighted_mean_utility_points, 76.25);
         close(a.maximum_regret_points, 10.0);
@@ -397,10 +443,12 @@ mod tests {
     fn method_digest_is_bound_to_exact_bytes() {
         let mut bad_method = method_bytes();
         bad_method.push(b' ');
-        assert!(evaluate_fixture_bytes(&fixture_bytes(), &bad_method)
-            .unwrap_err()
-            .iter()
-            .any(|error| error.contains("utility method digest mismatch")));
+        assert!(
+            evaluate_fixture_bytes(&fixture_bytes(), &bad_method)
+                .unwrap_err()
+                .iter()
+                .any(|error| error.contains("utility method digest mismatch"))
+        );
     }
 
     #[test]
@@ -408,10 +456,13 @@ mod tests {
         let mut fixture: RobustnessFixture =
             serde_json::from_slice(&fixture_bytes()).expect("fixture parses");
         fixture.outcomes.pop();
-        assert!(validate_fixture(&fixture)
-            .unwrap_err()
-            .iter()
-            .any(|error| error.contains("exactly one result for every scenario/alternative pair")));
+        assert!(
+            validate_fixture(&fixture)
+                .unwrap_err()
+                .iter()
+                .any(|error| error
+                    .contains("exactly one result for every scenario/alternative pair"))
+        );
     }
 
     #[test]
@@ -419,10 +470,12 @@ mod tests {
         let mut fixture: RobustnessFixture =
             serde_json::from_slice(&fixture_bytes()).expect("fixture parses");
         fixture.outcomes.push(fixture.outcomes[0].clone());
-        assert!(validate_fixture(&fixture)
-            .unwrap_err()
-            .iter()
-            .any(|error| error.contains("duplicate outcome")));
+        assert!(
+            validate_fixture(&fixture)
+                .unwrap_err()
+                .iter()
+                .any(|error| error.contains("duplicate outcome"))
+        );
     }
 
     #[test]
