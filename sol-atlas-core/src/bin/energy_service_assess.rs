@@ -111,6 +111,14 @@ mod tests {
         let whitespace_variant = report_from_bytes(trimmed).unwrap();
         assert_ne!(original.receipt.input_sha256, whitespace_variant.receipt.input_sha256);
         assert_eq!(
+            original.receipt.assessment_sha256,
+            original.assessment_sha256_for_test()
+        );
+        assert_eq!(
+            whitespace_variant.receipt.assessment_sha256,
+            whitespace_variant.assessment_sha256_for_test()
+        );
+        assert_eq!(
             original.assessment_sha256_for_test(),
             whitespace_variant.assessment_sha256_for_test()
         );
