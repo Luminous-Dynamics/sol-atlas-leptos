@@ -342,6 +342,12 @@ pub fn evaluate_fixture_bytes(
 
     let mut scorecards = Vec::with_capacity(alternatives.len());
     for alternative in &alternatives {
+        let raw_utilities: Vec<f64> = scenario_ids
+            .iter()
+            .map(|scenario_id| {
+                utility_by_pair[&(scenario_id, alternative.alternative_id.as_str())]
+            })
+            .collect();
         let scenario_utilities: Vec<ScenarioUtility> = scenario_ids
             .iter()
             .map(|scenario_id| {
@@ -353,24 +359,22 @@ pub fn evaluate_fixture_bytes(
                 }
             })
             .collect();
-        let worst_case_utility = scenario_utilities
+        // Make decisions from raw validated values. Rounding is presentation
+        // only; it must not create artificial ties that then fall to ID order.
+        let worst_case_utility = raw_utilities
             .iter()
-            .map(|outcome| outcome.utility_points)
+            .copied()
             .fold(f64::INFINITY, f64::min);
-        let mean_utility = scenario_utilities
+        let mean_utility = raw_utilities.iter().sum::<f64>() / raw_utilities.len() as f64;
+        let raw_regrets: Vec<f64> = scenario_ids
             .iter()
-            .map(|outcome| outcome.utility_points)
-            .sum::<f64>()
-            / scenario_utilities.len() as f64;
-        let maximum_regret = scenario_utilities
-            .iter()
-            .map(|outcome| outcome.regret_points)
-            .fold(0.0_f64, f64::max);
-        let mean_regret = scenario_utilities
-            .iter()
-            .map(|outcome| outcome.regret_points)
-            .sum::<f64>()
-            / scenario_utilities.len() as f64;
+            .map(|scenario_id| {
+                scenario_best[scenario_id]
+                    - utility_by_pair[&(scenario_id, alternative.alternative_id.as_str())]
+            })
+            .collect();
+        let maximum_regret = raw_regrets.iter().copied().fold(0.0_f64, f64::max);
+        let mean_regret = raw_regrets.iter().sum::<f64>() / raw_regrets.len() as f64;
         scorecards.push(AlternativeScorecard {
             alternative_id: alternative.alternative_id.clone(),
             label: alternative.label.clone(),
@@ -565,6 +569,63 @@ mod tests {
         close(c.maximum_regret_points, 17.0);
         close(c.unweighted_mean_regret_points, 6.5);
         assert!(c.robustly_qualified);
+    }
+
+    #[test]
+    fn raw_scores_not_rounded_display_values_determine_winners() {
+        let mut fixture: RobustnessFixture =
+            serde_json::from_slice(&fixture_bytes()).expect("fixture parses");
+        fixture.scenarios = vec![
+            Scenario {
+                scenario_id: "case-a".to_owned(),
+                label: "close-score test A".to_owned(),
+            },
+            Scenario {
+                scenario_id: "case-b".to_owned(),
+                label: "close-score test B".to_owned(),
+            },
+        ];
+        fixture.alternatives = vec![
+            Alternative {
+                alternative_id: "alpha".to_owned(),
+                label: "lexically earlier but slightly worse".to_owned(),
+            },
+            Alternative {
+                alternative_id: "beta".to_owned(),
+                label: "slightly better utility".to_owned(),
+            },
+        ];
+        fixture.minimum_worst_case_utility_points = 0.0;
+        fixture.outcomes = vec![
+            Outcome {
+                scenario_id: "case-a".to_owned(),
+                alternative_id: "alpha".to_owned(),
+                utility_points: 50.0000001,
+            },
+            Outcome {
+                scenario_id: "case-b".to_owned(),
+                alternative_id: "alpha".to_owned(),
+                utility_points: 60.0,
+            },
+            Outcome {
+                scenario_id: "case-a".to_owned(),
+                alternative_id: "beta".to_owned(),
+                utility_points: 50.0000004,
+            },
+            Outcome {
+                scenario_id: "case-b".to_owned(),
+                alternative_id: "beta".to_owned(),
+                utility_points: 60.0,
+            },
+        ];
+        let bytes = serde_json::to_vec(&fixture).expect("serialize fixture");
+        let report = evaluate_fixture_bytes(&bytes, &method_bytes()).expect("close-score report");
+        assert_eq!(report.maximin_winner, "beta");
+        let alpha = report.scorecards.iter().find(|item| item.alternative_id == "alpha").unwrap();
+        let beta = report.scorecards.iter().find(|item| item.alternative_id == "beta").unwrap();
+        close(alpha.worst_case_utility_points, 50.0);
+        close(beta.worst_case_utility_points, 50.0);
+        assert_eq!(alpha.worst_case_utility_points, beta.worst_case_utility_points);
     }
 
     #[test]
