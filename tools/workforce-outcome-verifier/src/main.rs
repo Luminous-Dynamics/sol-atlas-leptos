@@ -7,10 +7,8 @@ use std::env;
 use std::fs;
 use std::process::ExitCode;
 
-const FIXTURE_DEFAULT: &str =
-    "docs/research/fixtures/workforce_outcome_receipts_v0_1.json";
-const SCHEMA_DEFAULT: &str =
-    "docs/research/schemas/workforce_outcome_receipt_v0_1.schema.json";
+const FIXTURE_DEFAULT: &str = "docs/research/fixtures/workforce_outcome_receipts_v0_1.json";
+const SCHEMA_DEFAULT: &str = "docs/research/schemas/workforce_outcome_receipt_v0_1.schema.json";
 const RECEIPT_SCHEMA_VERSION: &str = "workforce-outcome-receipt-v0.1";
 
 #[derive(Debug, Serialize, PartialEq)]
@@ -165,14 +163,18 @@ fn validate_receipt_contract(receipt: &Value) -> Vec<String> {
             violations.insert(format!("false_diagnoses_exceed_cases:{policy_id}"));
         }
         if restored > completed {
-            violations.insert(format!("verified_restoration_exceeds_completed_actions:{policy_id}"));
+            violations.insert(format!(
+                "verified_restoration_exceeds_completed_actions:{policy_id}"
+            ));
         }
         if paid > completed {
             violations.insert(format!("paid_work_exceeds_completed_actions:{policy_id}"));
         }
     }
 
-    let additionality = receipt.get("additionality_assessment").unwrap_or(&Value::Null);
+    let additionality = receipt
+        .get("additionality_assessment")
+        .unwrap_or(&Value::Null);
     let additionality_policy_id = additionality
         .get("policy_id")
         .and_then(Value::as_str)
@@ -181,9 +183,9 @@ fn validate_receipt_contract(receipt: &Value) -> Vec<String> {
         .get("gross_paid_work_events")
         .and_then(Value::as_u64)
         .unwrap_or(u64::MAX);
-    let selected_policy = policies
-        .iter()
-        .find(|policy| policy.get("policy_id").and_then(Value::as_str) == Some(additionality_policy_id));
+    let selected_policy = policies.iter().find(|policy| {
+        policy.get("policy_id").and_then(Value::as_str) == Some(additionality_policy_id)
+    });
 
     let mut linked_paid_count = u64::MAX;
     match selected_policy {
@@ -267,10 +269,7 @@ fn validate_receipt_contract(receipt: &Value) -> Vec<String> {
             if estimate.is_none() || !interval.is_some_and(Value::is_object) {
                 violations.insert("additionality_estimate_or_interval_missing".to_string());
             } else if let Some(bounds) = interval.and_then(|value| {
-                Some((
-                    value.get("lower")?.as_f64()?,
-                    value.get("upper")?.as_f64()?,
-                ))
+                Some((value.get("lower")?.as_f64()?, value.get("upper")?.as_f64()?))
             }) {
                 let (lower, upper) = bounds;
                 if lower > upper || estimate.is_some_and(|value| value < lower || value > upper) {
@@ -320,7 +319,10 @@ fn validate_receipt_contract(receipt: &Value) -> Vec<String> {
     violations.into_iter().collect()
 }
 
-fn verify_values(schema: &Value, fixture: &Value) -> Result<(Vec<ReceiptCheck>, Vec<String>), String> {
+fn verify_values(
+    schema: &Value,
+    fixture: &Value,
+) -> Result<(Vec<ReceiptCheck>, Vec<String>), String> {
     validate_schema(schema, fixture)?;
 
     if !fixture
@@ -351,7 +353,9 @@ fn verify_values(schema: &Value, fixture: &Value) -> Result<(Vec<ReceiptCheck>, 
         if !run_ids.insert(run_id.clone()) {
             errors.push(format!("{run_id}: duplicate run_id"));
         }
-        let additionality = receipt.get("additionality_assessment").unwrap_or(&Value::Null);
+        let additionality = receipt
+            .get("additionality_assessment")
+            .unwrap_or(&Value::Null);
         let additionality_policy_id = additionality
             .get("policy_id")
             .and_then(Value::as_str)
@@ -364,10 +368,12 @@ fn verify_values(schema: &Value, fixture: &Value) -> Result<(Vec<ReceiptCheck>, 
         let policy_paid_work_verified_count = receipt
             .get("policy_results")
             .and_then(Value::as_array)
-            .and_then(|policies| policies.iter().find(|policy| {
-                policy.get("policy_id").and_then(Value::as_str)
-                    == Some(additionality_policy_id.as_str())
-            }))
+            .and_then(|policies| {
+                policies.iter().find(|policy| {
+                    policy.get("policy_id").and_then(Value::as_str)
+                        == Some(additionality_policy_id.as_str())
+                })
+            })
             .and_then(|policy| policy.get("paid_work_verified_count"))
             .and_then(Value::as_u64)
             .unwrap_or(0);
@@ -462,12 +468,10 @@ fn main() -> ExitCode {
 mod tests {
     use super::*;
 
-    const FIXTURE: &str = include_str!(
-        "../../../docs/research/fixtures/workforce_outcome_receipts_v0_1.json"
-    );
-    const SCHEMA: &str = include_str!(
-        "../../../docs/research/schemas/workforce_outcome_receipt_v0_1.schema.json"
-    );
+    const FIXTURE: &str =
+        include_str!("../../../docs/research/fixtures/workforce_outcome_receipts_v0_1.json");
+    const SCHEMA: &str =
+        include_str!("../../../docs/research/schemas/workforce_outcome_receipt_v0_1.schema.json");
 
     fn loaded() -> (Value, Value) {
         (
@@ -485,21 +489,19 @@ mod tests {
         assert!(receipts[0].passed);
         assert_eq!(receipts[0].gross_paid_work_events, 4);
         assert_eq!(receipts[0].policy_paid_work_verified_count, 4);
-        assert_eq!(
-            receipts[0].additionality_policy_id,
-            "candidate"
-        );
+        assert_eq!(receipts[0].additionality_policy_id, "candidate");
     }
 
     #[test]
     fn gross_paid_work_must_reconcile_to_the_named_policy() {
         let (mut fixture, schema) = loaded();
-        fixture["receipts"][0]["additionality_assessment"]["gross_paid_work_events"] =
-            json!(3);
+        fixture["receipts"][0]["additionality_assessment"]["gross_paid_work_events"] = json!(3);
         let (receipts, _) = verify_values(&schema, &fixture).expect("schema still valid");
-        assert!(receipts[0]
-            .violations
-            .contains(&"gross_paid_work_count_mismatch".to_string()));
+        assert!(
+            receipts[0]
+                .violations
+                .contains(&"gross_paid_work_count_mismatch".to_string())
+        );
     }
 
     #[test]
@@ -508,10 +510,12 @@ mod tests {
         fixture["receipts"][0]["policy_results"][2]["diagnosed_count"] = json!(20);
         fixture["receipts"][0]["policy_results"][2]["abstained_count"] = json!(6);
         let (receipts, _) = verify_values(&schema, &fixture).expect("schema still valid");
-        assert!(receipts[0]
-            .violations
-            .iter()
-            .any(|code| code.starts_with("diagnosed_abstained_exceed_cases:")));
+        assert!(
+            receipts[0]
+                .violations
+                .iter()
+                .any(|code| code.starts_with("diagnosed_abstained_exceed_cases:"))
+        );
     }
 
     #[test]
@@ -519,14 +523,18 @@ mod tests {
         let (mut fixture, schema) = loaded();
         fixture["receipts"][0]["policy_results"][2]["action_completed_count"] = json!(2);
         let (receipts, _) = verify_values(&schema, &fixture).expect("schema still valid");
-        assert!(receipts[0]
-            .violations
-            .iter()
-            .any(|code| code.starts_with("verified_restoration_exceeds_completed_actions:")));
-        assert!(receipts[0]
-            .violations
-            .iter()
-            .any(|code| code.starts_with("paid_work_exceeds_completed_actions:")));
+        assert!(
+            receipts[0]
+                .violations
+                .iter()
+                .any(|code| code.starts_with("verified_restoration_exceeds_completed_actions:"))
+        );
+        assert!(
+            receipts[0]
+                .violations
+                .iter()
+                .any(|code| code.starts_with("paid_work_exceeds_completed_actions:"))
+        );
     }
 
     #[test]
@@ -534,9 +542,11 @@ mod tests {
         let (mut fixture, schema) = loaded();
         fixture["receipts"][0]["policy_results"][1]["policy_id"] = json!("candidate");
         let (receipts, _) = verify_values(&schema, &fixture).expect("schema still valid");
-        assert!(receipts[0]
-            .violations
-            .contains(&"duplicate_policy_id".to_string()));
+        assert!(
+            receipts[0]
+                .violations
+                .contains(&"duplicate_policy_id".to_string())
+        );
     }
 
     #[test]
@@ -557,24 +567,19 @@ mod tests {
         receipt["claim_ceiling"] = json!("descriptive_association_only");
         receipt["additionality_assessment"]["status"] =
             json!("estimated_with_preregistered_counterfactual");
-        receipt["additionality_assessment"]["net_additional_paid_hours_estimate"] =
-            json!(100.0);
+        receipt["additionality_assessment"]["net_additional_paid_hours_estimate"] = json!(100.0);
         receipt["additionality_assessment"]["net_additional_interval_hours"] =
             json!({"lower": 50.0, "upper": 120.0});
         receipt["additionality_assessment"]["displacement_status"] =
             json!("no_material_displacement_evidence_with_limits");
-        receipt["additionality_assessment"]["substitution_status"] =
-            json!("possible_substitution");
+        receipt["additionality_assessment"]["substitution_status"] = json!("possible_substitution");
         receipt["additionality_assessment"]["deadweight_status"] =
             json!("no_material_deadweight_evidence_with_limits");
-        receipt["additionality_assessment"]["spillover_status"] =
-            json!("unresolved");
-        receipt["additionality_assessment"]["comparison_design"] =
-            json!("matched_comparison");
+        receipt["additionality_assessment"]["spillover_status"] = json!("unresolved");
+        receipt["additionality_assessment"]["comparison_design"] = json!("matched_comparison");
         receipt["additionality_assessment"]["counterfactual_basis"] =
             json!("Synthetic unit test counterfactual definition.");
-        receipt["additionality_assessment"]["preregistration_status"] =
-            json!("verified");
+        receipt["additionality_assessment"]["preregistration_status"] = json!("verified");
         receipt["additionality_assessment"]["independent_review"] = Value::Bool(true);
         receipt["additionality_assessment"]["claim_ceiling"] =
             json!("causal_claim_supported_by_preregistered_design");
