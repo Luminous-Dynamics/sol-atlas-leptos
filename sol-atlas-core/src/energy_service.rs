@@ -605,6 +605,25 @@ mod tests {
     }
 
     #[test]
+    fn malformed_assessed_thermal_source_fails_closed_without_panicking() {
+        let request = fixture();
+        let mut graph = assess_energy_ports(&request.graph).unwrap();
+        let heat = graph.output_ports.iter_mut()
+            .find(|port| port.node_id == "chp" && port.port_id == "heat")
+            .unwrap();
+        heat.temperature_c = None;
+        assert!(matches!(
+            assess_energy_services(
+                &request.scenario_id,
+                request.synthetic,
+                &request.demands,
+                &graph,
+            ),
+            Err(EnergyServiceError::InvalidSourceTemperature { .. })
+        ));
+    }
+
+    #[test]
     fn service_delivery_cannot_exceed_requested_quantity() {
         let mut request = fixture();
         request.demands[0].requested_energy_kwh = 20.0;
