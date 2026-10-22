@@ -302,9 +302,7 @@ fn validate_receipt_contract(receipt: &Value) -> Vec<String> {
             } else {
                 violations.insert("additionality_effects_all_not_assessed".to_string());
             }
-            if additionality_claim != "causal_claim_supported_by_preregistered_design"
-                || top_claim != "causal_claim_supported_by_preregistered_design"
-            {
+            if additionality_claim != "causal_claim_supported_by_preregistered_design" {
                 violations.insert("additionality_claim_ceiling_mismatch".to_string());
             }
         }
@@ -547,6 +545,40 @@ mod tests {
         fixture["receipts"][0]["additionality_assessment"]["claim_ceiling"] =
             json!("causal_claim_supported_by_preregistered_design");
         assert!(verify_values(&schema, &fixture).is_err());
+    }
+
+    #[test]
+    fn additionality_assessment_can_be_causal_while_overall_claim_is_lower() {
+        let (fixture, _schema) = loaded();
+        let mut receipt = fixture["receipts"][0].clone();
+        receipt["synthetic_only"] = Value::Bool(false);
+        receipt["evidence_class"] = json!("authorized_retrospective");
+        receipt["evaluation_design"] = json!("matched_comparison");
+        receipt["claim_ceiling"] = json!("descriptive_association_only");
+        receipt["additionality_assessment"]["status"] =
+            json!("estimated_with_preregistered_counterfactual");
+        receipt["additionality_assessment"]["net_additional_paid_hours_estimate"] =
+            json!(100.0);
+        receipt["additionality_assessment"]["net_additional_interval_hours"] =
+            json!({"lower": 50.0, "upper": 120.0});
+        receipt["additionality_assessment"]["displacement_status"] =
+            json!("no_material_displacement_evidence_with_limits");
+        receipt["additionality_assessment"]["substitution_status"] =
+            json!("possible_substitution");
+        receipt["additionality_assessment"]["deadweight_status"] =
+            json!("no_material_deadweight_evidence_with_limits");
+        receipt["additionality_assessment"]["spillover_status"] =
+            json!("unresolved");
+        receipt["additionality_assessment"]["comparison_design"] =
+            json!("matched_comparison");
+        receipt["additionality_assessment"]["counterfactual_basis"] =
+            json!("Synthetic unit test counterfactual definition.");
+        receipt["additionality_assessment"]["preregistration_status"] =
+            json!("verified");
+        receipt["additionality_assessment"]["independent_review"] = Value::Bool(true);
+        receipt["additionality_assessment"]["claim_ceiling"] =
+            json!("causal_claim_supported_by_preregistered_design");
+        assert!(validate_receipt_contract(&receipt).is_empty());
     }
 
     #[test]
