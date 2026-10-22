@@ -1,0 +1,46 @@
+name: Workforce forecast calibration verifier
+
+on:
+  pull_request:
+    paths:
+      - "docs/research/WORKFORCE-CALIBRATION-001.md"
+      - "docs/research/fixtures/workforce_calibration_cases_v0_1.json"
+      - "docs/research/schemas/workforce_calibration_v0_1.schema.json"
+      - "tools/workforce-calibration-verifier/**"
+      - ".github/workflows/workforce-calibration-verifier.yml"
+  push:
+    branches:
+      - main
+      - research/workforce-calibration-001
+    paths:
+      - "docs/research/WORKFORCE-CALIBRATION-001.md"
+      - "docs/research/fixtures/workforce_calibration_cases_v0_1.json"
+      - "docs/research/schemas/workforce_calibration_v0_1.schema.json"
+      - "tools/workforce-calibration-verifier/**"
+      - ".github/workflows/workforce-calibration-verifier.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: workforce-calibration-verifier-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact workflow revision
+        uses: actions/checkout@v4
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Check formatting
+        run: cargo fmt --manifest-path tools/workforce-calibration-verifier/Cargo.toml -- --check
+      - name: Run calibration and abstention tests
+        run: cargo test --manifest-path tools/workforce-calibration-verifier/Cargo.toml
+      - name: Produce synthetic-only calibration receipt
+        run: cargo run --manifest-path tools/workforce-calibration-verifier/Cargo.toml -- docs/research/fixtures/workforce_calibration_cases_v0_1.json docs/research/schemas/workforce_calibration_v0_1.schema.json
