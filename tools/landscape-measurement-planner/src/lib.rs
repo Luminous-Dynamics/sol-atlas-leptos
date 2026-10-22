@@ -1386,10 +1386,12 @@ mod tests {
         let eligible_strata: BTreeSet<(&str, &str)> = candidates
             .iter()
             .filter(|candidate| eligible(candidate))
-            .map(|candidate| (
-                candidate.spatial_stratum.as_str(),
-                candidate.temporal_stratum.as_str(),
-            ))
+            .map(|candidate| {
+                (
+                    candidate.spatial_stratum.as_str(),
+                    candidate.temporal_stratum.as_str(),
+                )
+            })
             .collect();
         if eligible_strata.is_empty() {
             return None;
