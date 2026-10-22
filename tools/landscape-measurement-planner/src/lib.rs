@@ -229,8 +229,7 @@ pub fn validate_fixture(fixture: &Fixture) -> Result<(), Vec<String>> {
         || !(0.0..=1.0).contains(&fixture.minimum_spatial_temporal_coverage_fraction)
     {
         errors.push(
-            "minimum_spatial_temporal_coverage_fraction must be finite and in [0, 1]"
-                .to_owned(),
+            "minimum_spatial_temporal_coverage_fraction must be finite and in [0, 1]".to_owned(),
         );
     }
     let mut ids = BTreeSet::new();
@@ -468,10 +467,12 @@ fn eligible_strata_count(candidates: &[Candidate]) -> usize {
     candidates
         .iter()
         .filter(|candidate| eligible(candidate))
-        .map(|candidate| (
-            candidate.spatial_stratum.as_str(),
-            candidate.temporal_stratum.as_str(),
-        ))
+        .map(|candidate| {
+            (
+                candidate.spatial_stratum.as_str(),
+                candidate.temporal_stratum.as_str(),
+            )
+        })
         .collect::<BTreeSet<_>>()
         .len()
 }
@@ -553,10 +554,12 @@ fn select_exact_coverage_frontier_plans(
     let eligible_strata: BTreeSet<(&str, &str)> = candidates
         .iter()
         .filter(|candidate| eligible(candidate))
-        .map(|candidate| (
-            candidate.spatial_stratum.as_str(),
-            candidate.temporal_stratum.as_str(),
-        ))
+        .map(|candidate| {
+            (
+                candidate.spatial_stratum.as_str(),
+                candidate.temporal_stratum.as_str(),
+            )
+        })
         .collect();
     let stratum_count = eligible_strata.len();
     let mut frontier: Vec<Option<(u32, PlanState)>> = vec![None; stratum_count + 1];
@@ -623,7 +626,9 @@ fn select_exact_coverage_frontier_plans(
                         + scores[&candidate.candidate_id].weighted_discrimination_nats,
                     selected_ids,
                 };
-                let slot = next.entry((new_cost, new_mask)).or_insert_with(|| proposed.clone());
+                let slot = next
+                    .entry((new_cost, new_mask))
+                    .or_insert_with(|| proposed.clone());
                 if better_for_same_cost(&proposed, slot) {
                     *slot = proposed;
                 }
@@ -793,9 +798,7 @@ fn build_coverage_frontier_points(
                         candidates,
                         &plan.selected_ids,
                     ))),
-                    weighted_discrimination_nats: Some(rounded(
-                        plan.weighted_discrimination_nats,
-                    )),
+                    weighted_discrimination_nats: Some(rounded(plan.weighted_discrimination_nats)),
                     score_loss_from_unconstrained_nats: Some(rounded(
                         (unconstrained_score - plan.weighted_discrimination_nats).max(0.0),
                     )),
@@ -876,8 +879,11 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
         * eligible_strata_total as f64)
         - 1.0e-12)
         .ceil() as usize;
-    let coverage_plan_search =
-        select_exact_coverage_frontier_plans(&fixture.candidates, &scores, fixture.budget_cost_units);
+    let coverage_plan_search = select_exact_coverage_frontier_plans(
+        &fixture.candidates,
+        &scores,
+        fixture.budget_cost_units,
+    );
     let (coverage_frontier_status, coverage_frontier_limit_reason, coverage_frontier) =
         match &coverage_plan_search {
             Ok(plans) => (
@@ -910,10 +916,12 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
                 None,
                 None,
             ),
-            Ok(plans) => match plans.get(required_spatial_temporal_strata).cloned().flatten() {
-                Some((cost, plan)) => {
-                    ("satisfied".to_owned(), None, Some(plan), Some(cost))
-                }
+            Ok(plans) => match plans
+                .get(required_spatial_temporal_strata)
+                .cloned()
+                .flatten()
+            {
+                Some((cost, plan)) => ("satisfied".to_owned(), None, Some(plan), Some(cost)),
                 None => ("infeasible".to_owned(), None, None, None),
             },
         }
@@ -927,10 +935,12 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
                 .candidates
                 .iter()
                 .filter(|candidate| selected_ids.contains(candidate.candidate_id.as_str()))
-                .map(|candidate| (
-                    candidate.spatial_stratum.as_str(),
-                    candidate.temporal_stratum.as_str(),
-                ))
+                .map(|candidate| {
+                    (
+                        candidate.spatial_stratum.as_str(),
+                        candidate.temporal_stratum.as_str(),
+                    )
+                })
                 .collect()
         })
         .unwrap_or_default();
@@ -1101,9 +1111,12 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
         coverage_constrained_weighted_discrimination_nats: coverage_constrained
             .as_ref()
             .map(|plan| rounded(plan.weighted_discrimination_nats)),
-        coverage_constraint_score_loss_nats: coverage_constrained
-            .as_ref()
-            .map(|plan| rounded((selected.weighted_discrimination_nats - plan.weighted_discrimination_nats).max(0.0))),
+        coverage_constraint_score_loss_nats: coverage_constrained.as_ref().map(|plan| {
+            rounded(
+                (selected.weighted_discrimination_nats - plan.weighted_discrimination_nats)
+                    .max(0.0),
+            )
+        }),
         selected_candidate_ids: selected.selected_ids,
         total_weighted_discrimination_nats: rounded(selected.weighted_discrimination_nats),
         greedy_ratio_baseline_selected_candidate_ids: greedy_baseline.selected_ids,
@@ -1172,35 +1185,44 @@ mod tests {
             report.selected_spatial_temporal_stratum_coverage_fraction,
             1.0 / 3.0,
         );
-        assert_eq!(
-            report.minimum_spatial_temporal_coverage_fraction,
-            2.0 / 3.0
-        );
+        assert_eq!(report.minimum_spatial_temporal_coverage_fraction, 2.0 / 3.0);
         assert_eq!(report.required_spatial_temporal_stratum_count, 2);
         assert_eq!(report.coverage_constraint_status, "satisfied");
         assert_eq!(report.coverage_constraint_limit_reason, None);
         assert_eq!(report.coverage_frontier_status, "complete");
         assert_eq!(report.coverage_frontier_limit_reason, None);
         assert_eq!(report.coverage_frontier.len(), 3);
-        assert_eq!(report.coverage_frontier[0].required_spatial_temporal_stratum_count, 1);
+        assert_eq!(
+            report.coverage_frontier[0].required_spatial_temporal_stratum_count,
+            1
+        );
         assert_eq!(report.coverage_frontier[0].status, "satisfied");
         assert_eq!(
             report.coverage_frontier[0].selected_candidate_ids,
             Some(vec!["candidate-a-high-density".to_owned()])
         );
         close(
-            report.coverage_frontier[0].weighted_discrimination_nats.unwrap(),
+            report.coverage_frontier[0]
+                .weighted_discrimination_nats
+                .unwrap(),
             11.0,
         );
         close(
-            report.coverage_frontier[0].achieved_coverage_fraction.unwrap(),
+            report.coverage_frontier[0]
+                .achieved_coverage_fraction
+                .unwrap(),
             1.0 / 3.0,
         );
         close(
-            report.coverage_frontier[0].score_loss_from_unconstrained_nats.unwrap(),
+            report.coverage_frontier[0]
+                .score_loss_from_unconstrained_nats
+                .unwrap(),
             0.0,
         );
-        assert_eq!(report.coverage_frontier[1].required_spatial_temporal_stratum_count, 2);
+        assert_eq!(
+            report.coverage_frontier[1].required_spatial_temporal_stratum_count,
+            2
+        );
         assert_eq!(report.coverage_frontier[1].status, "satisfied");
         assert_eq!(
             report.coverage_frontier[1].selected_candidate_ids,
@@ -1210,14 +1232,21 @@ mod tests {
             ])
         );
         close(
-            report.coverage_frontier[1].weighted_discrimination_nats.unwrap(),
+            report.coverage_frontier[1]
+                .weighted_discrimination_nats
+                .unwrap(),
             10.0,
         );
         close(
-            report.coverage_frontier[1].score_loss_from_unconstrained_nats.unwrap(),
+            report.coverage_frontier[1]
+                .score_loss_from_unconstrained_nats
+                .unwrap(),
             1.0,
         );
-        assert_eq!(report.coverage_frontier[2].required_spatial_temporal_stratum_count, 3);
+        assert_eq!(
+            report.coverage_frontier[2].required_spatial_temporal_stratum_count,
+            3
+        );
         assert_eq!(report.coverage_frontier[2].status, "infeasible");
         assert!(report.coverage_frontier[2].selected_candidate_ids.is_none());
         assert_eq!(
@@ -1234,11 +1263,15 @@ mod tests {
         );
         assert_eq!(report.coverage_constrained_cost_units, Some(6));
         close(
-            report.coverage_constrained_stratum_coverage_fraction.unwrap(),
+            report
+                .coverage_constrained_stratum_coverage_fraction
+                .unwrap(),
             2.0 / 3.0,
         );
         close(
-            report.coverage_constrained_weighted_discrimination_nats.unwrap(),
+            report
+                .coverage_constrained_weighted_discrimination_nats
+                .unwrap(),
             10.0,
         );
         close(report.coverage_constraint_score_loss_nats.unwrap(), 1.0);
@@ -1362,8 +1395,7 @@ mod tests {
             return None;
         }
         let required_strata =
-            ((minimum_coverage_fraction * eligible_strata.len() as f64) - 1.0e-12).ceil()
-                as usize;
+            ((minimum_coverage_fraction * eligible_strata.len() as f64) - 1.0e-12).ceil() as usize;
         let mut best: Option<(u32, PlanState)> = None;
         for mask in 0usize..(1usize << candidates.len()) {
             let mut selected_ids = Vec::new();
@@ -1493,7 +1525,10 @@ mod tests {
                             .map(|candidate| candidate.cost_units)
                             .sum();
                         assert_eq!(expected_cost, actual_cost, "coverage seed={seed}");
-                        assert_eq!(actual.selected_ids, expected.selected_ids, "coverage seed={seed}");
+                        assert_eq!(
+                            actual.selected_ids, expected.selected_ids,
+                            "coverage seed={seed}"
+                        );
                         close(
                             actual.weighted_discrimination_nats,
                             expected.weighted_discrimination_nats,
@@ -1528,7 +1563,10 @@ mod tests {
             report.selected_candidate_ids,
             vec!["candidate-a-high-density".to_owned()]
         );
-        close(report.selected_spatial_temporal_stratum_coverage_fraction, 1.0 / 3.0);
+        close(
+            report.selected_spatial_temporal_stratum_coverage_fraction,
+            1.0 / 3.0,
+        );
     }
 
     #[test]
