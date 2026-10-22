@@ -752,6 +752,51 @@ mod tests {
         );
     }
 
+    #[cfg(unix)]
+    #[test]
+    fn artifact_paths_reject_file_and_directory_symlink_redirects() {
+        use std::os::unix::fs::symlink;
+
+        let root = std::env::temp_dir().join(format!(
+            "sa-workforce-chain-path-test-{}",
+            std::process::id()
+        ));
+        let allowed = root.join("docs/research/synthetic/workforce_chain_artifacts");
+        let other = root.join("docs/research/synthetic/alternate_artifacts");
+        fs::create_dir_all(&allowed).expect("create allowed directory");
+        fs::create_dir_all(&other).expect("create alternate directory");
+
+        let real_file = allowed.join("REAL.json");
+        fs::write(&real_file, "{}").expect("write real artifact");
+        let file_link = allowed.join("FILE_LINK.json");
+        symlink(&real_file, &file_link).expect("create artifact symlink");
+        assert_eq!(
+            safe_repo_path(
+                &root,
+                "docs/research/synthetic/workforce_chain_artifacts/FILE_LINK.json",
+                false
+            )
+            .expect_err("file symlink must be rejected"),
+            "unsafe_artifact_symlink"
+        );
+        fs::remove_file(&file_link).expect("remove artifact symlink");
+
+        fs::remove_dir(&allowed).expect("remove original allowed directory");
+        symlink(&other, &allowed).expect("redirect allowed directory");
+        fs::write(other.join("REDIRECTED.json"), "{}").expect("write redirected artifact");
+        assert_eq!(
+            safe_repo_path(
+                &root,
+                "docs/research/synthetic/workforce_chain_artifacts/REDIRECTED.json",
+                false
+            )
+            .expect_err("directory redirect must be rejected"),
+            "unsafe_artifact_path"
+        );
+
+        fs::remove_dir_all(&root).expect("clean path test directory");
+    }
+
     #[test]
     fn stale_artifact_and_schema_digests_are_rejected() {
         let (fixture, schema) = loaded();
