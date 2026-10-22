@@ -1,0 +1,749 @@
+{
+  "fixture_notice": "ALL VALUES BELOW ARE SYNTHETIC CALIBRATION CONTRACT TEST DATA. Outcomes are not observations about the real labour market.",
+  "schema_version": "0.1.0",
+  "benchmark_id": "SA-WORKFORCE-CALIBRATION-001",
+  "synthetic_only": true,
+  "claim_ceiling": "synthetic_contract_only",
+  "event_definition": "independently_confirmed_task_scoped_capacity_gap_within_horizon",
+  "forecast_horizon_days": 30,
+  "decision_threshold": 0.5,
+  "minimum_coverage": 0.75,
+  "probability_bin_width": 0.2,
+  "model_catalog": [
+    {
+      "model_id": "constant_prevalence",
+      "role": "baseline",
+      "description": "Constant 0.5 prevalence baseline; tie at threshold counts as positive."
+    },
+    {
+      "model_id": "transparent_rules",
+      "role": "candidate",
+      "description": "Transparent task-scoped rules; synthetic predictions for score verification."
+    },
+    {
+      "model_id": "overconfident_control",
+      "role": "negative_control",
+      "description": "Deliberately overconfident control with two severely wrong forecasts."
+    },
+    {
+      "model_id": "abstaining_rules",
+      "role": "candidate",
+      "description": "Transparent rules that abstain on three ambiguous cases."
+    },
+    {
+      "model_id": "all_abstain_control",
+      "role": "negative_control",
+      "description": "Negative control that abstains on every case and must fail minimum coverage."
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "CAL-001",
+      "task_scope_id": "TASK-SYN-WATER-01",
+      "prediction_cutoff": "2026-01-01",
+      "outcome_observed": 1,
+      "forecasts": [
+        {
+          "model_id": "constant_prevalence",
+          "status": "issued",
+          "probability": 0.5,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "transparent_rules",
+          "status": "issued",
+          "probability": 0.72,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "overconfident_control",
+          "status": "issued",
+          "probability": 0.95,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "abstaining_rules",
+          "status": "issued",
+          "probability": 0.72,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "all_abstain_control",
+          "status": "abstained",
+          "probability": null,
+          "abstention_reason": "negative_control_all_abstain"
+        }
+      ]
+    },
+    {
+      "case_id": "CAL-002",
+      "task_scope_id": "TASK-SYN-POWER-02",
+      "prediction_cutoff": "2026-01-01",
+      "outcome_observed": 0,
+      "forecasts": [
+        {
+          "model_id": "constant_prevalence",
+          "status": "issued",
+          "probability": 0.5,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "transparent_rules",
+          "status": "issued",
+          "probability": 0.28,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "overconfident_control",
+          "status": "issued",
+          "probability": 0.05,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "abstaining_rules",
+          "status": "issued",
+          "probability": 0.28,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "all_abstain_control",
+          "status": "abstained",
+          "probability": null,
+          "abstention_reason": "negative_control_all_abstain"
+        }
+      ]
+    },
+    {
+      "case_id": "CAL-003",
+      "task_scope_id": "TASK-SYN-CYBER-03",
+      "prediction_cutoff": "2026-01-01",
+      "outcome_observed": 1,
+      "forecasts": [
+        {
+          "model_id": "constant_prevalence",
+          "status": "issued",
+          "probability": 0.5,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "transparent_rules",
+          "status": "issued",
+          "probability": 0.67,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "overconfident_control",
+          "status": "issued",
+          "probability": 0.92,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "abstaining_rules",
+          "status": "issued",
+          "probability": 0.67,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "all_abstain_control",
+          "status": "abstained",
+          "probability": null,
+          "abstention_reason": "negative_control_all_abstain"
+        }
+      ]
+    },
+    {
+      "case_id": "CAL-004",
+      "task_scope_id": "TASK-SYN-REPAIR-01",
+      "prediction_cutoff": "2026-01-01",
+      "outcome_observed": 0,
+      "forecasts": [
+        {
+          "model_id": "constant_prevalence",
+          "status": "issued",
+          "probability": 0.5,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "transparent_rules",
+          "status": "issued",
+          "probability": 0.42,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "overconfident_control",
+          "status": "issued",
+          "probability": 0.98,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "abstaining_rules",
+          "status": "abstained",
+          "probability": null,
+          "abstention_reason": "ambiguous_source_evidence"
+        },
+        {
+          "model_id": "all_abstain_control",
+          "status": "abstained",
+          "probability": null,
+          "abstention_reason": "negative_control_all_abstain"
+        }
+      ]
+    },
+    {
+      "case_id": "CAL-005",
+      "task_scope_id": "TASK-SYN-WATER-02",
+      "prediction_cutoff": "2026-01-01",
+      "outcome_observed": 0,
+      "forecasts": [
+        {
+          "model_id": "constant_prevalence",
+          "status": "issued",
+          "probability": 0.5,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "transparent_rules",
+          "status": "issued",
+          "probability": 0.3,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "overconfident_control",
+          "status": "issued",
+          "probability": 0.04,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "abstaining_rules",
+          "status": "issued",
+          "probability": 0.3,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "all_abstain_control",
+          "status": "abstained",
+          "probability": null,
+          "abstention_reason": "negative_control_all_abstain"
+        }
+      ]
+    },
+    {
+      "case_id": "CAL-006",
+      "task_scope_id": "TASK-SYN-POWER-03",
+      "prediction_cutoff": "2026-01-01",
+      "outcome_observed": 1,
+      "forecasts": [
+        {
+          "model_id": "constant_prevalence",
+          "status": "issued",
+          "probability": 0.5,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "transparent_rules",
+          "status": "issued",
+          "probability": 0.7,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "overconfident_control",
+          "status": "issued",
+          "probability": 0.93,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "abstaining_rules",
+          "status": "issued",
+          "probability": 0.7,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "all_abstain_control",
+          "status": "abstained",
+          "probability": null,
+          "abstention_reason": "negative_control_all_abstain"
+        }
+      ]
+    },
+    {
+      "case_id": "CAL-007",
+      "task_scope_id": "TASK-SYN-CYBER-01",
+      "prediction_cutoff": "2026-01-01",
+      "outcome_observed": 0,
+      "forecasts": [
+        {
+          "model_id": "constant_prevalence",
+          "status": "issued",
+          "probability": 0.5,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "transparent_rules",
+          "status": "issued",
+          "probability": 0.45,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "overconfident_control",
+          "status": "issued",
+          "probability": 0.08,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "abstaining_rules",
+          "status": "abstained",
+          "probability": null,
+          "abstention_reason": "ambiguous_source_evidence"
+        },
+        {
+          "model_id": "all_abstain_control",
+          "status": "abstained",
+          "probability": null,
+          "abstention_reason": "negative_control_all_abstain"
+        }
+      ]
+    },
+    {
+      "case_id": "CAL-008",
+      "task_scope_id": "TASK-SYN-REPAIR-02",
+      "prediction_cutoff": "2026-01-01",
+      "outcome_observed": 1,
+      "forecasts": [
+        {
+          "model_id": "constant_prevalence",
+          "status": "issued",
+          "probability": 0.5,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "transparent_rules",
+          "status": "issued",
+          "probability": 0.58,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "overconfident_control",
+          "status": "issued",
+          "probability": 0.03,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "abstaining_rules",
+          "status": "abstained",
+          "probability": null,
+          "abstention_reason": "ambiguous_source_evidence"
+        },
+        {
+          "model_id": "all_abstain_control",
+          "status": "abstained",
+          "probability": null,
+          "abstention_reason": "negative_control_all_abstain"
+        }
+      ]
+    },
+    {
+      "case_id": "CAL-009",
+      "task_scope_id": "TASK-SYN-WATER-03",
+      "prediction_cutoff": "2026-01-01",
+      "outcome_observed": 0,
+      "forecasts": [
+        {
+          "model_id": "constant_prevalence",
+          "status": "issued",
+          "probability": 0.5,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "transparent_rules",
+          "status": "issued",
+          "probability": 0.25,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "overconfident_control",
+          "status": "issued",
+          "probability": 0.06,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "abstaining_rules",
+          "status": "issued",
+          "probability": 0.25,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "all_abstain_control",
+          "status": "abstained",
+          "probability": null,
+          "abstention_reason": "negative_control_all_abstain"
+        }
+      ]
+    },
+    {
+      "case_id": "CAL-010",
+      "task_scope_id": "TASK-SYN-POWER-01",
+      "prediction_cutoff": "2026-01-01",
+      "outcome_observed": 1,
+      "forecasts": [
+        {
+          "model_id": "constant_prevalence",
+          "status": "issued",
+          "probability": 0.5,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "transparent_rules",
+          "status": "issued",
+          "probability": 0.66,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "overconfident_control",
+          "status": "issued",
+          "probability": 0.97,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "abstaining_rules",
+          "status": "issued",
+          "probability": 0.66,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "all_abstain_control",
+          "status": "abstained",
+          "probability": null,
+          "abstention_reason": "negative_control_all_abstain"
+        }
+      ]
+    },
+    {
+      "case_id": "CAL-011",
+      "task_scope_id": "TASK-SYN-CYBER-02",
+      "prediction_cutoff": "2026-01-01",
+      "outcome_observed": 1,
+      "forecasts": [
+        {
+          "model_id": "constant_prevalence",
+          "status": "issued",
+          "probability": 0.5,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "transparent_rules",
+          "status": "issued",
+          "probability": 0.56,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "overconfident_control",
+          "status": "issued",
+          "probability": 0.9,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "abstaining_rules",
+          "status": "issued",
+          "probability": 0.56,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "all_abstain_control",
+          "status": "abstained",
+          "probability": null,
+          "abstention_reason": "negative_control_all_abstain"
+        }
+      ]
+    },
+    {
+      "case_id": "CAL-012",
+      "task_scope_id": "TASK-SYN-REPAIR-03",
+      "prediction_cutoff": "2026-01-01",
+      "outcome_observed": 0,
+      "forecasts": [
+        {
+          "model_id": "constant_prevalence",
+          "status": "issued",
+          "probability": 0.5,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "transparent_rules",
+          "status": "issued",
+          "probability": 0.32,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "overconfident_control",
+          "status": "issued",
+          "probability": 0.07,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "abstaining_rules",
+          "status": "issued",
+          "probability": 0.32,
+          "abstention_reason": null
+        },
+        {
+          "model_id": "all_abstain_control",
+          "status": "abstained",
+          "probability": null,
+          "abstention_reason": "negative_control_all_abstain"
+        }
+      ]
+    }
+  ],
+  "expected_metrics": [
+    {
+      "model_id": "constant_prevalence",
+      "total_case_count": 12,
+      "scored_count": 12,
+      "abstained_count": 0,
+      "coverage": 1,
+      "brier_score": 0.25,
+      "log_loss": 0.693147181,
+      "false_positive_count": 6,
+      "false_negative_count": 0,
+      "decision_error_count": 6,
+      "reliability_bins": [
+        {
+          "bin_index": 0,
+          "count": 0,
+          "mean_predicted_probability": null,
+          "observed_event_rate": null,
+          "absolute_gap": null
+        },
+        {
+          "bin_index": 1,
+          "count": 0,
+          "mean_predicted_probability": null,
+          "observed_event_rate": null,
+          "absolute_gap": null
+        },
+        {
+          "bin_index": 2,
+          "count": 12,
+          "mean_predicted_probability": 0.5,
+          "observed_event_rate": 0.5,
+          "absolute_gap": 0
+        },
+        {
+          "bin_index": 3,
+          "count": 0,
+          "mean_predicted_probability": null,
+          "observed_event_rate": null,
+          "absolute_gap": null
+        },
+        {
+          "bin_index": 4,
+          "count": 0,
+          "mean_predicted_probability": null,
+          "observed_event_rate": null,
+          "absolute_gap": null
+        }
+      ],
+      "passes_minimum_coverage": true
+    },
+    {
+      "model_id": "transparent_rules",
+      "total_case_count": 12,
+      "scored_count": 12,
+      "abstained_count": 0,
+      "coverage": 1,
+      "brier_score": 0.122925,
+      "log_loss": 0.427233786,
+      "false_positive_count": 0,
+      "false_negative_count": 0,
+      "decision_error_count": 0,
+      "reliability_bins": [
+        {
+          "bin_index": 0,
+          "count": 0,
+          "mean_predicted_probability": null,
+          "observed_event_rate": null,
+          "absolute_gap": null
+        },
+        {
+          "bin_index": 1,
+          "count": 4,
+          "mean_predicted_probability": 0.2875,
+          "observed_event_rate": 0,
+          "absolute_gap": 0.2875
+        },
+        {
+          "bin_index": 2,
+          "count": 4,
+          "mean_predicted_probability": 0.5025,
+          "observed_event_rate": 0.5,
+          "absolute_gap": 0.0025
+        },
+        {
+          "bin_index": 3,
+          "count": 4,
+          "mean_predicted_probability": 0.6875,
+          "observed_event_rate": 1,
+          "absolute_gap": 0.3125
+        },
+        {
+          "bin_index": 4,
+          "count": 0,
+          "mean_predicted_probability": null,
+          "observed_event_rate": null,
+          "absolute_gap": null
+        }
+      ],
+      "passes_minimum_coverage": true
+    },
+    {
+      "model_id": "overconfident_control",
+      "total_case_count": 12,
+      "scored_count": 12,
+      "abstained_count": 0,
+      "coverage": 1,
+      "brier_score": 0.162083333,
+      "log_loss": 0.672632435,
+      "false_positive_count": 1,
+      "false_negative_count": 1,
+      "decision_error_count": 2,
+      "reliability_bins": [
+        {
+          "bin_index": 0,
+          "count": 6,
+          "mean_predicted_probability": 0.055,
+          "observed_event_rate": 0.166666667,
+          "absolute_gap": 0.111666667
+        },
+        {
+          "bin_index": 1,
+          "count": 0,
+          "mean_predicted_probability": null,
+          "observed_event_rate": null,
+          "absolute_gap": null
+        },
+        {
+          "bin_index": 2,
+          "count": 0,
+          "mean_predicted_probability": null,
+          "observed_event_rate": null,
+          "absolute_gap": null
+        },
+        {
+          "bin_index": 3,
+          "count": 0,
+          "mean_predicted_probability": null,
+          "observed_event_rate": null,
+          "absolute_gap": null
+        },
+        {
+          "bin_index": 4,
+          "count": 6,
+          "mean_predicted_probability": 0.941666667,
+          "observed_event_rate": 0.833333333,
+          "absolute_gap": 0.108333333
+        }
+      ],
+      "passes_minimum_coverage": true
+    },
+    {
+      "model_id": "abstaining_rules",
+      "total_case_count": 12,
+      "scored_count": 9,
+      "abstained_count": 3,
+      "coverage": 0.75,
+      "brier_score": 0.1022,
+      "log_loss": 0.382168231,
+      "false_positive_count": 0,
+      "false_negative_count": 0,
+      "decision_error_count": 0,
+      "reliability_bins": [
+        {
+          "bin_index": 0,
+          "count": 0,
+          "mean_predicted_probability": null,
+          "observed_event_rate": null,
+          "absolute_gap": null
+        },
+        {
+          "bin_index": 1,
+          "count": 4,
+          "mean_predicted_probability": 0.2875,
+          "observed_event_rate": 0,
+          "absolute_gap": 0.2875
+        },
+        {
+          "bin_index": 2,
+          "count": 1,
+          "mean_predicted_probability": 0.56,
+          "observed_event_rate": 1,
+          "absolute_gap": 0.44
+        },
+        {
+          "bin_index": 3,
+          "count": 4,
+          "mean_predicted_probability": 0.6875,
+          "observed_event_rate": 1,
+          "absolute_gap": 0.3125
+        },
+        {
+          "bin_index": 4,
+          "count": 0,
+          "mean_predicted_probability": null,
+          "observed_event_rate": null,
+          "absolute_gap": null
+        }
+      ],
+      "passes_minimum_coverage": true
+    },
+    {
+      "model_id": "all_abstain_control",
+      "total_case_count": 12,
+      "scored_count": 0,
+      "abstained_count": 12,
+      "coverage": 0,
+      "brier_score": null,
+      "log_loss": null,
+      "false_positive_count": 0,
+      "false_negative_count": 0,
+      "decision_error_count": 0,
+      "reliability_bins": [
+        {
+          "bin_index": 0,
+          "count": 0,
+          "mean_predicted_probability": null,
+          "observed_event_rate": null,
+          "absolute_gap": null
+        },
+        {
+          "bin_index": 1,
+          "count": 0,
+          "mean_predicted_probability": null,
+          "observed_event_rate": null,
+          "absolute_gap": null
+        },
+        {
+          "bin_index": 2,
+          "count": 0,
+          "mean_predicted_probability": null,
+          "observed_event_rate": null,
+          "absolute_gap": null
+        },
+        {
+          "bin_index": 3,
+          "count": 0,
+          "mean_predicted_probability": null,
+          "observed_event_rate": null,
+          "absolute_gap": null
+        },
+        {
+          "bin_index": 4,
+          "count": 0,
+          "mean_predicted_probability": null,
+          "observed_event_rate": null,
+          "absolute_gap": null
+        }
+      ],
+      "passes_minimum_coverage": false
+    }
+  ]
+}
