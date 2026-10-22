@@ -67,6 +67,16 @@ pub fn verify_dispatch_schedule(
         if step.pv_available_quanta != input.pv_available_quanta {
             errors.push(format!("{label}: PV availability differs from request"));
         }
+        if step.essential_demand_quanta != input.essential_demand_quanta
+            || step.flexible_demand_quanta != input.flexible_demand_quanta
+        {
+            errors.push(format!("{label}: service demand differs from request"));
+        }
+        if step.grid_cost_units_per_quantum != input.grid_cost_units_per_quantum
+            || step.grid_carbon_grams_per_quantum != input.grid_carbon_grams_per_quantum
+        {
+            errors.push(format!("{label}: cost or carbon factors differ from request"));
+        }
         if step.grid_import_quanta
             > if input.grid_outage {
                 0
@@ -116,20 +126,21 @@ pub fn verify_dispatch_schedule(
         }
 
         if step.essential_served_quanta > step.essential_demand_quanta
-            || step.essential_served_quanta + step.essential_unserved_quanta
-                != step.essential_demand_quanta
+            || u32::from(step.essential_served_quanta) + u32::from(step.essential_unserved_quanta)
+                != u32::from(step.essential_demand_quanta)
         {
             errors.push(format!("{label}: essential service does not reconcile to demand"));
         }
         if step.flexible_served_quanta > step.flexible_demand_quanta
-            || step.flexible_served_quanta + step.flexible_unserved_quanta
-                != step.flexible_demand_quanta
+            || u32::from(step.flexible_served_quanta) + u32::from(step.flexible_unserved_quanta)
+                != u32::from(step.flexible_demand_quanta)
         {
             errors.push(format!("{label}: flexible service does not reconcile to demand"));
         }
 
         if step.pv_used_quanta > step.pv_available_quanta
-            || step.pv_used_quanta + step.pv_curtailed_quanta != step.pv_available_quanta
+            || u32::from(step.pv_used_quanta) + u32::from(step.pv_curtailed_quanta)
+                != u32::from(step.pv_available_quanta)
         {
             errors.push(format!("{label}: PV use and curtailment do not reconcile"));
         }
