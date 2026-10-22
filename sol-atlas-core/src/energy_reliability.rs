@@ -1082,7 +1082,10 @@ mod tests {
         let refined = assess_energy_reliability(&split).unwrap();
         assert_eq!(refined.total_duration_seconds, baseline.total_duration_seconds);
         assert_eq!(refined.grid_outage_duration_seconds, baseline.grid_outage_duration_seconds);
-        assert_eq!(refined.essential_deficit_duration_seconds, baseline.essential_deficit_duration_seconds);
+        assert_eq!(
+            refined.essential_deficit_duration_seconds,
+            baseline.essential_deficit_duration_seconds
+        );
         assert_eq!(
             refined.longest_consecutive_essential_deficit_seconds,
             baseline.longest_consecutive_essential_deficit_seconds
@@ -1091,9 +1094,17 @@ mod tests {
             refined.longest_consecutive_outage_essential_deficit_seconds,
             baseline.longest_consecutive_outage_essential_deficit_seconds
         );
-        assert!((refined.total_requested_service_kwh - baseline.total_requested_service_kwh).abs() < 1e-9);
-        assert!((refined.total_delivered_service_kwh - baseline.total_delivered_service_kwh).abs() < 1e-9);
-        assert!((refined.total_unserved_service_kwh - baseline.total_unserved_service_kwh).abs() < 1e-9);
+        assert!(
+            (refined.total_requested_service_kwh - baseline.total_requested_service_kwh).abs()
+                < 1e-9
+        );
+        assert!(
+            (refined.total_delivered_service_kwh - baseline.total_delivered_service_kwh).abs()
+                < 1e-9
+        );
+        assert!(
+            (refined.total_unserved_service_kwh - baseline.total_unserved_service_kwh).abs() < 1e-9
+        );
     }
 
     #[test]
