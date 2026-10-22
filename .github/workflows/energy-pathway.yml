@@ -1,0 +1,83 @@
+name: Energy pathway accounting
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "sol-atlas-core/src/energy_pathway.rs"
+      - "sol-atlas-core/src/bin/energy_pathway_assess.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/energy-pathway-*.schema.json"
+      - "schemas/examples/energy-pathway-*.synthetic.json"
+      - "docs/benchmarks/ENERGY_PATHWAY_ACCOUNTING_V0_1.md"
+      - ".github/workflows/energy-pathway.yml"
+  pull_request:
+    paths:
+      - "sol-atlas-core/src/energy_pathway.rs"
+      - "sol-atlas-core/src/bin/energy_pathway_assess.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/energy-pathway-*.schema.json"
+      - "schemas/examples/energy-pathway-*.synthetic.json"
+      - "docs/benchmarks/ENERGY_PATHWAY_ACCOUNTING_V0_1.md"
+      - ".github/workflows/energy-pathway.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  energy-pathway:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-energy-pathway-${{ hashFiles('**/Cargo.lock') }}
+      - name: Run energy accounting and receipt regression tests
+        run: cargo test -p sol-atlas-core --bin energy_pathway_assess
+      - name: Produce the frozen synthetic assessment
+        run: cargo run -p sol-atlas-core --bin energy_pathway_assess -- schemas/examples/energy-pathway-thermal-electric.synthetic.json > /tmp/energy-pathway-report.json
+      - name: Install pinned JSON Schema validator (CI tooling only)
+        run: python -m pip install --disable-pip-version-check "jsonschema[format]==4.26.0"
+      - name: Validate input/report schemas, energy balance, and digests
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator, FormatChecker
+
+          fixture_path = Path("schemas/examples/energy-pathway-thermal-electric.synthetic.json")
+          fixture_bytes = fixture_path.read_bytes()
+          request = json.loads(fixture_bytes)
+          report = json.loads(Path("/tmp/energy-pathway-report.json").read_text())
+          request_schema = json.loads(Path("schemas/energy-pathway-request-v0.1.schema.json").read_text())
+          report_schema = json.loads(Path("schemas/energy-pathway-report-v1.schema.json").read_text())
+
+          Draft202012Validator.check_schema(request_schema)
+          Draft202012Validator.check_schema(report_schema)
+          Draft202012Validator(request_schema, format_checker=FormatChecker()).validate(request)
+          Draft202012Validator(report_schema, format_checker=FormatChecker()).validate(report)
+
+          assessment = report["assessment"]
+          receipt = report["receipt"]
+          assert hashlib.sha256(fixture_bytes).hexdigest() == receipt["input_sha256"]
+          compact_assessment = json.dumps(assessment, separators=(",", ":"), ensure_ascii=False).encode()
+          assert hashlib.sha256(compact_assessment).hexdigest() == receipt["assessment_sha256"]
+          assert assessment["gross_delivered_energy_kwh"] == 38.0
+          assert assessment["total_conversion_loss_kwh"] == 62.0
+          assert abs(assessment["total_auxiliary_electricity_kwh"] - 3.2) < 1e-9
+          assert abs(assessment["net_electric_output_kwh"] - 34.8) < 1e-9
+          assert abs(assessment["stream_balance_residual_kwh"]) <= 1e-9
+          assert report["receipt"]["synthetic"] is True
+          assert "not authenticate evidence" in receipt["verification_boundary"]
+          print("energy pathway schemas, known-answer physics, and digest bindings passed")
+          PY
