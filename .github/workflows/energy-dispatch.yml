@@ -1,0 +1,131 @@
+name: Bounded exact energy dispatch oracle
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "sol-atlas-core/src/energy_dispatch.rs"
+      - "sol-atlas-core/src/bin/energy_dispatch_assess.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/energy-dispatch-*.schema.json"
+      - "schemas/examples/energy-dispatch-*.synthetic.json"
+      - "docs/benchmarks/ENERGY_DISPATCH_V0_1.md"
+      - ".github/workflows/energy-dispatch.yml"
+  pull_request:
+    paths:
+      - "sol-atlas-core/src/energy_dispatch.rs"
+      - "sol-atlas-core/src/bin/energy_dispatch_assess.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/energy-dispatch-*.schema.json"
+      - "schemas/examples/energy-dispatch-*.synthetic.json"
+      - "docs/benchmarks/ENERGY_DISPATCH_V0_1.md"
+      - ".github/workflows/energy-dispatch.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-energy-dispatch-${{ hashFiles('**/Cargo.lock') }}
+      - name: Run finite-model, Pareto and negative-control tests
+        run: cargo test -p sol-atlas-core --lib energy_dispatch
+      - name: Run receipt-wrapped dispatch CLI tests
+        run: cargo test -p sol-atlas-core --bin energy_dispatch_assess
+      - name: Produce frozen known-answer report
+        run: cargo run -p sol-atlas-core --bin energy_dispatch_assess -- schemas/examples/energy-dispatch-pv-outage.synthetic.json > /tmp/energy-dispatch-report.json
+      - name: Install pinned JSON Schema validator (CI tooling only)
+        run: python -m pip install --disable-pip-version-check "jsonschema[format]==4.26.0"
+      - name: Validate schemas, receipt, exactness flags and known answer
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator, FormatChecker
+
+          fixture_path = Path("schemas/examples/energy-dispatch-pv-outage.synthetic.json")
+          raw = fixture_path.read_bytes()
+          request = json.loads(raw)
+          report = json.loads(Path("/tmp/energy-dispatch-report.json").read_text())
+          request_schema = json.loads(Path("schemas/energy-dispatch-request-v0.1.schema.json").read_text())
+          report_schema = json.loads(Path("schemas/energy-dispatch-report-v1.schema.json").read_text())
+          Draft202012Validator.check_schema(request_schema)
+          Draft202012Validator.check_schema(report_schema)
+          Draft202012Validator(request_schema, format_checker=FormatChecker()).validate(request)
+          Draft202012Validator(report_schema, format_checker=FormatChecker()).validate(report["assessment"])
+
+          receipt = report["receipt"]
+          assessment = report["assessment"]
+          assert hashlib.sha256(raw).hexdigest() == receipt["input_sha256"]
+          compact_assessment = json.dumps(assessment, separators=(",", ":"), ensure_ascii=False).encode()
+          assert hashlib.sha256(compact_assessment).hexdigest() == receipt["assessment_sha256"]
+          assert receipt["input_bytes"] == len(raw)
+          assert receipt["case_id"] == request["case_id"]
+          assert receipt["synthetic"] is True
+          assert assessment["search_is_exact"] is True
+          assert assessment["pareto_frontier_complete"] is True
+          assert assessment["feasible_complete_schedules"] > 0
+          assert assessment["pareto_frontier_count"] == len(assessment["pareto_alternatives"])
+
+          best = assessment["pareto_alternatives"][0]
+          objective = best["objective"]
+          assert objective["essential_unserved_quanta"] == 0
+          assert objective["flexible_unserved_quanta"] == 0
+          assert objective["operating_cost_units"] == 0
+          assert objective["grid_carbon_grams"] == 0
+          assert objective["curtailed_pv_quanta"] == 0
+          assert objective["terminal_soc_quanta"] == 0
+          assert [step["battery_charge_input_quanta"] for step in best["schedule"]] == [2, 0]
+          assert [step["essential_served_quanta"] for step in best["schedule"]] == [0, 2]
+
+          alternatives = assessment["pareto_alternatives"]
+          def dominates(a, b):
+              oa, ob = a["objective"], b["objective"]
+              no_worse = (
+                  oa["essential_unserved_quanta"] <= ob["essential_unserved_quanta"]
+                  and oa["flexible_unserved_quanta"] <= ob["flexible_unserved_quanta"]
+                  and oa["operating_cost_units"] <= ob["operating_cost_units"]
+                  and oa["grid_carbon_grams"] <= ob["grid_carbon_grams"]
+                  and oa["curtailed_pv_quanta"] <= ob["curtailed_pv_quanta"]
+                  and oa["terminal_soc_quanta"] >= ob["terminal_soc_quanta"]
+              )
+              strict = (
+                  oa["essential_unserved_quanta"] < ob["essential_unserved_quanta"]
+                  or oa["flexible_unserved_quanta"] < ob["flexible_unserved_quanta"]
+                  or oa["operating_cost_units"] < ob["operating_cost_units"]
+                  or oa["grid_carbon_grams"] < ob["grid_carbon_grams"]
+                  or oa["curtailed_pv_quanta"] < ob["curtailed_pv_quanta"]
+                  or oa["terminal_soc_quanta"] > ob["terminal_soc_quanta"]
+              )
+              return no_worse and strict
+
+          for i, left in enumerate(alternatives):
+              for j, right in enumerate(alternatives):
+                  if i != j:
+                      assert not dominates(left, right), (i, j)
+              for step in left["schedule"]:
+                  if step["grid_outage"]:
+                      assert step["grid_import_quanta"] == 0
+                  assert step["bus_energy_balance_residual_quanta"] == 0
+                  assert step["pv_used_quanta"] + step["pv_curtailed_quanta"] == step["pv_available_quanta"]
+                  assert step["essential_served_quanta"] + step["essential_unserved_quanta"] == step["essential_demand_quanta"]
+                  assert step["flexible_served_quanta"] + step["flexible_unserved_quanta"] == step["flexible_demand_quanta"]
+                  assert not (step["battery_charge_input_quanta"] > 0 and step["battery_soc_withdrawal_quanta"] > 0)
+
+          assert "exact only over the declared finite quantized model" in assessment["claim_ceiling"]
+          print("dispatch schemas, receipt, known answer and Pareto invariants passed")
+          PY
