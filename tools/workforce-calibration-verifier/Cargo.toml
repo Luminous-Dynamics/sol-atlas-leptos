@@ -3,7 +3,7 @@ name = "workforce-calibration-verifier"
 version = "0.1.0"
 edition = "2024"
 publish = false
-description = "Synthetic probabilistic workforce diagnosis calibration and abstention verifier"
+description = "Synthetic probability calibration, scoring, and abstention conformance verifier"
 
 [dependencies]
 jsonschema = "=0.59.0"
