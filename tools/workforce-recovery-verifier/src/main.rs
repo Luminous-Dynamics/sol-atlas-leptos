@@ -777,6 +777,36 @@ mod tests {
     }
 
     #[test]
+    fn adding_the_missing_supervisor_capacity_restores_feasibility() {
+        let (mut fixture, schema) = loaded();
+        fixture["scenarios"][2]["resource_caps"]["supervisor_hours"] = json!(2);
+        let report = report(&fixture, &schema);
+        let recovered = find(&report, "RC-003");
+        assert_eq!(recovered.recovery_status, "feasible");
+        assert_eq!(recovered.feasible_portfolio_count, 1);
+        assert!(recovered.frontier[0]
+            .service_benefits
+            .meets(&Services {
+                essential_water_units: 1,
+                essential_power_units: 1,
+                ..Services::default()
+            }));
+    }
+
+    #[test]
+    fn more_resources_do_not_override_unknown_funding() {
+        let (mut fixture, schema) = loaded();
+        fixture["scenarios"][3]["resource_caps"]["qualified_person_shifts"] = json!(u64::MAX);
+        fixture["scenarios"][3]["resource_caps"]["supervisor_hours"] = json!(u64::MAX);
+        fixture["scenarios"][3]["resource_caps"]["dispatch_hours"] = json!(u64::MAX);
+        fixture["scenarios"][3]["resource_caps"]["cash_zar_cents"] = json!(u64::MAX);
+        let report = report(&fixture, &schema);
+        let recovery = find(&report, "RC-004");
+        assert_eq!(recovery.recovery_status, "infeasible_essential_floor");
+        assert!(recovery.frontier.is_empty());
+    }
+
+    #[test]
     fn unknown_dependency_fails_closed() {
         let (mut fixture, schema) = loaded();
         fixture["scenarios"][0]["interventions"][1]["requires_selected_interventions"] =
