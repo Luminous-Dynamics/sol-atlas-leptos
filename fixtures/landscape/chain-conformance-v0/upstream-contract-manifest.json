@@ -55,15 +55,15 @@
       "source_id": "sol-atlas-measurement-planner-code",
       "repository": "Luminous-Dynamics/sol-atlas-leptos",
       "pull_request": 275,
-      "commit_sha": "78b8d7a6fa3860757210031e914c9c4e88e67345",
+      "commit_sha": "1307e985d1a0ab5278155c86dd2e89cb15dafd82",
       "source_path": "tools/landscape-measurement-planner/src/lib.rs",
-      "git_blob_sha": "11aed14a957c49159e4187dad8470f76e75e7543"
+      "git_blob_sha": "ea24799f91fe19097717851aacbf8b671cab274b"
     },
     {
       "source_id": "sol-atlas-measurement-planner-fixture",
       "repository": "Luminous-Dynamics/sol-atlas-leptos",
       "pull_request": 275,
-      "commit_sha": "78b8d7a6fa3860757210031e914c9c4e88e67345",
+      "commit_sha": "1307e985d1a0ab5278155c86dd2e89cb15dafd82",
       "source_path": "fixtures/landscape/measurement-planning-v0/fixture.json",
       "git_blob_sha": "d6937a6019756f0b20a41218b1bd54ba43841776"
     },
@@ -71,7 +71,7 @@
       "source_id": "sol-atlas-measurement-planner-input-schema",
       "repository": "Luminous-Dynamics/sol-atlas-leptos",
       "pull_request": 275,
-      "commit_sha": "78b8d7a6fa3860757210031e914c9c4e88e67345",
+      "commit_sha": "1307e985d1a0ab5278155c86dd2e89cb15dafd82",
       "source_path": "schemas/landscape-measurement-selection-fixture-v0.1.schema.json",
       "git_blob_sha": "674a11230b5c498ab71a190e125353e36388835f"
     },
@@ -79,7 +79,7 @@
       "source_id": "sol-atlas-measurement-planner-report-schema",
       "repository": "Luminous-Dynamics/sol-atlas-leptos",
       "pull_request": 275,
-      "commit_sha": "78b8d7a6fa3860757210031e914c9c4e88e67345",
+      "commit_sha": "1307e985d1a0ab5278155c86dd2e89cb15dafd82",
       "source_path": "schemas/landscape-measurement-selection-report-v0.1.schema.json",
       "git_blob_sha": "ce9c0ce91a4c6a7fe982e3e48f23818a92b82bb0"
     },
@@ -108,18 +108,26 @@
       "git_blob_sha": "1c002c496a5ea7a719e3e8f1fcb56417a3a7654b"
     },
     {
+      "source_id": "sol-atlas-scenario-robustness-cli",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 289,
+      "commit_sha": "f4cb87bf537958ef978d167ba6693802b878d67c",
+      "source_path": "tools/landscape-scenario-robustness/src/main.rs",
+      "git_blob_sha": "5abac0f939dcc3b5f896b5f9b0d8177c3dea89f6"
+    },
+    {
       "source_id": "sol-atlas-scenario-robustness-code",
       "repository": "Luminous-Dynamics/sol-atlas-leptos",
       "pull_request": 289,
-      "commit_sha": "7c1233fe090040cd68e46da5e526b96b0b9b5c8a",
+      "commit_sha": "f4cb87bf537958ef978d167ba6693802b878d67c",
       "source_path": "tools/landscape-scenario-robustness/src/lib.rs",
-      "git_blob_sha": "62eb69ea0639bb7b748158dc370b1abe646447da"
+      "git_blob_sha": "c7afdd7f92c6385a7ba4f6015632a57d5991a7b1"
     },
     {
       "source_id": "sol-atlas-scenario-robustness-fixture",
       "repository": "Luminous-Dynamics/sol-atlas-leptos",
       "pull_request": 289,
-      "commit_sha": "7c1233fe090040cd68e46da5e526b96b0b9b5c8a",
+      "commit_sha": "f4cb87bf537958ef978d167ba6693802b878d67c",
       "source_path": "fixtures/landscape/robustness-v0/fixture.json",
       "git_blob_sha": "1b801599ec9deb98c42c77219bb4621959dfaf10"
     },
@@ -127,15 +135,31 @@
       "source_id": "sol-atlas-scenario-robustness-input-schema",
       "repository": "Luminous-Dynamics/sol-atlas-leptos",
       "pull_request": 289,
-      "commit_sha": "7c1233fe090040cd68e46da5e526b96b0b9b5c8a",
+      "commit_sha": "f4cb87bf537958ef978d167ba6693802b878d67c",
       "source_path": "schemas/landscape-scenario-robustness-fixture-v0.1.schema.json",
       "git_blob_sha": "99d226927305a1508a15b23a5017623d60c5f59f"
+    },
+    {
+      "source_id": "sol-atlas-scenario-robustness-lockfile",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 289,
+      "commit_sha": "f4cb87bf537958ef978d167ba6693802b878d67c",
+      "source_path": "tools/landscape-scenario-robustness/Cargo.lock",
+      "git_blob_sha": "90c8afdf1cbba02a792c8177c777d26a115c002a"
+    },
+    {
+      "source_id": "sol-atlas-scenario-robustness-manifest",
+      "repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "pull_request": 289,
+      "commit_sha": "f4cb87bf537958ef978d167ba6693802b878d67c",
+      "source_path": "tools/landscape-scenario-robustness/Cargo.toml",
+      "git_blob_sha": "8f0208dd0fded6d90a95e97780cdc94c615aff1f"
     },
     {
       "source_id": "sol-atlas-scenario-robustness-report-schema",
       "repository": "Luminous-Dynamics/sol-atlas-leptos",
       "pull_request": 289,
-      "commit_sha": "7c1233fe090040cd68e46da5e526b96b0b9b5c8a",
+      "commit_sha": "f4cb87bf537958ef978d167ba6693802b878d67c",
       "source_path": "schemas/landscape-scenario-robustness-report-v0.1.schema.json",
       "git_blob_sha": "1e25994d7bf3c7c98315fc71d8d9b7da3a169890"
     },
@@ -151,7 +175,7 @@
       "source_id": "sol-atlas-utility-method",
       "repository": "Luminous-Dynamics/sol-atlas-leptos",
       "pull_request": 289,
-      "commit_sha": "7c1233fe090040cd68e46da5e526b96b0b9b5c8a",
+      "commit_sha": "f4cb87bf537958ef978d167ba6693802b878d67c",
       "source_path": "schemas/landscape-utility-method-v0.schema.json",
       "git_blob_sha": "068569c0b5c4e4d603948cfc4f7cadb6e2c950b6"
     },
@@ -159,15 +183,23 @@
       "source_id": "symthaea-alternative-review",
       "repository": "Luminous-Dynamics/symthaea",
       "pull_request": 8248,
-      "commit_sha": "1e65eaf855a3c16596c77abc607ef5c8779d0239",
+      "commit_sha": "118fb6979c887888459e2b3d4b554ca177328d93",
       "source_path": "fixtures/landscape/review-unranked-v0.json",
       "git_blob_sha": "2114b50f07c0647bfcec3d3e561eda343010fcf8"
+    },
+    {
+      "source_id": "symthaea-alternative-review-code",
+      "repository": "Luminous-Dynamics/symthaea",
+      "pull_request": 8248,
+      "commit_sha": "118fb6979c887888459e2b3d4b554ca177328d93",
+      "source_path": "crates/domains/symthaea-landscape-review/src/lib.rs",
+      "git_blob_sha": "c64182b00ad272a97d70760f1459f10303123850"
     },
     {
       "source_id": "symthaea-alternative-review-schema",
       "repository": "Luminous-Dynamics/symthaea",
       "pull_request": 8248,
-      "commit_sha": "1e65eaf855a3c16596c77abc607ef5c8779d0239",
+      "commit_sha": "118fb6979c887888459e2b3d4b554ca177328d93",
       "source_path": "schemas/landscape-alternative-review-v0.schema.json",
       "git_blob_sha": "683b4b717a3d6fe81bf8aec758f2f41cdfd19b3c"
     },
