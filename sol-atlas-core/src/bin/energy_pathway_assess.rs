@@ -51,7 +51,10 @@ fn report_from_bytes(raw_input: &[u8]) -> Result<RunReport, Box<dyn Error>> {
         scenario_id: request.scenario_id,
         synthetic: request.synthetic,
         claim_ceiling: assessment.claim_ceiling.clone(),
-        verification_boundary: "digests bind input and assessment identity; they do not authenticate evidence or prove physical output",
+        verification_boundary: concat!(
+            "digests bind input and assessment identity; they do not authenticate evidence ",
+            "or prove physical output",
+        ),
     };
     Ok(RunReport { receipt, assessment })
 }
