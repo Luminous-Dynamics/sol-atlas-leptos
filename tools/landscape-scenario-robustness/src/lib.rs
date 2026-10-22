@@ -713,6 +713,8 @@ mod tests {
         assert_eq!(report.alternative_count, 3);
         assert_eq!(report.maximin_winner, "strategy-c");
         assert_eq!(report.minimax_regret_winner, "strategy-a");
+        assert_eq!(report.feasible_maximin_winner.as_deref(), Some("strategy-a"));
+        assert_eq!(report.feasible_minimax_regret_winner.as_deref(), Some("strategy-a"));
         assert_eq!(report.scenario_omission_audit.len(), 4);
         close(report.maximin_omission_stability_fraction, 0.75);
         close(report.minimax_regret_omission_stability_fraction, 1.0);
@@ -765,6 +767,7 @@ mod tests {
         close(a.maximum_regret_points, 10.0);
         close(a.unweighted_mean_regret_points, 4.0);
         assert!(a.robustly_qualified);
+        assert!(a.blocking_constraint_violations.is_empty());
         close(b.worst_case_utility_points, 40.0);
         close(b.unweighted_mean_utility_points, 59.25);
         close(b.maximum_regret_points, 35.0);
@@ -773,7 +776,10 @@ mod tests {
         close(c.unweighted_mean_utility_points, 73.75);
         close(c.maximum_regret_points, 17.0);
         close(c.unweighted_mean_regret_points, 6.5);
-        assert!(c.robustly_qualified);
+        assert!(!c.robustly_qualified);
+        assert_eq!(c.blocking_constraint_violations.len(), 1);
+        assert_eq!(c.blocking_constraint_violations[0].scenario_id, "maintenance_shock");
+        assert_eq!(c.blocking_constraint_violations[0].constraint_id, "accessible_route_continuity");
     }
 
     #[test]
@@ -872,6 +878,32 @@ mod tests {
         method["secret_policy_override"] = serde_json::json!(true);
         let mutated = serde_json::to_vec(&method).expect("method with unknown field");
         assert!(validate_utility_method_bytes(&mutated).is_err());
+    }
+
+    #[test]
+    fn incomplete_critical_constraint_matrix_fails_closed() {
+        let mut fixture: RobustnessFixture =
+            serde_json::from_slice(&fixture_bytes()).expect("fixture parses");
+        fixture.constraint_outcomes.pop();
+        assert!(validate_fixture(&fixture)
+            .unwrap_err()
+            .iter()
+            .any(|error| error.contains("exactly one result for every scenario/alternative/constraint tuple")));
+    }
+
+    #[test]
+    fn no_hard_feasible_alternative_means_no_gated_recommendation() {
+        let mut fixture: RobustnessFixture =
+            serde_json::from_slice(&fixture_bytes()).expect("fixture parses");
+        for outcome in &mut fixture.constraint_outcomes {
+            outcome.satisfied = false;
+        }
+        let bytes = serde_json::to_vec(&fixture).expect("fixture JSON");
+        let report = evaluate_fixture_bytes(&bytes, &method_bytes()).expect("valid but infeasible panel");
+        assert_eq!(report.maximin_winner, "strategy-c");
+        assert_eq!(report.feasible_maximin_winner, None);
+        assert_eq!(report.feasible_minimax_regret_winner, None);
+        assert!(report.scorecards.iter().all(|scorecard| !scorecard.robustly_qualified));
     }
 
     #[test]
