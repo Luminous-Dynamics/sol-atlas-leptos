@@ -456,7 +456,11 @@ pub fn assess_energy_storage(
         storage_id: request.storage_id.clone(),
         carrier: request.carrier,
         synthetic: request.synthetic,
-        claim_ceiling: "calculated state trajectory; no device metering or physical validation".to_owned(),
+        claim_ceiling: concat!(
+            "calculated state trajectory; no device metering ",
+            "or physical validation",
+        )
+        .to_owned(),
         initial_energy_kwh: initial_energy,
         final_energy_kwh: state,
         capacity_kwh: request.capacity_kwh,
