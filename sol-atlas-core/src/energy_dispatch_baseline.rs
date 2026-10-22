@@ -310,7 +310,11 @@ pub fn assess_dispatch_regret(
             objective_deltas_vs_lexicographic_oracle: None,
             baseline_schedule: None,
             lexicographic_oracle_schedule: reference.schedule.clone(),
-            interpretation: "The heuristic failed a hard constraint; no objective regret vector is fabricated. Count this case as a baseline feasibility failure.".to_owned(),
+            interpretation: concat!(
+                "The heuristic failed a hard constraint; no objective regret vector is fabricated. ",
+                "Count this case as a baseline feasibility failure."
+            )
+            .to_owned(),
         }),
     }
 }
