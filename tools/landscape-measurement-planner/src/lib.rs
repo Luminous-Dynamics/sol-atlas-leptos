@@ -770,6 +770,51 @@ fn select_seeded_uniform(
     select_in_order(ordered, scores, budget)
 }
 
+fn build_coverage_frontier_points(
+    candidates: &[Candidate],
+    plans: &[Option<(u32, PlanState)>],
+    unconstrained_score: f64,
+) -> Vec<CoverageFrontierPoint> {
+    let total_strata = eligible_strata_count(candidates);
+    if total_strata == 0 {
+        return Vec::new();
+    }
+    (1..=total_strata)
+        .map(|minimum_strata| {
+            let minimum_fraction = minimum_strata as f64 / total_strata as f64;
+            match plans.get(minimum_strata).cloned().flatten() {
+                Some((cost, plan)) => CoverageFrontierPoint {
+                    minimum_coverage_fraction: rounded(minimum_fraction),
+                    required_spatial_temporal_stratum_count: minimum_strata,
+                    status: "satisfied".to_owned(),
+                    selected_candidate_ids: Some(plan.selected_ids.clone()),
+                    selected_cost_units: Some(cost),
+                    achieved_coverage_fraction: Some(rounded(stratum_coverage_fraction(
+                        candidates,
+                        &plan.selected_ids,
+                    ))),
+                    weighted_discrimination_nats: Some(rounded(
+                        plan.weighted_discrimination_nats,
+                    )),
+                    score_loss_from_unconstrained_nats: Some(rounded(
+                        (unconstrained_score - plan.weighted_discrimination_nats).max(0.0),
+                    )),
+                },
+                None => CoverageFrontierPoint {
+                    minimum_coverage_fraction: rounded(minimum_fraction),
+                    required_spatial_temporal_stratum_count: minimum_strata,
+                    status: "infeasible".to_owned(),
+                    selected_candidate_ids: None,
+                    selected_cost_units: None,
+                    achieved_coverage_fraction: None,
+                    weighted_discrimination_nats: None,
+                    score_loss_from_unconstrained_nats: None,
+                },
+            }
+        })
+        .collect()
+}
+
 fn stratum_coverage_fraction(candidates: &[Candidate], selected_ids: &[String]) -> f64 {
     let eligible_strata: BTreeSet<(&str, &str)> = candidates
         .iter()
