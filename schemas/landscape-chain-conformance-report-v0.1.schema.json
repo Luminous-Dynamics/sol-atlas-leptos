@@ -55,7 +55,7 @@
     },
     "upstream_pinned_contract_count": {
       "type": "integer",
-      "minimum": 26
+      "minimum": 34
     },
     "project_feature_count": {
       "type": "integer",
@@ -87,7 +87,7 @@
     },
     "passed_check_count": {
       "type": "integer",
-      "minimum": 19
+      "minimum": 20
     },
     "checks": {
       "type": "array",
