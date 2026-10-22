@@ -79,6 +79,7 @@ jobs:
             (.minimum_spatial_temporal_coverage_fraction - 0.666666667 | abs) < 0.000001 and
             .required_spatial_temporal_stratum_count == 2 and
             .coverage_constraint_status == "satisfied" and
+            .coverage_constraint_limit_reason == null and
             .coverage_constrained_selected_candidate_ids == ["candidate-b-north-replica", "candidate-c-south-sensor"] and
             .coverage_constrained_cost_units == 6 and
             (.coverage_constrained_stratum_coverage_fraction - 0.666666667 | abs) < 0.000001 and
