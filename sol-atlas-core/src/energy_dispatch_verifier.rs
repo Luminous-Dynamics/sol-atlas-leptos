@@ -248,6 +248,26 @@ mod tests {
     }
 
     #[test]
+    fn rejects_forged_service_demand_and_overflowing_service_sums() {
+        let request = fixture_request();
+        let assessment = crate::energy_dispatch::assess_energy_dispatch(&request)
+            .expect("oracle solves frozen case");
+        let mut schedule = assessment.pareto_alternatives[0].schedule.clone();
+        schedule[1].essential_demand_quanta = 0;
+        schedule[1].essential_served_quanta = 0;
+        schedule[1].essential_unserved_quanta = 0;
+        let errors = verify_dispatch_schedule(&request, &schedule).unwrap_err();
+        assert!(errors.iter().any(|error| error.contains("service demand differs")));
+        assert!(errors.iter().any(|error| error.contains("essential service")));
+
+        let mut overflow = assessment.pareto_alternatives[0].schedule.clone();
+        overflow[1].essential_served_quanta = u16::MAX;
+        overflow[1].essential_unserved_quanta = u16::MAX;
+        let errors = verify_dispatch_schedule(&request, &overflow).unwrap_err();
+        assert!(errors.iter().any(|error| error.contains("essential service")));
+    }
+
+    #[test]
     fn rejects_wrong_schedule_length() {
         let request = fixture_request();
         let errors = verify_dispatch_schedule(&request, &[]).unwrap_err();
