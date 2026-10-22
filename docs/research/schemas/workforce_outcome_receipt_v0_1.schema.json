@@ -15,7 +15,8 @@
     "window",
     "metric_contract_sha256",
     "policy_results",
-    "claim_ceiling"
+    "claim_ceiling",
+    "additionality_assessment"
   ],
   "properties": {
     "schema_version": {
@@ -253,6 +254,130 @@
         "causal_claim_supported_by_preregistered_design",
         "incomplete_or_indeterminate"
       ]
+    },
+    "additionality_assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "gross_paid_work_events",
+        "net_additional_paid_hours_estimate",
+        "net_additional_interval_hours",
+        "displacement_status",
+        "substitution_status",
+        "deadweight_status",
+        "spillover_status",
+        "comparison_design",
+        "counterfactual_basis",
+        "preregistration_status",
+        "independent_review",
+        "claim_ceiling"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "not_assessed",
+            "descriptive_only",
+            "estimated_with_preregistered_counterfactual"
+          ]
+        },
+        "gross_paid_work_events": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Observed paid-work events under the declared payment evidence contract; not jobs created."
+        },
+        "net_additional_paid_hours_estimate": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Signed estimate of incremental paid hours versus the declared counterfactual; null when not identified."
+        },
+        "net_additional_interval_hours": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "lower",
+            "upper"
+          ],
+          "properties": {
+            "lower": {
+              "type": "number"
+            },
+            "upper": {
+              "type": "number"
+            }
+          }
+        },
+        "displacement_status": {
+          "enum": [
+            "not_assessed",
+            "no_material_displacement_evidence_with_limits",
+            "possible_displacement",
+            "measured_displacement"
+          ]
+        },
+        "substitution_status": {
+          "enum": [
+            "not_assessed",
+            "no_material_substitution_evidence_with_limits",
+            "possible_substitution",
+            "measured_substitution"
+          ]
+        },
+        "deadweight_status": {
+          "enum": [
+            "not_assessed",
+            "no_material_deadweight_evidence_with_limits",
+            "possible_deadweight",
+            "measured_deadweight"
+          ]
+        },
+        "spillover_status": {
+          "enum": [
+            "not_assessed",
+            "not_detected_with_limits",
+            "positive_spillover",
+            "negative_spillover",
+            "mixed_spillovers",
+            "unresolved"
+          ]
+        },
+        "comparison_design": {
+          "enum": [
+            "none",
+            "randomized_pilot",
+            "stepped_wedge",
+            "matched_comparison",
+            "interrupted_time_series",
+            "difference_in_differences",
+            "independent_replication"
+          ]
+        },
+        "counterfactual_basis": {
+          "type": "string"
+        },
+        "preregistration_status": {
+          "enum": [
+            "not_registered",
+            "verified"
+          ]
+        },
+        "independent_review": {
+          "type": "boolean"
+        },
+        "claim_ceiling": {
+          "enum": [
+            "synthetic_contract_only",
+            "descriptive_association_only",
+            "causal_claim_supported_by_preregistered_design",
+            "incomplete_or_indeterminate"
+          ]
+        }
+      }
     }
   },
   "allOf": [
@@ -319,6 +444,117 @@
         "properties": {
           "independent_review": {
             "const": true
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "synthetic_only": {
+            "const": true
+          }
+        },
+        "required": [
+          "synthetic_only"
+        ]
+      },
+      "then": {
+        "properties": {
+          "additionality_assessment": {
+            "properties": {
+              "status": {
+                "const": "not_assessed"
+              },
+              "net_additional_paid_hours_estimate": {
+                "type": "null"
+              },
+              "net_additional_interval_hours": {
+                "type": "null"
+              },
+              "displacement_status": {
+                "const": "not_assessed"
+              },
+              "substitution_status": {
+                "const": "not_assessed"
+              },
+              "deadweight_status": {
+                "const": "not_assessed"
+              },
+              "spillover_status": {
+                "const": "not_assessed"
+              },
+              "comparison_design": {
+                "const": "none"
+              },
+              "counterfactual_basis": {
+                "const": ""
+              },
+              "preregistration_status": {
+                "const": "not_registered"
+              },
+              "independent_review": {
+                "const": false
+              },
+              "claim_ceiling": {
+                "const": "synthetic_contract_only"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "claim_ceiling": {
+            "const": "causal_claim_supported_by_preregistered_design"
+          }
+        },
+        "required": [
+          "claim_ceiling"
+        ]
+      },
+      "then": {
+        "properties": {
+          "additionality_assessment": {
+            "required": [
+              "status",
+              "net_additional_paid_hours_estimate",
+              "net_additional_interval_hours",
+              "counterfactual_basis",
+              "comparison_design",
+              "preregistration_status",
+              "independent_review"
+            ],
+            "properties": {
+              "status": {
+                "const": "estimated_with_preregistered_counterfactual"
+              },
+              "net_additional_paid_hours_estimate": {
+                "type": "number"
+              },
+              "net_additional_interval_hours": {
+                "type": "object"
+              },
+              "counterfactual_basis": {
+                "minLength": 10
+              },
+              "comparison_design": {
+                "not": {
+                  "const": "none"
+                }
+              },
+              "preregistration_status": {
+                "const": "verified"
+              },
+              "independent_review": {
+                "const": true
+              },
+              "claim_ceiling": {
+                "const": "causal_claim_supported_by_preregistered_design"
+              }
+            }
           }
         }
       }
