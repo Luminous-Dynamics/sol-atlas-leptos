@@ -27,6 +27,7 @@
     "minimum_spatial_temporal_coverage_fraction",
     "required_spatial_temporal_stratum_count",
     "coverage_constraint_status",
+    "coverage_constraint_limit_reason",
     "coverage_constrained_selected_candidate_ids",
     "coverage_constrained_cost_units",
     "coverage_constrained_stratum_coverage_fraction",
@@ -250,6 +251,20 @@
         },
         {
           "type": "null"
+        }
+      ]
+    },
+    "coverage_constraint_limit_reason": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "enum": [
+            "coverage_stratum_limit",
+            "coverage_state_limit",
+            "coverage_transition_limit"
+          ]
         }
       ]
     }
