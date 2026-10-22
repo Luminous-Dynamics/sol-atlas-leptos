@@ -863,10 +863,12 @@ mod tests {
         let mut request = fixture();
         request.intervals[0].services[0].requested_energy_kwh = 1.0e-10;
         request.intervals[0].services[0].delivered_energy_kwh = 0.0;
+        request.intervals[1].services[0].delivered_energy_kwh = 10.0;
+        request.intervals[2].services[0].delivered_energy_kwh = 10.0;
         let assessment = assess_energy_reliability(&request).unwrap();
-        assert_eq!(assessment.essential_deficit_interval_count, 3);
-        assert_eq!(assessment.essential_deficit_duration_seconds, 10_800);
-        assert_eq!(assessment.longest_consecutive_essential_deficit_seconds, 7_200);
+        assert_eq!(assessment.essential_deficit_interval_count, 1);
+        assert_eq!(assessment.essential_deficit_duration_seconds, 3_600);
+        assert_eq!(assessment.longest_consecutive_essential_deficit_seconds, 3_600);
     }
 
     #[test]
