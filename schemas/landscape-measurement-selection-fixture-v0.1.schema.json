@@ -1,0 +1,232 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/landscape-measurement-selection-fixture-v0.1.schema.json",
+  "title": "Landscape measurement selection fixture v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "suite_id",
+    "data_origin",
+    "claim_ceiling",
+    "budget_cost_units",
+    "minimum_spatial_temporal_coverage_fraction",
+    "candidates"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.landscape_measurement_selection_fixture.v0.1"
+    },
+    "suite_id": {
+      "const": "LANDSCAPE-MEASUREMENT-PLANNER-V0.1"
+    },
+    "data_origin": {
+      "const": "synthetic_fixture"
+    },
+    "claim_ceiling": {
+      "const": "SYNTHETIC_SELECTION_ONLY"
+    },
+    "budget_cost_units": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100000
+    },
+    "candidates": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1000,
+      "items": {
+        "$ref": "#/$defs/candidate"
+      }
+    },
+    "minimum_spatial_temporal_coverage_fraction": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    }
+  },
+  "$defs": {
+    "nonempty": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_id",
+        "metric_id",
+        "unit",
+        "spatial_stratum",
+        "temporal_stratum",
+        "site_ref_sha256",
+        "correlation_group",
+        "model_family_id",
+        "model_version",
+        "baseline_scenario_sha256",
+        "alternative_scenario_sha256",
+        "baseline_mean",
+        "alternative_mean",
+        "baseline_sd",
+        "alternative_sd",
+        "observation_noise_sd",
+        "decision_weight",
+        "cost_units",
+        "consent_status",
+        "access_status",
+        "access_authorization_sha256",
+        "consent_evidence_sha256"
+      ],
+      "properties": {
+        "candidate_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "metric_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "unit": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "spatial_stratum": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "temporal_stratum": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "site_ref_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "correlation_group": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "baseline_mean": {
+          "type": "number"
+        },
+        "alternative_mean": {
+          "type": "number"
+        },
+        "baseline_sd": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "alternative_sd": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "observation_noise_sd": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "decision_weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "cost_units": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100000
+        },
+        "consent_status": {
+          "enum": [
+            "granted",
+            "denied",
+            "unknown"
+          ]
+        },
+        "access_status": {
+          "enum": [
+            "authorized",
+            "denied",
+            "unknown"
+          ]
+        },
+        "model_family_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "model_version": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "baseline_scenario_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "alternative_scenario_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "consent_evidence_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "access_authorization_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "consent_status": {
+                "const": "granted"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "consent_evidence_sha256": {
+                "$ref": "#/$defs/sha256"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "consent_evidence_sha256": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "access_status": {
+                "const": "authorized"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "access_authorization_sha256": {
+                "$ref": "#/$defs/sha256"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "access_authorization_sha256": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

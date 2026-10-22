@@ -1,0 +1,476 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/landscape-measurement-selection-report-v0.1.schema.json",
+  "title": "Landscape measurement selection report v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "suite_id",
+    "conformance_status",
+    "data_origin",
+    "claim_ceiling",
+    "input_sha256",
+    "baseline_scenario_sha256",
+    "alternative_scenario_sha256",
+    "budget_cost_units",
+    "selected_cost_units",
+    "unspent_budget_units",
+    "candidate_count",
+    "eligible_candidate_count",
+    "ineligible_candidate_count",
+    "selected_candidate_count",
+    "eligible_not_selected_count",
+    "eligible_spatial_temporal_stratum_count",
+    "selected_spatial_temporal_stratum_count",
+    "selected_spatial_temporal_stratum_coverage_fraction",
+    "minimum_spatial_temporal_coverage_fraction",
+    "required_spatial_temporal_stratum_count",
+    "coverage_constraint_status",
+    "coverage_constraint_limit_reason",
+    "coverage_frontier_status",
+    "coverage_frontier_limit_reason",
+    "coverage_frontier",
+    "coverage_constrained_selected_candidate_ids",
+    "coverage_constrained_cost_units",
+    "coverage_constrained_stratum_coverage_fraction",
+    "coverage_constrained_weighted_discrimination_nats",
+    "coverage_constraint_score_loss_nats",
+    "selected_candidate_ids",
+    "total_weighted_discrimination_nats",
+    "greedy_ratio_baseline_selected_candidate_ids",
+    "greedy_ratio_baseline_cost_units",
+    "greedy_ratio_baseline_weighted_discrimination_nats",
+    "exact_gain_over_greedy_ratio_baseline_nats",
+    "uniform_baseline_replicates",
+    "uniform_baseline_mean_weighted_discrimination_nats",
+    "uniform_baseline_best_weighted_discrimination_nats",
+    "uniform_baseline_mean_stratum_coverage_fraction",
+    "exact_gain_over_uniform_mean_nats",
+    "decisions"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.landscape_measurement_selection_report.v0.1"
+    },
+    "suite_id": {
+      "const": "LANDSCAPE-MEASUREMENT-PLANNER-V0.1"
+    },
+    "conformance_status": {
+      "const": "PASS_SYNTHETIC_SELECTION_ONLY"
+    },
+    "data_origin": {
+      "const": "synthetic_fixture"
+    },
+    "claim_ceiling": {
+      "const": "SYNTHETIC_SELECTION_ONLY"
+    },
+    "input_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "budget_cost_units": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "selected_cost_units": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "unspent_budget_units": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "candidate_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "eligible_candidate_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "ineligible_candidate_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "selected_candidate_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "eligible_not_selected_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "selected_candidate_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "total_weighted_discrimination_nats": {
+      "type": "number",
+      "minimum": 0
+    },
+    "decisions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/decision"
+      }
+    },
+    "greedy_ratio_baseline_selected_candidate_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "greedy_ratio_baseline_cost_units": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "greedy_ratio_baseline_weighted_discrimination_nats": {
+      "type": "number",
+      "minimum": 0
+    },
+    "exact_gain_over_greedy_ratio_baseline_nats": {
+      "type": "number",
+      "minimum": 0
+    },
+    "eligible_spatial_temporal_stratum_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "selected_spatial_temporal_stratum_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "selected_spatial_temporal_stratum_coverage_fraction": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "uniform_baseline_replicates": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "uniform_baseline_mean_weighted_discrimination_nats": {
+      "type": "number",
+      "minimum": 0
+    },
+    "uniform_baseline_best_weighted_discrimination_nats": {
+      "type": "number",
+      "minimum": 0
+    },
+    "uniform_baseline_mean_stratum_coverage_fraction": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "exact_gain_over_uniform_mean_nats": {
+      "type": "number",
+      "minimum": 0
+    },
+    "baseline_scenario_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "alternative_scenario_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "minimum_spatial_temporal_coverage_fraction": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "required_spatial_temporal_stratum_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "coverage_constraint_status": {
+      "enum": [
+        "not_required",
+        "satisfied",
+        "infeasible",
+        "state_limit_exceeded"
+      ]
+    },
+    "coverage_constrained_selected_candidate_ids": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "coverage_constrained_cost_units": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "coverage_constrained_stratum_coverage_fraction": {
+      "anyOf": [
+        {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "coverage_constrained_weighted_discrimination_nats": {
+      "anyOf": [
+        {
+          "type": "number",
+          "minimum": 0
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "coverage_constraint_score_loss_nats": {
+      "anyOf": [
+        {
+          "type": "number",
+          "minimum": 0
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "coverage_constraint_limit_reason": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "enum": [
+            "coverage_stratum_limit",
+            "coverage_state_limit",
+            "coverage_transition_limit"
+          ]
+        }
+      ]
+    },
+    "coverage_frontier_status": {
+      "enum": [
+        "complete",
+        "state_limit_exceeded"
+      ]
+    },
+    "coverage_frontier_limit_reason": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "enum": [
+            "coverage_stratum_limit",
+            "coverage_state_limit",
+            "coverage_transition_limit"
+          ]
+        }
+      ]
+    },
+    "coverage_frontier": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "minimum_coverage_fraction",
+          "required_spatial_temporal_stratum_count",
+          "status",
+          "selected_candidate_ids",
+          "selected_cost_units",
+          "achieved_coverage_fraction",
+          "weighted_discrimination_nats",
+          "score_loss_from_unconstrained_nats"
+        ],
+        "properties": {
+          "minimum_coverage_fraction": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "required_spatial_temporal_stratum_count": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
+          },
+          "status": {
+            "enum": [
+              "satisfied",
+              "infeasible"
+            ]
+          },
+          "selected_candidate_ids": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "selected_cost_units": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "achieved_coverage_fraction": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "weighted_discrimination_nats": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "score_loss_from_unconstrained_nats": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_id",
+        "decision",
+        "reason",
+        "access_authorization_sha256",
+        "consent_evidence_sha256",
+        "access_status",
+        "consent_status",
+        "correlation_group",
+        "cost_units",
+        "symmetric_kl_nats",
+        "weighted_discrimination_nats"
+      ],
+      "properties": {
+        "candidate_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "decision": {
+          "enum": [
+            "selected",
+            "not_selected"
+          ]
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "correlation_group": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cost_units": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "symmetric_kl_nats": {
+          "type": "number",
+          "minimum": 0
+        },
+        "weighted_discrimination_nats": {
+          "type": "number",
+          "minimum": 0
+        },
+        "consent_status": {
+          "enum": [
+            "granted",
+            "denied",
+            "unknown"
+          ]
+        },
+        "access_status": {
+          "enum": [
+            "authorized",
+            "denied",
+            "unknown"
+          ]
+        },
+        "consent_evidence_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "access_authorization_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
