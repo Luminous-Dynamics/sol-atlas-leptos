@@ -5,6 +5,7 @@ use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 use std::env;
 use std::fs;
+use std::path::{Component, Path, PathBuf};
 use std::process::ExitCode;
 
 const EXPECTED_SCHEMA_VERSION: &str = "0.1.0";
@@ -273,7 +274,119 @@ fn validate_contract(corpus: &Corpus) -> Result<(), String> {
     }
 }
 
-fn check_case(corpus_synthetic_only: bool, case: &Case) -> (Vec<String>, String) {
+fn repository_root() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| Path::new("."))
+        .to_path_buf()
+}
+
+fn safe_repo_path(root: &Path, relative: &str, schema_path: bool) -> Result<PathBuf, String> {
+    let relative_path = Path::new(relative);
+    if relative_path.is_absolute()
+        || relative_path.components().any(|component| {
+            matches!(
+                component,
+                Component::ParentDir | Component::RootDir | Component::Prefix(_)
+            )
+        })
+    {
+        return Err("unsafe_artifact_path".to_string());
+    }
+    if schema_path {
+        if relative != "docs/research/schemas/workforce_chain_artifact_v0_1.schema.json" {
+            return Err("unsafe_schema_path".to_string());
+        }
+    } else if !relative_path.starts_with("docs/research/synthetic/workforce_chain_artifacts") {
+        return Err("unsafe_artifact_path".to_string());
+    }
+    Ok(root.join(relative_path))
+}
+
+fn verify_stage_files(root: &Path, stage: &Stage, failures: &mut BTreeSet<String>) {
+    let artifact_path = match safe_repo_path(root, &stage.artifact_path, false) {
+        Ok(path) => path,
+        Err(code) => {
+            failures.insert(code);
+            return;
+        }
+    };
+    let schema_path = match safe_repo_path(root, &stage.schema_path, true) {
+        Ok(path) => path,
+        Err(code) => {
+            failures.insert(code);
+            return;
+        }
+    };
+
+    let artifact_bytes = match fs::read(&artifact_path) {
+        Ok(bytes) => bytes,
+        Err(_) => {
+            failures.insert("artifact_file_missing".to_string());
+            return;
+        }
+    };
+    let schema_bytes = match fs::read(&schema_path) {
+        Ok(bytes) => bytes,
+        Err(_) => {
+            failures.insert("schema_file_missing".to_string());
+            return;
+        }
+    };
+
+    let actual_artifact_digest = sha256(&artifact_bytes);
+    let actual_schema_digest = sha256(&schema_bytes);
+
+    if actual_artifact_digest != stage.observed_artifact_sha256 {
+        failures.insert("artifact_bytes_digest_mismatch".to_string());
+    }
+    if actual_artifact_digest != stage.pinned_artifact_sha256 {
+        failures.insert("stale_artifact_digest".to_string());
+    }
+    if actual_schema_digest != stage.observed_schema_sha256 {
+        failures.insert("schema_bytes_digest_mismatch".to_string());
+    }
+    if actual_schema_digest != stage.pinned_schema_sha256 {
+        failures.insert("stale_schema_digest".to_string());
+    }
+
+    let artifact_value: Value = match serde_json::from_slice(&artifact_bytes) {
+        Ok(value) => value,
+        Err(_) => {
+            failures.insert("artifact_payload_invalid".to_string());
+            return;
+        }
+    };
+    let schema_value: Value = match serde_json::from_slice(&schema_bytes) {
+        Ok(value) => value,
+        Err(_) => {
+            failures.insert("artifact_schema_invalid".to_string());
+            return;
+        }
+    };
+    let validator = match validator_for(&schema_value) {
+        Ok(validator) => validator,
+        Err(_) => {
+            failures.insert("artifact_schema_invalid".to_string());
+            return;
+        }
+    };
+    if validator.iter_errors(&artifact_value).next().is_some() {
+        failures.insert("artifact_payload_schema_mismatch".to_string());
+    }
+
+    if artifact_value["stage_id"].as_str() != Some(stage.stage_id.as_str())
+        || artifact_value["stage_type"].as_str() != Some(stage.stage_type.as_str())
+        || artifact_value["evidence_class"].as_str() != Some(stage.evidence_class.as_str())
+        || artifact_value["claim_ceiling"].as_str() != Some(stage.claim_ceiling.as_str())
+        || artifact_value["fixture_only"].as_bool() != Some(true)
+    {
+        failures.insert("artifact_payload_mismatch".to_string());
+    }
+}
+
+fn check_case(root: &Path, corpus_synthetic_only: bool, case: &Case) -> (Vec<String>, String) {
     let mut failures = BTreeSet::new();
     let mut stage_ids = BTreeSet::new();
     let mut stage_types: BTreeMap<&str, Vec<&Stage>> = BTreeMap::new();
@@ -287,15 +400,10 @@ fn check_case(corpus_synthetic_only: bool, case: &Case) -> (Vec<String>, String)
             .or_default()
             .push(stage);
 
-        if stage.pinned_artifact_sha256 != stage.observed_artifact_sha256 {
-            failures.insert("stale_artifact_digest".to_string());
-        }
-        if stage.pinned_schema_sha256 != stage.observed_schema_sha256 {
-            failures.insert("stale_schema_digest".to_string());
-        }
         if corpus_synthetic_only && stage.evidence_class != "synthetic" {
             failures.insert("synthetic_fixture_stage_relabelled".to_string());
         }
+        verify_stage_files(root, stage, &mut failures);
     }
 
     for (stage_type, stages) in &stage_types {
@@ -444,7 +552,8 @@ fn verify_values(
 
     let mut receipts = Vec::new();
     for case in &corpus.cases {
-        let (failure_codes, effective_claim_ceiling) = check_case(corpus.synthetic_only, case);
+        let (failure_codes, effective_claim_ceiling) =
+            check_case(&repository_root(), corpus.synthetic_only, case);
         let observed_verdict = verdict_from_failures(&failure_codes).to_string();
         let mut expected_codes = case.expected_failure_codes.clone();
         expected_codes.sort();
@@ -478,7 +587,7 @@ fn verify_values(
         cases: receipts,
         limitations: vec![
             "All chain stages and digests in this fixture are synthetic contract inputs.",
-            "Per-stage observed digest fields simulate adapter reports; this v0.1 slice checks pin/report equality, not actual upstream artifact bytes.",
+            "Stage artifact and stage schema bytes are hashed from the local working tree; this v0.1 fixture uses only synthetic stage artifacts.",
             "A conformant synthetic chain does not validate real sources, real authorization, real outcomes or causal impact.",
             "The verifier performs no network requests and cannot grant consent or authority.",
         ],
@@ -569,8 +678,8 @@ mod tests {
         let (fixture, schema) = loaded();
         let receipt = report(&fixture, &schema);
         assert_eq!(receipt.status, "SYNTHETIC_CHAIN_CONFORMANCE_PASS");
-        assert_eq!(receipt.case_count, 13);
-        assert_eq!(receipt.cases_passed, 13);
+        assert_eq!(receipt.case_count, 14);
+        assert_eq!(receipt.cases_passed, 14);
         assert_eq!(receipt.cases_failed, 0);
     }
 
@@ -583,6 +692,21 @@ mod tests {
         assert_eq!(find_case(&report(&fixture, &schema), "WC-012").failure_codes, vec![
             "stale_schema_digest"
         ]);
+    }
+
+    #[test]
+    fn adapter_report_digest_must_match_actual_artifact_bytes() {
+        let (mut fixture, schema) = loaded();
+        fixture["cases"][0]["stages"][0]["observed_artifact_sha256"] =
+            serde_json::json!("9".repeat(64));
+        let receipt = report(&fixture, &schema);
+        assert_eq!(
+            find_case(&receipt, "WC-001").failure_codes,
+            vec![
+                "artifact_bytes_digest_mismatch",
+                "stale_artifact_digest"
+            ]
+        );
     }
 
     #[test]
