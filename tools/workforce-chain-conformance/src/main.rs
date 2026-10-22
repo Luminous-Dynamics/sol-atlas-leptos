@@ -18,10 +18,8 @@ const REQUIRED_STAGES: [&str; 6] = [
     "outcome",
     "robustness",
 ];
-const FIXTURE_DEFAULT: &str =
-    "docs/research/fixtures/workforce_chain_conformance_v0_1.json";
-const SCHEMA_DEFAULT: &str =
-    "docs/research/schemas/workforce_chain_manifest_v0_1.schema.json";
+const FIXTURE_DEFAULT: &str = "docs/research/fixtures/workforce_chain_conformance_v0_1.json";
+const SCHEMA_DEFAULT: &str = "docs/research/schemas/workforce_chain_manifest_v0_1.schema.json";
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 struct Corpus {
@@ -229,39 +227,65 @@ fn validate_contract(corpus: &Corpus) -> Result<(), String> {
         let mut stage_ids = BTreeSet::new();
         for stage in &case.stages {
             if !stage_ids.insert(stage.stage_id.clone()) {
-                errors.push(format!("{}: duplicate stage ID {}", case.id, stage.stage_id));
+                errors.push(format!(
+                    "{}: duplicate stage ID {}",
+                    case.id, stage.stage_id
+                ));
             }
             if stage.artifact_path.trim().is_empty() || stage.schema_path.trim().is_empty() {
-                errors.push(format!("{} / {}: artifact and schema paths are required", case.id, stage.stage_id));
+                errors.push(format!(
+                    "{} / {}: artifact and schema paths are required",
+                    case.id, stage.stage_id
+                ));
             }
             if stage.scope.case_scope_id.trim().is_empty()
                 || stage.scope.task_scope_id.trim().is_empty()
                 || stage.scope.geography.trim().is_empty()
             {
-                errors.push(format!("{} / {}: scope identifiers cannot be empty", case.id, stage.stage_id));
+                errors.push(format!(
+                    "{} / {}: scope identifiers cannot be empty",
+                    case.id, stage.stage_id
+                ));
             }
             if stage.scope.period_start > stage.scope.period_end {
-                errors.push(format!("{} / {}: scope period is reversed", case.id, stage.stage_id));
+                errors.push(format!(
+                    "{} / {}: scope period is reversed",
+                    case.id, stage.stage_id
+                ));
             }
         }
         let mut link_pairs = BTreeSet::new();
         for link in &case.links {
             if !link.required {
-                errors.push(format!("{}: this v0.1 chain only accepts required links", case.id));
+                errors.push(format!(
+                    "{}: this v0.1 chain only accepts required links",
+                    case.id
+                ));
             }
             if !link_pairs.insert((link.from_stage_id.clone(), link.to_stage_id.clone())) {
-                errors.push(format!("{}: duplicate link {} -> {}", case.id, link.from_stage_id, link.to_stage_id));
+                errors.push(format!(
+                    "{}: duplicate link {} -> {}",
+                    case.id, link.from_stage_id, link.to_stage_id
+                ));
             }
         }
         let used: BTreeSet<&str> = case.used_query_ids.iter().map(String::as_str).collect();
-        let permitted: BTreeSet<&str> = case.permitted_query_ids.iter().map(String::as_str).collect();
+        let permitted: BTreeSet<&str> = case
+            .permitted_query_ids
+            .iter()
+            .map(String::as_str)
+            .collect();
         if used.len() != case.used_query_ids.len() {
             errors.push(format!("{}: duplicate used query ID", case.id));
         }
         if permitted.len() != case.permitted_query_ids.len() {
             errors.push(format!("{}: duplicate permitted query ID", case.id));
         }
-        if case.expected_failure_codes.iter().collect::<BTreeSet<_>>().len()
+        if case
+            .expected_failure_codes
+            .iter()
+            .collect::<BTreeSet<_>>()
+            .len()
             != case.expected_failure_codes.len()
         {
             errors.push(format!("{}: duplicate expected failure code", case.id));
@@ -305,12 +329,13 @@ fn safe_repo_path(root: &Path, relative: &str, schema_path: bool) -> Result<Path
     // Reject symlinks at the file itself and validate canonical parents too:
     // a lexically safe path can escape its intended directory through a symlink.
     let candidate = root.join(relative_path);
-    let metadata = fs::symlink_metadata(&candidate)
-        .map_err(|_| if schema_path {
+    let metadata = fs::symlink_metadata(&candidate).map_err(|_| {
+        if schema_path {
             "schema_file_missing".to_string()
         } else {
             "artifact_file_missing".to_string()
-        })?;
+        }
+    })?;
     if metadata.file_type().is_symlink() {
         return Err(if schema_path {
             "unsafe_schema_symlink".to_string()
@@ -485,8 +510,14 @@ fn check_case(root: &Path, corpus_synthetic_only: bool, case: &Case) -> (Vec<Str
         {
             failures.insert("broken_chain_link".to_string());
         }
-        let from = case.stages.iter().find(|stage| stage.stage_id == link.from_stage_id);
-        let to = case.stages.iter().find(|stage| stage.stage_id == link.to_stage_id);
+        let from = case
+            .stages
+            .iter()
+            .find(|stage| stage.stage_id == link.from_stage_id);
+        let to = case
+            .stages
+            .iter()
+            .find(|stage| stage.stage_id == link.to_stage_id);
         if let (Some(from), Some(to)) = (from, to) {
             if stage_order(&to.stage_type) != stage_order(&from.stage_type).saturating_add(1) {
                 failures.insert("broken_chain_link".to_string());
@@ -515,7 +546,11 @@ fn check_case(root: &Path, corpus_synthetic_only: bool, case: &Case) -> (Vec<Str
         }
     }
 
-    let permitted: BTreeSet<&str> = case.permitted_query_ids.iter().map(String::as_str).collect();
+    let permitted: BTreeSet<&str> = case
+        .permitted_query_ids
+        .iter()
+        .map(String::as_str)
+        .collect();
     if case
         .used_query_ids
         .iter()
@@ -691,12 +726,10 @@ fn main() -> ExitCode {
 mod tests {
     use super::*;
 
-    const FIXTURE: &str = include_str!(
-        "../../../docs/research/fixtures/workforce_chain_conformance_v0_1.json"
-    );
-    const SCHEMA: &str = include_str!(
-        "../../../docs/research/schemas/workforce_chain_manifest_v0_1.schema.json"
-    );
+    const FIXTURE: &str =
+        include_str!("../../../docs/research/fixtures/workforce_chain_conformance_v0_1.json");
+    const SCHEMA: &str =
+        include_str!("../../../docs/research/schemas/workforce_chain_manifest_v0_1.schema.json");
 
     fn loaded() -> (Value, Value) {
         (
@@ -706,13 +739,8 @@ mod tests {
     }
 
     fn report(fixture: &Value, schema: &Value) -> Receipt {
-        verify_values(
-            schema,
-            fixture,
-            FIXTURE.as_bytes(),
-            SCHEMA.as_bytes(),
-        )
-        .expect("synthetic chain manifest validates")
+        verify_values(schema, fixture, FIXTURE.as_bytes(), SCHEMA.as_bytes())
+            .expect("synthetic chain manifest validates")
     }
 
     fn find_case<'a>(receipt: &'a Receipt, id: &str) -> &'a CaseReceipt {
@@ -746,8 +774,12 @@ mod tests {
             "unsafe_artifact_path"
         );
         assert_eq!(
-            safe_repo_path(&root, "docs/research/schemas/workforce_chain_manifest_v0_1.schema.json", true)
-                .expect_err("manifest schema is not a stage schema"),
+            safe_repo_path(
+                &root,
+                "docs/research/schemas/workforce_chain_manifest_v0_1.schema.json",
+                true
+            )
+            .expect_err("manifest schema is not a stage schema"),
             "unsafe_schema_path"
         );
     }
@@ -801,12 +833,14 @@ mod tests {
     #[test]
     fn stale_artifact_and_schema_digests_are_rejected() {
         let (fixture, schema) = loaded();
-        assert_eq!(find_case(&report(&fixture, &schema), "WC-002").failure_codes, vec![
-            "stale_artifact_digest"
-        ]);
-        assert_eq!(find_case(&report(&fixture, &schema), "WC-012").failure_codes, vec![
-            "stale_schema_digest"
-        ]);
+        assert_eq!(
+            find_case(&report(&fixture, &schema), "WC-002").failure_codes,
+            vec!["stale_artifact_digest"]
+        );
+        assert_eq!(
+            find_case(&report(&fixture, &schema), "WC-012").failure_codes,
+            vec!["stale_schema_digest"]
+        );
     }
 
     #[test]
@@ -850,10 +884,7 @@ mod tests {
         let (fixture, schema) = loaded();
         assert_eq!(
             find_case(&report(&fixture, &schema), "WC-005").failure_codes,
-            vec![
-                "causal_design_missing",
-                "claim_exceeds_evidence_ceiling"
-            ]
+            vec!["causal_design_missing", "claim_exceeds_evidence_ceiling"]
         );
         assert_eq!(
             find_case(&report(&fixture, &schema), "WC-011").failure_codes,
@@ -922,10 +953,7 @@ mod tests {
                 .as_array_mut()
                 .expect("stages array")
                 .reverse();
-            case["links"]
-                .as_array_mut()
-                .expect("links array")
-                .reverse();
+            case["links"].as_array_mut().expect("links array").reverse();
             case["used_query_ids"]
                 .as_array_mut()
                 .expect("used-query array")
@@ -941,12 +969,6 @@ mod tests {
     fn manifest_cannot_claim_to_be_observed_data() {
         let (mut fixture, schema) = loaded();
         fixture["synthetic_only"] = Value::Bool(false);
-        assert!(verify_values(
-            &schema,
-            &fixture,
-            FIXTURE.as_bytes(),
-            SCHEMA.as_bytes()
-        )
-        .is_err());
+        assert!(verify_values(&schema, &fixture, FIXTURE.as_bytes(), SCHEMA.as_bytes()).is_err());
     }
 }
