@@ -1,0 +1,36 @@
+{
+  "schema_version": "energy-pathway-v0.1",
+  "scenario_id": "synthetic-thermal-electric-known-answer",
+  "synthetic": true,
+  "source_form": "thermal_heat",
+  "source_energy_kwh": 100.0,
+  "stages": [
+    {
+      "stage_id": "heat-engine",
+      "input_form": "thermal_heat",
+      "output_form": "electricity",
+      "efficiency": 0.4,
+      "max_input_kwh": 100.0,
+      "auxiliary_electricity_kwh_per_input_kwh": 0.03,
+      "evidence_class": "analyst_assumption",
+      "evidence_ref": null,
+      "evidence_as_of": null,
+      "thermal_engine_limits": {
+        "hot_reservoir_c": 500.0,
+        "cold_reservoir_c": 25.0
+      }
+    },
+    {
+      "stage_id": "electrical-distribution",
+      "input_form": "electricity",
+      "output_form": "electricity",
+      "efficiency": 0.95,
+      "max_input_kwh": 1000.0,
+      "auxiliary_electricity_kwh_per_input_kwh": 0.005,
+      "evidence_class": "analyst_assumption",
+      "evidence_ref": null,
+      "evidence_as_of": null,
+      "thermal_engine_limits": null
+    }
+  ]
+}
