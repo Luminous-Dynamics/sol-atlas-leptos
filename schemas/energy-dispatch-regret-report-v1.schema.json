@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/energy-dispatch-regret-report-v1.schema.json",
+  "title": "Dispatch baseline versus exact-oracle regret report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "assessment_schema_version",
+    "case_id",
+    "synthetic",
+    "policy_version",
+    "claim_ceiling",
+    "oracle_is_exact",
+    "oracle_pareto_frontier_complete",
+    "oracle_action_expansions",
+    "oracle_feasible_complete_schedules",
+    "lexicographic_oracle_objective",
+    "baseline_feasible",
+    "baseline_failure",
+    "baseline_objective",
+    "objective_deltas_vs_lexicographic_oracle",
+    "baseline_schedule",
+    "lexicographic_oracle_schedule",
+    "interpretation"
+  ],
+  "properties": {
+    "assessment_schema_version": { "const": "energy-dispatch-regret-v1" },
+    "case_id": { "type": "string", "minLength": 1 },
+    "synthetic": { "type": "boolean" },
+    "policy_version": { "type": "string", "minLength": 1 },
+    "claim_ceiling": { "type": "string", "minLength": 1 },
+    "oracle_is_exact": { "const": true },
+    "oracle_pareto_frontier_complete": { "const": true },
+    "oracle_action_expansions": { "type": "integer", "minimum": 1 },
+    "oracle_feasible_complete_schedules": { "type": "integer", "minimum": 1 },
+    "lexicographic_oracle_objective": { "$ref": "#/$defs/objective" },
+    "baseline_feasible": { "type": "boolean" },
+    "baseline_failure": { "type": ["string", "null"] },
+    "baseline_objective": {
+      "oneOf": [
+        { "$ref": "#/$defs/objective" },
+        { "type": "null" }
+      ]
+    },
+    "objective_deltas_vs_lexicographic_oracle": {
+      "oneOf": [
+        { "$ref": "#/$defs/deltas" },
+        { "type": "null" }
+      ]
+    },
+    "baseline_schedule": {
+      "oneOf": [
+        { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/step" } },
+        { "type": "null" }
+      ]
+    },
+    "lexicographic_oracle_schedule": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/step" }
+    },
+    "interpretation": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "u16": { "type": "integer", "minimum": 0, "maximum": 65535 },
+    "u32": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+    "u64": { "type": "integer", "minimum": 0, "maximum": 18446744073709551615 },
+    "objective": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "essential_unserved_quanta",
+        "flexible_unserved_quanta",
+        "operating_cost_units",
+        "grid_carbon_grams",
+        "curtailed_pv_quanta",
+        "terminal_soc_quanta"
+      ],
+      "properties": {
+        "essential_unserved_quanta": { "$ref": "#/$defs/u64" },
+        "flexible_unserved_quanta": { "$ref": "#/$defs/u64" },
+        "operating_cost_units": { "$ref": "#/$defs/u64" },
+        "grid_carbon_grams": { "$ref": "#/$defs/u64" },
+        "curtailed_pv_quanta": { "$ref": "#/$defs/u64" },
+        "terminal_soc_quanta": { "$ref": "#/$defs/u16" }
+      }
+    },
+    "deltas": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "essential_unserved_quanta",
+        "flexible_unserved_quanta",
+        "operating_cost_units",
+        "grid_carbon_grams",
+        "curtailed_pv_quanta",
+        "terminal_soc_shortfall_quanta"
+      ],
+      "properties": {
+        "essential_unserved_quanta": { "type": "integer" },
+        "flexible_unserved_quanta": { "type": "integer" },
+        "operating_cost_units": { "type": "integer" },
+        "grid_carbon_grams": { "type": "integer" },
+        "curtailed_pv_quanta": { "type": "integer" },
+        "terminal_soc_shortfall_quanta": { "type": "integer" }
+      }
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "interval_id",
+        "start_unix_seconds",
+        "duration_seconds",
+        "grid_outage",
+        "pv_available_quanta",
+        "pv_used_quanta",
+        "pv_curtailed_quanta",
+        "grid_import_quanta",
+        "battery_soc_before_quanta",
+        "battery_charge_input_quanta",
+        "battery_soc_withdrawal_quanta",
+        "battery_discharge_delivered_quanta",
+        "battery_soc_after_quanta",
+        "essential_demand_quanta",
+        "essential_served_quanta",
+        "essential_unserved_quanta",
+        "flexible_demand_quanta",
+        "flexible_served_quanta",
+        "flexible_unserved_quanta",
+        "grid_cost_units_per_quantum",
+        "grid_carbon_grams_per_quantum",
+        "bus_energy_balance_residual_quanta"
+      ],
+      "properties": {
+        "interval_id": { "type": "string", "minLength": 1 },
+        "start_unix_seconds": { "type": "integer" },
+        "duration_seconds": { "type": "integer", "minimum": 1 },
+        "grid_outage": { "type": "boolean" },
+        "pv_available_quanta": { "$ref": "#/$defs/u16" },
+        "pv_used_quanta": { "$ref": "#/$defs/u16" },
+        "pv_curtailed_quanta": { "$ref": "#/$defs/u16" },
+        "grid_import_quanta": { "$ref": "#/$defs/u16" },
+        "battery_soc_before_quanta": { "$ref": "#/$defs/u16" },
+        "battery_charge_input_quanta": { "$ref": "#/$defs/u16" },
+        "battery_soc_withdrawal_quanta": { "$ref": "#/$defs/u16" },
+        "battery_discharge_delivered_quanta": { "$ref": "#/$defs/u16" },
+        "battery_soc_after_quanta": { "$ref": "#/$defs/u16" },
+        "essential_demand_quanta": { "$ref": "#/$defs/u16" },
+        "essential_served_quanta": { "$ref": "#/$defs/u16" },
+        "essential_unserved_quanta": { "$ref": "#/$defs/u16" },
+        "flexible_demand_quanta": { "$ref": "#/$defs/u16" },
+        "flexible_served_quanta": { "$ref": "#/$defs/u16" },
+        "flexible_unserved_quanta": { "$ref": "#/$defs/u16" },
+        "grid_cost_units_per_quantum": { "$ref": "#/$defs/u32" },
+        "grid_carbon_grams_per_quantum": { "$ref": "#/$defs/u32" },
+        "bus_energy_balance_residual_quanta": { "const": 0 }
+      }
+    }
+  }
+}

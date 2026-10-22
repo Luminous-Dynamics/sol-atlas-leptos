@@ -1,0 +1,156 @@
+name: Energy dispatch baseline regret benchmark
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "sol-atlas-core/src/energy_dispatch.rs"
+      - "sol-atlas-core/src/energy_dispatch_baseline.rs"
+      - "sol-atlas-core/src/energy_dispatch_verifier.rs"
+      - "sol-atlas-core/src/energy_dispatch_verifier.rs"
+      - "sol-atlas-core/src/bin/energy_dispatch_regret.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/energy-dispatch-*.schema.json"
+      - "schemas/energy-dispatch-regret-*.schema.json"
+      - "schemas/examples/energy-dispatch-*.synthetic.json"
+      - "docs/benchmarks/ENERGY_DISPATCH_REGRET_V0_1.md"
+      - ".github/workflows/energy-dispatch-regret.yml"
+  pull_request:
+    paths:
+      - "sol-atlas-core/src/energy_dispatch.rs"
+      - "sol-atlas-core/src/energy_dispatch_baseline.rs"
+      - "sol-atlas-core/src/energy_dispatch_verifier.rs"
+      - "sol-atlas-core/src/bin/energy_dispatch_regret.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/energy-dispatch-*.schema.json"
+      - "schemas/energy-dispatch-regret-*.schema.json"
+      - "schemas/examples/energy-dispatch-*.synthetic.json"
+      - "docs/benchmarks/ENERGY_DISPATCH_REGRET_V0_1.md"
+      - ".github/workflows/energy-dispatch-regret.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  regret:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-energy-regret-${{ hashFiles('**/Cargo.lock') }}
+      - name: Run independent schedule verifier tests
+        run: cargo test -p sol-atlas-core --lib energy_dispatch_verifier
+      - name: Run baseline, regret and failure-report tests
+        run: cargo test -p sol-atlas-core --lib energy_dispatch_baseline
+      - name: Run receipt-wrapped regret CLI tests
+        run: cargo test -p sol-atlas-core --bin energy_dispatch_regret
+      - name: Produce synthetic baseline report
+        run: cargo run -p sol-atlas-core --bin energy_dispatch_regret -- schemas/examples/energy-dispatch-pv-outage.synthetic.json > /tmp/dispatch-regret-report.json
+      - name: Install pinned JSON Schema validator (CI tooling only)
+        run: python -m pip install --disable-pip-version-check "jsonschema[format]==4.26.0"
+      - name: Validate report, receipts, known answer, cost regret and visible heuristic failure
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import subprocess
+          from pathlib import Path
+          from jsonschema import Draft202012Validator, FormatChecker
+
+          request_schema = json.loads(Path("schemas/energy-dispatch-request-v0.1.schema.json").read_text())
+          report_schema = json.loads(Path("schemas/energy-dispatch-regret-report-v1.schema.json").read_text())
+          Draft202012Validator.check_schema(request_schema)
+          Draft202012Validator.check_schema(report_schema)
+          request_validator = Draft202012Validator(request_schema, format_checker=FormatChecker())
+          report_validator = Draft202012Validator(report_schema, format_checker=FormatChecker())
+
+          def run_case(case, label):
+              request_bytes = json.dumps(case, indent=2, ensure_ascii=False).encode() + b"\n"
+              request_path = Path(f"/tmp/{label}-request.json")
+              report_path = Path(f"/tmp/{label}-report.json")
+              request_path.write_bytes(request_bytes)
+              with report_path.open("wb") as stdout:
+                  subprocess.run(
+                      ["cargo", "run", "-q", "-p", "sol-atlas-core", "--bin",
+                       "energy_dispatch_regret", "--", str(request_path)],
+                      check=True, stdout=stdout
+                  )
+              report = json.loads(report_path.read_bytes())
+              request_validator.validate(case)
+              report_validator.validate(report["assessment"])
+              receipt = report["receipt"]
+              assessment = report["assessment"]
+              assert hashlib.sha256(request_bytes).hexdigest() == receipt["input_sha256"]
+              compact = json.dumps(assessment, separators=(",", ":"), ensure_ascii=False).encode()
+              assert hashlib.sha256(compact).hexdigest() == receipt["assessment_sha256"]
+              assert receipt["input_bytes"] == len(request_bytes)
+              assert receipt["case_id"] == case["case_id"]
+              assert assessment["oracle_is_exact"] is True
+              assert assessment["oracle_pareto_frontier_complete"] is True
+              return assessment
+
+          frozen = json.loads(Path("schemas/examples/energy-dispatch-pv-outage.synthetic.json").read_text())
+          known = run_case(frozen, "dispatch-known-answer")
+          assert known["baseline_feasible"] is True
+          assert known["baseline_objective"]["essential_unserved_quanta"] == 0
+          assert known["objective_deltas_vs_lexicographic_oracle"]["essential_unserved_quanta"] == 0
+          assert [s["battery_charge_input_quanta"] for s in known["baseline_schedule"]] == [2, 0]
+          assert [s["essential_served_quanta"] for s in known["baseline_schedule"]] == [0, 2]
+
+          costly = json.loads(json.dumps(frozen))
+          costly["case_id"] = "synthetic-grid-first-cost-regret"
+          costly["intervals"] = costly["intervals"][:1]
+          costly["battery"]["capacity_quanta"] = 2
+          costly["battery"]["initial_soc_quanta"] = 1
+          costly["battery"]["charge_input_limit_quanta"] = 1
+          costly["battery"]["discharge_withdrawal_limit_quanta"] = 1
+          costly["battery"]["terminal_reserve_quanta"] = 0
+          costly["intervals"][0].update({
+              "pv_available_quanta": 0,
+              "grid_outage": False,
+              "grid_import_limit_quanta": 1,
+              "essential_demand_quanta": 1,
+              "flexible_demand_quanta": 0,
+              "grid_cost_units_per_quantum": 10,
+              "grid_carbon_grams_per_quantum": 10,
+          })
+          cost_result = run_case(costly, "dispatch-cost-regret")
+          assert cost_result["baseline_feasible"] is True
+          assert cost_result["baseline_objective"]["operating_cost_units"] == 10
+          assert cost_result["lexicographic_oracle_objective"]["operating_cost_units"] == 0
+          assert cost_result["objective_deltas_vs_lexicographic_oracle"]["operating_cost_units"] == 10
+
+          reserve = json.loads(json.dumps(frozen))
+          reserve["case_id"] = "synthetic-baseline-terminal-reserve-failure"
+          reserve["intervals"] = reserve["intervals"][:1]
+          reserve["battery"]["capacity_quanta"] = 1
+          reserve["battery"]["initial_soc_quanta"] = 0
+          reserve["battery"]["charge_input_limit_quanta"] = 1
+          reserve["battery"]["discharge_withdrawal_limit_quanta"] = 1
+          reserve["battery"]["terminal_reserve_quanta"] = 1
+          reserve["intervals"][0].update({
+              "pv_available_quanta": 0,
+              "grid_outage": False,
+              "grid_import_limit_quanta": 1,
+              "essential_demand_quanta": 0,
+              "flexible_demand_quanta": 0,
+          })
+          failure = run_case(reserve, "dispatch-baseline-failure")
+          assert failure["baseline_feasible"] is False
+          assert failure["baseline_failure"]
+          assert failure["baseline_objective"] is None
+          assert failure["objective_deltas_vs_lexicographic_oracle"] is None
+          assert failure["lexicographic_oracle_objective"]["terminal_soc_quanta"] == 1
+
+          print("baseline known answer, +10 cost regret, explicit infeasibility, schemas and receipts passed")
+          PY
