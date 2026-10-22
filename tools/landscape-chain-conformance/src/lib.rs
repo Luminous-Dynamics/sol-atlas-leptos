@@ -40,13 +40,17 @@ const REQUIRED_UPSTREAM_SOURCE_IDS: &[&str] = &[
     "sol-atlas-metric-observation-crosswalk",
     "sol-atlas-observation-batch",
     "sol-atlas-performance-registry",
+    "sol-atlas-scenario-robustness-cli",
     "sol-atlas-scenario-robustness-code",
     "sol-atlas-scenario-robustness-fixture",
     "sol-atlas-scenario-robustness-input-schema",
+    "sol-atlas-scenario-robustness-lockfile",
+    "sol-atlas-scenario-robustness-manifest",
     "sol-atlas-scenario-robustness-report-schema",
     "sol-atlas-source-catalog",
     "sol-atlas-utility-method",
     "symthaea-alternative-review",
+    "symthaea-alternative-review-code",
     "symthaea-alternative-review-schema",
     "symtropy-scenario-contract",
 ];
@@ -2245,7 +2249,7 @@ pub fn run_conformance(dir: &Path) -> Result<ConformanceReport, Vec<String>> {
         "Mycelix authorization binds exact project/site/metric while unknown consent and access remain blocked".to_owned(),
         "measurement planner code, fixture and both JSON schemas are pinned to one exact draft revision".to_owned(),
         "scenario robustness code, utility method, fixture and both schemas are pinned to one exact draft revision".to_owned(),
-        "Symthaea review binds both alternatives, metric registry, source catalog, and the paired scenario contexts".to_owned(),
+        "Symthaea review binds both alternatives, metric registry, source catalog, paired scenario contexts, and its pinned verifier code".to_owned(),
         "unqualified source catalog and metrics keep consequence-bearing assessments blocked".to_owned(),
         "observation properties are checked against the declared metric crosswalk and evidence class".to_owned(),
         "review correctly abstains from ranking while scenario execution remains blocked".to_owned(),
@@ -2341,7 +2345,7 @@ mod tests {
         );
         assert_eq!(report.data_origin, "synthetic_fixture");
         assert_eq!(report.claim_ceiling, CLAIM_CEILING);
-        assert_eq!(report.upstream_pinned_contract_count, 22);
+        assert_eq!(report.upstream_pinned_contract_count, 26);
         assert_eq!(report.project_feature_count, 7);
         assert_eq!(report.observation_count, 5);
         assert_eq!(report.metric_observation_mapping_count, 8);
@@ -2365,7 +2369,7 @@ mod tests {
         assert_eq!(report.review_ranking_status, "no-defensible-ranking");
         assert_eq!(report.recommendation_status, "no-ranking");
         assert_eq!(report.passed_check_count, report.checks.len());
-        assert_eq!(report.passed_check_count, 18);
+        assert_eq!(report.passed_check_count, 19);
         assert_eq!(report.artifact_sha256.len(), 16);
         assert_eq!(report.template_input_sha256.len(), 10);
         assert!(
@@ -2395,6 +2399,19 @@ mod tests {
             json!("z".repeat(40));
         assert!(validate_chain(&malformed_blob).iter().any(|error| {
             error.contains("git_blob_sha must be a 40-character lowercase Git object SHA")
+        }));
+
+        let mut split_robustness_group = fixture();
+        for row in split_robustness_group.upstream_manifest["source_contracts"]
+            .as_array_mut()
+            .expect("source contracts array")
+        {
+            if row["source_id"] == "sol-atlas-scenario-robustness-lockfile" {
+                row["commit_sha"] = json!("b".repeat(40));
+            }
+        }
+        assert!(validate_chain(&split_robustness_group).iter().any(|error| {
+            error.contains("sol-atlas-scenario-robustness must pin all related artifacts")
         }));
 
         let mut split_planner_group = fixture();
