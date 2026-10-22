@@ -18,7 +18,10 @@
     "scorecards",
     "scenario_results",
     "maximin_winner",
-    "minimax_regret_winner"
+    "minimax_regret_winner",
+    "scenario_omission_audit",
+    "maximin_omission_stability_fraction",
+    "minimax_regret_omission_stability_fraction"
   ],
   "properties": {
     "schema_version": {
@@ -166,6 +169,55 @@
     "minimax_regret_winner": {
       "type": "string",
       "minLength": 1
+    },
+    "scenario_omission_audit": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "omitted_scenario_id",
+          "remaining_scenario_count",
+          "maximin_winner",
+          "minimax_regret_winner",
+          "maximin_winner_changed",
+          "minimax_regret_winner_changed"
+        ],
+        "properties": {
+          "omitted_scenario_id": {
+            "type": "string"
+          },
+          "remaining_scenario_count": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 19
+          },
+          "maximin_winner": {
+            "type": "string"
+          },
+          "minimax_regret_winner": {
+            "type": "string"
+          },
+          "maximin_winner_changed": {
+            "type": "boolean"
+          },
+          "minimax_regret_winner_changed": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "maximin_omission_stability_fraction": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "minimax_regret_omission_stability_fraction": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
     }
   }
 }
