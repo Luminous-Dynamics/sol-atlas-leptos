@@ -41,6 +41,11 @@ pub struct EnergyStorageRequest {
     pub storage_id: String,
     pub synthetic: bool,
     pub carrier: StorageCarrier,
+    /// Fixed thermal service grade for a thermal store; must be absent for electrical storage.
+    /// Charging/discharging is interpreted at this grade; thermal stratification and temperature
+    /// changes are outside v0.1 and require a more detailed thermal-state model.
+    #[serde(default)]
+    pub thermal_temperature_c: Option<f64>,
     pub capacity_kwh: f64,
     pub opening_energy_kwh: f64,
     pub max_charge_power_kw: f64,
@@ -73,6 +78,9 @@ pub enum EnergyStorageError {
     InvalidPower { field: String },
     InvalidEfficiency { field: String },
     InvalidStandingLoss,
+    MissingThermalTemperatureGrade,
+    UnexpectedThermalTemperatureGrade,
+    InvalidThermalTemperatureGrade,
     OpeningStateExceedsCapacity,
     TerminalReserveExceedsCapacity,
     MissingEvidenceReference,
@@ -113,6 +121,7 @@ pub struct EnergyStorageAssessment {
     pub assessment_schema_version: String,
     pub storage_id: String,
     pub carrier: StorageCarrier,
+    pub thermal_temperature_c: Option<f64>,
     pub synthetic: bool,
     pub claim_ceiling: String,
     pub initial_energy_kwh: f64,
@@ -217,6 +226,20 @@ pub fn assess_energy_storage(
         || !(0.0..=1.0).contains(&request.standing_loss_fraction_per_hour)
     {
         return Err(EnergyStorageError::InvalidStandingLoss);
+    }
+    match (request.carrier, request.thermal_temperature_c) {
+        (StorageCarrier::Electricity, None) => {}
+        (StorageCarrier::Electricity, Some(_)) => {
+            return Err(EnergyStorageError::UnexpectedThermalTemperatureGrade);
+        }
+        (StorageCarrier::ThermalHeat, None) => {
+            return Err(EnergyStorageError::MissingThermalTemperatureGrade);
+        }
+        (StorageCarrier::ThermalHeat, Some(temperature_c)) => {
+            if !temperature_c.is_finite() || temperature_c + 273.15 <= 0.0 {
+                return Err(EnergyStorageError::InvalidThermalTemperatureGrade);
+            }
+        }
     }
     if request.opening_energy_kwh > request.capacity_kwh {
         return Err(EnergyStorageError::OpeningStateExceedsCapacity);
@@ -455,6 +478,7 @@ pub fn assess_energy_storage(
         assessment_schema_version: "1".to_owned(),
         storage_id: request.storage_id.clone(),
         carrier: request.carrier,
+        thermal_temperature_c: request.thermal_temperature_c,
         synthetic: request.synthetic,
         claim_ceiling: concat!(
             "calculated state trajectory; no device metering ",
@@ -493,6 +517,7 @@ mod tests {
             storage_id: "test-store".to_owned(),
             synthetic: true,
             carrier: StorageCarrier::Electricity,
+            thermal_temperature_c: None,
             capacity_kwh: 20.0,
             opening_energy_kwh: 0.0,
             max_charge_power_kw: 12.0,
@@ -569,6 +594,39 @@ mod tests {
         assert_eq!(assessment.intervals[0].discharge_unserved_kwh, 8.0);
         assert!((assessment.final_energy_kwh - 1.5).abs() < NUMERIC_TOLERANCE);
         assert!(assessment.trajectory_balance_residual_kwh.abs() < NUMERIC_TOLERANCE);
+    }
+
+
+    #[test]
+    fn thermal_storage_requires_explicit_temperature_grade() {
+        let mut request = request(vec![interval("idle", 1.0, 0.0, 0.0)]);
+        request.carrier = StorageCarrier::ThermalHeat;
+        assert!(matches!(
+            assess_energy_storage(&request),
+            Err(EnergyStorageError::MissingThermalTemperatureGrade)
+        ));
+
+        request.thermal_temperature_c = Some(80.0);
+        let assessment = assess_energy_storage(&request).unwrap();
+        assert_eq!(assessment.thermal_temperature_c, Some(80.0));
+    }
+
+    #[test]
+    fn thermal_grade_is_invalid_for_electric_store_and_validates_absolute_temperature() {
+        let mut request = request(vec![interval("idle", 1.0, 0.0, 0.0)]);
+        request.thermal_temperature_c = Some(25.0);
+        assert!(matches!(
+            assess_energy_storage(&request),
+            Err(EnergyStorageError::UnexpectedThermalTemperatureGrade)
+        ));
+
+        let mut request = request(vec![interval("idle", 1.0, 0.0, 0.0)]);
+        request.carrier = StorageCarrier::ThermalHeat;
+        request.thermal_temperature_c = Some(-300.0);
+        assert!(matches!(
+            assess_energy_storage(&request),
+            Err(EnergyStorageError::InvalidThermalTemperatureGrade)
+        ));
     }
 
     #[test]
