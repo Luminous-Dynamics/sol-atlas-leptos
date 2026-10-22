@@ -73,7 +73,7 @@ jobs:
             .feasible_minimax_regret_winner == "strategy-a" and
             (.scorecards[] | select(.alternative_id == "strategy-a") | .worst_case_utility_points == 70 and .unweighted_mean_utility_points == 76.25 and .maximum_regret_points == 10 and .unweighted_mean_regret_points == 4 and .robustly_qualified == true) and
             (.scorecards[] | select(.alternative_id == "strategy-b") | .worst_case_utility_points == 40 and .unweighted_mean_utility_points == 59.25 and .maximum_regret_points == 35 and .robustly_qualified == false) and
-            (.scorecards[] | select(.alternative_id == "strategy-c") | .worst_case_utility_points == 72 and .unweighted_mean_utility_points == 73.75 and .maximum_regret_points == 17 and .unweighted_mean_regret_points == 6.5 and .robustly_qualified == true) and
+            (.scorecards[] | select(.alternative_id == "strategy-c") | .worst_case_utility_points == 72 and .unweighted_mean_utility_points == 73.75 and .maximum_regret_points == 17 and .unweighted_mean_regret_points == 6.5 and .robustly_qualified == false and (.blocking_constraint_violations | length) == 1) and
             .maximin_winner == "strategy-c" and
             .minimax_regret_winner == "strategy-a" and
             (.maximin_omission_stability_fraction - 0.75 | abs) < 0.000001 and
