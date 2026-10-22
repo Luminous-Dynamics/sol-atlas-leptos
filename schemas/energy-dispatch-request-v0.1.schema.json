@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/energy-dispatch-request-v0.1.schema.json",
+  "title": "Bounded exact microgrid dispatch request v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "case_id",
+    "synthetic",
+    "evidence_class",
+    "energy_quantum_kwh",
+    "max_candidate_expansions",
+    "battery",
+    "intervals"
+  ],
+  "properties": {
+    "schema_version": { "const": "energy-dispatch-v0.1" },
+    "case_id": { "type": "string", "minLength": 1 },
+    "synthetic": { "type": "boolean" },
+    "evidence_class": { "$ref": "#/$defs/evidenceClass" },
+    "evidence_ref": { "type": ["string", "null"] },
+    "evidence_as_of": { "type": ["string", "null"] },
+    "energy_quantum_kwh": { "type": "number", "exclusiveMinimum": 0 },
+    "max_candidate_expansions": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000
+    },
+    "battery": { "$ref": "#/$defs/battery" },
+    "intervals": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/interval" }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "evidence_class": { "not": { "const": "analyst_assumption" } }
+        },
+        "required": ["evidence_class"]
+      },
+      "then": {
+        "required": ["evidence_ref"],
+        "properties": {
+          "evidence_ref": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "evidenceClass": {
+      "type": "string",
+      "enum": [
+        "analyst_assumption",
+        "published_model",
+        "component_test",
+        "field_pilot",
+        "operating_plant",
+        "replicated_fleet",
+        "independently_audited"
+      ]
+    },
+    "u16": { "type": "integer", "minimum": 0, "maximum": 65535 },
+    "u32": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+    "battery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "capacity_quanta",
+        "initial_soc_quanta",
+        "charge_input_limit_quanta",
+        "discharge_withdrawal_limit_quanta",
+        "charge_efficiency_numerator",
+        "charge_efficiency_denominator",
+        "discharge_efficiency_numerator",
+        "discharge_efficiency_denominator",
+        "terminal_reserve_quanta"
+      ],
+      "properties": {
+        "capacity_quanta": { "$ref": "#/$defs/u16" },
+        "initial_soc_quanta": { "$ref": "#/$defs/u16" },
+        "charge_input_limit_quanta": { "$ref": "#/$defs/u16" },
+        "discharge_withdrawal_limit_quanta": { "$ref": "#/$defs/u16" },
+        "charge_efficiency_numerator": { "$ref": "#/$defs/u16" },
+        "charge_efficiency_denominator": { "$ref": "#/$defs/u16" },
+        "discharge_efficiency_numerator": { "$ref": "#/$defs/u16" },
+        "discharge_efficiency_denominator": { "$ref": "#/$defs/u16" },
+        "terminal_reserve_quanta": { "$ref": "#/$defs/u16" }
+      }
+    },
+    "interval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "interval_id",
+        "start_unix_seconds",
+        "duration_seconds",
+        "grid_outage",
+        "pv_available_quanta",
+        "grid_import_limit_quanta",
+        "essential_demand_quanta",
+        "flexible_demand_quanta",
+        "grid_cost_units_per_quantum",
+        "grid_carbon_grams_per_quantum"
+      ],
+      "properties": {
+        "interval_id": { "type": "string", "minLength": 1 },
+        "start_unix_seconds": { "type": "integer" },
+        "duration_seconds": { "type": "integer", "minimum": 1 },
+        "grid_outage": { "type": "boolean" },
+        "pv_available_quanta": { "$ref": "#/$defs/u16" },
+        "grid_import_limit_quanta": { "$ref": "#/$defs/u16" },
+        "essential_demand_quanta": { "$ref": "#/$defs/u16" },
+        "flexible_demand_quanta": { "$ref": "#/$defs/u16" },
+        "grid_cost_units_per_quantum": { "$ref": "#/$defs/u32" },
+        "grid_carbon_grams_per_quantum": { "$ref": "#/$defs/u32" }
+      }
+    }
+  }
+}
