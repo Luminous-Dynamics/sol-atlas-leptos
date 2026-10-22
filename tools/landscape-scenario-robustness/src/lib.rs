@@ -387,25 +387,8 @@ pub fn evaluate_fixture_bytes(
         });
     }
 
-    let maximin_winner = scorecards
-        .iter()
-        .min_by(|left, right| {
-            right
-                .worst_case_utility_points
-                .total_cmp(&left.worst_case_utility_points)
-                .then_with(|| left.alternative_id.cmp(&right.alternative_id))
-        })
-        .map(|scorecard| scorecard.alternative_id.clone())
-        .unwrap_or_default();
-    let minimax_regret_winner = scorecards
-        .iter()
-        .min_by(|left, right| {
-            left.maximum_regret_points
-                .total_cmp(&right.maximum_regret_points)
-                .then_with(|| left.alternative_id.cmp(&right.alternative_id))
-        })
-        .map(|scorecard| scorecard.alternative_id.clone())
-        .unwrap_or_default();
+    let (maximin_winner, minimax_regret_winner) =
+        choose_winners_for_scenarios(&scenario_ids, &alternatives, &utility_by_pair);
     // Test the composition sensitivity of each decision rule by removing one
     // declared scenario at a time. Remaining cases are not reweighted and are
     // not interpreted as probabilities.
