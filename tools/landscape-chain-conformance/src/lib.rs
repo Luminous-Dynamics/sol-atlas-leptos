@@ -2366,7 +2366,7 @@ mod tests {
         );
         assert_eq!(report.data_origin, "synthetic_fixture");
         assert_eq!(report.claim_ceiling, CLAIM_CEILING);
-        assert_eq!(report.upstream_pinned_contract_count, 34);
+        assert_eq!(report.upstream_pinned_contract_count, 39);
         assert_eq!(report.project_feature_count, 7);
         assert_eq!(report.observation_count, 5);
         assert_eq!(report.metric_observation_mapping_count, 8);
@@ -2390,7 +2390,7 @@ mod tests {
         assert_eq!(report.review_ranking_status, "no-defensible-ranking");
         assert_eq!(report.recommendation_status, "no-ranking");
         assert_eq!(report.passed_check_count, report.checks.len());
-        assert_eq!(report.passed_check_count, 20);
+        assert_eq!(report.passed_check_count, 21);
         assert_eq!(report.artifact_sha256.len(), 16);
         assert_eq!(report.template_input_sha256.len(), 10);
         assert!(
