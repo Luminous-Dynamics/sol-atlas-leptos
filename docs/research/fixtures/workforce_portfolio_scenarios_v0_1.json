@@ -1,0 +1,563 @@
+{
+  "fixture_notice": "ALL VALUES BELOW ARE SYNTHETIC PORTFOLIO CONTRACT TEST DATA. They are not real resource capacities, workforce availability or service restoration outcomes.",
+  "schema_version": "0.1.0",
+  "benchmark_id": "SA-WORKFORCE-PORTFOLIO-001",
+  "synthetic_only": true,
+  "claim_ceiling": "synthetic_contract_only",
+  "scenarios": [
+    {
+      "id": "PF-001",
+      "description": "Pareto frontier over water/power repair options competing for one tool kit and shared person-shifts.",
+      "resource_caps": {
+        "qualified_person_shifts": 2,
+        "supervisor_hours": 4,
+        "tool_kits": 1,
+        "dispatch_hours": 3,
+        "cash_zar_cents": 10000
+      },
+      "worker_burden_cap_hours": 5,
+      "service_floors": {
+        "essential_water_units": 1,
+        "essential_power_units": 1,
+        "health_units": 0,
+        "housing_units": 0,
+        "other_service_units": 0
+      },
+      "interventions": [
+        {
+          "id": "WATER_LOW",
+          "case_id": "water-case-01",
+          "description": "Synthetic WATER_LOW bundle",
+          "eligibility": "permitted",
+          "prerequisite_state": "satisfied",
+          "funding_state": "confirmed",
+          "authorization_state": "authorized",
+          "work_quality_state": "viable",
+          "service_category": "essential_water_units",
+          "service_units": 1,
+          "resource_demand": {
+            "qualified_person_shifts": 1,
+            "supervisor_hours": 1,
+            "tool_kits": 0,
+            "dispatch_hours": 1,
+            "cash_zar_cents": 1000,
+            "staff_minutes": 45,
+            "delay_hours": 6,
+            "worker_burden_hours": 2
+          },
+          "requires_selected_interventions": []
+        },
+        {
+          "id": "WATER_FAST",
+          "case_id": "water-case-01",
+          "description": "Synthetic WATER_FAST bundle",
+          "eligibility": "permitted",
+          "prerequisite_state": "satisfied",
+          "funding_state": "confirmed",
+          "authorization_state": "authorized",
+          "work_quality_state": "viable",
+          "service_category": "essential_water_units",
+          "service_units": 2,
+          "resource_demand": {
+            "qualified_person_shifts": 1,
+            "supervisor_hours": 2,
+            "tool_kits": 1,
+            "dispatch_hours": 1,
+            "cash_zar_cents": 5000,
+            "staff_minutes": 20,
+            "delay_hours": 2,
+            "worker_burden_hours": 1
+          },
+          "requires_selected_interventions": []
+        },
+        {
+          "id": "POWER_STANDARD",
+          "case_id": "power-case-01",
+          "description": "Synthetic POWER_STANDARD bundle",
+          "eligibility": "permitted",
+          "prerequisite_state": "satisfied",
+          "funding_state": "confirmed",
+          "authorization_state": "authorized",
+          "work_quality_state": "viable",
+          "service_category": "essential_power_units",
+          "service_units": 1,
+          "resource_demand": {
+            "qualified_person_shifts": 1,
+            "supervisor_hours": 1,
+            "tool_kits": 1,
+            "dispatch_hours": 1,
+            "cash_zar_cents": 1000,
+            "staff_minutes": 30,
+            "delay_hours": 5,
+            "worker_burden_hours": 1
+          },
+          "requires_selected_interventions": []
+        },
+        {
+          "id": "POWER_NO_TOOL",
+          "case_id": "power-case-01",
+          "description": "Synthetic POWER_NO_TOOL bundle",
+          "eligibility": "permitted",
+          "prerequisite_state": "satisfied",
+          "funding_state": "confirmed",
+          "authorization_state": "authorized",
+          "work_quality_state": "viable",
+          "service_category": "essential_power_units",
+          "service_units": 1,
+          "resource_demand": {
+            "qualified_person_shifts": 1,
+            "supervisor_hours": 2,
+            "tool_kits": 0,
+            "dispatch_hours": 2,
+            "cash_zar_cents": 3000,
+            "staff_minutes": 50,
+            "delay_hours": 4,
+            "worker_burden_hours": 2
+          },
+          "requires_selected_interventions": []
+        },
+        {
+          "id": "HEALTH_UNCERTAIN",
+          "case_id": "health-case-01",
+          "description": "Synthetic HEALTH_UNCERTAIN bundle",
+          "eligibility": "indeterminate",
+          "prerequisite_state": "unknown",
+          "funding_state": "unknown",
+          "authorization_state": "unknown",
+          "work_quality_state": "unknown",
+          "service_category": "health_units",
+          "service_units": 3,
+          "resource_demand": {
+            "qualified_person_shifts": 0,
+            "supervisor_hours": 0,
+            "tool_kits": 0,
+            "dispatch_hours": 0,
+            "cash_zar_cents": 1,
+            "staff_minutes": 1,
+            "delay_hours": 0,
+            "worker_burden_hours": 0
+          },
+          "requires_selected_interventions": []
+        }
+      ],
+      "expected_status": "feasible",
+      "expected_infeasibility_codes": [],
+      "expected_feasible_portfolio_count": 3,
+      "expected_frontier": [
+        {
+          "selected_intervention_ids": [
+            "POWER_NO_TOOL",
+            "WATER_FAST"
+          ],
+          "service_benefits": {
+            "essential_water_units": 2,
+            "essential_power_units": 1,
+            "health_units": 0,
+            "housing_units": 0,
+            "other_service_units": 0
+          },
+          "resource_use": {
+            "qualified_person_shifts": 2,
+            "supervisor_hours": 4,
+            "tool_kits": 1,
+            "dispatch_hours": 3,
+            "cash_zar_cents": 8000
+          },
+          "cost_vector": {
+            "qualified_person_shifts": 2,
+            "supervisor_hours": 4,
+            "tool_kits": 1,
+            "dispatch_hours": 3,
+            "cash_zar_cents": 8000,
+            "staff_minutes": 70,
+            "delay_hours": 6,
+            "worker_burden_hours": 3
+          }
+        },
+        {
+          "selected_intervention_ids": [
+            "POWER_NO_TOOL",
+            "WATER_LOW"
+          ],
+          "service_benefits": {
+            "essential_water_units": 1,
+            "essential_power_units": 1,
+            "health_units": 0,
+            "housing_units": 0,
+            "other_service_units": 0
+          },
+          "resource_use": {
+            "qualified_person_shifts": 2,
+            "supervisor_hours": 3,
+            "tool_kits": 0,
+            "dispatch_hours": 3,
+            "cash_zar_cents": 4000
+          },
+          "cost_vector": {
+            "qualified_person_shifts": 2,
+            "supervisor_hours": 3,
+            "tool_kits": 0,
+            "dispatch_hours": 3,
+            "cash_zar_cents": 4000,
+            "staff_minutes": 95,
+            "delay_hours": 10,
+            "worker_burden_hours": 4
+          }
+        },
+        {
+          "selected_intervention_ids": [
+            "POWER_STANDARD",
+            "WATER_LOW"
+          ],
+          "service_benefits": {
+            "essential_water_units": 1,
+            "essential_power_units": 1,
+            "health_units": 0,
+            "housing_units": 0,
+            "other_service_units": 0
+          },
+          "resource_use": {
+            "qualified_person_shifts": 2,
+            "supervisor_hours": 2,
+            "tool_kits": 1,
+            "dispatch_hours": 2,
+            "cash_zar_cents": 2000
+          },
+          "cost_vector": {
+            "qualified_person_shifts": 2,
+            "supervisor_hours": 2,
+            "tool_kits": 1,
+            "dispatch_hours": 2,
+            "cash_zar_cents": 2000,
+            "staff_minutes": 75,
+            "delay_hours": 11,
+            "worker_burden_hours": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": "PF-002",
+      "description": "A cheap but forbidden/indeterminate water intervention cannot meet the essential floor.",
+      "resource_caps": {
+        "qualified_person_shifts": 3,
+        "supervisor_hours": 5,
+        "tool_kits": 2,
+        "dispatch_hours": 4,
+        "cash_zar_cents": 10000
+      },
+      "worker_burden_cap_hours": 10,
+      "service_floors": {
+        "essential_water_units": 1,
+        "essential_power_units": 0,
+        "health_units": 0,
+        "housing_units": 0,
+        "other_service_units": 0
+      },
+      "interventions": [
+        {
+          "id": "WATER_UNKNOWN",
+          "case_id": "water-case-02",
+          "description": "Synthetic WATER_UNKNOWN bundle",
+          "eligibility": "indeterminate",
+          "prerequisite_state": "unknown",
+          "funding_state": "unknown",
+          "authorization_state": "unknown",
+          "work_quality_state": "viable",
+          "service_category": "essential_water_units",
+          "service_units": 1,
+          "resource_demand": {
+            "qualified_person_shifts": 1,
+            "supervisor_hours": 0,
+            "tool_kits": 0,
+            "dispatch_hours": 0,
+            "cash_zar_cents": 1,
+            "staff_minutes": 0,
+            "delay_hours": 0,
+            "worker_burden_hours": 0
+          },
+          "requires_selected_interventions": []
+        },
+        {
+          "id": "WATER_FORBIDDEN",
+          "case_id": "water-case-02",
+          "description": "Synthetic WATER_FORBIDDEN bundle",
+          "eligibility": "forbidden",
+          "prerequisite_state": "satisfied",
+          "funding_state": "confirmed",
+          "authorization_state": "denied",
+          "work_quality_state": "viable",
+          "service_category": "essential_water_units",
+          "service_units": 2,
+          "resource_demand": {
+            "qualified_person_shifts": 1,
+            "supervisor_hours": 0,
+            "tool_kits": 0,
+            "dispatch_hours": 0,
+            "cash_zar_cents": 0,
+            "staff_minutes": 0,
+            "delay_hours": 0,
+            "worker_burden_hours": 0
+          },
+          "requires_selected_interventions": []
+        }
+      ],
+      "expected_status": "infeasible_essential_floor",
+      "expected_infeasibility_codes": [
+        "essential_service_floor_unmet"
+      ],
+      "expected_feasible_portfolio_count": 0,
+      "expected_frontier": []
+    },
+    {
+      "id": "PF-003",
+      "description": "Each essential bundle is valid alone, but shared qualified-shift capacity makes both floors jointly infeasible.",
+      "resource_caps": {
+        "qualified_person_shifts": 1,
+        "supervisor_hours": 4,
+        "tool_kits": 2,
+        "dispatch_hours": 3,
+        "cash_zar_cents": 5000
+      },
+      "worker_burden_cap_hours": 5,
+      "service_floors": {
+        "essential_water_units": 1,
+        "essential_power_units": 1,
+        "health_units": 0,
+        "housing_units": 0,
+        "other_service_units": 0
+      },
+      "interventions": [
+        {
+          "id": "WATER_ONLY_SHIFT",
+          "case_id": "water-case-03",
+          "description": "Synthetic WATER_ONLY_SHIFT bundle",
+          "eligibility": "permitted",
+          "prerequisite_state": "satisfied",
+          "funding_state": "confirmed",
+          "authorization_state": "authorized",
+          "work_quality_state": "viable",
+          "service_category": "essential_water_units",
+          "service_units": 1,
+          "resource_demand": {
+            "qualified_person_shifts": 1,
+            "supervisor_hours": 1,
+            "tool_kits": 0,
+            "dispatch_hours": 1,
+            "cash_zar_cents": 1000,
+            "staff_minutes": 20,
+            "delay_hours": 2,
+            "worker_burden_hours": 1
+          },
+          "requires_selected_interventions": []
+        },
+        {
+          "id": "POWER_ONLY_SHIFT",
+          "case_id": "power-case-03",
+          "description": "Synthetic POWER_ONLY_SHIFT bundle",
+          "eligibility": "permitted",
+          "prerequisite_state": "satisfied",
+          "funding_state": "confirmed",
+          "authorization_state": "authorized",
+          "work_quality_state": "viable",
+          "service_category": "essential_power_units",
+          "service_units": 1,
+          "resource_demand": {
+            "qualified_person_shifts": 1,
+            "supervisor_hours": 1,
+            "tool_kits": 0,
+            "dispatch_hours": 1,
+            "cash_zar_cents": 1000,
+            "staff_minutes": 20,
+            "delay_hours": 2,
+            "worker_burden_hours": 1
+          },
+          "requires_selected_interventions": []
+        }
+      ],
+      "expected_status": "infeasible_resource_capacity",
+      "expected_infeasibility_codes": [
+        "resource_capacity_infeasible"
+      ],
+      "expected_feasible_portfolio_count": 0,
+      "expected_frontier": []
+    },
+    {
+      "id": "PF-004",
+      "description": "The only bundle meets service floor and resource caps but violates a declared worker-burden limit.",
+      "resource_caps": {
+        "qualified_person_shifts": 1,
+        "supervisor_hours": 2,
+        "tool_kits": 0,
+        "dispatch_hours": 1,
+        "cash_zar_cents": 5000
+      },
+      "worker_burden_cap_hours": 3,
+      "service_floors": {
+        "essential_water_units": 1,
+        "essential_power_units": 0,
+        "health_units": 0,
+        "housing_units": 0,
+        "other_service_units": 0
+      },
+      "interventions": [
+        {
+          "id": "WATER_HIGH_BURDEN",
+          "case_id": "water-case-04",
+          "description": "Synthetic WATER_HIGH_BURDEN bundle",
+          "eligibility": "permitted",
+          "prerequisite_state": "satisfied",
+          "funding_state": "confirmed",
+          "authorization_state": "authorized",
+          "work_quality_state": "viable",
+          "service_category": "essential_water_units",
+          "service_units": 1,
+          "resource_demand": {
+            "qualified_person_shifts": 1,
+            "supervisor_hours": 1,
+            "tool_kits": 0,
+            "dispatch_hours": 1,
+            "cash_zar_cents": 500,
+            "staff_minutes": 20,
+            "delay_hours": 2,
+            "worker_burden_hours": 5
+          },
+          "requires_selected_interventions": []
+        }
+      ],
+      "expected_status": "infeasible_worker_burden",
+      "expected_infeasibility_codes": [
+        "worker_burden_cap_infeasible"
+      ],
+      "expected_feasible_portfolio_count": 0,
+      "expected_frontier": []
+    },
+    {
+      "id": "PF-005",
+      "description": "A permitted water intervention requires a separate inspection bundle; the dependency must be selected too.",
+      "resource_caps": {
+        "qualified_person_shifts": 1,
+        "supervisor_hours": 2,
+        "tool_kits": 0,
+        "dispatch_hours": 2,
+        "cash_zar_cents": 1000
+      },
+      "worker_burden_cap_hours": 2,
+      "service_floors": {
+        "essential_water_units": 1,
+        "essential_power_units": 0,
+        "health_units": 0,
+        "housing_units": 0,
+        "other_service_units": 0
+      },
+      "interventions": [
+        {
+          "id": "INSPECT_WATER",
+          "case_id": "inspection-case-05",
+          "description": "Synthetic INSPECT_WATER bundle",
+          "eligibility": "permitted",
+          "prerequisite_state": "satisfied",
+          "funding_state": "confirmed",
+          "authorization_state": "authorized",
+          "work_quality_state": "viable",
+          "service_category": "other_service_units",
+          "service_units": 0,
+          "resource_demand": {
+            "qualified_person_shifts": 0,
+            "supervisor_hours": 1,
+            "tool_kits": 0,
+            "dispatch_hours": 1,
+            "cash_zar_cents": 200,
+            "staff_minutes": 10,
+            "delay_hours": 1,
+            "worker_burden_hours": 0
+          },
+          "requires_selected_interventions": []
+        },
+        {
+          "id": "WATER_AFTER_INSPECTION",
+          "case_id": "water-case-05",
+          "description": "Synthetic WATER_AFTER_INSPECTION bundle",
+          "eligibility": "permitted",
+          "prerequisite_state": "satisfied",
+          "funding_state": "confirmed",
+          "authorization_state": "authorized",
+          "work_quality_state": "viable",
+          "service_category": "essential_water_units",
+          "service_units": 1,
+          "resource_demand": {
+            "qualified_person_shifts": 1,
+            "supervisor_hours": 1,
+            "tool_kits": 0,
+            "dispatch_hours": 1,
+            "cash_zar_cents": 500,
+            "staff_minutes": 25,
+            "delay_hours": 3,
+            "worker_burden_hours": 1
+          },
+          "requires_selected_interventions": [
+            "INSPECT_WATER"
+          ]
+        },
+        {
+          "id": "WATER_UNFUNDED",
+          "case_id": "water-case-05",
+          "description": "Synthetic WATER_UNFUNDED bundle",
+          "eligibility": "permitted",
+          "prerequisite_state": "satisfied",
+          "funding_state": "absent",
+          "authorization_state": "authorized",
+          "work_quality_state": "viable",
+          "service_category": "essential_water_units",
+          "service_units": 2,
+          "resource_demand": {
+            "qualified_person_shifts": 1,
+            "supervisor_hours": 0,
+            "tool_kits": 0,
+            "dispatch_hours": 0,
+            "cash_zar_cents": 0,
+            "staff_minutes": 1,
+            "delay_hours": 1,
+            "worker_burden_hours": 1
+          },
+          "requires_selected_interventions": []
+        }
+      ],
+      "expected_status": "feasible",
+      "expected_infeasibility_codes": [],
+      "expected_feasible_portfolio_count": 1,
+      "expected_frontier": [
+        {
+          "selected_intervention_ids": [
+            "INSPECT_WATER",
+            "WATER_AFTER_INSPECTION"
+          ],
+          "service_benefits": {
+            "essential_water_units": 1,
+            "essential_power_units": 0,
+            "health_units": 0,
+            "housing_units": 0,
+            "other_service_units": 0
+          },
+          "resource_use": {
+            "qualified_person_shifts": 1,
+            "supervisor_hours": 2,
+            "tool_kits": 0,
+            "dispatch_hours": 2,
+            "cash_zar_cents": 700
+          },
+          "cost_vector": {
+            "qualified_person_shifts": 1,
+            "supervisor_hours": 2,
+            "tool_kits": 0,
+            "dispatch_hours": 2,
+            "cash_zar_cents": 700,
+            "staff_minutes": 35,
+            "delay_hours": 4,
+            "worker_burden_hours": 1
+          }
+        }
+      ]
+    }
+  ]
+}
