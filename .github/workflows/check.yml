@@ -85,6 +85,9 @@ jobs:
       # Verify inter-temporal storage state, limits, losses and service shortfall.
       - name: Test energy storage trajectory CLI
         run: cargo test -p sol-atlas-core --bin energy_storage_assess
+      # Exercise the thermal exergy receipt contract and frozen analytical fixture.
+      - name: Test thermal exergy assessment CLI
+        run: cargo test -p sol-atlas-core --bin thermal_exergy_assess
       # Prove the heat-pump useful-heat stream composes with the thermal store state machine.
       - name: Test coupled heat pump and thermal storage
         run: cargo test -p sol-atlas-core --test heat_pump_storage_coupling
