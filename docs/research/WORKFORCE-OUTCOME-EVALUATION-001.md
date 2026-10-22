@@ -94,13 +94,13 @@ Additional rules:
 - No superiority claim unless a preregistered primary outcome, matched baseline, uncertainty, cost/resource measures and safety guardrails jointly support it.
 - No generalization claim from one synthetic corpus or one site.
 
-## Implementation sequence
+## Implemented evaluation slice
 
-1. Validate the JSON Schema and synthetic receipt fixture in this PR.
-2. Add an offline Rust-first receipt/evaluator that validates cross-field accounting invariants and emits deterministic JSON with content digests; keep network access out of core evaluation.
-3. Add a held-out case manifest with independently adjudicated labels; do not tune on it.
-4. Only after a legitimate data owner and partner exist, register the retrospective or prospective design and field-access controls.
-5. Compose Mycelix's scoped practical skill evidence and Symthaea's repair-workbench outcome protocol rather than duplicating registries, work-order state, payment records or authority.
+The Rust crate `tools/workforce-outcome-verifier/` now validates the receipt schema and cross-field accounting contract, checks unique policy IDs, reconciles gross paid-work events to the named policy's verified paid-work count, rejects impossible aggregate counts, and enforces the synthetic/additionality claim ceiling. It emits a deterministic machine-readable receipt with fixture/schema SHA-256 digests. The dedicated workflow makes formatting, tests and receipt generation hard gates.
+
+The synthetic fixture deliberately leaves net additional paid hours unestimated. The evaluator therefore cannot convert four gross verified paid-work events into four additional jobs. An empirical additionality claim requires a non-synthetic evidence class, a preregistered credible comparison, explicit counterfactual basis, estimate/uncertainty interval and assessed displacement, substitution, deadweight and spillover states.
+
+Next steps remain a sequestered, independently adjudicated case manifest and an authorized retrospective/prospective design. Compose Mycelix's scoped practical skill evidence and Symthaea's repair-workbench outcome protocol rather than duplicating registries, work-order state, payment records or authority.
 
 ## Claim ceiling
 
