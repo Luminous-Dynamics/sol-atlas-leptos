@@ -1,0 +1,347 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/schemas/workforce_calibration_v0_1.schema.json",
+  "title": "SA-WORKFORCE-CALIBRATION forecast corpus v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "fixture_notice",
+    "schema_version",
+    "benchmark_id",
+    "synthetic_only",
+    "claim_ceiling",
+    "event_definition",
+    "forecast_horizon_days",
+    "decision_threshold",
+    "minimum_coverage",
+    "probability_bin_width",
+    "model_catalog",
+    "cases",
+    "expected_metrics"
+  ],
+  "properties": {
+    "fixture_notice": {
+      "type": "string",
+      "minLength": 30
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "benchmark_id": {
+      "const": "SA-WORKFORCE-CALIBRATION-001"
+    },
+    "synthetic_only": {
+      "const": true
+    },
+    "claim_ceiling": {
+      "const": "synthetic_contract_only"
+    },
+    "event_definition": {
+      "const": "independently_confirmed_task_scoped_capacity_gap_within_horizon"
+    },
+    "forecast_horizon_days": {
+      "const": 30
+    },
+    "decision_threshold": {
+      "const": 0.5
+    },
+    "minimum_coverage": {
+      "const": 0.75
+    },
+    "probability_bin_width": {
+      "const": 0.2
+    },
+    "model_catalog": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "$ref": "#/$defs/model"
+      }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 12,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    },
+    "expected_metrics": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "$ref": "#/$defs/expected_model_metrics"
+      }
+    }
+  },
+  "$defs": {
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_id",
+        "role",
+        "description"
+      ],
+      "properties": {
+        "model_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "role": {
+          "enum": [
+            "baseline",
+            "candidate",
+            "negative_control"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "forecast": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_id",
+        "status",
+        "probability",
+        "abstention_reason"
+      ],
+      "properties": {
+        "model_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "status": {
+          "enum": [
+            "issued",
+            "abstained"
+          ]
+        },
+        "probability": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "abstention_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "issued"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "probability": {
+                "type": "number"
+              },
+              "abstention_reason": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "abstained"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "probability": {
+                "type": "null"
+              },
+              "abstention_reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "task_scope_id",
+        "prediction_cutoff",
+        "outcome_observed",
+        "forecasts"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "pattern": "^CAL-[0-9]{3}$"
+        },
+        "task_scope_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prediction_cutoff": {
+          "type": "string",
+          "format": "date"
+        },
+        "outcome_observed": {
+          "type": "integer",
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "forecasts": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {
+            "$ref": "#/$defs/forecast"
+          }
+        }
+      }
+    },
+    "expected_bin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bin_index",
+        "count",
+        "mean_predicted_probability",
+        "observed_event_rate",
+        "absolute_gap"
+      ],
+      "properties": {
+        "bin_index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mean_predicted_probability": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "observed_event_rate": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "absolute_gap": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    },
+    "expected_model_metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_id",
+        "total_case_count",
+        "scored_count",
+        "abstained_count",
+        "coverage",
+        "brier_score",
+        "log_loss",
+        "false_positive_count",
+        "false_negative_count",
+        "decision_error_count",
+        "reliability_bins",
+        "passes_minimum_coverage"
+      ],
+      "properties": {
+        "model_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "total_case_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "scored_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "abstained_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "coverage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "brier_score": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "log_loss": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "false_positive_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "false_negative_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "decision_error_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "reliability_bins": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {
+            "$ref": "#/$defs/expected_bin"
+          }
+        },
+        "passes_minimum_coverage": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
