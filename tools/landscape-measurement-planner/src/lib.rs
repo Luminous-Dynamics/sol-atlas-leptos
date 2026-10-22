@@ -1270,6 +1270,26 @@ mod tests {
                 candidate.decision_weight = ((seed + index) % 4) as f64;
                 candidate.cost_units = (1 + ((seed * 3 + index * 2) % 5)) as u32;
                 candidate.correlation_group = format!("group-{}", (seed + index * 2) % 3);
+                candidate.spatial_stratum = format!("space-{}", (seed + index * 3) % 4);
+                candidate.temporal_stratum = format!("time-{}", (seed * 2 + index) % 3);
+                candidate.consent_status = match (seed + index) % 5 {
+                    0 => ConsentStatus::Denied,
+                    1 => ConsentStatus::Unknown,
+                    _ => ConsentStatus::Granted,
+                };
+                candidate.consent_evidence_sha256 = match candidate.consent_status {
+                    ConsentStatus::Granted => Some("3".repeat(64)),
+                    ConsentStatus::Denied | ConsentStatus::Unknown => None,
+                };
+                candidate.access_status = match (seed * 2 + index) % 5 {
+                    0 => AccessStatus::Denied,
+                    1 => AccessStatus::Unknown,
+                    _ => AccessStatus::Authorized,
+                };
+                candidate.access_authorization_sha256 = match candidate.access_status {
+                    AccessStatus::Authorized => Some("4".repeat(64)),
+                    AccessStatus::Denied | AccessStatus::Unknown => None,
+                };
             }
             validate_fixture(&fixture).expect("generated synthetic instance stays valid");
             let scores: BTreeMap<String, CandidateScore> = fixture
