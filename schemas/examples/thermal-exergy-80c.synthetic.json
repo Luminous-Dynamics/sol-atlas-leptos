@@ -1,0 +1,11 @@
+{
+  "schema_version": "thermal-exergy-v0.1",
+  "scenario_id": "synthetic-heat-pump-output-at-80c",
+  "synthetic": true,
+  "heat_quantity_kwh": 40.0,
+  "heat_temperature_c": 80.0,
+  "reference_environment_temperature_c": 20.0,
+  "evidence_class": "analyst_assumption",
+  "evidence_ref": null,
+  "evidence_as_of": null
+}
