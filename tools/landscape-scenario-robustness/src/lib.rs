@@ -51,6 +51,31 @@ pub struct Outcome {
     pub utility_points: f64,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct UtilityMethodSpec {
+    #[serde(rename = "$schema")]
+    pub json_schema_uri: String,
+    #[serde(rename = "$id")]
+    pub schema_id: String,
+    pub schema_version: String,
+    pub metric_name: String,
+    pub unit: String,
+    pub scale: UtilityScale,
+    pub normalization: String,
+    pub scenario_weighting: String,
+    pub missing_data: String,
+    pub claim_ceiling: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct UtilityScale {
+    pub minimum: f64,
+    pub maximum: f64,
+    pub higher_is_better: bool,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct ScenarioUtility {
     pub scenario_id: String,
@@ -292,6 +317,60 @@ fn choose_winners_for_scenarios(
     (maximin_winner, minimax_regret_winner)
 }
 
+pub fn validate_utility_method_bytes(
+    utility_method_bytes: &[u8],
+) -> Result<UtilityMethodSpec, Vec<String>> {
+    let method: UtilityMethodSpec = serde_json::from_slice(utility_method_bytes)
+        .map_err(|error| vec![format!("utility method JSON rejected: {error}")])?;
+    let mut errors = Vec::new();
+    if method.json_schema_uri != "https://json-schema.org/draft/2020-12/schema" {
+        errors.push("utility method $schema must use JSON Schema draft 2020-12".to_owned());
+    }
+    if method.schema_id
+        != "https://luminousdynamics.io/schemas/landscape-utility-method-v0.schema.json"
+    {
+        errors.push("utility method $id does not match the v0 contract".to_owned());
+    }
+    if method.schema_version != "luminous.landscape_utility_method.v0" {
+        errors.push("utility method schema_version does not match v0".to_owned());
+    }
+    if !nonempty(&method.metric_name) {
+        errors.push("utility method metric_name must be non-empty".to_owned());
+    }
+    if method.unit != "utility_points" {
+        errors.push("utility method unit must be utility_points".to_owned());
+    }
+    if method.scale.minimum != 0.0
+        || method.scale.maximum != 100.0
+        || !method.scale.higher_is_better
+    {
+        errors.push("utility method scale must be [0, 100] with higher_is_better=true".to_owned());
+    }
+    if !nonempty(&method.normalization) {
+        errors.push("utility method normalization must be explicitly documented".to_owned());
+    }
+    if method.scenario_weighting
+        != "none; listed cases are stress scenarios, not probability-weighted forecasts"
+    {
+        errors.push(
+            "v0.1 does not infer or accept scenario probability weights; use an explicitly reviewed method version"
+                .to_owned(),
+        );
+    }
+    if method.missing_data != "fail_closed" {
+        errors.push("utility method missing_data must be fail_closed".to_owned());
+    }
+    if method.claim_ceiling != "scenario_robustness_only_not_real_world_impact" {
+        errors.push("utility method claim_ceiling exceeds or contradicts the v0.1 scope".to_owned());
+    }
+    if errors.is_empty() {
+        Ok(method)
+    } else {
+        errors.sort();
+        Err(errors)
+    }
+}
+
 pub fn evaluate_fixture_bytes(
     fixture_bytes: &[u8],
     utility_method_bytes: &[u8],
@@ -306,6 +385,9 @@ pub fn evaluate_fixture_bytes(
             fixture.utility_method_sha256, actual_method_sha
         )]);
     }
+    // Hash identity and semantic validity are separate gates: exact bytes may
+    // still describe a scale or weighting policy outside this contract.
+    validate_utility_method_bytes(utility_method_bytes)?;
 
     let mut scenario_ids: Vec<&str> = fixture
         .scenarios
@@ -624,6 +706,36 @@ mod tests {
             alpha.worst_case_utility_points,
             beta.worst_case_utility_points
         );
+    }
+
+    #[test]
+    fn utility_method_semantics_are_validated_even_when_digest_matches() {
+        let bytes = method_bytes();
+        let mut method: serde_json::Value = serde_json::from_slice(&bytes).expect("method JSON");
+        method["scale"]["maximum"] = serde_json::json!(1000);
+        let mutated = serde_json::to_vec(&method).expect("mutated method JSON");
+        assert!(validate_utility_method_bytes(&mutated)
+            .unwrap_err()
+            .iter()
+            .any(|error| error.contains("scale must be [0, 100]")));
+
+        method["scale"]["maximum"] = serde_json::json!(100);
+        method["scenario_weighting"] =
+            serde_json::json!("equal probability for every scenario");
+        let mutated = serde_json::to_vec(&method).expect("mutated weighting method");
+        assert!(validate_utility_method_bytes(&mutated)
+            .unwrap_err()
+            .iter()
+            .any(|error| error.contains("does not infer or accept scenario probability weights")));
+    }
+
+    #[test]
+    fn utility_method_rejects_undeclared_fields() {
+        let bytes = method_bytes();
+        let mut method: serde_json::Value = serde_json::from_slice(&bytes).expect("method JSON");
+        method["secret_policy_override"] = serde_json::json!(true);
+        let mutated = serde_json::to_vec(&method).expect("method with unknown field");
+        assert!(validate_utility_method_bytes(&mutated).is_err());
     }
 
     #[test]
