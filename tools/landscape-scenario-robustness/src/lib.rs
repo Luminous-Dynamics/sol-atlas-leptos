@@ -748,6 +748,22 @@ mod tests {
         );
         assert_eq!(report.scenario_count, 4);
         assert_eq!(report.alternative_count, 3);
+        assert_eq!(report.critical_constraints.len(), 2);
+        assert_eq!(report.constraint_summaries.len(), 2);
+        let water_summary = report
+            .constraint_summaries
+            .iter()
+            .find(|summary| summary.constraint_id == "water_service_floor")
+            .unwrap();
+        assert_eq!(water_summary.passed_outcome_count, 11);
+        assert_eq!(water_summary.failed_outcome_count, 1);
+        let route_summary = report
+            .constraint_summaries
+            .iter()
+            .find(|summary| summary.constraint_id == "accessible_route_continuity")
+            .unwrap();
+        assert_eq!(route_summary.passed_outcome_count, 9);
+        assert_eq!(route_summary.failed_outcome_count, 3);
         assert_eq!(report.maximin_winner, "strategy-c");
         assert_eq!(report.minimax_regret_winner, "strategy-a");
         assert_eq!(report.feasible_maximin_winner.as_deref(), Some("strategy-a"));
