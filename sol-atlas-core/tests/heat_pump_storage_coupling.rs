@@ -72,6 +72,7 @@ fn heat_pump_to_thermal_store_to_later_load_closes_each_boundary() {
             },
         ],
     };
+    assert_eq!(store.thermal_temperature_c, Some(heat.temperatures.delivery_c));
     let storage =
         assess_energy_storage(&store).expect("synthetic thermal-store case should be valid");
 
