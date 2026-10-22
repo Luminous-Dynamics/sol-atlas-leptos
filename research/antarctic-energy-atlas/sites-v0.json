@@ -76,7 +76,7 @@
     {
       "id": "aad-soe-generator-boiler-fuel-monthly",
       "source_url": "https://data.aad.gov.au/metadata/records/SOE_generator_boiler_fuel_usage",
-      "citation": "Ratcliffe, Sheers & Bonnice (2019), Version 1, DOI 10.26179/5d2ea1b98cba3",
+      "citation": "Ratcliffe, Sheers & Bonnice (2001), Version 1, DOI 10.26179/5d2ea1b98cba3",
       "metric": "generator_and_boiler_fuel_usage",
       "unit": "L",
       "spatial_support": "site_series_expected_but_not_yet_ingested",
