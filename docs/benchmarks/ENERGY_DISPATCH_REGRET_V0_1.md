@@ -34,6 +34,12 @@ This is a declared benchmark reference policy, not a universal social welfare fu
 
 For a feasible baseline, report signed per-objective deltas against that one selected reference. For minimized dimensions, `baseline - reference` is positive when the baseline is worse. For terminal SOC, `reference SOC - baseline SOC` is positive when the baseline ends with less energy. A negative delta on one dimension can coexist with a worse result on another; interpret the vector, not a sum. If the baseline is infeasible, its objective and delta vector are null and the failure reason is recorded.
 
+## Independent schedule verification
+
+The comparison path rechecks every schedule in the exact oracle's Pareto frontier and every schedule emitted by the baseline through `energy_dispatch_verifier.rs`. That module does not call the schedule generator. It independently checks interval metadata against the request, demand metadata, grid caps/outage import, PV use/curtailment, essential/flexible demand reconciliation, integer bus balance, SOC continuity, efficiency rounding, charge/discharge bounds, no simultaneous charge/discharge and terminal reserve. Forged residual fields cannot override the independently calculated balance.
+
+This remains a model-consistency verifier. It does not authenticate meter readings, hardware behavior, or field evidence.
+
 ## Frozen demonstrations
 
 ### PV-charge before outage
