@@ -223,6 +223,7 @@ pub struct EnergyPortsAssessment {
 
 const CELSIUS_TO_KELVIN: f64 = 273.15;
 const ABSOLUTE_TOLERANCE_KWH: f64 = 1.0e-9;
+const ABSOLUTE_TEMPERATURE_TOLERANCE_C: f64 = 1.0e-9;
 const RELATIVE_TOLERANCE: f64 = 1.0e-12;
 
 fn finite_nonnegative(value: f64) -> bool {
@@ -235,6 +236,12 @@ fn tolerance(lhs: f64, rhs: f64) -> f64 {
 
 fn close(lhs: f64, rhs: f64) -> bool {
     (lhs - rhs).abs() <= tolerance(lhs, rhs)
+}
+
+fn close_temperature_c(lhs: f64, rhs: f64) -> bool {
+    (lhs - rhs).abs()
+        <= ABSOLUTE_TEMPERATURE_TOLERANCE_C
+            + RELATIVE_TOLERANCE * lhs.abs().max(rhs.abs())
 }
 
 fn checked_add(total: &mut f64, amount: f64, context: &str) -> Result<(), EnergyPortsError> {
@@ -530,7 +537,7 @@ pub fn assess_energy_ports(
             });
         }
         if source_port.form == EnergyForm::ThermalHeat
-            && !close(
+            && !close_temperature_c(
                 source_port.temperature_c.unwrap(),
                 target_port.temperature_c.unwrap(),
             )
@@ -933,6 +940,20 @@ mod tests {
         request.nodes[1].inputs[0].temperature_c = Some(70.0);
         let error = assess_energy_ports(&request).unwrap_err();
         assert!(matches!(error, EnergyPortsError::TemperatureGradeMismatch { .. }));
+    }
+
+    #[test]
+    fn temperature_grade_comparison_uses_temperature_units_and_tolerance() {
+        let mut request = chp_fixture();
+        request.nodes[1].inputs[0].temperature_c = Some(80.0 + 5.0e-10);
+        assert!(assess_energy_ports(&request).is_ok());
+
+        let mut request = chp_fixture();
+        request.nodes[1].inputs[0].temperature_c = Some(80.0 + 1.0e-6);
+        assert!(matches!(
+            assess_energy_ports(&request),
+            Err(EnergyPortsError::TemperatureGradeMismatch { .. })
+        ));
     }
 
     #[test]
