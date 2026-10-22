@@ -1,0 +1,74 @@
+name: Landscape Scenario Robustness
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "tools/landscape-scenario-robustness/**"
+      - "fixtures/landscape/robustness-v0/**"
+      - "schemas/landscape-utility-method-v0.schema.json"
+      - "schemas/landscape-scenario-robustness-*.schema.json"
+      - "docs/LANDSCAPE_SCENARIO_ROBUSTNESS_V0_1.md"
+      - ".github/workflows/landscape-scenario-robustness.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "tools/landscape-scenario-robustness/**"
+      - "fixtures/landscape/robustness-v0/**"
+      - "schemas/landscape-utility-method-v0.schema.json"
+      - "schemas/landscape-scenario-robustness-*.schema.json"
+      - "docs/LANDSCAPE_SCENARIO_ROBUSTNESS_V0_1.md"
+      - ".github/workflows/landscape-scenario-robustness.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  scenario-robustness:
+    name: Exact-head synthetic maximin/minimax-regret oracle
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out exact PR head
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Install pinned Rust toolchain
+        run: |
+          rustup toolchain install 1.96.0 --profile minimal --component rustfmt
+          rustup default 1.96.0
+      - name: Validate JSON syntax
+        run: |
+          jq empty schemas/landscape-utility-method-v0.schema.json
+          jq empty schemas/landscape-scenario-robustness-fixture-v0.1.schema.json
+          jq empty schemas/landscape-scenario-robustness-report-v0.1.schema.json
+          jq empty fixtures/landscape/robustness-v0/fixture.json
+      - name: Check formatting
+        run: cargo fmt --manifest-path tools/landscape-scenario-robustness/Cargo.toml -- --check
+      - name: Run tests with locked dependencies
+        run: cargo test --locked --manifest-path tools/landscape-scenario-robustness/Cargo.toml
+      - name: Check exact-head synthetic report
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture="fixtures/landscape/robustness-v0/fixture.json"
+          method="schemas/landscape-utility-method-v0.schema.json"
+          report="$RUNNER_TEMP/landscape-scenario-robustness.json"
+          expected_sha256="$(sha256sum "$fixture" | cut -d ' ' -f 1)"
+          cargo run --locked --manifest-path tools/landscape-scenario-robustness/Cargo.toml -- "$PWD/$fixture" "$PWD/$method" > "$report"
+          jq -e --arg digest "$expected_sha256" '
+            .schema_version == "luminous.landscape_scenario_robustness_report.v0.1" and
+            .suite_id == "LANDSCAPE-SCENARIO-ROBUSTNESS-V0.1" and
+            .conformance_status == "PASS_SYNTHETIC_SCENARIO_ROBUSTNESS_ONLY" and
+            .data_origin == "synthetic_fixture" and
+            .claim_ceiling == "SCENARIO_ROBUSTNESS_ONLY" and
+            .input_sha256 == $digest and
+            .scenario_count == 4 and
+            .alternative_count == 3 and
+            (.scorecards[] | select(.alternative_id == "strategy-a") | .worst_case_utility_points == 70 and .unweighted_mean_utility_points == 76.25 and .maximum_regret_points == 10 and .unweighted_mean_regret_points == 4 and .robustly_qualified == true) and
+            (.scorecards[] | select(.alternative_id == "strategy-b") | .worst_case_utility_points == 40 and .unweighted_mean_utility_points == 59.25 and .maximum_regret_points == 35 and .robustly_qualified == false) and
+            (.scorecards[] | select(.alternative_id == "strategy-c") | .worst_case_utility_points == 72 and .unweighted_mean_utility_points == 73.75 and .maximum_regret_points == 17 and .unweighted_mean_regret_points == 6.5 and .robustly_qualified == true) and
+            .maximin_winner == "strategy-c" and
+            .minimax_regret_winner == "strategy-a"
+          ' "$report"
