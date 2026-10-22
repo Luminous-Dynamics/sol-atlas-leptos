@@ -21,7 +21,7 @@ One source energy stream passes through an ordered chain of explicitly typed sta
 - input/output form and dimensionless gross conversion efficiency;
 - a required hard input-throughput limit for the scenario horizon;
 - explicit auxiliary electricity per kWh of accepted input;
-- evidence class, reference and date when the class is stronger than an analyst assumption.
+- source-level and stage-level evidence classes, references and dates. Non-assumption source/stage claims without a reference fail closed.
 
 It reports stage input accepted/curtailed, gross output, conversion loss and auxiliary-electric demand separately. For an electrical final output, net electricity is gross delivered output minus auxiliary electrical demand; that result can be negative. The primary-stream accounting identity is:
 
