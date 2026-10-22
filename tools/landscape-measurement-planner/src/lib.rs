@@ -1192,6 +1192,74 @@ mod tests {
         (best_cost, best)
     }
 
+    fn brute_force_coverage_oracle(
+        candidates: &[Candidate],
+        scores: &BTreeMap<String, CandidateScore>,
+        budget: u32,
+        minimum_coverage_fraction: f64,
+    ) -> Option<(u32, PlanState)> {
+        let eligible_strata: BTreeSet<(&str, &str)> = candidates
+            .iter()
+            .filter(|candidate| eligible(candidate))
+            .map(|candidate| (
+                candidate.spatial_stratum.as_str(),
+                candidate.temporal_stratum.as_str(),
+            ))
+            .collect();
+        if eligible_strata.is_empty() {
+            return None;
+        }
+        let required_strata =
+            ((minimum_coverage_fraction * eligible_strata.len() as f64) - 1.0e-12).ceil()
+                as usize;
+        let mut best: Option<(u32, PlanState)> = None;
+        for mask in 0usize..(1usize << candidates.len()) {
+            let mut selected_ids = Vec::new();
+            let mut selected_groups = BTreeSet::new();
+            let mut selected_strata = BTreeSet::new();
+            let mut cost = 0u32;
+            let mut score = 0.0;
+            let mut feasible = true;
+            for (index, candidate) in candidates.iter().enumerate() {
+                if mask & (1usize << index) == 0 {
+                    continue;
+                }
+                if !eligible(candidate)
+                    || !selected_groups.insert(candidate.correlation_group.as_str())
+                {
+                    feasible = false;
+                    break;
+                }
+                cost += candidate.cost_units;
+                if cost > budget {
+                    feasible = false;
+                    break;
+                }
+                selected_strata.insert((
+                    candidate.spatial_stratum.as_str(),
+                    candidate.temporal_stratum.as_str(),
+                ));
+                score += scores[&candidate.candidate_id].weighted_discrimination_nats;
+                selected_ids.push(candidate.candidate_id.clone());
+            }
+            if !feasible || selected_strata.len() < required_strata {
+                continue;
+            }
+            selected_ids.sort();
+            let proposed = PlanState {
+                weighted_discrimination_nats: score,
+                selected_ids,
+            };
+            let replace = best.as_ref().is_none_or(|(best_cost, best_plan)| {
+                better_final(cost, &proposed, *best_cost, best_plan)
+            });
+            if replace {
+                best = Some((cost, proposed));
+            }
+        }
+        best
+    }
+
     #[test]
     fn exact_dynamic_program_matches_exhaustive_oracle_across_small_problem_family() {
         for seed in 0..24usize {
@@ -1227,6 +1295,46 @@ mod tests {
                 actual.weighted_discrimination_nats,
                 oracle.weighted_discrimination_nats,
             );
+
+            for minimum_coverage in [1.0 / 3.0, 2.0 / 3.0, 1.0] {
+                let constrained = select_exact_coverage_constrained(
+                    &fixture.candidates,
+                    &scores,
+                    fixture.budget_cost_units,
+                    minimum_coverage,
+                )
+                .expect("small generated coverage DP remains within state limits");
+                let coverage_oracle = brute_force_coverage_oracle(
+                    &fixture.candidates,
+                    &scores,
+                    fixture.budget_cost_units,
+                    minimum_coverage,
+                );
+                match (constrained, coverage_oracle) {
+                    (Some(actual), Some((actual_cost, expected))) => {
+                        let expected_cost: u32 = fixture
+                            .candidates
+                            .iter()
+                            .filter(|candidate| {
+                                actual.selected_ids.contains(&candidate.candidate_id)
+                            })
+                            .map(|candidate| candidate.cost_units)
+                            .sum();
+                        assert_eq!(expected_cost, actual_cost, "coverage seed={seed}");
+                        assert_eq!(actual.selected_ids, expected.selected_ids, "coverage seed={seed}");
+                        close(
+                            actual.weighted_discrimination_nats,
+                            expected.weighted_discrimination_nats,
+                        );
+                    }
+                    (None, None) => {}
+                    (actual, expected) => panic!(
+                        "coverage feasibility mismatch seed={seed}, minimum={minimum_coverage}: actual={}, expected={}",
+                        actual.is_some(),
+                        expected.is_some()
+                    ),
+                }
+            }
         }
     }
 
