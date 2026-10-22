@@ -245,12 +245,22 @@ pub fn assess_dispatch_regret(
     request: &EnergyDispatchRequest,
 ) -> Result<DispatchRegretAssessment, EnergyDispatchError> {
     let oracle: EnergyDispatchAssessment = assess_energy_dispatch(request)?;
+    for alternative in &oracle.pareto_alternatives {
+        crate::energy_dispatch_verifier::verify_dispatch_schedule(request, &alternative.schedule)
+            .map_err(|errors| EnergyDispatchError::ScheduleVerificationFailed {
+                reason: errors.join("; "),
+            })?;
+    }
     let reference = oracle
         .pareto_alternatives
         .first()
         .ok_or(EnergyDispatchError::NoFeasibleSchedules)?;
 
-    let baseline_result = build_baseline_schedule(request);
+    let baseline_result = build_baseline_schedule(request).and_then(|schedule| {
+        crate::energy_dispatch_verifier::verify_dispatch_schedule(request, &schedule)
+            .map_err(|errors| format!("independent verifier rejected baseline: {}", errors.join("; ")))?;
+        Ok(schedule)
+    });
     match baseline_result {
         Ok(schedule) => {
             let objective = objective_for_schedule(request, &schedule)?;
