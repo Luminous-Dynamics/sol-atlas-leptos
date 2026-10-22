@@ -461,7 +461,9 @@ pub fn assess_energy_service_scenario(
     if request.scenario_id.trim().is_empty() {
         return Err(EnergyServiceError::EmptyScenarioId);
     }
-    if request.graph.scenario_id != request.scenario_id || request.graph.synthetic != request.synthetic {
+    if request.graph.scenario_id != request.scenario_id
+        || request.graph.synthetic != request.synthetic
+    {
         return Err(EnergyServiceError::ScenarioMetadataMismatch);
     }
     let graph = assess_energy_ports(&request.graph)
