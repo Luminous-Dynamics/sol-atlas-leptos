@@ -58,7 +58,7 @@ jobs:
             .conformance_status == "PASS_SYNTHETIC_CONTRACT_CONFORMANCE_ONLY" and
             .data_origin == "synthetic_fixture" and
             .claim_ceiling == "SYNTHETIC_STRUCTURAL_CONFORMANCE_ONLY" and
-            .upstream_pinned_contract_count == 26 and
+            .upstream_pinned_contract_count == 34 and
             .project_feature_count == 7 and
             .observation_count == 5 and
             .metric_observation_mapping_count == 8 and
@@ -75,7 +75,7 @@ jobs:
             .measurement_operation_authorized_by_harness == false and
             .review_ranking_status == "no-defensible-ranking" and
             .recommendation_status == "no-ranking" and
-            .passed_check_count == 19 and
+            .passed_check_count == 20 and
             .negative_controls_attempted == 11 and
             .negative_controls_rejected == 11 and
             .negative_controls_unexpectedly_accepted == 0 and
