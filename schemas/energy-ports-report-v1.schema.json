@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/energy-ports-report-v1.schema.json",
+  "title": "Typed energy ports assessment report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["receipt", "assessment"],
+  "properties": {
+    "receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "receipt_schema_version", "evaluator_version", "digest_algorithm", "digest_scope",
+        "input_sha256", "assessment_sha256", "input_bytes", "scenario_id", "synthetic",
+        "claim_ceiling", "verification_boundary"
+      ],
+      "properties": {
+        "receipt_schema_version": { "const": "1" },
+        "evaluator_version": { "const": "energy-ports-v0.1" },
+        "digest_algorithm": { "const": "SHA-256" },
+        "digest_scope": { "const": "exact_input_bytes_and_compact_assessment_json" },
+        "input_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "assessment_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "input_bytes": { "type": "integer", "minimum": 0 },
+        "scenario_id": { "type": "string", "minLength": 1 },
+        "synthetic": { "type": "boolean" },
+        "claim_ceiling": { "type": "string", "minLength": 1 },
+        "verification_boundary": { "type": "string", "minLength": 1 }
+      }
+    },
+    "assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assessment_schema_version", "scenario_id", "synthetic", "claim_ceiling",
+        "external_input_energy_kwh", "routed_energy_kwh", "terminal_useful_service_kwh",
+        "terminal_rejected_kwh", "terminal_unconverted_resource_kwh", "terminal_curtailed_kwh",
+        "terminal_disposition_energy_kwh", "system_balance_residual_kwh", "nodes", "input_ports", "edges", "output_ports"
+      ],
+      "properties": {
+        "assessment_schema_version": { "const": "1" },
+        "scenario_id": { "type": "string", "minLength": 1 },
+        "synthetic": { "type": "boolean" },
+        "claim_ceiling": { "type": "string", "minLength": 1 },
+        "external_input_energy_kwh": { "type": "number", "minimum": 0 },
+        "routed_energy_kwh": { "type": "number", "minimum": 0 },
+        "terminal_useful_service_kwh": { "type": "number", "minimum": 0 },
+        "terminal_rejected_kwh": { "type": "number", "minimum": 0 },
+        "terminal_unconverted_resource_kwh": { "type": "number", "minimum": 0 },
+        "terminal_curtailed_kwh": { "type": "number", "minimum": 0 },
+        "terminal_disposition_energy_kwh": { "type": "number", "minimum": 0 },
+        "system_balance_residual_kwh": { "type": "number" },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["node_id", "boundary_description", "input_energy_kwh", "output_energy_kwh", "balance_residual_kwh", "evidence_class", "evidence_ref", "evidence_as_of"],
+            "properties": {
+              "node_id": { "type": "string", "minLength": 1 },
+              "boundary_description": { "type": "string", "minLength": 1 },
+              "input_energy_kwh": { "type": "number", "minimum": 0 },
+              "output_energy_kwh": { "type": "number", "minimum": 0 },
+              "balance_residual_kwh": { "type": "number" },
+              "evidence_class": { "type": "string", "enum": ["analyst_assumption", "published_model", "component_test", "field_pilot", "operating_plant", "replicated_fleet", "independently_audited"] },
+              "evidence_ref": { "type": ["string", "null"] },
+              "evidence_as_of": { "type": ["string", "null"] }
+            }
+          }
+        },
+        "input_ports": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["node_id", "port_id", "form", "energy_kwh", "external_energy_kwh", "external_source_id", "routed_energy_kwh", "temperature_c"],
+            "properties": {
+              "node_id": { "type": "string", "minLength": 1 },
+              "port_id": { "type": "string", "minLength": 1 },
+              "form": { "type": "string", "enum": ["electricity", "thermal_heat", "mechanical", "chemical", "radiant"] },
+              "energy_kwh": { "type": "number", "minimum": 0 },
+              "external_energy_kwh": { "type": "number", "minimum": 0 },
+              "external_source_id": { "type": ["string", "null"] },
+              "routed_energy_kwh": { "type": "number", "minimum": 0 },
+              "temperature_c": { "type": ["number", "null"] }
+            }
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["edge_id", "from_node_id", "from_port_id", "to_node_id", "to_port_id", "energy_kwh"],
+            "properties": {
+              "edge_id": { "type": "string", "minLength": 1 },
+              "from_node_id": { "type": "string", "minLength": 1 },
+              "from_port_id": { "type": "string", "minLength": 1 },
+              "to_node_id": { "type": "string", "minLength": 1 },
+              "to_port_id": { "type": "string", "minLength": 1 },
+              "energy_kwh": { "type": "number", "exclusiveMinimum": 0 }
+            }
+          }
+        },
+        "output_ports": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["node_id", "port_id", "form", "energy_kwh", "routed_energy_kwh", "terminal_remainder_kwh", "remainder_disposition", "temperature_c"],
+            "properties": {
+              "node_id": { "type": "string", "minLength": 1 },
+              "port_id": { "type": "string", "minLength": 1 },
+              "form": { "type": "string", "enum": ["electricity", "thermal_heat", "mechanical", "chemical", "radiant"] },
+              "energy_kwh": { "type": "number", "minimum": 0 },
+              "routed_energy_kwh": { "type": "number", "minimum": 0 },
+              "terminal_remainder_kwh": { "type": "number", "minimum": 0 },
+              "remainder_disposition": { "type": "string", "enum": ["useful_service", "rejected", "unconverted_resource", "curtailed"] },
+              "temperature_c": { "type": ["number", "null"] }
+            }
+          }
+        }
+      }
+    }
+  }
+}

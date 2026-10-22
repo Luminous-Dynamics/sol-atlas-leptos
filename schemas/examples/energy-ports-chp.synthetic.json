@@ -1,0 +1,90 @@
+{
+  "schema_version": "energy-ports-v0.1",
+  "scenario_id": "synthetic-chp-with-heat-recovery",
+  "synthetic": true,
+  "nodes": [
+    {
+      "node_id": "chp",
+      "boundary_description": "fuel input to net electricity and thermal outputs",
+      "evidence_class": "analyst_assumption",
+      "evidence_ref": null,
+      "evidence_as_of": null,
+      "inputs": [
+        {
+          "port_id": "fuel",
+          "form": "chemical",
+          "energy_kwh": 100.0,
+          "external_energy_kwh": 100.0,
+          "external_source_id": "fuel-batch-001",
+          "temperature_c": null
+        }
+      ],
+      "outputs": [
+        {
+          "port_id": "electricity",
+          "form": "electricity",
+          "energy_kwh": 35.0,
+          "temperature_c": null,
+          "remainder_disposition": "useful_service"
+        },
+        {
+          "port_id": "heat-coproduct",
+          "form": "thermal_heat",
+          "energy_kwh": 45.0,
+          "temperature_c": 80.0,
+          "remainder_disposition": "rejected"
+        },
+        {
+          "port_id": "exhaust",
+          "form": "thermal_heat",
+          "energy_kwh": 20.0,
+          "temperature_c": 150.0,
+          "remainder_disposition": "rejected"
+        }
+      ]
+    },
+    {
+      "node_id": "process-load",
+      "boundary_description": "heat delivery boundary for a process load",
+      "evidence_class": "analyst_assumption",
+      "evidence_ref": null,
+      "evidence_as_of": null,
+      "inputs": [
+        {
+          "port_id": "heat-in",
+          "form": "thermal_heat",
+          "energy_kwh": 15.0,
+          "external_energy_kwh": 0.0,
+          "external_source_id": null,
+          "temperature_c": 80.0
+        }
+      ],
+      "outputs": [
+        {
+          "port_id": "process-heat",
+          "form": "thermal_heat",
+          "energy_kwh": 14.0,
+          "temperature_c": 80.0,
+          "remainder_disposition": "useful_service"
+        },
+        {
+          "port_id": "process-rejection",
+          "form": "thermal_heat",
+          "energy_kwh": 1.0,
+          "temperature_c": 80.0,
+          "remainder_disposition": "rejected"
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "edge_id": "recovered-heat-to-process",
+      "from_node_id": "chp",
+      "from_port_id": "heat-coproduct",
+      "to_node_id": "process-load",
+      "to_port_id": "heat-in",
+      "energy_kwh": 15.0
+    }
+  ]
+}
