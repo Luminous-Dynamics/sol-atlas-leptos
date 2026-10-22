@@ -53,7 +53,7 @@ pub struct Outcome {
     pub utility_points: f64,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct CriticalConstraint {
     pub constraint_id: String,
@@ -74,6 +74,14 @@ pub struct ConstraintViolation {
     pub scenario_id: String,
     pub constraint_id: String,
     pub label: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct CriticalConstraintSummary {
+    pub constraint_id: String,
+    pub label: String,
+    pub passed_outcome_count: usize,
+    pub failed_outcome_count: usize,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -151,6 +159,8 @@ pub struct RobustnessReport {
     pub scenario_count: usize,
     pub alternative_count: usize,
     pub minimum_worst_case_utility_points: f64,
+    pub critical_constraints: Vec<CriticalConstraint>,
+    pub constraint_summaries: Vec<CriticalConstraintSummary>,
     pub scorecards: Vec<AlternativeScorecard>,
     pub scenario_results: Vec<ScenarioResult>,
     /// Winner under the declared maximin-utility policy.
@@ -510,6 +520,31 @@ pub fn evaluate_fixture_bytes(
         .iter()
         .map(|constraint| (constraint.constraint_id.as_str(), constraint.label.as_str()))
         .collect();
+    let constraint_summaries: Vec<CriticalConstraintSummary> = fixture
+        .critical_constraints
+        .iter()
+        .map(|constraint| {
+            let matching = fixture
+                .constraint_outcomes
+                .iter()
+                .filter(|outcome| outcome.constraint_id == constraint.constraint_id);
+            let mut passed_outcome_count = 0usize;
+            let mut failed_outcome_count = 0usize;
+            for outcome in matching {
+                if outcome.satisfied {
+                    passed_outcome_count += 1;
+                } else {
+                    failed_outcome_count += 1;
+                }
+            }
+            CriticalConstraintSummary {
+                constraint_id: constraint.constraint_id.clone(),
+                label: constraint.label.clone(),
+                passed_outcome_count,
+                failed_outcome_count,
+            }
+        })
+        .collect();
     let mut blocking_by_pair: BTreeMap<(&str, &str), Vec<ConstraintViolation>> =
         BTreeMap::new();
     for outcome in fixture.constraint_outcomes.iter().filter(|outcome| !outcome.satisfied) {
@@ -653,6 +688,8 @@ pub fn evaluate_fixture_bytes(
         scenario_count: fixture.scenarios.len(),
         alternative_count: fixture.alternatives.len(),
         minimum_worst_case_utility_points: rounded(fixture.minimum_worst_case_utility_points),
+        critical_constraints: fixture.critical_constraints.clone(),
+        constraint_summaries,
         scorecards,
         scenario_results,
         maximin_winner,
