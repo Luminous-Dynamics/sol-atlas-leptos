@@ -26,6 +26,30 @@ const SCENARIO_SCHEMA: &str = "luminous.landscape-scenario-manifest.v0";
 const STEWARDSHIP_SCHEMA: &str = "mycelix.landscape-stewardship-profile.v0";
 const REVIEW_SCHEMA: &str = "symthaea.landscape-alternative-review.v0";
 const LOCAL_FRAME: &str = "LOCAL_CARTESIAN_DRAWING_UNITS";
+const REQUIRED_UPSTREAM_SOURCE_IDS: &[&str] = &[
+    "mycelix-measurement-authorization-fixture",
+    "mycelix-measurement-authorization-safety-gate",
+    "mycelix-measurement-authorization-schema",
+    "mycelix-stewardship-profile",
+    "sol-atlas-design",
+    "sol-atlas-evaluation-plan",
+    "sol-atlas-measurement-planner-code",
+    "sol-atlas-measurement-planner-fixture",
+    "sol-atlas-measurement-planner-input-schema",
+    "sol-atlas-measurement-planner-report-schema",
+    "sol-atlas-metric-observation-crosswalk",
+    "sol-atlas-observation-batch",
+    "sol-atlas-performance-registry",
+    "sol-atlas-scenario-robustness-code",
+    "sol-atlas-scenario-robustness-fixture",
+    "sol-atlas-scenario-robustness-input-schema",
+    "sol-atlas-scenario-robustness-report-schema",
+    "sol-atlas-source-catalog",
+    "sol-atlas-utility-method",
+    "symthaea-alternative-review",
+    "symthaea-alternative-review-schema",
+    "symtropy-scenario-contract",
+];
 
 #[derive(Debug, Clone)]
 pub struct ChainArtifacts {
@@ -184,6 +208,13 @@ fn check_false(errors: &mut Vec<String>, value: &Value, path: &[&str], label: &s
     if at(value, path).and_then(Value::as_bool) != Some(false) {
         errors.push(format!("{label}: {} must be false", path.join(".")));
     }
+}
+
+fn is_git_object_sha(value: &str) -> bool {
+    value.len() == 40
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
 fn digest_is_well_formed(value: &str) -> bool {
@@ -1912,21 +1943,74 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
     }
     let upstream_contracts = records(&chain.upstream_manifest, &["source_contracts"]);
     match upstream_contracts {
-        Some(rows) if rows.len() >= 6 => {
+        Some(rows) if rows.len() >= REQUIRED_UPSTREAM_SOURCE_IDS.len() => {
+            let mut source_ids = BTreeSet::new();
+            let mut revision_groups: BTreeMap<&str, BTreeSet<String>> = BTreeMap::new();
             for row in rows {
-                let commit = string_at(row, &["commit_sha"]);
-                if !commit.is_some_and(|sha| {
-                    sha.len() == 40 && sha.chars().all(|ch| ch.is_ascii_hexdigit())
-                }) {
-                    errors.push(
-                        "upstream source manifest contains an unpinned draft commit".to_owned(),
-                    );
+                let source_id = string_at(row, &["source_id"]).unwrap_or("");
+                let repository = string_at(row, &["repository"]).unwrap_or("");
+                let source_path = string_at(row, &["source_path"]).unwrap_or("");
+                if source_id.trim().is_empty() {
+                    errors.push("upstream source manifest contains an empty source_id".to_owned());
+                } else if !source_ids.insert(source_id.to_owned()) {
+                    errors.push(format!(
+                        "upstream source manifest contains duplicate source_id: {source_id}"
+                    ));
+                }
+                if repository.trim().is_empty() || source_path.trim().is_empty() {
+                    errors.push(format!(
+                        "upstream source {source_id}: repository and source_path must be non-empty"
+                    ));
+                }
+                for field in ["commit_sha", "git_blob_sha"] {
+                    let digest = string_at(row, &[field]);
+                    if !digest.is_some_and(is_git_object_sha) {
+                        errors.push(format!(
+                            "upstream source {source_id}: {field} must be a 40-character lowercase Git object SHA"
+                        ));
+                    }
+                }
+                if let Some(commit) = string_at(row, &["commit_sha"]) {
+                    let group = if source_id.starts_with("sol-atlas-measurement-planner-") {
+                        Some("sol-atlas-measurement-planner")
+                    } else if source_id.starts_with("sol-atlas-scenario-robustness-")
+                        || source_id == "sol-atlas-utility-method"
+                    {
+                        Some("sol-atlas-scenario-robustness")
+                    } else if source_id.starts_with("mycelix-") {
+                        Some("mycelix")
+                    } else if source_id.starts_with("symthaea-alternative-review") {
+                        Some("symthaea-alternative-review")
+                    } else {
+                        None
+                    };
+                    if let Some(group) = group {
+                        revision_groups
+                            .entry(group)
+                            .or_default()
+                            .insert(commit.to_owned());
+                    }
+                }
+            }
+            for required_id in REQUIRED_UPSTREAM_SOURCE_IDS {
+                if !source_ids.contains(*required_id) {
+                    errors.push(format!(
+                        "upstream source manifest is missing required source_id: {required_id}"
+                    ));
+                }
+            }
+            for (group, revisions) in revision_groups {
+                if revisions.len() != 1 {
+                    errors.push(format!(
+                        "upstream source group {group} must pin all related artifacts to one exact commit"
+                    ));
                 }
             }
         }
-        _ => errors.push(
-            "upstream source manifest must pin at least six upstream contract revisions".to_owned(),
-        ),
+        _ => errors.push(format!(
+            "upstream source manifest must contain at least {} required contract artifacts",
+            REQUIRED_UPSTREAM_SOURCE_IDS.len()
+        )),
     }
 
     // These variables intentionally force all evidence roots to have well-formed exact hashes.
@@ -2289,6 +2373,45 @@ mod tests {
                 .artifact_sha256
                 .values()
                 .all(|value| digest_is_well_formed(value))
+        );
+    }
+
+    #[test]
+    fn upstream_manifest_requires_unique_pinned_inputs_and_coherent_revision_groups() {
+        let mut duplicate_source = fixture();
+        let rows = duplicate_source
+            .upstream_manifest["source_contracts"]
+            .as_array_mut()
+            .expect("source contracts array");
+        rows[1]["source_id"] = rows[0]["source_id"].clone();
+        assert!(
+            validate_chain(&duplicate_source)
+                .iter()
+                .any(|error| error.contains("duplicate source_id"))
+        );
+
+        let mut malformed_blob = fixture();
+        malformed_blob.upstream_manifest["source_contracts"][0]["git_blob_sha"] =
+            json!("z".repeat(40));
+        assert!(
+            validate_chain(&malformed_blob)
+                .iter()
+                .any(|error| error.contains("git_blob_sha must be a 40-character lowercase Git object SHA"))
+        );
+
+        let mut split_planner_group = fixture();
+        for row in split_planner_group.upstream_manifest["source_contracts"]
+            .as_array_mut()
+            .expect("source contracts array")
+        {
+            if row["source_id"] == "sol-atlas-measurement-planner-fixture" {
+                row["commit_sha"] = json!("a".repeat(40));
+            }
+        }
+        assert!(
+            validate_chain(&split_planner_group)
+                .iter()
+                .any(|error| error.contains("sol-atlas-measurement-planner must pin all related artifacts"))
         );
     }
 
