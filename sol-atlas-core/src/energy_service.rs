@@ -81,6 +81,8 @@ pub enum EnergyServiceError {
         port_id: String,
     },
     SourcePortNotTerminalUsefulService { service_id: String },
+    InvalidSourceOutputValue { service_id: String },
+    InvalidSourceTemperature { service_id: String },
     DuplicateOutputClaim { node_id: String, port_id: String },
     ServiceFormMismatch { service_id: String },
     ServiceTemperatureInsufficient {
@@ -272,13 +274,28 @@ pub fn assess_energy_services(
                     service_id: demand.service_id.clone(),
                 });
             }
+            if !finite_nonnegative(port.terminal_remainder_kwh) {
+                return Err(EnergyServiceError::InvalidSourceOutputValue {
+                    service_id: demand.service_id.clone(),
+                });
+            }
             if port.form == EnergyForm::ThermalHeat {
-                let available_temperature_c = port.temperature_c.expect(
-                    "assessed thermal heat ports always carry valid temperature",
-                );
-                let required_temperature_c = demand.minimum_temperature_c.expect(
-                    "thermal demands always carry a validated minimum temperature",
-                );
+                let Some(available_temperature_c) = port.temperature_c else {
+                    return Err(EnergyServiceError::InvalidSourceTemperature {
+                        service_id: demand.service_id.clone(),
+                    });
+                };
+                let kelvin = available_temperature_c + CELSIUS_TO_KELVIN;
+                let Some(required_temperature_c) = demand.minimum_temperature_c else {
+                    return Err(EnergyServiceError::MissingDemandTemperature {
+                        service_id: demand.service_id.clone(),
+                    });
+                };
+                if !available_temperature_c.is_finite() || !kelvin.is_finite() || kelvin <= 0.0 {
+                    return Err(EnergyServiceError::InvalidSourceTemperature {
+                        service_id: demand.service_id.clone(),
+                    });
+                }
                 if available_temperature_c + ABSOLUTE_TEMPERATURE_TOLERANCE_C
                     < required_temperature_c
                 {
