@@ -323,8 +323,6 @@ fn verify_values(
     schema: &Value,
     fixture: &Value,
 ) -> Result<(Vec<ReceiptCheck>, Vec<String>), String> {
-    validate_schema(schema, fixture)?;
-
     if !fixture
         .get("fixture_notice")
         .and_then(Value::as_str)
@@ -344,6 +342,8 @@ fn verify_values(
     let mut run_ids = BTreeSet::new();
 
     for receipt in receipts {
+        // The schema describes each receipt, not the outer fixture envelope.
+        validate_schema(schema, receipt)?;
         let violations = validate_receipt_contract(receipt);
         let run_id = receipt
             .get("run_id")
