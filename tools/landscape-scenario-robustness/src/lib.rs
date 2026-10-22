@@ -290,6 +290,58 @@ pub fn validate_fixture(fixture: &RobustnessFixture) -> Result<(), Vec<String>> 
             "outcome count must equal scenarios × alternatives ({expected_pairs})"
         ));
     }
+    let mut constraint_ids = BTreeSet::new();
+    if fixture.critical_constraints.is_empty() || fixture.critical_constraints.len() > 20 {
+        errors.push("critical_constraints must contain 1..=20 explicit non-compensatory constraints".to_owned());
+    }
+    for constraint in &fixture.critical_constraints {
+        if !nonempty(&constraint.constraint_id) || !nonempty(&constraint.label) {
+            errors.push("critical constraint IDs and labels must be non-empty".to_owned());
+        }
+        if !constraint_ids.insert(constraint.constraint_id.as_str()) {
+            errors.push(format!("duplicate constraint_id: {}", constraint.constraint_id));
+        }
+    }
+
+    let mut constraint_pairs = BTreeSet::new();
+    for outcome in &fixture.constraint_outcomes {
+        if !scenario_ids.contains(outcome.scenario_id.as_str()) {
+            errors.push(format!("constraint outcome references unknown scenario: {}", outcome.scenario_id));
+        }
+        if !alternative_ids.contains(outcome.alternative_id.as_str()) {
+            errors.push(format!("constraint outcome references unknown alternative: {}", outcome.alternative_id));
+        }
+        if !constraint_ids.contains(outcome.constraint_id.as_str()) {
+            errors.push(format!("constraint outcome references unknown constraint: {}", outcome.constraint_id));
+        }
+        if !constraint_pairs.insert((
+            outcome.scenario_id.as_str(),
+            outcome.alternative_id.as_str(),
+            outcome.constraint_id.as_str(),
+        )) {
+            errors.push(format!(
+                "duplicate constraint outcome for scenario {}, alternative {}, constraint {}",
+                outcome.scenario_id, outcome.alternative_id, outcome.constraint_id
+            ));
+        }
+    }
+    let expected_constraint_outcomes = fixture
+        .scenarios
+        .len()
+        .saturating_mul(fixture.alternatives.len())
+        .saturating_mul(fixture.critical_constraints.len());
+    if constraint_pairs.len() != expected_constraint_outcomes {
+        errors.push(format!(
+            "constraint_outcomes must contain exactly one result for every scenario/alternative/constraint tuple: expected {expected_constraint_outcomes}, found {}",
+            constraint_pairs.len()
+        ));
+    }
+    if fixture.constraint_outcomes.len() != expected_constraint_outcomes {
+        errors.push(format!(
+            "constraint_outcome count must equal scenarios × alternatives × constraints ({expected_constraint_outcomes})"
+        ));
+    }
+
     if errors.is_empty() {
         Ok(())
     } else {
