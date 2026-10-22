@@ -235,7 +235,7 @@ fn add_finite(total: &mut f64, amount: f64, context: &str) -> Result<(), EnergyR
 }
 
 fn fraction(numerator: f64, denominator: f64) -> Option<f64> {
-    if denominator <= ABSOLUTE_TOLERANCE_KWH {
+    if denominator <= 0.0 {
         None
     } else {
         Some((numerator / denominator).clamp(0.0, 1.0))
@@ -482,7 +482,7 @@ pub fn assess_energy_reliability(
                             service_id: service.service_id.clone(),
                         });
                     }
-                    if sample.delivered_energy_kwh > ABSOLUTE_TOLERANCE_KWH
+                    if sample.delivered_energy_kwh > 0.0
                         && celsius + ABSOLUTE_TEMPERATURE_TOLERANCE_C
                             < service.minimum_temperature_c.unwrap()
                     {
@@ -495,7 +495,7 @@ pub fn assess_energy_reliability(
                     }
                 }
                 (EnergyForm::ThermalHeat, None)
-                    if sample.delivered_energy_kwh > ABSOLUTE_TOLERANCE_KWH =>
+                    if sample.delivered_energy_kwh > 0.0 =>
                 {
                     return Err(EnergyReliabilityError::MissingDeliveryTemperature {
                         interval_id: interval.interval_id.clone(),
