@@ -217,9 +217,10 @@ mod tests {
 
     #[test]
     fn rejects_broken_soc_continuity_and_terminal_reserve() {
-        let request = fixture_request();
+        let mut request = fixture_request();
+        request.battery.terminal_reserve_quanta = 1;
         let assessment = crate::energy_dispatch::assess_energy_dispatch(&request)
-            .expect("oracle solves frozen case");
+            .expect("oracle solves frozen case with terminal reserve");
         let mut schedule = assessment.pareto_alternatives[0].schedule.clone();
         schedule[0].battery_soc_after_quanta = 0;
         schedule[1].battery_soc_before_quanta = 2;
@@ -227,6 +228,7 @@ mod tests {
         schedule[1].battery_discharge_delivered_quanta = 0;
         schedule[1].essential_served_quanta = 0;
         schedule[1].essential_unserved_quanta = 2;
+        schedule[1].battery_soc_after_quanta = 0;
         schedule[1].bus_energy_balance_residual_quanta = 0;
         let errors = verify_dispatch_schedule(&request, &schedule).unwrap_err();
         assert!(errors.iter().any(|error| error.contains("SOC does not continue")));
