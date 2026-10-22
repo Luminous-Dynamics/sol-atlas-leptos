@@ -83,6 +83,11 @@ pub struct EnergyPathwayRequest {
     pub synthetic: bool,
     pub source_form: EnergyForm,
     pub source_energy_kwh: f64,
+    pub source_evidence_class: EvidenceClass,
+    #[serde(default)]
+    pub source_evidence_ref: Option<String>,
+    #[serde(default)]
+    pub source_evidence_as_of: Option<String>,
     pub stages: Vec<EnergyPathwayStage>,
 }
 
@@ -109,11 +114,13 @@ pub struct EnergyPathwayStageResult {
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum EnergyPathwayError {
     EmptySchemaVersion,
+    UnsupportedSchemaVersion { schema_version: String },
     EmptyScenarioId,
     NoStages,
     EmptyStageId,
     DuplicateStageId { stage_id: String },
     InvalidSourceEnergy,
+    MissingSourceEvidenceReference,
     InvalidEfficiency { stage_id: String },
     InvalidStageCapacity { stage_id: String },
     InvalidAuxiliaryRatio { stage_id: String },
@@ -151,6 +158,9 @@ pub struct EnergyPathwayAssessment {
     pub claim_ceiling: String,
     pub source_form: EnergyForm,
     pub source_energy_kwh: f64,
+    pub source_evidence_class: EvidenceClass,
+    pub source_evidence_ref: Option<String>,
+    pub source_evidence_as_of: Option<String>,
     pub delivered_form: EnergyForm,
     pub gross_delivered_energy_kwh: f64,
     pub total_conversion_loss_kwh: f64,
@@ -181,11 +191,24 @@ pub fn assess_energy_pathway(
     if request.schema_version.trim().is_empty() {
         return Err(EnergyPathwayError::EmptySchemaVersion);
     }
+    if request.schema_version != "energy-pathway-v0.1" {
+        return Err(EnergyPathwayError::UnsupportedSchemaVersion {
+            schema_version: request.schema_version.clone(),
+        });
+    }
     if request.scenario_id.trim().is_empty() {
         return Err(EnergyPathwayError::EmptyScenarioId);
     }
     if !finite_nonnegative(request.source_energy_kwh) {
         return Err(EnergyPathwayError::InvalidSourceEnergy);
+    }
+    if request.source_evidence_class != EvidenceClass::AnalystAssumption
+        && request
+            .source_evidence_ref
+            .as_deref()
+            .is_none_or(|reference| reference.trim().is_empty())
+    {
+        return Err(EnergyPathwayError::MissingSourceEvidenceReference);
     }
     if request.stages.is_empty() {
         return Err(EnergyPathwayError::NoStages);
@@ -339,6 +362,9 @@ pub fn assess_energy_pathway(
             .to_owned(),
         source_form: request.source_form,
         source_energy_kwh: request.source_energy_kwh,
+        source_evidence_class: request.source_evidence_class,
+        source_evidence_ref: request.source_evidence_ref.clone(),
+        source_evidence_as_of: request.source_evidence_as_of.clone(),
         delivered_form,
         gross_delivered_energy_kwh: gross_delivered,
         total_conversion_loss_kwh: conversion_loss,
@@ -385,6 +411,9 @@ mod tests {
             synthetic: true,
             source_form: stages[0].input_form,
             source_energy_kwh,
+            source_evidence_class: EvidenceClass::AnalystAssumption,
+            source_evidence_ref: None,
+            source_evidence_as_of: None,
             stages,
         }
     }
@@ -559,6 +588,43 @@ mod tests {
         assert!(matches!(
             assess_energy_pathway(&request(100.0, vec![stage])),
             Err(EnergyPathwayError::MissingEvidenceReference { .. })
+        ));
+    }
+
+
+    #[test]
+    fn non_assumption_source_requires_evidence_reference() {
+        let stage = stage(
+            "converter",
+            EnergyForm::Chemical,
+            EnergyForm::Electricity,
+            0.5,
+            100.0,
+            0.0,
+        );
+        let mut request = request(100.0, vec![stage]);
+        request.source_evidence_class = EvidenceClass::OperatingPlant;
+        assert!(matches!(
+            assess_energy_pathway(&request),
+            Err(EnergyPathwayError::MissingSourceEvidenceReference)
+        ));
+    }
+
+    #[test]
+    fn unsupported_schema_version_fails_closed() {
+        let stage = stage(
+            "converter",
+            EnergyForm::Chemical,
+            EnergyForm::Electricity,
+            0.5,
+            100.0,
+            0.0,
+        );
+        let mut request = request(100.0, vec![stage]);
+        request.schema_version = "future-version".to_owned();
+        assert!(matches!(
+            assess_energy_pathway(&request),
+            Err(EnergyPathwayError::UnsupportedSchemaVersion { .. })
         ));
     }
 
