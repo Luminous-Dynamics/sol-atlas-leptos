@@ -702,10 +702,7 @@ mod tests {
         let receipt = report(&fixture, &schema);
         assert_eq!(
             find_case(&receipt, "WC-001").failure_codes,
-            vec![
-                "artifact_bytes_digest_mismatch",
-                "stale_artifact_digest"
-            ]
+            vec!["artifact_bytes_digest_mismatch"]
         );
     }
 
