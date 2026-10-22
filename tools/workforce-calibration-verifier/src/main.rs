@@ -562,22 +562,22 @@ fn check_negative_controls(metrics: &[MetricSummary], minimum_coverage: f64) -> 
         ControlCheck {
             control_id: "overconfident_wrong_is_penalized".to_string(),
             passed: overconfident_penalized,
-            details: "Overconfident control has worse Brier and log-loss scores than transparent rules.".to_string(),
+            details: "Overconfident control scores worse than transparent rules.".to_string(),
         },
         ControlCheck {
             control_id: "selective_policy_meets_coverage_gate".to_string(),
             passed: selective_coverage_pass,
-            details: "The abstaining policy abstains on some cases but still satisfies the frozen minimum coverage.".to_string(),
+            details: "The selective policy abstains yet meets minimum coverage.".to_string(),
         },
         ControlCheck {
             control_id: "all_abstain_fails_coverage_gate".to_string(),
             passed: all_abstain_fails_gate,
-            details: "All-abstain control keeps all cases in the denominator and fails minimum coverage.".to_string(),
+            details: "All-abstain retains the denominator but fails coverage.".to_string(),
         },
         ControlCheck {
             control_id: "denominators_and_coverage_are_complete".to_string(),
             passed: denominators_preserved,
-            details: "Every model's total equals scored plus abstained, and coverage status follows the frozen gate.".to_string(),
+            details: "Total equals scored plus abstained for every model.".to_string(),
         },
     ]
 }
@@ -635,9 +635,9 @@ fn verify_values(
         controls,
         limitations: vec![
             "All forecasts, outcomes and labels in this corpus are synthetic contract test data.",
-            "Synthetic calibration does not estimate forecast skill on real labour-market populations.",
+            "Synthetic calibration does not estimate real workforce forecast skill.",
             "Model profiles are deterministic fixtures, not trained competing models.",
-            "A passing receipt does not establish operational utility, population fairness or causal impact.",
+            "A pass does not establish real-world utility, fairness or causal impact.",
         ],
         claim_ceiling: corpus.claim_ceiling,
     })
