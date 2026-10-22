@@ -780,6 +780,7 @@ mod tests {
             "unsafe_artifact_symlink"
         );
         fs::remove_file(&file_link).expect("remove artifact symlink");
+        fs::remove_file(&real_file).expect("remove real artifact");
 
         fs::remove_dir(&allowed).expect("remove original allowed directory");
         symlink(&other, &allowed).expect("redirect allowed directory");
