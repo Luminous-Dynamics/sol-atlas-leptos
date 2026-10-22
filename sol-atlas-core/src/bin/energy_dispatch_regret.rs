@@ -95,7 +95,12 @@ mod tests {
         assert_eq!(report.receipt.policy_version, "pv-grid-battery-priority-v0.1");
         assert!(report.assessment.baseline_feasible);
         assert_eq!(
-            report.assessment.objective_deltas_vs_lexicographic_oracle.as_ref().unwrap().essential_unserved_quanta,
+            report
+                .assessment
+                .objective_deltas_vs_lexicographic_oracle
+                .as_ref()
+                .unwrap()
+                .essential_unserved_quanta,
             0
         );
         let first = serde_json::to_vec(&report.assessment).expect("serialize");
