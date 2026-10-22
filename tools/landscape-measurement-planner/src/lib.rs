@@ -871,10 +871,30 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
         .count();
     let ineligible_count = fixture.candidates.len() - eligible_count;
     let selected = select_exact_budgeted(&fixture.candidates, &scores, fixture.budget_cost_units);
+    let eligible_strata_total = eligible_strata_count(&fixture.candidates);
     let required_spatial_temporal_strata = ((fixture.minimum_spatial_temporal_coverage_fraction
-        * eligible_strata_count(&fixture.candidates) as f64)
+        * eligible_strata_total as f64)
         - 1.0e-12)
         .ceil() as usize;
+    let coverage_plan_search =
+        select_exact_coverage_frontier_plans(&fixture.candidates, &scores, fixture.budget_cost_units);
+    let (coverage_frontier_status, coverage_frontier_limit_reason, coverage_frontier) =
+        match &coverage_plan_search {
+            Ok(plans) => (
+                "complete".to_owned(),
+                None,
+                build_coverage_frontier_points(
+                    &fixture.candidates,
+                    plans,
+                    selected.weighted_discrimination_nats,
+                ),
+            ),
+            Err(reason) => (
+                "state_limit_exceeded".to_owned(),
+                Some((*reason).to_owned()),
+                Vec::new(),
+            ),
+        };
     let (
         coverage_constraint_status,
         coverage_constraint_limit_reason,
@@ -883,30 +903,19 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
     ) = if fixture.minimum_spatial_temporal_coverage_fraction == 0.0 {
         ("not_required".to_owned(), None, None, None)
     } else {
-        match select_exact_coverage_constrained(
-            &fixture.candidates,
-            &scores,
-            fixture.budget_cost_units,
-            fixture.minimum_spatial_temporal_coverage_fraction,
-        ) {
-            Ok(Some(plan)) => {
-                let selected_ids: BTreeSet<&str> =
-                    plan.selected_ids.iter().map(String::as_str).collect();
-                let cost = fixture
-                    .candidates
-                    .iter()
-                    .filter(|candidate| selected_ids.contains(candidate.candidate_id.as_str()))
-                    .map(|candidate| candidate.cost_units)
-                    .sum::<u32>();
-                ("satisfied".to_owned(), None, Some(plan), Some(cost))
-            }
-            Ok(None) => ("infeasible".to_owned(), None, None, None),
+        match &coverage_plan_search {
             Err(reason) => (
                 "state_limit_exceeded".to_owned(),
-                Some(reason.to_owned()),
+                Some((*reason).to_owned()),
                 None,
                 None,
             ),
+            Ok(plans) => match plans.get(required_spatial_temporal_strata).cloned().flatten() {
+                Some((cost, plan)) => {
+                    ("satisfied".to_owned(), None, Some(plan), Some(cost))
+                }
+                None => ("infeasible".to_owned(), None, None, None),
+            },
         }
     };
     let coverage_constrained_strata: BTreeSet<(&str, &str)> = coverage_constrained
