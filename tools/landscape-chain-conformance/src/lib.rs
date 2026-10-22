@@ -37,6 +37,11 @@ const REQUIRED_UPSTREAM_SOURCE_IDS: &[&str] = &[
     "sol-atlas-measurement-planner-fixture",
     "sol-atlas-measurement-planner-input-schema",
     "sol-atlas-measurement-planner-report-schema",
+    "sol-atlas-landscape-robustness-code",
+    "sol-atlas-landscape-robustness-fixture",
+    "sol-atlas-landscape-robustness-input-schema",
+    "sol-atlas-landscape-robustness-report-schema",
+    "sol-atlas-landscape-utility-method",
     "sol-atlas-metric-observation-crosswalk",
     "sol-atlas-observation-batch",
     "sol-atlas-performance-registry",
@@ -1985,6 +1990,10 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
                 if let Some(commit) = string_at(row, &["commit_sha"]) {
                     let group = if source_id.starts_with("sol-atlas-measurement-planner-") {
                         Some("sol-atlas-measurement-planner")
+                    } else if source_id.starts_with("sol-atlas-landscape-robustness-")
+                        || source_id == "sol-atlas-landscape-utility-method"
+                    {
+                        Some("sol-atlas-landscape-robustness")
                     } else if source_id.starts_with("sol-atlas-scenario-robustness-")
                         || source_id == "sol-atlas-utility-method"
                     {
@@ -2258,6 +2267,7 @@ pub fn run_conformance(dir: &Path) -> Result<ConformanceReport, Vec<String>> {
         "Mycelix stewardship binds the same project and baseline scenario, with private and non-sensitive defaults".to_owned(),
         "Mycelix authorization binds exact project/site/metric while unknown consent and access remain blocked".to_owned(),
         "measurement planner code, fixture and both JSON schemas are pinned to one exact draft revision".to_owned(),
+        "scenario robustness implementation, utility method, fixture and both schemas are pinned to one exact draft revision".to_owned(),
         "scenario robustness code, utility method, fixture and both schemas are pinned to one exact draft revision".to_owned(),
         "Symthaea review binds both alternatives, metric registry, source catalog, paired scenario contexts, and its pinned verifier code".to_owned(),
         "Symtropy SETS dependency graph, CLI, lockfile, semantics and schemas are pinned to one exact draft revision".to_owned(),
@@ -2436,6 +2446,19 @@ mod tests {
         }
         assert!(validate_chain(&split_symtropy_group).iter().any(|error| {
             error.contains("symtropy-landscape-dependency-graph must pin all related artifacts")
+        }));
+
+        let mut split_landscape_robustness_group = fixture();
+        for row in split_landscape_robustness_group.upstream_manifest["source_contracts"]
+            .as_array_mut()
+            .expect("source contracts array")
+        {
+            if row["source_id"] == "sol-atlas-landscape-robustness-fixture" {
+                row["commit_sha"] = json!("d".repeat(40));
+            }
+        }
+        assert!(validate_chain(&split_landscape_robustness_group).iter().any(|error| {
+            error.contains("sol-atlas-landscape-robustness must pin all related artifacts")
         }));
 
         let mut split_planner_group = fixture();
