@@ -1088,6 +1088,9 @@ pub fn evaluate_fixture(fixture: &Fixture, input_bytes: &[u8]) -> Result<PlanRep
         required_spatial_temporal_stratum_count: required_spatial_temporal_strata,
         coverage_constraint_status,
         coverage_constraint_limit_reason,
+        coverage_frontier_status,
+        coverage_frontier_limit_reason,
+        coverage_frontier,
         coverage_constrained_selected_candidate_ids: coverage_constrained
             .as_ref()
             .map(|plan| plan.selected_ids.clone()),
