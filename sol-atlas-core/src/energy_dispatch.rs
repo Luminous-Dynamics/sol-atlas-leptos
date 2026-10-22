@@ -208,7 +208,7 @@ impl DispatchObjective {
     }
 }
 
-fn objective_for_schedule(
+pub(crate) fn objective_for_schedule(
     request: &EnergyDispatchRequest,
     schedule: &[DispatchIntervalDecision],
 ) -> Result<DispatchObjective, EnergyDispatchError> {
