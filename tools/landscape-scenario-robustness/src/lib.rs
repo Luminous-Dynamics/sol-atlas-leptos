@@ -926,19 +926,31 @@ mod tests {
         let mut method: serde_json::Value = serde_json::from_slice(&bytes).expect("method JSON");
         method["scale"]["maximum"] = serde_json::json!(1000);
         let mutated = serde_json::to_vec(&method).expect("mutated method JSON");
-        assert!(validate_utility_method_bytes(&mutated)
+        let mut fixture: RobustnessFixture =
+            serde_json::from_slice(&fixture_bytes()).expect("fixture parses");
+        fixture.utility_method_sha256 = sha256_hex(&mutated);
+        let digest_correct_fixture =
+            serde_json::to_vec(&fixture).expect("fixture with corrected method digest");
+        assert!(evaluate_fixture_bytes(&digest_correct_fixture, &mutated)
             .unwrap_err()
             .iter()
             .any(|error| error.contains("scale must be [0, 100]")));
 
-        method["scale"]["maximum"] = serde_json::json!(100);
+        let mut method: serde_json::Value = serde_json::from_slice(&bytes).expect("method JSON");
         method["scenario_weighting"] =
             serde_json::json!("equal probability for every scenario");
         let mutated = serde_json::to_vec(&method).expect("mutated weighting method");
-        assert!(validate_utility_method_bytes(&mutated)
+        let mut fixture: RobustnessFixture =
+            serde_json::from_slice(&fixture_bytes()).expect("fixture parses");
+        fixture.utility_method_sha256 = sha256_hex(&mutated);
+        let digest_correct_fixture =
+            serde_json::to_vec(&fixture).expect("fixture with corrected method digest");
+        assert!(evaluate_fixture_bytes(&digest_correct_fixture, &mutated)
             .unwrap_err()
             .iter()
-            .any(|error| error.contains("does not infer or accept scenario probability weights")));
+            .any(|error| {
+                error.contains("does not infer or accept scenario probability weights")
+            }));
     }
 
     #[test]
