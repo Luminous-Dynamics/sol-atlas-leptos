@@ -2160,6 +2160,7 @@ pub fn run_conformance(dir: &Path) -> Result<ConformanceReport, Vec<String>> {
         "Mycelix stewardship binds the same project and baseline scenario, with private and non-sensitive defaults".to_owned(),
         "Mycelix authorization binds exact project/site/metric while unknown consent and access remain blocked".to_owned(),
         "measurement planner code, fixture and both JSON schemas are pinned to one exact draft revision".to_owned(),
+        "scenario robustness code, utility method, fixture and both schemas are pinned to one exact draft revision".to_owned(),
         "Symthaea review binds both alternatives, metric registry, source catalog, and the paired scenario contexts".to_owned(),
         "unqualified source catalog and metrics keep consequence-bearing assessments blocked".to_owned(),
         "observation properties are checked against the declared metric crosswalk and evidence class".to_owned(),
@@ -2256,7 +2257,7 @@ mod tests {
         );
         assert_eq!(report.data_origin, "synthetic_fixture");
         assert_eq!(report.claim_ceiling, CLAIM_CEILING);
-        assert_eq!(report.upstream_pinned_contract_count, 17);
+        assert_eq!(report.upstream_pinned_contract_count, 22);
         assert_eq!(report.project_feature_count, 7);
         assert_eq!(report.observation_count, 5);
         assert_eq!(report.metric_observation_mapping_count, 8);
@@ -2280,7 +2281,7 @@ mod tests {
         assert_eq!(report.review_ranking_status, "no-defensible-ranking");
         assert_eq!(report.recommendation_status, "no-ranking");
         assert_eq!(report.passed_check_count, report.checks.len());
-        assert_eq!(report.passed_check_count, 17);
+        assert_eq!(report.passed_check_count, 18);
         assert_eq!(report.artifact_sha256.len(), 16);
         assert_eq!(report.template_input_sha256.len(), 10);
         assert!(
