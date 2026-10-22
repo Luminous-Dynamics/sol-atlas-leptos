@@ -100,7 +100,8 @@
         "counterfactual_basis": "",
         "preregistration_status": "not_registered",
         "independent_review": false,
-        "claim_ceiling": "synthetic_contract_only"
+        "claim_ceiling": "synthetic_contract_only",
+        "policy_id": "candidate"
       }
     }
   ]
