@@ -207,7 +207,7 @@
       "source_id": "symtropy-landscape-dependency-cli",
       "repository": "Luminous-Dynamics/symtropy",
       "pull_request": 2673,
-      "commit_sha": "3f1ef2454f10315fbb0ddc8f30fd442485846b1e",
+      "commit_sha": "9d60c6758dba84d95a5a8e077fd352d0d1757c12",
       "source_path": "tools/landscape-dependency-graph/src/main.rs",
       "git_blob_sha": "2b2ec905f0062eabc3ed66323ef2c48d8337e6bc"
     },
@@ -215,15 +215,15 @@
       "source_id": "symtropy-landscape-dependency-code",
       "repository": "Luminous-Dynamics/symtropy",
       "pull_request": 2673,
-      "commit_sha": "3f1ef2454f10315fbb0ddc8f30fd442485846b1e",
+      "commit_sha": "9d60c6758dba84d95a5a8e077fd352d0d1757c12",
       "source_path": "tools/landscape-dependency-graph/src/lib.rs",
-      "git_blob_sha": "44b0646e0b8b9c6755b182b038d77abc861ae757"
+      "git_blob_sha": "a004c9b33e80c1e262f8a8adf526aa165165343c"
     },
     {
       "source_id": "symtropy-landscape-dependency-fixture",
       "repository": "Luminous-Dynamics/symtropy",
       "pull_request": 2673,
-      "commit_sha": "3f1ef2454f10315fbb0ddc8f30fd442485846b1e",
+      "commit_sha": "9d60c6758dba84d95a5a8e077fd352d0d1757c12",
       "source_path": "fixtures/landscape/dependency-graph-v0/fixture.json",
       "git_blob_sha": "9914f9a95191f9223acd3e6ef2cb4269fa974d67"
     },
@@ -231,7 +231,7 @@
       "source_id": "symtropy-landscape-dependency-input-schema",
       "repository": "Luminous-Dynamics/symtropy",
       "pull_request": 2673,
-      "commit_sha": "3f1ef2454f10315fbb0ddc8f30fd442485846b1e",
+      "commit_sha": "9d60c6758dba84d95a5a8e077fd352d0d1757c12",
       "source_path": "schemas/landscape-dependency-graph-fixture-v0.1.schema.json",
       "git_blob_sha": "d0c86d952fde2a65859ae504592fb8c16df1733a"
     },
@@ -239,7 +239,7 @@
       "source_id": "symtropy-landscape-dependency-lockfile",
       "repository": "Luminous-Dynamics/symtropy",
       "pull_request": 2673,
-      "commit_sha": "3f1ef2454f10315fbb0ddc8f30fd442485846b1e",
+      "commit_sha": "9d60c6758dba84d95a5a8e077fd352d0d1757c12",
       "source_path": "tools/landscape-dependency-graph/Cargo.lock",
       "git_blob_sha": "02cdc6af0c4f63b79ac04baa51547a6b4a383003"
     },
@@ -247,7 +247,7 @@
       "source_id": "symtropy-landscape-dependency-manifest",
       "repository": "Luminous-Dynamics/symtropy",
       "pull_request": 2673,
-      "commit_sha": "3f1ef2454f10315fbb0ddc8f30fd442485846b1e",
+      "commit_sha": "9d60c6758dba84d95a5a8e077fd352d0d1757c12",
       "source_path": "tools/landscape-dependency-graph/Cargo.toml",
       "git_blob_sha": "cb6587618ffe3bc95c86a9297928a5a7e86536d6"
     },
@@ -255,15 +255,15 @@
       "source_id": "symtropy-landscape-dependency-report-schema",
       "repository": "Luminous-Dynamics/symtropy",
       "pull_request": 2673,
-      "commit_sha": "3f1ef2454f10315fbb0ddc8f30fd442485846b1e",
+      "commit_sha": "9d60c6758dba84d95a5a8e077fd352d0d1757c12",
       "source_path": "schemas/landscape-dependency-graph-report-v0.1.schema.json",
-      "git_blob_sha": "e26f05fc580ff1540aac7e591339d0a8bb2ef0af"
+      "git_blob_sha": "231cb0954f3a90f0b4ef9f3ebe494544a6730e61"
     },
     {
       "source_id": "symtropy-landscape-dependency-semantics",
       "repository": "Luminous-Dynamics/symtropy",
       "pull_request": 2673,
-      "commit_sha": "3f1ef2454f10315fbb0ddc8f30fd442485846b1e",
+      "commit_sha": "9d60c6758dba84d95a5a8e077fd352d0d1757c12",
       "source_path": "docs/LANDSCAPE_DEPENDENCY_SEMANTICS_V0.json",
       "git_blob_sha": "78271b74542e0d7141275fc75baf67dfcd97332b"
     },
@@ -271,7 +271,7 @@
       "source_id": "symtropy-scenario-contract",
       "repository": "Luminous-Dynamics/symtropy",
       "pull_request": 2322,
-      "commit_sha": "3f1ef2454f10315fbb0ddc8f30fd442485846b1e",
+      "commit_sha": "9d60c6758dba84d95a5a8e077fd352d0d1757c12",
       "source_path": "schemas/landscape-scenario-manifest-v0.schema.json",
       "git_blob_sha": "8e60fa8d903165776b2d1880bcf9904155b2e515"
     }
