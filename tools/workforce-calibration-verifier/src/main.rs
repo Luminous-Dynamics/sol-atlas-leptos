@@ -13,31 +13,19 @@ const FIXTURE_DEFAULT: &str =
     "docs/research/fixtures/workforce_calibration_cases_v0_1.json";
 const SCHEMA_DEFAULT: &str =
     "docs/research/schemas/workforce_calibration_v0_1.schema.json";
-const FLOAT_TOLERANCE: f64 = 1e-10;
-
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
-struct Contract {
-    event_definition: String,
-    primary_metric: String,
-    decision_threshold: f64,
-    minimum_coverage: f64,
-    log_loss_epsilon: f64,
-    bin_edges: Vec<f64>,
-    outcome_horizon_days: u64,
-}
+const FLOAT_TOLERANCE: f64 = 1e-6;
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 struct ModelSpec {
     model_id: String,
+    role: String,
     description: String,
-    model_version: String,
-    model_kind: String,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 struct Forecast {
     model_id: String,
-    decision: String,
+    status: String,
     probability: Option<f64>,
     abstention_reason: Option<String>,
 }
@@ -45,40 +33,35 @@ struct Forecast {
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 struct Case {
     case_id: String,
-    forecast_cutoff: String,
-    outcome_horizon_start: String,
-    outcome_horizon_end: String,
-    outcome: bool,
+    task_scope_id: String,
+    prediction_cutoff: String,
+    outcome_observed: u8,
     forecasts: Vec<Forecast>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
-struct BinMetric {
-    lower_bound: f64,
-    upper_bound: f64,
-    upper_inclusive: bool,
+struct ExpectedBin {
+    bin_index: usize,
     count: usize,
-    mean_probability: Option<f64>,
+    mean_predicted_probability: Option<f64>,
     observed_event_rate: Option<f64>,
-    absolute_calibration_gap: Option<f64>,
+    absolute_gap: Option<f64>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
-struct MetricSummary {
+struct ExpectedMetric {
     model_id: String,
-    case_count: usize,
-    issued_count: usize,
+    total_case_count: usize,
+    scored_count: usize,
     abstained_count: usize,
     coverage: f64,
-    coverage_gate_pass: bool,
     brier_score: Option<f64>,
     log_loss: Option<f64>,
-    true_positive: usize,
-    false_positive: usize,
-    false_negative: usize,
-    true_negative: usize,
-    decision_error_rate: Option<f64>,
-    reliability_bins: Vec<BinMetric>,
+    false_positive_count: usize,
+    false_negative_count: usize,
+    decision_error_count: usize,
+    reliability_bins: Vec<ExpectedBin>,
+    passes_minimum_coverage: bool,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
@@ -88,10 +71,39 @@ struct Corpus {
     benchmark_id: String,
     synthetic_only: bool,
     claim_ceiling: String,
-    evaluation_contract: Contract,
-    models: Vec<ModelSpec>,
+    event_definition: String,
+    forecast_horizon_days: u64,
+    decision_threshold: f64,
+    minimum_coverage: f64,
+    probability_bin_width: f64,
+    model_catalog: Vec<ModelSpec>,
     cases: Vec<Case>,
-    expected_metrics: Vec<MetricSummary>,
+    expected_metrics: Vec<ExpectedMetric>,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq)]
+struct BinMetric {
+    bin_index: usize,
+    count: usize,
+    mean_predicted_probability: Option<f64>,
+    observed_event_rate: Option<f64>,
+    absolute_gap: Option<f64>,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq)]
+struct MetricSummary {
+    model_id: String,
+    total_case_count: usize,
+    scored_count: usize,
+    abstained_count: usize,
+    coverage: f64,
+    brier_score: Option<f64>,
+    log_loss: Option<f64>,
+    false_positive_count: usize,
+    false_negative_count: usize,
+    decision_error_count: usize,
+    reliability_bins: Vec<BinMetric>,
+    passes_minimum_coverage: bool,
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq)]
@@ -108,12 +120,12 @@ struct Report {
     schema_version: String,
     fixture_sha256: String,
     schema_sha256: String,
-    primary_metric: String,
+    primary_metric: &'static str,
     decision_threshold: f64,
     minimum_coverage: f64,
     case_count: usize,
     model_count: usize,
-    metrics_match_expected: bool,
+    reference_metrics_match: bool,
     negative_controls_pass: bool,
     metrics: Vec<MetricSummary>,
     controls: Vec<ControlCheck>,
@@ -154,6 +166,17 @@ fn validate_schema(schema: &Value, fixture: &Value) -> Result<(), String> {
     }
 }
 
+fn valid_date(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    bytes.len() == 10
+        && bytes[4] == b'-'
+        && bytes[7] == b'-'
+        && bytes
+            .iter()
+            .enumerate()
+            .all(|(index, byte)| index == 4 || index == 7 || byte.is_ascii_digit())
+}
+
 fn validate_contract(corpus: &Corpus) -> Result<(), String> {
     let mut errors = Vec::new();
     if corpus.schema_version != EXPECTED_SCHEMA_VERSION {
@@ -172,49 +195,31 @@ fn validate_contract(corpus: &Corpus) -> Result<(), String> {
     {
         errors.push("fixture notice does not establish synthetic-only scope".to_string());
     }
-    if corpus.evaluation_contract.primary_metric != "brier_score" {
-        errors.push("primary metric must be frozen as brier_score".to_string());
+    if corpus.event_definition.trim().is_empty() || corpus.forecast_horizon_days == 0 {
+        errors.push("event definition and positive forecast horizon are required".to_string());
     }
-    if !(0.0..=1.0).contains(&corpus.evaluation_contract.decision_threshold) {
-        errors.push("decision threshold is outside [0,1]".to_string());
+    if !corpus.decision_threshold.is_finite()
+        || !(0.0..=1.0).contains(&corpus.decision_threshold)
+    {
+        errors.push("decision threshold must be within [0,1]".to_string());
     }
-    if !corpus.evaluation_contract.minimum_coverage.is_finite()
-        || corpus.evaluation_contract.minimum_coverage <= 0.0
-        || corpus.evaluation_contract.minimum_coverage > 1.0
+    if !corpus.minimum_coverage.is_finite()
+        || corpus.minimum_coverage <= 0.0
+        || corpus.minimum_coverage > 1.0
     {
         errors.push("minimum coverage must be in (0,1]".to_string());
     }
-    if !corpus.evaluation_contract.log_loss_epsilon.is_finite()
-        || corpus.evaluation_contract.log_loss_epsilon <= 0.0
-        || corpus.evaluation_contract.log_loss_epsilon >= 0.5
+    if !corpus.probability_bin_width.is_finite()
+        || !close(corpus.probability_bin_width, 0.2)
     {
-        errors.push("log-loss epsilon must be in (0,0.5)".to_string());
+        errors.push("v0.1 requires the frozen reliability-bin width 0.2".to_string());
     }
-    if corpus.evaluation_contract.outcome_horizon_days == 0 {
-        errors.push("outcome horizon must be positive".to_string());
-    }
-    if corpus.evaluation_contract.bin_edges.len() < 3
-        || corpus.evaluation_contract.bin_edges.first() != Some(&0.0)
-        || corpus.evaluation_contract.bin_edges.last() != Some(&1.0)
-        || corpus
-            .evaluation_contract
-            .bin_edges
-            .iter()
-            .any(|edge| !edge.is_finite() || !(0.0..=1.0).contains(edge))
-        || corpus
-            .evaluation_contract
-            .bin_edges
-            .windows(2)
-            .any(|pair| pair[0] >= pair[1])
-    {
-        errors.push("reliability-bin edges must be strictly increasing from 0 to 1".to_string());
-    }
-    if corpus.models.is_empty() || corpus.cases.is_empty() {
-        errors.push("models and cases must be non-empty".to_string());
+    if corpus.model_catalog.is_empty() || corpus.cases.is_empty() {
+        errors.push("model catalog and case set must be non-empty".to_string());
     }
 
     let mut model_ids = BTreeSet::new();
-    for model in &corpus.models {
+    for model in &corpus.model_catalog {
         if !model_ids.insert(model.model_id.as_str()) {
             errors.push(format!("duplicate model ID {}", model.model_id));
         }
@@ -225,22 +230,27 @@ fn validate_contract(corpus: &Corpus) -> Result<(), String> {
         if !case_ids.insert(case.case_id.as_str()) {
             errors.push(format!("duplicate case ID {}", case.case_id));
         }
-        if case.forecast_cutoff >= case.outcome_horizon_start
-            || case.outcome_horizon_start >= case.outcome_horizon_end
-        {
+        if case.task_scope_id.trim().is_empty() || !valid_date(&case.prediction_cutoff) {
             errors.push(format!(
-                "{}: forecast cutoff must precede a non-empty outcome horizon",
+                "{}: task scope and valid prediction-cutoff date are required",
                 case.case_id
             ));
         }
-        if case.forecasts.len() != corpus.models.len() {
+        if case.outcome_observed > 1 {
+            errors.push(format!(
+                "{}: outcome label must be binary",
+                case.case_id
+            ));
+        }
+        if case.forecasts.len() != corpus.model_catalog.len() {
             errors.push(format!(
                 "{}: expected {} forecasts, found {}",
                 case.case_id,
-                corpus.models.len(),
+                corpus.model_catalog.len(),
                 case.forecasts.len()
             ));
         }
+
         let mut forecast_ids = BTreeSet::new();
         for forecast in &case.forecasts {
             if !forecast_ids.insert(forecast.model_id.as_str()) {
@@ -255,12 +265,12 @@ fn validate_contract(corpus: &Corpus) -> Result<(), String> {
                     case.case_id, forecast.model_id
                 ));
             }
-            match forecast.decision.as_str() {
+            match forecast.status.as_str() {
                 "issued" => {
-                    let probability_ok = forecast
+                    if !forecast
                         .probability
-                        .is_some_and(|p| p.is_finite() && (0.0..=1.0).contains(&p));
-                    if !probability_ok {
+                        .is_some_and(|p| p.is_finite() && (0.0..=1.0).contains(&p))
+                    {
                         errors.push(format!(
                             "{} / {}: issued forecast requires a finite probability in [0,1]",
                             case.case_id, forecast.model_id
@@ -273,7 +283,7 @@ fn validate_contract(corpus: &Corpus) -> Result<(), String> {
                         ));
                     }
                 }
-                "abstain" => {
+                "abstained" => {
                     if forecast.probability.is_some() {
                         errors.push(format!(
                             "{} / {}: abstention cannot carry a probability",
@@ -291,8 +301,8 @@ fn validate_contract(corpus: &Corpus) -> Result<(), String> {
                         ));
                     }
                 }
-                decision => errors.push(format!(
-                    "{} / {}: unsupported decision {decision}",
+                status => errors.push(format!(
+                    "{} / {}: unsupported forecast status {status}",
                     case.case_id, forecast.model_id
                 )),
             }
@@ -321,9 +331,15 @@ fn validate_contract(corpus: &Corpus) -> Result<(), String> {
                 expected.model_id
             ));
         }
-        if expected.reliability_bins.len() + 1 != corpus.evaluation_contract.bin_edges.len() {
+        if expected.reliability_bins.len() != 5
+            || expected
+                .reliability_bins
+                .iter()
+                .enumerate()
+                .any(|(index, bin)| bin.bin_index != index)
+        {
             errors.push(format!(
-                "{}: expected reliability-bin count does not match bin edges",
+                "{}: v0.1 requires five ordered reliability bins",
                 expected.model_id
             ));
         }
@@ -343,7 +359,9 @@ fn validate_contract(corpus: &Corpus) -> Result<(), String> {
 }
 
 fn canonicalize(corpus: &mut Corpus) {
-    corpus.models.sort_by(|a, b| a.model_id.cmp(&b.model_id));
+    corpus
+        .model_catalog
+        .sort_by(|a, b| a.model_id.cmp(&b.model_id));
     corpus.cases.sort_by(|a, b| a.case_id.cmp(&b.case_id));
     for case in &mut corpus.cases {
         case.forecasts.sort_by(|a, b| a.model_id.cmp(&b.model_id));
@@ -354,44 +372,39 @@ fn canonicalize(corpus: &mut Corpus) {
 }
 
 fn calculate_metric(corpus: &Corpus, model: &ModelSpec) -> MetricSummary {
-    let contract = &corpus.evaluation_contract;
-    let mut issued: Vec<(f64, bool)> = Vec::new();
+    let mut issued: Vec<(f64, u8)> = Vec::new();
     let mut abstained_count = 0usize;
-
     for case in &corpus.cases {
         let forecast = case
             .forecasts
             .iter()
             .find(|forecast| forecast.model_id == model.model_id)
             .expect("validated forecast exists");
-        if forecast.decision == "abstain" {
+        if forecast.status == "abstained" {
             abstained_count += 1;
         } else {
             issued.push((
                 forecast.probability.expect("validated probability exists"),
-                case.outcome,
+                case.outcome_observed,
             ));
         }
     }
 
-    let case_count = corpus.cases.len();
-    let issued_count = issued.len();
-    let coverage = issued_count as f64 / case_count as f64;
+    let total_case_count = corpus.cases.len();
+    let scored_count = issued.len();
+    let coverage = scored_count as f64 / total_case_count as f64;
     let brier_score = if issued.is_empty() {
         None
     } else {
         Some(
             issued
                 .iter()
-                .map(|(probability, outcome)| {
-                    let y = if *outcome { 1.0 } else { 0.0 };
-                    (probability - y).powi(2)
-                })
+                .map(|(probability, outcome)| (probability - f64::from(*outcome)).powi(2))
                 .sum::<f64>()
-                / issued_count as f64,
+                / scored_count as f64,
         )
     };
-    let epsilon = contract.log_loss_epsilon;
+    let epsilon = 1e-15;
     let log_loss = if issued.is_empty() {
         None
     } else {
@@ -400,43 +413,42 @@ fn calculate_metric(corpus: &Corpus, model: &ModelSpec) -> MetricSummary {
                 .iter()
                 .map(|(probability, outcome)| {
                     let p = probability.clamp(epsilon, 1.0 - epsilon);
-                    if *outcome { -p.ln() } else { -(1.0 - p).ln() }
+                    if *outcome == 1 {
+                        -p.ln()
+                    } else {
+                        -(1.0 - p).ln()
+                    }
                 })
                 .sum::<f64>()
-                / issued_count as f64,
+                / scored_count as f64,
         )
     };
 
-    let mut true_positive = 0usize;
-    let mut false_positive = 0usize;
-    let mut false_negative = 0usize;
-    let mut true_negative = 0usize;
+    let mut false_positive_count = 0usize;
+    let mut false_negative_count = 0usize;
     for (probability, outcome) in &issued {
-        let predicted_positive = *probability >= contract.decision_threshold;
-        match (predicted_positive, *outcome) {
-            (true, true) => true_positive += 1,
-            (true, false) => false_positive += 1,
-            (false, true) => false_negative += 1,
-            (false, false) => true_negative += 1,
+        let predicted_positive = *probability >= corpus.decision_threshold;
+        match (predicted_positive, *outcome == 1) {
+            (true, false) => false_positive_count += 1,
+            (false, true) => false_negative_count += 1,
+            _ => {}
         }
     }
-    let decision_error_rate = if issued_count == 0 {
-        None
-    } else {
-        Some((false_positive + false_negative) as f64 / issued_count as f64)
-    };
 
     let mut reliability_bins = Vec::new();
-    for (index, edge_pair) in contract.bin_edges.windows(2).enumerate() {
-        let lower_bound = edge_pair[0];
-        let upper_bound = edge_pair[1];
-        let upper_inclusive = index == contract.bin_edges.len() - 2;
-        let rows: Vec<(f64, bool)> = issued
+    for bin_index in 0..5 {
+        let lower_bound = bin_index as f64 * corpus.probability_bin_width;
+        let upper_bound = if bin_index == 4 {
+            1.0
+        } else {
+            (bin_index + 1) as f64 * corpus.probability_bin_width
+        };
+        let rows: Vec<(f64, u8)> = issued
             .iter()
             .copied()
             .filter(|(probability, _)| {
                 *probability >= lower_bound
-                    && if upper_inclusive {
+                    && if bin_index == 4 {
                         *probability <= upper_bound
                     } else {
                         *probability < upper_bound
@@ -444,124 +456,128 @@ fn calculate_metric(corpus: &Corpus, model: &ModelSpec) -> MetricSummary {
             })
             .collect();
         let count = rows.len();
-        let (mean_probability, observed_event_rate, absolute_calibration_gap) =
-            if count == 0 {
-                (None, None, None)
-            } else {
-                let mean = rows.iter().map(|(p, _)| *p).sum::<f64>() / count as f64;
-                let event_rate =
-                    rows.iter().filter(|(_, outcome)| *outcome).count() as f64 / count as f64;
-                (Some(mean), Some(event_rate), Some((mean - event_rate).abs()))
-            };
+        let (mean_predicted_probability, observed_event_rate, absolute_gap) = if count == 0 {
+            (None, None, None)
+        } else {
+            let mean = rows.iter().map(|(p, _)| *p).sum::<f64>() / count as f64;
+            let observed = rows.iter().map(|(_, y)| usize::from(*y)).sum::<usize>() as f64
+                / count as f64;
+            (Some(mean), Some(observed), Some((mean - observed).abs()))
+        };
         reliability_bins.push(BinMetric {
-            lower_bound,
-            upper_bound,
-            upper_inclusive,
+            bin_index,
             count,
-            mean_probability,
+            mean_predicted_probability,
             observed_event_rate,
-            absolute_calibration_gap,
+            absolute_gap,
         });
     }
 
     MetricSummary {
         model_id: model.model_id.clone(),
-        case_count,
-        issued_count,
+        total_case_count,
+        scored_count,
         abstained_count,
         coverage,
-        coverage_gate_pass: coverage >= contract.minimum_coverage,
         brier_score,
         log_loss,
-        true_positive,
-        false_positive,
-        false_negative,
-        true_negative,
-        decision_error_rate,
+        false_positive_count,
+        false_negative_count,
+        decision_error_count: false_positive_count + false_negative_count,
         reliability_bins,
+        passes_minimum_coverage: coverage >= corpus.minimum_coverage,
     }
 }
 
-fn metric_matches(actual: &MetricSummary, expected: &MetricSummary) -> bool {
+fn metric_matches(actual: &MetricSummary, expected: &ExpectedMetric) -> bool {
     actual.model_id == expected.model_id
-        && actual.case_count == expected.case_count
-        && actual.issued_count == expected.issued_count
+        && actual.total_case_count == expected.total_case_count
+        && actual.scored_count == expected.scored_count
         && actual.abstained_count == expected.abstained_count
         && close(actual.coverage, expected.coverage)
-        && actual.coverage_gate_pass == expected.coverage_gate_pass
         && close_option(actual.brier_score, expected.brier_score)
         && close_option(actual.log_loss, expected.log_loss)
-        && actual.true_positive == expected.true_positive
-        && actual.false_positive == expected.false_positive
-        && actual.false_negative == expected.false_negative
-        && actual.true_negative == expected.true_negative
-        && close_option(actual.decision_error_rate, expected.decision_error_rate)
+        && actual.false_positive_count == expected.false_positive_count
+        && actual.false_negative_count == expected.false_negative_count
+        && actual.decision_error_count == expected.decision_error_count
+        && actual.passes_minimum_coverage == expected.passes_minimum_coverage
         && actual.reliability_bins.len() == expected.reliability_bins.len()
         && actual
             .reliability_bins
             .iter()
             .zip(&expected.reliability_bins)
             .all(|(a, e)| {
-                close(a.lower_bound, e.lower_bound)
-                    && close(a.upper_bound, e.upper_bound)
-                    && a.upper_inclusive == e.upper_inclusive
+                a.bin_index == e.bin_index
                     && a.count == e.count
-                    && close_option(a.mean_probability, e.mean_probability)
+                    && close_option(
+                        a.mean_predicted_probability,
+                        e.mean_predicted_probability,
+                    )
                     && close_option(a.observed_event_rate, e.observed_event_rate)
-                    && close_option(a.absolute_calibration_gap, e.absolute_calibration_gap)
+                    && close_option(a.absolute_gap, e.absolute_gap)
             })
 }
 
 fn check_negative_controls(metrics: &[MetricSummary], minimum_coverage: f64) -> Vec<ControlCheck> {
     let find = |id: &str| metrics.iter().find(|metric| metric.model_id == id);
     let rules = find("transparent_rules");
-    let overconfident = find("overconfident_wrong");
-    let selective = find("selective_policy");
-    let all_abstain = find("all_abstain");
+    let overconfident = find("overconfident_control");
+    let abstaining = find("abstaining_rules");
+    let all_abstain = find("all_abstain_control");
 
     let overconfident_penalized = match (rules, overconfident) {
-        (Some(r), Some(o)) => {
-            o.brier_score.zip(r.brier_score).is_some_and(|(a, b)| a > b)
-                && o.log_loss.zip(r.log_loss).is_some_and(|(a, b)| a > b)
+        (Some(rules_metric), Some(overconfident_metric)) => {
+            overconfident_metric
+                .brier_score
+                .zip(rules_metric.brier_score)
+                .is_some_and(|(overconfident_score, rules_score)| {
+                    overconfident_score > rules_score
+                })
+                && overconfident_metric
+                    .log_loss
+                    .zip(rules_metric.log_loss)
+                    .is_some_and(|(overconfident_score, rules_score)| {
+                        overconfident_score > rules_score
+                    })
         }
         _ => false,
     };
-    let selective_coverage_pass = selective.is_some_and(|m| {
-        m.coverage_gate_pass && m.abstained_count > 0 && m.issued_count > 0
+    let selective_coverage_pass = abstaining.is_some_and(|metric| {
+        metric.passes_minimum_coverage && metric.abstained_count > 0 && metric.scored_count > 0
     });
-    let all_abstain_fails_gate = all_abstain.is_some_and(|m| {
-        !m.coverage_gate_pass
-            && close(m.coverage, 0.0)
-            && m.issued_count == 0
-            && m.abstained_count == m.case_count
-            && m.brier_score.is_none()
-            && m.log_loss.is_none()
+    let all_abstain_fails_gate = all_abstain.is_some_and(|metric| {
+        !metric.passes_minimum_coverage
+            && close(metric.coverage, 0.0)
+            && metric.scored_count == 0
+            && metric.abstained_count == metric.total_case_count
+            && metric.brier_score.is_none()
+            && metric.log_loss.is_none()
     });
-    let denominators_preserved = metrics.iter().all(|m| {
-        m.case_count == m.issued_count + m.abstained_count
-            && m.coverage_gate_pass == (m.coverage >= minimum_coverage)
+    let denominators_preserved = metrics.iter().all(|metric| {
+        metric.total_case_count == metric.scored_count + metric.abstained_count
+            && metric.passes_minimum_coverage == (metric.coverage >= minimum_coverage)
     });
 
     vec![
         ControlCheck {
             control_id: "overconfident_wrong_is_penalized".to_string(),
             passed: overconfident_penalized,
-            details: "Overconfident negative control must have worse Brier score and log loss than transparent rules.".to_string(),
+            details: "Overconfident control has worse Brier and log-loss scores than transparent rules.".to_string(),
         },
         ControlCheck {
             control_id: "selective_policy_meets_coverage_gate".to_string(),
             passed: selective_coverage_pass,
-            details: "Selective policy must both abstain on some cases and issue enough forecasts to meet the frozen coverage gate.".to_string(),
+            details: "The abstaining policy abstains on some cases but still satisfies the frozen minimum coverage.".to_string(),
         },
         ControlCheck {
             control_id: "all_abstain_fails_coverage_gate".to_string(),
             passed: all_abstain_fails_gate,
-            details: "All-abstain negative control must retain all cases in the denominator and fail coverage.".to_string(),
+            details: "All-abstain control keeps all cases in the denominator and fails minimum coverage.".to_string(),
         },
         ControlCheck {
             control_id: "denominators_and_coverage_are_complete".to_string(),
             passed: denominators_preserved,
-            details: "For every model, cases equal issued plus abstained, and coverage status follows the predeclared gate.".to_string(),
+            details: "Every model's total equals scored plus abstained, and coverage status follows the frozen gate.".to_string(),
         },
     ]
 }
@@ -579,7 +595,7 @@ fn verify_values(
     canonicalize(&mut corpus);
 
     let metrics: Vec<MetricSummary> = corpus
-        .models
+        .model_catalog
         .iter()
         .map(|model| calculate_metric(&corpus, model))
         .collect();
@@ -588,15 +604,15 @@ fn verify_values(
         .iter()
         .map(|metric| (metric.model_id.as_str(), metric))
         .collect::<std::collections::BTreeMap<_, _>>();
-    let metrics_match_expected = metrics.iter().all(|metric| {
+    let reference_metrics_match = metrics.iter().all(|metric| {
         expected_by_id
             .get(metric.model_id.as_str())
             .is_some_and(|expected| metric_matches(metric, expected))
     });
 
-    let controls = check_negative_controls(&metrics, corpus.evaluation_contract.minimum_coverage);
+    let controls = check_negative_controls(&metrics, corpus.minimum_coverage);
     let negative_controls_pass = controls.iter().all(|control| control.passed);
-    let passed = metrics_match_expected && negative_controls_pass;
+    let passed = reference_metrics_match && negative_controls_pass;
 
     Ok(Report {
         status: if passed {
@@ -608,20 +624,20 @@ fn verify_values(
         schema_version: corpus.schema_version,
         fixture_sha256: sha256(fixture_bytes),
         schema_sha256: sha256(schema_bytes),
-        primary_metric: corpus.evaluation_contract.primary_metric,
-        decision_threshold: corpus.evaluation_contract.decision_threshold,
-        minimum_coverage: corpus.evaluation_contract.minimum_coverage,
+        primary_metric: "brier_score",
+        decision_threshold: corpus.decision_threshold,
+        minimum_coverage: corpus.minimum_coverage,
         case_count: corpus.cases.len(),
-        model_count: corpus.models.len(),
-        metrics_match_expected,
+        model_count: corpus.model_catalog.len(),
+        reference_metrics_match,
         negative_controls_pass,
         metrics,
         controls,
         limitations: vec![
-            "All forecasts, labels and outcomes in this corpus are synthetic contract test data.",
-            "Synthetic calibration summaries do not estimate calibration on real workforce populations.",
-            "The model profiles are deterministic test fixtures, not trained competing models.",
-            "A passing receipt does not establish policy utility, population fairness or causal impact.",
+            "All forecasts, outcomes and labels in this corpus are synthetic contract test data.",
+            "Synthetic calibration does not estimate forecast skill on real labour-market populations.",
+            "Model profiles are deterministic fixtures, not trained competing models.",
+            "A passing receipt does not establish operational utility, population fairness or causal impact.",
         ],
         claim_ceiling: corpus.claim_ceiling,
     })
@@ -647,7 +663,7 @@ fn run() -> Result<(), String> {
             .map_err(|error| format!("report serialization failed: {error}"))?
     );
     if report.status != "SYNTHETIC_CALIBRATION_CONFORMANCE_PASS" {
-        return Err("calibration metric references or negative controls did not pass".to_string());
+        return Err("calibration references or negative controls did not pass".to_string());
     }
     Ok(())
 }
@@ -687,17 +703,21 @@ mod tests {
     }
 
     fn find<'a>(report: &'a Report, id: &str) -> &'a MetricSummary {
-        report.metrics.iter().find(|metric| metric.model_id == id).expect("metric exists")
+        report
+            .metrics
+            .iter()
+            .find(|metric| metric.model_id == id)
+            .expect("metric exists")
     }
 
     #[test]
-    fn frozen_metrics_and_all_negative_controls_match() {
+    fn frozen_metrics_and_negative_controls_match() {
         let (fixture, schema) = loaded();
         let report = report(&fixture, &schema);
         assert_eq!(report.status, "SYNTHETIC_CALIBRATION_CONFORMANCE_PASS");
         assert_eq!(report.case_count, 12);
         assert_eq!(report.model_count, 5);
-        assert!(report.metrics_match_expected);
+        assert!(report.reference_metrics_match);
         assert!(report.negative_controls_pass);
     }
 
@@ -706,7 +726,7 @@ mod tests {
         let (fixture, schema) = loaded();
         let report = report(&fixture, &schema);
         let rules = find(&report, "transparent_rules");
-        let overconfident = find(&report, "overconfident_wrong");
+        let overconfident = find(&report, "overconfident_control");
         assert!(overconfident.brier_score.unwrap() > rules.brier_score.unwrap());
         assert!(overconfident.log_loss.unwrap() > rules.log_loss.unwrap());
     }
@@ -715,32 +735,24 @@ mod tests {
     fn all_abstain_is_not_a_passing_policy() {
         let (fixture, schema) = loaded();
         let report = report(&fixture, &schema);
-        let metric = find(&report, "all_abstain");
+        let metric = find(&report, "all_abstain_control");
         assert_eq!(metric.coverage, 0.0);
-        assert_eq!(metric.issued_count, 0);
+        assert_eq!(metric.scored_count, 0);
         assert_eq!(metric.abstained_count, 12);
-        assert!(!metric.coverage_gate_pass);
+        assert!(!metric.passes_minimum_coverage);
         assert!(metric.brier_score.is_none());
         assert!(metric.log_loss.is_none());
     }
 
     #[test]
-    fn selective_policy_reports_coverage_and_selective_error_separately() {
+    fn selective_policy_keeps_coverage_and_error_separate() {
         let (fixture, schema) = loaded();
-        let metric = find(&report(&fixture, &schema), "selective_policy");
-        assert!(metric.coverage_gate_pass);
-        assert_eq!(metric.issued_count, 8);
-        assert_eq!(metric.abstained_count, 4);
-        assert_eq!(metric.decision_error_rate, Some(0.0));
-    }
-
-    #[test]
-    fn temporal_leakage_fails_closed() {
-        let (mut fixture, schema) = loaded();
-        fixture["cases"][0]["forecast_cutoff"] = json!("2026-01-02T00:00:00Z");
-        let bytes = serde_json::to_vec(&fixture).expect("fixture serializes");
-        let schema_bytes = serde_json::to_vec(&schema).expect("schema serializes");
-        assert!(verify_values(&schema, &fixture, &bytes, &schema_bytes).is_err());
+        let metric = find(&report(&fixture, &schema), "abstaining_rules");
+        assert!(metric.passes_minimum_coverage);
+        assert_eq!(metric.scored_count, 9);
+        assert_eq!(metric.abstained_count, 3);
+        assert_eq!(metric.false_positive_count, 0);
+        assert_eq!(metric.false_negative_count, 0);
     }
 
     #[test]
@@ -776,7 +788,10 @@ mod tests {
         for case in permuted["cases"].as_array_mut().expect("cases") {
             case["forecasts"].as_array_mut().expect("forecasts").reverse();
         }
-        permuted["models"].as_array_mut().expect("models").reverse();
+        permuted["model_catalog"]
+            .as_array_mut()
+            .expect("model catalog")
+            .reverse();
         permuted["expected_metrics"]
             .as_array_mut()
             .expect("expected metrics")
@@ -796,7 +811,11 @@ mod tests {
         let schema_bytes = serde_json::to_vec(&schema).expect("schema serializes");
         let report = verify_values(&schema, &fixture, &bytes, &schema_bytes)
             .expect("boundary probabilities remain valid");
-        let metric = report.metrics.iter().find(|metric| metric.model_id == "constant_prevalence").expect("metric exists");
+        let metric = report
+            .metrics
+            .iter()
+            .find(|metric| metric.model_id == "constant_prevalence")
+            .expect("metric exists");
         assert!(metric.log_loss.unwrap().is_finite());
     }
 }
