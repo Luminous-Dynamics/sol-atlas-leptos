@@ -2379,8 +2379,7 @@ mod tests {
     #[test]
     fn upstream_manifest_requires_unique_pinned_inputs_and_coherent_revision_groups() {
         let mut duplicate_source = fixture();
-        let rows = duplicate_source
-            .upstream_manifest["source_contracts"]
+        let rows = duplicate_source.upstream_manifest["source_contracts"]
             .as_array_mut()
             .expect("source contracts array");
         let duplicate_id = rows[0]["source_id"].clone();
@@ -2394,13 +2393,9 @@ mod tests {
         let mut malformed_blob = fixture();
         malformed_blob.upstream_manifest["source_contracts"][0]["git_blob_sha"] =
             json!("z".repeat(40));
-        assert!(
-            validate_chain(&malformed_blob)
-                .iter()
-                .any(|error| {
-                    error.contains("git_blob_sha must be a 40-character lowercase Git object SHA")
-                })
-        );
+        assert!(validate_chain(&malformed_blob).iter().any(|error| {
+            error.contains("git_blob_sha must be a 40-character lowercase Git object SHA")
+        }));
 
         let mut split_planner_group = fixture();
         for row in split_planner_group.upstream_manifest["source_contracts"]
@@ -2411,13 +2406,9 @@ mod tests {
                 row["commit_sha"] = json!("a".repeat(40));
             }
         }
-        assert!(
-            validate_chain(&split_planner_group)
-                .iter()
-                .any(|error| {
-                    error.contains("sol-atlas-measurement-planner must pin all related artifacts")
-                })
-        );
+        assert!(validate_chain(&split_planner_group).iter().any(|error| {
+            error.contains("sol-atlas-measurement-planner must pin all related artifacts")
+        }));
     }
 
     #[test]
