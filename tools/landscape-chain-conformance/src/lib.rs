@@ -279,7 +279,9 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
 
     let permission_metric = records(&metric_registry, &["metrics"])
         .and_then(|metrics| metrics.first())
-        .ok_or_else(|| vec!["metric registry requires at least one metric for permission binding".to_owned()])?;
+        .ok_or_else(|| {
+            vec!["metric registry requires at least one metric for permission binding".to_owned()]
+        })?;
     let permission_metric_id = string_at(permission_metric, &["id"])
         .ok_or_else(|| vec!["permission metric requires an id".to_owned()])?
         .to_owned();
@@ -310,16 +312,24 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
         &permission_metric_unit,
     )
     .map_err(|error| vec![error])?;
-    set_str(&mut measurement_authorization, &["consent_status"], "unknown")
-        .map_err(|error| vec![error])?;
+    set_str(
+        &mut measurement_authorization,
+        &["consent_status"],
+        "unknown",
+    )
+    .map_err(|error| vec![error])?;
     set_at(
         &mut measurement_authorization,
         &["consent_evidence_sha256"],
         Value::Null,
     )
     .map_err(|error| vec![error])?;
-    set_str(&mut measurement_authorization, &["site_access_status"], "unknown")
-        .map_err(|error| vec![error])?;
+    set_str(
+        &mut measurement_authorization,
+        &["site_access_status"],
+        "unknown",
+    )
+    .map_err(|error| vec![error])?;
     set_at(
         &mut measurement_authorization,
         &["site_access_evidence_sha256"],
@@ -338,14 +348,30 @@ pub fn build_chain(dir: &Path) -> Result<ChainArtifacts, Vec<String>> {
         Value::Null,
     )
     .map_err(|error| vec![error])?;
-    set_str(&mut measurement_authorization, &["publication_policy"], "private")
-        .map_err(|error| vec![error])?;
-    set_str(&mut measurement_authorization, &["coordinate_disclosure"], "none")
-        .map_err(|error| vec![error])?;
-    set_str(&mut measurement_authorization, &["evidence_class"], "synthetic")
-        .map_err(|error| vec![error])?;
-    set_str(&mut measurement_authorization, &["verification_status"], "not-verified")
-        .map_err(|error| vec![error])?;
+    set_str(
+        &mut measurement_authorization,
+        &["publication_policy"],
+        "private",
+    )
+    .map_err(|error| vec![error])?;
+    set_str(
+        &mut measurement_authorization,
+        &["coordinate_disclosure"],
+        "none",
+    )
+    .map_err(|error| vec![error])?;
+    set_str(
+        &mut measurement_authorization,
+        &["evidence_class"],
+        "synthetic",
+    )
+    .map_err(|error| vec![error])?;
+    set_str(
+        &mut measurement_authorization,
+        &["verification_status"],
+        "not-verified",
+    )
+    .map_err(|error| vec![error])?;
 
     let intervention_arm = evaluation_plan
         .get_mut("arms")
@@ -1537,8 +1563,8 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
         &intervention_site_sha,
         "Mycelix measurement authorization site reference",
     );
-    let permission_metric = records(&chain.metric_registry, &["metrics"])
-        .and_then(|metrics| metrics.first());
+    let permission_metric =
+        records(&chain.metric_registry, &["metrics"]).and_then(|metrics| metrics.first());
     if let Some(permission_metric) = permission_metric {
         check_eq(
             &mut errors,
@@ -1555,7 +1581,9 @@ pub fn validate_chain(chain: &ChainArtifacts) -> Vec<String> {
             "Mycelix measurement authorization unit",
         );
     } else {
-        errors.push("Mycelix authorization cannot bind a metric when the registry is empty".to_owned());
+        errors.push(
+            "Mycelix authorization cannot bind a metric when the registry is empty".to_owned(),
+        );
     }
     check_eq(
         &mut errors,
@@ -2168,12 +2196,9 @@ pub fn run_conformance(dir: &Path) -> Result<ConformanceReport, Vec<String>> {
         )
         .unwrap_or("unknown")
         .to_owned(),
-        site_access_status: string_at(
-            &chain.measurement_authorization,
-            &["site_access_status"],
-        )
-        .unwrap_or("unknown")
-        .to_owned(),
+        site_access_status: string_at(&chain.measurement_authorization, &["site_access_status"])
+            .unwrap_or("unknown")
+            .to_owned(),
         measurement_authorization_verification_status: string_at(
             &chain.measurement_authorization,
             &["verification_status"],
@@ -2243,7 +2268,10 @@ mod tests {
         assert_eq!(report.source_catalog_status, "metadata-only-not-ingested");
         assert_eq!(report.measurement_consent_status, "unknown");
         assert_eq!(report.site_access_status, "unknown");
-        assert_eq!(report.measurement_authorization_verification_status, "not-verified");
+        assert_eq!(
+            report.measurement_authorization_verification_status,
+            "not-verified"
+        );
         assert!(!report.measurement_operation_authorized_by_harness);
         assert_eq!(report.scenario_execution_status, "BLOCKED_NOT_EXECUTED");
         assert_eq!(report.paired_scenario_count, 2);
