@@ -14,7 +14,7 @@
       "site_ref_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "correlation_group": "north-transect",
       "baseline_mean": 30,
-      "alternative_mean": 35.29150262212918,
+      "alternative_mean": 36.633249580710796,
       "baseline_sd": 1,
       "alternative_sd": 1,
       "observation_noise_sd": 1,
@@ -149,5 +149,6 @@
       "consent_evidence_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
       "access_authorization_sha256": null
     }
-  ]
+  ],
+  "minimum_spatial_temporal_coverage_fraction": 0.6666666666666666
 }
