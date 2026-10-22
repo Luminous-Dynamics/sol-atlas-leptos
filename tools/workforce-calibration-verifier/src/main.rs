@@ -771,6 +771,15 @@ mod tests {
     }
 
     #[test]
+    fn missing_outcome_label_is_not_converted_to_a_negative_event() {
+        let (mut fixture, schema) = loaded();
+        fixture["cases"][0]["outcome_observed"] = Value::Null;
+        let bytes = serde_json::to_vec(&fixture).expect("fixture serializes");
+        let schema_bytes = serde_json::to_vec(&schema).expect("schema serializes");
+        assert!(verify_values(&schema, &fixture, &bytes, &schema_bytes).is_err());
+    }
+
+    #[test]
     fn probability_outside_unit_interval_fails_closed() {
         let (mut fixture, schema) = loaded();
         fixture["cases"][0]["forecasts"][0]["probability"] = json!(1.01);
