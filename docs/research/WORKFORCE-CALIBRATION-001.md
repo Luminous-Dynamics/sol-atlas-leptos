@@ -1,0 +1,75 @@
+# SA-WORKFORCE-CALIBRATION-001 — Probabilistic diagnosis and abstention benchmark v0.1
+
+**Tracking issue:** https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/290  
+**Composes with:** diagnosis #268, source profile #272, active evidence #279, source robustness #281, chain conformance #283, portfolio #286 and recovery #288.  
+**Status:** synthetic-only scoring contract; no field-validity claim.
+
+## Paradigm shift: evaluate the probability and the decision to abstain
+
+A predicted label hides confidence. A system can be confidently wrong, or appear accurate by refusing to answer hard cases. The evaluator must measure probability quality, calibration, decision errors, abstention and coverage separately.
+
+The target event for v0.1 is explicitly binary: **a task-scoped capacity gap is independently confirmed within a predeclared horizon**. It does not mean a whole occupation is scarce; it does not imply that training is the right remedy; it is not a prediction of an individual's employability or worth.
+
+Each frozen case has an independently authored synthetic outcome and predictions from five policies: constant-prevalence baseline, transparent rules, deliberately overconfident negative control, abstaining rules, and an all-abstain negative control. Forecasts include a status and reason so an abstention cannot disappear from denominators.
+
+## Boundary with official labour statistics
+
+Official Statistics South Africa QLFS results are useful macroeconomic context but are not ground-truth labels for this benchmark's 30-day, task-scoped event. For example, the official Q2 2026 release reports an unemployment rate of 33.6% and composite labour-underutilisation measure LU4 of 46.3% ([Stats SA QLFS Q2 2026](https://www.statssa.gov.za/?PPN=P0211&SCH=74512&page_id=1856)). These national aggregates must not be substituted for a local task/skill/region capacity-gap outcome, used to retroactively label the synthetic fixtures, or treated as a calibrated prior probability for an individual case. Doing so would mix different populations, observation units, and target events.
+
+Before any real-world calibration claim, a separate versioned data contract must identify (1) the forecast unit and geography, (2) the exact skill/task taxonomy and revision, (3) prediction cutoff and target horizon, (4) an independently adjudicated outcome source and its publication/revision time, (5) source coverage and missingness, (6) duplicates and linked records, and (7) the policy for late, corrected, or unavailable outcomes. Train/calibration/test partitions must be chronological by prediction cutoff and grouped so that records derived from the same underlying source event cannot leak across partitions. Aggregate QLFS series may provide context or a clearly scoped aggregate target, but only after defining and validating that different target explicitly.
+
+## Metrics
+
+- **Brier score:** mean squared probability error, lower is better.
+- **Logarithmic loss:** mean negative log-likelihood, lower is better; exact 0/1 forecasts use a declared clipping floor only for finite calculation.
+- **Reliability bins:** fixed-width 0.2 probability intervals report count, mean probability, empirical event rate and absolute gap; empty bins remain visible with null rates.
+- **Action-threshold errors:** false-positive “gap” predictions and missed confirmed gaps at the frozen 0.5 probability threshold; probabilities equal to 0.5 count as positive for this v0.1 fixture.
+- **Coverage/abstention:** scored count, abstained count, coverage fraction and minimum-coverage gate. Scores are computed over covered cases only, so a selective score must always be read alongside its coverage and abstention counts; it is not directly comparable to a full-coverage score in isolation.
+- **Calibration versus discrimination:** neither Brier alone nor one calibration-gap scalar substitutes for the full score and error table.
+- **Perturbation evaluation:** future versions rerun the same frozen cases under source duplication, source loss, stale evidence, taxonomy changes and denominator/scope mismatch.
+- **Uncertainty of comparisons:** future empirical comparisons require a time-based held-out split, paired uncertainty intervals and minimum sample disclosure; no superiority claim from this synthetic v0.1.
+
+## Synthetic metric smoke-test results
+
+The frozen 12-case fixture produces these reference summaries; they are checks of the evaluator, **not** evidence that one real forecasting method outperforms another.
+
+| Synthetic profile | Coverage | Brier (lower is better) | Log loss (lower is better) | Decision errors at 0.5 |
+|---|---:|---:|---:|---:|
+| Constant 0.5 baseline | 100% | 0.250000 | 0.693147 | 6/12 |
+| Transparent rules | 100% | 0.122925 | 0.427234 | 0/12 |
+| Overconfident control | 100% | 0.162083 | 0.672632 | 2/12 |
+| Abstaining rules | 75% | 0.102200 | 0.382168 | 0/9 |
+| All-abstain control | 0% | Not defined | Not defined | Not defined |
+
+The overconfident control demonstrates the intended penalty: despite only two threshold decision errors, its Brier and log-loss scores are worse than the transparent rules profile because the errors are confident. The all-abstain control cannot pass because coverage is zero. The abstaining profile's scores use only its nine issued forecasts, so its lower scores **must not be interpreted as a win over the 100%-coverage rules profile without the coverage/utility trade-off**. These figures arise from hand-authored synthetic probabilities and labels.
+
+## Hard invariants
+
+- A forecast is pinned to case scope, model/policy ID and prediction status. Missing or unknown labels are not negative outcomes.
+- Each case/model pair appears exactly once; duplicate model IDs or case IDs are rejected.
+- Issued probabilities are finite and in [0,1]. Abstention requires null probability and a non-empty reason; issued forecast requires a probability and no abstention reason.
+- Every model is scored against the same outcome denominator definition. Scoring excludes abstentions but coverage always uses the full case count.
+- The minimum coverage gate prevents an all-abstain policy from “winning” by having no scored errors.
+- Candidate-vs-baseline comparisons use a frozen event, horizon, threshold, bins, metrics and case set.
+- Fixture, outcomes and digest are synthetic; no status can promote this to observed evidence or causal impact.
+
+## Acceptance gates
+
+- Rust scores agree with frozen reference values for Brier, log loss, counts, false positives/negatives, coverage and each reliability bin.
+- 100% of forecasts are accounted for once; no duplicate/missing case-model pair.
+- All-abstain negative control fails the minimum-coverage gate.
+- Overconfident-wrong control is scored worse than the transparent rules on proper scores.
+- Row permutation produces the same canonical model scores and bins.
+- Receipt includes fixture/schema SHA-256, metric definitions, full denominator, missing/abstained counts and the synthetic-only claim ceiling.
+
+## Research basis
+
+- Waghmare & Ziegel, *Proper Scoring Rules for Estimation and Forecast Evaluation*, Annual Review of Statistics and Its Application (2026): https://doi.org/10.1146/annurev-statistics-042424-050626
+- OECD, *Migration Anticipation and Preparedness*: guidance on calibrating predictive intervals and evaluating probabilistic forecasts with Brier score/CRPS: https://www.oecd.org/en/publications/migration-anticipation-and-preparedness_4161131f-en/full-report/how-can-the-model-be-evaluated_1c893567.html
+- NIST, *Expanding the AI Evaluation Toolbox with Statistical Models*, NIST AI 800-3 (2026): https://www.nist.gov/news-events/news/2026/02/new-report-expanding-ai-evaluation-toolbox-statistical-models
+- NIST TEVV-Athlon, use-case-specific real-world evaluation framework: https://www.nist.gov/artificial-intelligence/ai-research/tevv-athlon-framework-evaluating-ai-systems
+- World Bank, South Africa digital-skills pipeline report (14 Aug 2026): https://www.worldbank.org/en/news/feature/2026/08/14/from-demand-to-delivery-strengthening-south-africas-digital-skills
+
+## Claim ceiling
+
+This v0.1 measures software conformance against synthetic labels only. It does not establish forecast skill on real labour-market data, policy utility, fairness in observed populations or causal impact. Empirical claims require authorized, independently adjudicated, time-split held-out observations and uncertainty intervals.
