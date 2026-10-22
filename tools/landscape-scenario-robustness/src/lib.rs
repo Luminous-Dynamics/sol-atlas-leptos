@@ -604,8 +604,16 @@ mod tests {
         let bytes = serde_json::to_vec(&fixture).expect("serialize fixture");
         let report = evaluate_fixture_bytes(&bytes, &method_bytes()).expect("close-score report");
         assert_eq!(report.maximin_winner, "beta");
-        let alpha = report.scorecards.iter().find(|item| item.alternative_id == "alpha").unwrap();
-        let beta = report.scorecards.iter().find(|item| item.alternative_id == "beta").unwrap();
+        let alpha = report
+            .scorecards
+            .iter()
+            .find(|item| item.alternative_id == "alpha")
+            .unwrap();
+        let beta = report
+            .scorecards
+            .iter()
+            .find(|item| item.alternative_id == "beta")
+            .unwrap();
         close(alpha.worst_case_utility_points, 50.0);
         close(beta.worst_case_utility_points, 50.0);
         assert_eq!(alpha.worst_case_utility_points, beta.worst_case_utility_points);
