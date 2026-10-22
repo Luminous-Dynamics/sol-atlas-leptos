@@ -17,8 +17,8 @@ Each frozen case has an independently authored synthetic outcome and predictions
 - **Brier score:** mean squared probability error, lower is better.
 - **Logarithmic loss:** mean negative log-likelihood, lower is better; exact 0/1 forecasts use a declared clipping floor only for finite calculation.
 - **Reliability bins:** fixed-width 0.2 probability intervals report count, mean probability, empirical event rate and absolute gap; empty bins remain visible with null rates.
-- **Action-threshold errors:** false-positive “gap” predictions and missed confirmed gaps at the frozen 0.5 probability threshold.
-- **Coverage/abstention:** scored count, abstained count, coverage fraction and minimum-coverage gate.
+- **Action-threshold errors:** false-positive “gap” predictions and missed confirmed gaps at the frozen 0.5 probability threshold; probabilities equal to 0.5 count as positive for this v0.1 fixture.
+- **Coverage/abstention:** scored count, abstained count, coverage fraction and minimum-coverage gate. Scores are computed over covered cases only, so a selective score must always be read alongside its coverage and abstention counts; it is not directly comparable to a full-coverage score in isolation.
 - **Calibration versus discrimination:** neither Brier alone nor one calibration-gap scalar substitutes for the full score and error table.
 - **Perturbation evaluation:** future versions rerun the same frozen cases under source duplication, source loss, stale evidence, taxonomy changes and denominator/scope mismatch.
 - **Uncertainty of comparisons:** future empirical comparisons require a time-based held-out split, paired uncertainty intervals and minimum sample disclosure; no superiority claim from this synthetic v0.1.
