@@ -505,6 +505,24 @@ pub fn evaluate_fixture_bytes(
         })
         .collect();
 
+    let constraint_labels: BTreeMap<&str, &str> = fixture
+        .critical_constraints
+        .iter()
+        .map(|constraint| (constraint.constraint_id.as_str(), constraint.label.as_str()))
+        .collect();
+    let mut blocking_by_pair: BTreeMap<(&str, &str), Vec<ConstraintViolation>> =
+        BTreeMap::new();
+    for outcome in fixture.constraint_outcomes.iter().filter(|outcome| !outcome.satisfied) {
+        blocking_by_pair
+            .entry((outcome.scenario_id.as_str(), outcome.alternative_id.as_str()))
+            .or_default()
+            .push(ConstraintViolation {
+                scenario_id: outcome.scenario_id.clone(),
+                constraint_id: outcome.constraint_id.clone(),
+                label: constraint_labels[ outcome.constraint_id.as_str() ].to_owned(),
+            });
+    }
+
     let mut scorecards = Vec::with_capacity(alternatives.len());
     for alternative in &alternatives {
         let raw_utilities: Vec<f64> = scenario_ids
@@ -535,6 +553,15 @@ pub fn evaluate_fixture_bytes(
             .collect();
         let maximum_regret = raw_regrets.iter().copied().fold(0.0_f64, f64::max);
         let mean_regret = raw_regrets.iter().sum::<f64>() / raw_regrets.len() as f64;
+        let blocking_constraint_violations: Vec<ConstraintViolation> = scenario_ids
+            .iter()
+            .flat_map(|scenario_id| {
+                blocking_by_pair
+                    .get(&(*scenario_id, alternative.alternative_id.as_str()))
+                    .cloned()
+                    .unwrap_or_default()
+            })
+            .collect();
         scorecards.push(AlternativeScorecard {
             alternative_id: alternative.alternative_id.clone(),
             label: alternative.label.clone(),
@@ -542,13 +569,36 @@ pub fn evaluate_fixture_bytes(
             unweighted_mean_utility_points: rounded(mean_utility),
             maximum_regret_points: rounded(maximum_regret),
             unweighted_mean_regret_points: rounded(mean_regret),
-            robustly_qualified: worst_case_utility >= fixture.minimum_worst_case_utility_points,
+            robustly_qualified: worst_case_utility >= fixture.minimum_worst_case_utility_points
+                && blocking_constraint_violations.is_empty(),
+            blocking_constraint_violations,
             scenario_utilities,
         });
     }
 
     let (maximin_winner, minimax_regret_winner) =
         choose_winners_for_scenarios(&scenario_ids, &alternatives, &utility_by_pair);
+    let feasible_alternatives: Vec<&Alternative> = alternatives
+        .iter()
+        .copied()
+        .filter(|alternative| {
+            scorecards.iter().any(|scorecard| {
+                scorecard.alternative_id == alternative.alternative_id
+                    && scorecard.robustly_qualified
+            })
+        })
+        .collect();
+    let (feasible_maximin_winner, feasible_minimax_regret_winner) =
+        if feasible_alternatives.is_empty() {
+            (None, None)
+        } else {
+            let (maximin, regret) = choose_winners_for_scenarios(
+                &scenario_ids,
+                &feasible_alternatives,
+                &utility_by_pair,
+            );
+            (Some(maximin), Some(regret))
+        };
     // Test the composition sensitivity of each decision rule by removing one
     // declared scenario at a time. Remaining cases are not reweighted and are
     // not interpreted as probabilities.
@@ -607,6 +657,8 @@ pub fn evaluate_fixture_bytes(
         scenario_results,
         maximin_winner,
         minimax_regret_winner,
+        feasible_maximin_winner,
+        feasible_minimax_regret_winner,
         scenario_omission_audit,
         maximin_omission_stability_fraction: rounded(maximin_omission_stability_fraction),
         minimax_regret_omission_stability_fraction: rounded(
