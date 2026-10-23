@@ -1083,6 +1083,14 @@ pub fn compile_energy_candidate(
                 interval.interval_id
             )));
         }
+        if interval.resource_available_kwh.iter().any(|resource| {
+            !source_components.contains(resource.component_id.as_str())
+        }) {
+            return Err(EnergyDesignAdapterError::new(format!(
+                "interval {} declares availability for a component the adapter cannot map as a supported source",
+                interval.interval_id
+            )));
+        }
 
         let mut pv_available_kwh = 0.0;
         let mut grid_available_kwh = 0.0;
@@ -1122,6 +1130,12 @@ pub fn compile_energy_candidate(
             config.energy_quantum_kwh,
             "PV availability",
         )?;
+        if interval.grid_outage && grid_available_kwh > ENERGY_ABSOLUTE_TOLERANCE_KWH {
+            return Err(EnergyDesignAdapterError::new(format!(
+                "interval {} is marked as a grid outage but declares positive grid availability",
+                interval.interval_id
+            )));
+        }
         let grid_import_limit_quanta = if interval.grid_outage {
             0
         } else {
