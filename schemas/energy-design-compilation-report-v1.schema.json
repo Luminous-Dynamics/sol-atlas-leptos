@@ -10,6 +10,7 @@
     "candidate_id",
     "candidate_sha256",
     "mapping_config_sha256",
+    "mapping_config",
     "dispatch_request_sha256",
     "synthetic",
     "supported_boundary",
@@ -99,6 +100,9 @@
     },
     "dispatch_request": {
       "$ref": "energy-dispatch-request-v0.1.schema.json"
+    },
+    "mapping_config": {
+      "$ref": "energy-dispatch-mapping-config-v0.1.schema.json"
     }
   }
 }
