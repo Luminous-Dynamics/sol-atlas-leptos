@@ -15,6 +15,7 @@ on:
       - "schemas/vendor/symtropy-energy-system-candidate-v0.1.schema.json"
       - "schemas/examples/energy-design-pv-battery-grid.synthetic.json"
       - "schemas/examples/energy-dispatch-mapping-config.synthetic.json"
+      - "docs/benchmarks/ENERGY_DESIGN_ADAPTER_V0_1.md"
       - ".github/workflows/energy-design-adapter.yml"
   pull_request:
     paths:
@@ -29,6 +30,7 @@ on:
       - "schemas/vendor/symtropy-energy-system-candidate-v0.1.schema.json"
       - "schemas/examples/energy-design-pv-battery-grid.synthetic.json"
       - "schemas/examples/energy-dispatch-mapping-config.synthetic.json"
+      - "docs/benchmarks/ENERGY_DESIGN_ADAPTER_V0_1.md"
       - ".github/workflows/energy-design-adapter.yml"
   workflow_dispatch:
 
