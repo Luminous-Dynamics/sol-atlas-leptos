@@ -57,8 +57,7 @@ impl DispatchMappingConfig {
     }
 }
 
-/// A reproducible mapping receipt around the reduced dispatch request.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// Coverage of each candidate objective in this reduced dispatch model.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ObjectiveCoverage {
     pub objective_id: String,
@@ -67,6 +66,7 @@ pub struct ObjectiveCoverage {
     pub reason: String,
 }
 
+/// A reproducible mapping receipt around the reduced dispatch request.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct EnergyDesignCompilation {
     pub receipt_schema_version: String,
@@ -74,6 +74,7 @@ pub struct EnergyDesignCompilation {
     pub candidate_id: String,
     pub candidate_sha256: String,
     pub mapping_config_sha256: String,
+    pub dispatch_request_sha256: String,
     pub synthetic: bool,
     pub supported_boundary: String,
     pub claim_ceiling: String,
@@ -182,7 +183,6 @@ struct CandidateService {
 
 #[derive(Debug, Deserialize)]
 struct CandidateScenario {
-    scenario_id: String,
     evidence_class: String,
     intervals: Vec<CandidateScenarioInterval>,
 }
@@ -1165,6 +1165,7 @@ pub fn compile_energy_candidate(
             "degradation, uncertainty tree, or hardware behavior"
         )
         .to_owned(),
+        dispatch_request_sha256: sha256_hex(&encoded_request),
         claim_ceiling: concat!(
             "compilation creates a finite dispatch subproblem, not an evaluation result; ",
             "feasibility of that subproblem does not prove full-candidate or physical-site ",
