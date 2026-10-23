@@ -790,6 +790,68 @@ fn validate_candidate_topology(candidate: &CandidateDocument) -> Result<(), Ener
     Ok(())
 }
 
+fn objective_coverage(
+    candidate: &CandidateDocument,
+) -> Result<Vec<ObjectiveCoverage>, EnergyDesignAdapterError> {
+    if candidate.objectives.is_empty() {
+        return Err(EnergyDesignAdapterError::new(
+            "candidate has no declared objectives",
+        ));
+    }
+    let mut seen = BTreeSet::new();
+    let mut coverage = Vec::with_capacity(candidate.objectives.len());
+    for objective in &candidate.objectives {
+        if !seen.insert(objective.objective_id.as_str()) {
+            return Err(EnergyDesignAdapterError::new(format!(
+                "duplicate candidate objective {}",
+                objective.objective_id
+            )));
+        }
+        let item = match objective.objective_id.as_str() {
+            "essential_unserved_energy" if objective.unit == "kWh" && objective.direction == "minimize" => ObjectiveCoverage {
+                objective_id: objective.objective_id.clone(),
+                status: "mapped".to_owned(),
+                mapped_metric: Some("essential_unserved_quanta × energy_quantum_kwh".to_owned()),
+                reason: "The exact subproblem reports unserved essential service in declared integer energy quanta.".to_owned(),
+            },
+            "flexible_unserved_energy" if objective.unit == "kWh" && objective.direction == "minimize" => ObjectiveCoverage {
+                objective_id: objective.objective_id.clone(),
+                status: "mapped".to_owned(),
+                mapped_metric: Some("flexible_unserved_quanta × energy_quantum_kwh".to_owned()),
+                reason: "The exact subproblem reports unserved flexible service in declared integer energy quanta.".to_owned(),
+            },
+            "curtailment" if objective.unit == "kWh" && objective.direction == "minimize" => ObjectiveCoverage {
+                objective_id: objective.objective_id.clone(),
+                status: "partial".to_owned(),
+                mapped_metric: Some("curtailed_pv_quanta × energy_quantum_kwh".to_owned()),
+                reason: "Only PV curtailment is represented; the result is not a complete multi-source curtailment or lifecycle metric.".to_owned(),
+            },
+            "operating_cost" if objective.unit == "currency" && objective.direction == "minimize" => ObjectiveCoverage {
+                objective_id: objective.objective_id.clone(),
+                status: "partial".to_owned(),
+                mapped_metric: Some("grid_import_quanta × explicit grid_cost_units_per_quantum".to_owned()),
+                reason: "Only explicitly supplied grid-import cost units are represented; this is not full-system currency cost and excludes capex, O&M, fuel, degradation, replacement and non-grid operating costs.".to_owned(),
+            },
+            "emissions" if objective.unit == "kg_CO2e" && objective.direction == "minimize" => ObjectiveCoverage {
+                objective_id: objective.objective_id.clone(),
+                status: "partial".to_owned(),
+                mapped_metric: Some("grid_carbon_grams_per_quantum × grid_import_quanta".to_owned()),
+                reason: "Only the explicit grid-import factor is represented in grams; this is not full lifecycle emissions, and unit conversion to kg_CO2e must be explicit in downstream reporting.".to_owned(),
+            },
+            other => ObjectiveCoverage {
+                objective_id: other.to_owned(),
+                status: "not_scored".to_owned(),
+                mapped_metric: None,
+                reason: format!(
+                    "Objective {other} or its direction/unit is outside the v0.1 exact-dispatch objective contract; it was preserved but not scored."
+                ),
+            },
+        };
+        coverage.push(item);
+    }
+    Ok(coverage)
+}
+
 /// Compile a candidate document plus explicit synthetic mapping assumptions into a
 /// bounded dispatch request. The candidate bytes and mapping settings are digest-bound.
 /// Unsupported design features return an error; they are never silently dropped.
@@ -802,6 +864,8 @@ pub fn compile_energy_candidate(
         .map_err(|error| EnergyDesignAdapterError::new(format!("invalid candidate JSON: {error}")))?;
     validate_candidate_topology(&candidate)?;
     let (sources, battery_description) = source_descriptions(&candidate)?;
+    let objective_coverage = objective_coverage(&candidate)?;
+    let requested_evaluations_not_executed = candidate.requested_evaluations.clone();
 
     let source_components: BTreeSet<&str> = sources.keys().map(String::as_str).collect();
     let seconds = candidate.horizon.interval_seconds;
@@ -1027,16 +1091,20 @@ pub fn compile_energy_candidate(
         synthetic: true,
         supported_boundary: concat!(
             "synthetic, single-site, one chronological scenario; electrical kWh service; ",
-            "at most one PV source, one grid source and one battery; no network power flow, ",
-            "thermal/process conversion, degradation, uncertainty tree, or hardware behavior"
+            "at most one PV source, one grid source and one battery; complete shared-bus ",
+            "connectivity required; no network power flow, thermal/process conversion, ",
+            "degradation, uncertainty tree, or hardware behavior"
         )
         .to_owned(),
         claim_ceiling: concat!(
-            "feasibility applies only to the compiled finite dispatch subproblem; it does not ",
-            "prove feasibility of the full candidate graph, a physical site, cost/carbon truth, ",
-            "grid stability, safety, or field performance"
+            "compilation creates a finite dispatch subproblem, not an evaluation result; ",
+            "feasibility of that subproblem does not prove full-candidate or physical-site ",
+            "feasibility. Objective coverage is explicit and partial/not-scored dimensions ",
+            "must not be used to rank whole-system designs."
         )
         .to_owned(),
+        objective_coverage,
+        requested_evaluations_not_executed,
         dispatch_request,
     })
 }
