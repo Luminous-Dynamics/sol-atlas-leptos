@@ -87,7 +87,7 @@ mod tests {
         assert_eq!(compilation, recompiled);
         let output = serde_json::to_value(compilation).unwrap();
         assert_eq!(output["synthetic"], json!(true));
-        assert_eq!(output["claim_ceiling"].as_str().unwrap().contains("does not prove"), true);
+        assert!(output["claim_ceiling"].as_str().unwrap().contains("does not prove"));
     }
 
     #[test]
