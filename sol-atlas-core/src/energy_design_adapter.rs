@@ -487,6 +487,16 @@ fn source_descriptions(
                         "multiple storage components are unsupported in v0.1",
                     ));
                 }
+                let charge_port = component.ports.iter().find(|port| port.port_id == "charge");
+                let discharge_port = component.ports.iter().find(|port| port.port_id == "discharge");
+                if charge_port.is_none_or(|port| port.direction != "input")
+                    || discharge_port.is_none_or(|port| port.direction != "output")
+                {
+                    return Err(EnergyDesignAdapterError::new(format!(
+                        "storage {} must declare input port charge and output port discharge",
+                        component.component_id
+                    )));
+                }
                 let required_claims = [
                     ("capacity_kwh", "kWh"),
                     ("initial_soc_kwh", "kWh"),
@@ -706,6 +716,65 @@ fn validate_candidate_topology(candidate: &CandidateDocument) -> Result<(), Ener
                 "service {} must terminate at a declared sink",
                 service.service_id
             )));
+        }
+    }
+
+    // The reduced dispatch model is a single shared electrical bus with ideal
+    // internal connectivity. Refuse to compile a graph unless its declared edges
+    // actually connect every source to every serviced sink and every battery path
+    // that the dispatcher may use. This prevents a disconnected PV/source from
+    // being treated as freely available energy by the reduced model.
+    let source_ids: Vec<&str> = candidate
+        .components
+        .iter()
+        .filter(|component| component.kind == "source")
+        .map(|component| component.component_id.as_str())
+        .collect();
+    let sink_ids: BTreeSet<&str> = candidate
+        .services
+        .iter()
+        .map(|service| service.component_id.as_str())
+        .collect();
+    let battery_id = candidate
+        .components
+        .iter()
+        .find(|component| component.kind == "storage")
+        .map(|component| component.component_id.as_str());
+
+    for source_id in &source_ids {
+        for sink_id in &sink_ids {
+            if !candidate.connections.iter().any(|connection| {
+                connection.from_component == *source_id
+                    && connection.to_component == *sink_id
+            }) {
+                return Err(EnergyDesignAdapterError::new(format!(
+                    "source {source_id} is not directly connected to serviced sink {sink_id}; shared-bus reduction would otherwise invent a route"
+                )));
+            }
+        }
+        if let Some(battery_id) = battery_id {
+            if !candidate.connections.iter().any(|connection| {
+                connection.from_component == *source_id
+                    && connection.to_component == battery_id
+                    && connection.to_port == "charge"
+            }) {
+                return Err(EnergyDesignAdapterError::new(format!(
+                    "source {source_id} lacks an explicit path to battery {battery_id} charge port"
+                )));
+            }
+        }
+    }
+    if let Some(battery_id) = battery_id {
+        for sink_id in &sink_ids {
+            if !candidate.connections.iter().any(|connection| {
+                connection.from_component == battery_id
+                    && connection.from_port == "discharge"
+                    && connection.to_component == *sink_id
+            }) {
+                return Err(EnergyDesignAdapterError::new(format!(
+                    "battery {battery_id} lacks an explicit discharge path to serviced sink {sink_id}"
+                )));
+            }
         }
     }
 
