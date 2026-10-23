@@ -51,7 +51,11 @@ impl DispatchMappingConfig {
             max_candidate_expansions: 100_000,
             grid_cost_units_per_quantum: 0,
             grid_carbon_grams_per_quantum: 0,
-            factor_basis: "Explicit synthetic fixture factors only; not a real tariff or emissions factor.".to_owned(),
+            factor_basis: concat!(
+                "Explicit synthetic fixture factors only; not a real tariff ",
+                "or emissions factor."
+            )
+            .to_owned(),
             synthetic: true,
         }
     }
@@ -280,7 +284,10 @@ fn numeric_claim(
     }
     if claim.evidence_class != "analyst_assumption" || claim.source_ref.is_some() {
         return Err(EnergyDesignAdapterError::new(format!(
-            "v0.1 adapter accepts only explicitly assumption-classed synthetic parameters; {}.{parameter_id} violates that boundary",
+            concat!(
+                "v0.1 adapter accepts only explicitly assumption-classed synthetic ",
+                "parameters; {}.{parameter_id} violates that boundary"
+            ),
             component.component_id
         )));
     }
@@ -392,7 +399,10 @@ fn validate_config(config: &DispatchMappingConfig) -> Result<(), EnergyDesignAda
     }
     if !config.synthetic {
         return Err(EnergyDesignAdapterError::new(
-            "v0.1 mapping config must be explicitly synthetic; field-factor mappings are not yet qualified",
+            concat!(
+                "v0.1 mapping config must be explicitly synthetic; field-factor ",
+                "mappings are not yet qualified"
+            ),
         ));
     }
     Ok(())
@@ -400,7 +410,10 @@ fn validate_config(config: &DispatchMappingConfig) -> Result<(), EnergyDesignAda
 
 fn source_descriptions(
     candidate: &CandidateDocument,
-) -> Result<(BTreeMap<String, SourceDescription>, Option<BatteryDescription>), EnergyDesignAdapterError> {
+) -> Result<
+    (BTreeMap<String, SourceDescription>, Option<BatteryDescription>),
+    EnergyDesignAdapterError,
+> {
     let mut sources = BTreeMap::new();
     let mut photovoltaic_count = 0;
     let mut grid_count = 0;
@@ -468,7 +481,10 @@ fn source_descriptions(
                     }
                     _ => {
                         return Err(EnergyDesignAdapterError::new(format!(
-                            "source {} lacks one unambiguous PV or grid-import claim; other source types are unsupported in v0.1",
+                            concat!(
+                                "source {} lacks one unambiguous PV or grid-import claim; ",
+                                "other source types are unsupported in v0.1"
+                            ),
                             component.component_id
                         )));
                     }
@@ -500,7 +516,10 @@ fn source_descriptions(
                     )));
                 }
                 let charge_port = component.ports.iter().find(|port| port.port_id == "charge");
-                let discharge_port = component.ports.iter().find(|port| port.port_id == "discharge");
+                let discharge_port = component
+                    .ports
+                    .iter()
+                    .find(|port| port.port_id == "discharge");
                 if charge_port.is_none_or(|port| port.direction != "input")
                     || discharge_port.is_none_or(|port| port.direction != "output")
                 {
@@ -534,12 +553,18 @@ fn source_descriptions(
                     }
                 }
                 let capacity_kwh = numeric_claim(component, "capacity_kwh", "kWh", true)?.unwrap();
-                let initial_soc_kwh = numeric_claim(component, "initial_soc_kwh", "kWh", true)?.unwrap();
-                let terminal_reserve_kwh = numeric_claim(component, "terminal_reserve_kwh", "kWh", true)?.unwrap();
-                let max_charge_power_kw = numeric_claim(component, "max_charge_power_kw", "kW", true)?.unwrap();
-                let max_discharge_power_kw = numeric_claim(component, "max_discharge_power_kw", "kW", true)?.unwrap();
-                let charge_efficiency = numeric_claim(component, "charge_efficiency", "unitless", true)?.unwrap();
-                let discharge_efficiency = numeric_claim(component, "discharge_efficiency", "unitless", true)?.unwrap();
+                let initial_soc_kwh =
+                    numeric_claim(component, "initial_soc_kwh", "kWh", true)?.unwrap();
+                let terminal_reserve_kwh =
+                    numeric_claim(component, "terminal_reserve_kwh", "kWh", true)?.unwrap();
+                let max_charge_power_kw =
+                    numeric_claim(component, "max_charge_power_kw", "kW", true)?.unwrap();
+                let max_discharge_power_kw =
+                    numeric_claim(component, "max_discharge_power_kw", "kW", true)?.unwrap();
+                let charge_efficiency =
+                    numeric_claim(component, "charge_efficiency", "unitless", true)?.unwrap();
+                let discharge_efficiency =
+                    numeric_claim(component, "discharge_efficiency", "unitless", true)?.unwrap();
                 if initial_soc_kwh > capacity_kwh || terminal_reserve_kwh > capacity_kwh {
                     return Err(EnergyDesignAdapterError::new(format!(
                         "storage {} initial SOC or terminal reserve exceeds capacity",
@@ -594,7 +619,10 @@ fn source_descriptions(
         for claim in &component.parameter_claims {
             if claim.evidence_class != "analyst_assumption" || claim.source_ref.is_some() {
                 return Err(EnergyDesignAdapterError::new(format!(
-                    "v0.1 only maps synthetic assumption-classed parameter claims; {}.{} has a different evidence class",
+                    concat!(
+                        "v0.1 only maps synthetic assumption-classed parameter claims; ",
+                        "{}.{} has a different evidence class"
+                    ),
                     component.component_id, claim.parameter_id
                 )));
             }
@@ -609,7 +637,9 @@ fn source_descriptions(
     Ok((sources, battery))
 }
 
-fn validate_candidate_topology(candidate: &CandidateDocument) -> Result<(), EnergyDesignAdapterError> {
+fn validate_candidate_topology(
+    candidate: &CandidateDocument,
+) -> Result<(), EnergyDesignAdapterError> {
     if candidate.schema_version != CANDIDATE_SCHEMA_VERSION {
         return Err(EnergyDesignAdapterError::new(format!(
             "unsupported candidate schema version {}",
@@ -631,7 +661,10 @@ fn validate_candidate_topology(candidate: &CandidateDocument) -> Result<(), Ener
     }
     if candidate.scenarios.len() != 1 {
         return Err(EnergyDesignAdapterError::new(
-            "v0.1 maps exactly one scenario; scenario-tree and multi-scenario semantics are unsupported",
+            concat!(
+                "v0.1 maps exactly one scenario; scenario-tree and multi-scenario ",
+                "semantics are unsupported"
+            ),
         ));
     }
     if candidate.horizon.interval_seconds == 0
@@ -782,7 +815,10 @@ fn validate_candidate_topology(candidate: &CandidateDocument) -> Result<(), Ener
         };
         if !allowed {
             return Err(EnergyDesignAdapterError::new(format!(
-                "connection {} is outside the supported source-to-sink/source-to-battery/battery-to-sink topology",
+                concat!(
+                    "connection {} is outside the supported source-to-sink/",
+                    "source-to-battery/battery-to-sink topology"
+                ),
                 connection.connection_id
             )));
         }
@@ -795,7 +831,10 @@ fn validate_candidate_topology(candidate: &CandidateDocument) -> Result<(), Ener
                     && connection.to_component == *sink_id
             }) {
                 return Err(EnergyDesignAdapterError::new(format!(
-                    "source {source_id} is not directly connected to serviced sink {sink_id}; shared-bus reduction would otherwise invent a route"
+                    concat!(
+                        "source {source_id} is not directly connected to serviced sink ",
+                        "{sink_id}; shared-bus reduction would otherwise invent a route"
+                    )
                 )));
             }
         }
@@ -819,7 +858,10 @@ fn validate_candidate_topology(candidate: &CandidateDocument) -> Result<(), Ener
                     && connection.to_component == *sink_id
             }) {
                 return Err(EnergyDesignAdapterError::new(format!(
-                    "battery {battery_id} lacks an explicit discharge path to serviced sink {sink_id}"
+                    concat!(
+                        "battery {battery_id} lacks an explicit discharge path to serviced ",
+                        "sink {sink_id}"
+                    )
                 )));
             }
         }
@@ -839,7 +881,10 @@ fn validate_candidate_topology(candidate: &CandidateDocument) -> Result<(), Ener
     for interval in &scenario.intervals {
         if interval.duration_seconds != interval_seconds {
             return Err(EnergyDesignAdapterError::new(
-                "variable interval durations are unsupported because dispatch power limits are fixed per step",
+                concat!(
+                    "variable interval durations are unsupported because dispatch power ",
+                    "limits are fixed per step"
+                ),
             ));
         }
         if interval.start_unix_seconds != expected_start {
@@ -977,7 +1022,9 @@ pub fn compile_energy_candidate(
 ) -> Result<EnergyDesignCompilation, EnergyDesignAdapterError> {
     validate_config(config)?;
     let candidate: CandidateDocument = serde_json::from_slice(raw_candidate)
-        .map_err(|error| EnergyDesignAdapterError::new(format!("invalid candidate JSON: {error}")))?;
+        .map_err(|error| {
+            EnergyDesignAdapterError::new(format!("invalid candidate JSON: {error}"))
+        })?;
     validate_candidate_topology(&candidate)?;
     let (sources, battery_description) = source_descriptions(&candidate)?;
     let objective_coverage = objective_coverage(&candidate)?;
@@ -1087,7 +1134,10 @@ pub fn compile_energy_candidate(
             !source_components.contains(resource.component_id.as_str())
         }) {
             return Err(EnergyDesignAdapterError::new(format!(
-                "interval {} declares availability for a component the adapter cannot map as a supported source",
+                concat!(
+                    "interval {} declares availability for a component the adapter ",
+                    "cannot map as a supported source"
+                ),
                 interval.interval_id
             )));
         }
@@ -1208,9 +1258,17 @@ pub fn compile_energy_candidate(
         intervals,
     };
     let encoded_request = serde_json::to_vec(&dispatch_request)
-        .map_err(|error| EnergyDesignAdapterError::new(format!("cannot serialize dispatch request: {error}")))?;
+        .map_err(|error| {
+            EnergyDesignAdapterError::new(format!(
+                "cannot serialize dispatch request: {error}"
+            ))
+        })?;
     let encoded_config = serde_json::to_vec(config)
-        .map_err(|error| EnergyDesignAdapterError::new(format!("cannot serialize mapping config: {error}")))?;
+        .map_err(|error| {
+            EnergyDesignAdapterError::new(format!(
+                "cannot serialize mapping config: {error}"
+            ))
+        })?;
 
     Ok(EnergyDesignCompilation {
         receipt_schema_version: "1".to_owned(),
@@ -1271,7 +1329,8 @@ mod tests {
         assert_eq!(compiled.dispatch_request.intervals[1].essential_demand_quanta, 2);
 
         let dispatch =
-            assess_energy_dispatch(&compiled.dispatch_request).expect("bounded oracle solves mapped case");
+            assess_energy_dispatch(&compiled.dispatch_request)
+                .expect("bounded oracle solves mapped case");
         assert!(dispatch.search_is_exact);
         assert!(dispatch.pareto_frontier_complete);
         assert_eq!(
