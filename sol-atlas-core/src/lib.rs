@@ -23,6 +23,7 @@ pub mod energy_ports;
 pub mod energy_service;
 pub mod energy_reliability;
 pub mod energy_dispatch;
+pub mod energy_design_adapter;
 pub mod geo;
 pub mod lod;
 pub mod mycelix_flows;

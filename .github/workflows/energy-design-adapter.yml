@@ -1,0 +1,137 @@
+name: Energy design candidate dispatch adapter
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "sol-atlas-core/src/energy_design_adapter.rs"
+      - "sol-atlas-core/src/bin/energy_design_dispatch_compile.rs"
+      - "sol-atlas-core/src/energy_dispatch.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/energy-design-compilation-report-v1.schema.json"
+      - "schemas/energy-dispatch-mapping-config-v0.1.schema.json"
+      - "schemas/energy-dispatch-request-v0.1.schema.json"
+      - "schemas/energy-dispatch-report-v1.schema.json"
+      - "schemas/vendor/symtropy-energy-system-candidate-v0.1.schema.json"
+      - "schemas/examples/energy-design-pv-battery-grid.synthetic.json"
+      - "schemas/examples/energy-dispatch-mapping-config.synthetic.json"
+      - "docs/benchmarks/ENERGY_DESIGN_ADAPTER_V0_1.md"
+      - ".github/workflows/energy-design-adapter.yml"
+  pull_request:
+    paths:
+      - "sol-atlas-core/src/energy_design_adapter.rs"
+      - "sol-atlas-core/src/bin/energy_design_dispatch_compile.rs"
+      - "sol-atlas-core/src/energy_dispatch.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/energy-design-compilation-report-v1.schema.json"
+      - "schemas/energy-dispatch-mapping-config-v0.1.schema.json"
+      - "schemas/energy-dispatch-request-v0.1.schema.json"
+      - "schemas/energy-dispatch-report-v1.schema.json"
+      - "schemas/vendor/symtropy-energy-system-candidate-v0.1.schema.json"
+      - "schemas/examples/energy-design-pv-battery-grid.synthetic.json"
+      - "schemas/examples/energy-dispatch-mapping-config.synthetic.json"
+      - "docs/benchmarks/ENERGY_DESIGN_ADAPTER_V0_1.md"
+      - ".github/workflows/energy-design-adapter.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  adapter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Check Sol-Atlas core formatting
+        run: cargo fmt --check -p sol-atlas-core
+      - name: Test candidate adapter and negative controls
+        run: cargo test -p sol-atlas-core --lib energy_design_adapter
+      - name: Test receipt-wrapped candidate compilation CLI
+        run: cargo test -p sol-atlas-core --bin energy_design_dispatch_compile
+      - name: Compile shared candidate fixture to the exact dispatch request
+        run: cargo run -q -p sol-atlas-core --bin energy_design_dispatch_compile -- schemas/examples/energy-design-pv-battery-grid.synthetic.json schemas/examples/energy-dispatch-mapping-config.synthetic.json > /tmp/energy-design-compilation.json
+      - name: Validate schemas, mapping receipt, and exact dispatch result
+        run: |
+          python -m pip install --disable-pip-version-check "jsonschema[format]==4.26.0"
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          from referencing import Registry, Resource
+          from jsonschema import Draft202012Validator, FormatChecker
+
+          def read_json(path):
+              return json.loads(Path(path).read_text())
+
+          candidate_path = Path("schemas/examples/energy-design-pv-battery-grid.synthetic.json")
+          config_path = Path("schemas/examples/energy-dispatch-mapping-config.synthetic.json")
+          compilation_path = Path("/tmp/energy-design-compilation.json")
+          candidate_raw = candidate_path.read_bytes()
+          config_raw = config_path.read_bytes()
+          candidate = json.loads(candidate_raw)
+          config = json.loads(config_raw)
+          compilation = json.loads(compilation_path.read_text())
+
+          candidate_schema = read_json("schemas/vendor/symtropy-energy-system-candidate-v0.1.schema.json")
+          config_schema = read_json("schemas/energy-dispatch-mapping-config-v0.1.schema.json")
+          report_schema = read_json("schemas/energy-design-compilation-report-v1.schema.json")
+          request_schema = read_json("schemas/energy-dispatch-request-v0.1.schema.json")
+          dispatch_report_schema = read_json("schemas/energy-dispatch-report-v1.schema.json")
+          for schema in (candidate_schema, config_schema, report_schema, request_schema, dispatch_report_schema):
+              Draft202012Validator.check_schema(schema)
+
+          Draft202012Validator(candidate_schema, format_checker=FormatChecker()).validate(candidate)
+          Draft202012Validator(config_schema, format_checker=FormatChecker()).validate(config)
+
+          registry = Registry().with_resource(
+              request_schema["$id"], Resource.from_contents(request_schema)
+          ).with_resource(
+              config_schema["$id"], Resource.from_contents(config_schema)
+          )
+          Draft202012Validator(report_schema, registry=registry).validate(compilation)
+          mapped_request = compilation["dispatch_request"]
+          Draft202012Validator(request_schema, format_checker=FormatChecker()).validate(mapped_request)
+
+          assert hashlib.sha256(candidate_raw).hexdigest() == compilation["candidate_sha256"]
+          encoded_config = json.dumps(config, separators=(",", ":"), ensure_ascii=False).encode()
+          assert hashlib.sha256(encoded_config).hexdigest() == compilation["mapping_config_sha256"]
+          assert compilation["mapping_config"] == config
+          Draft202012Validator(config_schema, format_checker=FormatChecker()).validate(compilation["mapping_config"])
+          encoded_dispatch = json.dumps(mapped_request, separators=(",", ":"), ensure_ascii=False).encode()
+          assert hashlib.sha256(encoded_dispatch).hexdigest() == compilation["dispatch_request_sha256"]
+          assert compilation["candidate_id"] == "synthetic-pv-battery-grid"
+          assert compilation["synthetic"] is True
+          assert compilation["objective_coverage"]
+          assert any(item["objective_id"] == "operating_cost" and item["status"] == "partial"
+                     for item in compilation["objective_coverage"])
+          assert any(item["objective_id"] == "essential_unserved_energy" and item["status"] == "mapped"
+                     for item in compilation["objective_coverage"])
+          assert set(compilation["requested_evaluations_not_executed"]) == set(candidate["requested_evaluations"])
+
+          Path("/tmp/mapped-dispatch-request.json").write_text(
+              json.dumps(mapped_request, indent=2, ensure_ascii=False) + "\n"
+          )
+          print("candidate schema, explicit mapping policy, compilation schema and digest bindings passed")
+          PY
+          cargo run -q -p sol-atlas-core --bin energy_dispatch_assess -- /tmp/mapped-dispatch-request.json > /tmp/mapped-dispatch-assessment.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+
+          schema = json.loads(Path("schemas/energy-dispatch-report-v1.schema.json").read_text())
+          report = json.loads(Path("/tmp/mapped-dispatch-assessment.json").read_text())
+          Draft202012Validator.check_schema(schema)
+          Draft202012Validator(schema).validate(report["assessment"])
+          assessment = report["assessment"]
+          assert assessment["search_is_exact"] is True
+          assert assessment["pareto_frontier_complete"] is True
+          assert assessment["pareto_alternatives"][0]["objective"]["essential_unserved_quanta"] == 0
+          assert len(assessment["intervals"]) == 2
+          assert assessment["intervals"][1]["grid_outage"] is True
+          assert assessment["intervals"][1]["delivered_energy_kwh"] == 2.0
+          assert assessment["intervals"][1]["unserved_energy_kwh"] == 0.0
+          print("candidate-to-oracle frozen PV/storage/outage known answer passed")
+          PY
