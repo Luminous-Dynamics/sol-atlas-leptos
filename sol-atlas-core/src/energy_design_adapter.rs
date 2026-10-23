@@ -78,6 +78,7 @@ pub struct EnergyDesignCompilation {
     pub candidate_id: String,
     pub candidate_sha256: String,
     pub mapping_config_sha256: String,
+    pub mapping_config: DispatchMappingConfig,
     pub dispatch_request_sha256: String,
     pub synthetic: bool,
     pub supported_boundary: String,
@@ -1329,6 +1330,7 @@ pub fn compile_energy_candidate(
         candidate_id: candidate.candidate_id,
         candidate_sha256: sha256_hex(raw_candidate),
         mapping_config_sha256: sha256_hex(&encoded_config),
+        mapping_config: config.clone(),
         synthetic: true,
         supported_boundary: concat!(
             "synthetic, single-site, one chronological scenario; electrical kWh service; ",
