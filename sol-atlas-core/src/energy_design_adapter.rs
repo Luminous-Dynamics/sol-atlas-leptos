@@ -59,6 +59,7 @@ impl DispatchMappingConfig {
 
 /// A reproducible mapping receipt around the reduced dispatch request.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ObjectiveCoverage {
     pub objective_id: String,
     pub status: String,
