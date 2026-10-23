@@ -969,42 +969,95 @@ fn objective_coverage(
             )));
         }
         let item = match objective.objective_id.as_str() {
-            "essential_unserved_energy" if objective.unit == "kWh" && objective.direction == "minimize" => ObjectiveCoverage {
-                objective_id: objective.objective_id.clone(),
-                status: "mapped".to_owned(),
-                mapped_metric: Some("essential_unserved_quanta × energy_quantum_kwh".to_owned()),
-                reason: "The exact subproblem reports unserved essential service in declared integer energy quanta.".to_owned(),
-            },
-            "flexible_unserved_energy" if objective.unit == "kWh" && objective.direction == "minimize" => ObjectiveCoverage {
-                objective_id: objective.objective_id.clone(),
-                status: "mapped".to_owned(),
-                mapped_metric: Some("flexible_unserved_quanta × energy_quantum_kwh".to_owned()),
-                reason: "The exact subproblem reports unserved flexible service in declared integer energy quanta.".to_owned(),
-            },
-            "curtailment" if objective.unit == "kWh" && objective.direction == "minimize" => ObjectiveCoverage {
-                objective_id: objective.objective_id.clone(),
-                status: "partial".to_owned(),
-                mapped_metric: Some("curtailed_pv_quanta × energy_quantum_kwh".to_owned()),
-                reason: "Only PV curtailment is represented; the result is not a complete multi-source curtailment or lifecycle metric.".to_owned(),
-            },
-            "operating_cost" if objective.unit == "currency" && objective.direction == "minimize" => ObjectiveCoverage {
-                objective_id: objective.objective_id.clone(),
-                status: "partial".to_owned(),
-                mapped_metric: Some("grid_import_quanta × explicit grid_cost_units_per_quantum".to_owned()),
-                reason: "Only explicitly supplied grid-import cost units are represented; this is not full-system currency cost and excludes capex, O&M, fuel, degradation, replacement and non-grid operating costs.".to_owned(),
-            },
-            "emissions" if objective.unit == "kg_CO2e" && objective.direction == "minimize" => ObjectiveCoverage {
-                objective_id: objective.objective_id.clone(),
-                status: "partial".to_owned(),
-                mapped_metric: Some("grid_carbon_grams_per_quantum × grid_import_quanta".to_owned()),
-                reason: "Only the explicit grid-import factor is represented in grams; this is not full lifecycle emissions, and unit conversion to kg_CO2e must be explicit in downstream reporting.".to_owned(),
-            },
+            "essential_unserved_energy"
+                if objective.unit == "kWh" && objective.direction == "minimize" =>
+            {
+                ObjectiveCoverage {
+                    objective_id: objective.objective_id.clone(),
+                    status: "mapped".to_owned(),
+                    mapped_metric: Some(
+                        "essential_unserved_quanta × energy_quantum_kwh".to_owned(),
+                    ),
+                    reason: concat!(
+                        "The exact subproblem reports unserved essential service in ",
+                        "declared integer energy quanta."
+                    )
+                    .to_owned(),
+                }
+            }
+            "flexible_unserved_energy"
+                if objective.unit == "kWh" && objective.direction == "minimize" =>
+            {
+                ObjectiveCoverage {
+                    objective_id: objective.objective_id.clone(),
+                    status: "mapped".to_owned(),
+                    mapped_metric: Some(
+                        "flexible_unserved_quanta × energy_quantum_kwh".to_owned(),
+                    ),
+                    reason: concat!(
+                        "The exact subproblem reports unserved flexible service in ",
+                        "declared integer energy quanta."
+                    )
+                    .to_owned(),
+                }
+            }
+            "curtailment"
+                if objective.unit == "kWh" && objective.direction == "minimize" =>
+            {
+                ObjectiveCoverage {
+                    objective_id: objective.objective_id.clone(),
+                    status: "partial".to_owned(),
+                    mapped_metric: Some(
+                        "curtailed_pv_quanta × energy_quantum_kwh".to_owned(),
+                    ),
+                    reason: concat!(
+                        "Only PV curtailment is represented; the result is not a complete ",
+                        "multi-source curtailment or lifecycle metric."
+                    )
+                    .to_owned(),
+                }
+            }
+            "operating_cost"
+                if objective.unit == "currency" && objective.direction == "minimize" =>
+            {
+                ObjectiveCoverage {
+                    objective_id: objective.objective_id.clone(),
+                    status: "partial".to_owned(),
+                    mapped_metric: Some(
+                        "grid_import_quanta × explicit grid_cost_units_per_quantum".to_owned(),
+                    ),
+                    reason: concat!(
+                        "Only explicitly supplied grid-import cost units are represented; ",
+                        "this is not full-system currency cost and excludes capital cost, ",
+                        "O&M, fuel, degradation, replacement and non-grid operating costs."
+                    )
+                    .to_owned(),
+                }
+            }
+            "emissions" if objective.unit == "kg_CO2e" && objective.direction == "minimize" => {
+                ObjectiveCoverage {
+                    objective_id: objective.objective_id.clone(),
+                    status: "partial".to_owned(),
+                    mapped_metric: Some(
+                        "grid_carbon_grams_per_quantum × grid_import_quanta".to_owned(),
+                    ),
+                    reason: concat!(
+                        "Only the explicit grid-import factor is represented in grams; ",
+                        "this is not full lifecycle emissions, and unit conversion to ",
+                        "kg_CO2e must be explicit in downstream reporting."
+                    )
+                    .to_owned(),
+                }
+            }
             other => ObjectiveCoverage {
                 objective_id: other.to_owned(),
                 status: "not_scored".to_owned(),
                 mapped_metric: None,
                 reason: format!(
-                    "Objective {other} or its direction/unit is outside the v0.1 exact-dispatch objective contract; it was preserved but not scored."
+                    concat!(
+                        "Objective {other} or its direction/unit is outside the v0.1 ",
+                        "exact-dispatch objective contract; it was preserved but not scored."
+                    )
                 ),
             },
         };
