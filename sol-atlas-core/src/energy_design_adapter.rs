@@ -1023,7 +1023,7 @@ pub fn compile_energy_candidate(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::energy_dispatch::{EnergyDispatchError, assess_energy_dispatch};
+    use crate::energy_dispatch::assess_energy_dispatch;
 
     const FIXTURE: &str =
         include_str!("../../schemas/examples/energy-design-pv-battery-grid.synthetic.json");
@@ -1099,7 +1099,7 @@ mod tests {
     fn rejects_non_quantized_energy_instead_of_rounding_silently() {
         let mut candidate: Value = serde_json::from_str(FIXTURE).unwrap();
         candidate["scenarios"][0]["intervals"][0]["resource_available_kwh"][0]
-            ["available_kwh"] = serde_json::json!(2.25);
+            ["available_kwh"] = serde_json::json!(1.25);
         let raw = serde_json::to_vec(&candidate).unwrap();
         let error = compile_energy_candidate(&raw, &config()).unwrap_err();
         assert!(error.reason.contains("integer multiple"));
