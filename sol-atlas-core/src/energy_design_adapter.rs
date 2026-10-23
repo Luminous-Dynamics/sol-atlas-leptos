@@ -59,6 +59,14 @@ impl DispatchMappingConfig {
 
 /// A reproducible mapping receipt around the reduced dispatch request.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ObjectiveCoverage {
+    pub objective_id: String,
+    pub status: String,
+    pub mapped_metric: Option<String>,
+    pub reason: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct EnergyDesignCompilation {
     pub receipt_schema_version: String,
     pub mapping_schema_version: String,
@@ -68,6 +76,9 @@ pub struct EnergyDesignCompilation {
     pub synthetic: bool,
     pub supported_boundary: String,
     pub claim_ceiling: String,
+    pub objective_coverage: Vec<ObjectiveCoverage>,
+    /// Compilation is not itself execution: all caller-requested evaluations remain pending.
+    pub requested_evaluations_not_executed: Vec<String>,
     pub dispatch_request: EnergyDispatchRequest,
 }
 
@@ -104,6 +115,8 @@ struct CandidateDocument {
     connections: Vec<CandidateConnection>,
     services: Vec<CandidateService>,
     scenarios: Vec<CandidateScenario>,
+    objectives: Vec<CandidateObjective>,
+    requested_evaluations: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -147,6 +160,13 @@ struct CandidateConnection {
     to_component: String,
     to_port: String,
     carrier: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct CandidateObjective {
+    objective_id: String,
+    direction: String,
+    unit: String,
 }
 
 #[derive(Debug, Deserialize)]
