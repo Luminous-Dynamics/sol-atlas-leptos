@@ -1484,6 +1484,51 @@ mod tests {
     }
 
     #[test]
+    fn reports_unmapped_objectives_instead_of_dropping_them() {
+        let mut candidate: Value = serde_json::from_str(FIXTURE).unwrap();
+        candidate["objectives"]
+            .as_array_mut()
+            .unwrap()
+            .push(serde_json::json!({
+                "objective_id":"water_use",
+                "direction":"minimize",
+                "unit":"L",
+                "description":"Not represented by the electrical dispatch subproblem."
+            }));
+        let raw = serde_json::to_vec(&candidate).unwrap();
+        let result = compile_energy_candidate(&raw, &config()).unwrap();
+        let water = result
+            .objective_coverage
+            .iter()
+            .find(|item| item.objective_id == "water_use")
+            .unwrap();
+        assert_eq!(water.status, "not_scored");
+        assert!(water.mapped_metric.is_none());
+    }
+
+    #[test]
+    fn rejects_positive_grid_availability_during_an_outage() {
+        let mut candidate: Value = serde_json::from_str(FIXTURE).unwrap();
+        candidate["scenarios"][0]["intervals"][1]["resource_available_kwh"][1]
+            ["available_kwh"] = serde_json::json!(1.0);
+        let raw = serde_json::to_vec(&candidate).unwrap();
+        let error = compile_energy_candidate(&raw, &config()).unwrap_err();
+        assert!(error.reason.contains("marked as a grid outage"));
+    }
+
+    #[test]
+    fn rejects_missing_grid_to_battery_path() {
+        let mut candidate: Value = serde_json::from_str(FIXTURE).unwrap();
+        candidate["connections"]
+            .as_array_mut()
+            .unwrap()
+            .retain(|connection| connection["connection_id"] != "grid-to-battery-charge");
+        let raw = serde_json::to_vec(&candidate).unwrap();
+        let error = compile_energy_candidate(&raw, &config()).unwrap_err();
+        assert!(error.reason.contains("lacks an explicit path to battery"));
+    }
+
+    #[test]
     fn rejects_invalid_quantum_and_candidate_expansion_cap() {
         let mut invalid_config = config();
         invalid_config.energy_quantum_kwh = 0.0;
