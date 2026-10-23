@@ -409,6 +409,12 @@ fn source_descriptions(
     for component in &candidate.components {
         match component.kind.as_str() {
             "source" => {
+                if component.ports.len() != 1 {
+                    return Err(EnergyDesignAdapterError::new(format!(
+                        "source {} must expose exactly one output port in v0.1",
+                        component.component_id
+                    )));
+                }
                 let pv_claim = claim_by_id(component, "interval_available_energy_cap_kwh");
                 let grid_claim = claim_by_id(component, "interval_import_energy_cap_kwh");
                 let source = match (pv_claim, grid_claim) {
@@ -487,6 +493,12 @@ fn source_descriptions(
                         "multiple storage components are unsupported in v0.1",
                     ));
                 }
+                if component.ports.len() != 2 {
+                    return Err(EnergyDesignAdapterError::new(format!(
+                        "storage {} must expose exactly charge and discharge ports",
+                        component.component_id
+                    )));
+                }
                 let charge_port = component.ports.iter().find(|port| port.port_id == "charge");
                 let discharge_port = component.ports.iter().find(|port| port.port_id == "discharge");
                 if charge_port.is_none_or(|port| port.direction != "input")
@@ -553,6 +565,12 @@ fn source_descriptions(
                 });
             }
             "sink" => {
+                if component.ports.len() != 1 || component.ports[0].port_id != "supply" {
+                    return Err(EnergyDesignAdapterError::new(format!(
+                        "sink {} must expose exactly one supply port in v0.1",
+                        component.component_id
+                    )));
+                }
                 for port in &component.ports {
                     if port.carrier != "electricity"
                         || port.unit != "kWh"
@@ -740,6 +758,35 @@ fn validate_candidate_topology(candidate: &CandidateDocument) -> Result<(), Ener
         .iter()
         .find(|component| component.kind == "storage")
         .map(|component| component.component_id.as_str());
+
+    for connection in &candidate.connections {
+        let from_kind = component_kinds
+            .get(connection.from_component.as_str())
+            .copied()
+            .unwrap_or("");
+        let to_kind = component_kinds
+            .get(connection.to_component.as_str())
+            .copied()
+            .unwrap_or("");
+        let allowed = match (from_kind, to_kind) {
+            ("source", "sink") => true,
+            ("source", "storage") => {
+                Some(connection.to_component.as_str()) == battery_id
+                    && connection.to_port == "charge"
+            }
+            ("storage", "sink") => {
+                Some(connection.from_component.as_str()) == battery_id
+                    && connection.from_port == "discharge"
+            }
+            _ => false,
+        };
+        if !allowed {
+            return Err(EnergyDesignAdapterError::new(format!(
+                "connection {} is outside the supported source-to-sink/source-to-battery/battery-to-sink topology",
+                connection.connection_id
+            )));
+        }
+    }
 
     for source_id in &source_ids {
         for sink_id in &sink_ids {
@@ -1252,6 +1299,18 @@ mod tests {
         let raw = serde_json::to_vec(&candidate).unwrap();
         let error = compile_energy_candidate(&raw, &config()).unwrap_err();
         assert!(error.reason.contains("terminal_reserve_kwh"));
+    }
+
+    #[test]
+    fn rejects_disconnected_source_instead_of_counting_its_energy() {
+        let mut candidate: Value = serde_json::from_str(FIXTURE).unwrap();
+        candidate["connections"]
+            .as_array_mut()
+            .unwrap()
+            .retain(|connection| connection["connection_id"] != "pv-to-essential-load");
+        let raw = serde_json::to_vec(&candidate).unwrap();
+        let error = compile_energy_candidate(&raw, &config()).unwrap_err();
+        assert!(error.reason.contains("not directly connected to serviced sink"));
     }
 
     #[test]
