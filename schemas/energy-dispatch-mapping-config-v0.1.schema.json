@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/energy-dispatch-mapping-config-v0.1.schema.json",
+  "title": "Explicit synthetic candidate-to-dispatch mapping config v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "energy_quantum_kwh",
+    "max_candidate_expansions",
+    "grid_cost_units_per_quantum",
+    "grid_carbon_grams_per_quantum",
+    "factor_basis",
+    "synthetic"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "energy-dispatch-mapping-v0.1"
+    },
+    "energy_quantum_kwh": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "max_candidate_expansions": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000
+    },
+    "grid_cost_units_per_quantum": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "grid_carbon_grams_per_quantum": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "factor_basis": {
+      "type": "string",
+      "minLength": 1
+    },
+    "synthetic": {
+      "const": true
+    }
+  }
+}
