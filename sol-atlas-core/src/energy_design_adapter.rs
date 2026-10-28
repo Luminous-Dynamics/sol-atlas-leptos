@@ -287,9 +287,10 @@ fn numeric_claim(
         return Err(EnergyDesignAdapterError::new(format!(
             concat!(
                 "v0.1 adapter accepts only explicitly assumption-classed synthetic ",
-                "parameters; {}.{parameter_id} violates that boundary"
+                "parameters; {}.{} violates that boundary"
             ),
-            component.component_id
+            component.component_id,
+            parameter_id
         )));
     }
     let value = claim.value.as_f64().ok_or_else(|| {
@@ -833,9 +834,11 @@ fn validate_candidate_topology(
             }) {
                 return Err(EnergyDesignAdapterError::new(format!(
                     concat!(
-                        "source {source_id} is not directly connected to serviced sink ",
-                        "{sink_id}; shared-bus reduction would otherwise invent a route"
-                    )
+                        "source {} is not directly connected to serviced sink ",
+                        "{}; shared-bus reduction would otherwise invent a route"
+                    ),
+                    source_id,
+                    sink_id
                 )));
             }
         }
@@ -860,9 +863,11 @@ fn validate_candidate_topology(
             }) {
                 return Err(EnergyDesignAdapterError::new(format!(
                     concat!(
-                        "battery {battery_id} lacks an explicit discharge path to serviced ",
-                        "sink {sink_id}"
-                    )
+                        "battery {} lacks an explicit discharge path to serviced ",
+                        "sink {}"
+                    ),
+                    battery_id,
+                    sink_id
                 )));
             }
         }
@@ -1056,9 +1061,10 @@ fn objective_coverage(
                 mapped_metric: None,
                 reason: format!(
                     concat!(
-                        "Objective {other} or its direction/unit is outside the v0.1 ",
+                        "Objective {} or its direction/unit is outside the v0.1 ",
                         "exact-dispatch objective contract; it was preserved but not scored."
-                    )
+                    ),
+                    other
                 ),
             },
         };
