@@ -2028,7 +2028,6 @@ dependencies = [
  "leptos_meta",
  "leptos_router",
  "log",
- "mycelix-leptos-core",
  "serde",
  "serde_json",
  "sol-atlas-core",
