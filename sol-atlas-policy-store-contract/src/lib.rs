@@ -237,7 +237,6 @@ impl RecoveryAuthorizationOrchestrationStateV1 {
     }
 }
 
-
 /// Pure effect orchestration observation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RecoveryEffectOrchestrationStateV1 {

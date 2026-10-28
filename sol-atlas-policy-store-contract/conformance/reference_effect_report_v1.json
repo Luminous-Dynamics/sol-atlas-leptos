@@ -1,12 +1,12 @@
 {
   "schema": "sol-atlas:recovery-execution-effect-conformance-report:v1",
   "adapter_id": "reference-memory-resource",
-  "adapter_revision": "4d2e2d85580b11481b49708602ec175451e1979b",
+  "adapter_revision": "4551d371ac34fc32c461947e4e250ebb63fd21f4",
   "harness_id": "sol-atlas-protected-effect-conformance",
-  "harness_revision": "b052c6fb4ed42ce33606e9e46a58e2080d7650cd",
+  "harness_revision": "52d3c57077bee15eb5cd0509d125f8df55614310",
   "profile_digest": "sha256:aad6fb3dcca35f7427626ddea15b03853a7672708fed5c39c0427448f9d07af2",
   "evidence_digest": "sha256:0bfdf18d980109472544bb0c32f60467430d60392c4ca326a3ff0c4545f32c69",
-  "report_digest": "sha256:b32760401365d6acf6e5020e3815082b025ff64605bdf95c96590a0b18112735",
+  "report_digest": "sha256:ba084e620e6a73775680a9d452d1aa6ce13d0086bdd5590a84f7da045fc59308",
   "evidence": {
     "current_fence_accepted": true,
     "stale_fence_rejected": true,

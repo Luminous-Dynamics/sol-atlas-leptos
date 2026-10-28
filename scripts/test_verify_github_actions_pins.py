@@ -67,6 +67,7 @@ jobs:
         with:
           path: |
             artifacts/github-oidc-claims.json
+            artifacts/github-oidc-subject-configuration.json
             artifacts/gcs-wif-credential-config-verification.json
             artifacts/gcs-wif-trust-verification.json
             artifacts/github-workflow-run-verification.json
@@ -264,7 +265,7 @@ def main() -> None:
             path,
             root,
             bad,
-            "qualification must explicitly allowlist the four evidence files",
+            "qualification must explicitly allowlist the six evidence files",
         )
 
         bad = GOOD.replace("  publish:", "    evidence_bundle: unsafe\n  publish:")

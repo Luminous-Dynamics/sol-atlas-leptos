@@ -158,6 +158,7 @@ def validate_qualification_policy(
     expected_artifact_path = (
         "          path: |\n"
         "            artifacts/github-oidc-claims.json\n"
+        "            artifacts/github-oidc-subject-configuration.json\n"
         "            artifacts/gcs-wif-credential-config-verification.json\n"
         "            artifacts/gcs-wif-trust-verification.json\n"
         "            artifacts/github-workflow-run-verification.json\n"
@@ -170,7 +171,7 @@ def validate_qualification_policy(
         )
     if expected_artifact_path not in qualify_text:
         errors.append(
-            f"{path}: qualification must explicitly allowlist the five evidence files"
+            f"{path}: qualification must explicitly allowlist the six evidence files"
         )
     if "            artifacts/\n" in qualify_text:
         errors.append(
