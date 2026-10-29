@@ -63,6 +63,7 @@ def main() -> None:
         oidc_document = {
             "schema": "sol-atlas:github-oidc-claims:v4",
             "audience": "https://iam.googleapis.com/" + PROVIDER,
+            "claims": {"aud": "https://iam.googleapis.com/" + PROVIDER},
             "token_digest": token_digest,
         }
         oidc.write_text(json.dumps(oidc_document), encoding="utf-8")

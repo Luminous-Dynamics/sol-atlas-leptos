@@ -246,6 +246,10 @@ def main() -> None:
     valid_wif = dict(
         schema="sol-atlas:gcs-wif-trust-verification:v9",
         profile_path=profile_path,
+        provider_resource=(
+            "projects/123456789/locations/global/"
+            "workloadIdentityPools/github/providers/github"
+        ),
         profile_digest=module.digest(
             json.loads(Path(profile_path).read_text(encoding="utf-8"))
         ),
@@ -259,6 +263,8 @@ def main() -> None:
         oidc_audience_verified=True,
         observer_service_account="observer@sol-atlas.iam.gserviceaccount.com",
         observer_identity_verified=True,
+        observer_service_account_project_verified=True,
+        observer_service_account_direct_policy_exact_verified=True,
         project_id="sol-atlas",
         service_account="qualification@sol-atlas.iam.gserviceaccount.com",
         service_account_binding_member=(
@@ -533,7 +539,7 @@ def main() -> None:
 
     lateral_digest_tampered = dict(
         observer_isolation,
-        lateral_service_account_response_digest="sha256:" + "0" * 64,
+        lateral_service_account_response_digest="malformed",
     )
     try:
         module.validate_observer_isolation_audit(

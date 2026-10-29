@@ -19,11 +19,11 @@ spec.loader.exec_module(module)
 
 PIN = "a" * 40
 UPLOAD = "b" * 40
-DOWNLOAD = "c" * 40
+DOWNLOAD = "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c"
 ATTEST = "d" * 40
 GH = "${{"
 
-GOOD = """
+GOOD = r"""
 jobs:
   observe-wif-trust:
     permissions:
@@ -58,9 +58,9 @@ jobs:
         run: |
           python3 scripts/verify_github_workflow_run.py \
             --output artifacts/github-workflow-run-verification.json
-      - run: python3 verify.py --token-output "$RUNNER_TEMP/token.jwt"
-      - name: cleanup
-        run: rm -f "$RUNNER_TEMP/token.jwt"
+      - run: python3 verify.py --token-output "$RUNNER_TEMP/sol-atlas-github-oidc-token.jwt"
+      - name: Remove transient OIDC credentials
+        run: rm -f "$RUNNER_TEMP/sol-atlas-github-oidc-token.jwt"
       - name: upload
         id: upload_evidence
         uses: actions/upload-artifact@UPLOAD
@@ -144,6 +144,7 @@ def main() -> None:
             "GitHub server verification must write the exact evidence file",
         )
 
+        bad = GOOD.replace("digest-mismatch: error", "digest-mismatch: warn")
         expect(path, root, bad, "artifact digest mismatch")
 
         bad = GOOD.replace(
@@ -165,25 +166,8 @@ def main() -> None:
         expect(path, root, bad, "publish must grant attestations: read")
 
         bad = GOOD.replace(
-            "      - name: Verify GitHub artifact attestation\n"
-            "        run: |\n"
-            "          gh attestation verify \\\n"
-            "            artifacts/gcs-external-effect-report.json \\\n"
-            "            --repo \\\"$GITHUB_REPOSITORY\\\" \\\n"
-            "            --signer-workflow \\\n"
-            "              \\\"$GITHUB_REPOSITORY/.github/workflows/qualify-gcs.yml\\\" \\\n"
-            "            --signer-digest \\\"$GITHUB_WORKFLOW_SHA\\\" \\\n"
-            "            --source-digest \\\"$GITHUB_SHA\\\" \\\n"
-            "            --source-ref \\\"$GITHUB_REF\\\" \\\n"
-            "            --cert-oidc-issuer \\\n"
-            "              \\\"https://token.actions.githubusercontent.com\\\"",
-            "      - name: Verify GitHub artifact attestation\n"
-            "        run: |\n"
-            "          gh attestation verify \\\n"
-            "            artifacts/gcs-external-effect-report.json \\\n"
-            "            --repo \\\"$GITHUB_REPOSITORY\\\" \\\n"
-            "            --signer-workflow \\\n"
-            "              \\\"$GITHUB_REPOSITORY/.github/workflows/qualify-gcs.yml\\\"",
+            '            --source-digest "$GITHUB_SHA" \\\n',
+            "",
         )
         expect(path, root, bad, "attestation verification must bind source digest")
 
@@ -252,8 +236,7 @@ def main() -> None:
         )
         bad = GOOD.replace(
             "            artifacts/gcs-external-effect-report.json",
-            "            artifacts/gcs-external-effect-report.json\n"
-            "            artifacts/",
+            "            artifacts/\n",
         )
         expect(
             path,

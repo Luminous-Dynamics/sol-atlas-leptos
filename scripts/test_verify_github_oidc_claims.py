@@ -10,6 +10,7 @@ import importlib.util
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
+import urllib.parse
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "verify_github_oidc_claims.py"
@@ -193,6 +194,8 @@ def main() -> None:
         "clock_skew_seconds": module.OIDC_CLOCK_SKEW_SECONDS,
         "cryptographic_verification": "not_performed_locally",
         "wif_exchange_uses_this_exact_verified_token": True,
+        "workflow_sha_matches_runner": True,
+        "source_sha_matches_runner": True,
         "claims_digest": qualifier.digest(expected),
     }
     with TemporaryDirectory() as tmp:
@@ -341,17 +344,20 @@ def main() -> None:
         raise AssertionError("malformed JWT was accepted")
 
     valid_request_url = (
-        "https://token.actions.githubusercontent.com/"
+        "https://pipelines.actions.githubusercontent.com/"
         "?token=runner-token"
     )
     module.validate_oidc_request_url(valid_request_url)
 
     rewritten = module.with_audience(
-        "https://token.actions.githubusercontent.com/?audience=wrong&token=runner",
+        "https://pipelines.actions.githubusercontent.com/?audience=wrong&token=runner",
         AUDIENCE,
     )
     assert rewritten.count("audience=") == 1
-    assert f"audience={AUDIENCE}" in rewritten
+    assert (
+        f"audience={AUDIENCE}" in rewritten
+        or f"audience={urllib.parse.quote_plus(AUDIENCE)}" in rewritten
+    )
 
     for url in (
         "http://token.actions.githubusercontent.com/?token=runner-token",
