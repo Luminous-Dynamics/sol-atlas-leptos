@@ -1,0 +1,10 @@
+{
+  "name": "sol-atlas-gcs-qualification",
+  "required_reviewer_count_min": 1,
+  "prevent_self_review": true,
+  "deployment_branch_policy": {
+    "protected_branches": false,
+    "custom_branch_policies": true,
+    "allowed_branch_patterns": ["main"]
+  }
+}

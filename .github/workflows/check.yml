@@ -6,6 +6,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: check-${{ github.ref }}
   cancel-in-progress: true
@@ -14,23 +17,27 @@ jobs:
   fmt:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Verify workflow action pins
+        run: python3 scripts/verify_github_actions_pins.py
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
         with:
           components: rustfmt
       - run: cargo fmt --all --check
+      - name: Check policy-store contract formatting
+        run: cargo fmt --manifest-path sol-atlas-policy-store-contract/Cargo.toml -- --check
 
   check-wasm:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
         with:
           targets: wasm32-unknown-unknown
       - name: Cache cargo
-        uses: actions/cache@v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ~/.cargo/registry/index/
@@ -47,11 +54,11 @@ jobs:
   test-native:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
       - name: Cache cargo
-        uses: actions/cache@v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ~/.cargo/registry/index/
@@ -59,9 +66,113 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-native-${{ hashFiles('**/Cargo.lock') }}
-      # This crate is a wasm-bindgen-heavy [[bin]] with no [lib] target —
-      # native `cargo test` still works (verified 2026-07-11) and is much
-      # faster than a wasm test harness for the pure-logic unit tests
-      # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
-      # `cargo test --lib` fails with "no library targets found".
-      - run: cargo test --bin sol-atlas-leptos
+      # The application crate is a wasm-bindgen-heavy [[bin]] with no [lib] target.
+      # Test its binary explicitly, but also test sol-atlas-core as a separate
+      # package so core semantic/unit tests actually execute in CI rather than
+      # merely compiling as a dependency.
+      - name: Test sol-atlas-core
+        run: cargo test -p sol-atlas-core --lib
+      - name: Test application binary
+        if: ${{ always() }}
+        run: cargo test --bin sol-atlas-leptos
+      - name: Test policy-store contract
+        if: ${{ always() }}
+        run: cargo test --manifest-path sol-atlas-policy-store-contract/Cargo.toml
+      - name: Qualify source-bound protected-effect evidence
+        if: ${{ always() }}
+        run: >
+          cargo test
+          --manifest-path sol-atlas-policy-store-contract/Cargo.toml
+          --test reference_effect_conformance
+      - name: Check external qualification tooling
+        run: |
+          python3 -m py_compile scripts/gcs_generation_fenced_adapter.py
+          python3 -m py_compile scripts/qualify_gcs_external_effect.py
+          python3 -m py_compile scripts/verify_gcs_wif_provider.py
+          python3 -m py_compile scripts/verify_github_actions_pins.py
+          python3 -m py_compile scripts/verify_github_oidc_claims.py
+          python3 -m py_compile scripts/verify_gcs_wif_credential_config.py
+          python3 -m py_compile scripts/test_qualify_gcs_external_effect.py
+          python3 -m py_compile scripts/verify_github_workflow_run.py
+          python3 -m py_compile scripts/verify_gcs_effective_iam.py
+          python3 -m py_compile scripts/verify_gcs_policy_effect.py
+          python3 -m py_compile scripts/verify_github_oidc_subject_configuration.py
+          python3 -m py_compile scripts/test_verify_github_oidc_subject_configuration.py
+          python3 -m py_compile scripts/verify_gcs_broad_sa_impersonation.py
+          python3 -m py_compile scripts/verify_gcs_observer_isolation.py
+          python3 -m py_compile scripts/test_verify_gcs_observer_isolation.py
+          python3 -m py_compile scripts/verify_github_governance_root.py
+          python3 -m py_compile scripts/verify_github_qualification_environment.py
+          python3 -m py_compile scripts/test_verify_github_qualification_environment.py
+          python3 -m py_compile scripts/test_verify_github_qualification_environment_integration.py
+          python3 -m py_compile scripts/test_verify_github_governance_root.py
+          python3 -m py_compile scripts/test_verify_github_governance_root_integration.py
+          python3 -m py_compile scripts/test_verify_gcs_effective_iam_integration.py
+          python3 -m py_compile scripts/test_verify_gcs_broad_sa_impersonation_integration.py
+          python3 -m py_compile scripts/test_validate_observer_audit_evidence.py
+          python3 -m py_compile scripts/test_verify_gcs_effective_iam_pivots.py
+          python3 -m py_compile scripts/verify_gcs_artifact_handoff.py
+          python3 -m py_compile scripts/test_verify_gcs_artifact_handoff.py
+          python3 -m py_compile scripts/test_verify_gcs_effective_iam.py
+          python3 scripts/test_verify_gcs_wif_provider.py
+          python3 scripts/test_verify_github_oidc_claims.py
+          python3 scripts/test_verify_github_actions_pins.py
+          python3 scripts/test_verify_gcs_wif_credential_config.py
+          python3 scripts/test_qualify_gcs_external_effect.py
+          python3 scripts/test_verify_github_workflow_run.py
+          python3 scripts/test_verify_gcs_effective_iam_v2.py
+          python3 scripts/test_verify_gcs_effective_iam_v3.py
+          python3 scripts/test_verify_github_oidc_subject_configuration.py
+          python3 scripts/test_verify_gcs_effective_iam.py
+          python3 scripts/test_verify_gcs_policy_effect.py
+          python3 scripts/test_verify_gcs_effective_iam_pivots.py
+          python3 scripts/test_verify_gcs_artifact_handoff.py
+          python3 scripts/test_verify_gcs_broad_sa_impersonation.py
+          python3 scripts/test_verify_gcs_observer_isolation.py
+          python3 scripts/test_verify_github_governance_root.py
+          python3 scripts/test_verify_github_qualification_environment.py
+          python3 scripts/test_verify_github_qualification_environment_integration.py
+          python3 scripts/test_verify_github_governance_root_integration.py
+          python3 scripts/test_verify_gcs_effective_iam_integration.py
+          python3 scripts/test_verify_gcs_broad_sa_impersonation_integration.py
+          python3 scripts/test_validate_observer_audit_evidence.py
+          python3 scripts/qualify_gcs_external_effect.py validate-case-set
+          python3 scripts/qualify_gcs_external_effect.py qualify --help | grep -q -- "--observer-isolation-audit"
+          awk 'length($0) > 100 { print FNR ":" length($0) ":" $0; exit 1 }' \
+            scripts/gcs_generation_fenced_adapter.py \
+            scripts/qualify_gcs_external_effect.py \
+            scripts/verify_gcs_wif_provider.py \
+            scripts/verify_github_actions_pins.py \
+            scripts/verify_github_oidc_claims.py \
+            scripts/verify_gcs_wif_credential_config.py \
+            scripts/test_verify_github_actions_pins.py \
+            scripts/test_verify_gcs_wif_credential_config.py \
+            scripts/test_verify_gcs_wif_provider.py \
+            scripts/test_verify_github_oidc_claims.py \
+            scripts/test_qualify_gcs_external_effect.py \
+            scripts/verify_github_workflow_run.py \
+            scripts/verify_gcs_effective_iam.py \
+            scripts/verify_gcs_policy_effect.py \
+            scripts/verify_github_oidc_subject_configuration.py \
+            scripts/test_verify_github_oidc_subject_configuration.py \
+            scripts/verify_gcs_broad_sa_impersonation.py \
+            scripts/verify_github_governance_root.py \
+            scripts/verify_github_qualification_environment.py \
+            scripts/test_verify_github_qualification_environment.py \
+            scripts/test_verify_github_qualification_environment_integration.py \
+            scripts/test_verify_github_governance_root.py \
+            scripts/test_verify_github_governance_root_integration.py \
+            scripts/test_verify_gcs_broad_sa_impersonation.py \
+            scripts/verify_gcs_observer_isolation.py \
+            scripts/test_verify_gcs_observer_isolation.py \
+            scripts/test_verify_gcs_effective_iam_integration.py \
+            scripts/test_verify_gcs_broad_sa_impersonation_integration.py \
+            scripts/test_verify_gcs_effective_iam_pivots.py \
+            scripts/test_verify_gcs_effective_iam.py \
+            scripts/test_verify_gcs_effective_iam_v2.py \
+            scripts/test_verify_gcs_effective_iam_v3.py \
+            scripts/verify_gcs_artifact_handoff.py \
+            scripts/test_verify_gcs_artifact_handoff.py \
+            scripts/test_verify_gcs_effective_iam_pivots.py \
+            scripts/test_validate_observer_audit_evidence.py \
+            scripts/test_verify_gcs_policy_effect.py

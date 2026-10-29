@@ -1,0 +1,120 @@
+{
+  "schema": "sol-atlas:gcs-policy-troubleshooter-targets:v3",
+  "supersedes": "sol-atlas:gcs-policy-troubleshooter-targets:v2",
+  "targets": [
+    {
+      "resource_kind": "project",
+      "resource_template": "//cloudresourcemanager.googleapis.com/projects/{project_id}",
+      "permission": "cloudbuild.builds.create",
+      "expected_overall_access_state": "CANNOT_ACCESS"
+    },
+    {
+      "resource_kind": "project",
+      "resource_template": "//cloudresourcemanager.googleapis.com/projects/{project_id}",
+      "permission": "deploymentmanager.deployments.create",
+      "expected_overall_access_state": "CANNOT_ACCESS"
+    },
+    {
+      "resource_kind": "project",
+      "resource_template": "//cloudresourcemanager.googleapis.com/projects/{project_id}",
+      "permission": "resourcemanager.projects.setIamPolicy",
+      "expected_overall_access_state": "CANNOT_ACCESS"
+    },
+    {
+      "resource_kind": "project",
+      "resource_template": "//cloudresourcemanager.googleapis.com/projects/{project_id}",
+      "permission": "cloudfunctions.functions.create",
+      "expected_overall_access_state": "CANNOT_ACCESS"
+    },
+    {
+      "resource_kind": "project",
+      "resource_template": "//cloudresourcemanager.googleapis.com/projects/{project_id}",
+      "permission": "run.jobs.create",
+      "expected_overall_access_state": "CANNOT_ACCESS"
+    },
+    {
+      "resource_kind": "project",
+      "resource_template": "//cloudresourcemanager.googleapis.com/projects/{project_id}",
+      "permission": "run.services.create",
+      "expected_overall_access_state": "CANNOT_ACCESS"
+    },
+    {
+      "resource_kind": "project",
+      "resource_template": "//cloudresourcemanager.googleapis.com/projects/{project_id}",
+      "permission": "compute.instances.create",
+      "expected_overall_access_state": "CANNOT_ACCESS"
+    },
+    {
+      "resource_kind": "service-account",
+      "resource_template": "//iam.googleapis.com/projects/{project_id}/serviceAccounts/{service_account}",
+      "permission": "iam.serviceAccountKeys.create",
+      "expected_overall_access_state": "CANNOT_ACCESS"
+    },
+    {
+      "resource_kind": "service-account",
+      "resource_template": "//iam.googleapis.com/projects/{project_id}/serviceAccounts/{service_account}",
+      "permission": "iam.serviceAccounts.getIamPolicy",
+      "expected_overall_access_state": "CANNOT_ACCESS"
+    },
+    {
+      "resource_kind": "service-account",
+      "resource_template": "//iam.googleapis.com/projects/{project_id}/serviceAccounts/{service_account}",
+      "permission": "iam.serviceAccounts.setIamPolicy",
+      "expected_overall_access_state": "CANNOT_ACCESS"
+    },
+    {
+      "resource_kind": "object",
+      "resource_template": "//storage.googleapis.com/projects/_/buckets/{bucket}/objects/{object_root}/main.bin",
+      "permission": "storage.objects.create",
+      "expected_overall_access_state": "CAN_ACCESS"
+    },
+    {
+      "resource_kind": "object",
+      "resource_template": "//storage.googleapis.com/projects/_/buckets/{bucket}/objects/{object_root}/main.bin",
+      "permission": "storage.objects.get",
+      "expected_overall_access_state": "CAN_ACCESS"
+    },
+    {
+      "resource_kind": "object",
+      "resource_template": "//storage.googleapis.com/projects/_/buckets/{bucket}/objects/{object_root}/main.bin",
+      "permission": "storage.objects.delete",
+      "expected_overall_access_state": "CAN_ACCESS"
+    },
+    {
+      "resource_kind": "object",
+      "resource_template": "//storage.googleapis.com/projects/_/buckets/{bucket}/objects/{object_root}/point-in-time.bin",
+      "permission": "storage.objects.create",
+      "expected_overall_access_state": "CAN_ACCESS"
+    },
+    {
+      "resource_kind": "object",
+      "resource_template": "//storage.googleapis.com/projects/_/buckets/{bucket}/objects/{object_root}/point-in-time.bin",
+      "permission": "storage.objects.get",
+      "expected_overall_access_state": "CAN_ACCESS"
+    },
+    {
+      "resource_kind": "object",
+      "resource_template": "//storage.googleapis.com/projects/_/buckets/{bucket}/objects/{object_root}/point-in-time.bin",
+      "permission": "storage.objects.delete",
+      "expected_overall_access_state": "CAN_ACCESS"
+    },
+    {
+      "resource_kind": "object",
+      "resource_template": "//storage.googleapis.com/projects/_/buckets/{bucket}/objects/{object_root}/metadata-race.bin",
+      "permission": "storage.objects.create",
+      "expected_overall_access_state": "CAN_ACCESS"
+    },
+    {
+      "resource_kind": "object",
+      "resource_template": "//storage.googleapis.com/projects/_/buckets/{bucket}/objects/{object_root}/metadata-race.bin",
+      "permission": "storage.objects.get",
+      "expected_overall_access_state": "CAN_ACCESS"
+    },
+    {
+      "resource_kind": "object",
+      "resource_template": "//storage.googleapis.com/projects/_/buckets/{bucket}/objects/{object_root}/metadata-race.bin",
+      "permission": "storage.objects.delete",
+      "expected_overall_access_state": "CAN_ACCESS"
+    }
+  ]
+}

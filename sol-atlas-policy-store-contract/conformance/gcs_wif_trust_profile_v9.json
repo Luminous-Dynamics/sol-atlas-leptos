@@ -1,0 +1,46 @@
+{
+  "schema": "sol-atlas:gcs-wif-trust-profile:v9",
+  "supersedes": "sol-atlas:gcs-wif-trust-profile:v8",
+  "repository": "Luminous-Dynamics/sol-atlas-leptos",
+  "repository_id": "1195997641",
+  "repository_owner_id": "216969177",
+  "environment": "sol-atlas-gcs-qualification",
+  "workflow": "Qualify GCS external effect",
+  "event": "workflow_dispatch",
+  "ref": "refs/heads/main",
+  "workflow_ref": "Luminous-Dynamics/sol-atlas-leptos/.github/workflows/qualify-gcs.yml@refs/heads/main",
+  "workflow_path": ".github/workflows/qualify-gcs.yml",
+  "required_attribute_mappings": {
+    "google.subject": "assertion.sub",
+    "attribute.environment": "assertion.environment",
+    "attribute.event_name": "assertion.event_name",
+    "attribute.repository": "assertion.repository",
+    "attribute.repository_id": "assertion.repository_id",
+    "attribute.repository_owner_id": "assertion.repository_owner_id",
+    "attribute.workflow": "assertion.workflow",
+    "attribute.ref": "assertion.ref",
+    "attribute.workflow_ref": "assertion.workflow_ref",
+    "attribute.runner_environment": "assertion.runner_environment"
+  },
+  "exact_attribute_condition": "assertion.environment=='sol-atlas-gcs-qualification' && assertion.event_name=='workflow_dispatch' && assertion.repository=='Luminous-Dynamics/sol-atlas-leptos' && assertion.repository_id=='1195997641' && assertion.repository_owner_id=='216969177' && assertion.workflow=='Qualify GCS external effect' && assertion.ref=='refs/heads/main' && assertion.workflow_ref=='Luminous-Dynamics/sol-atlas-leptos/.github/workflows/qualify-gcs.yml@refs/heads/main' && assertion.runner_environment=='github-hosted'",
+  "oidc_audience_mode": "provider_resource_default",
+  "required_service_account_binding": {
+    "role": "roles/iam.workloadIdentityUser",
+    "member_template": "principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.repository_id/1195997641"
+  },
+  "pool_is_exclusive": true,
+  "service_account_binding_is_exclusive": true,
+  "service_account_must_reside_in_project": true,
+  "claim_ceiling": "Identity, protected-environment, main-ref, GitHub-hosted runner, single-provider pool, provider-resource-default audience, exact frozen WIF attribute mapping set, exact direct service-account allow-policy binding to the repository-ID principal set, same-project service-account trust configuration, and the frozen provider configuration only; does not prove workflow source integrity, effective IAM across inherited hierarchy, immutable GitHub OIDC subject configuration, deny policies, or downstream service-triggered pivots.",
+  "forbidden_direct_service_account_roles": [
+    "roles/iam.serviceAccountAdmin",
+    "roles/iam.serviceAccountKeyAdmin",
+    "roles/iam.serviceAccountOpenIdTokenCreator",
+    "roles/iam.serviceAccountTokenCreator",
+    "roles/iam.serviceAccountUser",
+    "roles/owner",
+    "roles/editor"
+  ],
+  "service_account_direct_policy_is_exact": true,
+  "attribute_mapping_is_exact": true
+}

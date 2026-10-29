@@ -9,11 +9,14 @@
 //! between rendering backends (web-sys, glam/nalgebra).
 
 pub mod aesthetics;
+pub mod bootstrap;
+pub mod capability;
 pub mod confluence;
 pub mod constants;
 pub mod data;
 pub mod economics;
 pub mod energy_trading;
+pub mod evidence_reference;
 pub mod geo;
 pub mod lod;
 pub mod mycelix_flows;
@@ -27,4 +30,7 @@ pub mod timeline;
 pub mod types;
 pub mod visual_validation;
 
+pub use bootstrap::*;
+pub use capability::*;
+pub use evidence_reference::*;
 pub use types::*;
