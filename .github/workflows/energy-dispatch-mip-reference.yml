@@ -93,7 +93,46 @@ jobs:
           done
           test "$(wc -l < target/energy-dispatch-mip-reference/scip-results.csv)" -eq 13
           cat target/energy-dispatch-mip-reference/scip-results.csv
+          while IFS=, read -r model status value certificate; do
+            case "$model" in
+              essential_unserved_quanta_min.lp) expected=0 ;;
+              essential_unserved_quanta_max.lp) expected=2 ;;
+              flexible_unserved_quanta_min.lp|flexible_unserved_quanta_max.lp) expected=0 ;;
+              operating_cost_units_min.lp|grid_carbon_grams_min.lp) expected=0 ;;
+              operating_cost_units_max.lp|grid_carbon_grams_max.lp) expected=2 ;;
+              curtailed_pv_quanta_min.lp|terminal_soc_quanta_min.lp) expected=0 ;;
+              curtailed_pv_quanta_max.lp|terminal_soc_quanta_max.lp) expected=2 ;;
+              *) echo "unexpected solver result row: $model" >&2; exit 1 ;;
+            esac
+            normalized="$(printf '%s' "$value" | sed -E 's/\\.0+$//')"
+            test "$status" = "optimal_exact"
+            test "$normalized" = "$expected"
+            test -s "$certificate"
+          done < <(tail -n +2 target/energy-dispatch-mip-reference/scip-results.csv)
 
+      - name: Build pinned independent VIPR proof checker
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++ libgmp-dev
+          git clone https://github.com/scipopt/vipr.git /tmp/vipr
+          git -C /tmp/vipr checkout 99eec197a49b2bd9ad33c1f4c7afabe93caa6511
+          cmake -S /tmp/vipr/code -B /tmp/vipr/build -DVIPRCOMP=OFF -DCMAKE_BUILD_TYPE=Release
+          cmake --build /tmp/vipr/build --target viprchk -j2
+          VIPR_CHECKER="$(find /tmp/vipr/build -type f -name viprchk -perm /111 | head -n 1)"
+          test -n "$VIPR_CHECKER"
+          cp "$VIPR_CHECKER" target/energy-dispatch-mip-reference/viprchk
+
+      - name: Independently verify all SCIP certificates against original models
+        run: |
+          mkdir -p target/energy-dispatch-mip-reference/vipr-checks
+          VIPR_CHECKER=target/energy-dispatch-mip-reference/viprchk
+          for certificate in target/energy-dispatch-mip-reference/vipr/*.vipr; do
+            name="$(basename "$certificate")"
+            log="target/energy-dispatch-mip-reference/vipr-checks/$name.log"
+            "$VIPR_CHECKER" "$certificate" > "$log" 2>&1
+            grep -Eiq "verified|correct|success" "$log"
+          done
+          test "$(find target/energy-dispatch-mip-reference/vipr-checks -maxdepth 1 -name '*.log' | wc -l)" -eq 12
 
       - name: Publish LP models, manifest, lockfile and formatted source
         if: always()
