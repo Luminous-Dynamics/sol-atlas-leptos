@@ -1095,6 +1095,38 @@
                 }
               }
             ]
+          },
+          "risk_assessment": {
+            "required": [
+              "reviewed_class",
+              "dimensions"
+            ],
+            "properties": {
+              "reviewed_class": {
+                "enum": [
+                  "low",
+                  "moderate",
+                  "high",
+                  "critical"
+                ]
+              },
+              "dimensions": {
+                "properties": {
+                  "model_influence": {
+                    "enum": [
+                      "constraint_gating",
+                      "selection"
+                    ]
+                  },
+                  "fallback": {
+                    "enum": [
+                      "independent_tested_fallback",
+                      "human_fallback"
+                    ]
+                  }
+                }
+              }
+            }
           }
         },
         "required": [
@@ -1311,6 +1343,32 @@
                 }
               }
             ]
+          },
+          "risk_assessment": {
+            "required": [
+              "reviewed_class",
+              "dimensions"
+            ],
+            "properties": {
+              "reviewed_class": {
+                "enum": [
+                  "low",
+                  "moderate",
+                  "high",
+                  "critical"
+                ]
+              },
+              "dimensions": {
+                "properties": {
+                  "model_influence": {
+                    "const": "direct_actuation"
+                  },
+                  "fallback": {
+                    "const": "independent_tested_fallback"
+                  }
+                }
+              }
+            }
           }
         },
         "required": [
