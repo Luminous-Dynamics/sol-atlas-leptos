@@ -43,6 +43,9 @@ jobs:
           key: ${{ runner.os }}-energy-dispatch-${{ hashFiles('**/Cargo.lock') }}
       - name: Run finite-model, Pareto and negative-control tests
         run: cargo test -p sol-atlas-core --lib energy_dispatch
+
+      - name: Run independently verified decision witness tests
+        run: cargo test -p sol-atlas-core --lib energy_dispatch_witness
       - name: Run receipt-wrapped dispatch CLI tests
         run: cargo test -p sol-atlas-core --bin energy_dispatch_assess
       - name: Produce frozen known-answer report
