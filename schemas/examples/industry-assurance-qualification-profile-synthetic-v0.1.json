@@ -145,9 +145,7 @@
   "authority": {
     "permitted_actions": [
       "view",
-      "annotate",
-      "recommend",
-      "rank_options"
+      "annotate"
     ],
     "human_approval_required": true,
     "actuation_enabled": false,
