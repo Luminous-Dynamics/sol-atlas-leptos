@@ -334,6 +334,9 @@ mod tests {
         ))
         .unwrap();
         let result = assess_telecom_site_power_autonomy(&input, &[]).unwrap();
+        assert_eq!(result.site_id, "site-synthetic-001");
+        assert_eq!(result.backup_resource_id, "battery-synthetic-001");
+        assert_eq!(result.radio_equipment_id, "radio-equipment-synthetic-001");
         assert_eq!(result.usable_backup_energy_lower_kwh, 10.0);
         assert_eq!(result.usable_backup_energy_upper_kwh, 14.0);
         assert_eq!(result.radio_equipment_load_lower_kw, 1.75);
