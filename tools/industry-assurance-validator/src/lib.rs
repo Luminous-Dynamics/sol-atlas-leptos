@@ -23,6 +23,53 @@ pub struct ValidationIssue {
     pub code: String,
     pub path: String,
     pub message: String,
+
+    #[test]
+    fn complete_d2_authority_bundle_passes_consistency() {
+        let mut p = make_qualified_d1();
+        p["decision_tier"] = json!("D2_delegated_planning");
+        p["authority"]["permitted_actions"] = json!(["view", "annotate", "schedule_within_envelope"]);
+        p["artifact_bindings"].as_array_mut().unwrap().push(artifact("verifier-001", "independent_verifier"));
+        p["artifact_bindings"].as_array_mut().unwrap().push(artifact("rollback-001", "rollback_plan"));
+        p["authority"]["independent_verifier_artifact_id"] = json!("verifier-001");
+        p["authority"]["rollback_plan_artifact_id"] = json!("rollback-001");
+        let issues = validate_profile(&p);
+        assert!(issues.is_empty(), "{issues:#?}");
+    }
+
+    #[test]
+    fn complete_d3_authority_bundle_passes_consistency() {
+        let mut p = make_qualified_d1();
+        p["decision_tier"] = json!("D3_autonomous_control");
+        p["authority"]["actuation_enabled"] = json!(true);
+        p["authority"]["permitted_actions"] = json!(["view", "execute_external_action"]);
+        let roles = [
+            ("verifier-001", "independent_verifier"),
+            ("rollback-001", "rollback_plan"),
+            ("safety-001", "safety_case"),
+            ("authorization-001", "operational_authorization"),
+            ("cyber-001", "cybersecurity_assessment")
+        ];
+        for (id, role) in roles {
+            p["artifact_bindings"].as_array_mut().unwrap().push(artifact(id, role));
+        }
+        p["authority"]["independent_verifier_artifact_id"] = json!("verifier-001");
+        p["authority"]["rollback_plan_artifact_id"] = json!("rollback-001");
+        p["authority"]["safety_case_artifact_id"] = json!("safety-001");
+        p["authority"]["operational_authorization_artifact_id"] = json!("authorization-001");
+        p["authority"]["cybersecurity_assessment_artifact_id"] = json!("cyber-001");
+        let issues = validate_profile(&p);
+        assert!(issues.is_empty(), "{issues:#?}");
+    }
+
+    #[test]
+    fn unqualified_d3_profile_remains_read_only() {
+        let mut p = fixture();
+        p["decision_tier"] = json!("D3_autonomous_control");
+        let issues = validate_profile(&p);
+        assert!(issues.is_empty(), "{issues:#?}");
+    }
+
 }
 
 fn issue(out: &mut Vec<ValidationIssue>, code: &str, path: impl Into<String>, message: impl Into<String>) {
@@ -125,7 +172,7 @@ fn validate_artifacts<'a>(
         let blob = string(artifact, "git_blob_sha", &path, out);
         let file_path = string(artifact, "path", &path, out);
         let rights = string(artifact, "rights_state", &path, out);
-        string(artifact, "evidence_class", &path, out);
+        let _ = string(artifact, "evidence_class", &path, out);
 
         if let Some(id) = id {
             if by_id.insert(id.to_owned(), artifact).is_some() {
@@ -188,7 +235,7 @@ fn validate_evidence(
         if object(entry, &path, out).is_none() { continue; }
         let state = string(entry, "state", &path, out).unwrap_or("");
         let requirement = string(entry, "requirement", &path, out).unwrap_or("");
-        string(entry, "rationale", &path, out);
+        let _ = string(entry, "rationale", &path, out);
         let evidence = array(entry, "evidence", &path, out).cloned().unwrap_or_default();
 
         if !["established", "not_established", "unknown", "conflicted", "not_applicable"].contains(&state) {
@@ -220,10 +267,10 @@ fn validate_evidence(
             if object(item, &ev_path, out).is_none() { continue; }
             let evidence_id = string(item, "evidence_id", &ev_path, out);
             let artifact_id = string(item, "artifact_id", &ev_path, out);
-            string(item, "method", &ev_path, out);
-            string(item, "scope", &ev_path, out);
-            string(item, "result", &ev_path, out);
-            string(item, "observed_at", &ev_path, out);
+            let _ = string(item, "method", &ev_path, out);
+            let _ = string(item, "scope", &ev_path, out);
+            let _ = string(item, "result", &ev_path, out);
+            let _ = string(item, "observed_at", &ev_path, out);
             if let Some(id) = evidence_id {
                 if !evidence_ids.insert(id.to_owned()) {
                     issue(out, "DUPLICATE_EVIDENCE_ID", format!("{ev_path}/evidence_id"), "Evidence IDs must be unique across the full profile.");
@@ -235,7 +282,7 @@ fn validate_evidence(
                 }
             }
             if state == "established" {
-                string(item, "verifier_id", &ev_path, out);
+                let _ = string(item, "verifier_id", &ev_path, out);
             }
         }
     }
@@ -287,6 +334,8 @@ fn validate_authority(
                 }
                 require_role("independent_verifier", roles, out);
                 require_role("rollback_plan", roles, out);
+                require_authority_artifact(authority, "independent_verifier_artifact_id", "independent_verifier", artifact_ids, out);
+                require_authority_artifact(authority, "rollback_plan_artifact_id", "rollback_plan", artifact_ids, out);
             }
             "D3_autonomous_control" => {
                 if !actuation || !permitted.contains(&"execute_external_action") {
@@ -295,6 +344,8 @@ fn validate_authority(
                 for role in ["independent_verifier", "rollback_plan", "safety_case", "operational_authorization", "cybersecurity_assessment"] {
                     require_role(role, roles, out);
                 }
+                require_authority_artifact(authority, "independent_verifier_artifact_id", "independent_verifier", artifact_ids, out);
+                require_authority_artifact(authority, "rollback_plan_artifact_id", "rollback_plan", artifact_ids, out);
                 require_authority_artifact(authority, "safety_case_artifact_id", "safety_case", artifact_ids, out);
                 require_authority_artifact(authority, "operational_authorization_artifact_id", "operational_authorization", artifact_ids, out);
                 require_authority_artifact(authority, "cybersecurity_assessment_artifact_id", "cybersecurity_assessment", artifact_ids, out);
@@ -345,7 +396,7 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
     if let Some(claim) = profile.get("claim") {
         if object(claim, "/claim", &mut out).is_some() {
             for key in ["claim_id", "capability_id", "instance_id", "decision_id", "description", "intended_user"] {
-                string(claim, key, "/claim", &mut out);
+                let _ = string(claim, key, "/claim", &mut out);
             }
         }
     }
@@ -365,12 +416,12 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
                 issue(&mut out, "INVALID_RISK_CLASS", "/risk_assessment/reviewed_class", "Unsupported reviewed risk class.");
             }
             for key in ["rationale", "reviewer_id", "reviewed_at", "rule_set_version"] {
-                string(risk, key, "/risk_assessment", &mut out);
+                let _ = string(risk, key, "/risk_assessment", &mut out);
             }
             if let Some(dims) = risk.get("dimensions") {
                 if object(dims, "/risk_assessment/dimensions", &mut out).is_some() {
                     for key in ["consequence", "model_influence", "exposure", "reversibility", "detectability", "fallback"] {
-                        string(dims, key, "/risk_assessment/dimensions", &mut out);
+                        let _ = string(dims, key, "/risk_assessment/dimensions", &mut out);
                     }
                 }
             } else {
@@ -390,14 +441,14 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
     if let Some(envelope) = profile.get("operating_envelope") {
         if object(envelope, "/operating_envelope", &mut out).is_some() {
             for key in ["envelope_id", "domain_description", "out_of_domain_policy"] {
-                string(envelope, key, "/operating_envelope", &mut out);
+                let _ = string(envelope, key, "/operating_envelope", &mut out);
             }
             if let Some(conditions) = array(envelope, "conditions", "/operating_envelope", &mut out) {
                 for (i, condition) in conditions.iter().enumerate() {
                     let path = format!("/operating_envelope/conditions/{i}");
                     if object(condition, &path, &mut out).is_some() {
                         for key in ["variable", "unit", "support", "evidence_state"] {
-                            string(condition, key, &path, &mut out);
+                            let _ = string(condition, key, &path, &mut out);
                         }
                         if let Some(source_ids) = condition.get("source_artifact_ids").and_then(Value::as_array) {
                             for (j, source) in source_ids.iter().enumerate() {
@@ -550,8 +601,8 @@ mod tests {
     #[test]
     fn duplicate_evidence_ids_fail_closed() {
         let mut p = make_qualified_d1();
-        p["evidence_vector"]["numerical_verification"]["evidence"][0]["evidence_id"] =
-            p["evidence_vector"]["software_conformance"]["evidence"][0]["evidence_id"].clone();
+        let duplicate = p["evidence_vector"]["software_conformance"]["evidence"][0]["evidence_id"].clone();
+        p["evidence_vector"]["numerical_verification"]["evidence"][0]["evidence_id"] = duplicate;
         let issues = validate_profile(&p);
         assert!(has_code(&issues, "DUPLICATE_EVIDENCE_ID"));
     }
