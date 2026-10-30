@@ -1421,6 +1421,298 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "decision_tier": {
+            "const": "D0_descriptive"
+          },
+          "disposition": {
+            "const": "qualified_for_profile"
+          }
+        },
+        "required": [
+          "decision_tier",
+          "disposition"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evidence_vector": {
+            "properties": {
+              "software_conformance": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "numerical_verification": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "data_integrity_rights": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "decision_tier": {
+            "const": "D1_advisory"
+          },
+          "disposition": {
+            "const": "qualified_for_profile"
+          }
+        },
+        "required": [
+          "decision_tier",
+          "disposition"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evidence_vector": {
+            "properties": {
+              "software_conformance": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "numerical_verification": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "physical_validation": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "data_integrity_rights": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "uncertainty_credibility": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "generalization": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "robustness": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "operational_assurance": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "safety_security_authority": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "decision_tier": {
+            "const": "D2_delegated_planning"
+          },
+          "disposition": {
+            "const": "qualified_for_profile"
+          }
+        },
+        "required": [
+          "decision_tier",
+          "disposition"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evidence_vector": {
+            "properties": {
+              "software_conformance": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "numerical_verification": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "physical_validation": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "data_integrity_rights": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "uncertainty_credibility": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "generalization": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "robustness": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "operational_assurance": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "safety_security_authority": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "prospective_outcomes": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   ]
 }
