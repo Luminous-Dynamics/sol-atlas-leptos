@@ -11,8 +11,10 @@
 
 use crate::energy_dispatch::{
     DispatchIntervalDecision, DispatchObjective, DispatchParetoAlternative,
-    EnergyDispatchAssessment, MAX_PARETO_FRONTIER,
+    EnergyDispatchAssessment, EnergyDispatchRequest, MAX_PARETO_FRONTIER,
+    objective_for_schedule,
 };
+use crate::energy_dispatch_verifier::verify_dispatch_schedule;
 use std::cmp::Ordering;
 
 pub const POLICY_SCHEMA_VERSION: &str = "energy-dispatch-policy-v0.1";
@@ -201,12 +203,12 @@ impl DispatchSelectionPolicy {
 /// Select one schedule from an oracle-produced, complete Pareto frontier.
 ///
 /// The assessment must be the direct output of the exact bounded oracle for the
-/// case being evaluated. The completion flags are not cryptographic evidence;
-/// callers must bind the assessment to its exact request/oracle identity in the
-/// surrounding study/receipt layer. The selected schedule should still be passed
-/// to `verify_dispatch_schedule` before any downstream use.
+/// case being evaluated. Every candidate is independently rechecked against the
+/// request and its objective vector is recomputed before ranking. The completion
+/// flags still cannot prove that the oracle omitted no feasible candidate.
 pub fn select_dispatch_alternative(
     policy: &DispatchSelectionPolicy,
+    request: &EnergyDispatchRequest,
     assessment: &EnergyDispatchAssessment,
 ) -> Result<DispatchSelection, DispatchSelectionError> {
     policy.validate()?;
@@ -214,6 +216,12 @@ pub fn select_dispatch_alternative(
     if assessment.assessment_schema_version != ASSESSMENT_SCHEMA_VERSION {
         return Err(DispatchSelectionError::UnsupportedAssessmentSchemaVersion {
             actual: assessment.assessment_schema_version.clone(),
+        });
+    }
+    if assessment.case_id != request.case_id {
+        return Err(DispatchSelectionError::CaseIdMismatch {
+            expected: request.case_id.clone(),
+            actual: assessment.case_id.clone(),
         });
     }
     if !assessment.search_is_exact || !assessment.pareto_frontier_complete {
