@@ -7,7 +7,7 @@ on:
       - "sol-atlas-core/src/energy_dispatch.rs"
       - "sol-atlas-core/src/energy_dispatch_baseline.rs"
       - "sol-atlas-core/src/energy_dispatch_verifier.rs"
-      - "sol-atlas-core/src/energy_dispatch_verifier.rs"
+      - "sol-atlas-core/src/energy_dispatch_policy.rs"
       - "sol-atlas-core/src/bin/energy_dispatch_regret.rs"
       - "sol-atlas-core/src/lib.rs"
       - "schemas/energy-dispatch-*.schema.json"
@@ -20,6 +20,7 @@ on:
       - "sol-atlas-core/src/energy_dispatch.rs"
       - "sol-atlas-core/src/energy_dispatch_baseline.rs"
       - "sol-atlas-core/src/energy_dispatch_verifier.rs"
+      - "sol-atlas-core/src/energy_dispatch_policy.rs"
       - "sol-atlas-core/src/bin/energy_dispatch_regret.rs"
       - "sol-atlas-core/src/lib.rs"
       - "schemas/energy-dispatch-*.schema.json"
@@ -50,6 +51,8 @@ jobs:
           key: ${{ runner.os }}-energy-regret-${{ hashFiles('**/Cargo.lock') }}
       - name: Run independent schedule verifier tests
         run: cargo test -p sol-atlas-core --lib energy_dispatch_verifier
+      - name: Run typed Pareto-selector policy kernel tests
+        run: cargo test -p sol-atlas-core --lib energy_dispatch_policy
       - name: Run baseline, regret and failure-report tests
         run: cargo test -p sol-atlas-core --lib energy_dispatch_baseline
       - name: Run receipt-wrapped regret CLI tests
