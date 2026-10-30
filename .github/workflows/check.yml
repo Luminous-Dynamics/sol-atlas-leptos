@@ -65,3 +65,30 @@ jobs:
       # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
       # `cargo test --lib` fails with "no library targets found".
       - run: cargo test --bin sol-atlas-leptos
+
+  # Isolated source-evidence schema and cross-field policy checks. This tool is
+  # intentionally separate from the Leptos UI workspace and must be run directly.
+  airspace-source-contract-check:
+    name: Airspace Source Contract (Draft 2020-12)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - name: Cache contract-check dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            tools/airspace-source-contract-check/target/
+          key: ${{ runner.os }}-airspace-contract-${{ hashFiles('tools/airspace-source-contract-check/Cargo.toml') }}
+      - name: Check isolated workspace formatting
+        run: cargo fmt --manifest-path tools/airspace-source-contract-check/Cargo.toml -- --check
+      - name: Lint isolated workspace
+        run: cargo clippy --manifest-path tools/airspace-source-contract-check/Cargo.toml --all-targets -- -D warnings
+      - name: Validate Draft 2020-12 schema and adversarial fixtures
+        run: cargo test --manifest-path tools/airspace-source-contract-check/Cargo.toml

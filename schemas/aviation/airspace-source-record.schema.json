@@ -1,0 +1,813 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/aviation/airspace-source-record.schema.json",
+  "title": "Sol-Atlas Airspace Source Record",
+  "description": "Structural metadata contract only. Passing schema validation does not establish source authenticity, currency, legal applicability, or operational authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_id",
+    "feature_id",
+    "claim_kind",
+    "revision",
+    "source",
+    "acquisition",
+    "validity",
+    "freshness",
+    "rights",
+    "spatial_reference",
+    "scope",
+    "coverage",
+    "assessment",
+    "evidence",
+    "lineage"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "record_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "feature_id": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "namespace",
+        "value"
+      ],
+      "properties": {
+        "namespace": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "claim_kind": {
+      "type": "string",
+      "enum": [
+        "feature_presence",
+        "geometry",
+        "restriction",
+        "operational_status",
+        "capacity",
+        "coverage",
+        "weather_coverage",
+        "obstacle",
+        "energy_service"
+      ]
+    },
+    "revision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "publisher",
+        "product_family",
+        "publication_id",
+        "revision",
+        "locator",
+        "authority_scope",
+        "artifact",
+        "authentication"
+      ],
+      "properties": {
+        "publisher": {
+          "type": "string",
+          "minLength": 1
+        },
+        "product_family": {
+          "type": "string",
+          "minLength": 1
+        },
+        "publication_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "locator": {
+          "type": "string",
+          "minLength": 1
+        },
+        "authority_scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifact": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sha256",
+            "byte_length"
+          ],
+          "properties": {
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "byte_length": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "authentication": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "method"
+          ],
+          "properties": {
+            "state": {
+              "type": "string",
+              "enum": [
+                "not_evaluated",
+                "publisher_authenticated",
+                "signature_verified",
+                "failed",
+                "unknown"
+              ]
+            },
+            "method": {
+              "type": "string",
+              "minLength": 1
+            },
+            "evidence_ref": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "acquisition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "retrieved_at",
+        "source_issued_at",
+        "source_updated_at"
+      ],
+      "properties": {
+        "retrieved_at": {
+          "$ref": "#/$defs/dateTime"
+        },
+        "source_issued_at": {
+          "$ref": "#/$defs/nullableDateTime"
+        },
+        "source_updated_at": {
+          "$ref": "#/$defs/nullableDateTime"
+        }
+      }
+    },
+    "validity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "effective_from",
+        "effective_until",
+        "withdrawn"
+      ],
+      "properties": {
+        "effective_from": {
+          "$ref": "#/$defs/nullableDateTime"
+        },
+        "effective_until": {
+          "$ref": "#/$defs/nullableDateTime"
+        },
+        "withdrawn": {
+          "type": "boolean"
+        }
+      }
+    },
+    "freshness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_id",
+        "evaluated_at",
+        "status",
+        "observed_age_seconds"
+      ],
+      "properties": {
+        "policy_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evaluated_at": {
+          "$ref": "#/$defs/dateTime"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "current_for_declared_use",
+            "stale",
+            "no_policy",
+            "unknown",
+            "not_evaluated"
+          ]
+        },
+        "observed_age_seconds": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "acquisition",
+        "storage",
+        "redistribution",
+        "publication",
+        "model_use",
+        "review_ref"
+      ],
+      "properties": {
+        "acquisition": {
+          "type": "string",
+          "enum": [
+            "allowed",
+            "denied",
+            "unknown",
+            "conditional"
+          ]
+        },
+        "storage": {
+          "type": "string",
+          "enum": [
+            "allowed",
+            "denied",
+            "unknown",
+            "conditional"
+          ]
+        },
+        "redistribution": {
+          "type": "string",
+          "enum": [
+            "allowed",
+            "denied",
+            "unknown",
+            "conditional"
+          ]
+        },
+        "publication": {
+          "type": "string",
+          "enum": [
+            "allowed",
+            "denied",
+            "unknown",
+            "conditional"
+          ]
+        },
+        "model_use": {
+          "type": "string",
+          "enum": [
+            "allowed",
+            "denied",
+            "unknown",
+            "conditional"
+          ]
+        },
+        "review_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "spatial_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "horizontal_crs",
+        "axis_order",
+        "horizontal_units",
+        "vertical_datum",
+        "vertical_units",
+        "transformation"
+      ],
+      "properties": {
+        "horizontal_crs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "identifier"
+          ],
+          "properties": {
+            "state": {
+              "type": "string",
+              "enum": [
+                "declared",
+                "unknown",
+                "not_applicable"
+              ]
+            },
+            "identifier": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            }
+          }
+        },
+        "axis_order": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "x",
+              "y",
+              "z",
+              "longitude",
+              "latitude",
+              "easting",
+              "northing"
+            ]
+          },
+          "minItems": 2,
+          "maxItems": 3,
+          "uniqueItems": true
+        },
+        "horizontal_units": {
+          "type": "string",
+          "enum": [
+            "metre",
+            "foot",
+            "degree",
+            "unknown",
+            "not_applicable"
+          ]
+        },
+        "vertical_datum": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "identifier"
+          ],
+          "properties": {
+            "state": {
+              "type": "string",
+              "enum": [
+                "declared",
+                "unknown",
+                "not_applicable"
+              ]
+            },
+            "identifier": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            }
+          }
+        },
+        "vertical_units": {
+          "type": "string",
+          "enum": [
+            "metre",
+            "foot",
+            "flight_level",
+            "unknown",
+            "not_applicable"
+          ]
+        },
+        "transformation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "operation_id",
+            "version",
+            "resource_digests"
+          ],
+          "properties": {
+            "state": {
+              "type": "string",
+              "enum": [
+                "no_transform_required",
+                "transformed",
+                "unverified",
+                "failed"
+              ]
+            },
+            "operation_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "version": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "resource_digests": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/sha256"
+              }
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "horizontal_crs": {
+                "properties": {
+                  "state": {
+                    "const": "declared"
+                  }
+                },
+                "required": [
+                  "state"
+                ]
+              }
+            },
+            "required": [
+              "horizontal_crs"
+            ]
+          },
+          "then": {
+            "properties": {
+              "horizontal_crs": {
+                "properties": {
+                  "identifier": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "identifier"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "vertical_datum": {
+                "properties": {
+                  "state": {
+                    "const": "declared"
+                  }
+                },
+                "required": [
+                  "state"
+                ]
+              }
+            },
+            "required": [
+              "vertical_datum"
+            ]
+          },
+          "then": {
+            "properties": {
+              "vertical_datum": {
+                "properties": {
+                  "identifier": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "identifier"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "jurisdiction",
+        "coverage_ref",
+        "altitude_range",
+        "valid_time_range",
+        "aircraft_categories",
+        "operation_categories"
+      ],
+      "properties": {
+        "jurisdiction": {
+          "type": "string",
+          "minLength": 1
+        },
+        "coverage_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "altitude_range": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "lower",
+            "upper",
+            "units"
+          ],
+          "properties": {
+            "lower": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "upper": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "units": {
+              "type": "string",
+              "enum": [
+                "metre",
+                "foot",
+                "flight_level",
+                "unknown"
+              ]
+            }
+          }
+        },
+        "valid_time_range": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "from",
+            "until"
+          ],
+          "properties": {
+            "from": {
+              "$ref": "#/$defs/nullableDateTime"
+            },
+            "until": {
+              "$ref": "#/$defs/nullableDateTime"
+            }
+          }
+        },
+        "aircraft_categories": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "operation_categories": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "geographic",
+        "temporal",
+        "attributes",
+        "known_gaps",
+        "evidence_refs"
+      ],
+      "properties": {
+        "geographic": {
+          "type": "string",
+          "enum": [
+            "known",
+            "partial",
+            "unknown",
+            "not_applicable"
+          ]
+        },
+        "temporal": {
+          "type": "string",
+          "enum": [
+            "known",
+            "partial",
+            "unknown",
+            "not_applicable"
+          ]
+        },
+        "attributes": {
+          "type": "string",
+          "enum": [
+            "known",
+            "partial",
+            "unknown",
+            "not_applicable"
+          ]
+        },
+        "known_gaps": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "as_of",
+        "freshness_for_use",
+        "applicability",
+        "coverage",
+        "conflict",
+        "source_authenticity",
+        "policy_id"
+      ],
+      "properties": {
+        "as_of": {
+          "$ref": "#/$defs/dateTime"
+        },
+        "freshness_for_use": {
+          "type": "string",
+          "enum": [
+            "current_for_declared_use",
+            "stale",
+            "no_policy",
+            "unknown",
+            "not_evaluated"
+          ]
+        },
+        "applicability": {
+          "type": "string",
+          "enum": [
+            "applicable",
+            "not_applicable",
+            "unknown",
+            "conflicted",
+            "not_evaluated"
+          ]
+        },
+        "coverage": {
+          "type": "string",
+          "enum": [
+            "complete_for_declared_scope",
+            "partial",
+            "unknown",
+            "not_evaluated"
+          ]
+        },
+        "conflict": {
+          "type": "string",
+          "enum": [
+            "no_known_conflict",
+            "conflicted",
+            "not_assessed"
+          ]
+        },
+        "source_authenticity": {
+          "type": "string",
+          "enum": [
+            "not_evaluated",
+            "authenticated",
+            "failed",
+            "unknown"
+          ]
+        },
+        "policy_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "class",
+        "confidence_scope",
+        "limitations"
+      ],
+      "properties": {
+        "class": {
+          "type": "string",
+          "enum": [
+            "authority_published",
+            "measured",
+            "derived",
+            "crowdsourced",
+            "synthetic",
+            "human_reviewed"
+          ]
+        },
+        "confidence_scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "lineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parser_version",
+        "transform_version",
+        "derived_from",
+        "supersedes",
+        "manifest_sha256"
+      ],
+      "properties": {
+        "parser_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "transform_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "derived_from": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "supersedes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "manifest_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "dateTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "nullableDateTime": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[A-Fa-f0-9]{64}$"
+    }
+  }
+}

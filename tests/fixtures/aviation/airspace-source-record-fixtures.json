@@ -1,0 +1,528 @@
+{
+  "suite_id": "AIRSPACE-ATLAS-001-synthetic-state-fixtures-v1",
+  "schema_version": 1,
+  "statement": "All records are fictional synthetic fixtures. Schema validity is not authenticity, operational validity, or clearance.",
+  "cases": [
+    {
+      "case_id": "fresh-synthetic-record",
+      "expected_state": "candidate-only; synthetic",
+      "record": {
+        "schema_version": 1,
+        "record_id": "fixture-airspace-restriction-001@rev-001",
+        "feature_id": {
+          "namespace": "fixture://synthetic-airspace",
+          "value": "zone-A"
+        },
+        "claim_kind": "restriction",
+        "revision": "rev-001",
+        "source": {
+          "publisher": "Synthetic authority fixture",
+          "product_family": "synthetic-AIP",
+          "publication_id": "SYNTH-AIP-001",
+          "revision": "rev-001",
+          "locator": "fixture://source/synthetic-aip-001",
+          "authority_scope": "fictional-test-only",
+          "artifact": {
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "byte_length": 1256
+          },
+          "authentication": {
+            "state": "not_evaluated",
+            "method": "synthetic-fixture-only",
+            "evidence_ref": null
+          }
+        },
+        "acquisition": {
+          "retrieved_at": "2026-10-20T01:00:00Z",
+          "source_issued_at": "2026-10-19T00:00:00Z",
+          "source_updated_at": "2026-10-19T00:00:00Z"
+        },
+        "validity": {
+          "effective_from": "2026-10-19T00:00:00Z",
+          "effective_until": "2026-10-21T00:00:00Z",
+          "withdrawn": false
+        },
+        "freshness": {
+          "policy_id": "fixture-policy-24h-v1",
+          "evaluated_at": "2026-10-20T01:00:00Z",
+          "status": "current_for_declared_use",
+          "observed_age_seconds": 3600
+        },
+        "rights": {
+          "acquisition": "allowed",
+          "storage": "allowed",
+          "redistribution": "allowed",
+          "publication": "allowed",
+          "model_use": "allowed",
+          "review_ref": "fixture://rights/review-001"
+        },
+        "spatial_reference": {
+          "horizontal_crs": {
+            "state": "declared",
+            "identifier": "LOCAL-XYZ-SYNTHETIC-001"
+          },
+          "axis_order": [
+            "x",
+            "y"
+          ],
+          "horizontal_units": "metre",
+          "vertical_datum": {
+            "state": "declared",
+            "identifier": "SYNTHETIC-VERTICAL-001"
+          },
+          "vertical_units": "metre",
+          "transformation": {
+            "state": "no_transform_required",
+            "operation_id": null,
+            "version": null,
+            "resource_digests": []
+          }
+        },
+        "scope": {
+          "jurisdiction": "fictional-test-only",
+          "coverage_ref": "fixture://coverage/area-001",
+          "altitude_range": {
+            "lower": 0,
+            "upper": 500,
+            "units": "metre"
+          },
+          "valid_time_range": {
+            "from": "2026-10-19T00:00:00Z",
+            "until": "2026-10-21T00:00:00Z"
+          },
+          "aircraft_categories": [
+            "synthetic-only"
+          ],
+          "operation_categories": [
+            "test-only"
+          ]
+        },
+        "coverage": {
+          "geographic": "known",
+          "temporal": "known",
+          "attributes": "known",
+          "known_gaps": [],
+          "evidence_refs": [
+            "fixture://coverage/evidence-001"
+          ]
+        },
+        "assessment": {
+          "as_of": "2026-10-20T01:00:00Z",
+          "freshness_for_use": "current_for_declared_use",
+          "applicability": "applicable",
+          "coverage": "complete_for_declared_scope",
+          "conflict": "no_known_conflict",
+          "source_authenticity": "not_evaluated",
+          "policy_id": "fixture-assessment-policy-v1"
+        },
+        "evidence": {
+          "class": "synthetic",
+          "confidence_scope": "schema and state-machine fixture only",
+          "limitations": [
+            "not real aviation data",
+            "no operational or legal authority"
+          ]
+        },
+        "lineage": {
+          "parser_version": "fixture-parser-1",
+          "transform_version": "none",
+          "derived_from": [],
+          "supersedes": [],
+          "manifest_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        }
+      }
+    },
+    {
+      "case_id": "stale-record-does-not-satisfy-current-use",
+      "expected_state": "stale; unresolved for current use",
+      "record": {
+        "schema_version": 1,
+        "record_id": "fixture-airspace-restriction-stale@rev-001",
+        "feature_id": {
+          "namespace": "fixture://synthetic-airspace",
+          "value": "zone-A"
+        },
+        "claim_kind": "restriction",
+        "revision": "rev-001",
+        "source": {
+          "publisher": "Synthetic authority fixture",
+          "product_family": "synthetic-AIP",
+          "publication_id": "SYNTH-AIP-001",
+          "revision": "rev-001",
+          "locator": "fixture://source/synthetic-aip-001",
+          "authority_scope": "fictional-test-only",
+          "artifact": {
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "byte_length": 1256
+          },
+          "authentication": {
+            "state": "not_evaluated",
+            "method": "synthetic-fixture-only",
+            "evidence_ref": null
+          }
+        },
+        "acquisition": {
+          "retrieved_at": "2026-10-20T01:00:00Z",
+          "source_issued_at": "2026-10-19T00:00:00Z",
+          "source_updated_at": "2026-10-19T00:00:00Z"
+        },
+        "validity": {
+          "effective_from": "2026-10-19T00:00:00Z",
+          "effective_until": "2026-10-21T00:00:00Z",
+          "withdrawn": false
+        },
+        "freshness": {
+          "policy_id": "fixture-policy-24h-v1",
+          "evaluated_at": "2026-10-20T01:00:00Z",
+          "status": "stale",
+          "observed_age_seconds": 172800
+        },
+        "rights": {
+          "acquisition": "allowed",
+          "storage": "allowed",
+          "redistribution": "allowed",
+          "publication": "allowed",
+          "model_use": "allowed",
+          "review_ref": "fixture://rights/review-001"
+        },
+        "spatial_reference": {
+          "horizontal_crs": {
+            "state": "declared",
+            "identifier": "LOCAL-XYZ-SYNTHETIC-001"
+          },
+          "axis_order": [
+            "x",
+            "y"
+          ],
+          "horizontal_units": "metre",
+          "vertical_datum": {
+            "state": "declared",
+            "identifier": "SYNTHETIC-VERTICAL-001"
+          },
+          "vertical_units": "metre",
+          "transformation": {
+            "state": "no_transform_required",
+            "operation_id": null,
+            "version": null,
+            "resource_digests": []
+          }
+        },
+        "scope": {
+          "jurisdiction": "fictional-test-only",
+          "coverage_ref": "fixture://coverage/area-001",
+          "altitude_range": {
+            "lower": 0,
+            "upper": 500,
+            "units": "metre"
+          },
+          "valid_time_range": {
+            "from": "2026-10-19T00:00:00Z",
+            "until": "2026-10-21T00:00:00Z"
+          },
+          "aircraft_categories": [
+            "synthetic-only"
+          ],
+          "operation_categories": [
+            "test-only"
+          ]
+        },
+        "coverage": {
+          "geographic": "known",
+          "temporal": "known",
+          "attributes": "known",
+          "known_gaps": [],
+          "evidence_refs": [
+            "fixture://coverage/evidence-001"
+          ]
+        },
+        "assessment": {
+          "as_of": "2026-10-20T01:00:00Z",
+          "freshness_for_use": "stale",
+          "applicability": "applicable",
+          "coverage": "complete_for_declared_scope",
+          "conflict": "no_known_conflict",
+          "source_authenticity": "not_evaluated",
+          "policy_id": "fixture-assessment-policy-v1"
+        },
+        "evidence": {
+          "class": "synthetic",
+          "confidence_scope": "schema and state-machine fixture only",
+          "limitations": [
+            "not real aviation data",
+            "no operational or legal authority",
+            "must not satisfy a current-use freshness gate"
+          ]
+        },
+        "lineage": {
+          "parser_version": "fixture-parser-1",
+          "transform_version": "none",
+          "derived_from": [],
+          "supersedes": [],
+          "manifest_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        }
+      }
+    },
+    {
+      "case_id": "unknown-coverage-is-not-unrestricted",
+      "expected_state": "unknown coverage; not assessable",
+      "record": {
+        "schema_version": 1,
+        "record_id": "fixture-airspace-coverage-unknown@rev-001",
+        "feature_id": {
+          "namespace": "fixture://synthetic-airspace",
+          "value": "zone-A"
+        },
+        "claim_kind": "coverage",
+        "revision": "rev-001",
+        "source": {
+          "publisher": "Synthetic authority fixture",
+          "product_family": "synthetic-AIP",
+          "publication_id": "SYNTH-AIP-001",
+          "revision": "rev-001",
+          "locator": "fixture://source/synthetic-aip-001",
+          "authority_scope": "fictional-test-only",
+          "artifact": {
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "byte_length": 1256
+          },
+          "authentication": {
+            "state": "not_evaluated",
+            "method": "synthetic-fixture-only",
+            "evidence_ref": null
+          }
+        },
+        "acquisition": {
+          "retrieved_at": "2026-10-20T01:00:00Z",
+          "source_issued_at": "2026-10-19T00:00:00Z",
+          "source_updated_at": "2026-10-19T00:00:00Z"
+        },
+        "validity": {
+          "effective_from": "2026-10-19T00:00:00Z",
+          "effective_until": "2026-10-21T00:00:00Z",
+          "withdrawn": false
+        },
+        "freshness": {
+          "policy_id": "fixture-policy-24h-v1",
+          "evaluated_at": "2026-10-20T01:00:00Z",
+          "status": "current_for_declared_use",
+          "observed_age_seconds": 3600
+        },
+        "rights": {
+          "acquisition": "allowed",
+          "storage": "allowed",
+          "redistribution": "allowed",
+          "publication": "allowed",
+          "model_use": "allowed",
+          "review_ref": "fixture://rights/review-001"
+        },
+        "spatial_reference": {
+          "horizontal_crs": {
+            "state": "declared",
+            "identifier": "LOCAL-XYZ-SYNTHETIC-001"
+          },
+          "axis_order": [
+            "x",
+            "y"
+          ],
+          "horizontal_units": "metre",
+          "vertical_datum": {
+            "state": "declared",
+            "identifier": "SYNTHETIC-VERTICAL-001"
+          },
+          "vertical_units": "metre",
+          "transformation": {
+            "state": "no_transform_required",
+            "operation_id": null,
+            "version": null,
+            "resource_digests": []
+          }
+        },
+        "scope": {
+          "jurisdiction": "fictional-test-only",
+          "coverage_ref": "fixture://coverage/area-001",
+          "altitude_range": {
+            "lower": 0,
+            "upper": 500,
+            "units": "metre"
+          },
+          "valid_time_range": {
+            "from": "2026-10-19T00:00:00Z",
+            "until": "2026-10-21T00:00:00Z"
+          },
+          "aircraft_categories": [
+            "synthetic-only"
+          ],
+          "operation_categories": [
+            "test-only"
+          ]
+        },
+        "coverage": {
+          "geographic": "unknown",
+          "temporal": "known",
+          "attributes": "partial",
+          "known_gaps": [
+            "coverage polygon not supplied"
+          ],
+          "evidence_refs": [
+            "fixture://coverage/evidence-001"
+          ]
+        },
+        "assessment": {
+          "as_of": "2026-10-20T01:00:00Z",
+          "freshness_for_use": "current_for_declared_use",
+          "applicability": "unknown",
+          "coverage": "unknown",
+          "conflict": "no_known_conflict",
+          "source_authenticity": "not_evaluated",
+          "policy_id": "fixture-assessment-policy-v1"
+        },
+        "evidence": {
+          "class": "synthetic",
+          "confidence_scope": "schema and state-machine fixture only",
+          "limitations": [
+            "not real aviation data",
+            "no operational or legal authority",
+            "missing records do not imply unrestricted geography"
+          ]
+        },
+        "lineage": {
+          "parser_version": "fixture-parser-1",
+          "transform_version": "none",
+          "derived_from": [],
+          "supersedes": [],
+          "manifest_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        }
+      }
+    },
+    {
+      "case_id": "conflicted-record-remains-unresolved",
+      "expected_state": "conflicted; not assessable",
+      "record": {
+        "schema_version": 1,
+        "record_id": "fixture-airspace-conflicted@rev-001",
+        "feature_id": {
+          "namespace": "fixture://synthetic-airspace",
+          "value": "zone-A"
+        },
+        "claim_kind": "restriction",
+        "revision": "rev-001",
+        "source": {
+          "publisher": "Synthetic authority fixture",
+          "product_family": "synthetic-AIP",
+          "publication_id": "SYNTH-AIP-001",
+          "revision": "rev-001",
+          "locator": "fixture://source/synthetic-aip-001",
+          "authority_scope": "fictional-test-only",
+          "artifact": {
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "byte_length": 1256
+          },
+          "authentication": {
+            "state": "not_evaluated",
+            "method": "synthetic-fixture-only",
+            "evidence_ref": null
+          }
+        },
+        "acquisition": {
+          "retrieved_at": "2026-10-20T01:00:00Z",
+          "source_issued_at": "2026-10-19T00:00:00Z",
+          "source_updated_at": "2026-10-19T00:00:00Z"
+        },
+        "validity": {
+          "effective_from": "2026-10-19T00:00:00Z",
+          "effective_until": "2026-10-21T00:00:00Z",
+          "withdrawn": false
+        },
+        "freshness": {
+          "policy_id": "fixture-policy-24h-v1",
+          "evaluated_at": "2026-10-20T01:00:00Z",
+          "status": "current_for_declared_use",
+          "observed_age_seconds": 3600
+        },
+        "rights": {
+          "acquisition": "allowed",
+          "storage": "allowed",
+          "redistribution": "allowed",
+          "publication": "allowed",
+          "model_use": "allowed",
+          "review_ref": "fixture://rights/review-001"
+        },
+        "spatial_reference": {
+          "horizontal_crs": {
+            "state": "declared",
+            "identifier": "LOCAL-XYZ-SYNTHETIC-001"
+          },
+          "axis_order": [
+            "x",
+            "y"
+          ],
+          "horizontal_units": "metre",
+          "vertical_datum": {
+            "state": "declared",
+            "identifier": "SYNTHETIC-VERTICAL-001"
+          },
+          "vertical_units": "metre",
+          "transformation": {
+            "state": "no_transform_required",
+            "operation_id": null,
+            "version": null,
+            "resource_digests": []
+          }
+        },
+        "scope": {
+          "jurisdiction": "fictional-test-only",
+          "coverage_ref": "fixture://coverage/area-001",
+          "altitude_range": {
+            "lower": 0,
+            "upper": 500,
+            "units": "metre"
+          },
+          "valid_time_range": {
+            "from": "2026-10-19T00:00:00Z",
+            "until": "2026-10-21T00:00:00Z"
+          },
+          "aircraft_categories": [
+            "synthetic-only"
+          ],
+          "operation_categories": [
+            "test-only"
+          ]
+        },
+        "coverage": {
+          "geographic": "known",
+          "temporal": "known",
+          "attributes": "known",
+          "known_gaps": [],
+          "evidence_refs": [
+            "fixture://coverage/evidence-001"
+          ]
+        },
+        "assessment": {
+          "as_of": "2026-10-20T01:00:00Z",
+          "freshness_for_use": "current_for_declared_use",
+          "applicability": "conflicted",
+          "coverage": "complete_for_declared_scope",
+          "conflict": "conflicted",
+          "source_authenticity": "not_evaluated",
+          "policy_id": "fixture-assessment-policy-v1"
+        },
+        "evidence": {
+          "class": "synthetic",
+          "confidence_scope": "schema and state-machine fixture only",
+          "limitations": [
+            "not real aviation data",
+            "no operational or legal authority",
+            "source disagreement remains unresolved"
+          ]
+        },
+        "lineage": {
+          "parser_version": "fixture-parser-1",
+          "transform_version": "none",
+          "derived_from": [],
+          "supersedes": [],
+          "manifest_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        }
+      }
+    }
+  ]
+}
