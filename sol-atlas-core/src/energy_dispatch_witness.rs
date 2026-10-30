@@ -622,7 +622,7 @@ mod tests {
                         match &candidate.challenger_proofs[0].basis {
                             ChallengerProofBasis::FirstDifferingObjectiveTier { tier_index } => {
                                 ChallengerProofBasis::FirstDifferingObjectiveTier {
-                                    tier_index: (tier_index + 1) % policy.objective_tiers.len(),
+                                    tier_index: (*tier_index + 1) % policy.objective_tiers.len(),
                                 }
                             }
                             ChallengerProofBasis::StableScheduleTieBreakV1 => {
