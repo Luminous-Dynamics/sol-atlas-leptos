@@ -275,7 +275,7 @@ pub fn assess_heat_pump(
 mod tests {
     use super::*;
 
-    fn request() -> HeatPumpRequest {
+    fn heat_pump_heat_pump_request() -> HeatPumpRequest {
         HeatPumpRequest {
             schema_version: "heat-pump-v0.1".to_owned(),
             scenario_id: "synthetic-heat-pump-known-answer".to_owned(),
@@ -298,7 +298,7 @@ mod tests {
 
     #[test]
     fn multi_stream_first_law_and_system_cop_close() {
-        let assessment = assess_heat_pump(&request()).unwrap();
+        let assessment = assess_heat_pump(&heat_pump_request()).unwrap();
         assert!((assessment.gross_heat_output_kwh - 40.0).abs() < NUMERIC_TOLERANCE);
         assert!((assessment.distribution_loss_kwh - 4.0).abs() < NUMERIC_TOLERANCE);
         assert!((assessment.useful_heat_delivered_kwh - 36.0).abs() < NUMERIC_TOLERANCE);
@@ -310,7 +310,7 @@ mod tests {
 
     #[test]
     fn throughput_caps_curtail_both_streams_explicitly() {
-        let mut request = request();
+        let mut request = heat_pump_request();
         request.max_source_heat_kwh = 20.0;
         request.max_compressor_electricity_kwh = 5.0;
         let assessment = assess_heat_pump(&request).unwrap();
@@ -324,7 +324,7 @@ mod tests {
 
     #[test]
     fn zero_inputs_cannot_create_heat() {
-        let mut request = request();
+        let mut request = heat_pump_request();
         request.source_heat_available_kwh = 0.0;
         request.max_source_heat_kwh = 0.0;
         request.compressor_electricity_available_kwh = 0.0;
@@ -339,7 +339,7 @@ mod tests {
 
     #[test]
     fn source_heat_without_compressor_work_is_rejected() {
-        let mut request = request();
+        let mut request = heat_pump_request();
         request.compressor_electricity_available_kwh = 0.0;
         request.max_compressor_electricity_kwh = 0.0;
         assert!(matches!(
@@ -350,7 +350,7 @@ mod tests {
 
     #[test]
     fn impossible_cop_fails_carnot_negative_control() {
-        let mut request = request();
+        let mut request = heat_pump_request();
         request.source_heat_available_kwh = 100.0;
         request.max_source_heat_kwh = 100.0;
         request.compressor_electricity_available_kwh = 1.0;
@@ -363,7 +363,7 @@ mod tests {
 
     #[test]
     fn invalid_temperatures_fail_closed() {
-        let mut request = request();
+        let mut request = heat_pump_request();
         request.temperatures.source_c = 90.0;
         request.temperatures.delivery_c = 80.0;
         assert!(matches!(
@@ -374,7 +374,7 @@ mod tests {
 
     #[test]
     fn missing_evidence_reference_fails_for_non_assumption_class() {
-        let mut request = request();
+        let mut request = heat_pump_request();
         request.evidence_class = EvidenceClass::OperatingPlant;
         assert!(matches!(
             assess_heat_pump(&request),
@@ -384,13 +384,13 @@ mod tests {
 
     #[test]
     fn invalid_numeric_values_fail_closed() {
-        let mut request = request();
+        let mut request = heat_pump_request();
         request.auxiliary_electricity_kwh = f64::NAN;
         assert!(matches!(
             assess_heat_pump(&request),
             Err(HeatPumpError::InvalidEnergy { .. })
         ));
-        let mut request = request();
+        let mut request = heat_pump_request();
         request.distribution_loss_fraction = 1.01;
         assert!(matches!(
             assess_heat_pump(&request),
@@ -400,7 +400,7 @@ mod tests {
 
     #[test]
     fn unsupported_version_fails_closed() {
-        let mut request = request();
+        let mut request = heat_pump_request();
         request.schema_version = "future-v9".to_owned();
         assert!(matches!(
             assess_heat_pump(&request),
@@ -410,8 +410,8 @@ mod tests {
 
     #[test]
     fn output_is_deterministic() {
-        let a = serde_json::to_vec(&assess_heat_pump(&request()).unwrap()).unwrap();
-        let b = serde_json::to_vec(&assess_heat_pump(&request()).unwrap()).unwrap();
+        let a = serde_json::to_vec(&assess_heat_pump(&heat_pump_request()).unwrap()).unwrap();
+        let b = serde_json::to_vec(&assess_heat_pump(&heat_pump_request()).unwrap()).unwrap();
         assert_eq!(a, b);
     }
 }
