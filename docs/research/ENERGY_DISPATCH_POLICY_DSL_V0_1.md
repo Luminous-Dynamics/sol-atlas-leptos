@@ -1,4 +1,4 @@
-# Energy Dispatch Policy DSL v0.1 — design contract
+# Energy Dispatch Pareto-Selector DSL v0.1 — design contract
 
 **Status:** Draft design; no policy compiler or runtime is claimed  
 **Issue:** [ENERGY-DISPATCH-POLICY-DSL-001 #315](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/315)  
@@ -6,7 +6,7 @@
 
 ## 1. Decision
 
-Define a bounded, declarative, data-only Energy Dispatch Policy format that selects among schedules already returned by the exact finite dispatch oracle.
+Define a bounded, declarative, data-only Energy Dispatch Pareto-Selector Policy format that selects among schedules already returned by the exact finite dispatch oracle. This v0.1 language is explicitly a selector, not a schedule generator.
 
 The compiler does not generate schedules, change the physical model, or authorize dispatch. It transforms a frozen policy document into a typed policy IR. A separate selector ranks only the oracle's complete Pareto alternatives. The existing independent schedule verifier then rechecks the selected schedule.
 
@@ -136,9 +136,9 @@ Policy equivalence is only asserted over the declared finite case/frontier unive
 
 ## 7. First implementation fixture
 
-Represent the existing pv-grid-battery-priority-v0.1 baseline as a frozen source policy. Do not alter its decisions during the first adapter.
+Do not attempt to encode the existing pv-grid-battery-priority-v0.1 baseline as a Pareto-selector policy: it is a schedule generator, while this DSL selects among already-generated Pareto alternatives. Preserve the heuristic as a separate benchmark arm, with its existing version/source/config identity, and continue evaluating it through PR #311's regret contract. No semantic equivalence between the heuristic and a selector policy is claimed.
 
-Run the same policy against:
+The first DSL fixture is a manually specified selector over the frozen known-answer Pareto frontier. Run that selector against:
 - the frozen PV-surplus-then-outage known-answer case;
 - the one-interval grid-first case where the heuristic incurs avoidable cost;
 - the terminal-reserve conflict case;
