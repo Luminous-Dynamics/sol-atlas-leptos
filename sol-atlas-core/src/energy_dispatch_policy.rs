@@ -79,11 +79,15 @@ pub enum DispatchSelectionError {
     },
     UnsupportedTieBreak { name: String },
     UnsupportedAssessmentSchemaVersion { actual: String },
+    CaseIdMismatch { expected: String, actual: String },
     OracleFrontierIncomplete,
     FrontierCountMismatch { declared: usize, actual: usize },
     EmptyFrontier,
     FrontierExceedsMaximum { actual: usize, maximum: usize },
     EmptyAlternativeSchedule { index: usize },
+    ScheduleVerificationFailed { index: usize, errors: Vec<String> },
+    ObjectiveDoesNotMatchSchedule { index: usize },
+    FrontierContainsDominatedAlternative { dominated: usize, dominator: usize },
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -603,6 +607,7 @@ mod tests {
         assert_eq!(
             select_dispatch_alternative(
                 &DispatchSelectionPolicy::critical_service_first_v1(),
+                &_request,
                 &assessment
             ),
             Err(DispatchSelectionError::EmptyFrontier)
