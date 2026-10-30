@@ -275,7 +275,7 @@ pub fn assess_heat_pump(
 mod tests {
     use super::*;
 
-    fn heat_pump_heat_pump_request() -> HeatPumpRequest {
+    fn heat_pump_request() -> HeatPumpRequest {
         HeatPumpRequest {
             schema_version: "heat-pump-v0.1".to_owned(),
             scenario_id: "synthetic-heat-pump-known-answer".to_owned(),
