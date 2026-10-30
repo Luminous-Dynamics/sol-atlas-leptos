@@ -112,6 +112,7 @@ fn validate_artifacts<'a>(
 ) -> (BTreeMap<String, &'a Value>, BTreeSet<String>) {
     let mut by_id = BTreeMap::new();
     let mut roles = BTreeSet::new();
+    let disposition = profile.get("disposition").and_then(Value::as_str).unwrap_or("");
     let Some(items) = array(profile, "artifact_bindings", "", out) else {
         return (by_id, roles);
     };
@@ -120,10 +121,6 @@ fn validate_artifacts<'a>(
         if object(artifact, &path, out).is_none() { continue; }
         let id = string(artifact, "artifact_id", &path, out);
         let role = string(artifact, "role", &path, out);
-        let repo = string(artifact, "repository", &path, out);
-        let commit = string(artifact, "commit_sha", &path, out);
-        let blob = string(artifact, "git_blob_sha", &path, out);
-        let file_path = string(artifact, "path", &path, out);
         let rights = string(artifact, "rights_state", &path, out);
         let _ = string(artifact, "evidence_class", &path, out);
 
@@ -133,34 +130,74 @@ fn validate_artifacts<'a>(
             }
         }
         if let Some(role) = role { roles.insert(role.to_owned()); }
-        if let Some(repo) = repo {
-            if repo.split('/').count() != 2 {
-                issue(out, "INVALID_REPOSITORY", format!("{path}/repository"), "Repository must use owner/name form.");
+
+        let repo = artifact.get("repository").and_then(Value::as_str);
+        let commit = artifact.get("commit_sha").and_then(Value::as_str);
+        let blob = artifact.get("git_blob_sha").and_then(Value::as_str);
+        let file_path = artifact.get("path").and_then(Value::as_str);
+        let source_uri = artifact.get("source_uri").and_then(Value::as_str);
+        let content_sha256 = artifact.get("content_sha256").and_then(Value::as_str);
+        let is_git_binding = repo.is_some() || commit.is_some() || blob.is_some() || file_path.is_some();
+        let is_external_binding = source_uri.is_some() || content_sha256.is_some();
+
+        if is_git_binding {
+            for (field, value) in [
+                ("repository", repo),
+                ("commit_sha", commit),
+                ("git_blob_sha", blob),
+                ("path", file_path),
+            ] {
+                if value.map(str::trim).filter(|v| !v.is_empty()).is_none() {
+                    issue(out, "INCOMPLETE_GIT_ARTIFACT_BINDING", format!("{path}/{field}"), "Git artifacts require repository, commit_sha, path and git_blob_sha.");
+                }
+            }
+            if let Some(repo) = repo {
+                if repo.split('/').count() != 2 {
+                    issue(out, "INVALID_REPOSITORY", format!("{path}/repository"), "Repository must use owner/name form.");
+                }
+            }
+            if let Some(commit) = commit {
+                if !is_hex(commit, 40) {
+                    issue(out, "INVALID_COMMIT_SHA", format!("{path}/commit_sha"), "Expected a 40-character Git commit SHA.");
+                }
+            }
+            if let Some(blob) = blob {
+                if !is_hex(blob, 40) {
+                    issue(out, "INVALID_GIT_BLOB_SHA", format!("{path}/git_blob_sha"), "Expected a 40-character Git blob SHA-1.");
+                }
+            }
+            if let Some(path_value) = file_path {
+                if path_value.starts_with('/') || path_value.split('/').any(|p| p == "..") {
+                    issue(out, "UNSAFE_ARTIFACT_PATH", format!("{path}/path"), "Use a repository-relative path without parent traversal.");
+                }
             }
         }
-        if let Some(commit) = commit {
-            if !is_hex(commit, 40) {
-                issue(out, "INVALID_COMMIT_SHA", format!("{path}/commit_sha"), "Expected a 40-character Git commit SHA.");
+        if is_external_binding {
+            if source_uri.map(str::trim).filter(|v| !v.is_empty()).is_none() {
+                issue(out, "MISSING_EXTERNAL_SOURCE_URI", format!("{path}/source_uri"), "External artifacts require a source URI.");
+            } else if !source_uri.unwrap_or("").contains("://") {
+                issue(out, "INVALID_EXTERNAL_SOURCE_URI", format!("{path}/source_uri"), "External source URI must include a scheme.");
             }
-        }
-        if let Some(blob) = blob {
-            if !is_hex(blob, 40) {
-                issue(out, "INVALID_GIT_BLOB_SHA", format!("{path}/git_blob_sha"), "Expected a 40-character Git blob SHA-1.");
+            if content_sha256.map(|v| is_hex(v, 64)) != Some(true) {
+                issue(out, "INVALID_CONTENT_SHA256", format!("{path}/content_sha256"), "External artifacts require a 64-character SHA-256 digest.");
             }
+        } else if !is_git_binding {
+            issue(out, "UNPINNED_ARTIFACT", &path, "Artifact requires either a Git repository pin or an external URI plus SHA-256.");
         }
-        if let Some(content) = artifact.get("content_sha256").and_then(Value::as_str) {
+        if !is_git_binding && is_external_binding && content_sha256.map(|v| is_hex(v, 64)) != Some(true) {
+            // The external-binding error above is intentionally repeated only once by code and path.
+        }
+        if let Some(content) = content_sha256 {
             if !is_hex(content, 64) {
                 issue(out, "INVALID_CONTENT_SHA256", format!("{path}/content_sha256"), "Expected a 64-character SHA-256 digest.");
-            }
-        }
-        if let Some(path_value) = file_path {
-            if path_value.starts_with('/') || path_value.split('/').any(|p| p == "..") {
-                issue(out, "UNSAFE_ARTIFACT_PATH", format!("{path}/path"), "Use a repository-relative path without parent traversal.");
             }
         }
         if let Some(rights) = rights {
             if !["verified", "restricted", "unknown", "not_applicable"].contains(&rights) {
                 issue(out, "INVALID_RIGHTS_STATE", format!("{path}/rights_state"), "Unrecognized rights state.");
+            }
+            if disposition == "qualified_for_profile" && rights != "verified" {
+                issue(out, "QUALIFIED_WITH_UNVERIFIED_RIGHTS", format!("{path}/rights_state"), "Every artifact in a qualified profile requires verified data/artifact rights.");
             }
         }
     }
@@ -705,6 +742,30 @@ mod tests {
         assert_eq!(schema["properties"]["schema_version"]["const"], "luminous.industry-assurance-profile.v0.1");
         assert_eq!(report_schema["properties"]["independent_qualification_attested"]["const"], false);
         assert!(schema["properties"]["evidence_vector"]["required"].as_array().unwrap().len() == 10);
+    }
+
+
+    #[test]
+    fn external_artifact_uses_uri_and_sha256_without_fake_git_fields() {
+        let mut p = make_qualified_d1();
+        p["artifact_bindings"] = json!([{
+            "artifact_id": "evidence-001",
+            "role": "test_report",
+            "source_uri": "https://example.org/public/fixture.csv",
+            "content_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "evidence_class": "authorized_observation",
+            "rights_state": "verified"
+        }]);
+        let issues = validate_profile(&p);
+        assert!(issues.is_empty(), "{issues:#?}");
+    }
+
+    #[test]
+    fn qualified_profile_rejects_unknown_artifact_rights() {
+        let mut p = make_qualified_d1();
+        p["artifact_bindings"][0]["rights_state"] = json!("unknown");
+        let issues = validate_profile(&p);
+        assert!(has_code(&issues, "QUALIFIED_WITH_UNVERIFIED_RIGHTS"));
     }
 
 }
