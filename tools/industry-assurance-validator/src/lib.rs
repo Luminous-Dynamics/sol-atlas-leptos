@@ -544,7 +544,7 @@ mod tests {
         assert!(issues.is_empty(), "{issues:#?}");
         let report = build_report(&p, &issues);
         assert_eq!(report["status"], "PROFILE_CONTRACT_VALID_NOT_QUALIFIED");
-        assert_eq!(report["independent_qualification_attested"], false);
+        assert!(!report["independent_qualification_attested"].as_bool().unwrap());
     }
 
     #[test]
@@ -639,7 +639,7 @@ mod tests {
         p["authority"]["permitted_actions"] = json!(["view", "execute_external_action"]);
         let issues = validate_profile(&p);
         assert!(has_code(&issues, "MISSING_REQUIRED_ARTIFACT_ROLE"));
-        assert!(has_code(&issues, "D3_EVIDENCE_VECTOR_INCOMPLETE") == false);
+        assert!(!has_code(&issues, "D3_EVIDENCE_VECTOR_INCOMPLETE"));
     }
 
     #[test]
@@ -694,6 +694,17 @@ mod tests {
         p["decision_tier"] = json!("D3_autonomous_control");
         let issues = validate_profile(&p);
         assert!(issues.is_empty(), "{issues:#?}");
+    }
+
+
+    #[test]
+    fn profile_and_report_schemas_parse_with_expected_contract_versions() {
+        let schema: Value = serde_json::from_str(include_str!("../../../schemas/industry-assurance-qualification-profile-v0.1.schema.json")).unwrap();
+        let report_schema: Value = serde_json::from_str(include_str!("../../../schemas/industry-assurance-validation-report-v0.1.schema.json")).unwrap();
+        assert_eq!(schema["$schema"], "https://json-schema.org/draft/2020-12/schema");
+        assert_eq!(schema["properties"]["schema_version"]["const"], "luminous.industry-assurance-profile.v0.1");
+        assert_eq!(report_schema["properties"]["independent_qualification_attested"]["const"], false);
+        assert!(schema["properties"]["evidence_vector"]["required"].as_array().unwrap().len() == 10);
     }
 
 }
