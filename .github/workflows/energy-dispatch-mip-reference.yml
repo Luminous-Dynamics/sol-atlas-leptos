@@ -1,0 +1,69 @@
+name: Energy Dispatch Independent MIP Reference
+
+on:
+  pull_request:
+    paths:
+      - "tools/energy-dispatch-mip-reference/**"
+      - "schemas/examples/energy-dispatch-pv-outage.synthetic.json"
+      - ".github/workflows/energy-dispatch-mip-reference.yml"
+  push:
+    branches: ["main"]
+    paths:
+      - "tools/energy-dispatch-mip-reference/**"
+      - "schemas/examples/energy-dispatch-pv-outage.synthetic.json"
+      - ".github/workflows/energy-dispatch-mip-reference.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: energy-dispatch-mip-reference-${ github.workflow }-${ github.event.pull_request.number || github.ref }
+  cancel-in-progress: true
+
+jobs:
+  reference-model:
+    name: Independent integer LP model generator (Rust 1.96.0)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pinned Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.0
+          components: clippy, rustfmt
+
+      - name: Format model generator sources
+        run: cargo fmt --manifest-path tools/energy-dispatch-mip-reference/Cargo.toml --all
+
+      - name: Resolve standalone dependency graph
+        run: cargo generate-lockfile --manifest-path tools/energy-dispatch-mip-reference/Cargo.toml
+
+      - name: Test independent model translation and hard controls
+        run: cargo test --manifest-path tools/energy-dispatch-mip-reference/Cargo.toml
+
+      - name: Clippy independent model generator
+        run: cargo clippy --manifest-path tools/energy-dispatch-mip-reference/Cargo.toml --all-targets -- -D warnings
+
+      - name: Emit 12 frozen-fixture LP models
+        run: |
+          cargo run --manifest-path tools/energy-dispatch-mip-reference/Cargo.toml -- \
+            schemas/examples/energy-dispatch-pv-outage.synthetic.json \
+            target/energy-dispatch-mip-reference
+          test "$(find target/energy-dispatch-mip-reference -maxdepth 1 -name '*.lp' | wc -l)" -eq 12
+          test -s target/energy-dispatch-mip-reference/manifest.json
+
+      - name: Publish LP models, manifest, lockfile and formatted source
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: energy-dispatch-independent-mip-reference-${ github.sha }
+          path: |
+            target/energy-dispatch-mip-reference/
+            tools/energy-dispatch-mip-reference/Cargo.lock
+            tools/energy-dispatch-mip-reference/Cargo.toml
+            tools/energy-dispatch-mip-reference/README.md
+            tools/energy-dispatch-mip-reference/src/lib.rs
+            tools/energy-dispatch-mip-reference/src/main.rs
+          if-no-files-found: error
+          retention-days: 14
