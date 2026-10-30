@@ -286,6 +286,22 @@ mod tests {
     }
 
     #[test]
+    fn committed_json_example_is_accepted_and_preserves_uncertainty_bounds() {
+        let input: TelecomSitePowerAutonomyScenario = serde_json::from_str(include_str!(
+            "../../schemas/examples/telecom-site-power-autonomy.json"
+        ))
+        .unwrap();
+        let result = assess_telecom_site_power_autonomy(&input, &[]).unwrap();
+        assert_eq!(result.usable_backup_energy_lower_kwh, 10.0);
+        assert_eq!(result.usable_backup_energy_upper_kwh, 14.0);
+        assert_eq!(result.radio_equipment_load_lower_kw, 1.75);
+        assert_eq!(result.radio_equipment_load_upper_kw, 2.25);
+        assert_eq!(result.autonomy_lower_hours, 10.0 / 2.25);
+        assert_eq!(result.autonomy_upper_hours, 14.0 / 1.75);
+        assert_eq!(result.status, TelecomPowerAutonomyStatus::Sufficient);
+    }
+
+    #[test]
     fn point_interval_sufficiently_covers_outage_horizon() {
         let result = assess_telecom_site_power_autonomy(&scenario(12.0, None, 2.0, None, 5.0), &[]).unwrap();
         assert_eq!(result.autonomy_lower_hours, 6.0);
