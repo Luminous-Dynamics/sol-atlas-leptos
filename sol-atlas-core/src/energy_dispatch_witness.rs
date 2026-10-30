@@ -124,7 +124,7 @@ fn policy_identity(policy: &DispatchSelectionPolicy) -> PolicyIdentity<'_> {
         };
         PolicyTierIdentity { objective, direction, aggregation }
     }).collect();
-    let tie_break = match policy.tie_break {
+    let tie_break = match &policy.tie_break {
         crate::energy_dispatch_policy::DispatchTieBreak::StableScheduleV1 => "stable_schedule_v1",
         crate::energy_dispatch_policy::DispatchTieBreak::Unsupported(_) => "unsupported",
     };
@@ -196,6 +196,15 @@ fn first_objective_difference(
         }
     }
     None
+}
+
+fn objective_weakly_dominates(left: &DispatchObjective, right: &DispatchObjective) -> bool {
+    left.essential_unserved_quanta <= right.essential_unserved_quanta
+        && left.flexible_unserved_quanta <= right.flexible_unserved_quanta
+        && left.operating_cost_units <= right.operating_cost_units
+        && left.grid_carbon_grams <= right.grid_carbon_grams
+        && left.curtailed_pv_quanta <= right.curtailed_pv_quanta
+        && left.terminal_soc_quanta >= right.terminal_soc_quanta
 }
 
 fn recompute_objective_independently(
@@ -387,6 +396,9 @@ pub fn verify_dispatch_decision_witness(
     if witness.frontier_count != alternatives.len() {
         errors.push("witness frontier count does not match assessment".to_owned());
     }
+    if alternatives.len() > crate::energy_dispatch::MAX_PARETO_FRONTIER {
+        errors.push("assessment frontier exceeds the versioned maximum".to_owned());
+    }
     let Some(winner) = alternatives.get(witness.selected_frontier_index) else {
         errors.push("selected frontier index is out of range".to_owned());
         return Err(errors);
@@ -398,6 +410,17 @@ pub fn verify_dispatch_decision_witness(
         Ok(expected) if expected == witness.selected_schedule_sha256 => {}
         Ok(_) => errors.push("selected schedule digest mismatch".to_owned()),
         Err(error) => errors.push(error),
+    }
+
+    // The witness verifier also checks frontier internal consistency; it does not
+    // rely on the producer's claim that the supplied members are non-dominated.
+    for left in 0..alternatives.len() {
+        for right in (left + 1)..alternatives.len() {
+            if objective_weakly_dominates(&alternatives[left].objective, &alternatives[right].objective)
+                || objective_weakly_dominates(&alternatives[right].objective, &alternatives[left].objective) {
+                errors.push(format!("frontier members {left} and {right} are duplicated or dominated"));
+            }
+        }
     }
 
     // Validate each member and recompute the entire objective independently.
@@ -522,7 +545,7 @@ mod tests {
         let mut witness = create_dispatch_decision_witness(&policy, &request, &assessment)
             .expect("selection witness generated");
         let proof = witness.challenger_proofs.iter_mut().find(|proof| {
-            matches!(proof.basis, ChallengerProofBasis::FirstDifferingObjectiveTier { .. })
+            matches!(&proof.basis, ChallengerProofBasis::FirstDifferingObjectiveTier { .. })
         }).expect("fixture has a challenger separated by an objective tier");
         proof.basis = ChallengerProofBasis::FirstDifferingObjectiveTier { tier_index: 5 };
         let errors = verify_dispatch_decision_witness(&policy, &request, &assessment, &witness)
