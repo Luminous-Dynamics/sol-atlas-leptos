@@ -26,6 +26,7 @@ pub mod energy_dispatch;
 pub mod energy_dispatch_baseline;
 pub mod energy_dispatch_verifier;
 pub mod energy_dispatch_policy;
+pub mod energy_dispatch_witness;
 pub mod geo;
 pub mod lod;
 pub mod mycelix_flows;

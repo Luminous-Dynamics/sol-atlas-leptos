@@ -102,7 +102,8 @@ pub struct DispatchIntervalDecision {
 
 /// Minimize the first five dimensions; maximize terminal state of charge.
 /// Reserve is a hard constraint and never a soft penalty.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct DispatchObjective {
     pub essential_unserved_quanta: u64,
     pub flexible_unserved_quanta: u64,
