@@ -913,9 +913,7 @@ mod independent_reference_tests {
         for grid_import in 0..=allowed_grid {
             for soc_withdrawal in 0..=allowed_withdrawal {
                 for charge_input in 0..=battery.charge_input_limit_quanta {
-                    if grid_import > allowed_grid
-                        || (soc_withdrawal != 0 && charge_input != 0)
-                    {
+                    if soc_withdrawal != 0 && charge_input != 0 {
                         continue;
                     }
 
@@ -1019,6 +1017,40 @@ mod independent_reference_tests {
             .collect()
     }
 
+    fn compare_assessment_to_reference(
+        request: &EnergyDispatchRequest,
+        assessment: &EnergyDispatchAssessment,
+        reference: &ReferenceResult,
+    ) -> Result<(), String> {
+        if reference.feasible_complete_schedules == 0 {
+            return Err("assessment supplied for a reference-infeasible request".to_owned());
+        }
+        if !assessment.search_is_exact || !assessment.pareto_frontier_complete {
+            return Err("production did not label the result exact and complete".to_owned());
+        }
+        if assessment.case_id != request.case_id {
+            return Err("assessment case identity differs from request".to_owned());
+        }
+        if assessment.feasible_complete_schedules != reference.feasible_complete_schedules {
+            return Err(format!(
+                "feasible schedule count differs: production={}, reference={}",
+                assessment.feasible_complete_schedules,
+                reference.feasible_complete_schedules
+            ));
+        }
+        let production_keys = production_frontier_keys(assessment);
+        if production_keys.len() != assessment.pareto_alternatives.len() {
+            return Err("production frontier contains duplicate objective vectors".to_owned());
+        }
+        if production_keys != reference.pareto_objectives {
+            return Err(format!(
+                "Pareto objective sets differ: production={production_keys:?}, reference={:?}",
+                reference.pareto_objectives
+            ));
+        }
+        Ok(())
+    }
+
     fn compare_reference_to_production(
         request: &EnergyDispatchRequest,
     ) -> Result<(), String> {
@@ -1032,29 +1064,7 @@ mod independent_reference_tests {
                             .to_owned(),
                     );
                 }
-                if !assessment.search_is_exact || !assessment.pareto_frontier_complete {
-                    return Err("production did not label the result exact and complete".to_owned());
-                }
-                if assessment.feasible_complete_schedules
-                    != reference.feasible_complete_schedules
-                {
-                    return Err(format!(
-                        "feasible schedule count differs: production={}, reference={}",
-                        assessment.feasible_complete_schedules,
-                        reference.feasible_complete_schedules
-                    ));
-                }
-                let production_keys = production_frontier_keys(&assessment);
-                if production_keys.len() != assessment.pareto_alternatives.len() {
-                    return Err("production frontier contains duplicate objective vectors".to_owned());
-                }
-                if production_keys != reference.pareto_objectives {
-                    return Err(format!(
-                        "Pareto objective sets differ: production={production_keys:?}, reference={:?}",
-                        reference.pareto_objectives
-                    ));
-                }
-                Ok(())
+                compare_assessment_to_reference(request, &assessment, &reference)
             }
             Err(EnergyDispatchError::NoFeasibleSchedules)
                 if reference.feasible_complete_schedules == 0 =>
@@ -1108,13 +1118,28 @@ mod independent_reference_tests {
 
     #[test]
     fn reference_detects_a_removed_oracle_frontier_member() {
-        let request = small_request(2);
+        let mut request = small_request(1);
+        request.battery.capacity_quanta = 0;
+        request.battery.initial_soc_quanta = 0;
+        request.battery.charge_input_limit_quanta = 0;
+        request.battery.discharge_withdrawal_limit_quanta = 0;
+        request.intervals[0].pv_available_quanta = 0;
+        request.intervals[0].grid_outage = false;
+        request.intervals[0].grid_import_limit_quanta = 1;
+        request.intervals[0].essential_demand_quanta = 1;
+        request.intervals[0].flexible_demand_quanta = 0;
+        request.intervals[0].grid_cost_units_per_quantum = 7;
+        request.intervals[0].grid_carbon_grams_per_quantum = 3;
+
         let reference = enumerate_reference(&request).expect("bounded reference case");
-        assert!(!reference.pareto_objectives.is_empty());
-        let mut corrupted_frontier = reference.pareto_objectives.clone();
-        let removed = *corrupted_frontier.iter().next().expect("non-empty frontier");
-        corrupted_frontier.remove(&removed);
-        assert_ne!(corrupted_frontier, reference.pareto_objectives);
+        let mut corrupted = assess_energy_dispatch(&request).expect("production case is feasible");
+        assert_eq!(reference.pareto_objectives.len(), 2);
+        assert_eq!(corrupted.pareto_alternatives.len(), 2);
+        corrupted.pareto_alternatives.pop();
+        assert!(
+            compare_assessment_to_reference(&request, &corrupted, &reference).is_err(),
+            "reference comparator must detect a missing Pareto alternative"
+        );
     }
 
     #[test]
