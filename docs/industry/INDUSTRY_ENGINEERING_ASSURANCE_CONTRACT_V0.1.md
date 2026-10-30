@@ -131,6 +131,27 @@ These are action-authority tiers, not maturity grades:
 
 D3 cannot be earned by accumulating documentation, unit tests or synthetic benchmark wins. It requires domain-specific safety engineering and the applicable operational/regulatory authority.
 
+## 5.1 Minimum mandatory evidence by decision tier
+
+The profile author cannot choose the minimum assurance bar by marking difficult dimensions optional. The validator and JSON Schema enforce this baseline for a profile declared `qualified_for_profile`:
+
+| Dimension | D0 descriptive | D1 advisory | D2 delegated planning | D3 autonomous control |
+|---|---|---|---|---|
+| Software conformance | Mandatory | Mandatory | Mandatory | Mandatory |
+| Numerical verification | Mandatory | Mandatory | Mandatory | Mandatory |
+| Physical validation | Profile-specific | Mandatory | Mandatory | Mandatory |
+| Data integrity and rights | Mandatory | Mandatory | Mandatory | Mandatory |
+| Uncertainty credibility | Profile-specific | Mandatory | Mandatory | Mandatory |
+| Generalization | Profile-specific | Mandatory | Mandatory | Mandatory |
+| Robustness | Profile-specific | Mandatory | Mandatory | Mandatory |
+| Operational assurance | Profile-specific | Mandatory | Mandatory | Mandatory |
+| Safety/security/authority | Profile-specific | Mandatory | Mandatory | Mandatory |
+| Prospective outcomes | Profile-specific | Profile-specific | Mandatory | Mandatory |
+
+“Profile-specific” means the dimension may be optional for that decision tier, not that an unknown result is treated as established. A mandatory dimension must be `established` and point to at least one evidence record. If a mandatory dimension is genuinely not applicable, the profile must be redesigned or the tier reduced; it cannot be silently waived.
+
+These are Luminous internal minimums. Domain-specific safety standards, legislation, operator authorization and risk review may require stricter evidence.
+
 ## 6. Evidence provenance is not physical truth
 
 Keep these claims distinct:
