@@ -556,10 +556,10 @@ mod tests {
     fn non_unit_efficiency_uses_exact_floor_quotient_bounds() {
         let original=std::str::from_utf8(FIXTURE).unwrap();
         let changed=original
-            .replace("\\"charge_efficiency_numerator\\": 1","\\"charge_efficiency_numerator\\": 3")
-            .replace("\\"charge_efficiency_denominator\\": 1","\\"charge_efficiency_denominator\\": 4")
-            .replace("\\"discharge_efficiency_numerator\\": 1","\\"discharge_efficiency_numerator\\": 2")
-            .replace("\\"discharge_efficiency_denominator\\": 1","\\"discharge_efficiency_denominator\\": 3");
+            .replace(r#""charge_efficiency_numerator": 1"#, r#""charge_efficiency_numerator": 3"#)
+            .replace(r#""charge_efficiency_denominator": 1"#, r#""charge_efficiency_denominator": 4"#)
+            .replace(r#""discharge_efficiency_numerator": 1"#, r#""discharge_efficiency_numerator": 2"#)
+            .replace(r#""discharge_efficiency_denominator": 1"#, r#""discharge_efficiency_denominator": 3"#);
         let (_,files)=build_model_set(changed.as_bytes()).expect("valid rational efficiencies");
         let lp=&files[0].1;
         assert!(lp.contains("4 charge_gain_000 - 3 charge_input_000 <= 0"));
@@ -580,14 +580,14 @@ mod tests {
     fn invalid_ratio_chronology_and_unknown_fields_fail_closed() {
         let original=std::str::from_utf8(FIXTURE).unwrap();
         let bad_ratio=original.replace(
-            "\\"charge_efficiency_denominator\\": 1",
-            "\\"charge_efficiency_denominator\\": 0"
+            r#""charge_efficiency_denominator": 1"#,
+            r#""charge_efficiency_denominator": 0"#
         );
         assert!(build_model_set(bad_ratio.as_bytes()).is_err());
 
         let trimmed=original.trim_end();
         let close=trimmed.rfind('}').expect("fixture JSON has closing object");
-        let bad_unknown=format!("{}{}", &trimmed[..close], ",\\"unknown\\":true}");
+        let bad_unknown=format!("{}{}", &trimmed[..close], r#", "unknown":true}"#);
         assert!(build_model_set(bad_unknown.as_bytes()).is_err());
     }
 }
