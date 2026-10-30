@@ -262,11 +262,18 @@ fn objective_for_schedule(
     Ok(objective)
 }
 
+#[cfg(test)]
+type TestObjectiveVector = (u64, u64, u64, u64, u64, u16);
+
 struct ExactSearch<'a> {
     request: &'a EnergyDispatchRequest,
     evaluated_action_expansions: u64,
     feasible_complete_schedules: u64,
     frontier: Vec<DispatchParetoAlternative>,
+    // Captured only in test builds so the independent enumerator can compare
+    // the full feasible objective-vector set, not just count and Pareto members.
+    #[cfg(test)]
+    all_feasible_objective_vectors: BTreeSet<TestObjectiveVector>,
 }
 
 impl<'a> ExactSearch<'a> {
@@ -296,6 +303,15 @@ impl<'a> ExactSearch<'a> {
                 context: "complete-schedule counter".to_owned(),
             })?;
         let objective = objective_for_schedule(self.request, schedule)?;
+        #[cfg(test)]
+        self.all_feasible_objective_vectors.insert((
+            objective.essential_unserved_quanta,
+            objective.flexible_unserved_quanta,
+            objective.operating_cost_units,
+            objective.grid_carbon_grams,
+            objective.curtailed_pv_quanta,
+            objective.terminal_soc_quanta,
+        ));
 
         // Deterministic first-witness retention for duplicate objective vectors.
         // Enumeration order is fixed by ascending integer loops.
@@ -537,6 +553,8 @@ pub fn assess_energy_dispatch(
         evaluated_action_expansions: 0,
         feasible_complete_schedules: 0,
         frontier: Vec::new(),
+        #[cfg(test)]
+        all_feasible_objective_vectors: BTreeSet::new(),
     };
     let mut path = Vec::with_capacity(request.intervals.len());
     search.visit(0, battery.initial_soc_quanta, &mut path)?;
@@ -813,7 +831,7 @@ mod independent_reference_tests {
     use super::*;
     use std::collections::BTreeSet;
 
-    type ObjectiveKey = (u64, u64, u64, u64, u64, u16);
+    type ObjectiveKey = TestObjectiveVector;
 
     const REFERENCE_EXPANSION_BUDGET: u64 = 500_000;
 
@@ -1041,6 +1059,7 @@ mod independent_reference_tests {
         request: &EnergyDispatchRequest,
         assessment: &EnergyDispatchAssessment,
         reference: &ReferenceResult,
+        production_objective_vectors: &BTreeSet<ObjectiveKey>,
     ) -> Result<(), String> {
         if reference.feasible_complete_schedules == 0 {
             return Err("assessment supplied for a reference-infeasible request".to_owned());
@@ -1058,6 +1077,12 @@ mod independent_reference_tests {
                 reference.feasible_complete_schedules
             ));
         }
+        if production_objective_vectors != &reference.all_objective_vectors {
+            return Err(format!(
+                "complete feasible objective-vector sets differ: production={production_objective_vectors:?}, reference={:?}",
+                reference.all_objective_vectors
+            ));
+        }
         let production_keys = production_frontier_keys(assessment);
         if production_keys.len() != assessment.pareto_alternatives.len() {
             return Err("production frontier contains duplicate objective vectors".to_owned());
@@ -1071,11 +1096,31 @@ mod independent_reference_tests {
         Ok(())
     }
 
+    fn production_objective_vectors(
+        request: &EnergyDispatchRequest,
+    ) -> Result<BTreeSet<ObjectiveKey>, String> {
+        // The public assessment validates the request first. This second test-only
+        // search captures every feasible objective vector before Pareto pruning.
+        let mut search = ExactSearch {
+            request,
+            evaluated_action_expansions: 0,
+            feasible_complete_schedules: 0,
+            frontier: Vec::new(),
+            all_feasible_objective_vectors: BTreeSet::new(),
+        };
+        let mut path = Vec::with_capacity(request.intervals.len());
+        search
+            .visit(0, request.battery.initial_soc_quanta, &mut path)
+            .map_err(|error| format!("production objective-vector trace failed: {error:?}"))?;
+        Ok(search.all_feasible_objective_vectors)
+    }
+
     fn compare_reference_to_production(
         request: &EnergyDispatchRequest,
     ) -> Result<(), String> {
         let reference = enumerate_reference(request)
             .map_err(|error| format!("reference enumeration failed: {error:?}"))?;
+        let production_objective_vectors = production_objective_vectors(request)?;
         match assess_energy_dispatch(request) {
             Ok(assessment) => {
                 if reference.feasible_complete_schedules == 0 {
@@ -1084,7 +1129,12 @@ mod independent_reference_tests {
                             .to_owned(),
                     );
                 }
-                compare_assessment_to_reference(request, &assessment, &reference)
+                compare_assessment_to_reference(
+                    request,
+                    &assessment,
+                    &reference,
+                    &production_objective_vectors,
+                )
             }
             Err(EnergyDispatchError::NoFeasibleSchedules)
                 if reference.feasible_complete_schedules == 0 =>
@@ -1153,11 +1203,20 @@ mod independent_reference_tests {
 
         let reference = enumerate_reference(&request).expect("bounded reference case");
         let mut corrupted = assess_energy_dispatch(&request).expect("production case is feasible");
+        let production_objective_vectors =
+            production_objective_vectors(&request).expect("bounded production trace");
+        assert_eq!(reference.all_objective_vectors, production_objective_vectors);
         assert_eq!(reference.pareto_objectives.len(), 2);
         assert_eq!(corrupted.pareto_alternatives.len(), 2);
         corrupted.pareto_alternatives.pop();
         assert!(
-            compare_assessment_to_reference(&request, &corrupted, &reference).is_err(),
+            compare_assessment_to_reference(
+                &request,
+                &corrupted,
+                &reference,
+                &production_objective_vectors,
+            )
+            .is_err(),
             "reference comparator must detect a missing Pareto alternative"
         );
     }
