@@ -299,7 +299,7 @@ pub fn emit_lp(
     let mut output = String::new();
     let mut bounds = String::new();
     let _ = writeln!(output, "\\ Energy dispatch independent MILP reference v0.1");
-    let _ = writeln!(output, "\\\\ source_sha256={}", source_sha256);
+    let _ = writeln!(output, "\\ source_sha256={}", source_sha256);
     let _ = writeln!(output, "\\\\ model_schema={} objective={} direction={}", MODEL_SCHEMA_VERSION, objective.as_str(), direction.as_str());
     write_line(&mut output, if direction == Direction::Minimize { "Minimize" } else { "Maximize" });
     let terms = objective_terms(request, objective);
