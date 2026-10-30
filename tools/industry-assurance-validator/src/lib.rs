@@ -371,17 +371,58 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
             for key in ["rationale", "reviewer_id", "reviewed_at", "rule_set_version"] {
                 let _ = string(risk, key, "/risk_assessment", &mut out);
             }
+            let mut risk_dims = BTreeMap::new();
             if let Some(dims) = risk.get("dimensions") {
                 if object(dims, "/risk_assessment/dimensions", &mut out).is_some() {
                     for key in ["consequence", "model_influence", "exposure", "reversibility", "detectability", "fallback"] {
-                        let _ = string(dims, key, "/risk_assessment/dimensions", &mut out);
+                        let value = string(dims, key, "/risk_assessment/dimensions", &mut out).unwrap_or("");
+                        risk_dims.insert(key, value);
+                    }
+                    let enums: [(&str, &[&str]); 6] = [
+                        ("consequence", &["negligible", "minor", "major", "severe", "catastrophic", "unknown"]),
+                        ("model_influence", &["informational", "advisory", "constraint_gating", "selection", "direct_actuation", "unknown"]),
+                        ("exposure", &["single_asset", "site_or_facility", "multi_site", "regional", "national_or_larger", "unknown"]),
+                        ("reversibility", &["readily_reversible", "costly_or_delayed", "difficult_or_irreversible", "unknown"]),
+                        ("detectability", &["immediate_and_reliable", "delayed_or_partial", "poor", "unknown"]),
+                        ("fallback", &["independent_tested_fallback", "human_fallback", "degraded_fallback", "no_verified_fallback", "unknown"])
+                    ];
+                    for (key, allowed) in enums {
+                        if let Some(value) = risk_dims.get(key) {
+                            if !allowed.contains(value) {
+                                issue(&mut out, "INVALID_RISK_DIMENSION", format!("/risk_assessment/dimensions/{key}"), "Unrecognized risk dimension value.");
+                            }
+                        }
                     }
                 }
             } else {
                 issue(&mut out, "MISSING_RISK_DIMENSIONS", "/risk_assessment/dimensions", "Risk dimensions are required.");
             }
-            if disposition == "qualified_for_profile" && class == "unassessed" {
-                issue(&mut out, "QUALIFIED_WITH_UNASSESSED_RISK", "/risk_assessment/reviewed_class", "A qualified profile requires a reviewed risk class.");
+            if disposition == "qualified_for_profile" {
+                if class == "unassessed" {
+                    issue(&mut out, "QUALIFIED_WITH_UNASSESSED_RISK", "/risk_assessment/reviewed_class", "A qualified profile requires a reviewed risk class.");
+                }
+                if risk_dims.values().any(|value| *value == "unknown") {
+                    issue(&mut out, "QUALIFIED_WITH_UNKNOWN_RISK", "/risk_assessment/dimensions", "A qualified profile cannot retain unknown risk dimensions.");
+                }
+                match tier {
+                    "D2_delegated_planning" => {
+                        if !["constraint_gating", "selection"].contains(risk_dims.get("model_influence").copied().unwrap_or(&"")) {
+                            issue(&mut out, "D2_RISK_INFLUENCE_MISMATCH", "/risk_assessment/dimensions/model_influence", "D2 requires a reviewed constraint-gating or selection influence.");
+                        }
+                        if !["independent_tested_fallback", "human_fallback"].contains(risk_dims.get("fallback").copied().unwrap_or(&"")) {
+                            issue(&mut out, "D2_FALLBACK_INSUFFICIENT", "/risk_assessment/dimensions/fallback", "D2 requires a human or independently tested fallback.");
+                        }
+                    }
+                    "D3_autonomous_control" => {
+                        if risk_dims.get("model_influence").copied() != Some("direct_actuation") {
+                            issue(&mut out, "D3_RISK_INFLUENCE_MISMATCH", "/risk_assessment/dimensions/model_influence", "D3 requires direct_actuation to be declared.");
+                        }
+                        if risk_dims.get("fallback").copied() != Some("independent_tested_fallback") {
+                            issue(&mut out, "D3_FALLBACK_INSUFFICIENT", "/risk_assessment/dimensions/fallback", "D3 requires an independently tested fallback.");
+                        }
+                    }
+                    _ => {}
+                }
             }
         }
     }
@@ -582,6 +623,7 @@ mod tests {
     fn d2_requires_independent_verifier_and_rollback_artifacts() {
         let mut p = make_qualified_d1();
         p["decision_tier"] = json!("D2_delegated_planning");
+        p["risk_assessment"]["dimensions"]["model_influence"] = json!("selection");
         p["authority"]["permitted_actions"] = json!(["view", "annotate", "schedule_within_envelope"]);
         let issues = validate_profile(&p);
         assert!(has_code(&issues, "MISSING_REQUIRED_ARTIFACT_ROLE"));
@@ -591,6 +633,8 @@ mod tests {
     fn d3_requires_safety_and_authorization_artifacts() {
         let mut p = make_qualified_d1();
         p["decision_tier"] = json!("D3_autonomous_control");
+        p["risk_assessment"]["dimensions"]["model_influence"] = json!("direct_actuation");
+        p["risk_assessment"]["dimensions"]["fallback"] = json!("independent_tested_fallback");
         p["authority"]["actuation_enabled"] = json!(true);
         p["authority"]["permitted_actions"] = json!(["view", "execute_external_action"]);
         let issues = validate_profile(&p);
