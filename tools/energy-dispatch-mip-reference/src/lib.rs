@@ -455,9 +455,6 @@ pub fn emit_lp(
         }
     }
 
-    write_line(&mut output, "Bounds");
-    output.push_str(&bounds);
-
     let last = request.intervals.len()-1;
     append_constraint(
         &mut output,
@@ -466,6 +463,9 @@ pub fn emit_lp(
         ">=",
         i64::from(request.battery.terminal_reserve_quanta),
     );
+
+    write_line(&mut output, "Bounds");
+    output.push_str(&bounds);
 
     write_line(&mut output, "Binaries");
     for index in 0..request.intervals.len() {
