@@ -471,7 +471,7 @@ pub fn verify_dispatch_decision_witness(
         }
         match first_objective_difference(&winner.objective, &challenger.objective, policy) {
             Some((tier_index, Ordering::Less)) => {
-                if proof.basis != ChallengerProofBasis::FirstDifferingObjectiveTier { tier_index } {
+                if proof.basis != (ChallengerProofBasis::FirstDifferingObjectiveTier { tier_index }) {
                     errors.push(format!("challenger {index} proof does not name its first decisive tier"));
                 }
             }
