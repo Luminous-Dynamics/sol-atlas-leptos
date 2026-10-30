@@ -23,8 +23,6 @@ pub struct ValidationIssue {
     pub code: String,
     pub path: String,
     pub message: String,
-
-
 }
 
 fn issue(out: &mut Vec<ValidationIssue>, code: &str, path: impl Into<String>, message: impl Into<String>) {
@@ -345,8 +343,8 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
     if profile.get("schema_version").and_then(Value::as_str) != Some("luminous.industry-assurance-profile.v0.1") {
         issue(&mut out, "UNSUPPORTED_SCHEMA_VERSION", "/schema_version", "Unsupported IEAC profile schema version.");
     }
-    string(profile, "profile_id", "", &mut out);
-    string(profile, "claim_ceiling", "", &mut out);
+    let _ = string(profile, "profile_id", "", &mut out);
+    let _ = string(profile, "claim_ceiling", "", &mut out);
 
     if let Some(claim) = profile.get("claim") {
         if object(claim, "/claim", &mut out).is_some() {
