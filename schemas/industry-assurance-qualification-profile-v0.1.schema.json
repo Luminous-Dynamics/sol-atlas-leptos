@@ -442,10 +442,7 @@
         "human_approval_required",
         "actuation_enabled",
         "fallback_action",
-        "prohibited_actions",
-        "safety_case_artifact_id",
-        "operational_authorization_artifact_id",
-        "cybersecurity_assessment_artifact_id"
+        "prohibited_actions"
       ],
       "properties": {
         "permitted_actions": {
@@ -695,12 +692,16 @@
     {
       "if": {
         "properties": {
-          "decision_tier": {
-            "const": "D0_descriptive"
+          "disposition": {
+            "enum": [
+              "not_qualified",
+              "indeterminate",
+              "revoked"
+            ]
           }
         },
         "required": [
-          "decision_tier"
+          "disposition"
         ]
       },
       "then": {
@@ -711,15 +712,221 @@
                 "const": false
               },
               "permitted_actions": {
-                "not": {
-                  "contains": {
-                    "enum": [
-                      "recommend",
-                      "rank_options",
-                      "prepare_plan",
-                      "schedule_within_envelope",
-                      "execute_external_action"
-                    ]
+                "items": {
+                  "enum": [
+                    "view",
+                    "annotate"
+                  ]
+                },
+                "maxItems": 2
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "disposition": {
+            "const": "qualified_for_profile"
+          }
+        },
+        "required": [
+          "disposition"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evidence_vector": {
+            "properties": {
+              "software_conformance": {
+                "if": {
+                  "properties": {
+                    "requirement": {
+                      "const": "mandatory"
+                    }
+                  },
+                  "required": [
+                    "requirement"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "state": {
+                      "const": "established"
+                    }
+                  }
+                }
+              },
+              "numerical_verification": {
+                "if": {
+                  "properties": {
+                    "requirement": {
+                      "const": "mandatory"
+                    }
+                  },
+                  "required": [
+                    "requirement"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "state": {
+                      "const": "established"
+                    }
+                  }
+                }
+              },
+              "physical_validation": {
+                "if": {
+                  "properties": {
+                    "requirement": {
+                      "const": "mandatory"
+                    }
+                  },
+                  "required": [
+                    "requirement"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "state": {
+                      "const": "established"
+                    }
+                  }
+                }
+              },
+              "data_integrity_rights": {
+                "if": {
+                  "properties": {
+                    "requirement": {
+                      "const": "mandatory"
+                    }
+                  },
+                  "required": [
+                    "requirement"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "state": {
+                      "const": "established"
+                    }
+                  }
+                }
+              },
+              "uncertainty_credibility": {
+                "if": {
+                  "properties": {
+                    "requirement": {
+                      "const": "mandatory"
+                    }
+                  },
+                  "required": [
+                    "requirement"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "state": {
+                      "const": "established"
+                    }
+                  }
+                }
+              },
+              "generalization": {
+                "if": {
+                  "properties": {
+                    "requirement": {
+                      "const": "mandatory"
+                    }
+                  },
+                  "required": [
+                    "requirement"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "state": {
+                      "const": "established"
+                    }
+                  }
+                }
+              },
+              "robustness": {
+                "if": {
+                  "properties": {
+                    "requirement": {
+                      "const": "mandatory"
+                    }
+                  },
+                  "required": [
+                    "requirement"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "state": {
+                      "const": "established"
+                    }
+                  }
+                }
+              },
+              "operational_assurance": {
+                "if": {
+                  "properties": {
+                    "requirement": {
+                      "const": "mandatory"
+                    }
+                  },
+                  "required": [
+                    "requirement"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "state": {
+                      "const": "established"
+                    }
+                  }
+                }
+              },
+              "safety_security_authority": {
+                "if": {
+                  "properties": {
+                    "requirement": {
+                      "const": "mandatory"
+                    }
+                  },
+                  "required": [
+                    "requirement"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "state": {
+                      "const": "established"
+                    }
+                  }
+                }
+              },
+              "prospective_outcomes": {
+                "if": {
+                  "properties": {
+                    "requirement": {
+                      "const": "mandatory"
+                    }
+                  },
+                  "required": [
+                    "requirement"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "state": {
+                      "const": "established"
+                    }
                   }
                 }
               }
@@ -732,16 +939,60 @@
       "if": {
         "properties": {
           "decision_tier": {
-            "const": "D1_advisory"
+            "const": "D0_descriptive"
+          },
+          "disposition": {
+            "const": "qualified_for_profile"
           }
         },
         "required": [
-          "decision_tier"
+          "decision_tier",
+          "disposition"
         ]
       },
       "then": {
         "properties": {
           "authority": {
+            "properties": {
+              "actuation_enabled": {
+                "const": false
+              },
+              "permitted_actions": {
+                "items": {
+                  "enum": [
+                    "view",
+                    "annotate"
+                  ]
+                },
+                "minItems": 1,
+                "maxItems": 2
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "decision_tier": {
+            "const": "D1_advisory"
+          },
+          "disposition": {
+            "const": "qualified_for_profile"
+          }
+        },
+        "required": [
+          "decision_tier",
+          "disposition"
+        ]
+      },
+      "then": {
+        "properties": {
+          "authority": {
+            "required": [
+              "human_approval_required"
+            ],
             "properties": {
               "actuation_enabled": {
                 "const": false
@@ -769,15 +1020,22 @@
         "properties": {
           "decision_tier": {
             "const": "D2_delegated_planning"
+          },
+          "disposition": {
+            "const": "qualified_for_profile"
           }
         },
         "required": [
-          "decision_tier"
+          "decision_tier",
+          "disposition"
         ]
       },
       "then": {
         "properties": {
           "authority": {
+            "required": [
+              "human_approval_required"
+            ],
             "properties": {
               "actuation_enabled": {
                 "const": false
@@ -788,6 +1046,11 @@
               "permitted_actions": {
                 "contains": {
                   "const": "schedule_within_envelope"
+                },
+                "not": {
+                  "contains": {
+                    "const": "execute_external_action"
+                  }
                 }
               }
             }
@@ -800,15 +1063,24 @@
         "properties": {
           "decision_tier": {
             "const": "D3_autonomous_control"
+          },
+          "disposition": {
+            "const": "qualified_for_profile"
           }
         },
         "required": [
-          "decision_tier"
+          "decision_tier",
+          "disposition"
         ]
       },
       "then": {
         "properties": {
           "authority": {
+            "required": [
+              "safety_case_artifact_id",
+              "operational_authorization_artifact_id",
+              "cybersecurity_assessment_artifact_id"
+            ],
             "properties": {
               "actuation_enabled": {
                 "const": true
@@ -816,6 +1088,110 @@
               "permitted_actions": {
                 "contains": {
                   "const": "execute_external_action"
+                }
+              }
+            }
+          },
+          "evidence_vector": {
+            "properties": {
+              "software_conformance": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "numerical_verification": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "physical_validation": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "data_integrity_rights": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "uncertainty_credibility": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "generalization": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "robustness": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "operational_assurance": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "safety_security_authority": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
+                }
+              },
+              "prospective_outcomes": {
+                "properties": {
+                  "state": {
+                    "const": "established"
+                  },
+                  "requirement": {
+                    "const": "mandatory"
+                  }
                 }
               }
             }
@@ -892,342 +1268,9 @@
         },
         "required": [
           "authority",
+          "evidence_vector",
           "artifact_bindings"
         ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "disposition": {
-            "const": "qualified_for_profile"
-          }
-        },
-        "required": [
-          "disposition"
-        ]
-      },
-      "then": {
-        "properties": {
-          "evidence_vector": {
-            "properties": {
-              "software_conformance": {
-                "if": {
-                  "properties": {
-                    "requirement": {
-                      "const": "mandatory"
-                    }
-                  },
-                  "required": [
-                    "requirement"
-                  ]
-                },
-                "then": {
-                  "properties": {
-                    "state": {
-                      "const": "established"
-                    }
-                  }
-                }
-              },
-              "numerical_verification": {
-                "if": {
-                  "properties": {
-                    "requirement": {
-                      "const": "mandatory"
-                    }
-                  },
-                  "required": [
-                    "requirement"
-                  ]
-                },
-                "then": {
-                  "properties": {
-                    "state": {
-                      "const": "established"
-                    }
-                  }
-                }
-              },
-              "physical_validation": {
-                "if": {
-                  "properties": {
-                    "requirement": {
-                      "const": "mandatory"
-                    }
-                  },
-                  "required": [
-                    "requirement"
-                  ]
-                },
-                "then": {
-                  "properties": {
-                    "state": {
-                      "const": "established"
-                    }
-                  }
-                }
-              },
-              "data_integrity_rights": {
-                "if": {
-                  "properties": {
-                    "requirement": {
-                      "const": "mandatory"
-                    }
-                  },
-                  "required": [
-                    "requirement"
-                  ]
-                },
-                "then": {
-                  "properties": {
-                    "state": {
-                      "const": "established"
-                    }
-                  }
-                }
-              },
-              "uncertainty_credibility": {
-                "if": {
-                  "properties": {
-                    "requirement": {
-                      "const": "mandatory"
-                    }
-                  },
-                  "required": [
-                    "requirement"
-                  ]
-                },
-                "then": {
-                  "properties": {
-                    "state": {
-                      "const": "established"
-                    }
-                  }
-                }
-              },
-              "generalization": {
-                "if": {
-                  "properties": {
-                    "requirement": {
-                      "const": "mandatory"
-                    }
-                  },
-                  "required": [
-                    "requirement"
-                  ]
-                },
-                "then": {
-                  "properties": {
-                    "state": {
-                      "const": "established"
-                    }
-                  }
-                }
-              },
-              "robustness": {
-                "if": {
-                  "properties": {
-                    "requirement": {
-                      "const": "mandatory"
-                    }
-                  },
-                  "required": [
-                    "requirement"
-                  ]
-                },
-                "then": {
-                  "properties": {
-                    "state": {
-                      "const": "established"
-                    }
-                  }
-                }
-              },
-              "operational_assurance": {
-                "if": {
-                  "properties": {
-                    "requirement": {
-                      "const": "mandatory"
-                    }
-                  },
-                  "required": [
-                    "requirement"
-                  ]
-                },
-                "then": {
-                  "properties": {
-                    "state": {
-                      "const": "established"
-                    }
-                  }
-                }
-              },
-              "safety_security_authority": {
-                "if": {
-                  "properties": {
-                    "requirement": {
-                      "const": "mandatory"
-                    }
-                  },
-                  "required": [
-                    "requirement"
-                  ]
-                },
-                "then": {
-                  "properties": {
-                    "state": {
-                      "const": "established"
-                    }
-                  }
-                }
-              },
-              "prospective_outcomes": {
-                "if": {
-                  "properties": {
-                    "requirement": {
-                      "const": "mandatory"
-                    }
-                  },
-                  "required": [
-                    "requirement"
-                  ]
-                },
-                "then": {
-                  "properties": {
-                    "state": {
-                      "const": "established"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "decision_tier": {
-            "const": "D3_autonomous_control"
-          },
-          "disposition": {
-            "const": "qualified_for_profile"
-          }
-        },
-        "required": [
-          "decision_tier",
-          "disposition"
-        ]
-      },
-      "then": {
-        "properties": {
-          "evidence_vector": {
-            "properties": {
-              "software_conformance": {
-                "properties": {
-                  "requirement": {
-                    "const": "mandatory"
-                  },
-                  "state": {
-                    "const": "established"
-                  }
-                }
-              },
-              "numerical_verification": {
-                "properties": {
-                  "requirement": {
-                    "const": "mandatory"
-                  },
-                  "state": {
-                    "const": "established"
-                  }
-                }
-              },
-              "physical_validation": {
-                "properties": {
-                  "requirement": {
-                    "const": "mandatory"
-                  },
-                  "state": {
-                    "const": "established"
-                  }
-                }
-              },
-              "data_integrity_rights": {
-                "properties": {
-                  "requirement": {
-                    "const": "mandatory"
-                  },
-                  "state": {
-                    "const": "established"
-                  }
-                }
-              },
-              "uncertainty_credibility": {
-                "properties": {
-                  "requirement": {
-                    "const": "mandatory"
-                  },
-                  "state": {
-                    "const": "established"
-                  }
-                }
-              },
-              "generalization": {
-                "properties": {
-                  "requirement": {
-                    "const": "mandatory"
-                  },
-                  "state": {
-                    "const": "established"
-                  }
-                }
-              },
-              "robustness": {
-                "properties": {
-                  "requirement": {
-                    "const": "mandatory"
-                  },
-                  "state": {
-                    "const": "established"
-                  }
-                }
-              },
-              "operational_assurance": {
-                "properties": {
-                  "requirement": {
-                    "const": "mandatory"
-                  },
-                  "state": {
-                    "const": "established"
-                  }
-                }
-              },
-              "safety_security_authority": {
-                "properties": {
-                  "requirement": {
-                    "const": "mandatory"
-                  },
-                  "state": {
-                    "const": "established"
-                  }
-                }
-              },
-              "prospective_outcomes": {
-                "properties": {
-                  "requirement": {
-                    "const": "mandatory"
-                  },
-                  "state": {
-                    "const": "established"
-                  }
-                }
-              }
-            }
-          }
-        }
       }
     }
   ]
