@@ -11,6 +11,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validate-lunar-site-screening:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate lunar site-screening evidence contract
+        run: python3 scripts/validate_lunar_site_screening.py
+      - name: Test lunar site-screening failure cases
+        run: python3 -m unittest discover -s tests -p 'test_lunar_site_screening_contract.py'
+
   fmt:
     runs-on: ubuntu-latest
     steps:

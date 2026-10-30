@@ -939,3 +939,703 @@ canvas#globe-canvas.has-hover {
         transition: none;
     }
 }
+
+
+/* ─── Lunar Site Observatory ─────────────────────────────────────── */
+
+.labs-links {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    pointer-events: none;
+}
+
+.lunar-observatory-page {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    width: 100%;
+    height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    color: var(--sa-fg);
+    background:
+        radial-gradient(ellipse at 10% 0%, rgba(var(--sa-cool), 0.08), transparent 38%),
+        radial-gradient(ellipse at 95% 16%, rgba(var(--sa-accent), 0.06), transparent 35%),
+        #05070d;
+}
+
+.lunar-observatory-shell {
+    width: min(1160px, 100%);
+    margin: 0 auto;
+    padding: 28px 24px 52px;
+}
+
+.lunar-back-link {
+    display: inline-block;
+    color: rgb(var(--sa-accent));
+    font-size: 13px;
+    text-decoration: none;
+    margin-bottom: 30px;
+}
+
+.lunar-back-link:hover {
+    text-decoration: underline;
+}
+
+.lunar-observatory-header {
+    max-width: 800px;
+    margin-bottom: 25px;
+}
+
+.lunar-eyebrow {
+    color: rgba(var(--sa-cool), 0.8);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    font-weight: 650;
+    text-transform: uppercase;
+    margin-bottom: 9px;
+}
+
+.lunar-observatory-header h1 {
+    color: #fff;
+    font-size: clamp(30px, 4.8vw, 48px);
+    font-weight: 350;
+    letter-spacing: -0.035em;
+    line-height: 1.08;
+    margin: 0 0 12px;
+}
+
+.lunar-lede {
+    max-width: 720px;
+    color: rgba(224, 224, 224, 0.82);
+    font-size: clamp(15px, 2vw, 18px);
+    line-height: 1.55;
+}
+
+.lunar-boundary {
+    border: 1px solid rgba(var(--sa-cool), 0.26);
+    border-left: 3px solid rgb(var(--sa-cool));
+    background: rgba(var(--sa-cool), 0.055);
+    border-radius: var(--sa-radius-sm);
+    padding: 17px 18px;
+    margin: 22px 0 18px;
+}
+
+.lunar-boundary > strong {
+    display: block;
+    color: #fff;
+    font-size: 14px;
+    margin-bottom: 7px;
+}
+
+.lunar-boundary p,
+.lunar-program-context p,
+.lunar-evidence-layers > p:not(.lunar-eyebrow) {
+    color: rgba(224, 224, 224, 0.78);
+    font-size: 13px;
+    line-height: 1.6;
+    margin-top: 5px;
+}
+
+.lunar-boundary-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.lunar-boundary-facts span {
+    color: rgba(224, 224, 224, 0.7);
+    font-size: 11px;
+}
+
+.lunar-boundary-facts b {
+    color: rgb(var(--sa-accent));
+    font-weight: 650;
+    margin-right: 4px;
+}
+
+.lunar-program-context,
+.lunar-explorer,
+.lunar-evidence-layers {
+    margin-top: 26px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: var(--sa-radius);
+    background: rgba(var(--sa-panel), 0.58);
+}
+
+.lunar-program-context h2,
+.lunar-section-heading h2,
+.lunar-evidence-layers h2 {
+    color: #fff;
+    font-size: 19px;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    margin: 0 0 10px;
+}
+
+.lunar-program-context a,
+.lunar-card-sources a {
+    display: inline-block;
+    color: rgb(var(--sa-accent));
+    font-size: 12px;
+    text-decoration: none;
+    margin: 8px 14px 0 0;
+}
+
+.lunar-program-context a:hover,
+.lunar-card-sources a:hover {
+    text-decoration: underline;
+}
+
+.lunar-section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.lunar-section-heading .lunar-eyebrow {
+    margin-bottom: 5px;
+}
+
+.lunar-register-state {
+    color: rgba(224, 224, 224, 0.58);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.lunar-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.lunar-filter {
+    appearance: none;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    padding: 8px 12px;
+    color: rgba(224, 224, 224, 0.78);
+    background: rgba(255, 255, 255, 0.025);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition: border-color 150ms ease, color 150ms ease, background 150ms ease;
+}
+
+.lunar-filter:hover,
+.lunar-filter:focus-visible {
+    border-color: rgba(var(--sa-accent), 0.55);
+    color: #fff;
+    outline: none;
+}
+
+.lunar-filter.active {
+    border-color: rgba(var(--sa-accent), 0.7);
+    background: rgba(var(--sa-accent), 0.1);
+    color: rgb(var(--sa-accent));
+}
+
+.lunar-search-label {
+    display: block;
+    color: rgba(224, 224, 224, 0.65);
+    font-size: 11px;
+    margin: 0 0 6px;
+}
+
+.lunar-search {
+    display: block;
+    width: min(560px, 100%);
+    min-height: 40px;
+    padding: 9px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: var(--sa-radius-sm);
+    background: rgba(0, 0, 0, 0.28);
+    color: #fff;
+    font: inherit;
+    font-size: 13px;
+}
+
+.lunar-search::placeholder {
+    color: rgba(224, 224, 224, 0.38);
+}
+
+.lunar-search:focus-visible {
+    outline: 2px solid rgba(var(--sa-cool), 0.55);
+    outline-offset: 2px;
+}
+
+.lunar-match-count {
+    color: rgba(224, 224, 224, 0.5);
+    font-size: 11px;
+    margin: 12px 0;
+}
+
+.lunar-candidate-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 325px), 1fr));
+    align-items: start;
+    gap: 12px;
+}
+
+.lunar-candidate-card {
+    min-width: 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--sa-radius-sm);
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.23);
+}
+
+.lunar-card-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 12px;
+}
+
+.lunar-candidate-state {
+    display: inline-block;
+    border-radius: 4px;
+    padding: 4px 7px;
+    font-size: 10px;
+    font-weight: 650;
+    letter-spacing: 0.045em;
+    text-transform: uppercase;
+}
+
+.lunar-candidate-state.candidate {
+    color: rgb(var(--sa-accent));
+    background: rgba(var(--sa-accent), 0.1);
+}
+
+.lunar-candidate-state.historical {
+    color: #e0d3a5;
+    background: rgba(224, 211, 165, 0.08);
+}
+
+.lunar-candidate-id {
+    color: rgba(224, 224, 224, 0.38);
+    font: 10px ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.lunar-candidate-card h3 {
+    color: #fff;
+    font-size: 18px;
+    font-weight: 520;
+    line-height: 1.25;
+    margin: 0 0 13px;
+}
+
+.lunar-role-label {
+    color: rgba(224, 224, 224, 0.48);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.lunar-role-text {
+    color: rgba(224, 224, 224, 0.85);
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.lunar-evidence-state {
+    margin-top: 12px;
+    padding: 9px 10px;
+    border-radius: 5px;
+    border: 1px solid rgba(var(--sa-cool), 0.16);
+    background: rgba(var(--sa-cool), 0.045);
+    color: rgba(224, 224, 224, 0.82);
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.lunar-interpretation-boundary {
+    color: #e0d3a5;
+    font-size: 11px;
+    line-height: 1.5;
+    padding: 9px 0 0;
+}
+
+.lunar-card-section {
+    margin-top: 16px;
+}
+
+.lunar-card-section h4 {
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 7px;
+}
+
+.lunar-card-section ul {
+    padding-left: 17px;
+    color: rgba(224, 224, 224, 0.67);
+    font-size: 11px;
+    line-height: 1.55;
+}
+
+.lunar-card-section li + li {
+    margin-top: 5px;
+}
+
+.lunar-card-section.unresolved {
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    padding-top: 13px;
+}
+
+.lunar-card-sources {
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    margin-top: 14px;
+    padding-top: 8px;
+}
+
+.lunar-filter-note,
+.lunar-policy-note {
+    color: rgba(224, 224, 224, 0.52);
+    font-size: 11px;
+    line-height: 1.55;
+    margin-top: 16px;
+}
+
+.lunar-layer-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    gap: 7px 22px;
+    padding: 0;
+    margin: 15px 0 0;
+    list-style: none;
+}
+
+.lunar-layer-list li {
+    position: relative;
+    padding: 0 0 0 17px;
+    color: rgba(224, 224, 224, 0.74);
+    font-size: 12px;
+    line-height: 1.45;
+    text-transform: capitalize;
+}
+
+.lunar-layer-list li::before {
+    content: "·";
+    position: absolute;
+    left: 3px;
+    color: rgb(var(--sa-cool));
+    font-size: 20px;
+    line-height: 0.9;
+}
+
+.lunar-observatory-footer {
+    color: rgba(224, 224, 224, 0.42);
+    font-size: 11px;
+    line-height: 1.6;
+    padding: 22px 2px 0;
+}
+
+.lunar-parse-error {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    color: #e0d3a5;
+    font-size: 12px;
+    margin-top: 14px;
+}
+
+@media (max-width: 640px) {
+    .lunar-observatory-shell {
+        padding: 20px 14px 36px;
+    }
+
+    .lunar-back-link {
+        margin-bottom: 22px;
+    }
+
+    .lunar-program-context,
+    .lunar-explorer,
+    .lunar-evidence-layers {
+        padding: 14px;
+    }
+
+    .lunar-boundary {
+        padding: 14px;
+    }
+
+    .lunar-candidate-card {
+        padding: 13px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .lunar-filter {
+        transition: none;
+    }
+}
+
+.lunar-empty-state {
+    grid-column: 1 / -1;
+    border: 1px dashed rgba(255, 255, 255, 0.16);
+    border-radius: var(--sa-radius-sm);
+    padding: 20px;
+    color: rgba(224, 224, 224, 0.58);
+    font-size: 13px;
+    text-align: center;
+}
+
+/* ─── Lunar geospatial source catalogue ──────────────────────────── */
+
+.lunar-source-catalog {
+    margin-top: 26px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: var(--sa-radius);
+    background: rgba(var(--sa-panel), 0.58);
+}
+
+.lunar-catalog-intro {
+    color: rgba(224, 224, 224, 0.78);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.lunar-source-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+    align-items: start;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.lunar-source-card {
+    min-width: 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--sa-radius-sm);
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.23);
+}
+
+.lunar-source-card h3 {
+    color: #fff;
+    font-size: 17px;
+    font-weight: 520;
+    line-height: 1.3;
+    margin: 0 0 7px;
+}
+
+.lunar-source-publisher {
+    color: rgba(224, 224, 224, 0.52);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.lunar-source-open {
+    display: inline-block;
+    color: rgb(var(--sa-accent));
+    font-size: 12px;
+    text-decoration: none;
+    margin-top: 9px;
+}
+
+.lunar-source-open:hover {
+    text-decoration: underline;
+}
+
+.lunar-source-metadata {
+    display: grid;
+    grid-template-columns: minmax(88px, 0.34fr) minmax(0, 1fr);
+    gap: 7px 12px;
+    margin-top: 14px;
+    padding: 12px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    font-size: 11px;
+    line-height: 1.55;
+}
+
+.lunar-source-metadata dt {
+    color: rgba(224, 224, 224, 0.48);
+}
+
+.lunar-source-metadata dd {
+    margin: 0;
+    color: rgba(224, 224, 224, 0.78);
+    overflow-wrap: anywhere;
+}
+
+.lunar-ingestion-sequence {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 16px;
+    margin-top: 18px;
+}
+
+.lunar-ingestion-sequence h3 {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 550;
+    margin-bottom: 10px;
+}
+
+.lunar-ingestion-sequence ol {
+    padding-left: 20px;
+    color: rgba(224, 224, 224, 0.68);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.lunar-ingestion-sequence li + li {
+    margin-top: 7px;
+}
+
+@media (max-width: 640px) {
+    .lunar-source-catalog {
+        padding: 14px;
+    }
+
+    .lunar-source-card {
+        padding: 13px;
+    }
+
+    .lunar-source-metadata {
+        grid-template-columns: 1fr;
+        gap: 3px;
+    }
+
+    .lunar-source-metadata dd + dt {
+        margin-top: 7px;
+    }
+}
+
+.lunar-subsection-title {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    font-weight: 550;
+    margin: 18px 0 8px;
+}
+
+.lunar-historical-lead-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+    align-items: start;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.lunar-historical-lead {
+    min-width: 0;
+    border: 1px solid rgba(var(--sa-vital), 0.2);
+    border-radius: var(--sa-radius-sm);
+    padding: 15px;
+    background: rgba(var(--sa-vital), 0.025);
+}
+
+.lunar-historical-lead h4 {
+    color: #fff;
+    font-size: 15px;
+    font-weight: 550;
+    line-height: 1.4;
+    margin: 6px 0 9px;
+}
+
+.lunar-historical-finding {
+    color: rgba(224, 224, 224, 0.8);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.lunar-historical-lead .lunar-card-section li + li {
+    margin-top: 6px;
+}
+
+.lunar-crosswalk-list {
+    list-style: none;
+    padding: 0;
+    color: rgba(224, 224, 224, 0.68);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.lunar-crosswalk-entry {
+    display: grid;
+    gap: 3px;
+    padding: 9px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    overflow-wrap: anywhere;
+}
+
+.lunar-crosswalk-entry strong {
+    color: rgba(255, 255, 255, 0.88);
+    font-weight: 600;
+}
+
+.lunar-crosswalk-state {
+    color: rgba(var(--sa-cool), 0.82);
+    text-transform: capitalize;
+}
+
+.lunar-crosswalk-entry p {
+    color: rgba(224, 224, 224, 0.48);
+    line-height: 1.5;
+    margin-top: 2px;
+}
+
+.lunar-direct-asset-list {
+    list-style: none;
+    padding: 0;
+}
+
+.lunar-direct-asset {
+    display: grid;
+    gap: 5px;
+    padding: 10px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    overflow-wrap: anywhere;
+}
+
+.lunar-direct-asset-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+}
+
+.lunar-direct-asset-heading a {
+    color: rgb(var(--sa-accent));
+    font-size: 12px;
+    line-height: 1.45;
+    text-decoration: none;
+}
+
+.lunar-direct-asset-heading a:hover {
+    text-decoration: underline;
+}
+
+.lunar-direct-asset-heading span {
+    color: rgba(224, 224, 224, 0.45);
+    font-size: 10px;
+    white-space: normal;
+}
+
+.lunar-direct-asset > p,
+.lunar-asset-verification {
+    color: rgba(224, 224, 224, 0.55);
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.lunar-direct-asset .lunar-asset-verification {
+    color: #e0d3a5;
+    text-transform: capitalize;
+}

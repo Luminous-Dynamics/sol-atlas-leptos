@@ -1,0 +1,305 @@
+{
+  "schema": "org.luminousdynamics.sol-atlas.lunar-site-screening/v1",
+  "created_utc_date": "2026-10-11",
+  "status": "research_screening_not_site_selection",
+  "decision_rule": "Do not rank candidate regions until comparable, epoch-bound terrain, landing-ellipse, illumination, thermal, communications, traverse, and uncertainty data exist. This register carries NASA's refined nine-region Artemis III shortlist forward as a public screening set; NASA's later campaign architecture moved Artemis III to a 2027 low-Earth-orbit demonstration and targets Artemis IV for the first crewed landing. The register does not assert that this historical shortlist is an exhaustive or approved Artemis IV site set. Historical comparators are not NASA endorsements.",
+  "coordinate_policy": "No point coordinates are asserted. These are broad regions, not pinpoint landing sites or approved landing ellipses.",
+  "current_program_context": {
+    "artemis_iii": "NASA currently describes Artemis III as a 2027 low-Earth-orbit demonstration testing commercial human landing systems, not a lunar surface landing.",
+    "artemis_iv": "NASA currently targets early 2028 for Artemis IV, the first crewed lunar landing; candidate-region labels here are a screening set, not an approved Artemis IV touchdown-ellipse selection.",
+    "evidence_url": "https://www.nasa.gov/artemis-iii-news-and-updates/"
+  },
+  "scoring": null,
+  "candidates": [
+    {
+      "id": "peak-near-cabeus-b",
+      "name": "Peak near Cabeus B",
+      "status": "candidate_region",
+      "proposed_roles": [
+        "touchdown_alternative",
+        "robotic_prospecting_alternative"
+      ],
+      "evidence_state": "candidate_list_only",
+      "supported_observations": [
+        "Included in NASA's refined public south-polar candidate-region list."
+      ],
+      "unresolved": [
+        "Exact safe landing ellipse and approach corridor",
+        "Date-specific illumination and thermal profile",
+        "Traverse access and in-situ resource grade"
+      ],
+      "known_metrics": {},
+      "sources": [
+        "https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/"
+      ]
+    },
+    {
+      "id": "haworth",
+      "name": "Haworth",
+      "status": "candidate_region",
+      "proposed_roles": [
+        "touchdown_alternative",
+        "robotic_prospecting_alternative"
+      ],
+      "evidence_state": "candidate_list_only",
+      "supported_observations": [
+        "Included in NASA's refined public south-polar candidate-region list."
+      ],
+      "unresolved": [
+        "Exact safe landing ellipse and approach corridor",
+        "Date-specific illumination and thermal profile",
+        "Traverse access and in-situ resource grade"
+      ],
+      "known_metrics": {},
+      "sources": [
+        "https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/",
+        "https://pgda.gsfc.nasa.gov/products/78"
+      ]
+    },
+    {
+      "id": "malapert-massif",
+      "name": "Malapert Massif",
+      "status": "candidate_region",
+      "proposed_roles": [
+        "power_node_alternative",
+        "communications_node_alternative",
+        "touchdown_alternative"
+      ],
+      "evidence_state": "regional_illumination_comms_evidence_available",
+      "supported_observations": [
+        "NASA Science describes high illumination around portions of the rim and exceptional Earth visibility; this is regional context, not a local landing-safety result."
+      ],
+      "unresolved": [
+        "Local slope, boulder and landing-ellipse hazards",
+        "Separation between landing/habitat and high-point relay sites",
+        "Seasonal power and link availability at exact coordinates"
+      ],
+      "known_metrics": {},
+      "sources": [
+        "https://science.nasa.gov/image-detail/20100618/",
+        "https://pgda.gsfc.nasa.gov/products/78"
+      ]
+    },
+    {
+      "id": "mons-mouton-plateau",
+      "name": "Mons Mouton Plateau",
+      "status": "candidate_region",
+      "proposed_roles": [
+        "touchdown_baseline_to_assess",
+        "early_surface_operations"
+      ],
+      "evidence_state": "robotic_touchdown_outcome_available",
+      "supported_observations": [
+        "NASA described the region as relatively flat in its IM-2 technology context.",
+        "IM-2 reached the lunar surface near Mons Mouton in March 2025, around 400 m from its intended landing point; the lander ended on its side inside a small crater and surface operations ended early."
+      ],
+      "interpretation_boundary": "Operational precedent and a hazard-learning case; it does not prove the region is safe or unsafe for a crewed lander.",
+      "unresolved": [
+        "Crewed lander-specific dispersion and safe ellipse",
+        "Terrain-relative-navigation performance",
+        "Touchdown stability, plume/dust effects and egress"
+      ],
+      "known_metrics": {},
+      "sources": [
+        "https://www.nasa.gov/directorates/stmd/five-facts-about-nasas-moon-bound-technology/",
+        "https://www.nasa.gov/news-release/nasa-receives-some-data-before-intuitive-machines-ends-lunar-mission/"
+      ]
+    },
+    {
+      "id": "mons-mouton",
+      "name": "Mons Mouton",
+      "status": "candidate_region",
+      "proposed_roles": [
+        "touchdown_alternative",
+        "science_operations_alternative"
+      ],
+      "evidence_state": "candidate_list_only",
+      "supported_observations": [
+        "Included separately from Mons Mouton Plateau in NASA's refined public candidate-region list."
+      ],
+      "unresolved": [
+        "Exact boundaries and distinction from the plateau candidate for any intended mission",
+        "Local landing ellipse and approach hazards",
+        "Date-specific operations data"
+      ],
+      "known_metrics": {},
+      "sources": [
+        "https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/"
+      ]
+    },
+    {
+      "id": "nobile-rim-1",
+      "name": "Nobile Rim 1",
+      "status": "candidate_region",
+      "proposed_roles": [
+        "robotic_prospecting",
+        "science_access",
+        "touchdown_alternative"
+      ],
+      "evidence_state": "regional_science_rationale_available",
+      "supported_observations": [
+        "NASA's earlier VIPER selection work identified rover-accessible terrain west of Nobile with nearby permanently shadowed areas as scientifically promising."
+      ],
+      "interpretation_boundary": "This is not proof of a recoverable water reserve; ground-truth composition, depth, grade and continuity are still required.",
+      "unresolved": [
+        "Local traverse and landing hazards",
+        "Resource grade and spatial continuity",
+        "Seasonal illumination/thermal data"
+      ],
+      "known_metrics": {},
+      "sources": [
+        "https://www.nasa.gov/news-release/nasas-artemis-rover-to-land-near-nobile-region-of-moons-south-pole/",
+        "https://www.nasa.gov/solar-system/moon/nasas-water-hunting-tool-will-help-scout-moons-south-pole/"
+      ]
+    },
+    {
+      "id": "nobile-rim-2",
+      "name": "Nobile Rim 2",
+      "status": "candidate_region",
+      "proposed_roles": [
+        "robotic_prospecting",
+        "science_access",
+        "touchdown_alternative"
+      ],
+      "evidence_state": "candidate_list_only",
+      "supported_observations": [
+        "Included in NASA's refined public south-polar candidate-region list."
+      ],
+      "unresolved": [
+        "Exact safe landing ellipse",
+        "PSR traverse cost and risk",
+        "In-situ resource grade and thermal environment"
+      ],
+      "known_metrics": {},
+      "sources": [
+        "https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/",
+        "https://pgda.gsfc.nasa.gov/products/78"
+      ]
+    },
+    {
+      "id": "de-gerlache-rim-2",
+      "name": "de Gerlache Rim 2",
+      "status": "candidate_region",
+      "proposed_roles": [
+        "touchdown_alternative",
+        "robotic_prospecting",
+        "power_science_corridor"
+      ],
+      "evidence_state": "candidate_list_only",
+      "supported_observations": [
+        "Included in NASA's refined public candidate-region list; adjacent ridge/rim corridors merit joint lighting, access and terrain analysis."
+      ],
+      "unresolved": [
+        "Local ridge width and slope",
+        "Power and communication availability over time",
+        "Safe rover routes into shadowed terrain"
+      ],
+      "known_metrics": {},
+      "sources": [
+        "https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/",
+        "https://pgda.gsfc.nasa.gov/products/78"
+      ]
+    },
+    {
+      "id": "slater-plain",
+      "name": "Slater Plain",
+      "status": "candidate_region",
+      "proposed_roles": [
+        "touchdown_alternative",
+        "operations_node_alternative"
+      ],
+      "evidence_state": "candidate_list_only",
+      "supported_observations": [
+        "Included in NASA's refined public south-polar candidate-region list."
+      ],
+      "unresolved": [
+        "Comparable terrain slope/roughness product",
+        "Lighting and Earth/relay visibility by mission epoch",
+        "Science and resource-access cost"
+      ],
+      "known_metrics": {},
+      "sources": [
+        "https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/"
+      ]
+    },
+    {
+      "id": "connecting-ridge",
+      "name": "Connecting Ridge",
+      "status": "historical_candidate_region_comparator",
+      "proposed_roles": [
+        "touchdown_comparator",
+        "power_and_illumination_comparator",
+        "robotic_science_access"
+      ],
+      "evidence_state": "historical_regional_model_evidence",
+      "supported_observations": [
+        "NASA PGDA product 78 reports a historical Site01 / Connecting Ridge illumination comparison over 2024-01-01 through 2026-01-01: it had the most area with average illumination above 70% at 1 m among the compared sites; ROIs 4–6 were generally favorable considering uncertainty, and Site01 showed longer continuous illumination at 5 m.",
+        "This is a source-reported regional modelling result, not a new calculation in this repository."
+      ],
+      "interpretation_boundary": "Historical comparator only. The result addresses illumination during a past analysis window, not touchdown safety or a future mission window. Site01 and ROI boundaries must be spatially verified and cannot be assumed to equal a current agency candidate region.",
+      "unresolved": [
+        "Retrieve and hash the Site01 LDEM, slope and uncertainty rasters, LOLA count map, clone ensemble and ROI shapefiles",
+        "Verify exact Site01 ROI 4–6 boundaries and crosswalk before computing any zonal statistics",
+        "Recompute mission-epoch illumination at required lander, habitat and rover heights",
+        "Compare landing dispersion, small-crater/boulder hazards, communications, thermal survival, safe traverse/egress and resource access"
+      ],
+      "known_metrics": {},
+      "sources": [
+        "https://pgda.gsfc.nasa.gov/products/78"
+      ]
+    },
+    {
+      "id": "peak-near-shackleton",
+      "name": "Peak near Shackleton",
+      "status": "historical_candidate_region_comparator",
+      "proposed_roles": [
+        "touchdown_comparator",
+        "relay_alternative",
+        "robotic_science_access"
+      ],
+      "evidence_state": "historical_regional_model_evidence",
+      "supported_observations": [
+        "Present in NASA's earlier 13-region list and in historical LOLA south-polar site products. The name denotes a region near Shackleton, not the crater interior."
+      ],
+      "unresolved": [
+        "Whether it belongs in the current mission-specific shortlist",
+        "Exact landing ellipse and date-specific hazards",
+        "Current seasonal illumination, communications and traversability"
+      ],
+      "known_metrics": {},
+      "sources": [
+        "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
+        "https://pgda.gsfc.nasa.gov/products/78"
+      ]
+    }
+  ],
+  "required_comparison_layers": [
+    "topography_slope_and_uncertainty",
+    "boulder_small_crater_and_roughness_hazards",
+    "landing_ellipse_and_dispersion",
+    "date_specific_illumination",
+    "temperature_and_cold_soak",
+    "direct_to_earth_and_relay_visibility",
+    "psr_boundaries_and_traverse_routes",
+    "resource_measurement_grade_and_uncertainty",
+    "radiation_and_surface_environment",
+    "power_storage_and_survival_loads",
+    "operations_egress_and_plume_dust_separation"
+  ],
+  "comparison_policy": {
+    "method": "constraint_first_pareto",
+    "weights": null,
+    "output": "separate suitability tracks; no hidden scalar winner",
+    "missing_data": "unknown_not_zero",
+    "required_metadata": [
+      "source_url",
+      "source_version_or_acquisition_date",
+      "sha256_when_available",
+      "coordinate_frame",
+      "units",
+      "spatial_resolution",
+      "uncertainty",
+      "evidence_state"
+    ]
+  }
+}

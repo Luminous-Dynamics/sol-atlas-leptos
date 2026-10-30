@@ -1,0 +1,598 @@
+{
+  "schema": "org.luminousdynamics.sol-atlas.lunar-source-catalog/v1",
+  "created_utc_date": "2026-10-12",
+  "status": "source_catalogue_ingestion_plan_not_ingested",
+  "decision_rule": "Expose authoritative source products and their limitations before deriving any site metric. A product being listed here does not mean it has been downloaded, calibrated, spatially crosswalked, or validated for a current landing ellipse. Preserve the historical leads as source-reported clues, not repository-computed measurements; their time windows, heights, and interpretation boundaries must travel with any reuse.",
+  "metric_policy": "No derived site metrics or site rankings are asserted by this catalogue. Keep candidate values unknown until source bytes, labels, spatial masks, units, resolution, acquisition/model epoch, uncertainty, and transformation provenance are verified.",
+  "sources": [
+    {
+      "id": "pgda-lola-high-resolution-site-products",
+      "title": "High-Resolution LOLA Topography for Lunar South Pole Sites",
+      "publisher": "NASA Goddard Space Flight Center, Planetary Geology, Geophysics and Geochemistry Laboratory",
+      "url": "https://pgda.gsfc.nasa.gov/products/78",
+      "product_families": [
+        "surface elevation LDEM",
+        "slope map",
+        "LOLA return count map",
+        "elevation uncertainty",
+        "slope uncertainty",
+        "100 terrain/uncertainty clones",
+        "region-of-interest GIS shapefiles"
+      ],
+      "spatial_resolution": "5 m/pixel GeoTIFF for raster products; XYZI point clouds and ROI shapefiles are exceptions",
+      "coordinate_reference": "South-polar stereographic X/Y in metres; MOON_ME reference frame, DE421 ephemeris. Verify each product label and README before reprojection or measurement.",
+      "temporal_scope": "Topographic model derived from historical LRO-LOLA tracks; not a mission-date illumination series.",
+      "uncertainty_and_limitations": [
+        "The PGDA description reports around 90% interpolated 5 m pixels in these polar LDEMs.",
+        "Across listed regions, reported median RMS height uncertainty is approximately 0.30–0.50 m and median RMS slope uncertainty approximately 1.5–2.5 degrees.",
+        "Interpolation uncertainty varies with track gaps and terrain slope; a nominal 5 m pixel size is not 5 m independent measurement spacing.",
+        "The published region names and ROI boundaries are legacy research products; do not assume they are identical to currently named Artemis landing regions without an explicit spatial crosswalk."
+      ],
+      "candidate_crosswalk": [
+        {
+          "candidate_id": "connecting-ridge",
+          "product_site": "Site01: Connecting ridge; legacy ROI boundaries",
+          "mapping_state": "name_match_roi_validation_required"
+        },
+        {
+          "candidate_id": "peak-near-shackleton",
+          "product_site": "Site07: Peak near Shackleton",
+          "mapping_state": "name_match_roi_validation_required"
+        },
+        {
+          "candidate_id": "malapert-massif",
+          "product_site": "Site23: Malapert massif",
+          "mapping_state": "name_match_roi_validation_required"
+        },
+        {
+          "candidate_id": "nobile-rim-1",
+          "product_site": "Site06: Nobile rim 1",
+          "mapping_state": "name_match_roi_validation_required"
+        },
+        {
+          "candidate_id": "nobile-rim-2",
+          "product_site": "DM2: Nobile rim 2",
+          "mapping_state": "name_match_roi_validation_required"
+        },
+        {
+          "candidate_id": "haworth",
+          "product_site": "Haworth",
+          "mapping_state": "name_match_roi_validation_required"
+        },
+        {
+          "candidate_id": "de-gerlache-rim-2",
+          "product_site": "Site11: de Gerlache rim; SL2: de Gerlache rim",
+          "mapping_state": "regional_name_overlap_not_equivalent_until_roi_checked"
+        },
+        {
+          "candidate_id": "peak-near-cabeus-b",
+          "product_site": null,
+          "mapping_state": "no_exact_name_match_validated"
+        },
+        {
+          "candidate_id": "mons-mouton-plateau",
+          "product_site": null,
+          "mapping_state": "no_exact_name_match_validated"
+        },
+        {
+          "candidate_id": "mons-mouton",
+          "product_site": null,
+          "mapping_state": "no_exact_name_match_validated"
+        },
+        {
+          "candidate_id": "slater-plain",
+          "product_site": null,
+          "mapping_state": "no_exact_name_match_validated"
+        }
+      ],
+      "recommended_use": "First raster-based ingestion candidate for mapped regions with explicit ROI overlap. Use slope, elevation, uncertainty and count layers together; retain interpolation and boundary limitations.",
+      "required_acceptance_checks": [
+        "Capture exact file URL, filename, HTTP/content metadata where available, SHA-256, product-label URL and retrieval timestamp.",
+        "Read and verify raster CRS, transform, dimensions, pixel registration, nodata and scale/offset values from labels/metadata.",
+        "Use the supplied ROI files or an independently sourced, versioned region polygon; never derive the polygon from the place name.",
+        "Check raster dimensions, CRS compatibility, nodata, uncertainty-layer alignment and pixel registration before any zonal statistic.",
+        "Label name matches as provisional until ROI overlap and region identity are confirmed."
+      ],
+      "sample_direct_assets": [
+        {
+          "title": "Site01 LDEM (surface elevation)",
+          "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_final_adj_5mpp_surf.tif",
+          "asset_type": "GeoTIFF",
+          "verification_state": "source_link_listed_not_downloaded_or_hashed",
+          "note": "Exact Site01 asset linked from NASA PGDA product 78. Download, inspect label/metadata and compute SHA-256 before analysis."
+        },
+        {
+          "title": "Site01 LOLA return-count map",
+          "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_final_adj_5mpp_ldec.tif",
+          "asset_type": "GeoTIFF",
+          "verification_state": "source_link_listed_not_downloaded_or_hashed",
+          "note": "Use to distinguish measured-return coverage from interpolated DEM cells. Read the product label before interpreting count values."
+        },
+        {
+          "title": "Site01 slope",
+          "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_final_adj_5mpp_slp.tif",
+          "asset_type": "GeoTIFF",
+          "verification_state": "source_link_listed_not_downloaded_or_hashed",
+          "note": "Pair with the count and uncertainty layers; nominal pixel spacing is not equivalent to independent terrain measurements."
+        },
+        {
+          "title": "Site01 elevation uncertainty",
+          "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_final_adj_5mpp_toterr.tif",
+          "asset_type": "GeoTIFF",
+          "verification_state": "source_link_listed_not_downloaded_or_hashed",
+          "note": "Inspect metadata, units, pixel registration and nodata before any zonal statistic."
+        },
+        {
+          "title": "Site01 slope uncertainty",
+          "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_final_adj_5mpp_slperr.tif",
+          "asset_type": "GeoTIFF",
+          "verification_state": "source_link_listed_not_downloaded_or_hashed",
+          "note": "Do not replace spatially varying uncertainty with one region-wide summary."
+        },
+        {
+          "title": "Site01 ROI shapefiles",
+          "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_ROIs.tgz",
+          "asset_type": "GIS archive",
+          "verification_state": "source_link_listed_not_downloaded_or_hashed",
+          "note": "Required to verify ROI 4–6 geometry; filename/region names alone do not establish exact overlap."
+        }
+      ],
+      "asset_access_notes": [
+        "NASA PGDA product 78 links the sample Site01 files shown here, but this repository has not downloaded or hashed the binary assets.",
+        "The source page states that around 90% of pixels in the cited 5 m/pixel polar LDEMs are interpolated; check per-product labels and uncertainty layers before calculating any local statistic."
+      ]
+    },
+    {
+      "id": "lroc-nac-shackleton-de-gerlache-connecting-ridge-dtm",
+      "title": "Shackleton–de Gerlache Connecting Ridge DTM (SHACKRDGE02)",
+      "publisher": "Lunar Reconnaissance Orbiter Camera (LROC), Arizona State University / NASA Planetary Data System",
+      "url": "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_DTM_SHACKRDGE02",
+      "product_families": [
+        "Stereo-derived digital terrain model (32-bit GeoTIFF and PDS IMG)",
+        "Color slope map",
+        "DTM confidence map",
+        "Orthorectified imagery",
+        "Shaded-relief products"
+      ],
+      "spatial_resolution": "LROC product page reports a 3.50 m/pixel DTM. The page also reports a broad extent from 89.63°S to 89.37°S and longitude 209.81° to 239.10°; confirm label conventions and raster grid before using those bounds for a spatial join.",
+      "coordinate_reference": "The public product page reports center/bounds in latitude and longitude, but this alone does not establish the GeoTIFF grid projection, longitude convention, lunar datum/reference frame, coordinate type, pixel registration, or exact map transform. Parse the paired PDS label before aligning with LOLA or candidate polygons.",
+      "temporal_scope": "Stereo images were acquired on 22 September 2010; the LROC page lists a project date of 23 April 2024. This is a historical local-terrain model, not a mission-window illumination, temperature, or operational forecast.",
+      "uncertainty_and_limitations": [
+        "The product page reports Relative LE = 3.41 and LOLA_RMS = 1.06; confirm their formal definitions and units in the product metadata/README before interpreting them as error measures.",
+        "A confidence map is listed, but its pixel-value semantics must be verified against the product README/label before filtering cells or producing statistics.",
+        "A 3.50 m/pixel sampling interval is not, by itself, a guarantee of independent 3.50 m measurements, absolute positional accuracy, hazard detection completeness, or safe touchdown conditions.",
+        "The product name and published geographic extent do not establish exact equivalence to a current Artemis refined candidate polygon; no candidate polygon overlap has been computed here.",
+        "This is a localized stereo DTM and cannot substitute for common-coverage terrain, illumination, thermal, communications, and uncertainty layers across every candidate region."
+      ],
+      "recommended_use": "Use as an independent high-resolution local-terrain cross-check for the Connecting Ridge comparator. First retrieve and hash the raster, PDS label, slope and confidence products; verify the label-defined grid and confidence semantics; then compare only the proven overlapping ROI with compatible LOLA layers.",
+      "required_acceptance_checks": [
+        "Retrieve the DTM, its exact PDS label, the slope product and the confidence map; record source URL, retrieval timestamp, byte count, SHA-256 and available HTTP/content metadata.",
+        "Parse the PDS label and product README to verify grid dimensions, map projection, lunar reference frame/datum, longitude convention, units, pixel registration, nodata, scale/offset and product identifiers.",
+        "Decode confidence-map values from the authoritative README/label before using confidence filtering or describing quality classes.",
+        "Check DTM, slope and confidence alignment, footprints, nodata and transforms; do not assume that products displayed on one page are pixel-aligned without checking.",
+        "Crosswalk the raster footprint to an independently versioned candidate/ROI polygon and document intersection/coverage; do not infer equivalence from the product name.",
+        "Keep the asset in an unverified state until bytes and labels are reviewed; no raster-derived statistic enters the candidate register without a replayable receipt and uncertainty treatment."
+      ],
+      "candidate_crosswalk": [
+        {
+          "candidate_id": "connecting-ridge",
+          "product_site": "SHACKRDGE02: Shackleton–de Gerlache Connecting Ridge DTM",
+          "mapping_state": "product_name_match_roi_validation_required",
+          "note": "Historical comparator/name correspondence only. Exact raster-footprint intersection with the catalogue's candidate or ROI geometry has not been computed."
+        }
+      ],
+      "sample_direct_assets": [
+        {
+          "title": "SHACKRDGE02 digital terrain model (32-bit GeoTIFF)",
+          "url": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/SDP/NAC_DTM/SHACKRDGE02/NAC_DTM_SHACKRDGE02.TIF",
+          "asset_type": "32-bit GeoTIFF DTM",
+          "verification_state": "product_page_linked_not_downloaded_or_hashed",
+          "note": "LROC product page lists this exact payload as the 3.50 m/pixel DTM. PDS label must be parsed before quantitative use."
+        },
+        {
+          "title": "SHACKRDGE02 digital terrain model label",
+          "url": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/SDP/NAC_DTM/SHACKRDGE02/NAC_DTM_SHACKRDGE02.LBL",
+          "asset_type": "PDS label",
+          "verification_state": "product_page_linked_not_retrieved_or_parsed",
+          "note": "Authoritative label link is listed by the LROC DTM product page; its contents and grid semantics have not been inspected in this run."
+        },
+        {
+          "title": "SHACKRDGE02 color slope map",
+          "url": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/SDP/NAC_DTM/SHACKRDGE02/NAC_DTM_SHACKRDGE02_SLOPE.TIF",
+          "asset_type": "Color slope GeoTIFF",
+          "verification_state": "product_page_linked_not_downloaded_or_hashed",
+          "note": "LROC product page lists this slope product at the same reported 3.50 m/pixel scale; verify its label and units before treating values as numeric slope."
+        },
+        {
+          "title": "SHACKRDGE02 color slope map label",
+          "url": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/SDP/NAC_DTM/SHACKRDGE02/NAC_DTM_SHACKRDGE02_SLOPE.LBL",
+          "asset_type": "PDS label",
+          "verification_state": "product_page_linked_not_retrieved_or_parsed",
+          "note": "Read the corresponding label before reprojecting or interpreting pixel values; no label has been parsed."
+        },
+        {
+          "title": "SHACKRDGE02 confidence map",
+          "url": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/SDP/NAC_DTM/SHACKRDGE02/NAC_DTM_SHACKRDGE02_CONF.IMG",
+          "asset_type": "PDS IMG confidence map",
+          "verification_state": "product_page_linked_not_downloaded_or_hashed",
+          "note": "The LROC product page lists this confidence product. Confirm the paired label and README semantics before applying any confidence threshold."
+        }
+      ],
+      "asset_access_notes": [
+        "The LROC product page is accessible and lists the DTM, slope, confidence, and label links, including the reported 3.50 m/pixel scale and product extent.",
+        "During this research run, browser retrieval of the linked PDS label and binary payloads redirected to a PDS mirror inaccessible to the research tool; no asset bytes were retrieved, hashed, or parsed."
+      ]
+    },
+    {
+      "id": "usgs-artemis-iii-candidate-navigation-grids",
+      "title": "Down Selected Artemis III Candidate Landing Site Navigational Grids",
+      "publisher": "U.S. Geological Survey, Astrogeology Science Center",
+      "url": "https://www.usgs.gov/data/down-selected-artemis-iii-candidate-landing-site-navigational-grids",
+      "product_families": [
+        "Lunar Grid Reference System (LGRS) Artemis Condensed Coordinates (ACC) grid shapefiles at 1 km, 100 m and 10 m for nine refined Artemis III candidate regions",
+        "Candidate-region navigation-grid coverage for Peak near Cabeus B, Haworth, Malapert Massif, Mons Mouton Plateau, Mons Mouton, Nobile Rim 1, Nobile Rim 2, de Gerlache Rim 2 and Slater Plain",
+        "USGS data-release DOI 10.5066/P1MEQ6UK"
+      ],
+      "spatial_resolution": "Navigation-grid cells are available at 1 km, 100 m and 10 m scales; Mons Mouton Plateau's 1 km grid is split into four quadrant shapefiles. These are coordinate-reference/navigation grids, not terrain raster resolution or proof of candidate boundary geometry.",
+      "coordinate_reference": "USGS documents project-specific lunar LTM or LPS projected coordinate reference systems for grid shapefiles and recommends JPL DE421, Mean Earth (ME) principal-axis orientation. Grid shapefiles must be interpreted with their correct projection and datum. For applicable geographic-coordinate grids, use a registered lunar GCS such as IAU_2015:30100 or ESRI:104903. Do not assume terrestrial EPSG:4326 or reproject by a name-only heuristic.",
+      "temporal_scope": "USGS data release dated 5 December 2024; candidate regions were sourced from LROC QuickMap for the then-current nine-region Artemis III down-selection. This is navigation reference data, not mission-epoch terrain, illumination, or landing safety data.",
+      "uncertainty_and_limitations": [
+        "The release supplies LGRS/ACC navigation grids designed for nine named candidate regions; grid cells do not by themselves establish the authoritative candidate-region perimeter or an approved landing ellipse.",
+        "The source page says the nine candidate regions were sourced from LROC QuickMap. Region label correspondence is useful evidence, but exact polygon identity/version and footprint intersection must still be reviewed.",
+        "Different LTM/LPS and lunar geographic coordinate systems serve different grid products. A shapefile must be read with its actual projection/datum and correct longitude conventions before overlay or measurement.",
+        "The grid precision labels (1 km, 100 m, 10 m) describe navigation grid spacing, not terrain measurement accuracy, hazard detection, DTM resolution, or positional uncertainty of a landing system.",
+        "The DOI-linked ScienceBase download landing page could not be inspected by this research browser. No shapefile archive, geometry, coordinate transform, record count, or polygon intersection was downloaded or verified."
+      ],
+      "recommended_use": "Use as a standardized navigation-grid/georeferencing source for the nine refined candidate-region names, after obtaining the DOI data release and validating each shapefile's PRJ, datum and bounds. Keep grid availability separate from boundary validation; use separately versioned candidate-region outlines for definitive ROI masks.",
+      "required_acceptance_checks": [
+        "Retrieve the USGS data release DOI 10.5066/P1MEQ6UK and all relevant grid shapefiles/README; record URL, retrieval time, archive size and SHA-256.",
+        "Confirm the package's candidate name, grid resolution, geometry extent, projection definition, datum, axis order and coordinate interpretation for each shapefile.",
+        "Verify the nine named candidate-grid records against the release manifest. Do not infer that omitted historic comparators such as Connecting Ridge or Peak near Shackleton are covered by this release.",
+        "Obtain or independently version the actual candidate-region boundary polygons and measure each grid-to-boundary relationship; never use grid-cell extents as substitute candidate boundaries.",
+        "Only after CRS acceptance, perform spatial overlays against LOLA and LROC DTM footprints; preserve the chosen candidate/ROI polygon hash and the projection transformation provenance.",
+        "Preserve the release date and candidate-list version so historical navigation grids are not silently presented as an updated Artemis site selection."
+      ],
+      "candidate_crosswalk": [
+        {
+          "candidate_id": "peak-near-cabeus-b",
+          "product_site": "Peak_Near_Cabeus_B navigation grids",
+          "mapping_state": "navigation_grid_name_listed_boundary_not_validated"
+        },
+        {
+          "candidate_id": "haworth",
+          "product_site": "Haworth navigation grids",
+          "mapping_state": "navigation_grid_name_listed_boundary_not_validated"
+        },
+        {
+          "candidate_id": "malapert-massif",
+          "product_site": "Malapert_Massif navigation grids",
+          "mapping_state": "navigation_grid_name_listed_boundary_not_validated"
+        },
+        {
+          "candidate_id": "mons-mouton-plateau",
+          "product_site": "Mons_Mouton_Plateau navigation grids",
+          "mapping_state": "navigation_grid_name_listed_boundary_not_validated"
+        },
+        {
+          "candidate_id": "mons-mouton",
+          "product_site": "Mons_Mouton navigation grids",
+          "mapping_state": "navigation_grid_name_listed_boundary_not_validated"
+        },
+        {
+          "candidate_id": "nobile-rim-1",
+          "product_site": "Nobile_Rim_1 navigation grids",
+          "mapping_state": "navigation_grid_name_listed_boundary_not_validated"
+        },
+        {
+          "candidate_id": "nobile-rim-2",
+          "product_site": "Nobile_Rim_2 navigation grids",
+          "mapping_state": "navigation_grid_name_listed_boundary_not_validated"
+        },
+        {
+          "candidate_id": "de-gerlache-rim-2",
+          "product_site": "de_Gerlache_Rim_2 navigation grids",
+          "mapping_state": "navigation_grid_name_listed_boundary_not_validated"
+        },
+        {
+          "candidate_id": "slater-plain",
+          "product_site": "Slater_Plain navigation grids",
+          "mapping_state": "navigation_grid_name_listed_boundary_not_validated"
+        }
+      ],
+      "sample_direct_assets": [
+        {
+          "title": "USGS candidate landing-site navigation grids data release",
+          "url": "https://doi.org/10.5066/P1MEQ6UK",
+          "asset_type": "USGS data release DOI landing page (not a direct archive URL)",
+          "verification_state": "official_usgs_doi_linked_download_not_retrieved",
+          "note": "USGS lists this DOI for the nine-region ACC navigation grid shapefiles; the redirected ScienceBase page was inaccessible to the research tool, so no grid file or geometry has been inspected."
+        }
+      ],
+      "asset_access_notes": [
+        "The USGS source page is accessible and explicitly lists 1 km, 100 m and 10 m navigation grids for all nine refined candidate regions, with Mons Mouton Plateau 1 km grids split across four quadrants.",
+        "The DOI landing page redirected to ScienceBase, which was inaccessible to this research tool. The data release and its geometries remain unverified in this research pass."
+      ]
+    },
+    {
+      "id": "lroc-global-nac-dtm-footprint-shapefiles",
+      "title": "Global LROC NAC DTM Footprint Shapefiles",
+      "publisher": "Lunar Reconnaissance Orbiter Camera (LROC), Arizona State University / NASA Planetary Data System",
+      "url": "https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_NAC_DTMS",
+      "product_families": [
+        "Global NAC DTM footprint shapefile in 180-degree longitude domain",
+        "Global NAC DTM footprint shapefile in 360-degree longitude domain",
+        "Per-footprint DTM inventory and error/coverage attributes",
+        "Shapefile README and schema description"
+      ],
+      "spatial_resolution": "Not a raster layer and has no single pixel resolution. The feature attribute `resolution` reports the source DTM pixel scale in metres for each footprint.",
+      "coordinate_reference": "The LROC source page states that the shapefile uses the Moon_2000 geographic coordinate system. Verify each archive's PRJ, axis/longitude convention, geometry validity and coordinate interpretation before overlays or area calculations; the 180-domain and 360-domain files are separate variants.",
+      "temporal_scope": "The source page says DTM footprints released up to 15 September 2026 are included. Treat this as the inventory release cut-off, not the acquisition date of each underlying DTM or proof of exhaustive coverage after that date.",
+      "uncertainty_and_limitations": [
+        "This is an inventory of LROC NAC DTM footprints generated from DTM-derived products with GDAL/OGR; it maps available DTM coverage rather than defining Artemis candidate-region boundaries.",
+        "The source page defines `relat_le` as Relative Linear Error / vertical precision at 90% confidence in metres, and documents `lola_avg`, `lola_rms`, `triang_rms`, `adjust_rms`, coverage and stereo attributes. Interpret each only with its published definition and source-product context.",
+        "A footprint intersection can identify a potentially relevant terrain model but does not establish exact candidate-region identity, touchdown safety, or sufficient data quality for the mission.",
+        "The 180-domain and 360-domain packages are alternative longitude-domain products; do not mix them without an explicit longitude-wrap/transform decision.",
+        "The ZIP packages and README have not been downloaded, hashed, or inspected in this repository/research pass, and no record-level match for SHACKRDGE02 has been independently verified."
+      ],
+      "recommended_use": "Use as an independent inventory to identify LROC stereo DTM coverage and source metadata before selecting local terrain cross-checks. Compare validated DTM footprints to versioned candidate/ROI polygons, then follow each matched footprint's canonical product link and verify its own PDS label, raster grid and uncertainty.",
+      "required_acceptance_checks": [
+        "Retrieve both 180-domain and 360-domain ZIP variants plus README; record exact URL, timestamp, byte count and SHA-256 for each before extraction.",
+        "Inspect ZIP contents, shapefile sidecar completeness, CRS WKT/PRJ, geometry validity, schema and record counts; verify the Moon_2000 definition and longitude-domain handling.",
+        "Locate and validate the exact SHACKRDGE02 record and its `url`, `resolution`, `relat_le`, LOLA error, registration, coverage and stereo metadata against the source product page/README.",
+        "Crosswalk DTM footprints against separately sourced, versioned candidate/ROI polygons; record intersection coverage and boundary ambiguity without treating DTM footprints as candidate polygons.",
+        "For any selected DTM, verify and hash the underlying raster and paired labels; the footprint inventory is not a substitute for raster acceptance or confidence-map interpretation.",
+        "Preserve the inventory cut-off date and avoid describing it as exhaustive for products released after 2026-09-15."
+      ],
+      "candidate_crosswalk": [
+        {
+          "candidate_id": "connecting-ridge",
+          "product_site": "Potential SHACKRDGE02 inventory record; record-level presence and geometry not yet verified from the ZIP",
+          "mapping_state": "inventory_not_ingested_polygon_intersection_not_computed",
+          "note": "The inventory is a route to finding DTM footprints, not a region polygon. No candidate/ROI intersection has been computed."
+        }
+      ],
+      "sample_direct_assets": [
+        {
+          "title": "Global NAC DTM footprints, 180-degree longitude domain",
+          "url": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/EXTRAS/SHAPEFILE/NAC_DTMS/NAC_DTMS_180.ZIP",
+          "asset_type": "ZIP archive containing shapefile",
+          "verification_state": "product_page_linked_not_downloaded_or_hashed",
+          "note": "Source page lists this 4.23 MB archive for the 180-degree longitude domain; inspect PRJ and content before use."
+        },
+        {
+          "title": "Global NAC DTM footprints, 360-degree longitude domain",
+          "url": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/EXTRAS/SHAPEFILE/NAC_DTMS/NAC_DTMS_360.ZIP",
+          "asset_type": "ZIP archive containing shapefile",
+          "verification_state": "product_page_linked_not_downloaded_or_hashed",
+          "note": "Source page lists this 4.21 MB archive for the 360-degree longitude domain; choose longitude handling explicitly."
+        },
+        {
+          "title": "Global NAC DTM footprint README",
+          "url": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/EXTRAS/SHAPEFILE/NAC_DTMS/NAC_DTMS_README.TXT",
+          "asset_type": "Dataset README / field definitions",
+          "verification_state": "product_page_linked_not_retrieved_or_parsed",
+          "note": "Contains the source-linked schema/context; the page's published field descriptions are not a substitute for inspecting the archived README."
+        }
+      ],
+      "asset_access_notes": [
+        "The LROC landing page describes the footprint schema, Moon_2000 coordinate reference, both longitude-domain ZIPs, and a release cut-off of 2026-09-15.",
+        "During this research run, the browser could read the landing page but the ZIP/README links redirected to a PDS mirror inaccessible to the research tool; no package bytes or feature records were inspected."
+      ]
+    },
+    {
+      "id": "pgda-lola-polar-illumination",
+      "title": "Lunar Polar Illumination",
+      "publisher": "NASA Goddard Space Flight Center / LOLA Planetary Data System",
+      "url": "https://pgda.gsfc.nasa.gov/products/69",
+      "product_families": [
+        "average solar illumination",
+        "permanent shadow",
+        "average Earth visibility",
+        "sky visibility",
+        "Cloud-Optimized GeoTIFF, GeoTIFF and other distribution formats"
+      ],
+      "spatial_resolution": "South-polar products include 240 m/pixel for 65°S–90°S, 120 m/pixel for 75°S–90°S and 60 m/pixel for 85°S–90°S; confirm the selected raster's label.",
+      "coordinate_reference": "Polar stereographic projection, reference radius 1737.4 km and true scale at the pole; verify exact raster labels before alignment with LOLA site DEMs.",
+      "temporal_scope": "Several products are averages over an approximately 18.6-year lunar nutation cycle, not a mission-specific timeline.",
+      "uncertainty_and_limitations": [
+        "Long-period averages can screen regions but cannot replace date-specific lighting analysis at the planned lander, habitat or rover height.",
+        "Earth visibility is defined by whether any part of Earth's disc is unobscured and can be optimistic for a specific radio link budget or ground-station geometry.",
+        "NASA notes that Cloud-Optimized GeoTIFF overviews average the full-resolution values; quantitative analysis must sample full-resolution data rather than zoomed-out overviews."
+      ],
+      "candidate_crosswalk": [
+        {
+          "candidate_id": "all-current-south-polar-regions",
+          "product_site": "regional raster coverage",
+          "mapping_state": "regional_coverage_only_candidate_roi_required",
+          "note": "The product supplies broad polar-band rasters; a candidate-specific value still requires an exact ROI, product-label/CRS verification, and full-resolution sampling."
+        }
+      ],
+      "recommended_use": "Use for an initial coarse layer and permanent-shadow context, explicitly labelled as long-period mean. For operations, derive or obtain epoch-specific illumination and communication visibility.",
+      "required_acceptance_checks": [
+        "Verify band identity, unit/scale/offset, nodata, CRS, pixel registration and full-resolution block reads from the product labels.",
+        "Reject use of a time-averaged illumination value as a mission-window guarantee.",
+        "For radio planning, pair Earth-visibility geometry with antenna/link-budget analysis and relay geometry."
+      ],
+      "sample_direct_assets": [
+        {
+          "title": "85S–90S average solar illumination raster",
+          "url": "https://imbrium.mit.edu/EXTRAS/ILLUMINATION/JP2/AVGVISIB_85S_060M_201608.JP2",
+          "asset_type": "PDS GeoJPEG2000 raster",
+          "verification_state": "listed_in_pds_directory_binary_not_downloaded_or_hashed",
+          "note": "The PDS directory lists this file and a corresponding label. Confirm PRODUCT_ID, scaling and semantics from the label before using values."
+        },
+        {
+          "title": "85S–90S average solar illumination label",
+          "url": "https://imbrium.mit.edu/EXTRAS/ILLUMINATION/JP2/AVGVISIB_85S_060M_201608_JP2.LBL",
+          "asset_type": "PDS label",
+          "verification_state": "listed_in_pds_directory_not_parsed",
+          "note": "Inspect dimensions, projection, pixel registration, units and scaling/offsets before ingesting the raster."
+        },
+        {
+          "title": "85S–90S permanent-shadow raster",
+          "url": "https://imbrium.mit.edu/EXTRAS/ILLUMINATION/JP2/LPSR_85S_060M_201608.JP2",
+          "asset_type": "PDS GeoJPEG2000 raster",
+          "verification_state": "listed_in_pds_directory_binary_not_downloaded_or_hashed",
+          "note": "Verify the paired label and mask semantics, including how null/unknown cells are encoded."
+        },
+        {
+          "title": "85S–90S permanent-shadow label",
+          "url": "https://imbrium.mit.edu/EXTRAS/ILLUMINATION/JP2/LPSR_85S_060M_201608_JP2.LBL",
+          "asset_type": "PDS label",
+          "verification_state": "listed_in_pds_directory_not_parsed",
+          "note": "Apply the label definition rather than treating the JP2 pixel encoding as self-describing."
+        },
+        {
+          "title": "85S–90S average Earth visibility raster",
+          "url": "https://imbrium.mit.edu/EXTRAS/ILLUMINATION/JP2/AVGVISIB_85S_060M_201608_EARTH.JP2",
+          "asset_type": "PDS GeoJPEG2000 raster",
+          "verification_state": "listed_in_pds_directory_binary_not_downloaded_or_hashed",
+          "note": "Earth-disc visibility is not itself a radio link budget; confirm label semantics and units before use."
+        },
+        {
+          "title": "Sampled PGDA COG URL (404 at time of check)",
+          "url": "https://pgda.gsfc.nasa.gov/data/MoonIllumination/AVGVISIB_85S_060M_201608_COG.TIF",
+          "asset_type": "Cloud-Optimized GeoTIFF URL",
+          "verification_state": "sampled_url_returned_html_404_on_2026-10-12",
+          "note": "The linked URL returned NASA's HTML 404 page during this check. This is one URL observation only, not evidence that every COG/TIFF product is unavailable."
+        },
+        {
+          "title": "MIT LOLA PDS GeoJPEG2000 directory",
+          "url": "https://imbrium.mit.edu/EXTRAS/ILLUMINATION/JP2/",
+          "asset_type": "PDS directory listing",
+          "verification_state": "directory_listing_opened_on_2026-10-12",
+          "note": "Directory listing showed south-polar illumination/visibility JP2 files and matching labels; payload bytes and labels were not downloaded or parsed."
+        }
+      ],
+      "asset_access_notes": [
+        "On 2026-10-12, the sampled PGDA COG URL for AVGVISIB_85S_060M_201608_COG.TIF returned an HTML 404 response in the browser check. This records one sampled URL failure only; it does not establish that every COG or TIFF product is unavailable.",
+        "The NASA PGDA product page links the LOLA PDS data node and describes IMG/GeoJPEG2000 distributions. The MIT PDS JP2 directory lists the above raster and label filenames. The browser tool could not render the binary or label endpoints, so no payload, PDS label field, checksum or numerical raster value has yet been verified here.",
+        "Do not infer meaning solely from AVGVISIB filename tokens. Read and validate the associated PDS label (including PRODUCT_ID, units/scaling, dimensions and projection) before mapping it to an illumination metric."
+      ]
+    },
+    {
+      "id": "pgda-lola-south-pole-dem-mosaic",
+      "title": "South Pole LOLA DEM Mosaic",
+      "publisher": "NASA Goddard Space Flight Center, Planetary Geology, Geophysics and Geochemistry Laboratory",
+      "url": "https://pgda.gsfc.nasa.gov/products/81",
+      "product_families": [
+        "87°S–90°S elevation mosaic",
+        "hillshade",
+        "slope mosaic",
+        "LOLA return-count mosaic"
+      ],
+      "spatial_resolution": "5 m/pixel GeoTIFF; source page reports approximately 3.3 GB elevation, 820 MB hillshade, 4.9 GB slope and 140 MB count products.",
+      "coordinate_reference": "South-polar stereographic X/Y in metres; MOON_ME, DE421; pixel-registered convention with X/Y at pixel centres.",
+      "temporal_scope": "Static terrain mosaic constructed from 97 overlapping 20 km fields; not a time series.",
+      "uncertainty_and_limitations": [
+        "Coverage is 87°S–90°S, so it does not cover every candidate region in the register.",
+        "The page reports a typical RMS residual of 30–55 cm against the individual fields after alignment and blending.",
+        "The DEM interpolates empty pixels. Its nominal grid spacing must not be interpreted as uniform independent terrain measurement coverage.",
+        "The files are large; use windowed/COG access where supported rather than requiring every consumer to download all rasters."
+      ],
+      "candidate_crosswalk": [
+        {
+          "candidate_id": "candidate-rois-intersecting-87s-to-90s",
+          "product_site": "87°S–90°S mosaic footprint",
+          "mapping_state": "use_only_after_verified_roi_intersection",
+          "note": "This mosaic is not a substitute for per-region coverage checks and must not be assumed to cover all candidate regions."
+        }
+      ],
+      "recommended_use": "High-resolution topographic context for eligible southern areas; do not substitute it for absent candidate ROI boundaries or infer full coverage for Mons Mouton or other sites.",
+      "required_acceptance_checks": [
+        "Verify geographic bounds and actual ROI intersection before computing a candidate statistic.",
+        "Read raster metadata and labels, confirm units, nodata and registration, and pin the asset SHA-256.",
+        "Record the exact window/mask and all excluded or interpolated cells in the output receipt."
+      ]
+    },
+    {
+      "id": "nasa-svs-south-pole-illumination-2025-2028",
+      "title": "Illumination at the Moon's South Pole to 80°S, 2025–2028",
+      "publisher": "NASA Scientific Visualization Studio",
+      "url": "https://svs.gsfc.nasa.gov/5027",
+      "product_families": [
+        "annual sunlight/shadow animations",
+        "rendered frame sets at two-hour intervals",
+        "illustrative images"
+      ],
+      "spatial_resolution": "Rendered visualization products; frame resolution is not equivalent to source terrain resolution.",
+      "coordinate_reference": "Visualization covers the lunar south polar region; do not treat pixels in rendered movies or images as a georeferenced analysis raster unless a separate georeferencing method is documented.",
+      "temporal_scope": "Visualizations are labelled 2025, 2026, 2027 and 2028 with two-hour temporal steps across each year.",
+      "uncertainty_and_limitations": [
+        "These are useful for communicating and visually checking illumination sequences, not a replacement for the numerical terrain/illumination model or data labels.",
+        "Do not digitize video pixels to create site illumination percentages or claim exact local conditions from a regional animation."
+      ],
+      "candidate_crosswalk": [
+        {
+          "candidate_id": "all-current-candidates",
+          "product_site": "regional rendered visualization",
+          "mapping_state": "qualitative_only_no_numeric_candidate_values",
+          "note": "The rendered movie/frame series is not a georeferenced analysis raster and cannot supply numerical illumination metrics."
+        }
+      ],
+      "recommended_use": "Link as a qualitative orientation resource alongside machine-readable LOLA/illumination data.",
+      "required_acceptance_checks": [
+        "Keep every value extracted from imagery explicitly classified as visual interpretation, not an authoritative measurement.",
+        "No pixel-derived numerical site metrics are accepted into the candidate register."
+      ]
+    }
+  ],
+  "ingestion_sequence": [
+    "Resolve the exact candidate-region polygons and their published versions before drawing or clipping site rasters. Use USGS Artemis candidate navigation grids for CRS/reference support and the LROC NAC DTM footprint inventory to discover overlapping stereo products, but never treat navigation-grid cells or DTM footprints as candidate-region boundaries.",
+    "Inventory and hash source assets and parse labels/metadata before analysis.",
+    "Ingest per-site LDEM, slope, elevation uncertainty, slope uncertainty, LOLA count and clone ensemble as aligned layers where available; where the published footprint overlaps a reviewed ROI, add stereo-derived LROC DTM, slope and confidence products only after their labels, grid alignment and confidence semantics are accepted.",
+    "Add long-period illumination/PSR/Earth-visibility products only as coarse screening layers, preserving their averaging window and pixel scale.",
+    "Compute epoch-specific lighting, cold-soak and traverse/relay constraints only after a documented mission epoch, height, path, coordinate frame and geometry model are supplied.",
+    "Emit each derived result with input checksums, transform and mask versions, units, statistic, uncertainty treatment, excluded area, software version and a replayable receipt."
+  ],
+  "historical_leads": [
+    {
+      "id": "connecting-ridge-illumination-lead",
+      "title": "Test Connecting Ridge / Site 01 as a historical comparator",
+      "related_region": "Site01: Connecting ridge; legacy LOLA product ROI boundaries",
+      "finding": "The PGDA product description reports that, from 2024-01-01 through 2026-01-01, Site 1 had the largest area with average illumination greater than 70% at 1 m above the surface among the compared sites; ROIs 4–6 at this site generally had favorable illumination even when uncertainty was considered. The page also reports longer continuous illumination periods at 5 m above the surface for Site 1.",
+      "evidence_state": "published_regional_model_result_historical_window_not_recomputed",
+      "source_url": "https://pgda.gsfc.nasa.gov/products/78",
+      "time_window": "2024-01-01 to 2026-01-01",
+      "heights_above_surface_m": [
+        1,
+        5
+      ],
+      "next_action": "Keep as a named historical comparator and retrieve the Site01 ROI shapefile and uncertainty-clone products before any same-method reanalysis.",
+      "interpretation_limits": [
+        "This is a historical illumination comparison, not an evaluation for a future crewed mission window.",
+        "The result covers illumination only; it does not establish touchdown roughness, safe approach corridors, surface operations, communications link margin, thermal survival or resource access.",
+        "Site01 / ROI4–6 are legacy research identifiers. Spatial boundaries and compatibility with any modern agency candidate region must be explicitly validated.",
+        "The original page result has not been independently recomputed in this repository. Preserve it as a source-reported finding, not a new measurement."
+      ]
+    },
+    {
+      "id": "five-metre-pixels-are-not-five-metre-ground-truth",
+      "title": "Treat DEM pixel size separately from terrain certainty",
+      "related_region": "All regions using the high-resolution LOLA site products",
+      "finding": "NASA PGDA states that around 90% of pixels in the described 5 m/pixel polar LDEMs are interpolated and reports median RMS height uncertainty around 0.30–0.50 m and median RMS slope uncertainty around 1.5–2.5 degrees across the cited regions.",
+      "evidence_state": "source_reported_uncertainty_characterization",
+      "source_url": "https://pgda.gsfc.nasa.gov/products/78",
+      "time_window": "Static topographic product; verify individual asset labels and retrieval version",
+      "next_action": "Carry uncertainty layers, LOLA return-count maps and clone ensembles into every zonal estimate; never report nominal 5 m pixel pitch as 5 m independent measurement spacing.",
+      "interpretation_limits": [
+        "Summary uncertainty values are regional descriptions from the product page; they are not per-pixel errors or candidate-specific safety limits.",
+        "Interpolation error varies spatially with data gaps and terrain slope."
+      ]
+    },
+    {
+      "id": "long-period-illumination-is-not-an-operational-forecast",
+      "title": "Keep long-period illumination separate from mission-window illumination",
+      "related_region": "South-polar illumination products",
+      "finding": "NASA's polar illumination product page describes several illumination, permanent-shadow and Earth-visibility products as averages over an approximately 18.6-year lunar nutation cycle, and warns that further analysis is needed for shorter periods, greater resolution and height above the surface.",
+      "evidence_state": "product_temporal_scope_and_limit",
+      "source_url": "https://pgda.gsfc.nasa.gov/products/69",
+      "time_window": "Approximately 18.6-year cycle averages for applicable products",
+      "next_action": "Use the products only for coarse screening; obtain or compute a mission-epoch timeline at the relevant lander, habitat and rover heights before comparing energy storage or direct-to-Earth availability.",
+      "interpretation_limits": [
+        "An average does not describe illumination continuity, longest darkness interval or the power-storage requirement for a given mission period.",
+        "Earth-disc visibility is not by itself a communications link budget or relay geometry."
+      ]
+    }
+  ]
+}
