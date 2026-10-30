@@ -235,9 +235,41 @@ pub fn select_dispatch_alternative(
             maximum: MAX_PARETO_FRONTIER,
         });
     }
+    // Validate every candidate instead of trusting objective labels or recorded
+    // schedule fields. Recompute feasibility and the objective vector from input.
     for (index, alternative) in assessment.pareto_alternatives.iter().enumerate() {
         if alternative.schedule.is_empty() {
             return Err(DispatchSelectionError::EmptyAlternativeSchedule { index });
+        }
+        if let Err(errors) = verify_dispatch_schedule(request, &alternative.schedule) {
+            return Err(DispatchSelectionError::ScheduleVerificationFailed { index, errors });
+        }
+        let recomputed = objective_for_schedule(request, &alternative.schedule)
+            .expect("independently verified schedule objective arithmetic must be valid");
+        if recomputed != alternative.objective {
+            return Err(DispatchSelectionError::ObjectiveDoesNotMatchSchedule { index });
+        }
+    }
+
+    // Check that supplied alternatives are genuinely non-dominated. This cannot
+    // prove that the oracle omitted no feasible schedule; it does detect corrupted,
+    // duplicated, or dominated members within the supplied frontier.
+    for left in 0..actual_count {
+        for right in (left + 1)..actual_count {
+            let a = &assessment.pareto_alternatives[left].objective;
+            let b = &assessment.pareto_alternatives[right].objective;
+            if objective_weakly_dominates(a, b) {
+                return Err(DispatchSelectionError::FrontierContainsDominatedAlternative {
+                    dominated: right,
+                    dominator: left,
+                });
+            }
+            if objective_weakly_dominates(b, a) {
+                return Err(DispatchSelectionError::FrontierContainsDominatedAlternative {
+                    dominated: left,
+                    dominator: right,
+                });
+            }
         }
     }
 
@@ -280,6 +312,15 @@ pub fn select_dispatch_alternative(
         frontier_count: actual_count,
         stable_tie_break_applied: best_indices.len() > 1,
     })
+}
+
+fn objective_weakly_dominates(left: &DispatchObjective, right: &DispatchObjective) -> bool {
+    left.essential_unserved_quanta <= right.essential_unserved_quanta
+        && left.flexible_unserved_quanta <= right.flexible_unserved_quanta
+        && left.operating_cost_units <= right.operating_cost_units
+        && left.grid_carbon_grams <= right.grid_carbon_grams
+        && left.curtailed_pv_quanta <= right.curtailed_pv_quanta
+        && left.terminal_soc_quanta >= right.terminal_soc_quanta
 }
 
 fn compare_objectives(
