@@ -78,8 +78,10 @@ jobs:
             cert="target/energy-dispatch-mip-reference/vipr/$stem.vipr"
             timeout 180s "$SCIP_BIN" \
               -c "set exact enable TRUE" \
-              -c "set presolving emphasis off" \
-              -c "set separating emphasis off" \
+              -c "set presolving maxrounds 0" \
+              -c "set presolving maxrestarts 0" \
+              -c "set separating maxrounds 0" \
+              -c "set separating maxroundsroot 0" \
               -c "set certificate filename $cert" \
               -c "read $model" \
               -c "optimize" \
