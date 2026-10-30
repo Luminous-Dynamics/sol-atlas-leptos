@@ -262,11 +262,18 @@ fn objective_for_schedule(
     Ok(objective)
 }
 
+#[cfg(test)]
+type TestObjectiveVector = (u64, u64, u64, u64, u64, u16);
+
 struct ExactSearch<'a> {
     request: &'a EnergyDispatchRequest,
     evaluated_action_expansions: u64,
     feasible_complete_schedules: u64,
     frontier: Vec<DispatchParetoAlternative>,
+    // Captured only in test builds so the independent enumerator can compare
+    // the full feasible objective-vector set, not just count and Pareto members.
+    #[cfg(test)]
+    all_feasible_objective_vectors: BTreeSet<TestObjectiveVector>,
 }
 
 impl<'a> ExactSearch<'a> {
@@ -296,6 +303,15 @@ impl<'a> ExactSearch<'a> {
                 context: "complete-schedule counter".to_owned(),
             })?;
         let objective = objective_for_schedule(self.request, schedule)?;
+        #[cfg(test)]
+        self.all_feasible_objective_vectors.insert((
+            objective.essential_unserved_quanta,
+            objective.flexible_unserved_quanta,
+            objective.operating_cost_units,
+            objective.grid_carbon_grams,
+            objective.curtailed_pv_quanta,
+            objective.terminal_soc_quanta,
+        ));
 
         // Deterministic first-witness retention for duplicate objective vectors.
         // Enumeration order is fixed by ascending integer loops.
@@ -537,6 +553,8 @@ pub fn assess_energy_dispatch(
         evaluated_action_expansions: 0,
         feasible_complete_schedules: 0,
         frontier: Vec::new(),
+        #[cfg(test)]
+        all_feasible_objective_vectors: BTreeSet::new(),
     };
     let mut path = Vec::with_capacity(request.intervals.len());
     search.visit(0, battery.initial_soc_quanta, &mut path)?;
@@ -801,5 +819,488 @@ mod tests {
             assess_energy_dispatch(&request),
             Err(EnergyDispatchError::MissingEvidenceReference)
         ));
+    }
+}
+
+
+/// Deliberately simple test-only reference enumerator. It shares the request and
+/// objective data types, but does not call the production recursive search,
+/// objective calculator, Pareto helper, or independent schedule verifier.
+#[cfg(test)]
+mod independent_reference_tests {
+    use super::*;
+    use std::collections::BTreeSet;
+
+    type ObjectiveKey = TestObjectiveVector;
+
+    const REFERENCE_EXPANSION_BUDGET: u64 = 500_000;
+
+    #[derive(Debug, Default)]
+    struct ReferenceResult {
+        expansion_limit: u64,
+        feasible_complete_schedules: u64,
+        explored_local_actions: u64,
+        all_objective_vectors: BTreeSet<ObjectiveKey>,
+        pareto_objectives: BTreeSet<ObjectiveKey>,
+    }
+
+    impl ReferenceResult {
+        fn new(expansion_limit: u64) -> Self {
+            Self {
+                expansion_limit,
+                feasible_complete_schedules: 0,
+                explored_local_actions: 0,
+                all_objective_vectors: BTreeSet::new(),
+                pareto_objectives: BTreeSet::new(),
+            }
+        }
+    }
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    enum ReferenceError {
+        BudgetExceeded { limit: u64 },
+        CounterOverflow,
+    }
+
+    fn key_from_objective(objective: &DispatchObjective) -> ObjectiveKey {
+        (
+            objective.essential_unserved_quanta,
+            objective.flexible_unserved_quanta,
+            objective.operating_cost_units,
+            objective.grid_carbon_grams,
+            objective.curtailed_pv_quanta,
+            objective.terminal_soc_quanta,
+        )
+    }
+
+    fn reference_dominates(a: &ObjectiveKey, b: &ObjectiveKey) -> bool {
+        let no_worse = a.0 <= b.0
+            && a.1 <= b.1
+            && a.2 <= b.2
+            && a.3 <= b.3
+            && a.4 <= b.4
+            && a.5 >= b.5;
+        let strictly_better = a.0 < b.0
+            || a.1 < b.1
+            || a.2 < b.2
+            || a.3 < b.3
+            || a.4 < b.4
+            || a.5 > b.5;
+        no_worse && strictly_better
+    }
+
+    fn spend_reference_action(result: &mut ReferenceResult) -> Result<(), ReferenceError> {
+        result.explored_local_actions = result
+            .explored_local_actions
+            .checked_add(1)
+            .ok_or(ReferenceError::CounterOverflow)?;
+        if result.explored_local_actions > result.expansion_limit {
+            return Err(ReferenceError::BudgetExceeded {
+                limit: result.expansion_limit,
+            });
+        }
+        Ok(())
+    }
+
+    /// Re-enumerate every finite action tuple for each interval, then compose
+    /// feasible transitions chronologically. This intentionally favors clarity
+    /// over the production oracle's in-place Pareto pruning.
+    fn reference_visit(
+        request: &EnergyDispatchRequest,
+        interval_index: usize,
+        soc_at_start: u16,
+        accumulated: (u64, u64, u64, u64, u64),
+        result: &mut ReferenceResult,
+    ) -> Result<(), ReferenceError> {
+        if interval_index == request.intervals.len() {
+            if soc_at_start >= request.battery.terminal_reserve_quanta {
+                result.feasible_complete_schedules = result
+                    .feasible_complete_schedules
+                    .checked_add(1)
+                    .ok_or(ReferenceError::CounterOverflow)?;
+                let objective = (
+                    accumulated.0,
+                    accumulated.1,
+                    accumulated.2,
+                    accumulated.3,
+                    accumulated.4,
+                    soc_at_start,
+                );
+                result.all_objective_vectors.insert(objective);
+            }
+            return Ok(());
+        }
+
+        let interval = &request.intervals[interval_index];
+        let battery = &request.battery;
+        let allowed_grid = if interval.grid_outage {
+            0
+        } else {
+            interval.grid_import_limit_quanta
+        };
+        let allowed_withdrawal =
+            std::cmp::min(soc_at_start, battery.discharge_withdrawal_limit_quanta);
+
+        for grid_import in 0..=allowed_grid {
+            for soc_withdrawal in 0..=allowed_withdrawal {
+                for charge_input in 0..=battery.charge_input_limit_quanta {
+                    if soc_withdrawal != 0 && charge_input != 0 {
+                        continue;
+                    }
+
+                    let charge_gain = (u64::from(charge_input)
+                        * u64::from(battery.charge_efficiency_numerator))
+                        / u64::from(battery.charge_efficiency_denominator);
+                    let soc_after = u32::from(soc_at_start)
+                        - u32::from(soc_withdrawal)
+                        + u32::try_from(charge_gain).expect("small reference case");
+                    if soc_after > u32::from(battery.capacity_quanta) {
+                        continue;
+                    }
+
+                    let discharge_delivery = (u64::from(soc_withdrawal)
+                        * u64::from(battery.discharge_efficiency_numerator))
+                        / u64::from(battery.discharge_efficiency_denominator);
+                    let non_pv_supply = u64::from(grid_import) + discharge_delivery;
+
+                    for essential_served in 0..=interval.essential_demand_quanta {
+                        for flexible_served in 0..=interval.flexible_demand_quanta {
+                            spend_reference_action(result)?;
+
+                            let consumption_and_charge = u64::from(essential_served)
+                                + u64::from(flexible_served)
+                                + u64::from(charge_input);
+                            // Grid and battery are not curtailable in this model.
+                            // The residual is therefore the only admissible PV use.
+                            let Some(pv_used) =
+                                consumption_and_charge.checked_sub(non_pv_supply)
+                            else {
+                                continue;
+                            };
+                            if pv_used > u64::from(interval.pv_available_quanta) {
+                                continue;
+                            }
+
+                            let pv_spill =
+                                u64::from(interval.pv_available_quanta) - pv_used;
+                            let next_accumulated = (
+                                accumulated.0
+                                    + u64::from(
+                                        interval.essential_demand_quanta - essential_served,
+                                    ),
+                                accumulated.1
+                                    + u64::from(
+                                        interval.flexible_demand_quanta - flexible_served,
+                                    ),
+                                accumulated.2
+                                    + u64::from(grid_import)
+                                        * u64::from(interval.grid_cost_units_per_quantum),
+                                accumulated.3
+                                    + u64::from(grid_import)
+                                        * u64::from(interval.grid_carbon_grams_per_quantum),
+                                accumulated.4 + pv_spill,
+                            );
+                            reference_visit(
+                                request,
+                                interval_index + 1,
+                                u16::try_from(soc_after).expect("SOC is capacity-bounded"),
+                                next_accumulated,
+                                result,
+                            )?;
+                        }
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
+    fn enumerate_reference(
+        request: &EnergyDispatchRequest,
+    ) -> Result<ReferenceResult, ReferenceError> {
+        enumerate_reference_with_budget(request, REFERENCE_EXPANSION_BUDGET)
+    }
+
+    fn enumerate_reference_with_budget(
+        request: &EnergyDispatchRequest,
+        expansion_limit: u64,
+    ) -> Result<ReferenceResult, ReferenceError> {
+        let mut result = ReferenceResult::new(expansion_limit);
+        reference_visit(
+            request,
+            0,
+            request.battery.initial_soc_quanta,
+            (0, 0, 0, 0, 0),
+            &mut result,
+        )?;
+        result.pareto_objectives = result
+            .all_objective_vectors
+            .iter()
+            .filter(|candidate| {
+                !result
+                    .all_objective_vectors
+                    .iter()
+                    .any(|challenger| reference_dominates(challenger, candidate))
+            })
+            .copied()
+            .collect();
+        Ok(result)
+    }
+
+    fn production_frontier_keys(assessment: &EnergyDispatchAssessment) -> BTreeSet<ObjectiveKey> {
+        assessment
+            .pareto_alternatives
+            .iter()
+            .map(|alternative| key_from_objective(&alternative.objective))
+            .collect()
+    }
+
+    fn compare_assessment_to_reference(
+        request: &EnergyDispatchRequest,
+        assessment: &EnergyDispatchAssessment,
+        reference: &ReferenceResult,
+        production_objective_vectors: &BTreeSet<ObjectiveKey>,
+    ) -> Result<(), String> {
+        if reference.feasible_complete_schedules == 0 {
+            return Err("assessment supplied for a reference-infeasible request".to_owned());
+        }
+        if !assessment.search_is_exact || !assessment.pareto_frontier_complete {
+            return Err("production did not label the result exact and complete".to_owned());
+        }
+        if assessment.case_id != request.case_id {
+            return Err("assessment case identity differs from request".to_owned());
+        }
+        if assessment.feasible_complete_schedules != reference.feasible_complete_schedules {
+            return Err(format!(
+                "feasible schedule count differs: production={}, reference={}",
+                assessment.feasible_complete_schedules,
+                reference.feasible_complete_schedules
+            ));
+        }
+        if production_objective_vectors != &reference.all_objective_vectors {
+            return Err(format!(
+                "complete feasible objective-vector sets differ: production={production_objective_vectors:?}, reference={:?}",
+                reference.all_objective_vectors
+            ));
+        }
+        let production_keys = production_frontier_keys(assessment);
+        if production_keys.len() != assessment.pareto_alternatives.len() {
+            return Err("production frontier contains duplicate objective vectors".to_owned());
+        }
+        if production_keys != reference.pareto_objectives {
+            return Err(format!(
+                "Pareto objective sets differ: production={production_keys:?}, reference={:?}",
+                reference.pareto_objectives
+            ));
+        }
+        Ok(())
+    }
+
+    fn production_objective_vectors(
+        request: &EnergyDispatchRequest,
+    ) -> Result<BTreeSet<ObjectiveKey>, String> {
+        // The public assessment validates the request first. This second test-only
+        // search captures every feasible objective vector before Pareto pruning.
+        let mut search = ExactSearch {
+            request,
+            evaluated_action_expansions: 0,
+            feasible_complete_schedules: 0,
+            frontier: Vec::new(),
+            all_feasible_objective_vectors: BTreeSet::new(),
+        };
+        let mut path = Vec::with_capacity(request.intervals.len());
+        search
+            .visit(0, request.battery.initial_soc_quanta, &mut path)
+            .map_err(|error| format!("production objective-vector trace failed: {error:?}"))?;
+        Ok(search.all_feasible_objective_vectors)
+    }
+
+    fn compare_reference_to_production(
+        request: &EnergyDispatchRequest,
+    ) -> Result<(), String> {
+        let reference = enumerate_reference(request)
+            .map_err(|error| format!("reference enumeration failed: {error:?}"))?;
+        let production_objective_vectors = production_objective_vectors(request)?;
+        match assess_energy_dispatch(request) {
+            Ok(assessment) => {
+                if reference.feasible_complete_schedules == 0 {
+                    return Err(
+                        "production reported a feasible assessment, reference found none"
+                            .to_owned(),
+                    );
+                }
+                compare_assessment_to_reference(
+                    request,
+                    &assessment,
+                    &reference,
+                    &production_objective_vectors,
+                )
+            }
+            Err(EnergyDispatchError::NoFeasibleSchedules)
+                if reference.feasible_complete_schedules == 0 =>
+            {
+                Ok(())
+            }
+            Err(error) => Err(format!(
+                "production returned {error:?} while reference found {} feasible schedules",
+                reference.feasible_complete_schedules
+            )),
+        }
+    }
+
+    fn small_request(interval_count: usize) -> EnergyDispatchRequest {
+        let mut request: EnergyDispatchRequest = serde_json::from_str(
+            include_str!("../../schemas/examples/energy-dispatch-pv-outage.synthetic.json"),
+        )
+        .expect("frozen reference request must parse");
+        request.case_id = "independent-reference-case".to_owned();
+        request.intervals.truncate(interval_count);
+        request.max_candidate_expansions = MAX_CANDIDATE_EXPANSIONS;
+        request.battery.capacity_quanta = 2;
+        request.battery.initial_soc_quanta = 1;
+        request.battery.charge_input_limit_quanta = 1;
+        request.battery.discharge_withdrawal_limit_quanta = 1;
+        request.battery.charge_efficiency_numerator = 1;
+        request.battery.charge_efficiency_denominator = 1;
+        request.battery.discharge_efficiency_numerator = 1;
+        request.battery.discharge_efficiency_denominator = 1;
+        request.battery.terminal_reserve_quanta = 0;
+        request
+    }
+
+    #[test]
+    fn reference_matches_hand_calculated_one_interval_known_answer() {
+        let mut request = small_request(1);
+        request.battery.initial_soc_quanta = 0;
+        request.intervals[0].pv_available_quanta = 1;
+        request.intervals[0].grid_outage = false;
+        request.intervals[0].grid_import_limit_quanta = 1;
+        request.intervals[0].essential_demand_quanta = 1;
+        request.intervals[0].flexible_demand_quanta = 0;
+        request.intervals[0].grid_cost_units_per_quantum = 7;
+        request.intervals[0].grid_carbon_grams_per_quantum = 9;
+
+        compare_reference_to_production(&request).expect("reference and production should agree");
+        let reference = enumerate_reference(&request).expect("bounded reference case");
+        assert!(reference.feasible_complete_schedules > 0);
+        assert!(reference.pareto_objectives.contains(&(0, 0, 0, 0, 0, 0)));
+    }
+
+    #[test]
+    fn reference_detects_a_removed_oracle_frontier_member() {
+        let mut request = small_request(1);
+        request.battery.capacity_quanta = 0;
+        request.battery.initial_soc_quanta = 0;
+        request.battery.charge_input_limit_quanta = 0;
+        request.battery.discharge_withdrawal_limit_quanta = 0;
+        request.intervals[0].pv_available_quanta = 0;
+        request.intervals[0].grid_outage = false;
+        request.intervals[0].grid_import_limit_quanta = 1;
+        request.intervals[0].essential_demand_quanta = 1;
+        request.intervals[0].flexible_demand_quanta = 0;
+        request.intervals[0].grid_cost_units_per_quantum = 7;
+        request.intervals[0].grid_carbon_grams_per_quantum = 3;
+
+        let reference = enumerate_reference(&request).expect("bounded reference case");
+        let mut corrupted = assess_energy_dispatch(&request).expect("production case is feasible");
+        let production_objective_vectors =
+            production_objective_vectors(&request).expect("bounded production trace");
+        assert_eq!(reference.all_objective_vectors, production_objective_vectors);
+        assert_eq!(reference.pareto_objectives.len(), 2);
+        assert_eq!(corrupted.pareto_alternatives.len(), 2);
+        corrupted.pareto_alternatives.pop();
+        assert!(
+            compare_assessment_to_reference(
+                &request,
+                &corrupted,
+                &reference,
+                &production_objective_vectors,
+            )
+            .is_err(),
+            "reference comparator must detect a missing Pareto alternative"
+        );
+    }
+
+    #[test]
+    fn independently_audits_a_small_exhaustive_request_domain() {
+        let mut case_id = 0_u64;
+        for capacity in 0..=2_u16 {
+            for initial_soc in 0..=capacity {
+                for reserve in 0..=capacity {
+                    for outage in [false, true] {
+                        for pv in 0..=1_u16 {
+                            for grid_limit in 0..=1_u16 {
+                                for essential_demand in 0..=1_u16 {
+                                    for flexible_demand in 0..=1_u16 {
+                                        let mut request = small_request(1);
+                                        request.case_id = format!("exhaustive-{case_id}");
+                                        case_id += 1;
+                                        request.battery.capacity_quanta = capacity;
+                                        request.battery.initial_soc_quanta = initial_soc;
+                                        request.battery.terminal_reserve_quanta = reserve;
+                                        request.battery.charge_input_limit_quanta = 1;
+                                        request.battery.discharge_withdrawal_limit_quanta = 1;
+                                        request.intervals[0].grid_outage = outage;
+                                        request.intervals[0].pv_available_quanta = pv;
+                                        request.intervals[0].grid_import_limit_quanta = grid_limit;
+                                        request.intervals[0].essential_demand_quanta = essential_demand;
+                                        request.intervals[0].flexible_demand_quanta = flexible_demand;
+                                        compare_reference_to_production(&request).unwrap_or_else(
+                                            |error| panic!("case {}: {error}", request.case_id),
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        assert_eq!(case_id, 448);
+    }
+
+    #[test]
+    fn independently_audits_one_thousand_deterministic_generated_cases() {
+        for seed in 0..1_000_u64 {
+            let interval_count = if seed % 2 == 0 { 1 } else { 2 };
+            let mut request = small_request(interval_count);
+            request.case_id = format!("reference-generated-{seed}");
+            let capacity = (seed % 3) as u16;
+            request.battery.capacity_quanta = capacity;
+            request.battery.initial_soc_quanta = ((seed / 3) % u64::from(capacity + 1)) as u16;
+            request.battery.terminal_reserve_quanta =
+                ((seed / 5) % u64::from(capacity + 1)) as u16;
+            request.battery.charge_input_limit_quanta = (seed % 2) as u16;
+            request.battery.discharge_withdrawal_limit_quanta = ((seed / 7) % 2) as u16;
+            request.battery.charge_efficiency_numerator = 1;
+            request.battery.charge_efficiency_denominator =
+                if seed % 4 == 0 { 2 } else { 1 };
+            request.battery.discharge_efficiency_numerator = 1;
+            request.battery.discharge_efficiency_denominator =
+                if seed % 6 == 0 { 2 } else { 1 };
+
+            for (index, interval) in request.intervals.iter_mut().enumerate() {
+                let offset = seed + (index as u64 * 37);
+                interval.grid_outage = offset % 5 == 0;
+                interval.pv_available_quanta = (offset % 3) as u16;
+                interval.grid_import_limit_quanta = ((offset / 3) % 3) as u16;
+                interval.essential_demand_quanta = ((offset / 5) % 3) as u16;
+                interval.flexible_demand_quanta = ((offset / 7) % 2) as u16;
+                interval.grid_cost_units_per_quantum = (offset % 4) as u32;
+                interval.grid_carbon_grams_per_quantum = ((offset / 2) % 5) as u32;
+            }
+
+            compare_reference_to_production(&request).unwrap_or_else(|error| {
+                panic!("seed {seed}, request={request:?}: {error}");
+            });
+        }
+    }
+
+    #[test]
+    fn reference_enumerator_budget_failure_is_explicit() {
+        let request = small_request(1);
+        let error = enumerate_reference_with_budget(&request, 0)
+            .expect_err("reference must not return a partial frontier after its budget is hit");
+        assert_eq!(error, ReferenceError::BudgetExceeded { limit: 0 });
     }
 }

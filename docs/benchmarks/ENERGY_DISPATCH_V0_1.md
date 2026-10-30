@@ -68,3 +68,16 @@ For each comparator, publish model translation, versions/solver status, toleranc
 This version does not model AC power flow, voltage/frequency constraints, feeder topology, multi-site sharing, thermal storage, heat-pump thermodynamics, PV forecast error, demand uncertainty, degradation, self-discharge, reserve uncertainty, startup/ramp constraints, inverter reactive power or lifecycle emissions. Add these as named, independently tested dimensions rather than silently broadening the claim boundary.
 
 The next benchmark stage should compare a simple greedy baseline and at least one optimizer/controller against the oracle on the same finite model, then add held-out perturbations: longer outages, low SOC, lossy storage, competing essential/flexible loads, changing grid price/carbon, and terminal reserve. Only after those tests should the model be extended toward rolling-horizon control or larger network solvers.
+
+
+## Independent completeness audit (test-only reference enumerator)
+
+The follow-on reference audit uses a deliberately simple, separately written test-only enumerator. It enumerates every local integer action tuple, composes feasible state transitions across intervals, recomputes objective vectors directly from request fields, and independently derives the Pareto set. It does not call the production search, objective calculator, Pareto helper or schedule verifier.
+
+The comparison checks both:
+- the complete feasible-schedule count; and
+- equality of the production and reference Pareto objective-vector sets.
+
+A one-interval exhaustive domain covers 448 combinations of battery capacity/initial SOC/reserve, outage, PV, grid bound and essential/flexible demand. A deterministic generated suite covers 1,000 additional one- and two-interval cases, including lossy efficiency floor rounding. A negative control removes a real frontier member and requires the comparator to reject the corrupted assessment. Reference budget exhaustion is an explicit error; partial results are never returned.
+
+This establishes agreement between two implementations over those bounded cases only. Both implementations still encode the same declared model and therefore can share a conceptual modeling error. Hand-derived known answers and later differential comparisons against external model formulations remain necessary. The slow reference enumerator is test-only and is not used in production dispatch.

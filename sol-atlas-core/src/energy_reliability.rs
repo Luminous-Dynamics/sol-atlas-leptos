@@ -954,7 +954,8 @@ mod tests {
         ));
 
         let mut duplicate = fixture();
-        duplicate.intervals[0].services.push(duplicate.intervals[0].services[0].clone());
+        let duplicate_service = duplicate.intervals[0].services[0].clone();
+        duplicate.intervals[0].services.push(duplicate_service);
         assert!(matches!(
             assess_energy_reliability(&duplicate),
             Err(EnergyReliabilityError::DuplicateServiceSample { .. })
