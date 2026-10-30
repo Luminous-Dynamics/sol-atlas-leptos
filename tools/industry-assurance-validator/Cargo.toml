@@ -1,0 +1,9 @@
+[package]
+name = "industry-assurance-validator"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+description = "Fail-closed semantic validator for the Luminous Industry Engineering Assurance Contract"
+
+[dependencies]
+serde_json = { version = "1.0.150", default-features = false, features = ["std"] }
