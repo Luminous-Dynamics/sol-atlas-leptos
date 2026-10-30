@@ -1,0 +1,188 @@
+{
+  "schema_version": "luminous.industry-assurance-profile.v0.1",
+  "profile_id": "synthetic-water-food-energy-advisory-v0.1",
+  "claim": {
+    "claim_id": "claim-synthetic-water-food-energy-001",
+    "capability_id": "water-food-energy-resource-planning",
+    "instance_id": "synthetic-farm-catchment-microgrid-001",
+    "decision_id": "rank-water-irrigation-pumping-and-storage-options",
+    "description": "Synthetic demonstration profile for evaluating water, irrigation and pump-energy alternatives. No crop-yield prediction, water-right entitlement or field efficacy claim is made.",
+    "intended_user": "Farm or cooperative planner reviewing a synthetic water-energy scenario",
+    "model_ids": [
+      "synthetic-water-service-evaluator-v0.1",
+      "synthetic-soil-water-accounting-v0.1"
+    ],
+    "prohibited_claims": [
+      "measured crop yield impact",
+      "validated crop water requirement",
+      "water-right entitlement",
+      "field-proven energy savings"
+    ]
+  },
+  "decision_tier": "D1_advisory",
+  "operating_envelope": {
+    "envelope_id": "synthetic-farm-water-energy-envelope-001",
+    "domain_description": "Synthetic control-volume water accounting and aggregate pump-energy scenario with explicitly assumed demand and resource envelopes.",
+    "conditions": [
+      {
+        "variable": "irrigation_depth",
+        "unit": "mm/step",
+        "minimum": 0,
+        "maximum": 60,
+        "support": "Synthetic interval input only; not an agronomic recommendation.",
+        "evidence_state": "assumed",
+        "source_artifact_ids": []
+      },
+      {
+        "variable": "soil_water_storage",
+        "unit": "mm",
+        "minimum": 0,
+        "maximum": 250,
+        "support": "Synthetic control-volume storage bounds only; no Richards-equation or field calibration claim.",
+        "evidence_state": "assumed",
+        "source_artifact_ids": []
+      },
+      {
+        "variable": "pump_electric_power",
+        "unit": "kW",
+        "minimum": 0,
+        "maximum": 150,
+        "support": "Synthetic pump-terminal power scenario; no feeder or grid load-flow model is implied.",
+        "evidence_state": "assumed",
+        "source_artifact_ids": []
+      },
+      {
+        "variable": "crop_water_output",
+        "unit": "kg/m3",
+        "minimum": 0,
+        "maximum": 10,
+        "support": "Not populated with measured yields; range is a placeholder envelope for contract-shape demonstration only.",
+        "evidence_state": "unknown",
+        "source_artifact_ids": []
+      }
+    ],
+    "excluded_domains": [
+      "measured farm-specific soil hydraulic properties",
+      "crop-specific validated yield response",
+      "fertilizer or soil amendment application recommendations",
+      "water rights, permits or abstraction authorization",
+      "field agronomic efficacy and food safety"
+    ],
+    "known_counterexamples": [
+      "A logical alternate path may share a physical fiber duct or power dependency.",
+      "A nominal battery capacity may overstate usable energy after derating."
+    ],
+    "out_of_domain_policy": "abstain"
+  },
+  "risk_assessment": {
+    "reviewed_class": "moderate",
+    "dimensions": {
+      "consequence": "major",
+      "model_influence": "advisory",
+      "exposure": "site_or_facility",
+      "reversibility": "readily_reversible",
+      "detectability": "delayed_or_partial",
+      "fallback": "human_fallback"
+    },
+    "rationale": "Synthetic example only. The profile requests advice and prohibits external action. A real deployment must reassess the consequences, exposed population, failure detectability and fallback independently.",
+    "reviewer_id": "synthetic-fixture-reviewer",
+    "reviewed_at": "2026-10-30T00:00:00Z",
+    "rule_set_version": "ieac-risk-rubric-v0.1"
+  },
+  "evidence_vector": {
+    "software_conformance": {
+      "state": "not_established",
+      "requirement": "mandatory",
+      "rationale": "The fixture illustrates the contract; no executable telecom evaluator is qualified.",
+      "evidence": []
+    },
+    "numerical_verification": {
+      "state": "not_established",
+      "requirement": "mandatory",
+      "rationale": "No telecom known-answer evaluator results are attached.",
+      "evidence": []
+    },
+    "physical_validation": {
+      "state": "unknown",
+      "requirement": "optional",
+      "rationale": "No physical or field validation is claimed for the synthetic topology.",
+      "evidence": []
+    },
+    "data_integrity_rights": {
+      "state": "not_established",
+      "requirement": "mandatory",
+      "rationale": "All topology and load values are synthetic; no operator data permission is asserted.",
+      "evidence": []
+    },
+    "uncertainty_credibility": {
+      "state": "not_established",
+      "requirement": "mandatory",
+      "rationale": "Intervals are declared synthetic assumptions, not calibrated uncertainty.",
+      "evidence": []
+    },
+    "generalization": {
+      "state": "unknown",
+      "requirement": "mandatory",
+      "rationale": "No held-out real topology or site evaluation exists in this example.",
+      "evidence": []
+    },
+    "robustness": {
+      "state": "not_established",
+      "requirement": "mandatory",
+      "rationale": "The profile lists counterexamples but includes no executed adversarial results.",
+      "evidence": []
+    },
+    "operational_assurance": {
+      "state": "unknown",
+      "requirement": "mandatory",
+      "rationale": "No operator integration, monitoring, recovery or shadow-pilot evidence exists.",
+      "evidence": []
+    },
+    "safety_security_authority": {
+      "state": "not_established",
+      "requirement": "mandatory",
+      "rationale": "The example is advisory-only and has no production authorization or safety case.",
+      "evidence": []
+    },
+    "prospective_outcomes": {
+      "state": "unknown",
+      "requirement": "optional",
+      "rationale": "No measured operational outcomes exist.",
+      "evidence": []
+    }
+  },
+  "artifact_bindings": [],
+  "authority": {
+    "permitted_actions": [
+      "view",
+      "annotate"
+    ],
+    "human_approval_required": true,
+    "actuation_enabled": false,
+    "fallback_action": "Return indeterminate and request human review when required inputs are missing, stale or outside the declared envelope.",
+    "prohibited_actions": [
+      "change radio configuration",
+      "dispatch emergency services",
+      "issue work orders",
+      "claim actual site availability"
+    ]
+  },
+  "validity": {
+    "valid_from": "2026-10-30T00:00:00Z",
+    "review_by": "2026-11-30T00:00:00Z",
+    "requalification_triggers": [
+      "change to the evaluator or model",
+      "change to topology, load or backup assumptions",
+      "addition of real operator data",
+      "change to decision authority"
+    ],
+    "revocation_triggers": [
+      "source permission withdrawal",
+      "digest mismatch",
+      "discovered false-positive availability claim",
+      "unresolved critical safety or security issue"
+    ]
+  },
+  "disposition": "indeterminate",
+  "claim_ceiling": "Synthetic contract-shape example only. It does not establish crop performance, agronomic efficacy, water rights, measured water productivity, physical pump performance or qualification for any real farm."
+}

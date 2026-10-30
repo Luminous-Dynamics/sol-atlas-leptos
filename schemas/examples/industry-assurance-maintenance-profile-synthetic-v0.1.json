@@ -1,0 +1,188 @@
+{
+  "schema_version": "luminous.industry-assurance-profile.v0.1",
+  "profile_id": "synthetic-industrial-maintenance-advisory-v0.1",
+  "claim": {
+    "claim_id": "claim-synthetic-maintenance-policy-001",
+    "capability_id": "condition-based-maintenance-decision-support",
+    "instance_id": "synthetic-finite-buffer-production-cell-001",
+    "decision_id": "rank-reactive-periodic-and-condition-based-maintenance-policies",
+    "description": "Synthetic demonstration profile for comparing maintenance policies under declared failure, sensor and crew constraints. It does not estimate a real machine's remaining useful life.",
+    "intended_user": "Manufacturing reliability engineer reviewing a synthetic maintenance-policy experiment",
+    "model_ids": [
+      "synthetic-maintenance-tier-a-oracle-v0.1",
+      "synthetic-finite-buffer-des-v0.1"
+    ],
+    "prohibited_claims": [
+      "field-calibrated remaining useful life",
+      "plant downtime reduction",
+      "machine safety certification",
+      "production release authority"
+    ]
+  },
+  "decision_tier": "D1_advisory",
+  "operating_envelope": {
+    "envelope_id": "synthetic-maintenance-operating-envelope-001",
+    "domain_description": "Synthetic single-machine event semantics with deterministic repair intervals and a declared finite-buffer production policy benchmark.",
+    "conditions": [
+      {
+        "variable": "operating_time_to_failure",
+        "unit": "hours",
+        "minimum": 1,
+        "maximum": 10000,
+        "support": "Synthetic scripted-event domain; no empirical hazard distribution is asserted.",
+        "evidence_state": "assumed",
+        "source_artifact_ids": []
+      },
+      {
+        "variable": "repair_duration",
+        "unit": "hours",
+        "minimum": 0,
+        "maximum": 500,
+        "support": "Synthetic repair-duration input; crew/tool queueing is outside the Tier-A reference.",
+        "evidence_state": "assumed",
+        "source_artifact_ids": []
+      },
+      {
+        "variable": "condition_sensor_error",
+        "unit": "source_native",
+        "minimum": 0,
+        "maximum": 1,
+        "support": "Placeholder normalized corruption envelope only; must be replaced by dataset-specific definitions.",
+        "evidence_state": "unknown",
+        "source_artifact_ids": []
+      },
+      {
+        "variable": "maintenance_crew_capacity",
+        "unit": "crews",
+        "minimum": 1,
+        "maximum": 10,
+        "support": "Synthetic resource envelope; no workforce observations are used.",
+        "evidence_state": "assumed",
+        "source_artifact_ids": []
+      }
+    ],
+    "excluded_domains": [
+      "real machine telemetry and physical sensor calibration",
+      "empirically fitted degradation distribution",
+      "actual remaining useful life or warranty determination",
+      "automated work-order dispatch",
+      "safety-critical machine actuation and product-release decisions"
+    ],
+    "known_counterexamples": [
+      "A logical alternate path may share a physical fiber duct or power dependency.",
+      "A nominal battery capacity may overstate usable energy after derating."
+    ],
+    "out_of_domain_policy": "abstain"
+  },
+  "risk_assessment": {
+    "reviewed_class": "moderate",
+    "dimensions": {
+      "consequence": "major",
+      "model_influence": "advisory",
+      "exposure": "site_or_facility",
+      "reversibility": "readily_reversible",
+      "detectability": "delayed_or_partial",
+      "fallback": "human_fallback"
+    },
+    "rationale": "Synthetic example only. The profile requests advice and prohibits external action. A real deployment must reassess the consequences, exposed population, failure detectability and fallback independently.",
+    "reviewer_id": "synthetic-fixture-reviewer",
+    "reviewed_at": "2026-10-30T00:00:00Z",
+    "rule_set_version": "ieac-risk-rubric-v0.1"
+  },
+  "evidence_vector": {
+    "software_conformance": {
+      "state": "not_established",
+      "requirement": "mandatory",
+      "rationale": "The fixture illustrates the contract; no executable telecom evaluator is qualified.",
+      "evidence": []
+    },
+    "numerical_verification": {
+      "state": "not_established",
+      "requirement": "mandatory",
+      "rationale": "No telecom known-answer evaluator results are attached.",
+      "evidence": []
+    },
+    "physical_validation": {
+      "state": "unknown",
+      "requirement": "optional",
+      "rationale": "No physical or field validation is claimed for the synthetic topology.",
+      "evidence": []
+    },
+    "data_integrity_rights": {
+      "state": "not_established",
+      "requirement": "mandatory",
+      "rationale": "All topology and load values are synthetic; no operator data permission is asserted.",
+      "evidence": []
+    },
+    "uncertainty_credibility": {
+      "state": "not_established",
+      "requirement": "mandatory",
+      "rationale": "Intervals are declared synthetic assumptions, not calibrated uncertainty.",
+      "evidence": []
+    },
+    "generalization": {
+      "state": "unknown",
+      "requirement": "mandatory",
+      "rationale": "No held-out real topology or site evaluation exists in this example.",
+      "evidence": []
+    },
+    "robustness": {
+      "state": "not_established",
+      "requirement": "mandatory",
+      "rationale": "The profile lists counterexamples but includes no executed adversarial results.",
+      "evidence": []
+    },
+    "operational_assurance": {
+      "state": "unknown",
+      "requirement": "mandatory",
+      "rationale": "No operator integration, monitoring, recovery or shadow-pilot evidence exists.",
+      "evidence": []
+    },
+    "safety_security_authority": {
+      "state": "not_established",
+      "requirement": "mandatory",
+      "rationale": "The example is advisory-only and has no production authorization or safety case.",
+      "evidence": []
+    },
+    "prospective_outcomes": {
+      "state": "unknown",
+      "requirement": "optional",
+      "rationale": "No measured operational outcomes exist.",
+      "evidence": []
+    }
+  },
+  "artifact_bindings": [],
+  "authority": {
+    "permitted_actions": [
+      "view",
+      "annotate"
+    ],
+    "human_approval_required": true,
+    "actuation_enabled": false,
+    "fallback_action": "Return indeterminate and request human review when required inputs are missing, stale or outside the declared envelope.",
+    "prohibited_actions": [
+      "change radio configuration",
+      "dispatch emergency services",
+      "issue work orders",
+      "claim actual site availability"
+    ]
+  },
+  "validity": {
+    "valid_from": "2026-10-30T00:00:00Z",
+    "review_by": "2026-11-30T00:00:00Z",
+    "requalification_triggers": [
+      "change to the evaluator or model",
+      "change to topology, load or backup assumptions",
+      "addition of real operator data",
+      "change to decision authority"
+    ],
+    "revocation_triggers": [
+      "source permission withdrawal",
+      "digest mismatch",
+      "discovered false-positive availability claim",
+      "unresolved critical safety or security issue"
+    ]
+  },
+  "disposition": "indeterminate",
+  "claim_ceiling": "Synthetic contract-shape example only. It does not establish prognostic accuracy, plant downtime reduction, machine-specific validity, safety certification or qualification for operational maintenance decisions."
+}

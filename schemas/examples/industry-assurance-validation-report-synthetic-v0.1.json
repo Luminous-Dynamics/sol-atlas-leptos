@@ -1,0 +1,11 @@
+{
+  "schema_version": "luminous.industry-assurance-validation-report.v0.1",
+  "profile_id": "synthetic-telecom-site-resilience-advisory-v0.1",
+  "declared_disposition": "indeterminate",
+  "contract_valid": true,
+  "status": "PROFILE_CONTRACT_VALID_NOT_QUALIFIED",
+  "independent_qualification_attested": false,
+  "claim_ceiling": "Synthetic contract-shape example only. This local report does not verify remote artifacts, physical validity, data rights, evidence independence, operational authorization, safety or regulatory compliance.",
+  "issue_count": 0,
+  "issues": []
+}
