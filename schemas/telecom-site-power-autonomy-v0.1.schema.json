@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/telecom-site-power-autonomy-v0.1.schema.json",
+  "title": "Sol-Atlas telecom site power autonomy scenario v0.1",
+  "description": "Bounded energy/load interval accounting only. This schema does not define battery chemistry, generator behaviour, grid load flow, RF coverage, network QoS or delivered site availability.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "as_of",
+    "site_id",
+    "outage_horizon_hours",
+    "usable_energy_measurement_point",
+    "radio_load_measurement_point",
+    "usable_backup_energy",
+    "radio_equipment_load"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "as_of": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "site_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "outage_horizon_hours": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "usable_energy_measurement_point": {
+      "const": "battery_output_terminals"
+    },
+    "radio_load_measurement_point": {
+      "const": "radio_access_equipment_input_terminals"
+    },
+    "usable_backup_energy": {
+      "$ref": "#/$defs/energyMeasurement"
+    },
+    "radio_equipment_load": {
+      "$ref": "#/$defs/loadMeasurement"
+    }
+  },
+  "$defs": {
+    "measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entity_id",
+        "quantity",
+        "basis",
+        "rationale",
+        "supporting_evidence_ids"
+      ],
+      "properties": {
+        "entity_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "quantity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "value",
+            "unit"
+          ],
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "unit": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty_abs": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "basis": {
+          "enum": [
+            "assumed",
+            "observed"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "supporting_evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "energyMeasurement": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/measurement"
+        },
+        {
+          "properties": {
+            "quantity": {
+              "properties": {
+                "unit": {
+                  "const": "kWh"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "loadMeasurement": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/measurement"
+        },
+        {
+          "properties": {
+            "quantity": {
+              "properties": {
+                "unit": {
+                  "const": "kW"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
