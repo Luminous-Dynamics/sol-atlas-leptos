@@ -80,6 +80,6 @@ jobs:
           assert assessment["thermal_exergy_kwh"] <= assessment["heat_quantity_kwh"]
           assert assessment["synthetic"] is True
           assert "not delivered work" in assessment["claim_ceiling"]
-          assert "does not authenticate evidence" in receipt["verification_boundary"]
+          assert "do not authenticate evidence" in receipt["verification_boundary"]
           print("thermal exergy schemas, known answer, claim ceiling and digest bindings passed")
           PY
