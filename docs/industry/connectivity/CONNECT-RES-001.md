@@ -144,7 +144,7 @@ Metrics: lower/upper autonomy hours, energy deficit, recovery interval, unused r
 
 Use **ITU-R P.1812-8 (09/2025)** for path-specific terrestrial propagation in its declared 30 MHz–6 GHz scope. It is a reference for a radio-propagation lane, not for backhaul topology or service restoration.
 
-Use **5G-LENA / ns-3 NR** for matched 5G New Radio PHY/MAC/network experiments. Declare channel, carrier, numerology, antenna, scheduler, traffic, mobility, topology and random seeds. Do not compare a graph reachability result to throughput/latency results as if they were the same task.
+For a reproducible initial reference, pin **5G-LENA NR-v5.1 with ns-3.48** (released 6 August 2026). The 5G-LENA release notes list NR-v5.2 as under development; do not follow that moving branch for a frozen comparison. Declare channel, carrier, numerology, antenna, scheduler, traffic, mobility, topology and random seeds. Record whether ns-3 3GPP spectrum fixes MR2929 and performance patch MR2883 are applied; FDD results are not comparable if the known NLOS spectrum issue is left unresolved. This 5G-LENA packet/network lane remains distinct from topology resilience and ITU-R propagation. Do not compare a graph reachability result to throughput/latency results as if they were the same task.
 
 A later hardware-in-the-loop lane may use **Colosseum**, which provides RF/channel emulation and protocol-stack experimentation. Do not imply that a simulated Sol-Atlas result has passed Colosseum.
 
