@@ -406,10 +406,10 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
                 }
                 match tier {
                     "D2_delegated_planning" => {
-                        if !["constraint_gating", "selection"].contains(risk_dims.get("model_influence").copied().unwrap_or(&"")) {
+                        if !["constraint_gating", "selection"].contains(&risk_dims.get("model_influence").copied().unwrap_or("")) {
                             issue(&mut out, "D2_RISK_INFLUENCE_MISMATCH", "/risk_assessment/dimensions/model_influence", "D2 requires a reviewed constraint-gating or selection influence.");
                         }
-                        if !["independent_tested_fallback", "human_fallback"].contains(risk_dims.get("fallback").copied().unwrap_or(&"")) {
+                        if !["independent_tested_fallback", "human_fallback"].contains(&risk_dims.get("fallback").copied().unwrap_or("")) {
                             issue(&mut out, "D2_FALLBACK_INSUFFICIENT", "/risk_assessment/dimensions/fallback", "D2 requires a human or independently tested fallback.");
                         }
                     }
