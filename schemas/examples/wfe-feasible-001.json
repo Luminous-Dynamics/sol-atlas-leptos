@@ -1,0 +1,103 @@
+{
+  "schema_version": "0.1.0",
+  "benchmark_id": "WFE-COUPLED-DECISION-001",
+  "scenario_id": "WFE-FEASIBLE-001",
+  "as_of": "2026-10-30T10:00:00Z",
+  "evidence_class": "synthetic",
+  "reference_models": {
+    "hydraulics": {
+      "artifact_id": "hydraulic-ref-001",
+      "producer": "Sol-Atlas",
+      "model": "EPANET",
+      "version": "2.2",
+      "evidence_class": "synthetic",
+      "execution_state": "defined",
+      "derived_from": []
+    },
+    "soil_accounting": {
+      "artifact_id": "soil-balance-001",
+      "producer": "Symtropy",
+      "model": "SOIL-TWIN-001",
+      "version": "0.1.0",
+      "evidence_class": "derived_accounting",
+      "execution_state": "defined",
+      "derived_from": []
+    },
+    "irrigation_policy": {
+      "artifact_id": "irrigation-policy-001",
+      "producer": "Symthaea",
+      "model": "CropFoundry-Synthetic-Policy",
+      "version": "0.1",
+      "evidence_class": "synthetic",
+      "execution_state": "defined",
+      "derived_from": [
+        "hydraulic-ref-001",
+        "soil-balance-001"
+      ]
+    },
+    "crop_response": {
+      "artifact_id": "crop-response-001",
+      "producer": "FAO",
+      "model": "AquaCrop",
+      "version": "7.3",
+      "evidence_class": "modelled",
+      "execution_state": "not_run",
+      "derived_from": []
+    }
+  },
+  "constraints": {
+    "water_cap_m3": 60,
+    "service_demand_m3": 60,
+    "minimum_service_fraction": 0.8,
+    "actuator_flow_limit_m3_per_h": 10,
+    "field_area_m2": 6250,
+    "soil_storage_capacity_mm": 100
+  },
+  "pump": {
+    "mechanical_flow_m3_per_h": {
+      "lower": 12,
+      "upper": 12,
+      "unit": "m3/h"
+    },
+    "power_measurement_point": "pump_terminals",
+    "available_terminal_power_kw": {
+      "lower": 5,
+      "upper": 5,
+      "unit": "kW"
+    },
+    "specific_energy_kwh_per_m3": {
+      "lower": 0.5,
+      "upper": 0.5,
+      "unit": "kWh/m3"
+    }
+  },
+  "irrigation_request": {
+    "requested_volume_m3": 50,
+    "duration_hours": 5
+  },
+  "soil_water_accounting": {
+    "status": "supplied_fluxes",
+    "initial_storage_mm": 90,
+    "precipitation_mm": 2,
+    "irrigation_mm": 8,
+    "evapotranspiration_mm": 5,
+    "runoff_mm": 1,
+    "drainage_mm": 2,
+    "expected_final_storage_mm": 92,
+    "expected_balance_residual_mm": 0
+  },
+  "crop_response": {
+    "status": "not_run",
+    "model": "AquaCrop",
+    "version": "7.3",
+    "output": null
+  },
+  "expected": {
+    "classification": "feasible",
+    "reason_codes": [],
+    "requested_flow_m3_per_h": 10,
+    "effective_pump_flow_lower_m3_per_h": 10,
+    "service_fraction_if_delivered": 0.8333333333333334,
+    "soil_storage_within_capacity": true
+  }
+}
