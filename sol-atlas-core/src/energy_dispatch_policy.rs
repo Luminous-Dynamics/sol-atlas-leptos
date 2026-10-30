@@ -87,6 +87,7 @@ pub enum DispatchSelectionError {
     EmptyAlternativeSchedule { index: usize },
     ScheduleVerificationFailed { index: usize, errors: Vec<String> },
     ObjectiveDoesNotMatchSchedule { index: usize },
+    ObjectiveRecomputationFailed { index: usize, reason: String },
     FrontierContainsDominatedAlternative { dominated: usize, dominator: usize },
 }
 
@@ -256,8 +257,12 @@ pub fn select_dispatch_alternative(
         if let Err(errors) = verify_dispatch_schedule(request, &alternative.schedule) {
             return Err(DispatchSelectionError::ScheduleVerificationFailed { index, errors });
         }
-        let recomputed = objective_for_schedule(request, &alternative.schedule)
-            .expect("independently verified schedule objective arithmetic must be valid");
+        let recomputed = objective_for_schedule(request, &alternative.schedule).map_err(|error| {
+            DispatchSelectionError::ObjectiveRecomputationFailed {
+                index,
+                reason: format!("{error:?}"),
+            }
+        })?;
         if recomputed != alternative.objective {
             return Err(DispatchSelectionError::ObjectiveDoesNotMatchSchedule { index });
         }
