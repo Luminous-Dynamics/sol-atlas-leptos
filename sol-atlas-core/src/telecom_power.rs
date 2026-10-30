@@ -452,7 +452,9 @@ mod tests {
         assert!(matches!(
             assess_telecom_site_power_autonomy(&missing_energy, &[]),
             Err(TelecomSitePowerAutonomyError::InvalidInput(errors))
-                if errors.contains(&TelecomSitePowerAutonomyValidationError::MissingUsableEnergyUncertainty)
+                if errors.contains(
+                    &TelecomSitePowerAutonomyValidationError::MissingUsableEnergyUncertainty
+                )
         ));
 
         let mut missing_load = scenario(5.0, Some(0.0), 1.0, Some(0.0), 2.0);
@@ -460,7 +462,9 @@ mod tests {
         assert!(matches!(
             assess_telecom_site_power_autonomy(&missing_load, &[]),
             Err(TelecomSitePowerAutonomyError::InvalidInput(errors))
-                if errors.contains(&TelecomSitePowerAutonomyValidationError::MissingRadioLoadUncertainty)
+                if errors.contains(
+                    &TelecomSitePowerAutonomyValidationError::MissingRadioLoadUncertainty
+                )
         ));
     }
 
