@@ -560,9 +560,8 @@ mod tests {
     fn outage_import_is_zero_and_terminal_reserve_is_hard() {
         let (_,files)=build_model_set(FIXTURE).expect("valid fixture");
         let lp=&files[0].1;
-        assert!(lp.contains("0 <= grid_import_001 <= 0"));
         assert!(lp.contains("terminal_reserve: 1 soc_after_001 >= 0"));
-        assert!(lp.contains("\\nBounds\\n"));
+        assert!(lp.contains("\nBounds\n"));
         assert!(lp.contains("0 <= grid_import_001 <= 0"));
         let subject_to = lp.split("Subject To").nth(1).and_then(|part| part.split("Bounds").next()).unwrap();
         assert!(!subject_to.contains("0 <= grid_import_001"));
