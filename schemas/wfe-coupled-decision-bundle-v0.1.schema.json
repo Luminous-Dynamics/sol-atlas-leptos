@@ -334,7 +334,15 @@
           ]
         },
         "soil_storage_within_capacity": {
-          "type": "boolean"
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Null means soil balance was not evaluated for this candidate; do not interpret as failure or pass."
         }
       }
     }

@@ -87,6 +87,6 @@
     "requested_flow_m3_per_h": 10,
     "effective_pump_flow_lower_m3_per_h": null,
     "service_fraction_if_delivered": null,
-    "soil_storage_within_capacity": false
+    "soil_storage_within_capacity": null
   }
 }
