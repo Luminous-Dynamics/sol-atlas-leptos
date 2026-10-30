@@ -1,0 +1,70 @@
+name: Industry assurance contract
+
+on:
+  pull_request:
+    paths:
+      - "tools/industry-assurance-validator/**"
+      - "schemas/industry-assurance-qualification-profile-v0.1.schema.json"
+      - "schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json"
+      - "docs/industry/INDUSTRY_ENGINEERING_ASSURANCE_CONTRACT_V0.1.md"
+      - ".github/workflows/industry-assurance-contract.yml"
+  push:
+    branches:
+      - main
+      - research/ind-assurance-001-risk-weighted-qualification
+    paths:
+      - "tools/industry-assurance-validator/**"
+      - "schemas/industry-assurance-qualification-profile-v0.1.schema.json"
+      - "schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json"
+      - ".github/workflows/industry-assurance-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: industry-assurance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    name: Validate assurance contract (not physical qualification)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact source revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Check formatting
+        run: cargo fmt --manifest-path tools/industry-assurance-validator/Cargo.toml --all -- --check
+
+      - name: Run Clippy
+        run: cargo clippy --manifest-path tools/industry-assurance-validator/Cargo.toml --all-targets --locked -- -D warnings
+
+      - name: Run adversarial contract tests
+        run: cargo test --manifest-path tools/industry-assurance-validator/Cargo.toml --locked
+
+      - name: Validate synthetic profile fixture
+        run: |
+          cargo run --manifest-path tools/industry-assurance-validator/Cargo.toml --locked -- \
+            schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json \
+            "$RUNNER_TEMP/industry-assurance-report.json"
+          jq -e '
+            .schema_version == "luminous.industry-assurance-validation-report.v0.1" and
+            .contract_valid == true and
+            .status == "PROFILE_CONTRACT_VALID_NOT_QUALIFIED" and
+            .declared_disposition == "indeterminate" and
+            .independent_qualification_attested == false and
+            .issue_count == 0
+          ' "$RUNNER_TEMP/industry-assurance-report.json"
