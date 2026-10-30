@@ -819,10 +819,23 @@ mod independent_reference_tests {
 
     #[derive(Debug, Default)]
     struct ReferenceResult {
+        expansion_limit: u64,
         feasible_complete_schedules: u64,
         explored_local_actions: u64,
         all_objective_vectors: BTreeSet<ObjectiveKey>,
         pareto_objectives: BTreeSet<ObjectiveKey>,
+    }
+
+    impl ReferenceResult {
+        fn new(expansion_limit: u64) -> Self {
+            Self {
+                expansion_limit,
+                feasible_complete_schedules: 0,
+                explored_local_actions: 0,
+                all_objective_vectors: BTreeSet::new(),
+                pareto_objectives: BTreeSet::new(),
+            }
+        }
     }
 
     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -863,9 +876,9 @@ mod independent_reference_tests {
             .explored_local_actions
             .checked_add(1)
             .ok_or(ReferenceError::CounterOverflow)?;
-        if result.explored_local_actions > REFERENCE_EXPANSION_BUDGET {
+        if result.explored_local_actions > result.expansion_limit {
             return Err(ReferenceError::BudgetExceeded {
-                limit: REFERENCE_EXPANSION_BUDGET,
+                limit: result.expansion_limit,
             });
         }
         Ok(())
@@ -987,7 +1000,14 @@ mod independent_reference_tests {
     fn enumerate_reference(
         request: &EnergyDispatchRequest,
     ) -> Result<ReferenceResult, ReferenceError> {
-        let mut result = ReferenceResult::default();
+        enumerate_reference_with_budget(request, REFERENCE_EXPANSION_BUDGET)
+    }
+
+    fn enumerate_reference_with_budget(
+        request: &EnergyDispatchRequest,
+        expansion_limit: u64,
+    ) -> Result<ReferenceResult, ReferenceError> {
+        let mut result = ReferenceResult::new(expansion_limit);
         reference_visit(
             request,
             0,
@@ -1219,16 +1239,9 @@ mod independent_reference_tests {
 
     #[test]
     fn reference_enumerator_budget_failure_is_explicit() {
-        // Force a test-only small budget locally by using the independent action
-        // counter directly; production output is never constructed from partial work.
-        let mut result = ReferenceResult::default();
-        result.explored_local_actions = REFERENCE_EXPANSION_BUDGET;
-        let error = spend_reference_action(&mut result).expect_err("budget must fail closed");
-        assert_eq!(
-            error,
-            ReferenceError::BudgetExceeded {
-                limit: REFERENCE_EXPANSION_BUDGET
-            }
-        );
+        let request = small_request(1);
+        let error = enumerate_reference_with_budget(&request, 0)
+            .expect_err("reference must not return a partial frontier after its budget is hit");
+        assert_eq!(error, ReferenceError::BudgetExceeded { limit: 0 });
     }
 }
