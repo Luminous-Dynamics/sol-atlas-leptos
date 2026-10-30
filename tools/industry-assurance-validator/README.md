@@ -19,6 +19,15 @@ cargo run --manifest-path tools/industry-assurance-validator/Cargo.toml --locked
 
 Exit status is zero when the profile is internally consistent and one when semantic contract violations are found. Invalid file arguments or unreadable/invalid JSON return status two.
 
+## Minimum mandatory dimensions
+
+For a profile declared `qualified_for_profile`, the validator enforces:
+- D0: software conformance, numerical verification and data integrity/rights.
+- D1: D0 plus physical validation, uncertainty credibility, generalization, robustness, operational assurance and safety/security/authority.
+- D2 and D3: all ten evidence dimensions.
+
+A mandatory dimension must be established and include evidence. D2 additionally requires independent-verifier and rollback-plan artifact roles, plus human or independently tested fallback and a selection/constraint-gating model influence. D3 requires all ten dimensions established, direct-actuation semantics, independently tested fallback, and safety-case, operational-authorization, cybersecurity, rollback and independent-verifier artifact roles.
+
 ## What it checks
 
 - Required profile, claim, risk, evidence-vector, artifact, authority and validity fields.
