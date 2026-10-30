@@ -23,6 +23,18 @@ pub const TELECOM_POWER_AUTONOMY_SCHEMA_VERSION: &str = "0.1.0";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+pub enum UsableEnergyMeasurementPoint {
+    BatteryOutputTerminals,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RadioLoadMeasurementPoint {
+    RadioAccessEquipmentInputTerminals,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum TelecomPowerAutonomyStatus {
     /// Even the conservative autonomy bound covers the declared outage horizon.
     Sufficient,
@@ -40,6 +52,8 @@ pub struct TelecomSitePowerAutonomyScenario {
     pub as_of: String,
     pub site_id: String,
     pub outage_horizon_hours: f64,
+    pub usable_energy_measurement_point: UsableEnergyMeasurementPoint,
+    pub radio_load_measurement_point: RadioLoadMeasurementPoint,
     /// Usable energy at battery output terminals, in exact unit kWh.
     pub usable_backup_energy: FunctionMeasurement,
     /// Aggregate radio-access equipment load at its input terminals, in exact unit kW.
@@ -264,6 +278,8 @@ mod tests {
             as_of: AS_OF.to_owned(),
             site_id: "site-001".to_owned(),
             outage_horizon_hours: horizon,
+            usable_energy_measurement_point: UsableEnergyMeasurementPoint::BatteryOutputTerminals,
+            radio_load_measurement_point: RadioLoadMeasurementPoint::RadioAccessEquipmentInputTerminals,
             usable_backup_energy: measurement(energy, energy_uncertainty, "kWh"),
             radio_equipment_load: measurement(load, load_uncertainty, "kW"),
         }
