@@ -730,6 +730,7 @@ mod tests {
     fn complete_d2_authority_bundle_passes_consistency() {
         let mut p = make_qualified_d1();
         p["decision_tier"] = json!("D2_delegated_planning");
+        p["risk_assessment"]["dimensions"]["model_influence"] = json!("selection");
         p["authority"]["permitted_actions"] = json!(["view", "annotate", "schedule_within_envelope"]);
         p["artifact_bindings"].as_array_mut().unwrap().push(artifact("verifier-001", "independent_verifier"));
         p["artifact_bindings"].as_array_mut().unwrap().push(artifact("rollback-001", "rollback_plan"));
@@ -743,6 +744,8 @@ mod tests {
     fn complete_d3_authority_bundle_passes_consistency() {
         let mut p = make_qualified_d1();
         p["decision_tier"] = json!("D3_autonomous_control");
+        p["risk_assessment"]["dimensions"]["model_influence"] = json!("direct_actuation");
+        p["risk_assessment"]["dimensions"]["fallback"] = json!("independent_tested_fallback");
         p["authority"]["actuation_enabled"] = json!(true);
         p["authority"]["permitted_actions"] = json!(["view", "execute_external_action"]);
         let roles = [
