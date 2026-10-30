@@ -247,6 +247,21 @@ fn validate_evidence(
         if qualified && requirement == "mandatory" && state != "established" {
             issue(out, "QUALIFIED_WITH_UNMET_REQUIREMENT", &path, "A qualified profile requires every mandatory dimension to be established.");
         }
+        let tier_minimum: &[&str] = match tier {
+            "D0_descriptive" => &["software_conformance", "numerical_verification", "data_integrity_rights"],
+            "D1_advisory" => &[
+                "software_conformance", "numerical_verification", "physical_validation",
+                "data_integrity_rights", "uncertainty_credibility", "generalization",
+                "robustness", "operational_assurance", "safety_security_authority",
+            ],
+            "D2_delegated_planning" | "D3_autonomous_control" => DIMENSIONS,
+            _ => &[],
+        };
+        if qualified && tier_minimum.contains(dimension)
+            && (requirement != "mandatory" || state != "established")
+        {
+            issue(out, "TIER_MINIMUM_EVIDENCE_NOT_MET", &path, "This dimension is mandatory and must be established for the declared decision tier.");
+        }
         if tier == "D3_autonomous_control" && qualified && (requirement != "mandatory" || state != "established") {
             issue(out, "D3_EVIDENCE_VECTOR_INCOMPLETE", &path, "D3 qualification requires all ten dimensions mandatory and established.");
         }
@@ -765,6 +780,15 @@ mod tests {
         p["artifact_bindings"][0]["rights_state"] = json!("unknown");
         let issues = validate_profile(&p);
         assert!(has_code(&issues, "QUALIFIED_WITH_UNVERIFIED_RIGHTS"));
+    }
+
+
+    #[test]
+    fn advisory_profile_cannot_make_physical_validation_optional() {
+        let mut p = make_qualified_d1();
+        p["evidence_vector"]["physical_validation"]["requirement"] = json!("optional");
+        let issues = validate_profile(&p);
+        assert!(has_code(&issues, "TIER_MINIMUM_EVIDENCE_NOT_MET"));
     }
 
 }
