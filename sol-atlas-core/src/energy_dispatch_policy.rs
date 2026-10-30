@@ -80,6 +80,7 @@ pub enum DispatchSelectionError {
     UnsupportedTieBreak { name: String },
     UnsupportedAssessmentSchemaVersion { actual: String },
     CaseIdMismatch { expected: String, actual: String },
+    RequestMetadataMismatch { field: String },
     OracleFrontierIncomplete,
     FrontierCountMismatch { declared: usize, actual: usize },
     EmptyFrontier,
@@ -228,6 +229,23 @@ pub fn select_dispatch_alternative(
             expected: request.case_id.clone(),
             actual: assessment.case_id.clone(),
         });
+    }
+    let metadata_matches = [
+        ("synthetic", assessment.synthetic == request.synthetic),
+        ("evidence_class", assessment.evidence_class == request.evidence_class),
+        ("evidence_ref", assessment.evidence_ref == request.evidence_ref),
+        ("evidence_as_of", assessment.evidence_as_of == request.evidence_as_of),
+        (
+            "energy_quantum_kwh",
+            assessment.energy_quantum_kwh.to_bits() == request.energy_quantum_kwh.to_bits(),
+        ),
+    ];
+    for (field, matches) in metadata_matches {
+        if !matches {
+            return Err(DispatchSelectionError::RequestMetadataMismatch {
+                field: field.to_owned(),
+            });
+        }
     }
     if !assessment.search_is_exact || !assessment.pareto_frontier_complete {
         return Err(DispatchSelectionError::OracleFrontierIncomplete);
@@ -692,6 +710,23 @@ mod tests {
                 dominator: 0
             })
         ));
+    }
+
+
+    #[test]
+    fn selector_rejects_assessment_request_metadata_mismatch() {
+        let (mut request, assessment) = frozen_assessment();
+        request.energy_quantum_kwh = 0.5;
+        assert_eq!(
+            select_dispatch_alternative(
+                &DispatchSelectionPolicy::critical_service_first_v1(),
+                &request,
+                &assessment
+            ),
+            Err(DispatchSelectionError::RequestMetadataMismatch {
+                field: "energy_quantum_kwh".to_owned()
+            })
+        );
     }
 
 
