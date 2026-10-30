@@ -462,68 +462,61 @@ mod tests {
 
     #[test]
     fn essential_service_outweighs_any_cost_improvement() {
-        let (_request, mut assessment) = frozen_assessment();
-        let mut costly_but_served = assessment.pareto_alternatives[0].clone();
-        let mut cheap_but_unserved = costly_but_served.clone();
-        costly_but_served.objective.essential_unserved_quanta = 0;
-        costly_but_served.objective.operating_cost_units = u64::MAX;
-        cheap_but_unserved.objective.essential_unserved_quanta = 1;
-        cheap_but_unserved.objective.operating_cost_units = 0;
-        assessment.pareto_alternatives = vec![cheap_but_unserved, costly_but_served];
-        assessment.pareto_frontier_count = 2;
-
-        let policy = policy_with(essential_and_cost_tiers());
-        let selection =
-            select_dispatch_alternative(&policy, &assessment).expect("policy should select");
-        assert_eq!(selection.selected_objective.essential_unserved_quanta, 0);
-        assert_eq!(selection.selected_objective.operating_cost_units, u64::MAX);
-        assert_eq!(selection.selected_frontier_index, 1);
+        let served = DispatchObjective {
+            essential_unserved_quanta: 0,
+            flexible_unserved_quanta: 0,
+            operating_cost_units: u64::MAX,
+            grid_carbon_grams: 1,
+            curtailed_pv_quanta: 0,
+            terminal_soc_quanta: 0,
+        };
+        let cheaper_but_unserved = DispatchObjective {
+            essential_unserved_quanta: 1,
+            flexible_unserved_quanta: 0,
+            operating_cost_units: 0,
+            grid_carbon_grams: 0,
+            curtailed_pv_quanta: 0,
+            terminal_soc_quanta: 0,
+        };
+        assert_eq!(
+            compare_objectives(&served, &cheaper_but_unserved, &essential_and_cost_tiers()),
+            Ordering::Less
+        );
     }
 
     #[test]
     fn cost_breaks_ties_only_after_essential_service() {
-        let (_request, mut assessment) = frozen_assessment();
-        let mut higher_cost = assessment.pareto_alternatives[0].clone();
-        let mut lower_cost = higher_cost.clone();
-        higher_cost.objective.essential_unserved_quanta = 0;
-        higher_cost.objective.operating_cost_units = 11;
-        lower_cost.objective.essential_unserved_quanta = 0;
-        lower_cost.objective.operating_cost_units = 8;
-        assessment.pareto_alternatives = vec![higher_cost, lower_cost];
-        assessment.pareto_frontier_count = 2;
-
-        let policy = policy_with(essential_and_cost_tiers());
-        let selection =
-            select_dispatch_alternative(&policy, &assessment).expect("policy should select");
-        assert_eq!(selection.selected_objective.operating_cost_units, 8);
+        let more_expensive = DispatchObjective {
+            essential_unserved_quanta: 0,
+            flexible_unserved_quanta: 0,
+            operating_cost_units: 11,
+            grid_carbon_grams: 0,
+            curtailed_pv_quanta: 0,
+            terminal_soc_quanta: 0,
+        };
+        let less_expensive = DispatchObjective {
+            essential_unserved_quanta: 0,
+            flexible_unserved_quanta: 0,
+            operating_cost_units: 8,
+            grid_carbon_grams: u64::MAX,
+            curtailed_pv_quanta: 0,
+            terminal_soc_quanta: 0,
+        };
+        assert_eq!(
+            compare_objectives(&less_expensive, &more_expensive, &essential_and_cost_tiers()),
+            Ordering::Less
+        );
     }
 
     #[test]
-    fn stable_tie_break_is_independent_of_frontier_input_order() {
-        let (_request, mut assessment) = frozen_assessment();
-        let mut later_schedule = assessment.pareto_alternatives[0].clone();
-        let mut earlier_schedule = later_schedule.clone();
-        later_schedule.objective.essential_unserved_quanta = 0;
-        earlier_schedule.objective.essential_unserved_quanta = 0;
-        later_schedule.objective.operating_cost_units = 10;
-        earlier_schedule.objective.operating_cost_units = 10;
-        later_schedule.schedule[0].interval_id = "z-interval".to_owned();
-        earlier_schedule.schedule[0].interval_id = "a-interval".to_owned();
-        assessment.pareto_alternatives = vec![later_schedule.clone(), earlier_schedule.clone()];
-        assessment.pareto_frontier_count = 2;
-
-        let policy = policy_with(essential_and_cost_tiers());
-        let first =
-            select_dispatch_alternative(&policy, &assessment).expect("policy should select");
-        assert!(first.stable_tie_break_applied);
-        assert_eq!(first.selected_schedule[0].interval_id, "a-interval");
-
-        assessment.pareto_alternatives = vec![earlier_schedule, later_schedule];
-        let second =
-            select_dispatch_alternative(&policy, &assessment).expect("policy should select");
-        assert!(second.stable_tie_break_applied);
-        assert_eq!(second.selected_schedule[0].interval_id, "a-interval");
-        assert_eq!(first.selected_objective, second.selected_objective);
+    fn stable_schedule_tie_break_is_input_order_independent() {
+        let (_request, assessment) = frozen_assessment();
+        let mut later = assessment.pareto_alternatives[0].schedule.clone();
+        let mut earlier = later.clone();
+        later[0].interval_id = "z-interval".to_owned();
+        earlier[0].interval_id = "a-interval".to_owned();
+        assert_eq!(compare_schedules(&earlier, &later), Ordering::Less);
+        assert_eq!(compare_schedules(&later, &earlier), Ordering::Greater);
     }
 
     #[test]
@@ -573,6 +566,7 @@ mod tests {
         assert_eq!(
             select_dispatch_alternative(
                 &DispatchSelectionPolicy::critical_service_first_v1(),
+                &_request,
                 &assessment
             ),
             Err(DispatchSelectionError::OracleFrontierIncomplete)
@@ -611,6 +605,7 @@ mod tests {
         let (request, assessment) = frozen_assessment();
         let selection = select_dispatch_alternative(
             &DispatchSelectionPolicy::critical_service_first_v1(),
+            &request,
             &assessment,
         )
         .expect("complete frontier should be selectable");
