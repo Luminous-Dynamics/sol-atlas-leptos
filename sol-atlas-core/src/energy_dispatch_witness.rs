@@ -590,6 +590,71 @@ mod tests {
     }
 
     #[test]
+    fn deterministic_mutation_corpus_rejects_1120_hard_gate_changes() {
+        let (request, assessment) = fixture();
+        let policy = DispatchSelectionPolicy::critical_service_first_v1();
+        let baseline = create_dispatch_decision_witness(&policy, &request, &assessment)
+            .expect("selection witness generated");
+        assert!(baseline.frontier_count > 1);
+        assert!(!baseline.challenger_proofs.is_empty());
+
+        for mutation in 0..1_120_usize {
+            let mut candidate = baseline.clone();
+            match mutation % 14 {
+                0 => candidate.policy_id.push_str("-tampered"),
+                1 => candidate.policy_sha256.push('0'),
+                2 => candidate.request_sha256.push('0'),
+                3 => candidate.frontier_sha256.push('0'),
+                4 => candidate.frontier_count = candidate.frontier_count.saturating_add(1),
+                5 => candidate.selected_frontier_index = candidate.frontier_count,
+                6 => candidate.selected_objective.essential_unserved_quanta =
+                    candidate.selected_objective.essential_unserved_quanta.saturating_add(1),
+                7 => candidate.selected_schedule_sha256.push('0'),
+                8 => candidate.stable_tie_break_applied = !candidate.stable_tie_break_applied,
+                9 => { candidate.challenger_proofs.pop(); }
+                10 => candidate.challenger_proofs[0].challenger_schedule_sha256.push('0'),
+                11 => {
+                    candidate.challenger_proofs[0].challenger_frontier_index =
+                        candidate.challenger_proofs[0].challenger_frontier_index.saturating_add(1);
+                }
+                12 => {
+                    candidate.challenger_proofs[0].basis =
+                        match &candidate.challenger_proofs[0].basis {
+                            ChallengerProofBasis::FirstDifferingObjectiveTier { tier_index } => {
+                                ChallengerProofBasis::FirstDifferingObjectiveTier {
+                                    tier_index: (tier_index + 1) % policy.objective_tiers.len(),
+                                }
+                            }
+                            ChallengerProofBasis::StableScheduleTieBreakV1 => {
+                                ChallengerProofBasis::FirstDifferingObjectiveTier { tier_index: 0 }
+                            }
+                        };
+                }
+                13 => candidate.claim_ceiling.push_str(" altered"),
+                _ => unreachable!("mutation operator index is reduced modulo fourteen"),
+            }
+            assert!(
+                verify_dispatch_decision_witness(&policy, &request, &assessment, &candidate).is_err(),
+                "hard-gate mutation {mutation} was accepted"
+            );
+        }
+    }
+
+    #[test]
+    fn identical_inputs_emit_identical_witness_bytes() {
+        let (request, assessment) = fixture();
+        let policy = DispatchSelectionPolicy::critical_service_first_v1();
+        let first = create_dispatch_decision_witness(&policy, &request, &assessment)
+            .expect("first witness generated");
+        let second = create_dispatch_decision_witness(&policy, &request, &assessment)
+            .expect("second witness generated");
+        assert_eq!(
+            serde_json::to_vec(&first).expect("first witness serializes"),
+            serde_json::to_vec(&second).expect("second witness serializes")
+        );
+    }
+
+    #[test]
     fn witness_binds_policy_order_and_stable_schedule_rule() {
         let (request, assessment) = fixture();
         let policy = DispatchSelectionPolicy::critical_service_first_v1();
