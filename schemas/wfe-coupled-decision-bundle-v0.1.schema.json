@@ -1,0 +1,474 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/wfe-coupled-decision-bundle-v0.1.schema.json",
+  "title": "Sol-Atlas WFE coupled decision bundle v0.1",
+  "description": "Synthetic cross-model composition contract. Does not execute or validate the referenced hydraulic, soil, crop or policy models.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "benchmark_id",
+    "scenario_id",
+    "as_of",
+    "evidence_class",
+    "reference_models",
+    "constraints",
+    "pump",
+    "irrigation_request",
+    "soil_water_accounting",
+    "crop_response",
+    "expected"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "benchmark_id": {
+      "const": "WFE-COUPLED-DECISION-001"
+    },
+    "scenario_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "as_of": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "evidence_class": {
+      "const": "synthetic"
+    },
+    "reference_models": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hydraulics",
+        "soil_accounting",
+        "irrigation_policy",
+        "crop_response"
+      ],
+      "properties": {
+        "hydraulics": {
+          "$ref": "#/$defs/modelRef"
+        },
+        "soil_accounting": {
+          "$ref": "#/$defs/modelRef"
+        },
+        "irrigation_policy": {
+          "$ref": "#/$defs/modelRef"
+        },
+        "crop_response": {
+          "$ref": "#/$defs/modelRef"
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "water_cap_m3",
+        "service_demand_m3",
+        "minimum_service_fraction",
+        "actuator_flow_limit_m3_per_h",
+        "field_area_m2",
+        "soil_storage_capacity_mm"
+      ],
+      "properties": {
+        "water_cap_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "service_demand_m3": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "minimum_service_fraction": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "actuator_flow_limit_m3_per_h": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "field_area_m2": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "soil_storage_capacity_mm": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "pump": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mechanical_flow_m3_per_h",
+        "power_measurement_point",
+        "available_terminal_power_kw",
+        "specific_energy_kwh_per_m3"
+      ],
+      "properties": {
+        "mechanical_flow_m3_per_h": {
+          "$ref": "#/$defs/intervalFlow"
+        },
+        "power_measurement_point": {
+          "const": "pump_terminals"
+        },
+        "available_terminal_power_kw": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/intervalPower"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "specific_energy_kwh_per_m3": {
+          "$ref": "#/$defs/intervalSpecificEnergy"
+        }
+      }
+    },
+    "irrigation_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requested_volume_m3",
+        "duration_hours"
+      ],
+      "properties": {
+        "requested_volume_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "duration_hours": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "soil_water_accounting": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "initial_storage_mm",
+            "precipitation_mm",
+            "irrigation_mm",
+            "evapotranspiration_mm",
+            "runoff_mm",
+            "drainage_mm",
+            "expected_final_storage_mm",
+            "expected_balance_residual_mm"
+          ],
+          "properties": {
+            "status": {
+              "const": "supplied_fluxes"
+            },
+            "initial_storage_mm": {
+              "type": "number",
+              "minimum": 0
+            },
+            "precipitation_mm": {
+              "type": "number",
+              "minimum": 0
+            },
+            "irrigation_mm": {
+              "type": "number",
+              "minimum": 0
+            },
+            "evapotranspiration_mm": {
+              "type": "number",
+              "minimum": 0
+            },
+            "runoff_mm": {
+              "type": "number",
+              "minimum": 0
+            },
+            "drainage_mm": {
+              "type": "number",
+              "minimum": 0
+            },
+            "expected_final_storage_mm": {
+              "type": "number",
+              "minimum": 0
+            },
+            "expected_balance_residual_mm": {
+              "type": "number"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "status": {
+              "const": "not_evaluable"
+            }
+          }
+        }
+      ]
+    },
+    "crop_response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "model",
+        "version",
+        "output"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "not_run",
+            "modelled",
+            "measured"
+          ]
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "output": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "required": [
+                "quantity_kind",
+                "value",
+                "unit",
+                "evidence_class"
+              ],
+              "properties": {
+                "quantity_kind": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "value": {
+                  "type": "number"
+                },
+                "unit": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "evidence_class": {
+                  "enum": [
+                    "modelled",
+                    "measured"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      }
+    },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "classification",
+        "reason_codes",
+        "requested_flow_m3_per_h",
+        "effective_pump_flow_lower_m3_per_h",
+        "service_fraction_if_delivered",
+        "soil_storage_within_capacity"
+      ],
+      "properties": {
+        "classification": {
+          "enum": [
+            "feasible",
+            "infeasible",
+            "indeterminate",
+            "not_comparable"
+          ]
+        },
+        "reason_codes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "requested_flow_m3_per_h": {
+          "type": "number",
+          "minimum": 0
+        },
+        "effective_pump_flow_lower_m3_per_h": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "service_fraction_if_delivered": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "soil_storage_within_capacity": {
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "modelRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_id",
+        "producer",
+        "model",
+        "version",
+        "evidence_class",
+        "execution_state",
+        "derived_from"
+      ],
+      "properties": {
+        "artifact_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "producer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_class": {
+          "enum": [
+            "synthetic",
+            "public_aggregate",
+            "measured",
+            "modelled",
+            "derived_accounting"
+          ]
+        },
+        "execution_state": {
+          "enum": [
+            "defined",
+            "executed",
+            "not_run"
+          ]
+        },
+        "derived_from": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "intervalFlow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lower",
+        "upper",
+        "unit"
+      ],
+      "properties": {
+        "lower": {
+          "type": "number",
+          "minimum": 0
+        },
+        "upper": {
+          "type": "number",
+          "minimum": 0
+        },
+        "unit": {
+          "const": "m3/h"
+        }
+      },
+      "allOf": [
+        {
+          "properties": {
+            "upper": {
+              "minimum": 0
+            }
+          }
+        }
+      ]
+    },
+    "intervalPower": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lower",
+        "upper",
+        "unit"
+      ],
+      "properties": {
+        "lower": {
+          "type": "number",
+          "minimum": 0
+        },
+        "upper": {
+          "type": "number",
+          "minimum": 0
+        },
+        "unit": {
+          "const": "kW"
+        }
+      }
+    },
+    "intervalSpecificEnergy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lower",
+        "upper",
+        "unit"
+      ],
+      "properties": {
+        "lower": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "upper": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "unit": {
+          "const": "kWh/m3"
+        }
+      }
+    }
+  }
+}
