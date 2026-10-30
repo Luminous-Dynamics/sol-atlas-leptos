@@ -511,7 +511,7 @@ pub fn assess_energy_storage(
 mod tests {
     use super::*;
 
-    fn request(intervals: Vec<StorageInterval>) -> EnergyStorageRequest {
+    fn storage_request(intervals: Vec<StorageInterval>) -> EnergyStorageRequest {
         EnergyStorageRequest {
             schema_version: "energy-storage-v0.1".to_owned(),
             storage_id: "test-store".to_owned(),
@@ -544,7 +544,7 @@ mod tests {
 
     #[test]
     fn state_continuity_efficiency_standing_loss_and_balance_close() {
-        let assessment = assess_energy_storage(&request(vec![
+        let assessment = assess_energy_storage(&storage_request(vec![
             interval("charge", 1.0, 10.0, 0.0),
             interval("discharge", 1.0, 0.0, 4.0),
         ]))
@@ -564,7 +564,7 @@ mod tests {
 
     #[test]
     fn charge_is_limited_by_power_and_remaining_capacity() {
-        let mut request = request(vec![interval("charge", 1.0, 10.0, 0.0)]);
+        let mut request = storage_request(vec![interval("charge", 1.0, 10.0, 0.0)]);
         request.capacity_kwh = 5.0;
         request.opening_energy_kwh = 3.0;
         request.standing_loss_fraction_per_hour = 0.0;
@@ -585,7 +585,7 @@ mod tests {
 
     #[test]
     fn discharge_power_limit_reports_unserved_demand() {
-        let mut request = request(vec![interval("discharge", 1.0, 0.0, 10.0)]);
+        let mut request = storage_request(vec![interval("discharge", 1.0, 0.0, 10.0)]);
         request.opening_energy_kwh = 4.0;
         request.max_discharge_power_kw = 2.0;
         request.standing_loss_fraction_per_hour = 0.0;
@@ -599,7 +599,7 @@ mod tests {
 
     #[test]
     fn thermal_storage_requires_explicit_temperature_grade() {
-        let mut request = request(vec![interval("idle", 1.0, 0.0, 0.0)]);
+        let mut request = storage_request(vec![interval("idle", 1.0, 0.0, 0.0)]);
         request.carrier = StorageCarrier::ThermalHeat;
         assert!(matches!(
             assess_energy_storage(&request),
@@ -613,14 +613,14 @@ mod tests {
 
     #[test]
     fn thermal_grade_is_invalid_for_electric_store_and_validates_absolute_temperature() {
-        let mut request = request(vec![interval("idle", 1.0, 0.0, 0.0)]);
+        let mut request = storage_request(vec![interval("idle", 1.0, 0.0, 0.0)]);
         request.thermal_temperature_c = Some(25.0);
         assert!(matches!(
             assess_energy_storage(&request),
             Err(EnergyStorageError::UnexpectedThermalTemperatureGrade)
         ));
 
-        let mut request = request(vec![interval("idle", 1.0, 0.0, 0.0)]);
+        let mut request = storage_request(vec![interval("idle", 1.0, 0.0, 0.0)]);
         request.carrier = StorageCarrier::ThermalHeat;
         request.thermal_temperature_c = Some(-300.0);
         assert!(matches!(
@@ -631,7 +631,7 @@ mod tests {
 
     #[test]
     fn no_energy_input_cannot_create_storage_energy() {
-        let mut request = request(vec![interval("idle", 1.0, 0.0, 0.0)]);
+        let mut request = storage_request(vec![interval("idle", 1.0, 0.0, 0.0)]);
         request.standing_loss_fraction_per_hour = 0.0;
         let assessment = assess_energy_storage(&request).unwrap();
         assert_eq!(assessment.final_energy_kwh, 0.0);
@@ -640,7 +640,7 @@ mod tests {
 
     #[test]
     fn same_interval_charge_and_discharge_fails_closed() {
-        let request = request(vec![interval("ambiguous", 1.0, 1.0, 1.0)]);
+        let request = storage_request(vec![interval("ambiguous", 1.0, 1.0, 1.0)]);
         assert!(matches!(
             assess_energy_storage(&request),
             Err(EnergyStorageError::SimultaneousChargeAndDischarge { .. })
@@ -649,13 +649,13 @@ mod tests {
 
     #[test]
     fn opening_state_and_terminal_reserve_bounds_are_checked() {
-        let mut request = request(vec![interval("idle", 1.0, 0.0, 0.0)]);
+        let mut request = storage_request(vec![interval("idle", 1.0, 0.0, 0.0)]);
         request.opening_energy_kwh = 21.0;
         assert!(matches!(
             assess_energy_storage(&request),
             Err(EnergyStorageError::OpeningStateExceedsCapacity)
         ));
-        let mut request = request(vec![interval("idle", 1.0, 0.0, 0.0)]);
+        let mut request = storage_request(vec![interval("idle", 1.0, 0.0, 0.0)]);
         request.terminal_reserve_kwh = 21.0;
         assert!(matches!(
             assess_energy_storage(&request),
@@ -665,13 +665,13 @@ mod tests {
 
     #[test]
     fn invalid_efficiencies_and_nonfinite_inputs_fail_closed() {
-        let mut request = request(vec![interval("charge", 1.0, 1.0, 0.0)]);
+        let mut request = storage_request(vec![interval("charge", 1.0, 1.0, 0.0)]);
         request.charge_efficiency = 0.0;
         assert!(matches!(
             assess_energy_storage(&request),
             Err(EnergyStorageError::InvalidEfficiency { .. })
         ));
-        let mut request = request(vec![interval("charge", 1.0, f64::NAN, 0.0)]);
+        let mut request = storage_request(vec![interval("charge", 1.0, f64::NAN, 0.0)]);
         assert!(matches!(
             assess_energy_storage(&request),
             Err(EnergyStorageError::InvalidIntervalEnergy { .. })
@@ -680,13 +680,13 @@ mod tests {
 
     #[test]
     fn evidence_classes_require_references_and_version_is_pinned() {
-        let mut request = request(vec![interval("idle", 1.0, 0.0, 0.0)]);
+        let mut request = storage_request(vec![interval("idle", 1.0, 0.0, 0.0)]);
         request.evidence_class = EvidenceClass::OperatingPlant;
         assert!(matches!(
             assess_energy_storage(&request),
             Err(EnergyStorageError::MissingEvidenceReference)
         ));
-        let mut request = request(vec![interval("idle", 1.0, 0.0, 0.0)]);
+        let mut request = storage_request(vec![interval("idle", 1.0, 0.0, 0.0)]);
         request.schema_version = "future-v9".to_owned();
         assert!(matches!(
             assess_energy_storage(&request),
@@ -696,7 +696,7 @@ mod tests {
 
     #[test]
     fn terminal_reserve_shortfall_is_reported_not_hidden() {
-        let mut request = request(vec![interval("discharge", 1.0, 0.0, 2.0)]);
+        let mut request = storage_request(vec![interval("discharge", 1.0, 0.0, 2.0)]);
         request.opening_energy_kwh = 4.0;
         request.terminal_reserve_kwh = 3.0;
         request.standing_loss_fraction_per_hour = 0.0;
@@ -707,7 +707,7 @@ mod tests {
 
     #[test]
     fn repeat_runs_are_deterministic() {
-        let request = request(vec![
+        let request = storage_request(vec![
             interval("charge", 1.0, 10.0, 0.0),
             interval("discharge", 1.0, 0.0, 4.0),
         ]);
