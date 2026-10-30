@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/industry-assurance-validation-report-v0.1.schema.json",
+  "title": "Industry Assurance Contract Validation Report v0.1",
+  "description": "Local semantic consistency report. It never attests independent qualification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "declared_disposition",
+    "contract_valid",
+    "status",
+    "independent_qualification_attested",
+    "claim_ceiling",
+    "issue_count",
+    "issues"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.industry-assurance-validation-report.v0.1"
+    },
+    "profile_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "declared_disposition": {
+      "enum": [
+        "qualified_for_profile",
+        "not_qualified",
+        "indeterminate",
+        "revoked"
+      ]
+    },
+    "contract_valid": {
+      "type": "boolean"
+    },
+    "status": {
+      "enum": [
+        "PROFILE_CONTRACT_INVALID",
+        "PROFILE_CONTRACT_VALID_NOT_QUALIFIED",
+        "PROFILE_CONTRACT_VALID_QUALIFICATION_NOT_INDEPENDENTLY_ATTESTED"
+      ]
+    },
+    "independent_qualification_attested": {
+      "const": false
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 1
+    },
+    "issue_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "path",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}
