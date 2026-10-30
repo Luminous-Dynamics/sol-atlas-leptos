@@ -122,6 +122,10 @@ pub struct ModelArtifact {
 pub struct ModelManifest {
     pub model_schema_version: String,
     pub case_id: String,
+    pub synthetic: bool,
+    pub evidence_class: String,
+    pub evidence_ref: Option<String>,
+    pub evidence_as_of: Option<String>,
     pub source_sha256: String,
     pub model_count: usize,
     pub models: Vec<ModelArtifact>,
@@ -427,9 +431,9 @@ pub fn emit_lp(
 
         let soc_max = u64::from(request.battery.capacity_quanta);
         let charge_max = u64::from(request.battery.charge_input_limit_quanta);
-        let charge_gain_max = (u64::from(request.battery.charge_input_limit_quanta)
+        let charge_gain_max = u64::from(request.battery.charge_input_limit_quanta)
             * u64::from(request.battery.charge_efficiency_numerator)
-            / u64::from(request.battery.charge_efficiency_denominator));
+            / u64::from(request.battery.charge_efficiency_denominator);
         let discharge_max = u64::from(discharge_ceiling);
         let delivered_max = discharge_max
             * u64::from(request.battery.discharge_efficiency_numerator)
@@ -505,6 +509,10 @@ pub fn build_model_set(source_bytes: &[u8]) -> Result<(ModelManifest, Vec<(Strin
     let manifest=ModelManifest {
         model_schema_version:MODEL_SCHEMA_VERSION.to_owned(),
         case_id:request.case_id,
+        synthetic:request.synthetic,
+        evidence_class:request.evidence_class,
+        evidence_ref:request.evidence_ref,
+        evidence_as_of:request.evidence_as_of,
         source_sha256,
         model_count:models.len(),
         models,
