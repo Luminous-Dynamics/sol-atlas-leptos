@@ -298,7 +298,7 @@ pub fn emit_lp(
     }
     let mut output = String::new();
     let _ = writeln!(output, "\\ Energy dispatch independent MILP reference v0.1");
-    let _ = writeln!(output, "\\\\ case_id={} source_sha256={}", request.case_id, source_sha256);
+    let _ = writeln!(output, "\\\\ source_sha256={}", source_sha256);
     let _ = writeln!(output, "\\\\ model_schema={} objective={} direction={}", MODEL_SCHEMA_VERSION, objective.as_str(), direction.as_str());
     write_line(&mut output, if direction == Direction::Minimize { "Minimize" } else { "Maximize" });
     let terms = objective_terms(request, objective);
@@ -582,6 +582,42 @@ mod tests {
         let second=build_model_set(FIXTURE).expect("second build");
         assert_eq!(first.0,second.0);
         assert_eq!(first.1,second.1);
+    }
+
+    #[test]
+    fn caller_controlled_text_never_enters_the_solver_language() {
+        let original=std::str::from_utf8(FIXTURE).unwrap();
+        let changed=original.replace(
+            r#""case_id": "synthetic-pv-outage""#,
+            r#""case_id": "safe\\nMinimize\\n hijack: 0""#
+        );
+        let (_,files)=build_model_set(changed.as_bytes()).expect("JSON case ID remains valid");
+        for (_,lp) in files {
+            assert!(!lp.contains("hijack"));
+            assert!(!lp.contains("synthetic-pv-outage"));
+        }
+    }
+
+    #[test]
+    fn maximum_horizon_emits_bounded_model_without_losing_chronology() {
+        let mut request:Request=serde_json::from_slice(FIXTURE).expect("fixture parses");
+        let first=request.intervals[0].clone();
+        request.intervals.clear();
+        let mut start=first.start_unix_seconds;
+        for index in 0..MAX_INTERVALS {
+            let mut interval=first.clone();
+            interval.interval_id=format!("interval-{index:03}");
+            interval.start_unix_seconds=start;
+            start+=i64::try_from(interval.duration_seconds).expect("small fixture duration");
+            request.intervals.push(interval);
+        }
+        let digest=sha256(FIXTURE);
+        let lp=emit_lp(&request,ObjectiveId::OperatingCostUnits,Direction::Minimize,&digest)
+            .expect("128-interval model emits");
+        assert!(lp.contains("soc_after_127"));
+        assert!(lp.contains("bus_balance_127"));
+        request.intervals.push(first);
+        assert!(validate_request(&request).is_err());
     }
 
     #[test]
