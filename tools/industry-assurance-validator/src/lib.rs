@@ -24,51 +24,6 @@ pub struct ValidationIssue {
     pub path: String,
     pub message: String,
 
-    #[test]
-    fn complete_d2_authority_bundle_passes_consistency() {
-        let mut p = make_qualified_d1();
-        p["decision_tier"] = json!("D2_delegated_planning");
-        p["authority"]["permitted_actions"] = json!(["view", "annotate", "schedule_within_envelope"]);
-        p["artifact_bindings"].as_array_mut().unwrap().push(artifact("verifier-001", "independent_verifier"));
-        p["artifact_bindings"].as_array_mut().unwrap().push(artifact("rollback-001", "rollback_plan"));
-        p["authority"]["independent_verifier_artifact_id"] = json!("verifier-001");
-        p["authority"]["rollback_plan_artifact_id"] = json!("rollback-001");
-        let issues = validate_profile(&p);
-        assert!(issues.is_empty(), "{issues:#?}");
-    }
-
-    #[test]
-    fn complete_d3_authority_bundle_passes_consistency() {
-        let mut p = make_qualified_d1();
-        p["decision_tier"] = json!("D3_autonomous_control");
-        p["authority"]["actuation_enabled"] = json!(true);
-        p["authority"]["permitted_actions"] = json!(["view", "execute_external_action"]);
-        let roles = [
-            ("verifier-001", "independent_verifier"),
-            ("rollback-001", "rollback_plan"),
-            ("safety-001", "safety_case"),
-            ("authorization-001", "operational_authorization"),
-            ("cyber-001", "cybersecurity_assessment")
-        ];
-        for (id, role) in roles {
-            p["artifact_bindings"].as_array_mut().unwrap().push(artifact(id, role));
-        }
-        p["authority"]["independent_verifier_artifact_id"] = json!("verifier-001");
-        p["authority"]["rollback_plan_artifact_id"] = json!("rollback-001");
-        p["authority"]["safety_case_artifact_id"] = json!("safety-001");
-        p["authority"]["operational_authorization_artifact_id"] = json!("authorization-001");
-        p["authority"]["cybersecurity_assessment_artifact_id"] = json!("cyber-001");
-        let issues = validate_profile(&p);
-        assert!(issues.is_empty(), "{issues:#?}");
-    }
-
-    #[test]
-    fn unqualified_d3_profile_remains_read_only() {
-        let mut p = fixture();
-        p["decision_tier"] = json!("D3_autonomous_control");
-        let issues = validate_profile(&p);
-        assert!(issues.is_empty(), "{issues:#?}");
-    }
 
 }
 
@@ -652,4 +607,51 @@ mod tests {
         let issues = validate_profile(&p);
         assert!(has_code(&issues, "INVALID_GIT_BLOB_SHA"));
     }
+
+    #[test]
+    fn complete_d2_authority_bundle_passes_consistency() {
+        let mut p = make_qualified_d1();
+        p["decision_tier"] = json!("D2_delegated_planning");
+        p["authority"]["permitted_actions"] = json!(["view", "annotate", "schedule_within_envelope"]);
+        p["artifact_bindings"].as_array_mut().unwrap().push(artifact("verifier-001", "independent_verifier"));
+        p["artifact_bindings"].as_array_mut().unwrap().push(artifact("rollback-001", "rollback_plan"));
+        p["authority"]["independent_verifier_artifact_id"] = json!("verifier-001");
+        p["authority"]["rollback_plan_artifact_id"] = json!("rollback-001");
+        let issues = validate_profile(&p);
+        assert!(issues.is_empty(), "{issues:#?}");
+    }
+
+    #[test]
+    fn complete_d3_authority_bundle_passes_consistency() {
+        let mut p = make_qualified_d1();
+        p["decision_tier"] = json!("D3_autonomous_control");
+        p["authority"]["actuation_enabled"] = json!(true);
+        p["authority"]["permitted_actions"] = json!(["view", "execute_external_action"]);
+        let roles = [
+            ("verifier-001", "independent_verifier"),
+            ("rollback-001", "rollback_plan"),
+            ("safety-001", "safety_case"),
+            ("authorization-001", "operational_authorization"),
+            ("cyber-001", "cybersecurity_assessment")
+        ];
+        for (id, role) in roles {
+            p["artifact_bindings"].as_array_mut().unwrap().push(artifact(id, role));
+        }
+        p["authority"]["independent_verifier_artifact_id"] = json!("verifier-001");
+        p["authority"]["rollback_plan_artifact_id"] = json!("rollback-001");
+        p["authority"]["safety_case_artifact_id"] = json!("safety-001");
+        p["authority"]["operational_authorization_artifact_id"] = json!("authorization-001");
+        p["authority"]["cybersecurity_assessment_artifact_id"] = json!("cyber-001");
+        let issues = validate_profile(&p);
+        assert!(issues.is_empty(), "{issues:#?}");
+    }
+
+    #[test]
+    fn unqualified_d3_profile_remains_read_only() {
+        let mut p = fixture();
+        p["decision_tier"] = json!("D3_autonomous_control");
+        let issues = validate_profile(&p);
+        assert!(issues.is_empty(), "{issues:#?}");
+    }
+
 }
