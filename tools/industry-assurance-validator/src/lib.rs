@@ -77,12 +77,37 @@ fn is_hex(s: &str, len: usize) -> bool {
 // lexicographically comparable and reproducible across implementations.
 fn is_canonical_utc(s: &str) -> bool {
     let b = s.as_bytes();
-    b.len() == 20
-        && b[4] == b'-' && b[7] == b'-' && b[10] == b'T'
-        && b[13] == b':' && b[16] == b':' && b[19] == b'Z'
-        && b.iter().enumerate().all(|(i, c)| {
+    if b.len() != 20
+        || b[4] != b'-' || b[7] != b'-' || b[10] != b'T'
+        || b[13] != b':' || b[16] != b':' || b[19] != b'Z'
+        || !b.iter().enumerate().all(|(i, c)| {
             [4, 7, 10, 13, 16, 19].contains(&i) || c.is_ascii_digit()
         })
+    {
+        return false;
+    }
+    let component = |range: std::ops::Range<usize>| {
+        std::str::from_utf8(&b[range]).ok()?.parse::<u32>().ok()
+    };
+    let (Some(year), Some(month), Some(day), Some(hour), Some(minute), Some(second)) = (
+        component(0..4), component(5..7), component(8..10),
+        component(11..13), component(14..16), component(17..19)
+    ) else {
+        return false;
+    };
+    if year == 0 || !(1..=12).contains(&month) || !(0..=23).contains(&hour)
+        || minute > 59 || second > 59
+    {
+        return false;
+    }
+    let leap_year = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+    let days_in_month = match month {
+        2 if leap_year => 29,
+        2 => 28,
+        4 | 6 | 9 | 11 => 30,
+        _ => 31,
+    };
+    (1..=days_in_month).contains(&day)
 }
 
 fn validate_validity(profile: &Value, out: &mut Vec<ValidationIssue>) {
@@ -138,7 +163,7 @@ fn validate_artifacts<'a>(
         let source_uri = artifact.get("source_uri").and_then(Value::as_str);
         let content_sha256 = artifact.get("content_sha256").and_then(Value::as_str);
         let is_git_binding = repo.is_some() || commit.is_some() || blob.is_some() || file_path.is_some();
-        let is_external_binding = source_uri.is_some() || content_sha256.is_some();
+        let is_external_binding = source_uri.is_some() || (!is_git_binding && content_sha256.is_some());
 
         if is_git_binding {
             for (field, value) in [
@@ -789,6 +814,25 @@ mod tests {
         p["evidence_vector"]["physical_validation"]["requirement"] = json!("optional");
         let issues = validate_profile(&p);
         assert!(has_code(&issues, "TIER_MINIMUM_EVIDENCE_NOT_MET"));
+    }
+
+
+    #[test]
+    fn utc_timestamp_rejects_impossible_calendar_components() {
+        assert!(!is_canonical_utc("2026-99-30T23:59:59Z"));
+        assert!(!is_canonical_utc("2026-02-30T12:00:00Z"));
+        assert!(!is_canonical_utc("2026-10-30T25:00:00Z"));
+        assert!(is_canonical_utc("2024-02-29T23:59:59Z"));
+    }
+
+    #[test]
+    fn git_binding_may_carry_optional_content_sha256_without_external_uri() {
+        let mut p = make_qualified_d1();
+        let issues = validate_profile(&p);
+        assert!(issues.is_empty(), "{issues:#?}");
+        p["artifact_bindings"][0]["content_sha256"] = json!("dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd");
+        let second = validate_profile(&p);
+        assert!(second.is_empty(), "{second:#?}");
     }
 
 }
