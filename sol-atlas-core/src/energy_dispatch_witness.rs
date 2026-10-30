@@ -10,7 +10,7 @@
 //! remains the responsibility of the exact oracle plus independent audit.
 
 use crate::energy_dispatch::{
-    DispatchIntervalDecision, DispatchObjective, DispatchParetoAlternative,
+    DispatchIntervalDecision, DispatchObjective,
     EnergyDispatchAssessment, EnergyDispatchRequest,
 };
 use crate::energy_dispatch_policy::{
@@ -23,6 +23,7 @@ use sha2::{Digest, Sha256};
 use std::cmp::Ordering;
 
 pub const DECISION_WITNESS_SCHEMA_VERSION: &str = "energy-dispatch-decision-witness-v0.1";
+pub const WITNESS_CLAIM_CEILING: &str = "proves the selected alternative outranks every other member of the supplied frontier under the bound policy; does not prove frontier completeness, physical model validity, evidence authenticity, operational safety or dispatch authorization";
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
@@ -346,10 +347,7 @@ pub fn create_dispatch_decision_witness(
         selected_schedule_sha256: digest(&winner.schedule)?,
         stable_tie_break_applied,
         challenger_proofs,
-        claim_ceiling: concat!(
-            "proves the selected alternative outranks every other member of the supplied frontier under the bound policy; ",
-            "does not prove frontier completeness, physical model validity, evidence authenticity, operational safety or dispatch authorization"
-        ).to_owned(),
+        claim_ceiling: WITNESS_CLAIM_CEILING.to_owned(),
     })
 }
 
@@ -369,6 +367,9 @@ pub fn verify_dispatch_decision_witness(
     }
     if witness.schema_version != DECISION_WITNESS_SCHEMA_VERSION {
         errors.push("unsupported decision witness schema version".to_owned());
+    }
+    if witness.claim_ceiling != WITNESS_CLAIM_CEILING {
+        errors.push("witness claim ceiling was modified".to_owned());
     }
     if witness.policy_id != policy.policy_id {
         errors.push("witness policy ID does not match policy".to_owned());
@@ -527,6 +528,19 @@ mod tests {
     }
 
     #[test]
+    fn serialized_witness_round_trips_and_still_verifies() {
+        let (request, assessment) = fixture();
+        let policy = DispatchSelectionPolicy::critical_service_first_v1();
+        let witness = create_dispatch_decision_witness(&policy, &request, &assessment)
+            .expect("selection witness generated");
+        let bytes = serde_json::to_vec(&witness).expect("witness serializes");
+        let decoded: DispatchDecisionWitness =
+            serde_json::from_slice(&bytes).expect("witness deserializes strictly");
+        verify_dispatch_decision_witness(&policy, &request, &assessment, &decoded)
+            .expect("round-tripped witness verifies");
+    }
+
+    #[test]
     fn verifier_rejects_missing_challenger_evidence() {
         let (request, assessment) = fixture();
         let policy = DispatchSelectionPolicy::critical_service_first_v1();
@@ -547,7 +561,13 @@ mod tests {
         let proof = witness.challenger_proofs.iter_mut().find(|proof| {
             matches!(&proof.basis, ChallengerProofBasis::FirstDifferingObjectiveTier { .. })
         }).expect("fixture has a challenger separated by an objective tier");
-        proof.basis = ChallengerProofBasis::FirstDifferingObjectiveTier { tier_index: 5 };
+        let original_tier = match proof.basis {
+            ChallengerProofBasis::FirstDifferingObjectiveTier { tier_index } => tier_index,
+            ChallengerProofBasis::StableScheduleTieBreakV1 => unreachable!("the search filters for an objective-tier proof"),
+        };
+        proof.basis = ChallengerProofBasis::FirstDifferingObjectiveTier {
+            tier_index: (original_tier + 1) % policy.objective_tiers.len(),
+        };
         let errors = verify_dispatch_decision_witness(&policy, &request, &assessment, &witness)
             .expect_err("wrong decisive tier is rejected");
         assert!(errors.iter().any(|error| error.contains("first decisive tier")));
