@@ -70,7 +70,8 @@
           "additionalProperties": false,
           "required": [
             "value",
-            "unit"
+            "unit",
+            "uncertainty_abs"
           ],
           "properties": {
             "value": {
@@ -83,7 +84,8 @@
             },
             "uncertainty_abs": {
               "type": "number",
-              "minimum": 0
+              "minimum": 0,
+              "description": "Required explicit absolute uncertainty bound; use 0 for an explicitly exact point assumption, not null/omission."
             }
           }
         },

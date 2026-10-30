@@ -68,6 +68,8 @@ pub struct TelecomSitePowerAutonomyAssessment {
     pub site_id: String,
     pub as_of: String,
     pub outage_horizon_hours: f64,
+    pub usable_energy_measurement_point: UsableEnergyMeasurementPoint,
+    pub radio_load_measurement_point: RadioLoadMeasurementPoint,
     pub usable_backup_energy_lower_kwh: f64,
     pub usable_backup_energy_upper_kwh: f64,
     pub radio_equipment_load_lower_kw: f64,
@@ -92,6 +94,8 @@ pub enum TelecomSitePowerAutonomyValidationError {
     UsableEnergyUnitMismatch,
     RadioLoadUnitMismatch,
     NegativeUsableEnergyLowerBound,
+    MissingUsableEnergyUncertainty,
+    MissingRadioLoadUncertainty,
     NonPositiveRadioLoadLowerBound,
     NonFiniteDerivedValue,
 }
@@ -170,17 +174,18 @@ pub fn assess_telecom_site_power_autonomy(
     }
 
     let energy_value = scenario.usable_backup_energy.quantity.value;
-    let energy_uncertainty = scenario
-        .usable_backup_energy
-        .quantity
-        .uncertainty_abs
-        .unwrap_or(0.0);
+    let Some(energy_uncertainty) = scenario.usable_backup_energy.quantity.uncertainty_abs
+    else {
+        return Err(TelecomSitePowerAutonomyError::InvalidInput(vec![
+            TelecomSitePowerAutonomyValidationError::MissingUsableEnergyUncertainty,
+        ]));
+    };
     let load_value = scenario.radio_equipment_load.quantity.value;
-    let load_uncertainty = scenario
-        .radio_equipment_load
-        .quantity
-        .uncertainty_abs
-        .unwrap_or(0.0);
+    let Some(load_uncertainty) = scenario.radio_equipment_load.quantity.uncertainty_abs else {
+        return Err(TelecomSitePowerAutonomyError::InvalidInput(vec![
+            TelecomSitePowerAutonomyValidationError::MissingRadioLoadUncertainty,
+        ]));
+    };
 
     let energy_lower = energy_value - energy_uncertainty;
     let energy_upper = energy_value + energy_uncertainty;
@@ -233,6 +238,8 @@ pub fn assess_telecom_site_power_autonomy(
         site_id: scenario.site_id.clone(),
         as_of: scenario.as_of.clone(),
         outage_horizon_hours: scenario.outage_horizon_hours,
+        usable_energy_measurement_point: scenario.usable_energy_measurement_point,
+        radio_load_measurement_point: scenario.radio_load_measurement_point,
         usable_backup_energy_lower_kwh: energy_lower,
         usable_backup_energy_upper_kwh: energy_upper,
         radio_equipment_load_lower_kw: load_lower,
@@ -271,7 +278,13 @@ mod tests {
         }
     }
 
-    fn scenario(energy: f64, energy_uncertainty: Option<f64>, load: f64, load_uncertainty: Option<f64>, horizon: f64) -> TelecomSitePowerAutonomyScenario {
+    fn scenario(
+        energy: f64,
+        energy_uncertainty: Option<f64>,
+        load: f64,
+        load_uncertainty: Option<f64>,
+        horizon: f64,
+    ) -> TelecomSitePowerAutonomyScenario {
         TelecomSitePowerAutonomyScenario {
             schema_version: TELECOM_POWER_AUTONOMY_SCHEMA_VERSION.to_owned(),
             id: "scenario-001".to_owned(),
@@ -279,7 +292,8 @@ mod tests {
             site_id: "site-001".to_owned(),
             outage_horizon_hours: horizon,
             usable_energy_measurement_point: UsableEnergyMeasurementPoint::BatteryOutputTerminals,
-            radio_load_measurement_point: RadioLoadMeasurementPoint::RadioAccessEquipmentInputTerminals,
+            radio_load_measurement_point:
+                RadioLoadMeasurementPoint::RadioAccessEquipmentInputTerminals,
             usable_backup_energy: measurement(energy, energy_uncertainty, "kWh"),
             radio_equipment_load: measurement(load, load_uncertainty, "kW"),
         }
@@ -303,7 +317,11 @@ mod tests {
 
     #[test]
     fn point_interval_sufficiently_covers_outage_horizon() {
-        let result = assess_telecom_site_power_autonomy(&scenario(12.0, None, 2.0, None, 5.0), &[]).unwrap();
+        let result = assess_telecom_site_power_autonomy(
+            &scenario(12.0, Some(0.0), 2.0, Some(0.0), 5.0),
+            &[],
+        )
+        .unwrap();
         assert_eq!(result.autonomy_lower_hours, 6.0);
         assert_eq!(result.autonomy_upper_hours, 6.0);
         assert_eq!(result.status, TelecomPowerAutonomyStatus::Sufficient);
@@ -311,7 +329,11 @@ mod tests {
 
     #[test]
     fn point_interval_insufficient_for_outage_horizon() {
-        let result = assess_telecom_site_power_autonomy(&scenario(4.0, None, 2.0, None, 3.0), &[]).unwrap();
+        let result = assess_telecom_site_power_autonomy(
+            &scenario(4.0, Some(0.0), 2.0, Some(0.0), 3.0),
+            &[],
+        )
+        .unwrap();
         assert_eq!(result.autonomy_lower_hours, 2.0);
         assert_eq!(result.autonomy_upper_hours, 2.0);
         assert_eq!(result.status, TelecomPowerAutonomyStatus::Insufficient);
@@ -319,7 +341,11 @@ mod tests {
 
     #[test]
     fn overlapping_autonomy_interval_is_indeterminate() {
-        let result = assess_telecom_site_power_autonomy(&scenario(5.0, Some(1.0), 2.0, Some(0.5), 3.0), &[]).unwrap();
+        let result = assess_telecom_site_power_autonomy(
+            &scenario(5.0, Some(1.0), 2.0, Some(0.5), 3.0),
+            &[],
+        )
+        .unwrap();
         assert_eq!(result.autonomy_lower_hours, 4.0 / 2.5);
         assert_eq!(result.autonomy_upper_hours, 6.0 / 1.5);
         assert_eq!(result.status, TelecomPowerAutonomyStatus::Indeterminate);
@@ -327,7 +353,11 @@ mod tests {
 
     #[test]
     fn zero_usable_energy_is_insufficient_not_a_validation_error() {
-        let result = assess_telecom_site_power_autonomy(&scenario(0.0, None, 2.0, None, 1.0), &[]).unwrap();
+        let result = assess_telecom_site_power_autonomy(
+            &scenario(0.0, Some(0.0), 2.0, Some(0.0), 1.0),
+            &[],
+        )
+        .unwrap();
         assert_eq!(result.autonomy_lower_hours, 0.0);
         assert_eq!(result.autonomy_upper_hours, 0.0);
         assert_eq!(result.status, TelecomPowerAutonomyStatus::Insufficient);
@@ -335,25 +365,32 @@ mod tests {
 
     #[test]
     fn lower_load_bound_must_be_positive() {
-        let err = assess_telecom_site_power_autonomy(&scenario(5.0, None, 1.0, Some(1.0), 2.0), &[]);
+        let err = assess_telecom_site_power_autonomy(
+            &scenario(5.0, Some(0.0), 1.0, Some(1.0), 2.0),
+            &[],
+        );
         assert!(matches!(
             err,
             Err(TelecomSitePowerAutonomyError::InvalidInput(errors))
-                if errors.contains(&TelecomSitePowerAutonomyValidationError::NonPositiveRadioLoadLowerBound)
+                if errors.contains(
+                    &TelecomSitePowerAutonomyValidationError::NonPositiveRadioLoadLowerBound
+                )
         ));
     }
 
     #[test]
     fn usable_energy_and_load_units_are_exact_and_explicit() {
-        let mut wrong_energy = scenario(5.0, None, 1.0, None, 2.0);
+        let mut wrong_energy = scenario(5.0, Some(0.0), 1.0, Some(0.0), 2.0);
         wrong_energy.usable_backup_energy.quantity.unit = "Wh".to_owned();
         assert!(matches!(
             assess_telecom_site_power_autonomy(&wrong_energy, &[]),
             Err(TelecomSitePowerAutonomyError::InvalidInput(errors))
-                if errors.contains(&TelecomSitePowerAutonomyValidationError::UsableEnergyUnitMismatch)
+                if errors.contains(
+                    &TelecomSitePowerAutonomyValidationError::UsableEnergyUnitMismatch
+                )
         ));
 
-        let mut wrong_load = scenario(5.0, None, 1.0, None, 2.0);
+        let mut wrong_load = scenario(5.0, Some(0.0), 1.0, Some(0.0), 2.0);
         wrong_load.radio_equipment_load.quantity.unit = "W".to_owned();
         assert!(matches!(
             assess_telecom_site_power_autonomy(&wrong_load, &[]),
@@ -364,12 +401,14 @@ mod tests {
 
     #[test]
     fn mismatched_measurement_entity_is_rejected() {
-        let mut input = scenario(5.0, None, 1.0, None, 2.0);
+        let mut input = scenario(5.0, Some(0.0), 1.0, Some(0.0), 2.0);
         input.radio_equipment_load.entity_id = "feeder-01".to_owned();
         assert!(matches!(
             assess_telecom_site_power_autonomy(&input, &[]),
             Err(TelecomSitePowerAutonomyError::InvalidInput(errors))
-                if errors.contains(&TelecomSitePowerAutonomyValidationError::MeasurementEntityMismatch)
+                if errors.contains(
+                    &TelecomSitePowerAutonomyValidationError::MeasurementEntityMismatch
+                )
         ));
     }
 
@@ -382,7 +421,7 @@ mod tests {
                 if errors.contains(&TelecomSitePowerAutonomyValidationError::InvalidOutageHorizon)
         ));
 
-        zero_horizon = scenario(5.0, None, 1.0, None, 2.0);
+        zero_horizon = scenario(5.0, Some(0.0), 1.0, Some(0.0), 2.0);
         zero_horizon.as_of = "2026-10-30T10:00:00+02:00".to_owned();
         assert!(matches!(
             assess_telecom_site_power_autonomy(&zero_horizon, &[]),
@@ -393,41 +432,72 @@ mod tests {
 
     #[test]
     fn negative_energy_lower_bound_is_rejected_not_clamped() {
-        let err = assess_telecom_site_power_autonomy(&scenario(1.0, Some(2.0), 1.0, None, 1.0), &[]);
+        let err = assess_telecom_site_power_autonomy(
+            &scenario(1.0, Some(2.0), 1.0, None, 1.0),
+            &[],
+        );
         assert!(matches!(
             err,
             Err(TelecomSitePowerAutonomyError::InvalidInput(errors))
-                if errors.contains(&TelecomSitePowerAutonomyValidationError::NegativeUsableEnergyLowerBound)
+                if errors.contains(
+                    &TelecomSitePowerAutonomyValidationError::NegativeUsableEnergyLowerBound
+                )
+        ));
+    }
+
+    #[test]
+    fn missing_uncertainty_is_rejected_instead_of_assumed_zero() {
+        let mut missing_energy = scenario(5.0, Some(0.0), 1.0, Some(0.0), 2.0);
+        missing_energy.usable_backup_energy.quantity.uncertainty_abs = None;
+        assert!(matches!(
+            assess_telecom_site_power_autonomy(&missing_energy, &[]),
+            Err(TelecomSitePowerAutonomyError::InvalidInput(errors))
+                if errors.contains(&TelecomSitePowerAutonomyValidationError::MissingUsableEnergyUncertainty)
+        ));
+
+        let mut missing_load = scenario(5.0, Some(0.0), 1.0, Some(0.0), 2.0);
+        missing_load.radio_equipment_load.quantity.uncertainty_abs = None;
+        assert!(matches!(
+            assess_telecom_site_power_autonomy(&missing_load, &[]),
+            Err(TelecomSitePowerAutonomyError::InvalidInput(errors))
+                if errors.contains(&TelecomSitePowerAutonomyValidationError::MissingRadioLoadUncertainty)
         ));
     }
 
     #[test]
     fn observed_measurement_requires_shared_evidence_reference() {
-        let mut input = scenario(5.0, None, 1.0, None, 2.0);
+        let mut input = scenario(5.0, Some(0.0), 1.0, Some(0.0), 2.0);
         input.usable_backup_energy.basis = ScenarioBasis::Observed;
         assert!(matches!(
             assess_telecom_site_power_autonomy(&input, &[]),
             Err(TelecomSitePowerAutonomyError::Measurement(
                 ServiceFunctionAssessmentError::InvalidInput(errors)
-            )) if errors.contains(&ServiceFunctionValidationError::MissingEvidenceForObservedMeasurement)
+            )) if errors.contains(
+                &ServiceFunctionValidationError::MissingEvidenceForObservedMeasurement
+            )
         ));
     }
 
     #[test]
     fn assumed_measurement_cannot_smuggle_evidence_ids() {
-        let mut input = scenario(5.0, None, 1.0, None, 2.0);
+        let mut input = scenario(5.0, Some(0.0), 1.0, Some(0.0), 2.0);
         input.radio_equipment_load.supporting_evidence_ids = vec!["unverified-id".to_owned()];
         assert!(matches!(
             assess_telecom_site_power_autonomy(&input, &[]),
             Err(TelecomSitePowerAutonomyError::Measurement(
                 ServiceFunctionAssessmentError::InvalidInput(errors)
-            )) if errors.contains(&ServiceFunctionValidationError::EvidenceForbiddenForAssumedMeasurement)
+            )) if errors.contains(
+                &ServiceFunctionValidationError::EvidenceForbiddenForAssumedMeasurement
+            )
         ));
     }
 
     #[test]
     fn overflowed_autonomy_interval_is_rejected() {
-        let err = assess_telecom_site_power_autonomy(&scenario(1.0e308, None, 1.0e-308, None, 1.0), &[]);
+        let err = assess_telecom_site_power_autonomy(
+            &scenario(1.0e308, Some(0.0), 1.0e-308, Some(0.0), 1.0),
+            &[],
+        );
         assert!(matches!(
             err,
             Err(TelecomSitePowerAutonomyError::InvalidInput(errors))
