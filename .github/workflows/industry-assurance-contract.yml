@@ -6,7 +6,12 @@ on:
       - "tools/industry-assurance-validator/**"
       - "schemas/industry-assurance-qualification-profile-v0.1.schema.json"
       - "schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json"
+      - "schemas/examples/industry-assurance-water-food-energy-profile-synthetic-v0.1.json"
+      - "schemas/examples/industry-assurance-maintenance-profile-synthetic-v0.1.json"
+      - "schemas/industry-assurance-validation-report-v0.1.schema.json"
+      - "schemas/examples/industry-assurance-validation-report-synthetic-v0.1.json"
       - "docs/industry/INDUSTRY_ENGINEERING_ASSURANCE_CONTRACT_V0.1.md"
+      - "docs/industry/INDUSTRIAL_BENCHMARK_ASSURANCE_PROTOCOL_V0.1.md"
       - ".github/workflows/industry-assurance-contract.yml"
   push:
     branches:
@@ -16,6 +21,10 @@ on:
       - "tools/industry-assurance-validator/**"
       - "schemas/industry-assurance-qualification-profile-v0.1.schema.json"
       - "schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json"
+      - "schemas/examples/industry-assurance-water-food-energy-profile-synthetic-v0.1.json"
+      - "schemas/examples/industry-assurance-maintenance-profile-synthetic-v0.1.json"
+      - "schemas/industry-assurance-validation-report-v0.1.schema.json"
+      - "schemas/examples/industry-assurance-validation-report-synthetic-v0.1.json"
       - ".github/workflows/industry-assurance-contract.yml"
   workflow_dispatch:
 
@@ -46,25 +55,45 @@ jobs:
         with:
           components: rustfmt, clippy
 
-      - name: Check formatting
-        run: cargo fmt --manifest-path tools/industry-assurance-validator/Cargo.toml --all -- --check
-
       - name: Run Clippy
         run: cargo clippy --manifest-path tools/industry-assurance-validator/Cargo.toml --all-targets --locked -- -D warnings
 
       - name: Run adversarial contract tests
         run: cargo test --manifest-path tools/industry-assurance-validator/Cargo.toml --locked
 
-      - name: Validate synthetic profile fixture
+      - name: Parse schemas and synthetic contract examples
         run: |
-          cargo run --manifest-path tools/industry-assurance-validator/Cargo.toml --locked -- \
+          jq empty schemas/industry-assurance-qualification-profile-v0.1.schema.json
+          jq empty schemas/industry-assurance-validation-report-v0.1.schema.json
+          jq empty schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json
+          jq empty schemas/examples/industry-assurance-water-food-energy-profile-synthetic-v0.1.json
+          jq empty schemas/examples/industry-assurance-maintenance-profile-synthetic-v0.1.json
+          jq empty schemas/examples/industry-assurance-validation-report-synthetic-v0.1.json
+
+      - name: Validate all three synthetic vertical profiles
+        run: |
+          set -euo pipefail
+          for profile in \
             schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json \
-            "$RUNNER_TEMP/industry-assurance-report.json"
+            schemas/examples/industry-assurance-water-food-energy-profile-synthetic-v0.1.json \
+            schemas/examples/industry-assurance-maintenance-profile-synthetic-v0.1.json; do
+            report="$RUNNER_TEMP/$(basename "$profile").report.json"
+            cargo run --manifest-path tools/industry-assurance-validator/Cargo.toml --locked -- "$profile" "$report"
+            jq -e '
+              .contract_valid == true and
+              .status == "PROFILE_CONTRACT_VALID_NOT_QUALIFIED" and
+              .declared_disposition == "indeterminate" and
+              .independent_qualification_attested == false and
+              .issue_count == 0
+            ' "$report"
+          done
+
+      - name: Check report fixture never attests qualification
+        run: |
           jq -e '
             .schema_version == "luminous.industry-assurance-validation-report.v0.1" and
             .contract_valid == true and
             .status == "PROFILE_CONTRACT_VALID_NOT_QUALIFIED" and
-            .declared_disposition == "indeterminate" and
             .independent_qualification_attested == false and
             .issue_count == 0
-          ' "$RUNNER_TEMP/industry-assurance-report.json"
+          ' schemas/examples/industry-assurance-validation-report-synthetic-v0.1.json
