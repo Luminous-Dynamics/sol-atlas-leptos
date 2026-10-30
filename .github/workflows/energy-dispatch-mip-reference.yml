@@ -53,6 +53,41 @@ jobs:
           test "$(find target/energy-dispatch-mip-reference -maxdepth 1 -name '*.lp' | wc -l)" -eq 12
           test -s target/energy-dispatch-mip-reference/manifest.json
 
+      - name: Download checksum-pinned SCIP 10.1.0 exact-solver release
+        run: |
+          curl --fail --location --retry 3 \
+            https://github.com/scipopt/scip/releases/download/v10.1.0/scipoptsuite-10.1.0-glibc2_34-amd64.tgz \
+            --output /tmp/scipoptsuite-10.1.0.tgz
+          echo "40cd290767af04f9f8af925cde538460e00b8cc7434a74e63018b3dd94e8d62c  /tmp/scipoptsuite-10.1.0.tgz" | sha256sum --check
+          mkdir -p /tmp/scipoptsuite
+          tar -xzf /tmp/scipoptsuite-10.1.0.tgz -C /tmp/scipoptsuite
+
+      - name: Solve every emitted objective model in SCIP exact mode
+        run: |
+          SCIP_BIN="$(find /tmp/scipoptsuite -type f -name scip -perm /111 | head -n 1)"
+          test -n "$SCIP_BIN"
+          mkdir -p target/energy-dispatch-mip-reference/scip-logs
+          "$SCIP_BIN" -c "display version" -c "quit" \
+            > target/energy-dispatch-mip-reference/scip-version.txt 2>&1
+          printf 'model,exact_status,objective_value\\n' \
+            > target/energy-dispatch-mip-reference/scip-results.csv
+          for model in target/energy-dispatch-mip-reference/*.lp; do
+            name="$(basename "$model")"
+            log="target/energy-dispatch-mip-reference/scip-logs/$name.log"
+            timeout 180s "$SCIP_BIN" \
+              -c "set exact enable TRUE" \
+              -c "read $model" \
+              -c "optimize" \
+              -c "quit" > "$log" 2>&1
+            grep -Eiq "optimal solution found" "$log"
+            value="$(grep -E 'objective value:' "$log" | tail -n 1 | sed 's/.*objective value:[[:space:]]*//')"
+            test -n "$value"
+            printf '%s,optimal_exact,%s\\n' "$name" "$value" \
+              >> target/energy-dispatch-mip-reference/scip-results.csv
+          done
+          test "$(wc -l < target/energy-dispatch-mip-reference/scip-results.csv)" -eq 13
+          cat target/energy-dispatch-mip-reference/scip-results.csv
+
       - name: Publish LP models, manifest, lockfile and formatted source
         if: always()
         uses: actions/upload-artifact@v4
