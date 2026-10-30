@@ -588,8 +588,8 @@ mod tests {
     fn caller_controlled_text_never_enters_the_solver_language() {
         let original=std::str::from_utf8(FIXTURE).unwrap();
         let changed=original.replace(
-            r#""case_id": "synthetic-pv-outage""#,
-            r#""case_id": "safe\\nMinimize\\n hijack: 0""#
+            r#""case_id": "synthetic-pv-charge-outage""#,
+            r#""case_id": "safe\nMinimize\n hijack: 0""#
         );
         let (_,files)=build_model_set(changed.as_bytes()).expect("JSON case ID remains valid");
         for (_,lp) in files {
