@@ -293,7 +293,7 @@ pub fn emit_lp(
         return Err(ModelError("source_sha256 must be a 64-character hexadecimal digest".to_owned()));
     }
     let mut output = String::new();
-    let _ = writeln!(output, "\\\\ Energy dispatch independent MILP reference v0.1");
+    let _ = writeln!(output, "\\ Energy dispatch independent MILP reference v0.1");
     let _ = writeln!(output, "\\\\ case_id={} source_sha256={}", request.case_id, source_sha256);
     let _ = writeln!(output, "\\\\ model_schema={} objective={} direction={}", MODEL_SCHEMA_VERSION, objective.as_str(), direction.as_str());
     write_line(&mut output, if direction == Direction::Minimize { "Minimize" } else { "Maximize" });
@@ -553,6 +553,22 @@ mod tests {
     }
 
     #[test]
+    fn non_unit_efficiency_uses_exact_floor_quotient_bounds() {
+        let original=std::str::from_utf8(FIXTURE).unwrap();
+        let changed=original
+            .replace("\\"charge_efficiency_numerator\\": 1","\\"charge_efficiency_numerator\\": 3")
+            .replace("\\"charge_efficiency_denominator\\": 1","\\"charge_efficiency_denominator\\": 4")
+            .replace("\\"discharge_efficiency_numerator\\": 1","\\"discharge_efficiency_numerator\\": 2")
+            .replace("\\"discharge_efficiency_denominator\\": 1","\\"discharge_efficiency_denominator\\": 3");
+        let (_,files)=build_model_set(changed.as_bytes()).expect("valid rational efficiencies");
+        let lp=&files[0].1;
+        assert!(lp.contains("4 charge_gain_000 - 3 charge_input_000 <= 0"));
+        assert!(lp.contains("3 charge_input_000 - 4 charge_gain_000 <= 3"));
+        assert!(lp.contains("3 discharge_delivered_001 - 2 soc_withdrawal_001 <= 0"));
+        assert!(lp.contains("2 soc_withdrawal_001 - 3 discharge_delivered_001 <= 2"));
+    }
+
+    #[test]
     fn deterministic_model_set_preserves_exact_request_identity() {
         let first=build_model_set(FIXTURE).expect("first build");
         let second=build_model_set(FIXTURE).expect("second build");
@@ -569,7 +585,9 @@ mod tests {
         );
         assert!(build_model_set(bad_ratio.as_bytes()).is_err());
 
-        let bad_unknown=format!("{}{}",original.trim_end_matches('}'),",\\"unknown\\":true}");
+        let trimmed=original.trim_end();
+        let close=trimmed.rfind('}').expect("fixture JSON has closing object");
+        let bad_unknown=format!("{}{}", &trimmed[..close], ",\\"unknown\\":true}");
         assert!(build_model_set(bad_unknown.as_bytes()).is_err());
     }
 }
