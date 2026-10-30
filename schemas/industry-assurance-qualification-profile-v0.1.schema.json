@@ -370,8 +370,9 @@
           "repository",
           "commit_sha",
           "path",
-          "blob_sha256",
-          "evidence_class"
+          "git_blob_sha",
+          "evidence_class",
+          "rights_state"
         ],
         "properties": {
           "artifact_id": {
@@ -397,10 +398,6 @@
             "minLength": 1,
             "maxLength": 1024
           },
-          "blob_sha256": {
-            "type": "string",
-            "pattern": "^[a-f0-9]{40,64}$"
-          },
           "evidence_class": {
             "enum": [
               "synthetic",
@@ -424,6 +421,14 @@
           "notes": {
             "type": "string",
             "maxLength": 1000
+          },
+          "git_blob_sha": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{40}$"
+          },
+          "content_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
           }
         }
       },
