@@ -232,3 +232,19 @@ For the RF and packet-level lanes, superiority requires matched ITU/5G-LENA/Colo
 ## 14. Decision
 
 Proceed with the topology + backup-energy + protected-service-floor v0.1 as the first implementation target. Defer detailed RF, RAN, billing and operator-automation features until the relevant reference engines, permitted data and assurance needs are explicit.
+
+## 15. South African baseline update (ICASA March 2026)
+
+The ICASA *State of the ICT Sector Report of South Africa* (31 March 2026) records 2025 national population coverage of **99.50% for 4G/LTE** and **58.02% for 5G**. Its rural population coverage table reports 5G coverage by province as: Eastern Cape 7%, Free State 25%, Gauteng 74%, KwaZulu-Natal 15%, Limpopo 29%, Mpumalanga 63%, North West 16%, Northern Cape 13%, and Western Cape 34%.
+
+The report defines rural coverage as inhabitants within range of a mobile-cellular signal. This is not proof of indoor service, capacity under load, backhaul availability, end-user throughput, voice retainability or service during a power outage. Keep those separate in the data model.
+
+The same report records 2025 licensee expenditure of approximately **R387.7 million on batteries** and **R426.8 million on generators**, compared with approximately R173.8 million and R211.5 million respectively in 2024. This establishes that backup-power expenditure is a material industry concern. It does not establish the number of functioning backup systems, their autonomy, fuel availability, service uptime, or causal effect on outages.
+
+The DBSA *Digital Infrastructure Investment Study 2025* separately reports 5G access in only 4.3% of deep-rural areas in its analysis. This is a different study, population/geographic definition and methodology from ICASA's province-level rural population coverage table. Preserve the source and denominator and do not calculate a direct delta between the two figures.
+
+These indicators strengthen the reason to test an operator-neutral resilience-planning use case: identify the sites and communities where power, backhaul and service demand jointly create the greatest continuity risk, and evaluate transparent interventions before committing capital. They do not justify claiming that Sol-Atlas can independently map actual 5G coverage or predict real site uptime.
+
+Sources:
+- ICASA, *The State of the ICT Sector Report of South Africa*, March 2026, sections 4.4 and 4.5: https://www.icasa.org.za/uploads/files/The-State-of-the-ICT-Sector-Report-of-South-Africa-31-March-2026.pdf
+- DBSA, *South Africa's Digital Infrastructure Investment Study 2025*, section 5.4: https://www.dbsa.org/sites/default/files/media/documents/2026-03/South%20Africa%27s%20Digital%20Infrastructure%20Investment%20Study%202025.pdf
