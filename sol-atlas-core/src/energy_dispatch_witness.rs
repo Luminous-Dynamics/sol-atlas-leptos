@@ -561,8 +561,8 @@ mod tests {
         let proof = witness.challenger_proofs.iter_mut().find(|proof| {
             matches!(&proof.basis, ChallengerProofBasis::FirstDifferingObjectiveTier { .. })
         }).expect("fixture has a challenger separated by an objective tier");
-        let original_tier = match proof.basis {
-            ChallengerProofBasis::FirstDifferingObjectiveTier { tier_index } => tier_index,
+        let original_tier = match &proof.basis {
+            ChallengerProofBasis::FirstDifferingObjectiveTier { tier_index } => *tier_index,
             ChallengerProofBasis::StableScheduleTieBreakV1 => unreachable!("the search filters for an objective-tier proof"),
         };
         proof.basis = ChallengerProofBasis::FirstDifferingObjectiveTier {
