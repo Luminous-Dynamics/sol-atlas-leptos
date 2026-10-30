@@ -297,6 +297,7 @@ pub fn emit_lp(
         return Err(ModelError("source_sha256 must be a 64-character hexadecimal digest".to_owned()));
     }
     let mut output = String::new();
+    let mut bounds = String::new();
     let _ = writeln!(output, "\\ Energy dispatch independent MILP reference v0.1");
     let _ = writeln!(output, "\\\\ source_sha256={}", source_sha256);
     let _ = writeln!(output, "\\\\ model_schema={} objective={} direction={}", MODEL_SCHEMA_VERSION, objective.as_str(), direction.as_str());
@@ -450,9 +451,12 @@ pub fn emit_lp(
             (&pv,u64::from(input.pv_available_quanta)),
             (&curtailed,u64::from(input.pv_available_quanta)),
         ] {
-            append_bound(&mut output,name,max);
+            append_bound(&mut bounds,name,max);
         }
     }
+
+    write_line(&mut output, "Bounds");
+    output.push_str(&bounds);
 
     let last = request.intervals.len()-1;
     append_constraint(
@@ -558,6 +562,10 @@ mod tests {
         let lp=&files[0].1;
         assert!(lp.contains("0 <= grid_import_001 <= 0"));
         assert!(lp.contains("terminal_reserve: 1 soc_after_001 >= 0"));
+        assert!(lp.contains("\\nBounds\\n"));
+        assert!(lp.contains("0 <= grid_import_001 <= 0"));
+        let subject_to = lp.split("Subject To").nth(1).and_then(|part| part.split("Bounds").next()).unwrap();
+        assert!(!subject_to.contains("0 <= grid_import_001"));
     }
 
     #[test]
