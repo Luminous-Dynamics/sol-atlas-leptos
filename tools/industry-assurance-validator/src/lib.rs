@@ -184,12 +184,11 @@ fn validate_artifacts<'a>(
         } else if !is_git_binding {
             issue(out, "UNPINNED_ARTIFACT", &path, "Artifact requires either a Git repository pin or an external URI plus SHA-256.");
         }
-        if !is_git_binding && is_external_binding && content_sha256.map(|v| is_hex(v, 64)) != Some(true) {
-            // The external-binding error above is intentionally repeated only once by code and path.
-        }
-        if let Some(content) = content_sha256 {
-            if !is_hex(content, 64) {
-                issue(out, "INVALID_CONTENT_SHA256", format!("{path}/content_sha256"), "Expected a 64-character SHA-256 digest.");
+        if !is_external_binding {
+            if let Some(content) = content_sha256 {
+                if !is_hex(content, 64) {
+                    issue(out, "INVALID_CONTENT_SHA256", format!("{path}/content_sha256"), "Expected a 64-character SHA-256 digest.");
+                }
             }
         }
         if let Some(rights) = rights {
