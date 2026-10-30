@@ -580,6 +580,7 @@ mod tests {
         assert!(matches!(
             select_dispatch_alternative(
                 &DispatchSelectionPolicy::critical_service_first_v1(),
+                &_request,
                 &assessment
             ),
             Err(DispatchSelectionError::FrontierCountMismatch { .. })
@@ -612,4 +613,68 @@ mod tests {
         verify_dispatch_schedule(&request, &selection.selected_schedule)
             .expect("independent verifier must accept the selected schedule");
     }
+    #[test]
+    fn selector_rejects_a_forged_objective_vector() {
+        let (request, mut assessment) = frozen_assessment();
+        assessment.pareto_alternatives[0].objective.operating_cost_units =
+            assessment.pareto_alternatives[0].objective.operating_cost_units.saturating_add(1);
+        assert!(matches!(
+            select_dispatch_alternative(
+                &DispatchSelectionPolicy::critical_service_first_v1(),
+                &request,
+                &assessment
+            ),
+            Err(DispatchSelectionError::ObjectiveDoesNotMatchSchedule { index: 0 })
+        ));
+    }
+
+    #[test]
+    fn selector_rejects_schedule_mutation_even_when_objective_is_unchanged() {
+        let (request, mut assessment) = frozen_assessment();
+        assessment.pareto_alternatives[0].schedule[0].grid_import_quanta =
+            assessment.pareto_alternatives[0].schedule[0].grid_import_quanta.saturating_add(1);
+        assert!(matches!(
+            select_dispatch_alternative(
+                &DispatchSelectionPolicy::critical_service_first_v1(),
+                &request,
+                &assessment
+            ),
+            Err(DispatchSelectionError::ScheduleVerificationFailed { index: 0, .. })
+        ));
+    }
+
+    #[test]
+    fn selector_rejects_a_frontier_bound_to_another_case() {
+        let (request, mut assessment) = frozen_assessment();
+        assessment.case_id = "different-case".to_owned();
+        assert!(matches!(
+            select_dispatch_alternative(
+                &DispatchSelectionPolicy::critical_service_first_v1(),
+                &request,
+                &assessment
+            ),
+            Err(DispatchSelectionError::CaseIdMismatch { .. })
+        ));
+    }
+
+    #[test]
+    fn selector_rejects_duplicate_objective_vectors_in_frontier() {
+        let (request, mut assessment) = frozen_assessment();
+        let first = assessment.pareto_alternatives[0].clone();
+        assessment.pareto_alternatives = vec![first.clone(), first];
+        assessment.pareto_frontier_count = 2;
+        assert!(matches!(
+            select_dispatch_alternative(
+                &DispatchSelectionPolicy::critical_service_first_v1(),
+                &request,
+                &assessment
+            ),
+            Err(DispatchSelectionError::FrontierContainsDominatedAlternative {
+                dominated: 1,
+                dominator: 0
+            })
+        ));
+    }
+
+
 }
