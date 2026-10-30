@@ -368,10 +368,6 @@
         "required": [
           "artifact_id",
           "role",
-          "repository",
-          "commit_sha",
-          "path",
-          "git_blob_sha",
           "evidence_class",
           "rights_state"
         ],
@@ -430,8 +426,30 @@
           "content_sha256": {
             "type": "string",
             "pattern": "^[a-f0-9]{64}$"
+          },
+          "source_uri": {
+            "type": "string",
+            "format": "uri",
+            "minLength": 1,
+            "maxLength": 2048
           }
-        }
+        },
+        "anyOf": [
+          {
+            "required": [
+              "repository",
+              "commit_sha",
+              "path",
+              "git_blob_sha"
+            ]
+          },
+          {
+            "required": [
+              "source_uri",
+              "content_sha256"
+            ]
+          }
+        ]
       },
       "uniqueItems": true
     },
@@ -1377,6 +1395,31 @@
           "evidence_vector",
           "artifact_bindings"
         ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "disposition": {
+            "const": "qualified_for_profile"
+          }
+        },
+        "required": [
+          "disposition"
+        ]
+      },
+      "then": {
+        "properties": {
+          "artifact_bindings": {
+            "items": {
+              "properties": {
+                "rights_state": {
+                  "const": "verified"
+                }
+              }
+            }
+          }
+        }
       }
     }
   ]
