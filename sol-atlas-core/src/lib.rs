@@ -38,6 +38,7 @@ pub mod service_water_energy_stress;
 pub mod service_water_energy_stress_intervention;
 pub mod service_water_trajectory;
 pub mod service_water_trajectory_intervention;
+pub mod telecom_power;
 pub mod simulation;
 pub mod solar_system;
 pub mod spatial_economic;
