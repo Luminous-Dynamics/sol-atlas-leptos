@@ -170,6 +170,17 @@ A hash proves byte identity, not source truth. A signature proves who signed, no
 
 Mycelix's evidence-independence profiles should supply profile-specific lineage analysis where the use case requires it. The IEAC record must preserve unknown and conflicted results rather than converting them into an independence count.
 
+### Artifact identity and data-rights binding
+
+Every artifact uses one of two explicit identity forms:
+
+- **Git artifact:** repository owner/name, exact commit SHA, repository-relative path and Git blob SHA-1. An optional content SHA-256 may also be recorded.
+- **External artifact:** source URI plus SHA-256 of the acquired bytes. A version, acquisition time and rights statement should be included in the profile evidence record or its referenced acquisition manifest.
+
+A Git blob SHA-1 is a Git object identifier; it is not a SHA-256 content digest. Never place one in the other's field. A digest binds bytes only after the bytes have actually been acquired and hashed. The current local validator checks digest syntax and references but does not fetch or recompute remote artifact bytes.
+
+A profile declared qualified requires every bound artifact to have a verified rights state. Unknown, restricted or unresolved rights cannot support a qualified decision. A downloadable file is not automatically authorized for training or operational use.
+
 ## 7. Required profile structure
 
 The machine-readable qualification profile should include:
