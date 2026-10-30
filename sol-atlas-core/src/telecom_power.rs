@@ -51,6 +51,10 @@ pub struct TelecomSitePowerAutonomyScenario {
     /// Canonical UTC timestamp: YYYY-MM-DDTHH:MM:SSZ.
     pub as_of: String,
     pub site_id: String,
+    /// Site-local identity of the backup resource whose usable energy is measured.
+    pub backup_resource_id: String,
+    /// Site-local identity of the radio equipment whose input load is measured.
+    pub radio_equipment_id: String,
     pub outage_horizon_hours: f64,
     pub usable_energy_measurement_point: UsableEnergyMeasurementPoint,
     pub radio_load_measurement_point: RadioLoadMeasurementPoint,
@@ -66,6 +70,8 @@ pub struct TelecomSitePowerAutonomyAssessment {
     pub schema_version: String,
     pub scenario_id: String,
     pub site_id: String,
+    pub backup_resource_id: String,
+    pub radio_equipment_id: String,
     pub as_of: String,
     pub outage_horizon_hours: f64,
     pub usable_energy_measurement_point: UsableEnergyMeasurementPoint,
@@ -89,6 +95,8 @@ pub enum TelecomSitePowerAutonomyValidationError {
     EmptyScenarioId,
     InvalidAsOfTimestamp,
     EmptySiteId,
+    EmptyBackupResourceId,
+    EmptyRadioEquipmentId,
     InvalidOutageHorizon,
     MeasurementEntityMismatch,
     UsableEnergyUnitMismatch,
@@ -134,11 +142,17 @@ pub fn assess_telecom_site_power_autonomy(
     if scenario.site_id.trim().is_empty() {
         errors.push(TelecomSitePowerAutonomyValidationError::EmptySiteId);
     }
+    if scenario.backup_resource_id.trim().is_empty() {
+        errors.push(TelecomSitePowerAutonomyValidationError::EmptyBackupResourceId);
+    }
+    if scenario.radio_equipment_id.trim().is_empty() {
+        errors.push(TelecomSitePowerAutonomyValidationError::EmptyRadioEquipmentId);
+    }
     if !scenario.outage_horizon_hours.is_finite() || scenario.outage_horizon_hours <= 0.0 {
         errors.push(TelecomSitePowerAutonomyValidationError::InvalidOutageHorizon);
     }
-    if scenario.usable_backup_energy.entity_id != scenario.site_id
-        || scenario.radio_equipment_load.entity_id != scenario.site_id
+    if scenario.usable_backup_energy.entity_id != scenario.backup_resource_id
+        || scenario.radio_equipment_load.entity_id != scenario.radio_equipment_id
     {
         errors.push(TelecomSitePowerAutonomyValidationError::MeasurementEntityMismatch);
     }
@@ -236,6 +250,8 @@ pub fn assess_telecom_site_power_autonomy(
         schema_version: TELECOM_POWER_AUTONOMY_SCHEMA_VERSION.to_owned(),
         scenario_id: scenario.id.clone(),
         site_id: scenario.site_id.clone(),
+        backup_resource_id: scenario.backup_resource_id.clone(),
+        radio_equipment_id: scenario.radio_equipment_id.clone(),
         as_of: scenario.as_of.clone(),
         outage_horizon_hours: scenario.outage_horizon_hours,
         usable_energy_measurement_point: scenario.usable_energy_measurement_point,
@@ -264,9 +280,14 @@ mod tests {
 
     const AS_OF: &str = "2026-10-30T10:00:00Z";
 
-    fn measurement(value: f64, uncertainty: Option<f64>, unit: &str) -> FunctionMeasurement {
+    fn measurement(
+        entity_id: &str,
+        value: f64,
+        uncertainty: Option<f64>,
+        unit: &str,
+    ) -> FunctionMeasurement {
         FunctionMeasurement {
-            entity_id: "site-001".to_owned(),
+            entity_id: entity_id.to_owned(),
             quantity: Quantity {
                 value,
                 unit: unit.to_owned(),
@@ -290,12 +311,19 @@ mod tests {
             id: "scenario-001".to_owned(),
             as_of: AS_OF.to_owned(),
             site_id: "site-001".to_owned(),
+            backup_resource_id: "battery-001".to_owned(),
+            radio_equipment_id: "radio-equipment-001".to_owned(),
             outage_horizon_hours: horizon,
             usable_energy_measurement_point: UsableEnergyMeasurementPoint::BatteryOutputTerminals,
             radio_load_measurement_point:
                 RadioLoadMeasurementPoint::RadioAccessEquipmentInputTerminals,
-            usable_backup_energy: measurement(energy, energy_uncertainty, "kWh"),
-            radio_equipment_load: measurement(load, load_uncertainty, "kW"),
+            usable_backup_energy: measurement("battery-001", energy, energy_uncertainty, "kWh"),
+            radio_equipment_load: measurement(
+                "radio-equipment-001",
+                load,
+                load_uncertainty,
+                "kW",
+            ),
         }
     }
 

@@ -10,6 +10,8 @@
     "id",
     "as_of",
     "site_id",
+    "backup_resource_id",
+    "radio_equipment_id",
     "outage_horizon_hours",
     "usable_energy_measurement_point",
     "radio_load_measurement_point",
@@ -47,6 +49,14 @@
     },
     "radio_equipment_load": {
       "$ref": "#/$defs/loadMeasurement"
+    },
+    "backup_resource_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "radio_equipment_id": {
+      "type": "string",
+      "minLength": 1
     }
   },
   "$defs": {
