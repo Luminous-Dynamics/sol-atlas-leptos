@@ -1334,6 +1334,87 @@ mod tests {
         previous_soc >= i64::from(battery.terminal_reserve_quanta)
     }
 
+    fn model_objective_value(
+        model: &SemanticModel,
+        assignment: &BTreeMap<String, i64>,
+    ) -> Option<i64> {
+        model.objective.iter().try_fold(
+            model.objective_constant,
+            |total, (name, coefficient)| {
+                let value = integer_at(assignment, name);
+                coefficient
+                    .checked_mul(value)
+                    .and_then(|term| total.checked_add(term))
+            },
+        )
+    }
+
+    fn schedule_objective_value(
+        request: &Request,
+        assignment: &BTreeMap<String, i64>,
+    ) -> Option<i64> {
+        request
+            .intervals
+            .iter()
+            .enumerate()
+            .try_fold(0_i64, |total, (index, _)| {
+                total.checked_add(integer_at(
+                    assignment,
+                    &format!("essential_unserved_{index:03}"),
+                ))
+            })
+    }
+
+    fn sampled_compare_model_to_schedule_spec(
+        request_bytes: &[u8],
+        samples: usize,
+        initial_seed: u64,
+    ) -> (usize, usize) {
+        let request: Request = serde_json::from_slice(request_bytes).unwrap();
+        let model = derive_reference_model(
+            request_bytes,
+            ObjectiveId::EssentialUnservedQuanta,
+            Direction::Min,
+        )
+        .unwrap();
+        let variables = model
+            .variables
+            .iter()
+            .map(|(name, variable)| (name.clone(), variable.lower, variable.upper))
+            .collect::<Vec<_>>();
+        let mut state = initial_seed;
+        let mut assignment = BTreeMap::new();
+        let mut feasible = 0usize;
+
+        for _ in 0..samples {
+            assignment.clear();
+            for (name, lower, upper) in &variables {
+                state = state
+                    .wrapping_mul(6_364_136_223_846_793_005)
+                    .wrapping_add(1_442_695_040_888_963_407);
+                let width = u64::try_from(upper - lower + 1).unwrap();
+                let value = lower + i64::try_from(state % width).unwrap();
+                assignment.insert(name.clone(), value);
+            }
+            let model_accepts = model_accepts_assignment(&model, &assignment);
+            let schedule_accepts = schedule_spec_accepts_assignment(&request, &assignment);
+            assert_eq!(
+                model_accepts,
+                schedule_accepts,
+                "sampled model/schedule disagreement for seed {initial_seed}: {assignment:?}"
+            );
+            assert_eq!(
+                model_objective_value(&model, &assignment),
+                schedule_objective_value(&request, &assignment),
+                "sampled objective mismatch for seed {initial_seed}: {assignment:?}"
+            );
+            if model_accepts {
+                feasible += 1;
+            }
+        }
+        (samples, feasible)
+    }
+
     fn exhaustively_compare_model_to_schedule_spec(request_bytes: &[u8]) -> (usize, usize) {
         let request: Request = serde_json::from_slice(request_bytes).unwrap();
         let model = derive_reference_model(
@@ -1365,6 +1446,11 @@ mod tests {
                     model_accepts,
                     schedule_accepts,
                     "model/schedule disagreement for assignment {assignment:?}"
+                );
+                assert_eq!(
+                    model_objective_value(model, assignment),
+                    schedule_objective_value(request, assignment),
+                    "LP objective/source-request objective mismatch for assignment {assignment:?}"
                 );
                 if model_accepts {
                     *feasible += 1;
@@ -1431,6 +1517,33 @@ mod tests {
         let request = two_interval_charge_then_outage_request();
         let (visited, feasible) = exhaustively_compare_model_to_schedule_spec(&request);
         assert_eq!(visited, 65_536);
+        assert!(feasible > 0);
+    }
+
+    fn three_interval_charge_outage_recovery_request() -> Vec<u8> {
+        let mut request: serde_json::Value =
+            serde_json::from_slice(&two_interval_charge_then_outage_request()).unwrap();
+        request["intervals"].as_array_mut().unwrap().push(serde_json::json!({
+            "interval_id": "post-outage-idle",
+            "start_unix_seconds": 1_800_007_200_i64,
+            "duration_seconds": 3600,
+            "grid_outage": false,
+            "pv_available_quanta": 0,
+            "grid_import_limit_quanta": 0,
+            "essential_demand_quanta": 0,
+            "flexible_demand_quanta": 0,
+            "grid_cost_units_per_quantum": 3,
+            "grid_carbon_grams_per_quantum": 7
+        }));
+        serde_json::to_vec(&request).unwrap()
+    }
+
+    #[test]
+    fn three_interval_model_matches_independent_schedule_and_objective_samples() {
+        let request = three_interval_charge_outage_recovery_request();
+        let (visited, feasible) =
+            sampled_compare_model_to_schedule_spec(&request, 50_000, 0x534f_435f_4833);
+        assert_eq!(visited, 50_000);
         assert!(feasible > 0);
     }
 
