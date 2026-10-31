@@ -34,6 +34,8 @@ fn verify_reader<R: BufRead>(mut reader: R) -> Result<Value, String> {
     let mut current_family: Option<String> = None;
     let mut last_trial_index: Option<usize> = None;
     let mut header_vertical: Option<String> = None;
+    let mut expected_trials_per_family: Option<usize> = None;
+    let mut expected_family_count: Option<usize> = None;
     let mut report_mismatches = 0usize;
     let mut input_digest_mismatches = 0usize;
     let mut checker_mismatches = 0usize;
@@ -66,10 +68,23 @@ fn verify_reader<R: BufRead>(mut reader: R) -> Result<Value, String> {
                 return Err("unsupported case-ledger header or schema version".to_owned());
             }
             header_vertical = Some(
-                header["vertical"]
+                record["vertical"]
                     .as_str()
                     .ok_or("case-ledger header.vertical is required")?
                     .to_owned(),
+            );
+            expected_trials_per_family = Some(
+                record["trials_per_failure_family"]
+                    .as_u64()
+                    .filter(|count| *count > 0)
+                    .ok_or("case-ledger header.trials_per_failure_family must be positive")?
+                    as usize,
+            );
+            expected_family_count = Some(
+                record["failure_family_count"]
+                    .as_u64()
+                    .ok_or("case-ledger header.failure_family_count must be an unsigned integer")?
+                    as usize,
             );
             hasher.update(&line);
             header_seen = true;
@@ -77,6 +92,23 @@ fn verify_reader<R: BufRead>(mut reader: R) -> Result<Value, String> {
         }
 
         if record_type == "footer" {
+            if let Some(last_trial) = last_trial_index {
+                let completed_trials = last_trial + 1;
+                if Some(completed_trials) != expected_trials_per_family {
+                    return Err(format!(
+                        "final failure family has {completed_trials} trials; expected {:?}",
+                        expected_trials_per_family
+                    ));
+                }
+            }
+            let observed_families =
+                completed_families.len() + usize::from(current_family.is_some());
+            if Some(observed_families) != expected_family_count {
+                return Err(format!(
+                    "case-ledger family count mismatch: expected {:?}, observed {observed_families}",
+                    expected_family_count
+                ));
+            }
             if record["schema_version"].as_str()
                 != Some("luminous.ieac-runtime-admission-case-ledger.v0.1")
             {
@@ -159,6 +191,15 @@ fn verify_reader<R: BufRead>(mut reader: R) -> Result<Value, String> {
             }
         } else {
             if let Some(previous_family) = current_family.replace(family.to_owned()) {
+                let previous_trials = last_trial_index
+                    .map(|previous| previous + 1)
+                    .ok_or("previous failure family has no last trial index")?;
+                if Some(previous_trials) != expected_trials_per_family {
+                    return Err(format!(
+                        "failure family {previous_family} has {previous_trials} trials; expected {:?}",
+                        expected_trials_per_family
+                    ));
+                }
                 completed_families.insert(previous_family);
             }
             if completed_families.contains(family) {
@@ -319,7 +360,10 @@ mod tests {
     fn empty_ledger() -> Vec<u8> {
         let header = serde_json::to_vec(&json!({
             "record_type": "header",
-            "schema_version": "luminous.ieac-runtime-admission-case-ledger.v0.1"
+            "schema_version": "luminous.ieac-runtime-admission-case-ledger.v0.1",
+            "vertical": "synthetic-test-vertical",
+            "trials_per_failure_family": 1,
+            "failure_family_count": 0
         }))
         .unwrap();
         let mut bytes = header;
