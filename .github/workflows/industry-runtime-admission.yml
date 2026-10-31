@@ -214,8 +214,8 @@ jobs:
             ($after >= ($hazard.expected_decision_loss_after_observation - 0.000000001) and
              $after <= ($hazard.expected_decision_loss_after_observation + 0.000000001)) and
             ($hazard.expected_information_gain_bits == 0.2110814521389986) and
-            ($hazard.expected_gross_value_of_information == (10 - $after)) and
-            ($hazard.expected_net_value_of_information == (10 - $after - 1)) and
+            (($hazard.expected_gross_value_of_information - (10 - $after) | if . < 0 then -. else . end) < 0.000000001) and
+            (($hazard.expected_net_value_of_information - (10 - $after - 1) | if . < 0 then -. else . end) < 0.000000001) and
             ($mode.expected_information_gain_bits == 1) and
             ($mode.expected_decision_loss_after_observation == 10) and
             ($mode.expected_net_value_of_information == -1) and
