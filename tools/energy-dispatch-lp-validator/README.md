@@ -66,6 +66,17 @@ proof-binding JSONL record additionally commits the translation-receipt digest,
 solver certificate digest, VIPR verification-log digest, validator version,
 SCIP binary digest, VIPR checker digest and pinned VIPR source commit.
 
+The temporal test oracle is now extended beyond the original one-interval case.
+A two-interval charge-from-PV followed by an essential-load outage case
+exhaustively compares 65,536 bounded integer assignments between the independent
+LP semantic model and a separately written source-request schedule evaluator.
+The evaluator checks SOC carry-forward, floor efficiency, mode exclusivity,
+per-interval energy balance, load/PV partitions, outage import limits and
+terminal reserve. A dedicated negative control accepts the known feasible
+charge-then-discharge schedule and rejects it when the preceding SOC state is
+corrupted. Three- and four-interval cases and broader request-domain generation
+remain open qualification work.
+
 This does not make the receipt a mathematical proof itself; it makes it an
 auditable translation claim that is cryptographically associated with the
 subsequent proof artifact and the exact solver/checker binaries.
