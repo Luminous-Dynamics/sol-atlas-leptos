@@ -680,7 +680,8 @@ pub fn evaluate_admission(profile: &Value, profile_pin: &Value, request: &Value)
     ].iter().filter_map(|p| text_at(request, p)).collect();
     let measurement_ids: Vec<&str> = request.pointer("/snapshot/conditions").and_then(Value::as_array)
         .into_iter().flatten().filter_map(|item| item.get("evidence_artifact_id").and_then(Value::as_str)).collect();
-    let all_ids: BTreeSet<&str> = bound_ids.into_iter().chain(measurement_ids).collect();
+    let mut all_ids: BTreeSet<&str> = bound_ids.into_iter().chain(measurement_ids).collect();
+    if !authority_id.is_empty() { all_ids.insert(authority_id); }
     let revoked_ids = revocation.pointer("/revoked_artifact_ids").and_then(Value::as_array);
     if revoked_ids.is_some_and(|items| items.iter().any(|item| item.as_str().is_some_and(|id| all_ids.contains(id)))) {
         unique_push(&mut reasons, "ARTIFACT_REVOKED");
@@ -694,6 +695,7 @@ pub fn evaluate_admission(profile: &Value, profile_pin: &Value, request: &Value)
             item.get("evidence_sha256").and_then(Value::as_str)
         }));
     }
+    if !authority_sha.is_empty() { identity_digests.push(authority_sha); }
     let revoked_sha = revocation.pointer("/revoked_sha256").and_then(Value::as_array);
     if revoked_sha.is_some_and(|items| items.iter().any(|item| item.as_str().is_some_and(|sha| identity_digests.contains(&sha)))) {
         unique_push(&mut reasons, "IDENTITY_DIGEST_REVOKED");
@@ -1009,6 +1011,9 @@ fn independent_expected(profile: &Value, profile_pin: &Value, request: &Value) -
             }
         }
     }
+    if let Some(id) = revocation["source_artifact_id"].as_str() {
+        all_artifact_ids.insert(id);
+    }
     if revocation["revoked_artifact_ids"].as_array().is_some_and(|items| {
         items.iter().any(|item| item.as_str().is_some_and(|id| all_artifact_ids.contains(id)))
     }) {
@@ -1020,6 +1025,9 @@ fn independent_expected(profile: &Value, profile_pin: &Value, request: &Value) -
     ].iter().filter_map(|key| request[*key].as_str()).collect();
     if let Some(measurements) = request["snapshot"]["conditions"].as_array() {
         identity_sha.extend(measurements.iter().filter_map(|item| item["evidence_sha256"].as_str()));
+    }
+    if let Some(source_sha) = revocation["source_sha256"].as_str() {
+        identity_sha.push(source_sha);
     }
     if revocation["revoked_sha256"].as_array().is_some_and(|items| {
         items.iter().any(|item| item.as_str().is_some_and(|digest| identity_sha.contains(&digest)))
