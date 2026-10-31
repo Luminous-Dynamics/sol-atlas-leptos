@@ -894,7 +894,6 @@ mod tests {
     }
 
     #[test]
-    #[test]
     fn expected_reason_codes_require_exact_set_equality() {
         assert!(!reason_codes_match(&json!({}), &[]));
         assert!(!reason_codes_match(&json!({ "reason_codes": "not-an-array" }), &[]));
