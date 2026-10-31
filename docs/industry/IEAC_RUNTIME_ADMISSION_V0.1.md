@@ -47,6 +47,7 @@ The evaluator requires a new report destination and uses create-new semantics; i
 - The profile must declare max_age_seconds for a measured condition. Missing freshness policy causes abstention; stale evidence causes abstention; future-dated or malformed evidence is rejected/abstained with a stable reason.
 - A value outside a declared bound is rejected. A measurement interval crossing a bound while its central value remains inside is marginal and causes abstention.
 - Unknown/unavailable revocation state or authorization state causes abstention. Denial, revocation, digest mismatch, identity mismatch, unit mismatch and authority escalation reject.
+- The revocation snapshot must identify a profile-pinned authorization_source artifact and digest, and its observed_at/max_age_seconds must be fresh relative to the request. Missing/unbound authority source rejects; stale or indeterminate authority-source time abstains.
 - Admission never executes a recommendation or renews a profile. It is valid only for this request and time snapshot.
 
 ## Digests and determinism
@@ -58,6 +59,8 @@ The report digest is calculated after the independent-checker status is set and 
 ## Independent checker
 
 The candidate evaluator and independent checker are separate decision paths. The checker reconstructs disposition, action ceiling, per-condition states and reason codes from the original profile and request. It does not call the candidate evaluator. A second binary can replay a sealed report from the original inputs and verify the report digest and schema.
+
+The profile-pinned authorization_source binding verifies that the request names the source identity allowed by the profile. It does **not** authenticate the supplied revocation payload or prove that it was signed by that source. v0.1 therefore must not be used as a production trust anchor; signed authority snapshots, key rotation, anti-replay sequence state and source-authentication verification remain required before any higher-risk deployment.
 
 The checker shares low-level profile validation, JSON parsing, UTC parsing and SHA-256 primitives. It does not establish source-system truth or that two evidence artifacts are genuinely independent. Those require upstream provenance attestations and external source audits.
 
