@@ -75,20 +75,19 @@ trajectory. For every H=2 exhaustive and H=3 sampled assignment, all six
 LP objective values are recomputed independently from the source request:
 essential/flexible unserved, operating cost, grid carbon, curtailed PV and
 terminal SOC. The test also verifies that each objective-specific reference
-model has identical variables/bounds and constraints. The H=3 panel is
-sampled, not exhaustive; it does not replace the H=2 finite exhaustive oracle.
+model has identical variables/bounds and constraints. The H=3 panel is sampled, not exhaustive; it does not replace the H=2
+finite exhaustive oracle. The H=4 fixture adds a post-outage recovery interval
+and compares 120,000 deterministic assignments over three frozen seeds. It
+also mutates each of the four H=4 SOC outputs independently and requires
+rejection. H=4 is sampled, not exhaustive.
 
-The temporal test oracle now covers H=2 and H=3. The two-interval
-charge-from-PV followed by essential-load outage case exhaustively compares
-65,536 bounded integer assignments. The H=3 charge/outage/recovery case adds
-50,000 deterministic sampled assignments using a frozen LCG seed. The
-independent source-request evaluator checks SOC carry-forward, floor
-efficiency, mode exclusivity, per-interval energy balance, load/PV partitions,
-outage import limits and terminal reserve. H=2 negative controls corrupt SOC,
-grid outage, mode exclusivity, floor-efficiency result, PV balance and
-essential-load partition; the H=3 control reorders outage and recovery
-intervals and requires rejection. H=4 and broader request-domain generation
-remain open qualification work.
+The test-only assignment oracle remains separate from the standalone
+domain-level schedule auditor in tools/energy-dispatch-schedule-auditor.
+The latter consumes request bytes and a DispatchSchedule DTO, not LP variable
+names. Its unit panel covers H=2/H=3/H=4 schedules, SOC interval mutation,
+outage import, energy partitions, fractional floor efficiencies, objective
+recomputation, terminal reserve and digest association. Its exact-head workflow
+is still pending; the auditor is not yet a qualified production gate.
 
 This does not make the receipt a mathematical proof itself; it makes it an
 auditable translation claim that is cryptographically associated with the
