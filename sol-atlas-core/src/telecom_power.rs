@@ -188,8 +188,7 @@ pub fn assess_telecom_site_power_autonomy(
     }
 
     let energy_value = scenario.usable_backup_energy.quantity.value;
-    let Some(energy_uncertainty) = scenario.usable_backup_energy.quantity.uncertainty_abs
-    else {
+    let Some(energy_uncertainty) = scenario.usable_backup_energy.quantity.uncertainty_abs else {
         return Err(TelecomSitePowerAutonomyError::InvalidInput(vec![
             TelecomSitePowerAutonomyValidationError::MissingUsableEnergyUncertainty,
         ]));
@@ -269,7 +268,10 @@ pub fn assess_telecom_site_power_autonomy(
             .usable_backup_energy
             .supporting_evidence_ids
             .clone(),
-        load_evidence_ids: scenario.radio_equipment_load.supporting_evidence_ids.clone(),
+        load_evidence_ids: scenario
+            .radio_equipment_load
+            .supporting_evidence_ids
+            .clone(),
     })
 }
 
@@ -318,12 +320,7 @@ mod tests {
             radio_load_measurement_point:
                 RadioLoadMeasurementPoint::RadioAccessEquipmentInputTerminals,
             usable_backup_energy: measurement("battery-001", energy, energy_uncertainty, "kWh"),
-            radio_equipment_load: measurement(
-                "radio-equipment-001",
-                load,
-                load_uncertainty,
-                "kW",
-            ),
+            radio_equipment_load: measurement("radio-equipment-001", load, load_uncertainty, "kW"),
         }
     }
 
@@ -360,11 +357,9 @@ mod tests {
 
     #[test]
     fn point_interval_insufficient_for_outage_horizon() {
-        let result = assess_telecom_site_power_autonomy(
-            &scenario(4.0, Some(0.0), 2.0, Some(0.0), 3.0),
-            &[],
-        )
-        .unwrap();
+        let result =
+            assess_telecom_site_power_autonomy(&scenario(4.0, Some(0.0), 2.0, Some(0.0), 3.0), &[])
+                .unwrap();
         assert_eq!(result.autonomy_lower_hours, 2.0);
         assert_eq!(result.autonomy_upper_hours, 2.0);
         assert_eq!(result.status, TelecomPowerAutonomyStatus::Insufficient);
@@ -372,11 +367,9 @@ mod tests {
 
     #[test]
     fn overlapping_autonomy_interval_is_indeterminate() {
-        let result = assess_telecom_site_power_autonomy(
-            &scenario(5.0, Some(1.0), 2.0, Some(0.5), 3.0),
-            &[],
-        )
-        .unwrap();
+        let result =
+            assess_telecom_site_power_autonomy(&scenario(5.0, Some(1.0), 2.0, Some(0.5), 3.0), &[])
+                .unwrap();
         assert_eq!(result.autonomy_lower_hours, 4.0 / 2.5);
         assert_eq!(result.autonomy_upper_hours, 6.0 / 1.5);
         assert_eq!(result.status, TelecomPowerAutonomyStatus::Indeterminate);
@@ -384,11 +377,9 @@ mod tests {
 
     #[test]
     fn zero_usable_energy_is_insufficient_not_a_validation_error() {
-        let result = assess_telecom_site_power_autonomy(
-            &scenario(0.0, Some(0.0), 2.0, Some(0.0), 1.0),
-            &[],
-        )
-        .unwrap();
+        let result =
+            assess_telecom_site_power_autonomy(&scenario(0.0, Some(0.0), 2.0, Some(0.0), 1.0), &[])
+                .unwrap();
         assert_eq!(result.autonomy_lower_hours, 0.0);
         assert_eq!(result.autonomy_upper_hours, 0.0);
         assert_eq!(result.status, TelecomPowerAutonomyStatus::Insufficient);
@@ -396,10 +387,8 @@ mod tests {
 
     #[test]
     fn lower_load_bound_must_be_positive() {
-        let err = assess_telecom_site_power_autonomy(
-            &scenario(5.0, Some(0.0), 1.0, Some(1.0), 2.0),
-            &[],
-        );
+        let err =
+            assess_telecom_site_power_autonomy(&scenario(5.0, Some(0.0), 1.0, Some(1.0), 2.0), &[]);
         assert!(matches!(
             err,
             Err(TelecomSitePowerAutonomyError::InvalidInput(errors))
@@ -464,7 +453,7 @@ mod tests {
     #[test]
     fn negative_energy_lower_bound_is_rejected_not_clamped() {
         let err = assess_telecom_site_power_autonomy(
-            &scenario(1.0, Some(2.0), 1.0, None, 1.0),
+            &scenario(1.0, Some(2.0), 1.0, Some(0.0), 1.0),
             &[],
         );
         assert!(matches!(
