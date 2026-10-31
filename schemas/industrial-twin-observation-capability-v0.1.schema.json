@@ -15,7 +15,8 @@
     "channels",
     "capture_contract",
     "observation_state",
-    "claim_ceiling"
+    "claim_ceiling",
+    "known_blind_spots"
   ],
   "properties": {
     "schema_version": {
@@ -197,7 +198,8 @@
           "native_type",
           "availability",
           "unit_semantics",
-          "timestamp_semantics"
+          "timestamp_semantics",
+          "known_loss_modes"
         ],
         "properties": {
           "channel_id": {
