@@ -69,7 +69,7 @@ jobs:
           rustc --version > target/energy-dispatch-mip-reference/rustc-version.txt
           cargo --version > target/energy-dispatch-mip-reference/cargo-version.txt
           uname -a > target/energy-dispatch-mip-reference/runner-host.txt
-          printf 'logical_cpus=%s\\n' "$(nproc)" > target/energy-dispatch-mip-reference/runner-cpus.txt
+          printf 'logical_cpus=%s\n' "$(nproc)" > target/energy-dispatch-mip-reference/runner-cpus.txt
           sha256sum tools/energy-dispatch-mip-reference/Cargo.lock tools/energy-dispatch-lp-validator/Cargo.lock \
             > target/energy-dispatch-mip-reference/lockfiles.sha256
 
@@ -207,7 +207,7 @@ jobs:
             name="$(basename "$certificate")"
             log="target/energy-dispatch-mip-reference/vipr-checks/$name.log"
             "$VIPR_CHECKER" "$certificate" > "$log" 2>&1
-            printf 'viprchk_exit_code=0\\n' >> "$log"
+            printf 'viprchk_exit_code=0\n' >> "$log"
           done
           test "$(find target/energy-dispatch-mip-reference/vipr-checks -maxdepth 1 -name '*.log' | wc -l)" -eq 12
           mkdir -p target/energy-dispatch-mip-reference/proof-bindings
