@@ -1,6 +1,6 @@
 # IEAC runtime-admission benchmark v0.1
 
-**Status:** Executable benchmark-driver tranche; no benchmark has been run or passed by this change.  
+**Status:** Executable benchmark-driver tranche with a frozen 27-family synthetic panel; no benchmark has been run or passed by this change.  
 **Depends on:** [IBAP run-manifest contract, PR #339](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/339), [runtime admission, PR #346](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/346), [benchmark protocol, issue #348](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/348).
 
 ## 1. What this measures
@@ -119,7 +119,7 @@ A benchmark result advances only the evidence dimension it directly measures.
 
 The runner requires a new `--cases-jsonl` destination and writes one append-only JSONL ledger containing:
 
-- a header that binds the exact manifest-byte digest, vertical, seed, PRNG, trial count, fixture digests, method IDs, evaluator version and checker version;
+- a header that binds the exact manifest-byte digest, vertical, seed, PRNG, trial count, fixture digests, method IDs, evaluator/checker versions, and SHA-256 identities for the benchmark harness, runtime engine, profile validator and replay-verifier source files;
 - one record per generated trial, with a stable case ID, stratum and trial index, exact profile/profile-pin/request objects, preregistered expected disposition and reason-code set, candidate report, checker errors, static-profile baseline result, tamper-detection outcome, sampled deterministic-replay outcome, measured evaluator-plus-checker latency and a per-record SHA-256 digest;
 - a footer containing the record count, digest of all case records and digest of the header plus case records.
 
@@ -134,6 +134,6 @@ cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked \
   "$RUNNER_TEMP/ieac-admission-benchmark-report.json"
 ~~~
 
-The verifier checks canonical JSONL encoding, every case digest, contiguous case/trial identities, complete family denominators, exact ledger hashes, candidate-result reconstruction, reconstruction-checker output, static-profile baseline results and report aggregate consistency. It fails closed on malformed reason-code arrays (including non-string elements), mismatched expectations, missing records, extra records, footer damage or a report that does not bind the exact ledger.
+The verifier checks canonical JSONL encoding, every case digest, contiguous case/trial identities, complete family denominators, exact ledger hashes, candidate-result reconstruction, reconstruction-checker output, static-profile baseline results and report aggregate consistency. It also checks that the recorded source-file digests match the source files compiled into the runner and verifier, and that the manifest's ordered family panel matches the exact compiled mutation plan. These are source-file identities, not a signed binary/build attestation; the compiler, dependencies, build flags and execution environment still require separately verifiable build provenance. It fails closed on malformed reason-code arrays (including non-string elements), mismatched expectations, missing records, extra records, footer damage or a report that does not bind the exact ledger.
 
 This is an integrity and replay artifact, not an authenticated trust anchor. The ledger is unsigned; the runner and verifier still share the same library implementation and low-level primitives. A person who can replace both the ledger and report can recompute their hashes. Signed build/source attestations, an independently implemented verifier and third-party golden vectors remain separate work. The case ledger makes the precise evidence inspectable; it does not prove that the evidence is true or physically valid.
