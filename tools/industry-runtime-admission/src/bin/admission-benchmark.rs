@@ -552,6 +552,14 @@ fn run() -> Result<(Value, bool), String> {
     let base_profile_sha256 = digest_value(&profile);
     let base_pin_sha256 = digest_value(&pin);
     let base_request_sha256 = digest_value(&request);
+    let source_identities = json!({
+        "benchmark_harness_source_sha256": digest_bytes(include_str!("admission-benchmark.rs").as_bytes()),
+        "runtime_engine_source_sha256": digest_bytes(include_str!("../lib.rs").as_bytes()),
+        "profile_validator_source_sha256": digest_bytes(
+            include_str!("../../../industry-assurance-validator/src/lib.rs").as_bytes()
+        ),
+        "corpus_verifier_source_sha256": digest_bytes(include_str!("admission-corpus-check.rs").as_bytes())
+    });
     let mut case_ledger = CaseLedger::create(&cases_jsonl_path, json!({
         "record_type": "header",
         "schema_version": CASE_LEDGER_SCHEMA,
@@ -567,6 +575,7 @@ fn run() -> Result<(Value, bool), String> {
         "static_baseline_method_id": baseline_method["method_id"],
         "evaluator_version": EVALUATOR_VERSION,
         "checker_version": CHECKER_VERSION,
+        "source_identities": source_identities,
         "input_fixture_digests": {
             "profile_sha256": base_profile_sha256,
             "profile_pin_sha256": base_pin_sha256,
@@ -826,6 +835,7 @@ fn run() -> Result<(Value, bool), String> {
         "static_baseline_method_id": baseline_method["method_id"],
         "evaluator_version": EVALUATOR_VERSION,
         "checker_version": CHECKER_VERSION,
+        "source_identities": source_identities,
         "claim_ceiling": "Synthetic software admission-control benchmark only. It does not validate physical models, field data, source truth, real-world risk, industrial outcomes, production readiness, certification or SOTA.",
         "summary": {
             "failure_family_count": FAMILIES.len(),
