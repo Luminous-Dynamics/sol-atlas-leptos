@@ -1230,95 +1230,284 @@ mod tests {
         request: &Request,
         assignment: &BTreeMap<String, i64>,
     ) -> bool {
-        if request.intervals.len() != 1 {
+        if request.intervals.is_empty() {
             return false;
         }
-        let interval = &request.intervals[0];
         let battery = &request.battery;
-        let value = |prefix: &str| integer_at(assignment, &format!("{prefix}_000"));
+        let mut previous_soc = i64::from(battery.initial_soc_quanta);
 
-        let grid = value("grid_import");
-        let charge_input = value("charge_input");
-        let withdrawal = value("soc_withdrawal");
-        let charge_gain = value("charge_gain");
-        let delivered = value("discharge_delivered");
-        let soc_after = value("soc_after");
-        let essential_served = value("essential_served");
-        let essential_unserved = value("essential_unserved");
-        let flexible_served = value("flexible_served");
-        let flexible_unserved = value("flexible_unserved");
-        let pv_used = value("pv_used");
-        let pv_curtailed = value("pv_curtailed");
-        let charge_mode = value("charge_mode");
+        for (index, interval) in request.intervals.iter().enumerate() {
+            let value = |prefix: &str| {
+                integer_at(assignment, &format!("{prefix}_{index:03}"))
+            };
 
-        let grid_limit = if interval.grid_outage {
-            0
-        } else {
-            i64::from(interval.grid_import_limit_quanta)
-        };
-        if grid < 0 || grid > grid_limit
-            || charge_input < 0
-            || charge_input > i64::from(battery.charge_input_limit_quanta)
-            || withdrawal < 0
-            || withdrawal > i64::from(battery.discharge_withdrawal_limit_quanta)
-            || withdrawal > i64::from(battery.initial_soc_quanta)
-            || charge_mode != 0 && charge_mode != 1
+            let grid = value("grid_import");
+            let charge_input = value("charge_input");
+            let withdrawal = value("soc_withdrawal");
+            let charge_gain = value("charge_gain");
+            let delivered = value("discharge_delivered");
+            let soc_after = value("soc_after");
+            let essential_served = value("essential_served");
+            let essential_unserved = value("essential_unserved");
+            let flexible_served = value("flexible_served");
+            let flexible_unserved = value("flexible_unserved");
+            let pv_used = value("pv_used");
+            let pv_curtailed = value("pv_curtailed");
+            let charge_mode = value("charge_mode");
+
+            let grid_limit = if interval.grid_outage {
+                0
+            } else {
+                i64::from(interval.grid_import_limit_quanta)
+            };
+            let withdrawal_limit = i64::from(
+                battery
+                    .discharge_withdrawal_limit_quanta
+                    .min(battery.capacity_quanta),
+            );
+            if grid < 0
+                || grid > grid_limit
+                || charge_input < 0
+                || charge_input > i64::from(battery.charge_input_limit_quanta)
+                || withdrawal < 0
+                || withdrawal > withdrawal_limit
+                || withdrawal > previous_soc
+                || charge_mode != 0 && charge_mode != 1
+            {
+                return false;
+            }
+            if (charge_mode == 0 && charge_input != 0)
+                || (charge_mode == 1 && withdrawal != 0)
+            {
+                return false;
+            }
+
+            let expected_gain = charge_input
+                .checked_mul(i64::from(battery.charge_efficiency_numerator))
+                .map(|product| product / i64::from(battery.charge_efficiency_denominator));
+            let expected_delivery = withdrawal
+                .checked_mul(i64::from(battery.discharge_efficiency_numerator))
+                .map(|product| product / i64::from(battery.discharge_efficiency_denominator));
+            if expected_gain != Some(charge_gain) || expected_delivery != Some(delivered) {
+                return false;
+            }
+
+            let expected_soc = previous_soc
+                .checked_add(charge_gain)
+                .and_then(|stored| stored.checked_sub(withdrawal));
+            if expected_soc != Some(soc_after)
+                || soc_after < 0
+                || soc_after > i64::from(battery.capacity_quanta)
+            {
+                return false;
+            }
+
+            let essential_total = essential_served.checked_add(essential_unserved);
+            let flexible_total = flexible_served.checked_add(flexible_unserved);
+            let pv_total = pv_used.checked_add(pv_curtailed);
+            if essential_served < 0
+                || essential_unserved < 0
+                || essential_total != Some(i64::from(interval.essential_demand_quanta))
+                || flexible_served < 0
+                || flexible_unserved < 0
+                || flexible_total != Some(i64::from(interval.flexible_demand_quanta))
+                || pv_used < 0
+                || pv_curtailed < 0
+                || pv_total != Some(i64::from(interval.pv_available_quanta))
+            {
+                return false;
+            }
+
+            let supply = pv_used
+                .checked_add(grid)
+                .and_then(|value| value.checked_add(delivered));
+            let demand = essential_served
+                .checked_add(flexible_served)
+                .and_then(|value| value.checked_add(charge_input));
+            if supply.is_none() || supply != demand {
+                return false;
+            }
+
+            previous_soc = soc_after;
+        }
+
+        previous_soc >= i64::from(battery.terminal_reserve_quanta)
+    }
+
+    fn model_objective_value(
+        model: &SemanticModel,
+        assignment: &BTreeMap<String, i64>,
+    ) -> Option<i64> {
+        model.objective.iter().try_fold(
+            model.objective_constant,
+            |total, (name, coefficient)| {
+                let value = integer_at(assignment, name);
+                coefficient
+                    .checked_mul(value)
+                    .and_then(|term| total.checked_add(term))
+            },
+        )
+    }
+
+    fn schedule_objective_value(
+        request: &Request,
+        assignment: &BTreeMap<String, i64>,
+        objective_id: ObjectiveId,
+    ) -> Option<i64> {
+        fn sum_by_interval<F>(request: &Request, mut term: F) -> Option<i64>
+        where
+            F: FnMut(usize, &Interval) -> Option<i64>,
         {
-            return false;
+            request
+                .intervals
+                .iter()
+                .enumerate()
+                .try_fold(0_i64, |total, (index, interval)| {
+                    total.checked_add(term(index, interval)?)
+                })
         }
-        if charge_mode == 0 && charge_input != 0 {
-            return false;
+        match objective_id {
+            ObjectiveId::EssentialUnservedQuanta => sum_by_interval(request, |index, _| {
+                Some(integer_at(
+                    assignment,
+                    &format!("essential_unserved_{index:03}"),
+                ))
+            }),
+            ObjectiveId::FlexibleUnservedQuanta => sum_by_interval(request, |index, _| {
+                Some(integer_at(
+                    assignment,
+                    &format!("flexible_unserved_{index:03}"),
+                ))
+            }),
+            ObjectiveId::OperatingCostUnits => sum_by_interval(request, |index, interval| {
+                i64::from(interval.grid_cost_units_per_quantum)
+                    .checked_mul(integer_at(
+                        assignment,
+                        &format!("grid_import_{index:03}"),
+                    ))
+            }),
+            ObjectiveId::GridCarbonGrams => sum_by_interval(request, |index, interval| {
+                i64::from(interval.grid_carbon_grams_per_quantum)
+                    .checked_mul(integer_at(
+                        assignment,
+                        &format!("grid_import_{index:03}"),
+                    ))
+            }),
+            ObjectiveId::CurtailedPvQuanta => sum_by_interval(request, |index, _| {
+                Some(integer_at(
+                    assignment,
+                    &format!("pv_curtailed_{index:03}"),
+                ))
+            }),
+            ObjectiveId::TerminalSocQuanta => {
+                let final_index = request.intervals.len().checked_sub(1)?;
+                Some(integer_at(
+                    assignment,
+                    &format!("soc_after_{final_index:03}"),
+                ))
+            }
         }
-        if charge_mode == 1 && withdrawal != 0 {
-            return false;
-        }
+    }
 
-        let expected_gain = charge_input
-            .checked_mul(i64::from(battery.charge_efficiency_numerator))
-            .map(|product| product / i64::from(battery.charge_efficiency_denominator));
-        let expected_delivery = withdrawal
-            .checked_mul(i64::from(battery.discharge_efficiency_numerator))
-            .map(|product| product / i64::from(battery.discharge_efficiency_denominator));
-        if expected_gain != Some(charge_gain) || expected_delivery != Some(delivered) {
-            return false;
-        }
+    fn derive_all_objective_models(request_bytes: &[u8]) -> Vec<SemanticModel> {
+        ObjectiveId::ALL
+            .into_iter()
+            .map(|objective_id| {
+                derive_reference_model(request_bytes, objective_id, Direction::Min)
+                    .unwrap_or_else(|error| {
+                        panic!("derive independent {objective_id:?} reference model: {error}")
+                    })
+            })
+            .collect()
+    }
 
-        let expected_soc = i64::from(battery.initial_soc_quanta)
-            .checked_add(charge_gain)
-            .and_then(|stored| stored.checked_sub(withdrawal));
-        if expected_soc != Some(soc_after)
-            || soc_after < i64::from(battery.terminal_reserve_quanta)
-            || soc_after > i64::from(battery.capacity_quanta)
-        {
-            return false;
+    fn assert_all_objectives_match_source_request(
+        models: &[SemanticModel],
+        request: &Request,
+        assignment: &BTreeMap<String, i64>,
+    ) {
+        assert_eq!(models.len(), ObjectiveId::ALL.len());
+        let reference = models
+            .first()
+            .expect("the objective model matrix must not be empty");
+        for (model, objective_id) in models.iter().zip(ObjectiveId::ALL) {
+            assert_eq!(
+                model.variables,
+                reference.variables,
+                "objective-specific model changed the feasible-set variables for {objective_id:?}"
+            );
+            assert_eq!(
+                model.constraints,
+                reference.constraints,
+                "objective-specific model changed the feasible-set constraints for {objective_id:?}"
+            );
+            assert_eq!(
+                model.objective_id,
+                objective_id,
+                "objective model order changed"
+            );
+            assert_eq!(
+                model_objective_value(model, assignment),
+                schedule_objective_value(request, assignment, objective_id),
+                "LP/source-request objective mismatch for {objective_id:?}: {assignment:?}"
+            );
         }
+    }
 
-        if essential_served < 0
-            || essential_unserved < 0
-            || essential_served + essential_unserved
-                != i64::from(interval.essential_demand_quanta)
-            || flexible_served < 0
-            || flexible_unserved < 0
-            || flexible_served + flexible_unserved
-                != i64::from(interval.flexible_demand_quanta)
-            || pv_used < 0
-            || pv_curtailed < 0
-            || pv_used + pv_curtailed != i64::from(interval.pv_available_quanta)
-        {
-            return false;
+    fn sampled_compare_model_to_schedule_spec(
+        request_bytes: &[u8],
+        samples: usize,
+        initial_seed: u64,
+    ) -> (usize, usize) {
+        let request: Request = serde_json::from_slice(request_bytes).unwrap();
+        let objective_models = derive_all_objective_models(request_bytes);
+        let model = objective_models
+            .first()
+            .expect("the objective matrix must not be empty");
+        let variables = model
+            .variables
+            .iter()
+            .map(|(name, variable)| (name.clone(), variable.lower, variable.upper))
+            .collect::<Vec<_>>();
+        let mut state = initial_seed;
+        let mut assignment = BTreeMap::new();
+        let mut feasible = 0usize;
+
+        for _ in 0..samples {
+            assignment.clear();
+            for (name, lower, upper) in &variables {
+                state = state
+                    .wrapping_mul(6_364_136_223_846_793_005)
+                    .wrapping_add(1_442_695_040_888_963_407);
+                let width = u64::try_from(upper - lower + 1).unwrap();
+                let value = lower + i64::try_from(state % width).unwrap();
+                assignment.insert(name.clone(), value);
+            }
+            let model_accepts = model_accepts_assignment(&model, &assignment);
+            let schedule_accepts = schedule_spec_accepts_assignment(&request, &assignment);
+            assert_eq!(
+                model_accepts,
+                schedule_accepts,
+                "sampled model/schedule disagreement for seed {initial_seed}: {assignment:?}"
+            );
+            assert_all_objectives_match_source_request(
+                &objective_models,
+                &request,
+                &assignment,
+            );
+            if model_accepts {
+                feasible += 1;
+            }
         }
-
-        pv_used + grid + delivered
-            == essential_served + flexible_served + charge_input
+        (samples, feasible)
     }
 
     fn exhaustively_compare_model_to_schedule_spec(request_bytes: &[u8]) -> (usize, usize) {
         let request: Request = serde_json::from_slice(request_bytes).unwrap();
-        let model = derive_reference_model(
-            request_bytes,
-            ObjectiveId::EssentialUnservedQuanta,
-            Direction::Min,
-        ).unwrap();
+        let objective_models = derive_all_objective_models(request_bytes);
+        let model = objective_models
+            .first()
+            .expect("the objective matrix must not be empty");
         let variables = model.variables.iter()
             .map(|(name, variable)| (name.clone(), variable.lower, variable.upper))
             .collect::<Vec<_>>();
@@ -1329,7 +1518,7 @@ mod tests {
         fn visit(
             index: usize,
             variables: &[(String, i64, i64)],
-            model: &SemanticModel,
+            models: &[SemanticModel],
             request: &Request,
             assignment: &mut BTreeMap<String, i64>,
             visited: &mut usize,
@@ -1337,6 +1526,9 @@ mod tests {
         ) {
             if index == variables.len() {
                 *visited += 1;
+                let model = models
+                    .first()
+                    .expect("the objective model set must not be empty");
                 let model_accepts = model_accepts_assignment(model, assignment);
                 let schedule_accepts = schedule_spec_accepts_assignment(request, assignment);
                 assert_eq!(
@@ -1344,6 +1536,7 @@ mod tests {
                     schedule_accepts,
                     "model/schedule disagreement for assignment {assignment:?}"
                 );
+                assert_all_objectives_match_source_request(models, request, assignment);
                 if model_accepts {
                     *feasible += 1;
                 }
@@ -1356,7 +1549,7 @@ mod tests {
                 visit(
                     index + 1,
                     variables,
-                    model,
+                    models,
                     request,
                     assignment,
                     visited,
@@ -1369,13 +1562,235 @@ mod tests {
         visit(
             0,
             &variables,
-            &model,
+            &objective_models,
             &request,
             &mut assignment,
             &mut visited,
             &mut feasible,
         );
         (visited, feasible)
+    }
+
+    fn two_interval_charge_then_outage_request() -> Vec<u8> {
+        let mut request: serde_json::Value = serde_json::from_slice(REQUEST).unwrap();
+        request["battery"]["capacity_quanta"] = serde_json::json!(1);
+        request["battery"]["charge_input_limit_quanta"] = serde_json::json!(1);
+        request["battery"]["discharge_withdrawal_limit_quanta"] = serde_json::json!(1);
+        request["intervals"][0]["interval_id"] = serde_json::json!("charge-from-pv");
+        request["intervals"][0]["grid_import_limit_quanta"] = serde_json::json!(0);
+        request["intervals"][0]["pv_available_quanta"] = serde_json::json!(1);
+        request["intervals"][0]["essential_demand_quanta"] = serde_json::json!(0);
+        request["intervals"][0]["flexible_demand_quanta"] = serde_json::json!(0);
+        request["intervals"][0]["grid_outage"] = serde_json::json!(false);
+        request["intervals"].as_array_mut().unwrap().push(serde_json::json!({
+            "interval_id": "serve-during-outage",
+            "start_unix_seconds": 1_800_003_600_i64,
+            "duration_seconds": 3600,
+            "grid_outage": true,
+            "pv_available_quanta": 0,
+            "grid_import_limit_quanta": 0,
+            "essential_demand_quanta": 1,
+            "flexible_demand_quanta": 0,
+            "grid_cost_units_per_quantum": 3,
+            "grid_carbon_grams_per_quantum": 7
+        }));
+        serde_json::to_vec(&request).unwrap()
+    }
+
+    #[test]
+    fn exhaustively_matches_two_interval_soc_carry_and_outage_schedule_semantics() {
+        let request = two_interval_charge_then_outage_request();
+        let (visited, feasible) = exhaustively_compare_model_to_schedule_spec(&request);
+        assert_eq!(visited, 65_536);
+        assert!(feasible > 0);
+    }
+
+    fn three_interval_charge_outage_recovery_request() -> Vec<u8> {
+        let mut request: serde_json::Value =
+            serde_json::from_slice(&two_interval_charge_then_outage_request()).unwrap();
+        request["intervals"].as_array_mut().unwrap().push(serde_json::json!({
+            "interval_id": "post-outage-idle",
+            "start_unix_seconds": 1_800_007_200_i64,
+            "duration_seconds": 3600,
+            "grid_outage": false,
+            "pv_available_quanta": 0,
+            "grid_import_limit_quanta": 0,
+            "essential_demand_quanta": 0,
+            "flexible_demand_quanta": 0,
+            "grid_cost_units_per_quantum": 3,
+            "grid_carbon_grams_per_quantum": 7
+        }));
+        serde_json::to_vec(&request).unwrap()
+    }
+
+    #[test]
+    fn three_interval_model_matches_independent_schedule_and_objective_samples() {
+        let request = three_interval_charge_outage_recovery_request();
+        let (visited, feasible) =
+            sampled_compare_model_to_schedule_spec(&request, 50_000, 0x534f_435f_4833);
+        assert_eq!(visited, 50_000);
+        assert!(feasible <= visited);
+    }
+
+    fn four_interval_charge_outage_recovery_request() -> Vec<u8> {
+        let mut request: serde_json::Value =
+            serde_json::from_slice(&three_interval_charge_outage_recovery_request()).unwrap();
+        request["intervals"].as_array_mut().unwrap().push(serde_json::json!({
+            "interval_id": "post-outage-recovery",
+            "start_unix_seconds": 1_800_010_800_i64,
+            "duration_seconds": 3600,
+            "grid_outage": false,
+            "pv_available_quanta": 1,
+            "grid_import_limit_quanta": 1,
+            "essential_demand_quanta": 0,
+            "flexible_demand_quanta": 0,
+            "grid_cost_units_per_quantum": 3,
+            "grid_carbon_grams_per_quantum": 7
+        }));
+        serde_json::to_vec(&request).unwrap()
+    }
+
+    #[test]
+    fn four_interval_model_matches_independent_schedule_and_objective_samples() {
+        let request = four_interval_charge_outage_recovery_request();
+        let mut total_feasible = 0usize;
+        for seed in [
+            0x534f_435f_4834_u64,
+            0x5445_4d50_4f52_414c_u64,
+            0x4459_4e41_4d49_4353_u64,
+        ] {
+            let (visited, feasible) =
+                sampled_compare_model_to_schedule_spec(&request, 40_000, seed);
+            assert_eq!(visited, 40_000);
+            total_feasible += feasible;
+        }
+        assert!(total_feasible <= 120_000);
+    }
+
+    #[test]
+    fn h4_schedule_oracle_rejects_soc_carry_mutations_at_every_boundary() {
+        let request_bytes = four_interval_charge_outage_recovery_request();
+        let request: Request = serde_json::from_slice(&request_bytes).unwrap();
+        let mut baseline = feasible_two_interval_assignment();
+        for index in 2..4 {
+            baseline.extend(BTreeMap::from([
+                (format!("grid_import_{index:03}"), 0),
+                (format!("charge_input_{index:03}"), 0),
+                (format!("soc_withdrawal_{index:03}"), 0),
+                (format!("charge_gain_{index:03}"), 0),
+                (format!("discharge_delivered_{index:03}"), 0),
+                (format!("soc_after_{index:03}"), 0),
+                (format!("essential_served_{index:03}"), 0),
+                (format!("essential_unserved_{index:03}"), 0),
+                (format!("flexible_served_{index:03}"), 0),
+                (format!("flexible_unserved_{index:03}"), 0),
+                (format!("pv_used_{index:03}"), 0),
+                (format!("pv_curtailed_{index:03}"), 0),
+                (format!("charge_mode_{index:03}"), 0),
+            ]));
+        }
+        assert!(schedule_spec_accepts_assignment(&request, &baseline));
+
+        for index in 0..4 {
+            let mut candidate = baseline.clone();
+            let current = integer_at(&candidate, &format!("soc_after_{index:03}"));
+            candidate.insert(
+                format!("soc_after_{index:03}"),
+                if current == 0 { 1 } else { 0 },
+            );
+            assert!(
+                !schedule_spec_accepts_assignment(&request, &candidate),
+                "SOC transition mutation at interval {index} must be rejected"
+            );
+        }
+    }
+
+    #[test]
+    fn h3_schedule_oracle_rejects_interval_reordering() {
+        let request_bytes = three_interval_charge_outage_recovery_request();
+        let request: Request = serde_json::from_slice(&request_bytes).unwrap();
+        let mut assignment = feasible_two_interval_assignment();
+        assignment.extend(BTreeMap::from([
+            ("grid_import_002".to_owned(), 0),
+            ("charge_input_002".to_owned(), 0),
+            ("soc_withdrawal_002".to_owned(), 0),
+            ("charge_gain_002".to_owned(), 0),
+            ("discharge_delivered_002".to_owned(), 0),
+            ("soc_after_002".to_owned(), 0),
+            ("essential_served_002".to_owned(), 0),
+            ("essential_unserved_002".to_owned(), 0),
+            ("flexible_served_002".to_owned(), 0),
+            ("flexible_unserved_002".to_owned(), 0),
+            ("pv_used_002".to_owned(), 0),
+            ("pv_curtailed_002".to_owned(), 0),
+            ("charge_mode_002".to_owned(), 0),
+        ]));
+        assert!(schedule_spec_accepts_assignment(&request, &assignment));
+
+        let mut reordered: serde_json::Value = serde_json::from_slice(&request_bytes).unwrap();
+        reordered["intervals"].as_array_mut().unwrap().swap(1, 2);
+        let reordered_request: Request =
+            serde_json::from_value(reordered).expect("reordered request remains valid");
+        assert!(
+            !schedule_spec_accepts_assignment(&reordered_request, &assignment),
+            "reordering an outage and idle interval must invalidate the original trajectory"
+        );
+    }
+
+    fn feasible_two_interval_assignment() -> BTreeMap<String, i64> {
+        BTreeMap::from([
+            ("grid_import_000".to_owned(), 0),
+            ("charge_input_000".to_owned(), 1),
+            ("soc_withdrawal_000".to_owned(), 0),
+            ("charge_gain_000".to_owned(), 1),
+            ("discharge_delivered_000".to_owned(), 0),
+            ("soc_after_000".to_owned(), 1),
+            ("essential_served_000".to_owned(), 0),
+            ("essential_unserved_000".to_owned(), 0),
+            ("flexible_served_000".to_owned(), 0),
+            ("flexible_unserved_000".to_owned(), 0),
+            ("pv_used_000".to_owned(), 1),
+            ("pv_curtailed_000".to_owned(), 0),
+            ("charge_mode_000".to_owned(), 1),
+            ("grid_import_001".to_owned(), 0),
+            ("charge_input_001".to_owned(), 0),
+            ("soc_withdrawal_001".to_owned(), 1),
+            ("charge_gain_001".to_owned(), 0),
+            ("discharge_delivered_001".to_owned(), 1),
+            ("soc_after_001".to_owned(), 0),
+            ("essential_served_001".to_owned(), 1),
+            ("essential_unserved_001".to_owned(), 0),
+            ("flexible_served_001".to_owned(), 0),
+            ("flexible_unserved_001".to_owned(), 0),
+            ("pv_used_001".to_owned(), 0),
+            ("pv_curtailed_001".to_owned(), 0),
+            ("charge_mode_001".to_owned(), 0),
+        ])
+    }
+
+    #[test]
+    fn independent_schedule_oracle_rejects_temporal_and_energy_mutations() {
+        let request_bytes = two_interval_charge_then_outage_request();
+        let request: Request = serde_json::from_slice(&request_bytes).unwrap();
+        let baseline = feasible_two_interval_assignment();
+        assert!(schedule_spec_accepts_assignment(&request, &baseline));
+
+        let mutations = [
+            ("soc carry-forward", "soc_after_000", 0),
+            ("outage import", "grid_import_001", 1),
+            ("mode exclusivity", "charge_mode_001", 1),
+            ("floor-efficiency result", "charge_gain_000", 0),
+            ("PV bus-balance term", "pv_used_000", 0),
+            ("essential-load partition", "essential_unserved_001", 1),
+        ];
+        for (label, variable, value) in mutations {
+            let mut candidate = baseline.clone();
+            candidate.insert(variable.to_owned(), value);
+            assert!(
+                !schedule_spec_accepts_assignment(&request, &candidate),
+                "independent schedule oracle accepted {label} mutation: {candidate:?}"
+            );
+        }
     }
 
     #[test]
