@@ -225,6 +225,25 @@ fn validate_canonical_timestamp(value: &str, path: &str, out: &mut Vec<Validatio
     }
 }
 
+fn validate_optional_timestamp(
+    object: &Value,
+    key: &str,
+    object_path: &str,
+    out: &mut Vec<ValidationIssue>,
+) {
+    let Some(value) = object.get(key) else { return; };
+    let path = format!("{object_path}/{key}");
+    match value.as_str() {
+        Some(timestamp) => validate_canonical_timestamp(timestamp, &path, out),
+        None => issue(
+            out,
+            "TIMESTAMP_STRING_REQUIRED",
+            path,
+            "Optional timestamp fields must be strings when present.",
+        ),
+    }
+}
+
 
 // The RFC deliberately requires UTC seconds precision so validity ordering is
 // lexicographically comparable and reproducible across implementations.
@@ -403,9 +422,7 @@ fn validate_evidence(
         let state = string(entry, "state", &path, out).unwrap_or("");
         let requirement = string(entry, "requirement", &path, out).unwrap_or("");
         let _ = string(entry, "rationale", &path, out);
-        if let Some(reviewed_at) = entry.get("reviewed_at").and_then(Value::as_str) {
-            validate_canonical_timestamp(reviewed_at, &format!("{path}/reviewed_at"), out);
-        }
+        validate_optional_timestamp(entry, "reviewed_at", &path, out);
         let evidence = array(entry, "evidence", &path, out).cloned().unwrap_or_default();
 
         if !["established", "not_established", "unknown", "conflicted", "not_applicable"].contains(&state) {
@@ -458,9 +475,7 @@ fn validate_evidence(
             if let Some(observed_at) = string(item, "observed_at", &ev_path, out) {
                 validate_canonical_timestamp(observed_at, &format!("{ev_path}/observed_at"), out);
             }
-            if let Some(valid_until) = item.get("valid_until").and_then(Value::as_str) {
-                validate_canonical_timestamp(valid_until, &format!("{ev_path}/valid_until"), out);
-            }
+            validate_optional_timestamp(item, "valid_until", &ev_path, out);
             if let Some(id) = evidence_id {
                 if !evidence_ids.insert(id.to_owned()) {
                     issue(out, "DUPLICATE_EVIDENCE_ID", format!("{ev_path}/evidence_id"), "Evidence IDs must be unique across the full profile.");
@@ -852,6 +867,18 @@ mod tests {
         expiry_timestamp["evidence_vector"]["software_conformance"]["evidence"][0]["valid_until"] =
             json!("not-a-date");
         assert!(has_code(&validate_profile(&expiry_timestamp), "NONCANONICAL_TIMESTAMP"));
+    }
+
+    #[test]
+    fn optional_timestamps_reject_non_string_values_when_present() {
+        let mut reviewed_at = make_qualified_d1();
+        reviewed_at["evidence_vector"]["software_conformance"]["reviewed_at"] = json!(123);
+        assert!(has_code(&validate_profile(&reviewed_at), "TIMESTAMP_STRING_REQUIRED"));
+
+        let mut valid_until = make_qualified_d1();
+        valid_until["evidence_vector"]["software_conformance"]["evidence"][0]["valid_until"] =
+            json!(false);
+        assert!(has_code(&validate_profile(&valid_until), "TIMESTAMP_STRING_REQUIRED"));
     }
 
     #[test]
