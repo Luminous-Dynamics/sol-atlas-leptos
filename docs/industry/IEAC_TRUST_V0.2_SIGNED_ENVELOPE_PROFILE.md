@@ -17,7 +17,7 @@ The v0.2 signature profile is:
 | Payload digest | SHA-256 over the exact JCS UTF-8 byte sequence |
 | Signature envelope | COSE_Sign1, detached payload |
 | COSE algorithm | **Ed25519, fully specified COSE identifier -19** |
-| COSE key | OKP, Ed25519 curve |
+| COSE key | Public COSE_Key must use `kty = 1` (OKP), `crv = 6` (Ed25519), and a 32-byte public `x` value; no private `d` is distributed |
 | Signature context | COSE protected headers plus the exact domain-separated external AAD defined below |
 | Trust bootstrap | Offline/out-of-band root key set; never request-selected |
 | Rotation | Root-signed, scoped keyset snapshots with explicit validity and sequence |
@@ -54,7 +54,7 @@ The COSE protected header must include:
 - `kid` (key identifier used only as a lookup hint into the independently provisioned trust store);
 - content type identifying the signed IEAC document profile.
 
-The verifier must confirm that the resolved COSE_Key is OKP / Ed25519, the key usage permits verification, and the key is authorized for the exact signer, registry/source and payload type. A valid signature from an otherwise valid but unauthorized key is not an authorization pass.
+The verifier must confirm that the resolved COSE_Key has `kty = 1` (OKP), `crv = 6` (Ed25519), and a 32-byte public `x` value; it must reject inconsistent key-type/curve pairs, private `d` material in public keysets, and weak/invalid public keys. The key usage must permit verification, and the key must be authorized for the exact signer, registry/source and payload type. A valid signature from an otherwise valid but unauthorized key is not an authorization pass.
 
 ### 2.3 Domain separation
 
@@ -177,6 +177,7 @@ The companion `schemas/examples/ieac-signed-envelope-synthetic-v0.2.json` fixtur
 - RFC 8785, JSON Canonicalization Scheme: https://www.rfc-editor.org/rfc/rfc8785.html
 - RFC 9052, COSE Structures and Process: https://www.rfc-editor.org/rfc/rfc9052.html
 - RFC 9053, Initial COSE Algorithms (updated): https://www.rfc-editor.org/rfc/rfc9053.html
+- COSE IANA key-type and curve registries: https://www.iana.org/assignments/cose
 - RFC 9864, Fully-Specified JOSE/COSE Algorithms: https://www.rfc-editor.org/rfc/rfc9864.html
 - RFC 8949, CBOR deterministic encoding: https://www.rfc-editor.org/rfc/rfc8949.html
 - in-toto Attestation Framework: https://github.com/in-toto/attestation/tree/main/spec
