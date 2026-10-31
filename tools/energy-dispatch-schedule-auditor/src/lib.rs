@@ -1317,7 +1317,6 @@ mod tests {
     }
 
     #[test]
-    #[test]
     fn enforces_contiguous_source_chronology_evidence_reference_and_expansion_limits() {
         let base = h2_request();
         let mut gap: Value = serde_json::from_slice(&base).unwrap();
