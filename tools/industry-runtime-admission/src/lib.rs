@@ -213,7 +213,7 @@ fn evaluate_conditions(
             let observed = measurement.get("observed_at").and_then(Value::as_str)
                 .and_then(canonical_utc_seconds);
             match (observed, as_of_seconds, max_age) {
-                (Some(observed), Some(as_of), Some(max_age)) if observed > as_of => {
+                (Some(observed), Some(as_of), Some(_)) if observed > as_of => {
                     unique_push(&mut local, "FUTURE_DATED_MEASUREMENT");
                     result = "out_of_domain";
                     *reject = true;
@@ -582,7 +582,7 @@ pub fn evaluate_admission(profile: &Value, request: &Value) -> Value {
     let authority_observed = text_at(revocation, "/observed_at").and_then(canonical_utc_seconds);
     let authority_limit = revocation.get("max_age_seconds").and_then(Value::as_u64);
     match (authority_observed, as_of_seconds, authority_limit) {
-        (Some(observed), Some(now), Some(limit)) if observed > now => {
+        (Some(observed), Some(now), Some(_)) if observed > now => {
             unique_push(&mut reasons, "AUTHORITY_SOURCE_FUTURE_DATED");
             reject = true;
         }
