@@ -530,6 +530,11 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 160
+        },
+        "max_authority_snapshot_age_seconds": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum age in seconds allowed for the external revocation/authorization snapshot at runtime admission. The value is policy-bound by the qualification profile."
         }
       }
     },
