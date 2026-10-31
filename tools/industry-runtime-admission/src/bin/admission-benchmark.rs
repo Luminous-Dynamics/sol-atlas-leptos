@@ -75,7 +75,7 @@ struct CaseLedgerSummary {
 fn encode_jsonl_line(value: &Value) -> Result<Vec<u8>, String> {
     let mut bytes = serde_json::to_vec(value)
         .map_err(|error| format!("cannot serialize case-ledger record: {error}"))?;
-    bytes.push(b'\\n');
+    bytes.push(b'\n');
     Ok(bytes)
 }
 
