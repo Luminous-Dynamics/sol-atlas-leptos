@@ -1,6 +1,6 @@
 # Temporal Dispatch Qualification v0.1
 
-Status: contract plus H=2 exhaustive test-only schedule oracle (65,536 bounded assignments), H=3 deterministic sampled oracle (50,000 assignments), objective recomputation, and SOC carry-forward negative control. H=4, production schedule API and exact-head CI qualification remain open.
+Status: contract plus H=2 exhaustive test-only schedule oracle (65,536 bounded assignments), H=3 deterministic sampled oracle (50,000 assignments), all-six-objective independent recomputation, and temporal/energy negative controls. H=4, production schedule API and exact-head CI qualification remain open.
 
 ## 1. Assurance boundary
 
