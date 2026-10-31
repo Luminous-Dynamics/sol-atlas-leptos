@@ -1,6 +1,6 @@
 # Temporal Dispatch Qualification v0.1
 
-Status: contract plus a first H=2 exhaustive test-only schedule oracle (65,536 bounded assignments) and SOC carry-forward negative control. H=3/H=4, production schedule API and exact-head CI qualification remain open.
+Status: contract plus H=2 exhaustive test-only schedule oracle (65,536 bounded assignments), H=3 deterministic sampled oracle (50,000 assignments), objective recomputation, and SOC carry-forward negative control. H=4, production schedule API and exact-head CI qualification remain open.
 
 ## 1. Assurance boundary
 
@@ -48,19 +48,22 @@ The enumerator and evaluator must not share transition helpers. An oracle repeat
 
 ### Implemented first increment
 
-The current follow-on branch extends the test-only schedule specification to
-walk sequential request intervals and carries the independently recomputed SOC
-state between them. A two-interval deterministic case charges from PV in the
-first period and serves essential demand during a grid outage in the second.
-The generated reference model exposes 16 binary-bounded free variables for
-this fixture, so the test checks 65,536 complete assignments. A focused
-negative control starts with a feasible trajectory and mutates the preceding
-interval's SOC; the independent schedule evaluator must reject the corrupted
-trajectory.
+The follow-on branch extends the test-only schedule specification to walk
+sequential request intervals and carries independently recomputed SOC between
+them. The H=2 fixture charges from PV, then serves essential demand during a
+grid outage. Its 16 binary-bounded free variables are exhaustively enumerated:
+65,536 complete assignments are compared by LP feasibility and the
+source-request schedule evaluator. A separate negative control corrupts the
+preceding interval's SOC and must be rejected.
 
-This is an initial H=2 fixture, not an H=2-through-H=4 qualification suite.
-The evaluator remains test-only and does not yet emit a production schedule
-receipt or recompute each optimization objective.
+The H=3 fixture adds an idle recovery interval after the outage and compares
+50,000 deterministic assignments generated with a frozen LCG seed. This is
+sampled coverage, not exhaustive enumeration. For every H=2 exhaustive and
+H=3 sampled assignment, the LP objective is independently recomputed from the
+source request as the sum of essential unserved quanta and compared exactly.
+
+The evaluator remains test-only; H=4, broader generated domains and a
+production schedule receipt remain open.
 
 ## 5. Mutation panel
 
