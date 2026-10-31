@@ -186,7 +186,7 @@
           "maxLength": 64
         },
         "source_value": {
-          "oneOf": [
+          "anyOf": [
             {
               "type": "boolean"
             },
@@ -292,7 +292,7 @@
           "maxLength": 128
         },
         "normalized_value": {
-          "oneOf": [
+          "anyOf": [
             {
               "type": "boolean"
             },
