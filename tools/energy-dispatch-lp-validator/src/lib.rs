@@ -1352,17 +1352,90 @@ mod tests {
     fn schedule_objective_value(
         request: &Request,
         assignment: &BTreeMap<String, i64>,
+        objective_id: ObjectiveId,
     ) -> Option<i64> {
-        request
-            .intervals
-            .iter()
-            .enumerate()
-            .try_fold(0_i64, |total, (index, _)| {
-                total.checked_add(integer_at(
+        let sum_by_interval = |mut term: impl FnMut(usize, &Interval) -> Option<i64>| {
+            request
+                .intervals
+                .iter()
+                .enumerate()
+                .try_fold(0_i64, |total, (index, interval)| {
+                    total.checked_add(term(index, interval)?)
+                })
+        };
+        match objective_id {
+            ObjectiveId::EssentialUnservedQuanta => sum_by_interval(|index, _| {
+                Some(integer_at(
                     assignment,
                     &format!("essential_unserved_{index:03}"),
                 ))
+            }),
+            ObjectiveId::FlexibleUnservedQuanta => sum_by_interval(|index, _| {
+                Some(integer_at(
+                    assignment,
+                    &format!("flexible_unserved_{index:03}"),
+                ))
+            }),
+            ObjectiveId::OperatingCostUnits => sum_by_interval(|index, interval| {
+                i64::from(interval.grid_cost_units_per_quantum)
+                    .checked_mul(integer_at(
+                        assignment,
+                        &format!("grid_import_{index:03}"),
+                    ))
+            }),
+            ObjectiveId::GridCarbonGrams => sum_by_interval(|index, interval| {
+                i64::from(interval.grid_carbon_grams_per_quantum)
+                    .checked_mul(integer_at(
+                        assignment,
+                        &format!("grid_import_{index:03}"),
+                    ))
+            }),
+            ObjectiveId::CurtailedPvQuanta => sum_by_interval(|index, _| {
+                Some(integer_at(
+                    assignment,
+                    &format!("pv_curtailed_{index:03}"),
+                ))
+            }),
+            ObjectiveId::TerminalSocQuanta => {
+                let final_index = request.intervals.len().checked_sub(1)?;
+                Some(integer_at(
+                    assignment,
+                    &format!("soc_after_{final_index:03}"),
+                ))
+            }
+        }
+    }
+
+    fn derive_all_objective_models(request_bytes: &[u8]) -> Vec<SemanticModel> {
+        ObjectiveId::ALL
+            .into_iter()
+            .map(|objective_id| {
+                derive_reference_model(request_bytes, objective_id, Direction::Min)
+                    .unwrap_or_else(|error| {
+                        panic!("derive independent {objective_id:?} reference model: {error}")
+                    })
             })
+            .collect()
+    }
+
+    fn assert_all_objectives_match_source_request(
+        models: &[SemanticModel],
+        request: &Request,
+        assignment: &BTreeMap<String, i64>,
+    ) {
+        assert_eq!(models.len(), ObjectiveId::ALL.len());
+        for (model, objective_id) in models.iter().zip(ObjectiveId::ALL) {
+            assert_eq!(
+                model.objective_id,
+                objective_id,
+                "objective model order changed"
+            );
+            assert_eq!(
+                model_objective_value(model, assignment),
+                schedule_objective_value(request, assignment, objective_id),
+                "LP/source-request objective mismatch for {objective_id:?}: {assignment:?}"
+            );
+        }
     }
 
     fn sampled_compare_model_to_schedule_spec(
@@ -1371,12 +1444,10 @@ mod tests {
         initial_seed: u64,
     ) -> (usize, usize) {
         let request: Request = serde_json::from_slice(request_bytes).unwrap();
-        let model = derive_reference_model(
-            request_bytes,
-            ObjectiveId::EssentialUnservedQuanta,
-            Direction::Min,
-        )
-        .unwrap();
+        let objective_models = derive_all_objective_models(request_bytes);
+        let model = objective_models
+            .first()
+            .expect("the objective matrix must not be empty");
         let variables = model
             .variables
             .iter()
@@ -1403,10 +1474,10 @@ mod tests {
                 schedule_accepts,
                 "sampled model/schedule disagreement for seed {initial_seed}: {assignment:?}"
             );
-            assert_eq!(
-                model_objective_value(&model, &assignment),
-                schedule_objective_value(&request, &assignment),
-                "sampled objective mismatch for seed {initial_seed}: {assignment:?}"
+            assert_all_objectives_match_source_request(
+                &objective_models,
+                &request,
+                &assignment,
             );
             if model_accepts {
                 feasible += 1;
@@ -1417,11 +1488,10 @@ mod tests {
 
     fn exhaustively_compare_model_to_schedule_spec(request_bytes: &[u8]) -> (usize, usize) {
         let request: Request = serde_json::from_slice(request_bytes).unwrap();
-        let model = derive_reference_model(
-            request_bytes,
-            ObjectiveId::EssentialUnservedQuanta,
-            Direction::Min,
-        ).unwrap();
+        let objective_models = derive_all_objective_models(request_bytes);
+        let model = objective_models
+            .first()
+            .expect("the objective matrix must not be empty");
         let variables = model.variables.iter()
             .map(|(name, variable)| (name.clone(), variable.lower, variable.upper))
             .collect::<Vec<_>>();
@@ -1432,7 +1502,7 @@ mod tests {
         fn visit(
             index: usize,
             variables: &[(String, i64, i64)],
-            model: &SemanticModel,
+            models: &[SemanticModel],
             request: &Request,
             assignment: &mut BTreeMap<String, i64>,
             visited: &mut usize,
@@ -1440,6 +1510,9 @@ mod tests {
         ) {
             if index == variables.len() {
                 *visited += 1;
+                let model = models
+                    .first()
+                    .expect("the objective model set must not be empty");
                 let model_accepts = model_accepts_assignment(model, assignment);
                 let schedule_accepts = schedule_spec_accepts_assignment(request, assignment);
                 assert_eq!(
@@ -1447,11 +1520,7 @@ mod tests {
                     schedule_accepts,
                     "model/schedule disagreement for assignment {assignment:?}"
                 );
-                assert_eq!(
-                    model_objective_value(model, assignment),
-                    schedule_objective_value(request, assignment),
-                    "LP objective/source-request objective mismatch for assignment {assignment:?}"
-                );
+                assert_all_objectives_match_source_request(models, request, assignment);
                 if model_accepts {
                     *feasible += 1;
                 }
@@ -1464,7 +1533,7 @@ mod tests {
                 visit(
                     index + 1,
                     variables,
-                    model,
+                    models,
                     request,
                     assignment,
                     visited,
@@ -1477,7 +1546,7 @@ mod tests {
         visit(
             0,
             &variables,
-            &model,
+            &objective_models,
             &request,
             &mut assignment,
             &mut visited,
