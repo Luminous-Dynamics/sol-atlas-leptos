@@ -58,10 +58,17 @@ A successful receipt records the validator ID/version, request SHA-256, LP
 SHA-256, objective identity, reference semantic-model SHA-256 and parsed
 semantic-model SHA-256. Those semantic digests must be equal.
 
-This v0.1 receipt is a translation-validation artifact. The next integration
-step is to require its exact LP digest and semantic digest in the SCIP/VIPR
-certificate admission manifest, so certificates cannot be detached from the
-request and translation validation that justified the model.
+The current SCIP/VIPR workflow consumes the receipt before each solve.
+It checks that the receipt is equivalent and that its request digest, LP digest
+and semantic-model digest match the exact request and LP bytes being solved.
+Those bindings are carried into the solver result row. After VIPR checking, a
+proof-binding JSONL record additionally commits the translation-receipt digest,
+solver certificate digest, VIPR verification-log digest, validator version,
+SCIP binary digest, VIPR checker digest and pinned VIPR source commit.
+
+This does not make the receipt a mathematical proof itself; it makes it an
+auditable translation claim that is cryptographically associated with the
+subsequent proof artifact and the exact solver/checker binaries.
 
 ## Current tests
 
@@ -72,14 +79,17 @@ inject an unsupported section, append trailing content, duplicate a section,
 substitute source metadata and substitute the direction. Additional tests cover
 request parsing, artifact naming and byte-size limits.
 
-This is an initial semantic validator tranche, not yet the full adversarial
-qualification corpus. The next targets are:
-- at least 1,000 deterministic named mutations with false-accept accounting;
-- all 12 generated LPs against the frozen synthetic fixture;
+The first implementation tranche includes 1,000 deterministic semantic
+mutations and a dedicated workflow that independently regenerates and validates
+all twelve frozen-fixture objective/direction LPs. The SCIP/VIPR workflow also
+runs the validator before each solve and emits twelve proof-binding records.
+Remaining qualification work:
 - exhaustive small-request agreement against independent feasible-schedule
-  enumeration;
-- mutation of request/model/receipt/certificate associations;
-- certificate-admission integration and receipt bundle provenance.
+  enumeration, not only model translation;
+- richer mutation classes for all individual constraints, domains and metadata;
+- mutation of request/model/receipt/certificate associations and proof-log paths;
+- a stable portable receipt encoding profile and explicit certificate schema version.
+
 
 ## Claim ceiling
 
