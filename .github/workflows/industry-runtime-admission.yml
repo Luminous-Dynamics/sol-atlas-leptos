@@ -212,7 +212,7 @@ jobs:
             ($hazard.posterior.negative.failure) as $post_neg |
             ($p_pos * ([100 * $post_pos, 12] | min) +
              $p_neg * ([100 * $post_neg, 12] | min)) as $after |
-            (entropy(0.18) - 0.18 * entropy(0.5) - 0.82 * entropy(0.0121951219512195)) as $hazard_ig |
+            (entropy(0.1) - 0.18 * entropy(0.5) - 0.82 * entropy(0.0121951219512195)) as $hazard_ig |
             ($after - $hazard.expected_decision_loss_after_observation | fabs < 0.000000001) and
             ($hazard_ig - $hazard.expected_information_gain_bits | fabs < 0.000000001) and
             ($hazard.expected_gross_value_of_information == (10 - $after)) and
