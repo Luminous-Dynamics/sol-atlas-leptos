@@ -71,11 +71,12 @@ discharge-during-outage fixture exhaustively checks all 65,536 bounded
 assignments. The H=3 charge/outage/recovery fixture checks 50,000 deterministic
 sampled assignments using a frozen LCG seed. A dedicated H=3 negative control
 swaps the outage and post-outage idle intervals while retaining the original
-trajectory; the independent schedule evaluator must reject the misaligned
-trajectory. For every exhaustive or sampled assignment, the LP objective
-value is also recomputed independently from the source request by summing
-essential unserved quanta. The H=3 panel is sampled, not exhaustive; it does
-not replace the H=2 finite exhaustive oracle.
+trajectory. For every H=2 exhaustive and H=3 sampled assignment, all six
+LP objective values are recomputed independently from the source request:
+essential/flexible unserved, operating cost, grid carbon, curtailed PV and
+terminal SOC. The test also verifies that each objective-specific reference
+model has identical variables/bounds and constraints. The H=3 panel is
+sampled, not exhaustive; it does not replace the H=2 finite exhaustive oracle.
 
 The temporal test oracle is now extended beyond the original one-interval case.
 A two-interval charge-from-PV followed by an essential-load outage case
