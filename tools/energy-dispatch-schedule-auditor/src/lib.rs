@@ -267,6 +267,8 @@ pub struct AuditReceipt {
     pub source_schema_version: String,
     pub schedule_schema_version: String,
     pub case_id: String,
+    pub synthetic_source: bool,
+    pub max_candidate_expansions: u64,
     pub request_sha256: String,
     pub schedule_sha256: String,
     pub interval_count: usize,
@@ -286,6 +288,7 @@ struct ReceiptSubject<'a> {
     schedule_schema_version: &'a str,
     case_id: &'a str,
     synthetic_source: bool,
+    max_candidate_expansions: u64,
     request_sha256: &'a str,
     schedule_sha256: &'a str,
     interval_count: usize,
@@ -469,6 +472,7 @@ fn recompute_objectives(
     let mut grid_carbon = 0_i64;
     let mut curtailed_pv = 0_i64;
 
+    let mut recomputed_terminal_soc = i64::from(request.battery.initial_soc_quanta);
     for (interval, dispatch) in request.intervals.iter().zip(&schedule.interval_dispatches) {
         essential_unserved = essential_unserved
             .checked_add(i64::from(dispatch.essential_unserved_quanta))
@@ -493,9 +497,21 @@ fn recompute_objectives(
         curtailed_pv = curtailed_pv
             .checked_add(i64::from(dispatch.pv_curtailed_quanta))
             .ok_or_else(|| audit_error("curtailed PV objective overflow"))?;
+
+        let gain = checked_floor_product(
+            dispatch.charge_input_quanta,
+            request.battery.charge_efficiency_numerator,
+            request.battery.charge_efficiency_denominator,
+        )
+        .ok_or_else(|| audit_error("cannot recompute terminal SOC: invalid charge efficiency"))?;
+        let withdrawal = i64::from(dispatch.discharge_withdrawal_quanta);
+        recomputed_terminal_soc = recomputed_terminal_soc
+            .checked_add(gain)
+            .and_then(|value| value.checked_sub(withdrawal))
+            .ok_or_else(|| audit_error("terminal SOC recomputation overflow"))?;
     }
 
-    let terminal_soc = i64::from(schedule.terminal_soc_quanta);
+    let terminal_soc = recomputed_terminal_soc;
     Ok(RecomputedObjectives {
         essential_unserved_quanta: essential_unserved,
         flexible_unserved_quanta: flexible_unserved,
@@ -784,6 +800,7 @@ fn build_receipt(
         schedule_schema_version: &schedule.schema_version,
         case_id: &request.case_id,
         synthetic_source: request.synthetic,
+        max_candidate_expansions: request.max_candidate_expansions,
         request_sha256: &request_sha256,
         schedule_sha256: &schedule_sha256,
         interval_count: schedule.interval_dispatches.len(),
@@ -803,6 +820,7 @@ fn build_receipt(
         schedule_schema_version: schedule.schema_version.clone(),
         case_id: request.case_id.clone(),
         synthetic_source: request.synthetic,
+        max_candidate_expansions: request.max_candidate_expansions,
         request_sha256,
         schedule_sha256,
         interval_count: schedule.interval_dispatches.len(),
