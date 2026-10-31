@@ -69,23 +69,37 @@
         "mode_0",
         "mode_1"
       ],
-      "likelihood": {
-        "mode_0": {
-          "healthy": 0.5,
-          "failure": 0.5
-        },
-        "mode_1": {
-          "healthy": 0.5,
-          "failure": 0.5
-        }
-      },
       "observation_accuracy": "perfect for nuisance_mode",
       "expected_information_gain_bits": 1,
       "expected_posterior_hazard_probability": 0.1,
       "expected_optimal_action_after_observation": "continue_normal",
       "expected_decision_loss_after_observation": 10,
       "expected_gross_value_of_information": 0,
-      "expected_net_value_of_information": -1
+      "expected_net_value_of_information": -1,
+      "likelihood_given_nuisance_mode": {
+        "mode_0": {
+          "mode_0": 1,
+          "mode_1": 0
+        },
+        "mode_1": {
+          "mode_0": 0,
+          "mode_1": 1
+        }
+      },
+      "likelihood_given_hazard": {
+        "healthy": {
+          "mode_0": 0.5,
+          "mode_1": 0.5
+        },
+        "failure": {
+          "mode_0": 0.5,
+          "mode_1": 0.5
+        }
+      },
+      "conditioned_variables": [
+        "nuisance_mode",
+        "hazard"
+      ]
     },
     {
       "observation_id": "hazard_probe",
@@ -97,16 +111,6 @@
         "positive",
         "negative"
       ],
-      "likelihood": {
-        "positive": {
-          "healthy": 0.1,
-          "failure": 0.9
-        },
-        "negative": {
-          "healthy": 0.9,
-          "failure": 0.1
-        }
-      },
       "outcome_probability": {
         "positive": 0.18,
         "negative": 0.82
@@ -132,7 +136,31 @@
       },
       "expected_decision_loss_after_observation": 3.16,
       "expected_gross_value_of_information": 6.84,
-      "expected_net_value_of_information": 5.84
+      "expected_net_value_of_information": 5.84,
+      "likelihood_given_hazard": {
+        "healthy": {
+          "positive": 0.1,
+          "negative": 0.9
+        },
+        "failure": {
+          "positive": 0.9,
+          "negative": 0.1
+        }
+      },
+      "likelihood_given_nuisance_mode": {
+        "mode_0": {
+          "positive": 0.18,
+          "negative": 0.82
+        },
+        "mode_1": {
+          "positive": 0.18,
+          "negative": 0.82
+        }
+      },
+      "conditioned_variables": [
+        "hazard",
+        "nuisance_mode"
+      ]
     }
   ],
   "baselines": {
