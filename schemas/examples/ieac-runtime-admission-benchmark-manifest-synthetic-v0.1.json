@@ -1,0 +1,236 @@
+{
+  "schema_version": "luminous.industrial-benchmark-run-manifest.v0.1",
+  "manifest_id": "ibap.synthetic.ieac-runtime-admission.v0.1",
+  "benchmark": {
+    "benchmark_id": "ieac-runtime-admission-false-admission-v0.1",
+    "vertical": "industrial_maintenance",
+    "evaluation_mode": "synthetic_fixture",
+    "intended_decision": "Evaluate false-admission resistance, abstention behaviour and reconstruction-checker agreement for the IEAC runtime admission gate.",
+    "decision_tier": "D0_descriptive",
+    "purpose": "Synthetic software admission-control benchmark. No industrial, physical, field, safety or production outcome is represented.",
+    "profile_id": "synthetic-ieac-runtime-admission-d0-v0.1"
+  },
+  "task": {
+    "task_id": "ieac-runtime-admission-mutation-panel-v0.1",
+    "estimand": "Per-failure-family false-admission rate and one-sided exact 95 percent binomial upper bound under the frozen synthetic mutation-generation law.",
+    "system_boundary": "Rust IEAC runtime admission evaluator, static-only profile validation baseline, and reconstruction checker applied to one declared vertical's synthetic profile/request fixtures.",
+    "operating_conditions": [
+      "One frozen synthetic qualification profile and operator profile pin",
+      "One synthetic request and measurement snapshot per generated trial",
+      "Single-fault mutations from the frozen family list",
+      "D0 descriptive annotation only; no external actuation",
+      "Fixed PRNG algorithm and seed recorded in the run receipt"
+    ],
+    "time_support": "One admission decision per generated trial; timestamps are fixed or mutated within the frozen test contract.",
+    "spatial_support": "One synthetic vertical fixture selected by benchmark.vertical; no real site or geographic claim.",
+    "output_contract": "Per-trial disposition, reason codes, candidate/checker comparison, tamper result, latency and exact source identities.",
+    "known_exclusions": [
+      "No physical model validation",
+      "No real telemetry or data-rights assertion",
+      "No authenticated profile-pin or revocation authority signatures",
+      "No production authorization, safety case or SOTA comparison"
+    ]
+  },
+  "datasets": [
+    {
+      "dataset_id": "ieac-runtime-admission-synthetic-fixtures-v0.1",
+      "role": "test",
+      "source_type": "synthetic",
+      "source_uri": "urn:luminous:synthetic:ieac-runtime-admission:v0.1",
+      "version_or_snapshot": "synthetic-fixtures-v0.1",
+      "retrieved_at": "2026-10-31T13:30:00Z",
+      "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "rights_state": "not_applicable",
+      "license_or_basis": "Synthetic fixtures maintained in this repository; no third-party or operational data.",
+      "permitted_evaluation_uses": [
+        "testing",
+        "benchmarking"
+      ],
+      "notes": "Placeholder content digest; replace with the digest of the exact frozen fixture bundle before a non-fixture run."
+    }
+  ],
+  "split_plan": {
+    "strategy": [
+      "machine_disjoint",
+      "campaign_disjoint"
+    ],
+    "split_manifest_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "group_axes": [
+      "machine_id",
+      "campaign_id"
+    ],
+    "leakage_audit": {
+      "auditor_id": "synthetic-independent-split-auditor",
+      "audit_artifact_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "cross_split_overlap_count": 0,
+      "result": "pass"
+    },
+    "holdout_locked_before_tuning": true,
+    "split_semantics": "Synthetic machine identities machine-a and machine-b are training groups; machine-c is the held-out test group. The split manifest is illustrative, not a real dataset split."
+  },
+  "methods": [
+    {
+      "method_id": "static-profile-only-baseline-v0.1",
+      "role": "null_baseline",
+      "name": "Static profile-only validation baseline",
+      "version": "fixture-v0.1",
+      "code_or_model_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "configuration_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "solver_or_runtime": "Rust static IEAC profile validator",
+      "information_access_scope": "Frozen qualification profile only; does not inspect runtime request or snapshot.",
+      "tuning_budget": {
+        "wall_clock_seconds": 60,
+        "trials": 1,
+        "human_hours": 0
+      },
+      "eligible_for_superiority_claim": false
+    },
+    {
+      "method_id": "ieac-runtime-admission-candidate-v0.1",
+      "role": "candidate",
+      "name": "IEAC runtime admission evaluator",
+      "version": "ieac-runtime-admission-v0.1.0",
+      "code_or_model_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "configuration_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "solver_or_runtime": "Rust 2024 executable; runtime version and build digest must be recorded in the execution receipt.",
+      "information_access_scope": "Same frozen profile, profile pin, request, snapshot and authority fixture as the baseline plus runtime admission logic.",
+      "tuning_budget": {
+        "wall_clock_seconds": 60,
+        "trials": 1,
+        "human_hours": 0
+      },
+      "eligible_for_superiority_claim": false
+    }
+  ],
+  "comparability": {
+    "state": "matched",
+    "task_boundary_matched": true,
+    "data_access_matched": true,
+    "information_access_matched": true,
+    "tuning_budget_matched": true,
+    "compute_budget_matched": true,
+    "physical_resource_budget_matched": true,
+    "deviations": [],
+    "reviewer_id": "synthetic-contract-reviewer",
+    "rationale": "Synthetic contract fixture declares the same profile-only information and execution budget boundary. The static-only baseline is intentionally a weaker capability and is not a production comparator."
+  },
+  "budgets": {
+    "per_method_wall_clock_seconds": 1800,
+    "per_method_cpu_core_seconds": 1800,
+    "per_method_peak_memory_bytes": 536870912,
+    "per_method_compute_energy_joules": 10000,
+    "physical_resource_budgets": [
+      {
+        "resource": "synthetic_admission_trials",
+        "unit": "decisions",
+        "maximum": 1000000,
+        "scope": "Per method across the declared generated corpus."
+      }
+    ],
+    "equal_budget_policy": "Candidate and baseline receive the same frozen manifest, profile fixtures and generated request set; seed, trial count and execution limit are fixed before the run."
+  },
+  "metrics": [
+    {
+      "metric_id": "false_admissions_per_negative_trial",
+      "name": "False admissions",
+      "definition": "Count of negative-control requests for which the candidate reports an admit disposition.",
+      "unit": "count",
+      "direction": "minimize",
+      "denominator": "Negative-control trials in each failure-family and vertical stratum.",
+      "aggregation": "sum",
+      "report_by_group": [
+        "vertical",
+        "failure_family"
+      ],
+      "report_worst_group": true
+    },
+    {
+      "metric_id": "candidate_checker_disagreements",
+      "name": "Candidate/checker disagreements",
+      "definition": "Count of reports for which the reconstruction checker disagrees with the candidate on disposition or bound decision fields.",
+      "unit": "count",
+      "direction": "minimize",
+      "denominator": "All generated trials in each stratum.",
+      "aggregation": "sum",
+      "report_by_group": [
+        "vertical",
+        "failure_family"
+      ],
+      "report_worst_group": true
+    },
+    {
+      "metric_id": "admission_latency_p95",
+      "name": "Admission plus checker p95 latency",
+      "definition": "95th percentile wall-clock latency for candidate evaluation and reconstruction checking.",
+      "unit": "milliseconds",
+      "direction": "minimize",
+      "denominator": "One end-to-end candidate/checker evaluation per trial.",
+      "aggregation": "sum",
+      "report_by_group": [
+        "vertical",
+        "failure_family"
+      ],
+      "report_worst_group": true
+    }
+  ],
+  "protected_constraints": [
+    {
+      "constraint_id": "zero-false-admissions",
+      "category": "safety",
+      "status": "mandatory",
+      "metric_id": "false_admissions_per_negative_trial",
+      "operator": "==",
+      "threshold": 0,
+      "unit": "count",
+      "scope": "Every frozen negative failure-family stratum; no aggregate compensation.",
+      "reviewer_id": "synthetic-contract-reviewer",
+      "rationale": "Synthetic software gate acceptance condition only; not a real-world risk guarantee."
+    }
+  ],
+  "replication": {
+    "execution_mode": "deterministic",
+    "replicate_count": 1,
+    "seeds": [
+      20261031
+    ],
+    "stopping_rule": "Run the exact configured trials-per-family for every family; no early stopping or replacement after results are inspected.",
+    "deterministic_replay_expected": true
+  },
+  "environment": {
+    "operating_system": "Pinned CI runner; exact image identity to be recorded in the execution receipt.",
+    "architecture": "x86_64",
+    "cpu": "Exact runner CPU model to be recorded at execution.",
+    "gpu": "Not used",
+    "memory_bytes": 536870912,
+    "runtime": "Rust stable; exact rustc and target triple to be recorded at execution.",
+    "compiler_or_interpreter": "rustc version to be recorded in execution receipt.",
+    "thread_count": 1,
+    "notes": "Synthetic contract fixture. Placeholder source and configuration digests are not evidence of an executed run."
+  },
+  "independent_evaluation": {
+    "verifier_id": "ieac-runtime-reconstruction-checker-v0.1",
+    "verifier_artifact_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "independent_implementation": true,
+    "shares_candidate_decision_code": false,
+    "recomputed_outputs": [
+      "Admission disposition",
+      "Profile, request, snapshot and authority digest bindings",
+      "Condition results and reason codes",
+      "Report tamper detection"
+    ],
+    "planned_checks": [
+      "Reconstruct each candidate report from frozen inputs",
+      "Check each reason-code expectation against the mutation family",
+      "Verify report tampering is detected",
+      "Report candidate/checker disagreements by failure family"
+    ]
+  },
+  "freeze": {
+    "frozen_at": "2026-10-31T13:30:00Z",
+    "frozen_by": "synthetic-fixture-author",
+    "reviewer_id": "synthetic-contract-reviewer",
+    "pre_registered_before_execution": true,
+    "preregistration_reference": "urn:luminous:synthetic:ieac-runtime-admission:fixture-v0.1"
+  },
+  "claim_ceiling": "synthetic_only"
+}
