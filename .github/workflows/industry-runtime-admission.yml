@@ -132,6 +132,13 @@ jobs:
       - name: Add schema CLI to PATH
         run: echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
 
+      - name: Checkout the pinned IBAP v0.1 manifest schema
+        uses: actions/checkout@v4
+        with:
+          repository: Luminous-Dynamics/sol-atlas-leptos
+          ref: 3df5147bfab35b0a797d11c3a5f6834ac14e7713
+          path: .ibap-contract
+
       - name: Validate profile and runtime schemas against Draft 2020-12 meta-schema
         run: |
           set -euo pipefail
@@ -140,6 +147,13 @@ jobs:
           jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-runtime-admission-request-v0.1.schema.json
           jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-runtime-admission-report-v0.1.schema.json
           jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-runtime-profile-pin-v0.1.schema.json
+
+      - name: Validate the frozen admission benchmark manifest against IBAP v0.1
+        run: |
+          set -euo pipefail
+          jsonschema-cli validate --draft 2020 --assert-format --offline \\
+            .ibap-contract/schemas/industrial-benchmark-run-manifest-v0.1.schema.json \\
+            -i schemas/examples/ieac-runtime-admission-benchmark-manifest-synthetic-v0.1.json
 
       - name: Validate the runtime profile and request fixtures
         run: |
