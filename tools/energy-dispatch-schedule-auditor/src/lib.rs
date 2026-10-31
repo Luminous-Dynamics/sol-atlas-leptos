@@ -38,6 +38,14 @@ fn sha256(bytes: &[u8]) -> String {
     hex::encode(Sha256::digest(bytes))
 }
 
+fn current_binary_sha256() -> Result<String, AuditError> {
+    let executable = std::env::current_exe()
+        .map_err(|error| audit_error(format!("resolve auditor executable: {error}")))?;
+    let bytes = std::fs::read(&executable)
+        .map_err(|error| audit_error(format!("read auditor executable for provenance: {error}")))?;
+    Ok(sha256(&bytes))
+}
+
 struct StrictJsonSeed;
 
 impl<'de> DeserializeSeed<'de> for StrictJsonSeed {
@@ -264,6 +272,7 @@ pub struct AuditReceipt {
     pub receipt_schema: String,
     pub auditor_id: String,
     pub auditor_version: String,
+    pub auditor_binary_sha256: String,
     pub source_schema_version: String,
     pub schedule_schema_version: String,
     pub case_id: String,
@@ -284,6 +293,7 @@ struct ReceiptSubject<'a> {
     receipt_schema: &'a str,
     auditor_id: &'a str,
     auditor_version: &'a str,
+    auditor_binary_sha256: &'a str,
     source_schema_version: &'a str,
     schedule_schema_version: &'a str,
     case_id: &'a str,
@@ -790,6 +800,7 @@ fn build_receipt(
         AuditDisposition::Rejected
     };
     let receipt_schema = "energy-dispatch-schedule-audit-receipt-v0.1";
+    let auditor_binary_sha256 = current_binary_sha256()?;
     let claim_ceiling = concat!(
         "independent source-request schedule conformance for the declared integer ",
         "battery/PV/grid dispatch model only; no claim of physical-model completeness, ",
@@ -801,6 +812,7 @@ fn build_receipt(
         receipt_schema,
         auditor_id: AUDITOR_ID,
         auditor_version: AUDITOR_VERSION,
+        auditor_binary_sha256: &auditor_binary_sha256,
         source_schema_version: &request.schema_version,
         schedule_schema_version: &schedule.schema_version,
         case_id: &request.case_id,
@@ -821,6 +833,7 @@ fn build_receipt(
         receipt_schema: receipt_schema.to_owned(),
         auditor_id: AUDITOR_ID.to_owned(),
         auditor_version: AUDITOR_VERSION.to_owned(),
+        auditor_binary_sha256,
         source_schema_version: request.schema_version.clone(),
         schedule_schema_version: schedule.schema_version.clone(),
         case_id: request.case_id.clone(),
