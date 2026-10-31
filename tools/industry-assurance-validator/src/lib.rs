@@ -687,6 +687,16 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
     let (artifact_ids, roles) = validate_artifacts(profile, &mut out);
     validate_evidence(profile, &artifact_ids, &mut out);
     validate_authority(profile, &artifact_ids, &roles, &mut out);
+    if let Some(max_age) = profile.pointer("/authority/max_authority_snapshot_age_seconds") {
+        if max_age.as_u64().is_none() {
+            issue(
+                &mut out,
+                "INVALID_AUTHORITY_MAX_AGE_SECONDS",
+                "/authority/max_authority_snapshot_age_seconds",
+                "max_authority_snapshot_age_seconds must be a non-negative integer when present.",
+            );
+        }
+    }
     validate_validity(profile, &mut out);
 
     if let Some(envelope) = profile.get("operating_envelope") {
@@ -889,6 +899,21 @@ mod tests {
         valid_until["evidence_vector"]["software_conformance"]["evidence"][0]["valid_until"] =
             json!(false);
         assert!(has_code(&validate_profile(&valid_until), "TIMESTAMP_STRING_REQUIRED"));
+    }
+
+    #[test]
+    fn authority_snapshot_freshness_policy_must_be_a_nonnegative_integer() {
+        let mut profile = fixture();
+        profile["authority"]["max_authority_snapshot_age_seconds"] = json!(-1);
+        assert!(has_code(&validate_profile(&profile), "INVALID_AUTHORITY_MAX_AGE_SECONDS"));
+
+        let mut profile = fixture();
+        profile["authority"]["max_authority_snapshot_age_seconds"] = json!("300");
+        assert!(has_code(&validate_profile(&profile), "INVALID_AUTHORITY_MAX_AGE_SECONDS"));
+
+        let mut profile = fixture();
+        profile["authority"]["max_authority_snapshot_age_seconds"] = json!(300);
+        assert!(!has_code(&validate_profile(&profile), "INVALID_AUTHORITY_MAX_AGE_SECONDS"));
     }
 
     #[test]
