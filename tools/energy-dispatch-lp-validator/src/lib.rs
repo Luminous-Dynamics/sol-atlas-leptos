@@ -1230,86 +1230,108 @@ mod tests {
         request: &Request,
         assignment: &BTreeMap<String, i64>,
     ) -> bool {
-        if request.intervals.len() != 1 {
+        if request.intervals.is_empty() {
             return false;
         }
-        let interval = &request.intervals[0];
         let battery = &request.battery;
-        let value = |prefix: &str| integer_at(assignment, &format!("{prefix}_000"));
+        let mut previous_soc = i64::from(battery.initial_soc_quanta);
 
-        let grid = value("grid_import");
-        let charge_input = value("charge_input");
-        let withdrawal = value("soc_withdrawal");
-        let charge_gain = value("charge_gain");
-        let delivered = value("discharge_delivered");
-        let soc_after = value("soc_after");
-        let essential_served = value("essential_served");
-        let essential_unserved = value("essential_unserved");
-        let flexible_served = value("flexible_served");
-        let flexible_unserved = value("flexible_unserved");
-        let pv_used = value("pv_used");
-        let pv_curtailed = value("pv_curtailed");
-        let charge_mode = value("charge_mode");
+        for (index, interval) in request.intervals.iter().enumerate() {
+            let value = |prefix: &str| {
+                integer_at(assignment, &format!("{prefix}_{index:03}"))
+            };
 
-        let grid_limit = if interval.grid_outage {
-            0
-        } else {
-            i64::from(interval.grid_import_limit_quanta)
-        };
-        if grid < 0 || grid > grid_limit
-            || charge_input < 0
-            || charge_input > i64::from(battery.charge_input_limit_quanta)
-            || withdrawal < 0
-            || withdrawal > i64::from(battery.discharge_withdrawal_limit_quanta)
-            || withdrawal > i64::from(battery.initial_soc_quanta)
-            || charge_mode != 0 && charge_mode != 1
-        {
-            return false;
-        }
-        if charge_mode == 0 && charge_input != 0 {
-            return false;
-        }
-        if charge_mode == 1 && withdrawal != 0 {
-            return false;
+            let grid = value("grid_import");
+            let charge_input = value("charge_input");
+            let withdrawal = value("soc_withdrawal");
+            let charge_gain = value("charge_gain");
+            let delivered = value("discharge_delivered");
+            let soc_after = value("soc_after");
+            let essential_served = value("essential_served");
+            let essential_unserved = value("essential_unserved");
+            let flexible_served = value("flexible_served");
+            let flexible_unserved = value("flexible_unserved");
+            let pv_used = value("pv_used");
+            let pv_curtailed = value("pv_curtailed");
+            let charge_mode = value("charge_mode");
+
+            let grid_limit = if interval.grid_outage {
+                0
+            } else {
+                i64::from(interval.grid_import_limit_quanta)
+            };
+            let withdrawal_limit = i64::from(
+                battery
+                    .discharge_withdrawal_limit_quanta
+                    .min(battery.capacity_quanta),
+            );
+            if grid < 0
+                || grid > grid_limit
+                || charge_input < 0
+                || charge_input > i64::from(battery.charge_input_limit_quanta)
+                || withdrawal < 0
+                || withdrawal > withdrawal_limit
+                || withdrawal > previous_soc
+                || charge_mode != 0 && charge_mode != 1
+            {
+                return false;
+            }
+            if (charge_mode == 0 && charge_input != 0)
+                || (charge_mode == 1 && withdrawal != 0)
+            {
+                return false;
+            }
+
+            let expected_gain = charge_input
+                .checked_mul(i64::from(battery.charge_efficiency_numerator))
+                .map(|product| product / i64::from(battery.charge_efficiency_denominator));
+            let expected_delivery = withdrawal
+                .checked_mul(i64::from(battery.discharge_efficiency_numerator))
+                .map(|product| product / i64::from(battery.discharge_efficiency_denominator));
+            if expected_gain != Some(charge_gain) || expected_delivery != Some(delivered) {
+                return false;
+            }
+
+            let expected_soc = previous_soc
+                .checked_add(charge_gain)
+                .and_then(|stored| stored.checked_sub(withdrawal));
+            if expected_soc != Some(soc_after)
+                || soc_after < 0
+                || soc_after > i64::from(battery.capacity_quanta)
+            {
+                return false;
+            }
+
+            let essential_total = essential_served.checked_add(essential_unserved);
+            let flexible_total = flexible_served.checked_add(flexible_unserved);
+            let pv_total = pv_used.checked_add(pv_curtailed);
+            if essential_served < 0
+                || essential_unserved < 0
+                || essential_total != Some(i64::from(interval.essential_demand_quanta))
+                || flexible_served < 0
+                || flexible_unserved < 0
+                || flexible_total != Some(i64::from(interval.flexible_demand_quanta))
+                || pv_used < 0
+                || pv_curtailed < 0
+                || pv_total != Some(i64::from(interval.pv_available_quanta))
+            {
+                return false;
+            }
+
+            let supply = pv_used
+                .checked_add(grid)
+                .and_then(|value| value.checked_add(delivered));
+            let demand = essential_served
+                .checked_add(flexible_served)
+                .and_then(|value| value.checked_add(charge_input));
+            if supply.is_none() || supply != demand {
+                return false;
+            }
+
+            previous_soc = soc_after;
         }
 
-        let expected_gain = charge_input
-            .checked_mul(i64::from(battery.charge_efficiency_numerator))
-            .map(|product| product / i64::from(battery.charge_efficiency_denominator));
-        let expected_delivery = withdrawal
-            .checked_mul(i64::from(battery.discharge_efficiency_numerator))
-            .map(|product| product / i64::from(battery.discharge_efficiency_denominator));
-        if expected_gain != Some(charge_gain) || expected_delivery != Some(delivered) {
-            return false;
-        }
-
-        let expected_soc = i64::from(battery.initial_soc_quanta)
-            .checked_add(charge_gain)
-            .and_then(|stored| stored.checked_sub(withdrawal));
-        if expected_soc != Some(soc_after)
-            || soc_after < i64::from(battery.terminal_reserve_quanta)
-            || soc_after > i64::from(battery.capacity_quanta)
-        {
-            return false;
-        }
-
-        if essential_served < 0
-            || essential_unserved < 0
-            || essential_served + essential_unserved
-                != i64::from(interval.essential_demand_quanta)
-            || flexible_served < 0
-            || flexible_unserved < 0
-            || flexible_served + flexible_unserved
-                != i64::from(interval.flexible_demand_quanta)
-            || pv_used < 0
-            || pv_curtailed < 0
-            || pv_used + pv_curtailed != i64::from(interval.pv_available_quanta)
-        {
-            return false;
-        }
-
-        pv_used + grid + delivered
-            == essential_served + flexible_served + charge_input
+        previous_soc >= i64::from(battery.terminal_reserve_quanta)
     }
 
     fn exhaustively_compare_model_to_schedule_spec(request_bytes: &[u8]) -> (usize, usize) {
@@ -1376,6 +1398,40 @@ mod tests {
             &mut feasible,
         );
         (visited, feasible)
+    }
+
+    fn two_interval_charge_then_outage_request() -> Vec<u8> {
+        let mut request: serde_json::Value = serde_json::from_slice(REQUEST).unwrap();
+        request["battery"]["capacity_quanta"] = serde_json::json!(1);
+        request["battery"]["charge_input_limit_quanta"] = serde_json::json!(1);
+        request["battery"]["discharge_withdrawal_limit_quanta"] = serde_json::json!(1);
+        request["intervals"][0]["interval_id"] = serde_json::json!("charge-from-pv");
+        request["intervals"][0]["grid_import_limit_quanta"] = serde_json::json!(0);
+        request["intervals"][0]["pv_available_quanta"] = serde_json::json!(1);
+        request["intervals"][0]["essential_demand_quanta"] = serde_json::json!(0);
+        request["intervals"][0]["flexible_demand_quanta"] = serde_json::json!(0);
+        request["intervals"][0]["grid_outage"] = serde_json::json!(false);
+        request["intervals"][1] = serde_json::json!({
+            "interval_id": "serve-during-outage",
+            "start_unix_seconds": 1_800_003_600_i64,
+            "duration_seconds": 3600,
+            "grid_outage": true,
+            "pv_available_quanta": 0,
+            "grid_import_limit_quanta": 0,
+            "essential_demand_quanta": 1,
+            "flexible_demand_quanta": 0,
+            "grid_cost_units_per_quantum": 3,
+            "grid_carbon_grams_per_quantum": 7
+        });
+        serde_json::to_vec(&request).unwrap()
+    }
+
+    #[test]
+    fn exhaustively_matches_two_interval_soc_carry_and_outage_schedule_semantics() {
+        let request = two_interval_charge_then_outage_request();
+        let (visited, feasible) = exhaustively_compare_model_to_schedule_spec(&request);
+        assert_eq!(visited, 65_536);
+        assert!(feasible > 0);
     }
 
     #[test]
