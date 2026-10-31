@@ -242,7 +242,47 @@
                 "not_run"
               ]
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "result": {
+                    "const": "pass"
+                  }
+                },
+                "required": [
+                  "result"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "cross_split_overlap_count": {
+                    "const": 0
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "result": {
+                    "const": "fail"
+                  }
+                },
+                "required": [
+                  "result"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "cross_split_overlap_count": {
+                    "minimum": 1
+                  }
+                }
+              }
+            }
+          ]
         },
         "holdout_locked_before_tuning": {
           "type": "boolean"
@@ -259,7 +299,40 @@
       "minItems": 2,
       "items": {
         "$ref": "#/$defs/method"
-      }
+      },
+      "contains": {
+        "type": "object",
+        "required": [
+          "role"
+        ],
+        "properties": {
+          "role": {
+            "const": "candidate"
+          }
+        }
+      },
+      "minContains": 1,
+      "allOf": [
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "role"
+            ],
+            "properties": {
+              "role": {
+                "enum": [
+                  "null_baseline",
+                  "incumbent",
+                  "domain_reference",
+                  "bounded_oracle"
+                ]
+              }
+            }
+          },
+          "minContains": 1
+        }
+      ]
     },
     "comparability": {
       "type": "object",
@@ -320,7 +393,68 @@
           "minLength": 1,
           "maxLength": 3000
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "matched"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "task_boundary_matched": {
+                "const": true
+              },
+              "data_access_matched": {
+                "const": true
+              },
+              "information_access_matched": {
+                "const": true
+              },
+              "tuning_budget_matched": {
+                "const": true
+              },
+              "compute_budget_matched": {
+                "const": true
+              },
+              "physical_resource_budget_matched": {
+                "const": true
+              },
+              "deviations": {
+                "maxItems": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "declared_deviation",
+                  "not_comparable"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "deviations": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
     },
     "budgets": {
       "type": "object",
@@ -473,7 +607,26 @@
           "report_worst_group": {
             "type": "boolean"
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "direction": {
+                  "const": "target"
+                }
+              },
+              "required": [
+                "direction"
+              ]
+            },
+            "then": {
+              "required": [
+                "target_value"
+              ]
+            }
+          }
+        ]
       }
     },
     "protected_constraints": {
@@ -548,7 +701,47 @@
             "minLength": 1,
             "maxLength": 2000
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "status": {
+                  "const": "mandatory"
+                }
+              },
+              "required": [
+                "status"
+              ]
+            },
+            "then": {
+              "required": [
+                "metric_id",
+                "operator",
+                "threshold",
+                "unit",
+                "scope"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "status": {
+                  "const": "not_applicable"
+                }
+              },
+              "required": [
+                "status"
+              ]
+            },
+            "then": {
+              "required": [
+                "reviewer_id"
+              ]
+            }
+          }
+        ]
       }
     },
     "replication": {
@@ -925,7 +1118,26 @@
           "minLength": 1,
           "maxLength": 512
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "role": {
+                "const": "bounded_oracle"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "then": {
+            "required": [
+              "bounded_problem_size"
+            ]
+          }
+        }
+      ]
     }
   }
 }
