@@ -66,6 +66,14 @@ proof-binding JSONL record additionally commits the translation-receipt digest,
 solver certificate digest, VIPR verification-log digest, validator version,
 SCIP binary digest, VIPR checker digest and pinned VIPR source commit.
 
+The temporal oracle now has two distinct horizons. The H=2 charge-from-PV /
+discharge-during-outage fixture exhaustively checks all 65,536 bounded
+assignments. The H=3 charge/outage/recovery fixture checks 50,000 deterministic
+sampled assignments using a frozen LCG seed. For every exhaustive or sampled
+assignment, the LP objective value is also recomputed independently from the
+source request by summing essential unserved quanta. The H=3 panel is sampled,
+not exhaustive; it does not replace the H=2 finite exhaustive oracle.
+
 The temporal test oracle is now extended beyond the original one-interval case.
 A two-interval charge-from-PV followed by an essential-load outage case
 exhaustively compares 65,536 bounded integer assignments between the independent
