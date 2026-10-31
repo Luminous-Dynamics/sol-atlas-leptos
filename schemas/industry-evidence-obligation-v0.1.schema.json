@@ -1,0 +1,313 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/industry-evidence-obligation-v0.1.schema.json",
+  "title": "IEAC Evidence Obligation v0.1",
+  "description": "A bounded, non-executing request for evidence needed to reconsider one prior admission abstention.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "obligation_id",
+    "request_id",
+    "profile_id",
+    "asset_id",
+    "decision_id",
+    "issued_at",
+    "reason_codes",
+    "resolution_state",
+    "required_evidence",
+    "source_constraints",
+    "independence",
+    "authority",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.ieac-evidence-obligation.v0.1"
+    },
+    "obligation_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "profile_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "asset_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "decision_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reason_codes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z][A-Z0-9_]{2,95}$"
+      }
+    },
+    "resolution_state": {
+      "enum": [
+        "resolvable_with_new_evidence",
+        "conditionally_resolvable",
+        "not_resolvable_without_profile_review"
+      ]
+    },
+    "required_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "variable",
+        "accepted_unit",
+        "operating_bounds",
+        "uncertainty_limit",
+        "observation_window",
+        "max_age_seconds"
+      ],
+      "properties": {
+        "variable": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "accepted_unit": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "operating_bounds": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "minimum",
+            "maximum"
+          ],
+          "properties": {
+            "minimum": {
+              "type": "number"
+            },
+            "maximum": {
+              "type": "number"
+            }
+          }
+        },
+        "uncertainty_limit": {
+          "type": "number",
+          "minimum": 0
+        },
+        "observation_window": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "not_before",
+            "not_after"
+          ],
+          "properties": {
+            "not_before": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "not_after": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "max_age_seconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sampling_requirements": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "calibration_requirements": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "payload_digest_required": {
+          "const": true
+        }
+      }
+    },
+    "source_constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "permitted_artifact_ids",
+        "permitted_source_classes",
+        "rights_state_required"
+      ],
+      "properties": {
+        "permitted_artifact_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+          }
+        },
+        "permitted_source_classes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{1,63}$"
+          }
+        },
+        "rights_state_required": {
+          "const": "verified"
+        },
+        "excluded_artifact_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+          }
+        }
+      }
+    },
+    "independence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dependency_dimensions",
+        "dependencies_must_be_declared",
+        "required_independent_of",
+        "unknown_independence_policy"
+      ],
+      "properties": {
+        "dependency_dimensions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "sensor",
+              "calibration_chain",
+              "gateway",
+              "clock",
+              "network_path",
+              "model",
+              "operator",
+              "upstream_source",
+              "power_supply",
+              "physical_location"
+            ]
+          }
+        },
+        "dependencies_must_be_declared": {
+          "const": true
+        },
+        "required_independent_of": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+          }
+        },
+        "unknown_independence_policy": {
+          "const": "do_not_rank_or_treat_as_independent"
+        }
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required_authorization_source_ids",
+        "trust_state_required",
+        "profile_review_can_be_automated"
+      ],
+      "properties": {
+        "required_authorization_source_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+          }
+        },
+        "trust_state_required": {
+          "enum": [
+            "operator_pinned",
+            "cryptographically_authenticated"
+          ]
+        },
+        "profile_review_can_be_automated": {
+          "const": false
+        }
+      }
+    },
+    "human_review_required": {
+      "type": "boolean"
+    },
+    "not_resolvable_reason": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "claim_ceiling": {
+      "const": "advisory_evidence_obligation_only"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "resolution_state": {
+            "const": "not_resolvable_without_profile_review"
+          }
+        },
+        "required": [
+          "resolution_state"
+        ]
+      },
+      "then": {
+        "required": [
+          "human_review_required",
+          "not_resolvable_reason"
+        ],
+        "properties": {
+          "human_review_required": {
+            "const": true
+          }
+        }
+      }
+    }
+  ]
+}
