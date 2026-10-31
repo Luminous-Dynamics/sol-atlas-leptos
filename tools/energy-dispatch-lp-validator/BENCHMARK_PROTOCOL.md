@@ -28,6 +28,7 @@ Report each stage separately. A valid MIP certificate establishes a property of 
 
 Freeze a mutation manifest with deterministic seed, mutation ID, target family, expected rejection and output digest. At minimum cover:
 - SOC carry-forward and interval-index errors;
+- interval permutation (including outage/idle reordering) and profile truncation;
 - outage bit shifts and nonzero grid import in outage;
 - simultaneous charge/discharge;
 - floor efficiency changed to round/ceil;
