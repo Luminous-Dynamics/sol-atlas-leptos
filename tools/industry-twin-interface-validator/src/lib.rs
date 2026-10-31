@@ -808,7 +808,6 @@ mod tests {
         assert!(has_code(&issues, "D0_ACTION_ESCALATION"));
     }
 
-
     #[test]
     fn frozen_negative_fixture_files_are_rejected_by_semantic_validator() {
         let negative_fixtures = [
