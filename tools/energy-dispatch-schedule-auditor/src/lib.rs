@@ -220,7 +220,6 @@ struct SourceInterval {
 pub struct DispatchSchedule {
     pub schema_version: String,
     pub case_id: String,
-    pub synthetic_source: bool,
     pub request_sha256: String,
     pub interval_dispatches: Vec<IntervalDispatch>,
     pub terminal_soc_quanta: u16,
