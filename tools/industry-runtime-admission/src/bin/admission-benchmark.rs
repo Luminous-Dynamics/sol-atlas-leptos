@@ -350,7 +350,8 @@ fn run() -> Result<(Value, bool), String> {
     let mut reason_code_misses_total = 0usize;
     let mut corpus_hasher = Sha256::new();
     let mut family_simultaneous_upper_bounds = Vec::new();
-    let mut static_baseline_false_admissions_total = 0usize;
+    let mut family_false_admission_rates = Vec::new();
+    let mut static_baseline_counterfactual_acceptances_total = 0usize;
 
     for (family, expected, expected_reason, is_negative) in FAMILIES {
         let mut false_admissions = 0usize;
@@ -378,7 +379,7 @@ fn run() -> Result<(Value, bool), String> {
                 static_profile_valid_trials += 1;
                 if *is_negative {
                     static_false_admissions += 1;
-                    static_baseline_false_admissions_total += 1;
+                    static_baseline_counterfactual_acceptances_total += 1;
                 }
             }
 
@@ -439,6 +440,9 @@ fn run() -> Result<(Value, bool), String> {
         if reason_code_hits != trials_per_family {
             reason_code_misses_total += trials_per_family - reason_code_hits;
         }
+        if *is_negative {
+            family_false_admission_rates.push(false_admissions as f64 / trials_per_family as f64);
+        }
         let upper_bound = if *is_negative {
             let negative_family_count = FAMILIES.iter().filter(|(_, _, _, negative)| *negative).count();
             let simultaneous_alpha = 0.05 / negative_family_count as f64;
@@ -465,7 +469,7 @@ fn run() -> Result<(Value, bool), String> {
             "static_only_profile_baseline": {
                 "profile_valid_trials": static_profile_valid_trials,
                 "does_not_evaluate_request_freshness_or_runtime_identity": true,
-                "false_admissions": static_false_admissions
+                "would_counterfactually_accept_if_profile_validation_were_treated_as_runtime_authorization": static_false_admissions
             },
             "report_tamper": { "checks": trials_per_family, "detected": tamper_detected },
             "latency_ms": {
@@ -477,6 +481,11 @@ fn run() -> Result<(Value, bool), String> {
     }
 
     let elapsed = run_started.elapsed();
+    let vertical_macro_rate = if family_false_admission_rates.is_empty() {
+        Value::Null
+    } else {
+        json!(family_false_admission_rates.iter().sum::<f64>() / family_false_admission_rates.len() as f64)
+    };
     let vertical_macro_upper = if family_simultaneous_upper_bounds.is_empty() {
         Value::Null
     } else {
@@ -511,7 +520,8 @@ fn run() -> Result<(Value, bool), String> {
             "failure_family_count": FAMILIES.len(),
             "negative_trials": negative_trials_total,
             "false_admissions": false_admissions_total,
-            "static_baseline_false_admissions": static_baseline_false_admissions_total,
+            "static_baseline_counterfactual_acceptances": static_baseline_counterfactual_acceptances_total,
+            "equal_weight_failure_family_macro_false_admission_rate": vertical_macro_rate,
             "one_sided_95_percent_false_admission_upper_bound_per_family": "reported_in_each_stratum",
             "one_sided_95_percent_upper_bound_for_equal_weight_family_macro_average": vertical_macro_upper,
             "family_macro_upper_bound_method": "Bonferroni simultaneous one-sided exact binomial bounds across negative families, averaged with equal family weights",
