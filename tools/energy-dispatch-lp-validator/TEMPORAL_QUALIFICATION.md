@@ -1,6 +1,6 @@
 # Temporal Dispatch Qualification v0.1
 
-Status: contract plus H=2 exhaustive test-only schedule oracle (65,536 bounded assignments), H=3 deterministic sampled oracle (50,000 assignments), all-six-objective independent recomputation, and temporal/energy negative controls. H=4, production schedule API and exact-head CI qualification remain open.
+Status: contract plus H=2 exhaustive test-only schedule oracle (65,536 bounded assignments), H=3 deterministic sampled oracle (50,000 assignments), H=4 deterministic sampled oracle (120,000 assignments across three seeds), all-six-objective independent recomputation, and interval-index/SOC/energy negative controls. Production schedule API and exact-head CI qualification remain open.
 
 ## 1. Assurance boundary
 
@@ -68,9 +68,16 @@ the feasible set.
 
 The H=3 negative control also swaps the grid-outage and post-outage idle
 intervals while retaining the original candidate trajectory; the independent
-source-request evaluator must reject the now-misaligned schedule. The
-evaluator remains test-only; H=4, broader generated domains and a production
-schedule receipt remain open.
+source-request evaluator must reject the now-misaligned schedule.
+
+The H=4 fixture adds a post-outage recovery interval with available PV and a
+bounded grid-import allowance. Three frozen LCG seeds each exercise 40,000
+assignments, for 120,000 sampled assignments total. The model/schedule
+feasibility and all six objective values are compared on every sample. A
+separate known-feasible trajectory is mutated at each of its four SOC
+transition outputs; the schedule oracle must reject all four interval-local
+corruptions. H=4 is sampled, not exhaustive; a production schedule receipt
+and broader generated request domains remain open.
 
 ## 5. Mutation panel
 
