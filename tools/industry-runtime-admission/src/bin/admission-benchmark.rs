@@ -947,6 +947,17 @@ mod tests {
     }
 
     #[test]
+    fn pairwise_interaction_panel_is_frozen_and_fail_closed() {
+        let pairwise = FAMILIES.iter()
+            .filter(|(family, _, _, _)| family.contains("_plus_"))
+            .collect::<Vec<_>>();
+        assert_eq!(pairwise.len(), 8);
+        assert!(pairwise.iter().all(|(_, expected, reason_codes, negative)| {
+            *expected == "reject" && *negative && !reason_codes.is_empty()
+        }));
+    }
+
+    #[test]
     fn splitmix_seed_replays_exactly() {
         let mut left = Rng::new(0x2026_1031);
         let mut right = Rng::new(0x2026_1031);
