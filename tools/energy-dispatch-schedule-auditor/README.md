@@ -26,10 +26,11 @@ Audit an exact request and schedule:
 
 Exit status is 0 for an accepted schedule, 1 for a parsed but rejected schedule,
 and 2 when parsing, I/O, or receipt construction fails. A receipt is written
-for accepted and rejected schedules when the typed input rows are complete.
-A schedule with a missing or extra interval row is rejected before objective
-receipt construction because six complete horizon objectives cannot be
-recomputed from a partial trajectory.
+for accepted and rejected schedules when both inputs pass strict parsing and
+typed schema decoding. When interval counts differ, the receipt remains
+rejected and marks all six objective fields null because a partial trajectory
+cannot support complete objective recomputation; it is not converted into a
+fake zero-valued result.
 
 ## Schedule contract
 
