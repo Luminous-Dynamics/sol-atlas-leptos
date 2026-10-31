@@ -5,8 +5,8 @@ use industry_runtime_admission::{
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use std::env;
-use std::fs::{self, OpenOptions};
-use std::io::Write;
+use std::fs::{self, File, OpenOptions};
+use std::io::{BufWriter, Write};
 use std::time::Instant;
 
 const FAMILIES: &[(&str, &str, &[&str], bool)] = &[
@@ -47,11 +47,94 @@ impl Rng {
     }
 }
 
+fn hex_digest(bytes: &[u8]) -> String {
+    bytes.iter().map(|byte| format!("{byte:02x}")).collect()
+}
 fn digest_bytes(bytes: &[u8]) -> String {
-    Sha256::digest(bytes).iter().map(|b| format!("{b:02x}")).collect()
+    hex_digest(&Sha256::digest(bytes))
 }
 fn digest_value(value: &Value) -> String {
     digest_bytes(&serde_json::to_vec(value).expect("JSON values serialize"))
+}
+
+const CASE_LEDGER_SCHEMA: &str = "luminous.ieac-runtime-admission-case-ledger.v0.1";
+
+struct CaseLedger {
+    writer: BufWriter<File>,
+    prefix_hasher: Sha256,
+    case_hasher: Sha256,
+    record_count: usize,
+}
+
+struct CaseLedgerSummary {
+    record_count: usize,
+    case_records_sha256: String,
+    prefix_sha256: String,
+}
+
+fn encode_jsonl_line(value: &Value) -> Result<Vec<u8>, String> {
+    let mut bytes = serde_json::to_vec(value)
+        .map_err(|error| format!("cannot serialize case-ledger record: {error}"))?;
+    bytes.push(b'\n');
+    Ok(bytes)
+}
+
+impl CaseLedger {
+    fn create(path: &str, header: Value) -> Result<Self, String> {
+        let file = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(path)
+            .map_err(|error| format!("refusing to overwrite or cannot create case ledger {path}: {error}"))?;
+        let mut ledger = Self {
+            writer: BufWriter::new(file),
+            prefix_hasher: Sha256::new(),
+            case_hasher: Sha256::new(),
+            record_count: 0,
+        };
+        let line = encode_jsonl_line(&header)?;
+        ledger.writer.write_all(&line)
+            .map_err(|error| format!("cannot write case-ledger header: {error}"))?;
+        ledger.prefix_hasher.update(&line);
+        Ok(ledger)
+    }
+
+    fn append_case(&mut self, mut record: Value) -> Result<(), String> {
+        let case_sha256 = digest_value(&record);
+        record["case_sha256"] = json!(case_sha256);
+        let line = encode_jsonl_line(&record)?;
+        self.writer.write_all(&line)
+            .map_err(|error| format!("cannot write case-ledger record {}: {error}", self.record_count))?;
+        self.prefix_hasher.update(&line);
+        self.case_hasher.update(&line);
+        self.record_count += 1;
+        Ok(())
+    }
+
+    fn finish(mut self) -> Result<CaseLedgerSummary, String> {
+        let case_records_sha256 = hex_digest(&self.case_hasher.clone().finalize());
+        let prefix_sha256 = hex_digest(&self.prefix_hasher.clone().finalize());
+        let footer = json!({
+            "record_type": "footer",
+            "schema_version": CASE_LEDGER_SCHEMA,
+            "record_count": self.record_count,
+            "case_records_sha256": case_records_sha256,
+            "prefix_sha256": prefix_sha256,
+            "digest_scope": "header_and_case_records_with_lf; footer excluded"
+        });
+        let footer_line = encode_jsonl_line(&footer)?;
+        self.writer.write_all(&footer_line)
+            .map_err(|error| format!("cannot write case-ledger footer: {error}"))?;
+        self.writer.flush()
+            .map_err(|error| format!("cannot flush case ledger: {error}"))?;
+        self.writer.get_ref().sync_all()
+            .map_err(|error| format!("cannot sync case ledger: {error}"))?;
+        Ok(CaseLedgerSummary {
+            record_count: self.record_count,
+            case_records_sha256,
+            prefix_sha256,
+        })
+    }
 }
 fn refresh_digests(profile: &Value, request: &mut Value) {
     request["profile_sha256"] = json!(digest_value(profile));
@@ -241,7 +324,10 @@ fn reason_codes_match(report: &Value, expected: &[&str]) -> bool {
     let Some(codes) = report["reason_codes"].as_array() else {
         return false;
     };
-    let mut actual = codes.iter().filter_map(Value::as_str).map(str::to_owned).collect::<Vec<_>>();
+    let Some(mut actual) = codes.iter().map(Value::as_str).collect::<Option<Vec<_>>>() else {
+        return false;
+    };
+    let mut actual = actual.drain(..).map(str::to_owned).collect::<Vec<_>>();
     let mut expected = expected.iter().map(|code| (*code).to_owned()).collect::<Vec<_>>();
     actual.sort_unstable();
     expected.sort_unstable();
@@ -354,9 +440,10 @@ fn validate_cli_overrides(
     Ok(())
 }
 
-fn parse_args() -> Result<(String, Option<usize>, Option<u64>, Option<String>), String> {
+fn parse_args() -> Result<(String, Option<usize>, Option<u64>, Option<String>, String), String> {
     let mut manifest = None;
     let mut output = None;
+    let mut cases_jsonl = None;
     let mut trials = None;
     let mut seed = None;
     let mut args = env::args().skip(1);
@@ -365,6 +452,7 @@ fn parse_args() -> Result<(String, Option<usize>, Option<u64>, Option<String>), 
         match arg.as_str() {
             "--manifest" => manifest = Some(value),
             "--output" => output = Some(value),
+            "--cases-jsonl" => cases_jsonl = Some(value),
             "--trials-per-family" => {
                 let parsed = value.parse::<usize>().map_err(|_| "trials-per-family must be a positive integer")?;
                 if parsed == 0 || parsed > 1_000_000 {
@@ -385,6 +473,7 @@ fn parse_args() -> Result<(String, Option<usize>, Option<u64>, Option<String>), 
     Ok((
         manifest.ok_or("required argument: --manifest <frozen-ibap-manifest.json>")?,
         trials, seed, output,
+        cases_jsonl.ok_or("required argument: --cases-jsonl <new-case-ledger.jsonl>")?,
     ))
 }
 
@@ -398,7 +487,7 @@ fn write_new(path: &str, bytes: &[u8]) -> Result<(), String> {
 }
 
 fn run() -> Result<(Value, bool), String> {
-    let (manifest_path, requested_trials, requested_seed, output_path) = parse_args()?;
+    let (manifest_path, requested_trials, requested_seed, output_path, cases_jsonl_path) = parse_args()?;
     let manifest_bytes = fs::read(&manifest_path)
         .map_err(|e| format!("cannot read manifest {manifest_path}: {e}"))?;
     let manifest: Value = serde_json::from_slice(&manifest_bytes)
@@ -417,6 +506,32 @@ fn run() -> Result<(Value, bool), String> {
     let baseline_method = methods.iter().find(|m| {
         matches!(m["role"].as_str(), Some("null_baseline" | "incumbent" | "domain_reference"))
     }).unwrap();
+
+    let base_profile_sha256 = digest_value(&profile);
+    let base_pin_sha256 = digest_value(&pin);
+    let base_request_sha256 = digest_value(&request);
+    let mut case_ledger = CaseLedger::create(&cases_jsonl_path, json!({
+        "record_type": "header",
+        "schema_version": CASE_LEDGER_SCHEMA,
+        "benchmark_id": manifest["benchmark"]["benchmark_id"],
+        "manifest_id": manifest["manifest_id"],
+        "manifest_exact_bytes_sha256": manifest_sha256,
+        "vertical": vertical,
+        "prng": "splitmix64-v1",
+        "seed": seed,
+        "trials_per_failure_family": trials_per_family,
+        "failure_family_count": FAMILIES.len(),
+        "candidate_method_id": candidate_method["method_id"],
+        "static_baseline_method_id": baseline_method["method_id"],
+        "evaluator_version": EVALUATOR_VERSION,
+        "checker_version": CHECKER_VERSION,
+        "input_fixture_digests": {
+            "profile_sha256": base_profile_sha256,
+            "profile_pin_sha256": base_pin_sha256,
+            "request_sha256": base_request_sha256
+        },
+        "claim_ceiling": "Synthetic software admission-control inputs and replay only; no physical or operational validity claim."
+    }))?;
 
     let mut rng = Rng::new(seed);
     let run_started = Instant::now();
@@ -437,7 +552,7 @@ fn run() -> Result<(Value, bool), String> {
     let mut replay_mismatches = 0usize;
     let mut disposition_mismatches_total = 0usize;
     let mut reason_code_misses_total = 0usize;
-    let mut corpus_hasher = Sha256::new();
+    let mut case_index = 0usize;
     let mut family_simultaneous_upper_bounds = Vec::new();
     let mut family_false_admission_rates = Vec::new();
     let mut static_baseline_counterfactual_acceptances_total = 0usize;
@@ -463,11 +578,6 @@ fn run() -> Result<(Value, bool), String> {
             let mut case_pin = pin.clone();
             let mut case_request = request.clone();
             apply_family(family, trial, &mut rng, &mut case_profile, &mut case_pin, &mut case_request);
-            for value in [&case_profile, &case_pin, &case_request] {
-                let bytes = serde_json::to_vec(value).expect("benchmark inputs serialize");
-                corpus_hasher.update((bytes.len() as u64).to_le_bytes());
-                corpus_hasher.update(bytes);
-            }
             let static_valid_for_case = validate_profile(&case_profile).is_empty();
             if static_valid_for_case {
                 static_profile_valid_trials += 1;
@@ -526,18 +636,56 @@ fn run() -> Result<(Value, bool), String> {
             let mut tampered = report.clone();
             tampered["admission"] = json!(if admitted { "reject" } else { "admit_descriptive" });
             tamper_checks_total += 1;
-            if !independent_check(&case_profile, &case_pin, &case_request, &tampered).is_empty() {
+            let report_tamper_detected = !independent_check(
+                &case_profile, &case_pin, &case_request, &tampered,
+            ).is_empty();
+            if report_tamper_detected {
                 tamper_detected += 1;
                 tamper_detected_total += 1;
             }
 
-            if trial < 3 {
+            let deterministic_replay_matches = if trial < 3 {
                 replay_checks += 1;
                 let replay = evaluate_admission(&case_profile, &case_pin, &case_request);
-                if serde_json::to_vec(&replay).ok() != serde_json::to_vec(&report).ok() {
+                let matches = serde_json::to_vec(&replay).ok() == serde_json::to_vec(&report).ok();
+                if !matches {
                     replay_mismatches += 1;
                 }
-            }
+                Some(matches)
+            } else {
+                None
+            };
+
+            case_ledger.append_case(json!({
+                "record_type": "case",
+                "schema_version": CASE_LEDGER_SCHEMA,
+                "case_index": case_index,
+                "case_id": format!("{vertical}/{family}/{trial:08}"),
+                "vertical": vertical,
+                "failure_family": family,
+                "trial_index": trial,
+                "negative_control": is_negative,
+                "expected": {
+                    "admission": expected,
+                    "reason_codes": expected_reason
+                },
+                "inputs": {
+                    "profile": case_profile,
+                    "profile_pin": case_pin,
+                    "request": case_request
+                },
+                "observed": {
+                    "admission": actual,
+                    "reason_codes": report["reason_codes"],
+                    "candidate_report": report,
+                    "checker_errors": checker_errors,
+                    "static_profile_valid": static_valid_for_case,
+                    "report_tamper_detected": report_tamper_detected,
+                    "deterministic_replay_matches": deterministic_replay_matches,
+                    "latency_ms": latency_ms
+                }
+            }))?;
+            case_index += 1;
         }
 
         if expected_disposition_matches != trials_per_family {
@@ -602,10 +750,14 @@ fn run() -> Result<(Value, bool), String> {
     } else {
         json!(family_simultaneous_upper_bounds.iter().sum::<f64>() / family_simultaneous_upper_bounds.len() as f64)
     };
-    let corpus_sha256 = corpus_hasher.finalize().iter().map(|b| format!("{b:02x}")).collect::<String>();
-    let base_profile_sha256 = digest_value(&profile);
-    let base_pin_sha256 = digest_value(&pin);
-    let base_request_sha256 = digest_value(&request);
+    let case_ledger_summary = case_ledger.finish()?;
+    let expected_case_count = FAMILIES.len() * trials_per_family;
+    if case_ledger_summary.record_count != expected_case_count {
+        return Err(format!(
+            "case ledger is incomplete: wrote {} of {expected_case_count} expected records",
+            case_ledger_summary.record_count
+        ));
+    }
     let report = json!({
         "schema_version": "luminous.ieac-runtime-admission-benchmark-report.v0.1",
         "benchmark_id": manifest["benchmark"]["benchmark_id"],
@@ -614,7 +766,13 @@ fn run() -> Result<(Value, bool), String> {
         "manifest_preregistered": true,
         "vertical": vertical,
         "prng": "splitmix64-v1",
-        "corpus_sha256": corpus_sha256,
+        "case_ledger": {
+            "schema_version": CASE_LEDGER_SCHEMA,
+            "record_count": case_ledger_summary.record_count,
+            "case_records_sha256": case_ledger_summary.case_records_sha256,
+            "prefix_sha256": case_ledger_summary.prefix_sha256,
+            "footer_record": true
+        },
         "input_fixture_digests": {
             "profile_sha256": base_profile_sha256,
             "profile_pin_sha256": base_pin_sha256,
@@ -691,7 +849,7 @@ fn main() {
         }
         Err(error) => {
             eprintln!("{error}");
-            eprintln!("usage: industry-admission-benchmark --manifest <frozen-ibap-manifest.json> [--trials-per-family N (must match manifest)] [--seed N|0xHEX (must match manifest)] [--output <new-report.json>]");
+            eprintln!("usage: industry-admission-benchmark --manifest <frozen-ibap-manifest.json> --cases-jsonl <new-case-ledger.jsonl> [--trials-per-family N (must match manifest)] [--seed N|0xHEX (must match manifest)] [--output <new-report.json>]");
             std::process::exit(2);
         }
     }
@@ -754,10 +912,10 @@ mod tests {
     }
 
     #[test]
-    #[test]
     fn expected_reason_codes_require_exact_set_equality() {
         assert!(!reason_codes_match(&json!({}), &[]));
         assert!(!reason_codes_match(&json!({ "reason_codes": "not-an-array" }), &[]));
+        assert!(!reason_codes_match(&json!({ "reason_codes": ["EXPECTED", 7] }), &["EXPECTED"]));
         assert!(reason_codes_match(
             &json!({ "reason_codes": ["ARTIFACT_REVOKED", "MEASUREMENT_STALE"] }),
             &["MEASUREMENT_STALE", "ARTIFACT_REVOKED"],

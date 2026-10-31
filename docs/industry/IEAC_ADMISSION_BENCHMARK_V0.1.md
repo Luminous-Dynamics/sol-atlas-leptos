@@ -28,6 +28,7 @@ cargo run --release \
   --manifest schemas/examples/ieac-runtime-admission-benchmark-manifest-synthetic-v0.1.json \
   --trials-per-family 100 \
   --seed 0x20261031 \
+  --cases-jsonl "$RUNNER_TEMP/ieac-admission-cases.jsonl" \
   --output "$RUNNER_TEMP/ieac-admission-benchmark-report.json"
 ~~~
 
@@ -101,6 +102,25 @@ Next benchmark increments:
 A benchmark result advances only the evidence dimension it directly measures.
 
 
-## Corpus persistence limitation
+## 7. Case-level audit ledger and replay
 
-The report contains a SHA-256 digest over the exact serialized profile, pin and request inputs for every generated trial in deterministic order. Version 0.1 does not emit the full per-case JSONL input corpus; deterministic reconstruction depends on retaining the exact runner source, fixture bytes, manifest, PRNG algorithm and seed. A case-level audit ledger and independent replay artifact are follow-up work, not a completed deliverable.
+The runner requires a new `--cases-jsonl` destination and writes one append-only JSONL ledger containing:
+
+- a header that binds the exact manifest-byte digest, vertical, seed, PRNG, trial count, fixture digests, method IDs, evaluator version and checker version;
+- one record per generated trial, with a stable case ID, stratum and trial index, exact profile/profile-pin/request objects, preregistered expected disposition and reason-code set, candidate report, checker errors, static-profile baseline result, tamper-detection outcome, sampled deterministic-replay outcome, measured evaluator-plus-checker latency and a per-record SHA-256 digest;
+- a footer containing the record count, digest of all case records and digest of the header plus case records.
+
+The benchmark report binds the ledger schema version, record count and both digests. Hash scopes include the line-feed byte at the end of each header/case record; the footer is excluded from the prefix digest and contains the two resulting digests. The writer uses create-new semantics, flushes and syncs the completed ledger, and never overwrites a prior artifact. A process interruption before the footer leaves an incomplete ledger that the verifier rejects. The exact report and ledger are uploaded as a workflow artifact with a 30-day retention period so reviewers can download and replay the same cases after the runner exits.
+
+Replay and aggregate verification:
+
+~~~bash
+cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked \
+  --bin industry-admission-corpus-check -- \
+  "$RUNNER_TEMP/ieac-admission-cases.jsonl" \
+  "$RUNNER_TEMP/ieac-admission-benchmark-report.json"
+~~~
+
+The verifier checks canonical JSONL encoding, every case digest, contiguous case/trial identities, complete family denominators, exact ledger hashes, candidate-result reconstruction, reconstruction-checker output, static-profile baseline results and report aggregate consistency. It fails closed on malformed reason-code arrays (including non-string elements), mismatched expectations, missing records, extra records, footer damage or a report that does not bind the exact ledger.
+
+This is an integrity and replay artifact, not an authenticated trust anchor. The ledger is unsigned; the runner and verifier still share the same library implementation and low-level primitives. A person who can replace both the ledger and report can recompute their hashes. Signed build/source attestations, an independently implemented verifier and third-party golden vectors remain separate work. The case ledger makes the precise evidence inspectable; it does not prove that the evidence is true or physically valid.
