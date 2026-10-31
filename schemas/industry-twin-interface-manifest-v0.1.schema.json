@@ -244,8 +244,8 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "standard_id",
-        "edition",
+        "interface_profile_id",
+        "interface_profile_version",
         "document_kind",
         "protocol",
         "protocol_version",
@@ -254,12 +254,12 @@
         "native_schema"
       ],
       "properties": {
-        "standard_id": {
+        "interface_profile_id": {
           "type": "string",
           "minLength": 1,
           "maxLength": 512
         },
-        "edition": {
+        "interface_profile_version": {
           "type": "string",
           "minLength": 1,
           "maxLength": 128
