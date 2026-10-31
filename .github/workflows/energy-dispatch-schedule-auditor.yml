@@ -5,12 +5,17 @@ on:
     paths:
       - "tools/energy-dispatch-schedule-auditor/**"
       - ".github/workflows/energy-dispatch-schedule-auditor.yml"
+  push:
+    branches: ["main"]
+    paths:
+      - "tools/energy-dispatch-schedule-auditor/**"
+      - ".github/workflows/energy-dispatch-schedule-auditor.yml"
 
 permissions:
   contents: read
 
 concurrency:
-  group: energy-dispatch-schedule-auditor-\${{ github.workflow }}-\${{ github.event.pull_request.number || github.ref }}
+  group: energy-dispatch-schedule-auditor-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -26,6 +31,23 @@ jobs:
         with:
           toolchain: 1.96.0
           components: clippy, rustfmt
+
+      - name: Verify standalone dependency boundary
+        run: |
+          set -euo pipefail
+          ! grep -E 'energy-dispatch-(lp-validator|mip-reference)|scip|vipr' tools/energy-dispatch-schedule-auditor/Cargo.toml
+
+      - name: Validate independent schedule JSON Schema
+        run: |
+          jq -e '
+            .["$schema"] == "https://json-schema.org/draft/2020-12/schema" and
+            .properties.schema_version.const == "energy-dispatch-schedule-v0.1" and
+            (.required | index("request_sha256") != null) and
+            (.required | index("interval_dispatches") != null) and
+            .properties.interval_dispatches.maxItems == 128 and
+            .additionalProperties == false and
+            .["$defs"].interval_dispatch.additionalProperties == false
+          ' tools/energy-dispatch-schedule-auditor/schedule-schema-v0.1.json
 
       - name: Generate standalone dependency lock
         run: cargo generate-lockfile --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml
@@ -127,7 +149,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: energy-dispatch-schedule-audit-\${{ github.sha }}
+          name: energy-dispatch-schedule-audit-${{ github.sha }}
           path: |
             target/energy-dispatch-schedule-auditor/
             tools/energy-dispatch-schedule-auditor/Cargo.toml
