@@ -64,9 +64,7 @@ jobs:
       - name: Assert standalone and embedded obligation schemas are identical
         run: |
           set -euo pipefail
-          diff -u \\
-            <(jq -S '{type, additionalProperties, required, properties, allOf}' schemas/industry-evidence-obligation-v0.1.schema.json) \\
-            <(jq -S '.["$defs"].obligation' schemas/industry-evidence-acquisition-plan-v0.1.schema.json)
+          diff -u <(jq -S '{type, additionalProperties, required, properties, allOf}' schemas/industry-evidence-obligation-v0.1.schema.json) <(jq -S '.["$defs"].obligation' schemas/industry-evidence-acquisition-plan-v0.1.schema.json)
 
       - name: Reject authority escalation and unsafe ranking controls
         run: |
