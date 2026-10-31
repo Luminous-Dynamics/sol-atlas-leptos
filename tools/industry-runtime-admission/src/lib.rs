@@ -1351,7 +1351,7 @@ mod tests {
     }
 
     #[test]
-    fn D2_and_D3_requests_are_rejected_by_v0_1() {
+    fn d2_and_d3_requests_are_rejected_by_v0_1() {
         let (profile, mut request) = fixture_files();
         request["decision_tier"] = json!("D2_delegated_planning");
         let report = evaluate_fixture(&profile, &request);
