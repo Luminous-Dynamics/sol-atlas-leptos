@@ -558,6 +558,18 @@ fn run() -> Result<(Value, bool), String> {
         "profile_validator_source_sha256": digest_bytes(
             include_str!("../../../industry-assurance-validator/src/lib.rs").as_bytes()
         ),
+        "runtime_request_schema_sha256": digest_bytes(
+            include_str!("../../../../schemas/industry-runtime-admission-request-v0.1.schema.json").as_bytes()
+        ),
+        "runtime_report_schema_sha256": digest_bytes(
+            include_str!("../../../../schemas/industry-runtime-admission-report-v0.1.schema.json").as_bytes()
+        ),
+        "runtime_profile_pin_schema_sha256": digest_bytes(
+            include_str!("../../../../schemas/industry-runtime-profile-pin-v0.1.schema.json").as_bytes()
+        ),
+        "qualification_profile_schema_sha256": digest_bytes(
+            include_str!("../../../../schemas/industry-assurance-qualification-profile-v0.1.schema.json").as_bytes()
+        ),
         "corpus_verifier_source_sha256": digest_bytes(include_str!("admission-corpus-check.rs").as_bytes())
     });
     let mut case_ledger = CaseLedger::create(&cases_jsonl_path, json!({
