@@ -103,7 +103,7 @@ jobs:
             .summary.expected_reason_code_misses == 0 and
             .summary.report_tamper_checks == .summary.report_tamper_detected and
             .summary.deterministic_replay_mismatches == 0 and
-            (.strata | length == 14)
+            (.strata | length == 19)
           ' "$report"
 
       - name: Prove locked dependency graphs remain committed
