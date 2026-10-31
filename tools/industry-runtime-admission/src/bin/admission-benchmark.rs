@@ -394,6 +394,27 @@ fn one_sided_exact_upper(events: usize, trials: usize, alpha: f64) -> f64 {
     high
 }
 
+fn validate_family_plan(manifest: &Value) -> Result<(), String> {
+    let operating_conditions = manifest["task"]["operating_conditions"]
+        .as_array()
+        .ok_or("manifest.task.operating_conditions must be an array")?;
+    let declared = operating_conditions.iter()
+        .filter_map(Value::as_str)
+        .filter_map(|item| item.strip_prefix("failure-family-panel-v1:"))
+        .flat_map(|item| item.split(','))
+        .map(str::trim)
+        .collect::<Vec<_>>();
+    let expected = FAMILIES.iter().map(|(family, _, _, _)| *family).collect::<Vec<_>>();
+    if declared != expected {
+        return Err(format!(
+            "manifest failure-family panel does not exactly match the runner's frozen order: expected {} families, found {}",
+            expected.len(),
+            declared.len()
+        ));
+    }
+    Ok(())
+}
+
 fn validate_manifest(manifest: &Value) -> Result<(&str, usize, u64), String> {
     if manifest["schema_version"].as_str() != Some("luminous.industrial-benchmark-run-manifest.v0.1") {
         return Err("manifest is not an IBAP v0.1 run manifest".to_owned());
@@ -433,6 +454,7 @@ fn validate_manifest(manifest: &Value) -> Result<(&str, usize, u64), String> {
     let frozen_trials = replication["trials_per_stratum"].as_u64()
         .filter(|value| *value > 0 && *value <= 1_000_000)
         .ok_or("manifest.replication.trials_per_stratum must be in 1..=1000000")? as usize;
+    validate_family_plan(manifest)?;
     let vertical = manifest["benchmark"]["vertical"].as_str()
         .ok_or("manifest.benchmark.vertical is required")?;
     vertical_spec(vertical)?;
@@ -899,6 +921,18 @@ mod tests {
                 "evaluation_mode": "synthetic_fixture",
                 "vertical": "industrial_maintenance"
             },
+            "task": {
+                "operating_conditions": [
+                    format!(
+                        "failure-family-panel-v1:{}",
+                        FAMILIES[..14].iter().map(|(family, _, _, _)| *family).collect::<Vec<_>>().join(",")
+                    ),
+                    format!(
+                        "failure-family-panel-v1:{}",
+                        FAMILIES[14..].iter().map(|(family, _, _, _)| *family).collect::<Vec<_>>().join(",")
+                    )
+                ]
+            },
             "freeze": { "pre_registered_before_execution": true },
             "methods": [
                 { "method_id": "baseline", "role": "null_baseline" },
@@ -912,6 +946,15 @@ mod tests {
                 "trials_per_stratum": 100
             }
         })
+    }
+
+    #[test]
+    fn preregistered_family_panel_must_match_exact_order_and_cardinality() {
+        let mut manifest = minimal_frozen_manifest();
+        assert!(validate_family_plan(&manifest).is_ok());
+        manifest["task"]["operating_conditions"][1] =
+            json!("failure-family-panel-v1:unexpected_extra_family");
+        assert!(validate_family_plan(&manifest).is_err());
     }
 
     #[test]
