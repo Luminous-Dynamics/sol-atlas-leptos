@@ -107,10 +107,10 @@ A benchmark result advances only the evidence dimension it directly measures.
 The runner requires a new `--cases-jsonl` destination and writes one append-only JSONL ledger containing:
 
 - a header that binds the exact manifest-byte digest, vertical, seed, PRNG, trial count, fixture digests, method IDs, evaluator version and checker version;
-- one record per generated trial, with a stable case ID, stratum and trial index, exact profile/profile-pin/request objects, preregistered expected disposition and reason-code set, candidate report, checker errors, static-profile baseline result and a per-record SHA-256 digest;
+- one record per generated trial, with a stable case ID, stratum and trial index, exact profile/profile-pin/request objects, preregistered expected disposition and reason-code set, candidate report, checker errors, static-profile baseline result, tamper-detection outcome, sampled deterministic-replay outcome, measured evaluator-plus-checker latency and a per-record SHA-256 digest;
 - a footer containing the record count, digest of all case records and digest of the header plus case records.
 
-The benchmark report binds the ledger schema version, record count and both digests. Hash scopes include the line-feed byte at the end of each header/case record; the footer is excluded from the prefix digest and contains the two resulting digests. The writer uses create-new semantics, flushes and syncs the completed ledger, and never overwrites a prior artifact. A process interruption before the footer leaves an incomplete ledger that the verifier rejects.
+The benchmark report binds the ledger schema version, record count and both digests. Hash scopes include the line-feed byte at the end of each header/case record; the footer is excluded from the prefix digest and contains the two resulting digests. The writer uses create-new semantics, flushes and syncs the completed ledger, and never overwrites a prior artifact. A process interruption before the footer leaves an incomplete ledger that the verifier rejects. The exact report and ledger are uploaded as a workflow artifact with a 30-day retention period so reviewers can download and replay the same cases after the runner exits.
 
 Replay and aggregate verification:
 
