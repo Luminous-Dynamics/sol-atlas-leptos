@@ -30,7 +30,10 @@ fn verify_reader<R: BufRead>(mut reader: R) -> Result<Value, String> {
     let mut footer_seen = false;
     let mut footer_case_count = None;
     let mut ledger_digest = None;
-    let mut seen_case_ids = HashSet::new();
+    let mut completed_families = HashSet::new();
+    let mut current_family: Option<String> = None;
+    let mut last_trial_index: Option<usize> = None;
+    let mut header_vertical: Option<String> = None;
     let mut report_mismatches = 0usize;
     let mut input_digest_mismatches = 0usize;
     let mut checker_mismatches = 0usize;
@@ -62,6 +65,12 @@ fn verify_reader<R: BufRead>(mut reader: R) -> Result<Value, String> {
             {
                 return Err("unsupported case-ledger header or schema version".to_owned());
             }
+            header_vertical = Some(
+                header["vertical"]
+                    .as_str()
+                    .ok_or("case-ledger header.vertical is required")?
+                    .to_owned(),
+            );
             hasher.update(&line);
             header_seen = true;
             continue;
@@ -119,9 +128,49 @@ fn verify_reader<R: BufRead>(mut reader: R) -> Result<Value, String> {
         let case_id = record["case_id"]
             .as_str()
             .ok_or_else(|| format!("case {offset} is missing case_id"))?;
-        if !seen_case_ids.insert(case_id.to_owned()) {
-            return Err(format!("duplicate case_id {case_id}"));
+        let vertical = record["vertical"]
+            .as_str()
+            .ok_or_else(|| format!("case {case_id} is missing vertical"))?;
+        if header_vertical.as_deref() != Some(vertical) {
+            return Err(format!("case {case_id} vertical does not match ledger header"));
         }
+        let family = record["failure_family"]
+            .as_str()
+            .ok_or_else(|| format!("case {case_id} is missing failure_family"))?;
+        let trial_index = record["trial_index"]
+            .as_u64()
+            .ok_or_else(|| format!("case {case_id} is missing trial_index"))?
+            as usize;
+        let expected_case_id = format!("{vertical}:{family}:{trial_index}");
+        if case_id != expected_case_id {
+            return Err(format!(
+                "case_id does not match its vertical/family/trial identity: expected {expected_case_id}, got {case_id}"
+            ));
+        }
+
+        if current_family.as_deref() == Some(family) {
+            let expected_trial = last_trial_index
+                .map(|previous| previous + 1)
+                .ok_or("case-ledger family has no prior trial index")?;
+            if trial_index != expected_trial {
+                return Err(format!(
+                    "non-contiguous trial index in family {family}: expected {expected_trial}, got {trial_index}"
+                ));
+            }
+        } else {
+            if let Some(previous_family) = current_family.replace(family.to_owned()) {
+                completed_families.insert(previous_family);
+            }
+            if completed_families.contains(family) {
+                return Err(format!("failure family {family} is not contiguous in the case ledger"));
+            }
+            if trial_index != 0 {
+                return Err(format!(
+                    "first trial for failure family {family} must be zero, got {trial_index}"
+                ));
+            }
+        }
+        last_trial_index = Some(trial_index);
 
         let inputs = &record["inputs"];
         let input_bytes = serde_json::to_vec(inputs)
