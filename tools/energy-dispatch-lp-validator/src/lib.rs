@@ -1333,7 +1333,7 @@ mod tests {
 
         let mut rejected = 0usize;
         for seed in 0..1_000usize {
-            let value = (seed + 1).to_string();
+            let value = (seed + 2).to_string();
             let (needle, replacement_template) = cases[seed % cases.len()];
             let replacement = replacement_template.replace("{value}", &value);
             let mutated = baseline.replacen(needle, &replacement, 1);
