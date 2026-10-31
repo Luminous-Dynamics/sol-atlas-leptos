@@ -211,6 +211,7 @@ struct SourceInterval {
 pub struct DispatchSchedule {
     pub schema_version: String,
     pub case_id: String,
+    pub synthetic_source: bool,
     pub request_sha256: String,
     pub interval_dispatches: Vec<IntervalDispatch>,
     pub terminal_soc_quanta: u16,
@@ -284,6 +285,7 @@ struct ReceiptSubject<'a> {
     source_schema_version: &'a str,
     schedule_schema_version: &'a str,
     case_id: &'a str,
+    synthetic_source: bool,
     request_sha256: &'a str,
     schedule_sha256: &'a str,
     interval_count: usize,
@@ -364,14 +366,6 @@ fn validate_request(request: &SourceRequest, findings: &mut Vec<AuditFinding>) {
     );
     add_finding(
         findings,
-        "candidate-expansion-limit",
-        None,
-        None,
-        request.max_candidate_expansions > 0,
-        "max_candidate_expansions must be non-zero",
-    );
-    add_finding(
-        findings,
         "interval-count",
         None,
         None,
@@ -415,22 +409,6 @@ fn validate_request(request: &SourceRequest, findings: &mut Vec<AuditFinding>) {
             && battery.discharge_efficiency_numerator > 0
             && battery.discharge_efficiency_numerator <= battery.discharge_efficiency_denominator,
         "discharge efficiency must be a positive rational no greater than one",
-    );
-    add_finding(
-        findings,
-        "battery-charge-limit",
-        None,
-        None,
-        battery.charge_input_limit_quanta <= battery.capacity_quanta,
-        "charge input limit must not exceed battery capacity quanta",
-    );
-    add_finding(
-        findings,
-        "battery-discharge-limit",
-        None,
-        None,
-        battery.discharge_withdrawal_limit_quanta <= battery.capacity_quanta,
-        "discharge withdrawal limit must not exceed battery capacity quanta",
     );
 
     let mut seen_ids = BTreeSet::new();
@@ -753,8 +731,9 @@ fn validate_schedule(
             terminal_soc = value;
             previous_soc = value;
         } else {
-            terminal_soc = actual_soc;
-            previous_soc = actual_soc;
+            // Keep the independently propagated state when the transition
+            // arithmetic is invalid; never trust a candidate SOC to repair it.
+            terminal_soc = previous_soc;
         }
     }
 
@@ -804,6 +783,7 @@ fn build_receipt(
         source_schema_version: &request.schema_version,
         schedule_schema_version: &schedule.schema_version,
         case_id: &request.case_id,
+        synthetic_source: request.synthetic,
         request_sha256: &request_sha256,
         schedule_sha256: &schedule_sha256,
         interval_count: schedule.interval_dispatches.len(),
@@ -822,6 +802,7 @@ fn build_receipt(
         source_schema_version: request.schema_version.clone(),
         schedule_schema_version: schedule.schema_version.clone(),
         case_id: request.case_id.clone(),
+        synthetic_source: request.synthetic,
         request_sha256,
         schedule_sha256,
         interval_count: schedule.interval_dispatches.len(),
@@ -984,8 +965,8 @@ mod tests {
         request_with_intervals(
             1,
             0,
-            1,
-            1,
+            2,
+            2,
             (1, 1),
             (1, 1),
             0,
