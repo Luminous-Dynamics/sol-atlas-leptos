@@ -17,7 +17,7 @@ The candidate and checker currently share some low-level parsing, schema and dig
 
 ## 2. Run protocol
 
-First validate the supplied manifest against the IBAP Draft 2020-12 schema using the pinned jsonschema-cli version from the IBAP workflow. It must be a pre-registered synthetic_fixture manifest with one candidate and at least one baseline. The driver hashes the exact manifest bytes and binds that digest into its report. The manifest must be frozen before tuning or execution; edits require a new manifest and new run.
+First validate the supplied manifest against the IBAP Draft 2020-12 schema using the pinned jsonschema-cli version from the IBAP workflow. It must be a pre-registered synthetic_fixture manifest with one candidate and at least one baseline. The IBAP replication section freezes both the single v0.1 seed and `trials_per_stratum` count. The CLI derives both values from the manifest; optional CLI overrides are accepted only when they exactly match those frozen values. The runner rejects a manifest with multiple seeds/replicates in this v0.1 implementation. The driver hashes the exact manifest bytes and binds that digest into its report. The manifest must be frozen before tuning or execution; edits require a new manifest and new run.
 
 Example, from the repository root after the IBAP schema/example branch is available:
 
@@ -33,7 +33,7 @@ cargo run --release \
 
 The output path is create-new: the driver refuses to overwrite a prior receipt. Keep the frozen manifest, generated report and exact executable/build identity together. This first driver reports the exact manifest-byte digest, method IDs, evaluator/checker versions and seed; it does not yet validate a binary/source digest against a signed build attestation.
 
-The default 100 trials per family is a smoke/evaluation-development setting, not adequate for a tight statistical claim. For zero observed false admissions, the exact one-sided 95% binomial upper bound is:
+The checked-in synthetic manifest preregisters 100 trials per failure-family stratum. This is a CI/evaluation-development setting, not adequate for a tight statistical claim. A substantive experiment must publish a new frozen manifest with the intended larger count (for example 30,000 negatives per family); the runner will not permit an after-the-fact count override. For zero observed false admissions, the exact one-sided 95% binomial upper bound is:
 
 p_U = 1 - 0.05^(1/n)
 
