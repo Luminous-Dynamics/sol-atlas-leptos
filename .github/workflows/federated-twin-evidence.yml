@@ -1,0 +1,103 @@
+name: Federated twin evidence contract
+
+on:
+  pull_request:
+    paths:
+      - "schemas/industrial-twin-*.json"
+      - "schemas/examples/industrial-twin-*.json"
+      - "docs/industry/FEDERATED_TWIN_EVIDENCE_V0.1.md"
+      - ".github/workflows/federated-twin-evidence.yml"
+  push:
+    branches:
+      - main
+      - feat/itip-federated-evidence-v0-1
+    paths:
+      - "schemas/industrial-twin-*.json"
+      - "schemas/examples/industrial-twin-*.json"
+      - "docs/industry/FEDERATED_TWIN_EVIDENCE_V0.1.md"
+      - ".github/workflows/federated-twin-evidence.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: federated-twin-evidence-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-evidence-contract:
+    name: Exact-head schema and observation-boundary conformance
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact source revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install Rust and pinned Draft 2020-12 validator
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install pinned schema validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Add schema validator to PATH
+        run: echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+
+      - name: Validate schemas against Draft 2020-12 meta-schema
+        run: |
+          set -euo pipefail
+          meta=https://json-schema.org/draft/2020-12/schema
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industrial-twin-evidence-envelope-v0.1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industrial-twin-observation-capability-v0.1.schema.json
+
+      - name: Validate bounded synthetic examples
+        run: |
+          set -euo pipefail
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industrial-twin-evidence-envelope-v0.1.schema.json -i schemas/examples/industrial-twin-evidence-envelope-synthetic-v0.1.json
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industrial-twin-observation-capability-v0.1.schema.json -i schemas/examples/industrial-twin-observation-capability-synthetic-v0.1.json
+
+      - name: Reject silent transforms and false completeness
+        run: |
+          set -euo pipefail
+          evidence=schemas/examples/industrial-twin-evidence-envelope-synthetic-v0.1.json
+          evidence_schema=schemas/industrial-twin-evidence-envelope-v0.1.schema.json
+          capability=schemas/examples/industrial-twin-observation-capability-synthetic-v0.1.json
+          capability_schema=schemas/industrial-twin-observation-capability-v0.1.schema.json
+
+          jq '.semantic_projection.status = "lossy_projection" | del(.semantic_projection.transform_artifact_id, .semantic_projection.transform_artifact_sha256, .semantic_projection.loss_description, .semantic_projection.uncertainty_transform)' "$evidence" > "$RUNNER_TEMP/untracked-loss.json"
+          jq '.observation_scope.omitted_channel_ids = ["PT185.pressure"]' "$evidence" > "$RUNNER_TEMP/omitted-but-complete.json"
+          jq '.observation_scope.inventory_trust_state = "unknown"' "$evidence" > "$RUNNER_TEMP/untrusted-inventory-but-complete.json"
+          jq '.observation_scope.capture_loss_count = 1' "$evidence" > "$RUNNER_TEMP/loss-counter-but-complete.json"
+          jq '.channels[0].availability = "partial"' "$capability" > "$RUNNER_TEMP/partial-channel-but-complete.json"
+          jq '.capture_contract.loss_counter_value = 1' "$capability" > "$RUNNER_TEMP/loss-counter-profile.json"
+
+          for mutant in "$RUNNER_TEMP/untracked-loss.json" "$RUNNER_TEMP/omitted-but-complete.json" "$RUNNER_TEMP/untrusted-inventory-but-complete.json" "$RUNNER_TEMP/loss-counter-but-complete.json"; do
+            if jsonschema-cli validate --draft 2020 --assert-format --offline "$evidence_schema" -i "$mutant"; then
+              echo "ERROR: evidence schema accepted false-completeness/loss mutant $mutant"
+              exit 1
+            fi
+          done
+
+          for mutant in "$RUNNER_TEMP/partial-channel-but-complete.json" "$RUNNER_TEMP/loss-counter-profile.json"; do
+            if jsonschema-cli validate --draft 2020 --assert-format --offline "$capability_schema" -i "$mutant"; then
+              echo "ERROR: capability schema accepted false-completeness mutant $mutant"
+              exit 1
+            fi
+          done
+
+      - name: Prove native source digests are mandatory
+        run: |
+          set -euo pipefail
+          evidence=schemas/examples/industrial-twin-evidence-envelope-synthetic-v0.1.json
+          schema=schemas/industrial-twin-evidence-envelope-v0.1.schema.json
+          jq 'del(.native_record.native_payload_sha256)' "$evidence" > "$RUNNER_TEMP/missing-native-digest.json"
+          if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$RUNNER_TEMP/missing-native-digest.json"; then
+            echo "ERROR: evidence schema accepted an observation with no native payload digest"
+            exit 1
+          fi

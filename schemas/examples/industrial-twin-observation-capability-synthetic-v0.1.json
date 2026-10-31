@@ -1,0 +1,72 @@
+{
+  "schema_version": "luminous.industrial-twin-observation-capability.v0.1",
+  "capability_profile_id": "synthetic.opcua-plant07.capability-v01",
+  "connector": {
+    "connector_id": "sol-atlas-opcua-readonly-v0.1",
+    "build_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "mode": "subscription",
+    "read_only": true
+  },
+  "source": {
+    "source_system_id": "synthetic.water-scada-07",
+    "protocol": "opc_ua_fx",
+    "native_schema_uri": "https://example.invalid/schemas/water-pressure",
+    "native_schema_version": "3.2.1"
+  },
+  "inventory": {
+    "inventory_snapshot_id": "synthetic.opcua-plant07.inventory-20261031",
+    "inventory_snapshot_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "captured_at": "2026-10-31T17:00:00Z",
+    "trust_state": "operator_pinned",
+    "scope": "Two pressure transmitters explicitly enumerated for plant-07; no claim about unenumerated I/O or hidden PLC dependencies."
+  },
+  "scope": {
+    "asset_ids": [
+      "water-plant-07"
+    ],
+    "time_support": "Current subscription stream from 17:00 UTC onward; history before that time is excluded.",
+    "network_scope": "Read-only site VLAN gateway path only.",
+    "permissions": [
+      "browse",
+      "read",
+      "subscribe"
+    ]
+  },
+  "channels": [
+    {
+      "channel_id": "PT184.pressure",
+      "native_field_path": "/Plant07/Pressure/PT184/EngineeringValue",
+      "native_type": "number",
+      "availability": "supported",
+      "unit_semantics": "Source returns psi; no implicit unit conversion.",
+      "timestamp_semantics": "Source observed-at with PTP domain and declared 0.5 ms bound.",
+      "sampling_semantics": "Subscription sequence; duplicates tracked by source sequence.",
+      "known_loss_modes": []
+    },
+    {
+      "channel_id": "PT185.pressure",
+      "native_field_path": "/Plant07/Pressure/PT185/EngineeringValue",
+      "native_type": "number",
+      "availability": "supported",
+      "unit_semantics": "Source returns psi; no implicit unit conversion.",
+      "timestamp_semantics": "Source observed-at with PTP domain and declared 0.5 ms bound.",
+      "sampling_semantics": "Subscription sequence; duplicates tracked by source sequence.",
+      "known_loss_modes": []
+    }
+  ],
+  "capture_contract": {
+    "pagination_complete": true,
+    "history_complete_for_declared_window": true,
+    "sequence_semantics": "Monotonic source sequence within one connector session; session reset is surfaced as a new stream epoch.",
+    "duplicate_detection": "exact_sequence",
+    "loss_counter_available": true,
+    "loss_counter_value": 0,
+    "watermark_semantics": "Highest contiguous source sequence fully observed.",
+    "unknown_fields_policy": "preserve"
+  },
+  "observation_state": "complete_within_declared_inventory",
+  "known_blind_spots": [
+    "Unenumerated PLC inputs and channels outside the pinned inventory are not observable through this profile."
+  ],
+  "claim_ceiling": "connector_observation_capability_only"
+}
