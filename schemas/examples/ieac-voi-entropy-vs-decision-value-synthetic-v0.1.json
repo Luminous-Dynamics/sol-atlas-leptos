@@ -1,0 +1,185 @@
+{
+  "schema_version": "luminous.ieac-voi-counterexample.v0.1",
+  "fixture_id": "ieac-voi-entropy-vs-decision-value-synthetic-v0.1",
+  "status": "frozen_hand_calculated_synthetic_control",
+  "purpose": "Prove that maximum information gain is not generally the same as maximum decision value.",
+  "system_boundary": "A synthetic binary hidden hazard, an independent nuisance mode bit, two diagnostic observation options, and a two-action expected-loss decision rule. No physical plant or real operational policy is represented.",
+  "hidden_state": {
+    "hazard": {
+      "values": [
+        "healthy",
+        "failure"
+      ],
+      "probability": {
+        "healthy": 0.9,
+        "failure": 0.1
+      }
+    },
+    "nuisance_mode": {
+      "values": [
+        "mode_0",
+        "mode_1"
+      ],
+      "probability": {
+        "mode_0": 0.5,
+        "mode_1": 0.5
+      }
+    },
+    "independence": "hazard and nuisance_mode are independent"
+  },
+  "decision": {
+    "actions": [
+      "continue_normal",
+      "protective_shutdown"
+    ],
+    "loss_units": "synthetic_loss_units",
+    "loss_table": [
+      {
+        "action": "continue_normal",
+        "hazard": "healthy",
+        "loss": 0
+      },
+      {
+        "action": "continue_normal",
+        "hazard": "failure",
+        "loss": 100
+      },
+      {
+        "action": "protective_shutdown",
+        "hazard": "healthy",
+        "loss": 12
+      },
+      {
+        "action": "protective_shutdown",
+        "hazard": "failure",
+        "loss": 12
+      }
+    ],
+    "policy": "Choose the action with minimum posterior expected loss. Ties are resolved by protective_shutdown.",
+    "authority_boundary": "This is an offline decision-theory fixture only. The selected action is not an IEAC permission, schedule or actuation authorization."
+  },
+  "observations": [
+    {
+      "observation_id": "mode_probe",
+      "purpose": "Perfectly observe a nuisance variable independent of the hazard that drives the decision.",
+      "cost": 1,
+      "delay_cost": 0,
+      "operator_cost": 0,
+      "outcome_values": [
+        "mode_0",
+        "mode_1"
+      ],
+      "likelihood": {
+        "mode_0": {
+          "healthy": 0.5,
+          "failure": 0.5
+        },
+        "mode_1": {
+          "healthy": 0.5,
+          "failure": 0.5
+        }
+      },
+      "observation_accuracy": "perfect for nuisance_mode",
+      "expected_information_gain_bits": 1,
+      "expected_posterior_hazard_probability": 0.1,
+      "expected_optimal_action_after_observation": "continue_normal",
+      "expected_decision_loss_after_observation": 10,
+      "expected_gross_value_of_information": 0,
+      "expected_net_value_of_information": -1
+    },
+    {
+      "observation_id": "hazard_probe",
+      "purpose": "Noisy observation directly informative about the hazard that drives the decision.",
+      "cost": 1,
+      "delay_cost": 0,
+      "operator_cost": 0,
+      "outcome_values": [
+        "positive",
+        "negative"
+      ],
+      "likelihood": {
+        "positive": {
+          "healthy": 0.1,
+          "failure": 0.9
+        },
+        "negative": {
+          "healthy": 0.9,
+          "failure": 0.1
+        }
+      },
+      "outcome_probability": {
+        "positive": 0.18,
+        "negative": 0.82
+      },
+      "posterior": {
+        "positive": {
+          "failure": 0.5,
+          "healthy": 0.5
+        },
+        "negative": {
+          "failure": 0.0121951219512195,
+          "healthy": 0.98780487804878
+        }
+      },
+      "expected_information_gain_bits": 0.2110814521389986,
+      "expected_optimal_action": {
+        "positive": "protective_shutdown",
+        "negative": "continue_normal"
+      },
+      "conditional_optimal_loss": {
+        "positive": 12,
+        "negative": 1.2195121951219512
+      },
+      "expected_decision_loss_after_observation": 3.16,
+      "expected_gross_value_of_information": 6.84,
+      "expected_net_value_of_information": 5.84
+    }
+  ],
+  "baselines": {
+    "no_query": {
+      "expected_decision_loss": 10,
+      "selected_action": "continue_normal",
+      "total_observation_cost": 0,
+      "net_expected_loss": 10
+    },
+    "entropy_maximizing": {
+      "selected_observation": "mode_probe",
+      "expected_information_gain_bits": 1,
+      "expected_decision_loss_after_observation": 10,
+      "observation_cost": 1,
+      "net_expected_loss": 11
+    },
+    "expected_value_of_information": {
+      "selected_observation": "hazard_probe",
+      "expected_information_gain_bits": 0.2110814521389986,
+      "expected_decision_loss_after_observation": 3.16,
+      "observation_cost": 1,
+      "net_expected_loss": 4.16
+    },
+    "fixed_checklist_both_sensors": {
+      "selected_observations": [
+        "mode_probe",
+        "hazard_probe"
+      ],
+      "expected_decision_loss_after_observation": 3.16,
+      "total_observation_cost": 2,
+      "net_expected_loss": 5.16
+    }
+  },
+  "expected_comparison": {
+    "entropy_policy_selects": "mode_probe",
+    "value_of_information_policy_selects": "hazard_probe",
+    "gross_expected_loss_reduction_from_hazard_probe": 6.84,
+    "net_expected_loss_reduction_from_hazard_probe": 5.84,
+    "entropy_policy_has_higher_information_gain": true,
+    "voi_policy_has_lower_expected_decision_loss": true
+  },
+  "reproducibility": {
+    "sampling": "none; exact finite-state enumeration",
+    "arithmetic": "hand-calculated rational probabilities with decimal renderings",
+    "hidden_state_count": 4,
+    "observation_outcome_count": 4,
+    "action_count": 2
+  },
+  "claim_ceiling": "Synthetic decision-theory counterexample only. It does not validate physical risk, sensor calibration, a real measurement program, IEAC admission correctness, operational readiness or production safety."
+}
