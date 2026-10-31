@@ -43,6 +43,7 @@ fn run() -> Result<ExitCode, String> {
         );
         return Ok(ExitCode::from(64));
     };
+    let receipt_path = std::path::PathBuf::from(receipt_path);
     if args.next().is_some() {
         return Err("expected exactly three arguments".to_owned());
     }
