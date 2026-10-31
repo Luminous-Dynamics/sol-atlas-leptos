@@ -1547,11 +1547,8 @@ mod tests {
         assert!(feasible <= visited);
     }
 
-    #[test]
-    fn independent_schedule_oracle_rejects_broken_soc_carry_forward() {
-        let request_bytes = two_interval_charge_then_outage_request();
-        let request: Request = serde_json::from_slice(&request_bytes).unwrap();
-        let mut assignment = BTreeMap::from([
+    fn feasible_two_interval_assignment() -> BTreeMap<String, i64> {
+        BTreeMap::from([
             ("grid_import_000".to_owned(), 0),
             ("charge_input_000".to_owned(), 1),
             ("soc_withdrawal_000".to_owned(), 0),
@@ -1578,11 +1575,32 @@ mod tests {
             ("pv_used_001".to_owned(), 0),
             ("pv_curtailed_001".to_owned(), 0),
             ("charge_mode_001".to_owned(), 0),
-        ]);
+        ])
+    }
 
-        assert!(schedule_spec_accepts_assignment(&request, &assignment));
-        assignment.insert("soc_after_000".to_owned(), 0);
-        assert!(!schedule_spec_accepts_assignment(&request, &assignment));
+    #[test]
+    fn independent_schedule_oracle_rejects_temporal_and_energy_mutations() {
+        let request_bytes = two_interval_charge_then_outage_request();
+        let request: Request = serde_json::from_slice(&request_bytes).unwrap();
+        let baseline = feasible_two_interval_assignment();
+        assert!(schedule_spec_accepts_assignment(&request, &baseline));
+
+        let mutations = [
+            ("soc carry-forward", "soc_after_000", 0),
+            ("outage import", "grid_import_001", 1),
+            ("mode exclusivity", "charge_mode_001", 1),
+            ("floor-efficiency result", "charge_gain_000", 0),
+            ("PV bus-balance term", "pv_used_000", 0),
+            ("essential-load partition", "essential_unserved_001", 1),
+        ];
+        for (label, variable, value) in mutations {
+            let mut candidate = baseline.clone();
+            candidate.insert(variable.to_owned(), value);
+            assert!(
+                !schedule_spec_accepts_assignment(&request, &candidate),
+                "independent schedule oracle accepted {label} mutation: {candidate:?}"
+            );
+        }
     }
 
     #[test]
