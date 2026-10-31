@@ -619,7 +619,7 @@ pub fn evaluate_admission(profile: &Value, request: &Value) -> Value {
         }
     }
 
-    let profile_id = text_at(profile, "/profile_id").unwrap_or("");
+    let profile_id = text_at(profile, "/profile_id").unwrap_or("unknown");
     let revoked_profiles = revocation.pointer("/revoked_profile_ids").and_then(Value::as_array);
     if revoked_profiles.is_some_and(|items| items.iter().any(|item| item.as_str() == Some(profile_id))) {
         unique_push(&mut reasons, "PROFILE_REVOKED_BY_AUTHORITY");
@@ -1127,7 +1127,7 @@ fn independent_expected(profile: &Value, request: &Value) -> Value {
         "revocation_snapshot_sha256": r_hash,
         "request_sha256": sha256_value(request),
         "request_id": text_at(request, "/request_id").unwrap_or("unknown"),
-        "profile_id": text_at(profile, "/profile_id").unwrap_or(""),
+        "profile_id": text_at(profile, "/profile_id").unwrap_or("unknown"),
         "evaluator_version": EVALUATOR_VERSION,
         "asset_id": text_at(request, "/asset_id").unwrap_or("unknown"),
         "snapshot_id": text_at(request, "/snapshot_id").unwrap_or("unknown"),
