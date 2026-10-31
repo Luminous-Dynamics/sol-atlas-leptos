@@ -183,6 +183,21 @@ jobs:
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-runtime-admission-request-v0.1.schema.json -i schemas/examples/industry-runtime-admission-request-synthetic-v0.1.json
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-runtime-profile-pin-v0.1.schema.json -i schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json
 
+      - name: Validate IEAC v0.2 signed-envelope schema and JCS vector fixture
+        run: |
+          set -euo pipefail
+          meta=https://json-schema.org/draft/2020-12/schema
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-signed-envelope-v0.2.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-signed-envelope-v0.2.schema.json -i schemas/examples/ieac-signed-envelope-synthetic-v0.2.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/examples/ieac-jcs-vectors-v0.2.json
+          jq -e '
+            .schema_version == "luminous.ieac-jcs-vectors.v0.2" and
+            .canonicalization == "RFC8785-JCS" and
+            .digest_algorithm == "SHA-256" and
+            (.vectors | length == 4) and
+            all(.vectors[]; (.canonical_sha256 | test("^[0-9a-f]{64}$")))
+          ' schemas/examples/ieac-jcs-vectors-v0.2.json
+
       - name: Prove unknown request fields and malformed time are rejected
         run: |
           set -euo pipefail
