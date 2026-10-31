@@ -7,7 +7,7 @@
 
 An assurance system should not request the measurement that merely reduces uncertainty the most. It should request the measurement that can most improve the decision after accounting for observation cost, delay and permissions.
 
-The companion fixture `schemas/examples/ieac-voi-entropy-vs-decision-value-synthetic-v0.1.json` demonstrates a minimal case where the two objectives disagree.
+The companion fixture 'schemas/examples/ieac-voi-entropy-vs-decision-value-synthetic-v0.1.json' demonstrates a minimal case where the two objectives disagree.
 
 ## 2. Frozen decision problem
 
@@ -25,8 +25,8 @@ There are two diagnostic actions:
 
 Before making an observation, expected loss is:
 
-- Continue normal: (0.1 	imes 100 = 10).
-- Protective shutdown: (12).
+- Continue normal: 0.1 * 100 = 10.
+- Protective shutdown: 12.
 
 Therefore the minimum expected loss is 10, selecting continue normal in this synthetic decision problem. This is not a real-world safety policy and is not an IEAC authorization.
 
@@ -34,13 +34,13 @@ Two observations are available, each at cost 1 and zero delay/operator cost.
 
 **Mode probe:** perfectly observes the nuisance mode, which is independent of the hazard. It yields exactly 1 bit of information, but the hazard posterior remains 0.1 and the decision loss remains 10. Gross decision value is zero; net value after cost is -1.
 
-**Hazard probe:** observes the hazard with sensitivity 0.9 and specificity 0.9. Its positive outcome probability is 0.18 and posterior failure probability after a positive is 0.5. Its negative outcome probability is 0.82 and posterior failure probability after a negative is (1/82 approx 0.0121951).
+**Hazard probe:** observes the hazard with sensitivity 0.9 and specificity 0.9. Its positive outcome probability is 0.18 and posterior failure probability after a positive is 0.5. Its negative outcome probability is 0.82 and posterior failure probability after a negative is 1/82 = 0.01219512195.
 
-After a positive observation, the minimum expected loss is 12 (protective shutdown). After a negative observation, the minimum expected loss is (100/82 approx 1.2195122) (continue normal). The expected post-observation loss is therefore:
+After a positive observation, the minimum expected loss is 12 (protective shutdown). After a negative observation, the minimum expected loss is 100/82 = 1.21951219512 (continue normal). The expected post-observation loss is:
 
-[
-0.18 	imes 12 + 0.82 	imes rac{100}{82} = 3.16
-]
+~~~text
+0.18 * 12 + 0.82 * (100 / 82) = 3.16
+~~~
 
 The hazard probe reduces expected loss from 10 to 3.16: gross value 6.84, net value after cost 5.84. Its mutual information is only about 0.211081 bits.
 
@@ -61,27 +61,22 @@ This does not show that entropy/information gain is useless. It shows that infor
 
 ## 4. Benchmark objective
 
-For an allowed observation request (q), define:
+For an allowed observation request q, define:
 
-[
-operatorname{NetVoI}(q) =
-min_d mathbb{E}[L(d,S)]
--
-mathbb{E}_{o sim q}
-left[
-min_d mathbb{E}[L(d,S)mid o]
-ight]
--
-C(q)
-]
+~~~text
+NetVoI(q) =
+    min_d E[L(d, S)]
+    - E_o[min_d E[L(d, S) | o]]
+    - C(q)
+~~~
 
 where:
 
-- (S) is the hidden state in the benchmark simulator;
-- (d) is a bounded decision option;
-- (L) is the preregistered decision-loss function;
-- (o) is the prospective observation;
-- (C(q)) includes observation, delay, operator and resource costs.
+- S is the hidden state in the benchmark simulator;
+- d is a bounded decision option;
+- L is the preregistered decision-loss function;
+- o is the prospective observation;
+- C(q) includes observation, delay, operator and resource costs.
 
 The expected observation distribution must include source reliability, missingness, delay and correlated errors. The policy must not see hidden simulator state. A bounded oracle may see it but must be reported only as an upper bound.
 
@@ -98,7 +93,7 @@ The next executable benchmark should compare no-query, fixed-checklist, maximum-
 ## 6. Acceptance and next steps
 
 - Exact hand-calculated values in this fixture must be reproduced by at least two independent implementations.
-- Entropy-only selection must choose `mode_probe`; expected-NetVoI must choose `hazard_probe`.
+- Entropy-only selection must choose 'mode_probe'; expected-NetVoI must choose 'hazard_probe'.
 - The acquisition planner must not change decision authority or bypass fresh admission.
 - Future benchmarks must use pre-registered cost/latency models, held-out task instances and paired comparisons; report uncertainty in utility differences.
 - Extend to multi-sensor correlation, adversarial observations, calibration drift, stale measurements, source outages and expensive specialist-solver requests.
