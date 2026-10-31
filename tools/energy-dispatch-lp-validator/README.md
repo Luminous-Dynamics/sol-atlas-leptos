@@ -78,15 +78,16 @@ terminal SOC. The test also verifies that each objective-specific reference
 model has identical variables/bounds and constraints. The H=3 panel is
 sampled, not exhaustive; it does not replace the H=2 finite exhaustive oracle.
 
-The temporal test oracle is now extended beyond the original one-interval case.
-A two-interval charge-from-PV followed by an essential-load outage case
-exhaustively compares 65,536 bounded integer assignments between the independent
-LP semantic model and a separately written source-request schedule evaluator.
-The evaluator checks SOC carry-forward, floor efficiency, mode exclusivity,
-per-interval energy balance, load/PV partitions, outage import limits and
-terminal reserve. A dedicated negative control accepts the known feasible
-charge-then-discharge schedule and rejects it when the preceding SOC state is
-corrupted. Three- and four-interval cases and broader request-domain generation
+The temporal test oracle now covers H=2 and H=3. The two-interval
+charge-from-PV followed by essential-load outage case exhaustively compares
+65,536 bounded integer assignments. The H=3 charge/outage/recovery case adds
+50,000 deterministic sampled assignments using a frozen LCG seed. The
+independent source-request evaluator checks SOC carry-forward, floor
+efficiency, mode exclusivity, per-interval energy balance, load/PV partitions,
+outage import limits and terminal reserve. H=2 negative controls corrupt SOC,
+grid outage, mode exclusivity, floor-efficiency result, PV balance and
+essential-load partition; the H=3 control reorders outage and recovery
+intervals and requires rejection. H=4 and broader request-domain generation
 remain open qualification work.
 
 This does not make the receipt a mathematical proof itself; it makes it an
