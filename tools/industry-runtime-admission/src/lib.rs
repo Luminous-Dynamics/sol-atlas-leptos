@@ -130,10 +130,20 @@ fn evaluate_conditions(
         return results;
     }
 
+    let declared_variables: BTreeSet<String> = declared.iter()
+        .filter_map(|condition| condition.get("variable").and_then(Value::as_str))
+        .map(str::to_owned)
+        .collect();
     let mut supplied_by_variable: BTreeMap<String, Vec<Value>> = BTreeMap::new();
     for measurement in supplied {
         if let Some(variable) = measurement.get("variable").and_then(Value::as_str) {
             supplied_by_variable.entry(variable.to_owned()).or_default().push(measurement);
+        }
+    }
+    for variable in supplied_by_variable.keys() {
+        if !declared_variables.contains(variable) {
+            unique_push(reasons, "UNDECLARED_CONDITION_MEASUREMENT");
+            *reject = true;
         }
     }
 
@@ -1043,6 +1053,15 @@ fn independent_expected(profile: &Value, profile_pin: &Value, request: &Value) -
         reasons.insert("OPERATING_ENVELOPE_EMPTY".to_owned());
         uncertain = true;
     }
+    let declared_variables: BTreeSet<&str> = declared.iter()
+        .filter_map(|condition| condition["variable"].as_str())
+        .collect();
+    if supplied.iter().filter_map(|measurement| measurement["variable"].as_str())
+        .any(|variable| !declared_variables.contains(variable))
+    {
+        reasons.insert("UNDECLARED_CONDITION_MEASUREMENT".to_owned());
+        fatal = true;
+    }
     for condition in declared {
         let variable = condition["variable"].as_str().unwrap_or("unknown");
         let found: Vec<&Value> = supplied.iter().filter(|m| m["variable"].as_str() == Some(variable)).collect();
@@ -1369,6 +1388,20 @@ mod tests {
         let report = assert_candidate_and_checker_agree(&profile, &request);
         assert_eq!(report["admission"], "reject");
         assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v.as_str().is_some_and(|s| s.starts_with("WIRE_UNKNOWN_PROPERTY:"))));
+    }
+
+
+    #[test]
+    fn undeclared_snapshot_measurement_rejects_and_checker_reconstructs() {
+        let (profile, mut request) = fixture_files();
+        let mut extra = request["snapshot"]["conditions"][0].clone();
+        extra["variable"] = json!("unprofiled-field-strength");
+        extra["unit"] = json!("dBm");
+        request["snapshot"]["conditions"].as_array_mut().unwrap().push(extra);
+        refresh_digests(&profile, &mut request);
+        let report = assert_candidate_and_checker_agree(&profile, &request);
+        assert_eq!(report["admission"], "reject");
+        assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v == "UNDECLARED_CONDITION_MEASUREMENT"));
     }
 
     #[test]
