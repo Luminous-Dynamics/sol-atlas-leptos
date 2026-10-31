@@ -355,7 +355,7 @@ fn validate_request(request: &SourceRequest, findings: &mut Vec<AuditFinding>) {
     );
     add_finding(
         findings,
-        "evidence-reference",
+        "evidence-reference-shape",
         None,
         None,
         request.evidence_ref.as_ref().is_none_or(|value| !value.trim().is_empty()),
@@ -525,7 +525,7 @@ fn recompute_objectives(
     let mut grid_carbon = 0_i64;
     let mut curtailed_pv = 0_i64;
 
-    let mut recomputed_terminal_soc = i64::from(request.battery.initial_soc_quanta);
+    let mut recomputed_terminal_soc = Some(i64::from(request.battery.initial_soc_quanta));
     for (interval, dispatch) in request.intervals.iter().zip(&schedule.interval_dispatches) {
         essential_unserved = essential_unserved
             .checked_add(i64::from(dispatch.essential_unserved_quanta))
@@ -551,17 +551,19 @@ fn recompute_objectives(
             .checked_add(i64::from(dispatch.pv_curtailed_quanta))
             .ok_or_else(|| audit_error("curtailed PV objective overflow"))?;
 
-        let gain = checked_floor_product(
-            dispatch.charge_input_quanta,
-            request.battery.charge_efficiency_numerator,
-            request.battery.charge_efficiency_denominator,
-        )
-        .ok_or_else(|| audit_error("cannot recompute terminal SOC: invalid charge efficiency"))?;
-        let withdrawal = i64::from(dispatch.discharge_withdrawal_quanta);
-        recomputed_terminal_soc = recomputed_terminal_soc
-            .checked_add(gain)
-            .and_then(|value| value.checked_sub(withdrawal))
-            .ok_or_else(|| audit_error("terminal SOC recomputation overflow"))?;
+        if let Some(current_soc) = recomputed_terminal_soc {
+            let gain = checked_floor_product(
+                dispatch.charge_input_quanta,
+                request.battery.charge_efficiency_numerator,
+                request.battery.charge_efficiency_denominator,
+            );
+            let withdrawal = i64::from(dispatch.discharge_withdrawal_quanta);
+            recomputed_terminal_soc = gain.and_then(|gain| {
+                current_soc
+                    .checked_add(gain)
+                    .and_then(|value| value.checked_sub(withdrawal))
+            });
+        }
     }
 
     let terminal_soc = recomputed_terminal_soc;
@@ -571,7 +573,7 @@ fn recompute_objectives(
         operating_cost_units: Some(operating_cost),
         grid_carbon_grams: Some(grid_carbon),
         curtailed_pv_quanta: Some(curtailed_pv),
-        terminal_soc_quanta: Some(terminal_soc),
+        terminal_soc_quanta: terminal_soc,
     })
 }
 
@@ -1298,6 +1300,23 @@ mod tests {
         assert_eq!(receipt.recomputed_objectives.grid_carbon_grams, Some(7));
     }
 
+    #[test]
+    fn emits_rejected_receipt_when_source_efficiency_prevents_terminal_objective_recomputation() {
+        let mut request_value: Value = serde_json::from_slice(&h2_request()).unwrap();
+        request_value["battery"]["charge_efficiency_denominator"] = serde_json::json!(0);
+        let request = serde_json::to_vec(&request_value).unwrap();
+        let schedule = h2_schedule(&request);
+        let receipt = audit_schedule_bytes(&request, &schedule).unwrap();
+        assert_eq!(receipt.disposition, AuditDisposition::Rejected);
+        assert_eq!(receipt.recomputed_objectives.essential_unserved_quanta, Some(0));
+        assert_eq!(receipt.recomputed_objectives.operating_cost_units, Some(0));
+        assert!(receipt.recomputed_objectives.terminal_soc_quanta.is_none());
+        assert!(receipt.findings.iter().any(|finding| {
+            finding.predicate == "battery-charge-efficiency" && !finding.passed
+        }));
+    }
+
+    #[test]
     #[test]
     fn enforces_contiguous_source_chronology_evidence_reference_and_expansion_limits() {
         let base = h2_request();
