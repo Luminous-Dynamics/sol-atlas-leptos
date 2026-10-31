@@ -1,5 +1,6 @@
 use serde_json::{Map, Value};
 use std::collections::{BTreeMap, BTreeSet};
+use std::sync::OnceLock;
 
 const REQUIRED_ROOT: &[&str] = &[
     "schema_version", "profile_id", "claim", "decision_tier", "operating_envelope",
@@ -72,6 +73,177 @@ fn array<'a>(value: &'a Value, key: &str, path: &str, out: &mut Vec<ValidationIs
 fn is_hex(s: &str, len: usize) -> bool {
     s.len() == len && s.bytes().all(|b| b.is_ascii_hexdigit())
 }
+
+
+fn profile_schema() -> &'static Value {
+    static SCHEMA: OnceLock<Value> = OnceLock::new();
+    SCHEMA.get_or_init(|| {
+        serde_json::from_str(include_str!("../../../schemas/industry-assurance-qualification-profile-v0.1.schema.json"))
+            .expect("embedded IEAC v0.1 schema must remain valid JSON")
+    })
+}
+
+fn escape_json_pointer_segment(segment: &str) -> String {
+    segment.replace('~', "~0").replace('/', "~1")
+}
+
+fn resolve_local_schema_ref<'a>(root: &'a Value, reference: &str) -> Option<&'a Value> {
+    let pointer = reference.strip_prefix('#')?;
+    if pointer.is_empty() {
+        Some(root)
+    } else if pointer.starts_with('/') {
+        root.pointer(pointer)
+    } else {
+        None
+    }
+}
+
+// The allow-list is read from the same versioned JSON Schema used by CI.
+// This prevents a second manually maintained list from drifting away from
+// additionalProperties:false at any nested object boundary.
+fn validate_closed_schema_objects(
+    instance: &Value,
+    schema: &Value,
+    root_schema: &Value,
+    instance_path: &str,
+    active_refs: &mut BTreeSet<String>,
+    out: &mut Vec<ValidationIssue>,
+) {
+    if let Some(reference) = schema.get("$ref").and_then(Value::as_str) {
+        if !active_refs.insert(reference.to_owned()) {
+            issue(
+                out,
+                "CYCLIC_LOCAL_SCHEMA_REFERENCE",
+                instance_path,
+                "A cyclic local schema reference is unsupported by the closed-object parity walker.",
+            );
+        } else {
+            match resolve_local_schema_ref(root_schema, reference) {
+                Some(target) => validate_closed_schema_objects(
+                    instance,
+                    target,
+                    root_schema,
+                    instance_path,
+                    active_refs,
+                    out,
+                ),
+                None => issue(
+                    out,
+                    "UNRESOLVED_LOCAL_SCHEMA_REFERENCE",
+                    instance_path,
+                    format!("Cannot resolve local schema reference: {reference}"),
+                ),
+            }
+            active_refs.remove(reference);
+        }
+    }
+
+    if let Some(object_value) = instance.as_object() {
+        if schema.get("additionalProperties") == Some(&Value::Bool(false)) {
+            let properties = schema.get("properties").and_then(Value::as_object);
+            let has_pattern_properties = schema
+                .get("patternProperties")
+                .and_then(Value::as_object)
+                .is_some_and(|patterns| !patterns.is_empty());
+
+            if has_pattern_properties {
+                issue(
+                    out,
+                    "UNSUPPORTED_PATTERN_PROPERTIES",
+                    instance_path,
+                    "The IEAC closed-object parity walker requires explicit property names; patternProperties must be reviewed before use.",
+                );
+            }
+
+            for key in object_value.keys() {
+                let declared = properties.is_some_and(|allowed| allowed.contains_key(key));
+                if !declared {
+                    let path = format!("{}/{}", instance_path, escape_json_pointer_segment(key));
+                    issue(
+                        out,
+                        "UNKNOWN_PROPERTY",
+                        path,
+                        "Property is not declared by the versioned IEAC schema and is forbidden by additionalProperties:false.",
+                    );
+                }
+            }
+        }
+
+        if let Some(properties) = schema.get("properties").and_then(Value::as_object) {
+            for (key, child_schema) in properties {
+                if let Some(child_instance) = object_value.get(key) {
+                    let child_path = format!("{}/{}", instance_path, escape_json_pointer_segment(key));
+                    validate_closed_schema_objects(
+                        child_instance,
+                        child_schema,
+                        root_schema,
+                        &child_path,
+                        active_refs,
+                        out,
+                    );
+                }
+            }
+        }
+    }
+
+    if let (Some(items_schema), Some(items)) = (schema.get("items"), instance.as_array()) {
+        for (index, item) in items.iter().enumerate() {
+            let item_path = format!("{instance_path}/{index}");
+            validate_closed_schema_objects(
+                item,
+                items_schema,
+                root_schema,
+                &item_path,
+                active_refs,
+                out,
+            );
+        }
+    }
+
+    if let Some(all_of) = schema.get("allOf").and_then(Value::as_array) {
+        for branch in all_of {
+            validate_closed_schema_objects(
+                instance,
+                branch,
+                root_schema,
+                instance_path,
+                active_refs,
+                out,
+            );
+        }
+    }
+}
+
+fn validate_canonical_timestamp(value: &str, path: &str, out: &mut Vec<ValidationIssue>) {
+    if !is_canonical_utc(value) {
+        issue(
+            out,
+            "NONCANONICAL_TIMESTAMP",
+            path,
+            "IEAC v0.1 timestamps must use a real UTC calendar value in YYYY-MM-DDTHH:MM:SSZ form.",
+        );
+    }
+}
+
+fn validate_optional_timestamp(
+    object: &Value,
+    key: &str,
+    object_path: &str,
+    out: &mut Vec<ValidationIssue>,
+) {
+    let Some(value) = object.get(key) else { return; };
+    let path = format!("{object_path}/{key}");
+    match value.as_str() {
+        Some(timestamp) => validate_canonical_timestamp(timestamp, &path, out),
+        None => issue(
+            out,
+            "TIMESTAMP_STRING_REQUIRED",
+            path,
+            "Optional timestamp fields must be strings when present.",
+        ),
+    }
+}
+
 
 // The RFC deliberately requires UTC seconds precision so validity ordering is
 // lexicographically comparable and reproducible across implementations.
@@ -250,6 +422,7 @@ fn validate_evidence(
         let state = string(entry, "state", &path, out).unwrap_or("");
         let requirement = string(entry, "requirement", &path, out).unwrap_or("");
         let _ = string(entry, "rationale", &path, out);
+        validate_optional_timestamp(entry, "reviewed_at", &path, out);
         let evidence = array(entry, "evidence", &path, out).cloned().unwrap_or_default();
 
         if !["established", "not_established", "unknown", "conflicted", "not_applicable"].contains(&state) {
@@ -299,7 +472,10 @@ fn validate_evidence(
             let _ = string(item, "method", &ev_path, out);
             let _ = string(item, "scope", &ev_path, out);
             let _ = string(item, "result", &ev_path, out);
-            let _ = string(item, "observed_at", &ev_path, out);
+            if let Some(observed_at) = string(item, "observed_at", &ev_path, out) {
+                validate_canonical_timestamp(observed_at, &format!("{ev_path}/observed_at"), out);
+            }
+            validate_optional_timestamp(item, "valid_until", &ev_path, out);
             if let Some(id) = evidence_id {
                 if !evidence_ids.insert(id.to_owned()) {
                     issue(out, "DUPLICATE_EVIDENCE_ID", format!("{ev_path}/evidence_id"), "Evidence IDs must be unique across the full profile.");
@@ -409,6 +585,8 @@ fn require_authority_artifact(
 
 pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
     let mut out = Vec::new();
+    let schema = profile_schema();
+    validate_closed_schema_objects(profile, schema, schema, "", &mut BTreeSet::new(), &mut out);
     let Some(root) = object(profile, "", &mut out) else { return out; };
 
     for key in REQUIRED_ROOT {
@@ -446,6 +624,9 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
             }
             for key in ["rationale", "reviewer_id", "reviewed_at", "rule_set_version"] {
                 let _ = string(risk, key, "/risk_assessment", &mut out);
+            }
+            if let Some(reviewed_at) = risk.get("reviewed_at").and_then(Value::as_str) {
+                validate_canonical_timestamp(reviewed_at, "/risk_assessment/reviewed_at", &mut out);
             }
             let mut risk_dims = BTreeMap::new();
             if let Some(dims) = risk.get("dimensions") {
@@ -517,6 +698,19 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
                 for (i, condition) in conditions.iter().enumerate() {
                     let path = format!("/operating_envelope/conditions/{i}");
                     if object(condition, &path, &mut out).is_some() {
+                        let minimum = condition.get("minimum").map(Value::as_f64);
+                        let maximum = condition.get("maximum").map(Value::as_f64);
+                        if condition.get("minimum").is_some() && minimum.flatten().is_none() {
+                            issue(&mut out, "INVALID_OPERATING_RANGE_BOUND", format!("{path}/minimum"), "minimum must be a finite JSON number.");
+                        }
+                        if condition.get("maximum").is_some() && maximum.flatten().is_none() {
+                            issue(&mut out, "INVALID_OPERATING_RANGE_BOUND", format!("{path}/maximum"), "maximum must be a finite JSON number.");
+                        }
+                        if let (Some(Some(min)), Some(Some(max))) = (minimum, maximum) {
+                            if !min.is_finite() || !max.is_finite() || min > max {
+                                issue(&mut out, "REVERSED_OPERATING_RANGE", &path, "When both bounds are supplied, minimum must be finite and no greater than maximum.");
+                            }
+                        }
                         for key in ["variable", "unit", "support", "evidence_state"] {
                             let _ = string(condition, key, &path, &mut out);
                         }
@@ -612,6 +806,89 @@ mod tests {
     fn has_code(issues: &[ValidationIssue], code: &str) -> bool {
         issues.iter().any(|i| i.code == code)
     }
+
+
+    #[test]
+    fn rejects_unknown_properties_at_every_closed_schema_object_boundary() {
+        let base = make_qualified_d1();
+        let object_paths = [
+            "",
+            "/claim",
+            "/operating_envelope",
+            "/operating_envelope/conditions/0",
+            "/risk_assessment",
+            "/risk_assessment/dimensions",
+            "/evidence_vector",
+            "/evidence_vector/software_conformance",
+            "/evidence_vector/software_conformance/evidence/0",
+            "/artifact_bindings/0",
+            "/authority",
+            "/validity",
+        ];
+
+        for object_path in object_paths {
+            let mut profile = base.clone();
+            let target = if object_path.is_empty() {
+                &mut profile
+            } else {
+                profile.pointer_mut(object_path).expect("fixture object path must exist")
+            };
+            target
+                .as_object_mut()
+                .expect("schema object path must resolve to an object")
+                .insert("unexpected_future_field".to_owned(), json!("must reject"));
+
+            let expected_path = format!("{object_path}/unexpected_future_field");
+            let issues = validate_profile(&profile);
+            assert!(
+                issues.iter().any(|entry| entry.code == "UNKNOWN_PROPERTY" && entry.path == expected_path),
+                "unknown property at {expected_path} was not rejected: {issues:#?}"
+            );
+        }
+    }
+
+    #[test]
+    fn timestamps_are_checked_consistently_across_contract_evidence() {
+        let mut risk_timestamp = make_qualified_d1();
+        risk_timestamp["risk_assessment"]["reviewed_at"] = json!("2026-02-30T00:00:00Z");
+        assert!(has_code(&validate_profile(&risk_timestamp), "NONCANONICAL_TIMESTAMP"));
+
+        let mut evidence_timestamp = make_qualified_d1();
+        evidence_timestamp["evidence_vector"]["software_conformance"]["evidence"][0]["observed_at"] =
+            json!("2026-10-30T25:00:00Z");
+        assert!(has_code(&validate_profile(&evidence_timestamp), "NONCANONICAL_TIMESTAMP"));
+
+        let mut validity_timestamp = make_qualified_d1();
+        validity_timestamp["evidence_vector"]["software_conformance"]["reviewed_at"] =
+            json!("2026-10-30T00:00:00+02:00");
+        assert!(has_code(&validate_profile(&validity_timestamp), "NONCANONICAL_TIMESTAMP"));
+
+        let mut expiry_timestamp = make_qualified_d1();
+        expiry_timestamp["evidence_vector"]["software_conformance"]["evidence"][0]["valid_until"] =
+            json!("not-a-date");
+        assert!(has_code(&validate_profile(&expiry_timestamp), "NONCANONICAL_TIMESTAMP"));
+    }
+
+    #[test]
+    fn optional_timestamps_reject_non_string_values_when_present() {
+        let mut reviewed_at = make_qualified_d1();
+        reviewed_at["evidence_vector"]["software_conformance"]["reviewed_at"] = json!(123);
+        assert!(has_code(&validate_profile(&reviewed_at), "TIMESTAMP_STRING_REQUIRED"));
+
+        let mut valid_until = make_qualified_d1();
+        valid_until["evidence_vector"]["software_conformance"]["evidence"][0]["valid_until"] =
+            json!(false);
+        assert!(has_code(&validate_profile(&valid_until), "TIMESTAMP_STRING_REQUIRED"));
+    }
+
+    #[test]
+    fn operating_envelope_rejects_reversed_numeric_bounds() {
+        let mut profile = fixture();
+        profile["operating_envelope"]["conditions"][0]["minimum"] = json!(20.0);
+        profile["operating_envelope"]["conditions"][0]["maximum"] = json!(10.0);
+        assert!(has_code(&validate_profile(&profile), "REVERSED_OPERATING_RANGE"));
+    }
+
 
     #[test]
     fn synthetic_example_is_valid_but_not_qualified() {
