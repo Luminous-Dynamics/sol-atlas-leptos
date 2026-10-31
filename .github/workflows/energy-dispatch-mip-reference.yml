@@ -101,7 +101,7 @@ jobs:
           sha256sum /tmp/scipoptsuite-10.1.0.tgz | awk '{print $1}' > target/energy-dispatch-mip-reference/scip-archive.sha256
           "$SCIP_BIN" -c "display version" -c "quit" \
             > target/energy-dispatch-mip-reference/scip-version.txt 2>&1
-          printf 'model,exact_status,objective_value,request_sha256,lp_sha256,semantic_model_sha256,translation_receipt_sha256,certificate\\n' \
+          printf 'model,exact_status,objective_value,request_sha256,lp_sha256,semantic_model_sha256,translation_receipt_sha256,certificate\n' \
             > target/energy-dispatch-mip-reference/scip-results.csv
           for model in target/energy-dispatch-mip-reference/*.lp; do
             name="$(basename "$model")"
@@ -132,7 +132,7 @@ jobs:
             test -s "$cert"
             value="$(grep -E 'Exact Primal Bound[[:space:]]*:' "$log" | tail -n 1 | sed -E 's/.*Exact Primal Bound[[:space:]]*:[[:space:]]*//')"
             test -n "$value"
-            printf '%s,optimal_exact,%s,%s,%s,%s,%s,%s\\n' "$name" "$value" "$request_sha" "$lp_sha" "$semantic_sha" "$receipt_sha" "$cert" \
+            printf '%s,optimal_exact,%s,%s,%s,%s,%s,%s\n' "$name" "$value" "$request_sha" "$lp_sha" "$semantic_sha" "$receipt_sha" "$cert" \
               >> target/energy-dispatch-mip-reference/scip-results.csv
           done
           test "$(wc -l < target/energy-dispatch-mip-reference/scip-results.csv)" -eq 13
@@ -173,7 +173,7 @@ jobs:
           VIPR_CHECKER="$(find /tmp/vipr/build -type f -name viprchk -perm /111 | head -n 1)"
           test -n "$VIPR_CHECKER"
           cp "$VIPR_CHECKER" target/energy-dispatch-mip-reference/viprchk
-          printf '%s\\n' "$(git -C /tmp/vipr rev-parse HEAD)" > target/energy-dispatch-mip-reference/vipr-source-commit.txt
+          printf '%s\n' "$(git -C /tmp/vipr rev-parse HEAD)" > target/energy-dispatch-mip-reference/vipr-source-commit.txt
           sha256sum target/energy-dispatch-mip-reference/viprchk | awk '{print $1}' > target/energy-dispatch-mip-reference/vipr-checker.sha256
 
       - name: Independently verify all SCIP certificates against original models
