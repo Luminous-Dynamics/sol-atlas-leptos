@@ -259,12 +259,12 @@ pub struct AuditFinding {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct RecomputedObjectives {
-    pub essential_unserved_quanta: i64,
-    pub flexible_unserved_quanta: i64,
-    pub operating_cost_units: i64,
-    pub grid_carbon_grams: i64,
-    pub curtailed_pv_quanta: i64,
-    pub terminal_soc_quanta: i64,
+    pub essential_unserved_quanta: Option<i64>,
+    pub flexible_unserved_quanta: Option<i64>,
+    pub operating_cost_units: Option<i64>,
+    pub grid_carbon_grams: Option<i64>,
+    pub curtailed_pv_quanta: Option<i64>,
+    pub terminal_soc_quanta: Option<i64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -477,9 +477,17 @@ fn recompute_objectives(
     schedule: &DispatchSchedule,
 ) -> Result<RecomputedObjectives, AuditError> {
     if schedule.interval_dispatches.len() != request.intervals.len() {
-        return Err(audit_error(
-            "cannot recompute all objectives: schedule and request interval counts differ",
-        ));
+        // A partial trajectory cannot support complete objective values.
+        // Return explicit nulls and let the interval-count finding produce a
+        // rejected receipt rather than mislabeling this as an auditor failure.
+        return Ok(RecomputedObjectives {
+            essential_unserved_quanta: None,
+            flexible_unserved_quanta: None,
+            operating_cost_units: None,
+            grid_carbon_grams: None,
+            curtailed_pv_quanta: None,
+            terminal_soc_quanta: None,
+        });
     }
     let mut essential_unserved = 0_i64;
     let mut flexible_unserved = 0_i64;
@@ -528,12 +536,12 @@ fn recompute_objectives(
 
     let terminal_soc = recomputed_terminal_soc;
     Ok(RecomputedObjectives {
-        essential_unserved_quanta: essential_unserved,
-        flexible_unserved_quanta: flexible_unserved,
-        operating_cost_units: operating_cost,
-        grid_carbon_grams: grid_carbon,
-        curtailed_pv_quanta: curtailed_pv,
-        terminal_soc_quanta: terminal_soc,
+        essential_unserved_quanta: Some(essential_unserved),
+        flexible_unserved_quanta: Some(flexible_unserved),
+        operating_cost_units: Some(operating_cost),
+        grid_carbon_grams: Some(grid_carbon),
+        curtailed_pv_quanta: Some(curtailed_pv),
+        terminal_soc_quanta: Some(terminal_soc),
     })
 }
 
@@ -1031,12 +1039,12 @@ mod tests {
         let receipt = audit_schedule_bytes(&request, &schedule).unwrap();
         assert_eq!(receipt.disposition, AuditDisposition::Accepted);
         assert_eq!(receipt.interval_count, 2);
-        assert_eq!(receipt.recomputed_objectives.essential_unserved_quanta, 0);
-        assert_eq!(receipt.recomputed_objectives.flexible_unserved_quanta, 0);
-        assert_eq!(receipt.recomputed_objectives.operating_cost_units, 0);
-        assert_eq!(receipt.recomputed_objectives.grid_carbon_grams, 0);
-        assert_eq!(receipt.recomputed_objectives.curtailed_pv_quanta, 0);
-        assert_eq!(receipt.recomputed_objectives.terminal_soc_quanta, 0);
+        assert_eq!(receipt.recomputed_objectives.essential_unserved_quanta, Some(0));
+        assert_eq!(receipt.recomputed_objectives.flexible_unserved_quanta, Some(0));
+        assert_eq!(receipt.recomputed_objectives.operating_cost_units, Some(0));
+        assert_eq!(receipt.recomputed_objectives.grid_carbon_grams, Some(0));
+        assert_eq!(receipt.recomputed_objectives.curtailed_pv_quanta, Some(0));
+        assert_eq!(receipt.recomputed_objectives.terminal_soc_quanta, Some(0));
         assert_eq!(receipt.request_sha256, sha256(&request));
         assert_eq!(receipt.schedule_sha256, sha256(&schedule));
         assert_eq!(receipt.receipt_sha256.len(), 64);
@@ -1271,6 +1279,43 @@ mod tests {
         assert!(receipt.findings.iter().any(|finding| {
             finding.predicate == "terminal-reserve" && !finding.passed
         }));
+    }
+
+    #[test]
+    fn emits_rejected_receipt_with_null_objectives_for_missing_or_extra_intervals() {
+        let request = h2_request();
+        let baseline: Value = serde_json::from_slice(&h2_schedule(&request)).unwrap();
+
+        let mut missing = baseline.clone();
+        missing["interval_dispatches"].as_array_mut().unwrap().pop();
+        let missing_receipt = audit_schedule_bytes(
+            &request,
+            &serde_json::to_vec(&missing).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(missing_receipt.disposition, AuditDisposition::Rejected);
+        assert!(missing_receipt
+            .recomputed_objectives
+            .essential_unserved_quanta
+            .is_none());
+        assert!(missing_receipt.findings.iter().any(|finding| {
+            finding.predicate == "schedule-interval-count" && !finding.passed
+        }));
+
+        let mut extra = baseline;
+        extra["interval_dispatches"].as_array_mut().unwrap().push(
+            extra["interval_dispatches"][0].clone()
+        );
+        let extra_receipt = audit_schedule_bytes(
+            &request,
+            &serde_json::to_vec(&extra).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(extra_receipt.disposition, AuditDisposition::Rejected);
+        assert!(extra_receipt
+            .recomputed_objectives
+            .terminal_soc_quanta
+            .is_none());
     }
 
     #[test]
