@@ -3,7 +3,8 @@ use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use std::collections::HashSet;
 use std::env;
-use std::fs;
+use std::fs::File;
+use std::io::{BufRead, BufReader, Cursor};
 
 fn digest_bytes(bytes: &[u8]) -> String {
     Sha256::digest(bytes)
@@ -22,48 +23,13 @@ fn sorted_reason_codes(value: &Value) -> Option<Vec<String>> {
     Some(result)
 }
 
-fn verify_ledger(bytes: &[u8]) -> Result<Value, String> {
-    if !bytes.ends_with(b"\n") {
-        return Err("case ledger is truncated: final newline/footer missing".to_owned());
-    }
-    let lines = bytes.split(|byte| *byte == b'\n').collect::<Vec<_>>();
-    if lines.len() < 3 || !lines.last().is_some_and(|line| line.is_empty()) {
-        return Err("case ledger must contain a header and footer".to_owned());
-    }
-    let records = &lines[..lines.len() - 1];
-    let header: Value = serde_json::from_slice(records[0])
-        .map_err(|error| format!("invalid case-ledger header: {error}"))?;
-    if header["record_type"].as_str() != Some("header")
-        || header["schema_version"].as_str()
-            != Some("luminous.ieac-runtime-admission-case-ledger.v0.1")
-    {
-        return Err("unsupported case-ledger header or schema version".to_owned());
-    }
-
-    let footer_index = records.len() - 1;
-    let footer: Value = serde_json::from_slice(records[footer_index])
-        .map_err(|error| format!("invalid case-ledger footer: {error}"))?;
-    if footer["record_type"].as_str() != Some("footer")
-        || footer["schema_version"].as_str()
-            != Some("luminous.ieac-runtime-admission-case-ledger.v0.1")
-    {
-        return Err("case-ledger footer is absent or has an unsupported schema version".to_owned());
-    }
-    let prefix_len = records[..footer_index]
-        .iter()
-        .map(|line| line.len() + 1)
-        .sum::<usize>();
-    let actual_ledger_digest = digest_bytes(&bytes[..prefix_len]);
-    if footer["preceding_records_sha256"].as_str()
-        != Some(actual_ledger_digest.as_str())
-    {
-        return Err("case-ledger content digest mismatch".to_owned());
-    }
-
-    let expected_case_count = footer["case_records"]
-        .as_u64()
-        .ok_or("case-ledger footer.case_records must be an unsigned integer")?
-        as usize;
+fn verify_reader<R: BufRead>(mut reader: R) -> Result<Value, String> {
+    let mut line = Vec::new();
+    let mut hasher = Sha256::new();
+    let mut header_seen = false;
+    let mut footer_seen = false;
+    let mut footer_case_count = None;
+    let mut ledger_digest = None;
     let mut seen_case_ids = HashSet::new();
     let mut report_mismatches = 0usize;
     let mut input_digest_mismatches = 0usize;
@@ -73,12 +39,74 @@ fn verify_ledger(bytes: &[u8]) -> Result<Value, String> {
     let mut deterministic_mismatches = 0usize;
     let mut case_count = 0usize;
 
-    for (offset, line) in records[1..footer_index].iter().enumerate() {
-        let record: Value = serde_json::from_slice(line)
-            .map_err(|error| format!("invalid case record at index {offset}: {error}"))?;
-        if record["record_type"].as_str() != Some("case") {
-            return Err(format!("unexpected record type at case index {offset}"));
+    loop {
+        line.clear();
+        let bytes_read = reader
+            .read_until(b'\n', &mut line)
+            .map_err(|error| format!("cannot read case ledger: {error}"))?;
+        if bytes_read == 0 {
+            break;
         }
+        if !line.ends_with(b"\n") {
+            return Err("case ledger is truncated: final newline/footer missing".to_owned());
+        }
+
+        let record: Value = serde_json::from_slice(&line[..line.len() - 1])
+            .map_err(|error| format!("invalid case-ledger record: {error}"))?;
+        let record_type = record["record_type"].as_str().unwrap_or("");
+
+        if !header_seen {
+            if record_type != "header"
+                || record["schema_version"].as_str()
+                    != Some("luminous.ieac-runtime-admission-case-ledger.v0.1")
+            {
+                return Err("unsupported case-ledger header or schema version".to_owned());
+            }
+            hasher.update(&line);
+            header_seen = true;
+            continue;
+        }
+
+        if record_type == "footer" {
+            if record["schema_version"].as_str()
+                != Some("luminous.ieac-runtime-admission-case-ledger.v0.1")
+            {
+                return Err("case-ledger footer has an unsupported schema version".to_owned());
+            }
+            let actual_digest = hasher
+                .clone()
+                .finalize()
+                .iter()
+                .map(|byte| format!("{byte:02x}"))
+                .collect::<String>();
+            if record["preceding_records_sha256"].as_str() != Some(actual_digest.as_str()) {
+                return Err("case-ledger content digest mismatch".to_owned());
+            }
+            footer_case_count = Some(
+                record["case_records"]
+                    .as_u64()
+                    .ok_or("case-ledger footer.case_records must be an unsigned integer")?
+                    as usize,
+            );
+            ledger_digest = Some(actual_digest);
+            footer_seen = true;
+            let mut trailing = Vec::new();
+            if reader
+                .read_until(b'\n', &mut trailing)
+                .map_err(|error| format!("cannot check case-ledger trailing data: {error}"))?
+                != 0
+            {
+                return Err("unexpected content after case-ledger footer".to_owned());
+            }
+            break;
+        }
+
+        if record_type != "case" {
+            return Err(format!("unexpected case-ledger record type {record_type:?}"));
+        }
+        hasher.update(&line);
+
+        let offset = case_count;
         let case_index = record["case_index"]
             .as_u64()
             .ok_or_else(|| format!("case {offset} is missing case_index"))?
@@ -131,6 +159,14 @@ fn verify_ledger(bytes: &[u8]) -> Result<Value, String> {
         if actual_admission != expected_admission || expected_reasons != actual_reasons {
             expectation_mismatches += 1;
         }
+        let expected_disposition_match = actual_admission == expected_admission;
+        let expected_reason_match = expected_reasons == actual_reasons;
+        if record["expected_disposition_match"].as_bool()
+            != Some(expected_disposition_match)
+            || record["expected_reason_codes_match"].as_bool() != Some(expected_reason_match)
+        {
+            expectation_mismatches += 1;
+        }
 
         let mut tampered_report = replayed_report.clone();
         let admitted = actual_admission.starts_with("admit_");
@@ -152,11 +188,17 @@ fn verify_ledger(bytes: &[u8]) -> Result<Value, String> {
         case_count += 1;
     }
 
+    if !header_seen || !footer_seen {
+        return Err("case ledger is incomplete: header or footer missing".to_owned());
+    }
+    let expected_case_count =
+        footer_case_count.ok_or("case-ledger footer count is missing")?;
     if case_count != expected_case_count {
         return Err(format!(
             "footer case count mismatch: expected {expected_case_count}, parsed {case_count}"
         ));
     }
+
     let verified = input_digest_mismatches == 0
         && report_mismatches == 0
         && checker_mismatches == 0
@@ -167,7 +209,7 @@ fn verify_ledger(bytes: &[u8]) -> Result<Value, String> {
         "schema_version": "luminous.ieac-runtime-admission-case-replay-report.v0.1",
         "verified": verified,
         "case_records": case_count,
-        "case_ledger_sha256": actual_ledger_digest,
+        "case_ledger_preceding_records_sha256": ledger_digest,
         "input_digest_mismatches": input_digest_mismatches,
         "report_mismatches": report_mismatches,
         "checker_mismatches": checker_mismatches,
@@ -193,8 +235,8 @@ fn run() -> Result<Value, String> {
         }
     }
     let path = path.ok_or("required argument: --cases <case-ledger.jsonl>")?;
-    let bytes = fs::read(&path).map_err(|error| format!("cannot read {path}: {error}"))?;
-    verify_ledger(&bytes)
+    let file = File::open(&path).map_err(|error| format!("cannot open {path}: {error}"))?;
+    verify_reader(BufReader::new(file))
 }
 
 fn main() {
@@ -243,7 +285,7 @@ mod tests {
 
     #[test]
     fn valid_header_and_footer_are_accepted() {
-        let report = verify_ledger(&empty_ledger()).unwrap();
+        let report = verify_reader(Cursor::new(empty_ledger())).unwrap();
         assert_eq!(report["verified"], true);
         assert_eq!(report["case_records"], 0);
     }
@@ -251,15 +293,19 @@ mod tests {
     #[test]
     fn modified_ledger_bytes_fail_digest_validation() {
         let mut bytes = empty_ledger();
-        let header_end = bytes.iter().position(|byte| *byte == b'\\n').unwrap();
+        let header_end = bytes.iter().position(|byte| *byte == b'\n').unwrap();
         bytes.insert(header_end, b' ');
-        assert!(verify_ledger(&bytes).unwrap_err().contains("digest mismatch"));
+        assert!(verify_reader(Cursor::new(bytes))
+            .unwrap_err()
+            .contains("digest mismatch"));
     }
 
     #[test]
     fn truncated_ledger_is_rejected() {
         let mut bytes = empty_ledger();
         bytes.pop();
-        assert!(verify_ledger(&bytes).unwrap_err().contains("truncated"));
+        assert!(verify_reader(Cursor::new(bytes))
+            .unwrap_err()
+            .contains("truncated"));
     }
 }
