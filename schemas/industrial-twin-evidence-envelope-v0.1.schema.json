@@ -111,8 +111,7 @@
         "native_record_id": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 192,
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/#@+-]*$"
+          "maxLength": 512
         },
         "native_payload_uri": {
           "type": "string",
