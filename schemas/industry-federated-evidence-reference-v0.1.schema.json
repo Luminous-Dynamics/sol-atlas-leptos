@@ -1,0 +1,363 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/industry-federated-evidence-reference-v0.1.schema.json",
+  "title": "ITIP Federated Evidence Reference v0.1",
+  "description": "Source-native evidence reference with explicit semantic mapping, rights and transformation lineage. This schema does not verify source truth, signatures, permissions or physical validity.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source",
+    "rights",
+    "observations",
+    "transformations",
+    "unsupported_semantics"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.itip-federated-evidence-reference.v0.1"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "system_id",
+        "namespace_id",
+        "native_object_id",
+        "native_schema_uri",
+        "native_schema_version",
+        "native_schema_sha256",
+        "native_record_id",
+        "native_payload_uri",
+        "native_payload_sha256",
+        "observed_at",
+        "ingested_at"
+      ],
+      "properties": {
+        "system_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "namespace_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "native_object_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "native_schema_uri": {
+          "type": "string",
+          "format": "uri",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "native_schema_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "native_schema_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "native_record_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "native_payload_uri": {
+          "type": "string",
+          "format": "uri",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "native_payload_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "source_sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "basis",
+        "permitted_uses"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "verified",
+            "restricted",
+            "unknown",
+            "not_applicable"
+          ]
+        },
+        "basis": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "permitted_uses": {
+          "type": "array",
+          "uniqueItems": true,
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "testing",
+              "benchmarking",
+              "validation",
+              "calibration",
+              "training",
+              "redistribution",
+              "operational_advisory"
+            ]
+          }
+        },
+        "export_permitted": {
+          "type": "boolean"
+        },
+        "owner_or_controller_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      }
+    },
+    "observations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "observation_id",
+          "native_property_path",
+          "semantic_concept",
+          "value",
+          "unit",
+          "lower",
+          "upper",
+          "observed_at",
+          "evidence_state",
+          "semantic_status"
+        ],
+        "properties": {
+          "observation_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "native_property_path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "semantic_concept": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "lower": {
+            "type": "number"
+          },
+          "upper": {
+            "type": "number"
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "evidence_state": {
+            "enum": [
+              "measured",
+              "validated_range",
+              "derived",
+              "unknown"
+            ]
+          },
+          "semantic_status": {
+            "enum": [
+              "native",
+              "exact_mapping",
+              "converted",
+              "opaque",
+              "unsupported"
+            ]
+          },
+          "conversion_rule_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "derived_value_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "calibration_state": {
+            "enum": [
+              "current",
+              "expired",
+              "unknown",
+              "not_applicable"
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 2048
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "semantic_status": {
+                  "const": "converted"
+                }
+              },
+              "required": [
+                "semantic_status"
+              ]
+            },
+            "then": {
+              "required": [
+                "conversion_rule_id",
+                "derived_value_sha256"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "evidence_state": {
+                  "const": "derived"
+                }
+              },
+              "required": [
+                "evidence_state"
+              ]
+            },
+            "then": {
+              "required": [
+                "derived_value_sha256"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "transformations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "transformation_id",
+          "input_sha256",
+          "operation_id",
+          "operation_version",
+          "parameters_sha256",
+          "implementation_sha256",
+          "output_sha256",
+          "lossiness"
+        ],
+        "properties": {
+          "transformation_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "input_sha256": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "operation_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "operation_version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "parameters_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "implementation_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "output_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "lossiness": {
+            "enum": [
+              "none",
+              "lossy",
+              "unknown"
+            ]
+          },
+          "semantic_effects": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            }
+          },
+          "declared_unit_conversion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        }
+      }
+    },
+    "unsupported_semantics": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1024
+      }
+    },
+    "claim_ceiling": {
+      "const": "source_reference_and_transformation_lineage_only"
+    }
+  }
+}
