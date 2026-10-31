@@ -552,12 +552,15 @@ fn add_row(
 ) -> Result<(), ValidationError> {
     let mut canonical = BTreeMap::new();
     for (coefficient, variable) in coefficients {
-        if coefficient == 0 {
-            return Err(error(format!("zero coefficient in reference row {name}")));
-        }
-        if canonical.insert(variable.clone(), coefficient).is_some() {
+        if canonical.contains_key(&variable) {
             return Err(error(format!("duplicate variable in reference row {name}")));
         }
+        if coefficient != 0 {
+            canonical.insert(variable, coefficient);
+        }
+    }
+    if canonical.is_empty() {
+        return Err(error(format!("reference row {name} has no non-zero coefficients")));
     }
     if model
         .constraints
@@ -822,9 +825,9 @@ pub fn derive_reference_model(
         i64::from(request.battery.terminal_reserve_quanta),
     )?;
 
-    if model.objective.is_empty() {
-        return Err(error("objective unexpectedly contains no variable terms"));
-    }
+    // An objective with all-zero coefficients is valid: it represents
+    // a constant-zero objective, which the emitter writes as explicit zero
+    // terms. It must not be confused with a missing objective row.
     Ok(model)
 }
 
@@ -1328,6 +1331,37 @@ mod tests {
     fn rejects_unknown_artifact_identity() {
         assert!(identify_artifact("made_up_min.lp").is_err());
         assert!(identify_artifact("essential_unserved_quanta_unknown.lp").is_err());
+    }
+
+    #[test]
+    fn reference_model_accepts_zero_charge_and_discharge_limits() {
+        let request = String::from_utf8(REQUEST.to_vec())
+            .unwrap()
+            .replace("\"charge_input_limit_quanta\":2", "\"charge_input_limit_quanta\":0")
+            .replace("\"discharge_withdrawal_limit_quanta\":2", "\"discharge_withdrawal_limit_quanta\":0");
+        let model = derive_reference_model(
+            request.as_bytes(),
+            ObjectiveId::EssentialUnservedQuanta,
+            Direction::Min,
+        )
+        .expect("zero charge/discharge limits are valid integer constraints");
+        assert_eq!(model.constraints["charge_mode_limit_000"].coefficients.get("charge_mode_000"), None);
+        assert_eq!(model.constraints["discharge_mode_limit_000"].coefficients.get("charge_mode_000"), None);
+    }
+
+    #[test]
+    fn reference_model_accepts_an_identically_zero_cost_objective() {
+        let request = String::from_utf8(REQUEST.to_vec())
+            .unwrap()
+            .replace("\"grid_cost_units_per_quantum\":3", "\"grid_cost_units_per_quantum\":0");
+        let model = derive_reference_model(
+            request.as_bytes(),
+            ObjectiveId::OperatingCostUnits,
+            Direction::Min,
+        )
+        .expect("zero-coefficient objective is a valid constant-zero objective");
+        assert!(model.objective.is_empty());
+        assert_eq!(model.objective_constant, 0);
     }
 
     #[test]
