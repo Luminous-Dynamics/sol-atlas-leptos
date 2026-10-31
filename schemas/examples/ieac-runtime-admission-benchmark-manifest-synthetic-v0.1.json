@@ -165,7 +165,7 @@
       "unit": "milliseconds",
       "direction": "minimize",
       "denominator": "One end-to-end candidate/checker evaluation per trial.",
-      "aggregation": "sum",
+      "aggregation": "p95",
       "report_by_group": [
         "vertical",
         "failure_family"
