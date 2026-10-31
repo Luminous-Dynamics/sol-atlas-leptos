@@ -613,18 +613,18 @@ mod tests {
 
     #[test]
     fn thermal_grade_is_invalid_for_electric_store_and_validates_absolute_temperature() {
-        let mut request = request(vec![interval("idle", 1.0, 0.0, 0.0)]);
-        request.thermal_temperature_c = Some(25.0);
+        let mut electric_request = request(vec![interval("idle", 1.0, 0.0, 0.0)]);
+        electric_request.thermal_temperature_c = Some(25.0);
         assert!(matches!(
-            assess_energy_storage(&request),
+            assess_energy_storage(&electric_request),
             Err(EnergyStorageError::UnexpectedThermalTemperatureGrade)
         ));
 
-        let mut request = request(vec![interval("idle", 1.0, 0.0, 0.0)]);
-        request.carrier = StorageCarrier::ThermalHeat;
-        request.thermal_temperature_c = Some(-300.0);
+        let mut thermal_request = request(vec![interval("idle", 1.0, 0.0, 0.0)]);
+        thermal_request.carrier = StorageCarrier::ThermalHeat;
+        thermal_request.thermal_temperature_c = Some(-300.0);
         assert!(matches!(
-            assess_energy_storage(&request),
+            assess_energy_storage(&thermal_request),
             Err(EnergyStorageError::InvalidThermalTemperatureGrade)
         ));
     }
@@ -649,31 +649,31 @@ mod tests {
 
     #[test]
     fn opening_state_and_terminal_reserve_bounds_are_checked() {
-        let mut request = request(vec![interval("idle", 1.0, 0.0, 0.0)]);
-        request.opening_energy_kwh = 21.0;
+        let mut opening_state_request = request(vec![interval("idle", 1.0, 0.0, 0.0)]);
+        opening_state_request.opening_energy_kwh = 21.0;
         assert!(matches!(
-            assess_energy_storage(&request),
+            assess_energy_storage(&opening_state_request),
             Err(EnergyStorageError::OpeningStateExceedsCapacity)
         ));
-        let mut request = request(vec![interval("idle", 1.0, 0.0, 0.0)]);
-        request.terminal_reserve_kwh = 21.0;
+        let mut terminal_reserve_request = request(vec![interval("idle", 1.0, 0.0, 0.0)]);
+        terminal_reserve_request.terminal_reserve_kwh = 21.0;
         assert!(matches!(
-            assess_energy_storage(&request),
+            assess_energy_storage(&terminal_reserve_request),
             Err(EnergyStorageError::TerminalReserveExceedsCapacity)
         ));
     }
 
     #[test]
     fn invalid_efficiencies_and_nonfinite_inputs_fail_closed() {
-        let mut request = request(vec![interval("charge", 1.0, 1.0, 0.0)]);
-        request.charge_efficiency = 0.0;
+        let mut invalid_efficiency_request = request(vec![interval("charge", 1.0, 1.0, 0.0)]);
+        invalid_efficiency_request.charge_efficiency = 0.0;
         assert!(matches!(
-            assess_energy_storage(&request),
+            assess_energy_storage(&invalid_efficiency_request),
             Err(EnergyStorageError::InvalidEfficiency { .. })
         ));
-        let mut request = request(vec![interval("charge", 1.0, f64::NAN, 0.0)]);
+        let nonfinite_input_request = request(vec![interval("charge", 1.0, f64::NAN, 0.0)]);
         assert!(matches!(
-            assess_energy_storage(&request),
+            assess_energy_storage(&nonfinite_input_request),
             Err(EnergyStorageError::InvalidIntervalEnergy { .. })
         ));
     }
