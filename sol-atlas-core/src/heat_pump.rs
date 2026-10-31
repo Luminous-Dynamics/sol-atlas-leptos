@@ -384,16 +384,16 @@ mod tests {
 
     #[test]
     fn invalid_numeric_values_fail_closed() {
-        let mut request = request();
-        request.auxiliary_electricity_kwh = f64::NAN;
+        let mut invalid_energy_request = request();
+        invalid_energy_request.auxiliary_electricity_kwh = f64::NAN;
         assert!(matches!(
-            assess_heat_pump(&request),
+            assess_heat_pump(&invalid_energy_request),
             Err(HeatPumpError::InvalidEnergy { .. })
         ));
-        let mut request = request();
-        request.distribution_loss_fraction = 1.01;
+        let mut invalid_loss_request = request();
+        invalid_loss_request.distribution_loss_fraction = 1.01;
         assert!(matches!(
-            assess_heat_pump(&request),
+            assess_heat_pump(&invalid_loss_request),
             Err(HeatPumpError::InvalidLossFraction)
         ));
     }

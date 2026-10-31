@@ -193,10 +193,10 @@ fn validate_request(request: &Request) -> Result<(), ModelError> {
         if interval.duration_seconds == 0 {
             return Err(ModelError(format!("interval {} has zero duration", interval.interval_id)));
         }
-        if let Some(expected) = expected_start {
-            if expected != interval.start_unix_seconds {
-                return Err(ModelError(format!("interval {} breaks chronology", interval.interval_id)));
-            }
+        if let Some(expected) = expected_start
+            && expected != interval.start_unix_seconds
+        {
+            return Err(ModelError(format!("interval {} breaks chronology", interval.interval_id)));
         }
         expected_start = Some(
             interval.start_unix_seconds.checked_add(
@@ -297,8 +297,9 @@ pub fn emit_lp(
         return Err(ModelError("source_sha256 must be a 64-character hexadecimal digest".to_owned()));
     }
     let mut output = String::new();
+    let mut bounds = String::new();
     let _ = writeln!(output, "\\ Energy dispatch independent MILP reference v0.1");
-    let _ = writeln!(output, "\\\\ source_sha256={}", source_sha256);
+    let _ = writeln!(output, "\\ source_sha256={}", source_sha256);
     let _ = writeln!(output, "\\\\ model_schema={} objective={} direction={}", MODEL_SCHEMA_VERSION, objective.as_str(), direction.as_str());
     write_line(&mut output, if direction == Direction::Minimize { "Minimize" } else { "Maximize" });
     let terms = objective_terms(request, objective);
@@ -331,7 +332,7 @@ pub fn emit_lp(
         append_constraint(
             &mut output,
             &format!("soc_transition_{index:03}"),
-            &[
+            [
                 (1,soc.clone()),
                 (1,w.clone()),
                 (-1,q.clone()),
@@ -346,7 +347,7 @@ pub fn emit_lp(
         append_constraint(
             &mut output,
             &format!("withdrawal_prev_soc_{index:03}"),
-            &[(1,w.clone())].into_iter().chain(
+            [(1,w.clone())].into_iter().chain(
                 if index == 0 { Vec::new() } else { vec![(-1,variable("soc_after",index-1))] }
             ).collect::<Vec<_>>().as_slice(),
             "<=",
@@ -450,7 +451,7 @@ pub fn emit_lp(
             (&pv,u64::from(input.pv_available_quanta)),
             (&curtailed,u64::from(input.pv_available_quanta)),
         ] {
-            append_bound(&mut output,name,max);
+            append_bound(&mut bounds,name,max);
         }
     }
 
@@ -462,6 +463,9 @@ pub fn emit_lp(
         ">=",
         i64::from(request.battery.terminal_reserve_quanta),
     );
+
+    write_line(&mut output, "Bounds");
+    output.push_str(&bounds);
 
     write_line(&mut output, "Binaries");
     for index in 0..request.intervals.len() {
@@ -542,7 +546,7 @@ mod tests {
 
     #[test]
     fn preserves_floor_efficiency_with_exact_integer_inequalities() {
-        let (manifest,files)=build_model_set(FIXTURE).expect("valid fixture");
+        let (_manifest,files)=build_model_set(FIXTURE).expect("valid fixture");
         let lp=&files[0].1;
         assert!(lp.contains("charge_floor_lower_000"));
         assert!(lp.contains("charge_floor_upper_000"));
@@ -556,8 +560,11 @@ mod tests {
     fn outage_import_is_zero_and_terminal_reserve_is_hard() {
         let (_,files)=build_model_set(FIXTURE).expect("valid fixture");
         let lp=&files[0].1;
-        assert!(lp.contains("0 <= grid_import_001 <= 0"));
         assert!(lp.contains("terminal_reserve: 1 soc_after_001 >= 0"));
+        assert!(lp.contains("\nBounds\n"));
+        assert!(lp.contains("0 <= grid_import_001 <= 0"));
+        let subject_to = lp.split("Subject To").nth(1).and_then(|part| part.split("Bounds").next()).unwrap();
+        assert!(!subject_to.contains("0 <= grid_import_001"));
     }
 
     #[test]

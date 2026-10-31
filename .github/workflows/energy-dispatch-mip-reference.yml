@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: energy-dispatch-mip-reference-${ github.workflow }-${ github.event.pull_request.number || github.ref }
+  group: energy-dispatch-mip-reference-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -62,37 +62,85 @@ jobs:
           mkdir -p /tmp/scipoptsuite
           tar -xzf /tmp/scipoptsuite-10.1.0.tgz -C /tmp/scipoptsuite
 
-      - name: Solve every emitted objective model in SCIP exact mode
+      - name: Solve every emitted objective model in SCIP exact mode and emit proof files
         run: |
           SCIP_BIN="$(find /tmp/scipoptsuite -type f -name scip -perm /111 | head -n 1)"
           test -n "$SCIP_BIN"
-          mkdir -p target/energy-dispatch-mip-reference/scip-logs
+          mkdir -p target/energy-dispatch-mip-reference/scip-logs target/energy-dispatch-mip-reference/vipr
           "$SCIP_BIN" -c "display version" -c "quit" \
             > target/energy-dispatch-mip-reference/scip-version.txt 2>&1
-          printf 'model,exact_status,objective_value\\n' \
+          printf 'model,exact_status,objective_value,certificate\n' \
             > target/energy-dispatch-mip-reference/scip-results.csv
           for model in target/energy-dispatch-mip-reference/*.lp; do
             name="$(basename "$model")"
+            stem="${name%.lp}"
             log="target/energy-dispatch-mip-reference/scip-logs/$name.log"
+            cert="target/energy-dispatch-mip-reference/vipr/$stem.vipr"
             timeout 180s "$SCIP_BIN" \
               -c "set exact enable TRUE" \
+              -c "set presolving emphasis off" \
+              -c "set presolving maxrounds 0" \
+              -c "set presolving maxrestarts 0" \
+              -c "set separating maxrounds 0" \
+              -c "set separating maxroundsroot 0" \
+              -c "set certificate filename $cert" \
               -c "read $model" \
               -c "optimize" \
               -c "quit" > "$log" 2>&1
             grep -Eiq "optimal solution found" "$log"
-            value="$(grep -E 'objective value:' "$log" | tail -n 1 | sed 's/.*objective value:[[:space:]]*//')"
+            test -s "$cert"
+            value="$(grep -E 'Exact Primal Bound[[:space:]]*:' "$log" | tail -n 1 | sed -E 's/.*Exact Primal Bound[[:space:]]*:[[:space:]]*//')"
             test -n "$value"
-            printf '%s,optimal_exact,%s\\n' "$name" "$value" \
+            printf '%s,optimal_exact,%s,%s\n' "$name" "$value" "$cert" \
               >> target/energy-dispatch-mip-reference/scip-results.csv
           done
           test "$(wc -l < target/energy-dispatch-mip-reference/scip-results.csv)" -eq 13
           cat target/energy-dispatch-mip-reference/scip-results.csv
+          while IFS=, read -r model status value certificate; do
+            case "$model" in
+              essential_unserved_quanta_min.lp) expected=0 ;;
+              essential_unserved_quanta_max.lp) expected=2 ;;
+              flexible_unserved_quanta_min.lp|flexible_unserved_quanta_max.lp) expected=0 ;;
+              operating_cost_units_min.lp|grid_carbon_grams_min.lp) expected=0 ;;
+              operating_cost_units_max.lp|grid_carbon_grams_max.lp) expected=2 ;;
+              curtailed_pv_quanta_min.lp|terminal_soc_quanta_min.lp) expected=0 ;;
+              curtailed_pv_quanta_max.lp|terminal_soc_quanta_max.lp) expected=2 ;;
+              *) echo "unexpected solver result row: $model" >&2; exit 1 ;;
+            esac
+            normalized="$(printf '%s' "$value" | sed -E 's/\.0+$//')"
+            test "$status" = "optimal_exact"
+            test "$normalized" = "$expected"
+            test -s "$certificate"
+          done < <(tail -n +2 target/energy-dispatch-mip-reference/scip-results.csv)
+
+      - name: Build pinned independent VIPR proof checker
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++ libgmp-dev libtbb-dev
+          git clone https://github.com/scipopt/vipr.git /tmp/vipr
+          git -C /tmp/vipr checkout 99eec197a49b2bd9ad33c1f4c7afabe93caa6511
+          cmake -S /tmp/vipr/code -B /tmp/vipr/build -DVIPRCOMP=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+          cmake --build /tmp/vipr/build --target viprchk -j2
+          VIPR_CHECKER="$(find /tmp/vipr/build -type f -name viprchk -perm /111 | head -n 1)"
+          test -n "$VIPR_CHECKER"
+          cp "$VIPR_CHECKER" target/energy-dispatch-mip-reference/viprchk
+
+      - name: Independently verify all SCIP certificates against original models
+        run: |
+          mkdir -p target/energy-dispatch-mip-reference/vipr-checks
+          VIPR_CHECKER=target/energy-dispatch-mip-reference/viprchk
+          for certificate in target/energy-dispatch-mip-reference/vipr/*.vipr; do
+            name="$(basename "$certificate")"
+            log="target/energy-dispatch-mip-reference/vipr-checks/$name.log"
+            "$VIPR_CHECKER" "$certificate" > "$log" 2>&1
+          done
+          test "$(find target/energy-dispatch-mip-reference/vipr-checks -maxdepth 1 -name '*.log' | wc -l)" -eq 12
 
       - name: Publish LP models, manifest, lockfile and formatted source
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: energy-dispatch-independent-mip-reference-${ github.sha }
+          name: energy-dispatch-independent-mip-reference-${{ github.sha }}
           path: |
             target/energy-dispatch-mip-reference/
             tools/energy-dispatch-mip-reference/Cargo.lock
