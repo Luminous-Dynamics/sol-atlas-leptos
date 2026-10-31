@@ -1261,6 +1261,24 @@ mod tests {
         (profile, request)
     }
 
+
+    fn pin_for(profile: &Value) -> Value {
+        let mut pin: Value = serde_json::from_str(include_str!("../../../schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json")).unwrap();
+        pin["profile_id"] = profile["profile_id"].clone();
+        pin["profile_sha256"] = json!(sha256_value(profile));
+        pin
+    }
+
+    fn evaluate_fixture(profile: &Value, request: &Value) -> Value {
+        let pin = pin_for(profile);
+        evaluate_fixture(profile, &pin, request)
+    }
+
+    fn check_fixture(profile: &Value, request: &Value, report: &Value) -> Vec<String> {
+        let pin = pin_for(profile);
+        check_fixture(profile, &pin, request, report)
+    }
+
     fn refresh_digests(profile: &Value, request: &mut Value) {
         request["profile_sha256"] = json!(sha256_value(profile));
         request["snapshot_sha256"] = json!(sha256_value(&request["snapshot"]));
@@ -1268,8 +1286,8 @@ mod tests {
     }
 
     fn assert_candidate_and_checker_agree(profile: &Value, request: &Value) -> Value {
-        let report = evaluate_admission(profile, request);
-        let errors = independent_check(profile, request, &report);
+        let report = evaluate_fixture(profile, request);
+        let errors = check_fixture(profile, request, &report);
         assert!(errors.is_empty(), "independent checker mismatch: {errors:#?}\nreport: {report:#}");
         report
     }
@@ -1277,18 +1295,18 @@ mod tests {
     #[test]
     fn synthetic_fixture_admits_only_descriptive_annotation() {
         let (profile, request) = fixture_files();
-        let report = evaluate_admission(&profile, &request);
+        let report = evaluate_fixture(&profile, &request);
         assert_eq!(report["admission"], "admit_descriptive", "{report:#}");
         assert_eq!(report["highest_permitted_action"], "annotate");
-        assert!(independent_check(&profile, &request, &report).is_empty());
+        assert!(check_fixture(&profile, &request, &report).is_empty());
     }
 
     #[test]
     fn independent_checker_detects_tampered_decision() {
         let (profile, request) = fixture_files();
-        let mut report = evaluate_admission(&profile, &request);
+        let mut report = evaluate_fixture(&profile, &request);
         report["admission"] = json!("admit_advisory");
-        assert!(!independent_check(&profile, &request, &report).is_empty());
+        assert!(!check_fixture(&profile, &request, &report).is_empty());
     }
 
     #[test]
@@ -1299,7 +1317,7 @@ mod tests {
         request["revocation_snapshot"]["as_of"] = request["as_of"].clone();
         request["revocation_snapshot_sha256"] = json!(sha256_value(&request["revocation_snapshot"]));
         request["profile_sha256"] = json!(sha256_value(&profile));
-        let report = evaluate_admission(&profile, &request);
+        let report = evaluate_fixture(&profile, &request);
         assert_eq!(report["admission"], "abstain", "{report:#}");
         assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v == "MEASUREMENT_STALE"));
     }
@@ -1309,7 +1327,7 @@ mod tests {
         let (profile, mut request) = fixture_files();
         request["revocation_snapshot"]["revoked_profile_ids"] = json!([profile["profile_id"]]);
         request["revocation_snapshot_sha256"] = json!(sha256_value(&request["revocation_snapshot"]));
-        let report = evaluate_admission(&profile, &request);
+        let report = evaluate_fixture(&profile, &request);
         assert_eq!(report["admission"], "reject");
     }
 
@@ -1320,7 +1338,7 @@ mod tests {
         request["snapshot"]["conditions"][0]["lower"] = json!(24);
         request["snapshot"]["conditions"][0]["upper"] = json!(26);
         request["snapshot_sha256"] = json!(sha256_value(&request["snapshot"]));
-        let report = evaluate_admission(&profile, &request);
+        let report = evaluate_fixture(&profile, &request);
         assert_eq!(report["admission"], "reject");
     }
 
@@ -1328,10 +1346,10 @@ mod tests {
     fn D2_and_D3_requests_are_rejected_by_v0_1() {
         let (profile, mut request) = fixture_files();
         request["decision_tier"] = json!("D2_delegated_planning");
-        let report = evaluate_admission(&profile, &request);
+        let report = evaluate_fixture(&profile, &request);
         assert_eq!(report["admission"], "reject");
         request["decision_tier"] = json!("D3_autonomous_control");
-        let report = evaluate_admission(&profile, &request);
+        let report = evaluate_fixture(&profile, &request);
         assert_eq!(report["admission"], "reject");
     }
 
@@ -1444,7 +1462,7 @@ mod tests {
         let report = assert_candidate_and_checker_agree(&profile, &request);
         assert_eq!(report["admission"], "reject");
         let mut sealed = report;
-        let errors = independent_check(&profile, &request, &sealed);
+        let errors = check_fixture(&profile, &request, &sealed);
         seal_report(&mut sealed, "passed", &errors);
         assert!(validate_runtime_report(&sealed).is_empty(), "{sealed:#}");
         assert!(report_digest_is_valid(&sealed));
@@ -1454,7 +1472,7 @@ mod tests {
     fn sealed_report_passes_wire_schema_and_detects_mutation() {
         let (profile, request) = fixture_files();
         let mut report = assert_candidate_and_checker_agree(&profile, &request);
-        let errors = independent_check(&profile, &request, &report);
+        let errors = check_fixture(&profile, &request, &report);
         seal_report(&mut report, "passed", &errors);
         assert!(validate_runtime_report(&report).is_empty(), "{report:#}");
         assert!(report_digest_is_valid(&report));
@@ -1546,11 +1564,11 @@ mod tests {
     #[test]
     fn decision_relevant_mutation_changes_bound_snapshot_digest() {
         let (profile, request) = fixture_files();
-        let original = evaluate_admission(&profile, &request);
+        let original = evaluate_fixture(&profile, &request);
         let mut changed = request.clone();
         changed["snapshot"]["conditions"][0]["value"] = json!(12.5);
         refresh_digests(&profile, &mut changed);
-        let mutated = evaluate_admission(&profile, &changed);
+        let mutated = evaluate_fixture(&profile, &changed);
         assert_ne!(original["snapshot_sha256"], mutated["snapshot_sha256"]);
         assert_ne!(original["request_sha256"], mutated["request_sha256"]);
     }
@@ -1558,9 +1576,9 @@ mod tests {
     #[test]
     fn independent_checker_catches_per_condition_reason_tampering() {
         let (profile, request) = fixture_files();
-        let mut report = evaluate_admission(&profile, &request);
+        let mut report = evaluate_fixture(&profile, &request);
         report["condition_results"][0]["reason_codes"] = json!(["FORGED_REASON"]);
-        let errors = independent_check(&profile, &request, &report);
+        let errors = check_fixture(&profile, &request, &report);
         assert!(errors.iter().any(|error| error == "REPORT_FIELD_MISMATCH:condition_results"));
     }
 
@@ -1600,8 +1618,8 @@ mod tests {
     #[test]
     fn sealed_report_digest_replays() {
         let (profile, request) = fixture_files();
-        let mut report = evaluate_admission(&profile, &request);
-        let errors = independent_check(&profile, &request, &report);
+        let mut report = evaluate_fixture(&profile, &request);
+        let errors = check_fixture(&profile, &request, &report);
         assert!(errors.is_empty());
         seal_report(&mut report, "passed", &errors);
         assert!(report_digest_is_valid(&report));
