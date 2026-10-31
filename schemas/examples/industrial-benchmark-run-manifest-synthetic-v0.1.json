@@ -1,0 +1,245 @@
+{
+  "schema_version": "luminous.industrial-benchmark-run-manifest.v0.1",
+  "manifest_id": "ibap.synthetic.maintenance.cbm.v01",
+  "benchmark": {
+    "benchmark_id": "maintenance-policy-simulation-v01",
+    "vertical": "industrial_maintenance",
+    "evaluation_mode": "synthetic_fixture",
+    "intended_decision": "Compare maintenance scheduling policies on a bounded synthetic finite-buffer production line.",
+    "decision_tier": "D1_advisory",
+    "purpose": "Contract fixture only. No physical plant, field performance, predictive superiority or production qualification is represented.",
+    "profile_id": "ieac.synthetic.maintenance.read-only.v01"
+  },
+  "task": {
+    "task_id": "finite-buffer-maintenance-policy-comparison-v01",
+    "estimand": "Paired difference in good-unit output and simulated downtime over a fixed synthetic horizon between the candidate policy and a reactive baseline.",
+    "system_boundary": "One synthetic asynchronous production line containing three machines, finite intermediate buffers and a single maintenance resource.",
+    "operating_conditions": [
+      "Fixed synthetic demand schedule",
+      "Two synthetic degradation modes",
+      "One shared maintenance technician",
+      "No real-world telemetry"
+    ],
+    "time_support": "Synthetic 30-day simulated horizon with one-hour decision intervals.",
+    "spatial_support": "Single synthetic production line; no geographic interpretation.",
+    "output_contract": "Per-replication good units, downtime, repair hours, rejected units and all declared protected-constraint outcomes.",
+    "known_exclusions": [
+      "No physical validation",
+      "No stochastic model calibration to a real facility",
+      "No labor-law, safety-case or regulatory assessment"
+    ]
+  },
+  "datasets": [
+    {
+      "dataset_id": "synthetic-maintenance-fixture-v01",
+      "role": "test",
+      "source_type": "synthetic",
+      "source_uri": "urn:luminous:synthetic:maintenance-fixture:v0.1",
+      "version_or_snapshot": "fixture-v0.1",
+      "retrieved_at": "2026-10-31T07:00:00Z",
+      "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "rights_state": "not_applicable",
+      "license_or_basis": "Generated synthetic fixture owned by this repository; not a third-party dataset.",
+      "permitted_evaluation_uses": [
+        "testing",
+        "benchmarking"
+      ],
+      "notes": "Placeholder digest identifies the illustrative fixture contract shape only; replace with computed bytes digest before a real run."
+    }
+  ],
+  "split_plan": {
+    "strategy": [
+      "machine_disjoint",
+      "campaign_disjoint"
+    ],
+    "split_manifest_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "group_axes": [
+      "machine_id",
+      "campaign_id"
+    ],
+    "leakage_audit": {
+      "auditor_id": "synthetic-independent-split-auditor",
+      "audit_artifact_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "cross_split_overlap_count": 0,
+      "result": "pass"
+    },
+    "holdout_locked_before_tuning": true,
+    "split_semantics": "Synthetic machine identities machine-a and machine-b are training groups; machine-c is the held-out test group. The split manifest is illustrative, not a real dataset split."
+  },
+  "methods": [
+    {
+      "method_id": "reactive-baseline-v01",
+      "role": "null_baseline",
+      "name": "Reactive maintenance baseline",
+      "version": "fixture-v0.1",
+      "code_or_model_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "configuration_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "solver_or_runtime": "synthetic deterministic event simulator",
+      "information_access_scope": "Shared current-state synthetic observations only.",
+      "tuning_budget": {
+        "wall_clock_seconds": 60,
+        "trials": 1,
+        "human_hours": 0
+      },
+      "eligible_for_superiority_claim": true
+    },
+    {
+      "method_id": "luminous-policy-candidate-v01",
+      "role": "candidate",
+      "name": "Luminous maintenance policy candidate",
+      "version": "fixture-v0.1",
+      "code_or_model_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "configuration_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "solver_or_runtime": "synthetic deterministic event simulator",
+      "information_access_scope": "Shared current-state synthetic observations only.",
+      "tuning_budget": {
+        "wall_clock_seconds": 60,
+        "trials": 1,
+        "human_hours": 0
+      },
+      "eligible_for_superiority_claim": true
+    }
+  ],
+  "comparability": {
+    "state": "matched",
+    "task_boundary_matched": true,
+    "data_access_matched": true,
+    "information_access_matched": true,
+    "tuning_budget_matched": true,
+    "compute_budget_matched": true,
+    "physical_resource_budget_matched": true,
+    "deviations": [],
+    "reviewer_id": "synthetic-contract-reviewer",
+    "rationale": "Illustrative fixture declares identical task, information, tuning, compute and physical-resource boundaries; it does not establish actual comparator equivalence."
+  },
+  "budgets": {
+    "per_method_wall_clock_seconds": 120,
+    "per_method_cpu_core_seconds": 120,
+    "per_method_peak_memory_bytes": 536870912,
+    "per_method_compute_energy_joules": 10000,
+    "physical_resource_budgets": [
+      {
+        "resource": "maintenance_technician_time",
+        "unit": "hours",
+        "maximum": 40,
+        "scope": "Per method over the synthetic 30-day simulation horizon."
+      },
+      {
+        "resource": "spare_parts",
+        "unit": "units",
+        "maximum": 12,
+        "scope": "Per method over the synthetic 30-day simulation horizon."
+      }
+    ],
+    "equal_budget_policy": "Each method receives the same declared observation stream, tuning wall time, execution wall time, CPU budget, peak memory and simulated maintenance resources."
+  },
+  "metrics": [
+    {
+      "metric_id": "good_units_per_horizon",
+      "name": "Good units produced",
+      "definition": "Count of units accepted by the synthetic quality predicate over the full horizon.",
+      "unit": "units",
+      "direction": "maximize",
+      "denominator": "One 30-day synthetic horizon per replication.",
+      "aggregation": "paired_difference",
+      "report_by_group": [
+        "machine_id",
+        "degradation_mode"
+      ],
+      "report_worst_group": true
+    },
+    {
+      "metric_id": "unplanned_downtime_hours",
+      "name": "Unplanned downtime",
+      "definition": "Sum of machine-unavailable hours attributed to unplanned failure events.",
+      "unit": "hours",
+      "direction": "minimize",
+      "denominator": "Three machines over one 30-day synthetic horizon per replication.",
+      "aggregation": "sum",
+      "report_by_group": [
+        "machine_id"
+      ],
+      "report_worst_group": true
+    },
+    {
+      "metric_id": "maintenance_resource_hours",
+      "name": "Maintenance resource hours",
+      "definition": "Technician hours consumed by maintenance interventions.",
+      "unit": "hours",
+      "direction": "minimize",
+      "denominator": "One synthetic 30-day horizon per replication.",
+      "aggregation": "sum",
+      "report_by_group": [
+        "machine_id"
+      ],
+      "report_worst_group": true
+    }
+  ],
+  "protected_constraints": [
+    {
+      "constraint_id": "synthetic-product-quality-floor",
+      "category": "product_quality",
+      "status": "mandatory",
+      "metric_id": "accepted_quality_rate",
+      "operator": ">=",
+      "threshold": 0.99,
+      "unit": "fraction",
+      "scope": "All produced units in each replication; no quality compensation by throughput.",
+      "reviewer_id": "synthetic-contract-reviewer",
+      "rationale": "Synthetic fixture floor only; not an industrial product specification."
+    },
+    {
+      "constraint_id": "physical-safety-case",
+      "category": "safety",
+      "status": "not_applicable",
+      "reviewer_id": "synthetic-contract-reviewer",
+      "rationale": "No real workers, equipment or physical actuation exist in this synthetic fixture."
+    }
+  ],
+  "replication": {
+    "execution_mode": "deterministic",
+    "replicate_count": 1,
+    "seeds": [
+      17
+    ],
+    "stopping_rule": "Complete one fixed 30-day simulated horizon; no early stopping.",
+    "deterministic_replay_expected": true
+  },
+  "environment": {
+    "operating_system": "Linux (illustrative)",
+    "architecture": "x86_64",
+    "cpu": "Illustrative 4-core x86_64 CPU",
+    "gpu": "Not used",
+    "memory_bytes": 536870912,
+    "runtime": "Rust stable (version to be pinned for executable run)",
+    "compiler_or_interpreter": "rustc 1.99.1 (illustrative)",
+    "thread_count": 1,
+    "notes": "Synthetic schema fixture; actual host/compiler/container digest must be frozen before running."
+  },
+  "independent_evaluation": {
+    "verifier_id": "independent-maintenance-metric-checker",
+    "verifier_artifact_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "independent_implementation": true,
+    "shares_candidate_decision_code": false,
+    "recomputed_outputs": [
+      "Good-unit counts",
+      "Unplanned downtime",
+      "Technician hours",
+      "Protected quality-floor compliance"
+    ],
+    "planned_checks": [
+      "Replay event log from raw result artifact",
+      "Recompute denominators and aggregation",
+      "Check per-method resource caps",
+      "Verify quality floor independently"
+    ]
+  },
+  "freeze": {
+    "frozen_at": "2026-10-31T07:00:00Z",
+    "frozen_by": "synthetic-fixture-author",
+    "reviewer_id": "synthetic-contract-reviewer",
+    "pre_registered_before_execution": true,
+    "preregistration_reference": "urn:luminous:synthetic:ibap-run-manifest:fixture-v0.1"
+  },
+  "claim_ceiling": "synthetic_only"
+}
