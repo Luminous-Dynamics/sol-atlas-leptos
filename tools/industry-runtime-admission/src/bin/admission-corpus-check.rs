@@ -260,6 +260,7 @@ fn verify_case(
         return Err(format!("static-profile baseline result does not replay for case {case_index}"));
     }
 
+    let actual_admission = require_string(candidate_report, "/admission", "candidate report")?;
     let mut tampered_report = candidate_report.clone();
     let admitted = actual_admission.starts_with("admit_");
     tampered_report["admission"] = serde_json::json!(
@@ -303,7 +304,6 @@ fn verify_case(
     counts.latencies_ms.push(latency_ms);
 
     let expected_admission = require_string(record, "/expected/admission", "case expectation")?;
-    let actual_admission = require_string(candidate_report, "/admission", "candidate report")?;
     if record["observed"]["admission"].as_str() != Some(actual_admission)
         || record["observed"]["reason_codes"] != candidate_report["reason_codes"]
     {
