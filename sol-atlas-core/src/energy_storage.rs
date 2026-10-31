@@ -680,16 +680,16 @@ mod tests {
 
     #[test]
     fn evidence_classes_require_references_and_version_is_pinned() {
-        let mut request = request(vec![interval("idle", 1.0, 0.0, 0.0)]);
-        request.evidence_class = EvidenceClass::OperatingPlant;
+        let mut operating_plant_request = request(vec![interval("idle", 1.0, 0.0, 0.0)]);
+        operating_plant_request.evidence_class = EvidenceClass::OperatingPlant;
         assert!(matches!(
-            assess_energy_storage(&request),
+            assess_energy_storage(&operating_plant_request),
             Err(EnergyStorageError::MissingEvidenceReference)
         ));
-        let mut request = request(vec![interval("idle", 1.0, 0.0, 0.0)]);
-        request.schema_version = "future-v9".to_owned();
+        let mut future_version_request = request(vec![interval("idle", 1.0, 0.0, 0.0)]);
+        future_version_request.schema_version = "future-v9".to_owned();
         assert!(matches!(
-            assess_energy_storage(&request),
+            assess_energy_storage(&future_version_request),
             Err(EnergyStorageError::UnsupportedSchemaVersion { .. })
         ));
     }
