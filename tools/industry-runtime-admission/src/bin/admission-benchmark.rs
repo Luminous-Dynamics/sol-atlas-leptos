@@ -238,10 +238,10 @@ fn apply_family(
 }
 
 fn reason_codes_match(report: &Value, expected: &[&str]) -> bool {
-    let mut actual = report["reason_codes"]
-        .as_array()
-        .map(|codes| codes.iter().filter_map(Value::as_str).map(str::to_owned).collect::<Vec<_>>())
-        .unwrap_or_default();
+    let Some(codes) = report["reason_codes"].as_array() else {
+        return false;
+    };
+    let mut actual = codes.iter().filter_map(Value::as_str).map(str::to_owned).collect::<Vec<_>>();
     let mut expected = expected.iter().map(|code| (*code).to_owned()).collect::<Vec<_>>();
     actual.sort_unstable();
     expected.sort_unstable();
@@ -422,7 +422,13 @@ fn run() -> Result<(Value, bool), String> {
     let run_started = Instant::now();
     let mut strata = Vec::new();
     let mut negative_trials_total = 0usize;
+    let mut negative_rejects_total = 0usize;
+    let mut negative_abstentions_total = 0usize;
     let mut false_admissions_total = 0usize;
+    let mut positive_trials_total = 0usize;
+    let mut positive_admissions_total = 0usize;
+    let mut positive_abstentions_total = 0usize;
+    let mut positive_rejections_total = 0usize;
     let mut checker_disagreements_total = 0usize;
     let mut tamper_checks_total = 0usize;
     let mut tamper_detected_total = 0usize;
@@ -439,6 +445,11 @@ fn run() -> Result<(Value, bool), String> {
     for (family, expected, expected_reason, is_negative) in FAMILIES {
         let mut false_admissions = 0usize;
         let mut false_rejections = 0usize;
+        let mut negative_rejects = 0usize;
+        let mut negative_abstentions = 0usize;
+        let mut positive_admissions = 0usize;
+        let mut positive_abstentions = 0usize;
+        let mut positive_rejections = 0usize;
         let mut expected_disposition_matches = 0usize;
         let mut checker_disagreements = 0usize;
         let mut reason_code_hits = 0usize;
@@ -481,9 +492,27 @@ fn run() -> Result<(Value, bool), String> {
                 if admitted {
                     false_admissions += 1;
                     false_admissions_total += 1;
+                } else if actual == "reject" {
+                    negative_rejects += 1;
+                    negative_rejects_total += 1;
+                } else if actual == "abstain" {
+                    negative_abstentions += 1;
+                    negative_abstentions_total += 1;
                 }
-            } else if !admitted {
-                false_rejections += 1;
+            } else {
+                positive_trials_total += 1;
+                if admitted {
+                    positive_admissions += 1;
+                    positive_admissions_total += 1;
+                } else if actual == "abstain" {
+                    false_rejections += 1;
+                    positive_abstentions += 1;
+                    positive_abstentions_total += 1;
+                } else {
+                    false_rejections += 1;
+                    positive_rejections += 1;
+                    positive_rejections_total += 1;
+                }
             }
             if !checker_errors.is_empty() {
                 checker_disagreements += 1;
@@ -539,6 +568,11 @@ fn run() -> Result<(Value, bool), String> {
                 "false_admission_rate": if *is_negative { json!(false_admissions as f64 / trials_per_family as f64) } else { Value::Null },
                 "one_sided_exact_95_percent_false_admission_upper_bound": upper_bound,
                 "false_rejections_on_positive_controls": false_rejections,
+                "positive_admissions": positive_admissions,
+                "positive_abstentions": positive_abstentions,
+                "positive_rejections": positive_rejections,
+                "negative_rejects": negative_rejects,
+                "negative_abstentions": negative_abstentions,
                 "expected_disposition_matches": expected_disposition_matches,
                 "independent_checker_disagreements": checker_disagreements,
                 "expected_reason_code_hits": reason_code_hits
@@ -597,6 +631,15 @@ fn run() -> Result<(Value, bool), String> {
             "failure_family_count": FAMILIES.len(),
             "negative_trials": negative_trials_total,
             "false_admissions": false_admissions_total,
+            "negative_rejects": negative_rejects_total,
+            "negative_abstentions": negative_abstentions_total,
+            "negative_non_admission_rate": if negative_trials_total > 0 { json!((negative_rejects_total + negative_abstentions_total) as f64 / negative_trials_total as f64) } else { Value::Null },
+            "positive_trials": positive_trials_total,
+            "positive_admissions": positive_admissions_total,
+            "positive_admission_coverage": if positive_trials_total > 0 { json!(positive_admissions_total as f64 / positive_trials_total as f64) } else { Value::Null },
+            "positive_abstentions": positive_abstentions_total,
+            "positive_rejections": positive_rejections_total,
+            "negative_abstention_share": if negative_trials_total > 0 { json!(negative_abstentions_total as f64 / negative_trials_total as f64) } else { Value::Null },
             "static_baseline_counterfactual_acceptances": static_baseline_counterfactual_acceptances_total,
             "equal_weight_failure_family_macro_false_admission_rate": vertical_macro_rate,
             "one_sided_95_percent_false_admission_upper_bound_per_family": "reported_in_each_stratum",
@@ -713,6 +756,8 @@ mod tests {
     #[test]
     #[test]
     fn expected_reason_codes_require_exact_set_equality() {
+        assert!(!reason_codes_match(&json!({}), &[]));
+        assert!(!reason_codes_match(&json!({ "reason_codes": "not-an-array" }), &[]));
         assert!(reason_codes_match(
             &json!({ "reason_codes": ["ARTIFACT_REVOKED", "MEASUREMENT_STALE"] }),
             &["MEASUREMENT_STALE", "ARTIFACT_REVOKED"],
