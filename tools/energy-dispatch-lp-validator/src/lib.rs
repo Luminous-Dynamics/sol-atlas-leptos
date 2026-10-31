@@ -248,6 +248,7 @@ fn parse_expression(
     }
 
     let mut coefficients = BTreeMap::<String, i64>::new();
+    let mut seen_variables = BTreeSet::<String>::new();
     let mut position = 0usize;
     let mut first_term = true;
     while position < tokens.len() {
@@ -290,7 +291,7 @@ fn parse_expression(
         if !valid_identifier(variable) {
             return Err(error(format!("invalid variable identifier: {variable}")));
         }
-        if coefficients.contains_key(variable) {
+        if !seen_variables.insert(variable.to_owned()) {
             return Err(error(format!("duplicate variable term: {variable}")));
         }
         if coefficient != 0 {
@@ -1307,6 +1308,57 @@ mod tests {
         assert!(identify_artifact("made_up_min.lp").is_err());
         assert!(identify_artifact("essential_unserved_quanta_unknown.lp").is_err());
     }
+
+    #[test]
+    fn rejects_one_thousand_deterministic_semantic_mutations() {
+        let baseline = with_source_digest(sample_lp());
+        let cases = [
+            (
+                "soc_transition_000: 1 soc_after_000 + 1 soc_withdrawal_000 - 1 charge_gain_000 = 0",
+                "soc_transition_000: {value} soc_after_000 + 1 soc_withdrawal_000 - 1 charge_gain_000 = 0",
+            ),
+            (
+                "0 <= grid_import_000 <= 2",
+                "0 <= grid_import_000 <= {value}",
+            ),
+            (
+                "1 discharge_delivered_000 - 1 soc_withdrawal_000",
+                "{value} discharge_delivered_000 - 1 soc_withdrawal_000",
+            ),
+            (
+                "1 essential_unserved_000",
+                "{value} essential_unserved_000",
+            ),
+        ];
+
+        let mut rejected = 0usize;
+        for seed in 0..1_000usize {
+            let value = (seed + 1).to_string();
+            let (needle, replacement_template) = cases[seed % cases.len()];
+            let replacement = replacement_template.replace("{value}", &value);
+            let mutated = baseline.replacen(needle, &replacement, 1);
+            assert_ne!(mutated, baseline, "mutation seed {seed} did not change the LP");
+            assert!(
+                validate_lp(
+                    REQUEST,
+                    mutated.as_bytes(),
+                    "essential_unserved_quanta_min.lp"
+                )
+                .is_err(),
+                "semantic mutation seed {seed} was accepted"
+            );
+            rejected += 1;
+        }
+        assert_eq!(rejected, 1_000);
+    }
+
+    #[test]
+    fn parser_rejects_missing_term_separators_and_repeated_signs() {
+        assert!(parse_expression(&["1", "x", "2", "y"], false).is_err());
+        assert!(parse_expression(&["1", "x", "+", "-", "2", "y"], false).is_err());
+        assert!(parse_expression(&["1", "x", "+", "0", "y"], false).is_err());
+    }
+
 
     #[test]
     fn rejects_invalid_and_oversized_inputs() {
