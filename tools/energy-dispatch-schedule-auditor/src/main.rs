@@ -1,7 +1,6 @@
 use energy_dispatch_schedule_auditor::{
     audit_schedule_bytes, AuditDisposition, MAX_REQUEST_BYTES, MAX_SCHEDULE_BYTES,
 };
-use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
@@ -53,7 +52,7 @@ fn run() -> Result<ExitCode, String> {
     let receipt = audit_schedule_bytes(&request, &schedule)
         .map_err(|error| format!("schedule audit could not be completed: {error}"))?;
 
-    let output_path = PathBuf::from(OsString::from(receipt_path));
+    let output_path = PathBuf::from(receipt_path);
     if let Some(parent) = output_path.parent().filter(|parent| !parent.as_os_str().is_empty()) {
         std::fs::create_dir_all(parent)
             .map_err(|error| format!("create receipt directory: {error}"))?;
