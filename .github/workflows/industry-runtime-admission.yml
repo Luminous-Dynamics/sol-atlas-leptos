@@ -21,6 +21,8 @@ on:
       - "tools/industry-runtime-admission/**"
       - "tools/industry-assurance-validator/**"
       - "schemas/industry-runtime-admission-*.json"
+      - "schemas/industry-runtime-profile-pin-v0.1.schema.json"
+      - "schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json"
       - "schemas/examples/industry-runtime-admission-*.json"
       - "schemas/industry-assurance-qualification-profile-v0.1.schema.json"
       - "schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json"
