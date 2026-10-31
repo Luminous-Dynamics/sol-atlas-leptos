@@ -580,7 +580,7 @@ pub fn evaluate_admission(profile: &Value, request: &Value) -> Value {
     }
 
     let authority_observed = text_at(revocation, "/observed_at").and_then(canonical_utc_seconds);
-    let authority_limit = revocation.get("max_age_seconds").and_then(Value::as_u64);
+    let authority_limit = profile.pointer("/authority/max_authority_snapshot_age_seconds").and_then(Value::as_u64);
     match (authority_observed, as_of_seconds, authority_limit) {
         (Some(observed), Some(now), Some(_)) if observed > now => {
             unique_push(&mut reasons, "AUTHORITY_SOURCE_FUTURE_DATED");
@@ -899,7 +899,7 @@ fn independent_expected(profile: &Value, request: &Value) -> Value {
     }
 
     let authority_observed = revocation["observed_at"].as_str().and_then(canonical_utc_seconds);
-    let authority_limit = revocation["max_age_seconds"].as_u64();
+    let authority_limit = profile["authority"]["max_authority_snapshot_age_seconds"].as_u64();
     match (authority_observed, instant, authority_limit) {
         (Some(observed), Some(now), Some(_limit)) if observed > now => {
             reasons.insert("AUTHORITY_SOURCE_FUTURE_DATED".to_owned());
