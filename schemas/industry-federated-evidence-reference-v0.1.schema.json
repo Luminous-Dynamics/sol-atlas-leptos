@@ -118,7 +118,6 @@
         "permitted_uses": {
           "type": "array",
           "uniqueItems": true,
-          "minItems": 1,
           "items": {
             "enum": [
               "testing",
@@ -139,7 +138,50 @@
           "minLength": 1,
           "maxLength": 256
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "unknown"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "permitted_uses": {
+                "maxItems": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "verified",
+                  "restricted"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "permitted_uses": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
     },
     "observations": {
       "type": "array",
@@ -266,6 +308,47 @@
               "required": [
                 "derived_value_sha256"
               ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "semantic_status": {
+                  "const": "converted"
+                }
+              },
+              "required": [
+                "semantic_status"
+              ]
+            },
+            "then": {
+              "properties": {
+                "evidence_state": {
+                  "const": "derived"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "semantic_status": {
+                  "enum": [
+                    "opaque",
+                    "unsupported"
+                  ]
+                }
+              },
+              "required": [
+                "semantic_status"
+              ]
+            },
+            "then": {
+              "properties": {
+                "evidence_state": {
+                  "const": "unknown"
+                }
+              }
             }
           }
         ]
