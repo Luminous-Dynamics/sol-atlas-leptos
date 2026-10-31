@@ -69,16 +69,27 @@ Do not infer real-site reliability from the synthetic H=2/H=3 fixtures. Use sepa
 |---|---|---|
 | NREL REopt API v3 / REopt.jl | DER sizing, PV/storage/grid mix, resilience and techno-economic outcomes where horizon, tariff, service constraints and degradation assumptions can be aligned | Treating a synthetic two-interval integer dispatch fixture as a complete REopt facility-planning comparison |
 | PGLib-OPF | Network-level AC optimal power flow and related OPF formulations when Sol-Atlas models the same network equations and case | Using PGLib-OPF as a direct benchmark for behind-the-meter battery dispatch with no network OPF |
+| PGLib-UC | Time-coupled MILP methodology and solver behavior for load/reserve profiles, ramp limits, minimum run/off times, start-up/shut-down costs and renewable time series | Treating thermal unit-commitment cases as direct battery dispatch or claiming identical physics without an explicit mapping |
 | SCIP 10.1.0 + VIPR | Exact integer-model solving and independently checked optimality certificates for the same encoded LP/MIP | Claiming a valid certificate proves the source request was translated correctly or the physical model is complete |
 | HiGHS or another pinned MIP solver | Solver speed/gap/solution comparison on identical exported models and stopping criteria | Comparing different model formulations, tolerances or objective weights as if the solver alone caused the difference |
 
 External references:
-- REopt API: https://developer.nlr.gov/docs/energy-optimization/reopt/
+- REopt API v3 (current stable interface): https://developer.nlr.gov/docs/energy-optimization/reopt/v3/
 - PGLib-OPF: https://github.com/power-grid-lib/pglib-opf
+- PGLib-UC: https://github.com/power-grid-lib/pglib-uc
 - SCIP: https://www.scipopt.org/
 - VIPR: https://github.com/scipopt/vipr
 
 These are complementary baselines, not interchangeable benchmarks. Publish a capability matrix when exact model equivalence is impossible.
+
+### Temporal benchmark selection
+
+Use REopt v3 for matched distributed-energy resource sizing, microgrid
+resilience and techno-economic comparisons. Use PGLib-UC to stress temporal
+MILP machinery (chronology, reserve, ramps, minimum on/off times and startup
+transitions) only when a documented mapping exists. Use PGLib-OPF when the
+network AC/DC flow equations are in scope. Do not blend these datasets into a
+single ranking: they test different mathematical models.
 
 ## 4. Fair experimental protocol
 
