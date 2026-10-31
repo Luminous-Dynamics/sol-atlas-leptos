@@ -1040,17 +1040,17 @@ fn independent_expected(profile: &Value, request: &Value) -> Value {
         "snapshot_sha256": s_hash,
         "revocation_snapshot_sha256": r_hash,
         "request_sha256": sha256_value(request),
-        "request_id": request["request_id"],
-        "profile_id": profile["profile_id"],
+        "request_id": text_at(request, "/request_id").unwrap_or("unknown"),
+        "profile_id": text_at(profile, "/profile_id").unwrap_or(""),
         "evaluator_version": EVALUATOR_VERSION,
-        "asset_id": request["asset_id"],
-        "snapshot_id": request["snapshot_id"],
-        "as_of": request["as_of"],
-        "action": request["action"],
-        "model_sha256": request["model_sha256"],
-        "evaluator_sha256": request["evaluator_sha256"],
-        "configuration_sha256": request["configuration_sha256"],
-        "topology_sha256": request["topology_sha256"]
+        "asset_id": text_at(request, "/asset_id").unwrap_or("unknown"),
+        "snapshot_id": text_at(request, "/snapshot_id").unwrap_or("unknown"),
+        "as_of": text_at(request, "/as_of").unwrap_or(""),
+        "action": text_at(request, "/action").unwrap_or(""),
+        "model_sha256": text_at(request, "/model_sha256").unwrap_or(""),
+        "evaluator_sha256": text_at(request, "/evaluator_sha256").unwrap_or(""),
+        "configuration_sha256": text_at(request, "/configuration_sha256").unwrap_or(""),
+        "topology_sha256": text_at(request, "/topology_sha256").unwrap_or("")
     })
 }
 
