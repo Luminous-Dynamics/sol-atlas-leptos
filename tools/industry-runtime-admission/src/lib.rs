@@ -1515,6 +1515,31 @@ mod tests {
         assert!(errors.iter().any(|error| error == "REPORT_FIELD_MISMATCH:condition_results"));
     }
 
+
+    #[test]
+    fn authority_source_must_be_bound_and_fresh() {
+        let (profile, mut unbound) = fixture_files();
+        unbound["revocation_snapshot"]["source_artifact_id"] = json!("untrusted-authority");
+        unbound["revocation_snapshot_sha256"] = json!(sha256_value(&unbound["revocation_snapshot"]));
+        let report = assert_candidate_and_checker_agree(&profile, &unbound);
+        assert_eq!(report["admission"], "reject");
+        assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v == "AUTHORITY_SOURCE_BINDING_INVALID"));
+
+        let (profile, mut stale) = fixture_files();
+        stale["revocation_snapshot"]["observed_at"] = json!("2026-10-31T11:00:00Z");
+        stale["revocation_snapshot_sha256"] = json!(sha256_value(&stale["revocation_snapshot"]));
+        let report = assert_candidate_and_checker_agree(&profile, &stale);
+        assert_eq!(report["admission"], "abstain");
+        assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v == "AUTHORITY_SOURCE_STALE"));
+
+        let (profile, mut future) = fixture_files();
+        future["revocation_snapshot"]["observed_at"] = json!("2026-10-31T12:00:01Z");
+        future["revocation_snapshot_sha256"] = json!(sha256_value(&future["revocation_snapshot"]));
+        let report = assert_candidate_and_checker_agree(&profile, &future);
+        assert_eq!(report["admission"], "reject");
+        assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v == "AUTHORITY_SOURCE_FUTURE_DATED"));
+    }
+
     #[test]
     fn sealed_report_digest_replays() {
         let (profile, request) = fixture_files();
