@@ -346,6 +346,8 @@ fn run() -> Result<(Value, bool), String> {
     let mut all_latencies_ms = Vec::new();
     let mut replay_checks = 0usize;
     let mut replay_mismatches = 0usize;
+    let mut disposition_mismatches_total = 0usize;
+    let mut reason_code_misses_total = 0usize;
     let mut corpus_hasher = Sha256::new();
     let mut family_simultaneous_upper_bounds = Vec::new();
     let mut static_baseline_false_admissions_total = 0usize;
@@ -431,8 +433,15 @@ fn run() -> Result<(Value, bool), String> {
             }
         }
 
+        if expected_disposition_matches != trials_per_family {
+            disposition_mismatches_total += trials_per_family - expected_disposition_matches;
+        }
+        if reason_code_hits != trials_per_family {
+            reason_code_misses_total += trials_per_family - reason_code_hits;
+        }
         let upper_bound = if *is_negative {
-            let simultaneous_alpha = 0.05 / FAMILIES.iter().filter(|(_, _, _, negative)| *negative).count() as f64;
+            let negative_family_count = FAMILIES.iter().filter(|(_, _, _, negative)| *negative).count();
+            let simultaneous_alpha = 0.05 / negative_family_count as f64;
             let simultaneous_bound = one_sided_exact_upper(false_admissions, trials_per_family, simultaneous_alpha);
             family_simultaneous_upper_bounds.push(simultaneous_bound);
             Some(one_sided_exact_upper(false_admissions, trials_per_family, 0.05))
@@ -507,6 +516,8 @@ fn run() -> Result<(Value, bool), String> {
             "one_sided_95_percent_upper_bound_for_equal_weight_family_macro_average": vertical_macro_upper,
             "family_macro_upper_bound_method": "Bonferroni simultaneous one-sided exact binomial bounds across negative families, averaged with equal family weights",
             "candidate_checker_disagreements": checker_disagreements_total,
+            "expected_disposition_mismatches": disposition_mismatches_total,
+            "expected_reason_code_misses": reason_code_misses_total,
             "report_tamper_checks": tamper_checks_total,
             "report_tamper_detected": tamper_detected_total,
             "deterministic_replay_checks": replay_checks,
@@ -532,9 +543,38 @@ fn run() -> Result<(Value, bool), String> {
 
     let passed = false_admissions_total == 0
         && checker_disagreements_total == 0
+        && disposition_mismatches_total == 0
+        && reason_code_misses_total == 0
         && tamper_detected_total == tamper_checks_total
         && replay_mismatches == 0;
     Ok((report, passed))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn zero_event_exact_upper_bound_matches_rule_of_three_scale() {
+        let bound = one_sided_exact_upper(0, 30_000, 0.05);
+        assert!(bound > 0.000099 && bound < 0.000101, "{bound}");
+    }
+
+    #[test]
+    fn exact_upper_bound_increases_with_observed_false_admissions() {
+        let zero = one_sided_exact_upper(0, 1_000, 0.05);
+        let one = one_sided_exact_upper(1, 1_000, 0.05);
+        assert!(one > zero, "zero={zero}, one={one}");
+    }
+
+    #[test]
+    fn splitmix_seed_replays_exactly() {
+        let mut left = Rng::new(0x2026_1031);
+        let mut right = Rng::new(0x2026_1031);
+        for _ in 0..100 {
+            assert_eq!(left.next(), right.next());
+        }
+    }
 }
 
 fn main() {
