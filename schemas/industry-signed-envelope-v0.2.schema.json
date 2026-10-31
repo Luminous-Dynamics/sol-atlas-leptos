@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/industry-signed-envelope-v0.2.schema.json",
+  "title": "IEAC Signed Document Envelope v0.2",
+  "description": "Wire-shape validation only. This schema does not canonicalize JCS bytes, decode COSE, verify signatures, authorize signers, or enforce anti-replay state.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "canonicalization",
+    "signature_format",
+    "payload_type",
+    "payload",
+    "payload_sha256",
+    "cose_sign1_b64url"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.ieac-signed-envelope.v0.2"
+    },
+    "canonicalization": {
+      "const": "RFC8785-JCS"
+    },
+    "signature_format": {
+      "const": "COSE_Sign1-detached"
+    },
+    "payload_type": {
+      "enum": [
+        "application/vnd.luminous.ieac.profile-pin.v0.2+json",
+        "application/vnd.luminous.ieac.revocation-snapshot.v0.2+json",
+        "application/vnd.luminous.ieac.trust-keyset.v0.2+json",
+        "application/vnd.luminous.ieac.execution-receipt.v0.2+json"
+      ]
+    },
+    "payload": {
+      "type": "object",
+      "required": ["schema_version"],
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "payload_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "cose_sign1_b64url": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$"
+    }
+  }
+}
