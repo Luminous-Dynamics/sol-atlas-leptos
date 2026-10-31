@@ -426,16 +426,17 @@ pub fn evaluate_admission(profile: &Value, request: &Value) -> Value {
     }
 
     let profile_digest = sha256_value(profile);
+    let null_value = Value::Null;
     if text_at(request, "/profile_sha256") != Some(profile_digest.as_str()) {
         unique_push(&mut reasons, "PROFILE_DIGEST_MISMATCH");
         reject = true;
     }
-    let snapshot_digest = request.get("snapshot").map(sha256_value).unwrap_or_default();
+    let snapshot_digest = sha256_value(request.get("snapshot").unwrap_or(&null_value));
     if text_at(request, "/snapshot_sha256") != Some(snapshot_digest.as_str()) {
         unique_push(&mut reasons, "SNAPSHOT_DIGEST_MISMATCH");
         reject = true;
     }
-    let revocation_digest = request.get("revocation_snapshot").map(sha256_value).unwrap_or_default();
+    let revocation_digest = sha256_value(request.get("revocation_snapshot").unwrap_or(&null_value));
     if text_at(request, "/revocation_snapshot_sha256") != Some(revocation_digest.as_str()) {
         unique_push(&mut reasons, "REVOCATION_SNAPSHOT_DIGEST_MISMATCH");
         reject = true;
@@ -670,8 +671,9 @@ fn independent_expected(profile: &Value, request: &Value) -> Value {
         fatal = true;
     }
     let p_hash = sha256_value(profile);
-    let s_hash = request.get("snapshot").map(sha256_value).unwrap_or_default();
-    let r_hash = request.get("revocation_snapshot").map(sha256_value).unwrap_or_default();
+    let null_value = Value::Null;
+    let s_hash = sha256_value(request.get("snapshot").unwrap_or(&null_value));
+    let r_hash = sha256_value(request.get("revocation_snapshot").unwrap_or(&null_value));
     if request["profile_sha256"].as_str() != Some(p_hash.as_str()) {
         reasons.insert("PROFILE_DIGEST_MISMATCH".to_owned());
         fatal = true;
@@ -1096,6 +1098,19 @@ mod tests {
         (profile, request)
     }
 
+    fn refresh_digests(profile: &Value, request: &mut Value) {
+        request["profile_sha256"] = json!(sha256_value(profile));
+        request["snapshot_sha256"] = json!(sha256_value(&request["snapshot"]));
+        request["revocation_snapshot_sha256"] = json!(sha256_value(&request["revocation_snapshot"]));
+    }
+
+    fn assert_candidate_and_checker_agree(profile: &Value, request: &Value) -> Value {
+        let report = evaluate_admission(profile, request);
+        let errors = independent_check(profile, request, &report);
+        assert!(errors.is_empty(), "independent checker mismatch: {errors:#?}\nreport: {report:#}");
+        report
+    }
+
     #[test]
     fn synthetic_fixture_admits_only_descriptive_annotation() {
         let (profile, request) = fixture_files();
@@ -1155,6 +1170,133 @@ mod tests {
         request["decision_tier"] = json!("D3_autonomous_control");
         let report = evaluate_admission(&profile, &request);
         assert_eq!(report["admission"], "reject");
+    }
+
+
+    #[test]
+    fn request_unknown_property_rejects_and_checker_reconstructs() {
+        let (profile, mut request) = fixture_files();
+        request["future_permission"] = json!("unrecognized");
+        let report = assert_candidate_and_checker_agree(&profile, &request);
+        assert_eq!(report["admission"], "reject");
+        assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v.as_str().is_some_and(|s| s.starts_with("WIRE_UNKNOWN_PROPERTY:"))));
+    }
+
+    #[test]
+    fn missing_and_duplicate_measurements_never_admit() {
+        let (profile, mut missing) = fixture_files();
+        missing["snapshot"]["conditions"] = json!([]);
+        refresh_digests(&profile, &mut missing);
+        let report = assert_candidate_and_checker_agree(&profile, &missing);
+        assert_eq!(report["admission"], "reject");
+        assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v == "CONDITION_MEASUREMENT_MISSING"));
+
+        let (profile, mut duplicate) = fixture_files();
+        let copy = duplicate["snapshot"]["conditions"][0].clone();
+        duplicate["snapshot"]["conditions"].as_array_mut().unwrap().push(copy);
+        refresh_digests(&profile, &mut duplicate);
+        let report = assert_candidate_and_checker_agree(&profile, &duplicate);
+        assert_eq!(report["admission"], "reject");
+        assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v == "DUPLICATE_CONDITION_MEASUREMENT"));
+    }
+
+    #[test]
+    fn unit_mismatch_and_future_measurement_reject() {
+        let (profile, mut unit) = fixture_files();
+        unit["snapshot"]["conditions"][0]["unit"] = json!("Wh");
+        refresh_digests(&profile, &mut unit);
+        let report = assert_candidate_and_checker_agree(&profile, &unit);
+        assert_eq!(report["admission"], "reject");
+        assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v == "UNIT_MISMATCH"));
+
+        let (profile, mut future) = fixture_files();
+        future["snapshot"]["conditions"][0]["observed_at"] = json!("2026-10-31T12:00:01Z");
+        refresh_digests(&profile, &mut future);
+        let report = assert_candidate_and_checker_agree(&profile, &future);
+        assert_eq!(report["admission"], "reject");
+        assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v == "FUTURE_DATED_MEASUREMENT"));
+    }
+
+    #[test]
+    fn boundary_uncertainty_abstains_and_authority_escalation_rejects() {
+        let (profile, mut marginal) = fixture_files();
+        marginal["snapshot"]["conditions"][0]["value"] = json!(0.5);
+        marginal["snapshot"]["conditions"][0]["lower"] = json!(-0.5);
+        marginal["snapshot"]["conditions"][0]["upper"] = json!(1.5);
+        refresh_digests(&profile, &mut marginal);
+        let report = assert_candidate_and_checker_agree(&profile, &marginal);
+        assert_eq!(report["admission"], "abstain");
+        assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v == "MEASUREMENT_INTERVAL_CROSSES_ENVELOPE"));
+
+        let (profile, mut escalated) = fixture_files();
+        escalated["action"] = json!("execute_external_action");
+        refresh_digests(&profile, &mut escalated);
+        let report = assert_candidate_and_checker_agree(&profile, &escalated);
+        assert_eq!(report["admission"], "reject");
+        assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v == "ACTION_EXCEEDS_V0_1_AUTHORITY"));
+    }
+
+    #[test]
+    fn expiry_and_unavailable_revocation_have_distinct_outcomes() {
+        let (profile, mut expired) = fixture_files();
+        expired["as_of"] = json!("2026-12-01T00:00:00Z");
+        expired["snapshot"]["as_of"] = expired["as_of"].clone();
+        expired["revocation_snapshot"]["as_of"] = expired["as_of"].clone();
+        refresh_digests(&profile, &mut expired);
+        let report = assert_candidate_and_checker_agree(&profile, &expired);
+        assert_eq!(report["admission"], "reject");
+        assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v == "PROFILE_OUTSIDE_VALIDITY_WINDOW"));
+
+        let (profile, mut unavailable) = fixture_files();
+        unavailable["revocation_snapshot"]["status"] = json!("unavailable");
+        refresh_digests(&profile, &mut unavailable);
+        let report = assert_candidate_and_checker_agree(&profile, &unavailable);
+        assert_eq!(report["admission"], "abstain");
+        assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v == "REVOCATION_STATE_UNAVAILABLE"));
+    }
+
+    #[test]
+    fn revoked_artifact_and_model_digest_mismatch_reject() {
+        let (profile, mut revoked) = fixture_files();
+        revoked["revocation_snapshot"]["revoked_artifact_ids"] = json!(["model-001"]);
+        refresh_digests(&profile, &mut revoked);
+        let report = assert_candidate_and_checker_agree(&profile, &revoked);
+        assert_eq!(report["admission"], "reject");
+        assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v == "ARTIFACT_REVOKED"));
+
+        let (profile, mut mismatch) = fixture_files();
+        mismatch["model_sha256"] = json!("ff".repeat(32));
+        refresh_digests(&profile, &mut mismatch);
+        let report = assert_candidate_and_checker_agree(&profile, &mismatch);
+        assert_eq!(report["admission"], "reject");
+        assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v == "ARTIFACT_DIGEST_MISMATCH"));
+    }
+
+    #[test]
+    fn malformed_request_still_produces_a_schema_valid_rejection_report() {
+        let (profile, mut request) = fixture_files();
+        request["as_of"] = json!(123);
+        request["action"] = json!("unknown-action");
+        request.as_object_mut().unwrap().remove("snapshot_sha256");
+        let report = assert_candidate_and_checker_agree(&profile, &request);
+        assert_eq!(report["admission"], "reject");
+        let mut sealed = report;
+        let errors = independent_check(&profile, &request, &sealed);
+        seal_report(&mut sealed, "passed", &errors);
+        assert!(validate_runtime_report(&sealed).is_empty(), "{sealed:#}");
+        assert!(report_digest_is_valid(&sealed));
+    }
+
+    #[test]
+    fn sealed_report_passes_wire_schema_and_detects_mutation() {
+        let (profile, request) = fixture_files();
+        let mut report = assert_candidate_and_checker_agree(&profile, &request);
+        let errors = independent_check(&profile, &request, &report);
+        seal_report(&mut report, "passed", &errors);
+        assert!(validate_runtime_report(&report).is_empty(), "{report:#}");
+        assert!(report_digest_is_valid(&report));
+        report["highest_permitted_action"] = json!("execute_external_action");
+        assert!(!report_digest_is_valid(&report));
     }
 
     #[test]
