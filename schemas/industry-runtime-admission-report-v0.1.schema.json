@@ -173,7 +173,9 @@
         "annotate",
         "recommend",
         "rank_options",
-        "prepare_plan"
+        "prepare_plan",
+        "schedule_within_envelope",
+        "execute_external_action"
       ]
     },
     "model_sha256": {
