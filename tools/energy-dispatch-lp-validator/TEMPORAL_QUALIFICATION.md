@@ -1,6 +1,6 @@
 # Temporal Dispatch Qualification v0.1
 
-Status: research contract for issue #343. This document does not claim an implementation or a qualified result.
+Status: contract plus a first H=2 exhaustive test-only schedule oracle (65,536 bounded assignments) and SOC carry-forward negative control. H=3/H=4, production schedule API and exact-head CI qualification remain open.
 
 ## 1. Assurance boundary
 
@@ -45,6 +45,22 @@ Start with horizons H=2, 3 and 4, bounded to keep full enumeration tractable. En
 Include known-answer controls: feasible zero-flow; forced charging followed by discharge; zero charge/discharge limit; outage with no grid import; impossible essential-load service; terminal-SOC failure; floor-efficiency boundary; profile length mismatch; interval reorder.
 
 The enumerator and evaluator must not share transition helpers. An oracle repeating production evaluator code is not independent.
+
+### Implemented first increment
+
+The current follow-on branch extends the test-only schedule specification to
+walk sequential request intervals and carries the independently recomputed SOC
+state between them. A two-interval deterministic case charges from PV in the
+first period and serves essential demand during a grid outage in the second.
+The generated reference model exposes 16 binary-bounded free variables for
+this fixture, so the test checks 65,536 complete assignments. A focused
+negative control starts with a feasible trajectory and mutates the preceding
+interval's SOC; the independent schedule evaluator must reject the corrupted
+trajectory.
+
+This is an initial H=2 fixture, not an H=2-through-H=4 qualification suite.
+The evaluator remains test-only and does not yet emit a production schedule
+receipt or recompute each optimization objective.
 
 ## 5. Mutation panel
 
