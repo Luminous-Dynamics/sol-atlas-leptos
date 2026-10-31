@@ -59,8 +59,12 @@ preceding interval's SOC and must be rejected.
 The H=3 fixture adds an idle recovery interval after the outage and compares
 50,000 deterministic assignments generated with a frozen LCG seed. This is
 sampled coverage, not exhaustive enumeration. For every H=2 exhaustive and
-H=3 sampled assignment, the LP objective is independently recomputed from the
-source request as the sum of essential unserved quanta and compared exactly.
+H=3 sampled assignment, all six LP objectives are independently recomputed
+from the source request and compared exactly: essential unserved, flexible
+unserved, operating cost, grid carbon, curtailed PV and terminal SOC. The
+oracle also asserts that every objective-specific model has identical
+variables/bounds and constraints, so objective changes cannot silently alter
+the feasible set.
 
 The H=3 negative control also swaps the grid-outage and post-outage idle
 intervals while retaining the original candidate trajectory; the independent
