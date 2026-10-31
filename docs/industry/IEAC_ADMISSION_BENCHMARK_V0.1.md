@@ -28,10 +28,11 @@ cargo run --release \
   --manifest schemas/examples/ieac-runtime-admission-benchmark-manifest-synthetic-v0.1.json \
   --trials-per-family 100 \
   --seed 0x20261031 \
+  --cases-output "$RUNNER_TEMP/ieac-admission-cases.jsonl" \
   --output "$RUNNER_TEMP/ieac-admission-benchmark-report.json"
 ~~~
 
-The output path is create-new: the driver refuses to overwrite a prior receipt. Keep the frozen manifest, generated report and exact executable/build identity together. This first driver reports the exact manifest-byte digest, method IDs, evaluator/checker versions and seed; it does not yet validate a binary/source digest against a signed build attestation.
+Both output paths use create-new semantics: the driver refuses to overwrite prior receipts. The case ledger is a newline-delimited JSON stream containing every exact profile, profile pin and request; expected disposition/reason-code set; candidate report; reconstruction-checker result; tamper result; and deterministic replay outcomes. Its header binds the exact manifest bytes, PRNG, seed, vertical, evaluator/checker versions and base fixture digests. Its final footer records the case count and SHA-256 over all preceding records. A truncated ledger has no valid footer and fails replay. Keep the frozen manifest, full case ledger, summary report and exact executable/build identity together. This first driver does not yet validate a binary/source digest against a signed build attestation.
 
 The checked-in synthetic manifest preregisters 100 trials per failure-family stratum. This is a CI/evaluation-development setting, not adequate for a tight statistical claim. A substantive experiment must publish a new frozen manifest with the intended larger count (for example 30,000 negatives per family); the runner will not permit an after-the-fact count override. For zero observed false admissions, the exact one-sided 95% binomial upper bound is:
 
@@ -85,7 +86,7 @@ Overall: elapsed wall time, throughput, false-admission total, negative-control 
 - No aggregate score may compensate for a false admission, an incorrect reason code, a failed positive control or a failed checker.
 - A manifest or corpus change creates a new pre-registration and new run receipt.
 
-A run that fails any acceptance gate remains a recorded failure. Do not rerun with different inputs under the same manifest and replace its receipt.
+A run that fails any acceptance gate remains a recorded failure. Do not rerun with different inputs under the same manifest and replace its receipt. Replay the persisted case ledger with `cargo run --release --manifest-path tools/industry-runtime-admission/Cargo.toml --locked --bin industry-admission-replay -- --cases path/to/cases.jsonl`. The replay tool verifies the footer digest, contiguous case indexes, per-case input digests, exact candidate reports, checker errors, expected disposition/reason-code sets, report-tamper outcomes and deterministic replay outcomes. It enforces contiguous trial indexes and unique family strata from the deterministic case-ID format, and verifies each family's preregistered trial count. Replay memory scales with the largest single record plus the small set of failure-family names, not with the total number of trials.
 
 ## 6. Limitations and next steps
 
@@ -101,6 +102,6 @@ Next benchmark increments:
 A benchmark result advances only the evidence dimension it directly measures.
 
 
-## Corpus persistence limitation
+## Corpus persistence and replay boundary
 
-The report contains a SHA-256 digest over the exact serialized profile, pin and request inputs for every generated trial in deterministic order. Version 0.1 does not emit the full per-case JSONL input corpus; deterministic reconstruction depends on retaining the exact runner source, fixture bytes, manifest, PRNG algorithm and seed. A case-level audit ledger and independent replay artifact are follow-up work, not a completed deliverable.
+The runner emits a complete case-level JSONL ledger and binds its digest and record count into the summary report. A separate Rust binary replays each case and checks exact report equality, checker output, expected disposition/reason-code sets, tamper-detection outcomes and deterministic evaluation. The verifier uses the same evaluator/checker crate, so this is reproducibility and internal-consistency evidence—not an independent source-level verifier, supply-chain attestation or proof of physical truth. A third-party implementation and published cross-language golden vectors remain necessary.

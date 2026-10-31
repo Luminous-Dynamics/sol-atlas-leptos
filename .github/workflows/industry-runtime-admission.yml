@@ -91,8 +91,10 @@ jobs:
         run: |
           set -euo pipefail
           report="$RUNNER_TEMP/ieac-admission-benchmark-smoke.json"
-          cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked --bin industry-admission-benchmark -- \\
-            --manifest schemas/examples/ieac-runtime-admission-benchmark-manifest-synthetic-v0.1.json \\
+          cases="$RUNNER_TEMP/ieac-admission-benchmark-cases.jsonl"
+          cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked --bin industry-admission-benchmark -- \
+            --manifest schemas/examples/ieac-runtime-admission-benchmark-manifest-synthetic-v0.1.json \
+            --cases-output "$cases" \
             --output "$report"
           jq -e '
             .schema_version == "luminous.ieac-runtime-admission-benchmark-report.v0.1" and
@@ -105,8 +107,17 @@ jobs:
             .summary.expected_reason_code_misses == 0 and
             .summary.report_tamper_checks == .summary.report_tamper_detected and
             .summary.deterministic_replay_mismatches == 0 and
+            .case_ledger.case_records == 1900 and
+            (.case_ledger.sha256 | test("^[a-f0-9]{64}$")) and
             (.strata | length == 19)
           ' "$report"
+
+      - name: Replay every persisted benchmark case from exact inputs
+        run: |
+          set -euo pipefail
+          replay="$RUNNER_TEMP/ieac-admission-case-replay.json"
+          cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked --bin industry-admission-replay -- --cases "$RUNNER_TEMP/ieac-admission-benchmark-cases.jsonl" > "$replay"
+          jq -e '.verified == true and .case_records == 1900 and .input_digest_mismatches == 0 and .report_mismatches == 0 and .checker_mismatches == 0 and .expectation_mismatches == 0 and .tamper_mismatches == 0 and .deterministic_mismatches == 0' "$replay"
 
       - name: Prove locked dependency graphs remain committed
         run: git diff --exit-code -- tools/industry-assurance-validator/Cargo.lock tools/industry-runtime-admission/Cargo.lock
