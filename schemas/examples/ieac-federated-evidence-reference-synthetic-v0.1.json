@@ -1,0 +1,46 @@
+{
+  "schema_version": "luminous.itip-federated-evidence-reference.v0.1",
+  "source": {
+    "system_id": "synthetic-source-01",
+    "namespace_id": "urn:synthetic:plant-a",
+    "native_object_id": "pump-17",
+    "native_schema_uri": "urn:synthetic:schema:pump",
+    "native_schema_version": "3.4.1",
+    "native_schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "native_record_id": "event-42",
+    "native_payload_uri": "urn:synthetic:payload:event-42",
+    "native_payload_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "source_sequence": 42,
+    "observed_at": "2026-10-31T21:10:00Z",
+    "ingested_at": "2026-10-31T21:10:02Z"
+  },
+  "rights": {
+    "state": "verified",
+    "basis": "Synthetic fixture for adapter conformance tests.",
+    "permitted_uses": [
+      "testing",
+      "benchmarking"
+    ],
+    "export_permitted": true
+  },
+  "observations": [
+    {
+      "observation_id": "event-42-vibration",
+      "native_property_path": "/Pump-17/Vibration/RMS",
+      "semantic_concept": "urn:luminous:quantity:bearing-vibration-velocity",
+      "value": 2.5,
+      "unit": "mm/s",
+      "lower": 2.4,
+      "upper": 2.6,
+      "observed_at": "2026-10-31T21:10:00Z",
+      "evidence_state": "measured",
+      "semantic_status": "exact_mapping",
+      "calibration_state": "current"
+    }
+  ],
+  "transformations": [],
+  "unsupported_semantics": [
+    "Native alarm-severity enum is preserved but has no reviewed semantic mapping."
+  ],
+  "claim_ceiling": "source_reference_and_transformation_lineage_only"
+}
