@@ -551,8 +551,9 @@ fn add_row(
     rhs: i64,
 ) -> Result<(), ValidationError> {
     let mut canonical = BTreeMap::new();
+    let mut seen_variables = BTreeSet::new();
     for (coefficient, variable) in coefficients {
-        if canonical.contains_key(&variable) {
+        if !seen_variables.insert(variable.clone()) {
             return Err(error(format!("duplicate variable in reference row {name}")));
         }
         if coefficient != 0 {
