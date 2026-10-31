@@ -607,9 +607,14 @@ pub fn evaluate_admission(profile: &Value, request: &Value) -> Value {
         unique_push(&mut reasons, "ARTIFACT_REVOKED");
         reject = true;
     }
-    let identity_digests: Vec<&str> = [
+    let mut identity_digests: Vec<&str> = [
         "/model_sha256", "/evaluator_sha256", "/configuration_sha256", "/topology_sha256",
     ].iter().filter_map(|p| text_at(request, p)).collect();
+    if let Some(measurements) = request.pointer("/snapshot/conditions").and_then(Value::as_array) {
+        identity_digests.extend(measurements.iter().filter_map(|item| {
+            item.get("evidence_sha256").and_then(Value::as_str)
+        }));
+    }
     let revoked_sha = revocation.pointer("/revoked_sha256").and_then(Value::as_array);
     if revoked_sha.is_some_and(|items| items.iter().any(|item| item.as_str().is_some_and(|sha| identity_digests.contains(&sha)))) {
         unique_push(&mut reasons, "IDENTITY_DIGEST_REVOKED");
@@ -876,9 +881,14 @@ fn independent_expected(profile: &Value, request: &Value) -> Value {
         reasons.insert("ARTIFACT_REVOKED".to_owned());
         fatal = true;
     }
-    let identity_sha = ["model_sha256", "evaluator_sha256", "configuration_sha256", "topology_sha256"];
+    let mut identity_sha: Vec<&str> = [
+        "model_sha256", "evaluator_sha256", "configuration_sha256", "topology_sha256",
+    ].iter().filter_map(|key| request[*key].as_str()).collect();
+    if let Some(measurements) = request["snapshot"]["conditions"].as_array() {
+        identity_sha.extend(measurements.iter().filter_map(|item| item["evidence_sha256"].as_str()));
+    }
     if revocation["revoked_sha256"].as_array().is_some_and(|items| {
-        items.iter().any(|item| identity_sha.iter().any(|key| item.as_str() == request[*key].as_str()))
+        items.iter().any(|item| item.as_str().is_some_and(|digest| identity_sha.contains(&digest)))
     }) {
         reasons.insert("IDENTITY_DIGEST_REVOKED".to_owned());
         fatal = true;
@@ -982,27 +992,38 @@ fn independent_expected(profile: &Value, request: &Value) -> Value {
             item["artifact_id"].as_str() == Some(source_id)
         }));
         let source_hash = measurement["evidence_sha256"].as_str().unwrap_or("");
-        if let Some(item) = source {
-            if item["role"].as_str() != Some("measurement_source") {
-                reasons.insert("ARTIFACT_ROLE_MISMATCH".to_owned());
-            }
-            if item["content_sha256"].as_str() != Some(source_hash) {
-                reasons.insert("ARTIFACT_DIGEST_MISMATCH".to_owned());
-            }
-            if item["rights_state"].as_str() != Some("verified") {
-                reasons.insert("ARTIFACT_RIGHTS_NOT_VERIFIED".to_owned());
-            }
-        } else {
-            reasons.insert("ARTIFACT_BINDING_MISSING".to_owned());
-        }
-        if !source_declared || !source.is_some_and(|item| {
-            item["role"].as_str() == Some("measurement_source")
-                && item["content_sha256"].as_str() == Some(source_hash)
-                && item["rights_state"].as_str() == Some("verified")
-        }) || !is_sha256(source_hash) {
-            local.insert("MEASUREMENT_SOURCE_BINDING_INVALID".to_owned());
+        if !source_declared {
+            local.insert("MEASUREMENT_SOURCE_NOT_BOUND_TO_CONDITION".to_owned());
             condition_state = "out_of_domain";
             fatal = true;
+        } else {
+            if let Some(item) = source {
+                if item["role"].as_str() != Some("measurement_source") {
+                    reasons.insert("ARTIFACT_ROLE_MISMATCH".to_owned());
+                }
+                if item["content_sha256"].as_str() != Some(source_hash) {
+                    reasons.insert("ARTIFACT_DIGEST_MISMATCH".to_owned());
+                }
+                if item["rights_state"].as_str() != Some("verified") {
+                    reasons.insert("ARTIFACT_RIGHTS_NOT_VERIFIED".to_owned());
+                }
+            } else {
+                reasons.insert("ARTIFACT_BINDING_MISSING".to_owned());
+            }
+            if !source.is_some_and(|item| {
+                item["role"].as_str() == Some("measurement_source")
+                    && item["content_sha256"].as_str() == Some(source_hash)
+                    && item["rights_state"].as_str() == Some("verified")
+            }) {
+                local.insert("MEASUREMENT_SOURCE_BINDING_INVALID".to_owned());
+                condition_state = "out_of_domain";
+                fatal = true;
+            }
+            if !is_sha256(source_hash) {
+                local.insert("MEASUREMENT_SOURCE_DIGEST_INVALID".to_owned());
+                condition_state = "out_of_domain";
+                fatal = true;
+            }
         }
         for code in &local { reasons.insert(code.clone()); }
         condition_results.push(make_condition_result(variable, condition_state, &local.into_iter().collect::<Vec<_>>()));
@@ -1019,6 +1040,9 @@ fn independent_expected(profile: &Value, request: &Value) -> Value {
         "snapshot_sha256": s_hash,
         "revocation_snapshot_sha256": r_hash,
         "request_sha256": sha256_value(request),
+        "request_id": request["request_id"],
+        "profile_id": profile["profile_id"],
+        "evaluator_version": EVALUATOR_VERSION,
         "asset_id": request["asset_id"],
         "snapshot_id": request["snapshot_id"],
         "as_of": request["as_of"],
@@ -1036,6 +1060,7 @@ pub fn independent_check(profile: &Value, request: &Value, report: &Value) -> Ve
     for key in [
         "admission", "highest_permitted_action",
         "profile_sha256", "snapshot_sha256", "revocation_snapshot_sha256", "request_sha256",
+        "request_id", "profile_id", "evaluator_version",
         "asset_id", "snapshot_id", "as_of", "action", "model_sha256", "evaluator_sha256",
         "configuration_sha256", "topology_sha256",
     ] {
@@ -1043,15 +1068,11 @@ pub fn independent_check(profile: &Value, request: &Value, report: &Value) -> Ve
             failures.push(format!("REPORT_FIELD_MISMATCH:{key}"));
         }
     }
-    let actual_conditions = report.get("condition_results").and_then(Value::as_array);
-    let expected_conditions = expected.get("condition_results").and_then(Value::as_array);
-    let condition_projection = |items: Option<&Vec<Value>>| {
-        items.map(|values| values.iter().map(|item| {
-            json!({"variable": item.get("variable"), "result": item.get("result")})
-        }).collect::<Vec<_>>())
-    };
-    if condition_projection(actual_conditions) != condition_projection(expected_conditions) {
+    if report.get("condition_results") != expected.get("condition_results") {
         failures.push("REPORT_FIELD_MISMATCH:condition_results".to_owned());
+    }
+    if report.get("reason_codes") != expected.get("reason_codes") {
+        failures.push("REPORT_FIELD_MISMATCH:reason_codes".to_owned());
     }
     if report.get("report_sha256").is_some() && !report_digest_is_valid(report) {
         failures.push("REPORT_DIGEST_MISMATCH".to_owned());
