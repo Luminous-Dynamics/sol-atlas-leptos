@@ -752,7 +752,8 @@
         "replicate_count",
         "seeds",
         "stopping_rule",
-        "deterministic_replay_expected"
+        "deterministic_replay_expected",
+        "trials_per_stratum"
       ],
       "properties": {
         "execution_mode": {
@@ -781,6 +782,12 @@
         },
         "deterministic_replay_expected": {
           "type": "boolean"
+        },
+        "trials_per_stratum": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000,
+          "description": "Frozen number of generated or observed trials per declared evaluation stratum for a single seed. Any lower smoke-only execution must be declared as a separate protocol/run and is not a benchmark result."
         }
       }
     },
