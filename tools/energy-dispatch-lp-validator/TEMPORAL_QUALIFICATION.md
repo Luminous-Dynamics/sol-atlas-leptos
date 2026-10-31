@@ -62,8 +62,11 @@ sampled coverage, not exhaustive enumeration. For every H=2 exhaustive and
 H=3 sampled assignment, the LP objective is independently recomputed from the
 source request as the sum of essential unserved quanta and compared exactly.
 
-The evaluator remains test-only; H=4, broader generated domains and a
-production schedule receipt remain open.
+The H=3 negative control also swaps the grid-outage and post-outage idle
+intervals while retaining the original candidate trajectory; the independent
+source-request evaluator must reject the now-misaligned schedule. The
+evaluator remains test-only; H=4, broader generated domains and a production
+schedule receipt remain open.
 
 ## 5. Mutation panel
 
