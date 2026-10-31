@@ -46,7 +46,7 @@ The hazard probe reduces expected loss from 10 to 3.16: gross value 6.84, net va
 
 ## 3. The counterexample
 
-<badge color="success">Decision-value winner: hazard probe</badge>
+**Decision-value winner: hazard probe**
 
 | Policy | Information gain | Expected loss after observation | Observation cost | Total expected loss |
 |---|---:|---:|---:|---:|
