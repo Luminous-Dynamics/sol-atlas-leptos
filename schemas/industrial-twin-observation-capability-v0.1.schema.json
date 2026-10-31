@@ -397,29 +397,6 @@
           }
         }
       }
-    },
-    {
-      "if": {
-        "properties": {
-          "observation_state": {
-            "const": "invalid"
-          }
-        },
-        "required": [
-          "observation_state"
-        ]
-      },
-      "then": {
-        "properties": {
-          "capture_contract": {
-            "properties": {
-              "loss_counter_value": {
-                "minimum": 1
-              }
-            }
-          }
-        }
-      }
     }
   ]
 }
