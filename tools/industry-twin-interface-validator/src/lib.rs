@@ -38,7 +38,12 @@ fn valid_sha256(value: &str) -> bool {
 }
 
 
-fn reject_unknown_keys(value: &Value, allowed: &[&str], path: &str, issues: &mut Vec<ValidationIssue>) {
+fn reject_unknown_keys(
+    value: &Value,
+    allowed: &[&str],
+    path: &str,
+    issues: &mut Vec<ValidationIssue>,
+) {
     let Some(object) = value.as_object() else {
         return;
     };
@@ -82,7 +87,26 @@ pub fn validate_manifest(value: &Value) -> Vec<ValidationIssue> {
     if !value.is_object() {
         return vec![ValidationIssue::new("ROOT_NOT_OBJECT", "$")];
     }
-    reject_unknown_keys(value, &["schema_version", "manifest_id", "composition", "participants", "relationships", "mappings", "authorization", "decision_scope", "qualification_profile_ref", "evaluation_mode", "claim_ceiling", "standard_conformity_claimed", "unknown_extension_policy"], "$", &mut issues);
+    reject_unknown_keys(
+        value,
+        &[
+            "schema_version",
+            "manifest_id",
+            "composition",
+            "participants",
+            "relationships",
+            "mappings",
+            "authorization",
+            "decision_scope",
+            "qualification_profile_ref",
+            "evaluation_mode",
+            "claim_ceiling",
+            "standard_conformity_claimed",
+            "unknown_extension_policy",
+        ],
+        "$",
+        &mut issues,
+    );
     if string_at(value, &["schema_version"])
         != Some("luminous.industry-twin-interface-manifest.v0.1")
     {
@@ -128,16 +152,92 @@ pub fn validate_manifest(value: &Value) -> Vec<ValidationIssue> {
     let mut owner_ids = HashSet::new();
     for (index, participant) in participants.iter().enumerate() {
         let base = format!("participants[{index}]");
-        reject_unknown_keys(participant, &["participant_id", "system_id", "twin_id", "owner_id", "role", "native_model", "interface", "source_snapshot", "time_semantics"], &base, &mut issues);
-        reject_unknown_keys(&participant["native_model"], &["model_id", "version", "artifact_sha256"], &format!("{base}.native_model"), &mut issues);
-        reject_unknown_keys(&participant["interface"], &["standard_id", "edition", "document_kind", "protocol", "protocol_version", "adapter_id", "adapter_version", "native_schema"], &format!("{base}.interface"), &mut issues);
-        reject_unknown_keys(&participant["interface"]["native_schema"], &["format", "schema_id", "schema_version", "schema_sha256"], &format!("{base}.interface.native_schema"), &mut issues);
-        reject_unknown_keys(&participant["source_snapshot"], &["source_uri", "immutable_revision", "content_sha256", "retrieved_at", "rights_state", "license_or_basis"], &format!("{base}.source_snapshot"), &mut issues);
-        reject_unknown_keys(&participant["time_semantics"], &["clock_domain", "event_time_field", "ingestion_time_field", "sequence_field", "sequence_order", "timezone", "timestamp_precision"], &format!("{base}.time_semantics"), &mut issues);
-        for (field, path) in [("native_model", "native_model"), ("native_schema", "interface.native_schema")] {
-            let digest_path = if field == "native_model" { &participant["native_model"]["artifact_sha256"] } else { &participant["interface"]["native_schema"]["schema_sha256"] };
-            if digest_path.as_str().is_none_or(|digest| !valid_sha256(digest)) {
-                issues.push(ValidationIssue::new("ARTIFACT_DIGEST_INVALID", format!("{base}.{path}")));
+        reject_unknown_keys(
+            participant,
+            &[
+                "participant_id",
+                "system_id",
+                "twin_id",
+                "owner_id",
+                "role",
+                "native_model",
+                "interface",
+                "source_snapshot",
+                "time_semantics",
+            ],
+            &base,
+            &mut issues,
+        );
+        reject_unknown_keys(
+            &participant["native_model"],
+            &["model_id", "version", "artifact_sha256"],
+            &format!("{base}.native_model"),
+            &mut issues,
+        );
+        reject_unknown_keys(
+            &participant["interface"],
+            &[
+                "standard_id",
+                "edition",
+                "document_kind",
+                "protocol",
+                "protocol_version",
+                "adapter_id",
+                "adapter_version",
+                "native_schema",
+            ],
+            &format!("{base}.interface"),
+            &mut issues,
+        );
+        reject_unknown_keys(
+            &participant["interface"]["native_schema"],
+            &["format", "schema_id", "schema_version", "schema_sha256"],
+            &format!("{base}.interface.native_schema"),
+            &mut issues,
+        );
+        reject_unknown_keys(
+            &participant["source_snapshot"],
+            &[
+                "source_uri",
+                "immutable_revision",
+                "content_sha256",
+                "retrieved_at",
+                "rights_state",
+                "license_or_basis",
+            ],
+            &format!("{base}.source_snapshot"),
+            &mut issues,
+        );
+        reject_unknown_keys(
+            &participant["time_semantics"],
+            &[
+                "clock_domain",
+                "event_time_field",
+                "ingestion_time_field",
+                "sequence_field",
+                "sequence_order",
+                "timezone",
+                "timestamp_precision",
+            ],
+            &format!("{base}.time_semantics"),
+            &mut issues,
+        );
+        for (field, path) in [
+            ("native_model", "native_model"),
+            ("native_schema", "interface.native_schema"),
+        ] {
+            let digest_path = match field {
+                "native_model" => &participant["native_model"]["artifact_sha256"],
+                _ => &participant["interface"]["native_schema"]["schema_sha256"],
+            };
+            if digest_path
+                .as_str()
+                .is_none_or(|digest| !valid_sha256(digest))
+            {
+                issues.push(ValidationIssue::new(
+                    "ARTIFACT_DIGEST_INVALID",
+                    format!("{base}.{path}"),
+                ));
             }
         }
         let Some(participant_id) = string_at(participant, &["participant_id"])
@@ -250,7 +350,19 @@ pub fn validate_manifest(value: &Value) -> Vec<ValidationIssue> {
     }
 
     let composition = &value["composition"];
-    reject_unknown_keys(composition, &["mode", "composition_id", "federation_id", "member_participant_ids", "shared_schema_ref", "description"], "composition", &mut issues);
+    reject_unknown_keys(
+        composition,
+        &[
+            "mode",
+            "composition_id",
+            "federation_id",
+            "member_participant_ids",
+            "shared_schema_ref",
+            "description",
+        ],
+        "composition",
+        &mut issues,
+    );
     let mode = string_at(composition, &["mode"]);
     let members = array_at(composition, "member_participant_ids");
     let mut member_ids = HashSet::new();
@@ -313,7 +425,21 @@ pub fn validate_manifest(value: &Value) -> Vec<ValidationIssue> {
     if let Some(relationships) = array_at(value, "relationships") {
         for (index, relationship) in relationships.iter().enumerate() {
             let base = format!("relationships[{index}]");
-            reject_unknown_keys(relationship, &["relationship_id", "from_participant_id", "to_participant_id", "relation", "join_strategy", "from_reference_field", "to_reference_field", "identity_namespace"], &base, &mut issues);
+            reject_unknown_keys(
+                relationship,
+                &[
+                    "relationship_id",
+                    "from_participant_id",
+                    "to_participant_id",
+                    "relation",
+                    "join_strategy",
+                    "from_reference_field",
+                    "to_reference_field",
+                    "identity_namespace",
+                ],
+                &base,
+                &mut issues,
+            );
             if let Some(id) = string_at(relationship, &["relationship_id"]) {
                 if !relationship_ids.insert(id.to_owned()) {
                     issues.push(ValidationIssue::new(
@@ -364,8 +490,29 @@ pub fn validate_manifest(value: &Value) -> Vec<ValidationIssue> {
     if let Some(mappings) = array_at(value, "mappings") {
         for (index, mapping) in mappings.iter().enumerate() {
             let base = format!("mappings[{index}]");
-            reject_unknown_keys(mapping, &["mapping_id", "source_participant_id", "source_field", "target_concept", "source_unit", "target_unit", "transform", "loss_class", "human_reviewed", "loss_description"], &base, &mut issues);
-            reject_unknown_keys(&mapping["transform"], &["transform_id", "version", "kind", "sha256"], &format!("{base}.transform"), &mut issues);
+            reject_unknown_keys(
+                mapping,
+                &[
+                    "mapping_id",
+                    "source_participant_id",
+                    "source_field",
+                    "target_concept",
+                    "source_unit",
+                    "target_unit",
+                    "transform",
+                    "loss_class",
+                    "human_reviewed",
+                    "loss_description",
+                ],
+                &base,
+                &mut issues,
+            );
+            reject_unknown_keys(
+                &mapping["transform"],
+                &["transform_id", "version", "kind", "sha256"],
+                &format!("{base}.transform"),
+                &mut issues,
+            );
             if let Some(id) = string_at(mapping, &["mapping_id"]) {
                 if !mapping_ids.insert(id.to_owned()) {
                     issues.push(ValidationIssue::new(
@@ -428,7 +575,19 @@ pub fn validate_manifest(value: &Value) -> Vec<ValidationIssue> {
     }
 
     let authorization = &value["authorization"];
-    reject_unknown_keys(authorization, &["principal_id", "read_scopes", "write_scopes", "actuation_scopes", "authority_ref", "scope_separation_declared"], "authorization", &mut issues);
+    reject_unknown_keys(
+        authorization,
+        &[
+            "principal_id",
+            "read_scopes",
+            "write_scopes",
+            "actuation_scopes",
+            "authority_ref",
+            "scope_separation_declared",
+        ],
+        "authorization",
+        &mut issues,
+    );
     if authorization["scope_separation_declared"].as_bool() != Some(true) {
         issues.push(ValidationIssue::new(
             "AUTHORIZATION_SCOPE_SEPARATION_UNDECLARED",
@@ -440,7 +599,17 @@ pub fn validate_manifest(value: &Value) -> Vec<ValidationIssue> {
     valid_scope_list(authorization, "actuation_scopes", ":actuate", &mut issues);
 
     let decision = &value["decision_scope"];
-    reject_unknown_keys(decision, &["decision_tier", "requested_action", "human_approval_required", "actuation_enabled"], "decision_scope", &mut issues);
+    reject_unknown_keys(
+        decision,
+        &[
+            "decision_tier",
+            "requested_action",
+            "human_approval_required",
+            "actuation_enabled",
+        ],
+        "decision_scope",
+        &mut issues,
+    );
     let tier = string_at(decision, &["decision_tier"]);
     let action = string_at(decision, &["requested_action"]);
     if tier == Some("D0_descriptive")
@@ -643,12 +812,24 @@ mod tests {
     #[test]
     fn frozen_negative_fixture_files_are_rejected_by_semantic_validator() {
         let negative_fixtures = [
-            include_str!("../../../schemas/examples/industry-twin-interface-negative-unknown-property-v0.1.json"),
-            include_str!("../../../schemas/examples/industry-twin-interface-negative-missing-digest-v0.1.json"),
-            include_str!("../../../schemas/examples/industry-twin-interface-negative-dangling-reference-v0.1.json"),
-            include_str!("../../../schemas/examples/industry-twin-interface-negative-clock-alias-v0.1.json"),
-            include_str!("../../../schemas/examples/industry-twin-interface-negative-fuzzy-join-v0.1.json"),
-            include_str!("../../../schemas/examples/industry-twin-interface-negative-unit-transform-v0.1.json")
+            include_str!(
+                "../../../schemas/examples/industry-twin-interface-negative-unknown-property-v0.1.json"
+            ),
+            include_str!(
+                "../../../schemas/examples/industry-twin-interface-negative-missing-digest-v0.1.json"
+            ),
+            include_str!(
+                "../../../schemas/examples/industry-twin-interface-negative-dangling-reference-v0.1.json"
+            ),
+            include_str!(
+                "../../../schemas/examples/industry-twin-interface-negative-clock-alias-v0.1.json"
+            ),
+            include_str!(
+                "../../../schemas/examples/industry-twin-interface-negative-fuzzy-join-v0.1.json"
+            ),
+            include_str!(
+                "../../../schemas/examples/industry-twin-interface-negative-unit-transform-v0.1.json"
+            )
         ];
         for fixture_text in negative_fixtures {
             let value: Value = serde_json::from_str(fixture_text).unwrap();
