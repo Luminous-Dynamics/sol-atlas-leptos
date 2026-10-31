@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "tools/energy-dispatch-mip-reference/**"
+      - "tools/energy-dispatch-lp-validator/**"
       - "schemas/examples/energy-dispatch-pv-outage.synthetic.json"
       - ".github/workflows/energy-dispatch-mip-reference.yml"
   push:
@@ -36,8 +37,16 @@ jobs:
       - name: Format model generator sources
         run: cargo fmt --manifest-path tools/energy-dispatch-mip-reference/Cargo.toml --all
 
-      - name: Resolve standalone dependency graph
-        run: cargo generate-lockfile --manifest-path tools/energy-dispatch-mip-reference/Cargo.toml
+      - name: Resolve standalone dependency graphs
+        run: |
+          cargo generate-lockfile --manifest-path tools/energy-dispatch-mip-reference/Cargo.toml
+          cargo generate-lockfile --manifest-path tools/energy-dispatch-lp-validator/Cargo.toml
+
+      - name: Format and qualify the independent translation validator
+        run: |
+          cargo fmt --manifest-path tools/energy-dispatch-lp-validator/Cargo.toml --all
+          cargo test --manifest-path tools/energy-dispatch-lp-validator/Cargo.toml --locked
+          cargo clippy --manifest-path tools/energy-dispatch-lp-validator/Cargo.toml --all-targets --locked -- -D warnings
 
       - name: Test independent model translation and hard controls
         run: cargo test --manifest-path tools/energy-dispatch-mip-reference/Cargo.toml
@@ -52,6 +61,27 @@ jobs:
             target/energy-dispatch-mip-reference
           test "$(find target/energy-dispatch-mip-reference -maxdepth 1 -name '*.lp' | wc -l)" -eq 12
           test -s target/energy-dispatch-mip-reference/manifest.json
+
+      - name: Independently validate the source-to-LP translation of every objective model
+        run: |
+          request="schemas/examples/energy-dispatch-pv-outage.synthetic.json"
+          mkdir -p target/energy-dispatch-mip-reference/translation
+          for model in target/energy-dispatch-mip-reference/*.lp; do
+            name="$(basename "$model")"
+            stem="${name%.lp}"
+            receipt="target/energy-dispatch-mip-reference/translation/$stem.translation.json"
+            cargo run --quiet --manifest-path tools/energy-dispatch-lp-validator/Cargo.toml --locked -- \
+              "$request" "$model" "$receipt"
+            lp_sha="$(sha256sum "$model" | cut -d ' ' -f 1)"
+            request_sha="$(sha256sum "$request" | cut -d ' ' -f 1)"
+            jq -e --arg lp_sha "$lp_sha" --arg request_sha "$request_sha" \
+              '.equivalent == true and .lp_sha256 == $lp_sha and .request_sha256 == $request_sha and .reference_model_sha256 == .parsed_model_sha256 and (.reference_model_sha256|length) == 64' \
+              "$receipt"
+          done
+          test "$(find target/energy-dispatch-mip-reference/translation -maxdepth 1 -name '*.translation.json' | wc -l)" -eq 12
+          jq -s -e 'length == 12 and all(.[]; .equivalent == true) and ([.[].request_sha256] | unique | length == 1) and ([.[].lp_sha256] | unique | length == 12) and ([.[].reference_model_sha256] | unique | length == 12)' \
+            target/energy-dispatch-mip-reference/translation/*.translation.json \
+            > target/energy-dispatch-mip-reference/translation/summary.json
 
       - name: Download checksum-pinned SCIP 10.1.0 exact-solver release
         run: |
@@ -69,13 +99,22 @@ jobs:
           mkdir -p target/energy-dispatch-mip-reference/scip-logs target/energy-dispatch-mip-reference/vipr
           "$SCIP_BIN" -c "display version" -c "quit" \
             > target/energy-dispatch-mip-reference/scip-version.txt 2>&1
-          printf 'model,exact_status,objective_value,certificate\n' \
+          printf 'model,exact_status,objective_value,request_sha256,lp_sha256,semantic_model_sha256,translation_receipt_sha256,certificate\\n' \
             > target/energy-dispatch-mip-reference/scip-results.csv
           for model in target/energy-dispatch-mip-reference/*.lp; do
             name="$(basename "$model")"
             stem="${name%.lp}"
             log="target/energy-dispatch-mip-reference/scip-logs/$name.log"
             cert="target/energy-dispatch-mip-reference/vipr/$stem.vipr"
+            receipt="target/energy-dispatch-mip-reference/translation/$stem.translation.json"
+            test -s "$receipt"
+            lp_sha="$(sha256sum "$model" | cut -d ' ' -f 1)"
+            receipt_sha="$(sha256sum "$receipt" | cut -d ' ' -f 1)"
+            request_sha="$(jq -r '.request_sha256' "$receipt")"
+            semantic_sha="$(jq -r '.reference_model_sha256' "$receipt")"
+            jq -e --arg lp_sha "$lp_sha" --arg request_sha "$request_sha" \
+              '.equivalent == true and .lp_sha256 == $lp_sha and .request_sha256 == $request_sha and .reference_model_sha256 == .parsed_model_sha256' \
+              "$receipt"
             timeout 180s "$SCIP_BIN" \
               -c "set exact enable TRUE" \
               -c "set presolving emphasis off" \
@@ -91,12 +130,12 @@ jobs:
             test -s "$cert"
             value="$(grep -E 'Exact Primal Bound[[:space:]]*:' "$log" | tail -n 1 | sed -E 's/.*Exact Primal Bound[[:space:]]*:[[:space:]]*//')"
             test -n "$value"
-            printf '%s,optimal_exact,%s,%s\n' "$name" "$value" "$cert" \
+            printf '%s,optimal_exact,%s,%s,%s,%s,%s,%s\\n' "$name" "$value" "$request_sha" "$lp_sha" "$semantic_sha" "$receipt_sha" "$cert" \
               >> target/energy-dispatch-mip-reference/scip-results.csv
           done
           test "$(wc -l < target/energy-dispatch-mip-reference/scip-results.csv)" -eq 13
           cat target/energy-dispatch-mip-reference/scip-results.csv
-          while IFS=, read -r model status value certificate; do
+          while IFS=, read -r model status value request_sha lp_sha semantic_sha receipt_sha certificate; do
             case "$model" in
               essential_unserved_quanta_min.lp) expected=0 ;;
               essential_unserved_quanta_max.lp) expected=2 ;;
@@ -111,6 +150,14 @@ jobs:
             test "$status" = "optimal_exact"
             test "$normalized" = "$expected"
             test -s "$certificate"
+            stem="${model%.lp}"
+            receipt="target/energy-dispatch-mip-reference/translation/$stem.translation.json"
+            model_path="target/energy-dispatch-mip-reference/$model"
+            test "$(sha256sum "$model_path" | cut -d ' ' -f 1)" = "$lp_sha"
+            test "$(sha256sum "$receipt" | cut -d ' ' -f 1)" = "$receipt_sha"
+            jq -e --arg request_sha "$request_sha" --arg lp_sha "$lp_sha" --arg semantic_sha "$semantic_sha" \
+              '.equivalent == true and .request_sha256 == $request_sha and .lp_sha256 == $lp_sha and .reference_model_sha256 == $semantic_sha and .reference_model_sha256 == .parsed_model_sha256' \
+              "$receipt"
           done < <(tail -n +2 target/energy-dispatch-mip-reference/scip-results.csv)
 
       - name: Build pinned independent VIPR proof checker
@@ -135,6 +182,20 @@ jobs:
             "$VIPR_CHECKER" "$certificate" > "$log" 2>&1
           done
           test "$(find target/energy-dispatch-mip-reference/vipr-checks -maxdepth 1 -name '*.log' | wc -l)" -eq 12
+          mkdir -p target/energy-dispatch-mip-reference/proof-bindings
+          while IFS=, read -r model status value request_sha lp_sha semantic_sha receipt_sha certificate; do
+            test "$status" = "optimal_exact"
+            cert_sha="$(sha256sum "$certificate" | cut -d ' ' -f 1)"
+            receipt="target/energy-dispatch-mip-reference/translation/${model%.lp}.translation.json"
+            jq -cn --arg model "$model" --arg status "$status" --arg objective "$value" \
+              --arg request_sha "$request_sha" --arg lp_sha "$lp_sha" \
+              --arg semantic_sha "$semantic_sha" --arg receipt_sha "$receipt_sha" \
+              --arg certificate_sha "$cert_sha" \
+              '{model:$model,solver_status:$status,objective_value:$objective,request_sha256:$request_sha,lp_sha256:$lp_sha,semantic_model_sha256:$semantic_sha,translation_receipt_sha256:$receipt_sha,certificate_sha256:$certificate_sha,vipr_verification:"accepted",claim_ceiling:"translation equivalence and independently accepted solver certificate for the exact emitted LP; not physical-model validity or operational authorization"}' \
+              >> target/energy-dispatch-mip-reference/proof-bindings/qualified-proof-bindings.jsonl
+            test -s "$receipt"
+          done < <(tail -n +2 target/energy-dispatch-mip-reference/scip-results.csv)
+          test "$(wc -l < target/energy-dispatch-mip-reference/proof-bindings/qualified-proof-bindings.jsonl)" -eq 12
 
       - name: Publish LP models, manifest, lockfile and formatted source
         if: always()
@@ -148,5 +209,10 @@ jobs:
             tools/energy-dispatch-mip-reference/README.md
             tools/energy-dispatch-mip-reference/src/lib.rs
             tools/energy-dispatch-mip-reference/src/main.rs
+            tools/energy-dispatch-lp-validator/Cargo.toml
+            tools/energy-dispatch-lp-validator/Cargo.lock
+            tools/energy-dispatch-lp-validator/README.md
+            tools/energy-dispatch-lp-validator/src/lib.rs
+            tools/energy-dispatch-lp-validator/src/main.rs
           if-no-files-found: error
           retention-days: 14
