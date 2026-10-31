@@ -1,0 +1,21 @@
+{
+  "schema_version": "luminous.ieac-signed-envelope.v0.2",
+  "canonicalization": "RFC8785-JCS",
+  "signature_format": "COSE_Sign1-detached",
+  "payload_type": "application/vnd.luminous.ieac.profile-pin.v0.2+json",
+  "payload": {
+    "expires_at": "2026-11-01T00:00:00Z",
+    "issued_at": "2026-10-31T20:00:00Z",
+    "keyset_epoch": 1,
+    "keyset_sequence": 7,
+    "profile_id": "synthetic-ieac-d0-v0.2",
+    "profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "registry_id": "synthetic-registry-01",
+    "schema_version": "luminous.ieac-profile-pin.v0.2",
+    "signer_key_id": "synthetic-ed25519-key-01",
+    "status": "active",
+    "trusted_registry_id": "synthetic-registry-01"
+  },
+  "payload_sha256": "2e9220e3b5d8ca1c59c5a8b56503dfbc7e792ec9a25abaefda96c7f73751d6b2",
+  "cose_sign1_b64url": "hFhBowEyA3gzYXBwbGljYXRpb24vdm5kLmx1bWlub3VzLmllYWMucHJvZmlsZS1waW4udjAuMitqc29uBEZrZXktMDGg9lhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+}
