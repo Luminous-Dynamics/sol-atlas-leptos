@@ -81,12 +81,33 @@ fn fraction_matches(value: &Value, numerator: usize, denominator: usize) -> bool
     })
 }
 
+#[derive(Default)]
+struct FamilyCounts {
+    trial_count: usize,
+    negative_control: Option<bool>,
+    false_admissions: usize,
+    false_rejections_on_positive_controls: usize,
+    positive_admissions: usize,
+    positive_abstentions: usize,
+    positive_rejections: usize,
+    negative_rejects: usize,
+    negative_abstentions: usize,
+    expected_disposition_matches: usize,
+    checker_disagreements: usize,
+    expected_reason_code_hits: usize,
+    static_profile_valid_trials: usize,
+    static_counterfactual_acceptances: usize,
+    report_tamper_checks: usize,
+    report_tamper_detected: usize,
+}
+
 fn verify_case(
     record: &Value,
     case_index: usize,
     header_vertical: &str,
     expected_trial_count: usize,
     family_counts: &mut BTreeMap<String, usize>,
+    family_metrics: &mut BTreeMap<String, FamilyCounts>,
     case_ids: &mut BTreeSet<String>,
     counts: &mut Counts,
 ) -> Result<(), String> {
@@ -100,11 +121,15 @@ fn verify_case(
         return Err(format!("case {case_index} vertical differs from ledger header"));
     }
     let case_id = require_string(record, "/case_id", "case record")?.to_owned();
+    let family = require_string(record, "/failure_family", "case record")?.to_owned();
+    let trial_index = require_u64(record, "/trial_index", "case record")? as usize;
+    let expected_case_id = format!("{header_vertical}/{family}/{trial_index:08}");
+    if case_id != expected_case_id {
+        return Err(format!("case_id is not bound to vertical/family/trial identity: {case_id}"));
+    }
     if !case_ids.insert(case_id.clone()) {
         return Err(format!("duplicate case_id {case_id}"));
     }
-    let family = require_string(record, "/failure_family", "case record")?.to_owned();
-    let trial_index = require_u64(record, "/trial_index", "case record")? as usize;
     let next_expected_trial = family_counts.entry(family.clone()).or_insert(0);
     if trial_index != *next_expected_trial || trial_index >= expected_trial_count {
         return Err(format!(
@@ -156,35 +181,94 @@ fn verify_case(
         return Err(format!("static-profile baseline result does not replay for case {case_index}"));
     }
 
+    let tamper_detected = record["observed"]["report_tamper_detected"].as_bool()
+        .ok_or_else(|| format!("case {case_index} is missing tamper-detection result"))?;
+    counts.report_tamper_checks += 1;
+    if tamper_detected {
+        counts.report_tamper_detected += 1;
+    }
+    let replay_matches = &record["observed"]["deterministic_replay_matches"];
+    match replay_matches {
+        Value::Bool(matches) => {
+            counts.deterministic_replay_checks += 1;
+            if !matches {
+                counts.deterministic_replay_mismatches += 1;
+            }
+        }
+        Value::Null => {}
+        _ => return Err(format!("case {case_index} replay observation must be boolean or null")),
+    }
+    let latency_ms = record["observed"]["latency_ms"].as_f64()
+        .filter(|value| value.is_finite() && *value >= 0.0)
+        .ok_or_else(|| format!("case {case_index} latency_ms is missing or invalid"))?;
+
     let expected_admission = require_string(record, "/expected/admission", "case expectation")?;
     let actual_admission = require_string(candidate_report, "/admission", "candidate report")?;
-    if record["observed"]["admission"].as_str() != Some(actual_admission) {
-        return Err(format!("observed admission does not match candidate report for case {case_index}"));
+    if record["observed"]["admission"].as_str() != Some(actual_admission)
+        || record["observed"]["reason_codes"] != candidate_report["reason_codes"]
+    {
+        return Err(format!("observed disposition/reason codes do not match candidate report for case {case_index}"));
     }
     if actual_admission != expected_admission {
         counts.expected_disposition_mismatches += 1;
     }
-    if !exact_reason_codes_match(candidate_report, &record["expected"]["reason_codes"]) {
+    let reason_codes_hit = exact_reason_codes_match(candidate_report, &record["expected"]["reason_codes"]);
+    if !reason_codes_hit {
         counts.expected_reason_code_misses += 1;
     }
+
+    let family_metric = family_metrics.entry(family.clone()).or_default();
+    if family_metric.negative_control.is_some_and(|existing| existing != negative_control) {
+        return Err(format!("failure family {family} mixes positive and negative labels"));
+    }
+    family_metric.negative_control = Some(negative_control);
+    family_metric.trial_count += 1;
+    if actual_admission == expected_admission {
+        family_metric.expected_disposition_matches += 1;
+    }
+    if reason_codes_hit {
+        family_metric.expected_reason_code_hits += 1;
+    }
+    family_metric.report_tamper_checks += 1;
+    if tamper_detected {
+        family_metric.report_tamper_detected += 1;
+    }
+    if !checker_errors.is_empty() {
+        family_metric.checker_disagreements += 1;
+    }
+    if static_profile_valid {
+        family_metric.static_profile_valid_trials += 1;
+        if negative_control {
+            family_metric.static_counterfactual_acceptances += 1;
+        }
+    }
+    let _recorded_latency_ms = latency_ms;
 
     if negative_control {
         counts.negative_trials += 1;
         if actual_admission.starts_with("admit_") {
             counts.false_admissions += 1;
+            family_metric.false_admissions += 1;
         } else if actual_admission == "reject" {
             counts.negative_rejects += 1;
+            family_metric.negative_rejects += 1;
         } else if actual_admission == "abstain" {
             counts.negative_abstentions += 1;
+            family_metric.negative_abstentions += 1;
         }
     } else {
         counts.positive_trials += 1;
         if actual_admission.starts_with("admit_") {
             counts.positive_admissions += 1;
+            family_metric.positive_admissions += 1;
         } else if actual_admission == "abstain" {
             counts.positive_abstentions += 1;
+            family_metric.positive_abstentions += 1;
+            family_metric.false_rejections_on_positive_controls += 1;
         } else if actual_admission == "reject" {
             counts.positive_rejections += 1;
+            family_metric.positive_rejections += 1;
+            family_metric.false_rejections_on_positive_controls += 1;
         }
     }
     Ok(())
@@ -203,6 +287,11 @@ struct Counts {
     checker_disagreements: usize,
     expected_disposition_mismatches: usize,
     expected_reason_code_misses: usize,
+    report_tamper_checks: usize,
+    report_tamper_detected: usize,
+    deterministic_replay_checks: usize,
+    deterministic_replay_mismatches: usize,
+    static_baseline_counterfactual_acceptances: usize,
 }
 
 fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
@@ -235,6 +324,7 @@ fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
     let mut cases_hasher = Sha256::new();
     let mut case_ids = BTreeSet::new();
     let mut family_counts = BTreeMap::new();
+    let mut family_metrics = BTreeMap::new();
     let mut counts = Counts::default();
     let mut case_index = 0usize;
     let footer;
@@ -253,6 +343,7 @@ fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
                     vertical,
                     trials_per_family,
                     &mut family_counts,
+                    &mut family_metrics,
                     &mut case_ids,
                     &mut counts,
                 )?;
@@ -276,10 +367,12 @@ fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
     {
         return Err("failure-family strata are missing, duplicated or incomplete".to_owned());
     }
+    let expected_case_records_sha256 = hex_digest(&cases_hasher.clone().finalize());
+    let expected_prefix_sha256 = hex_digest(&prefix_hasher.clone().finalize());
     if footer["schema_version"].as_str() != Some(CASE_LEDGER_SCHEMA)
         || footer["record_count"].as_u64() != Some(case_index as u64)
-        || footer["case_records_sha256"].as_str() != Some(hex_digest(&cases_hasher.clone().finalize()).as_str())
-        || footer["prefix_sha256"].as_str() != Some(hex_digest(&prefix_hasher.clone().finalize()).as_str())
+        || footer["case_records_sha256"].as_str() != Some(expected_case_records_sha256.as_str())
+        || footer["prefix_sha256"].as_str() != Some(expected_prefix_sha256.as_str())
     {
         return Err("case-ledger footer count or digest mismatch".to_owned());
     }
@@ -298,11 +391,16 @@ fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
         return Err("benchmark report schema version mismatch".to_owned());
     }
     if report["manifest_exact_bytes_sha256"].as_str() != Some(manifest_digest)
+        || report["manifest_id"] != header["manifest_id"]
         || report["vertical"].as_str() != Some(vertical)
         || report["benchmark_id"] != header["benchmark_id"]
         || report["candidate_method_id"] != header["candidate_method_id"]
+        || report["static_baseline_method_id"] != header["static_baseline_method_id"]
         || report["evaluator_version"] != header["evaluator_version"]
         || report["checker_version"] != header["checker_version"]
+        || report["prng"] != header["prng"]
+        || report["seed"] != header["seed"]
+        || report["trials_per_failure_family"] != header["trials_per_failure_family"]
     {
         return Err("benchmark report identity does not match case-ledger header".to_owned());
     }
@@ -331,6 +429,13 @@ fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
             == Some(counts.expected_disposition_mismatches as u64)
         && summary["expected_reason_code_misses"].as_u64()
             == Some(counts.expected_reason_code_misses as u64)
+        && summary["report_tamper_checks"].as_u64() == Some(counts.report_tamper_checks as u64)
+        && summary["report_tamper_detected"].as_u64() == Some(counts.report_tamper_detected as u64)
+        && summary["deterministic_replay_checks"].as_u64() == Some(counts.deterministic_replay_checks as u64)
+        && summary["deterministic_replay_mismatches"].as_u64()
+            == Some(counts.deterministic_replay_mismatches as u64)
+        && summary["static_baseline_counterfactual_acceptances"].as_u64()
+            == Some(counts.static_baseline_counterfactual_acceptances as u64)
         && fraction_matches(
             &summary["negative_non_admission_rate"],
             counts.negative_rejects + counts.negative_abstentions,
@@ -346,15 +451,65 @@ fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
             counts.positive_admissions,
             counts.positive_trials,
         )
-        && report["strata"].as_array().is_some_and(|strata| strata.len() == family_count);
+        && report["strata"].as_array().is_some_and(|strata| {
+            if strata.len() != family_count || family_metrics.len() != family_count {
+                return false;
+            }
+            let mut seen = BTreeSet::new();
+            strata.iter().all(|stratum| {
+                let Some(family) = stratum["failure_family"].as_str() else { return false; };
+                if !seen.insert(family.to_owned()) { return false; }
+                let Some(metrics) = family_metrics.get(family) else { return false; };
+                let negative = metrics.negative_control.unwrap_or(false);
+                stratum["vertical"].as_str() == Some(vertical)
+                    && stratum["trials"].as_u64() == Some(metrics.trial_count as u64)
+                    && stratum["negative_control"].as_bool() == Some(negative)
+                    && stratum["candidate"]["false_admissions"].as_u64()
+                        == Some(metrics.false_admissions as u64)
+                    && fraction_matches(
+                        &stratum["candidate"]["false_admission_rate"],
+                        metrics.false_admissions,
+                        if negative { metrics.trial_count } else { 0 },
+                    )
+                    && stratum["candidate"]["false_rejections_on_positive_controls"].as_u64()
+                        == Some(metrics.false_rejections_on_positive_controls as u64)
+                    && stratum["candidate"]["positive_admissions"].as_u64()
+                        == Some(metrics.positive_admissions as u64)
+                    && stratum["candidate"]["positive_abstentions"].as_u64()
+                        == Some(metrics.positive_abstentions as u64)
+                    && stratum["candidate"]["positive_rejections"].as_u64()
+                        == Some(metrics.positive_rejections as u64)
+                    && stratum["candidate"]["negative_rejects"].as_u64()
+                        == Some(metrics.negative_rejects as u64)
+                    && stratum["candidate"]["negative_abstentions"].as_u64()
+                        == Some(metrics.negative_abstentions as u64)
+                    && stratum["candidate"]["expected_disposition_matches"].as_u64()
+                        == Some(metrics.expected_disposition_matches as u64)
+                    && stratum["candidate"]["independent_checker_disagreements"].as_u64()
+                        == Some(metrics.checker_disagreements as u64)
+                    && stratum["candidate"]["expected_reason_code_hits"].as_u64()
+                        == Some(metrics.expected_reason_code_hits as u64)
+                    && stratum["static_only_profile_baseline"]["profile_valid_trials"].as_u64()
+                        == Some(metrics.static_profile_valid_trials as u64)
+                    && stratum["static_only_profile_baseline"]
+                        ["would_counterfactually_accept_if_profile_validation_were_treated_as_runtime_authorization"]
+                        .as_u64() == Some(metrics.static_counterfactual_acceptances as u64)
+                    && stratum["report_tamper"]["checks"].as_u64()
+                        == Some(metrics.report_tamper_checks as u64)
+                    && stratum["report_tamper"]["detected"].as_u64()
+                        == Some(metrics.report_tamper_detected as u64)
+            })
+        });
     if !summary_matches {
-        return Err("benchmark report aggregates do not reconstruct from the case ledger".to_owned());
+        return Err("benchmark report per-family and overall aggregates do not reconstruct from the case ledger".to_owned());
     }
 
     if counts.false_admissions != 0
         || counts.checker_disagreements != 0
         || counts.expected_disposition_mismatches != 0
         || counts.expected_reason_code_misses != 0
+        || counts.report_tamper_detected != counts.report_tamper_checks
+        || counts.deterministic_replay_mismatches != 0
     {
         return Err(format!(
             "case ledger replayed but acceptance failed: false_admissions={}, checker_disagreements={}, disposition_mismatches={}, reason_code_misses={}",
