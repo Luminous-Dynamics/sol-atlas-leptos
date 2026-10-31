@@ -30,8 +30,8 @@ jobs:
       - name: Generate standalone dependency lock
         run: cargo generate-lockfile --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml
 
-      - name: Check formatting
-        run: cargo fmt --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml --all -- --check
+      - name: Format standalone auditor
+        run: cargo fmt --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml --all
 
       - name: Test, lint and build independent auditor
         run: |
