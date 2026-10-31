@@ -379,6 +379,23 @@ fn validate_request(request: &SourceRequest, findings: &mut Vec<AuditFinding>) {
     );
     add_finding(
         findings,
+        "candidate-expansion-limit",
+        None,
+        None,
+        (1..=1_000_000).contains(&request.max_candidate_expansions),
+        "max_candidate_expansions must be within [1, 1000000]",
+    );
+    add_finding(
+        findings,
+        "evidence-reference",
+        None,
+        None,
+        request.evidence_class == "analyst_assumption"
+            || request.evidence_ref.as_deref().is_some_and(|value| !value.trim().is_empty()),
+        "non-assumption evidence requires a non-empty evidence_ref",
+    );
+    add_finding(
+        findings,
         "interval-count",
         None,
         None,
@@ -425,7 +442,7 @@ fn validate_request(request: &SourceRequest, findings: &mut Vec<AuditFinding>) {
     );
 
     let mut seen_ids = BTreeSet::new();
-    let mut previous_end: Option<i128> = None;
+    let mut expected_start: Option<i64> = None;
     for (index, interval) in request.intervals.iter().enumerate() {
         let id_nonempty = !interval.interval_id.trim().is_empty();
         add_finding(
@@ -436,26 +453,39 @@ fn validate_request(request: &SourceRequest, findings: &mut Vec<AuditFinding>) {
             id_nonempty && seen_ids.insert(interval.interval_id.clone()),
             "interval IDs must be non-empty and unique",
         );
+        let duration = i64::try_from(interval.duration_seconds);
         add_finding(
             findings,
             "interval-duration",
             Some(index),
             Some(&interval.interval_id),
-            interval.duration_seconds > 0,
-            "interval duration must be positive",
+            interval.duration_seconds > 0 && duration.is_ok(),
+            "interval duration must be positive and fit the signed chronology range",
         );
-        let start = i128::from(interval.start_unix_seconds);
-        let end = start + i128::from(interval.duration_seconds);
-        let ordered = previous_end.is_none_or(|last_end| start >= last_end);
+        let contiguous = expected_start.is_none_or(|expected| {
+            expected == interval.start_unix_seconds
+        });
         add_finding(
             findings,
             "interval-chronology",
             Some(index),
             Some(&interval.interval_id),
-            ordered,
-            "intervals must be ordered and may not overlap",
+            contiguous,
+            "intervals must be contiguous with no gaps, overlaps or reordering",
         );
-        previous_end = Some(end);
+        expected_start = duration.ok().and_then(|duration| {
+            interval.start_unix_seconds.checked_add(duration)
+        });
+        if duration.is_ok() && expected_start.is_none() {
+            add_finding(
+                findings,
+                "interval-chronology-overflow",
+                Some(index),
+                Some(&interval.interval_id),
+                false,
+                "interval end timestamp must fit signed 64-bit chronology",
+            );
+        }
     }
 }
 
