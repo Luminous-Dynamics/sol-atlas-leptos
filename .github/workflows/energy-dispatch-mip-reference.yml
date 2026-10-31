@@ -11,6 +11,7 @@ on:
     branches: ["main"]
     paths:
       - "tools/energy-dispatch-mip-reference/**"
+      - "tools/energy-dispatch-lp-validator/**"
       - "schemas/examples/energy-dispatch-pv-outage.synthetic.json"
       - ".github/workflows/energy-dispatch-mip-reference.yml"
 
