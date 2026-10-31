@@ -61,18 +61,20 @@ At 30,000 negative trials per failure family, the separate one-sided 95% upper b
 | Revoked profile pin | reject | PROFILE_PIN_REVOKED |
 | Revoked measurement source | reject | ARTIFACT_REVOKED |
 | Unavailable authority source | abstain | REVOCATION_STATE_UNAVAILABLE |
-| Decision-tier escalation | reject | ACTION_NOT_PERMITTED_BY_PROFILE and DECISION_TIER_NOT_ADMITTED (exact set) |
+| Decision-tier escalation | reject | ACTION_NOT_AUTHORIZED_BY_CURRENT_SOURCE, ACTION_NOT_PERMITTED_BY_PROFILE and DECISION_TIER_NOT_ADMITTED (exact set) |
 | Stale measurement plus revoked source | reject | ARTIFACT_REVOKED and MEASUREMENT_STALE (exact set) |
 | Stale measurement plus unit mismatch | reject | MEASUREMENT_STALE and UNIT_MISMATCH (exact set) |
 | Interval crossing plus revoked source | reject | ARTIFACT_REVOKED and MEASUREMENT_INTERVAL_CROSSES_ENVELOPE (exact set) |
 | Model identity drift plus revoked profile pin | reject | ARTIFACT_DIGEST_MISMATCH, PROFILE_PIN_REVOKED and RUNTIME_IDENTITY_BINDING_INVALID (exact set) |
 | Profile expiry plus unavailable authority | reject | PROFILE_OUTSIDE_VALIDITY_WINDOW and REVOCATION_STATE_UNAVAILABLE (exact set) |
-| Stale measurement plus authority escalation | reject | ACTION_NOT_PERMITTED_BY_PROFILE, DECISION_TIER_NOT_ADMITTED and MEASUREMENT_STALE (exact set) |
+| Stale measurement plus authority escalation | reject | ACTION_NOT_AUTHORIZED_BY_CURRENT_SOURCE, ACTION_NOT_PERMITTED_BY_PROFILE, DECISION_TIER_NOT_ADMITTED and MEASUREMENT_STALE (exact set) |
 | Future measurement plus revoked source | reject | ARTIFACT_REVOKED and FUTURE_DATED_MEASUREMENT (exact set) |
 | Unit mismatch plus revoked profile pin | reject | PROFILE_PIN_REVOKED and UNIT_MISMATCH (exact set) |
 | Out-of-range value plus profile expiry | reject | PROFILE_OUTSIDE_VALIDITY_WINDOW and VALUE_OUTSIDE_OPERATING_ENVELOPE (exact set) |
 
 The eight added interaction strata deliberately combine faults from different control planes: measurement freshness and units; uncertainty and source revocation; model identity and profile authority; profile validity and authority availability; measurement freshness and action tier; temporal validity and source revocation; measurement units and pin revocation; and physical-boundary violation with profile expiry. Reject dominates abstain, but all applicable reason codes must remain present. These cases test precedence and reason preservation, not merely detection of each fault in isolation.
+
+The escalation expectation was also corrected: a D2 `prepare_plan` request exceeds the permitted action in both the profile and the current authority snapshot, so the exact expected set includes `ACTION_NOT_AUTHORIZED_BY_CURRENT_SOURCE` in addition to the profile/action and decision-tier reason codes. This is a fixture expectation correction; no runtime guard was weakened.
 
 The driver also mutates every generated report and checks that the reconstruction checker detects the changed disposition. Reason-code acceptance is exact-set equality, not a contains check: missing or unexpected reason codes fail the run. Three repeated evaluations per family are compared byte-for-byte for deterministic replay. Those replay checks are smoke checks, not exhaustive proof of determinism.
 
