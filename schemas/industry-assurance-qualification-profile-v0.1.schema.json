@@ -168,6 +168,11 @@
                   "minLength": 1
                 },
                 "uniqueItems": true
+              },
+              "max_age_seconds": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Maximum permitted age of a measurement for runtime admission, in seconds. If absent, runtime admission must abstain because freshness is not bounded."
               }
             }
           }
