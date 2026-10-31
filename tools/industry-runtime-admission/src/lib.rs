@@ -1320,6 +1320,108 @@ mod tests {
         assert!(!report_digest_is_valid(&report));
     }
 
+
+    #[test]
+    fn shared_gate_accepts_bounded_synthetic_vertical_examples() {
+        let cases = [
+            ("water-food-energy", "water-pressure", "kPa", 100.0, 500.0, 300.0, 295.0, 305.0),
+            ("industrial-maintenance", "bearing-vibration", "mm/s", 0.0, 8.0, 2.5, 2.0, 3.0),
+            ("buildings", "indoor-temperature", "degC", 18.0, 28.0, 22.0, 21.5, 22.5),
+            ("telecom", "site-backup-usable-energy", "kWh", 0.0, 20.0, 12.0, 11.0, 13.0),
+        ];
+        for (vertical, variable, unit, minimum, maximum, value, lower, upper) in cases {
+            let (mut profile, mut request) = fixture_files();
+            let asset = format!("synthetic-{vertical}-asset-001");
+            let sensor = format!("sensor-{vertical}-001");
+            let topology_sha = format!("{:02x}", 0xd4u8).repeat(32);
+
+            profile["profile_id"] = json!(format!("synthetic-{vertical}-profile-v0.1"));
+            profile["claim"]["capability_id"] = json!(format!("{vertical}-bounded-admission"));
+            profile["claim"]["instance_id"] = json!(asset);
+            profile["claim"]["decision_id"] = json!(format!("{vertical}-advisory-review"));
+            profile["claim"]["model_ids"] = json!([format!("{vertical}-model-v0.1")]);
+            profile["operating_envelope"]["conditions"] = json!([{
+                "variable": variable,
+                "unit": unit,
+                "minimum": minimum,
+                "maximum": maximum,
+                "max_age_seconds": 3600,
+                "support": "Synthetic cross-vertical contract test only.",
+                "evidence_state": "measured",
+                "source_artifact_ids": [sensor]
+            }]);
+            for binding in profile["artifact_bindings"].as_array_mut().unwrap() {
+                if binding["artifact_id"] == "sensor-battery-001" {
+                    binding["artifact_id"] = json!(sensor);
+                }
+                if binding["artifact_id"] == "topology-001" {
+                    binding["content_sha256"] = json!(topology_sha);
+                }
+            }
+
+            request["profile_id"] = profile["profile_id"].clone();
+            request["capability_id"] = profile["claim"]["capability_id"].clone();
+            request["instance_id"] = json!(asset);
+            request["decision_id"] = profile["claim"]["decision_id"].clone();
+            request["model_id"] = json!(format!("{vertical}-model-v0.1"));
+            request["topology_sha256"] = json!(topology_sha);
+            request["asset_id"] = json!(asset);
+            request["snapshot_id"] = json!(format!("{vertical}-snapshot-001"));
+            request["snapshot"]["asset_id"] = json!(asset);
+            request["snapshot"]["snapshot_id"] = request["snapshot_id"].clone();
+            request["snapshot"]["topology_sha256"] = json!(topology_sha);
+            request["snapshot"]["conditions"][0]["variable"] = json!(variable);
+            request["snapshot"]["conditions"][0]["unit"] = json!(unit);
+            request["snapshot"]["conditions"][0]["value"] = json!(value);
+            request["snapshot"]["conditions"][0]["lower"] = json!(lower);
+            request["snapshot"]["conditions"][0]["upper"] = json!(upper);
+            request["snapshot"]["conditions"][0]["evidence_artifact_id"] = json!(sensor);
+            let sensor_sha = profile["artifact_bindings"].as_array().unwrap().iter()
+                .find(|binding| binding["artifact_id"] == sensor).unwrap()["content_sha256"].clone();
+            request["snapshot"]["conditions"][0]["evidence_sha256"] = sensor_sha;
+            request["topology_artifact_id"] = json!("topology-001");
+            request["topology_id"] = json!("topology-001");
+            refresh_digests(&profile, &mut request);
+
+            let report = assert_candidate_and_checker_agree(&profile, &request);
+            assert_eq!(report["admission"], "admit_descriptive", "{vertical}: {report:#}");
+        }
+    }
+
+    #[test]
+    fn exact_operating_envelope_bounds_are_inclusive() {
+        for boundary in [0.0, 20.0] {
+            let (profile, mut request) = fixture_files();
+            request["snapshot"]["conditions"][0]["value"] = json!(boundary);
+            request["snapshot"]["conditions"][0]["lower"] = json!(boundary);
+            request["snapshot"]["conditions"][0]["upper"] = json!(boundary);
+            refresh_digests(&profile, &mut request);
+            let report = assert_candidate_and_checker_agree(&profile, &request);
+            assert_eq!(report["admission"], "admit_descriptive", "{report:#}");
+        }
+    }
+
+    #[test]
+    fn decision_relevant_mutation_changes_bound_snapshot_digest() {
+        let (profile, request) = fixture_files();
+        let original = evaluate_admission(&profile, &request);
+        let mut changed = request.clone();
+        changed["snapshot"]["conditions"][0]["value"] = json!(12.5);
+        refresh_digests(&profile, &mut changed);
+        let mutated = evaluate_admission(&profile, &changed);
+        assert_ne!(original["snapshot_sha256"], mutated["snapshot_sha256"]);
+        assert_ne!(original["request_sha256"], mutated["request_sha256"]);
+    }
+
+    #[test]
+    fn independent_checker_catches_per_condition_reason_tampering() {
+        let (profile, request) = fixture_files();
+        let mut report = evaluate_admission(&profile, &request);
+        report["condition_results"][0]["reason_codes"] = json!(["FORGED_REASON"]);
+        let errors = independent_check(&profile, &request, &report);
+        assert!(errors.iter().any(|error| error == "REPORT_FIELD_MISMATCH:condition_results"));
+    }
+
     #[test]
     fn sealed_report_digest_replays() {
         let (profile, request) = fixture_files();
