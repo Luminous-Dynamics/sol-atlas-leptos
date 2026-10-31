@@ -1354,7 +1354,10 @@ mod tests {
         assignment: &BTreeMap<String, i64>,
         objective_id: ObjectiveId,
     ) -> Option<i64> {
-        let sum_by_interval = |mut term: impl FnMut(usize, &Interval) -> Option<i64>| {
+        fn sum_by_interval<F>(request: &Request, mut term: F) -> Option<i64>
+        where
+            F: FnMut(usize, &Interval) -> Option<i64>,
+        {
             request
                 .intervals
                 .iter()
@@ -1362,35 +1365,35 @@ mod tests {
                 .try_fold(0_i64, |total, (index, interval)| {
                     total.checked_add(term(index, interval)?)
                 })
-        };
+        }
         match objective_id {
-            ObjectiveId::EssentialUnservedQuanta => sum_by_interval(|index, _| {
+            ObjectiveId::EssentialUnservedQuanta => sum_by_interval(request, |index, _| {
                 Some(integer_at(
                     assignment,
                     &format!("essential_unserved_{index:03}"),
                 ))
             }),
-            ObjectiveId::FlexibleUnservedQuanta => sum_by_interval(|index, _| {
+            ObjectiveId::FlexibleUnservedQuanta => sum_by_interval(request, |index, _| {
                 Some(integer_at(
                     assignment,
                     &format!("flexible_unserved_{index:03}"),
                 ))
             }),
-            ObjectiveId::OperatingCostUnits => sum_by_interval(|index, interval| {
+            ObjectiveId::OperatingCostUnits => sum_by_interval(request, |index, interval| {
                 i64::from(interval.grid_cost_units_per_quantum)
                     .checked_mul(integer_at(
                         assignment,
                         &format!("grid_import_{index:03}"),
                     ))
             }),
-            ObjectiveId::GridCarbonGrams => sum_by_interval(|index, interval| {
+            ObjectiveId::GridCarbonGrams => sum_by_interval(request, |index, interval| {
                 i64::from(interval.grid_carbon_grams_per_quantum)
                     .checked_mul(integer_at(
                         assignment,
                         &format!("grid_import_{index:03}"),
                     ))
             }),
-            ObjectiveId::CurtailedPvQuanta => sum_by_interval(|index, _| {
+            ObjectiveId::CurtailedPvQuanta => sum_by_interval(request, |index, _| {
                 Some(integer_at(
                     assignment,
                     &format!("pv_curtailed_{index:03}"),
@@ -1424,7 +1427,20 @@ mod tests {
         assignment: &BTreeMap<String, i64>,
     ) {
         assert_eq!(models.len(), ObjectiveId::ALL.len());
+        let reference = models
+            .first()
+            .expect("the objective model matrix must not be empty");
         for (model, objective_id) in models.iter().zip(ObjectiveId::ALL) {
+            assert_eq!(
+                model.variables,
+                reference.variables,
+                "objective-specific model changed the feasible-set variables for {objective_id:?}"
+            );
+            assert_eq!(
+                model.constraints,
+                reference.constraints,
+                "objective-specific model changed the feasible-set constraints for {objective_id:?}"
+            );
             assert_eq!(
                 model.objective_id,
                 objective_id,
