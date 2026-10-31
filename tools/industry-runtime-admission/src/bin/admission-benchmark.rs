@@ -294,6 +294,27 @@ fn validate_manifest(manifest: &Value) -> Result<(&str, usize, u64), String> {
     Ok((vertical, frozen_trials, frozen_seed))
 }
 
+fn validate_cli_overrides(
+    requested_trials: Option<usize>,
+    requested_seed: Option<u64>,
+    frozen_trials: usize,
+    frozen_seed: u64,
+) -> Result<(), String> {
+    if requested_trials.is_some_and(|value| value != frozen_trials) {
+        return Err(format!(
+            "CLI trial count {:?} differs from preregistered trials_per_stratum {frozen_trials}",
+            requested_trials
+        ));
+    }
+    if requested_seed.is_some_and(|value| value != frozen_seed) {
+        return Err(format!(
+            "CLI seed {:?} differs from preregistered seed {frozen_seed}",
+            requested_seed
+        ));
+    }
+    Ok(())
+}
+
 fn parse_args() -> Result<(String, Option<usize>, Option<u64>, Option<String>), String> {
     let mut manifest = None;
     let mut output = None;
@@ -344,18 +365,7 @@ fn run() -> Result<(Value, bool), String> {
     let manifest: Value = serde_json::from_slice(&manifest_bytes)
         .map_err(|e| format!("invalid manifest JSON: {e}"))?;
     let (vertical, trials_per_family, seed) = validate_manifest(&manifest)?;
-    if requested_trials.is_some_and(|value| value != trials_per_family) {
-        return Err(format!(
-            "CLI trial count {:?} differs from preregistered trials_per_stratum {trials_per_family}",
-            requested_trials
-        ));
-    }
-    if requested_seed.is_some_and(|value| value != seed) {
-        return Err(format!(
-            "CLI seed {:?} differs from preregistered seed {seed}",
-            requested_seed
-        ));
-    }
+    validate_cli_overrides(requested_trials, requested_seed, trials_per_family, seed)?;
     let manifest_sha256 = digest_bytes(&manifest_bytes);
 
     let mut profile = read_fixture("schemas/examples/industry-runtime-admission-profile-synthetic-v0.1.json")?;
@@ -626,6 +636,45 @@ mod tests {
         let zero = one_sided_exact_upper(0, 1_000, 0.05);
         let one = one_sided_exact_upper(1, 1_000, 0.05);
         assert!(one > zero, "zero={zero}, one={one}");
+    }
+
+    fn minimal_frozen_manifest() -> Value {
+        json!({
+            "schema_version": "luminous.industrial-benchmark-run-manifest.v0.1",
+            "benchmark": {
+                "evaluation_mode": "synthetic_fixture",
+                "vertical": "industrial_maintenance"
+            },
+            "freeze": { "pre_registered_before_execution": true },
+            "methods": [
+                { "method_id": "baseline", "role": "null_baseline" },
+                { "method_id": "candidate", "role": "candidate" }
+            ],
+            "claim_ceiling": "synthetic_only",
+            "comparability": { "state": "matched" },
+            "replication": {
+                "replicate_count": 1,
+                "seeds": [20261031],
+                "trials_per_stratum": 100
+            }
+        })
+    }
+
+    #[test]
+    fn frozen_manifest_drives_vertical_trial_count_and_seed() {
+        let manifest = minimal_frozen_manifest();
+        let (vertical, trials, seed) = validate_manifest(&manifest).expect("valid frozen fixture");
+        assert_eq!(vertical, "industrial_maintenance");
+        assert_eq!(trials, 100);
+        assert_eq!(seed, 20_261_031);
+    }
+
+    #[test]
+    fn cli_cannot_change_preregistered_trial_count_or_seed() {
+        assert!(validate_cli_overrides(Some(99), None, 100, 20_261_031).is_err());
+        assert!(validate_cli_overrides(None, Some(17), 100, 20_261_031).is_err());
+        assert!(validate_cli_overrides(Some(100), Some(20_261_031), 100, 20_261_031).is_ok());
+        assert!(validate_cli_overrides(None, None, 100, 20_261_031).is_ok());
     }
 
     #[test]
