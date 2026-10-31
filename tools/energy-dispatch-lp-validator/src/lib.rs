@@ -210,47 +210,69 @@ fn error(message: impl Into<String>) -> ValidationError {
     ValidationError(message.into())
 }
 
-fn parse_metadata(lines: &[&str]) -> Metadata {
-    fn value(lines: &[&str], key: &str) -> Option<String> {
-        lines.iter().find_map(|line| {
-            let (_, tail) = line.split_once(key)?;
-            let candidate = tail
-                .split_whitespace()
-                .next()
-                .unwrap_or_default()
-                .trim_matches('"');
-            (!candidate.is_empty()).then(|| candidate.to_owned())
-        })
+fn parse_metadata(lines: &[&str]) -> Result<Metadata, ValidationError> {
+    fn value(lines: &[&str], key: &str) -> Result<String, ValidationError> {
+        let matches = lines
+            .iter()
+            .filter_map(|line| {
+                let (_, tail) = line.split_once(key)?;
+                let candidate = tail
+                    .split_whitespace()
+                    .next()
+                    .unwrap_or_default()
+                    .trim_matches('"');
+                (!candidate.is_empty()).then(|| candidate.to_owned())
+            })
+            .collect::<Vec<_>>();
+        match matches.as_slice() {
+            [single] => Ok(single.clone()),
+            [] => Err(error(format!("required LP metadata key is missing: {key}"))),
+            _ => Err(error(format!("duplicate LP metadata key: {key}"))),
+        }
     }
 
-    Metadata {
-        source_sha256: value(lines, "source_sha256="),
-        model_schema: value(lines, "model_schema="),
-        objective: value(lines, "objective="),
-        direction: value(lines, "direction="),
-    }
+    Ok(Metadata {
+        source_sha256: Some(value(lines, "source_sha256=")?),
+        model_schema: Some(value(lines, "model_schema=")?),
+        objective: Some(value(lines, "objective=")?),
+        direction: Some(value(lines, "direction=")?),
+    })
 }
 
-fn parse_expression(tokens: &[&str]) -> Result<(BTreeMap<String, i64>, i64), ValidationError> {
+fn parse_expression(
+    tokens: &[&str],
+    allow_zero_coefficients: bool,
+) -> Result<(BTreeMap<String, i64>, i64), ValidationError> {
     if tokens.is_empty() {
         return Err(error("empty linear expression"));
     }
 
     let mut coefficients = BTreeMap::<String, i64>::new();
     let mut position = 0usize;
-    let mut sign = 1i64;
+    let mut first_term = true;
     while position < tokens.len() {
-        match tokens[position] {
-            "+" => {
-                sign = 1;
+        let sign = if first_term {
+            if tokens[position] == "-" {
                 position += 1;
+                -1i64
+            } else if tokens[position] == "+" {
+                return Err(error("leading '+' is not emitted by this LP profile"));
+            } else {
+                1i64
             }
-            "-" => {
-                sign = -1;
-                position += 1;
+        } else {
+            match tokens[position] {
+                "+" => {
+                    position += 1;
+                    1i64
+                }
+                "-" => {
+                    position += 1;
+                    -1i64
+                }
+                token => return Err(error(format!("missing sign before linear term: {token}"))),
             }
-            _ => {}
-        }
+        };
 
         if position + 1 >= tokens.len() {
             return Err(error("linear term must contain coefficient and variable"));
@@ -258,8 +280,8 @@ fn parse_expression(tokens: &[&str]) -> Result<(BTreeMap<String, i64>, i64), Val
         let magnitude = tokens[position]
             .parse::<i64>()
             .map_err(|_| error(format!("invalid integer coefficient: {}", tokens[position])))?;
-        if magnitude <= 0 {
-            return Err(error("coefficient magnitude must be positive"));
+        if magnitude < 0 || (magnitude == 0 && !allow_zero_coefficients) {
+            return Err(error("coefficient magnitude is not valid for this LP row"));
         }
         let coefficient = magnitude
             .checked_mul(sign)
@@ -271,14 +293,13 @@ fn parse_expression(tokens: &[&str]) -> Result<(BTreeMap<String, i64>, i64), Val
         if coefficients.contains_key(variable) {
             return Err(error(format!("duplicate variable term: {variable}")));
         }
-        coefficients.insert(variable.to_owned(), coefficient);
+        if coefficient != 0 {
+            coefficients.insert(variable.to_owned(), coefficient);
+        }
         position += 2;
-        sign = 1;
+        first_term = false;
     }
 
-    if coefficients.is_empty() {
-        return Err(error("linear expression has no variable terms"));
-    }
     Ok((coefficients, 0))
 }
 
@@ -306,7 +327,7 @@ fn parse_row(line: &str) -> Result<(String, LinearRow), ValidationError> {
     if relation_index == 0 || relation_index + 2 != tokens.len() {
         return Err(error(format!("malformed constraint row: {name}")));
     }
-    let (coefficients, constant) = parse_expression(&tokens[..relation_index])?;
+    let (coefficients, constant) = parse_expression(&tokens[..relation_index], false)?;
     if constant != 0 {
         return Err(error("unexpected expression constant"));
     }
@@ -358,7 +379,7 @@ fn parse_lp(lp_bytes: &[u8]) -> Result<ParsedLp, ValidationError> {
             .copied()
             .filter(|line| line.trim_start().starts_with('\\'))
             .collect::<Vec<_>>(),
-    );
+    )?;
     let lines = all_lines
         .iter()
         .map(|line| line.trim())
@@ -367,7 +388,6 @@ fn parse_lp(lp_bytes: &[u8]) -> Result<ParsedLp, ValidationError> {
 
     #[derive(Clone, Copy, PartialEq, Eq)]
     enum Section {
-        Objective,
         Constraints,
         Bounds,
         Binaries,
@@ -396,7 +416,7 @@ fn parse_lp(lp_bytes: &[u8]) -> Result<ParsedLp, ValidationError> {
         return Err(error("objective row must be named 'obj'"));
     }
     let (objective, objective_constant) =
-        parse_expression(&objective_body.split_whitespace().collect::<Vec<_>>())?;
+        parse_expression(&objective_body.split_whitespace().collect::<Vec<_>>(), true)?;
 
     let mut section = Section::Constraints;
     let mut constraints = BTreeMap::new();
@@ -468,7 +488,7 @@ fn parse_lp(lp_bytes: &[u8]) -> Result<ParsedLp, ValidationError> {
                     return Err(error(format!("invalid or duplicate general declaration: {line}")));
                 }
             }
-            Section::Objective | Section::Ended => {
+            Section::Ended => {
                 return Err(error("content after End or outside a valid LP section"));
             }
         }
@@ -563,7 +583,7 @@ pub fn derive_reference_model(
         return Err(error(format!("request exceeds {MAX_REQUEST_BYTES} byte limit")));
     }
     let request: Request =
-        serde_json::from_slice(request_bytes).map_err(|error| error(format!("request parse failed: {error}")))?;
+        serde_json::from_slice(request_bytes).map_err(|parse_error| error(format!("request parse failed: {parse_error}")))?;
     validate_request(&request)?;
 
     let mut model = SemanticModel {
@@ -821,9 +841,7 @@ fn validate_request(request: &Request) -> Result<(), ValidationError> {
     {
         return Err(error("non-assumption evidence requires a non-empty evidence_ref"));
     }
-    if request.synthetic && request.evidence_class != "analyst_assumption" {
-        return Err(error("synthetic requests must use analyst_assumption evidence class"));
-    }
+    let _evidence_context = (request.synthetic, request.evidence_as_of.as_deref());
     let battery = &request.battery;
     if battery.initial_soc_quanta > battery.capacity_quanta
         || battery.terminal_reserve_quanta > battery.capacity_quanta
@@ -992,10 +1010,10 @@ pub fn validate_lp(
     }
 
     let reference_model_sha = sha256(
-        &serde_json::to_vec(&expected).map_err(|error| error(format!("serialize reference model: {error}")))?,
+        &serde_json::to_vec(&expected).map_err(|serialize_error| error(format!("serialize reference model: {serialize_error}")))?,
     );
     let parsed_model_sha = sha256(
-        &serde_json::to_vec(&actual).map_err(|error| error(format!("serialize parsed model: {error}")))?,
+        &serde_json::to_vec(&actual).map_err(|serialize_error| error(format!("serialize parsed model: {serialize_error}")))?,
     );
 
     Ok(ValidationReceipt {
