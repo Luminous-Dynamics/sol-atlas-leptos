@@ -250,6 +250,13 @@
                 },
                 "exclusion_reasons": {
                   "maxItems": 0
+                },
+                "information_value": {
+                  "properties": {
+                    "calibration_state": {
+                      "const": "calibrated"
+                    }
+                  }
                 }
               }
             }
@@ -337,7 +344,7 @@
       }
     },
     "human_review_required": {
-      "type": "boolean"
+      "const": true
     },
     "audit": {
       "type": "object",
