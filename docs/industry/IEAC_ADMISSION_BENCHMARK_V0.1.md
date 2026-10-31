@@ -55,12 +55,12 @@ At 30,000 negative trials per failure family, the separate one-sided 95% upper b
 | Just below minimum boundary | reject | VALUE_OUTSIDE_OPERATING_ENVELOPE |
 | Just above maximum boundary | reject | VALUE_OUTSIDE_OPERATING_ENVELOPE |
 | Unit mismatch | reject | UNIT_MISMATCH |
-| Model identity drift | reject | RUNTIME_IDENTITY_BINDING_INVALID |
+| Model identity drift | reject | ARTIFACT_DIGEST_MISMATCH and RUNTIME_IDENTITY_BINDING_INVALID (exact set) |
 | Profile expiry | reject | PROFILE_OUTSIDE_VALIDITY_WINDOW |
 | Revoked profile pin | reject | PROFILE_PIN_REVOKED |
 | Revoked measurement source | reject | ARTIFACT_REVOKED |
 | Unavailable authority source | abstain | REVOCATION_STATE_UNAVAILABLE |
-| Decision-tier escalation | reject | DECISION_TIER_NOT_ADMITTED |
+| Decision-tier escalation | reject | ACTION_NOT_PERMITTED_BY_PROFILE and DECISION_TIER_NOT_ADMITTED (exact set) |
 | Stale measurement plus revoked source | reject | ARTIFACT_REVOKED and MEASUREMENT_STALE (exact set) |
 
 The driver also mutates every generated report and checks that the reconstruction checker detects the changed disposition. Reason-code acceptance is exact-set equality, not a contains check: missing or unexpected reason codes fail the run. Three repeated evaluations per family are compared byte-for-byte for deterministic replay. Those replay checks are smoke checks, not exhaustive proof of determinism.
