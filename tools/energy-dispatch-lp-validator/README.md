@@ -84,8 +84,8 @@ mutations and a dedicated workflow that independently regenerates and validates
 all twelve frozen-fixture objective/direction LPs. The SCIP/VIPR workflow also
 runs the validator before each solve and emits twelve proof-binding records.
 Remaining qualification work:
-- exhaustive small-request agreement against independent feasible-schedule
-  enumeration, not only model translation;
+- expand exhaustive request-domain and multi-interval feasibility agreement
+  beyond the one-interval tiny fixture;
 - richer mutation classes for all individual constraints, domains and metadata;
 - mutation of request/model/receipt/certificate associations and proof-log paths;
 - a stable portable receipt encoding profile and explicit certificate schema version.
