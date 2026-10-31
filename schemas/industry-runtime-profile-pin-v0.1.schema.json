@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/industry-runtime-profile-pin-v0.1.schema.json",
+  "title": "IEAC Runtime Trusted Profile Pin v0.1",
+  "description": "Out-of-band operator-provisioned pin that prevents the request and profile from self-asserting their own qualification identity.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "profile_sha256",
+    "trusted_registry_id",
+    "status"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.ieac-runtime-profile-pin.v0.1"
+    },
+    "profile_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "profile_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{64}$"
+    },
+    "trusted_registry_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "status": {
+      "enum": [
+        "active",
+        "revoked"
+      ]
+    }
+  }
+}

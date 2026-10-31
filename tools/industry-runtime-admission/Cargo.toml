@@ -1,0 +1,23 @@
+[package]
+name = "industry-runtime-admission"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+description = "Fail-closed IEAC runtime operating-envelope admission gate"
+
+[[bin]]
+name = "industry-runtime-admission"
+path = "src/main.rs"
+
+[[bin]]
+name = "industry-runtime-check"
+path = "src/bin/runtime-check.rs"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+industry-assurance-validator = { path = "../industry-assurance-validator" }
+serde = { version = "=1.0.228", default-features = false, features = ["derive"] }
+serde_json = { version = "=1.0.150", default-features = false, features = ["std"] }
+sha2 = { version = "=0.10.9", default-features = false }

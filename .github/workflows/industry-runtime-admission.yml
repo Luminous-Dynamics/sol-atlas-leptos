@@ -1,0 +1,144 @@
+name: IEAC runtime admission
+
+on:
+  pull_request:
+    paths:
+      - "tools/industry-runtime-admission/**"
+      - "tools/industry-assurance-validator/**"
+      - "schemas/industry-runtime-admission-*.json"
+      - "schemas/industry-runtime-profile-pin-v0.1.schema.json"
+      - "schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json"
+      - "schemas/examples/industry-runtime-admission-*.json"
+      - "schemas/industry-assurance-qualification-profile-v0.1.schema.json"
+      - "schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json"
+      - "docs/industry/IEAC_RUNTIME_ADMISSION_V0.1.md"
+      - ".github/workflows/industry-runtime-admission.yml"
+  push:
+    branches:
+      - main
+      - feat/ieac-runtime-admission-v0-1
+    paths:
+      - "tools/industry-runtime-admission/**"
+      - "tools/industry-assurance-validator/**"
+      - "schemas/industry-runtime-admission-*.json"
+      - "schemas/industry-runtime-profile-pin-v0.1.schema.json"
+      - "schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json"
+      - "schemas/examples/industry-runtime-admission-*.json"
+      - "schemas/industry-assurance-qualification-profile-v0.1.schema.json"
+      - "schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json"
+      - ".github/workflows/industry-runtime-admission.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ieac-runtime-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rust-admission:
+    name: Exact-head runtime admission and independent replay
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact source revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Check formatting
+        run: |
+          cargo fmt --manifest-path tools/industry-assurance-validator/Cargo.toml -- --check
+          cargo fmt --manifest-path tools/industry-runtime-admission/Cargo.toml -- --check
+
+      - name: Run Clippy with warnings denied
+        run: cargo clippy --manifest-path tools/industry-runtime-admission/Cargo.toml --all-targets --locked -- -D warnings
+
+      - name: Run static and runtime adversarial tests
+        run: |
+          cargo test --manifest-path tools/industry-assurance-validator/Cargo.toml --locked
+          cargo test --manifest-path tools/industry-runtime-admission/Cargo.toml --locked
+
+      - name: Execute synthetic admission and separate report checker
+        run: |
+          set -euo pipefail
+          profile=schemas/examples/industry-runtime-admission-profile-synthetic-v0.1.json
+          pin=schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json
+          request=schemas/examples/industry-runtime-admission-request-synthetic-v0.1.json
+          report="$RUNNER_TEMP/runtime-admission-report.json"
+          cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked -- "$profile" "$pin" "$request" "$report"
+          jq -e '
+            .schema_version == "luminous.ieac-runtime-admission-report.v0.1" and
+            .admission == "admit_descriptive" and
+            .highest_permitted_action == "annotate" and
+            .independent_checker.status == "passed" and
+            .independent_checker.errors == [] and
+            (.report_sha256 | test("^[0-9a-f]{64}$"))
+          ' "$report"
+          cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked --bin industry-runtime-check -- "$profile" "$pin" "$request" "$report"
+
+      - name: Prove locked dependency graphs remain committed
+        run: git diff --exit-code -- tools/industry-assurance-validator/Cargo.lock tools/industry-runtime-admission/Cargo.lock
+
+  schema-conformance:
+    name: Draft 2020-12 meta-schema, fixtures and negative controls
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact source revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install Rust for pinned schema CLI
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install pinned Draft 2020-12 validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Add schema CLI to PATH
+        run: echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+
+      - name: Validate profile and runtime schemas against Draft 2020-12 meta-schema
+        run: |
+          set -euo pipefail
+          meta=https://json-schema.org/draft/2020-12/schema
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-assurance-qualification-profile-v0.1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-runtime-admission-request-v0.1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-runtime-admission-report-v0.1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-runtime-profile-pin-v0.1.schema.json
+
+      - name: Validate the runtime profile and request fixtures
+        run: |
+          set -euo pipefail
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-assurance-qualification-profile-v0.1.schema.json -i schemas/examples/industry-runtime-admission-profile-synthetic-v0.1.json
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-runtime-admission-request-v0.1.schema.json -i schemas/examples/industry-runtime-admission-request-synthetic-v0.1.json
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-runtime-profile-pin-v0.1.schema.json -i schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json
+
+      - name: Prove unknown request fields and malformed time are rejected
+        run: |
+          set -euo pipefail
+          source=schemas/examples/industry-runtime-admission-request-synthetic-v0.1.json
+          schema=schemas/industry-runtime-admission-request-v0.1.schema.json
+          jq '.unrecognized = true' "$source" > "$RUNNER_TEMP/unknown.json"
+          jq '.as_of = "2026-99-99T99:99:99Z"' "$source" > "$RUNNER_TEMP/bad-time.json"
+          for mutant in "$RUNNER_TEMP/unknown.json" "$RUNNER_TEMP/bad-time.json"; do
+            if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$mutant"; then
+              echo "ERROR: request schema accepted negative control $mutant"
+              exit 1
+            fi
+          done

@@ -1,0 +1,63 @@
+{
+  "schema_version": "luminous.ieac-runtime-admission-request.v0.1",
+  "request_id": "runtime-admission-telecom-fixture-001",
+  "profile_id": "synthetic-telecom-runtime-admission-d0-v0.1",
+  "profile_sha256": "e7437199aa1db9207b11e790eb270b873034218595fe3f548052e637cd531a6f",
+  "capability_id": "telecom-site-backup-autonomy-advisory",
+  "instance_id": "synthetic-site-network-001",
+  "decision_id": "annotate-site-backup-envelope",
+  "decision_tier": "D0_descriptive",
+  "action": "annotate",
+  "intended_user": "Synthetic infrastructure planner",
+  "model_id": "telecom-backup-model-v0.1",
+  "model_artifact_id": "model-001",
+  "model_sha256": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+  "evaluator_id": "evaluator-001",
+  "evaluator_artifact_id": "evaluator-001",
+  "evaluator_sha256": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+  "configuration_id": "config-001",
+  "configuration_artifact_id": "config-001",
+  "configuration_sha256": "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+  "topology_id": "topology-001",
+  "topology_artifact_id": "topology-001",
+  "topology_sha256": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+  "asset_id": "synthetic-site-network-001",
+  "snapshot_id": "telecom-snapshot-001",
+  "snapshot_sha256": "bb0979018341cfbe7522961006f7acc56e321c7c5350c0dd9ea9f1eac01be873",
+  "as_of": "2026-10-31T12:00:00Z",
+  "snapshot": {
+    "snapshot_id": "telecom-snapshot-001",
+    "as_of": "2026-10-31T12:00:00Z",
+    "asset_id": "synthetic-site-network-001",
+    "topology_sha256": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+    "conditions": [
+      {
+        "variable": "site_backup_usable_energy",
+        "unit": "kWh",
+        "value": 12,
+        "lower": 11,
+        "upper": 13,
+        "observed_at": "2026-10-31T11:30:00Z",
+        "evidence_artifact_id": "sensor-battery-001",
+        "evidence_sha256": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5"
+      }
+    ]
+  },
+  "revocation_snapshot_sha256": "3f840c04e679ca4a68d31501f9bc763a48d2952da5ddf84de81409feed20b97c",
+  "revocation_snapshot": {
+    "snapshot_id": "authorization-snapshot-001",
+    "as_of": "2026-10-31T12:00:00Z",
+    "status": "current",
+    "authorization_status": "authorized",
+    "revoked_profile_ids": [],
+    "revoked_artifact_ids": [],
+    "revoked_sha256": [],
+    "allowed_actions": [
+      "view",
+      "annotate"
+    ],
+    "source_artifact_id": "authorization-source-001",
+    "source_sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+    "observed_at": "2026-10-31T12:00:00Z"
+  }
+}

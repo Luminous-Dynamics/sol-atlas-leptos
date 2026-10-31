@@ -1,0 +1,201 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/industry-runtime-admission-report-v0.1.schema.json",
+  "title": "IEAC Runtime Admission Report v0.1",
+  "description": "Scoped runtime admission result. An admit result applies only to the bound request and snapshot and is not a physical, safety or operational qualification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "action",
+    "admission",
+    "as_of",
+    "asset_id",
+    "condition_results",
+    "configuration_sha256",
+    "evaluator_sha256",
+    "evaluator_version",
+    "highest_permitted_action",
+    "independent_checker",
+    "model_sha256",
+    "profile_id",
+    "profile_pin_sha256",
+    "profile_sha256",
+    "reason_codes",
+    "report_sha256",
+    "request_id",
+    "request_sha256",
+    "revocation_snapshot_sha256",
+    "schema_version",
+    "snapshot_id",
+    "snapshot_sha256",
+    "topology_sha256"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.ieac-runtime-admission-report.v0.1"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "admission": {
+      "enum": [
+        "admit_descriptive",
+        "admit_advisory",
+        "abstain",
+        "reject"
+      ]
+    },
+    "highest_permitted_action": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "view",
+        "annotate",
+        "recommend",
+        "rank_options",
+        "prepare_plan",
+        null
+      ]
+    },
+    "condition_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "variable",
+          "result",
+          "reason_codes"
+        ],
+        "properties": {
+          "variable": {
+            "type": "string",
+            "minLength": 1
+          },
+          "result": {
+            "enum": [
+              "in_domain",
+              "marginal",
+              "out_of_domain",
+              "indeterminate",
+              "not_applicable"
+            ]
+          },
+          "reason_codes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "reason_codes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "profile_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{64}$"
+    },
+    "request_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{64}$"
+    },
+    "snapshot_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{64}$"
+    },
+    "revocation_snapshot_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{64}$"
+    },
+    "evaluator_version": {
+      "const": "ieac-runtime-admission-v0.1.0"
+    },
+    "independent_checker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "checker_version",
+        "status",
+        "errors"
+      ],
+      "properties": {
+        "checker_version": {
+          "const": "ieac-runtime-independent-checker.v0.1.0"
+        },
+        "status": {
+          "enum": [
+            "passed",
+            "failed"
+          ]
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "report_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{64}$"
+    },
+    "asset_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "snapshot_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "as_of": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Exact as-of field supplied by the request; malformed or missing values remain visible in rejected reports."
+    },
+    "action": {
+      "type": "string",
+      "maxLength": 128,
+      "description": "Exact requested action, including an unrecognized value in a rejected request."
+    },
+    "model_sha256": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Exact request value; request validation determines whether the digest is valid."
+    },
+    "evaluator_sha256": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Exact request value; request validation determines whether the digest is valid."
+    },
+    "configuration_sha256": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Exact request value; request validation determines whether the digest is valid."
+    },
+    "topology_sha256": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Exact request value; request validation determines whether the digest is valid."
+    },
+    "profile_pin_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{64}$"
+    }
+  }
+}

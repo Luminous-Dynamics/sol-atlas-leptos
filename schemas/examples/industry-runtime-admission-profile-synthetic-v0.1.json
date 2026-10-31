@@ -1,0 +1,219 @@
+{
+  "schema_version": "luminous.industry-assurance-profile.v0.1",
+  "profile_id": "synthetic-telecom-runtime-admission-d0-v0.1",
+  "claim": {
+    "claim_id": "claim-synthetic-site-continuity-001",
+    "capability_id": "telecom-site-backup-autonomy-advisory",
+    "instance_id": "synthetic-site-network-001",
+    "decision_id": "annotate-site-backup-envelope",
+    "description": "Synthetic demonstration profile for ranking backup-power and backhaul-resilience options under declared scenarios. No radio coverage or field uptime claim is made.",
+    "intended_user": "Infrastructure planner reviewing a synthetic network scenario",
+    "model_ids": [
+      "telecom-backup-model-v0.1"
+    ],
+    "prohibited_claims": [
+      "measured end-user quality of service",
+      "RF coverage",
+      "operator SLA compliance",
+      "field-proven site autonomy"
+    ]
+  },
+  "decision_tier": "D0_descriptive",
+  "operating_envelope": {
+    "envelope_id": "synthetic-topology-envelope-001",
+    "domain_description": "Synthetic declared topology with aggregate service cells, explicit link capacities and a simple constant-load backup-energy accounting model.",
+    "conditions": [
+      {
+        "variable": "site_backup_usable_energy",
+        "unit": "kWh",
+        "minimum": 0,
+        "maximum": 20,
+        "max_age_seconds": 3600,
+        "support": "Synthetic measurement fixture only; not a field energy or battery-chemistry claim.",
+        "evidence_state": "measured",
+        "source_artifact_ids": [
+          "sensor-battery-001"
+        ]
+      }
+    ],
+    "excluded_domains": [
+      "radio propagation and antenna planning",
+      "subscriber-level traffic or personal location data",
+      "real operator site inventory",
+      "battery electrochemistry and generator dynamics",
+      "measured end-user QoS"
+    ],
+    "known_counterexamples": [
+      "A logical alternate path may share a physical fiber duct or power dependency.",
+      "A nominal battery capacity may overstate usable energy after derating."
+    ],
+    "out_of_domain_policy": "abstain"
+  },
+  "risk_assessment": {
+    "reviewed_class": "moderate",
+    "dimensions": {
+      "consequence": "major",
+      "model_influence": "advisory",
+      "exposure": "site_or_facility",
+      "reversibility": "readily_reversible",
+      "detectability": "delayed_or_partial",
+      "fallback": "human_fallback"
+    },
+    "rationale": "Synthetic example only. The profile requests advice and prohibits external action. A real deployment must reassess the consequences, exposed population, failure detectability and fallback independently.",
+    "reviewer_id": "synthetic-fixture-reviewer",
+    "reviewed_at": "2026-10-30T00:00:00Z",
+    "rule_set_version": "ieac-risk-rubric-v0.1"
+  },
+  "evidence_vector": {
+    "software_conformance": {
+      "state": "not_established",
+      "requirement": "mandatory",
+      "rationale": "The fixture illustrates the contract; no executable telecom evaluator is qualified.",
+      "evidence": []
+    },
+    "numerical_verification": {
+      "state": "not_established",
+      "requirement": "mandatory",
+      "rationale": "No telecom known-answer evaluator results are attached.",
+      "evidence": []
+    },
+    "physical_validation": {
+      "state": "unknown",
+      "requirement": "optional",
+      "rationale": "No physical or field validation is claimed for the synthetic topology.",
+      "evidence": []
+    },
+    "data_integrity_rights": {
+      "state": "not_established",
+      "requirement": "mandatory",
+      "rationale": "All topology and load values are synthetic; no operator data permission is asserted.",
+      "evidence": []
+    },
+    "uncertainty_credibility": {
+      "state": "not_established",
+      "requirement": "mandatory",
+      "rationale": "Intervals are declared synthetic assumptions, not calibrated uncertainty.",
+      "evidence": []
+    },
+    "generalization": {
+      "state": "unknown",
+      "requirement": "mandatory",
+      "rationale": "No held-out real topology or site evaluation exists in this example.",
+      "evidence": []
+    },
+    "robustness": {
+      "state": "not_established",
+      "requirement": "mandatory",
+      "rationale": "The profile lists counterexamples but includes no executed adversarial results.",
+      "evidence": []
+    },
+    "operational_assurance": {
+      "state": "unknown",
+      "requirement": "mandatory",
+      "rationale": "No operator integration, monitoring, recovery or shadow-pilot evidence exists.",
+      "evidence": []
+    },
+    "safety_security_authority": {
+      "state": "not_established",
+      "requirement": "mandatory",
+      "rationale": "The example is advisory-only and has no production authorization or safety case.",
+      "evidence": []
+    },
+    "prospective_outcomes": {
+      "state": "unknown",
+      "requirement": "optional",
+      "rationale": "No measured operational outcomes exist.",
+      "evidence": []
+    }
+  },
+  "artifact_bindings": [
+    {
+      "artifact_id": "model-001",
+      "role": "model",
+      "source_uri": "https://example.invalid/synthetic/model-001",
+      "content_sha256": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+      "evidence_class": "synthetic",
+      "rights_state": "verified",
+      "notes": "Synthetic fixture digest and URI; no external asset or field observation."
+    },
+    {
+      "artifact_id": "evaluator-001",
+      "role": "evaluator",
+      "source_uri": "https://example.invalid/synthetic/evaluator-001",
+      "content_sha256": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+      "evidence_class": "synthetic",
+      "rights_state": "verified",
+      "notes": "Synthetic fixture digest and URI; no external asset or field observation."
+    },
+    {
+      "artifact_id": "config-001",
+      "role": "configuration",
+      "source_uri": "https://example.invalid/synthetic/config-001",
+      "content_sha256": "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+      "evidence_class": "synthetic",
+      "rights_state": "verified",
+      "notes": "Synthetic fixture digest and URI; no external asset or field observation."
+    },
+    {
+      "artifact_id": "topology-001",
+      "role": "topology",
+      "source_uri": "https://example.invalid/synthetic/topology-001",
+      "content_sha256": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+      "evidence_class": "synthetic",
+      "rights_state": "verified",
+      "notes": "Synthetic fixture digest and URI; no external asset or field observation."
+    },
+    {
+      "artifact_id": "sensor-battery-001",
+      "role": "measurement_source",
+      "source_uri": "https://example.invalid/synthetic/sensor-battery-001",
+      "content_sha256": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+      "evidence_class": "synthetic",
+      "rights_state": "verified",
+      "notes": "Synthetic fixture digest and URI; no external asset or field observation."
+    },
+    {
+      "artifact_id": "authorization-source-001",
+      "role": "authorization_source",
+      "source_uri": "https://example.invalid/synthetic/authorization-source-001",
+      "content_sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+      "evidence_class": "synthetic",
+      "rights_state": "verified",
+      "notes": "Synthetic authorization-source identity binding only; no signed authority snapshot or live revocation source is represented."
+    }
+  ],
+  "authority": {
+    "permitted_actions": [
+      "view",
+      "annotate"
+    ],
+    "human_approval_required": true,
+    "actuation_enabled": false,
+    "fallback_action": "Return indeterminate and request human review when required inputs are missing, stale or outside the declared envelope.",
+    "prohibited_actions": [
+      "change radio configuration",
+      "dispatch emergency services",
+      "issue work orders",
+      "claim actual site availability"
+    ],
+    "max_authority_snapshot_age_seconds": 300
+  },
+  "validity": {
+    "valid_from": "2026-10-01T00:00:00Z",
+    "review_by": "2026-11-30T00:00:00Z",
+    "requalification_triggers": [
+      "change to the evaluator or model",
+      "change to topology, load or backup assumptions",
+      "addition of real operator data",
+      "change to decision authority"
+    ],
+    "revocation_triggers": [
+      "source permission withdrawal",
+      "digest mismatch",
+      "discovered false-positive availability claim",
+      "unresolved critical safety or security issue"
+    ]
+  },
+  "disposition": "indeterminate",
+  "claim_ceiling": "Synthetic contract-shape example only. It does not establish implementation, physical validity, RF coverage, measured QoS, operational readiness or qualification for any real site."
+}
