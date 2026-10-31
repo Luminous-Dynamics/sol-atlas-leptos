@@ -195,7 +195,8 @@
       "dispatch emergency services",
       "issue work orders",
       "claim actual site availability"
-    ]
+    ],
+    "max_authority_snapshot_age_seconds": 300
   },
   "validity": {
     "valid_from": "2026-10-01T00:00:00Z",
