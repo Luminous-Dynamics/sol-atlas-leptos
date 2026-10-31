@@ -168,3 +168,8 @@ Next implementation tranche:
 6. Wire exact-head CI to check schema meta-validation, positive and negative fixtures, lockfile integrity and frozen digest stability.
 
 This work composes IEAC, existing artifact-chain and evidence-independence systems. It does not create a new provenance graph, capability ontology, solver or universal benchmark metric.
+
+
+## Frozen stratum trial counts
+
+The replication contract now freezes `trials_per_stratum` alongside the seed list. A runner must reject CLI overrides that differ from the frozen manifest; lower-count smoke runs need an explicitly distinct, non-benchmark protocol/receipt.
