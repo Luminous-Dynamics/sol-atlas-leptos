@@ -1,0 +1,423 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/industrial-twin-observation-capability-v0.1.schema.json",
+  "title": "Industrial Twin Observation Capability Profile v0.1",
+  "description": "A bounded, versioned declaration of what one read-only connector can observe from one source inventory.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "capability_profile_id",
+    "connector",
+    "source",
+    "inventory",
+    "scope",
+    "channels",
+    "capture_contract",
+    "observation_state",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.industrial-twin-observation-capability.v0.1"
+    },
+    "capability_profile_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 192,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/#@+-]*$"
+    },
+    "connector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "connector_id",
+        "build_sha256",
+        "mode",
+        "read_only"
+      ],
+      "properties": {
+        "connector_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 192,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/#@+-]*$"
+        },
+        "build_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "mode": {
+          "enum": [
+            "subscription",
+            "polling",
+            "snapshot",
+            "file",
+            "query"
+          ]
+        },
+        "read_only": {
+          "const": true
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_system_id",
+        "protocol",
+        "native_schema_uri",
+        "native_schema_version"
+      ],
+      "properties": {
+        "source_system_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 192,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/#@+-]*$"
+        },
+        "protocol": {
+          "enum": [
+            "opc_ua_fx",
+            "opc_ua",
+            "mtconnect",
+            "qif",
+            "vendor_api",
+            "file_exchange",
+            "other"
+          ]
+        },
+        "native_schema_uri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "native_schema_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "inventory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inventory_snapshot_id",
+        "inventory_snapshot_sha256",
+        "captured_at",
+        "trust_state",
+        "scope"
+      ],
+      "properties": {
+        "inventory_snapshot_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 192,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/#@+-]*$"
+        },
+        "inventory_snapshot_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "captured_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "trust_state": {
+          "enum": [
+            "authenticated",
+            "operator_pinned",
+            "unverified",
+            "unknown"
+          ]
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "asset_ids",
+        "time_support",
+        "network_scope",
+        "permissions"
+      ],
+      "properties": {
+        "asset_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 192,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/#@+-]*$"
+          }
+        },
+        "time_support": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "network_scope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "permissions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "browse",
+              "read",
+              "subscribe",
+              "history_read"
+            ]
+          }
+        }
+      }
+    },
+    "channels": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "channel_id",
+          "native_field_path",
+          "native_type",
+          "availability",
+          "unit_semantics",
+          "timestamp_semantics"
+        ],
+        "properties": {
+          "channel_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 192,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/#@+-]*$"
+          },
+          "native_field_path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024
+          },
+          "native_type": {
+            "enum": [
+              "boolean",
+              "integer",
+              "number",
+              "string",
+              "object",
+              "array",
+              "null"
+            ]
+          },
+          "availability": {
+            "enum": [
+              "supported",
+              "partial",
+              "unsupported"
+            ]
+          },
+          "unit_semantics": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "timestamp_semantics": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "sampling_semantics": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "known_loss_modes": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "maxLength": 512
+            }
+          }
+        }
+      }
+    },
+    "capture_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pagination_complete",
+        "history_complete_for_declared_window",
+        "sequence_semantics",
+        "duplicate_detection",
+        "loss_counter_available",
+        "loss_counter_value",
+        "watermark_semantics",
+        "unknown_fields_policy"
+      ],
+      "properties": {
+        "pagination_complete": {
+          "type": "boolean"
+        },
+        "history_complete_for_declared_window": {
+          "type": "boolean"
+        },
+        "sequence_semantics": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "duplicate_detection": {
+          "enum": [
+            "exact_sequence",
+            "exact_record_id",
+            "best_effort",
+            "unavailable"
+          ]
+        },
+        "loss_counter_available": {
+          "type": "boolean"
+        },
+        "loss_counter_value": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "watermark_semantics": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "unknown_fields_policy": {
+          "enum": [
+            "preserve",
+            "reject",
+            "quarantine",
+            "drop_with_explicit_loss_record"
+          ]
+        }
+      }
+    },
+    "observation_state": {
+      "enum": [
+        "complete_within_declared_inventory",
+        "partial",
+        "invalid"
+      ]
+    },
+    "known_blind_spots": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "maxLength": 512
+      }
+    },
+    "claim_ceiling": {
+      "const": "connector_observation_capability_only"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "observation_state": {
+            "const": "complete_within_declared_inventory"
+          }
+        },
+        "required": [
+          "observation_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "inventory": {
+            "properties": {
+              "trust_state": {
+                "enum": [
+                  "authenticated",
+                  "operator_pinned"
+                ]
+              }
+            }
+          },
+          "channels": {
+            "items": {
+              "properties": {
+                "availability": {
+                  "const": "supported"
+                },
+                "known_loss_modes": {
+                  "maxItems": 0
+                }
+              }
+            }
+          },
+          "capture_contract": {
+            "properties": {
+              "pagination_complete": {
+                "const": true
+              },
+              "history_complete_for_declared_window": {
+                "const": true
+              },
+              "loss_counter_available": {
+                "const": true
+              },
+              "loss_counter_value": {
+                "const": 0
+              },
+              "duplicate_detection": {
+                "enum": [
+                  "exact_sequence",
+                  "exact_record_id"
+                ]
+              },
+              "unknown_fields_policy": {
+                "enum": [
+                  "preserve",
+                  "reject",
+                  "quarantine"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observation_state": {
+            "const": "invalid"
+          }
+        },
+        "required": [
+          "observation_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "capture_contract": {
+            "properties": {
+              "loss_counter_value": {
+                "minimum": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
