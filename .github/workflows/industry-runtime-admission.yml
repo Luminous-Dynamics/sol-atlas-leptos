@@ -9,6 +9,8 @@ on:
       - "schemas/industry-runtime-profile-pin-v0.1.schema.json"
       - "schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json"
       - "schemas/examples/industry-runtime-admission-*.json"
+      - "schemas/examples/ieac-voi-entropy-vs-decision-value-synthetic-v0.1.json"
+      - "docs/industry/IEAC_VALUE_OF_INFORMATION_V0.1.md"
       - "schemas/industry-assurance-qualification-profile-v0.1.schema.json"
       - "schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json"
       - "docs/industry/IEAC_RUNTIME_ADMISSION_V0.1.md"
@@ -24,6 +26,8 @@ on:
       - "schemas/industry-runtime-profile-pin-v0.1.schema.json"
       - "schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json"
       - "schemas/examples/industry-runtime-admission-*.json"
+      - "schemas/examples/ieac-voi-entropy-vs-decision-value-synthetic-v0.1.json"
+      - "docs/industry/IEAC_VALUE_OF_INFORMATION_V0.1.md"
       - "schemas/industry-assurance-qualification-profile-v0.1.schema.json"
       - "schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json"
       - ".github/workflows/industry-runtime-admission.yml"
@@ -184,6 +188,40 @@ jobs:
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-runtime-profile-pin-v0.1.schema.json -i schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json
           jq '.snapshot.conditions = []' schemas/examples/industry-runtime-admission-request-synthetic-v0.1.json > "$RUNNER_TEMP/empty-measurements.json"
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-runtime-admission-request-v0.1.schema.json -i "$RUNNER_TEMP/empty-measurements.json"
+
+      - name: Verify the hand-calculated value-of-information counterexample
+        run: |
+          set -euo pipefail
+          fixture=schemas/examples/ieac-voi-entropy-vs-decision-value-synthetic-v0.1.json
+          jq -e '
+            .schema_version == "luminous.ieac-voi-counterexample.v0.1" and
+            .reproducibility.hidden_state_count == 4 and
+            (.observations | length == 2)
+          ' "$fixture"
+          expected_ig="$(jq -r '.observations[] | select(.observation_id == "hazard_probe") | .expected_information_gain_bits' "$fixture")"
+          computed_ig="$(awk 'function entropy(p) { return -p * log(p) / log(2) - (1-p) * log(1-p) / log(2) } BEGIN { printf "%.15f", entropy(0.1) - 0.18 * entropy(0.5) - 0.82 * entropy(1/82) }')"
+          awk -v actual="$computed_ig" -v expected="$expected_ig" 'BEGIN { delta = actual - expected; if (delta < -0.000000001 || delta > 0.000000001) exit 1 }'
+          jq -e '
+            . as $f |
+            ($f.observations[] | select(.observation_id == "mode_probe")) as $mode |
+            ($f.observations[] | select(.observation_id == "hazard_probe")) as $hazard |
+            ($hazard.outcome_probability.positive) as $p_pos |
+            ($hazard.posterior.positive.failure) as $post_pos |
+            ($hazard.outcome_probability.negative) as $p_neg |
+            ($hazard.posterior.negative.failure) as $post_neg |
+            ($p_pos * ([100 * $post_pos, 12] | min) +
+             $p_neg * ([100 * $post_neg, 12] | min)) as $after |
+            ($after >= ($hazard.expected_decision_loss_after_observation - 0.000000001) and
+             $after <= ($hazard.expected_decision_loss_after_observation + 0.000000001)) and
+            ($hazard.expected_information_gain_bits == 0.2110814521389986) and
+            (($hazard.expected_gross_value_of_information - (10 - $after) | if . < 0 then -. else . end) < 0.000000001) and
+            (($hazard.expected_net_value_of_information - (10 - $after - 1) | if . < 0 then -. else . end) < 0.000000001) and
+            ($mode.expected_information_gain_bits == 1) and
+            ($mode.expected_decision_loss_after_observation == 10) and
+            ($mode.expected_net_value_of_information == -1) and
+            ($f.expected_comparison.entropy_policy_selects == "mode_probe") and
+            ($f.expected_comparison.value_of_information_policy_selects == "hazard_probe")
+          ' "$fixture"
 
       - name: Prove unknown request fields and malformed time are rejected
         run: |
