@@ -1,0 +1,99 @@
+name: Energy Dispatch Independent LP Translation Validation
+
+on:
+  pull_request:
+    paths:
+      - "tools/energy-dispatch-lp-validator/**"
+      - "tools/energy-dispatch-mip-reference/**"
+      - "schemas/examples/energy-dispatch-pv-outage.synthetic.json"
+      - ".github/workflows/energy-dispatch-lp-translation-validation.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: energy-dispatch-lp-translation-validation-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  translation-validation:
+    name: Independent request-to-LP semantic validation (Rust 1.96.0)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pinned Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.0
+          components: clippy, rustfmt
+
+      - name: Check validator formatting
+        run: cargo fmt --manifest-path tools/energy-dispatch-lp-validator/Cargo.toml --all -- --check
+
+      - name: Generate standalone dependency locks
+        run: |
+          cargo generate-lockfile --manifest-path tools/energy-dispatch-mip-reference/Cargo.toml
+          cargo generate-lockfile --manifest-path tools/energy-dispatch-lp-validator/Cargo.toml
+
+      - name: Test and lint independent validator
+        run: |
+          cargo test --manifest-path tools/energy-dispatch-lp-validator/Cargo.toml --locked
+          cargo clippy --manifest-path tools/energy-dispatch-lp-validator/Cargo.toml --all-targets --locked -- -D warnings
+
+      - name: Test and lint standalone LP emitter
+        run: |
+          cargo test --manifest-path tools/energy-dispatch-mip-reference/Cargo.toml --locked
+          cargo clippy --manifest-path tools/energy-dispatch-mip-reference/Cargo.toml --all-targets --locked -- -D warnings
+
+      - name: Emit the twelve frozen-fixture integer LPs
+        run: |
+          cargo run --manifest-path tools/energy-dispatch-mip-reference/Cargo.toml --locked -- \
+            schemas/examples/energy-dispatch-pv-outage.synthetic.json \
+            target/energy-dispatch-translation-validation/models
+          test "$(find target/energy-dispatch-translation-validation/models -maxdepth 1 -name '*.lp' | wc -l)" -eq 12
+
+      - name: Independently validate each emitted objective model
+        run: |
+          mkdir -p target/energy-dispatch-translation-validation/receipts
+          for lp in target/energy-dispatch-translation-validation/models/*.lp; do
+            name="$(basename "$lp")"
+            receipt="target/energy-dispatch-translation-validation/receipts/${name%.lp}.translation.json"
+            cargo run --quiet \
+              --manifest-path tools/energy-dispatch-lp-validator/Cargo.toml \
+              --locked -- \
+              schemas/examples/energy-dispatch-pv-outage.synthetic.json \
+              "$lp" \
+              "$receipt"
+            jq -e '.equivalent == true and .request_sha256 != "" and .lp_sha256 != "" and .reference_model_sha256 == .parsed_model_sha256' "$receipt"
+          done
+          test "$(find target/energy-dispatch-translation-validation/receipts -maxdepth 1 -name '*.translation.json' | wc -l)" -eq 12
+
+      - name: Build exact-head qualification manifest
+        run: |
+          rustc --version > target/energy-dispatch-translation-validation/rustc-version.txt
+          cargo --version > target/energy-dispatch-translation-validation/cargo-version.txt
+          sha256sum tools/energy-dispatch-mip-reference/Cargo.lock tools/energy-dispatch-lp-validator/Cargo.lock \
+            > target/energy-dispatch-translation-validation/lockfile-sha256.txt
+          jq -s '{receipt_count:length, all_equivalent:all(.[]; .equivalent == true), request_digests:(map(.request_sha256)|unique), lp_digests:(map(.lp_sha256)|unique), semantic_digests:(map(.reference_model_sha256)|unique), validator_versions:(map(.validator_version)|unique), claim_ceiling:"request-to-LP translation equivalence only; not solver optimality, certificate validity, physical validity, evidence authenticity, operational safety or authorization"}' \
+            target/energy-dispatch-translation-validation/receipts/*.translation.json \
+            > target/energy-dispatch-translation-validation/qualification.json
+          jq -e '.receipt_count == 12 and .all_equivalent == true and (.request_digests|length) == 1' \
+            target/energy-dispatch-translation-validation/qualification.json
+
+      - name: Publish LPs, receipts, lockfiles and verifier source
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: energy-dispatch-translation-validation-${{ github.sha }}
+          path: |
+            target/energy-dispatch-translation-validation/
+            tools/energy-dispatch-mip-reference/Cargo.lock
+            tools/energy-dispatch-lp-validator/Cargo.lock
+            tools/energy-dispatch-lp-validator/Cargo.toml
+            tools/energy-dispatch-lp-validator/README.md
+            tools/energy-dispatch-lp-validator/src/lib.rs
+            tools/energy-dispatch-lp-validator/src/main.rs
+          if-no-files-found: error
+          retention-days: 14
