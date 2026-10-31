@@ -87,6 +87,23 @@ jobs:
           ' "$report"
           cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked --bin industry-runtime-check -- "$profile" "$pin" "$request" "$report"
 
+      - name: Execute frozen stratified admission benchmark smoke
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/ieac-admission-benchmark-smoke.json"
+          cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked --bin industry-admission-benchmark -- \\
+            --manifest schemas/examples/ieac-runtime-admission-benchmark-manifest-synthetic-v0.1.json \\
+            --trials-per-family 2 --seed 0x20261031 --output "$report"
+          jq -e '
+            .schema_version == "luminous.ieac-runtime-admission-benchmark-report.v0.1" and
+            .summary.negative_trials > 0 and
+            .summary.false_admissions == 0 and
+            .summary.candidate_checker_disagreements == 0 and
+            .summary.report_tamper_checks == .summary.report_tamper_detected and
+            .summary.deterministic_replay_mismatches == 0 and
+            (.strata | length == 14)
+          ' "$report"
+
       - name: Prove locked dependency graphs remain committed
         run: git diff --exit-code -- tools/industry-assurance-validator/Cargo.lock tools/industry-runtime-admission/Cargo.lock
 
