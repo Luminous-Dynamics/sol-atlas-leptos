@@ -98,6 +98,8 @@ jobs:
             .schema_version == "luminous.ieac-runtime-admission-benchmark-report.v0.1" and
             .summary.negative_trials > 0 and
             .summary.false_admissions == 0 and
+            .summary.positive_admission_coverage == 1 and
+            .summary.negative_non_admission_rate == 1 and
             .summary.candidate_checker_disagreements == 0 and
             .summary.expected_disposition_mismatches == 0 and
             .summary.expected_reason_code_misses == 0 and
