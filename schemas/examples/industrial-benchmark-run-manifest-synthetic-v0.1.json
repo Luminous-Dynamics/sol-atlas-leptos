@@ -203,7 +203,8 @@
       17
     ],
     "stopping_rule": "Complete one fixed 30-day simulated horizon; no early stopping.",
-    "deterministic_replay_expected": true
+    "deterministic_replay_expected": true,
+    "trials_per_stratum": 1
   },
   "environment": {
     "operating_system": "Linux (illustrative)",
