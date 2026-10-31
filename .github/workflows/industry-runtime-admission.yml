@@ -87,6 +87,27 @@ jobs:
           ' "$report"
           cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked --bin industry-runtime-check -- "$profile" "$pin" "$request" "$report"
 
+      - name: Execute frozen stratified admission benchmark smoke
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/ieac-admission-benchmark-smoke.json"
+          cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked --bin industry-admission-benchmark -- \\
+            --manifest schemas/examples/ieac-runtime-admission-benchmark-manifest-synthetic-v0.1.json \\
+            --output "$report"
+          jq -e '
+            .schema_version == "luminous.ieac-runtime-admission-benchmark-report.v0.1" and
+            .summary.negative_trials > 0 and
+            .summary.false_admissions == 0 and
+            .summary.positive_admission_coverage == 1 and
+            .summary.negative_non_admission_rate == 1 and
+            .summary.candidate_checker_disagreements == 0 and
+            .summary.expected_disposition_mismatches == 0 and
+            .summary.expected_reason_code_misses == 0 and
+            .summary.report_tamper_checks == .summary.report_tamper_detected and
+            .summary.deterministic_replay_mismatches == 0 and
+            (.strata | length == 19)
+          ' "$report"
+
       - name: Prove locked dependency graphs remain committed
         run: git diff --exit-code -- tools/industry-assurance-validator/Cargo.lock tools/industry-runtime-admission/Cargo.lock
 
@@ -113,6 +134,13 @@ jobs:
       - name: Add schema CLI to PATH
         run: echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
 
+      - name: Checkout the pinned IBAP v0.1 manifest schema
+        uses: actions/checkout@v4
+        with:
+          repository: Luminous-Dynamics/sol-atlas-leptos
+          ref: 979eb38609eaa4b2c9e14ed0acd6c0c17fe61b93
+          path: .ibap-contract
+
       - name: Validate profile and runtime schemas against Draft 2020-12 meta-schema
         run: |
           set -euo pipefail
@@ -121,6 +149,13 @@ jobs:
           jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-runtime-admission-request-v0.1.schema.json
           jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-runtime-admission-report-v0.1.schema.json
           jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-runtime-profile-pin-v0.1.schema.json
+
+      - name: Validate the frozen admission benchmark manifest against IBAP v0.1
+        run: |
+          set -euo pipefail
+          jsonschema-cli validate --draft 2020 --assert-format --offline \\
+            .ibap-contract/schemas/industrial-benchmark-run-manifest-v0.1.schema.json \\
+            -i schemas/examples/ieac-runtime-admission-benchmark-manifest-synthetic-v0.1.json
 
       - name: Validate the runtime profile and request fixtures
         run: |
