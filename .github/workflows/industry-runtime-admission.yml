@@ -6,6 +6,8 @@ on:
       - "tools/industry-runtime-admission/**"
       - "tools/industry-assurance-validator/**"
       - "schemas/industry-runtime-admission-*.json"
+      - "schemas/industry-runtime-profile-pin-v0.1.schema.json"
+      - "schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json"
       - "schemas/examples/industry-runtime-admission-*.json"
       - "schemas/industry-assurance-qualification-profile-v0.1.schema.json"
       - "schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json"
@@ -69,9 +71,10 @@ jobs:
         run: |
           set -euo pipefail
           profile=schemas/examples/industry-runtime-admission-profile-synthetic-v0.1.json
+          pin=schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json
           request=schemas/examples/industry-runtime-admission-request-synthetic-v0.1.json
           report="$RUNNER_TEMP/runtime-admission-report.json"
-          cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked -- "$profile" "$request" "$report"
+          cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked -- "$profile" "$pin" "$request" "$report"
           jq -e '
             .schema_version == "luminous.ieac-runtime-admission-report.v0.1" and
             .admission == "admit_descriptive" and
@@ -80,7 +83,7 @@ jobs:
             .independent_checker.errors == [] and
             (.report_sha256 | test("^[0-9a-f]{64}$"))
           ' "$report"
-          cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked --bin industry-runtime-check -- "$profile" "$request" "$report"
+          cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked --bin industry-runtime-check -- "$profile" "$pin" "$request" "$report"
 
       - name: Prove locked dependency graphs remain committed
         run: git diff --exit-code -- tools/industry-assurance-validator/Cargo.lock tools/industry-runtime-admission/Cargo.lock
@@ -115,12 +118,14 @@ jobs:
           jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-assurance-qualification-profile-v0.1.schema.json
           jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-runtime-admission-request-v0.1.schema.json
           jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-runtime-admission-report-v0.1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-runtime-profile-pin-v0.1.schema.json
 
       - name: Validate the runtime profile and request fixtures
         run: |
           set -euo pipefail
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-assurance-qualification-profile-v0.1.schema.json -i schemas/examples/industry-runtime-admission-profile-synthetic-v0.1.json
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-runtime-admission-request-v0.1.schema.json -i schemas/examples/industry-runtime-admission-request-synthetic-v0.1.json
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-runtime-profile-pin-v0.1.schema.json -i schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json
 
       - name: Prove unknown request fields and malformed time are rejected
         run: |
