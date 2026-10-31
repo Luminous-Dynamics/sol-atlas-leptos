@@ -1435,6 +1435,44 @@ mod tests {
     }
 
     #[test]
+    fn independent_schedule_oracle_rejects_broken_soc_carry_forward() {
+        let request_bytes = two_interval_charge_then_outage_request();
+        let request: Request = serde_json::from_slice(&request_bytes).unwrap();
+        let mut assignment = BTreeMap::from([
+            ("grid_import_000".to_owned(), 0),
+            ("charge_input_000".to_owned(), 1),
+            ("soc_withdrawal_000".to_owned(), 0),
+            ("charge_gain_000".to_owned(), 1),
+            ("discharge_delivered_000".to_owned(), 0),
+            ("soc_after_000".to_owned(), 1),
+            ("essential_served_000".to_owned(), 0),
+            ("essential_unserved_000".to_owned(), 0),
+            ("flexible_served_000".to_owned(), 0),
+            ("flexible_unserved_000".to_owned(), 0),
+            ("pv_used_000".to_owned(), 1),
+            ("pv_curtailed_000".to_owned(), 0),
+            ("charge_mode_000".to_owned(), 1),
+            ("grid_import_001".to_owned(), 0),
+            ("charge_input_001".to_owned(), 0),
+            ("soc_withdrawal_001".to_owned(), 1),
+            ("charge_gain_001".to_owned(), 0),
+            ("discharge_delivered_001".to_owned(), 1),
+            ("soc_after_001".to_owned(), 0),
+            ("essential_served_001".to_owned(), 1),
+            ("essential_unserved_001".to_owned(), 0),
+            ("flexible_served_001".to_owned(), 0),
+            ("flexible_unserved_001".to_owned(), 0),
+            ("pv_used_001".to_owned(), 0),
+            ("pv_curtailed_001".to_owned(), 0),
+            ("charge_mode_001".to_owned(), 0),
+        ]);
+
+        assert!(schedule_spec_accepts_assignment(&request, &assignment));
+        assignment.insert("soc_after_000".to_owned(), 0);
+        assert!(!schedule_spec_accepts_assignment(&request, &assignment));
+    }
+
+    #[test]
     fn exhaustively_matches_the_schedule_spec_for_unity_efficiency_fixture() {
         let (visited, feasible) = exhaustively_compare_model_to_schedule_spec(REQUEST);
         assert!(visited >= 10_000);
