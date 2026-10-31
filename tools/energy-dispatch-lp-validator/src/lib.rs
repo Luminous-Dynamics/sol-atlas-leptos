@@ -1176,6 +1176,239 @@ mod tests {
         lp
     }
 
+    fn integer_at(assignment: &BTreeMap<String, i64>, name: &str) -> i64 {
+        *assignment.get(name).unwrap_or_else(|| panic!("missing assignment for {name}"))
+    }
+
+    fn model_accepts_assignment(
+        model: &SemanticModel,
+        assignment: &BTreeMap<String, i64>,
+    ) -> bool {
+        for (name, variable) in &model.variables {
+            let Some(value) = assignment.get(name) else {
+                return false;
+            };
+            if *value < variable.lower || *value > variable.upper {
+                return false;
+            }
+            if variable.domain == VariableDomain::Binary && !matches!(*value, 0 | 1) {
+                return false;
+            }
+        }
+
+        for row in model.constraints.values() {
+            let mut lhs = 0i64;
+            for (name, coefficient) in &row.coefficients {
+                let Some(value) = assignment.get(name) else {
+                    return false;
+                };
+                let Some(term) = coefficient.checked_mul(*value) else {
+                    return false;
+                };
+                let Some(next) = lhs.checked_add(term) else {
+                    return false;
+                };
+                lhs = next;
+            }
+            let satisfied = match row.relation {
+                Relation::Eq => lhs == row.rhs,
+                Relation::Le => lhs <= row.rhs,
+                Relation::Ge => lhs >= row.rhs,
+            };
+            if !satisfied {
+                return false;
+            }
+        }
+        true
+    }
+
+    /// Separate schedule-level specification: compute floor-rounded battery
+    /// transitions directly from physical request fields, then check service
+    /// partitions, reserve, mode exclusivity and bus energy balance.
+    fn schedule_spec_accepts_assignment(
+        request: &Request,
+        assignment: &BTreeMap<String, i64>,
+    ) -> bool {
+        if request.intervals.len() != 1 {
+            return false;
+        }
+        let interval = &request.intervals[0];
+        let battery = &request.battery;
+        let value = |prefix: &str| integer_at(assignment, &format!("{prefix}_000"));
+
+        let grid = value("grid_import");
+        let charge_input = value("charge_input");
+        let withdrawal = value("soc_withdrawal");
+        let charge_gain = value("charge_gain");
+        let delivered = value("discharge_delivered");
+        let soc_after = value("soc_after");
+        let essential_served = value("essential_served");
+        let essential_unserved = value("essential_unserved");
+        let flexible_served = value("flexible_served");
+        let flexible_unserved = value("flexible_unserved");
+        let pv_used = value("pv_used");
+        let pv_curtailed = value("pv_curtailed");
+        let charge_mode = value("charge_mode");
+
+        let grid_limit = if interval.grid_outage {
+            0
+        } else {
+            i64::from(interval.grid_import_limit_quanta)
+        };
+        if grid < 0 || grid > grid_limit
+            || charge_input < 0
+            || charge_input > i64::from(battery.charge_input_limit_quanta)
+            || withdrawal < 0
+            || withdrawal > i64::from(battery.discharge_withdrawal_limit_quanta)
+            || withdrawal > i64::from(battery.initial_soc_quanta)
+            || charge_mode != 0 && charge_mode != 1
+        {
+            return false;
+        }
+        if charge_mode == 0 && charge_input != 0 {
+            return false;
+        }
+        if charge_mode == 1 && withdrawal != 0 {
+            return false;
+        }
+
+        let expected_gain = charge_input
+            .checked_mul(i64::from(battery.charge_efficiency_numerator))
+            .map(|product| product / i64::from(battery.charge_efficiency_denominator));
+        let expected_delivery = withdrawal
+            .checked_mul(i64::from(battery.discharge_efficiency_numerator))
+            .map(|product| product / i64::from(battery.discharge_efficiency_denominator));
+        if expected_gain != Some(charge_gain) || expected_delivery != Some(delivered) {
+            return false;
+        }
+
+        let expected_soc = i64::from(battery.initial_soc_quanta)
+            .checked_add(charge_gain)
+            .and_then(|stored| stored.checked_sub(withdrawal));
+        if expected_soc != Some(soc_after)
+            || soc_after < i64::from(battery.terminal_reserve_quanta)
+            || soc_after > i64::from(battery.capacity_quanta)
+        {
+            return false;
+        }
+
+        if essential_served < 0
+            || essential_unserved < 0
+            || essential_served + essential_unserved
+                != i64::from(interval.essential_demand_quanta)
+            || flexible_served < 0
+            || flexible_unserved < 0
+            || flexible_served + flexible_unserved
+                != i64::from(interval.flexible_demand_quanta)
+            || pv_used < 0
+            || pv_curtailed < 0
+            || pv_used + pv_curtailed != i64::from(interval.pv_available_quanta)
+        {
+            return false;
+        }
+
+        pv_used + grid + delivered
+            == essential_served + flexible_served + charge_input
+    }
+
+    fn exhaustively_compare_model_to_schedule_spec(request_bytes: &[u8]) -> (usize, usize) {
+        let request: Request = serde_json::from_slice(request_bytes).unwrap();
+        let model = derive_reference_model(
+            request_bytes,
+            ObjectiveId::EssentialUnservedQuanta,
+            Direction::Min,
+        ).unwrap();
+        let variables = model.variables.iter()
+            .map(|(name, variable)| (name.clone(), variable.lower, variable.upper))
+            .collect::<Vec<_>>();
+        let mut assignment = BTreeMap::new();
+        let mut visited = 0usize;
+        let mut feasible = 0usize;
+
+        fn visit(
+            index: usize,
+            variables: &[(String, i64, i64)],
+            model: &SemanticModel,
+            request: &Request,
+            assignment: &mut BTreeMap<String, i64>,
+            visited: &mut usize,
+            feasible: &mut usize,
+        ) {
+            if index == variables.len() {
+                *visited += 1;
+                let model_accepts = model_accepts_assignment(model, assignment);
+                let schedule_accepts = schedule_spec_accepts_assignment(request, assignment);
+                assert_eq!(
+                    model_accepts,
+                    schedule_accepts,
+                    "model/schedule disagreement for assignment {assignment:?}"
+                );
+                if model_accepts {
+                    *feasible += 1;
+                }
+                return;
+            }
+
+            let (name, lower, upper) = &variables[index];
+            for value in *lower..=*upper {
+                assignment.insert(name.clone(), value);
+                visit(
+                    index + 1,
+                    variables,
+                    model,
+                    request,
+                    assignment,
+                    visited,
+                    feasible,
+                );
+            }
+            assignment.remove(name);
+        }
+
+        visit(
+            0,
+            &variables,
+            &model,
+            &request,
+            &mut assignment,
+            &mut visited,
+            &mut feasible,
+        );
+        (visited, feasible)
+    }
+
+    #[test]
+    fn exhaustively_matches_the_schedule_spec_for_unity_efficiency_fixture() {
+        let (visited, feasible) = exhaustively_compare_model_to_schedule_spec(REQUEST);
+        assert!(visited >= 10_000);
+        assert!(feasible > 0);
+    }
+
+    #[test]
+    fn exhaustively_matches_non_integral_integer_floor_efficiency() {
+        let request = String::from_utf8(REQUEST.to_vec())
+            .unwrap()
+            .replace(
+                "\"charge_efficiency_numerator\":1",
+                "\"charge_efficiency_numerator\":2",
+            )
+            .replace(
+                "\"charge_efficiency_denominator\":1",
+                "\"charge_efficiency_denominator\":3",
+            )
+            .replace(
+                "\"discharge_efficiency_numerator\":1",
+                "\"discharge_efficiency_numerator\":2",
+            )
+            .replace(
+                "\"discharge_efficiency_denominator\":1",
+                "\"discharge_efficiency_denominator\":3",
+            );
+        let (visited, feasible) = exhaustively_compare_model_to_schedule_spec(request.as_bytes());
+        assert!(visited >= 10_000);
+        assert!(feasible > 0);
+    }
+
     #[test]
     fn derives_expected_variable_and_constraint_counts() {
         let model = derive_reference_model(
