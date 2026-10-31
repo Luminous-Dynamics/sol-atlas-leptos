@@ -81,6 +81,24 @@ fn fraction_matches(value: &Value, numerator: usize, denominator: usize) -> bool
     })
 }
 
+fn percentile(values: &[f64], quantile: f64) -> Option<f64> {
+    if values.is_empty() {
+        return None;
+    }
+    let mut sorted = values.to_vec();
+    sorted.sort_by(f64::total_cmp);
+    let rank = ((quantile * sorted.len() as f64).ceil() as usize).max(1);
+    sorted.get(rank - 1).copied()
+}
+
+fn latency_matches(value: &Value, values: &[f64], quantile: f64) -> bool {
+    match (value.as_f64(), percentile(values, quantile)) {
+        (None, None) => value.is_null(),
+        (Some(actual), Some(expected)) => (actual - expected).abs() <= 1e-9,
+        _ => false,
+    }
+}
+
 #[derive(Default)]
 struct FamilyCounts {
     trial_count: usize,
@@ -100,6 +118,7 @@ struct FamilyCounts {
     static_counterfactual_acceptances: usize,
     report_tamper_checks: usize,
     report_tamper_detected: usize,
+    latencies_ms: Vec<f64>,
 }
 
 fn verify_case(
@@ -202,6 +221,7 @@ fn verify_case(
     let latency_ms = record["observed"]["latency_ms"].as_f64()
         .filter(|value| value.is_finite() && *value >= 0.0)
         .ok_or_else(|| format!("case {case_index} latency_ms is missing or invalid"))?;
+    counts.latencies_ms.push(latency_ms);
 
     let expected_admission = require_string(record, "/expected/admission", "case expectation")?;
     let actual_admission = require_string(candidate_report, "/admission", "candidate report")?;
@@ -223,7 +243,7 @@ fn verify_case(
         return Err(format!("failure family {family} mixes positive and negative labels"));
     }
     family_metric.negative_control = Some(negative_control);
-    if family_metric.expected_admission.as_ref().is_some_and(|existing| existing != expected_admission) {
+    if family_metric.expected_admission.as_ref().is_some_and(|existing| existing.as_str() != expected_admission) {
         return Err(format!("failure family {family} declares inconsistent expected dispositions"));
     }
     family_metric.expected_admission = Some(expected_admission.to_owned());
@@ -248,7 +268,7 @@ fn verify_case(
             counts.static_baseline_counterfactual_acceptances += 1;
         }
     }
-    let _recorded_latency_ms = latency_ms;
+    family_metric.latencies_ms.push(latency_ms);
 
     if negative_control {
         counts.negative_trials += 1;
@@ -298,6 +318,7 @@ struct Counts {
     deterministic_replay_checks: usize,
     deterministic_replay_mismatches: usize,
     static_baseline_counterfactual_acceptances: usize,
+    latencies_ms: Vec<f64>,
 }
 
 fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
@@ -457,6 +478,9 @@ fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
             counts.positive_admissions,
             counts.positive_trials,
         )
+        && latency_matches(&report["end_to_end_latency_ms"]["p50"], &counts.latencies_ms, 0.50)
+        && latency_matches(&report["end_to_end_latency_ms"]["p95"], &counts.latencies_ms, 0.95)
+        && latency_matches(&report["end_to_end_latency_ms"]["p99"], &counts.latencies_ms, 0.99)
         && report["strata"].as_array().is_some_and(|strata| {
             if strata.len() != family_count || family_metrics.len() != family_count {
                 return false;
@@ -505,6 +529,9 @@ fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
                         == Some(metrics.report_tamper_checks as u64)
                     && stratum["report_tamper"]["detected"].as_u64()
                         == Some(metrics.report_tamper_detected as u64)
+                    && latency_matches(&stratum["latency_ms"]["p50"], &metrics.latencies_ms, 0.50)
+                    && latency_matches(&stratum["latency_ms"]["p95"], &metrics.latencies_ms, 0.95)
+                    && latency_matches(&stratum["latency_ms"]["p99"], &metrics.latencies_ms, 0.99)
             })
         });
     if !summary_matches {
