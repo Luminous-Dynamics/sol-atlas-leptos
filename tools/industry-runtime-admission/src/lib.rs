@@ -65,10 +65,6 @@ fn text_at<'a>(value: &'a Value, pointer: &str) -> Option<&'a str> {
     value.pointer(pointer).and_then(Value::as_str).filter(|s| !s.trim().is_empty())
 }
 
-fn number_at(value: &Value, pointer: &str) -> Option<f64> {
-    value.pointer(pointer).and_then(Value::as_f64).filter(|v| v.is_finite())
-}
-
 fn unique_push(set: &mut BTreeSet<String>, code: impl Into<String>) {
     set.insert(code.into());
 }
@@ -277,7 +273,7 @@ fn validate_schema_subset(instance: &Value, schema: &Value, path: &str, out: &mu
             "array" => instance.is_array(),
             "string" => instance.is_string(),
             "integer" => instance.as_i64().is_some() || instance.as_u64().is_some(),
-            "number" => instance.as_f64().is_some_and(f64::is_finite),
+            "number" => instance.as_f64().is_some_and(|value| value.is_finite()),
             "boolean" => instance.is_boolean(),
             "null" => instance.is_null(),
             _ => false,
@@ -733,6 +729,10 @@ fn independent_expected(profile: &Value, request: &Value) -> Value {
         reasons.insert("ACTION_NOT_PERMITTED_BY_PROFILE".to_owned());
         fatal = true;
     }
+    if !allowed.contains(&action) {
+        reasons.insert("ACTION_EXCEEDS_V0_1_AUTHORITY".to_owned());
+        fatal = true;
+    }
     if tier == "D1_advisory"
         && (profile["authority"]["actuation_enabled"] != false
             || profile["authority"]["human_approval_required"] != true)
@@ -894,6 +894,19 @@ fn independent_expected(profile: &Value, request: &Value) -> Value {
         let found: Vec<&Value> = supplied.iter().filter(|m| m["variable"].as_str() == Some(variable)).collect();
         let mut local = BTreeSet::new();
         let mut condition_state = "in_domain";
+
+        if !matches!(condition["evidence_state"].as_str(), Some("measured" | "validated_range")) {
+            local.insert("CONDITION_EVIDENCE_NOT_ADMITTED".to_owned());
+            condition_state = "indeterminate";
+            uncertain = true;
+        }
+        let max_age = condition["max_age_seconds"].as_u64();
+        if max_age.is_none() {
+            local.insert("FRESHNESS_LIMIT_NOT_DECLARED".to_owned());
+            condition_state = "indeterminate";
+            uncertain = true;
+        }
+
         let Some(measurement) = (if found.len() == 1 { found.first().copied() } else { None }) else {
             if found.len() > 1 {
                 local.insert("DUPLICATE_CONDITION_MEASUREMENT".to_owned());
@@ -908,18 +921,6 @@ fn independent_expected(profile: &Value, request: &Value) -> Value {
             condition_results.push(make_condition_result(variable, condition_state, &local.into_iter().collect::<Vec<_>>()));
             continue;
         };
-
-        if !matches!(condition["evidence_state"].as_str(), Some("measured" | "validated_range")) {
-            local.insert("CONDITION_EVIDENCE_NOT_ADMITTED".to_owned());
-            condition_state = "indeterminate";
-            uncertain = true;
-        }
-        let max_age = condition["max_age_seconds"].as_u64();
-        if max_age.is_none() {
-            local.insert("FRESHNESS_LIMIT_NOT_DECLARED".to_owned());
-            condition_state = "indeterminate";
-            uncertain = true;
-        }
         if measurement["unit"].as_str() != condition["unit"].as_str() {
             local.insert("UNIT_MISMATCH".to_owned());
             condition_state = "out_of_domain";
