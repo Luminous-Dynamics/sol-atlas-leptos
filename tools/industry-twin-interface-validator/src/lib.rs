@@ -547,8 +547,8 @@ mod tests {
         let mut value = fixture(include_str!(
             "../../../schemas/examples/industry-twin-interface-unified-synthetic-v0.1.json"
         ));
-        value["participants"][0]["time_semantics"]["ingestion_time_field"] =
-            value["participants"][0]["time_semantics"]["event_time_field"].clone();
+        let event_time = value["participants"][0]["time_semantics"]["event_time_field"].clone();
+        value["participants"][0]["time_semantics"]["ingestion_time_field"] = event_time;
         let issues = validate_manifest(&value);
         assert!(has_code(&issues, "SOURCE_AND_INGESTION_TIME_NOT_DISTINCT"));
     }
@@ -603,7 +603,8 @@ mod tests {
         let mut value = fixture(include_str!(
             "../../../schemas/examples/industry-twin-interface-federated-synthetic-v0.1.json"
         ));
-        value["participants"][1]["owner_id"] = value["participants"][0]["owner_id"].clone();
+        let owner = value["participants"][0]["owner_id"].clone();
+        value["participants"][1]["owner_id"] = owner;
         let issues = validate_manifest(&value);
         assert!(has_code(&issues, "FEDERATION_AUTHORITY_NOT_DISTRIBUTED"));
     }
