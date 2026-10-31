@@ -59,6 +59,14 @@ impl AlternativeFamily {
     }
 }
 
+/// The maximum claim this concept-manifest schema can express.
+/// This deliberately has one value: stronger claims require separate qualified evidence.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ClaimCeiling {
+    ConceptDescriptionOnly,
+}
+
 /// Coordinate axis ordering is explicit; it must never be guessed from numeric values.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -159,6 +167,7 @@ pub struct PortStudyManifest {
     pub schema_version: u16,
     pub study_id: String,
     pub study_region_id: String,
+    pub claim_ceiling: ClaimCeiling,
     pub alternatives: Vec<PortAlternative>,
 }
 
@@ -408,6 +417,7 @@ mod tests {
             schema_version: PORT_STUDY_SCHEMA_VERSION,
             study_id: "study-001".into(),
             study_region_id: "region-001".into(),
+            claim_ceiling: ClaimCeiling::ConceptDescriptionOnly,
             alternatives: vec![
                 alternative("baseline", AlternativeFamily::NoBuildOperational),
                 alternative("dry-port", AlternativeFamily::DryPortRail),
