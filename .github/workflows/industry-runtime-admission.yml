@@ -205,6 +205,13 @@ jobs:
             (.vectors | length == 4) and
             all(.vectors[]; (.canonical_sha256 | test("^[0-9a-f]{64}$")))
           ' schemas/examples/ieac-jcs-vectors-v0.2.json
+          while IFS= read -r vector; do
+            decoded="$(printf '%s' "$vector" | base64 --decode)"
+            canonical="$(printf '%s' "$decoded" | jq -r '.[0]')"
+            expected="$(printf '%s' "$decoded" | jq -r '.[1]')"
+            actual="$(printf '%s' "$canonical" | sha256sum | awk '{print $1}')"
+            test "$actual" = "$expected"
+          done < <(jq -r '.vectors[] | [.canonical_utf8, .canonical_sha256] | @base64' schemas/examples/ieac-jcs-vectors-v0.2.json)
 
       - name: Prove unknown request fields and malformed time are rejected
         run: |
