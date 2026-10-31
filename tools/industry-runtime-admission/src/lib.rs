@@ -372,6 +372,16 @@ pub fn evaluate_admission(profile: &Value, request: &Value) -> Value {
         unique_push(&mut reasons, "MODEL_ID_NOT_BOUND_TO_CLAIM");
         reject = true;
     }
+    for (id_field, artifact_field, code) in [
+        ("/evaluator_id", "/evaluator_artifact_id", "EVALUATOR_ID_MISMATCH"),
+        ("/configuration_id", "/configuration_artifact_id", "CONFIGURATION_ID_MISMATCH"),
+        ("/topology_id", "/topology_artifact_id", "TOPOLOGY_ID_MISMATCH"),
+    ] {
+        if text_at(request, id_field) != text_at(request, artifact_field) {
+            unique_push(&mut reasons, code);
+            reject = true;
+        }
+    }
 
     for (id_field, role, digest_field) in [
         ("/model_artifact_id", "model", "/model_sha256"),
@@ -476,6 +486,10 @@ pub fn evaluate_admission(profile: &Value, request: &Value) -> Value {
         "schema_version": "luminous.ieac-runtime-admission-report.v0.1",
         "request_id": text_at(request, "/request_id").unwrap_or("unknown"),
         "profile_id": profile_id,
+        "asset_id": text_at(request, "/asset_id").unwrap_or("unknown"),
+        "snapshot_id": text_at(request, "/snapshot_id").unwrap_or("unknown"),
+        "as_of": as_of_text,
+        "action": action,
         "admission": admission,
         "highest_permitted_action": highest_action,
         "condition_results": condition_results,
@@ -484,6 +498,10 @@ pub fn evaluate_admission(profile: &Value, request: &Value) -> Value {
         "request_sha256": sha256_value(request),
         "snapshot_sha256": snapshot_digest,
         "revocation_snapshot_sha256": revocation_digest,
+        "model_sha256": text_at(request, "/model_sha256").unwrap_or(""),
+        "evaluator_sha256": text_at(request, "/evaluator_sha256").unwrap_or(""),
+        "configuration_sha256": text_at(request, "/configuration_sha256").unwrap_or(""),
+        "topology_sha256": text_at(request, "/topology_sha256").unwrap_or(""),
         "evaluator_version": EVALUATOR_VERSION
     })
 }
@@ -583,6 +601,16 @@ fn independent_expected(profile: &Value, request: &Value) -> Value {
     if !models.is_some_and(|items| items.iter().any(|item| item.as_str() == Some(model_id))) {
         reasons.insert("MODEL_ID_NOT_BOUND_TO_CLAIM".to_owned());
         fatal = true;
+    }
+    for (id_key, artifact_key, code) in [
+        ("evaluator_id", "evaluator_artifact_id", "EVALUATOR_ID_MISMATCH"),
+        ("configuration_id", "configuration_artifact_id", "CONFIGURATION_ID_MISMATCH"),
+        ("topology_id", "topology_artifact_id", "TOPOLOGY_ID_MISMATCH"),
+    ] {
+        if request[id_key].as_str() != request[artifact_key].as_str() {
+            reasons.insert(code.to_owned());
+            fatal = true;
+        }
     }
 
     let artifact_expectations = [
@@ -829,7 +857,15 @@ fn independent_expected(profile: &Value, request: &Value) -> Value {
         "profile_sha256": p_hash,
         "snapshot_sha256": s_hash,
         "revocation_snapshot_sha256": r_hash,
-        "request_sha256": sha256_value(request)
+        "request_sha256": sha256_value(request),
+        "asset_id": request["asset_id"],
+        "snapshot_id": request["snapshot_id"],
+        "as_of": request["as_of"],
+        "action": request["action"],
+        "model_sha256": request["model_sha256"],
+        "evaluator_sha256": request["evaluator_sha256"],
+        "configuration_sha256": request["configuration_sha256"],
+        "topology_sha256": request["topology_sha256"]
     })
 }
 
@@ -839,6 +875,8 @@ pub fn independent_check(profile: &Value, request: &Value, report: &Value) -> Ve
     for key in [
         "admission", "highest_permitted_action",
         "profile_sha256", "snapshot_sha256", "revocation_snapshot_sha256", "request_sha256",
+        "asset_id", "snapshot_id", "as_of", "action", "model_sha256", "evaluator_sha256",
+        "configuration_sha256", "topology_sha256",
     ] {
         if report.get(key) != expected.get(key) {
             failures.push(format!("REPORT_FIELD_MISMATCH:{key}"));
