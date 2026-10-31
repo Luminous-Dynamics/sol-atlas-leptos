@@ -1,0 +1,7 @@
+{
+  "schema_version": "luminous.ieac-runtime-profile-pin.v0.1",
+  "profile_id": "synthetic-telecom-runtime-admission-d0-v0.1",
+  "profile_sha256": "e7437199aa1db9207b11e790eb270b873034218595fe3f548052e637cd531a6f",
+  "trusted_registry_id": "synthetic-fixture-registry-v0.1",
+  "status": "active"
+}
