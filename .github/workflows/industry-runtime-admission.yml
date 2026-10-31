@@ -182,6 +182,8 @@ jobs:
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-assurance-qualification-profile-v0.1.schema.json -i schemas/examples/industry-runtime-admission-profile-synthetic-v0.1.json
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-runtime-admission-request-v0.1.schema.json -i schemas/examples/industry-runtime-admission-request-synthetic-v0.1.json
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-runtime-profile-pin-v0.1.schema.json -i schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json
+          jq '.snapshot.conditions = []' schemas/examples/industry-runtime-admission-request-synthetic-v0.1.json > "$RUNNER_TEMP/empty-measurements.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-runtime-admission-request-v0.1.schema.json -i "$RUNNER_TEMP/empty-measurements.json"
 
       - name: Prove unknown request fields and malformed time are rejected
         run: |
