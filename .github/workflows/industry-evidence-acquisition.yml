@@ -67,9 +67,11 @@ jobs:
           source=schemas/examples/industry-evidence-acquisition-synthetic-v0.1.json
           schema=schemas/industry-evidence-acquisition-plan-v0.1.schema.json
           jq '.execution_authorized = true' "$source" > "$RUNNER_TEMP/actuation.json"
+          jq '.profile_mutation_authorized = true' "$source" > "$RUNNER_TEMP/profile-mutation.json"
           jq '.decision_tier_ceiling = "D3_autonomous_control"' "$source" > "$RUNNER_TEMP/escalation.json"
           jq '.planner_calibration.state = "uncalibrated"' "$source" > "$RUNNER_TEMP/uncalibrated-ranking.json"
-          for mutant in "$RUNNER_TEMP/actuation.json" "$RUNNER_TEMP/escalation.json" "$RUNNER_TEMP/uncalibrated-ranking.json"; do
+          jq '.candidates[0].rights_state = "unknown"' "$source" > "$RUNNER_TEMP/unverified-source.json"
+          for mutant in "$RUNNER_TEMP/actuation.json" "$RUNNER_TEMP/profile-mutation.json" "$RUNNER_TEMP/escalation.json" "$RUNNER_TEMP/uncalibrated-ranking.json" "$RUNNER_TEMP/unverified-source.json"; do
             if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$mutant"; then
               echo "ERROR: schema accepted unsafe negative control $mutant"
               exit 1
