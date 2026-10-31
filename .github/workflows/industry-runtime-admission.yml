@@ -198,6 +198,10 @@ jobs:
           jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-signed-envelope-v0.2.schema.json
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-signed-envelope-v0.2.schema.json -i schemas/examples/ieac-signed-envelope-synthetic-v0.2.json
           jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/examples/ieac-jcs-vectors-v0.2.json
+          payload="$(jq -cS '.payload' schemas/examples/ieac-signed-envelope-synthetic-v0.2.json)"
+          expected="$(jq -r '.payload_sha256' schemas/examples/ieac-signed-envelope-synthetic-v0.2.json)"
+          actual="$(printf '%s' "$payload" | sha256sum | awk '{print $1}')"
+          test "$actual" = "$expected"
           jq -e '
             .schema_version == "luminous.ieac-jcs-vectors.v0.2" and
             .canonicalization == "RFC8785-JCS" and
