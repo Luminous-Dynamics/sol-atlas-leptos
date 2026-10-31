@@ -185,6 +185,28 @@ The companion `schemas/examples/ieac-signed-envelope-synthetic-v0.2.json` fixtur
 - NISTIR 8620, Digital Twins Workshops Summary Report: https://doi.org/10.6028/NIST.IR.8620
 - NIST, Methods of UQ in Computational Modeling and Simulation (2026): https://www.nist.gov/publications/methods-uncertainty-quantification-computational-modeling-and-simulation-harmonizing
 
+## 9. Rust implementation candidates (research snapshot: 2026-10-31)
+
+The following crates are plausible implementation components for the current Rust codebase. These are candidates to pin and test, not yet approved dependencies or a substitute for local build/review:
+
+| Concern | Candidate | Version observed | Role and caveat |
+|---|---|---:|---|
+| RFC 8785 JCS | `serde_json_canonicalizer` | 0.3.2 | Exposes `to_vec` / `to_string`; uses `ryu-js` for ECMAScript-compatible number formatting and includes RFC-derived number-formatting tests. Reject invalid I-JSON inputs and avoid `serde_json/arbitrary_precision` for signed numeric payloads. |
+| COSE_Sign1 | `coset` | 0.4.2 | Provides detached-payload Sign1 construction/verification and IANA algorithm identifiers. Explicitly require `iana::Algorithm::Ed25519` (-19); reject `iana::Algorithm::EdDSA` (-8) and any unprotected algorithm selection. |
+| Ed25519 | `ed25519-dalek` | 3.0.0 | Provides `VerifyingKey::verify_strict`; use strict key/signature validation and check weak keys before considering any batch-verification optimization. Do not accept the crate's optional legacy-compatibility modes. |
+
+Primary API references:
+- `serde_json_canonicalizer` 0.3.2: https://docs.rs/serde_json_canonicalizer/0.3.2/serde_json_canonicalizer/
+- `coset` 0.4.2: https://docs.rs/coset/0.4.2/coset/
+- `coset::iana::Algorithm`: https://docs.rs/coset/0.4.2/coset/iana/enum.Algorithm.html
+- `coset::CoseSign1`: https://docs.rs/coset/0.4.2/coset/struct.CoseSign1.html
+- `ed25519-dalek` 3.0.0: https://docs.rs/ed25519-dalek/3.0.0/ed25519_dalek/
+
+Before pinning dependencies: check the existing workspace MSRV, license policy, transitive dependency graph, feature flags and Cargo.lock reproducibility. Run the full RFC 8785 suite and the cross-language vector set. For signatures, test `verify_strict`, reject weak/invalid keys, prove that -8 is rejected and verify that COSE protected headers and external AAD are both included in the detached signature structure. Keep key-generation/signing fixtures separate from production key custody.
+
+The COSE crate provides serialization and Sign1 structure handling; it does not by itself implement trust-root provisioning, signer authorization, anti-rollback persistence or production key management. These remain application policy and operational controls.
+
 ## 9. Implementation boundary
+## 10. Implementation boundary
 
 This document selects a protocol direction; it does not claim that v0.2 signing, trust roots, replay-resistant storage, key rotation or an independent verifier have been implemented. PR #347 remains open. The next implementation must add schema and golden vectors first, then two separately implemented verifiers, then signed fixtures, then protected key provisioning and persistent anti-rollback state. Do not enable D2/D3 or actuation as a side effect of adding cryptographic signatures.
