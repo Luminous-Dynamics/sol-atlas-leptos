@@ -328,9 +328,16 @@ fn parse_row(line: &str) -> Result<(String, LinearRow), ValidationError> {
     if relation_index == 0 || relation_index + 2 != tokens.len() {
         return Err(error(format!("malformed constraint row: {name}")));
     }
-    let (coefficients, constant) = parse_expression(&tokens[..relation_index], false)?;
+    // The emitter can produce explicit zero coefficient terms when a
+    // request-side capacity/limit is zero. They are semantically neutral and
+    // are removed from the canonical coefficient map, but duplicate variables
+    // remain rejected by the parser.
+    let (coefficients, constant) = parse_expression(&tokens[..relation_index], true)?;
     if constant != 0 {
         return Err(error("unexpected expression constant"));
+    }
+    if coefficients.is_empty() {
+        return Err(error(format!("constraint {name} has no non-zero coefficients")));
     }
     let rhs = tokens[relation_index + 1]
         .parse::<i64>()
@@ -1256,6 +1263,20 @@ mod tests {
             "essential_unserved_quanta_min.lp"
         )
         .is_err());
+    }
+
+    #[test]
+    fn accepts_emitter_zero_coefficients_but_discards_them_semantically() {
+        let parsed = parse_expression(
+            &["1", "x", "+", "0", "y", "-", "2", "z"],
+            true,
+        ).expect("zero terms are valid in the emitted LP profile");
+        assert_eq!(parsed.0, BTreeMap::from([
+            ("x".to_owned(), 1),
+            ("z".to_owned(), -2),
+        ]));
+        assert!(parse_expression(&["1", "x", "+", "0", "y"], false).is_err());
+        assert!(parse_expression(&["1", "x", "+", "0", "x"], true).is_err());
     }
 
     #[test]
