@@ -466,6 +466,11 @@ fn recompute_objectives(
     request: &SourceRequest,
     schedule: &DispatchSchedule,
 ) -> Result<RecomputedObjectives, AuditError> {
+    if schedule.interval_dispatches.len() != request.intervals.len() {
+        return Err(audit_error(
+            "cannot recompute all objectives: schedule and request interval counts differ",
+        ));
+    }
     let mut essential_unserved = 0_i64;
     let mut flexible_unserved = 0_i64;
     let mut operating_cost = 0_i64;
@@ -1041,6 +1046,11 @@ mod tests {
             assert!(receipt.findings.iter().any(|finding| {
                 finding.predicate == "soc-transition" && !finding.passed
             }));
+            assert_eq!(
+                receipt.recomputed_objectives.terminal_soc_quanta,
+                0,
+                "terminal SOC objective must be recomputed from physical actions, not reported SOC fields"
+            );
         }
     }
 
@@ -1207,6 +1217,46 @@ mod tests {
                 .disposition,
             AuditDisposition::Accepted
         );
+    }
+
+    #[test]
+    fn recomputes_nonzero_grid_cost_and_carbon_from_source_coefficients() {
+        let request = request_with_intervals(
+            1,
+            0,
+            0,
+            0,
+            (1, 1),
+            (1, 1),
+            0,
+            serde_json::json!([
+                interval("grid-service", 1_800_000_000, false, 0, 1, 1, 0, 3, 7)
+            ]),
+        );
+        let schedule = schedule_bytes(
+            &request,
+            serde_json::json!([
+                step("grid-service", 1, 0, 0, 0, 1, 0, 0, 0, 0, 0)
+            ]),
+            0,
+        );
+        let receipt = audit_schedule_bytes(&request, &schedule).unwrap();
+        assert_eq!(receipt.disposition, AuditDisposition::Accepted);
+        assert_eq!(receipt.recomputed_objectives.operating_cost_units, 3);
+        assert_eq!(receipt.recomputed_objectives.grid_carbon_grams, 7);
+    }
+
+    #[test]
+    fn rejects_terminal_reserve_violation() {
+        let mut request_value: Value = serde_json::from_slice(&h2_request()).unwrap();
+        request_value["battery"]["terminal_reserve_quanta"] = serde_json::json!(1);
+        let request = serde_json::to_vec(&request_value).unwrap();
+        let schedule = h2_schedule(&request);
+        let receipt = audit_schedule_bytes(&request, &schedule).unwrap();
+        assert_eq!(receipt.disposition, AuditDisposition::Rejected);
+        assert!(receipt.findings.iter().any(|finding| {
+            finding.predicate == "terminal-reserve" && !finding.passed
+        }));
     }
 
     #[test]
