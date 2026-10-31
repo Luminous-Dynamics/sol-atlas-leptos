@@ -164,35 +164,33 @@
     },
     "as_of": {
       "type": "string",
-      "format": "date-time",
-      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+      "maxLength": 64,
+      "description": "Exact as-of field supplied by the request; malformed or missing values remain visible in rejected reports."
     },
     "action": {
-      "enum": [
-        "view",
-        "annotate",
-        "recommend",
-        "rank_options",
-        "prepare_plan",
-        "schedule_within_envelope",
-        "execute_external_action"
-      ]
+      "type": "string",
+      "maxLength": 128,
+      "description": "Exact requested action, including an unrecognized value in a rejected request."
     },
     "model_sha256": {
       "type": "string",
-      "pattern": "^[0-9a-fA-F]{64}$"
+      "maxLength": 64,
+      "description": "Exact request value; request validation determines whether the digest is valid."
     },
     "evaluator_sha256": {
       "type": "string",
-      "pattern": "^[0-9a-fA-F]{64}$"
+      "maxLength": 64,
+      "description": "Exact request value; request validation determines whether the digest is valid."
     },
     "configuration_sha256": {
       "type": "string",
-      "pattern": "^[0-9a-fA-F]{64}$"
+      "maxLength": 64,
+      "description": "Exact request value; request validation determines whether the digest is valid."
     },
     "topology_sha256": {
       "type": "string",
-      "pattern": "^[0-9a-fA-F]{64}$"
+      "maxLength": 64,
+      "description": "Exact request value; request validation determines whether the digest is valid."
     }
   }
 }
