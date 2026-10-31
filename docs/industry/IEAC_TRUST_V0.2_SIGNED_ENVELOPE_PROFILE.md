@@ -170,6 +170,8 @@ Acceptance: 100% of frozen negative controls fail closed; 100% golden positive v
 
 The companion fixture `schemas/examples/ieac-jcs-vectors-v0.2.json` includes small vectors for object-key ordering, numeric normalization, UTF-16 property ordering and nested objects. The expected SHA-256 is over the exact UTF-8 canonical bytes. These are starter regression vectors, not a substitute for the complete RFC 8785 test corpus or validation against at least two independent conforming implementations.
 
+The companion `schemas/examples/ieac-signed-envelope-synthetic-v0.2.json` fixture is **wire-shape-only**. Its COSE_Sign1 structure contains a zero-filled placeholder signature and must fail cryptographic verification. It exists solely to exercise the JSON Schema; it is not a positive signature vector and must never be used as a trust fixture or deployment credential.
+
 ## 8. Standards and implementation references
 
 - RFC 8785, JSON Canonicalization Scheme: https://www.rfc-editor.org/rfc/rfc8785.html
