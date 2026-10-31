@@ -1,0 +1,931 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/industrial-benchmark-run-manifest-v0.1.schema.json",
+  "title": "Industrial Benchmark Run Manifest v0.1",
+  "description": "Frozen pre-run benchmark contract. Does not contain or certify benchmark results.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "manifest_id",
+    "benchmark",
+    "task",
+    "datasets",
+    "split_plan",
+    "methods",
+    "comparability",
+    "budgets",
+    "metrics",
+    "protected_constraints",
+    "replication",
+    "environment",
+    "independent_evaluation",
+    "freeze",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.industrial-benchmark-run-manifest.v0.1"
+    },
+    "manifest_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "benchmark": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "benchmark_id",
+        "vertical",
+        "evaluation_mode",
+        "intended_decision",
+        "decision_tier",
+        "purpose"
+      ],
+      "properties": {
+        "benchmark_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "vertical": {
+          "enum": [
+            "telecommunications",
+            "water_food_energy",
+            "industrial_maintenance",
+            "manufacturing",
+            "buildings",
+            "chemical_process",
+            "logistics",
+            "municipal_operations",
+            "other"
+          ]
+        },
+        "evaluation_mode": {
+          "enum": [
+            "synthetic_fixture",
+            "public_dataset",
+            "simulation",
+            "authorized_operational_shadow",
+            "prospective_controlled_trial"
+          ]
+        },
+        "intended_decision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "decision_tier": {
+          "enum": [
+            "D0_descriptive",
+            "D1_advisory",
+            "D2_delegated_planning",
+            "D3_autonomous_control"
+          ]
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "profile_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        }
+      }
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task_id",
+        "estimand",
+        "system_boundary",
+        "operating_conditions",
+        "time_support",
+        "spatial_support",
+        "output_contract"
+      ],
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "estimand": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "system_boundary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "operating_conditions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "time_support": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "spatial_support": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "output_contract": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "known_exclusions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        }
+      }
+    },
+    "datasets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/dataset_binding"
+      }
+    },
+    "split_plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "strategy",
+        "split_manifest_sha256",
+        "group_axes",
+        "leakage_audit",
+        "holdout_locked_before_tuning",
+        "split_semantics"
+      ],
+      "properties": {
+        "strategy": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "asset_disjoint",
+              "machine_disjoint",
+              "site_disjoint",
+              "topology_disjoint",
+              "process_family_disjoint",
+              "study_disjoint",
+              "season_disjoint",
+              "campaign_disjoint",
+              "time_forward",
+              "geographic_holdout",
+              "pre_registered_trial_holdout",
+              "other"
+            ]
+          }
+        },
+        "split_manifest_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "group_axes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        },
+        "leakage_audit": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "auditor_id",
+            "audit_artifact_sha256",
+            "cross_split_overlap_count",
+            "result"
+          ],
+          "properties": {
+            "auditor_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160
+            },
+            "audit_artifact_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "cross_split_overlap_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "result": {
+              "enum": [
+                "pass",
+                "fail",
+                "not_run"
+              ]
+            }
+          }
+        },
+        "holdout_locked_before_tuning": {
+          "type": "boolean"
+        },
+        "split_semantics": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "methods": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "$ref": "#/$defs/method"
+      }
+    },
+    "comparability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "task_boundary_matched",
+        "data_access_matched",
+        "information_access_matched",
+        "tuning_budget_matched",
+        "compute_budget_matched",
+        "physical_resource_budget_matched",
+        "deviations",
+        "reviewer_id",
+        "rationale"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "matched",
+            "declared_deviation",
+            "not_comparable"
+          ]
+        },
+        "task_boundary_matched": {
+          "type": "boolean"
+        },
+        "data_access_matched": {
+          "type": "boolean"
+        },
+        "information_access_matched": {
+          "type": "boolean"
+        },
+        "tuning_budget_matched": {
+          "type": "boolean"
+        },
+        "compute_budget_matched": {
+          "type": "boolean"
+        },
+        "physical_resource_budget_matched": {
+          "type": "boolean"
+        },
+        "deviations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "reviewer_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 3000
+        }
+      }
+    },
+    "budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "per_method_wall_clock_seconds",
+        "per_method_cpu_core_seconds",
+        "per_method_peak_memory_bytes",
+        "per_method_compute_energy_joules",
+        "physical_resource_budgets",
+        "equal_budget_policy"
+      ],
+      "properties": {
+        "per_method_wall_clock_seconds": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "per_method_cpu_core_seconds": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "per_method_peak_memory_bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "per_method_compute_energy_joules": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "physical_resource_budgets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "resource",
+              "unit",
+              "maximum",
+              "scope"
+            ],
+            "properties": {
+              "resource": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "unit": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64
+              },
+              "maximum": {
+                "type": "number",
+                "minimum": 0
+              },
+              "scope": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512
+              }
+            }
+          }
+        },
+        "equal_budget_policy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "metrics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "metric_id",
+          "name",
+          "definition",
+          "unit",
+          "direction",
+          "denominator",
+          "aggregation",
+          "report_by_group",
+          "report_worst_group"
+        ],
+        "properties": {
+          "metric_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "definition": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "unit": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "direction": {
+            "enum": [
+              "minimize",
+              "maximize",
+              "target",
+              "descriptive"
+            ]
+          },
+          "target_value": {
+            "type": "number"
+          },
+          "denominator": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "aggregation": {
+            "enum": [
+              "mean",
+              "median",
+              "p50",
+              "p90",
+              "p95",
+              "p99",
+              "maximum",
+              "minimum",
+              "sum",
+              "per_group",
+              "paired_difference",
+              "other"
+            ]
+          },
+          "report_by_group": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "uniqueItems": true
+          },
+          "report_worst_group": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "protected_constraints": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "constraint_id",
+          "category",
+          "status",
+          "rationale"
+        ],
+        "properties": {
+          "constraint_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "category": {
+            "enum": [
+              "safety",
+              "essential_service",
+              "product_quality",
+              "environmental",
+              "legal_or_regulatory",
+              "privacy",
+              "other"
+            ]
+          },
+          "status": {
+            "enum": [
+              "mandatory",
+              "not_applicable"
+            ]
+          },
+          "metric_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "operator": {
+            "enum": [
+              "<",
+              "<=",
+              "==",
+              ">=",
+              ">"
+            ]
+          },
+          "threshold": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "scope": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "reviewer_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        }
+      }
+    },
+    "replication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "execution_mode",
+        "replicate_count",
+        "seeds",
+        "stopping_rule",
+        "deterministic_replay_expected"
+      ],
+      "properties": {
+        "execution_mode": {
+          "enum": [
+            "deterministic",
+            "stochastic",
+            "mixed"
+          ]
+        },
+        "replicate_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "seeds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "stopping_rule": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "deterministic_replay_expected": {
+          "type": "boolean"
+        }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operating_system",
+        "architecture",
+        "cpu",
+        "memory_bytes",
+        "runtime",
+        "compiler_or_interpreter",
+        "thread_count"
+      ],
+      "properties": {
+        "operating_system": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "architecture": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "cpu": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "gpu": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "memory_bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "runtime": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "compiler_or_interpreter": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "thread_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "container_image_digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 2000
+        }
+      }
+    },
+    "independent_evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "verifier_id",
+        "verifier_artifact_sha256",
+        "independent_implementation",
+        "shares_candidate_decision_code",
+        "recomputed_outputs",
+        "planned_checks"
+      ],
+      "properties": {
+        "verifier_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "verifier_artifact_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "independent_implementation": {
+          "type": "boolean"
+        },
+        "shares_candidate_decision_code": {
+          "const": false
+        },
+        "recomputed_outputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "planned_checks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        }
+      }
+    },
+    "freeze": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "frozen_at",
+        "frozen_by",
+        "reviewer_id",
+        "pre_registered_before_execution",
+        "preregistration_reference"
+      ],
+      "properties": {
+        "frozen_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "frozen_by": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "reviewer_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "pre_registered_before_execution": {
+          "const": true
+        },
+        "preregistration_reference": {
+          "type": "string",
+          "format": "uri",
+          "minLength": 1,
+          "maxLength": 2048
+        }
+      }
+    },
+    "claim_ceiling": {
+      "enum": [
+        "synthetic_only",
+        "simulation_only",
+        "public_dataset_only",
+        "authorized_operational_shadow",
+        "prospective_controlled_trial"
+      ]
+    }
+  },
+  "$defs": {
+    "dataset_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dataset_id",
+        "role",
+        "source_type",
+        "source_uri",
+        "version_or_snapshot",
+        "content_sha256",
+        "rights_state",
+        "license_or_basis",
+        "permitted_evaluation_uses"
+      ],
+      "properties": {
+        "dataset_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "role": {
+          "enum": [
+            "training",
+            "calibration",
+            "validation",
+            "test",
+            "context_only",
+            "reference_measurement"
+          ]
+        },
+        "source_type": {
+          "enum": [
+            "synthetic",
+            "public_dataset",
+            "authorized_observation",
+            "simulation_output",
+            "operational_record"
+          ]
+        },
+        "source_uri": {
+          "type": "string",
+          "format": "uri",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "version_or_snapshot": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "retrieved_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "content_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "rights_state": {
+          "enum": [
+            "verified",
+            "restricted",
+            "unknown",
+            "not_applicable"
+          ]
+        },
+        "license_or_basis": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "permitted_evaluation_uses": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "training",
+              "tuning",
+              "calibration",
+              "validation",
+              "testing",
+              "benchmarking",
+              "redistribution"
+            ]
+          }
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 2000
+        }
+      }
+    },
+    "method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method_id",
+        "role",
+        "name",
+        "version",
+        "code_or_model_sha256",
+        "configuration_sha256",
+        "information_access_scope",
+        "tuning_budget",
+        "eligible_for_superiority_claim"
+      ],
+      "properties": {
+        "method_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "role": {
+          "enum": [
+            "null_baseline",
+            "incumbent",
+            "domain_reference",
+            "candidate",
+            "bounded_oracle"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "code_or_model_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "configuration_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "solver_or_runtime": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "information_access_scope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "tuning_budget": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "wall_clock_seconds",
+            "trials"
+          ],
+          "properties": {
+            "wall_clock_seconds": {
+              "type": "number",
+              "minimum": 0
+            },
+            "trials": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "human_hours": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "eligible_for_superiority_claim": {
+          "type": "boolean"
+        },
+        "bounded_problem_size": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      }
+    }
+  }
+}
