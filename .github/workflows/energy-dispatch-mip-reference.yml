@@ -89,7 +89,7 @@ jobs:
               -c "quit" > "$log" 2>&1
             grep -Eiq "optimal solution found" "$log"
             test -s "$cert"
-            value="$(grep -E 'objective value:' "$log" | tail -n 1 | sed 's/.*objective value:[[:space:]]*//')"
+            value="$(grep -E 'Exact Primal Bound[[:space:]]*:' "$log" | tail -n 1 | sed -E 's/.*Exact Primal Bound[[:space:]]*:[[:space:]]*//')"
             test -n "$value"
             printf '%s,optimal_exact,%s,%s\n' "$name" "$value" "$cert" \
               >> target/energy-dispatch-mip-reference/scip-results.csv
