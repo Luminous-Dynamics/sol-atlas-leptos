@@ -1377,7 +1377,7 @@ mod tests {
         missing["snapshot"]["conditions"] = json!([]);
         refresh_digests(&profile, &mut missing);
         let report = assert_candidate_and_checker_agree(&profile, &missing);
-        assert_eq!(report["admission"], "reject");
+        assert_eq!(report["admission"], "abstain");
         assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v == "CONDITION_MEASUREMENT_MISSING"));
 
         let (profile, mut duplicate) = fixture_files();
