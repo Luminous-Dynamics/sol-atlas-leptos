@@ -1,0 +1,33 @@
+{
+  "schema_version": "0.1.0",
+  "id": "telecom-site-power-autonomy-example-001",
+  "as_of": "2026-10-30T10:00:00Z",
+  "site_id": "site-synthetic-001",
+  "outage_horizon_hours": 4,
+  "usable_energy_measurement_point": "battery_output_terminals",
+  "radio_load_measurement_point": "radio_access_equipment_input_terminals",
+  "usable_backup_energy": {
+    "entity_id": "battery-synthetic-001",
+    "quantity": {
+      "value": 12,
+      "unit": "kWh",
+      "uncertainty_abs": 2
+    },
+    "basis": "assumed",
+    "rationale": "Synthetic engineering assumption; usable battery energy at output terminals.",
+    "supporting_evidence_ids": []
+  },
+  "radio_equipment_load": {
+    "entity_id": "radio-equipment-synthetic-001",
+    "quantity": {
+      "value": 2,
+      "unit": "kW",
+      "uncertainty_abs": 0.25
+    },
+    "basis": "assumed",
+    "rationale": "Synthetic engineering assumption; aggregate radio equipment load at input terminals.",
+    "supporting_evidence_ids": []
+  },
+  "backup_resource_id": "battery-synthetic-001",
+  "radio_equipment_id": "radio-equipment-synthetic-001"
+}

@@ -42,6 +42,7 @@ pub mod simulation;
 pub mod solar_system;
 pub mod spatial_economic;
 pub mod spatial_graph;
+pub mod telecom_power;
 pub mod timeline;
 pub mod types;
 pub mod visual_validation;
