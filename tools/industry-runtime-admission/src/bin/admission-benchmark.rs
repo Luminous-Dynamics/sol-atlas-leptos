@@ -9,21 +9,26 @@ use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::time::Instant;
 
-const FAMILIES: &[(&str, &str, Option<&str>, bool)] = &[
-    ("positive_control", "admit_descriptive", None, false),
-    ("stale_measurement", "abstain", Some("MEASUREMENT_STALE"), true),
-    ("future_measurement", "reject", Some("FUTURE_DATED_MEASUREMENT"), true),
-    ("missing_measurement", "abstain", Some("CONDITION_MEASUREMENT_MISSING"), true),
-    ("duplicate_measurement", "reject", Some("DUPLICATE_CONDITION_MEASUREMENT"), true),
-    ("interval_crossing", "abstain", Some("MEASUREMENT_INTERVAL_CROSSES_ENVELOPE"), true),
-    ("out_of_range", "reject", Some("VALUE_OUTSIDE_OPERATING_ENVELOPE"), true),
-    ("unit_mismatch", "reject", Some("UNIT_MISMATCH"), true),
-    ("identity_drift", "reject", Some("RUNTIME_IDENTITY_BINDING_INVALID"), true),
-    ("profile_expired", "reject", Some("PROFILE_OUTSIDE_VALIDITY_WINDOW"), true),
-    ("profile_pin_revoked", "reject", Some("PROFILE_PIN_REVOKED"), true),
-    ("source_revoked", "reject", Some("ARTIFACT_REVOKED"), true),
-    ("authorization_unavailable", "abstain", Some("REVOCATION_STATE_UNAVAILABLE"), true),
-    ("authority_escalation", "reject", Some("DECISION_TIER_NOT_ADMITTED"), true),
+const FAMILIES: &[(&str, &str, &[&str], bool)] = &[
+    ("positive_control", "admit_descriptive", &[], false),
+    ("exact_min_boundary", "admit_descriptive", &[], false),
+    ("exact_max_boundary", "admit_descriptive", &[], false),
+    ("stale_measurement", "abstain", &["MEASUREMENT_STALE"], true),
+    ("future_measurement", "reject", &["FUTURE_DATED_MEASUREMENT"], true),
+    ("missing_measurement", "abstain", &["CONDITION_MEASUREMENT_MISSING"], true),
+    ("duplicate_measurement", "reject", &["DUPLICATE_CONDITION_MEASUREMENT"], true),
+    ("interval_crossing", "abstain", &["MEASUREMENT_INTERVAL_CROSSES_ENVELOPE"], true),
+    ("out_of_range", "reject", &["VALUE_OUTSIDE_OPERATING_ENVELOPE"], true),
+    ("just_below_min_boundary", "reject", &["VALUE_OUTSIDE_OPERATING_ENVELOPE"], true),
+    ("just_above_max_boundary", "reject", &["VALUE_OUTSIDE_OPERATING_ENVELOPE"], true),
+    ("unit_mismatch", "reject", &["UNIT_MISMATCH"], true),
+    ("identity_drift", "reject", &["RUNTIME_IDENTITY_BINDING_INVALID"], true),
+    ("profile_expired", "reject", &["PROFILE_OUTSIDE_VALIDITY_WINDOW"], true),
+    ("profile_pin_revoked", "reject", &["PROFILE_PIN_REVOKED"], true),
+    ("source_revoked", "reject", &["ARTIFACT_REVOKED"], true),
+    ("authorization_unavailable", "abstain", &["REVOCATION_STATE_UNAVAILABLE"], true),
+    ("authority_escalation", "reject", &["DECISION_TIER_NOT_ADMITTED"], true),
+    ("stale_and_source_revoked", "reject", &["ARTIFACT_REVOKED", "MEASUREMENT_STALE"], true),
 ];
 
 struct Rng { state: u64 }
@@ -172,6 +177,29 @@ fn apply_family(
                 "positive_control" => condition["observed_at"] = json!("2026-10-31T11:30:00Z"),
                 "stale_measurement" => condition["observed_at"] = json!("2026-10-31T00:00:00Z"),
                 "future_measurement" => condition["observed_at"] = json!("2026-10-31T12:00:01Z"),
+                "stale_and_source_revoked" => condition["observed_at"] = json!("2026-10-31T00:00:00Z"),
+                "exact_min_boundary" => {
+                    condition["value"] = json!(minimum);
+                    condition["lower"] = json!(minimum);
+                    condition["upper"] = json!(minimum);
+                }
+                "exact_max_boundary" => {
+                    condition["value"] = json!(maximum);
+                    condition["lower"] = json!(maximum);
+                    condition["upper"] = json!(maximum);
+                }
+                "just_below_min_boundary" => {
+                    let boundary_value = minimum - span * 1e-9;
+                    condition["value"] = json!(boundary_value);
+                    condition["lower"] = json!(boundary_value);
+                    condition["upper"] = json!(boundary_value);
+                }
+                "just_above_max_boundary" => {
+                    let boundary_value = maximum + span * 1e-9;
+                    condition["value"] = json!(boundary_value);
+                    condition["lower"] = json!(boundary_value);
+                    condition["upper"] = json!(boundary_value);
+                }
                 "interval_crossing" => {
                     condition["value"] = json!(minimum + span * 0.25);
                     condition["lower"] = json!(minimum - span * 0.01);
@@ -194,7 +222,7 @@ fn apply_family(
                 request["profile_sha256"] = json!(digest_value(profile));
             }
             "profile_pin_revoked" => pin["status"] = json!("revoked"),
-            "source_revoked" => {
+            "source_revoked" | "stale_and_source_revoked" => {
                 let source_id = request["snapshot"]["conditions"][0]["evidence_artifact_id"].clone();
                 request["revocation_snapshot"]["revoked_artifact_ids"] = json!([source_id]);
             }
@@ -207,6 +235,17 @@ fn apply_family(
         }
     }
     refresh_digests(profile, request);
+}
+
+fn reason_codes_match(report: &Value, expected: &[&str]) -> bool {
+    let mut actual = report["reason_codes"]
+        .as_array()
+        .map(|codes| codes.iter().filter_map(Value::as_str).map(str::to_owned).collect::<Vec<_>>())
+        .unwrap_or_default();
+    let mut expected = expected.iter().map(|code| (*code).to_owned()).collect::<Vec<_>>();
+    actual.sort_unstable();
+    expected.sort_unstable();
+    actual == expected
 }
 
 fn percentile(values: &[f64], quantile: f64) -> Option<f64> {
@@ -451,13 +490,7 @@ fn run() -> Result<(Value, bool), String> {
                 checker_disagreements_total += 1;
             }
 
-            if let Some(code) = *expected_reason {
-                if report["reason_codes"].as_array()
-                    .is_some_and(|codes| codes.iter().any(|v| v.as_str() == Some(code))) {
-                    reason_code_hits += 1;
-                }
-            } else if *family == "positive_control"
-                && report["reason_codes"].as_array().is_some_and(|codes| codes.is_empty()) {
+            if reason_codes_match(&report, expected_reason) {
                 reason_code_hits += 1;
             }
 
@@ -675,6 +708,19 @@ mod tests {
         assert!(validate_cli_overrides(None, Some(17), 100, 20_261_031).is_err());
         assert!(validate_cli_overrides(Some(100), Some(20_261_031), 100, 20_261_031).is_ok());
         assert!(validate_cli_overrides(None, None, 100, 20_261_031).is_ok());
+    }
+
+    #[test]
+    #[test]
+    fn expected_reason_codes_require_exact_set_equality() {
+        assert!(reason_codes_match(
+            &json!({ "reason_codes": ["ARTIFACT_REVOKED", "MEASUREMENT_STALE"] }),
+            &["MEASUREMENT_STALE", "ARTIFACT_REVOKED"],
+        ));
+        assert!(!reason_codes_match(
+            &json!({ "reason_codes": ["ARTIFACT_REVOKED", "MEASUREMENT_STALE", "UNEXPECTED"] }),
+            &["MEASUREMENT_STALE", "ARTIFACT_REVOKED"],
+        ));
     }
 
     #[test]
