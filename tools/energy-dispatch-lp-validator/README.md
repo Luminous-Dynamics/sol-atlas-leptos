@@ -11,7 +11,7 @@ right-hand sides exactly.
 ## Run
 
 ```sh
-cargo fmt --manifest-path Cargo.toml --all -- --check
+cargo fmt --manifest-path Cargo.toml --all
 cargo test --locked
 cargo clippy --all-targets --locked -- -D warnings
 
@@ -21,8 +21,7 @@ cargo run --locked -- \
   ../../target/energy-dispatch-mip-reference/essential_unserved_quanta_min.translation.json
 ```
 
-The standalone lockfile is generated and committed by the qualification workflow.
-For a local first run, generate it with:
+The qualification workflow generates the standalone lockfile from the exact pinned dependency versions and uploads it with the source and receipts. For a local first run, generate it with:
 
 ```sh
 cargo generate-lockfile --manifest-path tools/energy-dispatch-lp-validator/Cargo.toml
