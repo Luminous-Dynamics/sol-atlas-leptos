@@ -722,7 +722,10 @@ mod tests {
         let actual_east_lower = actual.cells[0].coverage_lower_bound.unwrap();
         let expected_east_lower = expected.cells[0].coverage_lower_bound.unwrap();
         assert!(
-            (actual_east_lower - expected_east_lower).abs() <= f64::EPSILON,
+            actual_east_lower
+                .to_bits()
+                .abs_diff(expected_east_lower.to_bits())
+                <= 1,
             "east lower coverage ratio differs beyond one ULP: actual={actual_east_lower:?}, expected={expected_east_lower:?}"
         );
         let mut expected = expected;
