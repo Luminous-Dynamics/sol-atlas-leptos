@@ -14,7 +14,9 @@ fn digest(bytes: &[u8]) -> String {
 
 fn run() -> Result<(Value, bool, Option<String>), String> {
     let mut args = env::args().skip(1);
-    let input_path = args.next().ok_or("usage: industry-twin-interface-validator <manifest.json> [new-report.json]")?;
+    let input_path = args
+        .next()
+        .ok_or("usage: industry-twin-interface-validator <manifest.json> [new-report.json]")?;
     let output_path = args.next();
     if args.next().is_some() {
         return Err("too many arguments".to_owned());
@@ -25,7 +27,9 @@ fn run() -> Result<(Value, bool, Option<String>), String> {
         .map_err(|error| format!("invalid JSON in {input_path}: {error}"))?;
     let issues = validate_manifest(&value);
     let valid = issues.is_empty();
-    let schema_bytes = include_bytes!("../../../schemas/industry-twin-interface-manifest-v0.1.schema.json");
+    let schema_bytes = include_bytes!(
+        "../../../schemas/industry-twin-interface-manifest-v0.1.schema.json"
+    );
     let report = json!({
         "schema_version": "luminous.industry-twin-interface-validation-report.v0.1",
         "manifest_id": value["manifest_id"],
@@ -36,9 +40,16 @@ fn run() -> Result<(Value, bool, Option<String>), String> {
         "claim_ceiling": "synthetic_fixture",
         "standard_conformity_claimed": false,
         "contract_valid": valid,
-        "status": if valid { "INTERFACE_CONTRACT_VALID_NOT_STANDARD_CONFORMANT" } else { "INTERFACE_CONTRACT_INVALID" },
+        "status": if valid {
+            "INTERFACE_CONTRACT_VALID_NOT_STANDARD_CONFORMANT"
+        } else {
+            "INTERFACE_CONTRACT_INVALID"
+        },
         "issue_count": issues.len(),
-        "issues": issues.iter().map(|issue| json!({"code":issue.code,"path":issue.path})).collect::<Vec<_>>()
+        "issues": issues
+            .iter()
+            .map(|issue| json!({"code": issue.code, "path": issue.path}))
+            .collect::<Vec<_>>()
     });
     Ok((report, valid, output_path))
 }
@@ -50,7 +61,10 @@ fn main() {
             if let Some(path) = output_path {
                 match OpenOptions::new().write(true).create_new(true).open(&path) {
                     Ok(mut file) => {
-                        if let Err(error) = file.write_all(&bytes).and_then(|_| file.write_all(b"\n")) {
+                        if let Err(error) = file
+                            .write_all(&bytes)
+                            .and_then(|_| file.write_all(b"\n"))
+                        {
                             eprintln!("cannot write {path}: {error}");
                             std::process::exit(2);
                         }
