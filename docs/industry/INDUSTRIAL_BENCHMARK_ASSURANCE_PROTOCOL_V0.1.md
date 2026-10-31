@@ -166,7 +166,17 @@ These are internal engineering targets for declared fixtures and trial panels, n
 - W3C PROV-O provides existing provenance vocabulary. https://www.w3.org/TR/prov-o/
 - OPC UA Asset Administration Shell provides standardized asset representations and submodels as an interoperability option where relevant. https://reference.opcfoundation.org/specs/OPC-30270/4.1
 
-## 9. Release rule
+## 9. Execution contract
+
+The protocol is instantiated by the [Industrial Benchmark Run Manifest v0.1](INDUSTRIAL_BENCHMARK_RUN_MANIFEST_V0.1.md) and its [JSON Schema](../../schemas/industrial-benchmark-run-manifest-v0.1.schema.json).
+
+The manifest freezes the task, estimand, source dataset bytes, split, method versions, equal-access budgets, metric denominators, protected constraints, replication plan and independent-verifier identity **before execution**. It is a pre-run contract and contains no benchmark result fields.
+
+A post-run execution receipt and independent evaluation report are separate immutable artifacts. Neither may rewrite the frozen manifest. Comparability is explicitly `matched`, `declared_deviation` or `not_comparable`; the last state has no leaderboard winner. A detached freeze receipt binds the canonical manifest digest and reviewer identity.
+
+The checked-in example is synthetic contract data only. Its placeholder digests are not evidence of acquired datasets or completed runs.
+
+## 10. Release rule
 
 A benchmark result can advance a specific evidence dimension for a specific profile. It does not automatically advance every dimension, grant authority, certify compliance or establish production readiness.
 
