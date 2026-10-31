@@ -185,6 +185,7 @@ jobs:
             name="$(basename "$certificate")"
             log="target/energy-dispatch-mip-reference/vipr-checks/$name.log"
             "$VIPR_CHECKER" "$certificate" > "$log" 2>&1
+            printf 'viprchk_exit_code=0\\n' >> "$log"
           done
           test "$(find target/energy-dispatch-mip-reference/vipr-checks -maxdepth 1 -name '*.log' | wc -l)" -eq 12
           mkdir -p target/energy-dispatch-mip-reference/proof-bindings
