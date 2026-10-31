@@ -86,7 +86,7 @@ Overall: elapsed wall time, throughput, false-admission total, negative-control 
 - No aggregate score may compensate for a false admission, an incorrect reason code, a failed positive control or a failed checker.
 - A manifest or corpus change creates a new pre-registration and new run receipt.
 
-A run that fails any acceptance gate remains a recorded failure. Do not rerun with different inputs under the same manifest and replace its receipt. Replay the persisted case ledger with `cargo run --release --manifest-path tools/industry-runtime-admission/Cargo.toml --locked --bin industry-admission-replay -- --cases path/to/cases.jsonl`. The replay tool verifies the footer digest, contiguous case indexes, per-case input digests, exact candidate reports, checker errors, expected disposition/reason-code sets, report-tamper outcomes and deterministic replay outcomes.
+A run that fails any acceptance gate remains a recorded failure. Do not rerun with different inputs under the same manifest and replace its receipt. Replay the persisted case ledger with `cargo run --release --manifest-path tools/industry-runtime-admission/Cargo.toml --locked --bin industry-admission-replay -- --cases path/to/cases.jsonl`. The replay tool verifies the footer digest, contiguous case indexes, per-case input digests, exact candidate reports, checker errors, expected disposition/reason-code sets, report-tamper outcomes and deterministic replay outcomes. It enforces contiguous trial indexes and unique family strata from the deterministic case-ID format, and verifies each family's preregistered trial count. Replay memory scales with the largest single record plus the small set of failure-family names, not with the total number of trials.
 
 ## 6. Limitations and next steps
 
