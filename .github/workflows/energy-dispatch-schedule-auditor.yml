@@ -145,6 +145,15 @@ jobs:
             printf 'logical_cpus=%s\n' "$(nproc)"
           } > target/energy-dispatch-schedule-auditor/reproducibility.txt
 
+      - name: Benchmark strict parsing and end-to-end H2-H4 schedule auditing
+        run: |
+          set -euo pipefail
+          mkdir -p target/energy-dispatch-schedule-auditor
+          cargo bench --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml --bench audit_latency --locked \
+            | tee target/energy-dispatch-schedule-auditor/audit-latency.csv
+          test "$(grep -c '^strict_parse_only,' target/energy-dispatch-schedule-auditor/audit-latency.csv)" -eq 3
+          test "$(grep -c '^end_to_end_audit_and_receipt,' target/energy-dispatch-schedule-auditor/audit-latency.csv)" -eq 3
+
       - name: Publish schedule auditor receipts and provenance
         if: always()
         uses: actions/upload-artifact@v4
