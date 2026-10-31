@@ -57,6 +57,7 @@ jobs:
 
       - name: Build and identify independent emitter and translation-validator binaries
         run: |
+          mkdir -p target/energy-dispatch-mip-reference
           cargo build --release --manifest-path tools/energy-dispatch-mip-reference/Cargo.toml --locked
           cargo build --release --manifest-path tools/energy-dispatch-lp-validator/Cargo.toml --locked
           EMITTER_BIN=tools/energy-dispatch-mip-reference/target/release/energy-dispatch-mip-reference
