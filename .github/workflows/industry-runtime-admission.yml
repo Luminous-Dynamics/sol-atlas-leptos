@@ -116,6 +116,17 @@ jobs:
             (.strata | length == 19)
           ' "$report"
 
+      - name: Retain exact benchmark report and case ledger
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ieac-runtime-admission-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            ${{ runner.temp }}/ieac-admission-benchmark-smoke.json
+            ${{ runner.temp }}/ieac-admission-cases.jsonl
+          if-no-files-found: warn
+          retention-days: 30
+
       - name: Prove locked dependency graphs remain committed
         run: git diff --exit-code -- tools/industry-assurance-validator/Cargo.lock tools/industry-runtime-admission/Cargo.lock
 
