@@ -1538,6 +1538,14 @@ mod tests {
         let report = assert_candidate_and_checker_agree(&profile, &future);
         assert_eq!(report["admission"], "reject");
         assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v == "AUTHORITY_SOURCE_FUTURE_DATED"));
+        let (profile, mut caller_widened) = fixture_files();
+        caller_widened["revocation_snapshot"]["max_age_seconds"] = json!(86_400);
+        refresh_digests(&profile, &mut caller_widened);
+        let report = assert_candidate_and_checker_agree(&profile, &caller_widened);
+        assert_eq!(report["admission"], "reject");
+        assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| {
+            v.as_str().is_some_and(|code| code.starts_with("WIRE_UNKNOWN_PROPERTY:"))
+        }));
     }
 
     #[test]
