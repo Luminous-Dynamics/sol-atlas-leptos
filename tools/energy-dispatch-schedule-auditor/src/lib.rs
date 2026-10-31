@@ -1040,6 +1040,7 @@ mod tests {
         assert_eq!(receipt.request_sha256, sha256(&request));
         assert_eq!(receipt.schedule_sha256, sha256(&schedule));
         assert_eq!(receipt.receipt_sha256.len(), 64);
+        assert_eq!(receipt.auditor_binary_sha256.len(), 64);
     }
 
     #[test]
