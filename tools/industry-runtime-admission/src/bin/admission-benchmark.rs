@@ -249,7 +249,7 @@ fn one_sided_exact_upper(events: usize, trials: usize, alpha: f64) -> f64 {
     high
 }
 
-fn validate_manifest(manifest: &Value) -> Result<&str, String> {
+fn validate_manifest(manifest: &Value) -> Result<(&str, usize, u64), String> {
     if manifest["schema_version"].as_str() != Some("luminous.industrial-benchmark-run-manifest.v0.1") {
         return Err("manifest is not an IBAP v0.1 run manifest".to_owned());
     }
@@ -267,17 +267,38 @@ fn validate_manifest(manifest: &Value) -> Result<&str, String> {
     if !has_candidate || !has_baseline {
         return Err("manifest must declare one candidate and at least one baseline".to_owned());
     }
+    if methods.iter().filter(|m| m["role"].as_str() == Some("candidate")).count() != 1 {
+        return Err("manifest must declare exactly one candidate method".to_owned());
+    }
+    if manifest["claim_ceiling"].as_str() != Some("synthetic_only") {
+        return Err("this runner only accepts synthetic_only claim ceilings".to_owned());
+    }
+    if manifest["comparability"]["state"].as_str() != Some("matched") {
+        return Err("benchmark methods are not declared comparable".to_owned());
+    }
+    let replication = &manifest["replication"];
+    let replicate_count = replication["replicate_count"].as_u64()
+        .ok_or("manifest.replication.replicate_count is required")?;
+    let seeds = replication["seeds"].as_array()
+        .ok_or("manifest.replication.seeds must be an array")?;
+    if replicate_count != 1 || seeds.len() != 1 {
+        return Err("v0.1 runner requires exactly one preregistered replicate and one seed".to_owned());
+    }
+    let frozen_seed = seeds[0].as_u64().ok_or("manifest seed must be an unsigned integer")?;
+    let frozen_trials = replication["trials_per_stratum"].as_u64()
+        .filter(|value| *value > 0 && *value <= 1_000_000)
+        .ok_or("manifest.replication.trials_per_stratum must be in 1..=1000000")? as usize;
     let vertical = manifest["benchmark"]["vertical"].as_str()
         .ok_or("manifest.benchmark.vertical is required")?;
     vertical_spec(vertical)?;
-    Ok(vertical)
+    Ok((vertical, frozen_trials, frozen_seed))
 }
 
-fn parse_args() -> Result<(String, usize, u64, Option<String>), String> {
+fn parse_args() -> Result<(String, Option<usize>, Option<u64>, Option<String>), String> {
     let mut manifest = None;
     let mut output = None;
-    let mut trials = 100usize;
-    let mut seed = 20_261_031u64;
+    let mut trials = None;
+    let mut seed = None;
     let mut args = env::args().skip(1);
     while let Some(arg) = args.next() {
         let value = args.next().ok_or_else(|| format!("missing value after {arg}"))?;
@@ -285,17 +306,18 @@ fn parse_args() -> Result<(String, usize, u64, Option<String>), String> {
             "--manifest" => manifest = Some(value),
             "--output" => output = Some(value),
             "--trials-per-family" => {
-                trials = value.parse().map_err(|_| "trials-per-family must be a positive integer")?;
-                if trials == 0 || trials > 1_000_000 {
+                let parsed = value.parse::<usize>().map_err(|_| "trials-per-family must be a positive integer")?;
+                if parsed == 0 || parsed > 1_000_000 {
                     return Err("trials-per-family must be in 1..=1000000".to_owned());
                 }
+                trials = Some(parsed);
             }
             "--seed" => {
-                seed = if let Some(hex) = value.strip_prefix("0x") {
+                seed = Some(if let Some(hex) = value.strip_prefix("0x") {
                     u64::from_str_radix(hex, 16).map_err(|_| "seed hex value is invalid")?
                 } else {
                     value.parse().map_err(|_| "seed must be decimal or 0x-prefixed hexadecimal")?
-                };
+                });
             }
             _ => return Err(format!("unknown argument {arg}")),
         }
@@ -316,12 +338,24 @@ fn write_new(path: &str, bytes: &[u8]) -> Result<(), String> {
 }
 
 fn run() -> Result<(Value, bool), String> {
-    let (manifest_path, trials_per_family, seed, output_path) = parse_args()?;
+    let (manifest_path, requested_trials, requested_seed, output_path) = parse_args()?;
     let manifest_bytes = fs::read(&manifest_path)
         .map_err(|e| format!("cannot read manifest {manifest_path}: {e}"))?;
     let manifest: Value = serde_json::from_slice(&manifest_bytes)
         .map_err(|e| format!("invalid manifest JSON: {e}"))?;
-    let vertical = validate_manifest(&manifest)?;
+    let (vertical, trials_per_family, seed) = validate_manifest(&manifest)?;
+    if requested_trials.is_some_and(|value| value != trials_per_family) {
+        return Err(format!(
+            "CLI trial count {:?} differs from preregistered trials_per_stratum {trials_per_family}",
+            requested_trials
+        ));
+    }
+    if requested_seed.is_some_and(|value| value != seed) {
+        return Err(format!(
+            "CLI seed {:?} differs from preregistered seed {seed}",
+            requested_seed
+        ));
+    }
     let manifest_sha256 = digest_bytes(&manifest_bytes);
 
     let mut profile = read_fixture("schemas/examples/industry-runtime-admission-profile-synthetic-v0.1.json")?;
@@ -571,7 +605,7 @@ fn main() {
         }
         Err(error) => {
             eprintln!("{error}");
-            eprintln!("usage: industry-admission-benchmark --manifest <frozen-ibap-manifest.json> [--trials-per-family N] [--seed N|0xHEX] [--output <new-report.json>]");
+            eprintln!("usage: industry-admission-benchmark --manifest <frozen-ibap-manifest.json> [--trials-per-family N (must match manifest)] [--seed N|0xHEX (must match manifest)] [--output <new-report.json>]");
             std::process::exit(2);
         }
     }
