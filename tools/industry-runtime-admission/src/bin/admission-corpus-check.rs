@@ -260,22 +260,42 @@ fn verify_case(
         return Err(format!("static-profile baseline result does not replay for case {case_index}"));
     }
 
-    let tamper_detected = record["observed"]["report_tamper_detected"].as_bool()
+    let mut tampered_report = candidate_report.clone();
+    let admitted = actual_admission.starts_with("admit_");
+    tampered_report["admission"] = serde_json::json!(
+        if admitted { "reject" } else { "admit_descriptive" }
+    );
+    let replayed_tamper_detection = !independent_check(
+        profile,
+        profile_pin,
+        request,
+        &tampered_report,
+    ).is_empty();
+    let stored_tamper_detection = record["observed"]["report_tamper_detected"].as_bool()
         .ok_or_else(|| format!("case {case_index} is missing tamper-detection result"))?;
+    if stored_tamper_detection != replayed_tamper_detection {
+        return Err(format!("tamper-detection result does not replay for case {case_index}"));
+    }
     counts.report_tamper_checks += 1;
-    if tamper_detected {
+    if replayed_tamper_detection {
         counts.report_tamper_detected += 1;
     }
+
     let replay_matches = &record["observed"]["deterministic_replay_matches"];
-    match replay_matches {
-        Value::Bool(matches) => {
+    match (trial_index < 3, replay_matches) {
+        (true, Value::Bool(stored_matches)) => {
+            let repeated_report = evaluate_admission(profile, profile_pin, request);
+            let replayed_matches = repeated_report == *candidate_report;
+            if *stored_matches != replayed_matches {
+                return Err(format!("deterministic replay observation does not replay for case {case_index}"));
+            }
             counts.deterministic_replay_checks += 1;
-            if !matches {
+            if !replayed_matches {
                 counts.deterministic_replay_mismatches += 1;
             }
         }
-        Value::Null => {}
-        _ => return Err(format!("case {case_index} replay observation must be boolean or null")),
+        (false, Value::Null) => {}
+        _ => return Err(format!("case {case_index} has an invalid deterministic-replay sampling marker")),
     }
     let latency_ms = record["observed"]["latency_ms"].as_f64()
         .filter(|value| value.is_finite() && *value >= 0.0)
