@@ -1632,6 +1632,79 @@ mod tests {
         assert!(feasible <= visited);
     }
 
+    fn four_interval_charge_outage_recovery_request() -> Vec<u8> {
+        let mut request: serde_json::Value =
+            serde_json::from_slice(&three_interval_charge_outage_recovery_request()).unwrap();
+        request["intervals"].as_array_mut().unwrap().push(serde_json::json!({
+            "interval_id": "post-outage-recovery",
+            "start_unix_seconds": 1_800_010_800_i64,
+            "duration_seconds": 3600,
+            "grid_outage": false,
+            "pv_available_quanta": 1,
+            "grid_import_limit_quanta": 1,
+            "essential_demand_quanta": 0,
+            "flexible_demand_quanta": 0,
+            "grid_cost_units_per_quantum": 3,
+            "grid_carbon_grams_per_quantum": 7
+        }));
+        serde_json::to_vec(&request).unwrap()
+    }
+
+    #[test]
+    fn four_interval_model_matches_independent_schedule_and_objective_samples() {
+        let request = four_interval_charge_outage_recovery_request();
+        let mut total_feasible = 0usize;
+        for seed in [
+            0x534f_435f_4834_u64,
+            0x5445_4d50_4f52_414c_u64,
+            0x4459_4e41_4d49_4353_u64,
+        ] {
+            let (visited, feasible) =
+                sampled_compare_model_to_schedule_spec(&request, 40_000, seed);
+            assert_eq!(visited, 40_000);
+            total_feasible += feasible;
+        }
+        assert!(total_feasible <= 120_000);
+    }
+
+    #[test]
+    fn h4_schedule_oracle_rejects_soc_carry_mutations_at_every_boundary() {
+        let request_bytes = four_interval_charge_outage_recovery_request();
+        let request: Request = serde_json::from_slice(&request_bytes).unwrap();
+        let mut baseline = feasible_two_interval_assignment();
+        for index in 2..4 {
+            baseline.extend(BTreeMap::from([
+                (format!("grid_import_{index:03}"), 0),
+                (format!("charge_input_{index:03}"), 0),
+                (format!("soc_withdrawal_{index:03}"), 0),
+                (format!("charge_gain_{index:03}"), 0),
+                (format!("discharge_delivered_{index:03}"), 0),
+                (format!("soc_after_{index:03}"), 0),
+                (format!("essential_served_{index:03}"), 0),
+                (format!("essential_unserved_{index:03}"), 0),
+                (format!("flexible_served_{index:03}"), 0),
+                (format!("flexible_unserved_{index:03}"), 0),
+                (format!("pv_used_{index:03}"), 0),
+                (format!("pv_curtailed_{index:03}"), 0),
+                (format!("charge_mode_{index:03}"), 0),
+            ]));
+        }
+        assert!(schedule_spec_accepts_assignment(&request, &baseline));
+
+        for index in 0..4 {
+            let mut candidate = baseline.clone();
+            let current = integer_at(&candidate, &format!("soc_after_{index:03}"));
+            candidate.insert(
+                format!("soc_after_{index:03}"),
+                if current == 0 { 1 } else { 0 },
+            );
+            assert!(
+                !schedule_spec_accepts_assignment(&request, &candidate),
+                "SOC transition mutation at interval {index} must be rejected"
+            );
+        }
+    }
+
     #[test]
     fn h3_schedule_oracle_rejects_interval_reordering() {
         let request_bytes = three_interval_charge_outage_recovery_request();
