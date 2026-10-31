@@ -73,8 +73,10 @@ it does not trust the schedule's reported SOC fields.
 The receipt binds exact request and schedule SHA-256 values, source and
 schedule schema IDs, case ID, synthetic-source flag, candidate-expansion
 metadata, interval count, every pass/fail predicate with interval localization,
-the six recomputed objective values, auditor identity/version and a SHA-256
-receipt-subject digest.
+the six recomputed objective values, auditor identity/version, the SHA-256
+of the actual running executable and a SHA-256 receipt-subject digest. CI
+checks that the receipt's binary digest equals the exact release CLI binary
+whose hash is published with the run.
 
 The digest binds the serialized receipt subject, not an external signature.
 Input authenticity and receipt signing are separate concerns.
@@ -98,6 +100,16 @@ The auditor tests are independent known-answer and mutation tests. They do not
 call the LP validator. Cross-checks against the LP validator's exhaustive H=2
 and sampled H=3/H=4 panels can be added in a separate integration harness,
 without sharing production model-building or verification code.
+
+## Reproducible latency benchmark
+
+The dependency-free Rust benchmark measures horizons H=2, H=3 and H=4 with
+50 warmups and 1,000 recorded samples per metric and horizon. It reports
+strict duplicate-aware parsing of the exact request and schedule bytes
+separately from end-to-end audit plus receipt generation. Each row contains
+p50/p95/p99, minimum/maximum nanoseconds and source/schedule byte lengths.
+These are small synthetic implementation baselines; they are not field
+dispatch latencies or an industry performance comparison.
 
 ## Claim ceiling
 
