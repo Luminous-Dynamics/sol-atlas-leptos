@@ -1411,7 +1411,7 @@ mod tests {
         request["intervals"][0]["essential_demand_quanta"] = serde_json::json!(0);
         request["intervals"][0]["flexible_demand_quanta"] = serde_json::json!(0);
         request["intervals"][0]["grid_outage"] = serde_json::json!(false);
-        request["intervals"][1] = serde_json::json!({
+        request["intervals"].as_array_mut().unwrap().push(serde_json::json!({
             "interval_id": "serve-during-outage",
             "start_unix_seconds": 1_800_003_600_i64,
             "duration_seconds": 3600,
@@ -1422,7 +1422,7 @@ mod tests {
             "flexible_demand_quanta": 0,
             "grid_cost_units_per_quantum": 3,
             "grid_carbon_grams_per_quantum": 7
-        });
+        }));
         serde_json::to_vec(&request).unwrap()
     }
 
