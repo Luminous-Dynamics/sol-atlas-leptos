@@ -66,6 +66,12 @@ jobs:
           test -x "$VALIDATOR_BIN"
           sha256sum "$EMITTER_BIN" | awk '{print $1}' > target/energy-dispatch-mip-reference/emitter-binary.sha256
           sha256sum "$VALIDATOR_BIN" | awk '{print $1}' > target/energy-dispatch-mip-reference/validator-binary.sha256
+          rustc --version > target/energy-dispatch-mip-reference/rustc-version.txt
+          cargo --version > target/energy-dispatch-mip-reference/cargo-version.txt
+          uname -a > target/energy-dispatch-mip-reference/runner-host.txt
+          printf 'logical_cpus=%s\\n' "$(nproc)" > target/energy-dispatch-mip-reference/runner-cpus.txt
+          sha256sum tools/energy-dispatch-mip-reference/Cargo.lock tools/energy-dispatch-lp-validator/Cargo.lock \
+            > target/energy-dispatch-mip-reference/lockfiles.sha256
 
       - name: Emit twelve frozen-fixture LP models with the pinned emitter binary
         run: |
@@ -219,7 +225,13 @@ jobs:
             validator_binary_sha="$(cat target/energy-dispatch-mip-reference/validator-binary.sha256)"
             emitter_manifest_sha="$(cat target/energy-dispatch-mip-reference/emitter-manifest.sha256)"
             vipr_commit="$(cat target/energy-dispatch-mip-reference/vipr-source-commit.txt)"
+            scip_archive_sha="$(cat target/energy-dispatch-mip-reference/scip-archive.sha256)"
             scip_version_sha="$(sha256sum target/energy-dispatch-mip-reference/scip-version.txt | cut -d ' ' -f 1)"
+            rustc_version_sha="$(sha256sum target/energy-dispatch-mip-reference/rustc-version.txt | cut -d ' ' -f 1)"
+            cargo_version_sha="$(sha256sum target/energy-dispatch-mip-reference/cargo-version.txt | cut -d ' ' -f 1)"
+            runner_host_sha="$(sha256sum target/energy-dispatch-mip-reference/runner-host.txt | cut -d ' ' -f 1)"
+            runner_cpus_sha="$(sha256sum target/energy-dispatch-mip-reference/runner-cpus.txt | cut -d ' ' -f 1)"
+            lockfiles_sha="$(sha256sum target/energy-dispatch-mip-reference/lockfiles.sha256 | cut -d ' ' -f 1)"
             jq -cn --arg model "$model" --arg status "$status" --arg objective "$value" \
               --arg request_sha "$request_sha" --arg lp_sha "$lp_sha" \
               --arg semantic_sha "$semantic_sha" --arg receipt_sha "$receipt_sha" \
@@ -227,8 +239,11 @@ jobs:
               --arg validator_version "$validator_version" --arg checker_sha "$checker_sha" \
               --arg scip_sha "$scip_sha" --arg emitter_sha "$emitter_sha" \
               --arg validator_binary_sha "$validator_binary_sha" --arg emitter_manifest_sha "$emitter_manifest_sha" \
-              --arg scip_version_sha "$scip_version_sha" --arg vipr_commit "$vipr_commit" \
-              '{model:$model,solver_status:$status,objective_value:$objective,request_sha256:$request_sha,lp_sha256:$lp_sha,semantic_model_sha256:$semantic_sha,translation_receipt_sha256:$receipt_sha,certificate_sha256:$certificate_sha,vipr_log_sha256:$vipr_log_sha,validator_version:$validator_version,validator_binary_sha256:$validator_binary_sha,emitter_binary_sha256:$emitter_sha,emitter_manifest_sha256:$emitter_manifest_sha,scip_binary_sha256:$scip_sha,scip_version_output_sha256:$scip_version_sha,vipr_checker_sha256:$checker_sha,vipr_source_commit:$vipr_commit,vipr_verification:"accepted",claim_ceiling:"translation equivalence and independently accepted solver certificate for the exact emitted LP; not physical-model validity or operational authorization"}' \
+              --arg scip_version_sha "$scip_version_sha" --arg scip_archive_sha "$scip_archive_sha" \
+              --arg rustc_version_sha "$rustc_version_sha" --arg cargo_version_sha "$cargo_version_sha" \
+              --arg runner_host_sha "$runner_host_sha" --arg runner_cpus_sha "$runner_cpus_sha" \
+              --arg lockfiles_sha "$lockfiles_sha" --arg vipr_commit "$vipr_commit" \
+              '{model:$model,solver_status:$status,objective_value:$objective,request_sha256:$request_sha,lp_sha256:$lp_sha,semantic_model_sha256:$semantic_sha,translation_receipt_sha256:$receipt_sha,certificate_sha256:$certificate_sha,vipr_log_sha256:$vipr_log_sha,validator_version:$validator_version,validator_binary_sha256:$validator_binary_sha,emitter_binary_sha256:$emitter_sha,emitter_manifest_sha256:$emitter_manifest_sha,scip_binary_sha256:$scip_sha,scip_archive_sha256:$scip_archive_sha,scip_version_output_sha256:$scip_version_sha,rustc_version_sha256:$rustc_version_sha,cargo_version_sha256:$cargo_version_sha,runner_host_sha256:$runner_host_sha,runner_cpu_count_sha256:$runner_cpus_sha,lockfiles_sha256:$lockfiles_sha,vipr_checker_sha256:$checker_sha,vipr_source_commit:$vipr_commit,vipr_verification:"accepted",claim_ceiling:"translation equivalence and independently accepted solver certificate for the exact emitted LP; not physical-model validity or operational authorization"}' \
               >> target/energy-dispatch-mip-reference/proof-bindings/qualified-proof-bindings.jsonl
             test -s "$receipt"
           done < <(tail -n +2 target/energy-dispatch-mip-reference/scip-results.csv)
@@ -251,6 +266,12 @@ jobs:
               (.emitter_manifest_sha256|length) == 64 and
               (.scip_binary_sha256|length) == 64 and
               (.scip_version_output_sha256|length) == 64 and
+              (.scip_archive_sha256|length) == 64 and
+              (.rustc_version_sha256|length) == 64 and
+              (.cargo_version_sha256|length) == 64 and
+              (.runner_host_sha256|length) == 64 and
+              (.runner_cpu_count_sha256|length) == 64 and
+              (.lockfiles_sha256|length) == 64 and
               (.vipr_checker_sha256|length) == 64)
           ' target/energy-dispatch-mip-reference/proof-bindings/qualified-proof-bindings.jsonl \
             > target/energy-dispatch-mip-reference/proof-bindings/summary.json
