@@ -79,14 +79,15 @@ fn build_vertical_fixture(
     request: &mut Value,
 ) -> Result<(), String> {
     let (variable, unit, minimum, maximum, value, lower, upper) = vertical_spec(vertical)?;
-    let asset = format!("synthetic-{vertical}-asset-001");
-    let sensor = format!("sensor-{vertical}-001");
-    let capability = format!("{vertical}-bounded-admission");
-    let decision = format!("{vertical}-advisory-review");
-    let model = format!("{vertical}-model-v0.1");
+    let slug = vertical.replace('_', "-");
+    let asset = format!("synthetic-{slug}-asset-001");
+    let sensor = format!("sensor-{slug}-001");
+    let capability = format!("{slug}-bounded-admission");
+    let decision = format!("{slug}-advisory-review");
+    let model = format!("{slug}-model-v0.1");
     let topology_sha = "d4".repeat(32);
 
-    profile["profile_id"] = json!(format!("synthetic-{vertical}-runtime-admission-v0.1"));
+    profile["profile_id"] = json!(format!("synthetic-{slug}-runtime-admission-v0.1"));
     profile["claim"]["capability_id"] = json!(capability);
     profile["claim"]["instance_id"] = json!(asset);
     profile["claim"]["decision_id"] = json!(decision);
@@ -146,8 +147,9 @@ fn apply_family(
     pin: &mut Value,
     request: &mut Value,
 ) {
-    request["request_id"] = json!(format!("bench-{family}-{trial}"));
-    request["snapshot_id"] = json!(format!("snapshot-{family}-{trial}"));
+    let family_slug = family.replace('_', "-");
+    request["request_id"] = json!(format!("bench-{family_slug}-{trial}"));
+    request["snapshot_id"] = json!(format!("snapshot-{family_slug}-{trial}"));
     request["snapshot"]["snapshot_id"] = request["snapshot_id"].clone();
 
     let minimum = profile["operating_envelope"]["conditions"][0]["minimum"].as_f64().unwrap_or(0.0);
@@ -235,14 +237,14 @@ fn binomial_cdf(k: usize, n: usize, p: f64) -> f64 {
     }
     log_sum.exp().clamp(0.0, 1.0)
 }
-fn one_sided_exact_upper_95(events: usize, trials: usize) -> f64 {
+fn one_sided_exact_upper(events: usize, trials: usize, alpha: f64) -> f64 {
     if trials == 0 || events >= trials { return 1.0; }
-    if events == 0 { return 1.0 - 0.05f64.powf(1.0 / trials as f64); }
+    if events == 0 { return 1.0 - alpha.powf(1.0 / trials as f64); }
     let mut low = 0.0;
     let mut high = 1.0;
     for _ in 0..64 {
         let mid = (low + high) * 0.5;
-        if binomial_cdf(events, trials, mid) > 0.05 { low = mid; } else { high = mid; }
+        if binomial_cdf(events, trials, mid) > alpha { low = mid; } else { high = mid; }
     }
     high
 }
@@ -344,6 +346,9 @@ fn run() -> Result<(Value, bool), String> {
     let mut all_latencies_ms = Vec::new();
     let mut replay_checks = 0usize;
     let mut replay_mismatches = 0usize;
+    let mut corpus_hasher = Sha256::new();
+    let mut family_simultaneous_upper_bounds = Vec::new();
+    let mut static_baseline_false_admissions_total = 0usize;
 
     for (family, expected, expected_reason, is_negative) in FAMILIES {
         let mut false_admissions = 0usize;
@@ -352,6 +357,8 @@ fn run() -> Result<(Value, bool), String> {
         let mut checker_disagreements = 0usize;
         let mut reason_code_hits = 0usize;
         let mut tamper_detected = 0usize;
+        let mut static_profile_valid_trials = 0usize;
+        let mut static_false_admissions = 0usize;
         let mut latencies_ms = Vec::with_capacity(trials_per_family);
 
         for trial in 0..trials_per_family {
@@ -359,6 +366,19 @@ fn run() -> Result<(Value, bool), String> {
             let mut case_pin = pin.clone();
             let mut case_request = request.clone();
             apply_family(family, trial, &mut rng, &mut case_profile, &mut case_pin, &mut case_request);
+            for value in [&case_profile, &case_pin, &case_request] {
+                let bytes = serde_json::to_vec(value).expect("benchmark inputs serialize");
+                corpus_hasher.update((bytes.len() as u64).to_le_bytes());
+                corpus_hasher.update(bytes);
+            }
+            let static_valid_for_case = validate_profile(&case_profile).is_empty();
+            if static_valid_for_case {
+                static_profile_valid_trials += 1;
+                if *is_negative {
+                    static_false_admissions += 1;
+                    static_baseline_false_admissions_total += 1;
+                }
+            }
 
             let started = Instant::now();
             let report = evaluate_admission(&case_profile, &case_pin, &case_request);
@@ -384,13 +404,13 @@ fn run() -> Result<(Value, bool), String> {
                 checker_disagreements_total += 1;
             }
 
-            if let Some(code) = expected_reason {
+            if let Some(code) = *expected_reason {
                 if report["reason_codes"].as_array()
                     .is_some_and(|codes| codes.iter().any(|v| v.as_str() == Some(code))) {
                     reason_code_hits += 1;
                 }
             } else if *family == "positive_control"
-                && report["reason_codes"].as_array().is_some_and(Vec::is_empty) {
+                && report["reason_codes"].as_array().is_some_and(|codes| codes.is_empty()) {
                 reason_code_hits += 1;
             }
 
@@ -411,10 +431,11 @@ fn run() -> Result<(Value, bool), String> {
             }
         }
 
-        let static_valid = validate_profile(&profile).is_empty();
-        let static_false_admissions = if *is_negative && static_valid { trials_per_family } else { 0 };
         let upper_bound = if *is_negative {
-            Some(one_sided_exact_upper_95(false_admissions, trials_per_family))
+            let simultaneous_alpha = 0.05 / FAMILIES.iter().filter(|(_, _, _, negative)| *negative).count() as f64;
+            let simultaneous_bound = one_sided_exact_upper(false_admissions, trials_per_family, simultaneous_alpha);
+            family_simultaneous_upper_bounds.push(simultaneous_bound);
+            Some(one_sided_exact_upper(false_admissions, trials_per_family, 0.05))
         } else { None };
 
         strata.push(json!({
@@ -433,7 +454,7 @@ fn run() -> Result<(Value, bool), String> {
                 "expected_reason_code_hits": reason_code_hits
             },
             "static_only_profile_baseline": {
-                "profile_valid": static_valid,
+                "profile_valid_trials": static_profile_valid_trials,
                 "does_not_evaluate_request_freshness_or_runtime_identity": true,
                 "false_admissions": static_false_admissions
             },
@@ -447,6 +468,15 @@ fn run() -> Result<(Value, bool), String> {
     }
 
     let elapsed = run_started.elapsed();
+    let vertical_macro_upper = if family_simultaneous_upper_bounds.is_empty() {
+        Value::Null
+    } else {
+        json!(family_simultaneous_upper_bounds.iter().sum::<f64>() / family_simultaneous_upper_bounds.len() as f64)
+    };
+    let corpus_sha256 = corpus_hasher.finalize().iter().map(|b| format!("{b:02x}")).collect::<String>();
+    let base_profile_sha256 = digest_value(&profile);
+    let base_pin_sha256 = digest_value(&pin);
+    let base_request_sha256 = digest_value(&request);
     let report = json!({
         "schema_version": "luminous.ieac-runtime-admission-benchmark-report.v0.1",
         "benchmark_id": manifest["benchmark"]["benchmark_id"],
@@ -454,6 +484,13 @@ fn run() -> Result<(Value, bool), String> {
         "manifest_exact_bytes_sha256": manifest_sha256,
         "manifest_preregistered": true,
         "vertical": vertical,
+        "prng": "splitmix64-v1",
+        "corpus_sha256": corpus_sha256,
+        "input_fixture_digests": {
+            "profile_sha256": base_profile_sha256,
+            "profile_pin_sha256": base_pin_sha256,
+            "request_sha256": base_request_sha256
+        },
         "seed": seed,
         "trials_per_failure_family": trials_per_family,
         "candidate_method_id": candidate_method["method_id"],
@@ -465,6 +502,10 @@ fn run() -> Result<(Value, bool), String> {
             "failure_family_count": FAMILIES.len(),
             "negative_trials": negative_trials_total,
             "false_admissions": false_admissions_total,
+            "static_baseline_false_admissions": static_baseline_false_admissions_total,
+            "one_sided_95_percent_false_admission_upper_bound_per_family": "reported_in_each_stratum",
+            "one_sided_95_percent_upper_bound_for_equal_weight_family_macro_average": vertical_macro_upper,
+            "family_macro_upper_bound_method": "Bonferroni simultaneous one-sided exact binomial bounds across negative families, averaged with equal family weights",
             "candidate_checker_disagreements": checker_disagreements_total,
             "report_tamper_checks": tamper_checks_total,
             "report_tamper_detected": tamper_detected_total,
