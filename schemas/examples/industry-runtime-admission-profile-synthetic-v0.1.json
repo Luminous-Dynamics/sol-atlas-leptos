@@ -171,6 +171,15 @@
       "evidence_class": "synthetic",
       "rights_state": "verified",
       "notes": "Synthetic fixture digest and URI; no external asset or field observation."
+    },
+    {
+      "artifact_id": "authorization-source-001",
+      "role": "authorization_source",
+      "source_uri": "https://example.invalid/synthetic/authorization-source-001",
+      "content_sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+      "evidence_class": "synthetic",
+      "rights_state": "verified",
+      "notes": "Synthetic authorization-source identity binding only; no signed authority snapshot or live revocation source is represented."
     }
   ],
   "authority": {
