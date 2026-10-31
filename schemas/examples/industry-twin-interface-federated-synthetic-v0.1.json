@@ -24,8 +24,8 @@
         "artifact_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
       },
       "interface": {
-        "standard_id": "urn:luminous:itip:synthetic-profile-v0.1",
-        "edition": "0.1",
+        "interface_profile_id": "urn:luminous:itip:synthetic-profile-v0.1",
+        "interface_profile_version": "0.1",
         "document_kind": "reservoir-level-snapshot",
         "protocol": "https-json-fixture",
         "protocol_version": "1",
@@ -68,8 +68,8 @@
         "artifact_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
       },
       "interface": {
-        "standard_id": "urn:luminous:itip:synthetic-profile-v0.1",
-        "edition": "0.1",
+        "interface_profile_id": "urn:luminous:itip:synthetic-profile-v0.1",
+        "interface_profile_version": "0.1",
         "document_kind": "treatment-demand-view",
         "protocol": "https-json-fixture",
         "protocol_version": "1",
