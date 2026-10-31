@@ -55,12 +55,27 @@ jobs:
       - name: Clippy independent model generator
         run: cargo clippy --manifest-path tools/energy-dispatch-mip-reference/Cargo.toml --all-targets -- -D warnings
 
-      - name: Emit 12 frozen-fixture LP models
+      - name: Build and identify independent emitter and translation-validator binaries
         run: |
-          cargo run --manifest-path tools/energy-dispatch-mip-reference/Cargo.toml -- \
+          cargo build --release --manifest-path tools/energy-dispatch-mip-reference/Cargo.toml --locked
+          cargo build --release --manifest-path tools/energy-dispatch-lp-validator/Cargo.toml --locked
+          EMITTER_BIN=tools/energy-dispatch-mip-reference/target/release/energy-dispatch-mip-reference
+          VALIDATOR_BIN=tools/energy-dispatch-lp-validator/target/release/energy-dispatch-lp-validator
+          test -x "$EMITTER_BIN"
+          test -x "$VALIDATOR_BIN"
+          sha256sum "$EMITTER_BIN" | awk '{print $1}' > target/energy-dispatch-mip-reference/emitter-binary.sha256
+          sha256sum "$VALIDATOR_BIN" | awk '{print $1}' > target/energy-dispatch-mip-reference/validator-binary.sha256
+
+      - name: Emit twelve frozen-fixture LP models with the pinned emitter binary
+        run: |
+          EMITTER_BIN=tools/energy-dispatch-mip-reference/target/release/energy-dispatch-mip-reference
+          "$EMITTER_BIN" \
             schemas/examples/energy-dispatch-pv-outage.synthetic.json \
             target/energy-dispatch-mip-reference
           test "$(find target/energy-dispatch-mip-reference -maxdepth 1 -name '*.lp' | wc -l)" -eq 12
+          test -s target/energy-dispatch-mip-reference/manifest.json
+          sha256sum target/energy-dispatch-mip-reference/manifest.json | awk '{print $1}' \
+            > target/energy-dispatch-mip-reference/emitter-manifest.sha256
           test -s target/energy-dispatch-mip-reference/manifest.json
 
       - name: Independently validate the source-to-LP translation of every objective model
@@ -71,8 +86,8 @@ jobs:
             name="$(basename "$model")"
             stem="${name%.lp}"
             receipt="target/energy-dispatch-mip-reference/translation/$stem.translation.json"
-            cargo run --quiet --manifest-path tools/energy-dispatch-lp-validator/Cargo.toml --locked -- \
-              "$request" "$model" "$receipt"
+            VALIDATOR_BIN=tools/energy-dispatch-lp-validator/target/release/energy-dispatch-lp-validator
+            "$VALIDATOR_BIN" "$request" "$model" "$receipt"
             lp_sha="$(sha256sum "$model" | cut -d ' ' -f 1)"
             request_sha="$(sha256sum "$request" | cut -d ' ' -f 1)"
             jq -e --arg lp_sha "$lp_sha" --arg request_sha "$request_sha" \
@@ -199,14 +214,20 @@ jobs:
             validator_version="$(jq -r '.validator_version' "$receipt")"
             checker_sha="$(cat target/energy-dispatch-mip-reference/vipr-checker.sha256)"
             scip_sha="$(cat target/energy-dispatch-mip-reference/scip-binary.sha256)"
+            emitter_sha="$(cat target/energy-dispatch-mip-reference/emitter-binary.sha256)"
+            validator_binary_sha="$(cat target/energy-dispatch-mip-reference/validator-binary.sha256)"
+            emitter_manifest_sha="$(cat target/energy-dispatch-mip-reference/emitter-manifest.sha256)"
             vipr_commit="$(cat target/energy-dispatch-mip-reference/vipr-source-commit.txt)"
+            scip_version_sha="$(sha256sum target/energy-dispatch-mip-reference/scip-version.txt | cut -d ' ' -f 1)"
             jq -cn --arg model "$model" --arg status "$status" --arg objective "$value" \
               --arg request_sha "$request_sha" --arg lp_sha "$lp_sha" \
               --arg semantic_sha "$semantic_sha" --arg receipt_sha "$receipt_sha" \
               --arg certificate_sha "$cert_sha" --arg vipr_log_sha "$vipr_log_sha" \
               --arg validator_version "$validator_version" --arg checker_sha "$checker_sha" \
-              --arg scip_sha "$scip_sha" --arg vipr_commit "$vipr_commit" \
-              '{model:$model,solver_status:$status,objective_value:$objective,request_sha256:$request_sha,lp_sha256:$lp_sha,semantic_model_sha256:$semantic_sha,translation_receipt_sha256:$receipt_sha,certificate_sha256:$certificate_sha,vipr_log_sha256:$vipr_log_sha,validator_version:$validator_version,scip_binary_sha256:$scip_sha,vipr_checker_sha256:$checker_sha,vipr_source_commit:$vipr_commit,vipr_verification:"accepted",claim_ceiling:"translation equivalence and independently accepted solver certificate for the exact emitted LP; not physical-model validity or operational authorization"}' \
+              --arg scip_sha "$scip_sha" --arg emitter_sha "$emitter_sha" \
+              --arg validator_binary_sha "$validator_binary_sha" --arg emitter_manifest_sha "$emitter_manifest_sha" \
+              --arg scip_version_sha "$scip_version_sha" --arg vipr_commit "$vipr_commit" \
+              '{model:$model,solver_status:$status,objective_value:$objective,request_sha256:$request_sha,lp_sha256:$lp_sha,semantic_model_sha256:$semantic_sha,translation_receipt_sha256:$receipt_sha,certificate_sha256:$certificate_sha,vipr_log_sha256:$vipr_log_sha,validator_version:$validator_version,validator_binary_sha256:$validator_binary_sha,emitter_binary_sha256:$emitter_sha,emitter_manifest_sha256:$emitter_manifest_sha,scip_binary_sha256:$scip_sha,scip_version_output_sha256:$scip_version_sha,vipr_checker_sha256:$checker_sha,vipr_source_commit:$vipr_commit,vipr_verification:"accepted",claim_ceiling:"translation equivalence and independently accepted solver certificate for the exact emitted LP; not physical-model validity or operational authorization"}' \
               >> target/energy-dispatch-mip-reference/proof-bindings/qualified-proof-bindings.jsonl
             test -s "$receipt"
           done < <(tail -n +2 target/energy-dispatch-mip-reference/scip-results.csv)
@@ -229,5 +250,7 @@ jobs:
             tools/energy-dispatch-lp-validator/README.md
             tools/energy-dispatch-lp-validator/src/lib.rs
             tools/energy-dispatch-lp-validator/src/main.rs
+            tools/energy-dispatch-mip-reference/target/release/energy-dispatch-mip-reference
+            tools/energy-dispatch-lp-validator/target/release/energy-dispatch-lp-validator
           if-no-files-found: error
           retention-days: 14
