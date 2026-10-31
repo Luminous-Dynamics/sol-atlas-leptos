@@ -99,6 +99,65 @@ fn latency_matches(value: &Value, values: &[f64], quantile: f64) -> bool {
     }
 }
 
+fn number_matches(value: &Value, expected: f64) -> bool {
+    value.as_f64().is_some_and(|actual| (actual - expected).abs() <= 1e-12)
+}
+
+fn log_add_exp(a: f64, b: f64) -> f64 {
+    if a.is_infinite() && a.is_sign_negative() {
+        return b;
+    }
+    if b.is_infinite() && b.is_sign_negative() {
+        return a;
+    }
+    let high = a.max(b);
+    high + ((a - high).exp() + (b - high).exp()).ln()
+}
+
+fn binomial_cdf(k: usize, n: usize, p: f64) -> f64 {
+    if p <= 0.0 {
+        return 1.0;
+    }
+    if p >= 1.0 {
+        return if k >= n { 1.0 } else { 0.0 };
+    }
+    if k >= n {
+        return 1.0;
+    }
+    let log_p = p.ln();
+    let log_q = (-p).ln_1p();
+    let mut log_choose = 0.0;
+    let mut log_sum = f64::NEG_INFINITY;
+    for i in 0..=k {
+        if i > 0 {
+            log_choose += ((n - i + 1) as f64 / i as f64).ln();
+        }
+        let term = log_choose + i as f64 * log_p + (n - i) as f64 * log_q;
+        log_sum = log_add_exp(log_sum, term);
+    }
+    log_sum.exp().clamp(0.0, 1.0)
+}
+
+fn one_sided_exact_upper(events: usize, trials: usize, alpha: f64) -> f64 {
+    if trials == 0 || events >= trials {
+        return 1.0;
+    }
+    if events == 0 {
+        return 1.0 - alpha.powf(1.0 / trials as f64);
+    }
+    let mut low = 0.0;
+    let mut high = 1.0;
+    for _ in 0..64 {
+        let midpoint = (low + high) * 0.5;
+        if binomial_cdf(events, trials, midpoint) > alpha {
+            low = midpoint;
+        } else {
+            high = midpoint;
+        }
+    }
+    high
+}
+
 #[derive(Default)]
 struct FamilyCounts {
     trial_count: usize,
@@ -441,6 +500,31 @@ fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
         return Err("benchmark report does not bind the verified case ledger".to_owned());
     }
 
+    let negative_family_metrics = family_metrics
+        .values()
+        .filter(|metrics| metrics.negative_control == Some(true))
+        .collect::<Vec<_>>();
+    if negative_family_metrics.is_empty() {
+        return Err("case ledger contains no negative-control family".to_owned());
+    }
+    let simultaneous_alpha = 0.05 / negative_family_metrics.len() as f64;
+    let family_macro_rate = negative_family_metrics
+        .iter()
+        .map(|metrics| metrics.false_admissions as f64 / metrics.trial_count as f64)
+        .sum::<f64>()
+        / negative_family_metrics.len() as f64;
+    let family_macro_upper = negative_family_metrics
+        .iter()
+        .map(|metrics| {
+            one_sided_exact_upper(
+                metrics.false_admissions,
+                metrics.trial_count,
+                simultaneous_alpha,
+            )
+        })
+        .sum::<f64>()
+        / negative_family_metrics.len() as f64;
+
     let summary = &report["summary"];
     let summary_matches = summary["failure_family_count"].as_u64() == Some(family_count as u64)
         && summary["negative_trials"].as_u64() == Some(counts.negative_trials as u64)
@@ -463,6 +547,18 @@ fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
             == Some(counts.deterministic_replay_mismatches as u64)
         && summary["static_baseline_counterfactual_acceptances"].as_u64()
             == Some(counts.static_baseline_counterfactual_acceptances as u64)
+        && summary["one_sided_95_percent_false_admission_upper_bound_per_family"].as_str()
+            == Some("reported_in_each_stratum")
+        && summary["family_macro_upper_bound_method"].as_str()
+            == Some("Bonferroni simultaneous one-sided exact binomial bounds across negative families, averaged with equal family weights")
+        && number_matches(
+            &summary["equal_weight_failure_family_macro_false_admission_rate"],
+            family_macro_rate,
+        )
+        && number_matches(
+            &summary["one_sided_95_percent_upper_bound_for_equal_weight_family_macro_average"],
+            family_macro_upper,
+        )
         && fraction_matches(
             &summary["negative_non_admission_rate"],
             counts.negative_rejects + counts.negative_abstentions,
@@ -491,12 +587,29 @@ fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
                 if !seen.insert(family.to_owned()) { return false; }
                 let Some(metrics) = family_metrics.get(family) else { return false; };
                 let negative = metrics.negative_control.unwrap_or(false);
+                let expected_upper_bound = if negative {
+                    Some(one_sided_exact_upper(
+                        metrics.false_admissions,
+                        metrics.trial_count,
+                        0.05,
+                    ))
+                } else {
+                    None
+                };
+                let upper_bound_matches = match expected_upper_bound {
+                    Some(expected) => number_matches(
+                        &stratum["candidate"]["one_sided_exact_95_percent_false_admission_upper_bound"],
+                        expected,
+                    ),
+                    None => stratum["candidate"]["one_sided_exact_95_percent_false_admission_upper_bound"].is_null(),
+                };
                 stratum["vertical"].as_str() == Some(vertical)
                     && stratum["trials"].as_u64() == Some(metrics.trial_count as u64)
                     && stratum["negative_control"].as_bool() == Some(negative)
                     && stratum["expected_admission"].as_str() == metrics.expected_admission.as_deref()
                     && stratum["candidate"]["false_admissions"].as_u64()
                         == Some(metrics.false_admissions as u64)
+                    && upper_bound_matches
                     && fraction_matches(
                         &stratum["candidate"]["false_admission_rate"],
                         metrics.false_admissions,
