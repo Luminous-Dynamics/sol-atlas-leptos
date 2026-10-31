@@ -5,7 +5,7 @@
 
 ## 1. What this measures
 
-The driver evaluates the runtime admission gate over deterministic, seeded mutation families derived from the synthetic profile/request fixtures. It stratifies by the single vertical declared by the supplied frozen IBAP run manifest and reports each failure family independently. Run one frozen manifest per vertical; do not pool different vertical estimands into one score.
+The driver evaluates the runtime admission gate over deterministic, seeded single-fault, boundary and multi-fault mutation families derived from the synthetic profile/request fixtures. It stratifies by the single vertical declared by the supplied frozen IBAP run manifest and reports each failure family independently. Run one frozen manifest per vertical; do not pool different vertical estimands into one score.
 
 The baseline ladder is deliberately narrow:
 
@@ -44,12 +44,16 @@ At 30,000 negative trials per failure family, the separate one-sided 95% upper b
 | Family | Expected gate result | Protected reason code |
 |---|---|---|
 | Positive control | admit_descriptive | none |
+| Exact minimum boundary | admit_descriptive | none |
+| Exact maximum boundary | admit_descriptive | none |
 | Stale measurement | abstain | MEASUREMENT_STALE |
 | Future measurement | reject | FUTURE_DATED_MEASUREMENT |
 | Missing measurement | abstain | CONDITION_MEASUREMENT_MISSING |
 | Duplicate measurement | reject | DUPLICATE_CONDITION_MEASUREMENT |
 | Uncertainty interval crosses envelope | abstain | MEASUREMENT_INTERVAL_CROSSES_ENVELOPE |
 | Out-of-range value | reject | VALUE_OUTSIDE_OPERATING_ENVELOPE |
+| Just below minimum boundary | reject | VALUE_OUTSIDE_OPERATING_ENVELOPE |
+| Just above maximum boundary | reject | VALUE_OUTSIDE_OPERATING_ENVELOPE |
 | Unit mismatch | reject | UNIT_MISMATCH |
 | Model identity drift | reject | RUNTIME_IDENTITY_BINDING_INVALID |
 | Profile expiry | reject | PROFILE_OUTSIDE_VALIDITY_WINDOW |
@@ -57,8 +61,9 @@ At 30,000 negative trials per failure family, the separate one-sided 95% upper b
 | Revoked measurement source | reject | ARTIFACT_REVOKED |
 | Unavailable authority source | abstain | REVOCATION_STATE_UNAVAILABLE |
 | Decision-tier escalation | reject | DECISION_TIER_NOT_ADMITTED |
+| Stale measurement plus revoked source | reject | ARTIFACT_REVOKED and MEASUREMENT_STALE (exact set) |
 
-The driver also mutates every generated report and checks that the reconstruction checker detects the changed disposition. Three repeated evaluations per family are compared byte-for-byte for deterministic replay. Those replay checks are smoke checks, not exhaustive proof of determinism.
+The driver also mutates every generated report and checks that the reconstruction checker detects the changed disposition. Reason-code acceptance is exact-set equality, not a contains check: missing or unexpected reason codes fail the run. Three repeated evaluations per family are compared byte-for-byte for deterministic replay. Those replay checks are smoke checks, not exhaustive proof of determinism.
 
 The four supported synthetic strata are telecommunications, water_food_energy, industrial_maintenance and buildings. They are dimensionally distinct contract fixtures, not cross-vertical physical benchmarks. The manifest vertical determines which one is evaluated in a run.
 
