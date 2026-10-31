@@ -233,6 +233,27 @@ jobs:
             test -s "$receipt"
           done < <(tail -n +2 target/energy-dispatch-mip-reference/scip-results.csv)
           test "$(wc -l < target/energy-dispatch-mip-reference/proof-bindings/qualified-proof-bindings.jsonl)" -eq 12
+          jq -s -e '
+            length == 12 and
+            ([.[].model] | unique | length == 12) and
+            ([.[].request_sha256] | unique | length == 1) and
+            ([.[].lp_sha256] | unique | length == 12) and
+            ([.[].semantic_model_sha256] | unique | length == 12) and
+            all(.[]; .vipr_verification == "accepted" and
+              (.request_sha256|length) == 64 and
+              (.lp_sha256|length) == 64 and
+              (.semantic_model_sha256|length) == 64 and
+              (.translation_receipt_sha256|length) == 64 and
+              (.certificate_sha256|length) == 64 and
+              (.vipr_log_sha256|length) == 64 and
+              (.validator_binary_sha256|length) == 64 and
+              (.emitter_binary_sha256|length) == 64 and
+              (.emitter_manifest_sha256|length) == 64 and
+              (.scip_binary_sha256|length) == 64 and
+              (.scip_version_output_sha256|length) == 64 and
+              (.vipr_checker_sha256|length) == 64)
+          ' target/energy-dispatch-mip-reference/proof-bindings/qualified-proof-bindings.jsonl \
+            > target/energy-dispatch-mip-reference/proof-bindings/summary.json
 
       - name: Publish LP models, manifest, lockfile and formatted source
         if: always()
