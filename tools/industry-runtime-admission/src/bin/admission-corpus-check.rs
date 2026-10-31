@@ -72,6 +72,15 @@ fn require_u64(value: &Value, pointer: &str, label: &str) -> Result<u64, String>
         .ok_or_else(|| format!("{label} is missing unsigned integer field {pointer}"))
 }
 
+fn fraction_matches(value: &Value, numerator: usize, denominator: usize) -> bool {
+    if denominator == 0 {
+        return value.is_null();
+    }
+    value.as_f64().is_some_and(|actual| {
+        (actual - numerator as f64 / denominator as f64).abs() <= 1e-12
+    })
+}
+
 fn verify_case(
     record: &Value,
     case_index: usize,
@@ -163,14 +172,19 @@ fn verify_case(
         counts.negative_trials += 1;
         if actual_admission.starts_with("admit_") {
             counts.false_admissions += 1;
-        }
-        if actual_admission == "abstain" {
+        } else if actual_admission == "reject" {
+            counts.negative_rejects += 1;
+        } else if actual_admission == "abstain" {
             counts.negative_abstentions += 1;
         }
     } else {
         counts.positive_trials += 1;
         if actual_admission.starts_with("admit_") {
             counts.positive_admissions += 1;
+        } else if actual_admission == "abstain" {
+            counts.positive_abstentions += 1;
+        } else if actual_admission == "reject" {
+            counts.positive_rejections += 1;
         }
     }
     Ok(())
@@ -180,9 +194,12 @@ fn verify_case(
 struct Counts {
     negative_trials: usize,
     false_admissions: usize,
+    negative_rejects: usize,
     negative_abstentions: usize,
     positive_trials: usize,
     positive_admissions: usize,
+    positive_abstentions: usize,
+    positive_rejections: usize,
     checker_disagreements: usize,
     expected_disposition_mismatches: usize,
     expected_reason_code_misses: usize,
@@ -305,11 +322,31 @@ fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
         && summary["false_admissions"].as_u64() == Some(counts.false_admissions as u64)
         && summary["positive_trials"].as_u64() == Some(counts.positive_trials as u64)
         && summary["positive_admissions"].as_u64() == Some(counts.positive_admissions as u64)
+        && summary["negative_rejects"].as_u64() == Some(counts.negative_rejects as u64)
+        && summary["negative_abstentions"].as_u64() == Some(counts.negative_abstentions as u64)
+        && summary["positive_abstentions"].as_u64() == Some(counts.positive_abstentions as u64)
+        && summary["positive_rejections"].as_u64() == Some(counts.positive_rejections as u64)
         && summary["candidate_checker_disagreements"].as_u64() == Some(counts.checker_disagreements as u64)
         && summary["expected_disposition_mismatches"].as_u64()
             == Some(counts.expected_disposition_mismatches as u64)
         && summary["expected_reason_code_misses"].as_u64()
-            == Some(counts.expected_reason_code_misses as u64);
+            == Some(counts.expected_reason_code_misses as u64)
+        && fraction_matches(
+            &summary["negative_non_admission_rate"],
+            counts.negative_rejects + counts.negative_abstentions,
+            counts.negative_trials,
+        )
+        && fraction_matches(
+            &summary["negative_abstention_share"],
+            counts.negative_abstentions,
+            counts.negative_trials,
+        )
+        && fraction_matches(
+            &summary["positive_admission_coverage"],
+            counts.positive_admissions,
+            counts.positive_trials,
+        )
+        && report["strata"].as_array().is_some_and(|strata| strata.len() == family_count);
     if !summary_matches {
         return Err("benchmark report aggregates do not reconstruct from the case ledger".to_owned());
     }
