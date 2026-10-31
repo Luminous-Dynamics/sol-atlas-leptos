@@ -61,6 +61,13 @@ jobs:
           set -euo pipefail
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-evidence-acquisition-plan-v0.1.schema.json -i schemas/examples/industry-evidence-acquisition-synthetic-v0.1.json
 
+      - name: Assert standalone and embedded obligation schemas are identical
+        run: |
+          set -euo pipefail
+          diff -u \\
+            <(jq -S '{type, additionalProperties, required, properties, allOf}' schemas/industry-evidence-obligation-v0.1.schema.json) \\
+            <(jq -S '.["$defs"].obligation' schemas/industry-evidence-acquisition-plan-v0.1.schema.json)
+
       - name: Reject authority escalation and unsafe ranking controls
         run: |
           set -euo pipefail
