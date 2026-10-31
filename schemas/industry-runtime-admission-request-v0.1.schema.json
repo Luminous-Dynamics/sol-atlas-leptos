@@ -261,14 +261,18 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "snapshot_id",
+        "allowed_actions",
         "as_of",
-        "status",
         "authorization_status",
-        "revoked_profile_ids",
+        "max_age_seconds",
+        "observed_at",
         "revoked_artifact_ids",
+        "revoked_profile_ids",
         "revoked_sha256",
-        "allowed_actions"
+        "snapshot_id",
+        "source_artifact_id",
+        "source_sha256",
+        "status"
       ],
       "properties": {
         "snapshot_id": {
@@ -329,6 +333,24 @@
               "execute_external_action"
             ]
           }
+        },
+        "source_artifact_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "source_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{64}$"
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+        },
+        "max_age_seconds": {
+          "type": "integer",
+          "minimum": 0
         }
       }
     }
