@@ -13,8 +13,8 @@ fn read_json(path: &Path) -> Result<Value, String> {
 
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
-    if args.len() != 3 {
-        eprintln!("usage: industry-runtime-check <profile.json> <request.json> <sealed-report.json>");
+    if args.len() != 4 {
+        eprintln!("usage: industry-runtime-check <profile.json> <trusted-profile-pin.json> <request.json> <sealed-report.json>");
         std::process::exit(2);
     }
 
@@ -22,17 +22,21 @@ fn main() {
         Ok(value) => value,
         Err(error) => { eprintln!("{error}"); std::process::exit(2); }
     };
-    let request = match read_json(Path::new(&args[1])) {
+    let profile_pin = match read_json(Path::new(&args[1])) {
         Ok(value) => value,
         Err(error) => { eprintln!("{error}"); std::process::exit(2); }
     };
-    let report = match read_json(Path::new(&args[2])) {
+    let request = match read_json(Path::new(&args[2])) {
+        Ok(value) => value,
+        Err(error) => { eprintln!("{error}"); std::process::exit(2); }
+    };
+    let report = match read_json(Path::new(&args[3])) {
         Ok(value) => value,
         Err(error) => { eprintln!("{error}"); std::process::exit(2); }
     };
 
     let schema_errors = validate_runtime_report(&report);
-    let replay_errors = independent_check(&profile, &request, &report);
+    let replay_errors = independent_check(&profile, &profile_pin, &request, &report);
     let digest_valid = report_digest_is_valid(&report);
 
     if !schema_errors.is_empty() || !replay_errors.is_empty() || !digest_valid {
