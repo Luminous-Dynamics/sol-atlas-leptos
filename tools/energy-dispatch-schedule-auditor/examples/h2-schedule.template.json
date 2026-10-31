@@ -1,0 +1,34 @@
+{
+  "schema_version": "energy-dispatch-schedule-v0.1",
+  "case_id": "schedule-audit-h2-charge-outage",
+  "request_sha256": "",
+  "interval_dispatches": [
+    {
+      "interval_id": "charge-from-pv",
+      "grid_import_quanta": 0,
+      "charge_input_quanta": 1,
+      "discharge_withdrawal_quanta": 0,
+      "soc_after_quanta": 1,
+      "essential_served_quanta": 0,
+      "essential_unserved_quanta": 0,
+      "flexible_served_quanta": 0,
+      "flexible_unserved_quanta": 0,
+      "pv_used_quanta": 1,
+      "pv_curtailed_quanta": 0
+    },
+    {
+      "interval_id": "serve-during-outage",
+      "grid_import_quanta": 0,
+      "charge_input_quanta": 0,
+      "discharge_withdrawal_quanta": 1,
+      "soc_after_quanta": 0,
+      "essential_served_quanta": 1,
+      "essential_unserved_quanta": 0,
+      "flexible_served_quanta": 0,
+      "flexible_unserved_quanta": 0,
+      "pv_used_quanta": 0,
+      "pv_curtailed_quanta": 0
+    }
+  ],
+  "terminal_soc_quanta": 0
+}
