@@ -9,7 +9,7 @@ The driver evaluates the runtime admission gate over deterministic, seeded mutat
 
 The baseline ladder is deliberately narrow:
 
-- **Static-only profile baseline:** checks the static profile contract but does not inspect request freshness, current authority, snapshot identity or action scope. It is an intentionally weaker capability baseline, not a production competitor.
+- **Static-only profile baseline:** checks the static profile contract but does not inspect request freshness, current authority, snapshot identity or action scope. The report labels its result as a *counterfactual acceptance* (what it would accept if profile validity alone were treated as sufficient runtime authorization); it is not a runtime admission decision and not a production competitor.
 - **Runtime candidate:** evaluate_admission.
 - **Reconstruction checker:** independent_check, evaluated separately against the candidate report.
 
@@ -66,7 +66,7 @@ The four supported synthetic strata are telecommunications, water_food_energy, i
 
 Per vertical and failure family: sample count, expected disposition agreement, false admissions, false rejections on positive controls, one-sided exact 95% upper bound, reason-code hit count, candidate/checker disagreements, report-tamper detection, and p50/p95/p99 evaluator-plus-checker latency.
 
-Overall: elapsed wall time, throughput, false-admission total, checker disagreement total, deterministic replay mismatches, and report-tamper results. Peak memory and CPU energy are explicitly not_measured in v0.1; no fabricated resource metrics are emitted. A subsequent tranche should add OS-specific resource collectors with calibration and failure semantics, not silently substitute process wall time for CPU energy.
+Overall: elapsed wall time, throughput, false-admission total, equal-weight failure-family macro false-admission rate and simultaneous upper bound, static-only counterfactual acceptances, checker disagreement total, deterministic replay mismatches, and report-tamper results. Peak memory and CPU energy are explicitly not_measured in v0.1; no fabricated resource metrics are emitted. A subsequent tranche should add OS-specific resource collectors with calibration and failure semantics, not silently substitute process wall time for CPU energy.
 
 ## 5. Acceptance gates
 
