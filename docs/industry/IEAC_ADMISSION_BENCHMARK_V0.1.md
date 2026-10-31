@@ -37,7 +37,7 @@ The default 100 trials per family is a smoke/evaluation-development setting, not
 
 p_U = 1 - 0.05^(1/n)
 
-At 30,000 negative trials per failure family and per vertical, this is approximately 10^-4. At 300,000 it is approximately 10^-5. These are bounds for the declared synthetic generation process and its sampling assumptions, not estimates of industrial or field risk. If failures are observed, the driver computes the one-sided exact binomial upper bound for the observed count. Publish each stratum's denominator and bound; never hide a weak group in an aggregate.
+At 30,000 negative trials per failure family, the separate one-sided 95% upper bound is approximately 10^-4. The vertical-level equal-weight family macro-average uses Bonferroni-adjusted simultaneous exact bounds; it is reported separately because the family-stratified trials are not one IID pooled sample. These are bounds for the declared synthetic generation process and its sampling assumptions, not estimates of industrial or field risk. If failures are observed, the driver computes the one-sided exact binomial upper bound for the observed count. Publish each stratum's denominator and bound; never hide a weak group in an aggregate.
 
 ## 3. Frozen families and expected outcomes
 
@@ -76,7 +76,7 @@ Overall: elapsed wall time, throughput, false-admission total, checker disagreem
 - Zero deterministic replay mismatches in the declared replay sample.
 - 100% positive controls produce the frozen expected admission.
 - Every failure family reports its own denominator, disposition, reason-code coverage and latency distribution.
-- One-sided exact confidence bounds are reported at both per-family and per-vertical scope.
+- Separate one-sided exact confidence bounds are reported per family; a Bonferroni simultaneous upper bound is reported for the equal-weight family macro-average within each vertical.
 - No aggregate score may compensate for a false admission, an incorrect reason code, a failed positive control or a failed checker.
 - A manifest or corpus change creates a new pre-registration and new run receipt.
 
