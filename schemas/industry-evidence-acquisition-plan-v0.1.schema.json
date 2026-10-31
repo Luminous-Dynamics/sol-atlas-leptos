@@ -304,8 +304,6 @@
       "additionalProperties": false,
       "required": [
         "state",
-        "decision_value_model_id",
-        "cost_model_id",
         "source_independence_assessed",
         "rights_complete",
         "uncertainty_note"
@@ -408,12 +406,24 @@
               "rights_complete": {
                 "const": true
               }
-            }
+            },
+            "required": [
+              "state",
+              "decision_value_model_id",
+              "cost_model_id",
+              "source_independence_assessed",
+              "rights_complete",
+              "uncertainty_note"
+            ]
           },
           "ordered_candidate_ids": {
             "minItems": 1
           }
-        }
+        },
+        "required": [
+          "planner_calibration",
+          "ordered_candidate_ids"
+        ]
       }
     },
     {
