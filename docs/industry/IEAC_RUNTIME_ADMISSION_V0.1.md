@@ -7,8 +7,9 @@ It is an admission gate, not a physical solver, model evaluator, optimizer, safe
 ## Flow
 
 ```text
-static IEAC profile + request + measurement snapshot + revocation/authorization snapshot
+static IEAC profile + operator-provisioned profile pin + request + measurement snapshot + revocation/authorization snapshot
   -> profile contract validation
+  -> profile-pin validation against a separate trusted input
   -> exact identity and digest binding
   -> validity and authority checks
   -> per-condition unit, interval, source and freshness checks
@@ -23,14 +24,14 @@ Run the evaluator:
 
 ```sh
 cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked -- \
-  profile.json request.json new-report.json
+  profile.json trusted-profile-pin.json request.json new-report.json
 ```
 
 Run the independent checker as a separate process:
 
 ```sh
 cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked --bin industry-runtime-check -- \
-  profile.json request.json sealed-report.json
+  profile.json trusted-profile-pin.json request.json sealed-report.json
 ```
 
 The evaluator requires a new report destination and uses create-new semantics; it refuses to overwrite a file. Exit code 0 means the bounded request was admitted, 1 means abstain/reject, and 2 means malformed input, failed internal verification, or I/O failure. Abstain/reject reports are also written where the report contract can be produced, so callers can inspect stable reason codes.
@@ -41,6 +42,7 @@ The evaluator requires a new report destination and uses create-new semantics; i
 - D1 advisory supports only view, annotate, recommend, rank_options and prepare_plan; the profile must be qualified_for_profile, require human approval and have actuation disabled.
 - D2 delegated scheduling and D3 autonomous execution are always rejected.
 - The request binds the exact profile digest, model/evaluator/configuration/topology artifact IDs and digests, asset/instance, snapshot and revocation snapshot.
+- An independent profile-pin file must be provisioned from a trusted local registry/control plane. It binds profile ID, expected profile SHA-256, registry ID and active/revoked status. The request cannot supply or widen this pin. The report also records the exact profile-pin digest.
 - The model ID must be listed by the profile. Artifact bindings must be explicit, digest-matched and have rights_state=verified.
 - Measurement unit equality is exact. No automatic unit conversion or inference is performed.
 - Each operating-envelope variable needs a single measurement, value plus lower/upper uncertainty interval, observation timestamp, source artifact ID and source SHA-256.
@@ -58,7 +60,9 @@ The report digest is calculated after the independent-checker status is set and 
 
 ## Independent checker
 
-The candidate evaluator and independent checker are separate decision paths. The checker reconstructs disposition, action ceiling, per-condition states and reason codes from the original profile and request. It does not call the candidate evaluator. A second binary can replay a sealed report from the original inputs and verify the report digest and schema.
+The candidate evaluator and independent checker are separate decision paths. The checker reconstructs disposition, action ceiling, per-condition states and reason codes from the original profile, separately provisioned profile pin and request. It does not call the candidate evaluator. A second binary can replay a sealed report from the original inputs and verify the report digest and schema.
+
+The profile-pin file is an out-of-band trust input and must be protected by the host/operator (for example, provisioned read-only from a trusted registry, not accepted from the request submitter). v0.1 validates pin contents and binding but does not cryptographically authenticate the pin itself. Signed pins, key rotation and a trusted registry transport remain required for distributed deployments.
 
 The profile-pinned authorization_source binding and max_authority_snapshot_age_seconds policy verify that the request names the expected source identity and uses a bounded freshness window. They do **not** authenticate the supplied revocation payload or prove that it was signed by that source. v0.1 therefore must not be used as a production trust anchor; signed authority snapshots, key rotation, anti-replay sequence state and source-authentication verification remain required before any higher-risk deployment.
 
