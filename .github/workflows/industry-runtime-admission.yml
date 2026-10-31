@@ -93,7 +93,7 @@ jobs:
           report="$RUNNER_TEMP/ieac-admission-benchmark-smoke.json"
           cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked --bin industry-admission-benchmark -- \\
             --manifest schemas/examples/ieac-runtime-admission-benchmark-manifest-synthetic-v0.1.json \\
-            --trials-per-family 2 --seed 0x20261031 --output "$report"
+            --output "$report"
           jq -e '
             .schema_version == "luminous.ieac-runtime-admission-benchmark-report.v0.1" and
             .summary.negative_trials > 0 and
@@ -136,7 +136,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Luminous-Dynamics/sol-atlas-leptos
-          ref: 3df5147bfab35b0a797d11c3a5f6834ac14e7713
+          ref: 979eb38609eaa4b2c9e14ed0acd6c0c17fe61b93
           path: .ibap-contract
 
       - name: Validate profile and runtime schemas against Draft 2020-12 meta-schema
