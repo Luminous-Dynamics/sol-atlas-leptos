@@ -222,7 +222,7 @@ fn evaluate_conditions(
                     result = "out_of_domain";
                     *reject = true;
                 }
-                (Some(observed), Some(as_of), Some(max_age)) if as_of - observed > max_age as i64 => {
+                (Some(observed), Some(as_of), Some(max_age)) if (as_of - observed) as u64 > max_age => {
                     unique_push(&mut local, "MEASUREMENT_STALE");
                     result = "indeterminate";
                     *abstain = true;
@@ -597,6 +597,19 @@ fn independent_expected(profile: &Value, request: &Value) -> Value {
         let found = profile["artifact_bindings"].as_array().and_then(|items| items.iter().find(|item| {
             item["artifact_id"].as_str() == Some(id)
         }));
+        if let Some(item) = found {
+            if item["role"].as_str() != Some(role) {
+                reasons.insert("ARTIFACT_ROLE_MISMATCH".to_owned());
+            }
+            if item["content_sha256"].as_str() != Some(expected_digest) {
+                reasons.insert("ARTIFACT_DIGEST_MISMATCH".to_owned());
+            }
+            if item["rights_state"].as_str() != Some("verified") {
+                reasons.insert("ARTIFACT_RIGHTS_NOT_VERIFIED".to_owned());
+            }
+        } else {
+            reasons.insert("ARTIFACT_BINDING_MISSING".to_owned());
+        }
         let good = found.is_some_and(|item| {
             item["role"].as_str() == Some(role)
                 && item["content_sha256"].as_str() == Some(expected_digest)
@@ -606,6 +619,16 @@ fn independent_expected(profile: &Value, request: &Value) -> Value {
             reasons.insert("RUNTIME_IDENTITY_BINDING_INVALID".to_owned());
             fatal = true;
         }
+    }
+
+    let snap = &request["snapshot"];
+    if snap["snapshot_id"].as_str() != request["snapshot_id"].as_str()
+        || snap["as_of"].as_str() != request["as_of"].as_str()
+        || snap["asset_id"].as_str() != request["asset_id"].as_str()
+        || snap["topology_sha256"].as_str() != request["topology_sha256"].as_str()
+    {
+        reasons.insert("SNAPSHOT_CONTEXT_MISMATCH".to_owned());
+        fatal = true;
     }
 
     let revocation = &request["revocation_snapshot"];
@@ -645,6 +668,31 @@ fn independent_expected(profile: &Value, request: &Value) -> Value {
         items.iter().any(|item| item.as_str() == profile["profile_id"].as_str())
     }) {
         reasons.insert("PROFILE_REVOKED_BY_AUTHORITY".to_owned());
+        fatal = true;
+    }
+
+    let mut all_artifact_ids = BTreeSet::new();
+    for key in ["model_artifact_id", "evaluator_artifact_id", "configuration_artifact_id", "topology_artifact_id"] {
+        if let Some(id) = request[key].as_str() { all_artifact_ids.insert(id); }
+    }
+    if let Some(measurements) = request["snapshot"]["conditions"].as_array() {
+        for measurement in measurements {
+            if let Some(id) = measurement["evidence_artifact_id"].as_str() {
+                all_artifact_ids.insert(id);
+            }
+        }
+    }
+    if revocation["revoked_artifact_ids"].as_array().is_some_and(|items| {
+        items.iter().any(|item| item.as_str().is_some_and(|id| all_artifact_ids.contains(id)))
+    }) {
+        reasons.insert("ARTIFACT_REVOKED".to_owned());
+        fatal = true;
+    }
+    let identity_sha = ["model_sha256", "evaluator_sha256", "configuration_sha256", "topology_sha256"];
+    if revocation["revoked_sha256"].as_array().is_some_and(|items| {
+        items.iter().any(|item| identity_sha.iter().any(|key| item.as_str() == request[*key].as_str()))
+    }) {
+        reasons.insert("IDENTITY_DIGEST_REVOKED".to_owned());
         fatal = true;
     }
 
@@ -725,7 +773,7 @@ fn independent_expected(profile: &Value, request: &Value) -> Value {
                 local.insert("FUTURE_DATED_MEASUREMENT".to_owned());
                 condition_state = "out_of_domain";
                 fatal = true;
-            } else if now - observed > limit as i64 {
+            } else if (now - observed) as u64 > limit {
                 local.insert("MEASUREMENT_STALE".to_owned());
                 condition_state = "indeterminate";
                 uncertain = true;
@@ -745,6 +793,19 @@ fn independent_expected(profile: &Value, request: &Value) -> Value {
             item["artifact_id"].as_str() == Some(source_id)
         }));
         let source_hash = measurement["evidence_sha256"].as_str().unwrap_or("");
+        if let Some(item) = source {
+            if item["role"].as_str() != Some("measurement_source") {
+                reasons.insert("ARTIFACT_ROLE_MISMATCH".to_owned());
+            }
+            if item["content_sha256"].as_str() != Some(source_hash) {
+                reasons.insert("ARTIFACT_DIGEST_MISMATCH".to_owned());
+            }
+            if item["rights_state"].as_str() != Some("verified") {
+                reasons.insert("ARTIFACT_RIGHTS_NOT_VERIFIED".to_owned());
+            }
+        } else {
+            reasons.insert("ARTIFACT_BINDING_MISSING".to_owned());
+        }
         if !source_declared || !source.is_some_and(|item| {
             item["role"].as_str() == Some("measurement_source")
                 && item["content_sha256"].as_str() == Some(source_hash)
@@ -776,12 +837,25 @@ pub fn independent_check(profile: &Value, request: &Value, report: &Value) -> Ve
     let expected = independent_expected(profile, request);
     let mut failures = Vec::new();
     for key in [
-        "admission", "highest_permitted_action", "condition_results", "reason_codes",
+        "admission", "highest_permitted_action",
         "profile_sha256", "snapshot_sha256", "revocation_snapshot_sha256", "request_sha256",
     ] {
         if report.get(key) != expected.get(key) {
             failures.push(format!("REPORT_FIELD_MISMATCH:{key}"));
         }
+    }
+    let actual_conditions = report.get("condition_results").and_then(Value::as_array);
+    let expected_conditions = expected.get("condition_results").and_then(Value::as_array);
+    let condition_projection = |items: Option<&Vec<Value>>| {
+        items.map(|values| values.iter().map(|item| {
+            json!({"variable": item.get("variable"), "result": item.get("result")})
+        }).collect::<Vec<_>>())
+    };
+    if condition_projection(actual_conditions) != condition_projection(expected_conditions) {
+        failures.push("REPORT_FIELD_MISMATCH:condition_results".to_owned());
+    }
+    if report.get("report_sha256").is_some() && !report_digest_is_valid(report) {
+        failures.push("REPORT_DIGEST_MISMATCH".to_owned());
     }
     if report.get("schema_version").and_then(Value::as_str)
         != Some("luminous.ieac-runtime-admission-report.v0.1")
