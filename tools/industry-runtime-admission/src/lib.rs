@@ -408,7 +408,46 @@ pub fn validate_runtime_report(report: &Value) -> Vec<String> {
     issues.into_iter().collect()
 }
 
-pub fn evaluate_admission(profile: &Value, request: &Value) -> Value {
+
+fn runtime_profile_pin_schema() -> Value {
+    serde_json::from_str(include_str!("../../../schemas/industry-runtime-profile-pin-v0.1.schema.json"))
+        .expect("embedded runtime profile-pin schema must be valid JSON")
+}
+
+pub fn validate_runtime_profile_pin(profile_pin: &Value) -> Vec<String> {
+    let mut issues = BTreeSet::new();
+    validate_schema_subset(profile_pin, &runtime_profile_pin_schema(), "$", &mut issues);
+    issues.into_iter().collect()
+}
+
+fn profile_pin_matches(profile: &Value, profile_pin: &Value) -> (bool, Vec<String>) {
+    let mut reasons = BTreeSet::new();
+    if !validate_runtime_profile_pin(profile_pin).is_empty() {
+        reasons.insert("PROFILE_PIN_CONTRACT_INVALID".to_owned());
+    }
+    if profile_pin["profile_id"].as_str() != profile["profile_id"].as_str() {
+        reasons.insert("PROFILE_PIN_ID_MISMATCH".to_owned());
+    }
+    if profile_pin["profile_sha256"].as_str() != Some(sha256_value(profile).as_str()) {
+        reasons.insert("PROFILE_PIN_DIGEST_MISMATCH".to_owned());
+    }
+    if profile_pin["trusted_registry_id"].as_str().is_none_or(str::is_empty) {
+        reasons.insert("PROFILE_PIN_REGISTRY_UNBOUND".to_owned());
+    }
+    match profile_pin["status"].as_str() {
+        Some("active") => {}
+        Some("revoked") => {
+            reasons.insert("PROFILE_PIN_REVOKED".to_owned());
+        }
+        _ => {
+            reasons.insert("PROFILE_PIN_STATUS_INDETERMINATE".to_owned());
+        }
+    }
+    let valid = reasons.is_empty();
+    (valid, reasons.into_iter().collect())
+}
+
+pub fn evaluate_admission(profile: &Value, profile_pin: &Value, request: &Value) -> Value {
     let mut reasons = BTreeSet::new();
     let mut reject = false;
     let mut abstain = false;
@@ -419,6 +458,10 @@ pub fn evaluate_admission(profile: &Value, request: &Value) -> Value {
         for code in request_issues { unique_push(&mut reasons, code); }
         reject = true;
     }
+
+    let (pin_valid, pin_reasons) = profile_pin_matches(profile, profile_pin);
+    for code in pin_reasons { unique_push(&mut reasons, code); }
+    if !pin_valid { reject = true; }
 
     if !validate_profile(profile).is_empty() {
         unique_push(&mut reasons, "PROFILE_CONTRACT_INVALID");
@@ -684,6 +727,7 @@ pub fn evaluate_admission(profile: &Value, request: &Value) -> Value {
         "condition_results": condition_results,
         "reason_codes": reasons.into_iter().collect::<Vec<_>>(),
         "profile_sha256": profile_digest,
+        "profile_pin_sha256": sha256_value(profile_pin),
         "request_sha256": sha256_value(request),
         "snapshot_sha256": snapshot_digest,
         "revocation_snapshot_sha256": revocation_digest,
@@ -695,7 +739,7 @@ pub fn evaluate_admission(profile: &Value, request: &Value) -> Value {
     })
 }
 
-fn independent_expected(profile: &Value, request: &Value) -> Value {
+fn independent_expected(profile: &Value, profile_pin: &Value, request: &Value) -> Value {
     let mut reasons = BTreeSet::new();
     let mut fatal = false;
     let mut uncertain = false;
@@ -706,6 +750,10 @@ fn independent_expected(profile: &Value, request: &Value) -> Value {
         for code in request_issues { reasons.insert(code); }
         fatal = true;
     }
+
+    let (pin_valid, pin_reasons) = profile_pin_matches(profile, profile_pin);
+    for code in pin_reasons { reasons.insert(code); }
+    if !pin_valid { fatal = true; }
 
     if !validate_profile(profile).is_empty() {
         reasons.insert("PROFILE_CONTRACT_INVALID".to_owned());
@@ -1123,6 +1171,7 @@ fn independent_expected(profile: &Value, request: &Value) -> Value {
         "condition_results": condition_results,
         "reason_codes": reasons.into_iter().collect::<Vec<_>>(),
         "profile_sha256": p_hash,
+        "profile_pin_sha256": sha256_value(profile_pin),
         "snapshot_sha256": s_hash,
         "revocation_snapshot_sha256": r_hash,
         "request_sha256": sha256_value(request),
@@ -1140,12 +1189,12 @@ fn independent_expected(profile: &Value, request: &Value) -> Value {
     })
 }
 
-pub fn independent_check(profile: &Value, request: &Value, report: &Value) -> Vec<String> {
-    let expected = independent_expected(profile, request);
+pub fn independent_check(profile: &Value, profile_pin: &Value, request: &Value, report: &Value) -> Vec<String> {
+    let expected = independent_expected(profile, profile_pin, request);
     let mut failures = Vec::new();
     for key in [
         "admission", "highest_permitted_action",
-        "profile_sha256", "snapshot_sha256", "revocation_snapshot_sha256", "request_sha256",
+        "profile_sha256", "profile_pin_sha256", "snapshot_sha256", "revocation_snapshot_sha256", "request_sha256",
         "request_id", "profile_id", "evaluator_version",
         "asset_id", "snapshot_id", "as_of", "action", "model_sha256", "evaluator_sha256",
         "configuration_sha256", "topology_sha256",
