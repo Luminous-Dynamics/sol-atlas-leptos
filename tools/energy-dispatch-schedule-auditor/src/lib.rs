@@ -10,6 +10,7 @@ use serde_json::{Map, Number, Value};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeSet;
 use std::fmt;
+use std::time::Instant;
 
 pub const AUDITOR_ID: &str = "energy-dispatch-schedule-auditor";
 pub const AUDITOR_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -286,6 +287,22 @@ pub struct AuditReceipt {
     pub recomputed_objectives: RecomputedObjectives,
     pub receipt_sha256: String,
     pub claim_ceiling: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct AuditTimings {
+    pub request_parse_ns: u128,
+    pub schedule_parse_ns: u128,
+    pub semantic_validation_ns: u128,
+    pub objective_recompute_ns: u128,
+    pub receipt_construction_ns: u128,
+    pub total_ns: u128,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ProfiledAudit {
+    pub receipt: AuditReceipt,
+    pub timings: AuditTimings,
 }
 
 #[derive(Serialize)]
@@ -890,12 +907,13 @@ fn build_receipt(
     })
 }
 
-/// Audit exact source request and schedule bytes. The request digest in the
-/// schedule must equal SHA-256 of the original request bytes.
-pub fn audit_schedule_bytes(
+/// Audit exact source request and schedule bytes, returning separately measured
+/// parse, semantic-validation, objective and receipt-construction durations.
+pub fn audit_schedule_bytes_profiled(
     request_bytes: &[u8],
     schedule_bytes: &[u8],
-) -> Result<AuditReceipt, AuditError> {
+) -> Result<ProfiledAudit, AuditError> {
+    let total_started = Instant::now();
     if request_bytes.len() > MAX_REQUEST_BYTES {
         return Err(audit_error(format!(
             "request exceeds {MAX_REQUEST_BYTES} byte limit"
@@ -906,15 +924,23 @@ pub fn audit_schedule_bytes(
             "schedule exceeds {MAX_SCHEDULE_BYTES} byte limit"
         )));
     }
+
+    let request_started = Instant::now();
     let request_value = parse_unique_json(request_bytes)?;
-    let schedule_value = parse_unique_json(schedule_bytes)?;
     let request: SourceRequest = serde_json::from_value(request_value)
         .map_err(|error| audit_error(format!("request fields do not match schema: {error}")))?;
+    let request_parse_ns = request_started.elapsed().as_nanos();
+
+    let schedule_started = Instant::now();
+    let schedule_value = parse_unique_json(schedule_bytes)?;
     let schedule: DispatchSchedule = serde_json::from_value(schedule_value)
         .map_err(|error| audit_error(format!("schedule fields do not match schema: {error}")))?;
+    let schedule_parse_ns = schedule_started.elapsed().as_nanos();
 
     let request_sha256 = sha256(request_bytes);
     let schedule_sha256 = sha256(schedule_bytes);
+
+    let validation_started = Instant::now();
     let mut findings = Vec::new();
     validate_request(&request, &mut findings);
     validate_schedule(
@@ -923,15 +949,44 @@ pub fn audit_schedule_bytes(
         &request_sha256,
         &mut findings,
     );
+    let semantic_validation_ns = validation_started.elapsed().as_nanos();
+
+    let objective_started = Instant::now();
     let objectives = recompute_objectives(&request, &schedule)?;
-    build_receipt(
+    let objective_recompute_ns = objective_started.elapsed().as_nanos();
+
+    let receipt_started = Instant::now();
+    let receipt = build_receipt(
         &request,
         &schedule,
         request_sha256,
         schedule_sha256,
         findings,
         objectives,
-    )
+    )?;
+    let receipt_construction_ns = receipt_started.elapsed().as_nanos();
+    let total_ns = total_started.elapsed().as_nanos();
+
+    Ok(ProfiledAudit {
+        receipt,
+        timings: AuditTimings {
+            request_parse_ns,
+            schedule_parse_ns,
+            semantic_validation_ns,
+            objective_recompute_ns,
+            receipt_construction_ns,
+            total_ns,
+        },
+    })
+}
+
+/// Compatibility convenience API when phase timings are not needed.
+pub fn audit_schedule_bytes(
+    request_bytes: &[u8],
+    schedule_bytes: &[u8],
+) -> Result<AuditReceipt, AuditError> {
+    audit_schedule_bytes_profiled(request_bytes, schedule_bytes)
+        .map(|profiled| profiled.receipt)
 }
 
 #[cfg(test)]
