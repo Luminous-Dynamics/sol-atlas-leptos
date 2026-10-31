@@ -17,9 +17,10 @@
     "operating_conditions": [
       "One frozen synthetic qualification profile and operator profile pin",
       "One synthetic request and measurement snapshot per generated trial",
-      "Single-fault mutations from the frozen family list",
+      "Single-fault, boundary and explicitly declared multi-fault mutations from the frozen 19-family panel.",
       "D0 descriptive annotation only; no external actuation",
-      "Frozen 19-family panel: positive_control, exact_min_boundary, exact_max_boundary, stale_measurement, future_measurement, missing_measurement, duplicate_measurement, interval_crossing, out_of_range, just_below_min_boundary, just_above_max_boundary, unit_mismatch, identity_drift, profile_expired, profile_pin_revoked, source_revoked, authorization_unavailable, authority_escalation, stale_and_source_revoked."
+      "Frozen 19-family panel: positive_control, exact_min_boundary, exact_max_boundary, stale_measurement, future_measurement, missing_measurement, duplicate_measurement, interval_crossing, out_of_range, just_below_min_boundary, just_above_max_boundary, unit_mismatch, identity_drift, profile_expired, profile_pin_revoked, source_revoked, authorization_unavailable, authority_escalation, stale_and_source_revoked.",
+      "SplitMix64-v1 PRNG; the single seed is frozen in replication.seeds and may not be overridden."
     ],
     "time_support": "One admission decision per generated trial; timestamps are fixed or mutated within the frozen test contract.",
     "spatial_support": "One synthetic vertical fixture selected by benchmark.vertical; no real site or geographic claim.",
