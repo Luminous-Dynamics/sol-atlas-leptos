@@ -1,0 +1,163 @@
+{
+  "schema_version": "luminous.ieac-evidence-acquisition-plan.v0.1",
+  "plan_id": "synthetic.telecom.backup-energy.acquire.v01",
+  "request_id": "synthetic.telecom.backup-energy.request-001",
+  "profile_id": "synthetic.telecom.backup-energy.profile.v01",
+  "asset_id": "synthetic.telecom.site-001",
+  "decision_id": "synthetic.telecom.backup-energy.annotation",
+  "created_at": "2026-10-31T17:00:00Z",
+  "decision_tier_ceiling": "D0_descriptive",
+  "advisory_only": true,
+  "execution_authorized": false,
+  "profile_mutation_authorized": false,
+  "obligations": [
+    {
+      "schema_version": "luminous.ieac-evidence-obligation.v0.1",
+      "obligation_id": "synthetic.telecom.backup-energy.obligation-001",
+      "request_id": "synthetic.telecom.backup-energy.request-001",
+      "profile_id": "synthetic.telecom.backup-energy.profile.v01",
+      "asset_id": "synthetic.telecom.site-001",
+      "decision_id": "synthetic.telecom.backup-energy.annotation",
+      "issued_at": "2026-10-31T17:00:00Z",
+      "reason_codes": [
+        "MEASUREMENT_STALE"
+      ],
+      "resolution_state": "resolvable_with_new_evidence",
+      "required_evidence": {
+        "variable": "site_backup_usable_energy",
+        "accepted_unit": "kWh",
+        "operating_bounds": {
+          "minimum": 0,
+          "maximum": 20
+        },
+        "uncertainty_limit": 1,
+        "observation_window": {
+          "not_before": "2026-10-31T17:00:00Z",
+          "not_after": "2026-10-31T18:00:00Z"
+        },
+        "max_age_seconds": 300,
+        "sampling_requirements": "One raw meter sample and one five-minute stability window; preserve native source timestamps.",
+        "calibration_requirements": "Calibration record must be current and linked to the meter serial.",
+        "payload_digest_required": true
+      },
+      "source_constraints": {
+        "permitted_artifact_ids": [
+          "synthetic-meter-asset-001",
+          "synthetic-bms-snapshot-001"
+        ],
+        "permitted_source_classes": [
+          "independent_meter",
+          "battery_management_snapshot"
+        ],
+        "rights_state_required": "verified",
+        "excluded_artifact_ids": [
+          "synthetic-stale-bms-observation-001"
+        ]
+      },
+      "independence": {
+        "dependency_dimensions": [
+          "sensor",
+          "calibration_chain",
+          "gateway",
+          "clock",
+          "power_supply",
+          "upstream_source"
+        ],
+        "dependencies_must_be_declared": true,
+        "required_independent_of": [
+          "synthetic-stale-bms-observation-001"
+        ],
+        "unknown_independence_policy": "do_not_rank_or_treat_as_independent"
+      },
+      "authority": {
+        "required_authorization_source_ids": [
+          "synthetic-asset-owner-authorization-001"
+        ],
+        "trust_state_required": "operator_pinned",
+        "profile_review_can_be_automated": false
+      },
+      "human_review_required": false,
+      "claim_ceiling": "advisory_evidence_obligation_only"
+    }
+  ],
+  "candidates": [
+    {
+      "candidate_id": "synthetic.independent-meter.candidate",
+      "source_artifact_id": "synthetic-meter-asset-001",
+      "source_class": "independent_meter",
+      "covers_obligation_ids": [
+        "synthetic.telecom.backup-energy.obligation-001"
+      ],
+      "rights_state": "verified",
+      "independence_state": "independent",
+      "dependency_artifact_ids": [
+        "synthetic-meter-calibration-001",
+        "synthetic-meter-clock-001"
+      ],
+      "acquisition_cost": {
+        "amount": 0.2,
+        "unit": "operator_minutes"
+      },
+      "acquisition_latency_seconds": 30,
+      "information_value": {
+        "estimate": 0.8,
+        "unit": "normalized_information_gain",
+        "calibration_state": "calibrated",
+        "model_id": "synthetic-voi-calibration-v01"
+      },
+      "eligible": true,
+      "exclusion_reasons": []
+    },
+    {
+      "candidate_id": "synthetic.bms-repeat.candidate",
+      "source_artifact_id": "synthetic-bms-snapshot-001",
+      "source_class": "battery_management_snapshot",
+      "covers_obligation_ids": [
+        "synthetic.telecom.backup-energy.obligation-001"
+      ],
+      "rights_state": "verified",
+      "independence_state": "dependent",
+      "dependency_artifact_ids": [
+        "synthetic-stale-bms-observation-001",
+        "synthetic-bms-gateway-001"
+      ],
+      "acquisition_cost": {
+        "amount": 0.05,
+        "unit": "operator_minutes"
+      },
+      "acquisition_latency_seconds": 5,
+      "information_value": {
+        "estimate": 0.1,
+        "unit": "normalized_information_gain",
+        "calibration_state": "uncalibrated"
+      },
+      "eligible": false,
+      "exclusion_reasons": [
+        "SOURCE_NOT_INDEPENDENT",
+        "VALUE_ESTIMATE_UNCALIBRATED"
+      ]
+    }
+  ],
+  "ranking_status": "ranked",
+  "ordered_candidate_ids": [
+    "synthetic.independent-meter.candidate"
+  ],
+  "planner_calibration": {
+    "state": "calibrated",
+    "decision_value_model_id": "synthetic-voi-calibration-v01",
+    "cost_model_id": "synthetic-operator-cost-v01",
+    "source_independence_assessed": true,
+    "rights_complete": true,
+    "uncertainty_note": "Illustrative synthetic estimates only; do not interpret these values as empirical probabilities, measured cost or field VOI."
+  },
+  "human_review_required": true,
+  "audit": {
+    "selection_rationale": "Select the permitted independent meter because it covers the required observation and is declared independent of the stale BMS evidence. Exclude the faster BMS repeat because it shares the stale evidence's dependencies and its information-value estimate is uncalibrated.",
+    "excluded_candidate_ids": [
+      "synthetic.bms-repeat.candidate"
+    ],
+    "preserves_prior_abstention": true,
+    "requires_new_admission_request": true
+  },
+  "claim_ceiling": "advisory_evidence_acquisition_only"
+}
