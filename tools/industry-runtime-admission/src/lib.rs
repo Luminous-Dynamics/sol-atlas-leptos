@@ -50,7 +50,7 @@ fn canonical_utc_seconds(value: &str) -> Option<i64> {
         return None;
     }
 
-    let adjusted_year = year - i64::from(month <= 2);
+    let adjusted_year = year - if month <= 2 { 1 } else { 0 };
     let era = adjusted_year.div_euclid(400);
     let year_of_era = adjusted_year - era * 400;
     let adjusted_month = month + if month > 2 { -3 } else { 9 };
@@ -1444,10 +1444,10 @@ mod tests {
                 "source_artifact_ids": [sensor]
             }]);
             for binding in profile["artifact_bindings"].as_array_mut().unwrap() {
-                if binding["artifact_id"] == "sensor-battery-001" {
+                if binding["artifact_id"].as_str() == Some("sensor-battery-001") {
                     binding["artifact_id"] = json!(sensor);
                 }
-                if binding["artifact_id"] == "topology-001" {
+                if binding["artifact_id"].as_str() == Some("topology-001") {
                     binding["content_sha256"] = json!(topology_sha);
                 }
             }
@@ -1470,7 +1470,7 @@ mod tests {
             request["snapshot"]["conditions"][0]["upper"] = json!(upper);
             request["snapshot"]["conditions"][0]["evidence_artifact_id"] = json!(sensor);
             let sensor_sha = profile["artifact_bindings"].as_array().unwrap().iter()
-                .find(|binding| binding["artifact_id"] == sensor).unwrap()["content_sha256"].clone();
+                .find(|binding| binding["artifact_id"].as_str() == Some(sensor.as_str())).unwrap()["content_sha256"].clone();
             request["snapshot"]["conditions"][0]["evidence_sha256"] = sensor_sha;
             request["topology_artifact_id"] = json!("topology-001");
             request["topology_id"] = json!("topology-001");
