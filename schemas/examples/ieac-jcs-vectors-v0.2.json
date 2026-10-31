@@ -1,0 +1,36 @@
+{
+  "schema_version": "luminous.ieac-jcs-vectors.v0.2",
+  "canonicalization": "RFC8785-JCS",
+  "digest_algorithm": "SHA-256",
+  "vectors": [
+    {
+      "vector_id": "object-key-order-001",
+      "input_json": "{\"z\":1,\"a\":2}",
+      "canonical_utf8": "{\"a\":2,\"z\":1}",
+      "canonical_sha256": "c2985c5ba6f7d2a55e768f92490ca09388e95bc4cccb9fdf11b15f4d42f93e73",
+      "purpose": "Object properties are sorted deterministically rather than retaining input order."
+    },
+    {
+      "vector_id": "number-normalization-001",
+      "input_json": "{\"n\":1.0,\"zero\":-0}",
+      "canonical_utf8": "{\"n\":1,\"zero\":0}",
+      "canonical_sha256": "48ec2cbf0466d0291bbf85dc865e076419b9180cc4dfab6a7b73a23a35703020",
+      "purpose": "ECMAScript-compatible serialization normalizes integral decimal and negative zero."
+    },
+    {
+      "vector_id": "utf16-property-order-001",
+      "input_json": "{\"\":1,\"𠮷\":2}",
+      "canonical_utf8": "{\"𠮷\":2,\"\":1}",
+      "canonical_sha256": "7b358e62a10a57c1345d708c91a5317ec762028881d2088817bcac76f359f21d",
+      "purpose": "Property ordering follows UTF-16 code units; this differs from Unicode code-point ordering for these keys."
+    },
+    {
+      "vector_id": "nested-canonical-001",
+      "input_json": "{\"z\":{\"b\":2,\"a\":1},\"a\":[3,2,1]}",
+      "canonical_utf8": "{\"a\":[3,2,1],\"z\":{\"a\":1,\"b\":2}}",
+      "canonical_sha256": "f613a572f53e0e577f557af7e41633d7c30546ae97e1e20b8ad0dbea7118d7a6",
+      "purpose": "Canonical property sorting is recursive while array order is preserved."
+    }
+  ],
+  "claim_ceiling": "Starter regression vectors only. They do not constitute complete RFC 8785 coverage or prove conformance of any implementation. Validate against at least two independent RFC 8785 implementations before treating the corpus as normative."
+}
