@@ -5,7 +5,7 @@
 
 ## 1. What this measures
 
-The driver evaluates the runtime admission gate over deterministic, seeded single-fault, boundary and multi-fault mutation families derived from the synthetic profile/request fixtures. It stratifies by the single vertical declared by the supplied frozen IBAP run manifest and reports each failure family independently. Run one frozen manifest per vertical; do not pool different vertical estimands into one score.
+The driver evaluates the runtime admission gate over deterministic, seeded single-fault, boundary and explicitly frozen pairwise interaction families derived from the synthetic profile/request fixtures. The original 19 strata remain unchanged as the v0.1 baseline; eight new pairwise strata bring the current panel to 27 families. It stratifies by the single vertical declared by the supplied frozen IBAP run manifest and reports each failure family independently. Run one frozen manifest per vertical; do not pool different vertical estimands into one score.
 
 The baseline ladder is deliberately narrow:
 
@@ -63,6 +63,16 @@ At 30,000 negative trials per failure family, the separate one-sided 95% upper b
 | Unavailable authority source | abstain | REVOCATION_STATE_UNAVAILABLE |
 | Decision-tier escalation | reject | ACTION_NOT_PERMITTED_BY_PROFILE and DECISION_TIER_NOT_ADMITTED (exact set) |
 | Stale measurement plus revoked source | reject | ARTIFACT_REVOKED and MEASUREMENT_STALE (exact set) |
+| Stale measurement plus unit mismatch | reject | MEASUREMENT_STALE and UNIT_MISMATCH (exact set) |
+| Interval crossing plus revoked source | reject | ARTIFACT_REVOKED and MEASUREMENT_INTERVAL_CROSSES_ENVELOPE (exact set) |
+| Model identity drift plus revoked profile pin | reject | ARTIFACT_DIGEST_MISMATCH, PROFILE_PIN_REVOKED and RUNTIME_IDENTITY_BINDING_INVALID (exact set) |
+| Profile expiry plus unavailable authority | reject | PROFILE_OUTSIDE_VALIDITY_WINDOW and REVOCATION_STATE_UNAVAILABLE (exact set) |
+| Stale measurement plus authority escalation | reject | ACTION_NOT_PERMITTED_BY_PROFILE, DECISION_TIER_NOT_ADMITTED and MEASUREMENT_STALE (exact set) |
+| Future measurement plus revoked source | reject | ARTIFACT_REVOKED and FUTURE_DATED_MEASUREMENT (exact set) |
+| Unit mismatch plus revoked profile pin | reject | PROFILE_PIN_REVOKED and UNIT_MISMATCH (exact set) |
+| Out-of-range value plus profile expiry | reject | PROFILE_OUTSIDE_VALIDITY_WINDOW and VALUE_OUTSIDE_OPERATING_ENVELOPE (exact set) |
+
+The eight added interaction strata deliberately combine faults from different control planes: measurement freshness and units; uncertainty and source revocation; model identity and profile authority; profile validity and authority availability; measurement freshness and action tier; temporal validity and source revocation; measurement units and pin revocation; and physical-boundary violation with profile expiry. Reject dominates abstain, but all applicable reason codes must remain present. These cases test precedence and reason preservation, not merely detection of each fault in isolation.
 
 The driver also mutates every generated report and checks that the reconstruction checker detects the changed disposition. Reason-code acceptance is exact-set equality, not a contains check: missing or unexpected reason codes fail the run. Three repeated evaluations per family are compared byte-for-byte for deterministic replay. Those replay checks are smoke checks, not exhaustive proof of determinism.
 
@@ -95,9 +105,10 @@ The first driver is synthetic and uses the current v0.1 admission contract. It d
 Next benchmark increments:
 1. Integrate signed pin/revocation and anti-replay families after #347, while keeping trust failures separate from measurement failures.
 2. Add source-level independent checker implementation and third-party golden vectors.
-3. Add adversarial combinatorial interactions (e.g. stale plus revoked, identity drift plus validly refreshed snapshot) rather than relying only on single-fault mutants.
-4. Add resource collectors, calibrated energy measurement and pinned hardware profiles.
-5. Add prospective shadow-pilot outcomes only after synthetic software admission tests are stable and source/authority rights are established.
+3. Expand from the current frozen pairwise panel to constrained 3-way/t-wise combinations, explicit conflict pairs and metamorphic invariants (e.g. object-key reordering, digest one-bit flips and identity-preserving serialization changes).
+4. Add active-sensing/value-of-information trials: compare abstain, request-another-measurement, specialist-solver and operator-escalation pathways with decision cost and hard safety floors.
+5. Add resource collectors, calibrated energy measurement and pinned hardware profiles.
+6. Add prospective shadow-pilot outcomes only after synthetic software admission tests are stable and source/authority rights are established.
 
 A benchmark result advances only the evidence dimension it directly measures.
 
