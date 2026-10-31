@@ -570,6 +570,14 @@ fn run() -> Result<(Value, bool), String> {
         "qualification_profile_schema_sha256": digest_bytes(
             include_str!("../../../../schemas/industry-assurance-qualification-profile-v0.1.schema.json").as_bytes()
         ),
+        "runtime_cargo_manifest_sha256": digest_bytes(include_str!("../../Cargo.toml").as_bytes()),
+        "runtime_cargo_lock_sha256": digest_bytes(include_str!("../../Cargo.lock").as_bytes()),
+        "validator_cargo_manifest_sha256": digest_bytes(
+            include_str!("../../../industry-assurance-validator/Cargo.toml").as_bytes()
+        ),
+        "validator_cargo_lock_sha256": digest_bytes(
+            include_str!("../../../industry-assurance-validator/Cargo.lock").as_bytes()
+        ),
         "corpus_verifier_source_sha256": digest_bytes(include_str!("admission-corpus-check.rs").as_bytes())
     });
     let mut case_ledger = CaseLedger::create(&cases_jsonl_path, json!({
