@@ -1547,6 +1547,38 @@ mod tests {
         assert!(feasible <= visited);
     }
 
+    #[test]
+    fn h3_schedule_oracle_rejects_interval_reordering() {
+        let request_bytes = three_interval_charge_outage_recovery_request();
+        let request: Request = serde_json::from_slice(&request_bytes).unwrap();
+        let mut assignment = feasible_two_interval_assignment();
+        assignment.extend(BTreeMap::from([
+            ("grid_import_002".to_owned(), 0),
+            ("charge_input_002".to_owned(), 0),
+            ("soc_withdrawal_002".to_owned(), 0),
+            ("charge_gain_002".to_owned(), 0),
+            ("discharge_delivered_002".to_owned(), 0),
+            ("soc_after_002".to_owned(), 0),
+            ("essential_served_002".to_owned(), 0),
+            ("essential_unserved_002".to_owned(), 0),
+            ("flexible_served_002".to_owned(), 0),
+            ("flexible_unserved_002".to_owned(), 0),
+            ("pv_used_002".to_owned(), 0),
+            ("pv_curtailed_002".to_owned(), 0),
+            ("charge_mode_002".to_owned(), 0),
+        ]));
+        assert!(schedule_spec_accepts_assignment(&request, &assignment));
+
+        let mut reordered: serde_json::Value = serde_json::from_slice(&request_bytes).unwrap();
+        reordered["intervals"].as_array_mut().unwrap().swap(1, 2);
+        let reordered_request: Request =
+            serde_json::from_value(reordered).expect("reordered request remains valid");
+        assert!(
+            !schedule_spec_accepts_assignment(&reordered_request, &assignment),
+            "reordering an outage and idle interval must invalidate the original trajectory"
+        );
+    }
+
     fn feasible_two_interval_assignment() -> BTreeMap<String, i64> {
         BTreeMap::from([
             ("grid_import_000".to_owned(), 0),
