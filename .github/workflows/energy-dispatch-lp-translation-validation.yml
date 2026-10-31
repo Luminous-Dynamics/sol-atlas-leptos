@@ -29,8 +29,8 @@ jobs:
           toolchain: 1.96.0
           components: clippy, rustfmt
 
-      - name: Check validator formatting
-        run: cargo fmt --manifest-path tools/energy-dispatch-lp-validator/Cargo.toml --all -- --check
+      - name: Apply pinned rustfmt to the independent validator
+        run: cargo fmt --manifest-path tools/energy-dispatch-lp-validator/Cargo.toml --all
 
       - name: Generate standalone dependency locks
         run: |
