@@ -68,6 +68,7 @@ name = "industry-runtime-admission"
 version = "0.1.0"
 dependencies = [
  "industry-assurance-validator",
+ "serde",
  "serde_json",
  "sha2",
 ]
