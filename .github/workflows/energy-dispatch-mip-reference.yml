@@ -116,7 +116,7 @@ jobs:
       - name: Build pinned independent VIPR proof checker
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake g++ libgmp-dev
+          sudo apt-get install -y cmake g++ libgmp-dev libtbb-dev
           git clone https://github.com/scipopt/vipr.git /tmp/vipr
           git -C /tmp/vipr checkout 99eec197a49b2bd9ad33c1f4c7afabe93caa6511
           cmake -S /tmp/vipr/code -B /tmp/vipr/build -DVIPRCOMP=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5
