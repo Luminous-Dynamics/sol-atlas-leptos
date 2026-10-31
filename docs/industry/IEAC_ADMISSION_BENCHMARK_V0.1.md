@@ -71,7 +71,7 @@ The four supported synthetic strata are telecommunications, water_food_energy, i
 
 Per vertical and failure family: sample count, expected disposition agreement, false admissions, false rejections on positive controls, one-sided exact 95% upper bound, reason-code hit count, candidate/checker disagreements, report-tamper detection, and p50/p95/p99 evaluator-plus-checker latency.
 
-Overall: elapsed wall time, throughput, false-admission total, equal-weight failure-family macro false-admission rate and simultaneous upper bound, static-only counterfactual acceptances, checker disagreement total, deterministic replay mismatches, and report-tamper results. Peak memory and CPU energy are explicitly not_measured in v0.1; no fabricated resource metrics are emitted. A subsequent tranche should add OS-specific resource collectors with calibration and failure semantics, not silently substitute process wall time for CPU energy.
+Overall: elapsed wall time, throughput, false-admission total, negative-control non-admission rate and abstention share, positive-control admission coverage, equal-weight failure-family macro false-admission rate and simultaneous upper bound, static-only counterfactual acceptances, checker disagreement total, deterministic replay mismatches, and report-tamper results. This is the benchmark's fixed operating point; it is not a risk/coverage curve because v0.1 does not expose a tunable threshold or policy sweep. Peak memory and CPU energy are explicitly not_measured in v0.1; no fabricated resource metrics are emitted. A subsequent tranche should add OS-specific resource collectors with calibration and failure semantics, not silently substitute process wall time for CPU energy.
 
 ## 5. Acceptance gates
 
