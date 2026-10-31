@@ -1,5 +1,5 @@
 use industry_runtime_admission::{
-    evaluate_admission, independent_check, report_digest_is_valid, seal_report,
+    evaluate_admission, independent_check, report_digest_is_valid, seal_report, validate_runtime_report,
 };
 use serde_json::Value;
 use std::env;
@@ -54,7 +54,12 @@ fn main() {
     let checker_status = if checker_errors.is_empty() { "passed" } else { "failed" };
     seal_report(&mut report, checker_status, &checker_errors);
 
-    if !report_digest_is_valid(&report) {
+    let report_issues = validate_runtime_report(&report);
+    if !report_issues.is_empty() {
+        seal_report(&mut report, "failed", &report_issues);
+    }
+
+    if !validate_runtime_report(&report).is_empty() || !report_digest_is_valid(&report) {
         eprintln!("internal report digest self-check failed");
         std::process::exit(2);
     }
