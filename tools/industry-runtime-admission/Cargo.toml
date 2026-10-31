@@ -9,6 +9,10 @@ description = "Fail-closed IEAC runtime operating-envelope admission gate"
 name = "industry-runtime-admission"
 path = "src/main.rs"
 
+[[bin]]
+name = "industry-runtime-check"
+path = "src/bin/runtime-check.rs"
+
 [lib]
 path = "src/lib.rs"
 
