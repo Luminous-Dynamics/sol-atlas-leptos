@@ -1,0 +1,155 @@
+{
+  "schema_version": "luminous.industry-twin-interface-manifest.v0.1",
+  "manifest_id": "itip.synthetic.unified.pump.v01",
+  "composition": {
+    "mode": "unified",
+    "composition_id": "synthetic-water-utility-composition-001",
+    "member_participant_ids": [
+      "pump-physical",
+      "pump-digital"
+    ],
+    "description": "Two independently versioned pump twins are exposed through a unified typed view; their native schemas remain separate."
+  },
+  "participants": [
+    {
+      "participant_id": "pump-physical",
+      "system_id": "plant-historian-a",
+      "twin_id": "pump-001",
+      "owner_id": "water-utility-operator",
+      "role": "physical_twin",
+      "native_model": {
+        "model_id": "pump-physical-model",
+        "version": "1.0.0",
+        "artifact_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "interface": {
+        "interface_profile_id": "urn:luminous:itip:synthetic-profile-v0.1",
+        "interface_profile_version": "0.1",
+        "document_kind": "pump-measurement-snapshot",
+        "protocol": "https-json-fixture",
+        "protocol_version": "1",
+        "adapter_id": "itip-reference-adapter",
+        "adapter_version": "0.1.0",
+        "native_schema": {
+          "format": "json",
+          "schema_id": "urn:utility:pump-snapshot:1",
+          "schema_version": "1.0.0",
+          "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "source_snapshot": {
+        "source_uri": "urn:synthetic:pump-physical:snapshot",
+        "immutable_revision": "snapshot-2026-10-31T1500Z",
+        "content_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "retrieved_at": "2026-10-31T15:00:00Z",
+        "rights_state": "not_applicable",
+        "license_or_basis": "Synthetic fixture generated within this repository; not third-party data."
+      },
+      "time_semantics": {
+        "clock_domain": "plant-clock-a",
+        "event_time_field": "observed_at",
+        "ingestion_time_field": "ingested_at",
+        "sequence_field": "sequence",
+        "sequence_order": "strict_monotonic",
+        "timezone": "UTC",
+        "timestamp_precision": "millisecond"
+      }
+    },
+    {
+      "participant_id": "pump-digital",
+      "system_id": "process-simulator-b",
+      "twin_id": "pump-model-001",
+      "owner_id": "automation-integrator",
+      "role": "digital_twin",
+      "native_model": {
+        "model_id": "pump-process-model",
+        "version": "1.0.0",
+        "artifact_sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+      },
+      "interface": {
+        "interface_profile_id": "urn:luminous:itip:synthetic-profile-v0.1",
+        "interface_profile_version": "0.1",
+        "document_kind": "pump-state-view",
+        "protocol": "https-json-fixture",
+        "protocol_version": "1",
+        "adapter_id": "itip-reference-adapter",
+        "adapter_version": "0.1.0",
+        "native_schema": {
+          "format": "xml",
+          "schema_id": "urn:vendor:process-model:4",
+          "schema_version": "1.0.0",
+          "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "source_snapshot": {
+        "source_uri": "urn:synthetic:pump-digital:snapshot",
+        "immutable_revision": "model-revision-4.2",
+        "content_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+        "retrieved_at": "2026-10-31T15:00:00Z",
+        "rights_state": "not_applicable",
+        "license_or_basis": "Synthetic fixture generated within this repository; not third-party data."
+      },
+      "time_semantics": {
+        "clock_domain": "simulator-clock-b",
+        "event_time_field": "observed_at",
+        "ingestion_time_field": "ingested_at",
+        "sequence_field": "sequence",
+        "sequence_order": "strict_monotonic",
+        "timezone": "UTC",
+        "timestamp_precision": "millisecond"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "relationship_id": "pump-monitor-link",
+      "from_participant_id": "pump-physical",
+      "to_participant_id": "pump-digital",
+      "relation": "feeds_measurements_to",
+      "join_strategy": "typed_reference",
+      "from_reference_field": "asset_reference",
+      "to_reference_field": "physical_asset_ref",
+      "identity_namespace": "urn:utility:assets"
+    }
+  ],
+  "mappings": [
+    {
+      "mapping_id": "flow-rate-preservation",
+      "source_participant_id": "pump-physical",
+      "source_field": "measurements.flow_rate",
+      "target_concept": "pump.flow_rate",
+      "source_unit": "m3/h",
+      "target_unit": "m3/h",
+      "transform": {
+        "transform_id": "identity-flow-v1",
+        "version": "1.0.0",
+        "kind": "identity",
+        "sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+      },
+      "loss_class": "identity",
+      "human_reviewed": true,
+      "loss_description": "Value and unit are carried without conversion."
+    }
+  ],
+  "authorization": {
+    "principal_id": "synthetic-review-principal",
+    "read_scopes": [
+      "pump-001:read"
+    ],
+    "write_scopes": [],
+    "actuation_scopes": [],
+    "authority_ref": "urn:synthetic:authority:read-only",
+    "scope_separation_declared": true
+  },
+  "decision_scope": {
+    "decision_tier": "D0_descriptive",
+    "requested_action": "annotate",
+    "human_approval_required": true,
+    "actuation_enabled": false
+  },
+  "qualification_profile_ref": "urn:luminous:ieac:synthetic:pump-view-profile:v0.1",
+  "evaluation_mode": "synthetic_fixture",
+  "claim_ceiling": "synthetic_fixture",
+  "standard_conformity_claimed": false,
+  "unknown_extension_policy": "preserve_opaque_or_report_loss"
+}

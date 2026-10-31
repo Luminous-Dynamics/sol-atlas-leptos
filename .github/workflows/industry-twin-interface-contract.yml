@@ -1,0 +1,116 @@
+name: Industrial twin interface contract
+
+on:
+  pull_request:
+    paths:
+      - "schemas/industry-twin-interface-manifest-v0.1.schema.json"
+      - "schemas/examples/industry-twin-interface-*.json"
+      - "tools/industry-twin-interface-validator/**"
+      - ".github/workflows/industry-twin-interface-contract.yml"
+  push:
+    branches:
+      - main
+      - feat/itip-source-preserving-contract-v0-1
+    paths:
+      - "schemas/industry-twin-interface-manifest-v0.1.schema.json"
+      - "schemas/examples/industry-twin-interface-*.json"
+      - "tools/industry-twin-interface-validator/**"
+      - ".github/workflows/industry-twin-interface-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: itip-interface-contract-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  interface-contract:
+    name: Exact-head schema and semantic conformance
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact source revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Check formatting
+        run: cargo fmt --manifest-path tools/industry-twin-interface-validator/Cargo.toml -- --check
+
+      - name: Run Clippy with warnings denied
+        run: cargo clippy --manifest-path tools/industry-twin-interface-validator/Cargo.toml --all-targets --locked -- -D warnings
+
+      - name: Run semantic and frozen negative-fixture tests
+        run: cargo test --manifest-path tools/industry-twin-interface-validator/Cargo.toml --locked
+
+      - name: Install pinned Draft 2020-12 validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Add schema CLI to PATH
+        run: echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+
+      - name: Validate schema and positive fixtures
+        run: |
+          set -euo pipefail
+          schema=schemas/industry-twin-interface-manifest-v0.1.schema.json
+          meta=https://json-schema.org/draft/2020-12/schema
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i "$schema"
+          for fixture in \
+            schemas/examples/industry-twin-interface-unified-synthetic-v0.1.json \
+            schemas/examples/industry-twin-interface-federated-synthetic-v0.1.json; do
+            jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$fixture"
+            report="$RUNNER_TEMP/$(basename "$fixture").report.json"
+            cargo run --manifest-path tools/industry-twin-interface-validator/Cargo.toml --locked -- "$fixture" > "$report"
+            jq -e '.contract_valid == true and .status == "INTERFACE_CONTRACT_VALID_NOT_STANDARD_CONFORMANT" and .standard_conformity_claimed == false and .issue_count == 0 and (.manifest_sha256 | test("^[a-f0-9]{64}$")) and (.schema_sha256 | test("^[a-f0-9]{64}$"))' "$report"
+          done
+
+      - name: Reject schema-invalid negative fixtures
+        run: |
+          set -euo pipefail
+          schema=schemas/industry-twin-interface-manifest-v0.1.schema.json
+          for fixture in \
+            schemas/examples/industry-twin-interface-negative-unknown-property-v0.1.json \
+            schemas/examples/industry-twin-interface-negative-missing-digest-v0.1.json \
+            schemas/examples/industry-twin-interface-negative-fuzzy-join-v0.1.json; do
+            if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$fixture"; then
+              echo "ERROR: schema accepted negative fixture $fixture"
+              exit 1
+            fi
+            report="$RUNNER_TEMP/$(basename "$fixture").report.json"
+            if cargo run --manifest-path tools/industry-twin-interface-validator/Cargo.toml --locked -- "$fixture" > "$report"; then
+              echo "ERROR: Rust validator accepted negative fixture $fixture"
+              exit 1
+            fi
+            jq -e '.contract_valid == false and .issue_count > 0 and .standard_conformity_claimed == false' "$report"
+          done
+
+      - name: Confirm semantic-only negatives are schema-valid but rejected by Rust
+        run: |
+          set -euo pipefail
+          schema=schemas/industry-twin-interface-manifest-v0.1.schema.json
+          for fixture in \
+            schemas/examples/industry-twin-interface-negative-dangling-reference-v0.1.json \
+            schemas/examples/industry-twin-interface-negative-clock-alias-v0.1.json \
+            schemas/examples/industry-twin-interface-negative-unit-transform-v0.1.json; do
+            jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$fixture"
+            report="$RUNNER_TEMP/$(basename "$fixture").semantic-report.json"
+            if cargo run --manifest-path tools/industry-twin-interface-validator/Cargo.toml --locked -- "$fixture" > "$report"; then
+              echo "ERROR: semantic validator accepted negative fixture $fixture"
+              exit 1
+            fi
+            jq -e '.contract_valid == false and .issue_count > 0' "$report"
+          done
+
+      - name: Prove locked dependency graph remains committed
+        run: git diff --exit-code -- tools/industry-twin-interface-validator/Cargo.lock
