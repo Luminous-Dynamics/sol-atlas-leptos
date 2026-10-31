@@ -101,8 +101,8 @@ fn verify_reader<R: BufRead>(mut reader: R) -> Result<Value, String> {
                     ));
                 }
             }
-            let observed_families =
-                completed_families.len() + usize::from(current_family.is_some());
+            let active_family_count = if current_family.is_some() { 1 } else { 0 };
+            let observed_families = completed_families.len() + active_family_count;
             if Some(observed_families) != expected_family_count {
                 return Err(format!(
                     "case-ledger family count mismatch: expected {:?}, observed {observed_families}",
