@@ -22,12 +22,12 @@ const FAMILIES: &[(&str, &str, &[&str], bool)] = &[
     ("just_below_min_boundary", "reject", &["VALUE_OUTSIDE_OPERATING_ENVELOPE"], true),
     ("just_above_max_boundary", "reject", &["VALUE_OUTSIDE_OPERATING_ENVELOPE"], true),
     ("unit_mismatch", "reject", &["UNIT_MISMATCH"], true),
-    ("identity_drift", "reject", &["RUNTIME_IDENTITY_BINDING_INVALID"], true),
+    ("identity_drift", "reject", &["ARTIFACT_DIGEST_MISMATCH", "RUNTIME_IDENTITY_BINDING_INVALID"], true),
     ("profile_expired", "reject", &["PROFILE_OUTSIDE_VALIDITY_WINDOW"], true),
     ("profile_pin_revoked", "reject", &["PROFILE_PIN_REVOKED"], true),
     ("source_revoked", "reject", &["ARTIFACT_REVOKED"], true),
     ("authorization_unavailable", "abstain", &["REVOCATION_STATE_UNAVAILABLE"], true),
-    ("authority_escalation", "reject", &["DECISION_TIER_NOT_ADMITTED"], true),
+    ("authority_escalation", "reject", &["ACTION_NOT_PERMITTED_BY_PROFILE", "DECISION_TIER_NOT_ADMITTED"], true),
     ("stale_and_source_revoked", "reject", &["ARTIFACT_REVOKED", "MEASUREMENT_STALE"], true),
 ];
 
