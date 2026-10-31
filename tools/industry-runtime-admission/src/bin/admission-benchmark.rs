@@ -550,6 +550,23 @@ fn run() -> Result<(Value, bool), String> {
     Ok((report, passed))
 }
 
+fn main() {
+    match run() {
+        Ok((report, passed)) => {
+            println!("{}", serde_json::to_string_pretty(&report).expect("benchmark report serializes"));
+            if !passed {
+                eprintln!("benchmark acceptance gate failed");
+                std::process::exit(1);
+            }
+        }
+        Err(error) => {
+            eprintln!("{error}");
+            eprintln!("usage: industry-admission-benchmark --manifest <frozen-ibap-manifest.json> [--trials-per-family N] [--seed N|0xHEX] [--output <new-report.json>]");
+            std::process::exit(2);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -577,19 +594,3 @@ mod tests {
     }
 }
 
-fn main() {
-    match run() {
-        Ok((report, passed)) => {
-            println!("{}", serde_json::to_string_pretty(&report).expect("benchmark report serializes"));
-            if !passed {
-                eprintln!("benchmark acceptance gate failed");
-                std::process::exit(1);
-            }
-        }
-        Err(error) => {
-            eprintln!("{error}");
-            eprintln!("usage: industry-admission-benchmark --manifest <frozen-ibap-manifest.json> [--trials-per-family N] [--seed N|0xHEX] [--output <new-report.json>]");
-            std::process::exit(2);
-        }
-    }
-}
