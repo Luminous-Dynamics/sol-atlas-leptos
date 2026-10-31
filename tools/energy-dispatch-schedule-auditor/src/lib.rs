@@ -1070,7 +1070,7 @@ mod tests {
             }));
             assert_eq!(
                 receipt.recomputed_objectives.terminal_soc_quanta,
-                0,
+                Some(0),
                 "terminal SOC objective must be recomputed from physical actions, not reported SOC fields"
             );
         }
@@ -1264,8 +1264,8 @@ mod tests {
         );
         let receipt = audit_schedule_bytes(&request, &schedule).unwrap();
         assert_eq!(receipt.disposition, AuditDisposition::Accepted);
-        assert_eq!(receipt.recomputed_objectives.operating_cost_units, 3);
-        assert_eq!(receipt.recomputed_objectives.grid_carbon_grams, 7);
+        assert_eq!(receipt.recomputed_objectives.operating_cost_units, Some(3));
+        assert_eq!(receipt.recomputed_objectives.grid_carbon_grams, Some(7));
     }
 
     #[test]
