@@ -85,6 +85,7 @@ fn fraction_matches(value: &Value, numerator: usize, denominator: usize) -> bool
 struct FamilyCounts {
     trial_count: usize,
     negative_control: Option<bool>,
+    expected_admission: Option<String>,
     false_admissions: usize,
     false_rejections_on_positive_controls: usize,
     positive_admissions: usize,
@@ -222,6 +223,10 @@ fn verify_case(
         return Err(format!("failure family {family} mixes positive and negative labels"));
     }
     family_metric.negative_control = Some(negative_control);
+    if family_metric.expected_admission.as_ref().is_some_and(|existing| existing != expected_admission) {
+        return Err(format!("failure family {family} declares inconsistent expected dispositions"));
+    }
+    family_metric.expected_admission = Some(expected_admission.to_owned());
     family_metric.trial_count += 1;
     if actual_admission == expected_admission {
         family_metric.expected_disposition_matches += 1;
@@ -240,6 +245,7 @@ fn verify_case(
         family_metric.static_profile_valid_trials += 1;
         if negative_control {
             family_metric.static_counterfactual_acceptances += 1;
+            counts.static_baseline_counterfactual_acceptances += 1;
         }
     }
     let _recorded_latency_ms = latency_ms;
@@ -464,6 +470,7 @@ fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
                 stratum["vertical"].as_str() == Some(vertical)
                     && stratum["trials"].as_u64() == Some(metrics.trial_count as u64)
                     && stratum["negative_control"].as_bool() == Some(negative)
+                    && stratum["expected_admission"].as_str() == metrics.expected_admission.as_deref()
                     && stratum["candidate"]["false_admissions"].as_u64()
                         == Some(metrics.false_admissions as u64)
                     && fraction_matches(
