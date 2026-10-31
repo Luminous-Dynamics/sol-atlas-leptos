@@ -65,8 +65,7 @@ fn distribution(samples: &[u128]) -> Distribution {
     }
 }
 
-fn collect<T>(samples: &[AuditTimings], select: impl Fn(&AuditTimings) -> u128) -> Vec<u128> {
-    let _ = std::marker::PhantomData::<T>;
+fn collect(samples: &[AuditTimings], select: impl Fn(&AuditTimings) -> u128) -> Vec<u128> {
     samples.iter().map(select).collect()
 }
 
@@ -126,27 +125,27 @@ fn run() -> Result<(), String> {
         request_sha256: receipt.request_sha256,
         schedule_sha256: receipt.schedule_sha256,
         disposition: "accepted".to_owned(),
-        request_parse: distribution(&collect::<()>(
+        request_parse: distribution(&collect(
             &timings,
             |timing| timing.request_parse_ns,
         )),
-        schedule_parse: distribution(&collect::<()>(
+        schedule_parse: distribution(&collect(
             &timings,
             |timing| timing.schedule_parse_ns,
         )),
-        semantic_validation: distribution(&collect::<()>(
+        semantic_validation: distribution(&collect(
             &timings,
             |timing| timing.semantic_validation_ns,
         )),
-        objective_recompute: distribution(&collect::<()>(
+        objective_recompute: distribution(&collect(
             &timings,
             |timing| timing.objective_recompute_ns,
         )),
-        receipt_construction: distribution(&collect::<()>(
+        receipt_construction: distribution(&collect(
             &timings,
             |timing| timing.receipt_construction_ns,
         )),
-        total_audit: distribution(&collect::<()>(
+        total_audit: distribution(&collect(
             &timings,
             |timing| timing.total_ns,
         )),
