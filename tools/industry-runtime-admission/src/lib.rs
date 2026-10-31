@@ -1615,6 +1615,38 @@ mod tests {
         }));
     }
 
+
+    #[test]
+    fn operator_profile_pin_matches_fixture_and_is_required_for_admission() {
+        let (profile, request) = fixture_files();
+        let pin: Value = serde_json::from_str(include_str!("../../../schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json")).unwrap();
+        assert!(validate_runtime_profile_pin(&pin).is_empty());
+        assert_eq!(pin["profile_id"], profile["profile_id"]);
+        assert_eq!(pin["profile_sha256"], sha256_value(&profile));
+        let report = evaluate_admission(&profile, &pin, &request);
+        assert_eq!(report["admission"], "admit_descriptive", "{report:#}");
+        assert_eq!(report["profile_pin_sha256"], sha256_value(&pin));
+        assert!(independent_check(&profile, &pin, &request, &report).is_empty());
+    }
+
+    #[test]
+    fn stale_or_revoked_profile_pin_rejects_even_when_request_hashes_match() {
+        let (profile, request) = fixture_files();
+        let mut pin: Value = serde_json::from_str(include_str!("../../../schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json")).unwrap();
+        pin["status"] = json!("revoked");
+        let report = evaluate_admission(&profile, &pin, &request);
+        assert_eq!(report["admission"], "reject");
+        assert!(independent_check(&profile, &pin, &request, &report).is_empty());
+        assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v == "PROFILE_PIN_REVOKED"));
+
+        let mut altered_profile = profile.clone();
+        altered_profile["claim"]["description"] = json!("caller-modified claim");
+        let report = evaluate_admission(&altered_profile, &pin, &request);
+        assert_eq!(report["admission"], "reject");
+        assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v == "PROFILE_PIN_DIGEST_MISMATCH"));
+        assert!(independent_check(&altered_profile, &pin, &request, &report).is_empty());
+    }
+
     #[test]
     fn sealed_report_digest_replays() {
         let (profile, request) = fixture_files();
