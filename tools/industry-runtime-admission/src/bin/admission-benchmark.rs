@@ -636,18 +636,25 @@ fn run() -> Result<(Value, bool), String> {
             let mut tampered = report.clone();
             tampered["admission"] = json!(if admitted { "reject" } else { "admit_descriptive" });
             tamper_checks_total += 1;
-            if !independent_check(&case_profile, &case_pin, &case_request, &tampered).is_empty() {
+            let report_tamper_detected = !independent_check(
+                &case_profile, &case_pin, &case_request, &tampered,
+            ).is_empty();
+            if report_tamper_detected {
                 tamper_detected += 1;
                 tamper_detected_total += 1;
             }
 
-            if trial < 3 {
+            let deterministic_replay_matches = if trial < 3 {
                 replay_checks += 1;
                 let replay = evaluate_admission(&case_profile, &case_pin, &case_request);
-                if serde_json::to_vec(&replay).ok() != serde_json::to_vec(&report).ok() {
+                let matches = serde_json::to_vec(&replay).ok() == serde_json::to_vec(&report).ok();
+                if !matches {
                     replay_mismatches += 1;
                 }
-            }
+                Some(matches)
+            } else {
+                None
+            };
 
             case_ledger.append_case(json!({
                 "record_type": "case",
@@ -672,7 +679,10 @@ fn run() -> Result<(Value, bool), String> {
                     "reason_codes": report["reason_codes"],
                     "candidate_report": report,
                     "checker_errors": checker_errors,
-                    "static_profile_valid": static_valid_for_case
+                    "static_profile_valid": static_valid_for_case,
+                    "report_tamper_detected": report_tamper_detected,
+                    "deterministic_replay_matches": deterministic_replay_matches,
+                    "latency_ms": latency_ms
                 }
             }))?;
             case_index += 1;
