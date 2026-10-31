@@ -181,11 +181,11 @@ fn apply_family(
                     condition["upper"] = json!(maximum + span * 0.12);
                 }
                 "unit_mismatch" => condition["unit"] = json!("__wrong_unit__"),
-                "identity_drift" => request["model_sha256"] = json!("ff".repeat(32)),
                 _ => {}
             }
         }
         match family {
+            "identity_drift" => request["model_sha256"] = json!("ff".repeat(32)),
             "profile_expired" => {
                 profile["validity"]["review_by"] = json!("2026-10-31T11:59:59Z");
                 refresh_pin(profile, pin);
