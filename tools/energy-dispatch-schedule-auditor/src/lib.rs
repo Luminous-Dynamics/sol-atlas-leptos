@@ -1303,9 +1303,11 @@ mod tests {
         }));
 
         let mut extra = baseline;
-        extra["interval_dispatches"].as_array_mut().unwrap().push(
-            extra["interval_dispatches"][0].clone()
-        );
+        let duplicated_step = extra["interval_dispatches"][0].clone();
+        extra["interval_dispatches"]
+            .as_array_mut()
+            .unwrap()
+            .push(duplicated_step);
         let extra_receipt = audit_schedule_bytes(
             &request,
             &serde_json::to_vec(&extra).unwrap(),
