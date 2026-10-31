@@ -198,11 +198,10 @@ jobs:
             .reproducibility.hidden_state_count == 4 and
             (.observations | length == 2)
           ' "$fixture"
+          expected_ig="$(jq -r '.observations[] | select(.observation_id == "hazard_probe") | .expected_information_gain_bits' "$fixture")"
+          computed_ig="$(awk 'function entropy(p) { return -p * log(p) / log(2) - (1-p) * log(1-p) / log(2) } BEGIN { printf "%.15f", entropy(0.1) - 0.18 * entropy(0.5) - 0.82 * entropy(1/82) }')"
+          awk -v actual="$computed_ig" -v expected="$expected_ig" 'BEGIN { delta = actual - expected; if (delta < -0.000000001 || delta > 0.000000001) exit 1 }'
           jq -e '
-            def entropy($p):
-              if $p <= 0 or $p >= 1 then 0
-              else -$p * (log($p) / log(2)) - (1 - $p) * (log(1 - $p) / log(2))
-              end;
             . as $f |
             ($f.observations[] | select(.observation_id == "mode_probe")) as $mode |
             ($f.observations[] | select(.observation_id == "hazard_probe")) as $hazard |
@@ -212,11 +211,12 @@ jobs:
             ($hazard.posterior.negative.failure) as $post_neg |
             ($p_pos * ([100 * $post_pos, 12] | min) +
              $p_neg * ([100 * $post_neg, 12] | min)) as $after |
-            (entropy(0.1) - 0.18 * entropy(0.5) - 0.82 * entropy(0.0121951219512195)) as $hazard_ig |
-            ($after - $hazard.expected_decision_loss_after_observation | fabs < 0.000000001) and
-            ($hazard_ig - $hazard.expected_information_gain_bits | fabs < 0.000000001) and
+            ($after >= ($hazard.expected_decision_loss_after_observation - 0.000000001) and
+             $after <= ($hazard.expected_decision_loss_after_observation + 0.000000001)) and
+            ($hazard.expected_information_gain_bits == 0.2110814521389986) and
             ($hazard.expected_gross_value_of_information == (10 - $after)) and
             ($hazard.expected_net_value_of_information == (10 - $after - 1)) and
+            ($mode.expected_information_gain_bits == 1) and
             ($mode.expected_decision_loss_after_observation == 10) and
             ($mode.expected_net_value_of_information == -1) and
             ($f.expected_comparison.entropy_policy_selects == "mode_probe") and
