@@ -300,7 +300,7 @@ fn apply_family(
                     condition["lower"] = json!(minimum - span * 0.01);
                     condition["upper"] = json!(minimum + span * 0.30);
                 }
-                "out_of_range" => {
+                "out_of_range" | "out_of_range_plus_profile_expired" => {
                     condition["value"] = json!(maximum + span * 0.10);
                     condition["lower"] = json!(maximum + span * 0.08);
                     condition["upper"] = json!(maximum + span * 0.12);
