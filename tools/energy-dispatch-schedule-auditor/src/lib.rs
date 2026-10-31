@@ -1299,6 +1299,43 @@ mod tests {
     }
 
     #[test]
+    fn enforces_contiguous_source_chronology_evidence_reference_and_expansion_limits() {
+        let base = h2_request();
+        let mut gap: Value = serde_json::from_slice(&base).unwrap();
+        gap["intervals"][1]["start_unix_seconds"] = serde_json::json!(1_800_007_200_i64);
+        let gap_request = serde_json::to_vec(&gap).unwrap();
+        let gap_schedule = h2_schedule(&gap_request);
+        let gap_receipt = audit_schedule_bytes(&gap_request, &gap_schedule).unwrap();
+        assert_eq!(gap_receipt.disposition, AuditDisposition::Rejected);
+        assert!(gap_receipt.findings.iter().any(|finding| {
+            finding.predicate == "interval-chronology" && !finding.passed
+        }));
+
+        let mut missing_evidence: Value = serde_json::from_slice(&base).unwrap();
+        missing_evidence["evidence_class"] = serde_json::json!("measured");
+        missing_evidence["evidence_ref"] = Value::Null;
+        let evidence_request = serde_json::to_vec(&missing_evidence).unwrap();
+        let evidence_schedule = h2_schedule(&evidence_request);
+        let evidence_receipt =
+            audit_schedule_bytes(&evidence_request, &evidence_schedule).unwrap();
+        assert_eq!(evidence_receipt.disposition, AuditDisposition::Rejected);
+        assert!(evidence_receipt.findings.iter().any(|finding| {
+            finding.predicate == "evidence-reference" && !finding.passed
+        }));
+
+        let mut invalid_expansion: Value = serde_json::from_slice(&base).unwrap();
+        invalid_expansion["max_candidate_expansions"] = serde_json::json!(1_000_001);
+        let expansion_request = serde_json::to_vec(&invalid_expansion).unwrap();
+        let expansion_schedule = h2_schedule(&expansion_request);
+        let expansion_receipt =
+            audit_schedule_bytes(&expansion_request, &expansion_schedule).unwrap();
+        assert_eq!(expansion_receipt.disposition, AuditDisposition::Rejected);
+        assert!(expansion_receipt.findings.iter().any(|finding| {
+            finding.predicate == "candidate-expansion-limit" && !finding.passed
+        }));
+    }
+
+    #[test]
     fn rejects_terminal_reserve_violation() {
         let mut request_value: Value = serde_json::from_slice(&h2_request()).unwrap();
         request_value["battery"]["terminal_reserve_quanta"] = serde_json::json!(1);
