@@ -560,6 +560,42 @@ pub fn evaluate_admission(profile: &Value, request: &Value) -> Value {
         unique_push(&mut reasons, "REVOCATION_SNAPSHOT_TIME_MISMATCH");
         abstain = true;
     }
+
+    let authority_id = text_at(revocation, "/source_artifact_id").unwrap_or("");
+    let authority_sha = text_at(revocation, "/source_sha256").unwrap_or("");
+    let authority_binding_ok = check_artifact(
+        profile,
+        authority_id,
+        "authorization_source",
+        authority_sha,
+        &mut reasons,
+    );
+    if !authority_binding_ok || !is_sha256(authority_sha) {
+        unique_push(&mut reasons, "AUTHORITY_SOURCE_BINDING_INVALID");
+        reject = true;
+    }
+    if !is_sha256(authority_sha) {
+        unique_push(&mut reasons, "AUTHORITY_SOURCE_DIGEST_INVALID");
+        reject = true;
+    }
+
+    let authority_observed = text_at(revocation, "/observed_at").and_then(canonical_utc_seconds);
+    let authority_limit = revocation.get("max_age_seconds").and_then(Value::as_u64);
+    match (authority_observed, as_of_seconds, authority_limit) {
+        (Some(observed), Some(now), Some(limit)) if observed > now => {
+            unique_push(&mut reasons, "AUTHORITY_SOURCE_FUTURE_DATED");
+            reject = true;
+        }
+        (Some(observed), Some(now), Some(limit)) if (now - observed) as u64 > limit => {
+            unique_push(&mut reasons, "AUTHORITY_SOURCE_STALE");
+            abstain = true;
+        }
+        (Some(_), Some(_), Some(_)) => {}
+        _ => {
+            unique_push(&mut reasons, "AUTHORITY_SOURCE_TIME_INDETERMINATE");
+            abstain = true;
+        }
+    }
     match text_at(revocation, "/status") {
         Some("current") => {}
         Some("unknown" | "unavailable") | None => {
@@ -828,6 +864,56 @@ fn independent_expected(profile: &Value, request: &Value) -> Value {
     if revocation["as_of"].as_str() != request["as_of"].as_str() {
         reasons.insert("REVOCATION_SNAPSHOT_TIME_MISMATCH".to_owned());
         uncertain = true;
+    }
+
+    let authority_id = revocation["source_artifact_id"].as_str().unwrap_or("");
+    let authority_sha = revocation["source_sha256"].as_str().unwrap_or("");
+    let authority_binding = profile["artifact_bindings"].as_array().and_then(|items| {
+        items.iter().find(|item| item["artifact_id"].as_str() == Some(authority_id))
+    });
+    if let Some(binding) = authority_binding {
+        if binding["role"].as_str() != Some("authorization_source") {
+            reasons.insert("ARTIFACT_ROLE_MISMATCH".to_owned());
+        }
+        if binding["content_sha256"].as_str() != Some(authority_sha) {
+            reasons.insert("ARTIFACT_DIGEST_MISMATCH".to_owned());
+        }
+        if binding["rights_state"].as_str() != Some("verified") {
+            reasons.insert("ARTIFACT_RIGHTS_NOT_VERIFIED".to_owned());
+        }
+    } else {
+        reasons.insert("ARTIFACT_BINDING_MISSING".to_owned());
+    }
+    let authority_binding_ok = authority_binding.is_some_and(|binding| {
+        binding["role"].as_str() == Some("authorization_source")
+            && binding["content_sha256"].as_str() == Some(authority_sha)
+            && binding["rights_state"].as_str() == Some("verified")
+    });
+    if !authority_binding_ok || !is_sha256(authority_sha) {
+        reasons.insert("AUTHORITY_SOURCE_BINDING_INVALID".to_owned());
+        fatal = true;
+    }
+    if !is_sha256(authority_sha) {
+        reasons.insert("AUTHORITY_SOURCE_DIGEST_INVALID".to_owned());
+        fatal = true;
+    }
+
+    let authority_observed = revocation["observed_at"].as_str().and_then(canonical_utc_seconds);
+    let authority_limit = revocation["max_age_seconds"].as_u64();
+    match (authority_observed, instant, authority_limit) {
+        (Some(observed), Some(now), Some(_limit)) if observed > now => {
+            reasons.insert("AUTHORITY_SOURCE_FUTURE_DATED".to_owned());
+            fatal = true;
+        }
+        (Some(observed), Some(now), Some(limit)) if (now - observed) as u64 > limit => {
+            reasons.insert("AUTHORITY_SOURCE_STALE".to_owned());
+            uncertain = true;
+        }
+        (Some(_), Some(_), Some(_)) => {}
+        _ => {
+            reasons.insert("AUTHORITY_SOURCE_TIME_INDETERMINATE".to_owned());
+            uncertain = true;
+        }
     }
     match revocation["status"].as_str() {
         Some("current") => {}
