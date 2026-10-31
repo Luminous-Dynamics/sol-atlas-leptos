@@ -99,3 +99,8 @@ Next benchmark increments:
 5. Add prospective shadow-pilot outcomes only after synthetic software admission tests are stable and source/authority rights are established.
 
 A benchmark result advances only the evidence dimension it directly measures.
+
+
+## Corpus persistence limitation
+
+The report contains a SHA-256 digest over the exact serialized profile, pin and request inputs for every generated trial in deterministic order. Version 0.1 does not emit the full per-case JSONL input corpus; deterministic reconstruction depends on retaining the exact runner source, fixture bytes, manifest, PRNG algorithm and seed. A case-level audit ledger and independent replay artifact are follow-up work, not a completed deliverable.
