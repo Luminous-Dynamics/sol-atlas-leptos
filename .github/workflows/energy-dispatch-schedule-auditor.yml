@@ -1,0 +1,140 @@
+name: Energy Dispatch Standalone Schedule Auditor
+
+on:
+  pull_request:
+    paths:
+      - "tools/energy-dispatch-schedule-auditor/**"
+      - ".github/workflows/energy-dispatch-schedule-auditor.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: energy-dispatch-schedule-auditor-\${{ github.workflow }}-\${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  schedule-audit:
+    name: Independent request-to-trajectory audit (Rust 1.96.0)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pinned Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.0
+          components: clippy, rustfmt
+
+      - name: Generate standalone dependency lock
+        run: cargo generate-lockfile --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml
+
+      - name: Check formatting
+        run: cargo fmt --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml --all -- --check
+
+      - name: Test, lint and build independent auditor
+        run: |
+          set -euo pipefail
+          cargo test --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml --locked
+          cargo clippy --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml --all-targets --locked -- -D warnings
+          cargo build --release --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml --locked
+
+      - name: Audit source-bound H2 schedule and reject a mutated trajectory
+        run: |
+          set -euo pipefail
+          mkdir -p target/energy-dispatch-schedule-auditor
+          request="tools/energy-dispatch-schedule-auditor/fixtures/h2-request.json"
+          request_sha="$(sha256sum "$request" | cut -d ' ' -f 1)"
+          jq -n --arg request_sha256 "$request_sha" '{
+            schema_version:"energy-dispatch-schedule-v0.1",
+            case_id:"schedule-audit-fixture",
+            request_sha256:$request_sha256,
+            interval_dispatches:[
+              {
+                interval_id:"charge-from-pv",
+                grid_import_quanta:0,
+                charge_input_quanta:1,
+                discharge_withdrawal_quanta:0,
+                soc_after_quanta:1,
+                essential_served_quanta:0,
+                essential_unserved_quanta:0,
+                flexible_served_quanta:0,
+                flexible_unserved_quanta:0,
+                pv_used_quanta:1,
+                pv_curtailed_quanta:0
+              },
+              {
+                interval_id:"serve-during-outage",
+                grid_import_quanta:0,
+                charge_input_quanta:0,
+                discharge_withdrawal_quanta:1,
+                soc_after_quanta:0,
+                essential_served_quanta:1,
+                essential_unserved_quanta:0,
+                flexible_served_quanta:0,
+                flexible_unserved_quanta:0,
+                pv_used_quanta:0,
+                pv_curtailed_quanta:0
+              }
+            ],
+            terminal_soc_quanta:0
+          }' > target/energy-dispatch-schedule-auditor/h2-schedule.json
+          tools/energy-dispatch-schedule-auditor/target/release/energy-dispatch-schedule-auditor \
+            "$request" \
+            target/energy-dispatch-schedule-auditor/h2-schedule.json \
+            target/energy-dispatch-schedule-auditor/accepted-receipt.json
+          jq -e '
+            .disposition == "accepted" and
+            .interval_count == 2 and
+            (.request_sha256 | length == 64) and
+            (.schedule_sha256 | length == 64) and
+            (.receipt_sha256 | length == 64) and
+            all(.findings[]; .passed == true) and
+            .recomputed_objectives.essential_unserved_quanta == 0 and
+            .recomputed_objectives.operating_cost_units == 0 and
+            .recomputed_objectives.grid_carbon_grams == 0 and
+            .recomputed_objectives.terminal_soc_quanta == 0
+          ' target/energy-dispatch-schedule-auditor/accepted-receipt.json
+
+          jq '.interval_dispatches[0].soc_after_quanta = 0' \
+            target/energy-dispatch-schedule-auditor/h2-schedule.json \
+            > target/energy-dispatch-schedule-auditor/mutated-schedule.json
+          set +e
+          tools/energy-dispatch-schedule-auditor/target/release/energy-dispatch-schedule-auditor \
+            "$request" \
+            target/energy-dispatch-schedule-auditor/mutated-schedule.json \
+            target/energy-dispatch-schedule-auditor/rejected-receipt.json
+          audit_status=$?
+          set -e
+          test "$audit_status" -eq 1
+          jq -e '
+            .disposition == "rejected" and
+            any(.findings[]; .predicate == "soc-transition" and .passed == false)
+          ' target/energy-dispatch-schedule-auditor/rejected-receipt.json
+
+          {
+            printf 'request_sha256=%s\n' "$request_sha"
+            printf 'schedule_sha256='; sha256sum target/energy-dispatch-schedule-auditor/h2-schedule.json
+            printf 'auditor_binary_sha256='; sha256sum tools/energy-dispatch-schedule-auditor/target/release/energy-dispatch-schedule-auditor
+            rustc --version
+            cargo --version
+            uname -a
+            printf 'logical_cpus=%s\n' "$(nproc)"
+          } > target/energy-dispatch-schedule-auditor/reproducibility.txt
+
+      - name: Publish schedule auditor receipts and provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: energy-dispatch-schedule-audit-\${{ github.sha }}
+          path: |
+            target/energy-dispatch-schedule-auditor/
+            tools/energy-dispatch-schedule-auditor/Cargo.toml
+            tools/energy-dispatch-schedule-auditor/Cargo.lock
+            tools/energy-dispatch-schedule-auditor/README.md
+            tools/energy-dispatch-schedule-auditor/schedule-schema-v0.1.json
+            tools/energy-dispatch-schedule-auditor/src/
+            tools/energy-dispatch-schedule-auditor/fixtures/
+          if-no-files-found: error
+          retention-days: 14
