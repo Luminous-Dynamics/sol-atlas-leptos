@@ -4,7 +4,7 @@ use sha2::{Digest, Sha256};
 use std::collections::HashSet;
 use std::env;
 use std::fs::File;
-use std::io::{BufRead, BufReader, Cursor};
+use std::io::{BufRead, BufReader};
 
 fn digest_bytes(bytes: &[u8]) -> String {
     Sha256::digest(bytes)
@@ -156,7 +156,11 @@ fn verify_reader<R: BufRead>(mut reader: R) -> Result<Value, String> {
             .unwrap_or("invalid");
         let expected_reasons = sorted_reason_codes(&record["expected_reason_codes"]);
         let actual_reasons = sorted_reason_codes(&replayed_report["reason_codes"]);
-        if actual_admission != expected_admission || expected_reasons != actual_reasons {
+        if actual_admission != expected_admission
+            || expected_reasons.is_none()
+            || actual_reasons.is_none()
+            || expected_reasons != actual_reasons
+        {
             expectation_mismatches += 1;
         }
         let expected_disposition_match = actual_admission == expected_admission;
@@ -261,6 +265,7 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::Cursor;
 
     fn empty_ledger() -> Vec<u8> {
         let header = serde_json::to_vec(&json!({
