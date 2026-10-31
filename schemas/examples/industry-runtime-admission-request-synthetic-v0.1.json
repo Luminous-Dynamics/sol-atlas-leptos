@@ -2,7 +2,7 @@
   "schema_version": "luminous.ieac-runtime-admission-request.v0.1",
   "request_id": "runtime-admission-telecom-fixture-001",
   "profile_id": "synthetic-telecom-runtime-admission-d0-v0.1",
-  "profile_sha256": "4bd725a9b98841aad13ca4ecfeec9c28e85d7f534d71cba2dd56e7f5277c525a",
+  "profile_sha256": "e7437199aa1db9207b11e790eb270b873034218595fe3f548052e637cd531a6f",
   "capability_id": "telecom-site-backup-autonomy-advisory",
   "instance_id": "synthetic-site-network-001",
   "decision_id": "annotate-site-backup-envelope",
@@ -43,7 +43,7 @@
       }
     ]
   },
-  "revocation_snapshot_sha256": "6e73312d9ff87c8f869ca5f067cddb0ea9dffb406617bbf90293607c1fbb45f9",
+  "revocation_snapshot_sha256": "3f840c04e679ca4a68d31501f9bc763a48d2952da5ddf84de81409feed20b97c",
   "revocation_snapshot": {
     "snapshot_id": "authorization-snapshot-001",
     "as_of": "2026-10-31T12:00:00Z",
@@ -58,7 +58,6 @@
     ],
     "source_artifact_id": "authorization-source-001",
     "source_sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
-    "observed_at": "2026-10-31T12:00:00Z",
-    "max_age_seconds": 300
+    "observed_at": "2026-10-31T12:00:00Z"
   }
 }
