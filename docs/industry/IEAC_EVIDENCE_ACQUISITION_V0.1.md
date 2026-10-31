@@ -44,6 +44,21 @@ The schema has hard invariants: D0/D1 only; advisory-only; execution authorizati
 
 This v0.1 tranche does not yet define a connector or permit evidence collection. The next runtime tranche should require a response to bind the obligation ID, prior request ID, source artifact ID, raw payload digest, source identity, timestamp, unit, uncertainty, rights, provenance and signer/trust-root status. A response creates a new admission request and report. It never changes the old report.
 
+## 3.1 Structural schema versus semantic verification
+
+Draft 2020-12 validation is a structural gate, not the complete acquisition policy. A future runtime verifier must additionally prove that:
+
+- every obligation request/profile/asset/decision identity matches the prior admission request and profile;
+- every permitted source ID is actually declared by that profile and every candidate maps to one or more declared obligations;
+- every ordered candidate exists exactly once and is eligible; no excluded, unknown-rights, dependent or unassessed candidate can be selected;
+- the candidate's source class, rights, digest, freshness and dependency graph satisfy the original profile and obligation;
+- observation-window ordering, numeric bound ordering, uncertainty width and age calculations are valid;
+- acquisition costs use a common, declared unit and calibrated cost model before comparisons are made;
+- the planner's decision-value model is calibrated for the relevant vertical, decision tier and operating context;
+- no evidence acquisition output mutates the prior admission report, profile, decision tier or operating envelope.
+
+These cross-object invariants cannot be established by the schemas alone. A schema-valid plan must not be treated as an executable or authorized plan. All acquisition stays operator-mediated until a separate runtime verifier and trust path are implemented.
+
 ## 4. Value-of-information discipline
 
 Do not rank sources by a single guessed "information gain" number. A usable ranking needs a calibrated decision-value model and measured acquisition cost/latency. For small bounded fixtures, compare candidate selection with an exhaustive oracle. For realistic deployment, calibrate the value model prospectively and report uncertainty.
