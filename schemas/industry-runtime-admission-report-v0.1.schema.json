@@ -18,6 +18,7 @@
     "independent_checker",
     "model_sha256",
     "profile_id",
+    "profile_pin_sha256",
     "profile_sha256",
     "reason_codes",
     "report_sha256",
@@ -191,6 +192,10 @@
       "type": "string",
       "maxLength": 64,
       "description": "Exact request value; request validation determines whether the digest is valid."
+    },
+    "profile_pin_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{64}$"
     }
   }
 }
