@@ -84,7 +84,8 @@
         "operating_bounds",
         "uncertainty_limit",
         "observation_window",
-        "max_age_seconds"
+        "max_age_seconds",
+        "payload_digest_required"
       ],
       "properties": {
         "variable": {
