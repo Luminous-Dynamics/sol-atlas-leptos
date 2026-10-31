@@ -856,25 +856,6 @@
               }
             }
           }
-        },
-        {
-          "if": {
-            "properties": {
-              "observation_state": {
-                "const": "invalid"
-              }
-            },
-            "required": [
-              "observation_state"
-            ]
-          },
-          "then": {
-            "properties": {
-              "capture_loss_count": {
-                "minimum": 1
-              }
-            }
-          }
         }
       ]
     },
