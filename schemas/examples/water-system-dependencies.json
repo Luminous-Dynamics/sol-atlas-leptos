@@ -1,0 +1,42 @@
+{
+  "relations": [
+    {
+      "id": "synthetic-edge-pump-power",
+      "subject_entity_id": "synthetic-pump-east",
+      "kind": "supplied_by",
+      "object_entity_id": "synthetic-feeder-east",
+      "valid_from": "2026-10-15T00:00:00Z",
+      "valid_until": "2026-10-16T00:00:00Z",
+      "supporting_evidence_ids": [
+        "synthetic-evidence-pump-power"
+      ]
+    },
+    {
+      "id": "synthetic-edge-pump-backup-power",
+      "subject_entity_id": "synthetic-pump-east",
+      "kind": "supplied_by",
+      "object_entity_id": "synthetic-feeder-west",
+      "supporting_evidence_ids": [
+        "synthetic-evidence-pump-backup-power"
+      ]
+    },
+    {
+      "id": "synthetic-edge-field-pump",
+      "subject_entity_id": "synthetic-field-north",
+      "kind": "depends_on",
+      "object_entity_id": "synthetic-pump-east",
+      "supporting_evidence_ids": [
+        "synthetic-evidence-field-pump"
+      ]
+    },
+    {
+      "id": "synthetic-edge-warehouse-location",
+      "subject_entity_id": "synthetic-warehouse",
+      "kind": "located_at",
+      "object_entity_id": "synthetic-feeder-east",
+      "supporting_evidence_ids": [
+        "synthetic-evidence-warehouse-location"
+      ]
+    }
+  ]
+}

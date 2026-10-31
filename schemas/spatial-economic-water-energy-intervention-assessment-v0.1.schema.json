@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-water-energy-intervention-assessment-v0.1.schema.json",
+  "title": "Spatial-Economic Water-Energy Intervention Comparison Assessment",
+  "description": "Paired modeled counterfactual effect bounds with baseline- and candidate-specific per-interval water and energy evidence provenance. Not causal evidence.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "comparison_id",
+    "service_entity_id",
+    "effect",
+    "total_unmet_demand_reduction_lower_bound",
+    "total_unmet_demand_reduction_upper_bound",
+    "total_customer_delivery_delta_lower_bound",
+    "total_customer_delivery_delta_upper_bound",
+    "baseline",
+    "candidate",
+    "steps",
+    "supporting_evidence_ids",
+    "interpretation_boundary"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "comparison_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "service_entity_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "effect": {
+      "enum": [
+        "robust_improvement",
+        "robust_regression",
+        "no_material_change",
+        "indeterminate"
+      ]
+    },
+    "total_unmet_demand_reduction_lower_bound": {
+      "type": "number"
+    },
+    "total_unmet_demand_reduction_upper_bound": {
+      "type": "number"
+    },
+    "total_customer_delivery_delta_lower_bound": {
+      "type": "number"
+    },
+    "total_customer_delivery_delta_upper_bound": {
+      "type": "number"
+    },
+    "baseline": {
+      "$ref": "https://luminousdynamics.io/schemas/spatial-economic-water-energy-coupled-trajectory-assessment-v0.1.schema.json"
+    },
+    "candidate": {
+      "$ref": "https://luminousdynamics.io/schemas/spatial-economic-water-energy-coupled-trajectory-assessment-v0.1.schema.json"
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "step_id",
+          "as_of",
+          "baseline_state",
+          "candidate_state",
+          "baseline_unmet_demand_lower_bound",
+          "baseline_unmet_demand_upper_bound",
+          "candidate_unmet_demand_lower_bound",
+          "candidate_unmet_demand_upper_bound",
+          "unmet_demand_reduction_lower_bound",
+          "unmet_demand_reduction_upper_bound",
+          "customer_delivery_delta_lower_bound",
+          "customer_delivery_delta_upper_bound",
+          "baseline_supporting_evidence_ids",
+          "candidate_supporting_evidence_ids"
+        ],
+        "properties": {
+          "step_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          "baseline_state": {
+            "enum": [
+              "adequate",
+              "degraded",
+              "unavailable",
+              "indeterminate"
+            ]
+          },
+          "candidate_state": {
+            "enum": [
+              "adequate",
+              "degraded",
+              "unavailable",
+              "indeterminate"
+            ]
+          },
+          "baseline_unmet_demand_lower_bound": {
+            "type": "number",
+            "minimum": 0
+          },
+          "baseline_unmet_demand_upper_bound": {
+            "type": "number",
+            "minimum": 0
+          },
+          "candidate_unmet_demand_lower_bound": {
+            "type": "number",
+            "minimum": 0
+          },
+          "candidate_unmet_demand_upper_bound": {
+            "type": "number",
+            "minimum": 0
+          },
+          "unmet_demand_reduction_lower_bound": {
+            "type": "number"
+          },
+          "unmet_demand_reduction_upper_bound": {
+            "type": "number"
+          },
+          "customer_delivery_delta_lower_bound": {
+            "type": "number"
+          },
+          "customer_delivery_delta_upper_bound": {
+            "type": "number"
+          },
+          "baseline_supporting_evidence_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "candidate_supporting_evidence_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "supporting_evidence_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "interpretation_boundary": {
+      "const": "modeled_counterfactual_not_causal_evidence"
+    }
+  }
+}

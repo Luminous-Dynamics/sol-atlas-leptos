@@ -1,0 +1,50 @@
+{
+  "schema_version": "0.1.0",
+  "batch_id": "synthetic-storage-shortlist",
+  "baseline_experiment_id": "synthetic-storage-intervention-baseline",
+  "requested_candidate_count": 2,
+  "evaluated_candidate_count": 2,
+  "baseline_sweep_evaluation_count": 1,
+  "candidate_sweep_evaluation_count": 2,
+  "total_service_step_assessments": 12,
+  "candidates": [
+    {
+      "candidate_id": "storage-100",
+      "candidate_experiment_id": "storage-candidate-100",
+      "declared_failure_scenario_count": 1,
+      "compared_case_count": 2,
+      "exhaustive_over_paired_declared_scenarios": true,
+      "total_paired_service_step_assessments": 8,
+      "effect": "robust_improvement",
+      "possible_protected_floor_regression": false,
+      "worst_case_unmet_demand_reduction_lower_bound_m3": 40,
+      "worst_case_unmet_demand_reduction_upper_bound_m3": 100,
+      "worst_case_customer_delivery_delta_lower_bound_m3": 40,
+      "worst_case_customer_delivery_delta_upper_bound_m3": 100,
+      "worst_case_floor_compliance_delta_lower_bound": 0,
+      "worst_case_floor_compliance_delta_upper_bound": 1,
+      "baseline_supporting_evidence_ids": [],
+      "candidate_supporting_evidence_ids": []
+    },
+    {
+      "candidate_id": "storage-200",
+      "candidate_experiment_id": "storage-candidate-200",
+      "declared_failure_scenario_count": 1,
+      "compared_case_count": 2,
+      "exhaustive_over_paired_declared_scenarios": true,
+      "total_paired_service_step_assessments": 8,
+      "effect": "robust_improvement",
+      "possible_protected_floor_regression": false,
+      "worst_case_unmet_demand_reduction_lower_bound_m3": 40,
+      "worst_case_unmet_demand_reduction_upper_bound_m3": 200,
+      "worst_case_customer_delivery_delta_lower_bound_m3": 40,
+      "worst_case_customer_delivery_delta_upper_bound_m3": 200,
+      "worst_case_floor_compliance_delta_lower_bound": 0,
+      "worst_case_floor_compliance_delta_upper_bound": 1,
+      "baseline_supporting_evidence_ids": [],
+      "candidate_supporting_evidence_ids": []
+    }
+  ],
+  "baseline_supporting_evidence_ids": [],
+  "interpretation_boundary": "modeled_counterfactual_not_causal_evidence"
+}

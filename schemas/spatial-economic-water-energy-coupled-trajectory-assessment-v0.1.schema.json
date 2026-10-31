@@ -1,0 +1,237 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-water-energy-coupled-trajectory-assessment-v0.1.schema.json",
+  "title": "Spatial-Economic Water-Energy Coupled Trajectory Assessment",
+  "description": "Bounded operating-point coupling output plus the existing water trajectory assessment. Its interpretation boundary explicitly excludes hydraulic simulation and causal claims.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "coupling_id",
+    "power_unit",
+    "specific_energy_unit",
+    "water_flow_unit",
+    "water_assessment",
+    "steps",
+    "supporting_evidence_ids",
+    "interpretation_boundary"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "coupling_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "power_unit": {
+      "const": "kW"
+    },
+    "specific_energy_unit": {
+      "const": "kWh/m3"
+    },
+    "water_flow_unit": {
+      "const": "m3/h"
+    },
+    "water_assessment": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema_version",
+        "trajectory_id",
+        "step_count",
+        "steps",
+        "supporting_evidence_ids"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "0.1.0"
+        },
+        "trajectory_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "step_count": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "required": [
+              "step_id",
+              "state",
+              "customer_delivered_volume_lower_bound",
+              "customer_delivered_volume_upper_bound",
+              "ending_storage_lower_bound",
+              "ending_storage_upper_bound",
+              "supporting_evidence_ids"
+            ],
+            "properties": {
+              "step_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "state": {
+                "enum": [
+                  "adequate",
+                  "degraded",
+                  "unavailable",
+                  "indeterminate"
+                ]
+              },
+              "customer_delivered_volume_lower_bound": {
+                "type": "number",
+                "minimum": 0
+              },
+              "customer_delivered_volume_upper_bound": {
+                "type": "number",
+                "minimum": 0
+              },
+              "ending_storage_lower_bound": {
+                "type": "number",
+                "minimum": 0
+              },
+              "ending_storage_upper_bound": {
+                "type": "number",
+                "minimum": 0
+              },
+              "supporting_evidence_ids": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        },
+        "supporting_evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "step_id",
+          "as_of",
+          "operating_regime_id",
+          "power_measurement_location",
+          "power_unit",
+          "specific_energy_unit",
+          "water_flow_unit",
+          "available_power_lower_bound_kw",
+          "available_power_upper_bound_kw",
+          "specific_energy_lower_bound_kwh_per_m3",
+          "specific_energy_upper_bound_kwh_per_m3",
+          "mechanical_pump_capacity_lower_bound_m3_per_h",
+          "mechanical_pump_capacity_upper_bound_m3_per_h",
+          "energy_limited_flow_lower_bound_m3_per_h",
+          "energy_limited_flow_upper_bound_m3_per_h",
+          "effective_pump_capacity_lower_bound_m3_per_h",
+          "effective_pump_capacity_upper_bound_m3_per_h",
+          "supporting_evidence_ids"
+        ],
+        "properties": {
+          "step_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          "operating_regime_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "power_measurement_location": {
+            "const": "pump_terminals"
+          },
+          "power_unit": {
+            "const": "kW"
+          },
+          "specific_energy_unit": {
+            "const": "kWh/m3"
+          },
+          "water_flow_unit": {
+            "const": "m3/h"
+          },
+          "available_power_lower_bound_kw": {
+            "type": "number",
+            "minimum": 0
+          },
+          "available_power_upper_bound_kw": {
+            "type": "number",
+            "minimum": 0
+          },
+          "specific_energy_lower_bound_kwh_per_m3": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "specific_energy_upper_bound_kwh_per_m3": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "mechanical_pump_capacity_lower_bound_m3_per_h": {
+            "type": "number",
+            "minimum": 0
+          },
+          "mechanical_pump_capacity_upper_bound_m3_per_h": {
+            "type": "number",
+            "minimum": 0
+          },
+          "energy_limited_flow_lower_bound_m3_per_h": {
+            "type": "number",
+            "minimum": 0
+          },
+          "energy_limited_flow_upper_bound_m3_per_h": {
+            "type": "number",
+            "minimum": 0
+          },
+          "effective_pump_capacity_lower_bound_m3_per_h": {
+            "type": "number",
+            "minimum": 0
+          },
+          "effective_pump_capacity_upper_bound_m3_per_h": {
+            "type": "number",
+            "minimum": 0
+          },
+          "supporting_evidence_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "supporting_evidence_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "interpretation_boundary": {
+      "const": "bounded_operating_point_not_hydraulic_simulation"
+    }
+  }
+}

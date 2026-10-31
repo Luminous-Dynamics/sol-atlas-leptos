@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-water-energy-coupling-v0.1.schema.json",
+  "title": "Spatial-Economic Water-Energy Coupling Request",
+  "description": "Couples a contiguous aggregate water-service trajectory to pump-terminal electric power and operating-regime-specific energy. This is not a hydraulic or electrical network solver.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "trajectory",
+    "steps"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "trajectory": {
+      "$ref": "https://luminousdynamics.io/schemas/spatial-economic-water-service-trajectory-v0.1.schema.json"
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "$ref": "#/$defs/coupling_step"
+      }
+    }
+  },
+  "$defs": {
+    "quantity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "unit"
+      ],
+      "properties": {
+        "value": {
+          "type": "number",
+          "minimum": 0
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "uncertainty_abs": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entity_id",
+        "quantity",
+        "basis",
+        "rationale"
+      ],
+      "properties": {
+        "entity_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "quantity": {
+          "$ref": "#/$defs/quantity"
+        },
+        "basis": {
+          "enum": [
+            "assumed",
+            "observed"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "supporting_evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "basis": {
+                "const": "observed"
+              }
+            },
+            "required": [
+              "basis"
+            ]
+          },
+          "then": {
+            "required": [
+              "supporting_evidence_ids"
+            ],
+            "properties": {
+              "supporting_evidence_ids": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "basis": {
+                "const": "assumed"
+              }
+            },
+            "required": [
+              "basis"
+            ]
+          },
+          "then": {
+            "properties": {
+              "supporting_evidence_ids": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "coupling_step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "step_id",
+        "as_of",
+        "operating_regime_id",
+        "power_measurement_location",
+        "available_power",
+        "specific_energy"
+      ],
+      "properties": {
+        "step_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "as_of": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "operating_regime_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "power_measurement_location": {
+          "const": "pump_terminals"
+        },
+        "available_power": {
+          "$ref": "#/$defs/measurement"
+        },
+        "specific_energy": {
+          "$ref": "#/$defs/measurement"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,233 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-water-service-trajectory-assessment-v0.1.schema.json",
+  "title": "Spatial-Economic Water Service Trajectory Assessment",
+  "description": "Contiguous time-dependent service bounds, cumulative unmet-demand volume and sampled recovery. Not a continuous-time or hydraulic claim.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "trajectory_id",
+    "service_entity_id",
+    "rate_unit",
+    "volume_unit",
+    "time_unit",
+    "step_count",
+    "first_step_as_of",
+    "last_step_as_of",
+    "initial_state",
+    "final_state",
+    "adequacy_maintained_through_last_sample",
+    "unmet_demand_volume_lower_bound",
+    "unmet_demand_volume_upper_bound",
+    "customer_delivered_volume_lower_bound",
+    "customer_delivered_volume_upper_bound",
+    "maximum_normalized_deficit_lower_bound",
+    "maximum_normalized_deficit_upper_bound",
+    "steps",
+    "supporting_evidence_ids"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "trajectory_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "service_entity_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rate_unit": {
+      "const": "m3/h"
+    },
+    "volume_unit": {
+      "const": "m3"
+    },
+    "time_unit": {
+      "const": "h"
+    },
+    "step_count": {
+      "type": "integer",
+      "minimum": 2
+    },
+    "first_step_as_of": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "last_step_as_of": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "initial_state": {
+      "$ref": "#/$defs/state"
+    },
+    "final_state": {
+      "$ref": "#/$defs/state"
+    },
+    "first_adequate_step_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "first_adequate_as_of": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "preceding_step_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "preceding_step_as_of": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "adequacy_maintained_through_last_sample": {
+      "type": "boolean"
+    },
+    "unmet_demand_volume_lower_bound": {
+      "type": "number",
+      "minimum": 0
+    },
+    "unmet_demand_volume_upper_bound": {
+      "type": "number",
+      "minimum": 0
+    },
+    "customer_delivered_volume_lower_bound": {
+      "type": "number",
+      "minimum": 0
+    },
+    "customer_delivered_volume_upper_bound": {
+      "type": "number",
+      "minimum": 0
+    },
+    "maximum_normalized_deficit_lower_bound": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "maximum_normalized_deficit_upper_bound": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "$ref": "#/$defs/step_assessment"
+      }
+    },
+    "supporting_evidence_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "$defs": {
+    "state": {
+      "enum": [
+        "adequate",
+        "degraded",
+        "unavailable",
+        "indeterminate"
+      ]
+    },
+    "step_assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "step_id",
+        "as_of",
+        "step_hours",
+        "state",
+        "demand_volume_lower_bound",
+        "demand_volume_upper_bound",
+        "customer_delivered_volume_lower_bound",
+        "customer_delivered_volume_upper_bound",
+        "ending_storage_lower_bound",
+        "ending_storage_upper_bound",
+        "conservative_mass_balance_residual",
+        "optimistic_mass_balance_residual",
+        "supporting_evidence_ids",
+        "storage_state_origin"
+      ],
+      "properties": {
+        "step_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "as_of": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+        },
+        "step_hours": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "state": {
+          "$ref": "#/$defs/state"
+        },
+        "coverage_lower_bound": {
+          "type": "number",
+          "minimum": 0
+        },
+        "coverage_upper_bound": {
+          "type": "number",
+          "minimum": 0
+        },
+        "demand_volume_lower_bound": {
+          "type": "number",
+          "minimum": 0
+        },
+        "demand_volume_upper_bound": {
+          "type": "number",
+          "minimum": 0
+        },
+        "customer_delivered_volume_lower_bound": {
+          "type": "number",
+          "minimum": 0
+        },
+        "customer_delivered_volume_upper_bound": {
+          "type": "number",
+          "minimum": 0
+        },
+        "ending_storage_lower_bound": {
+          "type": "number",
+          "minimum": 0
+        },
+        "ending_storage_upper_bound": {
+          "type": "number",
+          "minimum": 0
+        },
+        "conservative_mass_balance_residual": {
+          "type": "number"
+        },
+        "optimistic_mass_balance_residual": {
+          "type": "number"
+        },
+        "supporting_evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "storage_state_origin": {
+          "enum": [
+            "initial_scenario_input",
+            "derived_from_previous_step"
+          ]
+        },
+        "storage_source_step_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
