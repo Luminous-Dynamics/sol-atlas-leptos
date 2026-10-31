@@ -1,0 +1,77 @@
+name: IEAC evidence acquisition contract
+
+on:
+  pull_request:
+    paths:
+      - "schemas/industry-evidence-*.json"
+      - "schemas/examples/industry-evidence-*.json"
+      - "docs/industry/IEAC_EVIDENCE_ACQUISITION_V0.1.md"
+      - ".github/workflows/industry-evidence-acquisition.yml"
+  push:
+    branches:
+      - main
+      - feat/ieac-evidence-acquisition-v0-1
+    paths:
+      - "schemas/industry-evidence-*.json"
+      - "schemas/examples/industry-evidence-*.json"
+      - "docs/industry/IEAC_EVIDENCE_ACQUISITION_V0.1.md"
+      - ".github/workflows/industry-evidence-acquisition.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ieac-evidence-acquisition-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  schema-contract:
+    name: Exact-head Draft 2020-12 contract and negative controls
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact source revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install Rust and pinned schema validator
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install pinned Draft 2020-12 validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Add schema validator to PATH
+        run: echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+
+      - name: Validate schemas against Draft 2020-12 meta-schema
+        run: |
+          set -euo pipefail
+          meta=https://json-schema.org/draft/2020-12/schema
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-evidence-obligation-v0.1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-evidence-acquisition-plan-v0.1.schema.json
+
+      - name: Validate synthetic contract example
+        run: |
+          set -euo pipefail
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-evidence-acquisition-plan-v0.1.schema.json -i schemas/examples/industry-evidence-acquisition-synthetic-v0.1.json
+
+      - name: Reject authority escalation and unsafe ranking controls
+        run: |
+          set -euo pipefail
+          source=schemas/examples/industry-evidence-acquisition-synthetic-v0.1.json
+          schema=schemas/industry-evidence-acquisition-plan-v0.1.schema.json
+          jq '.execution_authorized = true' "$source" > "$RUNNER_TEMP/actuation.json"
+          jq '.decision_tier_ceiling = "D3_autonomous_control"' "$source" > "$RUNNER_TEMP/escalation.json"
+          jq '.planner_calibration.state = "uncalibrated"' "$source" > "$RUNNER_TEMP/uncalibrated-ranking.json"
+          for mutant in "$RUNNER_TEMP/actuation.json" "$RUNNER_TEMP/escalation.json" "$RUNNER_TEMP/uncalibrated-ranking.json"; do
+            if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$mutant"; then
+              echo "ERROR: schema accepted unsafe negative control $mutant"
+              exit 1
+            fi
+          done
