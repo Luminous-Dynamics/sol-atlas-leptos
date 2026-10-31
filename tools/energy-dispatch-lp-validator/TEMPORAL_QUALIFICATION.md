@@ -1,6 +1,6 @@
 # Temporal Dispatch Qualification v0.1
 
-Status: contract plus H=2 exhaustive test-only schedule oracle (65,536 bounded assignments), H=3 deterministic sampled oracle (50,000 assignments), H=4 deterministic sampled oracle (120,000 assignments across three seeds), all-six-objective independent recomputation, and interval-index/SOC/energy negative controls. Production schedule API and exact-head CI qualification remain open.
+Status: contract plus H=2 exhaustive test-only schedule oracle (65,536 bounded assignments), H=3 deterministic sampled oracle (50,000 assignments), H=4 deterministic sampled oracle (120,000 assignments across three seeds), all-six-objective independent recomputation, and interval-index/SOC/energy negative controls. A separate domain-level source-request schedule auditor crate is implemented in tools/energy-dispatch-schedule-auditor; its exact-head CI qualification remains open.
 
 ## 1. Assurance boundary
 
@@ -120,6 +120,34 @@ REopt is an appropriate external reference for distributed energy-resource sizin
 
 A fair comparison requires the same model class, objective, constraints, input data, feasibility tolerances and stopping criterion. When these differ, report a capability matrix instead of declaring one solver or platform faster/better.
 
-## 9. Claim ceiling
+## 9. Standalone domain-level schedule auditor
+
+The test-only temporal oracle still compares assignments from the finite
+reference model. To avoid making LP variable names part of the external
+schedule contract, a separate crate, tools/energy-dispatch-schedule-auditor,
+now accepts a domain-level DispatchSchedule JSON document. It depends only on
+Serde/JSON and hashing libraries; it does not import the LP validator or the
+MIP emitter.
+
+The schedule binds the exact request SHA-256, source case ID, ordered interval
+IDs and terminal SOC. Each interval contains grid import, charge input,
+discharge withdrawal, SOC after the interval, essential/flexible served and
+unserved load, and PV used/curtailed. The auditor independently recomputes
+charge/discharge floor efficiency, SOC recurrence, bus balance, grid outage
+limits, load/PV partitions, terminal reserve and all six objective values.
+
+The audit receipt records every predicate result with interval localization,
+exact request and schedule digests, auditor ID/version, source synthetic flag,
+candidate expansion metadata, recomputed objectives and a digest over the
+receipt subject. The schedule JSON Schema is published at
+tools/energy-dispatch-schedule-auditor/schedule-schema-v0.1.json.
+
+This is a stronger boundary than parsing solver variable names, but it is not
+a proof that the model matches a physical site or that a schedule is safe to
+execute. The separate auditor's tests and its pinned workflow are independently
+maintained; no successful exact-head run is claimed until CI finishes.
+
+## 10. Claim ceiling
+
 
 A pass may establish exact agreement with the frozen finite exhaustive oracle, correct rejection of listed mutations, and independent feasibility of an evaluated schedule for the stated model. It does not establish input authenticity, physical-model completeness, field reliability, safety certification, or authorization to control equipment.
