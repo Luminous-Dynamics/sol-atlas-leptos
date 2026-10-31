@@ -27,15 +27,16 @@ fn write_new_report(path: &Path, report: &Value) -> Result<(), String> {
 
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
-    if args.len() != 3 {
-        eprintln!("usage: industry-runtime-admission <profile.json> <request.json> <new-report.json>");
+    if args.len() != 4 {
+        eprintln!("usage: industry-runtime-admission <profile.json> <trusted-profile-pin.json> <request.json> <new-report.json>");
         std::process::exit(2);
     }
     let profile_path = Path::new(&args[0]);
-    let request_path = Path::new(&args[1]);
-    let report_path = Path::new(&args[2]);
+    let profile_pin_path = Path::new(&args[1]);
+    let request_path = Path::new(&args[2]);
+    let report_path = Path::new(&args[3]);
 
-    if report_path == profile_path || report_path == request_path {
+    if report_path == profile_path || report_path == profile_pin_path || report_path == request_path {
         eprintln!("refusing to use an input path as the report destination");
         std::process::exit(2);
     }
@@ -44,13 +45,17 @@ fn main() {
         Ok(value) => value,
         Err(error) => { eprintln!("{error}"); std::process::exit(2); }
     };
+    let profile_pin = match read_json(profile_pin_path) {
+        Ok(value) => value,
+        Err(error) => { eprintln!("{error}"); std::process::exit(2); }
+    };
     let request = match read_json(request_path) {
         Ok(value) => value,
         Err(error) => { eprintln!("{error}"); std::process::exit(2); }
     };
 
-    let mut report = evaluate_admission(&profile, &request);
-    let checker_errors = independent_check(&profile, &request, &report);
+    let mut report = evaluate_admission(&profile, &profile_pin, &request);
+    let checker_errors = independent_check(&profile, &profile_pin, &request, &report);
     let checker_status = if checker_errors.is_empty() { "passed" } else { "failed" };
     seal_report(&mut report, checker_status, &checker_errors);
 
