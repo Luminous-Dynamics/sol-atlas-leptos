@@ -177,8 +177,8 @@ pub fn validate_manifest(value: &Value) -> Vec<ValidationIssue> {
         reject_unknown_keys(
             &participant["interface"],
             &[
-                "standard_id",
-                "edition",
+                "interface_profile_id",
+                "interface_profile_version",
                 "document_kind",
                 "protocol",
                 "protocol_version",
