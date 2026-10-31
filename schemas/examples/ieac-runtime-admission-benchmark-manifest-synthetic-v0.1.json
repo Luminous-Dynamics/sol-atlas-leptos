@@ -194,7 +194,8 @@
       20261031
     ],
     "stopping_rule": "Run the exact configured trials-per-family for every family; no early stopping or replacement after results are inspected.",
-    "deterministic_replay_expected": true
+    "deterministic_replay_expected": true,
+    "trials_per_stratum": 100
   },
   "environment": {
     "operating_system": "Pinned CI runner; exact image identity to be recorded in the execution receipt.",
