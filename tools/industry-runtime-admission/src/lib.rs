@@ -1077,6 +1077,13 @@ pub fn independent_check(profile: &Value, request: &Value, report: &Value) -> Ve
     if report.get("report_sha256").is_some() && !report_digest_is_valid(report) {
         failures.push("REPORT_DIGEST_MISMATCH".to_owned());
     }
+    if let Some(checker) = report.get("independent_checker") {
+        if checker.get("status").and_then(Value::as_str) != Some("passed")
+            || checker.get("errors").and_then(Value::as_array).is_none_or(|items| !items.is_empty())
+        {
+            failures.push("REPORT_CHECKER_ATTESTATION_INVALID".to_owned());
+        }
+    }
     if report.get("schema_version").and_then(Value::as_str)
         != Some("luminous.ieac-runtime-admission-report.v0.1")
     {
