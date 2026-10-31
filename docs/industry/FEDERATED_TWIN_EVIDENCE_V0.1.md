@@ -39,6 +39,23 @@ This is intentionally not a claim of whole-system observability. An adapter cann
 
 Unknown, unavailable, partially visible, paginated-but-incomplete or lossy channels must not be silently called complete. If the connector cannot establish completeness, it must emit partial or invalid state and IEAC should abstain where the missing scope matters to the decision.
 
+## 3.1 Semantic verification requirements
+
+JSON Schema validates object shape and local field constraints; the independent semantic verifier must additionally check:
+
+- `observed_channel_ids` is an exact subset of the capability profile's supported channels and of the inventory's declared IDs; IDs are unique and correctly namespaced.
+- For a claim of `complete_within_declared_inventory`, the observed set exactly equals the declared supported set, omitted and unsupported sets are empty, loss count is zero, and the evidence references the exact inventory and capability digests.
+- Every evidence field path, native type, native unit, source ID, source schema URI/version and connector build digest matches the pinned capability profile.
+- The field's JSON value type matches its declared native type; no coercion, string-number parsing or enum guessing occurs.
+- The original payload bytes match `native_payload_sha256`; any parsed/normalized representation has a separate digest and parser/transform build identity.
+- A conversion transform's input/output units and dimensions match the field and target concept; affine offsets and uncertainty are handled explicitly; uncertainty bounds are ordered and propagated where possible.
+- Source observation and receipt timestamps are preserved independently; clock domain, synchronization state, skew/uncertainty, sequence gaps, duplicate records and watermark regressions are checked.
+- Coordinate transformations bind the exact source and destination coordinate reference systems and frame versions.
+- Provenance dependencies, rights state, authorization, revocation and source attestation meet the current IEAC profile; a different artifact ID alone does not establish source independence.
+- Inventory trust is not inferred from successful pagination. The trust root and inventory update lifecycle must be separately authenticated or operator-pinned.
+
+The schema's `complete_within_declared_inventory` state is a bounded assertion against one inventory snapshot and declared scope, not a statement that all physical dependencies, sensors or channels in the real installation are observable. Any semantic-verifier uncertainty must degrade the envelope to partial/invalid, never complete.
+
 ## 4. Protocol profiles
 
 The v0.1 contract is protocol-neutral but names likely adapter families:
