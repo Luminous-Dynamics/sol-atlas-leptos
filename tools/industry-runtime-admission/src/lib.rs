@@ -1409,9 +1409,14 @@ mod tests {
         let (profile, mut missing) = fixture_files();
         missing["snapshot"]["conditions"] = json!([]);
         refresh_digests(&profile, &mut missing);
+        assert!(validate_runtime_request(&missing).is_empty());
         let report = assert_candidate_and_checker_agree(&profile, &missing);
         assert_eq!(report["admission"], "abstain");
         assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v == "CONDITION_MEASUREMENT_MISSING"));
+
+        let mut omitted_conditions = missing.clone();
+        omitted_conditions["snapshot"].as_object_mut().unwrap().remove("conditions");
+        assert!(!validate_runtime_request(&omitted_conditions).is_empty());
 
         let (profile, mut duplicate) = fixture_files();
         let copy = duplicate["snapshot"]["conditions"][0].clone();

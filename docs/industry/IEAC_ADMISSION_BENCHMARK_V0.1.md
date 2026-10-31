@@ -1,11 +1,11 @@
 # IEAC runtime-admission benchmark v0.1
 
-**Status:** Executable benchmark-driver tranche; no benchmark has been run or passed by this change.  
+**Status:** Executable benchmark-driver tranche with a frozen 27-family synthetic panel; no benchmark has been run or passed by this change.  
 **Depends on:** [IBAP run-manifest contract, PR #339](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/339), [runtime admission, PR #346](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/346), [benchmark protocol, issue #348](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/348).
 
 ## 1. What this measures
 
-The driver evaluates the runtime admission gate over deterministic, seeded single-fault, boundary and multi-fault mutation families derived from the synthetic profile/request fixtures. It stratifies by the single vertical declared by the supplied frozen IBAP run manifest and reports each failure family independently. Run one frozen manifest per vertical; do not pool different vertical estimands into one score.
+The driver evaluates the runtime admission gate over deterministic, seeded single-fault, boundary and explicitly frozen pairwise interaction families derived from the synthetic profile/request fixtures. The original 19 strata remain unchanged as the v0.1 baseline; eight new pairwise strata bring the current panel to 27 families. It stratifies by the single vertical declared by the supplied frozen IBAP run manifest and reports each failure family independently. Run one frozen manifest per vertical; do not pool different vertical estimands into one score.
 
 The baseline ladder is deliberately narrow:
 
@@ -61,8 +61,20 @@ At 30,000 negative trials per failure family, the separate one-sided 95% upper b
 | Revoked profile pin | reject | PROFILE_PIN_REVOKED |
 | Revoked measurement source | reject | ARTIFACT_REVOKED |
 | Unavailable authority source | abstain | REVOCATION_STATE_UNAVAILABLE |
-| Decision-tier escalation | reject | ACTION_NOT_PERMITTED_BY_PROFILE and DECISION_TIER_NOT_ADMITTED (exact set) |
+| Decision-tier escalation | reject | ACTION_NOT_AUTHORIZED_BY_CURRENT_SOURCE, ACTION_NOT_PERMITTED_BY_PROFILE and DECISION_TIER_NOT_ADMITTED (exact set) |
 | Stale measurement plus revoked source | reject | ARTIFACT_REVOKED and MEASUREMENT_STALE (exact set) |
+| Stale measurement plus unit mismatch | reject | MEASUREMENT_STALE and UNIT_MISMATCH (exact set) |
+| Interval crossing plus revoked source | reject | ARTIFACT_REVOKED and MEASUREMENT_INTERVAL_CROSSES_ENVELOPE (exact set) |
+| Model identity drift plus revoked profile pin | reject | ARTIFACT_DIGEST_MISMATCH, PROFILE_PIN_REVOKED and RUNTIME_IDENTITY_BINDING_INVALID (exact set) |
+| Profile expiry plus unavailable authority | reject | PROFILE_OUTSIDE_VALIDITY_WINDOW and REVOCATION_STATE_UNAVAILABLE (exact set) |
+| Stale measurement plus authority escalation | reject | ACTION_NOT_AUTHORIZED_BY_CURRENT_SOURCE, ACTION_NOT_PERMITTED_BY_PROFILE, DECISION_TIER_NOT_ADMITTED and MEASUREMENT_STALE (exact set) |
+| Future measurement plus revoked source | reject | ARTIFACT_REVOKED and FUTURE_DATED_MEASUREMENT (exact set) |
+| Unit mismatch plus revoked profile pin | reject | PROFILE_PIN_REVOKED and UNIT_MISMATCH (exact set) |
+| Out-of-range value plus profile expiry | reject | PROFILE_OUTSIDE_VALIDITY_WINDOW and VALUE_OUTSIDE_OPERATING_ENVELOPE (exact set) |
+
+The eight added interaction strata deliberately combine faults from different control planes: measurement freshness and units; uncertainty and source revocation; model identity and profile authority; profile validity and authority availability; measurement freshness and action tier; temporal validity and source revocation; measurement units and pin revocation; and physical-boundary violation with profile expiry. Reject dominates abstain, but all applicable reason codes must remain present. These cases test precedence and reason preservation, not merely detection of each fault in isolation.
+
+The escalation expectation was also corrected: a D2 `prepare_plan` request exceeds the permitted action in both the profile and the current authority snapshot, so the exact expected set includes `ACTION_NOT_AUTHORIZED_BY_CURRENT_SOURCE` in addition to the profile/action and decision-tier reason codes. This is a fixture expectation correction; no runtime guard was weakened.
 
 The driver also mutates every generated report and checks that the reconstruction checker detects the changed disposition. Reason-code acceptance is exact-set equality, not a contains check: missing or unexpected reason codes fail the run. Three repeated evaluations per family are compared byte-for-byte for deterministic replay. Those replay checks are smoke checks, not exhaustive proof of determinism.
 
@@ -95,9 +107,10 @@ The first driver is synthetic and uses the current v0.1 admission contract. It d
 Next benchmark increments:
 1. Integrate signed pin/revocation and anti-replay families after #347, while keeping trust failures separate from measurement failures.
 2. Add source-level independent checker implementation and third-party golden vectors.
-3. Add adversarial combinatorial interactions (e.g. stale plus revoked, identity drift plus validly refreshed snapshot) rather than relying only on single-fault mutants.
-4. Add resource collectors, calibrated energy measurement and pinned hardware profiles.
-5. Add prospective shadow-pilot outcomes only after synthetic software admission tests are stable and source/authority rights are established.
+3. Expand from the current frozen pairwise panel to constrained 3-way/t-wise combinations, explicit conflict pairs and metamorphic invariants (e.g. object-key reordering, digest one-bit flips and identity-preserving serialization changes).
+4. Add active-sensing/value-of-information trials: compare abstain, request-another-measurement, specialist-solver and operator-escalation pathways with decision cost and hard safety floors.
+5. Add resource collectors, calibrated energy measurement and pinned hardware profiles.
+6. Add prospective shadow-pilot outcomes only after synthetic software admission tests are stable and source/authority rights are established.
 
 A benchmark result advances only the evidence dimension it directly measures.
 
@@ -106,7 +119,7 @@ A benchmark result advances only the evidence dimension it directly measures.
 
 The runner requires a new `--cases-jsonl` destination and writes one append-only JSONL ledger containing:
 
-- a header that binds the exact manifest-byte digest, vertical, seed, PRNG, trial count, fixture digests, method IDs, evaluator version and checker version;
+- a header that binds the exact manifest-byte digest, vertical, seed, PRNG, trial count, fixture digests, method IDs, evaluator/checker versions, and SHA-256 identities for the benchmark harness, runtime engine, profile validator, replay verifier, embedded runtime/profile schemas, and both Cargo manifests and lockfiles;
 - one record per generated trial, with a stable case ID, stratum and trial index, exact profile/profile-pin/request objects, preregistered expected disposition and reason-code set, candidate report, checker errors, static-profile baseline result, tamper-detection outcome, sampled deterministic-replay outcome, measured evaluator-plus-checker latency and a per-record SHA-256 digest;
 - a footer containing the record count, digest of all case records and digest of the header plus case records.
 
@@ -121,6 +134,6 @@ cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked \
   "$RUNNER_TEMP/ieac-admission-benchmark-report.json"
 ~~~
 
-The verifier checks canonical JSONL encoding, every case digest, contiguous case/trial identities, complete family denominators, exact ledger hashes, candidate-result reconstruction, reconstruction-checker output, static-profile baseline results and report aggregate consistency. It fails closed on malformed reason-code arrays (including non-string elements), mismatched expectations, missing records, extra records, footer damage or a report that does not bind the exact ledger.
+The verifier checks canonical JSONL encoding, every case digest, contiguous case/trial identities, complete family denominators, exact ledger hashes, candidate-result reconstruction, reconstruction-checker output, static-profile baseline results and report aggregate consistency. It also checks that the recorded source/schema/build-input digests match the source files, embedded schemas, Cargo manifests and lockfiles compiled into the runner and verifier, and that the manifest's ordered family panel matches the exact compiled mutation plan. These are source-file identities, not a signed binary/build attestation; the compiler, dependencies, build flags and execution environment still require separately verifiable build provenance. It fails closed on malformed reason-code arrays (including non-string elements), mismatched expectations, missing records, extra records, footer damage or a report that does not bind the exact ledger.
 
 This is an integrity and replay artifact, not an authenticated trust anchor. The ledger is unsigned; the runner and verifier still share the same library implementation and low-level primitives. A person who can replace both the ledger and report can recompute their hashes. Signed build/source attestations, an independently implemented verifier and third-party golden vectors remain separate work. The case ledger makes the precise evidence inspectable; it does not prove that the evidence is true or physically valid.

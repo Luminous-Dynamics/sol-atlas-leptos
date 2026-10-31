@@ -27,8 +27,17 @@ const FAMILIES: &[(&str, &str, &[&str], bool)] = &[
     ("profile_pin_revoked", "reject", &["PROFILE_PIN_REVOKED"], true),
     ("source_revoked", "reject", &["ARTIFACT_REVOKED"], true),
     ("authorization_unavailable", "abstain", &["REVOCATION_STATE_UNAVAILABLE"], true),
-    ("authority_escalation", "reject", &["ACTION_NOT_PERMITTED_BY_PROFILE", "DECISION_TIER_NOT_ADMITTED"], true),
+    ("authority_escalation", "reject", &["ACTION_NOT_AUTHORIZED_BY_CURRENT_SOURCE", "ACTION_NOT_PERMITTED_BY_PROFILE", "DECISION_TIER_NOT_ADMITTED"], true),
     ("stale_and_source_revoked", "reject", &["ARTIFACT_REVOKED", "MEASUREMENT_STALE"], true),
+    // Frozen pairwise interactions: each pair crosses distinct admission dimensions.
+    ("stale_plus_unit_mismatch", "reject", &["MEASUREMENT_STALE", "UNIT_MISMATCH"], true),
+    ("interval_crossing_plus_source_revoked", "reject", &["ARTIFACT_REVOKED", "MEASUREMENT_INTERVAL_CROSSES_ENVELOPE"], true),
+    ("identity_drift_plus_pin_revoked", "reject", &["ARTIFACT_DIGEST_MISMATCH", "PROFILE_PIN_REVOKED", "RUNTIME_IDENTITY_BINDING_INVALID"], true),
+    ("profile_expired_plus_authority_unavailable", "reject", &["PROFILE_OUTSIDE_VALIDITY_WINDOW", "REVOCATION_STATE_UNAVAILABLE"], true),
+    ("stale_plus_authority_escalation", "reject", &["ACTION_NOT_AUTHORIZED_BY_CURRENT_SOURCE", "ACTION_NOT_PERMITTED_BY_PROFILE", "DECISION_TIER_NOT_ADMITTED", "MEASUREMENT_STALE"], true),
+    ("future_plus_source_revoked", "reject", &["ARTIFACT_REVOKED", "FUTURE_DATED_MEASUREMENT"], true),
+    ("unit_mismatch_plus_pin_revoked", "reject", &["PROFILE_PIN_REVOKED", "UNIT_MISMATCH"], true),
+    ("out_of_range_plus_profile_expired", "reject", &["PROFILE_OUTSIDE_VALIDITY_WINDOW", "VALUE_OUTSIDE_OPERATING_ENVELOPE"], true),
 ];
 
 struct Rng { state: u64 }
@@ -260,7 +269,10 @@ fn apply_family(
                 "positive_control" => condition["observed_at"] = json!("2026-10-31T11:30:00Z"),
                 "stale_measurement" => condition["observed_at"] = json!("2026-10-31T00:00:00Z"),
                 "future_measurement" => condition["observed_at"] = json!("2026-10-31T12:00:01Z"),
-                "stale_and_source_revoked" => condition["observed_at"] = json!("2026-10-31T00:00:00Z"),
+                "stale_and_source_revoked" | "stale_plus_unit_mismatch" | "stale_plus_authority_escalation" => {
+                    condition["observed_at"] = json!("2026-10-31T00:00:00Z")
+                }
+                "future_plus_source_revoked" => condition["observed_at"] = json!("2026-10-31T12:00:01Z"),
                 "exact_min_boundary" => {
                     condition["value"] = json!(minimum);
                     condition["lower"] = json!(minimum);
@@ -283,34 +295,42 @@ fn apply_family(
                     condition["lower"] = json!(boundary_value);
                     condition["upper"] = json!(boundary_value);
                 }
-                "interval_crossing" => {
+                "interval_crossing" | "interval_crossing_plus_source_revoked" => {
                     condition["value"] = json!(minimum + span * 0.25);
                     condition["lower"] = json!(minimum - span * 0.01);
                     condition["upper"] = json!(minimum + span * 0.30);
                 }
-                "out_of_range" => {
+                "out_of_range" | "out_of_range_plus_profile_expired" => {
                     condition["value"] = json!(maximum + span * 0.10);
                     condition["lower"] = json!(maximum + span * 0.08);
                     condition["upper"] = json!(maximum + span * 0.12);
                 }
-                "unit_mismatch" => condition["unit"] = json!("__wrong_unit__"),
+                "unit_mismatch" | "stale_plus_unit_mismatch" | "unit_mismatch_plus_pin_revoked" => {
+                    condition["unit"] = json!("__wrong_unit__")
+                }
                 _ => {}
             }
         }
         match family {
-            "identity_drift" => request["model_sha256"] = json!("ff".repeat(32)),
-            "profile_expired" => {
+            "identity_drift" | "identity_drift_plus_pin_revoked" => {
+                request["model_sha256"] = json!("ff".repeat(32));
+            }
+            "profile_expired" | "profile_expired_plus_authority_unavailable" | "out_of_range_plus_profile_expired" => {
                 profile["validity"]["review_by"] = json!("2026-10-31T11:59:59Z");
                 refresh_pin(profile, pin);
                 request["profile_sha256"] = json!(digest_value(profile));
             }
-            "profile_pin_revoked" => pin["status"] = json!("revoked"),
-            "source_revoked" | "stale_and_source_revoked" => {
+            "profile_pin_revoked" | "identity_drift_plus_pin_revoked" | "unit_mismatch_plus_pin_revoked" => {
+                pin["status"] = json!("revoked");
+            }
+            "source_revoked" | "stale_and_source_revoked" | "interval_crossing_plus_source_revoked" | "future_plus_source_revoked" => {
                 let source_id = request["snapshot"]["conditions"][0]["evidence_artifact_id"].clone();
                 request["revocation_snapshot"]["revoked_artifact_ids"] = json!([source_id]);
             }
-            "authorization_unavailable" => request["revocation_snapshot"]["status"] = json!("unavailable"),
-            "authority_escalation" => {
+            "authorization_unavailable" | "profile_expired_plus_authority_unavailable" => {
+                request["revocation_snapshot"]["status"] = json!("unavailable");
+            }
+            "authority_escalation" | "stale_plus_authority_escalation" => {
                 request["decision_tier"] = json!("D2_delegated_planning");
                 request["action"] = json!("prepare_plan");
             }
@@ -374,6 +394,27 @@ fn one_sided_exact_upper(events: usize, trials: usize, alpha: f64) -> f64 {
     high
 }
 
+fn validate_family_plan(manifest: &Value) -> Result<(), String> {
+    let operating_conditions = manifest["task"]["operating_conditions"]
+        .as_array()
+        .ok_or("manifest.task.operating_conditions must be an array")?;
+    let declared = operating_conditions.iter()
+        .filter_map(Value::as_str)
+        .filter_map(|item| item.strip_prefix("failure-family-panel-v1:"))
+        .flat_map(|item| item.split(','))
+        .map(str::trim)
+        .collect::<Vec<_>>();
+    let expected = FAMILIES.iter().map(|(family, _, _, _)| *family).collect::<Vec<_>>();
+    if declared != expected {
+        return Err(format!(
+            "manifest failure-family panel does not exactly match the runner's frozen order: expected {} families, found {}",
+            expected.len(),
+            declared.len()
+        ));
+    }
+    Ok(())
+}
+
 fn validate_manifest(manifest: &Value) -> Result<(&str, usize, u64), String> {
     if manifest["schema_version"].as_str() != Some("luminous.industrial-benchmark-run-manifest.v0.1") {
         return Err("manifest is not an IBAP v0.1 run manifest".to_owned());
@@ -413,6 +454,7 @@ fn validate_manifest(manifest: &Value) -> Result<(&str, usize, u64), String> {
     let frozen_trials = replication["trials_per_stratum"].as_u64()
         .filter(|value| *value > 0 && *value <= 1_000_000)
         .ok_or("manifest.replication.trials_per_stratum must be in 1..=1000000")? as usize;
+    validate_family_plan(manifest)?;
     let vertical = manifest["benchmark"]["vertical"].as_str()
         .ok_or("manifest.benchmark.vertical is required")?;
     vertical_spec(vertical)?;
@@ -510,6 +552,34 @@ fn run() -> Result<(Value, bool), String> {
     let base_profile_sha256 = digest_value(&profile);
     let base_pin_sha256 = digest_value(&pin);
     let base_request_sha256 = digest_value(&request);
+    let source_identities = json!({
+        "benchmark_harness_source_sha256": digest_bytes(include_str!("admission-benchmark.rs").as_bytes()),
+        "runtime_engine_source_sha256": digest_bytes(include_str!("../lib.rs").as_bytes()),
+        "profile_validator_source_sha256": digest_bytes(
+            include_str!("../../../industry-assurance-validator/src/lib.rs").as_bytes()
+        ),
+        "runtime_request_schema_sha256": digest_bytes(
+            include_str!("../../../../schemas/industry-runtime-admission-request-v0.1.schema.json").as_bytes()
+        ),
+        "runtime_report_schema_sha256": digest_bytes(
+            include_str!("../../../../schemas/industry-runtime-admission-report-v0.1.schema.json").as_bytes()
+        ),
+        "runtime_profile_pin_schema_sha256": digest_bytes(
+            include_str!("../../../../schemas/industry-runtime-profile-pin-v0.1.schema.json").as_bytes()
+        ),
+        "qualification_profile_schema_sha256": digest_bytes(
+            include_str!("../../../../schemas/industry-assurance-qualification-profile-v0.1.schema.json").as_bytes()
+        ),
+        "runtime_cargo_manifest_sha256": digest_bytes(include_str!("../../Cargo.toml").as_bytes()),
+        "runtime_cargo_lock_sha256": digest_bytes(include_str!("../../Cargo.lock").as_bytes()),
+        "validator_cargo_manifest_sha256": digest_bytes(
+            include_str!("../../../industry-assurance-validator/Cargo.toml").as_bytes()
+        ),
+        "validator_cargo_lock_sha256": digest_bytes(
+            include_str!("../../../industry-assurance-validator/Cargo.lock").as_bytes()
+        ),
+        "corpus_verifier_source_sha256": digest_bytes(include_str!("admission-corpus-check.rs").as_bytes())
+    });
     let mut case_ledger = CaseLedger::create(&cases_jsonl_path, json!({
         "record_type": "header",
         "schema_version": CASE_LEDGER_SCHEMA,
@@ -525,6 +595,7 @@ fn run() -> Result<(Value, bool), String> {
         "static_baseline_method_id": baseline_method["method_id"],
         "evaluator_version": EVALUATOR_VERSION,
         "checker_version": CHECKER_VERSION,
+        "source_identities": source_identities,
         "input_fixture_digests": {
             "profile_sha256": base_profile_sha256,
             "profile_pin_sha256": base_pin_sha256,
@@ -784,6 +855,7 @@ fn run() -> Result<(Value, bool), String> {
         "static_baseline_method_id": baseline_method["method_id"],
         "evaluator_version": EVALUATOR_VERSION,
         "checker_version": CHECKER_VERSION,
+        "source_identities": source_identities,
         "claim_ceiling": "Synthetic software admission-control benchmark only. It does not validate physical models, field data, source truth, real-world risk, industrial outcomes, production readiness, certification or SOTA.",
         "summary": {
             "failure_family_count": FAMILIES.len(),
@@ -879,6 +951,18 @@ mod tests {
                 "evaluation_mode": "synthetic_fixture",
                 "vertical": "industrial_maintenance"
             },
+            "task": {
+                "operating_conditions": [
+                    format!(
+                        "failure-family-panel-v1:{}",
+                        FAMILIES[..14].iter().map(|(family, _, _, _)| *family).collect::<Vec<_>>().join(",")
+                    ),
+                    format!(
+                        "failure-family-panel-v1:{}",
+                        FAMILIES[14..].iter().map(|(family, _, _, _)| *family).collect::<Vec<_>>().join(",")
+                    )
+                ]
+            },
             "freeze": { "pre_registered_before_execution": true },
             "methods": [
                 { "method_id": "baseline", "role": "null_baseline" },
@@ -892,6 +976,15 @@ mod tests {
                 "trials_per_stratum": 100
             }
         })
+    }
+
+    #[test]
+    fn preregistered_family_panel_must_match_exact_order_and_cardinality() {
+        let mut manifest = minimal_frozen_manifest();
+        assert!(validate_family_plan(&manifest).is_ok());
+        manifest["task"]["operating_conditions"][1] =
+            json!("failure-family-panel-v1:unexpected_extra_family");
+        assert!(validate_family_plan(&manifest).is_err());
     }
 
     #[test]
@@ -924,6 +1017,17 @@ mod tests {
             &json!({ "reason_codes": ["ARTIFACT_REVOKED", "MEASUREMENT_STALE", "UNEXPECTED"] }),
             &["MEASUREMENT_STALE", "ARTIFACT_REVOKED"],
         ));
+    }
+
+    #[test]
+    fn pairwise_interaction_panel_is_frozen_and_fail_closed() {
+        let pairwise = FAMILIES.iter()
+            .filter(|(family, _, _, _)| family.contains("_plus_"))
+            .collect::<Vec<_>>();
+        assert_eq!(pairwise.len(), 8);
+        assert!(pairwise.iter().all(|(_, expected, reason_codes, negative)| {
+            *expected == "reject" && *negative && !reason_codes.is_empty()
+        }));
     }
 
     #[test]

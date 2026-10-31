@@ -21,6 +21,41 @@ fn digest_value(value: &Value) -> String {
     digest_bytes(&serde_json::to_vec(value).expect("JSON values serialize"))
 }
 
+fn compiled_source_identities() -> Value {
+    serde_json::json!({
+        "benchmark_harness_source_sha256": digest_bytes(
+            include_str!("admission-benchmark.rs").as_bytes()
+        ),
+        "runtime_engine_source_sha256": digest_bytes(include_str!("../lib.rs").as_bytes()),
+        "profile_validator_source_sha256": digest_bytes(
+            include_str!("../../../industry-assurance-validator/src/lib.rs").as_bytes()
+        ),
+        "runtime_request_schema_sha256": digest_bytes(
+            include_str!("../../../../schemas/industry-runtime-admission-request-v0.1.schema.json").as_bytes()
+        ),
+        "runtime_report_schema_sha256": digest_bytes(
+            include_str!("../../../../schemas/industry-runtime-admission-report-v0.1.schema.json").as_bytes()
+        ),
+        "runtime_profile_pin_schema_sha256": digest_bytes(
+            include_str!("../../../../schemas/industry-runtime-profile-pin-v0.1.schema.json").as_bytes()
+        ),
+        "qualification_profile_schema_sha256": digest_bytes(
+            include_str!("../../../../schemas/industry-assurance-qualification-profile-v0.1.schema.json").as_bytes()
+        ),
+        "runtime_cargo_manifest_sha256": digest_bytes(include_str!("../../Cargo.toml").as_bytes()),
+        "runtime_cargo_lock_sha256": digest_bytes(include_str!("../../Cargo.lock").as_bytes()),
+        "validator_cargo_manifest_sha256": digest_bytes(
+            include_str!("../../../industry-assurance-validator/Cargo.toml").as_bytes()
+        ),
+        "validator_cargo_lock_sha256": digest_bytes(
+            include_str!("../../../industry-assurance-validator/Cargo.lock").as_bytes()
+        ),
+        "corpus_verifier_source_sha256": digest_bytes(
+            include_str!("admission-corpus-check.rs").as_bytes()
+        )
+    })
+}
+
 fn is_sha256(value: &str) -> bool {
     value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
 }
@@ -416,6 +451,10 @@ fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
     if !is_sha256(manifest_digest) {
         return Err("ledger header manifest digest is malformed".to_owned());
     }
+    let compiled_sources = compiled_source_identities();
+    if header["source_identities"] != compiled_sources {
+        return Err("case-ledger source identities do not match the verifier's compiled source files".to_owned());
+    }
     let vertical = require_string(&header, "/vertical", "ledger header")?;
     let family_count = require_u64(&header, "/failure_family_count", "ledger header")? as usize;
     let trials_per_family = require_u64(&header, "/trials_per_failure_family", "ledger header")? as usize;
@@ -504,6 +543,7 @@ fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
         || report["static_baseline_method_id"] != header["static_baseline_method_id"]
         || report["evaluator_version"] != header["evaluator_version"]
         || report["checker_version"] != header["checker_version"]
+        || report["source_identities"] != header["source_identities"]
         || report["prng"] != header["prng"]
         || report["seed"] != header["seed"]
         || report["trials_per_failure_family"] != header["trials_per_failure_family"]

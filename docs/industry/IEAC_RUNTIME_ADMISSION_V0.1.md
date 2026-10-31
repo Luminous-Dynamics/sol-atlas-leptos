@@ -46,6 +46,7 @@ The evaluator requires a new report destination and uses create-new semantics; i
 - The model ID must be listed by the profile. Artifact bindings must be explicit, digest-matched and have rights_state=verified.
 - Measurement unit equality is exact. No automatic unit conversion or inference is performed.
 - Each operating-envelope variable needs a single measurement, value plus lower/upper uncertainty interval, observation timestamp, source artifact ID and source SHA-256.
+- The request must contain the `snapshot.conditions` array, but the array may be empty. An empty array is validly shaped evidence of no observations and produces `abstain` with `CONDITION_MEASUREMENT_MISSING` for each required profile condition. Omitting the property or supplying a malformed value remains a request-contract rejection.
 - The profile must declare max_age_seconds for a measured condition. Missing freshness policy causes abstention; stale evidence causes abstention; future-dated or malformed evidence is rejected/abstained with a stable reason.
 - A value outside a declared bound is rejected. A measurement interval crossing a bound while its central value remains inside is marginal and causes abstention.
 - Unknown/unavailable revocation state or authorization state causes abstention. Denial, revocation, digest mismatch, identity mismatch, unit mismatch and authority escalation reject.
