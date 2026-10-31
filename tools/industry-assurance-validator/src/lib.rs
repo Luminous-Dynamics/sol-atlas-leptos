@@ -714,6 +714,16 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
                         for key in ["variable", "unit", "support", "evidence_state"] {
                             let _ = string(condition, key, &path, &mut out);
                         }
+                        if let Some(max_age) = condition.get("max_age_seconds") {
+                            if max_age.as_u64().is_none() {
+                                issue(
+                                    &mut out,
+                                    "INVALID_MAX_AGE_SECONDS",
+                                    format!("{path}/max_age_seconds"),
+                                    "max_age_seconds must be a non-negative integer when present.",
+                                );
+                            }
+                        }
                         if let Some(source_ids) = condition.get("source_artifact_ids").and_then(Value::as_array) {
                             for (j, source) in source_ids.iter().enumerate() {
                                 if let Some(id) = source.as_str() {
