@@ -106,12 +106,16 @@ jobs:
             "$request" \
             target/energy-dispatch-schedule-auditor/h2-schedule.json \
             target/energy-dispatch-schedule-auditor/accepted-receipt.json
+          auditor_binary_sha="$(sha256sum tools/energy-dispatch-schedule-auditor/target/release/energy-dispatch-schedule-auditor | cut -d ' ' -f 1)"
+          jq --arg auditor_binary_sha "$auditor_binary_sha" -e '.auditor_binary_sha256 == $auditor_binary_sha' \
+            target/energy-dispatch-schedule-auditor/accepted-receipt.json
           jq -e '
             .disposition == "accepted" and
             .interval_count == 2 and
             (.request_sha256 | length == 64) and
             (.schedule_sha256 | length == 64) and
             (.receipt_sha256 | length == 64) and
+            (.auditor_binary_sha256 | length == 64) and
             all(.findings[]; .passed == true) and
             .recomputed_objectives.essential_unserved_quanta == 0 and
             .recomputed_objectives.operating_cost_units == 0 and
