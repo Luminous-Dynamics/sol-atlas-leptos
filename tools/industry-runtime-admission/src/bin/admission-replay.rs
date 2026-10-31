@@ -251,7 +251,8 @@ mod tests {
     #[test]
     fn modified_ledger_bytes_fail_digest_validation() {
         let mut bytes = empty_ledger();
-        bytes[2] ^= 1;
+        let header_end = bytes.iter().position(|byte| *byte == b'\\n').unwrap();
+        bytes.insert(header_end, b' ');
         assert!(verify_ledger(&bytes).unwrap_err().contains("digest mismatch"));
     }
 
