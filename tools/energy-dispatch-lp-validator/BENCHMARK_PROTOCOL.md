@@ -19,8 +19,9 @@ Report each stage separately. A valid MIP certificate establishes a property of 
 ### Tier A — finite semantic oracle
 
 - H=2 fixtures: enumerate every bounded assignment and require exact agreement between LP feasibility and the independent source-request schedule evaluator.
-- H=2 objective: require exact equality between LP objective and independently recomputed essential-unserved quanta for every assignment.
-- H=3 fixture: retain the fixed-seed 50,000-assignment sample as sampled coverage; never describe it as exhaustive.
+- All six H=2 objectives: require exact equality between LP objectives and independently recomputed source-request values for every assignment (essential/flexible unserved, operating cost, grid carbon, curtailed PV and terminal SOC).
+- Verify every objective-specific reference model has the same feasible-set variables/bounds and constraints.
+- H=3 fixture: retain the fixed-seed 50,000-assignment sample as sampled coverage; check all six objective values per sample and never describe it as exhaustive.
 - Future H=3/H=4 exhaustive enumeration should be attempted only when the complete assignment count is tractable and recorded before execution.
 - Target: zero false-feasible and zero false-infeasible decisions on each published exhaustive panel.
 
