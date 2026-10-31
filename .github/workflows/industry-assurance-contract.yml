@@ -142,18 +142,22 @@ jobs:
             schemas/industry-assurance-validation-report-v0.1.schema.json \
             --instance schemas/examples/industry-assurance-validation-report-synthetic-v0.1.json
 
-      - name: Prove unknown root and nested fields are rejected
+      - name: Prove unknown fields are rejected at every strict object boundary
         run: |
           set -euo pipefail
           source=schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json
           schema=schemas/industry-assurance-qualification-profile-v0.1.schema.json
-          root_mutant="$RUNNER_TEMP/ieac-unknown-root.json"
-          nested_mutant="$RUNNER_TEMP/ieac-unknown-nested.json"
 
-          jq '.unexpected_future_field = "must reject"' "$source" > "$root_mutant"
-          jq '.claim.unexpected_future_field = "must reject"' "$source" > "$nested_mutant"
+          jq '.unexpected_future_field = "must reject"' "$source" > "$RUNNER_TEMP/root.json"
+          jq '.claim.unexpected_future_field = "must reject"' "$source" > "$RUNNER_TEMP/claim.json"
+          jq '.operating_envelope.conditions[0].unexpected_future_field = "must reject"' "$source" > "$RUNNER_TEMP/condition.json"
+          jq '.risk_assessment.dimensions.unexpected_future_field = "must reject"' "$source" > "$RUNNER_TEMP/risk-dimensions.json"
+          jq '.evidence_vector.software_conformance.unexpected_future_field = "must reject"' "$source" > "$RUNNER_TEMP/evidence-dimension.json"
+          jq '.artifact_bindings += [{"artifact_id":"fixture-artifact","role":"fixture","evidence_class":"synthetic","rights_state":"unknown","unexpected_future_field":"must reject"}]' "$source" > "$RUNNER_TEMP/artifact.json"
+          jq '.authority.unexpected_future_field = "must reject"' "$source" > "$RUNNER_TEMP/authority.json"
+          jq '.validity.unexpected_future_field = "must reject"' "$source" > "$RUNNER_TEMP/validity.json"
 
-          for mutant in "$root_mutant" "$nested_mutant"; do
+          for mutant in "$RUNNER_TEMP"/{root,claim,condition,risk-dimensions,evidence-dimension,artifact,authority,validity}.json; do
             if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" --instance "$mutant"; then
               echo "ERROR: JSON Schema accepted an unknown property in $mutant"
               exit 1
