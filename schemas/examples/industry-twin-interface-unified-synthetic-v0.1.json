@@ -23,8 +23,8 @@
         "artifact_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
       },
       "interface": {
-        "standard_id": "urn:luminous:itip:synthetic-profile-v0.1",
-        "edition": "0.1",
+        "interface_profile_id": "urn:luminous:itip:synthetic-profile-v0.1",
+        "interface_profile_version": "0.1",
         "document_kind": "pump-measurement-snapshot",
         "protocol": "https-json-fixture",
         "protocol_version": "1",
@@ -67,8 +67,8 @@
         "artifact_sha256": "3333333333333333333333333333333333333333333333333333333333333333"
       },
       "interface": {
-        "standard_id": "urn:luminous:itip:synthetic-profile-v0.1",
-        "edition": "0.1",
+        "interface_profile_id": "urn:luminous:itip:synthetic-profile-v0.1",
+        "interface_profile_version": "0.1",
         "document_kind": "pump-state-view",
         "protocol": "https-json-fixture",
         "protocol_version": "1",
