@@ -716,6 +716,17 @@ mod tests {
             function_scenario("service:c", "water:east", 7.0, Some(2.0), 10.0, Some(1.0)),
         ];
         let actual = assess_service_equity(&input, &services, &[]).unwrap();
+        // The JSON decimal is a one-ULP representation of the computed 5/11
+        // ratio on this parser/toolchain. Keep the tolerance local to this one
+        // derived scalar; every other fixture field remains exact.
+        let actual_east_lower = actual.cells[0].coverage_lower_bound.unwrap();
+        let expected_east_lower = expected.cells[0].coverage_lower_bound.unwrap();
+        assert!(
+            (actual_east_lower - expected_east_lower).abs() <= f64::EPSILON,
+            "east lower coverage ratio differs beyond one ULP: actual={actual_east_lower:?}, expected={expected_east_lower:?}"
+        );
+        let mut expected = expected;
+        expected.cells[0].coverage_lower_bound = Some(actual_east_lower);
         assert_eq!(actual, expected);
         assert_eq!(actual.overall_floor_compliance_lower_bound, 0.6);
         assert_eq!(actual.overall_floor_compliance_upper_bound, 0.8);
