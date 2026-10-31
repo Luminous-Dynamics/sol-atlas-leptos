@@ -6,7 +6,7 @@ use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use std::env;
 use std::fs::{self, OpenOptions};
-use std::io::Write;
+use std::io::{BufWriter, Write};
 use std::time::Instant;
 
 const FAMILIES: &[(&str, &str, &[&str], bool)] = &[
@@ -44,6 +44,75 @@ impl Rng {
     }
     fn unit_f64(&mut self) -> f64 {
         (self.next() >> 11) as f64 / ((1u64 << 53) as f64)
+    }
+}
+
+
+struct CaseLedgerWriter {
+    writer: BufWriter<std::fs::File>,
+    hasher: Sha256,
+    case_records: usize,
+}
+
+impl CaseLedgerWriter {
+    fn create(path: &str, header: &Value) -> Result<Self, String> {
+        let file = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(path)
+            .map_err(|error| format!("refusing to overwrite or cannot create case ledger {path}: {error}"))?;
+        let mut ledger = Self {
+            writer: BufWriter::new(file),
+            hasher: Sha256::new(),
+            case_records: 0,
+        };
+        ledger.write_record(header)?;
+        Ok(ledger)
+    }
+
+    fn write_record(&mut self, record: &Value) -> Result<(), String> {
+        let mut bytes = serde_json::to_vec(record)
+            .map_err(|error| format!("cannot serialize case-ledger record: {error}"))?;
+        bytes.push(b'\n');
+        self.writer
+            .write_all(&bytes)
+            .map_err(|error| format!("cannot write case-ledger record: {error}"))?;
+        self.hasher.update(&bytes);
+        if record["record_type"].as_str() == Some("case") {
+            self.case_records += 1;
+        }
+        Ok(())
+    }
+
+    fn finish(mut self) -> Result<(usize, String), String> {
+        let digest = self
+            .hasher
+            .clone()
+            .finalize()
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>();
+        let footer = json!({
+            "record_type": "footer",
+            "schema_version": "luminous.ieac-runtime-admission-case-ledger.v0.1",
+            "case_records": self.case_records,
+            "preceding_records_sha256": digest
+        });
+        let mut footer_bytes = serde_json::to_vec(&footer)
+            .map_err(|error| format!("cannot serialize case-ledger footer: {error}"))?;
+        footer_bytes.push(b'\n');
+        self.writer
+            .write_all(&footer_bytes)
+            .map_err(|error| format!("cannot write case-ledger footer: {error}"))?;
+        self.writer
+            .flush()
+            .map_err(|error| format!("cannot flush case ledger: {error}"))?;
+        let file = self.writer
+            .into_inner()
+            .map_err(|error| format!("cannot finalize case-ledger writer: {error}"))?;
+        file.sync_all()
+            .map_err(|error| format!("cannot sync case ledger: {error}"))?;
+        Ok((self.case_records, digest))
     }
 }
 
@@ -354,9 +423,10 @@ fn validate_cli_overrides(
     Ok(())
 }
 
-fn parse_args() -> Result<(String, Option<usize>, Option<u64>, Option<String>), String> {
+fn parse_args() -> Result<(String, Option<usize>, Option<u64>, Option<String>, String), String> {
     let mut manifest = None;
     let mut output = None;
+    let mut cases_output = None;
     let mut trials = None;
     let mut seed = None;
     let mut args = env::args().skip(1);
@@ -365,6 +435,7 @@ fn parse_args() -> Result<(String, Option<usize>, Option<u64>, Option<String>), 
         match arg.as_str() {
             "--manifest" => manifest = Some(value),
             "--output" => output = Some(value),
+            "--cases-output" => cases_output = Some(value),
             "--trials-per-family" => {
                 let parsed = value.parse::<usize>().map_err(|_| "trials-per-family must be a positive integer")?;
                 if parsed == 0 || parsed > 1_000_000 {
@@ -385,6 +456,7 @@ fn parse_args() -> Result<(String, Option<usize>, Option<u64>, Option<String>), 
     Ok((
         manifest.ok_or("required argument: --manifest <frozen-ibap-manifest.json>")?,
         trials, seed, output,
+        cases_output.ok_or("required argument: --cases-output <new-case-ledger.jsonl>")?,
     ))
 }
 
@@ -398,7 +470,7 @@ fn write_new(path: &str, bytes: &[u8]) -> Result<(), String> {
 }
 
 fn run() -> Result<(Value, bool), String> {
-    let (manifest_path, requested_trials, requested_seed, output_path) = parse_args()?;
+    let (manifest_path, requested_trials, requested_seed, output_path, cases_output_path) = parse_args()?;
     let manifest_bytes = fs::read(&manifest_path)
         .map_err(|e| format!("cannot read manifest {manifest_path}: {e}"))?;
     let manifest: Value = serde_json::from_slice(&manifest_bytes)
@@ -418,6 +490,29 @@ fn run() -> Result<(Value, bool), String> {
         matches!(m["role"].as_str(), Some("null_baseline" | "incumbent" | "domain_reference"))
     }).unwrap();
 
+    let mut ledger = CaseLedgerWriter::create(
+        &cases_output_path,
+        &json!({
+            "record_type": "header",
+            "schema_version": "luminous.ieac-runtime-admission-case-ledger.v0.1",
+            "benchmark_id": manifest["benchmark"]["benchmark_id"],
+            "manifest_id": manifest["manifest_id"],
+            "manifest_exact_bytes_sha256": manifest_sha256,
+            "vertical": vertical,
+            "prng": "splitmix64-v1",
+            "seed": seed,
+            "trials_per_failure_family": trials_per_family,
+            "failure_family_count": FAMILIES.len(),
+            "evaluator_version": EVALUATOR_VERSION,
+            "checker_version": CHECKER_VERSION,
+            "base_fixture_digests": {
+                "profile_sha256": digest_value(&profile),
+                "profile_pin_sha256": digest_value(&pin),
+                "request_sha256": digest_value(&request)
+            }
+        }),
+    )?;
+    let mut case_index = 0usize;
     let mut rng = Rng::new(seed);
     let run_started = Instant::now();
     let mut strata = Vec::new();
@@ -526,18 +621,56 @@ fn run() -> Result<(Value, bool), String> {
             let mut tampered = report.clone();
             tampered["admission"] = json!(if admitted { "reject" } else { "admit_descriptive" });
             tamper_checks_total += 1;
-            if !independent_check(&case_profile, &case_pin, &case_request, &tampered).is_empty() {
+            let tamper_was_detected =
+                !independent_check(&case_profile, &case_pin, &case_request, &tampered).is_empty();
+            if tamper_was_detected {
                 tamper_detected += 1;
                 tamper_detected_total += 1;
             }
 
+            let mut replay_was_checked = false;
+            let mut replay_was_deterministic = true;
             if trial < 3 {
                 replay_checks += 1;
+                replay_was_checked = true;
                 let replay = evaluate_admission(&case_profile, &case_pin, &case_request);
-                if serde_json::to_vec(&replay).ok() != serde_json::to_vec(&report).ok() {
+                replay_was_deterministic =
+                    serde_json::to_vec(&replay).ok() == serde_json::to_vec(&report).ok();
+                if !replay_was_deterministic {
                     replay_mismatches += 1;
                 }
             }
+
+            let ledger_inputs = json!({
+                "profile": case_profile,
+                "profile_pin": case_pin,
+                "request": case_request
+            });
+            let ledger_input_bytes = serde_json::to_vec(&ledger_inputs)
+                .expect("case-ledger inputs serialize");
+            let expected_reason_match = reason_codes_match(&report, expected_reason);
+            ledger.write_record(&json!({
+                "record_type": "case",
+                "case_index": case_index,
+                "case_id": format!("{vertical}:{family}:{trial}"),
+                "vertical": vertical,
+                "failure_family": family,
+                "trial_index": trial,
+                "negative_control": is_negative,
+                "expected_admission": expected,
+                "expected_reason_codes": expected_reason,
+                "expected_disposition_match": actual == *expected,
+                "expected_reason_codes_match": expected_reason_match,
+                "inputs_sha256": digest_bytes(&ledger_input_bytes),
+                "inputs": ledger_inputs,
+                "candidate_report": report,
+                "checker_errors": checker_errors,
+                "tamper_detected": tamper_was_detected,
+                "replay_checked": replay_was_checked,
+                "replay_deterministic": replay_was_deterministic,
+                "static_profile_valid": static_valid_for_case
+            }))?;
+            case_index += 1;
         }
 
         if expected_disposition_matches != trials_per_family {
@@ -591,6 +724,7 @@ fn run() -> Result<(Value, bool), String> {
         }));
     }
 
+    let (ledger_case_records, ledger_sha256) = ledger.finish()?;
     let elapsed = run_started.elapsed();
     let vertical_macro_rate = if family_false_admission_rates.is_empty() {
         Value::Null
@@ -615,6 +749,11 @@ fn run() -> Result<(Value, bool), String> {
         "vertical": vertical,
         "prng": "splitmix64-v1",
         "corpus_sha256": corpus_sha256,
+        "case_ledger": {
+            "format": "jsonl-v0.1",
+            "sha256": ledger_sha256,
+            "case_records": ledger_case_records
+        },
         "input_fixture_digests": {
             "profile_sha256": base_profile_sha256,
             "profile_pin_sha256": base_pin_sha256,
@@ -629,6 +768,7 @@ fn run() -> Result<(Value, bool), String> {
         "claim_ceiling": "Synthetic software admission-control benchmark only. It does not validate physical models, field data, source truth, real-world risk, industrial outcomes, production readiness, certification or SOTA.",
         "summary": {
             "failure_family_count": FAMILIES.len(),
+            "case_ledger_records": ledger_case_records,
             "negative_trials": negative_trials_total,
             "false_admissions": false_admissions_total,
             "negative_rejects": negative_rejects_total,
@@ -691,7 +831,7 @@ fn main() {
         }
         Err(error) => {
             eprintln!("{error}");
-            eprintln!("usage: industry-admission-benchmark --manifest <frozen-ibap-manifest.json> [--trials-per-family N (must match manifest)] [--seed N|0xHEX (must match manifest)] [--output <new-report.json>]");
+            eprintln!("usage: industry-admission-benchmark --manifest <frozen-ibap-manifest.json> --cases-output <new-case-ledger.jsonl> [--trials-per-family N (must match manifest)] [--seed N|0xHEX (must match manifest)] [--output <new-report.json>]");
             std::process::exit(2);
         }
     }
