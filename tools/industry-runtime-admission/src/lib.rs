@@ -268,10 +268,161 @@ fn evaluate_conditions(
     results
 }
 
+
+
+fn validate_schema_subset(instance: &Value, schema: &Value, path: &str, out: &mut BTreeSet<String>) {
+    if let Some(expected) = schema.get("type") {
+        let matches_type = |kind: &str| match kind {
+            "object" => instance.is_object(),
+            "array" => instance.is_array(),
+            "string" => instance.is_string(),
+            "integer" => instance.as_i64().is_some() || instance.as_u64().is_some(),
+            "number" => instance.as_f64().is_some_and(f64::is_finite),
+            "boolean" => instance.is_boolean(),
+            "null" => instance.is_null(),
+            _ => false,
+        };
+        let matches = if let Some(kind) = expected.as_str() {
+            matches_type(kind)
+        } else {
+            expected.as_array().is_some_and(|kinds| {
+                kinds.iter().filter_map(Value::as_str).any(matches_type)
+            })
+        };
+        if !matches {
+            out.insert(format!("WIRE_TYPE_MISMATCH:{path}"));
+            return;
+        }
+    }
+
+    if let Some(constant) = schema.get("const") {
+        if instance != constant {
+            out.insert(format!("WIRE_CONST_MISMATCH:{path}"));
+        }
+    }
+    if let Some(values) = schema.get("enum").and_then(Value::as_array) {
+        if !values.contains(instance) {
+            out.insert(format!("WIRE_ENUM_MISMATCH:{path}"));
+        }
+    }
+
+    if let Some(text) = instance.as_str() {
+        if let Some(minimum) = schema.get("minLength").and_then(Value::as_u64) {
+            if text.chars().count() < minimum as usize {
+                out.insert(format!("WIRE_STRING_TOO_SHORT:{path}"));
+            }
+        }
+        if let Some(maximum) = schema.get("maxLength").and_then(Value::as_u64) {
+            if text.chars().count() > maximum as usize {
+                out.insert(format!("WIRE_STRING_TOO_LONG:{path}"));
+            }
+        }
+        if let Some(pattern) = schema.get("pattern").and_then(Value::as_str) {
+            let valid = if pattern.contains("[0-9a-fA-F]{64}") {
+                is_sha256(text)
+            } else if pattern.contains("T[0-9]{2}") {
+                canonical_utc_seconds(text).is_some()
+            } else {
+                true
+            };
+            if !valid {
+                out.insert(format!("WIRE_PATTERN_MISMATCH:{path}"));
+            }
+        }
+        if schema.get("format").and_then(Value::as_str) == Some("date-time")
+            && canonical_utc_seconds(text).is_none()
+        {
+            out.insert(format!("WIRE_DATE_TIME_INVALID:{path}"));
+        }
+    }
+
+    if let Some(minimum) = schema.get("minimum").and_then(Value::as_f64) {
+        if instance.as_f64().is_some_and(|value| value < minimum) {
+            out.insert(format!("WIRE_NUMBER_BELOW_MINIMUM:{path}"));
+        }
+    }
+    if let Some(minimum) = schema.get("minItems").and_then(Value::as_u64) {
+        if instance.as_array().is_some_and(|items| items.len() < minimum as usize) {
+            out.insert(format!("WIRE_ARRAY_TOO_SHORT:{path}"));
+        }
+    }
+
+    if let Some(object) = instance.as_object() {
+        if let Some(required) = schema.get("required").and_then(Value::as_array) {
+            for key in required.iter().filter_map(Value::as_str) {
+                if !object.contains_key(key) {
+                    out.insert(format!("WIRE_REQUIRED_FIELD_MISSING:{path}/{key}"));
+                }
+            }
+        }
+        if schema.get("additionalProperties") == Some(&Value::Bool(false)) {
+            if let Some(properties) = schema.get("properties").and_then(Value::as_object) {
+                for key in object.keys() {
+                    if !properties.contains_key(key) {
+                        out.insert(format!("WIRE_UNKNOWN_PROPERTY:{path}/{key}"));
+                    }
+                }
+            }
+        }
+        if let Some(properties) = schema.get("properties").and_then(Value::as_object) {
+            for (key, child_schema) in properties {
+                if let Some(child) = object.get(key) {
+                    validate_schema_subset(
+                        child,
+                        child_schema,
+                        &format!("{path}/{key}"),
+                        out,
+                    );
+                }
+            }
+        }
+    }
+
+    if let (Some(items_schema), Some(items)) = (schema.get("items"), instance.as_array()) {
+        for (index, item) in items.iter().enumerate() {
+            validate_schema_subset(
+                item,
+                items_schema,
+                &format!("{path}/{index}"),
+                out,
+            );
+        }
+    }
+}
+
+fn runtime_request_schema() -> Value {
+    serde_json::from_str(include_str!("../../../schemas/industry-runtime-admission-request-v0.1.schema.json"))
+        .expect("embedded runtime request schema must be valid JSON")
+}
+
+fn runtime_report_schema() -> Value {
+    serde_json::from_str(include_str!("../../../schemas/industry-runtime-admission-report-v0.1.schema.json"))
+        .expect("embedded runtime report schema must be valid JSON")
+}
+
+pub fn validate_runtime_request(request: &Value) -> Vec<String> {
+    let mut issues = BTreeSet::new();
+    validate_schema_subset(request, &runtime_request_schema(), "$", &mut issues);
+    issues.into_iter().collect()
+}
+
+pub fn validate_runtime_report(report: &Value) -> Vec<String> {
+    let mut issues = BTreeSet::new();
+    validate_schema_subset(report, &runtime_report_schema(), "$", &mut issues);
+    issues.into_iter().collect()
+}
+
 pub fn evaluate_admission(profile: &Value, request: &Value) -> Value {
     let mut reasons = BTreeSet::new();
     let mut reject = false;
     let mut abstain = false;
+
+    let request_issues = validate_runtime_request(request);
+    if !request_issues.is_empty() {
+        unique_push(&mut reasons, "REQUEST_CONTRACT_INVALID");
+        for code in request_issues { unique_push(&mut reasons, code); }
+        reject = true;
+    }
 
     if !validate_profile(profile).is_empty() {
         unique_push(&mut reasons, "PROFILE_CONTRACT_INVALID");
@@ -510,6 +661,13 @@ fn independent_expected(profile: &Value, request: &Value) -> Value {
     let mut reasons = BTreeSet::new();
     let mut fatal = false;
     let mut uncertain = false;
+
+    let request_issues = validate_runtime_request(request);
+    if !request_issues.is_empty() {
+        reasons.insert("REQUEST_CONTRACT_INVALID".to_owned());
+        for code in request_issues { reasons.insert(code); }
+        fatal = true;
+    }
 
     if !validate_profile(profile).is_empty() {
         reasons.insert("PROFILE_CONTRACT_INVALID".to_owned());
