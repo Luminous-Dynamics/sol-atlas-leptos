@@ -29,6 +29,15 @@ const FAMILIES: &[(&str, &str, &[&str], bool)] = &[
     ("authorization_unavailable", "abstain", &["REVOCATION_STATE_UNAVAILABLE"], true),
     ("authority_escalation", "reject", &["ACTION_NOT_PERMITTED_BY_PROFILE", "DECISION_TIER_NOT_ADMITTED"], true),
     ("stale_and_source_revoked", "reject", &["ARTIFACT_REVOKED", "MEASUREMENT_STALE"], true),
+    // Frozen pairwise interactions: each pair crosses distinct admission dimensions.
+    ("stale_plus_unit_mismatch", "reject", &["MEASUREMENT_STALE", "UNIT_MISMATCH"], true),
+    ("interval_crossing_plus_source_revoked", "reject", &["ARTIFACT_REVOKED", "MEASUREMENT_INTERVAL_CROSSES_ENVELOPE"], true),
+    ("identity_drift_plus_pin_revoked", "reject", &["ARTIFACT_DIGEST_MISMATCH", "PROFILE_PIN_REVOKED", "RUNTIME_IDENTITY_BINDING_INVALID"], true),
+    ("profile_expired_plus_authority_unavailable", "reject", &["PROFILE_OUTSIDE_VALIDITY_WINDOW", "REVOCATION_STATE_UNAVAILABLE"], true),
+    ("stale_plus_authority_escalation", "reject", &["ACTION_NOT_PERMITTED_BY_PROFILE", "DECISION_TIER_NOT_ADMITTED", "MEASUREMENT_STALE"], true),
+    ("future_plus_source_revoked", "reject", &["ARTIFACT_REVOKED", "FUTURE_DATED_MEASUREMENT"], true),
+    ("unit_mismatch_plus_pin_revoked", "reject", &["PROFILE_PIN_REVOKED", "UNIT_MISMATCH"], true),
+    ("out_of_range_plus_profile_expired", "reject", &["PROFILE_OUTSIDE_VALIDITY_WINDOW", "VALUE_OUTSIDE_OPERATING_ENVELOPE"], true),
 ];
 
 struct Rng { state: u64 }
@@ -260,7 +269,10 @@ fn apply_family(
                 "positive_control" => condition["observed_at"] = json!("2026-10-31T11:30:00Z"),
                 "stale_measurement" => condition["observed_at"] = json!("2026-10-31T00:00:00Z"),
                 "future_measurement" => condition["observed_at"] = json!("2026-10-31T12:00:01Z"),
-                "stale_and_source_revoked" => condition["observed_at"] = json!("2026-10-31T00:00:00Z"),
+                "stale_and_source_revoked" | "stale_plus_unit_mismatch" | "stale_plus_authority_escalation" => {
+                    condition["observed_at"] = json!("2026-10-31T00:00:00Z")
+                }
+                "future_plus_source_revoked" => condition["observed_at"] = json!("2026-10-31T12:00:01Z"),
                 "exact_min_boundary" => {
                     condition["value"] = json!(minimum);
                     condition["lower"] = json!(minimum);
@@ -283,7 +295,7 @@ fn apply_family(
                     condition["lower"] = json!(boundary_value);
                     condition["upper"] = json!(boundary_value);
                 }
-                "interval_crossing" => {
+                "interval_crossing" | "interval_crossing_plus_source_revoked" => {
                     condition["value"] = json!(minimum + span * 0.25);
                     condition["lower"] = json!(minimum - span * 0.01);
                     condition["upper"] = json!(minimum + span * 0.30);
@@ -293,24 +305,32 @@ fn apply_family(
                     condition["lower"] = json!(maximum + span * 0.08);
                     condition["upper"] = json!(maximum + span * 0.12);
                 }
-                "unit_mismatch" => condition["unit"] = json!("__wrong_unit__"),
+                "unit_mismatch" | "stale_plus_unit_mismatch" | "unit_mismatch_plus_pin_revoked" => {
+                    condition["unit"] = json!("__wrong_unit__")
+                }
                 _ => {}
             }
         }
         match family {
-            "identity_drift" => request["model_sha256"] = json!("ff".repeat(32)),
-            "profile_expired" => {
+            "identity_drift" | "identity_drift_plus_pin_revoked" => {
+                request["model_sha256"] = json!("ff".repeat(32));
+            }
+            "profile_expired" | "profile_expired_plus_authority_unavailable" | "out_of_range_plus_profile_expired" => {
                 profile["validity"]["review_by"] = json!("2026-10-31T11:59:59Z");
                 refresh_pin(profile, pin);
                 request["profile_sha256"] = json!(digest_value(profile));
             }
-            "profile_pin_revoked" => pin["status"] = json!("revoked"),
-            "source_revoked" | "stale_and_source_revoked" => {
+            "profile_pin_revoked" | "identity_drift_plus_pin_revoked" | "unit_mismatch_plus_pin_revoked" => {
+                pin["status"] = json!("revoked");
+            }
+            "source_revoked" | "stale_and_source_revoked" | "interval_crossing_plus_source_revoked" | "future_plus_source_revoked" => {
                 let source_id = request["snapshot"]["conditions"][0]["evidence_artifact_id"].clone();
                 request["revocation_snapshot"]["revoked_artifact_ids"] = json!([source_id]);
             }
-            "authorization_unavailable" => request["revocation_snapshot"]["status"] = json!("unavailable"),
-            "authority_escalation" => {
+            "authorization_unavailable" | "profile_expired_plus_authority_unavailable" => {
+                request["revocation_snapshot"]["status"] = json!("unavailable");
+            }
+            "authority_escalation" | "stale_plus_authority_escalation" => {
                 request["decision_tier"] = json!("D2_delegated_planning");
                 request["action"] = json!("prepare_plan");
             }
