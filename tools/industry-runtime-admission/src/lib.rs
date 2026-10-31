@@ -1271,12 +1271,12 @@ mod tests {
 
     fn evaluate_fixture(profile: &Value, request: &Value) -> Value {
         let pin = pin_for(profile);
-        evaluate_fixture(profile, &pin, request)
+        evaluate_admission(profile, &pin, request)
     }
 
     fn check_fixture(profile: &Value, request: &Value, report: &Value) -> Vec<String> {
         let pin = pin_for(profile);
-        check_fixture(profile, &pin, request, report)
+        independent_check(profile, &pin, request, report)
     }
 
     fn refresh_digests(profile: &Value, request: &mut Value) {
