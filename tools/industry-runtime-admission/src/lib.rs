@@ -1624,6 +1624,24 @@ mod tests {
     }
 
 
+
+    #[test]
+    fn revoking_authority_source_artifact_or_digest_rejects() {
+        let (profile, mut revoked_id) = fixture_files();
+        revoked_id["revocation_snapshot"]["revoked_artifact_ids"] = json!(["authorization-source-001"]);
+        refresh_digests(&profile, &mut revoked_id);
+        let report = assert_candidate_and_checker_agree(&profile, &revoked_id);
+        assert_eq!(report["admission"], "reject");
+        assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v == "ARTIFACT_REVOKED"));
+
+        let (profile, mut revoked_digest) = fixture_files();
+        revoked_digest["revocation_snapshot"]["revoked_sha256"] = json!(["f6".repeat(32)]);
+        refresh_digests(&profile, &mut revoked_digest);
+        let report = assert_candidate_and_checker_agree(&profile, &revoked_digest);
+        assert_eq!(report["admission"], "reject");
+        assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v == "IDENTITY_DIGEST_REVOKED"));
+    }
+
     #[test]
     fn operator_profile_pin_matches_fixture_and_is_required_for_admission() {
         let (profile, request) = fixture_files();
@@ -1649,10 +1667,13 @@ mod tests {
 
         let mut altered_profile = profile.clone();
         altered_profile["claim"]["description"] = json!("caller-modified claim");
-        let report = evaluate_admission(&altered_profile, &pin, &request);
+        let mut altered_request = request.clone();
+        altered_request["profile_sha256"] = json!(sha256_value(&altered_profile));
+        let report = evaluate_admission(&altered_profile, &pin, &altered_request);
         assert_eq!(report["admission"], "reject");
         assert!(report["reason_codes"].as_array().unwrap().iter().any(|v| v == "PROFILE_PIN_DIGEST_MISMATCH"));
-        assert!(independent_check(&altered_profile, &pin, &request, &report).is_empty());
+        assert!(!report["reason_codes"].as_array().unwrap().iter().any(|v| v == "PROFILE_DIGEST_MISMATCH"));
+        assert!(independent_check(&altered_profile, &pin, &altered_request, &report).is_empty());
     }
 
     #[test]
