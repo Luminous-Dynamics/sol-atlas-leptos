@@ -105,3 +105,18 @@ The synthetic example is a schema illustration. Its cost and information-value n
 ## 8. Cross-project boundary
 
 Sol-Atlas owns evidence obligation semantics, source constraints, decision re-admission and replay. Symthaea may propose information-gain estimates but cannot determine admissibility or authority. Symtropy may produce bounded what-if evidence only under an independently qualified model envelope. Mycelix can later carry provenance and source attestations after the trust-root and anti-replay contract is implemented. Operational execution remains in customer-controlled systems.
+
+
+## 9. Research references and comparison caveat
+
+- [ISO 23247-6:2026 — Digital twin composition](https://www.iso.org/standard/87426.html): published in July 2026; defines integrated, unified and federated composition for interoperation among twins from different parties.
+- [NISTIR 8620 — Digital Twins Workshops Summary Report](https://www.nist.gov/publications/digital-twins-workshops-summary-report): identifies interoperability, VVUQ, cybersecurity and workforce readiness as persistent manufacturing digital-twin challenges.
+- [NIST — Methods of Uncertainty Quantification in Computational Modeling and Simulation](https://www.nist.gov/publications/methods-uncertainty-quantification-computational-modeling-and-simulation-harmonizing): advocates risk-scaled VVUQ according to model influence and decision consequence.
+- [OPC Foundation — UAFX](https://profiles.opcfoundation.org/document/25): defines AutomationComponent information/connection models, including timely data delivery, security and functional-safety concerns.
+- [Siemens — Digital Twin Composer announcement](https://press.siemens.com/global/en/pressrelease/siemens-unveils-technologies-accelerate-industrial-ai-revolution-ces-2026): vendor-announced industrial visualization/simulation integration with real-time engineering data; the announced product scope is not independent comparative performance evidence.
+- [AWS IoT TwinMaker documentation](https://docs.aws.amazon.com/iot-twinmaker/latest/guide/what-is-twinmaker.html): documents connectors, a knowledge graph and 3D scene data overlays. [AWS Service Terms](https://aws.amazon.com/service-terms/) state that AWS IoT Services, including TwinMaker, are not designed for uses where a service failure could cause bodily injury, death, environmental or property damage, and that their data must not substitute for necessary human monitoring.
+- [Palantir Foundry Ontology](https://www.palantir.com/docs/foundry/ontology): describes objects, properties, links, actions, functions and dynamic security as an operational layer.
+- [Bentley iTwin Platform](https://developer.bentley.com/itwinplatform/): documents APIs for engineering, reality, IoT and infrastructure digital-twin applications.
+- [PHM Society 2026 Data Challenge](https://data.phmsociety.org/phm-2026-data-challenge-submission-area/): a task-specific condition-monitoring benchmark with separately reported test and validation scores. Use it for a matched predictive-maintenance task, not as a direct measure of admission assurance or twin interoperability.
+
+These sources establish the current standards and vendor capability landscape, not a head-to-head result. Luminous should claim superiority only after a matched, reproducible comparison with equal data, information, tuning, compute, physical-resource and evaluation budgets, plus independent verification.
