@@ -56,7 +56,7 @@
         {
           "issuer": "did:web:operator.example",
           "issuer_sequence": 1,
-          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          "event_sha256": "013a3f321243dfe9a8994ec872b1654a1ab3755a63613fd844007dc8c9519c58"
         }
       ],
       "ieac_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -101,13 +101,13 @@
       "authority_scope": "site:site-demo-01:energy-dispatch",
       "issuer_sequence": 2,
       "issued_at": "2026-11-01T08:00:03Z",
-      "previous_event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "previous_event_sha256": "013a3f321243dfe9a8994ec872b1654a1ab3755a63613fd844007dc8c9519c58",
       "initial_checkpoint_sha256": null,
       "causal_parents": [
         {
           "issuer": "did:web:auditor.example",
           "issuer_sequence": 1,
-          "event_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          "event_sha256": "75315262a60f7e146566d5ae85ba7672cf7edafa046d92c8b51f566a9c062180"
         }
       ],
       "ieac_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -138,9 +138,9 @@
     }
   ],
   "fixture_event_digests": [
-    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-    "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    "013a3f321243dfe9a8994ec872b1654a1ab3755a63613fd844007dc8c9519c58",
+    "75315262a60f7e146566d5ae85ba7672cf7edafa046d92c8b51f566a9c062180",
+    "7bb28b38dc28ae67789187966750e00d66d15a40d98d3f8d1e792d74caceaad8"
   ],
   "cose_header_bindings": [
     {
