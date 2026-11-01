@@ -201,7 +201,29 @@ pub struct AggregateMetrics {
     pub redundant_triggers: u32,
     pub solver_invocations: u32,
     pub solver_completed: u32,
-    pub solver_fafn evaluate_run(
+    pub solver_failures: u32,
+    pub late_solver_completions: u32,
+    pub auditor_rejections: u32,
+    pub auditor_unavailable: u32,
+    pub accepted_replans: u32,
+    pub abstentions: u32,
+    pub service_loss_mwh: u64,
+    pub replanning_cost_mwh: u64,
+    pub total_penalty_mwh: u64,
+    pub audited_schedule_latency_step_sum: u64,
+    pub audited_schedule_latency_event_count: u32,
+}
+
+impl AggregateMetrics {
+    pub fn mean_audited_schedule_latency_steps(&self) -> Option<f64> {
+        (self.audited_schedule_latency_event_count > 0).then(|| {
+            self.audited_schedule_latency_step_sum as f64
+                / f64::from(self.audited_schedule_latency_event_count)
+        })
+    }
+}
+
+fn evaluate_run(
     policy: PolicyKind,
     scenario: &Scenario,
     actions: Vec<ReplanAction>,
@@ -360,49 +382,9 @@ pub struct AggregateMetrics {
     }
 }
 
-,
-            )
-            .unwrap_or(u32::MAX);
-            let detected = detected_at.is_some();
-            let service_loss = if detected {
-                event.service_loss_with_timely_replan_mwh
-            } else {
-                event.service_loss_without_replan_mwh
-            };
-            (
-                1,
-                if detected { 1 } else { 0 },
-                if detected { 0 } else { 1 },
-                false_count,
-                u32::try_from(qualifying.len().saturating_sub(1)).unwrap_or(u32::MAX),
-                service_loss,
-                detected_at.map(|step| step - event.observable_at_step),
-            )
-        }
-    };
-
-    let total_penalty_mwh = service_loss_mwh.saturating_add(replanning_cost_mwh);
-    PolicyRun {
-        policy,
-        scenario_id: scenario.id.clone(),
-        actions,
-        event_count,
-        timely_detections,
-        missed_events,
-        false_triggers,
-        redundant_triggers,
-        solver_invocations,
-        abstentions,
-        service_loss_mwh,
-        replanning_cost_mwh,
-        total_penalty_mwh,
-        detection_latency_steps,
-    }
-}
-
 pub fn aggregate_runs(runs: &[PolicyRun]) -> AggregateMetrics {
     let mut metrics = AggregateMetrics {
-        scenario_count: runs.len() as u32,
+        scenario_count: u32::try_from(runs.len()).unwrap_or(u32::MAX),
         ..AggregateMetrics::default()
     };
 
