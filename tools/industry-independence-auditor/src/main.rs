@@ -1381,7 +1381,8 @@ mod tests {
             assert_eq!(numerical["candidate_source_ids"].as_array().unwrap().len(), target);
             assert_eq!(numerical["method"], "deterministic_greedy_lower_bound");
             assert_eq!(numerical["optimality_status"], "lower_bound_not_proven");
-            assert_eq!(numerical["independent_source_count"], 1);
+            assert!(numerical["independent_source_count"].as_u64().unwrap() >= 2);
+            assert_eq!(numerical["threshold_met"], true);
             assert_eq!(numerical["registry_model_disposition"], "qualified_by_registry_model");
         }
     }
