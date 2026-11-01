@@ -134,8 +134,7 @@ jobs:
         run: |
           set -euo pipefail
           jq '
-            .registry.dependency_edges += [{"dependency_id":"reference-standard-r1","depends_on_dependency_id":"calibration-chain-alpha"}] |
-            .registry_sha256 = (.registry | tojson | @sh) 
+            .registry.dependency_edges += [{"dependency_id":"reference-standard-r1","depends_on_dependency_id":"calibration-chain-alpha"}]
           ' "$RUNNER_TEMP/ccf-request.json" > "$RUNNER_TEMP/ccf-cycle-unhashed.json"
           registry_sha="$(jq -cS '.registry' "$RUNNER_TEMP/ccf-cycle-unhashed.json" | sha256sum | awk '{print $1}')"
           jq --arg digest "$registry_sha" '.registry_sha256 = $digest' "$RUNNER_TEMP/ccf-cycle-unhashed.json" > "$RUNNER_TEMP/ccf-cycle-request.json"
