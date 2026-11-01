@@ -397,6 +397,7 @@
         "HAZARD",
         "HIL",
         "HOLD",
+        "HUMAN",
         "ISOLATE",
         "MONITOR",
         "PHYS",
