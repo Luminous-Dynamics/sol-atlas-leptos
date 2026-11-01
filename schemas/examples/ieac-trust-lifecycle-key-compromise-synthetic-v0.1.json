@@ -1068,7 +1068,15 @@
     },
     "historical_record_preserved": true,
     "claim_ceiling": "incomplete_or_indeterminate",
-    "action_authority": "none"
+    "action_authority": "none",
+    "not_checked": [
+      "invalidation event COSE signature and revoker authorization receipt",
+      "SCITT trusted timestamp receipt and proof of issuer signature creation time",
+      "external key-compromise incident evidence truth and effective-time adjudication",
+      "operator identity and administrative independence",
+      "SLSA/in-toto provenance of this impact auditor executable",
+      "source measurement truth, model fitness and physical consequence"
+    ]
   },
   "expected_semantics": {
     "pre_compromise_statement": "historical authenticity may remain valid when its exact signed statement is independently proven registered before the verified compromise effective time",
