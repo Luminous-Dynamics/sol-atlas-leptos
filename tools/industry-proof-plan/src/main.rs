@@ -515,15 +515,17 @@ fn validate_request(value: &Value) -> Result<ValidatedRequest, String> {
             && valid_time;
 
         if current {
-            existing.entry(control.clone()).or_default().entry(domain.clone()).or_insert(
-                ExistingEvidence {
-                    domain_id: domain,
-                    artifact_sha256: artifact,
-                    verifier_build_sha256,
-                    independence_registry_sha256: row_registry_sha256,
-                    rights_evidence_sha256,
-                }
-            );
+            let rows = existing.entry(control.clone()).or_default();
+            if rows.values().any(|receipt| receipt.artifact_sha256 == artifact && receipt.domain_id != domain) {
+                return Err(format!("{context} reuses one evidence artifact across multiple independence domains"));
+            }
+            rows.entry(domain.clone()).or_insert(ExistingEvidence {
+                domain_id: domain,
+                artifact_sha256: artifact,
+                verifier_build_sha256,
+                independence_registry_sha256: row_registry_sha256,
+                rights_evidence_sha256,
+            });
         }
     }
 
@@ -1130,6 +1132,15 @@ mod tests {
         assert!(report["covered_controls"].as_array().unwrap().iter()
             .any(|control| control == "numerical_known_answers"));
         assert_eq!(report["action_authority"], "none");
+    }
+
+    #[test]
+    fn same_existing_artifact_cannot_claim_multiple_independent_domains() {
+        let mut request = request();
+        let mut second = request["verified_evidence"][0].clone();
+        second["independence_domain_id"] = json!("another-domain");
+        request["verified_evidence"].as_array_mut().unwrap().push(second);
+        assert!(validate_request(&request).is_err());
     }
 
     #[test]
