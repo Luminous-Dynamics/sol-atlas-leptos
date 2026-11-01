@@ -525,6 +525,53 @@ mod tests {
     }
 
     #[test]
+    fn missing_prefix_and_parent_are_incomplete_not_validated_complete() {
+        let mut input: Value = serde_json::from_str(include_str!("../../../../schemas/examples/ieac-scitt-decision-statement-synthetic-v0.1.json")).unwrap();
+        input["events"].as_array_mut().unwrap().retain(|event| event["event_id"] != "event-verdict-001");
+        input["expected"]["event_payload_sha256"].as_object_mut().unwrap().remove("event-verdict-001");
+        let mut audit = Audit::default();
+        parse_events(&input, &mut audit).unwrap();
+        audit_streams(&mut audit);
+        audit_causal_graph(&mut audit);
+        let report = build_report(audit);
+        assert_eq!(report["status"], "valid_incomplete");
+        assert_eq!(report["history_completeness"], "not_established");
+        assert!(report["findings"].as_array().unwrap().iter().any(|item| item["code"] == "STREAM_PREFIX_NOT_PRESENT"));
+        assert!(report["findings"].as_array().unwrap().iter().any(|item| item["code"] == "CAUSAL_PARENT_NOT_INCLUDED"));
+    }
+
+    #[test]
+    fn duplicate_issuer_sequence_is_invalid() {
+        let mut input: Value = serde_json::from_str(include_str!("../../../../schemas/examples/ieac-scitt-decision-statement-synthetic-v0.1.json")).unwrap();
+        input["events"][3]["issuer_sequence"] = json!(1);
+        let mut audit = Audit::default();
+        parse_events(&input, &mut audit).unwrap();
+        assert!(audit.findings.iter().any(|item| item["code"] == "DUPLICATE_ISSUER_SEQUENCE"));
+    }
+
+    #[test]
+    fn causal_cycle_is_invalid() {
+        let digest_a = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned();
+        let digest_b = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".to_owned();
+        let event = |id: &str, digest: &str, parent: &str| Event {
+            id: id.to_owned(),
+            subject: "subject:test".to_owned(),
+            case_id: "case:test".to_owned(),
+            sequence: 1,
+            previous: None,
+            digest: digest.to_owned(),
+            parents: vec![parent.to_owned()],
+        };
+        let mut audit = Audit::default();
+        audit.events.push(event("a", &digest_a, &digest_b));
+        audit.events.push(event("b", &digest_b, &digest_a));
+        audit.digest_to_index.insert(digest_a, 0);
+        audit.digest_to_index.insert(digest_b, 1);
+        audit_causal_graph(&mut audit);
+        assert!(audit.findings.iter().any(|item| item["code"] == "CAUSAL_GRAPH_CYCLE"));
+    }
+
+    #[test]
     fn digest_mismatch_is_invalid_not_incomplete() {
         let mut input: Value = serde_json::from_str(include_str!("../../../../schemas/examples/ieac-scitt-decision-statement-synthetic-v0.1.json")).unwrap();
         input["expected"]["event_payload_sha256"]["event-verdict-001"] = json!("0000000000000000000000000000000000000000000000000000000000000000");
