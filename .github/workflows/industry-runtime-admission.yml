@@ -13,6 +13,9 @@ on:
       - "schemas/examples/ieac-signed-envelope-synthetic-v0.2.json"
       - "schemas/examples/ieac-jcs-vectors-v0.2.json"
       - "schemas/industry-scitt-decision-statement-v0.1.schema.json"
+      - "schemas/industry-cross-layer-adversarial-case-v0.1.schema.json"
+      - "schemas/examples/ieac-cross-layer-adversarial-matrix-synthetic-v0.1.json"
+      - "docs/industry/IEAC_CROSS_LAYER_BENCHMARK_V0.1.md"
       - "schemas/examples/ieac-scitt-decision-statement-synthetic-v0.1.json"
       - "docs/industry/IEAC_SCITT_TRANSPARENCY_V0.1.md"
       - "docs/industry/IEAC_TRUST_V0.2_SIGNED_ENVELOPE_PROFILE.md"
@@ -35,6 +38,9 @@ on:
       - "schemas/examples/ieac-signed-envelope-synthetic-v0.2.json"
       - "schemas/examples/ieac-jcs-vectors-v0.2.json"
       - "schemas/industry-scitt-decision-statement-v0.1.schema.json"
+      - "schemas/industry-cross-layer-adversarial-case-v0.1.schema.json"
+      - "schemas/examples/ieac-cross-layer-adversarial-matrix-synthetic-v0.1.json"
+      - "docs/industry/IEAC_CROSS_LAYER_BENCHMARK_V0.1.md"
       - "schemas/examples/ieac-scitt-decision-statement-synthetic-v0.1.json"
       - "docs/industry/IEAC_SCITT_TRANSPARENCY_V0.1.md"
       - "docs/industry/IEAC_TRUST_V0.2_SIGNED_ENVELOPE_PROFILE.md"
@@ -280,6 +286,53 @@ jobs:
             echo "ERROR: SCITT fixture schema accepted an unauthorized action claim"
             exit 1
           fi
+
+      - name: Validate non-compensating cross-layer adversarial gate matrix
+        run: |
+          set -euo pipefail
+          meta=https://json-schema.org/draft/2020-12/schema
+          schema=schemas/industry-cross-layer-adversarial-case-v0.1.schema.json
+          fixture=schemas/examples/ieac-cross-layer-adversarial-matrix-synthetic-v0.1.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i "$schema"
+          jq -c '.cases[]' "$fixture" | while IFS= read -r case_record; do
+            printf '%s\n' "$case_record" > "$RUNNER_TEMP/ieac-cross-layer-case.json"
+            jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$RUNNER_TEMP/ieac-cross-layer-case.json"
+          done
+          jq -e '
+            .fixture_schema_version == "luminous.ieac-cross-layer-fixture.v0.1" and
+            .fixture_status == "synthetic_only" and
+            (.cases | length == 18) and
+            ([.cases[].case_id] | unique | length) == (.cases | length) and
+            .expected_summary.case_count == 18 and
+            .expected_summary.expected_admit_descriptive == 2 and
+            .expected_summary.expected_abstain == 4 and
+            .expected_summary.expected_reject == 12 and
+            .expected_summary.expected_gate_count == 91 and
+            .expected_summary.non_compensating_policy == true and
+            .expected_summary.weighted_score_can_override_mandatory_gate == false and
+            all(.cases[];
+              ([.gates[] | select(.mandatory and .state == "fail") | .gate_id] | sort) as $failed |
+              ([.gates[] | select(.mandatory and .state == "unknown") | .gate_id] | sort) as $unknown |
+              ([.gates[] | select(.mandatory and (.state == "fail" or .state == "unknown")) | .gate_id] | sort) as $blockers |
+              ([.gates[].gate_id] | unique | length) == (.gates | length) and
+              (.expected_blocking_gate_ids | sort) == $blockers and
+              (if ($failed | length) > 0 then .expected_disposition == "reject"
+               elif ($unknown | length) > 0 then .expected_disposition == "abstain"
+               else .expected_disposition == "admit_descriptive" end)
+            )
+          ' "$fixture"
+
+          jq '.cases[1].expected_disposition = "admit_descriptive"' "$fixture" > "$RUNNER_TEMP/cross-layer-false-admit.json"
+          jq '.cases[3].expected_disposition = "admit_descriptive"' "$fixture" > "$RUNNER_TEMP/cross-layer-unknown-as-pass.json"
+          for mutant in "$RUNNER_TEMP/cross-layer-false-admit.json" "$RUNNER_TEMP/cross-layer-unknown-as-pass.json"; do
+            if jq -c '.cases[]' "$mutant" | while IFS= read -r case_record; do
+              printf '%s\n' "$case_record" > "$RUNNER_TEMP/ieac-cross-layer-mutant-case.json"
+              jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$RUNNER_TEMP/ieac-cross-layer-mutant-case.json" || exit 1
+            done; then
+              echo "ERROR: cross-layer gate schema accepted an outcome inconsistent with mandatory gates: $mutant"
+              exit 1
+            fi
+          done
 
       - name: Prove unknown request fields and malformed time are rejected
         run: |

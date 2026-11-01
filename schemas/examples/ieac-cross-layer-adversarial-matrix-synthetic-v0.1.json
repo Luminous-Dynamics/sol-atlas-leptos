@@ -1,0 +1,850 @@
+{
+  "fixture_schema_version": "luminous.ieac-cross-layer-fixture.v0.1",
+  "fixture_status": "synthetic_only",
+  "note": "All values and digests are synthetic control labels. These cases are expected gate vectors, not executed verifier results, measured attack success rates or field-risk estimates.",
+  "cases": [
+    {
+      "schema_version": "luminous.ieac-cross-layer-adversarial-case.v0.1",
+      "fixture_status": "synthetic_only",
+      "case_id": "xlayer-good-001",
+      "scenario": "All required statement, receipt, source, policy and provenance gates pass; no action or outcome is claimed.",
+      "mutations": [],
+      "gates": [
+        {
+          "gate_id": "statement_signature",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        {
+          "gate_id": "statement_issuer_authorization",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        {
+          "gate_id": "receipt_issuer_policy",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        {
+          "gate_id": "receipt_to_statement_binding",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+        },
+        {
+          "gate_id": "vds_inclusion",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+        },
+        {
+          "gate_id": "same_ts_consistency",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+        },
+        {
+          "gate_id": "source_identity_and_lineage",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
+        },
+        {
+          "gate_id": "source_rights",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+        },
+        {
+          "gate_id": "source_freshness",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
+        },
+        {
+          "gate_id": "source_semantics_and_units",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+        },
+        {
+          "gate_id": "ieac_admission",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        {
+          "gate_id": "verifier_build_provenance",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        {
+          "gate_id": "issuer_history_completeness",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        {
+          "gate_id": "action_authorization",
+          "state": "not_applicable",
+          "mandatory": false,
+          "evidence_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        {
+          "gate_id": "execution_receipt",
+          "state": "not_applicable",
+          "mandatory": false,
+          "evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        },
+        {
+          "gate_id": "outcome_receipt_binding",
+          "state": "not_applicable",
+          "mandatory": false,
+          "evidence_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        },
+        {
+          "gate_id": "outcome_missingness",
+          "state": "not_applicable",
+          "mandatory": false,
+          "evidence_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        {
+          "gate_id": "causal_claim_ceiling",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        }
+      ],
+      "claim_ceiling": "record_only",
+      "expected_disposition": "admit_descriptive",
+      "expected_blocking_gate_ids": []
+    },
+    {
+      "schema_version": "luminous.ieac-cross-layer-adversarial-case.v0.1",
+      "fixture_status": "synthetic_only",
+      "case_id": "xlayer-wrong-statement-issuer",
+      "scenario": "A valid TS receipt covers a correctly signed statement, but the statement issuer is not authorized for the IEAC profile.",
+      "mutations": [
+        "unauthorized_statement_issuer"
+      ],
+      "gates": [
+        {
+          "gate_id": "statement_signature",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        {
+          "gate_id": "statement_issuer_authorization",
+          "state": "fail",
+          "mandatory": true,
+          "evidence_sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+        },
+        {
+          "gate_id": "receipt_issuer_policy",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+        },
+        {
+          "gate_id": "receipt_to_statement_binding",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+        },
+        {
+          "gate_id": "vds_inclusion",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
+        },
+        {
+          "gate_id": "ieac_admission",
+          "state": "fail",
+          "mandatory": true,
+          "evidence_sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+        }
+      ],
+      "claim_ceiling": "record_only",
+      "expected_disposition": "reject",
+      "expected_blocking_gate_ids": [
+        "statement_issuer_authorization",
+        "ieac_admission"
+      ]
+    },
+    {
+      "schema_version": "luminous.ieac-cross-layer-adversarial-case.v0.1",
+      "fixture_status": "synthetic_only",
+      "case_id": "xlayer-wrong-ts-issuer",
+      "scenario": "The statement signer is authorized but the receipt issuer is not in the relying-party TS allow-list.",
+      "mutations": [
+        "untrusted_receipt_issuer"
+      ],
+      "gates": [
+        {
+          "gate_id": "statement_signature",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
+        },
+        {
+          "gate_id": "statement_issuer_authorization",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+        },
+        {
+          "gate_id": "receipt_issuer_policy",
+          "state": "fail",
+          "mandatory": true,
+          "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        {
+          "gate_id": "receipt_to_statement_binding",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        {
+          "gate_id": "vds_inclusion",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        }
+      ],
+      "claim_ceiling": "record_only",
+      "expected_disposition": "reject",
+      "expected_blocking_gate_ids": [
+        "receipt_issuer_policy"
+      ]
+    },
+    {
+      "schema_version": "luminous.ieac-cross-layer-adversarial-case.v0.1",
+      "fixture_status": "synthetic_only",
+      "case_id": "xlayer-incomplete-history",
+      "scenario": "Every supplied statement and VDS proof verifies and the TS is consistent, but the issuer stream has an unexplained sequence gap and no authenticated checkpoint.",
+      "mutations": [
+        "missing_issuer_suffix",
+        "no_anchored_checkpoint"
+      ],
+      "gates": [
+        {
+          "gate_id": "statement_signature",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        {
+          "gate_id": "statement_issuer_authorization",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        },
+        {
+          "gate_id": "receipt_issuer_policy",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        },
+        {
+          "gate_id": "receipt_to_statement_binding",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        {
+          "gate_id": "vds_inclusion",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        {
+          "gate_id": "same_ts_consistency",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        {
+          "gate_id": "issuer_history_completeness",
+          "state": "unknown",
+          "mandatory": true,
+          "evidence_sha256": null
+        }
+      ],
+      "claim_ceiling": "record_only",
+      "expected_disposition": "abstain",
+      "expected_blocking_gate_ids": [
+        "issuer_history_completeness"
+      ]
+    },
+    {
+      "schema_version": "luminous.ieac-cross-layer-adversarial-case.v0.1",
+      "fixture_status": "synthetic_only",
+      "case_id": "xlayer-cross-ts-roots",
+      "scenario": "Two independent TSs expose different roots but both have valid receipts for the required statement; cross-service roots are not compared as replicas.",
+      "mutations": [
+        "different_roots_across_distinct_services"
+      ],
+      "gates": [
+        {
+          "gate_id": "statement_signature",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+        },
+        {
+          "gate_id": "statement_issuer_authorization",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+        },
+        {
+          "gate_id": "receipt_issuer_policy",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+        },
+        {
+          "gate_id": "receipt_to_statement_binding",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
+        },
+        {
+          "gate_id": "vds_inclusion",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+        },
+        {
+          "gate_id": "cross_ts_statement_coverage",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
+        },
+        {
+          "gate_id": "witness_operator_independence",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+        },
+        {
+          "gate_id": "same_ts_consistency",
+          "state": "not_applicable",
+          "mandatory": false,
+          "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ],
+      "claim_ceiling": "record_only",
+      "expected_disposition": "admit_descriptive",
+      "expected_blocking_gate_ids": []
+    },
+    {
+      "schema_version": "luminous.ieac-cross-layer-adversarial-case.v0.1",
+      "fixture_status": "synthetic_only",
+      "case_id": "xlayer-same-ts-fork",
+      "scenario": "Two authenticated observations for the same TS identity, log and tree size carry conflicting signed roots.",
+      "mutations": [
+        "same_ts_same_size_conflicting_roots"
+      ],
+      "gates": [
+        {
+          "gate_id": "statement_signature",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        {
+          "gate_id": "receipt_issuer_policy",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        {
+          "gate_id": "vds_inclusion",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        {
+          "gate_id": "same_ts_consistency",
+          "state": "fail",
+          "mandatory": true,
+          "evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        }
+      ],
+      "claim_ceiling": "record_only",
+      "expected_disposition": "reject",
+      "expected_blocking_gate_ids": [
+        "same_ts_consistency"
+      ]
+    },
+    {
+      "schema_version": "luminous.ieac-cross-layer-adversarial-case.v0.1",
+      "fixture_status": "synthetic_only",
+      "case_id": "xlayer-no-holder-binding",
+      "scenario": "Issuer signature and disclosed claim verify, but the case policy requires SD-JWT Key Binding and the holder omitted it.",
+      "mutations": [
+        "sd_jwt_without_kb"
+      ],
+      "gates": [
+        {
+          "gate_id": "statement_signature",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        },
+        {
+          "gate_id": "statement_issuer_authorization",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        {
+          "gate_id": "holder_key_binding",
+          "state": "fail",
+          "mandatory": true,
+          "evidence_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        {
+          "gate_id": "presentation_case_and_audience_binding",
+          "state": "unknown",
+          "mandatory": true,
+          "evidence_sha256": null
+        }
+      ],
+      "claim_ceiling": "record_only",
+      "expected_disposition": "reject",
+      "expected_blocking_gate_ids": [
+        "holder_key_binding",
+        "presentation_case_and_audience_binding"
+      ]
+    },
+    {
+      "schema_version": "luminous.ieac-cross-layer-adversarial-case.v0.1",
+      "fixture_status": "synthetic_only",
+      "case_id": "xlayer-wrong-audience",
+      "scenario": "Holder Key Binding verifies cryptographically but its audience and request nonce belong to a different case/relying party.",
+      "mutations": [
+        "wrong_audience",
+        "wrong_nonce",
+        "cross_case_replay"
+      ],
+      "gates": [
+        {
+          "gate_id": "statement_signature",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        {
+          "gate_id": "holder_key_binding",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+        },
+        {
+          "gate_id": "presentation_case_and_audience_binding",
+          "state": "fail",
+          "mandatory": true,
+          "evidence_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+        }
+      ],
+      "claim_ceiling": "record_only",
+      "expected_disposition": "reject",
+      "expected_blocking_gate_ids": [
+        "presentation_case_and_audience_binding"
+      ]
+    },
+    {
+      "schema_version": "luminous.ieac-cross-layer-adversarial-case.v0.1",
+      "fixture_status": "synthetic_only",
+      "case_id": "xlayer-revoked-rights",
+      "scenario": "All signatures and receipts verify, but the source's permitted-use state has been revoked for this purpose.",
+      "mutations": [
+        "source_rights_revoked"
+      ],
+      "gates": [
+        {
+          "gate_id": "statement_signature",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+        },
+        {
+          "gate_id": "receipt_to_statement_binding",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
+        },
+        {
+          "gate_id": "source_identity_and_lineage",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+        },
+        {
+          "gate_id": "source_rights",
+          "state": "fail",
+          "mandatory": true,
+          "evidence_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
+        }
+      ],
+      "claim_ceiling": "record_only",
+      "expected_disposition": "reject",
+      "expected_blocking_gate_ids": [
+        "source_rights"
+      ]
+    },
+    {
+      "schema_version": "luminous.ieac-cross-layer-adversarial-case.v0.1",
+      "fixture_status": "synthetic_only",
+      "case_id": "xlayer-authority-unavailable",
+      "scenario": "Cryptographic evidence is valid but the current authority snapshot is unavailable, so the admission cannot be evaluated.",
+      "mutations": [
+        "authority_snapshot_unavailable"
+      ],
+      "gates": [
+        {
+          "gate_id": "statement_signature",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+        },
+        {
+          "gate_id": "receipt_to_statement_binding",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        {
+          "gate_id": "source_rights",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        {
+          "gate_id": "ieac_admission",
+          "state": "unknown",
+          "mandatory": true,
+          "evidence_sha256": null
+        },
+        {
+          "gate_id": "action_authorization",
+          "state": "unknown",
+          "mandatory": true,
+          "evidence_sha256": null
+        }
+      ],
+      "claim_ceiling": "record_only",
+      "expected_disposition": "abstain",
+      "expected_blocking_gate_ids": [
+        "ieac_admission",
+        "action_authorization"
+      ]
+    },
+    {
+      "schema_version": "luminous.ieac-cross-layer-adversarial-case.v0.1",
+      "fixture_status": "synthetic_only",
+      "case_id": "xlayer-outcome-no-execution",
+      "scenario": "A domain outcome receipt exists, but the action's execution receipt is missing and the decision cannot be tied to a completed intervention.",
+      "mutations": [
+        "missing_execution_receipt"
+      ],
+      "gates": [
+        {
+          "gate_id": "statement_signature",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        {
+          "gate_id": "ieac_admission",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        {
+          "gate_id": "action_authorization",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        },
+        {
+          "gate_id": "execution_receipt",
+          "state": "unknown",
+          "mandatory": true,
+          "evidence_sha256": null
+        },
+        {
+          "gate_id": "outcome_receipt_binding",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        }
+      ],
+      "claim_ceiling": "observation_only",
+      "expected_disposition": "abstain",
+      "expected_blocking_gate_ids": [
+        "execution_receipt"
+      ]
+    },
+    {
+      "schema_version": "luminous.ieac-cross-layer-adversarial-case.v0.1",
+      "fixture_status": "synthetic_only",
+      "case_id": "xlayer-missing-as-success",
+      "scenario": "An outcome report treats censored/missing telemetry as if the expected service target was met.",
+      "mutations": [
+        "missingness_hidden_as_success"
+      ],
+      "gates": [
+        {
+          "gate_id": "statement_signature",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        {
+          "gate_id": "outcome_receipt_binding",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        {
+          "gate_id": "outcome_missingness",
+          "state": "fail",
+          "mandatory": true,
+          "evidence_sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+        }
+      ],
+      "claim_ceiling": "observation_only",
+      "expected_disposition": "reject",
+      "expected_blocking_gate_ids": [
+        "outcome_missingness"
+      ]
+    },
+    {
+      "schema_version": "luminous.ieac-cross-layer-adversarial-case.v0.1",
+      "fixture_status": "synthetic_only",
+      "case_id": "xlayer-before-after-causal",
+      "scenario": "A service metric improved before versus after the intervention, but no valid counterfactual/identification design supports a causal estimate.",
+      "mutations": [
+        "before_after_mislabeled_causal"
+      ],
+      "gates": [
+        {
+          "gate_id": "statement_signature",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+        },
+        {
+          "gate_id": "execution_receipt",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+        },
+        {
+          "gate_id": "outcome_receipt_binding",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+        },
+        {
+          "gate_id": "causal_claim_ceiling",
+          "state": "fail",
+          "mandatory": true,
+          "evidence_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
+        }
+      ],
+      "claim_ceiling": "before_after_difference",
+      "expected_disposition": "reject",
+      "expected_blocking_gate_ids": [
+        "causal_claim_ceiling"
+      ]
+    },
+    {
+      "schema_version": "luminous.ieac-cross-layer-adversarial-case.v0.1",
+      "fixture_status": "synthetic_only",
+      "case_id": "xlayer-synthetic-causal",
+      "scenario": "A synthetic fixture carries a causal-effect label and is presented as real-world effectiveness evidence.",
+      "mutations": [
+        "synthetic_to_causal_claim"
+      ],
+      "gates": [
+        {
+          "gate_id": "statement_signature",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+        },
+        {
+          "gate_id": "outcome_receipt_binding",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
+        },
+        {
+          "gate_id": "causal_claim_ceiling",
+          "state": "fail",
+          "mandatory": true,
+          "evidence_sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+        }
+      ],
+      "claim_ceiling": "observation_only",
+      "expected_disposition": "reject",
+      "expected_blocking_gate_ids": [
+        "causal_claim_ceiling"
+      ]
+    },
+    {
+      "schema_version": "luminous.ieac-cross-layer-adversarial-case.v0.1",
+      "fixture_status": "synthetic_only",
+      "case_id": "xlayer-units-mismatch",
+      "scenario": "Expected and observed values share a metric name but use incompatible units/populations/windows.",
+      "mutations": [
+        "unit_population_window_mismatch"
+      ],
+      "gates": [
+        {
+          "gate_id": "source_identity_and_lineage",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        {
+          "gate_id": "source_semantics_and_units",
+          "state": "fail",
+          "mandatory": true,
+          "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        {
+          "gate_id": "outcome_receipt_binding",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        }
+      ],
+      "claim_ceiling": "observation_only",
+      "expected_disposition": "reject",
+      "expected_blocking_gate_ids": [
+        "source_semantics_and_units"
+      ]
+    },
+    {
+      "schema_version": "luminous.ieac-cross-layer-adversarial-case.v0.1",
+      "fixture_status": "synthetic_only",
+      "case_id": "xlayer-verifier-provenance",
+      "scenario": "Report signature is valid but the verifier executable/build provenance does not match the independently pinned policy.",
+      "mutations": [
+        "verifier_build_substitution"
+      ],
+      "gates": [
+        {
+          "gate_id": "statement_signature",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        {
+          "gate_id": "receipt_to_statement_binding",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        },
+        {
+          "gate_id": "verifier_build_provenance",
+          "state": "fail",
+          "mandatory": true,
+          "evidence_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        }
+      ],
+      "claim_ceiling": "record_only",
+      "expected_disposition": "reject",
+      "expected_blocking_gate_ids": [
+        "verifier_build_provenance"
+      ]
+    },
+    {
+      "schema_version": "luminous.ieac-cross-layer-adversarial-case.v0.1",
+      "fixture_status": "synthetic_only",
+      "case_id": "xlayer-vds-unsupported",
+      "scenario": "The receipt advertises a VDS proof type not supported by the pinned verifier; no proof is guessed or coerced.",
+      "mutations": [
+        "unsupported_vds"
+      ],
+      "gates": [
+        {
+          "gate_id": "statement_signature",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        {
+          "gate_id": "receipt_issuer_policy",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        {
+          "gate_id": "vds_inclusion",
+          "state": "unknown",
+          "mandatory": true,
+          "evidence_sha256": null
+        }
+      ],
+      "claim_ceiling": "record_only",
+      "expected_disposition": "abstain",
+      "expected_blocking_gate_ids": [
+        "vds_inclusion"
+      ]
+    },
+    {
+      "schema_version": "luminous.ieac-cross-layer-adversarial-case.v0.1",
+      "fixture_status": "synthetic_only",
+      "case_id": "xlayer-stale-source",
+      "scenario": "Source payload and signed receipt match, but the observation is outside the freshness bound owned by the IEAC profile.",
+      "mutations": [
+        "stale_source_snapshot"
+      ],
+      "gates": [
+        {
+          "gate_id": "statement_signature",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        {
+          "gate_id": "receipt_to_statement_binding",
+          "state": "pass",
+          "mandatory": true,
+          "evidence_sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+        },
+        {
+          "gate_id": "source_freshness",
+          "state": "fail",
+          "mandatory": true,
+          "evidence_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+        }
+      ],
+      "claim_ceiling": "record_only",
+      "expected_disposition": "reject",
+      "expected_blocking_gate_ids": [
+        "source_freshness"
+      ]
+    }
+  ],
+  "expected_summary": {
+    "case_count": 18,
+    "expected_admit_descriptive": 2,
+    "expected_abstain": 4,
+    "expected_reject": 12,
+    "expected_gate_count": 91,
+    "non_compensating_policy": true,
+    "weighted_score_can_override_mandatory_gate": false
+  }
+}
