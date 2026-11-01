@@ -745,19 +745,17 @@ mod tests {
             event("a-lower-density", 180, 240, u64::MAX - 1, false),
             event("z-higher-density", 900, 960, u64::MAX, false),
         ];
-        let plan = plan_mesh(
-            &events,
-            MeshStrategy::SafetyFirstValueOfInformation,
-            27,
-        )
-        .unwrap();
+        let plan = plan_mesh(&events, MeshStrategy::SafetyFirstValueOfInformation, 27).unwrap();
 
-        assert!(plan
-            .refined_event_ids
-            .contains(&"z-higher-density".to_owned()));
-        assert!(!plan
-            .refined_event_ids
-            .contains(&"a-lower-density".to_owned()));
+        assert!(
+            plan.refined_event_ids
+                .contains(&"z-higher-density".to_owned())
+        );
+        assert!(
+            !plan
+                .refined_event_ids
+                .contains(&"a-lower-density".to_owned())
+        );
     }
 
     #[test]
@@ -774,12 +772,7 @@ mod tests {
     #[test]
     fn verifier_rejects_tampered_refined_event_metadata() {
         let events = vec![event("safety", 840, 960, 8_000, true)];
-        let mut plan = plan_mesh(
-            &events,
-            MeshStrategy::SafetyFirstValueOfInformation,
-            40,
-        )
-        .unwrap();
+        let mut plan = plan_mesh(&events, MeshStrategy::SafetyFirstValueOfInformation, 40).unwrap();
         plan.refined_event_ids.clear();
 
         assert_eq!(
@@ -803,19 +796,15 @@ mod tests {
     #[test]
     fn verifier_rejects_safety_window_coarsening_even_when_report_counters_are_recomputed() {
         let events = vec![event("safety", 840, 960, 8_000, true)];
-        let mut plan = plan_mesh(
-            &events,
-            MeshStrategy::SafetyFirstValueOfInformation,
-            40,
-        )
-        .unwrap();
-        for cell in plan.cells.iter_mut().filter(|cell| {
-            cell.start_minute >= 840 && cell.end_minute <= 960
-        }) {
+        let mut plan = plan_mesh(&events, MeshStrategy::SafetyFirstValueOfInformation, 40).unwrap();
+        for cell in plan
+            .cells
+            .iter_mut()
+            .filter(|cell| cell.start_minute >= 840 && cell.end_minute <= 960)
+        {
             cell.resolution_minutes = COARSE_STEP_MINUTES;
         }
-        plan.compute_cost_units =
-            u32::try_from(plan.cells.len()).unwrap_or(u32::MAX);
+        plan.compute_cost_units = u32::try_from(plan.cells.len()).unwrap_or(u32::MAX);
         plan.budget_remaining_units =
             i64::from(plan.compute_budget_units) - i64::from(plan.compute_cost_units);
         plan.safety_resolution_violations = safety_violations(&plan.cells, &events);
