@@ -241,7 +241,8 @@
                 "major",
                 "severe",
                 "catastrophic",
-                "unknown"
+                "unknown",
+                "conflicted"
               ]
             },
             "model_influence": {
@@ -251,7 +252,8 @@
                 "constraint_gating",
                 "selection",
                 "direct_actuation",
-                "unknown"
+                "unknown",
+                "conflicted"
               ]
             },
             "exposure": {
@@ -261,7 +263,8 @@
                 "multi_site",
                 "regional",
                 "national_or_larger",
-                "unknown"
+                "unknown",
+                "conflicted"
               ]
             },
             "reversibility": {
@@ -269,7 +272,8 @@
                 "readily_reversible",
                 "costly_or_delayed",
                 "difficult_or_irreversible",
-                "unknown"
+                "unknown",
+                "conflicted"
               ]
             },
             "detectability": {
@@ -277,7 +281,8 @@
                 "immediate_and_reliable",
                 "delayed_or_partial",
                 "poor",
-                "unknown"
+                "unknown",
+                "conflicted"
               ]
             },
             "fallback": {
@@ -286,7 +291,8 @@
                 "human_fallback",
                 "degraded_fallback",
                 "no_verified_fallback",
-                "unknown"
+                "unknown",
+                "conflicted"
               ]
             }
           }
