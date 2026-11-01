@@ -17,7 +17,8 @@
     "dimensions",
     "unknown_policy",
     "controls",
-    "monotonicity_order"
+    "monotonicity_order",
+    "combination_rules"
   ],
   "properties": {
     "schema_version": {
@@ -2162,7 +2163,8 @@
         "required": [
           "description",
           "human_approval",
-          "obligations"
+          "obligations",
+          "evidence_dimension"
         ],
         "properties": {
           "description": {
@@ -2181,6 +2183,20 @@
               "minLength": 1,
               "maxLength": 128
             }
+          },
+          "evidence_dimension": {
+            "enum": [
+              "software_conformance",
+              "numerical_verification",
+              "physical_validation",
+              "data_integrity_rights",
+              "uncertainty_credibility",
+              "generalization",
+              "robustness",
+              "operational_assurance",
+              "safety_security_authority",
+              "prospective_outcomes"
+            ]
           }
         }
       }
@@ -2287,6 +2303,112 @@
             "no_verified_fallback",
             "unknown"
           ]
+        }
+      }
+    },
+    "combination_rules": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "rule_id",
+          "reason_code",
+          "conditions",
+          "control_ids"
+        ],
+        "properties": {
+          "rule_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "reason_code": {
+            "type": "string",
+            "pattern": "^[A-Z0-9_]+$"
+          },
+          "conditions": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 6,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "dimension",
+                "values"
+              ],
+              "properties": {
+                "dimension": {
+                  "enum": [
+                    "consequence",
+                    "model_influence",
+                    "exposure",
+                    "reversibility",
+                    "detectability",
+                    "fallback"
+                  ]
+                },
+                "values": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "control_ids": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "artifact_identity_integrity",
+                "schema_interface_conformance",
+                "source_rights_lineage",
+                "numerical_known_answers",
+                "unit_semantics_validation",
+                "physical_reference_validation",
+                "uncertainty_calibration",
+                "out_of_domain_abstention",
+                "human_review_override",
+                "operational_monitoring",
+                "prospective_outcome_reconciliation",
+                "independent_constraint_reconstruction",
+                "group_disjoint_holdout",
+                "compound_fault_stress",
+                "rollback_recovery_test",
+                "dual_control_authorization",
+                "shadow_hardware_in_loop_trial",
+                "safe_fallback_validation",
+                "independent_safety_case",
+                "hazard_analysis",
+                "independent_safety_assessment",
+                "secure_control_boundary",
+                "hardware_in_loop_qualification",
+                "fail_safe_emergency_stop",
+                "continuous_requalification",
+                "field_operational_authorization",
+                "cross_site_replication",
+                "drift_detection",
+                "common_cause_scenario_test",
+                "regional_failover_drill",
+                "staged_rollout",
+                "incident_response_playbook",
+                "independent_monitoring",
+                "redundant_measurement",
+                "human_response_sla",
+                "degraded_mode_qualification",
+                "tested_safe_stop",
+                "request_measurement_or_abstain"
+              ]
+            }
+          }
         }
       }
     }
