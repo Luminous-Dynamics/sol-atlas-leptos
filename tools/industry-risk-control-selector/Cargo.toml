@@ -1,0 +1,15 @@
+[package]
+name = "industry-risk-control-selector"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+description = "Deterministic six-axis IEAC risk-to-assurance control selector"
+
+[[bin]]
+name = "industry-risk-control-selector"
+path = "src/main.rs"
+
+[dependencies]
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_json = { version = "=1.0.150", default-features = false, features = ["std"] }
+sha2 = { version = "=0.10.9", default-features = false }
