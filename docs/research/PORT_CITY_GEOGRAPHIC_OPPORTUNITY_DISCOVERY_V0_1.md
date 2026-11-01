@@ -264,3 +264,28 @@ The opportunity engine must therefore optimize not only average accessibility bu
 Add benchmark metrics: access and redundancy curves by hinterland; effective independent gateway count under declared failure scenarios; unmet demand and recovery time after common-mode vs independent failures; redundancy/access improvement per lifecycle dollar; diverted vs additional demand; and ranking stability as freight demand and failure correlations vary.
 
 This should become a core component of GEO-OPPORTUNITY-001, not an ornamental "resilience score". A region with three ports behind the same single rail corridor may have lower true redundancy than a region with two gateways reached by genuinely independent routes.
+
+
+## 11. Southern African corridor graph: candidate comparison set
+
+For an initial Southern African graph inventory, do not start from one preferred port. Build a multi-gateway comparison set and verify actual routes, operating services, capacity, freight, border performance and data rights at the time of study.
+
+Useful public corridor frameworks identify several candidate systems for this research graph:
+
+- **Maputo–Gaborone–Walvis Bay corridor framework:** OECD's *Africa's Development Dynamics 2025* lists a Maputo–Gaborone–Walvis Bay corridor concept spanning Botswana, Eswatini, Mozambique, Namibia and South Africa, with port, rail and green-transport components. It is useful as a multi-port / regional-access hypothesis, not proof that every corridor segment has continuous or competitive service today. https://www.oecd.org/en/publications/africa-s-development-dynamics-2025_c2b40285-en.html
+- **Durban–Lusaka–Lubumbashi corridor framework:** the EU Global Gateway consolidated corridor report lists this Southern African priority corridor across South Africa, Botswana, Zimbabwe, Zambia and the DRC. Use it as a study graph for testing gateway choice, rail/road access, border friction and intermodal dependencies; verify each segment and its current service separately. https://knowledge4policy.ec.europa.eu/publication/global-gateway-support-transport-corridors-africa-%E2%80%93-consolidated-report-0_en
+- **Lobito–Kolwezi–Lubumbashi–Solwezi–Ndola corridor framework:** the same EU report lists this corridor across Angola, the DRC and Zambia. It provides a valuable west-facing comparison against Indian Ocean gateways for mineral and industrial hinterlands, but its current capacity, operating status, commodity mix and future upgrades must be source-checked. https://knowledge4policy.ec.europa.eu/publication/global-gateway-support-transport-corridors-africa-%E2%80%93-consolidated-report-0_en
+- **SADC transport corridors and spatial development initiatives:** SADC frames corridor planning as linking industrial sites and raw-material flows to ports, and identifies roads, railways, canals, pipelines, bottlenecks and border/customs procedures as system components. This is a governance / corridor inventory anchor, not a capacity dataset. https://sadc.int/pillars/transport-corridors-spatial-development-initiatives
+
+A 2026 African port-hinterland redundancy study finds that new terminal expansions and rail investments can change accessibility and redundancy in opposite directions; a rail link can make more ports reachable while also making a hinterland dependent on one especially cost-efficient rail corridor. It therefore makes sense to compare the following *research graph*, after verifying data availability:
+
+- Indian Ocean access via Maputo and South African east-coast gateways;
+- Atlantic access via Walvis Bay and the Lobito corridor;
+- northbound connections toward Zambia, Zimbabwe, Botswana and the DRC;
+- inland dry ports / intermodal hubs and the corridors that actually serve them.
+
+For each inland node, measure least-cost access to multiple gateways, shared links and common-mode failure, actual service frequency, border time variance, network capacity and substitutability. Do not infer independent redundancy from two different port names if both routes share the same rail, border, power, bridge or flood-risk bottleneck.
+
+The South African National Ports Authority's published Port Development Framework Plan update (2022) lists its major ports and says that port plans were built from revised nationwide freight-demand forecasts, scenarios/concepts and options analysis. It is a useful historical reference snapshot, not current as-operated capacity or a substitute for updated port master plans and actual performance evidence. The document is also visibly marked confidential in the source copy; review access and reuse terms before ingest, cite only appropriately shareable metadata, and do not redistribute the document. https://www.transnetnationalportsauthority.net/Infrastructure%20and%20Port%20Planning/Documents/Port%20Development%20Framework%20Plans%20Update%202022.pdf
+
+**Initial study recommendation:** build a corridor-source inventory for the Maputo–Gaborone–Walvis Bay, Durban–Lusaka–Lubumbashi and Lobito–Kolwezi–Lubumbashi–Solwezi–Ndola graph hypotheses. Select one as the first detailed case only after operational data, route continuity, survey coverage, land/water rights, ecological evidence and stakeholder access have been audited. A corridor designation is not proof of a functioning, competitive or investable freight service.
