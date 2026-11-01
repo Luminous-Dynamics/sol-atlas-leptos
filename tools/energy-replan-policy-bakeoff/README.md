@@ -2,7 +2,7 @@
 
 A dependency-free, synthetic-known-truth research instrument comparing when to request a replan under imperfect forecasts and changing observations.
 
-This is intentionally a trigger-policy benchmark, not another optimizer, dispatch model, or actuator. It sits alongside the standalone schedule auditor and the broader rolling-horizon programme in issue #352.
+This is intentionally a trigger-policy benchmark, not another optimizer, dispatch model, or actuator. The audit result is synthetic evaluator truth in v0.1; this crate does not invoke the standalone schedule auditor on a generated dispatch trajectory. It sits alongside the standalone schedule auditor and the broader rolling-horizon programme in issue #352.
 
 ## Paradigm
 
