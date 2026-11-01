@@ -22,6 +22,8 @@ NASA's launch-site primer explains that an equatorial launch can take advantage 
 
 Therefore, evaluate the target orbit and launch azimuth before giving a site credit for latitude. A polar or sun-synchronous launch programme may rationally prefer a higher latitude and a different downrange corridor.
 
+A further caution: once sites are already close to the equator, latitude differences alone become a weak discriminator. Using a spherical reference model with Earth's rotation rate 7.2921150e-5 rad/s and equatorial radius 6,378,137 m, eastward surface speed is about 464.66 m/s at 2.5° latitude and 463.19 m/s at 5.2° latitude, a difference of only about 1.47 m/s. The 2.5° value is only an illustrative regional coordinate, not a surveyed Kipini launch-site coordinate. This difference is tiny relative to orbital speed and can be overwhelmed by target-orbit, vehicle, range, weather, logistics, ecological, safety and governance factors. Do not claim a meaningful payload advantage between two near-equatorial sites from latitude alone.
+
 ### Public safety and range access
 
 The US FAA identifies access to useful orbits and public safety as primary spaceport-location considerations. Its FAQ notes that sites are normally away from major population centres and commonly near water to reduce public risk in a launch failure. This is a useful comparator, not a substitute for the applicable national licensing regime, range-safety rules, environmental law, airspace/maritime coordination or consultation. Source: https://www.faa.gov/space/additional_information/faq
