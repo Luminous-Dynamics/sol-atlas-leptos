@@ -484,7 +484,7 @@ fn make_scenario(kind: usize, variant: u32) -> MeshScenario {
                 id: "morning-ramp".to_owned(),
                 start_minute: 360,
                 end_minute: 480,
-                avoidable_loss_lower_bound_units: 2_000 * scale,
+                avoidable_loss_lower_bound_units: 5_000 * scale,
                 safety_critical: false,
             });
             events.push(TemporalRisk {
@@ -498,15 +498,26 @@ fn make_scenario(kind: usize, variant: u32) -> MeshScenario {
                 id: "evening-peak".to_owned(),
                 start_minute: 1_020,
                 end_minute: 1_200,
-                avoidable_loss_lower_bound_units: 3_000 * scale,
+                avoidable_loss_lower_bound_units: 6_000 * scale,
                 safety_critical: false,
             });
         }
     }
+    let compute_budget_units = if kind == 7 {
+        match variant {
+            0 => 30,
+            1 => 33,
+            2 => 36,
+            _ => 45,
+        }
+    } else {
+        48 + variant * 3
+    };
+
     MeshScenario {
         id: format!("mesh-scenario-{kind:02}-{variant:02}"),
         events,
-        compute_budget_units: 48 + variant * 3,
+        compute_budget_units,
     }
 }
 
@@ -700,6 +711,43 @@ mod tests {
         let second = frozen_scenarios();
         assert_eq!(first, second);
         assert_eq!(first.len(), 32);
+    }
+
+    #[test]
+    fn compound_scenario_budgets_force_partial_optional_refinement() {
+        let scenarios = frozen_scenarios();
+        let compound: Vec<&MeshScenario> = scenarios
+            .iter()
+            .filter(|scenario| scenario.id.starts_with("mesh-scenario-07-"))
+            .collect();
+        assert_eq!(compound.len(), 4);
+
+        let expected = [
+            (30, false, false),
+            (33, false, false),
+            (36, true, false),
+            (45, true, true),
+        ];
+        for (scenario, (budget, morning, evening)) in compound.iter().zip(expected) {
+            assert_eq!(scenario.compute_budget_units, budget);
+            let plan = plan_mesh(
+                &scenario.events,
+                MeshStrategy::SafetyFirstValueOfInformation,
+                budget,
+            )
+            .unwrap();
+
+            assert!(plan.refined_event_ids.contains(&"storm-outage".to_owned()));
+            assert_eq!(
+                plan.refined_event_ids.contains(&"morning-ramp".to_owned()),
+                morning
+            );
+            assert_eq!(
+                plan.refined_event_ids.contains(&"evening-peak".to_owned()),
+                evening
+            );
+            assert!(plan.accepted());
+        }
     }
 
     #[test]
