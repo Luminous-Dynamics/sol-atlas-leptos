@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/energy-dispatch-schedule-v0.1.json",
+  "title": "Energy Dispatch Schedule v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "case_id",
+    "request_sha256",
+    "interval_dispatches",
+    "terminal_soc_quanta"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "energy-dispatch-schedule-v0.1"
+    },
+    "case_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "request_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "interval_dispatches": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": {
+        "$ref": "#/$defs/interval_dispatch"
+      }
+    },
+    "terminal_soc_quanta": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 65535
+    }
+  },
+  "$defs": {
+    "interval_dispatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "interval_id",
+        "grid_import_quanta",
+        "charge_input_quanta",
+        "discharge_withdrawal_quanta",
+        "soc_after_quanta",
+        "essential_served_quanta",
+        "essential_unserved_quanta",
+        "flexible_served_quanta",
+        "flexible_unserved_quanta",
+        "pv_used_quanta",
+        "pv_curtailed_quanta"
+      ],
+      "properties": {
+        "interval_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "grid_import_quanta": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "charge_input_quanta": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "discharge_withdrawal_quanta": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "soc_after_quanta": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "essential_served_quanta": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "essential_unserved_quanta": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "flexible_served_quanta": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "flexible_unserved_quanta": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "pv_used_quanta": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "pv_curtailed_quanta": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        }
+      }
+    }
+  }
+}
