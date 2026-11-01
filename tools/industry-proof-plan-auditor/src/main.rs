@@ -1319,6 +1319,8 @@ mod tests {
         json!({
             "schema_version": REPORT_SCHEMA,
             "request_id": inputs.request_id,
+            "decision_tier": inputs.tier,
+            "evaluated_at": inputs.evaluated_at,
             "request_sha256": digest(request_bytes),
             "risk_control_report_sha256": inputs.report_digest,
             "profile_sha256": inputs.profile_digest,
