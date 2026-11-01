@@ -96,6 +96,9 @@ impl fmt::Display for MeshError {
             Self::InvalidEventWindow => {
                 formatter.write_str("event window must be non-empty and inside the horizon")
             }
+            Self::InvalidMeshCertificate => {
+                formatter.write_str("mesh certificate does not match its declared strategy or metrics")
+            }
             Self::SafetyBudgetInsufficient {
                 minimum_required,
                 available,
