@@ -809,10 +809,10 @@ pub fn derive_reference_model(
             ObjectiveId::TerminalSocQuanta => Vec::new(),
         };
         for (coefficient, variable) in objective_terms {
-            if coefficient != 0 {
-                if model.objective.insert(variable.clone(), coefficient).is_some() {
-                    return Err(error(format!("duplicate objective term: {variable}")));
-                }
+            if coefficient != 0
+                && model.objective.insert(variable.clone(), coefficient).is_some()
+            {
+                return Err(error(format!("duplicate objective term: {variable}")));
             }
         }
     }
@@ -878,10 +878,10 @@ fn validate_request(request: &Request) -> Result<(), ValidationError> {
         if interval.duration_seconds == 0 {
             return Err(error(format!("interval {} has zero duration", interval.interval_id)));
         }
-        if let Some(expected) = expected_start {
-            if expected != interval.start_unix_seconds {
-                return Err(error(format!("interval {} breaks chronology", interval.interval_id)));
-            }
+        if let Some(expected) = expected_start
+            && expected != interval.start_unix_seconds
+        {
+            return Err(error(format!("interval {} breaks chronology", interval.interval_id)));
         }
         let duration = i64::try_from(interval.duration_seconds)
             .map_err(|_| error("interval duration exceeds signed chronology range"))?;
@@ -1482,7 +1482,7 @@ mod tests {
                 let value = lower + i64::try_from(state % width).unwrap();
                 assignment.insert(name.clone(), value);
             }
-            let model_accepts = model_accepts_assignment(&model, &assignment);
+            let model_accepts = model_accepts_assignment(model, &assignment);
             let schedule_accepts = schedule_spec_accepts_assignment(&request, &assignment);
             assert_eq!(
                 model_accepts,
