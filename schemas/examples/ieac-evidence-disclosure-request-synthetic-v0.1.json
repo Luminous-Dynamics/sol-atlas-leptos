@@ -43,5 +43,6 @@
     "salt_disclosure": "holder_only",
     "transparency_payload": "digest_only"
   },
-  "action_authority": "none"
+  "action_authority": "none",
+  "holder_key_binding_required": true
 }
