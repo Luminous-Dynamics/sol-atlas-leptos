@@ -241,7 +241,8 @@
                 "major",
                 "severe",
                 "catastrophic",
-                "unknown"
+                "unknown",
+                "conflicted"
               ]
             },
             "model_influence": {
@@ -251,7 +252,8 @@
                 "constraint_gating",
                 "selection",
                 "direct_actuation",
-                "unknown"
+                "unknown",
+                "conflicted"
               ]
             },
             "exposure": {
@@ -261,7 +263,8 @@
                 "multi_site",
                 "regional",
                 "national_or_larger",
-                "unknown"
+                "unknown",
+                "conflicted"
               ]
             },
             "reversibility": {
@@ -269,7 +272,8 @@
                 "readily_reversible",
                 "costly_or_delayed",
                 "difficult_or_irreversible",
-                "unknown"
+                "unknown",
+                "conflicted"
               ]
             },
             "detectability": {
@@ -277,7 +281,8 @@
                 "immediate_and_reliable",
                 "delayed_or_partial",
                 "poor",
-                "unknown"
+                "unknown",
+                "conflicted"
               ]
             },
             "fallback": {
@@ -286,7 +291,8 @@
                 "human_fallback",
                 "degraded_fallback",
                 "no_verified_fallback",
-                "unknown"
+                "unknown",
+                "conflicted"
               ]
             }
           }
@@ -303,7 +309,8 @@
         },
         "reviewed_at": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
         },
         "rule_set_version": {
           "type": "string",
@@ -539,11 +546,13 @@
       "properties": {
         "valid_from": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
         },
         "review_by": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
         },
         "requalification_triggers": {
           "type": "array",
@@ -632,7 +641,8 @@
         },
         "reviewed_at": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
         },
         "evidence": {
           "type": "array",
@@ -675,11 +685,13 @@
               },
               "observed_at": {
                 "type": "string",
-                "format": "date-time"
+                "format": "date-time",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
               },
               "valid_until": {
                 "type": "string",
-                "format": "date-time"
+                "format": "date-time",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
               },
               "verifier_id": {
                 "type": "string",

@@ -1,0 +1,896 @@
+{
+  "schema_version": "luminous.ieac-risk-assurance-policy.v0.1",
+  "policy_id": "IEAC-RISK-CONTROLS-001",
+  "policy_version": "0.1.0",
+  "selector_version": "industry-risk-control-selector/0.1.0",
+  "control_catalog": [
+    {
+      "control_id": "SOFT",
+      "evidence_dimension": "software_conformance",
+      "description": "soft"
+    },
+    {
+      "control_id": "NUM",
+      "evidence_dimension": "numerical_verification",
+      "description": "num"
+    },
+    {
+      "control_id": "DATA",
+      "evidence_dimension": "data_integrity_rights",
+      "description": "data"
+    },
+    {
+      "control_id": "SCOPE",
+      "evidence_dimension": "uncertainty_credibility",
+      "description": "scope"
+    },
+    {
+      "control_id": "PHYS",
+      "evidence_dimension": "physical_validation",
+      "description": "phys"
+    },
+    {
+      "control_id": "CAL",
+      "evidence_dimension": "uncertainty_credibility",
+      "description": "cal"
+    },
+    {
+      "control_id": "HOLD",
+      "evidence_dimension": "generalization",
+      "description": "hold"
+    },
+    {
+      "control_id": "OOD",
+      "evidence_dimension": "robustness",
+      "description": "ood"
+    },
+    {
+      "control_id": "STRESS",
+      "evidence_dimension": "robustness",
+      "description": "stress"
+    },
+    {
+      "control_id": "HUMAN",
+      "evidence_dimension": "operational_assurance",
+      "description": "human"
+    },
+    {
+      "control_id": "AUDIT",
+      "evidence_dimension": "operational_assurance",
+      "description": "audit"
+    },
+    {
+      "control_id": "INDEP",
+      "evidence_dimension": "numerical_verification",
+      "description": "indep"
+    },
+    {
+      "control_id": "LIMIT",
+      "evidence_dimension": "safety_security_authority",
+      "description": "limit"
+    },
+    {
+      "control_id": "ROLLBACK",
+      "evidence_dimension": "operational_assurance",
+      "description": "rollback"
+    },
+    {
+      "control_id": "MONITOR",
+      "evidence_dimension": "operational_assurance",
+      "description": "monitor"
+    },
+    {
+      "control_id": "FALLBACK",
+      "evidence_dimension": "operational_assurance",
+      "description": "fallback"
+    },
+    {
+      "control_id": "HAZARD",
+      "evidence_dimension": "safety_security_authority",
+      "description": "hazard"
+    },
+    {
+      "control_id": "SAFETY",
+      "evidence_dimension": "safety_security_authority",
+      "description": "safety"
+    },
+    {
+      "control_id": "DUAL",
+      "evidence_dimension": "safety_security_authority",
+      "description": "dual"
+    },
+    {
+      "control_id": "HIL",
+      "evidence_dimension": "physical_validation",
+      "description": "hil"
+    },
+    {
+      "control_id": "CASE",
+      "evidence_dimension": "safety_security_authority",
+      "description": "case"
+    },
+    {
+      "control_id": "FAILSAFE",
+      "evidence_dimension": "safety_security_authority",
+      "description": "failsafe"
+    },
+    {
+      "control_id": "ESTOP",
+      "evidence_dimension": "safety_security_authority",
+      "description": "estop"
+    },
+    {
+      "control_id": "ISOLATE",
+      "evidence_dimension": "safety_security_authority",
+      "description": "isolate"
+    },
+    {
+      "control_id": "STAGED",
+      "evidence_dimension": "operational_assurance",
+      "description": "staged"
+    },
+    {
+      "control_id": "DRIFT",
+      "evidence_dimension": "operational_assurance",
+      "description": "drift"
+    },
+    {
+      "control_id": "CANARY",
+      "evidence_dimension": "operational_assurance",
+      "description": "canary"
+    },
+    {
+      "control_id": "REGIONAL",
+      "evidence_dimension": "generalization",
+      "description": "regional"
+    },
+    {
+      "control_id": "COMMON",
+      "evidence_dimension": "robustness",
+      "description": "common"
+    },
+    {
+      "control_id": "GOVERN",
+      "evidence_dimension": "safety_security_authority",
+      "description": "govern"
+    },
+    {
+      "control_id": "BOUNDED",
+      "evidence_dimension": "safety_security_authority",
+      "description": "bounded"
+    },
+    {
+      "control_id": "PRECHECK",
+      "evidence_dimension": "numerical_verification",
+      "description": "precheck"
+    },
+    {
+      "control_id": "REVERSIBILITY",
+      "evidence_dimension": "safety_security_authority",
+      "description": "reversibility"
+    },
+    {
+      "control_id": "REDUNDANT",
+      "evidence_dimension": "operational_assurance",
+      "description": "redundant"
+    },
+    {
+      "control_id": "INSPECT",
+      "evidence_dimension": "physical_validation",
+      "description": "inspect"
+    },
+    {
+      "control_id": "FAILMON",
+      "evidence_dimension": "safety_security_authority",
+      "description": "failmon"
+    },
+    {
+      "control_id": "DRILL",
+      "evidence_dimension": "operational_assurance",
+      "description": "drill"
+    },
+    {
+      "control_id": "DEGRADED",
+      "evidence_dimension": "operational_assurance",
+      "description": "degraded"
+    },
+    {
+      "control_id": "FLOOR",
+      "evidence_dimension": "operational_assurance",
+      "description": "floor"
+    },
+    {
+      "control_id": "STOP",
+      "evidence_dimension": "safety_security_authority",
+      "description": "stop"
+    },
+    {
+      "control_id": "SAFESTATE",
+      "evidence_dimension": "safety_security_authority",
+      "description": "safestate"
+    },
+    {
+      "control_id": "FALLBACK_BUILD",
+      "evidence_dimension": "operational_assurance",
+      "description": "fallback build"
+    },
+    {
+      "control_id": "RECOVERY",
+      "evidence_dimension": "operational_assurance",
+      "description": "recovery"
+    },
+    {
+      "control_id": "SENSITIVITY",
+      "evidence_dimension": "uncertainty_credibility",
+      "description": "sensitivity"
+    },
+    {
+      "control_id": "REVIEW_UNKNOWN",
+      "evidence_dimension": "safety_security_authority",
+      "description": "review unknown"
+    }
+  ],
+  "tier_minimums": [
+    {
+      "decision_tier": "D0_descriptive",
+      "control_ids": [
+        "SOFT",
+        "NUM",
+        "DATA",
+        "SCOPE"
+      ],
+      "reason_code": "TIER_MINIMUM_D0_DESCRIPTIVE"
+    },
+    {
+      "decision_tier": "D1_advisory",
+      "control_ids": [
+        "SOFT",
+        "NUM",
+        "DATA",
+        "SCOPE",
+        "PHYS",
+        "CAL",
+        "HOLD",
+        "STRESS",
+        "OOD",
+        "HUMAN",
+        "AUDIT"
+      ],
+      "reason_code": "TIER_MINIMUM_D1_ADVISORY"
+    },
+    {
+      "decision_tier": "D2_delegated_planning",
+      "control_ids": [
+        "SOFT",
+        "NUM",
+        "DATA",
+        "SCOPE",
+        "PHYS",
+        "CAL",
+        "HOLD",
+        "STRESS",
+        "OOD",
+        "HUMAN",
+        "AUDIT",
+        "INDEP",
+        "LIMIT",
+        "ROLLBACK",
+        "MONITOR",
+        "FALLBACK",
+        "STAGED"
+      ],
+      "reason_code": "TIER_MINIMUM_D2_DELEGATED_PLANNING"
+    },
+    {
+      "decision_tier": "D3_autonomous_control",
+      "control_ids": [
+        "SOFT",
+        "NUM",
+        "DATA",
+        "SCOPE",
+        "PHYS",
+        "CAL",
+        "HOLD",
+        "STRESS",
+        "OOD",
+        "HUMAN",
+        "AUDIT",
+        "INDEP",
+        "LIMIT",
+        "ROLLBACK",
+        "MONITOR",
+        "FALLBACK",
+        "STAGED",
+        "HAZARD",
+        "SAFETY",
+        "DUAL",
+        "HIL",
+        "CASE",
+        "FAILSAFE",
+        "ESTOP",
+        "ISOLATE",
+        "DRIFT",
+        "CANARY"
+      ],
+      "reason_code": "TIER_MINIMUM_D3_AUTONOMOUS_CONTROL"
+    }
+  ],
+  "dimension_rules": [
+    {
+      "dimension": "consequence",
+      "value": "negligible",
+      "control_ids": [],
+      "reason_code": "RISK_CONSEQUENCE_NEGLIGIBLE"
+    },
+    {
+      "dimension": "consequence",
+      "value": "minor",
+      "control_ids": [
+        "CAL",
+        "HUMAN"
+      ],
+      "reason_code": "RISK_CONSEQUENCE_MINOR"
+    },
+    {
+      "dimension": "consequence",
+      "value": "major",
+      "control_ids": [
+        "CAL",
+        "HOLD",
+        "HUMAN",
+        "PHYS",
+        "STRESS"
+      ],
+      "reason_code": "RISK_CONSEQUENCE_MAJOR"
+    },
+    {
+      "dimension": "consequence",
+      "value": "severe",
+      "control_ids": [
+        "CAL",
+        "DUAL",
+        "FALLBACK",
+        "HAZARD",
+        "HOLD",
+        "HUMAN",
+        "MONITOR",
+        "PHYS",
+        "ROLLBACK",
+        "SAFETY",
+        "STRESS"
+      ],
+      "reason_code": "RISK_CONSEQUENCE_SEVERE"
+    },
+    {
+      "dimension": "consequence",
+      "value": "catastrophic",
+      "control_ids": [
+        "CAL",
+        "CASE",
+        "DUAL",
+        "ESTOP",
+        "FAILSAFE",
+        "FALLBACK",
+        "HAZARD",
+        "HIL",
+        "HOLD",
+        "HUMAN",
+        "ISOLATE",
+        "MONITOR",
+        "PHYS",
+        "ROLLBACK",
+        "SAFETY",
+        "STRESS"
+      ],
+      "reason_code": "RISK_CONSEQUENCE_CATASTROPHIC"
+    },
+    {
+      "dimension": "consequence",
+      "value": "unknown",
+      "control_ids": [
+        "CAL",
+        "CASE",
+        "DUAL",
+        "ESTOP",
+        "FAILSAFE",
+        "FALLBACK",
+        "HAZARD",
+        "HIL",
+        "HOLD",
+        "HUMAN",
+        "ISOLATE",
+        "MONITOR",
+        "PHYS",
+        "REVIEW_UNKNOWN",
+        "ROLLBACK",
+        "SAFETY",
+        "STRESS"
+      ],
+      "reason_code": "RISK_CONSEQUENCE_UNKNOWN"
+    },
+    {
+      "dimension": "model_influence",
+      "value": "informational",
+      "control_ids": [],
+      "reason_code": "RISK_MODEL_INFLUENCE_INFORMATIONAL"
+    },
+    {
+      "dimension": "model_influence",
+      "value": "advisory",
+      "control_ids": [
+        "CAL",
+        "HUMAN",
+        "OOD"
+      ],
+      "reason_code": "RISK_MODEL_INFLUENCE_ADVISORY"
+    },
+    {
+      "dimension": "model_influence",
+      "value": "constraint_gating",
+      "control_ids": [
+        "AUDIT",
+        "CAL",
+        "HUMAN",
+        "INDEP",
+        "OOD",
+        "SENSITIVITY",
+        "STRESS"
+      ],
+      "reason_code": "RISK_MODEL_INFLUENCE_CONSTRAINT_GATING"
+    },
+    {
+      "dimension": "model_influence",
+      "value": "selection",
+      "control_ids": [
+        "AUDIT",
+        "CAL",
+        "HUMAN",
+        "INDEP",
+        "OOD",
+        "SENSITIVITY",
+        "STRESS"
+      ],
+      "reason_code": "RISK_MODEL_INFLUENCE_SELECTION"
+    },
+    {
+      "dimension": "model_influence",
+      "value": "direct_actuation",
+      "control_ids": [
+        "AUDIT",
+        "CAL",
+        "DUAL",
+        "ESTOP",
+        "FAILSAFE",
+        "HIL",
+        "HUMAN",
+        "INDEP",
+        "ISOLATE",
+        "MONITOR",
+        "OOD",
+        "SENSITIVITY",
+        "STRESS"
+      ],
+      "reason_code": "RISK_MODEL_INFLUENCE_DIRECT_ACTUATION"
+    },
+    {
+      "dimension": "model_influence",
+      "value": "unknown",
+      "control_ids": [
+        "AUDIT",
+        "CAL",
+        "DUAL",
+        "ESTOP",
+        "FAILSAFE",
+        "HIL",
+        "HUMAN",
+        "INDEP",
+        "ISOLATE",
+        "MONITOR",
+        "OOD",
+        "REVIEW_UNKNOWN",
+        "SENSITIVITY",
+        "STRESS"
+      ],
+      "reason_code": "RISK_MODEL_INFLUENCE_UNKNOWN"
+    },
+    {
+      "dimension": "exposure",
+      "value": "single_asset",
+      "control_ids": [
+        "HOLD"
+      ],
+      "reason_code": "RISK_EXPOSURE_SINGLE_ASSET"
+    },
+    {
+      "dimension": "exposure",
+      "value": "site_or_facility",
+      "control_ids": [
+        "HOLD",
+        "MONITOR"
+      ],
+      "reason_code": "RISK_EXPOSURE_SITE_OR_FACILITY"
+    },
+    {
+      "dimension": "exposure",
+      "value": "multi_site",
+      "control_ids": [
+        "CANARY",
+        "COMMON",
+        "DRIFT",
+        "HOLD",
+        "MONITOR",
+        "STAGED"
+      ],
+      "reason_code": "RISK_EXPOSURE_MULTI_SITE"
+    },
+    {
+      "dimension": "exposure",
+      "value": "regional",
+      "control_ids": [
+        "CANARY",
+        "COMMON",
+        "DRIFT",
+        "HOLD",
+        "MONITOR",
+        "REGIONAL",
+        "STAGED"
+      ],
+      "reason_code": "RISK_EXPOSURE_REGIONAL"
+    },
+    {
+      "dimension": "exposure",
+      "value": "national_or_larger",
+      "control_ids": [
+        "CANARY",
+        "COMMON",
+        "DRIFT",
+        "GOVERN",
+        "HOLD",
+        "MONITOR",
+        "REGIONAL",
+        "STAGED"
+      ],
+      "reason_code": "RISK_EXPOSURE_NATIONAL_OR_LARGER"
+    },
+    {
+      "dimension": "exposure",
+      "value": "unknown",
+      "control_ids": [
+        "CANARY",
+        "COMMON",
+        "DRIFT",
+        "GOVERN",
+        "HOLD",
+        "MONITOR",
+        "REGIONAL",
+        "REVIEW_UNKNOWN",
+        "STAGED"
+      ],
+      "reason_code": "RISK_EXPOSURE_UNKNOWN"
+    },
+    {
+      "dimension": "reversibility",
+      "value": "readily_reversible",
+      "control_ids": [
+        "ROLLBACK"
+      ],
+      "reason_code": "RISK_REVERSIBILITY_READILY_REVERSIBLE"
+    },
+    {
+      "dimension": "reversibility",
+      "value": "costly_or_delayed",
+      "control_ids": [
+        "BOUNDED",
+        "HUMAN",
+        "MONITOR",
+        "ROLLBACK"
+      ],
+      "reason_code": "RISK_REVERSIBILITY_COSTLY_OR_DELAYED"
+    },
+    {
+      "dimension": "reversibility",
+      "value": "difficult_or_irreversible",
+      "control_ids": [
+        "BOUNDED",
+        "DUAL",
+        "HAZARD",
+        "HUMAN",
+        "MONITOR",
+        "PRECHECK",
+        "REVERSIBILITY",
+        "ROLLBACK"
+      ],
+      "reason_code": "RISK_REVERSIBILITY_DIFFICULT_OR_IRREVERSIBLE"
+    },
+    {
+      "dimension": "reversibility",
+      "value": "unknown",
+      "control_ids": [
+        "BOUNDED",
+        "DUAL",
+        "HAZARD",
+        "HUMAN",
+        "MONITOR",
+        "PRECHECK",
+        "REVERSIBILITY",
+        "REVIEW_UNKNOWN",
+        "ROLLBACK"
+      ],
+      "reason_code": "RISK_REVERSIBILITY_UNKNOWN"
+    },
+    {
+      "dimension": "detectability",
+      "value": "immediate_and_reliable",
+      "control_ids": [],
+      "reason_code": "RISK_DETECTABILITY_IMMEDIATE_AND_RELIABLE"
+    },
+    {
+      "dimension": "detectability",
+      "value": "delayed_or_partial",
+      "control_ids": [
+        "DRIFT",
+        "INSPECT",
+        "MONITOR",
+        "REDUNDANT"
+      ],
+      "reason_code": "RISK_DETECTABILITY_DELAYED_OR_PARTIAL"
+    },
+    {
+      "dimension": "detectability",
+      "value": "poor",
+      "control_ids": [
+        "DRIFT",
+        "ESTOP",
+        "FAILMON",
+        "INSPECT",
+        "MONITOR",
+        "REDUNDANT",
+        "SAFETY"
+      ],
+      "reason_code": "RISK_DETECTABILITY_POOR"
+    },
+    {
+      "dimension": "detectability",
+      "value": "unknown",
+      "control_ids": [
+        "DRIFT",
+        "ESTOP",
+        "FAILMON",
+        "INSPECT",
+        "MONITOR",
+        "REDUNDANT",
+        "REVIEW_UNKNOWN",
+        "SAFETY"
+      ],
+      "reason_code": "RISK_DETECTABILITY_UNKNOWN"
+    },
+    {
+      "dimension": "fallback",
+      "value": "independent_tested_fallback",
+      "control_ids": [
+        "FALLBACK"
+      ],
+      "reason_code": "RISK_FALLBACK_INDEPENDENT_TESTED_FALLBACK"
+    },
+    {
+      "dimension": "fallback",
+      "value": "human_fallback",
+      "control_ids": [
+        "DRILL",
+        "FALLBACK",
+        "HUMAN"
+      ],
+      "reason_code": "RISK_FALLBACK_HUMAN_FALLBACK"
+    },
+    {
+      "dimension": "fallback",
+      "value": "degraded_fallback",
+      "control_ids": [
+        "DEGRADED",
+        "DRILL",
+        "FALLBACK",
+        "FLOOR",
+        "HUMAN"
+      ],
+      "reason_code": "RISK_FALLBACK_DEGRADED_FALLBACK"
+    },
+    {
+      "dimension": "fallback",
+      "value": "no_verified_fallback",
+      "control_ids": [
+        "DEGRADED",
+        "DRILL",
+        "FALLBACK",
+        "FALLBACK_BUILD",
+        "FLOOR",
+        "HUMAN",
+        "RECOVERY",
+        "SAFESTATE",
+        "STOP"
+      ],
+      "reason_code": "RISK_FALLBACK_NO_VERIFIED_FALLBACK"
+    },
+    {
+      "dimension": "fallback",
+      "value": "unknown",
+      "control_ids": [
+        "DEGRADED",
+        "DRILL",
+        "FALLBACK",
+        "FALLBACK_BUILD",
+        "FLOOR",
+        "HUMAN",
+        "RECOVERY",
+        "REVIEW_UNKNOWN",
+        "SAFESTATE",
+        "STOP"
+      ],
+      "reason_code": "RISK_FALLBACK_UNKNOWN"
+    }
+  ],
+  "combination_rules": [
+    {
+      "rule_id": "high_consequence_direct_actuation",
+      "conditions": [
+        {
+          "dimension": "consequence",
+          "values": [
+            "severe",
+            "catastrophic"
+          ]
+        },
+        {
+          "dimension": "model_influence",
+          "values": [
+            "direct_actuation"
+          ]
+        }
+      ],
+      "control_ids": [
+        "SAFETY",
+        "DUAL",
+        "HIL",
+        "CASE"
+      ],
+      "reason_code": "COMPOUND_HIGH_CONSEQUENCE_ACTUATION"
+    },
+    {
+      "rule_id": "poor_detectability_no_fallback",
+      "conditions": [
+        {
+          "dimension": "detectability",
+          "values": [
+            "poor"
+          ]
+        },
+        {
+          "dimension": "fallback",
+          "values": [
+            "no_verified_fallback"
+          ]
+        }
+      ],
+      "control_ids": [
+        "STOP",
+        "SAFESTATE",
+        "FAILMON"
+      ],
+      "reason_code": "NO_DETECTABLE_SAFE_FALLBACK"
+    },
+    {
+      "rule_id": "irreversible_undetectable",
+      "conditions": [
+        {
+          "dimension": "reversibility",
+          "values": [
+            "difficult_or_irreversible"
+          ]
+        },
+        {
+          "dimension": "detectability",
+          "values": [
+            "poor",
+            "delayed_or_partial"
+          ]
+        }
+      ],
+      "control_ids": [
+        "PRECHECK",
+        "DUAL",
+        "INSPECT"
+      ],
+      "reason_code": "IRREVERSIBLE_LOW_DETECTABILITY"
+    },
+    {
+      "rule_id": "broad_high_consequence",
+      "conditions": [
+        {
+          "dimension": "consequence",
+          "values": [
+            "major",
+            "severe",
+            "catastrophic"
+          ]
+        },
+        {
+          "dimension": "exposure",
+          "values": [
+            "regional",
+            "national_or_larger"
+          ]
+        }
+      ],
+      "control_ids": [
+        "STAGED",
+        "CANARY",
+        "GOVERN"
+      ],
+      "reason_code": "BROAD_HIGH_CONSEQUENCE"
+    }
+  ],
+  "unknown_policy": {
+    "mode": "worst_case_union_plus_review",
+    "additional_control_ids": [
+      "REVIEW_UNKNOWN"
+    ],
+    "never_reduce_controls": true,
+    "worst_case_values": {
+      "consequence": "catastrophic",
+      "model_influence": "direct_actuation",
+      "exposure": "national_or_larger",
+      "reversibility": "difficult_or_irreversible",
+      "detectability": "poor",
+      "fallback": "no_verified_fallback"
+    }
+  },
+  "reviewed_class_rules": [
+    {
+      "reviewed_class": "low",
+      "additional_control_ids": []
+    },
+    {
+      "reviewed_class": "moderate",
+      "additional_control_ids": []
+    },
+    {
+      "reviewed_class": "high",
+      "additional_control_ids": [
+        "SAFETY",
+        "MONITOR",
+        "STRESS"
+      ]
+    },
+    {
+      "reviewed_class": "critical",
+      "additional_control_ids": [
+        "SAFETY",
+        "MONITOR",
+        "STRESS",
+        "HAZARD",
+        "DUAL",
+        "FAILSAFE"
+      ]
+    },
+    {
+      "reviewed_class": "unassessed",
+      "additional_control_ids": [
+        "REVIEW_UNKNOWN",
+        "SAFETY",
+        "MONITOR",
+        "STRESS",
+        "HAZARD",
+        "DUAL",
+        "FAILSAFE",
+        "SAFESTATE"
+      ]
+    }
+  ],
+  "action_policy": {
+    "direct_actuation_requires_tier": "D3_autonomous_control",
+    "selector_may_authorize_action": false,
+    "selector_may_upgrade_tier": false,
+    "unknown_risk_blocks_clearance": true
+  },
+  "action_authority": "none",
+  "independent_qualification_attested": false
+}
