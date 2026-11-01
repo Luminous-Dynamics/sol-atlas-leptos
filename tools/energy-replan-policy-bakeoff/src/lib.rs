@@ -791,6 +791,68 @@ mod tests {
     }
 
     #[test]
+    fn unavailable_audit_never_counts_as_usable_schedule() {
+        let mut scenario = scenario_of(ScenarioKind::SuddenOutage, 0);
+        let execution = scenario
+            .truth
+            .replan_executions
+            .iter_mut()
+            .find(|entry| entry.requested_at_step == 2)
+            .unwrap();
+        execution.audit_outcome = AuditOutcomeTruth::Unavailable;
+
+        let actions = scenario
+            .observations
+            .iter()
+            .map(|observation| {
+                if observation.step == 2 {
+                    ReplanAction::RequestReplan
+                } else {
+                    ReplanAction::KeepPlan
+                }
+            })
+            .collect();
+        let run = evaluate_run(PolicyKind::HybridSafetyOverride, &scenario, actions);
+
+        assert_eq!(run.solver_completed, 1);
+        assert_eq!(run.auditor_unavailable, 1);
+        assert_eq!(run.accepted_replans, 0);
+        assert_eq!(run.timely_detections, 0);
+        assert_eq!(run.missed_events, 1);
+    }
+
+    #[test]
+    fn duplicate_execution_receipts_are_ambiguous_and_not_accepted() {
+        let mut scenario = scenario_of(ScenarioKind::SuddenOutage, 0);
+        let duplicate = scenario
+            .truth
+            .replan_executions
+            .iter()
+            .find(|entry| entry.requested_at_step == 2)
+            .copied()
+            .unwrap();
+        scenario.truth.replan_executions.push(duplicate);
+
+        let actions = scenario
+            .observations
+            .iter()
+            .map(|observation| {
+                if observation.step == 2 {
+                    ReplanAction::RequestReplan
+                } else {
+                    ReplanAction::KeepPlan
+                }
+            })
+            .collect();
+        let run = evaluate_run(PolicyKind::HybridSafetyOverride, &scenario, actions);
+
+        assert_eq!(run.solver_failures, 1);
+        assert_eq!(run.accepted_replans, 0);
+        assert_eq!(run.timely_detections, 0);
+        assert_eq!(run.missed_events, 1);
+    }
+
+    #[test]
     fn a_solver_timeout_is_counted_but_never_treated_as_a_schedule() {
         let mut scenario = scenario_of(ScenarioKind::SuddenOutage, 0);
         let execution = scenario
