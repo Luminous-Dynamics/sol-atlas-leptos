@@ -609,12 +609,7 @@ mod tests {
             event("overlap", 240, 360, 4_000, false),
             event("separate", 360, 420, 3_000, false),
         ];
-        let plan = plan_mesh(
-            &events,
-            MeshStrategy::SafetyFirstValueOfInformation,
-            33,
-        )
-        .unwrap();
+        let plan = plan_mesh(&events, MeshStrategy::SafetyFirstValueOfInformation, 33).unwrap();
 
         // First consumes six extra cells. The overlap then costs only three
         // marginal cells and outranks the separate lower-density event.
