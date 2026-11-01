@@ -12,6 +12,9 @@ on:
       - "schemas/industry-signed-envelope-v0.2.schema.json"
       - "schemas/examples/ieac-signed-envelope-synthetic-v0.2.json"
       - "schemas/examples/ieac-jcs-vectors-v0.2.json"
+      - "schemas/industry-scitt-decision-statement-v0.1.schema.json"
+      - "schemas/examples/ieac-scitt-decision-statement-synthetic-v0.1.json"
+      - "docs/industry/IEAC_SCITT_TRANSPARENCY_V0.1.md"
       - "docs/industry/IEAC_TRUST_V0.2_SIGNED_ENVELOPE_PROFILE.md"
       - "schemas/industry-assurance-qualification-profile-v0.1.schema.json"
       - "schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json"
@@ -31,6 +34,9 @@ on:
       - "schemas/industry-signed-envelope-v0.2.schema.json"
       - "schemas/examples/ieac-signed-envelope-synthetic-v0.2.json"
       - "schemas/examples/ieac-jcs-vectors-v0.2.json"
+      - "schemas/industry-scitt-decision-statement-v0.1.schema.json"
+      - "schemas/examples/ieac-scitt-decision-statement-synthetic-v0.1.json"
+      - "docs/industry/IEAC_SCITT_TRANSPARENCY_V0.1.md"
       - "docs/industry/IEAC_TRUST_V0.2_SIGNED_ENVELOPE_PROFILE.md"
       - "schemas/industry-assurance-qualification-profile-v0.1.schema.json"
       - "schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json"
@@ -216,6 +222,63 @@ jobs:
             actual="$(printf '%s' "$canonical" | sha256sum | awk '{print $1}')"
             test "$actual" = "$expected"
           done < <(jq -r '.vectors[] | [.canonical_utf8, .canonical_sha256] | @base64' schemas/examples/ieac-jcs-vectors-v0.2.json)
+
+      - name: Validate IEAC SCITT decision statements and synthetic causal chain
+        run: |
+          set -euo pipefail
+          meta=https://json-schema.org/draft/2020-12/schema
+          schema=schemas/industry-scitt-decision-statement-v0.1.schema.json
+          fixture=schemas/examples/ieac-scitt-decision-statement-synthetic-v0.1.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i "$schema"
+          jq -e '
+            .fixture_schema_version == "luminous.ieac-scitt-fixture-corpus.v0.1" and
+            .fixture_status == "synthetic_only" and
+            .statement_content_type == "application/vnd.luminous.ieac.scitt-decision-statement.v0.1+json" and
+            (.events | length == 4) and
+            .expected.event_count == 4 and
+            .expected.issuer_subject_streams == 3 and
+            .expected.causal_edges == 3 and
+            .expected.same_issuer_sequence_advances == 1 and
+            .expected.latest_ieac_disposition == "abstain" and
+            .expected.action_authority == "none"
+          ' "$fixture"
+          jq -c '.events[]' "$fixture" | while IFS= read -r event; do
+            printf '%s\n' "$event" > "$RUNNER_TEMP/ieac-scitt-event.json"
+            jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$RUNNER_TEMP/ieac-scitt-event.json"
+          done
+          # This fixture intentionally uses only ASCII strings and safe integers.
+          # jq -cS therefore matches its frozen JCS byte representation here;
+          # jq is not asserted to be a general RFC 8785 implementation.
+          while IFS=        run: |
+          set -euo pipefail
+          source=schemas/examples/industry-runtime-admission-request-synthetic-v0.1.json
+          schema=schemas/industry-runtime-admission-request-v0.1.schema.json
+          jq '.unrecognized = true' "$source" > "$RUNNER_TEMP/unknown.json"
+          jq '.as_of = "2026-99-99T99:99:99Z"' "$source" > "$RUNNER_TEMP/bad-time.json"
+          for mutant in "$RUNNER_TEMP/unknown.json" "$RUNNER_TEMP/bad-time.json"; do
+            if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$mutant"; then
+              echo "ERROR: request schema accepted negative control $mutant"
+              exit 1
+            fi
+          done
+\t' read -r event_id expected; do
+            actual="$(jq -cS --arg id "$event_id" '.events[] | select(.event_id == $id)' "$fixture" | sha256sum | awk '{print $1}')"
+            test "$actual" = "$expected"
+          done < <(jq -r '.expected.event_payload_sha256 | to_entries[] | [.key,.value] | @tsv' "$fixture")
+          # Resolve every causal edge and predecessor against the frozen digest map.
+          jq -e '
+            def h($id): .expected.event_payload_sha256[$id];
+            ([.events[] | select(.event_id == "event-verdict-001")][0].causal_parent_payload_sha256 == [h("event-request-001")]) and
+            ([.events[] | select(.event_id == "event-outcome-001")][0].causal_parent_payload_sha256 == [h("event-verdict-001")]) and
+            ([.events[] | select(.event_id == "event-verdict-002")][0].previous_event_payload_sha256 == h("event-verdict-001")) and
+            ([.events[] | select(.event_id == "event-verdict-002")][0].causal_parent_payload_sha256 == [h("event-outcome-001")])
+          ' "$fixture"
+          # A widened action claim must be rejected by the payload schema.
+          jq '.events[0].action_authority = "execute"' "$fixture" | jq -c '.events[0]' > "$RUNNER_TEMP/ieac-scitt-invalid.json"
+          if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$RUNNER_TEMP/ieac-scitt-invalid.json"; then
+            echo "ERROR: SCITT fixture schema accepted an unauthorized action claim"
+            exit 1
+          fi
 
       - name: Prove unknown request fields and malformed time are rejected
         run: |
