@@ -1,4 +1,4 @@
-use energy_temporal_mesh_voi::{frozen_scenarios, plan_mesh, MeshStrategy};
+use energy_temporal_mesh_voi::{MeshStrategy, frozen_scenarios, plan_mesh};
 
 fn main() {
     println!("# schema=energy-temporal-mesh-budget-report-v0.1");
@@ -8,11 +8,7 @@ fn main() {
 
     for scenario in frozen_scenarios() {
         for strategy in MeshStrategy::ALL {
-            match plan_mesh(
-                &scenario.events,
-                strategy,
-                scenario.compute_budget_units,
-            ) {
+            match plan_mesh(&scenario.events, strategy, scenario.compute_budget_units) {
                 Ok(plan) => println!(
                     "{},{},{},{},{},{},{},{},{},{}",
                     scenario.id,
