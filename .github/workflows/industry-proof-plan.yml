@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - "tools/industry-proof-plan/**"
+      - "tools/industry-proof-plan-auditor/**"
+      - "schemas/ieac-proof-plan-audit-report-v0.1.schema.json"
       - "schemas/ieac-proof-plan-*.json"
       - "schemas/examples/ieac-proof-plan-*.json"
       - ".github/workflows/industry-proof-plan.yml"
@@ -15,6 +17,8 @@ on:
       - main
     paths:
       - "tools/industry-proof-plan/**"
+      - "tools/industry-proof-plan-auditor/**"
+      - "schemas/ieac-proof-plan-audit-report-v0.1.schema.json"
       - "schemas/ieac-proof-plan-*.json"
       - "schemas/examples/ieac-proof-plan-*.json"
       - ".github/workflows/industry-proof-plan.yml"
@@ -57,6 +61,15 @@ jobs:
       - name: Run proof-planning contract and adversarial benchmarks
         run: cargo test --manifest-path tools/industry-proof-plan/Cargo.toml --locked
 
+      - name: Check independent auditor formatting
+        run: cargo fmt --manifest-path tools/industry-proof-plan-auditor/Cargo.toml -- --check
+
+      - name: Run independent auditor Clippy with warnings denied
+        run: cargo clippy --manifest-path tools/industry-proof-plan-auditor/Cargo.toml --all-targets --locked -- -D warnings
+
+      - name: Run independent exact-oracle and adversarial auditor tests
+        run: cargo test --manifest-path tools/industry-proof-plan-auditor/Cargo.toml --locked
+
       - name: Install pinned Draft 2020-12 schema CLI
         run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
 
@@ -70,7 +83,8 @@ jobs:
           for schema in \
             schemas/ieac-proof-plan-request-v0.1.schema.json \
             schemas/ieac-proof-plan-report-v0.1.schema.json \
-            schemas/ieac-proof-plan-fixture-v0.1.schema.json; do
+            schemas/ieac-proof-plan-fixture-v0.1.schema.json \
+            schemas/ieac-proof-plan-audit-report-v0.1.schema.json; do
             jsonschema-cli validate --draft 2020 --assert-format "$meta" --instance "$schema"
           done
           jsonschema-cli validate --draft 2020 --assert-format --offline \
@@ -116,6 +130,40 @@ jobs:
             schemas/ieac-proof-plan-report-v0.1.schema.json \
             --instance "$RUNNER_TEMP/proof-plan-report.json"
 
+      - name: Independently audit exact plan and optimality
+        env:
+          IEAC_PROOF_AUDITOR_BUILD_ID: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          cargo run --manifest-path tools/industry-proof-plan-auditor/Cargo.toml --locked -- \
+            "$RUNNER_TEMP/proof-plan-request.json" \
+            "$RUNNER_TEMP/proof-plan-report.json" \
+            "$RUNNER_TEMP/proof-plan-audit.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline \
+            schemas/ieac-proof-plan-audit-report-v0.1.schema.json \
+            --instance "$RUNNER_TEMP/proof-plan-audit.json"
+          jq -e --arg build "$GITHUB_SHA" '
+            .schema_version == "luminous.ieac-proof-plan-audit-report.v0.1" and
+            .auditor_build_id == $build and
+            .verdict == "accepted_optimal" and
+            .hard_constraints_verified == true and
+            .optimality_independently_checked == true and
+            .unsatisfied_control_count == 0 and
+            .action_authority == "none" and
+            .qualification_attested == false
+          ' "$RUNNER_TEMP/proof-plan-audit.json"
+
+      - name: Negative control - independent auditor rejects tampered plan totals
+        run: |
+          set -euo pipefail
+          jq '.resource_totals.money_microunits = 0' "$RUNNER_TEMP/proof-plan-report.json" > "$RUNNER_TEMP/tampered-plan-report.json"
+          if cargo run --quiet --manifest-path tools/industry-proof-plan-auditor/Cargo.toml --locked -- \
+            "$RUNNER_TEMP/proof-plan-request.json" "$RUNNER_TEMP/tampered-plan-report.json" \
+            "$RUNNER_TEMP/tampered-plan-audit.json"; then
+            echo "ERROR: independent auditor accepted tampered resource totals"
+            exit 1
+          fi
+
       - name: Negative control - reject expired candidate action rights
         run: |
           set -euo pipefail
@@ -142,6 +190,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ieac-proof-plan-${{ github.sha }}
-          path: "$RUNNER_TEMP/proof-plan-report.json"
+          path: |
+            $RUNNER_TEMP/proof-plan-report.json
+            $RUNNER_TEMP/proof-plan-audit.json
           if-no-files-found: error
           retention-days: 30
