@@ -2053,7 +2053,8 @@
         "dimension_value",
         "behavior",
         "conflicted_dimension_behavior",
-        "reviewed_class_unassessed"
+        "reviewed_class_unassessed_behavior",
+        "reviewed_class_unassessed_controls"
       ],
       "properties": {
         "dimension_value": {
@@ -2065,7 +2066,10 @@
         "conflicted_dimension_behavior": {
           "const": "same_as_unknown_and_mark_indeterminate"
         },
-        "reviewed_class_unassessed": {
+        "reviewed_class_unassessed_behavior": {
+          "const": "apply_unassessed_controls_and_mark_indeterminate"
+        },
+        "reviewed_class_unassessed_controls": {
           "type": "array",
           "uniqueItems": true,
           "items": {
