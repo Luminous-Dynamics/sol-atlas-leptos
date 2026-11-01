@@ -804,6 +804,48 @@ mod tests {
     }
 
     #[test]
+    fn cli_report_binds_exact_input_and_policy_file_bytes() {
+        let suffix = std::process::id();
+        let root = std::env::temp_dir();
+        let profile_path = root.join(format!("ieac-risk-profile-{suffix}.json"));
+        let policy_path = root.join(format!("ieac-risk-policy-{suffix}.json"));
+        let output_path = root.join(format!("ieac-risk-report-{suffix}.json"));
+
+        let profile_bytes = serde_json::to_vec(&fixture()).unwrap();
+        let policy_bytes = serde_json::to_vec(&policy()).unwrap();
+        fs::write(&profile_path, &profile_bytes).unwrap();
+        fs::write(&policy_path, &policy_bytes).unwrap();
+
+        run(
+            profile_path.to_str().unwrap(),
+            policy_path.to_str().unwrap(),
+            output_path.to_str().unwrap(),
+            "test-build",
+        ).unwrap();
+
+        let report: Value = serde_json::from_slice(&fs::read(&output_path).unwrap()).unwrap();
+        assert_eq!(report["input_profile_sha256"], sha256_hex(&profile_bytes));
+        assert_eq!(report["policy_sha256"], sha256_hex(&policy_bytes));
+
+        let mut whitespace_variant = b" \n".to_vec();
+        whitespace_variant.extend_from_slice(&profile_bytes);
+        fs::write(&profile_path, &whitespace_variant).unwrap();
+        run(
+            profile_path.to_str().unwrap(),
+            policy_path.to_str().unwrap(),
+            output_path.to_str().unwrap(),
+            "test-build",
+        ).unwrap();
+        let second: Value = serde_json::from_slice(&fs::read(&output_path).unwrap()).unwrap();
+        assert_eq!(second["input_profile_sha256"], sha256_hex(&whitespace_variant));
+        assert_ne!(second["input_profile_sha256"], report["input_profile_sha256"]);
+
+        let _ = fs::remove_file(profile_path);
+        let _ = fs::remove_file(policy_path);
+        let _ = fs::remove_file(output_path);
+    }
+
+    #[test]
     fn policy_rejects_unmapped_combination_values() {
         let mut policy = policy();
         policy["combination_rules"][0]["conditions"][0]["values"] = json!(["catastrophe"]);
