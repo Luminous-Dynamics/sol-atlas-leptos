@@ -592,6 +592,59 @@ pub fn render_summary_csv(summaries: &[CohortSummary]) -> String {
 }
 
 #[cfg(test)]
+fn trace_to_csv(trace: &SolverTrace) -> String {
+    let optional = |value: Option<u64>| {
+        value
+            .map(|number| number.to_string())
+            .unwrap_or_else(|| "NA".to_owned())
+    };
+    let optional_i64 = |value: Option<i64>| {
+        value
+            .map(|number| number.to_string())
+            .unwrap_or_else(|| "NA".to_owned())
+    };
+    let optional_u32 = |value: Option<u32>| {
+        value
+            .map(|number| number.to_string())
+            .unwrap_or_else(|| "NA".to_owned())
+    };
+    format!(
+        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
+        trace.schema_version,
+        trace.measurement_class.as_str(),
+        trace.cohort_id,
+        trace.sample_id,
+        trace.scenario_id,
+        trace.scenario_panel_sha256,
+        trace.request_sha256,
+        trace.model_sha256,
+        trace.mesh_policy_sha256,
+        trace.mesh_instance_sha256,
+        trace.solver_name,
+        trace.solver_version,
+        trace.solver_binary_sha256,
+        trace.solver_config_sha256,
+        trace.hardware_profile_sha256,
+        trace.horizon_minutes,
+        trace.interval_count,
+        trace.continuous_variables,
+        trace.integer_variables,
+        trace.binary_variables,
+        trace.constraints,
+        trace.random_seed,
+        trace.status.as_str(),
+        trace.elapsed_ns,
+        optional(trace.time_to_first_feasible_ns),
+        optional(trace.time_to_optimal_ns),
+        optional_i64(trace.objective_value_units),
+        optional_i64(trace.best_bound_units),
+        optional_u32(trace.optimality_gap_ppm),
+        optional(trace.peak_memory_bytes),
+        trace.timeout_limit_ns,
+    )
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
 
@@ -940,57 +993,4 @@ mod tests {
         assert_eq!(rows.len(), 30);
         assert_eq!(summarize_traces(&rows).unwrap()[0].timeout_count, 4);
     }
-}
-
-#[cfg(test)]
-fn trace_to_csv(trace: &SolverTrace) -> String {
-    let optional = |value: Option<u64>| {
-        value
-            .map(|number| number.to_string())
-            .unwrap_or_else(|| "NA".to_owned())
-    };
-    let optional_i64 = |value: Option<i64>| {
-        value
-            .map(|number| number.to_string())
-            .unwrap_or_else(|| "NA".to_owned())
-    };
-    let optional_u32 = |value: Option<u32>| {
-        value
-            .map(|number| number.to_string())
-            .unwrap_or_else(|| "NA".to_owned())
-    };
-    format!(
-        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
-        trace.schema_version,
-        trace.measurement_class.as_str(),
-        trace.cohort_id,
-        trace.sample_id,
-        trace.scenario_id,
-        trace.scenario_panel_sha256,
-        trace.request_sha256,
-        trace.model_sha256,
-        trace.mesh_policy_sha256,
-        trace.mesh_instance_sha256,
-        trace.solver_name,
-        trace.solver_version,
-        trace.solver_binary_sha256,
-        trace.solver_config_sha256,
-        trace.hardware_profile_sha256,
-        trace.horizon_minutes,
-        trace.interval_count,
-        trace.continuous_variables,
-        trace.integer_variables,
-        trace.binary_variables,
-        trace.constraints,
-        trace.random_seed,
-        trace.status.as_str(),
-        trace.elapsed_ns,
-        optional(trace.time_to_first_feasible_ns),
-        optional(trace.time_to_optimal_ns),
-        optional_i64(trace.objective_value_units),
-        optional_i64(trace.best_bound_units),
-        optional_u32(trace.optimality_gap_ppm),
-        optional(trace.peak_memory_bytes),
-        trace.timeout_limit_ns,
-    )
 }
