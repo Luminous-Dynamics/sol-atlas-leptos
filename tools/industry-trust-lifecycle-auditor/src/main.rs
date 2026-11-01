@@ -391,9 +391,17 @@ fn validate_event(event: &Value, nodes: &BTreeMap<String, Value>) -> Result<(), 
     }
     if semantics == "retroactive_from_effective_time" {
         let valid_time = event.get("valid_time").ok_or("valid_time missing")?;
-        required_string(valid_time, "effective_at", "valid_time")?;
+        let effective_at = required_string(valid_time, "effective_at", "valid_time")?;
         let system_time = event.get("system_time").ok_or("system_time missing")?;
-        required_string(system_time, "trusted_at", "system_time")?;
+        let recorded_at = required_string(system_time, "recorded_at", "system_time")?;
+        let trusted_at = required_string(system_time, "trusted_at", "system_time")?;
+        if !effective_at.ends_with('Z')
+            || !recorded_at.ends_with('Z')
+            || !trusted_at.ends_with('Z')
+            || trusted_at < recorded_at
+        {
+            return Err("retroactive event times must be ordered, normalized UTC timestamps".into());
+        }
         let timestamp_receipt =
             required_string(system_time, "trusted_timestamp_receipt_sha256", "system_time")?;
         if !valid_sha256(timestamp_receipt) {
@@ -487,6 +495,14 @@ fn build_impact_report(
         "event.valid_time",
     )?;
     let evaluated_at = required_string(expected_metadata, "evaluated_at", "expected report metadata")?;
+    if !evaluated_at.ends_with('Z') {
+        return Err("impact evaluation time must be normalized UTC".into());
+    }
+    let system_time = event.get("system_time").ok_or("event system_time missing")?;
+    let trusted_at = required_string(system_time, "trusted_at", "event.system_time")?;
+    if trusted_at > evaluated_at || effective_at > evaluated_at {
+        return Err("invalidation event was not trusted/effective at the requested evaluation time".into());
+    }
     let event_scope = event.get("scope").ok_or("event scope missing")?;
     let targets = event
         .get("targets")
