@@ -13,6 +13,9 @@ on:
       - "schemas/examples/ieac-signed-envelope-synthetic-v0.2.json"
       - "schemas/examples/ieac-jcs-vectors-v0.2.json"
       - "schemas/industry-scitt-decision-statement-v0.1.schema.json"
+      - "schemas/industry-evidence-disclosure-request-v0.1.schema.json"
+      - "schemas/examples/ieac-evidence-disclosure-request-synthetic-v0.1.json"
+      - "docs/industry/IEAC_SELECTIVE_DISCLOSURE_V0.1.md"
       - "schemas/examples/ieac-scitt-decision-statement-synthetic-v0.1.json"
       - "docs/industry/IEAC_SCITT_TRANSPARENCY_V0.1.md"
       - "docs/industry/IEAC_TRUST_V0.2_SIGNED_ENVELOPE_PROFILE.md"
@@ -35,6 +38,9 @@ on:
       - "schemas/examples/ieac-signed-envelope-synthetic-v0.2.json"
       - "schemas/examples/ieac-jcs-vectors-v0.2.json"
       - "schemas/industry-scitt-decision-statement-v0.1.schema.json"
+      - "schemas/industry-evidence-disclosure-request-v0.1.schema.json"
+      - "schemas/examples/ieac-evidence-disclosure-request-synthetic-v0.1.json"
+      - "docs/industry/IEAC_SELECTIVE_DISCLOSURE_V0.1.md"
       - "schemas/examples/ieac-scitt-decision-statement-synthetic-v0.1.json"
       - "docs/industry/IEAC_SCITT_TRANSPARENCY_V0.1.md"
       - "docs/industry/IEAC_TRUST_V0.2_SIGNED_ENVELOPE_PROFILE.md"
@@ -280,6 +286,37 @@ jobs:
             echo "ERROR: SCITT fixture schema accepted an unauthorized action claim"
             exit 1
           fi
+
+      - name: Validate case-bound selective-disclosure request profile
+        run: |
+          set -euo pipefail
+          meta=https://json-schema.org/draft/2020-12/schema
+          schema=schemas/industry-evidence-disclosure-request-v0.1.schema.json
+          fixture=schemas/examples/ieac-evidence-disclosure-request-synthetic-v0.1.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i "$schema"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$fixture"
+          jq -e '
+            .schema_version == "luminous.ieac-evidence-disclosure-request.v0.1" and
+            .purpose == "independent_audit" and
+            (.request_nonce | length >= 22) and
+            ([.requested_claims[].claim_id] | unique | length) == (.requested_claims | length) and
+            ([.requested_claims[] | select(.proof_semantics == "zero_knowledge_predicate" and .presentation_profile == "external_predicate_proof_profile_pending")] | length) == 1 and
+            .privacy_constraints.no_raw_source_payload == true and
+            .privacy_constraints.case_scoped_subject_pseudonym_only == true and
+            .privacy_constraints.salt_disclosure == "holder_only" and
+            .privacy_constraints.transparency_payload == "digest_only" and
+            .action_authority == "none"
+          ' "$fixture"
+
+          jq '.request_nonce = "short"' "$fixture" > "$RUNNER_TEMP/disclosure-short-nonce.json"
+          jq '.action_authority = "execute"' "$fixture" > "$RUNNER_TEMP/disclosure-authority-escalation.json"
+          jq '(.requested_claims[] | select(.proof_semantics == "zero_knowledge_predicate").presentation_profile) = "bbs_di_v1_experimental"' "$fixture" > "$RUNNER_TEMP/disclosure-bbs-predicate-misuse.json"
+          for mutant in "$RUNNER_TEMP/disclosure-short-nonce.json" "$RUNNER_TEMP/disclosure-authority-escalation.json" "$RUNNER_TEMP/disclosure-bbs-predicate-misuse.json"; do
+            if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$mutant"; then
+              echo "ERROR: disclosure request schema accepted negative control $mutant"
+              exit 1
+            fi
+          done
 
       - name: Prove unknown request fields and malformed time are rejected
         run: |
