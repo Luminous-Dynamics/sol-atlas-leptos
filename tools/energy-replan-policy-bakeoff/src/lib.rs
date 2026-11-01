@@ -223,11 +223,7 @@ impl AggregateMetrics {
     }
 }
 
-fn evaluate_run(
-    policy: PolicyKind,
-    scenario: &Scenario,
-    actions: Vec<ReplanAction>,
-) -> PolicyRun {
+fn evaluate_run(policy: PolicyKind, scenario: &Scenario, actions: Vec<ReplanAction>) -> PolicyRun {
     let replan_steps: Vec<u32> = scenario
         .observations
         .iter()
