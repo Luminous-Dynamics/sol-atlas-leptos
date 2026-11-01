@@ -730,13 +730,15 @@
         {
           "dimension": "consequence",
           "values": [
-            "catastrophic"
+            "catastrophic",
+            "unknown"
           ]
         },
         {
           "dimension": "model_influence",
           "values": [
-            "direct_actuation"
+            "direct_actuation",
+            "unknown"
           ]
         }
       ],
