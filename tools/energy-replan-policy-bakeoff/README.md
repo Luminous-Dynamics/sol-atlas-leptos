@@ -2,7 +2,7 @@
 
 A dependency-free, synthetic-known-truth research instrument comparing when to request a replan under imperfect forecasts and changing observations.
 
-This is intentionally a trigger-policy benchmark, not another optimizer, dispatch model, or actuator. The audit result is synthetic evaluator truth in v0.1; this crate does not invoke the standalone schedule auditor on a generated dispatch trajectory. It sits alongside the standalone schedule auditor and the broader rolling-horizon programme in issue #352.
+This is intentionally a trigger-policy benchmark, not another optimizer, dispatch model, or actuator. The per-scenario execution matrix uses evaluator-only solve/audit outcomes. In addition, exact-head CI builds the standalone #351 schedule-auditor executable and runs a frozen H=2 accepted trajectory plus a mutated rejected trajectory through that separate process, verifying request/schedule SHA-256 and actual auditor-binary SHA-256 in both receipts. That CLI smoke-test is not yet wired to every policy-generated candidate schedule. It sits alongside the standalone schedule auditor and the broader rolling-horizon programme in issue #352.
 
 ## Paradigm
 
@@ -32,7 +32,7 @@ There is no single scalar winner and no authority output. All loss/cost fields a
 
 ## Claim ceiling
 
-Passing this model establishes only that the typed observation boundary and finite synthetic benchmark behave as specified. It does not establish optimal dispatch, physical/electrochemical battery behavior, real-site resilience, forecast calibration, real auditor implementation correctness, safety certification, an operator's authority, or permission to actuate hardware. Every executed schedule in a future integrated runner must still pass the independent trajectory auditor.
+Passing this model establishes only that the typed observation boundary and finite synthetic benchmark behave as specified, and that the separate auditor CLI accepts its frozen H=2 known answer and rejects its frozen mutation with exact receipt bindings. It does not establish per-policy-candidate auditor integration, optimal dispatch, physical/electrochemical battery behavior, real-site resilience, forecast calibration, real auditor implementation correctness beyond the tested profile, safety certification, an operator's authority, or permission to actuate hardware. Every proposed/executed schedule in a future integrated runner must still be submitted to the independent trajectory auditor.
 
 ## Run
 
