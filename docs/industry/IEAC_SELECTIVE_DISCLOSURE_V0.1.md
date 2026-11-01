@@ -23,6 +23,9 @@ SCITT RFC 9943 permits encrypted Signed Statements and discusses VDSs that retai
 RFC 9901 defines selective disclosure of individual JSON claims through salted hashes in a signed JWT. The issuer keeps a selectively disclosable claim's cleartext out of the signed payload and gives a Disclosure to the holder; the holder presents only selected Disclosures to a verifier.
 
 Important operational rules:
+- the relying-party verifier must decide from its policy whether holder Key Binding is required **before** examining whether the holder supplied a Key Binding JWT;
+- for this case-sensitive IEAC profile, require SD-JWT+KB and reject an SD-JWT without its Key Binding JWT;
+- verify the holder's Key Binding JWT signature and its `aud` and one-time `nonce` against this request; verify `sd_hash` over the exact issuer-signed SD-JWT and presented Disclosures;
 - use a cryptographically secure random salt with at least a 128-bit random component;
 - use a distinct salt per claim;
 - do not disclose unrevealed salts;
