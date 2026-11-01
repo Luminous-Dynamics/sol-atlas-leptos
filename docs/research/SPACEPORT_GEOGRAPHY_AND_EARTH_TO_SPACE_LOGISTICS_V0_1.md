@@ -30,9 +30,9 @@ The US FAA identifies access to useful orbits and public safety as primary space
 
 - **Kourou, French Guiana:** mature operational reference in the equatorial region, approximately 5° north. ESA describes its location as advantageous for GEO transfer trajectories. https://www.esa.int/Enabling_Support/Space_Transportation/Europe_s_Spaceport/Europe_s_Spaceport2
 - **Alcântara, Brazil:** Brazilian Space Agency material places the launch centre at approximately 2°18′ south and describes launch/tracking functions. https://www.gov.br/aeb/pt-br/acoes-e-programas/aplicacoes-espaciais/infraestrutura-de-solo/centros-de-lancamento
-- **Malindi/Kenya proposal:** on 1 October 2026, Kenya's PPP Directorate announced funding for a feasibility study for a proposed spaceport, citing equatorial geography, an east-facing coastline and existing coastal infrastructure. This is a study-stage proposal, not a build decision, approved project or proof of bankability. https://pppkenya.go.ke/kenya-advances-plans-for-proposed-spaceport-project/
+- **Kipini/Kenya proposal:** on 1 October 2026, Kenya's PPP Directorate announced funding for a feasibility study for a proposed spaceport. A 28 October 2026 report by Space in Africa says the transaction-advisory consortium has since been appointed and identifies the proposed general area as Kipini, between Malindi and Lamu; the study is to assess sites, launch infrastructure, demand, environmental/social impacts and financial/economic viability. This remains a feasibility exercise, not a build decision or proof of bankability. https://pppkenya.go.ke/kenya-advances-plans-for-proposed-spaceport-project/ ; https://spaceinafrica.com/2026/10/28/kenya-appoints-consortium-to-advise-on-proposed-commercial-spaceport/
 
-Use these as reference cases only. Verify current operating status, supported mission/orbit envelope, safety corridors, data currency and source rights before admitting a site to a benchmark.
+Use these as reference cases only. Verify current operating status, supported mission/orbit envelope, safety corridors, data currency and source rights before admitting a site to a benchmark. The Kipini feasibility study should be followed as a live project evidence stream; do not assume the broad regional location is the final surveyed site or that the feasibility study has recommended a particular launch architecture.
 
 ## 3. System boundary: ecosystem, not pin
 
@@ -46,7 +46,7 @@ Represent distinct but connectable asset classes:
 6. **Environmental and social geography:** protected areas, sensitive habitats, fisheries, cultural heritage, flood/storm exposure, land/water rights, affected communities and jurisdiction.
 7. **Future orbital infrastructure terminals:** possible elevator Earth ports, orbital-ring skyhook/ladder interfaces, partial-ring endpoints or launch-loop terminals. Each has its own architecture and geometry.
 
-A port may import heavy components to an inland integration hub, while the launch range occupies a separate lower-density site. Connect the facilities with a sourced, capacity-bounded transport leg; do not create one giant co-located node just to shorten a straight line.
+A port may import heavy components to an inland integration hub, while the launch range occupies a separate lower-density site. Connect the facilities with a sourced, capacity-bounded transport leg; do not create one giant co-located node just to shorten a straight line. Kourou is a concrete reference for this distributed pattern: the Vega C User Manual describes a sea-arrival/docking area at Pariacabo on the Kourou River, linked by road to the Space Centre (about 9 km), alongside separate payload-preparation facilities and dedicated launch sites. This is a useful logistics/functional-separation case, not a universal layout template. Source: https://www.avio.com/sites/avio.com/files/downloads/UM%20Vega%20C%20-%20Iss1%20Rev0%20Erratum_1.pdf
 
 ## 4. Architecture-specific location logic
 
@@ -64,7 +64,7 @@ Never use one universal best-launch-or-tether latitude score.
 
 ### Elevator versus orbital ring
 
-A classical geostationary elevator depends on Earth's rotation and a tether/counterweight system; its conventional surface terminal is equatorial. It faces extreme materials, deployment, dynamics and collision-protection challenges.
+A classical geostationary elevator depends on Earth's rotation and a tether/counterweight system; its conventional surface terminal is equatorial. It faces extreme materials, deployment, dynamics and collision-protection challenges. A 2023 review of tether-material candidates reports that no candidate material yet exists in sufficient quantity for the required tether, despite laboratory samples and work on carbon nanotubes, graphene-based materials and hexagonal boron nitride. It describes a roughly 100,000 km tether manufacturing/continuity challenge. This is a separate material-industrialization gate; it must not be inferred solved by a high tensile-strength laboratory coupon. Source: https://doi.org/10.1016/j.actaastro.2023.04.008
 
 Paul Birch's 1982 Journal of the British Interplanetary Society paper describes a different orbital-ring concept using a moving low-Earth-orbit ring and skyhooks/Jacob's Ladders. Its preliminary analysis discusses orbital-plane choices beyond the equatorial plane and partial-ring variants with ground endpoints. This is a concept source, not a validated design or demonstration of construction feasibility. Source: https://nss.org/wp-content/uploads/Orbital-Rings.pdf
 
@@ -106,7 +106,7 @@ No weighted economic score can buy through legal/rights, range safety, protected
 
 ## 7. Connection to ground transport and port-city infrastructure
 
-Compare existing port/airport/rail improvements; conventional road and freight rail; MagRail/linear-motor systems on existing rail where supported; dedicated underground freight systems; new road/rail/tunnel links; reuse of existing tunnels/brownfields where verified; and no-build/phased demand.
+Compare existing port/airport/rail improvements; conventional road and freight rail; MagRail/linear-motor systems on existing rail where supported; dedicated underground freight systems; new road/rail/tunnel links; reuse of existing tunnels/brownfields where verified; and no-build/phased demand. In South Africa, Transnet describes ContainerCor as a 688 km Durban–Gauteng rail corridor serving inland terminals including City Deep, Kascon, Pretcon and Kaalfontein. That existing corridor is an important baseline for any port-to-inland or space-industry supply chain; compare capacity recovery, service reliability, terminals and bottlenecks before proposing a new tunnel or maglev. Source: https://www.transnet.net/SubsiteRender.aspx?id=4492347
 
 Symtropy #1601 owns multimodal transport optimization, #1951 owns reuse-first underground asset evaluation and #3201 owns the MagRail/underground freight comparison. This document does not add a second freight optimizer.
 
@@ -169,7 +169,7 @@ A displayed line or orbital animation is not a qualified trajectory. A map overl
 
 **Phase B — global references:** qualify known operational/historic sites and supported service envelopes without ranking sites from incomplete public data.
 
-**Phase C — East African evidence inventory:** review Kenya's proposed feasibility-study materials as they become public; compare reference geographies and regional transport/industrial connections; involve local stakeholders and authorities before elevating any candidate.
+**Phase C — East African evidence inventory:** follow the Kenya PPP feasibility-study and transaction-advisor work for the proposed Kipini area; compare its published candidate geography, orbit/range requirements and regional transport/industrial connections with reference sites; involve local stakeholders and authorities before elevating any candidate.
 
 **Phase D — Southern African opportunity screen:** do not assume South Africa is suitable for orbital launch merely because it has ports and rail. First establish launch azimuth, downrange, weather, environment and governance constraints. Evaluate whether manufacturing, integration, tracking, testing or launch support has more defensible regional value than a new range.
 
