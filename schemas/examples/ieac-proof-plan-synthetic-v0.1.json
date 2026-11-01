@@ -84,7 +84,7 @@
       {
         "action_id": "artifact-provenance-capture",
         "action_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
-        "mapping_policy_sha256": "aad5c22087890d17bab97a6f0fc7294c94b25ffe22b9c11ca1f20b9eda2e0ab1",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
         "covers_control_ids": [
           "artifact_identity_integrity"
         ],
@@ -110,7 +110,7 @@
       {
         "action_id": "artifact-provenance-full-audit",
         "action_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
-        "mapping_policy_sha256": "aad5c22087890d17bab97a6f0fc7294c94b25ffe22b9c11ca1f20b9eda2e0ab1",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
         "covers_control_ids": [
           "artifact_identity_integrity"
         ],
@@ -136,7 +136,7 @@
       {
         "action_id": "numeric-reference-run-a",
         "action_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "mapping_policy_sha256": "aad5c22087890d17bab97a6f0fc7294c94b25ffe22b9c11ca1f20b9eda2e0ab1",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
         "covers_control_ids": [
           "numerical_known_answers"
         ],
@@ -160,7 +160,7 @@
       {
         "action_id": "numeric-reference-run-b",
         "action_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "mapping_policy_sha256": "aad5c22087890d17bab97a6f0fc7294c94b25ffe22b9c11ca1f20b9eda2e0ab1",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
         "covers_control_ids": [
           "numerical_known_answers"
         ],
@@ -186,7 +186,7 @@
       {
         "action_id": "numeric-reference-run-c",
         "action_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-        "mapping_policy_sha256": "aad5c22087890d17bab97a6f0fc7294c94b25ffe22b9c11ca1f20b9eda2e0ab1",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
         "covers_control_ids": [
           "numerical_known_answers"
         ],
@@ -212,7 +212,7 @@
       {
         "action_id": "physical-lab-reservation",
         "action_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-        "mapping_policy_sha256": "aad5c22087890d17bab97a6f0fc7294c94b25ffe22b9c11ca1f20b9eda2e0ab1",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
         "covers_control_ids": [],
         "prerequisites": [],
         "conflicts_with": [],
@@ -234,7 +234,7 @@
       {
         "action_id": "physical-calibration-lab",
         "action_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-        "mapping_policy_sha256": "aad5c22087890d17bab97a6f0fc7294c94b25ffe22b9c11ca1f20b9eda2e0ab1",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
         "covers_control_ids": [
           "physical_reference_validation"
         ],
@@ -260,7 +260,7 @@
       {
         "action_id": "physical-independent-field-check",
         "action_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        "mapping_policy_sha256": "aad5c22087890d17bab97a6f0fc7294c94b25ffe22b9c11ca1f20b9eda2e0ab1",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
         "covers_control_ids": [
           "physical_reference_validation"
         ],
@@ -283,8 +283,8 @@
       },
       {
         "action_id": "uq-calibration-analysis",
-        "action_sha256": "1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a",
-        "mapping_policy_sha256": "aad5c22087890d17bab97a6f0fc7294c94b25ffe22b9c11ca1f20b9eda2e0ab1",
+        "action_sha256": "1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
         "covers_control_ids": [
           "uncertainty_calibration"
         ],
@@ -307,8 +307,8 @@
       },
       {
         "action_id": "ood-heldout-validation",
-        "action_sha256": "1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b",
-        "mapping_policy_sha256": "aad5c22087890d17bab97a6f0fc7294c94b25ffe22b9c11ca1f20b9eda2e0ab1",
+        "action_sha256": "1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
         "covers_control_ids": [
           "out_of_domain_abstention"
         ],
@@ -331,8 +331,8 @@
       },
       {
         "action_id": "combined-uq-ood-audit",
-        "action_sha256": "1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c",
-        "mapping_policy_sha256": "aad5c22087890d17bab97a6f0fc7294c94b25ffe22b9c11ca1f20b9eda2e0ab1",
+        "action_sha256": "1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
         "covers_control_ids": [
           "uncertainty_calibration",
           "out_of_domain_abstention"
@@ -365,7 +365,7 @@
     "exact_search_limit": 20,
     "action_authority": "none",
     "independence_registry_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
-    "control_mapping_policy_sha256": "aad5c22087890d17bab97a6f0fc7294c94b25ffe22b9c11ca1f20b9eda2e0ab1",
+    "control_mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
     "currency_code": "ZAR",
     "compute_unit_id": "normalized-compute-micro-unit-v1",
     "control_mappings": [
@@ -392,7 +392,7 @@
       {
         "mapping_id": "map-combined-uq-ood-audit-out_of_domain_abstention",
         "action_id": "combined-uq-ood-audit",
-        "action_sha256": "1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c",
+        "action_sha256": "1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c",
         "control_id": "out_of_domain_abstention",
         "evidence_dimension": "robustness",
         "proof_method_id": "heldout_shift_and_abstention_stress",
@@ -402,7 +402,7 @@
       {
         "mapping_id": "map-combined-uq-ood-audit-uncertainty_calibration",
         "action_id": "combined-uq-ood-audit",
-        "action_sha256": "1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c",
+        "action_sha256": "1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c",
         "control_id": "uncertainty_calibration",
         "evidence_dimension": "uncertainty_credibility",
         "proof_method_id": "heldout_calibration_and_proper_score_review",
@@ -442,7 +442,7 @@
       {
         "mapping_id": "map-ood-heldout-validation-out_of_domain_abstention",
         "action_id": "ood-heldout-validation",
-        "action_sha256": "1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b",
+        "action_sha256": "1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b",
         "control_id": "out_of_domain_abstention",
         "evidence_dimension": "robustness",
         "proof_method_id": "heldout_shift_and_abstention_stress",
@@ -472,7 +472,7 @@
       {
         "mapping_id": "map-uq-calibration-analysis-uncertainty_calibration",
         "action_id": "uq-calibration-analysis",
-        "action_sha256": "1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a",
+        "action_sha256": "1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a",
         "control_id": "uncertainty_calibration",
         "evidence_dimension": "uncertainty_credibility",
         "proof_method_id": "heldout_calibration_and_proper_score_review",
