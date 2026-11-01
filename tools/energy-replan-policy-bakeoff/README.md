@@ -32,7 +32,7 @@ There is no single scalar winner and no authority output. All loss/cost fields a
 
 ## Independent auditor CLI qualification in exact-head CI
 
-The workflow uses the standalone auditor as a separate executable. It copies the auditor package to a temporary source tree, normalizes formatting in that copy only, runs locked tests/Clippy and builds the release CLI. It records both the original checked-out source file digests and the normalized build-copy digests; the PR checkout is required to remain clean.
+The workflow uses the standalone auditor as a separate executable. It copies the auditor package to a temporary source tree, normalizes formatting in that copy only, runs locked tests/Clippy and builds the release CLI with `CARGO_TARGET_DIR=target/energy-replan-policy-bakeoff/auditor-target`. It records both the original checked-out source file digests and the normalized build-copy digests, plus the toolchain and release-binary hash; the PR checkout is required to remain clean.
 
 The auditor dependency graph is committed in `tools/energy-dispatch-schedule-auditor/Cargo.lock` (SHA-256 `0ab5e2fd068a53ece3a48b38e649a447190102043fb656967a1cae259639a23c`). The workflow asserts that digest before use and compiles with `--locked`.
 
