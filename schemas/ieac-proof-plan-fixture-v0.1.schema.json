@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/ieac-proof-plan-fixture-v0.1.schema.json",
+  "title": "IEAC Proof Plan Synthetic Fixture v0.1",
+  "description": "A synthetic request paired with a hand-calculated exact solution. No evidence or operational claim.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "fixture_schema_version",
+    "fixture_status",
+    "note",
+    "request",
+    "expected"
+  ],
+  "properties": {
+    "fixture_schema_version": {
+      "const": "luminous.ieac-proof-plan-fixture.v0.1"
+    },
+    "fixture_status": {
+      "const": "synthetic_only"
+    },
+    "note": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "request": {
+      "$ref": "ieac-proof-plan-request-v0.1.schema.json"
+    },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "plan_status",
+        "optimization_method",
+        "optimality_status",
+        "selected_action_ids",
+        "covered_controls",
+        "unsatisfied_controls",
+        "resource_totals",
+        "hard_constraints_preserved",
+        "action_authority",
+        "qualification_attested"
+      ],
+      "properties": {
+        "plan_status": {
+          "const": "optimal_plan"
+        },
+        "optimization_method": {
+          "const": "exact_subset_enumeration"
+        },
+        "optimality_status": {
+          "const": "proven_optimal"
+        },
+        "selected_action_ids": {
+          "type": "array",
+          "minItems": 8,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        },
+        "covered_controls": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        },
+        "unsatisfied_controls": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "resource_totals": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "money_microunits",
+            "reviewer_minutes",
+            "field_interruption_minutes",
+            "compute_microunits",
+            "duration_minutes"
+          ],
+          "properties": {
+            "money_microunits": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "reviewer_minutes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "field_interruption_minutes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "compute_microunits": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "duration_minutes": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "hard_constraints_preserved": {
+          "const": true
+        },
+        "action_authority": {
+          "const": "none"
+        },
+        "qualification_attested": {
+          "const": false
+        }
+      }
+    }
+  }
+}
