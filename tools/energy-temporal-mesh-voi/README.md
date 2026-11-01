@@ -4,7 +4,7 @@ A dependency-free Rust research benchmark for allocating rolling-horizon tempora
 
 ## Why a separate benchmark
 
-Adaptive temporal mesh and value-of-information optimization are active research topics. This prototype does not claim to invent adaptive meshing. It tests a narrower, auditable contract: mandatory safety windows are refined first; remaining interval budget is allocated by conservative loss lower-bound per marginal interval; every event boundary is preserved exactly; an insufficient safety budget is a hard failure, not a coarse schedule with a green status.
+Adaptive temporal mesh and value-of-information optimization are active research topics. In particular, the 2026 Greedy-VoI time-mesh paper already studies block granularity and horizon selection under explicit per-cycle compute budgets: https://www.mdpi.com/2624-6511/9/2/30. This prototype does not claim to invent adaptive meshing. It tests a narrower, auditable contract: mandatory safety windows are refined first; remaining interval budget is allocated by conservative loss lower-bound per marginal interval; every event boundary is preserved exactly; an insufficient safety budget is a hard failure, not a coarse schedule with a green status. The differentiating research question is whether these non-compensating safety and provenance constraints improve the practical value of compute allocation when the resulting mesh is later used by a separate schedule optimizer and audited trajectory pipeline.
 
 It complements the trigger-policy bake-off in #403 and the rolling-horizon programme in #352.
 
@@ -14,7 +14,7 @@ It complements the trigger-policy bake-off in #403 and the rolling-horizon progr
 2. `uniform-15m`: fine reference, high compute; reports budget exhaustion rather than claiming an infeasible plan is usable.
 3. `safety-first-voi`: exact event-boundary partition, refine all safety-critical windows to 15 minutes first, then greedily refine optional windows by conservative avoidable-loss lower bound per additional interval.
 
-Compute cost is currently interval count. This is a transparent structural proxy, not measured solver CPU time. The next calibration step is to fit cost against exact solver traces by horizon, constraint count, binary-variable count, and solver/backend. Do not interpret interval count as milliseconds.
+Compute cost is currently interval count. This is a transparent structural proxy, not measured solver CPU time. The next calibration step is to fit cost against exact solver traces by horizon, constraint count, binary-variable count, and solver/backend. The 2026 literature also demonstrates the need to model nonlinear battery losses and cyclic degradation in matched SAC/MPC/optimization comparisons (IEEE Access, 6 October 2026, https://doi.org/10.1109/ACCESS.2026.3740101); this crate does not yet model either. Do not interpret interval count as milliseconds.
 
 ## Hard invariants
 
