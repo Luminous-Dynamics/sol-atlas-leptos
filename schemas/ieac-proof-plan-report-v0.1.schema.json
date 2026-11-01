@@ -33,7 +33,9 @@
     "human_approval_controls",
     "human_approval_actions",
     "currency_code",
-    "compute_unit_id"
+    "compute_unit_id",
+    "decision_tier",
+    "evaluated_at"
   ],
   "properties": {
     "schema_version": {
@@ -523,6 +525,19 @@
       "minLength": 1,
       "maxLength": 64,
       "pattern": "^[a-z0-9][a-z0-9._:-]*$"
+    },
+    "decision_tier": {
+      "enum": [
+        "D0_descriptive",
+        "D1_advisory",
+        "D2_delegated_planning",
+        "D3_autonomous_control"
+      ]
+    },
+    "evaluated_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$",
+      "format": "date-time"
     }
   },
   "allOf": [
