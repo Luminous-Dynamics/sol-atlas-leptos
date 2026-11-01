@@ -298,8 +298,6 @@ fn parse_events(input: &Value, audit: &mut Audit) -> Result<(), String> {
             sequence, previous, digest: digest.clone(), parents,
         };
         let event_index = audit.events.len();
-        audit.id_to_index.insert(id, event_index);
-        audit.digest_to_index.insert(digest, event_index);
         let stream_key = (issuer, subject, stream_id);
         let duplicate = audit.streams.get(&stream_key)
             .and_then(|rows| rows.get(&sequence)).copied();
@@ -311,6 +309,8 @@ fn parse_events(input: &Value, audit: &mut Audit) -> Result<(), String> {
             );
             continue;
         }
+        audit.id_to_index.insert(id, event_index);
+        audit.digest_to_index.insert(digest, event_index);
         audit.streams.entry(stream_key).or_default().insert(sequence, event_index);
         audit.events.push(event);
     }
@@ -340,7 +340,7 @@ fn audit_streams(audit: &mut Audit) {
         for (sequence, index) in &rows {
             let event = audit.events[*index].clone();
             if let Some((prior_sequence, prior_digest)) = &previous_observed {
-                if *sequence == prior_sequence + 1 {
+                if *sequence == *prior_sequence + 1 {
                     if event.previous.as_deref() != Some(prior_digest.as_str()) {
                         add_finding(
                             audit, "PREDECESSOR_DIGEST_MISMATCH", "invalid",
@@ -352,7 +352,7 @@ fn audit_streams(audit: &mut Audit) {
                 } else if *sequence > prior_sequence + 1 {
                     add_finding(
                         audit, "STREAM_SEQUENCE_GAP", "incomplete",
-                        format!("{issuer}/{subject}/{stream}: missing sequences {}..{}", prior_sequence + 1, sequence - 1),
+                        format!("{issuer}/{subject}/{stream}: missing sequences {}..{}", *prior_sequence + 1, sequence - 1),
                     );
                 }
             } else if *sequence > 1 {
@@ -374,10 +374,11 @@ fn audit_causal_graph(audit: &mut Audit) {
     for child in 0..count {
         let parents = audit.events[child].parents.clone();
         for parent_digest in parents {
+            let child_id = audit.events[child].id.clone();
             let Some(parent) = audit.digest_to_index.get(&parent_digest).copied() else {
                 add_finding(
                     audit, "CAUSAL_PARENT_NOT_INCLUDED", "incomplete",
-                    format!("{} references a parent not present in this event bundle: {parent_digest}", audit.events[child].id),
+                    format!("{child_id} references a parent not present in this event bundle: {parent_digest}"),
                 );
                 continue;
             };
@@ -422,7 +423,7 @@ fn audit_causal_graph(audit: &mut Audit) {
     audit.edges = unique_edges.into_iter().collect();
 }
 
-fn build_report(input: &Value, audit: Audit) -> Value {
+fn build_report(audit: Audit) -> Value {
     let stream_count = audit.streams.len();
     let mut unique_edges = BTreeSet::new();
     for edge in &audit.edges { unique_edges.insert(*edge); }
@@ -468,7 +469,7 @@ fn run(input_path: &str, output_path: &str) -> Result<i32, String> {
     parse_events(&input, &mut audit)?;
     audit_streams(&mut audit);
     audit_causal_graph(&mut audit);
-    let report = build_report(&input, audit);
+    let report = build_report(audit);
     let encoded = serde_json::to_vec_pretty(&report).map_err(|error| format!("cannot encode report: {error}"))?;
     fs::write(output_path, encoded).map_err(|error| format!("cannot write report: {error}"))?;
     match report["status"].as_str() {
@@ -523,7 +524,7 @@ mod tests {
         parse_events(&input, &mut audit).unwrap();
         audit_streams(&mut audit);
         audit_causal_graph(&mut audit);
-        let report = build_report(&input, audit);
+        let report = build_report(audit);
         assert_eq!(report["status"], "valid_incomplete");
         assert_eq!(report["event_count"], 4);
         assert_eq!(report["issuer_stream_count"], 3);
