@@ -1075,6 +1075,15 @@ mod tests {
         })
     }
 
+    fn refresh_mapping_digest(request: &mut Value) {
+        let bytes = serde_json::to_vec(&request["control_mappings"]).unwrap();
+        let mapping_digest = digest(&bytes);
+        request["control_mapping_policy_sha256"] = json!(mapping_digest);
+        for action in request["candidate_actions"].as_array_mut().unwrap() {
+            action["mapping_policy_sha256"] = json!(mapping_digest);
+        }
+    }
+
     fn inputs_for(request: &Value) -> Inputs {
         let bytes = serde_json::to_vec(request).unwrap();
         let report = stub_report(request, &bytes);
@@ -1097,8 +1106,15 @@ mod tests {
     fn independent_exact_oracle_proves_collapsed_domains_infeasible() {
         let mut request = request();
         for index in [2usize, 3, 4] {
+            let action_id = request["candidate_actions"][index]["action_id"].as_str().unwrap().to_owned();
             request["candidate_actions"][index]["independence_domain_id"] = json!("one-source-domain");
+            for mapping in request["control_mappings"].as_array_mut().unwrap() {
+                if mapping["action_id"] == action_id {
+                    mapping["independence_domain_id"] = json!("one-source-domain");
+                }
+            }
         }
+        refresh_mapping_digest(&mut request);
         let inputs = inputs_for(&request);
         assert_eq!(exact_oracle(&inputs).unwrap(), None);
     }
@@ -1131,6 +1147,22 @@ mod tests {
         for action in request["candidate_actions"].as_array_mut().unwrap() {
             action["mapping_policy_sha256"] = json!(mapping_digest);
         }
+        let bytes = serde_json::to_vec(&request).unwrap();
+        let report = stub_report(&request, &bytes);
+        assert!(load_inputs(&request, &bytes, &report).is_err());
+    }
+
+    #[test]
+    fn auditor_rejects_control_mapping_digest_or_coverage_mismatch() {
+        let mut request = request();
+        request["control_mappings"][0]["proof_method_id"] = json!("unreviewed-method");
+        let bytes = serde_json::to_vec(&request).unwrap();
+        let report = stub_report(&request, &bytes);
+        assert!(load_inputs(&request, &bytes, &report).is_err());
+
+        let mut request = request();
+        request["control_mappings"].as_array_mut().unwrap().remove(0);
+        refresh_mapping_digest(&mut request);
         let bytes = serde_json::to_vec(&request).unwrap();
         let report = stub_report(&request, &bytes);
         assert!(load_inputs(&request, &bytes, &report).is_err());
