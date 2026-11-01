@@ -558,17 +558,20 @@ fn evaluate(profile: &Value, policy: &Value, build_id: &str) -> Result<Value, St
     }))
 }
 
-fn read_strict(path: &str) -> Result<Value, String> {
+fn read_strict(path: &str) -> Result<(Vec<u8>, Value), String> {
     let bytes = fs::read(path).map_err(|error| format!("cannot read {path}: {error}"))?;
     let parsed: StrictJson = serde_json::from_slice(&bytes)
         .map_err(|error| format!("{path}: invalid or duplicate-member JSON: {error}"))?;
-    Ok(parsed.into_value())
+    Ok((bytes, parsed.into_value()))
 }
 
 fn run(profile_path: &str, policy_path: &str, output_path: &str, build_id: &str) -> Result<(), String> {
-    let profile = read_strict(profile_path)?;
-    let policy = read_strict(policy_path)?;
-    let report = evaluate(&profile, &policy, build_id)?;
+    let (profile_bytes, profile) = read_strict(profile_path)?;
+    let (policy_bytes, policy) = read_strict(policy_path)?;
+    let mut report = evaluate(&profile, &policy, build_id)?;
+    // Hash the exact acquired file bytes, not a parsed/re-serialized semantic value.
+    report["input_profile_sha256"] = json!(sha256_hex(&profile_bytes));
+    report["policy_sha256"] = json!(sha256_hex(&policy_bytes));
     let encoded = serde_json::to_vec_pretty(&report)
         .map_err(|error| format!("cannot encode selector report: {error}"))?;
     fs::write(output_path, encoded).map_err(|error| format!("cannot write selector report: {error}"))?;
