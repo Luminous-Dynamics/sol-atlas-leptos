@@ -140,7 +140,6 @@ jobs:
             });
 
             for (const event of events) {
-              const currentDigest = digests[events.indexOf(event)];
               if (event.issuer_sequence > 1) {
                 const prior = byKey.get(historyKey(
                   event.issuer, event.authority_scope, event.issuer_sequence - 1
