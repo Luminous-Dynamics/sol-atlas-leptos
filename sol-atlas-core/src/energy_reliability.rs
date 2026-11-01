@@ -73,47 +73,89 @@ pub struct EnergyReliabilityRequest {
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum EnergyReliabilityError {
     EmptySchemaVersion,
-    UnsupportedSchemaVersion { schema_version: String },
+    UnsupportedSchemaVersion {
+        schema_version: String,
+    },
     EmptyTraceId,
     NoServices,
     NoIntervals,
     NoEssentialServices,
     MissingEvidenceReference,
     EmptyServiceId,
-    DuplicateServiceId { service_id: String },
-    EmptyServiceDescription { service_id: String },
-    MissingServiceTemperature { service_id: String },
-    UnexpectedServiceTemperature { service_id: String },
-    InvalidServiceTemperature { service_id: String },
+    DuplicateServiceId {
+        service_id: String,
+    },
+    EmptyServiceDescription {
+        service_id: String,
+    },
+    MissingServiceTemperature {
+        service_id: String,
+    },
+    UnexpectedServiceTemperature {
+        service_id: String,
+    },
+    InvalidServiceTemperature {
+        service_id: String,
+    },
     EmptyIntervalId,
-    DuplicateIntervalId { interval_id: String },
-    InvalidIntervalDuration { interval_id: String },
+    DuplicateIntervalId {
+        interval_id: String,
+    },
+    InvalidIntervalDuration {
+        interval_id: String,
+    },
     ChronologyGapOrOverlap {
         interval_id: String,
         expected_start_unix_seconds: i64,
         actual_start_unix_seconds: i64,
     },
-    ChronologyOverflow { interval_id: String },
-    DuplicateServiceSample { interval_id: String, service_id: String },
-    UnknownServiceSample { interval_id: String, service_id: String },
-    MissingServiceSample { interval_id: String, service_id: String },
-    InvalidEnergyValue { interval_id: String, service_id: String, field: String },
+    ChronologyOverflow {
+        interval_id: String,
+    },
+    DuplicateServiceSample {
+        interval_id: String,
+        service_id: String,
+    },
+    UnknownServiceSample {
+        interval_id: String,
+        service_id: String,
+    },
+    MissingServiceSample {
+        interval_id: String,
+        service_id: String,
+    },
+    InvalidEnergyValue {
+        interval_id: String,
+        service_id: String,
+        field: String,
+    },
     DeliveredExceedsDemand {
         interval_id: String,
         service_id: String,
         delivered_energy_kwh: f64,
         requested_energy_kwh: f64,
     },
-    MissingDeliveryTemperature { interval_id: String, service_id: String },
-    UnexpectedDeliveryTemperature { interval_id: String, service_id: String },
-    InvalidDeliveryTemperature { interval_id: String, service_id: String },
+    MissingDeliveryTemperature {
+        interval_id: String,
+        service_id: String,
+    },
+    UnexpectedDeliveryTemperature {
+        interval_id: String,
+        service_id: String,
+    },
+    InvalidDeliveryTemperature {
+        interval_id: String,
+        service_id: String,
+    },
     InsufficientTemperatureGrade {
         interval_id: String,
         service_id: String,
         required_temperature_c: f64,
         delivered_temperature_c: f64,
     },
-    NonFiniteDerivedValue { context: String },
+    NonFiniteDerivedValue {
+        context: String,
+    },
 }
 
 /// Per-interval service result preserving the original chronology and stress tag.
@@ -220,8 +262,7 @@ fn close(lhs: f64, rhs: f64) -> bool {
 
 fn close_temperature_c(lhs: f64, rhs: f64) -> bool {
     (lhs - rhs).abs()
-        <= ABSOLUTE_TEMPERATURE_TOLERANCE_C
-            + RELATIVE_TOLERANCE * lhs.abs().max(rhs.abs())
+        <= ABSOLUTE_TEMPERATURE_TOLERANCE_C + RELATIVE_TOLERANCE * lhs.abs().max(rhs.abs())
 }
 
 fn add_finite(total: &mut f64, amount: f64, context: &str) -> Result<(), EnergyReliabilityError> {
@@ -284,7 +325,10 @@ pub fn assess_energy_reliability(
         if service.service_id.trim().is_empty() {
             return Err(EnergyReliabilityError::EmptyServiceId);
         }
-        if service_by_id.insert(service.service_id.clone(), service).is_some() {
+        if service_by_id
+            .insert(service.service_id.clone(), service)
+            .is_some()
+        {
             return Err(EnergyReliabilityError::DuplicateServiceId {
                 service_id: service.service_id.clone(),
             });
@@ -498,9 +542,7 @@ pub fn assess_energy_reliability(
                         });
                     }
                 }
-                (EnergyForm::ThermalHeat, None)
-                    if sample.delivered_energy_kwh > 0.0 =>
-                {
+                (EnergyForm::ThermalHeat, None) if sample.delivered_energy_kwh > 0.0 => {
                     return Err(EnergyReliabilityError::MissingDeliveryTemperature {
                         interval_id: interval.interval_id.clone(),
                         service_id: service.service_id.clone(),
@@ -517,9 +559,7 @@ pub fn assess_energy_reliability(
             }
 
             let unserved = (sample.requested_energy_kwh - sample.delivered_energy_kwh).max(0.0);
-            let residual = sample.requested_energy_kwh
-                - sample.delivered_energy_kwh
-                - unserved;
+            let residual = sample.requested_energy_kwh - sample.delivered_energy_kwh - unserved;
             if !unserved.is_finite() || !residual.is_finite() {
                 return Err(EnergyReliabilityError::NonFiniteDerivedValue {
                     context: format!(
@@ -529,8 +569,16 @@ pub fn assess_energy_reliability(
                 });
             }
             for (total, value, label) in [
-                (&mut interval_requested, sample.requested_energy_kwh, "interval requested"),
-                (&mut interval_delivered, sample.delivered_energy_kwh, "interval delivered"),
+                (
+                    &mut interval_requested,
+                    sample.requested_energy_kwh,
+                    "interval requested",
+                ),
+                (
+                    &mut interval_delivered,
+                    sample.delivered_energy_kwh,
+                    "interval delivered",
+                ),
                 (&mut interval_unserved, unserved, "interval unserved"),
             ] {
                 add_finite(total, value, label)?;
@@ -548,7 +596,11 @@ pub fn assess_energy_reliability(
                     sample.delivered_energy_kwh,
                     "service delivered",
                 ),
-                (&mut summary.unserved_energy_kwh, unserved, "service unserved"),
+                (
+                    &mut summary.unserved_energy_kwh,
+                    unserved,
+                    "service unserved",
+                ),
             ] {
                 add_finite(total, value, label)?;
             }
@@ -801,10 +853,7 @@ pub fn assess_energy_reliability(
         total_requested_service_kwh,
         total_delivered_service_kwh,
         total_unserved_service_kwh,
-        total_delivery_fraction: fraction(
-            total_delivered_service_kwh,
-            total_requested_service_kwh,
-        ),
+        total_delivery_fraction: fraction(total_delivered_service_kwh, total_requested_service_kwh),
         essential_requested_service_kwh,
         essential_delivered_service_kwh,
         essential_unserved_service_kwh,
@@ -889,10 +938,16 @@ mod tests {
         assert!((assessment.outage_essential_delivery_fraction.unwrap() - 0.4).abs() < 1.0e-12);
         assert_eq!(assessment.essential_deficit_interval_count, 2);
         assert_eq!(assessment.essential_deficit_duration_seconds, 7_200);
-        assert_eq!(assessment.longest_consecutive_essential_deficit_seconds, 7_200);
+        assert_eq!(
+            assessment.longest_consecutive_essential_deficit_seconds,
+            7_200
+        );
         assert_eq!(assessment.outage_essential_deficit_interval_count, 2);
         assert_eq!(assessment.outage_essential_deficit_duration_seconds, 7_200);
-        assert_eq!(assessment.longest_consecutive_outage_essential_deficit_seconds, 7_200);
+        assert_eq!(
+            assessment.longest_consecutive_outage_essential_deficit_seconds,
+            7_200
+        );
         assert_eq!(assessment.essential_intervals_fully_met_count, 2);
         assert!(assessment.total_service_balance_residual_kwh.abs() < 1.0e-9);
         assert!(assessment.essential_service_balance_residual_kwh.abs() < 1.0e-9);
@@ -941,7 +996,10 @@ mod tests {
         let assessment = assess_energy_reliability(&request).unwrap();
         assert_eq!(assessment.essential_deficit_interval_count, 1);
         assert_eq!(assessment.essential_deficit_duration_seconds, 3_600);
-        assert_eq!(assessment.longest_consecutive_essential_deficit_seconds, 3_600);
+        assert_eq!(
+            assessment.longest_consecutive_essential_deficit_seconds,
+            3_600
+        );
     }
 
     #[test]
@@ -970,7 +1028,10 @@ mod tests {
         let assessment = assess_energy_reliability(&request).unwrap();
         assert_eq!(assessment.grid_outage_duration_seconds, 7_200);
         assert_eq!(assessment.outage_essential_unserved_service_kwh, 0.0);
-        assert_eq!(assessment.longest_consecutive_outage_essential_deficit_seconds, 0);
+        assert_eq!(
+            assessment.longest_consecutive_outage_essential_deficit_seconds,
+            0
+        );
         assert_eq!(assessment.outage_essential_delivery_fraction, Some(1.0));
     }
 
@@ -1032,8 +1093,7 @@ mod tests {
                     < 1e-9
             );
             assert!(
-                (assessment.outage_essential_unserved_service_kwh - expected_outage_unserved)
-                    .abs()
+                (assessment.outage_essential_unserved_service_kwh - expected_outage_unserved).abs()
                     < 1e-9
             );
             assert!(
@@ -1066,8 +1126,8 @@ mod tests {
             second.interval_id = format!("{}-b", interval.interval_id);
             first.duration_seconds = interval.duration_seconds / 2;
             second.duration_seconds = interval.duration_seconds - first.duration_seconds;
-            second.start_unix_seconds = interval.start_unix_seconds
-                + i64::try_from(first.duration_seconds).unwrap();
+            second.start_unix_seconds =
+                interval.start_unix_seconds + i64::try_from(first.duration_seconds).unwrap();
             for sample in &mut first.services {
                 sample.requested_energy_kwh /= 2.0;
                 sample.delivered_energy_kwh /= 2.0;
@@ -1081,8 +1141,14 @@ mod tests {
         }
 
         let refined = assess_energy_reliability(&split).unwrap();
-        assert_eq!(refined.total_duration_seconds, baseline.total_duration_seconds);
-        assert_eq!(refined.grid_outage_duration_seconds, baseline.grid_outage_duration_seconds);
+        assert_eq!(
+            refined.total_duration_seconds,
+            baseline.total_duration_seconds
+        );
+        assert_eq!(
+            refined.grid_outage_duration_seconds,
+            baseline.grid_outage_duration_seconds
+        );
         assert_eq!(
             refined.essential_deficit_duration_seconds,
             baseline.essential_deficit_duration_seconds
@@ -1159,9 +1225,15 @@ mod tests {
         let assessment = assess_energy_reliability(&request).unwrap();
         assert_eq!(assessment.essential_deficit_interval_count, 2);
         assert_eq!(assessment.essential_deficit_duration_seconds, 7_200);
-        assert_eq!(assessment.longest_consecutive_essential_deficit_seconds, 3_600);
+        assert_eq!(
+            assessment.longest_consecutive_essential_deficit_seconds,
+            3_600
+        );
         assert_eq!(assessment.outage_essential_deficit_interval_count, 1);
         assert_eq!(assessment.outage_essential_deficit_duration_seconds, 3_600);
-        assert_eq!(assessment.longest_consecutive_outage_essential_deficit_seconds, 3_600);
+        assert_eq!(
+            assessment.longest_consecutive_outage_essential_deficit_seconds,
+            3_600
+        );
     }
 }

@@ -6,9 +6,7 @@ use sol_atlas_core::energy_pathway::EvidenceClass;
 use sol_atlas_core::energy_storage::{
     EnergyStorageRequest, StorageCarrier, StorageInterval, assess_energy_storage,
 };
-use sol_atlas_core::heat_pump::{
-    HeatPumpRequest, HeatPumpTemperatures, assess_heat_pump,
-};
+use sol_atlas_core::heat_pump::{HeatPumpRequest, HeatPumpTemperatures, assess_heat_pump};
 
 const TOLERANCE: f64 = 1.0e-9;
 
@@ -72,7 +70,10 @@ fn heat_pump_to_thermal_store_to_later_load_closes_each_boundary() {
             },
         ],
     };
-    assert_eq!(store.thermal_temperature_c, Some(heat.temperatures.delivery_c));
+    assert_eq!(
+        store.thermal_temperature_c,
+        Some(heat.temperatures.delivery_c)
+    );
     let storage =
         assess_energy_storage(&store).expect("synthetic thermal-store case should be valid");
 

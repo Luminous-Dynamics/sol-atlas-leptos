@@ -114,30 +114,48 @@ pub struct EnergyPathwayStageResult {
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum EnergyPathwayError {
     EmptySchemaVersion,
-    UnsupportedSchemaVersion { schema_version: String },
+    UnsupportedSchemaVersion {
+        schema_version: String,
+    },
     EmptyScenarioId,
     NoStages,
     EmptyStageId,
-    DuplicateStageId { stage_id: String },
+    DuplicateStageId {
+        stage_id: String,
+    },
     InvalidSourceEnergy,
     MissingSourceEvidenceReference,
-    InvalidEfficiency { stage_id: String },
-    InvalidStageCapacity { stage_id: String },
-    InvalidAuxiliaryRatio { stage_id: String },
-    MissingEvidenceReference { stage_id: String },
+    InvalidEfficiency {
+        stage_id: String,
+    },
+    InvalidStageCapacity {
+        stage_id: String,
+    },
+    InvalidAuxiliaryRatio {
+        stage_id: String,
+    },
+    MissingEvidenceReference {
+        stage_id: String,
+    },
     FormMismatch {
         stage_id: String,
         expected: EnergyForm,
         actual: EnergyForm,
     },
-    MissingThermalEngineLimits { stage_id: String },
-    InvalidThermalReservoirs { stage_id: String },
+    MissingThermalEngineLimits {
+        stage_id: String,
+    },
+    InvalidThermalReservoirs {
+        stage_id: String,
+    },
     CarnotBoundExceeded {
         stage_id: String,
         efficiency: f64,
         maximum_efficiency: f64,
     },
-    NonFiniteDerivedValue { stage_id: String },
+    NonFiniteDerivedValue {
+        stage_id: String,
+    },
 }
 
 /// Summary of the declared resource-stream path and auxiliary electric demand.
@@ -262,11 +280,11 @@ pub fn assess_energy_pathway(
         if stage.input_form == EnergyForm::ThermalHeat
             && stage.output_form == EnergyForm::Electricity
         {
-            let limits = stage
-                .thermal_engine_limits
-                .ok_or_else(|| EnergyPathwayError::MissingThermalEngineLimits {
+            let limits = stage.thermal_engine_limits.ok_or_else(|| {
+                EnergyPathwayError::MissingThermalEngineLimits {
                     stage_id: stage.stage_id.clone(),
-                })?;
+                }
+            })?;
             let hot_kelvin = limits.hot_reservoir_c + CELSIUS_TO_KELVIN;
             let cold_kelvin = limits.cold_reservoir_c + CELSIUS_TO_KELVIN;
             if !limits.hot_reservoir_c.is_finite()
@@ -350,7 +368,12 @@ pub fn assess_energy_pathway(
         request.source_energy_kwh - conversion_loss - curtailed_energy - gross_delivered;
     if !gross_delivered.is_finite() || !balance_residual.is_finite() {
         return Err(EnergyPathwayError::NonFiniteDerivedValue {
-            stage_id: request.stages.last().expect("validated nonempty").stage_id.clone(),
+            stage_id: request
+                .stages
+                .last()
+                .expect("validated nonempty")
+                .stage_id
+                .clone(),
         });
     }
 
@@ -493,7 +516,6 @@ mod tests {
         assert_eq!(assessment.total_auxiliary_electricity_kwh, 0.0);
     }
 
-
     #[test]
     fn electricity_delivery_is_not_mislabeled_as_new_generation() {
         let distribution = stage(
@@ -511,7 +533,14 @@ mod tests {
 
     #[test]
     fn rejects_efficiency_above_one() {
-        let stage = stage("bad", EnergyForm::Chemical, EnergyForm::Electricity, 1.01, 100.0, 0.0);
+        let stage = stage(
+            "bad",
+            EnergyForm::Chemical,
+            EnergyForm::Electricity,
+            1.01,
+            100.0,
+            0.0,
+        );
         assert!(matches!(
             assess_energy_pathway(&request(100.0, vec![stage])),
             Err(EnergyPathwayError::InvalidEfficiency { .. })
@@ -536,8 +565,22 @@ mod tests {
 
     #[test]
     fn rejects_stream_form_mismatch() {
-        let first = stage("a", EnergyForm::Chemical, EnergyForm::Electricity, 0.8, 100.0, 0.0);
-        let second = stage("b", EnergyForm::ThermalHeat, EnergyForm::Electricity, 0.4, 100.0, 0.0);
+        let first = stage(
+            "a",
+            EnergyForm::Chemical,
+            EnergyForm::Electricity,
+            0.8,
+            100.0,
+            0.0,
+        );
+        let second = stage(
+            "b",
+            EnergyForm::ThermalHeat,
+            EnergyForm::Electricity,
+            0.4,
+            100.0,
+            0.0,
+        );
         assert!(matches!(
             assess_energy_pathway(&request(100.0, vec![first, second])),
             Err(EnergyPathwayError::FormMismatch { .. })
@@ -594,7 +637,6 @@ mod tests {
         ));
     }
 
-
     #[test]
     fn non_assumption_source_requires_evidence_reference() {
         let stage = stage(
@@ -633,8 +675,22 @@ mod tests {
 
     #[test]
     fn duplicate_stage_ids_fail_closed() {
-        let a = stage("same", EnergyForm::Chemical, EnergyForm::Electricity, 0.8, 100.0, 0.0);
-        let b = stage("same", EnergyForm::Electricity, EnergyForm::Electricity, 0.9, 100.0, 0.0);
+        let a = stage(
+            "same",
+            EnergyForm::Chemical,
+            EnergyForm::Electricity,
+            0.8,
+            100.0,
+            0.0,
+        );
+        let b = stage(
+            "same",
+            EnergyForm::Electricity,
+            EnergyForm::Electricity,
+            0.9,
+            100.0,
+            0.0,
+        );
         assert!(matches!(
             assess_energy_pathway(&request(100.0, vec![a, b])),
             Err(EnergyPathwayError::DuplicateStageId { .. })

@@ -142,25 +142,46 @@ pub struct EnergyDispatchAssessment {
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum EnergyDispatchError {
     EmptyCaseId,
-    UnsupportedSchemaVersion { schema_version: String },
+    UnsupportedSchemaVersion {
+        schema_version: String,
+    },
     NoIntervals,
     MissingEvidenceReference,
     InvalidEnergyQuantum,
-    InvalidCandidateExpansionCap { requested: u64, hard_max: u64 },
+    InvalidCandidateExpansionCap {
+        requested: u64,
+        hard_max: u64,
+    },
     EmptyIntervalId,
-    DuplicateIntervalId { interval_id: String },
-    InvalidIntervalDuration { interval_id: String },
+    DuplicateIntervalId {
+        interval_id: String,
+    },
+    InvalidIntervalDuration {
+        interval_id: String,
+    },
     ChronologyGapOrOverlap {
         interval_id: String,
         expected_start_unix_seconds: i64,
         actual_start_unix_seconds: i64,
     },
-    ChronologyOverflow { interval_id: String },
-    InvalidBatteryConfiguration { reason: String },
-    InvalidEfficiencyRatio { name: String },
-    CandidateExpansionCapExceeded { cap: u64 },
-    ParetoFrontierCapExceeded { cap: usize },
-    ArithmeticOverflow { context: String },
+    ChronologyOverflow {
+        interval_id: String,
+    },
+    InvalidBatteryConfiguration {
+        reason: String,
+    },
+    InvalidEfficiencyRatio {
+        name: String,
+    },
+    CandidateExpansionCapExceeded {
+        cap: u64,
+    },
+    ParetoFrontierCapExceeded {
+        cap: usize,
+    },
+    ArithmeticOverflow {
+        context: String,
+    },
     NoFeasibleSchedules,
 }
 
@@ -360,9 +381,8 @@ impl<'a> ExactSearch<'a> {
                         * u64::from(battery.charge_efficiency_numerator)
                         / u64::from(battery.charge_efficiency_denominator))
                         as u16;
-                    let soc_after_charge = u32::from(soc_before)
-                        - u32::from(soc_withdrawal)
-                        + u32::from(charge_gain);
+                    let soc_after_charge =
+                        u32::from(soc_before) - u32::from(soc_withdrawal) + u32::from(charge_gain);
                     if soc_after_charge > u32::from(battery.capacity_quanta) {
                         continue;
                     }
@@ -389,8 +409,7 @@ impl<'a> ExactSearch<'a> {
                             if pv_used > u64::from(input.pv_available_quanta) {
                                 continue;
                             }
-                            let pv_curtailed =
-                                u64::from(input.pv_available_quanta) - pv_used;
+                            let pv_curtailed = u64::from(input.pv_available_quanta) - pv_used;
                             let step = DispatchIntervalDecision {
                                 interval_id: input.interval_id.clone(),
                                 start_unix_seconds: input.start_unix_seconds,
@@ -407,13 +426,11 @@ impl<'a> ExactSearch<'a> {
                                 battery_soc_after_quanta: soc_after_charge as u16,
                                 essential_demand_quanta: input.essential_demand_quanta,
                                 essential_served_quanta: essential_served,
-                                essential_unserved_quanta: input
-                                    .essential_demand_quanta
+                                essential_unserved_quanta: input.essential_demand_quanta
                                     - essential_served,
                                 flexible_demand_quanta: input.flexible_demand_quanta,
                                 flexible_served_quanta: flexible_served,
-                                flexible_unserved_quanta: input
-                                    .flexible_demand_quanta
+                                flexible_unserved_quanta: input.flexible_demand_quanta
                                     - flexible_served,
                                 grid_cost_units_per_quantum: input.grid_cost_units_per_quantum,
                                 grid_carbon_grams_per_quantum: input.grid_carbon_grams_per_quantum,
@@ -636,8 +653,10 @@ mod tests {
                     step.flexible_served_quanta + step.flexible_unserved_quanta,
                     step.flexible_demand_quanta
                 );
-                assert!(!(step.battery_charge_input_quanta > 0
-                    && step.battery_soc_withdrawal_quanta > 0));
+                assert!(
+                    !(step.battery_charge_input_quanta > 0
+                        && step.battery_soc_withdrawal_quanta > 0)
+                );
             }
         }
     }
@@ -725,7 +744,9 @@ mod tests {
             let assessment = match result {
                 Ok(assessment) => assessment,
                 Err(EnergyDispatchError::NoFeasibleSchedules) => continue,
-                Err(other) => panic!("seed {seed} must not fail for an unrelated reason: {other:?}"),
+                Err(other) => {
+                    panic!("seed {seed} must not fail for an unrelated reason: {other:?}")
+                }
             };
             assert!(assessment.search_is_exact);
             assert!(assessment.pareto_frontier_complete);
@@ -737,8 +758,10 @@ mod tests {
                     assert_eq!(step.battery_soc_before_quanta, expected_soc);
                     assert!(step.battery_soc_after_quanta <= request.battery.capacity_quanta);
                     assert!(step.battery_soc_withdrawal_quanta <= step.battery_soc_before_quanta);
-                    assert!(!(step.battery_charge_input_quanta > 0
-                        && step.battery_soc_withdrawal_quanta > 0));
+                    assert!(
+                        !(step.battery_charge_input_quanta > 0
+                            && step.battery_soc_withdrawal_quanta > 0)
+                    );
                     let gained = u64::from(step.battery_charge_input_quanta)
                         * u64::from(request.battery.charge_efficiency_numerator)
                         / u64::from(request.battery.charge_efficiency_denominator);
@@ -749,7 +772,10 @@ mod tests {
                     let expected_discharge = u64::from(step.battery_soc_withdrawal_quanta)
                         * u64::from(request.battery.discharge_efficiency_numerator)
                         / u64::from(request.battery.discharge_efficiency_denominator);
-                    assert_eq!(u64::from(step.battery_discharge_delivered_quanta), expected_discharge);
+                    assert_eq!(
+                        u64::from(step.battery_discharge_delivered_quanta),
+                        expected_discharge
+                    );
                     assert_eq!(step.grid_outage, input.grid_outage);
                     if input.grid_outage {
                         assert_eq!(step.grid_import_quanta, 0);
@@ -788,7 +814,10 @@ mod tests {
             let encoded_first = serde_json::to_vec(&assessment).expect("assessment serializes");
             let rerun = assess_energy_dispatch(&request).expect("same case remains feasible");
             let encoded_second = serde_json::to_vec(&rerun).expect("rerun serializes");
-            assert_eq!(encoded_first, encoded_second, "seed {seed} must be deterministic");
+            assert_eq!(
+                encoded_first, encoded_second,
+                "seed {seed} must be deterministic"
+            );
         }
     }
 

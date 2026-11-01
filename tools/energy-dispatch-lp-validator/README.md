@@ -66,6 +66,30 @@ proof-binding JSONL record additionally commits the translation-receipt digest,
 solver certificate digest, VIPR verification-log digest, validator version,
 SCIP binary digest, VIPR checker digest and pinned VIPR source commit.
 
+The temporal oracle now has two distinct horizons. The H=2 charge-from-PV /
+discharge-during-outage fixture exhaustively checks all 65,536 bounded
+assignments. The H=3 charge/outage/recovery fixture checks 50,000 deterministic
+sampled assignments using a frozen LCG seed. A dedicated H=3 negative control
+swaps the outage and post-outage idle intervals while retaining the original
+trajectory. For every H=2 exhaustive and H=3 sampled assignment, all six
+LP objective values are recomputed independently from the source request:
+essential/flexible unserved, operating cost, grid carbon, curtailed PV and
+terminal SOC. The test also verifies that each objective-specific reference
+model has identical variables/bounds and constraints. The H=3 panel is
+sampled, not exhaustive; it does not replace the H=2 finite exhaustive oracle.
+
+The temporal test oracle now covers H=2 and H=3. The two-interval
+charge-from-PV followed by essential-load outage case exhaustively compares
+65,536 bounded integer assignments. The H=3 charge/outage/recovery case adds
+50,000 deterministic sampled assignments using a frozen LCG seed. The
+independent source-request evaluator checks SOC carry-forward, floor
+efficiency, mode exclusivity, per-interval energy balance, load/PV partitions,
+outage import limits and terminal reserve. H=2 negative controls corrupt SOC,
+grid outage, mode exclusivity, floor-efficiency result, PV balance and
+essential-load partition; the H=3 control reorders outage and recovery
+intervals and requires rejection. H=4 and broader request-domain generation
+remain open qualification work.
+
 This does not make the receipt a mathematical proof itself; it makes it an
 auditable translation claim that is cryptographically associated with the
 subsequent proof artifact and the exact solver/checker binaries.

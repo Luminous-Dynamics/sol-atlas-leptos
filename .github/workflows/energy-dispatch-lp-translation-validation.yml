@@ -93,6 +93,8 @@ jobs:
             tools/energy-dispatch-lp-validator/Cargo.lock
             tools/energy-dispatch-lp-validator/Cargo.toml
             tools/energy-dispatch-lp-validator/README.md
+            tools/energy-dispatch-lp-validator/TEMPORAL_QUALIFICATION.md
+            tools/energy-dispatch-lp-validator/BENCHMARK_PROTOCOL.md
             tools/energy-dispatch-lp-validator/src/lib.rs
             tools/energy-dispatch-lp-validator/src/main.rs
           if-no-files-found: error

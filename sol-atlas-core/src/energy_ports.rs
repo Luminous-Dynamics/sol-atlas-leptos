@@ -100,35 +100,98 @@ pub struct EnergyPortsRequest {
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum EnergyPortsError {
     EmptySchemaVersion,
-    UnsupportedSchemaVersion { schema_version: String },
+    UnsupportedSchemaVersion {
+        schema_version: String,
+    },
     EmptyScenarioId,
     NoNodes,
     EmptyNodeId,
-    DuplicateNodeId { node_id: String },
-    EmptyBoundaryDescription { node_id: String },
-    NodeWithoutPorts { node_id: String },
-    EmptyPortId { node_id: String },
-    DuplicateInputPortId { node_id: String, port_id: String },
-    DuplicateOutputPortId { node_id: String, port_id: String },
-    InvalidPortEnergy { node_id: String, port_id: String },
-    InvalidExternalEnergy { node_id: String, port_id: String },
-    MissingExternalSourceId { node_id: String, port_id: String },
-    UnexpectedExternalSourceId { node_id: String, port_id: String },
-    DuplicateExternalSourceId { source_id: String },
-    MissingThermalTemperature { node_id: String, port_id: String },
-    UnexpectedTemperature { node_id: String, port_id: String },
-    InvalidAbsoluteTemperature { node_id: String, port_id: String },
-    MissingEvidenceReference { node_id: String },
+    DuplicateNodeId {
+        node_id: String,
+    },
+    EmptyBoundaryDescription {
+        node_id: String,
+    },
+    NodeWithoutPorts {
+        node_id: String,
+    },
+    EmptyPortId {
+        node_id: String,
+    },
+    DuplicateInputPortId {
+        node_id: String,
+        port_id: String,
+    },
+    DuplicateOutputPortId {
+        node_id: String,
+        port_id: String,
+    },
+    InvalidPortEnergy {
+        node_id: String,
+        port_id: String,
+    },
+    InvalidExternalEnergy {
+        node_id: String,
+        port_id: String,
+    },
+    MissingExternalSourceId {
+        node_id: String,
+        port_id: String,
+    },
+    UnexpectedExternalSourceId {
+        node_id: String,
+        port_id: String,
+    },
+    DuplicateExternalSourceId {
+        source_id: String,
+    },
+    MissingThermalTemperature {
+        node_id: String,
+        port_id: String,
+    },
+    UnexpectedTemperature {
+        node_id: String,
+        port_id: String,
+    },
+    InvalidAbsoluteTemperature {
+        node_id: String,
+        port_id: String,
+    },
+    MissingEvidenceReference {
+        node_id: String,
+    },
     EmptyEdgeId,
-    DuplicateEdgeId { edge_id: String },
-    InvalidEdgeEnergy { edge_id: String },
-    MissingSourceNode { edge_id: String, node_id: String },
-    MissingSourcePort { edge_id: String, node_id: String, port_id: String },
-    MissingTargetNode { edge_id: String, node_id: String },
-    MissingTargetPort { edge_id: String, node_id: String, port_id: String },
+    DuplicateEdgeId {
+        edge_id: String,
+    },
+    InvalidEdgeEnergy {
+        edge_id: String,
+    },
+    MissingSourceNode {
+        edge_id: String,
+        node_id: String,
+    },
+    MissingSourcePort {
+        edge_id: String,
+        node_id: String,
+        port_id: String,
+    },
+    MissingTargetNode {
+        edge_id: String,
+        node_id: String,
+    },
+    MissingTargetPort {
+        edge_id: String,
+        node_id: String,
+        port_id: String,
+    },
     GraphCycleDetected,
-    EnergyFormMismatch { edge_id: String },
-    TemperatureGradeMismatch { edge_id: String },
+    EnergyFormMismatch {
+        edge_id: String,
+    },
+    TemperatureGradeMismatch {
+        edge_id: String,
+    },
     OutputOverdrawn {
         node_id: String,
         port_id: String,
@@ -150,7 +213,9 @@ pub enum EnergyPortsError {
         external_input_kwh: f64,
         terminal_disposition_kwh: f64,
     },
-    NonFiniteDerivedValue { context: String },
+    NonFiniteDerivedValue {
+        context: String,
+    },
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Serialize)]
@@ -240,8 +305,7 @@ fn close(lhs: f64, rhs: f64) -> bool {
 
 fn close_temperature_c(lhs: f64, rhs: f64) -> bool {
     (lhs - rhs).abs()
-        <= ABSOLUTE_TEMPERATURE_TOLERANCE_C
-            + RELATIVE_TOLERANCE * lhs.abs().max(rhs.abs())
+        <= ABSOLUTE_TEMPERATURE_TOLERANCE_C + RELATIVE_TOLERANCE * lhs.abs().max(rhs.abs())
 }
 
 fn checked_add(total: &mut f64, amount: f64, context: &str) -> Result<(), EnergyPortsError> {
@@ -261,12 +325,10 @@ fn validate_temperature(
     temperature_c: Option<f64>,
 ) -> Result<(), EnergyPortsError> {
     match (form, temperature_c) {
-        (EnergyForm::ThermalHeat, None) => {
-            Err(EnergyPortsError::MissingThermalTemperature {
-                node_id: node_id.to_owned(),
-                port_id: port_id.to_owned(),
-            })
-        }
+        (EnergyForm::ThermalHeat, None) => Err(EnergyPortsError::MissingThermalTemperature {
+            node_id: node_id.to_owned(),
+            port_id: port_id.to_owned(),
+        }),
         (EnergyForm::ThermalHeat, Some(celsius)) => {
             let kelvin = celsius + CELSIUS_TO_KELVIN;
             if !celsius.is_finite() || !kelvin.is_finite() || kelvin <= 0.0 {
@@ -368,8 +430,7 @@ pub fn assess_energy_ports(
                 });
             }
             let external_exceeds_declared = port.external_energy_kwh
-                > port.energy_kwh
-                    + tolerance(port.external_energy_kwh, port.energy_kwh);
+                > port.energy_kwh + tolerance(port.external_energy_kwh, port.energy_kwh);
             if !finite_nonnegative(port.external_energy_kwh) || external_exceeds_declared {
                 return Err(EnergyPortsError::InvalidExternalEnergy {
                     node_id: node.node_id.clone(),
@@ -498,7 +559,9 @@ pub fn assess_energy_ports(
             ready.push_back(*index);
         }
         adjacency[*index].sort_by(|left, right| {
-            request.nodes[*left].node_id.cmp(&request.nodes[*right].node_id)
+            request.nodes[*left]
+                .node_id
+                .cmp(&request.nodes[*right].node_id)
         });
     }
     let mut topologically_seen = 0usize;
@@ -560,7 +623,11 @@ pub fn assess_energy_ports(
             edge.energy_kwh,
             &format!("received input {}:{}", edge.to_node_id, edge.to_port_id),
         )?;
-        checked_add(&mut routed_energy_kwh, edge.energy_kwh, "total routed energy")?;
+        checked_add(
+            &mut routed_energy_kwh,
+            edge.energy_kwh,
+            "total routed energy",
+        )?;
     }
 
     let mut external_input_energy_kwh = 0.0;
@@ -624,7 +691,11 @@ pub fn assess_energy_ports(
             checked_add(&mut input_energy_kwh, input.energy_kwh, "node input energy")?;
         }
         for output in &node.outputs {
-            checked_add(&mut output_energy_kwh, output.energy_kwh, "node output energy")?;
+            checked_add(
+                &mut output_energy_kwh,
+                output.energy_kwh,
+                "node output energy",
+            )?;
         }
         let residual = input_energy_kwh - output_energy_kwh;
         if !residual.is_finite() {
@@ -724,8 +795,7 @@ pub fn assess_energy_ports(
             context: "terminal disposition energy".to_owned(),
         });
     }
-    let system_balance_residual_kwh =
-        external_input_energy_kwh - terminal_disposition_energy_kwh;
+    let system_balance_residual_kwh = external_input_energy_kwh - terminal_disposition_energy_kwh;
     if !system_balance_residual_kwh.is_finite() {
         return Err(EnergyPortsError::NonFiniteDerivedValue {
             context: "system energy balance".to_owned(),
@@ -885,7 +955,9 @@ mod tests {
         assert_eq!(assessment.terminal_disposition_energy_kwh, 100.0);
         assert!(assessment.system_balance_residual_kwh.abs() < 1.0e-9);
 
-        let heat = assessment.output_ports.iter()
+        let heat = assessment
+            .output_ports
+            .iter()
             .find(|port| port.node_id == "chp" && port.port_id == "heat-coproduct")
             .unwrap();
         assert_eq!(heat.energy_kwh, 45.0);
@@ -914,7 +986,10 @@ mod tests {
         let mut request = chp_fixture();
         request.edges.clear();
         let error = assess_energy_ports(&request).unwrap_err();
-        assert!(matches!(error, EnergyPortsError::InputRoutingMismatch { .. }));
+        assert!(matches!(
+            error,
+            EnergyPortsError::InputRoutingMismatch { .. }
+        ));
     }
 
     #[test]
@@ -922,7 +997,10 @@ mod tests {
         let mut request = chp_fixture();
         request.nodes[0].outputs[0].energy_kwh = 34.0;
         let error = assess_energy_ports(&request).unwrap_err();
-        assert!(matches!(error, EnergyPortsError::NodeEnergyBalanceMismatch { .. }));
+        assert!(matches!(
+            error,
+            EnergyPortsError::NodeEnergyBalanceMismatch { .. }
+        ));
     }
 
     #[test]
@@ -939,7 +1017,10 @@ mod tests {
         let mut request = chp_fixture();
         request.nodes[1].inputs[0].temperature_c = Some(70.0);
         let error = assess_energy_ports(&request).unwrap_err();
-        assert!(matches!(error, EnergyPortsError::TemperatureGradeMismatch { .. }));
+        assert!(matches!(
+            error,
+            EnergyPortsError::TemperatureGradeMismatch { .. }
+        ));
     }
 
     #[test]

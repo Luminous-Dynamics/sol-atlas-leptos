@@ -307,8 +307,7 @@ pub fn assess_energy_storage(
         let after_standing_loss = opening * retention_fraction;
         let standing_loss = opening - after_standing_loss;
         let charge_power_energy_limit = request.max_charge_power_kw * interval.duration_hours;
-        let discharge_power_energy_limit =
-            request.max_discharge_power_kw * interval.duration_hours;
+        let discharge_power_energy_limit = request.max_discharge_power_kw * interval.duration_hours;
         if !retention_fraction.is_finite()
             || !after_standing_loss.is_finite()
             || !standing_loss.is_finite()
@@ -363,22 +362,16 @@ pub fn assess_energy_storage(
         if state < 0.0 && state.abs() <= NUMERIC_TOLERANCE {
             state = 0.0;
         }
-        if state > request.capacity_kwh
-            && state - request.capacity_kwh <= NUMERIC_TOLERANCE
-        {
+        if state > request.capacity_kwh && state - request.capacity_kwh <= NUMERIC_TOLERANCE {
             state = request.capacity_kwh;
         }
-        if !state.is_finite()
-            || state < 0.0
-            || state > request.capacity_kwh + NUMERIC_TOLERANCE
-        {
+        if !state.is_finite() || state < 0.0 || state > request.capacity_kwh + NUMERIC_TOLERANCE {
             return Err(EnergyStorageError::InvalidClosingState {
                 interval_id: interval.interval_id.clone(),
             });
         }
 
-        let balance_residual = opening
-            + charge_accepted
+        let balance_residual = opening + charge_accepted
             - state
             - standing_loss
             - charging_loss
@@ -460,11 +453,8 @@ pub fn assess_energy_storage(
     }
 
     let total_loss = total_standing_loss + total_charging_loss + total_discharging_loss;
-    let trajectory_balance_residual = initial_energy
-        + total_charge_accepted
-        - state
-        - total_loss
-        - total_discharge_delivered;
+    let trajectory_balance_residual =
+        initial_energy + total_charge_accepted - state - total_loss - total_discharge_delivered;
     if !total_loss.is_finite() || !trajectory_balance_residual.is_finite() {
         return Err(EnergyStorageError::NonFiniteDerivedValue {
             interval_id: request.intervals[request.intervals.len() - 1]
@@ -556,10 +546,12 @@ mod tests {
         assert!((assessment.total_discharge_delivered_kwh - 4.0).abs() < NUMERIC_TOLERANCE);
         assert!((assessment.total_loss_kwh - 2.09).abs() < NUMERIC_TOLERANCE);
         assert!(assessment.trajectory_balance_residual_kwh.abs() < NUMERIC_TOLERANCE);
-        assert!(assessment
-            .intervals
-            .iter()
-            .all(|row| row.energy_balance_residual_kwh.abs() < NUMERIC_TOLERANCE));
+        assert!(
+            assessment
+                .intervals
+                .iter()
+                .all(|row| row.energy_balance_residual_kwh.abs() < NUMERIC_TOLERANCE)
+        );
     }
 
     #[test]
@@ -595,7 +587,6 @@ mod tests {
         assert!((assessment.final_energy_kwh - 1.5).abs() < NUMERIC_TOLERANCE);
         assert!(assessment.trajectory_balance_residual_kwh.abs() < NUMERIC_TOLERANCE);
     }
-
 
     #[test]
     fn thermal_storage_requires_explicit_temperature_grade() {

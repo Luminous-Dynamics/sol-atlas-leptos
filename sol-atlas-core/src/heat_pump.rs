@@ -61,10 +61,7 @@ pub enum HeatPumpError {
     MissingEvidenceReference,
     NoCompressorWorkForHeatTransfer,
     NonFiniteDerivedValue,
-    CarnotCopExceeded {
-        observed_cop: f64,
-        carnot_cop: f64,
-    },
+    CarnotCopExceeded { observed_cop: f64, carnot_cop: f64 },
 }
 
 /// Steady-state assessment of one heat-pump interval.
@@ -120,9 +117,7 @@ fn finite_nonnegative(value: f64) -> bool {
 /// This model rejects a claimed core COP above the Carnot heating bound. That bound is
 /// necessary, not sufficient: a passing case is not evidence that a real device achieves
 /// the supplied energy flows or that the COP is economically useful at this duty cycle.
-pub fn assess_heat_pump(
-    request: &HeatPumpRequest,
-) -> Result<HeatPumpAssessment, HeatPumpError> {
+pub fn assess_heat_pump(request: &HeatPumpRequest) -> Result<HeatPumpAssessment, HeatPumpError> {
     if request.schema_version.trim().is_empty() {
         return Err(HeatPumpError::EmptySchemaVersion);
     }
@@ -136,7 +131,10 @@ pub fn assess_heat_pump(
     }
 
     for (field, value) in [
-        ("source_heat_available_kwh", request.source_heat_available_kwh),
+        (
+            "source_heat_available_kwh",
+            request.source_heat_available_kwh,
+        ),
         ("max_source_heat_kwh", request.max_source_heat_kwh),
         (
             "compressor_electricity_available_kwh",
@@ -146,7 +144,10 @@ pub fn assess_heat_pump(
             "max_compressor_electricity_kwh",
             request.max_compressor_electricity_kwh,
         ),
-        ("auxiliary_electricity_kwh", request.auxiliary_electricity_kwh),
+        (
+            "auxiliary_electricity_kwh",
+            request.auxiliary_electricity_kwh,
+        ),
     ] {
         if !finite_nonnegative(value) {
             return Err(HeatPumpError::InvalidEnergy {

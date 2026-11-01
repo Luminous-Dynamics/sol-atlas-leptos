@@ -55,7 +55,10 @@ fn report_from_bytes(raw_input: &[u8]) -> Result<RunReport, Box<dyn Error>> {
             "calibration, evidence truth, causal supply, or physical service delivery",
         ),
     };
-    Ok(RunReport { receipt, assessment })
+    Ok(RunReport {
+        receipt,
+        assessment,
+    })
 }
 
 fn run() -> Result<(), Box<dyn Error>> {
@@ -96,8 +99,14 @@ mod tests {
         assert_eq!(assessment.total_unserved_service_kwh, 12.0);
         assert_eq!(assessment.grid_outage_duration_seconds, 7_200);
         assert_eq!(assessment.outage_essential_unserved_service_kwh, 12.0);
-        assert_eq!(assessment.longest_consecutive_essential_deficit_seconds, 7_200);
-        assert_eq!(assessment.longest_consecutive_outage_essential_deficit_seconds, 7_200);
+        assert_eq!(
+            assessment.longest_consecutive_essential_deficit_seconds,
+            7_200
+        );
+        assert_eq!(
+            assessment.longest_consecutive_outage_essential_deficit_seconds,
+            7_200
+        );
         assert_eq!(report.receipt.input_sha256, sha256_hex(FIXTURE.as_bytes()));
         assert_eq!(report.receipt.input_bytes, FIXTURE.len());
         assert!(report.receipt.synthetic);
@@ -108,7 +117,10 @@ mod tests {
         let trimmed = FIXTURE.trim().as_bytes();
         let original = report_from_bytes(FIXTURE.as_bytes()).unwrap();
         let whitespace_variant = report_from_bytes(trimmed).unwrap();
-        assert_ne!(original.receipt.input_sha256, whitespace_variant.receipt.input_sha256);
+        assert_ne!(
+            original.receipt.input_sha256,
+            whitespace_variant.receipt.input_sha256
+        );
         assert_eq!(
             original.receipt.assessment_sha256,
             original.assessment_sha256_for_test()

@@ -63,28 +63,56 @@ pub struct EnergyServiceScenarioRequest {
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum EnergyServiceError {
     EmptySchemaVersion,
-    UnsupportedSchemaVersion { schema_version: String },
+    UnsupportedSchemaVersion {
+        schema_version: String,
+    },
     EmptyScenarioId,
     ScenarioMetadataMismatch,
     NoDemands,
     EmptyServiceId,
-    DuplicateServiceId { service_id: String },
-    EmptyDescription { service_id: String },
-    InvalidRequestedEnergy { service_id: String },
-    MissingDemandTemperature { service_id: String },
-    UnexpectedDemandTemperature { service_id: String },
-    InvalidDemandTemperature { service_id: String },
-    MissingSourceNode { service_id: String, node_id: String },
+    DuplicateServiceId {
+        service_id: String,
+    },
+    EmptyDescription {
+        service_id: String,
+    },
+    InvalidRequestedEnergy {
+        service_id: String,
+    },
+    MissingDemandTemperature {
+        service_id: String,
+    },
+    UnexpectedDemandTemperature {
+        service_id: String,
+    },
+    InvalidDemandTemperature {
+        service_id: String,
+    },
+    MissingSourceNode {
+        service_id: String,
+        node_id: String,
+    },
     MissingSourcePort {
         service_id: String,
         node_id: String,
         port_id: String,
     },
-    SourcePortNotTerminalUsefulService { service_id: String },
-    InvalidSourceOutputValue { service_id: String },
-    InvalidSourceTemperature { service_id: String },
-    DuplicateOutputClaim { node_id: String, port_id: String },
-    ServiceFormMismatch { service_id: String },
+    SourcePortNotTerminalUsefulService {
+        service_id: String,
+    },
+    InvalidSourceOutputValue {
+        service_id: String,
+    },
+    InvalidSourceTemperature {
+        service_id: String,
+    },
+    DuplicateOutputClaim {
+        node_id: String,
+        port_id: String,
+    },
+    ServiceFormMismatch {
+        service_id: String,
+    },
     ServiceTemperatureInsufficient {
         service_id: String,
         required_temperature_c: f64,
@@ -95,9 +123,16 @@ pub enum EnergyServiceError {
         available_kwh: f64,
         requested_kwh: f64,
     },
-    MissingDemandForUsefulOutput { node_id: String, port_id: String },
-    NonFiniteDerivedValue { context: String },
-    GraphAssessmentFailed { error: EnergyPortsError },
+    MissingDemandForUsefulOutput {
+        node_id: String,
+        port_id: String,
+    },
+    NonFiniteDerivedValue {
+        context: String,
+    },
+    GraphAssessmentFailed {
+        error: EnergyPortsError,
+    },
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Serialize)]
@@ -163,13 +198,10 @@ fn close(lhs: f64, rhs: f64) -> bool {
 
 fn close_temperature_c(lhs: f64, rhs: f64) -> bool {
     (lhs - rhs).abs()
-        <= ABSOLUTE_TEMPERATURE_TOLERANCE_C
-            + RELATIVE_TOLERANCE * lhs.abs().max(rhs.abs())
+        <= ABSOLUTE_TEMPERATURE_TOLERANCE_C + RELATIVE_TOLERANCE * lhs.abs().max(rhs.abs())
 }
 
-fn validate_demand_temperature(
-    demand: &EnergyServiceDemand,
-) -> Result<(), EnergyServiceError> {
+fn validate_demand_temperature(demand: &EnergyServiceDemand) -> Result<(), EnergyServiceError> {
     match (demand.required_form, demand.minimum_temperature_c) {
         (EnergyForm::ThermalHeat, None) => Err(EnergyServiceError::MissingDemandTemperature {
             service_id: demand.service_id.clone(),
@@ -242,22 +274,28 @@ pub fn assess_energy_services(
         let mut delivered_energy_kwh = 0.0;
         let mut delivered_temperature_c = None;
         let (source_node_id, source_port_id) = if let Some(source) = &demand.source_output {
-            let port = graph.output_ports.iter().find(|port| {
-                port.node_id == source.node_id && port.port_id == source.port_id
-            }).ok_or_else(|| {
-                if graph.nodes.iter().any(|node| node.node_id == source.node_id) {
-                    EnergyServiceError::MissingSourcePort {
-                        service_id: demand.service_id.clone(),
-                        node_id: source.node_id.clone(),
-                        port_id: source.port_id.clone(),
+            let port = graph
+                .output_ports
+                .iter()
+                .find(|port| port.node_id == source.node_id && port.port_id == source.port_id)
+                .ok_or_else(|| {
+                    if graph
+                        .nodes
+                        .iter()
+                        .any(|node| node.node_id == source.node_id)
+                    {
+                        EnergyServiceError::MissingSourcePort {
+                            service_id: demand.service_id.clone(),
+                            node_id: source.node_id.clone(),
+                            port_id: source.port_id.clone(),
+                        }
+                    } else {
+                        EnergyServiceError::MissingSourceNode {
+                            service_id: demand.service_id.clone(),
+                            node_id: source.node_id.clone(),
+                        }
                     }
-                } else {
-                    EnergyServiceError::MissingSourceNode {
-                        service_id: demand.service_id.clone(),
-                        node_id: source.node_id.clone(),
-                    }
-                }
-            })?;
+                })?;
             if port.remainder_disposition != EnergyPortDisposition::UsefulService {
                 return Err(EnergyServiceError::SourcePortNotTerminalUsefulService {
                     service_id: demand.service_id.clone(),
@@ -309,8 +347,9 @@ pub fn assess_energy_services(
             }
 
             delivered_energy_kwh = port.terminal_remainder_kwh;
-            if delivered_energy_kwh > demand.requested_energy_kwh
-                + tolerance(delivered_energy_kwh, demand.requested_energy_kwh)
+            if delivered_energy_kwh
+                > demand.requested_energy_kwh
+                    + tolerance(delivered_energy_kwh, demand.requested_energy_kwh)
             {
                 return Err(EnergyServiceError::OutputExceedsDemand {
                     service_id: demand.service_id.clone(),
@@ -417,10 +456,12 @@ pub fn assess_energy_services(
     demand_assessments.sort_by(|left, right| left.service_id.cmp(&right.service_id));
     let service_balance_residual_kwh =
         total_requested_service_kwh - total_delivered_service_kwh - total_unserved_service_kwh;
-    if !service_balance_residual_kwh.is_finite() || !close(
-        total_requested_service_kwh,
-        total_delivered_service_kwh + total_unserved_service_kwh,
-    ) {
+    if !service_balance_residual_kwh.is_finite()
+        || !close(
+            total_requested_service_kwh,
+            total_delivered_service_kwh + total_unserved_service_kwh,
+        )
+    {
         return Err(EnergyServiceError::NonFiniteDerivedValue {
             context: "aggregate service balance".to_owned(),
         });
@@ -491,10 +532,10 @@ pub fn assess_energy_service_scenario(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::energy_pathway::EvidenceClass;
     use crate::energy_ports::{
         EnergyInputPort, EnergyOutputPort, EnergyPortDisposition, EnergyPortEdge, EnergyPortNode,
     };
-    use crate::energy_pathway::EvidenceClass;
 
     fn fixture() -> EnergyServiceScenarioRequest {
         EnergyServiceScenarioRequest {
@@ -505,46 +546,44 @@ mod tests {
                 schema_version: "energy-ports-v0.1".to_owned(),
                 scenario_id: "synthetic-chp-service-matching".to_owned(),
                 synthetic: true,
-                nodes: vec![
-                    EnergyPortNode {
-                        node_id: "chp".to_owned(),
-                        boundary_description: "synthetic fuel to electricity and heat".to_owned(),
-                        evidence_class: EvidenceClass::AnalystAssumption,
-                        evidence_ref: None,
-                        evidence_as_of: None,
-                        inputs: vec![EnergyInputPort {
-                            port_id: "fuel".to_owned(),
-                            form: EnergyForm::Chemical,
-                            energy_kwh: 100.0,
-                            external_energy_kwh: 100.0,
-                            external_source_id: Some("fuel-batch-1".to_owned()),
+                nodes: vec![EnergyPortNode {
+                    node_id: "chp".to_owned(),
+                    boundary_description: "synthetic fuel to electricity and heat".to_owned(),
+                    evidence_class: EvidenceClass::AnalystAssumption,
+                    evidence_ref: None,
+                    evidence_as_of: None,
+                    inputs: vec![EnergyInputPort {
+                        port_id: "fuel".to_owned(),
+                        form: EnergyForm::Chemical,
+                        energy_kwh: 100.0,
+                        external_energy_kwh: 100.0,
+                        external_source_id: Some("fuel-batch-1".to_owned()),
+                        temperature_c: None,
+                    }],
+                    outputs: vec![
+                        EnergyOutputPort {
+                            port_id: "electricity".to_owned(),
+                            form: EnergyForm::Electricity,
+                            energy_kwh: 35.0,
                             temperature_c: None,
-                        }],
-                        outputs: vec![
-                            EnergyOutputPort {
-                                port_id: "electricity".to_owned(),
-                                form: EnergyForm::Electricity,
-                                energy_kwh: 35.0,
-                                temperature_c: None,
-                                remainder_disposition: EnergyPortDisposition::UsefulService,
-                            },
-                            EnergyOutputPort {
-                                port_id: "heat".to_owned(),
-                                form: EnergyForm::ThermalHeat,
-                                energy_kwh: 14.0,
-                                temperature_c: Some(80.0),
-                                remainder_disposition: EnergyPortDisposition::UsefulService,
-                            },
-                            EnergyOutputPort {
-                                port_id: "exhaust".to_owned(),
-                                form: EnergyForm::ThermalHeat,
-                                energy_kwh: 51.0,
-                                temperature_c: Some(150.0),
-                                remainder_disposition: EnergyPortDisposition::Rejected,
-                            },
-                        ],
-                    },
-                ],
+                            remainder_disposition: EnergyPortDisposition::UsefulService,
+                        },
+                        EnergyOutputPort {
+                            port_id: "heat".to_owned(),
+                            form: EnergyForm::ThermalHeat,
+                            energy_kwh: 14.0,
+                            temperature_c: Some(80.0),
+                            remainder_disposition: EnergyPortDisposition::UsefulService,
+                        },
+                        EnergyOutputPort {
+                            port_id: "exhaust".to_owned(),
+                            form: EnergyForm::ThermalHeat,
+                            energy_kwh: 51.0,
+                            temperature_c: Some(150.0),
+                            remainder_disposition: EnergyPortDisposition::Rejected,
+                        },
+                    ],
+                }],
                 edges: vec![],
             },
             demands: vec![
@@ -585,12 +624,20 @@ mod tests {
         assert_eq!(assessment.services.total_delivered_service_kwh, 49.0);
         assert_eq!(assessment.services.total_unserved_service_kwh, 11.0);
         assert_eq!(assessment.services.essential_unserved_service_kwh, 11.0);
-        let electricity = assessment.services.demands.iter()
-            .find(|demand| demand.service_id == "electric-service").unwrap();
+        let electricity = assessment
+            .services
+            .demands
+            .iter()
+            .find(|demand| demand.service_id == "electric-service")
+            .unwrap();
         assert_eq!(electricity.delivered_energy_kwh, 35.0);
         assert_eq!(electricity.unserved_energy_kwh, 5.0);
-        let heat = assessment.services.demands.iter()
-            .find(|demand| demand.service_id == "process-heat-service").unwrap();
+        let heat = assessment
+            .services
+            .demands
+            .iter()
+            .find(|demand| demand.service_id == "process-heat-service")
+            .unwrap();
         assert_eq!(heat.delivered_energy_kwh, 14.0);
         assert_eq!(heat.unserved_energy_kwh, 6.0);
         assert!(assessment.services.service_balance_residual_kwh.abs() < 1.0e-9);
@@ -601,14 +648,19 @@ mod tests {
         let mut request = fixture();
         request.demands[1].minimum_temperature_c = Some(85.0);
         let result = assess_energy_service_scenario(&request);
-        assert!(matches!(result, Err(EnergyServiceError::ServiceTemperatureInsufficient { .. })));
+        assert!(matches!(
+            result,
+            Err(EnergyServiceError::ServiceTemperatureInsufficient { .. })
+        ));
     }
 
     #[test]
     fn malformed_assessed_thermal_source_fails_closed_without_panicking() {
         let request = fixture();
         let mut graph = assess_energy_ports(&request.graph).unwrap();
-        let heat = graph.output_ports.iter_mut()
+        let heat = graph
+            .output_ports
+            .iter_mut()
             .find(|port| port.node_id == "chp" && port.port_id == "heat")
             .unwrap();
         heat.temperature_c = None;
@@ -651,8 +703,12 @@ mod tests {
         // in this negative control to isolate the independent demand shortfall.
         request.graph.nodes[0].outputs[1].remainder_disposition = EnergyPortDisposition::Rejected;
         let assessment = assess_energy_service_scenario(&request).unwrap();
-        let heat = assessment.services.demands.iter()
-            .find(|demand| demand.service_id == "process-heat-service").unwrap();
+        let heat = assessment
+            .services
+            .demands
+            .iter()
+            .find(|demand| demand.service_id == "process-heat-service")
+            .unwrap();
         assert_eq!(heat.delivered_energy_kwh, 0.0);
         assert_eq!(heat.unserved_energy_kwh, 20.0);
     }
