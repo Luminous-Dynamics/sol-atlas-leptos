@@ -373,6 +373,9 @@ pub struct CohortSummary {
     pub cohort_id: String,
     pub measurement_class: MeasurementClass,
     pub sample_count: usize,
+    pub completed_sample_count: usize,
+    pub first_feasible_sample_count: usize,
+    pub peak_memory_sample_count: usize,
     pub optimal_count: usize,
     pub feasible_count: usize,
     pub infeasible_count: usize,
@@ -453,6 +456,9 @@ fn summarize_group(traces: &[&SolverTrace]) -> CohortSummary {
         cohort_id: first.cohort_id.clone(),
         measurement_class: first.measurement_class,
         sample_count: traces.len(),
+        completed_sample_count: completed_elapsed.len(),
+        first_feasible_sample_count: first_feasible.len(),
+        peak_memory_sample_count: peak_memory.len(),
         optimal_count: optimal,
         feasible_count: feasible,
         infeasible_count: infeasible,
@@ -521,15 +527,18 @@ pub fn summarize_traces(traces: &[SolverTrace]) -> Result<Vec<CohortSummary>, Tr
 
 pub fn render_summary_csv(summaries: &[CohortSummary]) -> String {
     let mut output = String::from(
-        "cohort_id,measurement_class,samples,optimal,feasible,infeasible,timeouts,cancelled,errors,completed_p50_ns,completed_p95_ns,completed_p99_ns,first_feasible_p50_ns,first_feasible_p95_ns,observed_attempt_elapsed_p95_ns,peak_memory_p95_bytes,interval_count_min,interval_count_max,binary_variables_min,binary_variables_max,constraints_min,constraints_max,p99_ready\n",
+        "cohort_id,measurement_class,samples,completed_samples,first_feasible_samples,peak_memory_samples,optimal,feasible,infeasible,timeouts,cancelled,errors,completed_p50_ns,completed_p95_ns,completed_p99_ns,first_feasible_p50_ns,first_feasible_p95_ns,observed_attempt_elapsed_p95_ns,peak_memory_p95_bytes,interval_count_min,interval_count_max,binary_variables_min,binary_variables_max,constraints_min,constraints_max,p99_ready\n",
     );
     for summary in summaries {
         let optional = |value: Option<u64>| value.map(|number| number.to_string()).unwrap_or_else(|| "NA".to_owned());
         output.push_str(&format!(
-            "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n",
+            "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n",
             summary.cohort_id,
             summary.measurement_class.as_str(),
             summary.sample_count,
+            summary.completed_sample_count,
+            summary.first_feasible_sample_count,
+            summary.peak_memory_sample_count,
             summary.optimal_count,
             summary.feasible_count,
             summary.infeasible_count,
@@ -736,6 +745,44 @@ mod tests {
             summarize_traces(&[first, duplicate]),
             Err(TraceError::DuplicateSampleId)
         );
+    }
+
+    #[test]
+    fn timeout_with_an_incumbent_is_a_timeout_and_a_first_feasible_observation() {
+        let mut row = trace(22, SolveStatus::TimedOut);
+        row.time_to_first_feasible_ns = Some(10_000_000);
+        row.objective_value_units = Some(9_000);
+        row.best_bound_units = Some(8_900);
+        row.optimality_gap_ppm = Some(11_111);
+        assert!(row.validate().is_ok());
+
+        let summary = summarize_traces(&[row]).unwrap().remove(0);
+        assert_eq!(summary.timeout_count, 1);
+        assert_eq!(summary.completed_sample_count, 0);
+        assert_eq!(summary.first_feasible_sample_count, 1);
+        assert_eq!(summary.completed_latency_p50_ns, None);
+        assert_eq!(summary.first_feasible_p50_ns, None);
+    }
+
+    #[test]
+    fn completed_and_memory_percentiles_expose_their_own_denominators() {
+        let rows: Vec<SolverTrace> = (0..30)
+            .map(|index| match index {
+                0..=17 => trace(index, SolveStatus::Optimal),
+                18..=21 => trace(index, SolveStatus::Feasible),
+                22..=25 => trace(index, SolveStatus::TimedOut),
+                _ => {
+                    let mut row = trace(index, SolveStatus::Infeasible);
+                    row.peak_memory_bytes = None;
+                    row
+                }
+            })
+            .collect();
+        let summary = summarize_traces(&rows).unwrap().remove(0);
+        assert_eq!(summary.sample_count, 30);
+        assert_eq!(summary.completed_sample_count, 22);
+        assert_eq!(summary.first_feasible_sample_count, 22);
+        assert_eq!(summary.peak_memory_sample_count, 26);
     }
 
     #[test]
