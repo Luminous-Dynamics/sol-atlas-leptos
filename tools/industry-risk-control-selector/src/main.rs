@@ -316,20 +316,28 @@ fn select_requirements(profile: &Value, policy: &Value, input_digest: &str, poli
     let unknown_policy = policy.get("unknown_policy").ok_or("policy.unknown_policy is missing")?;
     let worst_values = unknown_policy.get("worst_case_values").ok_or("unknown_policy.worst_case_values is missing")?;
     for dimension in DIMENSIONS {
-        let value = required_string(dimensions, dimension, "risk dimensions")?;
-        risk_values.insert((*dimension).to_owned(), json!(value));
-        if value == "unknown" {
+        let actual = required_string(dimensions, dimension, "risk dimensions")?;
+        risk_values.insert((*dimension).to_owned(), json!(actual));
+        if actual == "unknown" {
             risk_has_unknown = true;
         }
+        let lookup_value = if actual == "unknown" || risk_unassessed {
+            required_string(worst_values, dimension, "unknown_policy.worst_case_values")?
+        } else {
+            actual
+        };
         let rule = dimension_rules.iter()
             .find(|item| item.get("dimension").and_then(Value::as_str) == Some(dimension)
-                && item.get("value").and_then(Value::as_str) == Some(value))
-            .ok_or_else(|| format!("policy has no rule for risk dimension '{dimension}' value '{value}'"))?;
-        add_controls(
-            &mut required,
-            array(rule, "control_ids", "dimension rule")?,
-            required_string(rule, "reason_code", "dimension rule")?,
-        )?;
+                && item.get("value").and_then(Value::as_str) == Some(lookup_value))
+            .ok_or_else(|| format!("policy has no rule for risk dimension '{dimension}' value '{lookup_value}'"))?;
+        let reason = if risk_unassessed {
+            "RISK_UNASSESSED_WORST_CASE_DIMENSION"
+        } else if actual == "unknown" {
+            "RISK_UNKNOWN_WORST_CASE_DIMENSION"
+        } else {
+            required_string(rule, "reason_code", "dimension rule")?
+        };
+        add_controls(&mut required, array(rule, "control_ids", "dimension rule")?, reason)?;
     }
 
     let class_rule = array(policy, "reviewed_class_rules", "policy")?
