@@ -12,7 +12,7 @@ It complements the trigger-policy bake-off in #403 and the rolling-horizon progr
 
 1. `uniform-60m`: coarse reference, low compute, deliberately exposes any safety-resolution violations.
 2. `uniform-15m`: fine reference, high compute; reports budget exhaustion rather than claiming an infeasible plan is usable.
-3. `safety-first-voi`: exact event-boundary partition, refine all safety-critical windows to 15 minutes first, then greedily refine optional windows by conservative avoidable-loss lower bound per additional interval.
+3. `safety-first-voi`: exact event-boundary partition, refine all safety-critical windows to 15 minutes first, then repeatedly recompute optional-window lower-bound value per marginal interval after each refinement, including overlapping windows.
 
 Compute cost is currently interval count. This is a transparent structural proxy, not measured solver CPU time. The next calibration step is to fit cost against exact solver traces by horizon, constraint count, binary-variable count, and solver/backend. The 2026 literature also demonstrates the need to model nonlinear battery losses and cyclic degradation in matched SAC/MPC/optimization comparisons (IEEE Access, 6 October 2026, https://doi.org/10.1109/ACCESS.2026.3740101); this crate does not yet model either. Do not interpret interval count as milliseconds.
 
@@ -24,7 +24,9 @@ Compute cost is currently interval count. This is a transparent structural proxy
 - Safety-critical windows are all represented at 15-minute resolution or the plan is rejected.
 - The selected mesh never exceeds its declared budget.
 - Event ordering does not change the selected mesh.
-- Unresolved loss is reported separately from compute cost; there is no arbitrary weighted scalar.
+- The verifier recomputes cost, remaining budget, unresolved loss, safety violations and the complete refined-event ID set; it rejects strategy relabelling and mandatory-window coarsening.
+- Value-density cross-products use 128-bit arithmetic so large u64 loss bounds cannot collapse into a false tie through saturation.
+- Unresolved loss is reported separately from compute cost; it is an event-wise synthetic sum and may count overlapping event bounds separately. There is no arbitrary weighted scalar.
 
 ## Frozen synthetic panel
 
@@ -34,7 +36,7 @@ Every field is synthetic and dimensionless. The panel is not calibrated to measu
 
 ## Metrics
 
-The CSV report emits per-scenario, per-strategy compute budget/cost, remaining budget, safety-resolution violations, unresolved loss lower bound, acceptance disposition, and selected event windows. Compare the Pareto frontier; do not rank by a single weighted score.
+The CSV report emits per-scenario, per-strategy compute budget/cost, remaining budget, safety-resolution violations, unresolved loss lower bound, acceptance disposition, and selected event windows. Compare the Pareto frontier; do not rank by a single weighted score. The current allocator's greedy rule is a deterministic heuristic, not a globally optimal knapsack solver; the 32-case report makes its choices inspectable.
 
 ## Run
 
@@ -45,6 +47,10 @@ cargo test --locked --all-targets --manifest-path tools/energy-temporal-mesh-voi
 cargo clippy --locked --all-targets --manifest-path tools/energy-temporal-mesh-voi/Cargo.toml -- -D warnings
 cargo run --release --locked --manifest-path tools/energy-temporal-mesh-voi/Cargo.toml
 ```
+
+## Validation boundary
+
+`verify_mesh` is a structural checker in the same crate, not an independently implemented verifier. It checks coverage, chronology, exact event boundaries, declared resolution semantics, budget accounting, mandatory safety resolution and the recomputed refined-event set. It does not certify that the event lower bounds or safety labels are physically correct.
 
 ## Claim ceiling
 
