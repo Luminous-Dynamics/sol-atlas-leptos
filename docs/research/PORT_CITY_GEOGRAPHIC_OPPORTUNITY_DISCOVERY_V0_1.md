@@ -246,3 +246,21 @@ This work produces an auditable shortlist of investigation hypotheses. It does n
 ---
 
 **Next execution step:** freeze the first source inventory and 30+ synthetic coast–hinterland candidate cases, then build the independent discovery verifier before connecting real geospatial datasets.
+
+
+## 10. African port–hinterland redundancy is a first-class design variable
+
+A 2026 *Transportation Research Part A* study, *Redundancies of African port hinterlands and their implications for new container port investments* (206, April 2026, 104920), examines the relationship between port accessibility, overlapping hinterlands and redundancy. Its reported results show that accessibility and redundancy do not move together in a simple way: Northern and Western Africa have high accessibility and redundancy in the study; African landlocked countries show low accessibility but relatively high redundancy; new port investments and rail upgrades can alter this trade-off. These are study-level findings, not local ground truth or a recommendation for any named site. https://doi.org/10.1016/j.tra.2026.104920
+
+The opportunity engine must therefore optimize not only average accessibility but also **effective gateway redundancy**:
+
+- Count independent feasible gateways and routes, not merely nearby port markers.
+- Model common-mode failures: shared rail corridors, bridges, border crossings, floodplains, coastal hazards, power dependencies, chokepoints and carrier concentration.
+- Measure access cost and capacity to multiple gateways under normal and disrupted conditions.
+- Use network cut sets / edge-disjoint path analysis only when the graph edges have evidence-backed capacities and the independence assumptions are explicit.
+- Compare a new port against alternative investments that strengthen existing gateways, add inland terminals, remove shared bottlenecks, or diversify border and rail access.
+- Distinguish traffic diversion from newly served demand; do not claim that a second port creates new economic value merely because its throughput rises.
+
+Add benchmark metrics: access and redundancy curves by hinterland; effective independent gateway count under declared failure scenarios; unmet demand and recovery time after common-mode vs independent failures; redundancy/access improvement per lifecycle dollar; diverted vs additional demand; and ranking stability as freight demand and failure correlations vary.
+
+This should become a core component of GEO-OPPORTUNITY-001, not an ornamental "resilience score". A region with three ports behind the same single rail corridor may have lower true redundancy than a region with two gateways reached by genuinely independent routes.
