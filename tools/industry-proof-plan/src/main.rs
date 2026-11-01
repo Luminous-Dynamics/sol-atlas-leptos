@@ -471,7 +471,7 @@ fn validate_request(value: &Value) -> Result<ValidatedRequest, String> {
         let context = format!("candidate_actions[{index}]");
         let id = required_string(row, "action_id", &context)?.to_owned();
         let artifact_sha256 = parse_digest(row, "action_sha256", &context)?;
-        let _mapping_policy_sha256 = parse_digest(row, "mapping_policy_sha256", &context)?;
+        let mapping_policy_sha256 = parse_digest(row, "mapping_policy_sha256", &context)?;
         let covers = unique_string_set(array(row, "covers_control_ids", &context)?, &format!("{context}.covers_control_ids"))?;
         for control in &covers {
             if !requirements.contains_key(control) {
@@ -481,7 +481,11 @@ fn validate_request(value: &Value) -> Result<ValidatedRequest, String> {
         let prerequisites = unique_string_set(array(row, "prerequisites", &context)?, &format!("{context}.prerequisites"))?;
         let conflicts = unique_string_set(array(row, "conflicts_with", &context)?, &format!("{context}.conflicts_with"))?;
         let independence_domain_id = required_string(row, "independence_domain_id", &context)?.to_owned();
-        let _registry = parse_digest(row, "independence_registry_sha256", &context)?;
+        let independence_registry_sha256 = parse_digest(row, "independence_registry_sha256", &context)?;
+        let rights_status = required_string(row, "rights_status", &context)?;
+        if rights_status != "verified" {
+            return Err(format!("{context}: candidate action rights must be verified before planning"));
+        }
         let resources = Resources::from_value(row.get("resource_costs").ok_or("resource_costs missing")?, &format!("{context}.resource_costs"))?;
         let human_approval_required = row.get("human_approval_required").and_then(Value::as_bool)
             .ok_or_else(|| format!("{context}.human_approval_required must be boolean"))?;
@@ -492,6 +496,7 @@ fn validate_request(value: &Value) -> Result<ValidatedRequest, String> {
         actions.insert(id.clone(), Action {
             id, artifact_sha256, independence_domain_id, covers,
             prerequisites, conflicts, resources, human_approval_required,
+            mapping_policy_sha256, independence_registry_sha256, rights_status: rights_status.to_owned(),
         });
     }
     if actions.is_empty() {
