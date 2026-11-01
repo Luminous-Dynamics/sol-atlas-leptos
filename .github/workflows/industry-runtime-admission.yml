@@ -316,8 +316,9 @@ jobs:
 
           jq '.receipt.claim_ceiling = "causal_effect_estimate"' "$fixture" | jq '.receipt' > "$RUNNER_TEMP/outcome-causal-without-assessment.json"
           jq '.receipt.metrics[0].missingness = "unavailable"' "$fixture" | jq '.receipt' > "$RUNNER_TEMP/outcome-missing-as-success.json"
+          jq '.receipt.metrics[0].observed = null' "$fixture" | jq '.receipt' > "$RUNNER_TEMP/outcome-null-observation-as-success.json"
           jq '.receipt.intervention.execution_receipt_sha256 = null' "$fixture" | jq '.receipt' > "$RUNNER_TEMP/outcome-completed-without-execution-receipt.json"
-          for mutant in "$RUNNER_TEMP/outcome-causal-without-assessment.json" "$RUNNER_TEMP/outcome-missing-as-success.json" "$RUNNER_TEMP/outcome-completed-without-execution-receipt.json"; do
+          for mutant in "$RUNNER_TEMP/outcome-causal-without-assessment.json" "$RUNNER_TEMP/outcome-missing-as-success.json" "$RUNNER_TEMP/outcome-null-observation-as-success.json" "$RUNNER_TEMP/outcome-completed-without-execution-receipt.json"; do
             if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$mutant"; then
               echo "ERROR: outcome schema accepted negative control $mutant"
               exit 1
