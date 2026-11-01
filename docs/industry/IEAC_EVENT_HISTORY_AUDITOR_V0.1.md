@@ -39,8 +39,9 @@ For each stream, the auditor:
 - rejects duplicate sequence claims;
 - requires sequence 1 to have a null predecessor;
 - requires every later event to name a lowercase SHA-256 predecessor;
-- verifies predecessor digest equality whenever the immediately previous sequence is present;
-- marks a missing prefix or sequence gap as incomplete rather than pretending the earlier history is empty.
+- requires every predecessor digest to resolve to the event from the same issuer/subject/stream at exactly sequence `n-1` when that event is in the bundle;
+- rejects a predecessor that resolves to a different stream or the wrong sequence;
+- marks a missing predecessor artifact, stream prefix or sequence gap as incomplete rather than pretending the earlier history is empty.
 
 The auditor does not infer that an observed sequence range is the complete lifetime history of an issuer. It has no verified checkpoint or signed stream-head input in v0.1.
 
