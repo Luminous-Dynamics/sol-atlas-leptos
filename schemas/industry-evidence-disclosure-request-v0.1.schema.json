@@ -18,6 +18,7 @@
     "issued_at",
     "expires_at",
     "request_nonce",
+    "holder_key_binding_required",
     "requested_claims",
     "privacy_constraints",
     "action_authority"
@@ -165,6 +166,10 @@
     },
     "action_authority": {
       "const": "none"
+    },
+    "holder_key_binding_required": {
+      "const": true,
+      "description": "This initial case-sensitive profile requires SD-JWT Key Binding for holder proof-of-possession and transaction binding. The verifier must make this decision from policy before examining whether a Key Binding JWT is present."
     }
   },
   "allOf": [
