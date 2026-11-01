@@ -28,7 +28,7 @@ Compute cost is currently interval count. This is a transparent structural proxy
 
 ## Frozen synthetic panel
 
-32 deterministic scenarios: 8 event regimes x 4 lower-bound value scales. Event types include evening peak, solar ramp, storm outage, telemetry recovery, equipment derate, price spike, load/PV mismatch, and compound shock.
+32 deterministic scenarios: 8 event regimes x 4 lower-bound value scales. Event types include evening peak, solar ramp, storm outage, telemetry recovery, equipment derate, price spike, load/PV mismatch, and compound shock. The four compound-shock variants use compute budgets of 30, 33, 36 and 45 cells to force no optional refinement, partial refinement and full refinement while keeping the 120-minute safety window mandatory.
 
 Every field is synthetic and dimensionless. The panel is not calibrated to measured Johannesburg/South African load, PV, tariff, outage or battery data. It is a mechanics test of boundary preservation, resource allocation, and fail-closed behavior.
 
