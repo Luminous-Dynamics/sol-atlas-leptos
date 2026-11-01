@@ -12,7 +12,7 @@
     "history_completeness",
     "event_count",
     "issuer_stream_count",
-    "verified_event_payload_digests",
+    "matched_event_payload_digests",
     "causal_and_predecessor_edge_count",
     "invalid_finding_count",
     "incomplete_finding_count",
@@ -44,7 +44,7 @@
       "minimum": 0,
       "maximum": 9007199254740991
     },
-    "verified_event_payload_digests": {
+    "matched_event_payload_digests": {
       "type": "integer",
       "minimum": 0,
       "maximum": 9007199254740991
