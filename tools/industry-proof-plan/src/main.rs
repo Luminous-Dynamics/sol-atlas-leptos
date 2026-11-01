@@ -1650,40 +1650,6 @@ mod tests {
     }
 
     #[test]
-    fn greedy_uses_marginal_resource_cost_per_domain_gap_reduction() {
-        let mut request = sample_request();
-        request["candidate_actions"].as_array_mut().unwrap().retain(|action| {
-            !["artifact-provenance-full-audit", "numeric-reference-run-c",
-              "physical-independent-field-check"].contains(&action["action_id"].as_str().unwrap())
-        });
-        request["candidate_actions"][0]["resource_costs"]["money_microunits"] = json!(10);
-        request["candidate_actions"][1]["resource_costs"]["money_microunits"] = json!(20);
-        request["candidate_actions"][2]["resource_costs"]["money_microunits"] = json!(20);
-        request["candidate_actions"][3]["resource_costs"]["money_microunits"] = json!(30);
-        request["candidate_actions"][4]["resource_costs"]["money_microunits"] = json!(5);
-        request["candidate_actions"][5]["resource_costs"]["money_microunits"] = json!(25);
-        request["candidate_actions"][6]["resource_costs"]["money_microunits"] = json!(30);
-        request["candidate_actions"][7]["resource_costs"]["money_microunits"] = json!(80);
-        request["candidate_actions"][7]["covers_control_ids"] = json!([
-            "uncertainty_calibration", "out_of_domain_abstention"
-        ]);
-        for action in request["candidate_actions"].as_array_mut().unwrap() {
-            for field in ["reviewer_minutes", "field_interruption_minutes",
-                "compute_microunits", "duration_minutes"] {
-                action["resource_costs"][field] = json!(1);
-            }
-        }
-        refresh_mapping_digest(&mut request);
-        let report = test_report(&request);
-        assert_eq!(report["plan_status"], "feasible_heuristic");
-        let selected: BTreeSet<String> = report["selected_actions"].as_array().unwrap().iter()
-            .map(|row| row["action_id"].as_str().unwrap().to_owned()).collect();
-        assert!(selected.contains("uq-calibration-analysis"));
-        assert!(selected.contains("ood-heldout-validation"));
-        assert!(!selected.contains("combined-uq-ood-audit"));
-    }
-
-    #[test]
     fn large_greedy_plan_counts_domain_deficit_not_control_count() {
         let mut request = sample_request();
         let base = request["candidate_actions"].as_array().unwrap().clone();
@@ -1710,6 +1676,15 @@ mod tests {
                 .any(|control| control == "numerical_known_answers")
         );
         assert_eq!(report["action_authority"], "none");
+        let selected: BTreeSet<String> = report["selected_actions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|row| row["action_id"].as_str().unwrap().to_owned())
+            .collect();
+        assert!(selected.contains("uq-calibration-analysis"));
+        assert!(selected.contains("ood-heldout-validation"));
+        assert!(!selected.contains("combined-uq-ood-audit"));
     }
 
     #[test]
