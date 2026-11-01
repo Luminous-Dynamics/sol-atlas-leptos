@@ -112,6 +112,12 @@ jobs:
           accepted_schedule_sha="$(sha256sum "$fixture_root/h2-schedule-accepted.json" | cut -d ' ' -f 1)"
           rejected_schedule_sha="$(sha256sum "$fixture_root/h2-schedule-rejected.json" | cut -d ' ' -f 1)"
 
+          # Freeze the fixture bytes: changing a known-answer vector requires
+          # an explicit corpus/profile revision, not a silent benchmark update.
+          test "$request_sha" = "e1fc548c7d82e6aa9f95ace133f25c650df6f8c51018ee3a7bf16a980b8af804"
+          test "$accepted_schedule_sha" = "fbeef792114c62eb516b8e0d92fd771f71932670a4d2249a11d0ced1f8a39397"
+          test "$rejected_schedule_sha" = "6c43b474312ab870e65fbdb9e22093f0e78aaca53337fcee35626bf7c60058df"
+
           "$auditor_bin" \
             "$fixture_root/h2-request.json" \
             "$fixture_root/h2-schedule-accepted.json" \
@@ -127,6 +133,9 @@ jobs:
           test "$rejected_exit" -eq 1
 
           jq -e --arg auditor "$auditor_sha" --arg request "$request_sha" --arg schedule "$accepted_schedule_sha" '
+            .receipt_schema == "energy-dispatch-schedule-audit-receipt-v0.1" and
+            .auditor_id == "energy-dispatch-schedule-auditor" and
+            .case_id == "schedule-audit-fixture" and
             .disposition == "accepted" and
             .auditor_binary_sha256 == $auditor and
             .request_sha256 == $request and
@@ -135,6 +144,9 @@ jobs:
           ' "$receipts/accepted.json"
 
           jq -e --arg auditor "$auditor_sha" --arg request "$request_sha" --arg schedule "$rejected_schedule_sha" '
+            .receipt_schema == "energy-dispatch-schedule-audit-receipt-v0.1" and
+            .auditor_id == "energy-dispatch-schedule-auditor" and
+            .case_id == "schedule-audit-fixture" and
             .disposition == "rejected" and
             .auditor_binary_sha256 == $auditor and
             .request_sha256 == $request and
@@ -151,6 +163,7 @@ jobs:
             --arg rejected_receipt_sha256 "$(jq -r .receipt_sha256 "$receipts/rejected.json")" \
             '{
               schema: "energy-replan-independent-auditor-smoke-v0.1",
+              case_id: "schedule-audit-fixture",
               auditor_binary_sha256: $auditor_binary_sha256,
               request_sha256: $request_sha256,
               accepted_schedule_sha256: $accepted_schedule_sha256,
