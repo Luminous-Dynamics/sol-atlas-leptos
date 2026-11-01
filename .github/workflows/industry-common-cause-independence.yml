@@ -90,6 +90,8 @@ jobs:
           ' schemas/examples/ieac-common-cause-synthetic-v0.1.json
 
       - name: Replay frozen registry-backed independence result
+        env:
+          IEAC_CCF_AUDITOR_BUILD_ID: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
           jq '.request' schemas/examples/ieac-common-cause-synthetic-v0.1.json > "$RUNNER_TEMP/ccf-request.json"
@@ -101,6 +103,8 @@ jobs:
             .request_sha256 == $request_sha and
             .registry_sha256 == "f64979a90ab4e4226e02b1c9628bfd30973ab382709a563458a6d71b880df2e8" and
             .registry_authority_id == "synthetic-registry-authority" and
+            .auditor_build_id == "${{ github.event.pull_request.head.sha || github.sha }}" and
+            .claim_scope == "registry_model_only" and
             .action_authority == "none" and
             .profile_qualification_attested == false
           ' "$RUNNER_TEMP/ccf-report.json"
