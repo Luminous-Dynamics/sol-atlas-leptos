@@ -2,7 +2,7 @@
   "schema_version": "luminous.ieac-scitt-event-chain-fixture.v0.1",
   "synthetic": true,
   "profile": "luminous.ieac-scitt-event.v0.1",
-  "claim_ceiling": "Shape-only synthetic multi-issuer event chain. All digests and source revisions are placeholders; signatures, SCITT receipts, VDS proofs, authority and history completeness are not verified.",
+  "claim_ceiling": "Shape-only synthetic multi-issuer event chain. Event JCS digests and in-fixture history links are computed and checked; initial checkpoints, artifact, IEAC-profile, build and attestation digests are placeholders. Signatures, SCITT receipts, VDS proofs, authority and external history completeness are not verified.",
   "events": [
     {
       "schema_version": "luminous.ieac-scitt-event.v0.1",
