@@ -362,14 +362,16 @@
       "human_approval": false,
       "obligations": [
         "provenance"
-      ]
+      ],
+      "evidence_dimension": "software_conformance"
     },
     "schema_interface_conformance": {
       "description": "Validate versioned schemas, units/interfaces and reject unknown or malformed fields.",
       "human_approval": false,
       "obligations": [
         "conformance"
-      ]
+      ],
+      "evidence_dimension": "software_conformance"
     },
     "source_rights_lineage": {
       "description": "Verify source identity, permitted purpose, licensing/rights and transformation lineage.",
@@ -377,91 +379,104 @@
       "obligations": [
         "rights_review",
         "provenance"
-      ]
+      ],
+      "evidence_dimension": "data_integrity_rights"
     },
     "numerical_known_answers": {
       "description": "Run analytical known-answer, invariant, conservation and deterministic reference checks.",
       "human_approval": false,
       "obligations": [
         "numerical_verification"
-      ]
+      ],
+      "evidence_dimension": "numerical_verification"
     },
     "unit_semantics_validation": {
       "description": "Verify dimensions, units, semantic mappings, population and temporal support.",
       "human_approval": false,
       "obligations": [
         "semantic_validation"
-      ]
+      ],
+      "evidence_dimension": "numerical_verification"
     },
     "physical_reference_validation": {
       "description": "Compare against independent physical/empirical reference cases in the declared validity domain.",
       "human_approval": false,
       "obligations": [
         "physical_validation"
-      ]
+      ],
+      "evidence_dimension": "physical_validation"
     },
     "uncertainty_calibration": {
       "description": "Assess calibration, interval coverage, proper scores and parameter/model-form uncertainty.",
       "human_approval": false,
       "obligations": [
         "uncertainty_quantification"
-      ]
+      ],
+      "evidence_dimension": "uncertainty_credibility"
     },
     "out_of_domain_abstention": {
       "description": "Test validity-domain detection and safe abstention on missing, shifted or unsupported inputs.",
       "human_approval": false,
       "obligations": [
         "abstention"
-      ]
+      ],
+      "evidence_dimension": "robustness"
     },
     "human_review_override": {
       "description": "Provide accountable human review, override, and escalation before consequential reliance.",
       "human_approval": true,
       "obligations": [
         "human_review"
-      ]
+      ],
+      "evidence_dimension": "operational_assurance"
     },
     "operational_monitoring": {
       "description": "Monitor service, drift, alarms and execution conditions during use.",
       "human_approval": false,
       "obligations": [
         "monitoring"
-      ]
+      ],
+      "evidence_dimension": "operational_assurance"
     },
     "prospective_outcome_reconciliation": {
       "description": "Reconcile predeclared expected outcomes against observed outcomes without causal overclaim.",
       "human_approval": false,
       "obligations": [
         "outcome_reconciliation"
-      ]
+      ],
+      "evidence_dimension": "prospective_outcomes"
     },
     "independent_constraint_reconstruction": {
       "description": "Independently reconstruct hard constraints and feasibility without invoking candidate decision logic.",
       "human_approval": false,
       "obligations": [
         "independent_verification"
-      ]
+      ],
+      "evidence_dimension": "numerical_verification"
     },
     "group_disjoint_holdout": {
       "description": "Hold out independent sites, assets, topologies, time periods or process groups to prevent leakage.",
       "human_approval": false,
       "obligations": [
         "generalization"
-      ]
+      ],
+      "evidence_dimension": "generalization"
     },
     "compound_fault_stress": {
       "description": "Exercise pairwise and higher-order fault combinations, boundary cases and common-cause failures.",
       "human_approval": false,
       "obligations": [
         "robustness"
-      ]
+      ],
+      "evidence_dimension": "robustness"
     },
     "rollback_recovery_test": {
       "description": "Demonstrate rollback, restart recovery and restoration to a known-safe state.",
       "human_approval": true,
       "obligations": [
         "recovery"
-      ]
+      ],
+      "evidence_dimension": "operational_assurance"
     },
     "dual_control_authorization": {
       "description": "Require two separately authorized human/organizational approvals for high-consequence changes.",
@@ -469,14 +484,16 @@
       "obligations": [
         "human_approval",
         "authorization"
-      ]
+      ],
+      "evidence_dimension": "safety_security_authority"
     },
     "shadow_hardware_in_loop_trial": {
       "description": "Run bounded shadow or hardware-in-loop trials before delegated planning or physical operation.",
       "human_approval": true,
       "obligations": [
         "staged_validation"
-      ]
+      ],
+      "evidence_dimension": "physical_validation"
     },
     "safe_fallback_validation": {
       "description": "Verify an independent, tested fallback path and its switching conditions.",
@@ -484,14 +501,16 @@
       "obligations": [
         "fallback",
         "recovery"
-      ]
+      ],
+      "evidence_dimension": "operational_assurance"
     },
     "independent_safety_case": {
       "description": "Build a domain-specific safety case with traceable claims, arguments and evidence.",
       "human_approval": true,
       "obligations": [
         "safety_case"
-      ]
+      ],
+      "evidence_dimension": "safety_security_authority"
     },
     "hazard_analysis": {
       "description": "Perform systematic hazard identification, severity analysis and risk-control verification.",
@@ -499,14 +518,16 @@
       "obligations": [
         "safety",
         "human_review"
-      ]
+      ],
+      "evidence_dimension": "safety_security_authority"
     },
     "independent_safety_assessment": {
       "description": "Obtain independent safety assessment with organizational and technical separation.",
       "human_approval": true,
       "obligations": [
         "independent_safety_review"
-      ]
+      ],
+      "evidence_dimension": "safety_security_authority"
     },
     "secure_control_boundary": {
       "description": "Verify the secure boundary between advisory computation and any external control system.",
@@ -514,14 +535,16 @@
       "obligations": [
         "cybersecurity",
         "authorization"
-      ]
+      ],
+      "evidence_dimension": "safety_security_authority"
     },
     "hardware_in_loop_qualification": {
       "description": "Qualify control behavior with hardware-in-loop and fault-injection tests under the declared envelope.",
       "human_approval": true,
       "obligations": [
         "hardware_in_loop"
-      ]
+      ],
+      "evidence_dimension": "physical_validation"
     },
     "fail_safe_emergency_stop": {
       "description": "Demonstrate fail-safe behavior, emergency stop and independent safe-state transition.",
@@ -529,28 +552,32 @@
       "obligations": [
         "fallback",
         "emergency_response"
-      ]
+      ],
+      "evidence_dimension": "safety_security_authority"
     },
     "continuous_requalification": {
       "description": "Re-evaluate qualification when dependencies, operating conditions, policy or outcomes change.",
       "human_approval": false,
       "obligations": [
         "continuous_assurance"
-      ]
+      ],
+      "evidence_dimension": "operational_assurance"
     },
     "field_operational_authorization": {
       "description": "Obtain explicit site/operator/jurisdiction-specific authorization before field operation.",
       "human_approval": true,
       "obligations": [
         "operational_authorization"
-      ]
+      ],
+      "evidence_dimension": "safety_security_authority"
     },
     "cross_site_replication": {
       "description": "Replicate key findings across independently held-out sites or operators.",
       "human_approval": false,
       "obligations": [
         "replication"
-      ]
+      ],
+      "evidence_dimension": "generalization"
     },
     "drift_detection": {
       "description": "Detect distribution, calibration, sensor and operating-regime drift with predefined response thresholds.",
@@ -558,7 +585,8 @@
       "obligations": [
         "monitoring",
         "drift_response"
-      ]
+      ],
+      "evidence_dimension": "uncertainty_credibility"
     },
     "common_cause_scenario_test": {
       "description": "Stress shared dependencies, regional hazards and correlated failures.",
@@ -566,7 +594,8 @@
       "obligations": [
         "robustness",
         "resilience"
-      ]
+      ],
+      "evidence_dimension": "robustness"
     },
     "regional_failover_drill": {
       "description": "Exercise regional failover, backhaul/power dependency loss and recovery at scale.",
@@ -574,7 +603,8 @@
       "obligations": [
         "resilience",
         "recovery"
-      ]
+      ],
+      "evidence_dimension": "operational_assurance"
     },
     "staged_rollout": {
       "description": "Limit rollout blast radius and require staged expansion based on independent evidence.",
@@ -582,14 +612,16 @@
       "obligations": [
         "staged_validation",
         "human_review"
-      ]
+      ],
+      "evidence_dimension": "operational_assurance"
     },
     "incident_response_playbook": {
       "description": "Define alert ownership, incident escalation, containment and response-time objectives.",
       "human_approval": true,
       "obligations": [
         "incident_response"
-      ]
+      ],
+      "evidence_dimension": "operational_assurance"
     },
     "independent_monitoring": {
       "description": "Use an independently instrumented monitor to detect failures missed by the candidate system.",
@@ -597,14 +629,16 @@
       "obligations": [
         "monitoring",
         "independence"
-      ]
+      ],
+      "evidence_dimension": "operational_assurance"
     },
     "redundant_measurement": {
       "description": "Use independent/redundant measurement channels and evaluate disagreement and common-mode faults.",
       "human_approval": false,
       "obligations": [
         "measurement_redundancy"
-      ]
+      ],
+      "evidence_dimension": "data_integrity_rights"
     },
     "human_response_sla": {
       "description": "Specify and exercise human-response ownership and maximum response time.",
@@ -612,7 +646,8 @@
       "obligations": [
         "human_review",
         "response_time"
-      ]
+      ],
+      "evidence_dimension": "operational_assurance"
     },
     "degraded_mode_qualification": {
       "description": "Bound and validate the degraded operating mode and its service floors.",
@@ -620,7 +655,8 @@
       "obligations": [
         "fallback",
         "service_floor"
-      ]
+      ],
+      "evidence_dimension": "operational_assurance"
     },
     "tested_safe_stop": {
       "description": "Provide a tested safe-stop path when no verified fallback is available.",
@@ -628,7 +664,8 @@
       "obligations": [
         "fallback",
         "emergency_response"
-      ]
+      ],
+      "evidence_dimension": "safety_security_authority"
     },
     "request_measurement_or_abstain": {
       "description": "Request missing evidence or abstain; do not authorize a recommendation/action under unresolved critical uncertainty.",
@@ -636,7 +673,8 @@
       "obligations": [
         "abstention",
         "human_review"
-      ]
+      ],
+      "evidence_dimension": "uncertainty_credibility"
     }
   },
   "monotonicity_order": {
@@ -683,5 +721,116 @@
       "no_verified_fallback",
       "unknown"
     ]
-  }
+  },
+  "combination_rules": [
+    {
+      "rule_id": "CAT-ACTUATION-001",
+      "reason_code": "COMPOUND_CATASTROPHIC_DIRECT_ACTUATION",
+      "conditions": [
+        {
+          "dimension": "consequence",
+          "values": [
+            "catastrophic"
+          ]
+        },
+        {
+          "dimension": "model_influence",
+          "values": [
+            "direct_actuation"
+          ]
+        }
+      ],
+      "control_ids": [
+        "independent_safety_case",
+        "hazard_analysis",
+        "independent_safety_assessment",
+        "fail_safe_emergency_stop",
+        "dual_control_authorization"
+      ]
+    },
+    {
+      "rule_id": "LOW-DETECT-IRREVERSIBLE-001",
+      "reason_code": "COMPOUND_LOW_DETECTABILITY_IRREVERSIBILITY",
+      "conditions": [
+        {
+          "dimension": "detectability",
+          "values": [
+            "poor",
+            "unknown"
+          ]
+        },
+        {
+          "dimension": "reversibility",
+          "values": [
+            "difficult_or_irreversible",
+            "unknown"
+          ]
+        }
+      ],
+      "control_ids": [
+        "independent_monitoring",
+        "redundant_measurement",
+        "incident_response_playbook",
+        "fail_safe_emergency_stop",
+        "dual_control_authorization"
+      ]
+    },
+    {
+      "rule_id": "REGIONAL-FALLBACK-001",
+      "reason_code": "COMPOUND_REGIONAL_WEAK_FALLBACK",
+      "conditions": [
+        {
+          "dimension": "exposure",
+          "values": [
+            "regional",
+            "national_or_larger",
+            "unknown"
+          ]
+        },
+        {
+          "dimension": "fallback",
+          "values": [
+            "degraded_fallback",
+            "no_verified_fallback",
+            "unknown"
+          ]
+        }
+      ],
+      "control_ids": [
+        "regional_failover_drill",
+        "common_cause_scenario_test",
+        "degraded_mode_qualification",
+        "tested_safe_stop",
+        "continuous_requalification"
+      ]
+    },
+    {
+      "rule_id": "HIGH-CONSEQUENCE-SELECTION-001",
+      "reason_code": "COMPOUND_HIGH_CONSEQUENCE_MODEL_SELECTION",
+      "conditions": [
+        {
+          "dimension": "consequence",
+          "values": [
+            "severe",
+            "catastrophic",
+            "unknown"
+          ]
+        },
+        {
+          "dimension": "model_influence",
+          "values": [
+            "selection",
+            "direct_actuation",
+            "unknown"
+          ]
+        }
+      ],
+      "control_ids": [
+        "independent_constraint_reconstruction",
+        "group_disjoint_holdout",
+        "compound_fault_stress",
+        "independent_safety_assessment"
+      ]
+    }
+  ]
 }
