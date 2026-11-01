@@ -559,6 +559,20 @@ mod tests {
         assert_eq!(report["history_completeness"], "not_established");
         assert!(report["findings"].as_array().unwrap().iter().any(|item| item["code"] == "STREAM_PREFIX_NOT_PRESENT"));
         assert!(report["findings"].as_array().unwrap().iter().any(|item| item["code"] == "CAUSAL_PARENT_NOT_INCLUDED"));
+        assert!(report["findings"].as_array().unwrap().iter().any(|item| item["code"] == "PREDECESSOR_NOT_INCLUDED"));
+    }
+
+    #[test]
+    fn predecessor_from_another_issuer_stream_is_invalid() {
+        let mut input: Value = serde_json::from_str(include_str!("../../../../schemas/examples/ieac-scitt-decision-statement-synthetic-v0.1.json")).unwrap();
+        let other_stream_digest = input["expected"]["event_payload_sha256"]["event-outcome-001"].as_str().unwrap().to_owned();
+        input["events"][3]["previous_event_payload_sha256"] = json!(other_stream_digest);
+        let digest = sha256_hex(&canonical_jcs_subset(&input["events"][3]).unwrap());
+        input["expected"]["event_payload_sha256"]["event-verdict-002"] = json!(digest);
+        let mut audit = Audit::default();
+        parse_events(&input, &mut audit).unwrap();
+        audit_streams(&mut audit);
+        assert!(audit.findings.iter().any(|item| item["code"] == "PREDECESSOR_STREAM_MISMATCH"));
     }
 
     #[test]
@@ -576,7 +590,10 @@ mod tests {
         let digest_b = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".to_owned();
         let event = |id: &str, digest: &str, parent: &str| Event {
             id: id.to_owned(),
+            issuer: "issuer:test".to_owned(),
             subject: "subject:test".to_owned(),
+            stream_id: "stream:test".to_owned(),
+            sequence: 1,
             case_id: "case:test".to_owned(),
             previous: None,
             digest: digest.to_owned(),
