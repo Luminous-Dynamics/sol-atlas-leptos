@@ -298,6 +298,7 @@ jobs:
           jq -e '
             .schema_version == "luminous.ieac-evidence-disclosure-request.v0.1" and
             .purpose == "independent_audit" and
+            .holder_key_binding_required == true and
             (.request_nonce | length >= 22) and
             ([.requested_claims[].claim_id] | unique | length) == (.requested_claims | length) and
             ([.requested_claims[] | select(.proof_semantics == "zero_knowledge_predicate" and .presentation_profile == "external_predicate_proof_profile_pending")] | length) == 1 and
@@ -309,9 +310,10 @@ jobs:
           ' "$fixture"
 
           jq '.request_nonce = "short"' "$fixture" > "$RUNNER_TEMP/disclosure-short-nonce.json"
+          jq '.holder_key_binding_required = false' "$fixture" > "$RUNNER_TEMP/disclosure-key-binding-disabled.json"
           jq '.action_authority = "execute"' "$fixture" > "$RUNNER_TEMP/disclosure-authority-escalation.json"
           jq '(.requested_claims[] | select(.proof_semantics == "zero_knowledge_predicate").presentation_profile) = "bbs_di_v1_experimental"' "$fixture" > "$RUNNER_TEMP/disclosure-bbs-predicate-misuse.json"
-          for mutant in "$RUNNER_TEMP/disclosure-short-nonce.json" "$RUNNER_TEMP/disclosure-authority-escalation.json" "$RUNNER_TEMP/disclosure-bbs-predicate-misuse.json"; do
+          for mutant in "$RUNNER_TEMP/disclosure-short-nonce.json" "$RUNNER_TEMP/disclosure-key-binding-disabled.json" "$RUNNER_TEMP/disclosure-authority-escalation.json" "$RUNNER_TEMP/disclosure-bbs-predicate-misuse.json"; do
             if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$mutant"; then
               echo "ERROR: disclosure request schema accepted negative control $mutant"
               exit 1
