@@ -254,6 +254,8 @@ struct Action {
     mapping_policy_sha256: String,
     independence_registry_sha256: String,
     rights_status: String,
+    rights_verified_at: String,
+    rights_valid_until: Option<String>,
 }
 
 #[derive(Clone, Debug)]
@@ -486,6 +488,17 @@ fn validate_request(value: &Value) -> Result<ValidatedRequest, String> {
         if rights_status != "verified" {
             return Err(format!("{context}: candidate action rights must be verified before planning"));
         }
+        let rights_verified_at = parse_timestamp(row, "rights_verified_at", &context)?;
+        let rights_valid_until = match row.get("rights_valid_until") {
+            Some(Value::Null) => None,
+            Some(Value::String(value)) => Some(value.clone()),
+            _ => return Err(format!("{context}.rights_valid_until must be a UTC timestamp or null")),
+        };
+        if rights_verified_at > evaluated_at
+            || rights_valid_until.as_ref().is_some_and(|until| until < &evaluated_at)
+        {
+            return Err(format!("{context}: candidate action rights are not current at the planning time"));
+        }
         let resources = Resources::from_value(row.get("resource_costs").ok_or("resource_costs missing")?, &format!("{context}.resource_costs"))?;
         let human_approval_required = row.get("human_approval_required").and_then(Value::as_bool)
             .ok_or_else(|| format!("{context}.human_approval_required must be boolean"))?;
@@ -496,7 +509,8 @@ fn validate_request(value: &Value) -> Result<ValidatedRequest, String> {
         actions.insert(id.clone(), Action {
             id, artifact_sha256, independence_domain_id, covers,
             prerequisites, conflicts, resources, human_approval_required,
-            mapping_policy_sha256, independence_registry_sha256, rights_status: rights_status.to_owned(),
+            mapping_policy_sha256, independence_registry_sha256,
+            rights_status: rights_status.to_owned(), rights_verified_at, rights_valid_until,
         });
     }
     if actions.is_empty() {
@@ -741,6 +755,8 @@ fn report_for(
             "independence_registry_sha256": action.independence_registry_sha256,
             "mapping_policy_sha256": action.mapping_policy_sha256,
             "rights_status": action.rights_status,
+            "rights_verified_at": action.rights_verified_at,
+            "rights_valid_until": action.rights_valid_until,
             "covers_control_ids": action.covers,
             "resource_costs": action.resources.as_value()
         }));
