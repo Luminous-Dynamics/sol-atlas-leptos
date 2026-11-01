@@ -205,6 +205,20 @@ impl Resources {
         })
     }
 
+    fn checked_sub(self, other: Self) -> Option<Self> {
+        Some(Self {
+            money_microunits: self.money_microunits.checked_sub(other.money_microunits)?,
+            reviewer_minutes: self.reviewer_minutes.checked_sub(other.reviewer_minutes)?,
+            field_interruption_minutes: self
+                .field_interruption_minutes
+                .checked_sub(other.field_interruption_minutes)?,
+            compute_microunits: self
+                .compute_microunits
+                .checked_sub(other.compute_microunits)?,
+            duration_minutes: self.duration_minutes.checked_sub(other.duration_minutes)?,
+        })
+    }
+
     fn within(self, budget: Self) -> bool {
         self.money_microunits <= budget.money_microunits
             && self.reviewer_minutes <= budget.reviewer_minutes
@@ -1038,11 +1052,42 @@ fn exact_plan(request: &ValidatedRequest) -> Result<Option<BTreeSet<String>>, St
     Ok(best.map(|(_, selected)| selected))
 }
 
+fn marginal_cost_is_better(
+    candidate_cost: Resources,
+    candidate_gain: usize,
+    candidate_score: &PlanScore,
+    best_cost: Resources,
+    best_gain: usize,
+    best_score: &PlanScore,
+) -> bool {
+    let comparisons = [
+        (candidate_cost.money_microunits, best_cost.money_microunits),
+        (
+            candidate_cost.field_interruption_minutes,
+            best_cost.field_interruption_minutes,
+        ),
+        (candidate_cost.reviewer_minutes, best_cost.reviewer_minutes),
+        (candidate_cost.duration_minutes, best_cost.duration_minutes),
+        (candidate_cost.compute_microunits, best_cost.compute_microunits),
+    ];
+
+    for (candidate, best) in comparisons {
+        let candidate_scaled = u128::from(candidate) * best_gain as u128;
+        let best_scaled = u128::from(best) * candidate_gain as u128;
+        if candidate_scaled != best_scaled {
+            return candidate_scaled < best_scaled;
+        }
+    }
+
+    candidate_score < best_score
+}
+
 fn greedy_plan(request: &ValidatedRequest) -> Option<BTreeSet<String>> {
     let mut selected = BTreeSet::new();
     while !unsatisfied_controls(&selected, request).is_empty() {
         let before = total_domain_deficit(&selected, request);
-        let mut best: Option<(usize, PlanScore, BTreeSet<String>)> = None;
+        let current_resources = selected_resources(&selected, &request.actions).ok()?;
+        let mut best: Option<(usize, Resources, PlanScore, BTreeSet<String>)> = None;
 
         for id in &request.action_order {
             if selected.contains(id) {
@@ -1066,19 +1111,27 @@ fn greedy_plan(request: &ValidatedRequest) -> Option<BTreeSet<String>> {
             if gain == 0 {
                 continue;
             }
+            let marginal_resources = resources.checked_sub(current_resources)?;
             let score = resources.score(&candidate);
             let replace = match &best {
                 None => true,
-                Some((best_gain, best_score, _)) => {
-                    gain > *best_gain || (gain == *best_gain && score < *best_score)
+                Some((best_gain, best_marginal, best_score, _)) => {
+                    marginal_cost_is_better(
+                        marginal_resources,
+                        gain,
+                        &score,
+                        *best_marginal,
+                        *best_gain,
+                        best_score,
+                    )
                 }
             };
             if replace {
-                best = Some((gain, score, candidate));
+                best = Some((gain, marginal_resources, score, candidate));
             }
         }
 
-        let (_, _, next) = best?;
+        let (_, _, _, next) = best?;
         selected = next;
     }
     selection_valid(&selected, request).then_some(selected)
@@ -1468,21 +1521,19 @@ mod tests {
         assert_eq!(report["plan_status"], "optimal_plan");
         assert_eq!(report["optimality_status"], "proven_optimal");
         let expected = &fixture["expected"];
-        let selected: Vec<String> = report["selected_actions"]
+        let selected: BTreeSet<String> = report["selected_actions"]
             .as_array()
             .unwrap()
             .iter()
             .map(|row| row["action_id"].as_str().unwrap().to_owned())
             .collect();
-        assert_eq!(
-            selected,
-            expected["selected_action_ids"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .map(|value| value.as_str().unwrap().to_owned())
-                .collect::<Vec<_>>()
-        );
+        let expected_selected: BTreeSet<String> = expected["selected_action_ids"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|value| value.as_str().unwrap().to_owned())
+            .collect();
+        assert_eq!(selected, expected_selected);
         assert_eq!(report["resource_totals"], expected["resource_totals"]);
         assert_eq!(report["covered_controls"], expected["covered_controls"]);
         assert_eq!(
@@ -1596,6 +1647,40 @@ mod tests {
                 .iter()
                 .any(|control| control == "numerical_known_answers")
         );
+    }
+
+    #[test]
+    fn greedy_uses_marginal_resource_cost_per_domain_gap_reduction() {
+        let mut request = sample_request();
+        request["candidate_actions"].as_array_mut().unwrap().retain(|action| {
+            !["artifact-provenance-full-audit", "numeric-reference-run-c",
+              "physical-independent-field-check"].contains(&action["action_id"].as_str().unwrap())
+        });
+        request["candidate_actions"][0]["resource_costs"]["money_microunits"] = json!(10);
+        request["candidate_actions"][1]["resource_costs"]["money_microunits"] = json!(20);
+        request["candidate_actions"][2]["resource_costs"]["money_microunits"] = json!(20);
+        request["candidate_actions"][3]["resource_costs"]["money_microunits"] = json!(30);
+        request["candidate_actions"][4]["resource_costs"]["money_microunits"] = json!(5);
+        request["candidate_actions"][5]["resource_costs"]["money_microunits"] = json!(25);
+        request["candidate_actions"][6]["resource_costs"]["money_microunits"] = json!(30);
+        request["candidate_actions"][7]["resource_costs"]["money_microunits"] = json!(80);
+        request["candidate_actions"][7]["covers_control_ids"] = json!([
+            "uncertainty_calibration", "out_of_domain_abstention"
+        ]);
+        for action in request["candidate_actions"].as_array_mut().unwrap() {
+            for field in ["reviewer_minutes", "field_interruption_minutes",
+                "compute_microunits", "duration_minutes"] {
+                action["resource_costs"][field] = json!(1);
+            }
+        }
+        refresh_mapping_digest(&mut request);
+        let report = test_report(&request);
+        assert_eq!(report["plan_status"], "feasible_heuristic");
+        let selected: BTreeSet<String> = report["selected_actions"].as_array().unwrap().iter()
+            .map(|row| row["action_id"].as_str().unwrap().to_owned()).collect();
+        assert!(selected.contains("uq-calibration-analysis"));
+        assert!(selected.contains("ood-heldout-validation"));
+        assert!(!selected.contains("combined-uq-ood-audit"));
     }
 
     #[test]
