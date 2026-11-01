@@ -1173,6 +1173,23 @@ mod tests {
     }
 
     #[test]
+    fn report_keeps_control_and_action_approval_gates_distinct() {
+        let report = test_report(&request());
+        let control_approvals: BTreeSet<String> = report["human_approval_controls"].as_array().unwrap()
+            .iter().map(|value| value.as_str().unwrap().to_owned()).collect();
+        let action_approvals: BTreeSet<String> = report["human_approval_actions"].as_array().unwrap()
+            .iter().map(|value| value.as_str().unwrap().to_owned()).collect();
+        assert!(control_approvals.contains("physical_reference_validation"));
+        assert!(control_approvals.contains("uncertainty_calibration"));
+        assert!(action_approvals.contains("physical-calibration-lab"));
+        assert!(action_approvals.contains("physical-independent-field-check"));
+        assert!(report["human_approvals_required"].as_array().unwrap().iter()
+            .any(|value| value == "control:physical_reference_validation"));
+        assert!(report["human_approvals_required"].as_array().unwrap().iter()
+            .any(|value| value == "action:physical-calibration-lab"));
+    }
+
+    #[test]
     fn report_preserves_existing_evidence_and_action_mapping_identity() {
         let report = test_report(&request());
         let row = report["control_coverage"].as_array().unwrap().iter()
