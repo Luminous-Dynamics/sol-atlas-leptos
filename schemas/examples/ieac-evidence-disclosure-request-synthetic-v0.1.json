@@ -1,0 +1,48 @@
+{
+  "fixture_status": "synthetic_only",
+  "schema_version": "luminous.ieac-evidence-disclosure-request.v0.1",
+  "request_id": "disclosure-request-case-0001",
+  "decision_case_id": "case-synthetic-0001",
+  "subject_pseudonym": "case:0001:subject:7f3a1c9d",
+  "issuer_id": "urn:example:issuer:site-gateway",
+  "relying_party_id": "urn:example:relying-party:ieac-auditor",
+  "purpose": "independent_audit",
+  "ieac_profile_id": "luminous.ieac-runtime-admission.v0.1",
+  "ieac_profile_sha256": "f608f6e912f71b3db4cdd1ffaacba590fdbc1dc29a8af6f4bc3af999cd57c749",
+  "issued_at": "2026-11-01T08:00:00Z",
+  "expires_at": "2026-11-01T08:05:00Z",
+  "request_nonce": "MDEyMzQ1Njc4OWFiY2RlZg",
+  "requested_claims": [
+    {
+      "claim_id": "pump.vibration.rms",
+      "semantic_class": "source_measurement",
+      "proof_semantics": "disclosed_signed_claim",
+      "presentation_profile": "sd_jwt_v1",
+      "required": true,
+      "max_disclosure_bytes": 512
+    },
+    {
+      "claim_id": "pump.vibration.within_operating_envelope",
+      "semantic_class": "issuer_derived_assertion",
+      "proof_semantics": "issuer_signed_predicate",
+      "presentation_profile": "sd_jwt_v1",
+      "required": true,
+      "max_disclosure_bytes": 256
+    },
+    {
+      "claim_id": "pump.vibration.value_in_range_without_disclosure",
+      "semantic_class": "computed_predicate",
+      "proof_semantics": "zero_knowledge_predicate",
+      "presentation_profile": "external_predicate_proof_profile_pending",
+      "required": false,
+      "max_disclosure_bytes": 2048
+    }
+  ],
+  "privacy_constraints": {
+    "no_raw_source_payload": true,
+    "case_scoped_subject_pseudonym_only": true,
+    "salt_disclosure": "holder_only",
+    "transparency_payload": "digest_only"
+  },
+  "action_authority": "none"
+}
