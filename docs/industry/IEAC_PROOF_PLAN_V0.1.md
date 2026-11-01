@@ -22,7 +22,7 @@ The planner's job is therefore lexicographic:
 
 ## 2. Current implementation boundary
 
-The standalone Rust package is `tools/industry-proof-plan`.
+The proposal engine is the standalone Rust package `tools/industry-proof-plan`. The independent checker is a separately compiled package, `tools/industry-proof-plan-auditor`, with no dependency on the planner crate.
 
 **v0.1 solves a resource-bounded action-selection problem.** Each candidate action has aggregate costs for:
 - money in micro-units of an explicitly declared three-letter currency;
@@ -31,7 +31,7 @@ The standalone Rust package is `tools/industry-proof-plan`.
 - compute in micro-units of an explicitly declared compute unit;
 - duration minutes.
 
-The request pins `currency_code` and `compute_unit_id`; budgets and all action costs share those declared units. No currency or compute conversion is performed.
+The request pins `currency_code` and `compute_unit_id`; budgets and all action costs share those declared units. No currency or compute conversion is performed. For the synthetic fixture the units are ZAR micro-units and `normalized-compute-micro-unit-v1`; those fixture values are illustrative, not a price estimate.
 
 The planner validates the prerequisite graph, requires symmetric conflict declarations, includes prerequisite closure, checks hard aggregate budgets, enforces the minimum count of distinct evidence-independence domains per control, and emits a deterministic topological action order.
 
@@ -108,9 +108,11 @@ The solver never changes the mandatory control set to improve its score. If its 
 
 ## 4. Benchmark programme
 
-The current authored Rust tests cover:
-- exact action-set sizes of 5, 10, 15 and 20;
-- deterministic heuristic sizes of 50, 100 and 500;
+The planner currently has 24 authored Rust tests. The separate auditor has six authored tests, including its own exact-enumeration replay and a collapsed-independence-domain infeasibility case. The current tests cover:
+- exact action-set sizes of 5, 10, 15 and 20, with frozen expected optimum;
+- deterministic heuristic sizes of 50, 100 and 500, always marked not proven optimal;
+- independent auditor agreement with the frozen exact optimum and infeasibility when source domains collapse;
+- independent auditor rejection of a report not bound to the exact request bytes;
 - the frozen 11-action hand-calculated fixture;
 - resource-budget boundaries;
 - independent-domain requirements, including the case where repeated actions use the same domain;
@@ -176,7 +178,7 @@ Google OR-Tools CP-SAT already models interval variables, precedence constraints
 
 The differentiator is not a claim that the planner solves RCPSP better than OR-Tools. It is that a generic solver's output can be treated as an untrusted proposal and independently checked against the assurance contract: mandatory control coverage, rights, evidence independence, approvals, exact input digests and no authority escalation. A future scheduler can use CP-SAT or another solver to propose times; the independent Rust auditor should verify the schedule without trusting the solver.
 
-The target is to outperform current industry practice in **assurance integrity and reproducibility**, then compare scheduling efficiency under matched resource/time constraints.
+The target is to outperform current industry practice in **assurance integrity and reproducibility**, then compare scheduling efficiency under matched resource/time constraints. The proposal engine and auditor share only the versioned input/report contract and standard data dependencies; the auditor does not call into the planner's library or reuse its selected subset.
 
 ## 6. Paradigm shifts and next architecture
 
@@ -202,8 +204,14 @@ The next scheduler should introduce:
 
 Benchmark it against PSPLIB and newer RCPSP datasets, then against matched assurance-specific instances. The assurance-specific contribution is the proof-obligation/evidence semantics; generic scheduling quality must be measured using the established OR benchmarks.
 
-## 8. Claim ceiling
+## 8. Exact-head verification and status
+
+The workflow `.github/workflows/industry-proof-plan.yml` checks the exact PR/push SHA, runs formatting, Clippy and locked tests for both Rust packages, validates request/report/fixture/audit schemas, replays the synthetic exact plan, runs the independent auditor, and includes expired-rights, registry-mismatch and tampered-resource negative controls. It uploads the plan and audit receipts as exact-head artifacts.
+
+No Rust compilation, Clippy result or CI pass is claimed until that workflow succeeds on the final PR head. Static fixture reconciliation is not a substitute for the Rust toolchain.
+
+## 9. Claim ceiling
 
 The current report establishes only that a set of declared acquisition actions is structurally feasible under supplied assumptions and aggregate budgets, or that no subset exists in the bounded candidate set. It does not prove that a planned test will pass, that a source is genuinely independent, that the action rights evidence is authentic, that an industrial site has authorized the work, or that a resulting IEAC profile is qualified.
 
-No Rust compilation, Clippy result or CI pass is claimed until the workflow runs on the exact PR head. Static inspection and hand-calculated fixture reconciliation must not be presented as executable verification.
+No Rust compilation, Clippy result or CI pass is claimed until the workflow runs on the exact PR head. Static inspection and hand-calculated fixture reconciliation must not be presented as executable verification. The independent auditor proves only request/report consistency and the bounded optimization claim under the supplied request; it does not prove the source registry, rights receipt or action definition is authentic.
