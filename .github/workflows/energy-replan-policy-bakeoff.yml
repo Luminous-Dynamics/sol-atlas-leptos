@@ -183,7 +183,10 @@ jobs:
           git diff --exit-code
           status="$(git status --porcelain --untracked-files=all)"
           printf '%s\n' "$status"
-          unexpected="$(printf '%s\n' "$status" | grep -vE '^\?\? target/energy-replan-policy-bakeoff/' || true)"
+          unexpected=""
+          if [ -n "$status" ]; then
+            unexpected="$(printf '%s' "$status" | grep -vE '^\?\? target/energy-replan-policy-bakeoff/' || true)"
+          fi
           test -z "$unexpected"
 
       - name: Upload benchmark report and provenance
