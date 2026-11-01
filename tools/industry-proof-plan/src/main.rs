@@ -1384,10 +1384,6 @@ mod tests {
         }
     }
 
-    fn validate() -> ValidatedRequest {
-        validate_request(&sample_request()).unwrap()
-    }
-
     fn test_report(value: &Value) -> Value {
         let bytes = serde_json::to_vec(value).unwrap();
         evaluate(value, &bytes, "test-build").unwrap()
