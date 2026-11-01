@@ -503,3 +503,18 @@ The aim is not maximum redundancy at any cost. Compare the cost of independent a
 [PORT-OUTCOME-001 #380](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/380) adds a separate evidence track for comparing ex-ante project forecasts against later observed outcomes and defensible counterfactuals. A 2026 systematic review of 90 port–hinterland studies found 51/90 (56.7%) were model-based optimisation/simulation/analytical designs, while quasi-experimental identification was absent from the reviewed corpus. This is a published review's sample and search protocol, not a claim about every port study. Source: https://doi.org/10.3390/jmse14151434.
 
 The Foundry's claimed advantage should therefore include outcome calibration and causal evidence where possible, not only better simulation or a larger candidate search. Historical forecasts must be frozen at their information cut-off; projects should be evaluated for additional network-wide service/value rather than traffic diverted from other gateways. Quasi-experimental methods require pre-registered outcomes, credible comparison groups, trend/placebo checks and transparent identification limits.
+
+
+## 19. Industry planning and port-reform baseline
+
+The industry comparison must include the World Bank's **2025 Port Reform Toolkit**, not only physical solvers and numerical optimizers. The Toolkit's 10 modules cover sector trends, change management, port governance, private-sector participation, economic regulation, risk management and financing, social/labour aspects, environmental sustainability, digitalisation/cybersecurity, and the port–city interface. It is a governance and implementation reference, not a single executable optimizer or coastal solver. Source: https://www.worldbank.org/en/topic/transport/publication/port-reform-toolkit.
+
+Port-City Foundry should compare its end-to-end project workflow against these established decision domains:
+- Does each candidate expose a viable governance and stakeholder arrangement, not only a geometry?
+- Are public/private risk allocation, financing, fiscal liabilities and affordability traceable?
+- Are labour, workforce transition, local development and distributional consequences explicit?
+- Are environmental and social requirements hard gates with evidence, not merely weighted objectives?
+- Are cybersecurity, digital operations, information exchange and operational continuity included in lifecycle cost and risk?
+- Is the port–city interface (land use, congestion, housing, community impacts and access) evaluated alongside terminal performance?
+
+The differentiator we should test is the integration of these decision domains with geographic alternative discovery, specialist physical-model evidence, multimodal network economics, uncertainty-aware optimization, ex-post forecast calibration and cross-organization provenance. We should not claim to replace port authorities, regulators, professional advisers or the Toolkit's governance process.
