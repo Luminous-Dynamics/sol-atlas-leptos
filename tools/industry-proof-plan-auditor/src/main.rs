@@ -1012,6 +1012,167 @@ mod tests {
         assert!(load_inputs(&request, &bytes, &report).is_err());
     }
 
+    fn complete_report_for_request(request: &Value, request_bytes: &[u8]) -> Value {
+        let bootstrap = stub_report(request, request_bytes);
+        let inputs = load_inputs(request, request_bytes, &bootstrap).unwrap();
+        let selected = exact_oracle(&inputs).unwrap().unwrap();
+
+        let mut indegree: BTreeMap<String, usize> =
+            selected.iter().map(|id| (id.clone(), 0usize)).collect();
+        let mut dependents: BTreeMap<String, Vec<String>> = BTreeMap::new();
+        for id in &selected {
+            for prerequisite in &inputs.actions[id].prerequisites {
+                if selected.contains(prerequisite) {
+                    *indegree.get_mut(id).unwrap() += 1;
+                    dependents.entry(prerequisite.clone()).or_default().push(id.clone());
+                }
+            }
+        }
+        let mut ready: BTreeSet<String> = indegree.iter()
+            .filter_map(|(id, degree)| (*degree == 0).then_some(id.clone())).collect();
+        let mut execution_order = Vec::new();
+        while let Some(id) = ready.pop_first() {
+            execution_order.push(id.clone());
+            if let Some(rows) = dependents.get(&id) {
+                for dependent in rows {
+                    let degree = indegree.get_mut(dependent).unwrap();
+                    *degree -= 1;
+                    if *degree == 0 {
+                        ready.insert(dependent.clone());
+                    }
+                }
+            }
+        }
+
+        let domains = domains_for(&selected, &inputs);
+        let mut selected_actions = Vec::new();
+        let mut human_actions = BTreeSet::new();
+        for id in &execution_order {
+            let action = &inputs.actions[id];
+            let prerequisite = selected.iter().any(|other| {
+                inputs.actions[other].prerequisites.contains(id)
+            });
+            if action.human_approval {
+                human_actions.insert(id.clone());
+            }
+            selected_actions.push(json!({
+                "action_id": action.id,
+                "action_sha256": action.digest,
+                "prerequisite": prerequisite,
+                "human_approval_required": action.human_approval,
+                "independence_domain_id": action.domain,
+                "independence_registry_sha256": action.registry_digest,
+                "mapping_policy_sha256": action.mapping_digest,
+                "rights_evidence_sha256": action.rights_digest,
+                "rights_status": "verified",
+                "rights_verified_at": action.rights_verified_at,
+                "rights_valid_until": action.rights_valid_until,
+                "covers_control_ids": action.covers,
+                "resource_costs": action.costs.as_value()
+            }));
+        }
+
+        let mut coverage = Vec::new();
+        let mut covered = BTreeSet::new();
+        let mut unsatisfied = BTreeSet::new();
+        let mut human_controls = BTreeSet::new();
+        let mut all_approvals = BTreeSet::new();
+        for (control, requirement) in &inputs.requirements {
+            let present = domains.get(control).cloned().unwrap_or_default();
+            let is_covered = present.len() >= requirement.minimum_domains;
+            if is_covered {
+                covered.insert(control.clone());
+            } else {
+                unsatisfied.insert(control.clone());
+            }
+            let existing = inputs.existing_rows.get(control).cloned().unwrap_or_default();
+            let existing_json: Vec<Value> = existing.iter().map(|row| json!({
+                "artifact_sha256": row.artifact_digest,
+                "verifier_build_sha256": row.verifier_digest,
+                "rights_evidence_sha256": row.rights_digest,
+                "independence_domain_id": row.domain,
+                "independence_registry_sha256": row.registry_digest
+            })).collect();
+            coverage.push(json!({
+                "control_id": control,
+                "existing_verified_evidence": existing_json,
+                "minimum_independent_domains": requirement.minimum_domains,
+                "planned_or_existing_domain_ids": present,
+                "domain_count": present.len(),
+                "covered": is_covered,
+                "reason_codes": requirement.reasons
+            }));
+            if requirement.human_approval {
+                human_controls.insert(control.clone());
+                all_approvals.insert(format!("control:{control}"));
+            }
+        }
+        for id in &human_actions {
+            all_approvals.insert(format!("action:{id}"));
+        }
+        let objective_order = [
+            "money_microunits",
+            "field_interruption_minutes",
+            "reviewer_minutes",
+            "duration_minutes",
+            "compute_microunits",
+            "action_count",
+            "lexicographic_action_ids"
+        ];
+        json!({
+            "schema_version": REPORT_SCHEMA,
+            "request_id": inputs.request_id,
+            "request_sha256": digest(request_bytes),
+            "risk_control_report_sha256": inputs.report_digest,
+            "profile_sha256": inputs.profile_digest,
+            "policy_sha256": inputs.policy_digest,
+            "independence_registry_sha256": inputs.registry_digest,
+            "control_mapping_policy_sha256": inputs.mapping_digest,
+            "currency_code": inputs.currency,
+            "compute_unit_id": inputs.compute_unit,
+            "planner_version": PLANNER_VERSION,
+            "planner_build_id": "synthetic-planner-build",
+            "optimization_method": "exact_subset_enumeration",
+            "optimality_status": "proven_optimal",
+            "plan_status": "optimal_plan",
+            "selected_actions": selected_actions,
+            "execution_order": execution_order,
+            "control_coverage": coverage,
+            "covered_controls": covered,
+            "unsatisfied_controls": unsatisfied,
+            "human_approvals_required": all_approvals,
+            "human_approval_controls": human_controls,
+            "human_approval_actions": human_actions,
+            "resource_totals": total_cost(&selected, &inputs).unwrap().as_value(),
+            "resource_budgets": inputs.budget.as_value(),
+            "objective_order": objective_order,
+            "action_authority": "none",
+            "qualification_attested": false
+        })
+    }
+
+    #[test]
+    fn auditor_accepts_complete_report_then_rejects_tampered_cost_and_coverage() {
+        let request = request();
+        let request_bytes = serde_json::to_vec(&request).unwrap();
+        let report = complete_report_for_request(&request, &request_bytes);
+        let report_bytes = serde_json::to_vec_pretty(&report).unwrap();
+        let audit = verify_report(&request, &request_bytes, &report, &report_bytes, "test-auditor").unwrap();
+        assert_eq!(audit["verdict"], "accepted_optimal");
+        assert_eq!(audit["optimality_independently_checked"], true);
+        assert_eq!(audit["action_authority"], "none");
+
+        let mut bad_cost = report.clone();
+        bad_cost["resource_totals"]["money_microunits"] = json!(0);
+        let bytes = serde_json::to_vec_pretty(&bad_cost).unwrap();
+        assert!(verify_report(&request, &request_bytes, &bad_cost, &bytes, "test-auditor").is_err());
+
+        let mut bad_coverage = report.clone();
+        bad_coverage["covered_controls"] = json!([]);
+        let bytes = serde_json::to_vec_pretty(&bad_coverage).unwrap();
+        assert!(verify_report(&request, &request_bytes, &bad_coverage, &bytes, "test-auditor").is_err());
+    }
+
     #[test]
     fn duplicate_json_members_are_rejected() {
         assert!(serde_json::from_str::<StrictJson>(r#"{"key":1,"key":2}"#).is_err());
