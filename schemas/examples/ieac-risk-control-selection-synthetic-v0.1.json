@@ -1,0 +1,97 @@
+{
+  "fixture_schema_version": "luminous.ieac-risk-control-selector-fixture.v0.1",
+  "fixture_status": "synthetic_only",
+  "note": "Synthetic control-selection fixture. Evidence status values are test inputs, not cryptographically verified facts or operational qualification.",
+  "request": {
+    "schema_version": "luminous.ieac-risk-control-selection-request.v0.1",
+    "request_id": "risk-selection-synthetic-001",
+    "decision_tier": "D1_advisory",
+    "risk_assessment": {
+      "reviewed_class": "moderate",
+      "dimensions": {
+        "consequence": "major",
+        "model_influence": "advisory",
+        "exposure": "site_or_facility",
+        "reversibility": "readily_reversible",
+        "detectability": "delayed_or_partial",
+        "fallback": "human_fallback"
+      }
+    },
+    "conflicted_dimensions": [],
+    "evaluated_at": "2026-11-01T13:00:00Z",
+    "control_evidence": [
+      {
+        "control_id": "artifact_identity_integrity",
+        "artifact_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "status": "verified",
+        "verifier_id": "synthetic-independent-verifier",
+        "verified_at": "2026-11-01T12:00:00Z",
+        "valid_until": "2026-11-02T00:00:00Z"
+      },
+      {
+        "control_id": "human_review_override",
+        "artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "status": "verified",
+        "verifier_id": "synthetic-human-review",
+        "verified_at": "2026-11-01T12:00:00Z",
+        "valid_until": "2026-11-02T00:00:00Z"
+      },
+      {
+        "control_id": "group_disjoint_holdout",
+        "artifact_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "status": "unverified",
+        "verifier_id": "synthetic-pending-review",
+        "verified_at": "2026-11-01T12:00:00Z",
+        "valid_until": null
+      },
+      {
+        "control_id": "operational_monitoring",
+        "artifact_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "status": "verified",
+        "verifier_id": "synthetic-monitoring-review",
+        "verified_at": "2026-10-01T00:00:00Z",
+        "valid_until": "2026-10-15T00:00:00Z"
+      }
+    ]
+  },
+  "expected": {
+    "required_control_ids": [
+      "artifact_identity_integrity",
+      "drift_detection",
+      "group_disjoint_holdout",
+      "human_response_sla",
+      "human_review_override",
+      "incident_response_playbook",
+      "numerical_known_answers",
+      "operational_monitoring",
+      "out_of_domain_abstention",
+      "physical_reference_validation",
+      "prospective_outcome_reconciliation",
+      "schema_interface_conformance",
+      "source_rights_lineage",
+      "uncertainty_calibration",
+      "unit_semantics_validation"
+    ],
+    "controls_with_reported_verified_evidence": [
+      "artifact_identity_integrity",
+      "human_review_override"
+    ],
+    "controls_missing_or_unverified": [
+      "drift_detection",
+      "group_disjoint_holdout",
+      "human_response_sla",
+      "incident_response_playbook",
+      "numerical_known_answers",
+      "operational_monitoring",
+      "out_of_domain_abstention",
+      "physical_reference_validation",
+      "prospective_outcome_reconciliation",
+      "schema_interface_conformance",
+      "source_rights_lineage",
+      "uncertainty_calibration",
+      "unit_semantics_validation"
+    ],
+    "indeterminate": false,
+    "selector_status": "requirements_selected"
+  }
+}
