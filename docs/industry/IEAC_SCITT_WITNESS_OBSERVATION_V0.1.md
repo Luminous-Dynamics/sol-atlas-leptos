@@ -31,7 +31,7 @@ Each observation binds:
 - observer identity, observer operator domain, build digest and observation method;
 - digests of statements observed in the relevant service view.
 
-The observation is a record of evidence inputs. It deliberately does not contain a boolean such as `consistency_verified=true`. A digest proves which bytes are being referenced, not that the signature or proof validates.
+Each observed statement digest has a corresponding `inclusion_proofs` entry binding the statement digest to the exact COSE Receipt digest, VDS inclusion-proof digest and leaf index. Runtime must enforce a one-to-one set match between `statement_digests` and `inclusion_proofs[].statement_sha256`, verify the receipt-to-statement binding, and verify the inclusion proof against the authenticated signed tree head.\n\nThe observation is a record of evidence inputs. It deliberately does not contain a boolean such as `consistency_verified=true`. A digest proves which bytes are being referenced, not that the signature or proof validates.
 
 Runtime verification must retrieve the exact bytes, verify the TS signature under independently provisioned trust material, verify the VDS proof with a supported implementation, check freshness/key lifecycle, and bind its verdict to the verifier build and policy digests.
 
@@ -65,7 +65,7 @@ Do **not** compare root hashes, tree sizes or leaf indexes across unrelated TSs 
 
 ### 3.3 Witness diversity
 
-The schema records both observer and operator IDs, but cannot prove organizational independence. Runtime must resolve these IDs through an independently provisioned registry or governance record.
+The schema records both observer and operator IDs, but cannot prove organizational independence. It also requires per-statement receipt and inclusion-proof references, while leaving all cryptographic verification to the separate verifier. Runtime must resolve these IDs through an independently provisioned registry or governance record.
 
 Two DNS names, endpoints, regions, cloud accounts or signing keys under one controlling operator count as one administrative domain. Multiple observers with the same organization, root authority or shared control plane must not inflate a witness quorum.
 
