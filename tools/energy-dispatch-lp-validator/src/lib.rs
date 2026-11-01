@@ -1688,6 +1688,10 @@ mod tests {
                 (format!("charge_mode_{index:03}"), 0),
             ]));
         }
+        // The final recovery interval has one unit of PV and no demand.
+        // The valid baseline must explicitly curtail it before testing SOC
+        // mutations; a zero/zero PV partition is not a valid schedule.
+        baseline.insert("pv_curtailed_003".to_owned(), 1);
         assert!(schedule_spec_accepts_assignment(&request, &baseline));
 
         for index in 0..4 {
