@@ -71,7 +71,7 @@ impl PolicyKind {
     /// Telemetry quality is enforced by run_policy before this method is
     /// called. Hidden evaluator truth is not an argument and cannot leak
     /// through this interface.
-    pub fn decide(self, observation: &DecisionObservation) -> ReplanAction {
+    fn decide(self, observation: &DecisionObservation) -> ReplanAction {
         let estimated_cost = observation
             .estimated_solver_cost_mwh
             .saturating_add(observation.estimated_switching_cost_mwh);
