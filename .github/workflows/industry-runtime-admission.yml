@@ -305,9 +305,17 @@ jobs:
             ([.observations[].observation_id] | unique | length) == (.observations | length) and
             ([.observations[] | select(.transparency_service_id == "ts:service-a" and .signed_tree_head.tree_size == 10)] | length) == 3 and
             ([.observations[] | select(.transparency_service_id == "ts:service-b" and .signed_tree_head.tree_size == 7)] | length) == 1 and
+            all(.observations[]; ([.statement_digests[]] | sort) == ([.inclusion_proofs[].statement_sha256] | sort)) and
+            ([.observations[].inclusion_proofs | length] | add) == .expected_structural_comparison.inclusion_proof_count and
             .expected_structural_comparison.cross_ts_root_comparison == "not_comparable" and
             .expected_structural_comparison.witness_operator_diversity_for_equal_head == 2
           ' "$fixture"
+          # Every listed statement must have exactly one receipt/proof reference; a missing proof is not a coverage pass.
+          jq '.observations[1].inclusion_proofs |= .[1:]' "$fixture" > "$RUNNER_TEMP/witness-missing-inclusion-proof.json"
+          if jq -e 'all(.observations[]; ([.statement_digests[]] | sort) == ([.inclusion_proofs[].statement_sha256] | sort))' "$RUNNER_TEMP/witness-missing-inclusion-proof.json"; then
+            echo "ERROR: witness fixture accepted a listed statement without an inclusion-proof reference"
+            exit 1
+          fi
           # A consistency proof is mandatory whenever a prior tree head is named.
           jq '.observations[1].consistency_proof_sha256 = null' "$fixture" > "$RUNNER_TEMP/witness-missing-consistency-proof.json"
           jq -e '.observations[1]' "$RUNNER_TEMP/witness-missing-consistency-proof.json" > "$RUNNER_TEMP/witness-mutated-observation.json"
