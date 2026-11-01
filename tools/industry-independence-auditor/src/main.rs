@@ -1,6 +1,6 @@
-use serde::de::{self, MapAccess, SeqAccess, Visitor};
 use serde::Deserialize;
-use serde_json::{json, Map, Number, Value};
+use serde::de::{self, MapAccess, SeqAccess, Visitor};
+use serde_json::{Map, Number, Value, json};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 use std::env;
@@ -56,26 +56,59 @@ impl<'de> Deserialize<'de> for StrictJson {
                 formatter.write_str("JSON without duplicate object member names")
             }
             fn visit_unit<E>(self) -> Result<Self::Value, E>
-            where E: de::Error { Ok(StrictJson::Null) }
+            where
+                E: de::Error,
+            {
+                Ok(StrictJson::Null)
+            }
             fn visit_none<E>(self) -> Result<Self::Value, E>
-            where E: de::Error { Ok(StrictJson::Null) }
+            where
+                E: de::Error,
+            {
+                Ok(StrictJson::Null)
+            }
             fn visit_bool<E>(self, value: bool) -> Result<Self::Value, E>
-            where E: de::Error { Ok(StrictJson::Bool(value)) }
+            where
+                E: de::Error,
+            {
+                Ok(StrictJson::Bool(value))
+            }
             fn visit_i64<E>(self, value: i64) -> Result<Self::Value, E>
-            where E: de::Error { Ok(StrictJson::Number(Number::from(value))) }
+            where
+                E: de::Error,
+            {
+                Ok(StrictJson::Number(Number::from(value)))
+            }
             fn visit_u64<E>(self, value: u64) -> Result<Self::Value, E>
-            where E: de::Error { Ok(StrictJson::Number(Number::from(value))) }
+            where
+                E: de::Error,
+            {
+                Ok(StrictJson::Number(Number::from(value)))
+            }
             fn visit_f64<E>(self, value: f64) -> Result<Self::Value, E>
-            where E: de::Error {
-                Number::from_f64(value).map(StrictJson::Number)
+            where
+                E: de::Error,
+            {
+                Number::from_f64(value)
+                    .map(StrictJson::Number)
                     .ok_or_else(|| E::custom("non-finite JSON number"))
             }
             fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-            where E: de::Error { Ok(StrictJson::String(value.to_owned())) }
+            where
+                E: de::Error,
+            {
+                Ok(StrictJson::String(value.to_owned()))
+            }
             fn visit_string<E>(self, value: String) -> Result<Self::Value, E>
-            where E: de::Error { Ok(StrictJson::String(value)) }
+            where
+                E: de::Error,
+            {
+                Ok(StrictJson::String(value))
+            }
             fn visit_seq<A>(self, mut sequence: A) -> Result<Self::Value, A::Error>
-            where A: SeqAccess<'de> {
+            where
+                A: SeqAccess<'de>,
+            {
                 let mut values = Vec::new();
                 while let Some(value) = sequence.next_element::<StrictJson>()? {
                     values.push(value);
@@ -83,11 +116,15 @@ impl<'de> Deserialize<'de> for StrictJson {
                 Ok(StrictJson::Array(values))
             }
             fn visit_map<A>(self, mut access: A) -> Result<Self::Value, A::Error>
-            where A: MapAccess<'de> {
+            where
+                A: MapAccess<'de>,
+            {
                 let mut values = BTreeMap::new();
                 while let Some((key, value)) = access.next_entry::<String, StrictJson>()? {
                     if values.contains_key(&key) {
-                        return Err(de::Error::custom(format!("duplicate JSON object member: {key}")));
+                        return Err(de::Error::custom(format!(
+                            "duplicate JSON object member: {key}"
+                        )));
                     }
                     values.insert(key, value);
                 }
@@ -181,34 +218,50 @@ struct Inputs {
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
-    Sha256::digest(bytes).iter().map(|byte| format!("{byte:02x}")).collect()
+    Sha256::digest(bytes)
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect()
 }
 
 fn valid_digest(value: &str) -> bool {
     value.len() == 64
-        && value.bytes().all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
 }
 
 fn parse_digest(value: &Value, key: &str, context: &str) -> Result<String, String> {
-    let digest = value.get(key).and_then(Value::as_str)
+    let digest = value
+        .get(key)
+        .and_then(Value::as_str)
         .ok_or_else(|| format!("{context}.{key} must be a lowercase SHA-256 string"))?;
     if !valid_digest(digest) {
-        return Err(format!("{context}.{key} must be a lowercase SHA-256 string"));
+        return Err(format!(
+            "{context}.{key} must be a lowercase SHA-256 string"
+        ));
     }
     Ok(digest.to_owned())
 }
 
 fn required_string<'a>(value: &'a Value, key: &str, context: &str) -> Result<&'a str, String> {
-    value.get(key).and_then(Value::as_str).filter(|item| !item.trim().is_empty())
+    value
+        .get(key)
+        .and_then(Value::as_str)
+        .filter(|item| !item.trim().is_empty())
         .ok_or_else(|| format!("{context}.{key} must be a non-empty string"))
 }
 
 fn parse_string_set(value: &Value, key: &str, context: &str) -> Result<BTreeSet<String>, String> {
-    let rows = value.get(key).and_then(Value::as_array)
+    let rows = value
+        .get(key)
+        .and_then(Value::as_array)
         .ok_or_else(|| format!("{context}.{key} must be an array"))?;
     let mut result = BTreeSet::new();
     for row in rows {
-        let item = row.as_str().filter(|item| !item.is_empty())
+        let item = row
+            .as_str()
+            .filter(|item| !item.is_empty())
             .ok_or_else(|| format!("{context}.{key} contains an invalid value"))?;
         if !result.insert(item.to_owned()) {
             return Err(format!("{context}.{key} contains duplicate '{item}'"));
@@ -218,18 +271,26 @@ fn parse_string_set(value: &Value, key: &str, context: &str) -> Result<BTreeSet<
 }
 
 fn array<'a>(value: &'a Value, key: &str, context: &str) -> Result<&'a [Value], String> {
-    value.get(key).and_then(Value::as_array).map(Vec::as_slice)
+    value
+        .get(key)
+        .and_then(Value::as_array)
+        .map(Vec::as_slice)
         .ok_or_else(|| format!("{context}.{key} must be an array"))
 }
 
 fn canonical_utc(value: &str) -> bool {
     let bytes = value.as_bytes();
     if bytes.len() != 20
-        || bytes[4] != b'-' || bytes[7] != b'-' || bytes[10] != b'T'
-        || bytes[13] != b':' || bytes[16] != b':' || bytes[19] != b'Z'
-        || !bytes.iter().enumerate().all(|(index, byte)| {
-            [4, 7, 10, 13, 16, 19].contains(&index) || byte.is_ascii_digit()
-        })
+        || bytes[4] != b'-'
+        || bytes[7] != b'-'
+        || bytes[10] != b'T'
+        || bytes[13] != b':'
+        || bytes[16] != b':'
+        || bytes[19] != b'Z'
+        || !bytes
+            .iter()
+            .enumerate()
+            .all(|(index, byte)| [4, 7, 10, 13, 16, 19].contains(&index) || byte.is_ascii_digit())
     {
         return false;
     }
@@ -237,9 +298,15 @@ fn canonical_utc(value: &str) -> bool {
         std::str::from_utf8(&bytes[range]).ok()?.parse::<u32>().ok()
     };
     let (Some(year), Some(month), Some(day), Some(hour), Some(minute), Some(second)) = (
-        part(0..4), part(5..7), part(8..10),
-        part(11..13), part(14..16), part(17..19)
-    ) else { return false; };
+        part(0..4),
+        part(5..7),
+        part(8..10),
+        part(11..13),
+        part(14..16),
+        part(17..19),
+    ) else {
+        return false;
+    };
     if year == 0 || !(1..=12).contains(&month) || hour > 23 || minute > 59 || second > 59 {
         return false;
     }
@@ -261,11 +328,17 @@ fn parse_timestamp(value: &Value, key: &str, context: &str) -> Result<String, St
     Ok(text.to_owned())
 }
 
-fn parse_optional_timestamp(value: &Value, key: &str, context: &str) -> Result<Option<String>, String> {
+fn parse_optional_timestamp(
+    value: &Value,
+    key: &str,
+    context: &str,
+) -> Result<Option<String>, String> {
     match value.get(key) {
         Some(Value::Null) => Ok(None),
         Some(Value::String(text)) if canonical_utc(text) => Ok(Some(text.clone())),
-        _ => Err(format!("{context}.{key} must be a UTC calendar value or null")),
+        _ => Err(format!(
+            "{context}.{key} must be a UTC calendar value or null"
+        )),
     }
 }
 
@@ -276,7 +349,9 @@ fn checked_current(
     context: &str,
 ) -> Result<(), String> {
     if valid_from > evaluated_at || valid_until.is_some_and(|until| until < evaluated_at) {
-        return Err(format!("{context} is not current at the request evaluation time"));
+        return Err(format!(
+            "{context} is not current at the request evaluation time"
+        ));
     }
     Ok(())
 }
@@ -294,7 +369,9 @@ fn expand_dependency(
     if !visiting.insert(id.to_owned()) {
         return Err(format!("dependency graph contains a cycle through '{id}'"));
     }
-    let node = nodes.get(id).ok_or_else(|| format!("unknown dependency node '{id}'"))?;
+    let node = nodes
+        .get(id)
+        .ok_or_else(|| format!("unknown dependency node '{id}'"))?;
     if node.status != "active" {
         return Err(format!("dependency node '{id}' is revoked"));
     }
@@ -333,16 +410,36 @@ fn build_registry(
     if issued_at > evaluated_at {
         return Err("registry was issued after request evaluation time".into());
     }
-    checked_current(&valid_from, valid_until.as_deref(), evaluated_at, "registry")?;
+    checked_current(
+        &valid_from,
+        valid_until.as_deref(),
+        evaluated_at,
+        "registry",
+    )?;
 
     let mut groups = BTreeMap::new();
-    for (index, row) in array(registry, "common_cause_groups", "registry")?.iter().enumerate() {
+    for (index, row) in array(registry, "common_cause_groups", "registry")?
+        .iter()
+        .enumerate()
+    {
         let context = format!("common_cause_groups[{index}]");
         let id = required_string(row, "group_id", &context)?.to_owned();
         let cause_type = required_string(row, "cause_type", &context)?.to_owned();
-        if !["upstream_data_feed", "calibration_lineage", "reference_standard", "software_build",
-            "test_harness", "operator_process", "facility", "power_supply", "communications",
-            "shared_environment", "maintenance_process", "other"].contains(&cause_type.as_str())
+        if ![
+            "upstream_data_feed",
+            "calibration_lineage",
+            "reference_standard",
+            "software_build",
+            "test_harness",
+            "operator_process",
+            "facility",
+            "power_supply",
+            "communications",
+            "shared_environment",
+            "maintenance_process",
+            "other",
+        ]
+        .contains(&cause_type.as_str())
         {
             return Err(format!("{context} has an unsupported cause_type"));
         }
@@ -352,13 +449,28 @@ fn build_registry(
     }
 
     let mut nodes = BTreeMap::new();
-    for (index, row) in array(registry, "dependency_nodes", "registry")?.iter().enumerate() {
+    for (index, row) in array(registry, "dependency_nodes", "registry")?
+        .iter()
+        .enumerate()
+    {
         let context = format!("dependency_nodes[{index}]");
         let id = required_string(row, "dependency_id", &context)?.to_owned();
         let dependency_type = required_string(row, "dependency_type", &context)?;
-        if !["upstream_data_feed", "calibration_chain", "reference_standard", "software_build",
-            "test_harness", "operator_process", "facility", "power_supply", "communications",
-            "shared_environment", "maintenance_process", "other"].contains(&dependency_type)
+        if ![
+            "upstream_data_feed",
+            "calibration_chain",
+            "reference_standard",
+            "software_build",
+            "test_harness",
+            "operator_process",
+            "facility",
+            "power_supply",
+            "communications",
+            "shared_environment",
+            "maintenance_process",
+            "other",
+        ]
+        .contains(&dependency_type)
         {
             return Err(format!("{context} has an unsupported dependency_type"));
         }
@@ -370,16 +482,26 @@ fn build_registry(
         if group_ids.iter().any(|group| !groups.contains_key(group)) {
             return Err(format!("{context} refers to an unknown common-cause group"));
         }
-        if nodes.insert(id.clone(), DependencyNode {
-            status, common_cause_group_ids: group_ids,
-        }).is_some() {
+        if nodes
+            .insert(
+                id.clone(),
+                DependencyNode {
+                    status,
+                    common_cause_group_ids: group_ids,
+                },
+            )
+            .is_some()
+        {
             return Err(format!("duplicate dependency node '{id}'"));
         }
     }
 
     let mut edges = BTreeMap::<String, BTreeSet<String>>::new();
     let mut edge_pairs = BTreeSet::new();
-    for (index, row) in array(registry, "dependency_edges", "registry")?.iter().enumerate() {
+    for (index, row) in array(registry, "dependency_edges", "registry")?
+        .iter()
+        .enumerate()
+    {
         let context = format!("dependency_edges[{index}]");
         let from = required_string(row, "dependency_id", &context)?.to_owned();
         let to = required_string(row, "depends_on_dependency_id", &context)?.to_owned();
@@ -398,27 +520,45 @@ fn build_registry(
         let id = required_string(row, "domain_id", &context)?.to_owned();
         let organization_id = required_string(row, "organization_id", &context)?.to_owned();
         let status = required_string(row, "status", &context)?.to_owned();
-        let dependency_completeness = required_string(row, "dependency_completeness", &context)?.to_owned();
+        let dependency_completeness =
+            required_string(row, "dependency_completeness", &context)?.to_owned();
         if !["active", "revoked"].contains(&status.as_str())
             || !["complete", "unknown", "disputed"].contains(&dependency_completeness.as_str())
         {
             return Err(format!("{context} has unsupported status/completeness"));
         }
         let dependency_ids = parse_string_set(row, "dependency_ids", &context)?;
-        if dependency_ids.iter().any(|dependency| !nodes.contains_key(dependency)) {
+        if dependency_ids
+            .iter()
+            .any(|dependency| !nodes.contains_key(dependency))
+        {
             return Err(format!("{context} references an unknown dependency node"));
         }
         let common_cause_group_ids = parse_string_set(row, "common_cause_group_ids", &context)?;
-        if common_cause_group_ids.iter().any(|group| !groups.contains_key(group)) {
-            return Err(format!("{context} references an unknown common-cause group"));
+        if common_cause_group_ids
+            .iter()
+            .any(|group| !groups.contains_key(group))
+        {
+            return Err(format!(
+                "{context} references an unknown common-cause group"
+            ));
         }
         let valid_from = parse_timestamp(row, "valid_from", &context)?;
         let valid_until = parse_optional_timestamp(row, "valid_until", &context)?;
         checked_current(&valid_from, valid_until.as_deref(), evaluated_at, &context)?;
-        if domains.insert(id.clone(), Domain {
-            organization_id, status, dependency_completeness,
-            dependency_ids, common_cause_group_ids,
-        }).is_some() {
+        if domains
+            .insert(
+                id.clone(),
+                Domain {
+                    organization_id,
+                    status,
+                    dependency_completeness,
+                    dependency_ids,
+                    common_cause_group_ids,
+                },
+            )
+            .is_some()
+        {
             return Err(format!("duplicate source domain '{id}'"));
         }
     }
@@ -439,11 +579,17 @@ fn build_registry(
         let mut groups_for_domain = domain.common_cause_group_ids.clone();
         for dependency in &domain.dependency_ids {
             closure.extend(expand_dependency(
-                dependency, &nodes, &edges, &mut BTreeSet::new(), &mut memo
+                dependency,
+                &nodes,
+                &edges,
+                &mut BTreeSet::new(),
+                &mut memo,
             )?);
         }
         for dependency in &closure {
-            let node = nodes.get(dependency).ok_or_else(|| format!("missing dependency node '{dependency}'"))?;
+            let node = nodes
+                .get(dependency)
+                .ok_or_else(|| format!("missing dependency node '{dependency}'"))?;
             groups_for_domain.extend(node.common_cause_group_ids.iter().cloned());
         }
         let registry_model_status = match domain.dependency_completeness.as_str() {
@@ -452,37 +598,55 @@ fn build_registry(
             "disputed" => "disputed_dependency",
             _ => return Err("unsupported dependency completeness".into()),
         };
-        resolved_domains.insert(id.clone(), SourceResolution {
-            source_id: String::new(),
-            domain_id: id.clone(),
-            organization_id: domain.organization_id.clone(),
-            source_kind: String::new(),
-            source_identity_sha256: String::new(),
-            evidence_state: String::new(),
-            rights_status: String::new(),
-            rights_evidence_sha256: String::new(),
-            verified_at: String::new(),
-            valid_until: None,
-            dependency_completeness: domain.dependency_completeness.clone(),
-            dependency_closure: closure,
-            common_cause_group_ids: groups_for_domain,
-            registry_model_status: registry_model_status.into(),
-        });
+        resolved_domains.insert(
+            id.clone(),
+            SourceResolution {
+                source_id: String::new(),
+                domain_id: id.clone(),
+                organization_id: domain.organization_id.clone(),
+                source_kind: String::new(),
+                source_identity_sha256: String::new(),
+                evidence_state: String::new(),
+                rights_status: String::new(),
+                rights_evidence_sha256: String::new(),
+                verified_at: String::new(),
+                valid_until: None,
+                dependency_completeness: domain.dependency_completeness.clone(),
+                dependency_closure: closure,
+                common_cause_group_ids: groups_for_domain,
+                registry_model_status: registry_model_status.into(),
+            },
+        );
     }
 
     Ok(RegistryResolution {
-        registry_id, registry_version, authority_id, registry_sha256: actual_digest,
-        domains, resolved_domains,
+        registry_id,
+        registry_version,
+        authority_id,
+        registry_sha256: actual_digest,
+        domains,
+        resolved_domains,
     })
 }
 
-fn make_conflict(left: &SourceResolution, right: &SourceResolution, same_identity: bool, same_domain: bool) -> Option<Conflict> {
-    let shared_dependencies: BTreeSet<String> =
-        left.dependency_closure.intersection(&right.dependency_closure).cloned().collect();
-    let shared_groups: BTreeSet<String> =
-        left.common_cause_group_ids.intersection(&right.common_cause_group_ids).cloned().collect();
-    let unknown = left.dependency_completeness != "complete"
-        || right.dependency_completeness != "complete";
+fn make_conflict(
+    left: &SourceResolution,
+    right: &SourceResolution,
+    same_identity: bool,
+    same_domain: bool,
+) -> Option<Conflict> {
+    let shared_dependencies: BTreeSet<String> = left
+        .dependency_closure
+        .intersection(&right.dependency_closure)
+        .cloned()
+        .collect();
+    let shared_groups: BTreeSet<String> = left
+        .common_cause_group_ids
+        .intersection(&right.common_cause_group_ids)
+        .cloned()
+        .collect();
+    let unknown =
+        left.dependency_completeness != "complete" || right.dependency_completeness != "complete";
     let mut reasons = BTreeSet::new();
     if same_identity {
         reasons.insert("DUPLICATE_SOURCE_IDENTITY".to_owned());
@@ -524,21 +688,35 @@ fn validate_request(request: &Value, request_bytes: &[u8]) -> Result<Inputs, Str
     let evaluated_at = parse_timestamp(request, "evaluated_at", "request")?;
     let registry_sha256 = parse_digest(request, "registry_sha256", "request")?;
     let registry = build_registry(
-        request.get("registry").ok_or("request.registry is missing")?,
+        request
+            .get("registry")
+            .ok_or("request.registry is missing")?,
         &registry_sha256,
         &evaluated_at,
     )?;
 
     let mut requirements = BTreeMap::new();
-    for (index, row) in array(request, "control_requirements", "request")?.iter().enumerate() {
+    for (index, row) in array(request, "control_requirements", "request")?
+        .iter()
+        .enumerate()
+    {
         let context = format!("control_requirements[{index}]");
         let control = required_string(row, "control_id", &context)?.to_owned();
-        let minimum = row.get("minimum_independent_sources").and_then(Value::as_u64)
+        let minimum = row
+            .get("minimum_independent_sources")
+            .and_then(Value::as_u64)
             .filter(|value| *value > 0 && *value <= 32)
-            .ok_or_else(|| format!("{context}.minimum_independent_sources must be 1..=32"))? as usize;
-        if requirements.insert(control.clone(), ControlRequirement {
-            minimum_independent_sources: minimum,
-        }).is_some() {
+            .ok_or_else(|| format!("{context}.minimum_independent_sources must be 1..=32"))?
+            as usize;
+        if requirements
+            .insert(
+                control.clone(),
+                ControlRequirement {
+                    minimum_independent_sources: minimum,
+                },
+            )
+            .is_some()
+        {
             return Err(format!("duplicate control requirement '{control}'"));
         }
     }
@@ -553,7 +731,9 @@ fn validate_request(request: &Value, request_bytes: &[u8]) -> Result<Inputs, Str
         let id = required_string(row, "source_id", &context)?.to_owned();
         let control_id = required_string(row, "control_id", &context)?.to_owned();
         if !requirements.contains_key(&control_id) {
-            return Err(format!("{context} refers to unrequired control '{control_id}'"));
+            return Err(format!(
+                "{context} refers to unrequired control '{control_id}'"
+            ));
         }
         let source_kind = required_string(row, "source_kind", &context)?.to_owned();
         let source_identity_sha256 = parse_digest(row, "source_identity_sha256", &context)?;
@@ -568,30 +748,51 @@ fn validate_request(request: &Value, request_bytes: &[u8]) -> Result<Inputs, Str
             "planned_action" => "planned",
             _ => return Err(format!("{context} has unsupported source_kind")),
         };
-        if evidence_state != expected_state || rights_status != "verified"
+        if evidence_state != expected_state
+            || rights_status != "verified"
             || verified_at > evaluated_at
-            || valid_until.as_ref().is_some_and(|until| until < &evaluated_at)
+            || valid_until
+                .as_ref()
+                .is_some_and(|until| until < &evaluated_at)
         {
-            return Err(format!("{context} is not a current, rights-verified source candidate"));
+            return Err(format!(
+                "{context} is not a current, rights-verified source candidate"
+            ));
         }
-        let domain = registry.domains.get(&domain_id)
-            .ok_or_else(|| format!("{context} references an unknown source domain '{domain_id}'"))?;
+        let domain = registry.domains.get(&domain_id).ok_or_else(|| {
+            format!("{context} references an unknown source domain '{domain_id}'")
+        })?;
         if domain.status != "active" {
-            return Err(format!("{context} references a revoked source domain '{domain_id}'"));
+            return Err(format!(
+                "{context} references a revoked source domain '{domain_id}'"
+            ));
         }
         if sources.contains_key(&id) {
             return Err(format!("duplicate source_id '{id}'"));
         }
         source_order.push(id.clone());
-        sources.insert(id.clone(), Source {
-            id, control_id, source_kind, identity_sha256: source_identity_sha256,
-            domain_id, evidence_state, rights_status, rights_evidence_sha256, verified_at, valid_until,
-        });
+        sources.insert(
+            id.clone(),
+            Source {
+                id,
+                control_id,
+                source_kind,
+                identity_sha256: source_identity_sha256,
+                domain_id,
+                evidence_state,
+                rights_status,
+                rights_evidence_sha256,
+                verified_at,
+                valid_until,
+            },
+        );
     }
 
     let mut source_resolutions = BTreeMap::new();
     for (id, source) in &sources {
-        let mut resolved = registry.resolved_domains.get(&source.domain_id)
+        let mut resolved = registry
+            .resolved_domains
+            .get(&source.domain_id)
             .ok_or_else(|| format!("source '{}' has no resolved registry domain", source.id))?
             .clone();
         resolved.source_id = id.clone();
@@ -642,7 +843,10 @@ fn validate_request(request: &Value, request_bytes: &[u8]) -> Result<Inputs, Str
     })
 }
 
-fn independent(selected: &BTreeSet<String>, conflicts: &BTreeMap<(String, String), Conflict>) -> bool {
+fn independent(
+    selected: &BTreeSet<String>,
+    conflicts: &BTreeMap<(String, String), Conflict>,
+) -> bool {
     for left in selected {
         for right in selected {
             if left >= right {
@@ -693,16 +897,20 @@ fn greedy_independent_lower_bound(
     conflicts: &BTreeMap<(String, String), Conflict>,
 ) -> BTreeSet<String> {
     let candidate_set: BTreeSet<&str> = candidates.iter().map(String::as_str).collect();
-    let mut ranked: Vec<(usize, String)> = candidates.iter().map(|id| {
-        let degree = conflicts.keys()
-            .filter(|(left, right)| {
-                (left == id || right == id)
-                    && candidate_set.contains(left.as_str())
-                    && candidate_set.contains(right.as_str())
-            })
-            .count();
-        (degree, id.clone())
-    }).collect();
+    let mut ranked: Vec<(usize, String)> = candidates
+        .iter()
+        .map(|id| {
+            let degree = conflicts
+                .keys()
+                .filter(|(left, right)| {
+                    (left == id || right == id)
+                        && candidate_set.contains(left.as_str())
+                        && candidate_set.contains(right.as_str())
+                })
+                .count();
+            (degree, id.clone())
+        })
+        .collect();
     ranked.sort();
     let mut selected = BTreeSet::new();
     for (_, id) in ranked {
@@ -735,34 +943,42 @@ fn evaluate_with_build_id(
     auditor_build_id: &str,
 ) -> Result<Value, String> {
     let inputs = validate_request(request_value, request_bytes)?;
-    let mut source_resolutions: Vec<Value> = inputs.source_order.iter().map(|id| {
-        let row = &inputs.source_resolutions[id];
-        json!({
-            "source_id": row.source_id,
-            "domain_id": row.domain_id,
-            "organization_id": row.organization_id,
-            "source_kind": row.source_kind,
-            "source_identity_sha256": row.source_identity_sha256,
-            "evidence_state": row.evidence_state,
-            "rights_status": row.rights_status,
-            "rights_evidence_sha256": row.rights_evidence_sha256,
-            "verified_at": row.verified_at,
-            "valid_until": row.valid_until,
-            "dependency_completeness": row.dependency_completeness,
-            "dependency_closure": row.dependency_closure,
-            "common_cause_group_ids": row.common_cause_group_ids,
-            "registry_model_status": row.registry_model_status
+    let mut source_resolutions: Vec<Value> = inputs
+        .source_order
+        .iter()
+        .map(|id| {
+            let row = &inputs.source_resolutions[id];
+            json!({
+                "source_id": row.source_id,
+                "domain_id": row.domain_id,
+                "organization_id": row.organization_id,
+                "source_kind": row.source_kind,
+                "source_identity_sha256": row.source_identity_sha256,
+                "evidence_state": row.evidence_state,
+                "rights_status": row.rights_status,
+                "rights_evidence_sha256": row.rights_evidence_sha256,
+                "verified_at": row.verified_at,
+                "valid_until": row.valid_until,
+                "dependency_completeness": row.dependency_completeness,
+                "dependency_closure": row.dependency_closure,
+                "common_cause_group_ids": row.common_cause_group_ids,
+                "registry_model_status": row.registry_model_status
+            })
         })
-    }).collect();
+        .collect();
     source_resolutions.sort_by(|a, b| a["source_id"].as_str().cmp(&b["source_id"].as_str()));
 
-    let mut conflict_edges: Vec<Value> = inputs.conflicts.iter().map(|((left, right), conflict)| {
-        conflict_report(left, right, conflict)
-    }).collect();
+    let mut conflict_edges: Vec<Value> = inputs
+        .conflicts
+        .iter()
+        .map(|((left, right), conflict)| conflict_report(left, right, conflict))
+        .collect();
 
     let mut control_results = Vec::new();
     for (control_id, requirement) in &inputs.requirements {
-        let candidates: Vec<String> = inputs.sources.values()
+        let candidates: Vec<String> = inputs
+            .sources
+            .values()
             .filter(|source| source.control_id == *control_id)
             .map(|source| source.id.clone())
             .collect();
@@ -790,9 +1006,9 @@ fn evaluate_with_build_id(
             )
         };
         let threshold_met = independent_set.len() >= requirement.minimum_independent_sources;
-        let unresolved_present = candidates.iter().any(|id| {
-            inputs.source_resolutions[id].dependency_completeness != "complete"
-        });
+        let unresolved_present = candidates
+            .iter()
+            .any(|id| inputs.source_resolutions[id].dependency_completeness != "complete");
         let registry_model_disposition = if threshold_met {
             "qualified_by_registry_model"
         } else if unresolved_present || optimality_status == "lower_bound_not_proven" {
@@ -846,7 +1062,8 @@ fn run(request_path: &str, output_path: &str, auditor_build_id: &str) -> Result<
     let report = evaluate_with_build_id(&request, &bytes, auditor_build_id)?;
     let encoded = serde_json::to_vec_pretty(&report)
         .map_err(|error| format!("cannot encode independence report: {error}"))?;
-    fs::write(output_path, encoded).map_err(|error| format!("cannot write independence report: {error}"))?;
+    fs::write(output_path, encoded)
+        .map_err(|error| format!("cannot write independence report: {error}"))?;
     Ok(())
 }
 
@@ -856,8 +1073,8 @@ fn main() -> ExitCode {
         eprintln!("usage: industry-independence-audit <request.json> <report.json>");
         return ExitCode::from(4);
     }
-    let build_id = env::var("IEAC_CCF_AUDITOR_BUILD_ID")
-        .unwrap_or_else(|_| "unattested-local".to_owned());
+    let build_id =
+        env::var("IEAC_CCF_AUDITOR_BUILD_ID").unwrap_or_else(|_| "unattested-local".to_owned());
     match run(&args[1], &args[2], &build_id) {
         Ok(()) => ExitCode::SUCCESS,
         Err(error) => {
@@ -874,7 +1091,8 @@ mod tests {
     fn fixture() -> Value {
         serde_json::from_str(include_str!(
             "../../../schemas/examples/ieac-common-cause-synthetic-v0.1.json"
-        )).unwrap()
+        ))
+        .unwrap()
     }
 
     fn request() -> Value {
@@ -895,8 +1113,12 @@ mod tests {
             "luminous.ieac-common-cause-report.v0.1"
         );
         for expected in ["numerical_known_answers", "physical_reference_validation"] {
-            let actual = report["control_results"].as_array().unwrap().iter()
-                .find(|row| row["control_id"] == expected).unwrap();
+            let actual = report["control_results"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|row| row["control_id"] == expected)
+                .unwrap();
             assert_eq!(
                 actual["independent_source_count"],
                 fixture["expected"][expected]["independent_source_count"]
@@ -915,40 +1137,86 @@ mod tests {
     #[test]
     fn transitive_calibration_reference_and_upstream_feed_create_conflicts() {
         let report = evaluate_fixture(&request());
-        let pair = report["conflict_edges"].as_array().unwrap().iter()
+        let pair = report["conflict_edges"]
+            .as_array()
+            .unwrap()
+            .iter()
             .find(|row| row["source_id_a"] == "num-alpha" && row["source_id_b"] == "num-beta")
             .unwrap();
-        assert!(pair["reason_codes"].as_array().unwrap()
-            .iter().any(|reason| reason == "SHARED_TRANSITIVE_DEPENDENCY"));
-        assert!(pair["shared_dependency_ids"].as_array().unwrap()
-            .iter().any(|id| id == "reference-standard-r1"));
-        assert!(pair["reason_codes"].as_array().unwrap()
-            .iter().any(|reason| reason == "SHARED_COMMON_CAUSE_GROUP"));
+        assert!(
+            pair["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "SHARED_TRANSITIVE_DEPENDENCY")
+        );
+        assert!(
+            pair["shared_dependency_ids"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|id| id == "reference-standard-r1")
+        );
+        assert!(
+            pair["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "SHARED_COMMON_CAUSE_GROUP")
+        );
     }
 
     #[test]
     fn shared_test_harness_and_power_supply_conflict_distinct_laboratories() {
         let report = evaluate_fixture(&request());
-        let pair = report["conflict_edges"].as_array().unwrap().iter()
-            .find(|row| row["source_id_a"] == "physical-delta" && row["source_id_b"] == "physical-epsilon")
+        let pair = report["conflict_edges"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|row| {
+                row["source_id_a"] == "physical-delta" && row["source_id_b"] == "physical-epsilon"
+            })
             .unwrap();
-        assert!(pair["shared_dependency_ids"].as_array().unwrap()
-            .iter().any(|id| id == "test-harness-prod-7"));
-        assert!(pair["shared_dependency_ids"].as_array().unwrap()
-            .iter().any(|id| id == "power-grid-zone-west"));
+        assert!(
+            pair["shared_dependency_ids"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|id| id == "test-harness-prod-7")
+        );
+        assert!(
+            pair["shared_dependency_ids"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|id| id == "power-grid-zone-west")
+        );
     }
 
     #[test]
     fn unknown_dependency_completeness_conflicts_with_every_other_source() {
         let report = evaluate_fixture(&request());
-        let numerical = report["control_results"].as_array().unwrap().iter()
-            .find(|row| row["control_id"] == "numerical_known_answers").unwrap();
-        let unknown_edges = numerical["conflicting_source_pairs"].as_array().unwrap().iter()
-            .filter(|row| row["source_id_a"] == "num-unknown" || row["source_id_b"] == "num-unknown")
+        let numerical = report["control_results"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|row| row["control_id"] == "numerical_known_answers")
+            .unwrap();
+        let unknown_edges = numerical["conflicting_source_pairs"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|row| {
+                row["source_id_a"] == "num-unknown" || row["source_id_b"] == "num-unknown"
+            })
             .count();
         assert_eq!(unknown_edges, 3);
-        let resolution = report["source_resolutions"].as_array().unwrap().iter()
-            .find(|row| row["source_id"] == "num-unknown").unwrap();
+        let resolution = report["source_resolutions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|row| row["source_id"] == "num-unknown")
+            .unwrap();
         assert_eq!(resolution["registry_model_status"], "unknown_dependency");
     }
 
@@ -982,14 +1250,23 @@ mod tests {
     #[test]
     fn duplicate_source_identity_cannot_gain_multiple_domains() {
         let mut request = request();
-        request["sources"][1]["source_identity_sha256"] = request["sources"][0]["source_identity_sha256"].clone();
+        request["sources"][1]["source_identity_sha256"] =
+            request["sources"][0]["source_identity_sha256"].clone();
         let bytes = serde_json::to_vec(&request).unwrap();
         let report = evaluate(&request, &bytes).unwrap();
-        let pair = report["conflict_edges"].as_array().unwrap().iter()
+        let pair = report["conflict_edges"]
+            .as_array()
+            .unwrap()
+            .iter()
             .find(|row| row["source_id_a"] == "num-alpha" && row["source_id_b"] == "num-beta")
             .unwrap();
-        assert!(pair["reason_codes"].as_array().unwrap()
-            .iter().any(|reason| reason == "DUPLICATE_SOURCE_IDENTITY"));
+        assert!(
+            pair["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "DUPLICATE_SOURCE_IDENTITY")
+        );
     }
 
     #[test]
@@ -1009,8 +1286,13 @@ mod tests {
             request["sources"] = json!(rows);
             let bytes = serde_json::to_vec(&request).unwrap();
             let report = evaluate(&request, &bytes).unwrap();
-            assert!(report["control_results"].as_array().unwrap().iter()
-                .all(|row| row["method"] == "exact_maximum_independent_set"));
+            assert!(
+                report["control_results"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .all(|row| row["method"] == "exact_maximum_independent_set")
+            );
         }
         let mut request = base.clone();
         let original = request["sources"].as_array().unwrap().clone();
@@ -1025,10 +1307,18 @@ mod tests {
         request["sources"] = json!(rows);
         let bytes = serde_json::to_vec(&request).unwrap();
         let report = evaluate(&request, &bytes).unwrap();
-        let numerical = report["control_results"].as_array().unwrap().iter()
-            .find(|row| row["control_id"] == "numerical_known_answers").unwrap();
-        let physical = report["control_results"].as_array().unwrap().iter()
-            .find(|row| row["control_id"] == "physical_reference_validation").unwrap();
+        let numerical = report["control_results"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|row| row["control_id"] == "numerical_known_answers")
+            .unwrap();
+        let physical = report["control_results"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|row| row["control_id"] == "physical_reference_validation")
+            .unwrap();
         assert_eq!(numerical["method"], "deterministic_greedy_lower_bound");
         assert_eq!(numerical["optimality_status"], "lower_bound_not_proven");
         assert_eq!(physical["method"], "exact_maximum_independent_set");
@@ -1043,12 +1333,22 @@ mod tests {
         let registry_bytes = serde_json::to_vec(&request["registry"]).unwrap();
         request["registry_sha256"] = json!(sha256_hex(&registry_bytes));
         let report = evaluate_fixture(&request);
-        let row = report["control_results"].as_array().unwrap().iter()
-            .find(|item| item["control_id"] == "numerical_known_answers").unwrap();
+        let row = report["control_results"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|item| item["control_id"] == "numerical_known_answers")
+            .unwrap();
         assert_eq!(row["independent_source_count"], 1);
         assert_eq!(row["threshold_met"], false);
-        assert_eq!(row["registry_model_disposition"], "indeterminate_under_registry_model");
-        let unknown_edges = report["conflict_edges"].as_array().unwrap().iter()
+        assert_eq!(
+            row["registry_model_disposition"],
+            "indeterminate_under_registry_model"
+        );
+        let unknown_edges = report["conflict_edges"]
+            .as_array()
+            .unwrap()
+            .iter()
             .filter(|edge| edge["source_id_a"] == "num-alpha" || edge["source_id_b"] == "num-alpha")
             .count();
         assert_eq!(unknown_edges, 2);
