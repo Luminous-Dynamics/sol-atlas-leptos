@@ -626,7 +626,7 @@ mod tests {
         assert_eq!(
             error,
             MeshError::SafetyBudgetInsufficient {
-                minimum_required: 27,
+                minimum_required: 30,
                 available: 25,
             }
         );
