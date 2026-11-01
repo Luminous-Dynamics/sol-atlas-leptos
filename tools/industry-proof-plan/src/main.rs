@@ -1051,18 +1051,19 @@ mod tests {
     #[test]
     fn existing_verified_evidence_can_produce_zero_action_optimal_plan() {
         let mut request = request();
-        let control_ids: Vec<String> = request["required_controls"].as_array().unwrap().iter()
-            .map(|row| row["control_id"].as_str().unwrap().to_owned()).collect();
-        let base_evidence = request["verified_evidence"][0].clone();
-        let mut evidence = vec![base_evidence];
-        let action = request["candidate_actions"][0].clone();
-        for control in control_ids {
-            let mut row = evidence[0].clone();
-            row["control_id"] = json!(control);
-            if row["independence_domain_id"] == action["independence_domain_id"] {
-                row["independence_domain_id"] = json!("existing-independent-evidence-domain");
+        let requirements = request["required_controls"].as_array().unwrap().clone();
+        let base = request["verified_evidence"][0].clone();
+        let mut evidence = Vec::new();
+        for (control_index, requirement) in requirements.iter().enumerate() {
+            let control = requirement["control_id"].as_str().unwrap();
+            let minimum = requirement["minimum_independent_domains"].as_u64().unwrap() as usize;
+            for domain_index in 0..minimum {
+                let mut row = base.clone();
+                row["control_id"] = json!(control);
+                row["independence_domain_id"] = json!(format!("existing-domain-{control_index}-{domain_index}"));
+                row["artifact_sha256"] = json!(format!("{:064x}", 30_000 + control_index * 32 + domain_index));
+                evidence.push(row);
             }
-            evidence.push(row);
         }
         request["verified_evidence"] = json!(evidence);
         request["candidate_actions"] = json!([]);
