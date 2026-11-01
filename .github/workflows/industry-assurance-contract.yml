@@ -8,6 +8,8 @@ on:
       - "schemas/ieac-risk-control-policy-v0.2.schema.json"
       - "schemas/ieac-risk-control-policy-v0.2.json"
       - "schemas/ieac-risk-control-selection-report-v0.1.schema.json"
+      - "schemas/ieac-risk-control-truth-table-v0.2.schema.json"
+      - "schemas/examples/ieac-risk-control-truth-table-synthetic-v0.2.json"
       - "docs/industry/IEAC_RISK_CONTROL_SELECTOR_V0.1.md"
       - "schemas/industry-assurance-qualification-profile-v0.1.schema.json"
       - "schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json"
@@ -29,6 +31,8 @@ on:
       - "schemas/ieac-risk-control-policy-v0.2.schema.json"
       - "schemas/ieac-risk-control-policy-v0.2.json"
       - "schemas/ieac-risk-control-selection-report-v0.1.schema.json"
+      - "schemas/ieac-risk-control-truth-table-v0.2.schema.json"
+      - "schemas/examples/ieac-risk-control-truth-table-synthetic-v0.2.json"
       - "docs/industry/IEAC_RISK_CONTROL_SELECTOR_V0.1.md"
       - "schemas/industry-assurance-qualification-profile-v0.1.schema.json"
       - "schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json"
@@ -162,6 +166,14 @@ jobs:
           jsonschema-cli validate --draft 2020 --assert-format "$meta" --instance schemas/ieac-risk-control-policy-v0.2.schema.json
           jsonschema-cli validate --draft 2020 --assert-format "$meta" --instance schemas/ieac-risk-control-selection-report-v0.1.schema.json
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/ieac-risk-control-policy-v0.2.schema.json --instance schemas/ieac-risk-control-policy-v0.2.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" --instance schemas/ieac-risk-control-truth-table-v0.2.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/ieac-risk-control-truth-table-v0.2.schema.json --instance schemas/examples/ieac-risk-control-truth-table-synthetic-v0.2.json
+          jq -e '
+            .fixture_schema_version == "luminous.ieac-risk-control-truth-table.v0.2" and
+            .fixture_status == "synthetic_only" and
+            .case_count == 50 and (.cases | length == 50) and
+            ([.cases[].case_id] | unique | length) == 50
+          ' schemas/examples/ieac-risk-control-truth-table-synthetic-v0.2.json
 
       - name: Validate schemas against the Draft 2020-12 meta-schema
         run: |
