@@ -67,7 +67,10 @@ fn reference_valid(manifest: &Value) -> bool {
                     || !valid_digest(g.get("sha256"))
                     || !nonempty(g.get("horizontal_crs"))
                     || !nonempty(g.get("linear_unit"))
-                    || !matches!(g.get("axis_order").and_then(Value::as_str), Some("east_north" | "north_east"))
+                    || !matches!(
+                        g.get("axis_order").and_then(Value::as_str),
+                        Some("east_north" | "north_east")
+                    )
                 {
                     return false;
                 }
@@ -83,7 +86,8 @@ fn reference_valid(manifest: &Value) -> bool {
         };
         let mut evidence_ids = BTreeSet::new();
         for ev in evidence {
-            if !nonempty(ev.get("record_id")) || !nonempty(ev.get("revision_id"))
+            if !nonempty(ev.get("record_id"))
+                || !nonempty(ev.get("revision_id"))
                 || !valid_digest(ev.get("sha256"))
             {
                 return false;
@@ -96,7 +100,10 @@ fn reference_valid(manifest: &Value) -> bool {
 
         let parameters = match alt.get("design_parameters") {
             None => &[][..],
-            Some(v) => match v.as_array() { Some(a) => a.as_slice(), None => return false },
+            Some(v) => match v.as_array() {
+                Some(a) => a.as_slice(),
+                None => return false,
+            },
         };
         let mut parameter_ids = BTreeSet::new();
         for p in parameters {
@@ -107,7 +114,10 @@ fn reference_valid(manifest: &Value) -> bool {
             if !parameter_ids.insert(id.to_owned()) {
                 return false;
             }
-            let (Some(lo), Some(hi)) = (p.get("lower").and_then(Value::as_f64), p.get("upper").and_then(Value::as_f64)) else {
+            let (Some(lo), Some(hi)) = (
+                p.get("lower").and_then(Value::as_f64),
+                p.get("upper").and_then(Value::as_f64),
+            ) else {
                 return false;
             };
             if !lo.is_finite() || !hi.is_finite() || lo > hi {
@@ -120,8 +130,14 @@ fn reference_valid(manifest: &Value) -> bool {
             Some(v) => match v.as_array() { Some(a) => a.as_slice(), None => return false },
         };
         const MODEL_DOMAINS: &[&str] = &[
-            "hydrodynamics", "waves", "sediment_morphology", "geotechnical",
-            "structural", "navigation", "flood_risk", "ecology_water_quality",
+            "hydrodynamics",
+            "waves",
+            "sediment_morphology",
+            "geotechnical",
+            "structural",
+            "navigation",
+            "flood_risk",
+            "ecology_water_quality",
         ];
         let mut model_ids = BTreeSet::new();
         for m in models {
@@ -181,7 +197,10 @@ fn frozen_port_study_corpus_matches_independent_oracle() {
         );
         count += 1;
     }
-    assert_eq!(count, 34, "frozen corpus size changed without manifest update");
+    assert_eq!(
+        count, 34,
+        "frozen corpus size changed without manifest update"
+    );
 }
 
 #[test]
