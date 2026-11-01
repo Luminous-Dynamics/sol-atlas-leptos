@@ -45,7 +45,13 @@ For each issuer and scope:
 - missing predecessor, checkpoint or required history range is incomplete/unknown, never an empty valid history;
 - causal parents are separate from issuer-local predecessor links and may refer to another issuer.
 
-The synthetic fixture contains three stages from two issuers: an operator request commitment, an auditor schedule-audit statement, and a later operator admission verdict. The admission verdict links to both the operator's preceding event and the auditor's event. The fixture digests and source revisions are placeholders and are not cryptographically checked.
+The synthetic fixture contains three stages from two issuers: an operator request commitment, an auditor schedule-audit statement, and a later operator admission verdict. The admission verdict links to both the operator's preceding event and the auditor's event. The three event digests are recomputed from each event's JCS bytes in CI and every predecessor/causal-parent reference is checked against the corresponding event digest. Initial-checkpoint, artifact, IEAC-profile, build and attestation digests remain placeholders; this does not verify signatures, checkpoint authenticity, source truth or external evidence.
+
+### 2.2 Synthetic JCS digest conformance
+
+The fixture keeps its event JSON inside a deliberately narrow hash-test subset: ASCII keys and strings plus safe integer numbers. CI serializes primitives with JavaScript's ECMAScript JSON serialization, sorts property names by UTF-16 code units, and recomputes SHA-256 for each event. It then verifies both issuer-local predecessor links and cross-issuer causal-parent references against those computed digests. This catches accidental stale references when a fixture event changes.
+
+This small fixture smoke test is not a general cross-language JCS implementation or an adversarial JCS suite. The production profile still requires RFC 8785 conformance vectors and independent Rust/Go verification before any signed statement is accepted.
 
 ## 3. COSE and SCITT mapping
 
