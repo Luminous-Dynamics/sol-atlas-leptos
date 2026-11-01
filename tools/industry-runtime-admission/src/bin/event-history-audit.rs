@@ -81,7 +81,10 @@ impl<'de> Deserialize<'de> for StrictJson {
 #[derive(Clone, Debug)]
 struct Event {
     id: String,
+    issuer: String,
     subject: String,
+    stream_id: String,
+    sequence: u64,
     case_id: String,
     previous: Option<String>,
     digest: String,
@@ -293,7 +296,8 @@ fn parse_events(input: &Value, audit: &mut Audit) -> Result<(), String> {
             .collect::<Result<Vec<_>, _>>()?;
 
         let event = Event {
-            id: id.clone(), subject: subject.clone(), case_id,
+            id: id.clone(), issuer: issuer.clone(), subject: subject.clone(),
+            stream_id: stream_id.clone(), sequence, case_id,
             previous, digest: digest.clone(), parents,
         };
         let event_index = audit.events.len();
@@ -337,17 +341,35 @@ fn audit_streams(audit: &mut Audit) {
         let mut previous_observed: Option<(u64, String)> = None;
         for (sequence, index) in &rows {
             let event = audit.events[*index].clone();
-            if let Some((prior_sequence, prior_digest)) = &previous_observed {
-                if *sequence == *prior_sequence + 1 {
-                    if event.previous.as_deref() != Some(prior_digest.as_str()) {
+            if let Some(previous_digest) = event.previous.as_deref() {
+                if let Some(previous_index) = audit.digest_to_index.get(previous_digest).copied() {
+                    let previous_event = audit.events[previous_index].clone();
+                    if previous_event.issuer != issuer
+                        || previous_event.subject != subject
+                        || previous_event.stream_id != stream
+                    {
                         add_finding(
-                            audit, "PREDECESSOR_DIGEST_MISMATCH", "invalid",
-                            format!("{} does not reference the immediately preceding event in its issuer stream", event.id),
+                            audit, "PREDECESSOR_STREAM_MISMATCH", "invalid",
+                            format!("{} points to a predecessor from a different issuer/subject/stream", event.id),
+                        );
+                    } else if previous_event.sequence.checked_add(1) != Some(*sequence) {
+                        add_finding(
+                            audit, "PREDECESSOR_SEQUENCE_MISMATCH", "invalid",
+                            format!("{} points to issuer sequence {} instead of sequence {}", event.id, previous_event.sequence, sequence.saturating_sub(1)),
                         );
                     } else {
-                        audit.edges.push((*audit.digest_to_index.get(prior_digest).expect("prior event digest indexed"), *index));
+                        audit.edges.push((previous_index, *index));
                     }
-                } else if *sequence > *prior_sequence + 1 {
+                } else {
+                    add_finding(
+                        audit, "PREDECESSOR_NOT_INCLUDED", "incomplete",
+                        format!("{} references predecessor digest {previous_digest} not present in this event bundle", event.id),
+                    );
+                }
+            }
+
+            if let Some((prior_sequence, _prior_digest)) = &previous_observed {
+                if *sequence > *prior_sequence + 1 {
                     add_finding(
                         audit, "STREAM_SEQUENCE_GAP", "incomplete",
                         format!("{issuer}/{subject}/{stream}: missing sequences {}..{}", *prior_sequence + 1, sequence - 1),
