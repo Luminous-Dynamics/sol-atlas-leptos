@@ -1,0 +1,529 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/industry-outcome-reconciliation-v0.1.schema.json",
+  "title": "IEAC Domain Outcome Reconciliation v0.1",
+  "description": "Domain-neutral binding envelope for domain-owned outcome receipts. It does not estimate causal effects, validate domain metrics, establish measurement truth, or grant action authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "outcome_receipt_id",
+    "evidence_class",
+    "decision_case_id",
+    "subject_pseudonym",
+    "decision_statement_sha256",
+    "ieac_profile",
+    "intervention",
+    "domain_receipts",
+    "metric_contract_sha256",
+    "observation_window",
+    "metrics",
+    "claim_ceiling",
+    "causal_assessment",
+    "confounders_and_deviations",
+    "data_quality",
+    "action_authority"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.ieac-outcome-reconciliation.v0.1"
+    },
+    "outcome_receipt_id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "evidence_class": {
+      "enum": [
+        "synthetic",
+        "authorized_retrospective",
+        "prospective_pilot",
+        "independent_replication"
+      ]
+    },
+    "decision_case_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "subject_pseudonym": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9._:-]+$"
+    },
+    "decision_statement_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "ieac_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile_id",
+        "profile_sha256"
+      ],
+      "properties": {
+        "profile_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "profile_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "intervention": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action_sha256",
+        "authorization_receipt_sha256",
+        "execution_receipt_sha256",
+        "execution_state"
+      ],
+      "properties": {
+        "action_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "authorization_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "execution_receipt_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "execution_state": {
+          "enum": [
+            "completed",
+            "partially_completed",
+            "not_executed",
+            "execution_unverified"
+          ]
+        }
+      }
+    },
+    "domain_receipts": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "receipt_id",
+          "domain",
+          "media_type",
+          "schema_version",
+          "receipt_sha256",
+          "metric_contract_sha256",
+          "evidence_class"
+        ],
+        "properties": {
+          "receipt_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "domain": {
+            "enum": [
+              "workforce",
+              "energy",
+              "water",
+              "telecom",
+              "manufacturing",
+              "port_city",
+              "built_environment",
+              "other"
+            ]
+          },
+          "media_type": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 256
+          },
+          "schema_version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "receipt_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "metric_contract_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "evidence_class": {
+            "enum": [
+              "synthetic",
+              "authorized_retrospective",
+              "prospective_pilot",
+              "independent_replication"
+            ]
+          }
+        }
+      }
+    },
+    "metric_contract_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "observation_window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start",
+        "end",
+        "population_sha256",
+        "population_definition",
+        "denominator"
+      ],
+      "properties": {
+        "start": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "end": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "population_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "population_definition": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "denominator": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "metrics": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "metric_id",
+          "domain_receipt_id",
+          "unit",
+          "expected",
+          "observed",
+          "uncertainty",
+          "missingness",
+          "interpretation",
+          "reconciliation"
+        ],
+        "properties": {
+          "metric_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "domain_receipt_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "unit": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "expected": {
+            "$ref": "#/$defs/measurement"
+          },
+          "observed": {
+            "$ref": "#/$defs/measurement"
+          },
+          "uncertainty": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/$defs/interval"
+              }
+            ]
+          },
+          "missingness": {
+            "enum": [
+              "complete",
+              "partially_missing",
+              "censored",
+              "delayed",
+              "disputed",
+              "unavailable"
+            ]
+          },
+          "interpretation": {
+            "enum": [
+              "observation_only",
+              "before_after_difference",
+              "descriptive_association",
+              "causal_effect_estimate",
+              "not_identified"
+            ]
+          },
+          "reconciliation": {
+            "enum": [
+              "within_expected_range",
+              "outside_expected_range",
+              "indeterminate",
+              "not_comparable",
+              "not_observed"
+            ]
+          }
+        }
+      }
+    },
+    "claim_ceiling": {
+      "enum": [
+        "observation_only",
+        "before_after_difference",
+        "descriptive_association",
+        "causal_effect_estimate",
+        "not_identified",
+        "incomplete_or_indeterminate"
+      ]
+    },
+    "causal_assessment": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "design",
+            "estimand",
+            "treatment_definition",
+            "comparison_definition",
+            "preregistration_sha256",
+            "analysis_code_sha256",
+            "estimate",
+            "interval",
+            "assumptions_and_diagnostics",
+            "independent_review"
+          ],
+          "properties": {
+            "design": {
+              "enum": [
+                "randomized_pilot",
+                "stepped_wedge",
+                "matched_comparison",
+                "interrupted_time_series",
+                "difference_in_differences",
+                "independent_replication"
+              ]
+            },
+            "estimand": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            },
+            "treatment_definition": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            },
+            "comparison_definition": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            },
+            "preregistration_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "analysis_code_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "estimate": {
+              "type": "number"
+            },
+            "interval": {
+              "$ref": "#/$defs/interval"
+            },
+            "assumptions_and_diagnostics": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2048
+              }
+            },
+            "independent_review": {
+              "const": true
+            }
+          }
+        }
+      ]
+    },
+    "confounders_and_deviations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 2048
+      }
+    },
+    "data_quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_snapshot_sha256",
+        "rights_status",
+        "missingness_policy",
+        "measurement_system_identity"
+      ],
+      "properties": {
+        "source_snapshot_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "rights_status": {
+          "enum": [
+            "verified_for_purpose",
+            "restricted_for_purpose",
+            "unknown",
+            "revoked"
+          ]
+        },
+        "missingness_policy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "measurement_system_identity": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      }
+    },
+    "action_authority": {
+      "const": "none"
+    }
+  },
+  "$defs": {
+    "interval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lower",
+        "upper"
+      ],
+      "properties": {
+        "lower": {
+          "type": "number"
+        },
+        "upper": {
+          "type": "number"
+        }
+      }
+    },
+    "measurement": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "$ref": "#/$defs/interval"
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "claim_ceiling": {
+            "const": "causal_effect_estimate"
+          }
+        },
+        "required": [
+          "claim_ceiling"
+        ]
+      },
+      "then": {
+        "properties": {
+          "causal_assessment": {
+            "type": "object"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "causal_assessment": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "intervention": {
+            "properties": {
+              "execution_state": {
+                "const": "not_executed"
+              }
+            },
+            "required": [
+              "execution_state"
+            ]
+          }
+        },
+        "required": [
+          "intervention"
+        ]
+      },
+      "then": {
+        "properties": {
+          "intervention": {
+            "properties": {
+              "execution_receipt_sha256": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "intervention": {
+            "properties": {
+              "execution_receipt_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
