@@ -643,18 +643,50 @@
             "if": {
               "properties": {
                 "missingness": {
-                  "enum": [
-                    "censored",
-                    "delayed",
-                    "disputed",
-                    "unavailable"
-                  ]
+                  "not": {
+                    "const": "complete"
+                  }
                 }
               },
               "required": [
                 "missingness"
               ]
             },
+            "then": {
+              "properties": {
+                "reconciliation": {
+                  "enum": [
+                    "indeterminate",
+                    "not_comparable",
+                    "not_observed"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "metrics": {
+          "items": {
+            "anyOf": [
+              {
+                "properties": {
+                  "expected": {
+                    "type": "null"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "observed": {
+                    "type": "null"
+                  }
+                }
+              }
+            ],
             "then": {
               "properties": {
                 "reconciliation": {
