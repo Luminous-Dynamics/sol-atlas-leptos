@@ -1420,7 +1420,20 @@ mod tests {
                 });
                 actions.push(dummy);
             }
+            let action_ids: BTreeSet<String> = actions
+                .iter()
+                .map(|action| action["action_id"].as_str().unwrap().to_owned())
+                .collect();
+            let mappings: Vec<Value> = base["control_mappings"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .filter(|mapping| action_ids.contains(mapping["action_id"].as_str().unwrap()))
+                .cloned()
+                .collect();
             request["candidate_actions"] = json!(actions);
+            request["control_mappings"] = json!(mappings);
+            refresh_mapping_digest(&mut request);
             request["resource_budgets"] = json!({
                 "money_microunits": 2000,
                 "reviewer_minutes": 2000,
@@ -1544,6 +1557,8 @@ mod tests {
     fn empty_action_set_with_open_proof_gaps_is_proven_infeasible() {
         let mut request = sample_request();
         request["candidate_actions"] = json!([]);
+        request["control_mappings"] = json!([]);
+        refresh_mapping_digest(&mut request);
         let report = test_report(&request);
         assert_eq!(report["plan_status"], "infeasible");
         assert_eq!(report["optimality_status"], "proven_infeasible");
@@ -1677,7 +1692,7 @@ mod tests {
         let bytes = serde_json::to_vec(&fixture["request"]["control_mappings"]).unwrap();
         assert_eq!(
             sha256_hex(&bytes),
-            "aad5c22087890d17bab97a6f0fc7294c94b25ffe22b9c11ca1f20b9eda2e0ab1"
+            "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60"
         );
     }
 
