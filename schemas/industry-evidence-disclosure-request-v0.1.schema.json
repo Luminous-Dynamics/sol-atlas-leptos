@@ -1,0 +1,238 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/industry-evidence-disclosure-request-v0.1.schema.json",
+  "title": "IEAC Case-Bound Evidence Disclosure Request v0.1",
+  "description": "Request contract only. It does not create or verify SD-JWT disclosures, BBS proofs, zero-knowledge predicates, signer authority, source truth, or an IEAC admission.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_id",
+    "decision_case_id",
+    "subject_pseudonym",
+    "issuer_id",
+    "relying_party_id",
+    "purpose",
+    "ieac_profile_id",
+    "ieac_profile_sha256",
+    "issued_at",
+    "expires_at",
+    "request_nonce",
+    "requested_claims",
+    "privacy_constraints",
+    "action_authority"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.ieac-evidence-disclosure-request.v0.1"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "decision_case_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "subject_pseudonym": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9._:-]+$"
+    },
+    "issuer_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024
+    },
+    "relying_party_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024
+    },
+    "purpose": {
+      "enum": [
+        "runtime_admission_descriptive",
+        "independent_audit",
+        "outcome_reconciliation"
+      ]
+    },
+    "ieac_profile_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "ieac_profile_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "request_nonce": {
+      "type": "string",
+      "minLength": 22,
+      "maxLength": 86,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "description": "Opaque base64url nonce. Schema shape cannot prove randomness or entropy; runtime issuance must use at least 128 bits of cryptographically secure randomness."
+    },
+    "requested_claims": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "claim_id",
+          "semantic_class",
+          "proof_semantics",
+          "presentation_profile",
+          "required",
+          "max_disclosure_bytes"
+        ],
+        "properties": {
+          "claim_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+          },
+          "semantic_class": {
+            "enum": [
+              "source_measurement",
+              "source_status",
+              "issuer_derived_assertion",
+              "computed_predicate"
+            ]
+          },
+          "proof_semantics": {
+            "enum": [
+              "disclosed_signed_claim",
+              "issuer_signed_predicate",
+              "zero_knowledge_predicate"
+            ]
+          },
+          "presentation_profile": {
+            "enum": [
+              "sd_jwt_v1",
+              "bbs_di_v1_experimental",
+              "external_predicate_proof_profile_pending"
+            ]
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "max_disclosure_bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1048576
+          }
+        }
+      }
+    },
+    "privacy_constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "no_raw_source_payload",
+        "case_scoped_subject_pseudonym_only",
+        "salt_disclosure",
+        "transparency_payload"
+      ],
+      "properties": {
+        "no_raw_source_payload": {
+          "const": true
+        },
+        "case_scoped_subject_pseudonym_only": {
+          "const": true
+        },
+        "salt_disclosure": {
+          "const": "holder_only"
+        },
+        "transparency_payload": {
+          "const": "digest_only"
+        }
+      }
+    },
+    "action_authority": {
+      "const": "none"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "requested_claims": {
+            "contains": {
+              "properties": {
+                "proof_semantics": {
+                  "const": "zero_knowledge_predicate"
+                }
+              },
+              "required": ["proof_semantics"]
+            }
+          }
+        },
+        "required": ["requested_claims"]
+      },
+      "then": {
+        "properties": {
+          "requested_claims": {
+            "items": {
+              "if": {
+                "properties": {
+                  "proof_semantics": {
+                    "const": "zero_knowledge_predicate"
+                  }
+                },
+                "required": ["proof_semantics"]
+              },
+              "then": {
+                "properties": {
+                  "presentation_profile": {
+                    "const": "external_predicate_proof_profile_pending"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "requested_claims": {
+          "items": {
+            "if": {
+              "properties": {
+                "presentation_profile": {
+                  "const": "bbs_di_v1_experimental"
+                }
+              },
+              "required": ["presentation_profile"]
+            },
+            "then": {
+              "properties": {
+                "proof_semantics": {
+                  "enum": [
+                    "disclosed_signed_claim",
+                    "issuer_signed_predicate"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
