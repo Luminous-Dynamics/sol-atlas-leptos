@@ -570,9 +570,6 @@ fn validate_request(value: &Value) -> Result<ValidatedRequest, String> {
             rights_evidence_sha256, rights_status: rights_status.to_owned(), rights_verified_at, rights_valid_until,
         });
     }
-    if actions.is_empty() {
-        return Err("proof plan has no candidate evidence actions".into());
-    }
     validate_prerequisite_dag(&actions)?;
 
     Ok(ValidatedRequest {
@@ -1049,6 +1046,42 @@ mod tests {
         let reservation_index = order.iter().position(|id| id == "physical-lab-reservation").unwrap();
         let lab_index = order.iter().position(|id| id == "physical-calibration-lab").unwrap();
         assert!(reservation_index < lab_index);
+    }
+
+    #[test]
+    fn existing_verified_evidence_can_produce_zero_action_optimal_plan() {
+        let mut request = request();
+        let control_ids: Vec<String> = request["required_controls"].as_array().unwrap().iter()
+            .map(|row| row["control_id"].as_str().unwrap().to_owned()).collect();
+        let base_evidence = request["verified_evidence"][0].clone();
+        let mut evidence = vec![base_evidence];
+        let action = request["candidate_actions"][0].clone();
+        for control in control_ids {
+            let mut row = evidence[0].clone();
+            row["control_id"] = json!(control);
+            if row["independence_domain_id"] == action["independence_domain_id"] {
+                row["independence_domain_id"] = json!("existing-independent-evidence-domain");
+            }
+            evidence.push(row);
+        }
+        request["verified_evidence"] = json!(evidence);
+        request["candidate_actions"] = json!([]);
+        let report = test_report(&request);
+        assert_eq!(report["plan_status"], "optimal_plan");
+        assert_eq!(report["optimality_status"], "proven_optimal");
+        assert!(report["selected_actions"].as_array().unwrap().is_empty());
+        assert!(report["unsatisfied_controls"].as_array().unwrap().is_empty());
+        assert_eq!(report["resource_totals"]["money_microunits"], 0);
+    }
+
+    #[test]
+    fn empty_action_set_with_open_proof_gaps_is_proven_infeasible() {
+        let mut request = request();
+        request["candidate_actions"] = json!([]);
+        let report = test_report(&request);
+        assert_eq!(report["plan_status"], "infeasible");
+        assert_eq!(report["optimality_status"], "proven_infeasible");
+        assert!(!report["unsatisfied_controls"].as_array().unwrap().is_empty());
     }
 
     #[test]
