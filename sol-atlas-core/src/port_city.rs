@@ -219,7 +219,10 @@ impl PortStudyManifest {
                 baseline_count += 1;
             }
 
-            match (&alternative.design_geometry, alternative.family.requires_design_geometry()) {
+            match (
+                &alternative.design_geometry,
+                alternative.family.requires_design_geometry(),
+            ) {
                 (None, true) => findings.push(format!(
                     "{prefix}.design_geometry is required for {:?}",
                     alternative.family
@@ -278,9 +281,7 @@ impl PortStudyManifest {
             }
 
             let mut parameter_ids = BTreeSet::new();
-            for (parameter_index, parameter) in
-                alternative.design_parameters.iter().enumerate()
-            {
+            for (parameter_index, parameter) in alternative.design_parameters.iter().enumerate() {
                 let parameter_prefix = format!("{prefix}.design_parameters[{parameter_index}]");
                 require_non_empty(
                     &format!("{parameter_prefix}.parameter_id"),
@@ -304,9 +305,7 @@ impl PortStudyManifest {
                 if !parameter.lower.is_finite() || !parameter.upper.is_finite() {
                     findings.push(format!("{parameter_prefix} bounds must be finite"));
                 } else if parameter.lower > parameter.upper {
-                    findings.push(format!(
-                        "{parameter_prefix}.lower must not exceed upper"
-                    ));
+                    findings.push(format!("{parameter_prefix}.lower must not exceed upper"));
                 }
             }
 
@@ -381,7 +380,9 @@ fn require_non_empty(field: &str, value: &str, findings: &mut Vec<String>) {
 fn require_digest(field: &str, value: &str, findings: &mut Vec<String>) {
     let valid = value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit());
     if !valid {
-        findings.push(format!("{field} must be a 64-character hexadecimal SHA-256 digest"));
+        findings.push(format!(
+            "{field} must be a 64-character hexadecimal SHA-256 digest"
+        ));
     }
 }
 
@@ -449,7 +450,11 @@ mod tests {
             .alternatives
             .retain(|a| a.family != AlternativeFamily::NoBuildOperational);
         let errors = manifest.validate().unwrap_err();
-        assert!(errors.iter().any(|e| e.contains("exactly one NoBuildOperational")));
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("exactly one NoBuildOperational"))
+        );
     }
 
     #[test]
@@ -457,7 +462,11 @@ mod tests {
         let mut manifest = valid_manifest();
         manifest.alternatives[1].alternative_id = "baseline".into();
         let errors = manifest.validate().unwrap_err();
-        assert!(errors.iter().any(|e| e.contains("alternative_id duplicates")));
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("alternative_id duplicates"))
+        );
     }
 
     #[test]
@@ -477,18 +486,24 @@ mod tests {
         let mut manifest = valid_manifest();
         manifest.alternatives[1].design_geometry = None;
         let errors = manifest.validate().unwrap_err();
-        assert!(errors.iter().any(|e| e.contains("design_geometry is required")));
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("design_geometry is required"))
+        );
     }
 
     #[test]
     fn invalid_parameter_intervals_are_rejected() {
         let mut manifest = valid_manifest();
-        manifest.alternatives[1].design_parameters.push(BoundedParameter {
-            parameter_id: "channel_depth".into(),
-            lower: 20.0,
-            upper: 10.0,
-            unit: "metre".into(),
-        });
+        manifest.alternatives[1]
+            .design_parameters
+            .push(BoundedParameter {
+                parameter_id: "channel_depth".into(),
+                lower: 20.0,
+                upper: 10.0,
+                unit: "metre".into(),
+            });
         let errors = manifest.validate().unwrap_err();
         assert!(errors.iter().any(|e| e.contains("lower must not exceed upper")));
     }
@@ -496,12 +511,14 @@ mod tests {
     #[test]
     fn non_finite_parameter_intervals_are_rejected() {
         let mut manifest = valid_manifest();
-        manifest.alternatives[1].design_parameters.push(BoundedParameter {
-            parameter_id: "channel_depth".into(),
-            lower: 0.0,
-            upper: f64::INFINITY,
-            unit: "metre".into(),
-        });
+        manifest.alternatives[1]
+            .design_parameters
+            .push(BoundedParameter {
+                parameter_id: "channel_depth".into(),
+                lower: 0.0,
+                upper: f64::INFINITY,
+                unit: "metre".into(),
+            });
         let errors = manifest.validate().unwrap_err();
         assert!(errors.iter().any(|e| e.contains("bounds must be finite")));
     }
@@ -511,7 +528,11 @@ mod tests {
         let mut manifest = valid_manifest();
         manifest.schema_version = PORT_STUDY_SCHEMA_VERSION + 1;
         let errors = manifest.validate().unwrap_err();
-        assert!(errors.iter().any(|e| e.contains("unsupported schema_version")));
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("unsupported schema_version"))
+        );
     }
 
     #[test]
