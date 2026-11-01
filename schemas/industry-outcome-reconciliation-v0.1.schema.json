@@ -524,6 +524,151 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "metrics": {
+            "contains": {
+              "properties": {
+                "interpretation": {
+                  "const": "causal_effect_estimate"
+                }
+              },
+              "required": [
+                "interpretation"
+              ]
+            }
+          }
+        },
+        "required": [
+          "metrics"
+        ]
+      },
+      "then": {
+        "properties": {
+          "claim_ceiling": {
+            "const": "causal_effect_estimate"
+          },
+          "causal_assessment": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "claim_ceiling": {
+            "const": "causal_effect_estimate"
+          }
+        },
+        "required": [
+          "claim_ceiling"
+        ]
+      },
+      "then": {
+        "properties": {
+          "metrics": {
+            "contains": {
+              "properties": {
+                "interpretation": {
+                  "const": "causal_effect_estimate"
+                }
+              },
+              "required": [
+                "interpretation"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "evidence_class": {
+            "const": "synthetic"
+          }
+        },
+        "required": [
+          "evidence_class"
+        ]
+      },
+      "then": {
+        "properties": {
+          "claim_ceiling": {
+            "not": {
+              "const": "causal_effect_estimate"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "data_quality": {
+            "properties": {
+              "rights_status": {
+                "enum": [
+                  "unknown",
+                  "revoked"
+                ]
+              }
+            },
+            "required": [
+              "rights_status"
+            ]
+          }
+        },
+        "required": [
+          "data_quality"
+        ]
+      },
+      "then": {
+        "properties": {
+          "claim_ceiling": {
+            "not": {
+              "const": "causal_effect_estimate"
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "metrics": {
+          "items": {
+            "if": {
+              "properties": {
+                "missingness": {
+                  "enum": [
+                    "censored",
+                    "delayed",
+                    "disputed",
+                    "unavailable"
+                  ]
+                }
+              },
+              "required": [
+                "missingness"
+              ]
+            },
+            "then": {
+              "properties": {
+                "reconciliation": {
+                  "enum": [
+                    "indeterminate",
+                    "not_comparable",
+                    "not_observed"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
     }
   ]
 }
