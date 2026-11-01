@@ -176,11 +176,15 @@ jobs:
               claim_ceiling: "fixed H2 known-answer and mutation integration only; not every policy-generated schedule"
             }' > "$receipts/summary.json"
 
-      - name: Assert exact subject and clean source after execution
+      - name: Assert exact subject and clean tracked source after execution
         run: |
+          set -euo pipefail
           test "$(git rev-parse HEAD)" = "$EXPECTED_SUBJECT_SHA"
           git diff --exit-code
-          test -z "$(git status --porcelain --untracked-files=all)"
+          status="$(git status --porcelain --untracked-files=all)"
+          printf '%s\n' "$status"
+          unexpected="$(printf '%s\n' "$status" | grep -vE '^\?\? target/energy-replan-policy-bakeoff/' || true)"
+          test -z "$unexpected"
 
       - name: Upload benchmark report and provenance
         uses: actions/upload-artifact@v4
