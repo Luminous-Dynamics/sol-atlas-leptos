@@ -270,6 +270,7 @@ struct ExistingEvidence {
     artifact_sha256: String,
     verifier_build_sha256: String,
     independence_registry_sha256: String,
+    rights_evidence_sha256: String,
 }
 
 #[derive(Clone, Debug)]
@@ -278,6 +279,8 @@ struct ValidatedRequest {
     risk_control_report_sha256: String,
     profile_sha256: String,
     policy_sha256: String,
+    independence_registry_sha256: String,
+    control_mapping_policy_sha256: String,
     decision_tier: String,
     evaluated_at: String,
     requirements: BTreeMap<String, Requirement>,
@@ -429,6 +432,8 @@ fn validate_request(value: &Value) -> Result<ValidatedRequest, String> {
     let risk_control_report_sha256 = parse_digest(value, "risk_control_report_sha256", "request")?;
     let profile_sha256 = parse_digest(value, "profile_sha256", "request")?;
     let policy_sha256 = parse_digest(value, "policy_sha256", "request")?;
+    let independence_registry_sha256 = parse_digest(value, "independence_registry_sha256", "request")?;
+    let control_mapping_policy_sha256 = parse_digest(value, "control_mapping_policy_sha256", "request")?;
     let decision_tier = required_string(value, "decision_tier", "request")?.to_owned();
     let evaluated_at = parse_timestamp(value, "evaluated_at", "request")?;
     let budget = Resources::from_value(value.get("resource_budgets").ok_or("resource_budgets missing")?, "resource_budgets")?;
@@ -468,7 +473,11 @@ fn validate_request(value: &Value) -> Result<ValidatedRequest, String> {
         let artifact = parse_digest(row, "artifact_sha256", &context)?;
         let verifier_build_sha256 = parse_digest(row, "verifier_build_sha256", &context)?;
         let domain = required_string(row, "independence_domain_id", &context)?.to_owned();
-        let independence_registry_sha256 = parse_digest(row, "independence_registry_sha256", &context)?;
+        let row_registry_sha256 = parse_digest(row, "independence_registry_sha256", &context)?;
+        if row_registry_sha256 != independence_registry_sha256 {
+            return Err(format!("{context} does not use the request-pinned independence registry"));
+        }
+        let rights_evidence_sha256 = parse_digest(row, "rights_evidence_sha256", &context)?;
         let verified_at = parse_timestamp(row, "verified_at", &context)?;
         let valid_until = match row.get("valid_until") {
             Some(Value::Null) => None,
@@ -494,7 +503,8 @@ fn validate_request(value: &Value) -> Result<ValidatedRequest, String> {
                     domain_id: domain,
                     artifact_sha256: artifact,
                     verifier_build_sha256,
-                    independence_registry_sha256,
+                    independence_registry_sha256: row_registry_sha256,
+                    rights_evidence_sha256,
                 }
             );
         }
@@ -507,6 +517,9 @@ fn validate_request(value: &Value) -> Result<ValidatedRequest, String> {
         let id = required_string(row, "action_id", &context)?.to_owned();
         let artifact_sha256 = parse_digest(row, "action_sha256", &context)?;
         let mapping_policy_sha256 = parse_digest(row, "mapping_policy_sha256", &context)?;
+        if mapping_policy_sha256 != control_mapping_policy_sha256 {
+            return Err(format!("{context} does not use the request-pinned control mapping policy"));
+        }
         let covers = unique_string_set(array(row, "covers_control_ids", &context)?, &format!("{context}.covers_control_ids"))?;
         for control in &covers {
             if !requirements.contains_key(control) {
@@ -516,7 +529,11 @@ fn validate_request(value: &Value) -> Result<ValidatedRequest, String> {
         let prerequisites = unique_string_set(array(row, "prerequisites", &context)?, &format!("{context}.prerequisites"))?;
         let conflicts = unique_string_set(array(row, "conflicts_with", &context)?, &format!("{context}.conflicts_with"))?;
         let independence_domain_id = required_string(row, "independence_domain_id", &context)?.to_owned();
-        let independence_registry_sha256 = parse_digest(row, "independence_registry_sha256", &context)?;
+        let action_registry_sha256 = parse_digest(row, "independence_registry_sha256", &context)?;
+        if action_registry_sha256 != independence_registry_sha256 {
+            return Err(format!("{context} does not use the request-pinned independence registry"));
+        }
+        let rights_evidence_sha256 = parse_digest(row, "rights_evidence_sha256", &context)?;
         let rights_status = required_string(row, "rights_status", &context)?;
         if rights_status != "verified" {
             return Err(format!("{context}: candidate action rights must be verified before planning"));
@@ -542,8 +559,8 @@ fn validate_request(value: &Value) -> Result<ValidatedRequest, String> {
         actions.insert(id.clone(), Action {
             id, artifact_sha256, independence_domain_id, covers,
             prerequisites, conflicts, resources, human_approval_required,
-            mapping_policy_sha256, independence_registry_sha256,
-            rights_status: rights_status.to_owned(), rights_verified_at, rights_valid_until,
+            mapping_policy_sha256, independence_registry_sha256: action_registry_sha256,
+            rights_evidence_sha256, rights_status: rights_status.to_owned(), rights_verified_at, rights_valid_until,
         });
     }
     if actions.is_empty() {
@@ -553,6 +570,7 @@ fn validate_request(value: &Value) -> Result<ValidatedRequest, String> {
 
     Ok(ValidatedRequest {
         request_id, risk_control_report_sha256, profile_sha256, policy_sha256,
+        independence_registry_sha256, control_mapping_policy_sha256,
         decision_tier, evaluated_at, requirements, existing, actions,
         action_order, budget,
     })
@@ -787,6 +805,7 @@ fn report_for(
             "independence_domain_id": action.independence_domain_id,
             "independence_registry_sha256": action.independence_registry_sha256,
             "mapping_policy_sha256": action.mapping_policy_sha256,
+            "rights_evidence_sha256": action.rights_evidence_sha256,
             "rights_status": action.rights_status,
             "rights_verified_at": action.rights_verified_at,
             "rights_valid_until": action.rights_valid_until,
@@ -830,6 +849,8 @@ fn report_for(
         "risk_control_report_sha256": request.risk_control_report_sha256,
         "profile_sha256": request.profile_sha256,
         "policy_sha256": request.policy_sha256,
+        "independence_registry_sha256": request.independence_registry_sha256,
+        "control_mapping_policy_sha256": request.control_mapping_policy_sha256,
         "planner_version": PLANNER_VERSION,
         "planner_build_id": build_id,
         "optimization_method": method,
@@ -1010,6 +1031,21 @@ mod tests {
 
         request = request();
         request["evaluated_at"] = json!("2026-13-01T00:00:00Z");
+        assert!(validate_request(&request).is_err());
+    }
+
+    #[test]
+    fn rows_must_match_request_pinned_registry_and_mapping_policy() {
+        let mut request = request();
+        request["candidate_actions"][0]["independence_registry_sha256"] = json!("9".repeat(64));
+        assert!(validate_request(&request).is_err());
+
+        let mut request = request();
+        request["candidate_actions"][0]["mapping_policy_sha256"] = json!("8".repeat(64));
+        assert!(validate_request(&request).is_err());
+
+        let mut request = request();
+        request["verified_evidence"][0]["independence_registry_sha256"] = json!("9".repeat(64));
         assert!(validate_request(&request).is_err());
     }
 
