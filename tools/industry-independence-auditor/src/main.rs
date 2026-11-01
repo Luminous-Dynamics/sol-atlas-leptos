@@ -726,6 +726,14 @@ fn conflict_report(left: &str, right: &str, conflict: &Conflict) -> Value {
 }
 
 fn evaluate(request_value: &Value, request_bytes: &[u8]) -> Result<Value, String> {
+    evaluate_with_build_id(request_value, request_bytes, "unattested-local")
+}
+
+fn evaluate_with_build_id(
+    request_value: &Value,
+    request_bytes: &[u8],
+    auditor_build_id: &str,
+) -> Result<Value, String> {
     let inputs = validate_request(request_value, request_bytes)?;
     let mut source_resolutions: Vec<Value> = inputs.source_order.iter().map(|id| {
         let row = &inputs.source_resolutions[id];
@@ -815,6 +823,9 @@ fn evaluate(request_value: &Value, request_bytes: &[u8]) -> Result<Value, String
         "registry_version": inputs.registry.registry_version,
         "registry_authority_id": inputs.registry.authority_id,
         "evaluated_at": inputs.evaluated_at,
+        "auditor_version": "0.1.0",
+        "auditor_build_id": auditor_build_id,
+        "claim_scope": "registry_model_only",
         "control_results": control_results,
         "source_resolutions": source_resolutions,
         "conflict_edges": conflict_edges,
@@ -830,9 +841,9 @@ fn read_strict(path: &str) -> Result<(Vec<u8>, Value), String> {
     Ok((bytes, parsed.into_value()))
 }
 
-fn run(request_path: &str, output_path: &str) -> Result<(), String> {
+fn run(request_path: &str, output_path: &str, auditor_build_id: &str) -> Result<(), String> {
     let (bytes, request) = read_strict(request_path)?;
-    let report = evaluate(&request, &bytes)?;
+    let report = evaluate_with_build_id(&request, &bytes, auditor_build_id)?;
     let encoded = serde_json::to_vec_pretty(&report)
         .map_err(|error| format!("cannot encode independence report: {error}"))?;
     fs::write(output_path, encoded).map_err(|error| format!("cannot write independence report: {error}"))?;
@@ -845,7 +856,9 @@ fn main() -> ExitCode {
         eprintln!("usage: industry-independence-audit <request.json> <report.json>");
         return ExitCode::from(4);
     }
-    match run(&args[1], &args[2]) {
+    let build_id = env::var("IEAC_CCF_AUDITOR_BUILD_ID")
+        .unwrap_or_else(|_| "unattested-local".to_owned());
+    match run(&args[1], &args[2], &build_id) {
         Ok(()) => ExitCode::SUCCESS,
         Err(error) => {
             eprintln!("common-cause independence check rejected the request: {error}");
