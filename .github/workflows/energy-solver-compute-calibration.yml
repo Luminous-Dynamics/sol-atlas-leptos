@@ -64,7 +64,7 @@ jobs:
         with:
           name: energy-solver-compute-calibration-${{ github.sha }}
           path: |
-            target/energy-solver-compute-calibration/synthetic-fixture-report.csv
+            target/energy-solver-compute-calibration/
             tools/energy-solver-compute-calibration/Cargo.toml
             tools/energy-solver-compute-calibration/Cargo.lock
             tools/energy-solver-compute-calibration/README.md
@@ -84,6 +84,8 @@ jobs:
             printf 'runner_os=%s\n' "$RUNNER_OS"
             printf 'runner_arch=%s\n' "$RUNNER_ARCH"
             printf 'cpu_model='; lscpu | awk -F: '/Model name/ {gsub(/^ +/, "", $2); print $2; exit}'
+            printf 'logical_cpu_count='; nproc
+            printf 'runner_ram_kib='; awk '/MemTotal/ {print $2}' /proc/meminfo
           } > target/energy-solver-compute-calibration/build-provenance.txt
       - name: Assert exact subject and clean tracked source
         run: |
