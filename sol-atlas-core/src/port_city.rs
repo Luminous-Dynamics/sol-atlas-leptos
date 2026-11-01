@@ -505,7 +505,11 @@ mod tests {
                 unit: "metre".into(),
             });
         let errors = manifest.validate().unwrap_err();
-        assert!(errors.iter().any(|e| e.contains("lower must not exceed upper")));
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("lower must not exceed upper"))
+        );
     }
 
     #[test]
