@@ -181,7 +181,8 @@
           "independence_domain_id",
           "independence_registry_sha256",
           "resource_costs",
-          "human_approval_required"
+          "human_approval_required",
+          "rights_status"
         ],
         "properties": {
           "action_id": {
@@ -276,6 +277,9 @@
           },
           "human_approval_required": {
             "type": "boolean"
+          },
+          "rights_status": {
+            "const": "verified"
           }
         }
       }
