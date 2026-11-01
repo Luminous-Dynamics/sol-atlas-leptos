@@ -833,7 +833,15 @@
     "additional_control_ids": [
       "REVIEW_UNKNOWN"
     ],
-    "never_reduce_controls": true
+    "never_reduce_controls": true,
+    "worst_case_values": {
+      "consequence": "catastrophic",
+      "model_influence": "direct_actuation",
+      "exposure": "national_or_larger",
+      "reversibility": "difficult_or_irreversible",
+      "detectability": "poor",
+      "fallback": "no_verified_fallback"
+    }
   },
   "reviewed_class_rules": [
     {
