@@ -271,6 +271,7 @@ fn validate_graph(graph: &Value) -> Result<BTreeMap<String, Value>, String> {
         .and_then(Value::as_array)
         .ok_or_else(|| "graph.edges must be an array".to_owned())?;
     let mut edge_ids = BTreeSet::new();
+    let mut edge_pairs = BTreeSet::new();
     let mut adjacency: BTreeMap<String, Vec<String>> = BTreeMap::new();
     let mut indegree: BTreeMap<String, usize> =
         nodes.keys().map(|key| (key.clone(), 0)).collect();
@@ -285,6 +286,9 @@ fn validate_graph(graph: &Value) -> Result<BTreeMap<String, Value>, String> {
         }
         if from == to {
             return Err(format!("{context}: self-edge is invalid"));
+        }
+        if !edge_pairs.insert((from.to_owned(), to.to_owned())) {
+            return Err(format!("{context}: duplicate directed dependency edge"));
         }
         if !nodes.contains_key(from) || !nodes.contains_key(to) {
             return Err(format!("{context}: edge endpoint does not resolve"));
@@ -327,6 +331,27 @@ fn validate_graph(graph: &Value) -> Result<BTreeMap<String, Value>, String> {
     }
 
     Ok(nodes)
+}
+
+fn cause_allows(cause: &str, node_type: &str) -> bool {
+    match cause {
+        "issuer_key_compromised" | "issuer_key_revoked_or_rotated" => node_type == "issuer_key",
+        "transparency_service_key_compromised" => node_type == "transparency_service_key",
+        "trust_root_changed" => node_type == "trust_bundle",
+        "source_corrected" => node_type == "source_measurement",
+        "rights_revoked_or_expired" => {
+            matches!(node_type, "source_measurement" | "authority_grant" | "signed_statement")
+        }
+        "model_superseded" => node_type == "model",
+        "schema_superseded" => node_type == "schema",
+        "verifier_vulnerable" => node_type == "verifier_build",
+        "policy_changed" => node_type == "policy",
+        "authority_revoked" => node_type == "authority_grant",
+        "execution_corrected" => node_type == "execution",
+        "outcome_corrected" => node_type == "outcome",
+        "evidence_disputed" => true,
+        _ => false,
+    }
 }
 
 fn validate_event(event: &Value, nodes: &BTreeMap<String, Value>) -> Result<(), String> {
@@ -377,6 +402,7 @@ fn validate_event(event: &Value, nodes: &BTreeMap<String, Value>) -> Result<(), 
     }
 
     let event_scope = event.get("scope").ok_or("event scope missing")?;
+    let cause = required_string(event, "cause_class", "event")?;
     let targets = event
         .get("targets")
         .and_then(Value::as_array)
@@ -384,6 +410,7 @@ fn validate_event(event: &Value, nodes: &BTreeMap<String, Value>) -> Result<(), 
     if targets.is_empty() {
         return Err("invalidation event has no target nodes".into());
     }
+    let mut target_ids = BTreeSet::new();
     for (index, target) in targets.iter().enumerate() {
         let context = format!("event.targets[{index}]");
         let node_id = required_string(target, "node_id", &context)?;
@@ -397,6 +424,12 @@ fn validate_event(event: &Value, nodes: &BTreeMap<String, Value>) -> Result<(), 
         {
             return Err(format!("{context}: target type or digest does not match graph node"));
         }
+        if !target_ids.insert(node_id.to_owned()) {
+            return Err(format!("{context}: duplicate invalidation target"));
+        }
+        if !cause_allows(cause, node_type) {
+            return Err(format!("{context}: cause class is incompatible with target node type"));
+        }
         if !scope_matches(node, event_scope) {
             return Err(format!("{context}: invalidation authority scope does not cover target"));
         }
@@ -408,6 +441,7 @@ fn signed_statement_precedes_compromise(
     path: &[String],
     nodes: &BTreeMap<String, Value>,
     effective_at: &str,
+    evaluated_at: &str,
 ) -> bool {
     path.iter().any(|node_id| {
         let Some(node) = nodes.get(node_id) else {
@@ -416,13 +450,26 @@ fn signed_statement_precedes_compromise(
         if node.get("node_type").and_then(Value::as_str) != Some("signed_statement") {
             return false;
         }
-        node.pointer("/observation_time/trusted_at")
+        let trusted_at = node
+            .pointer("/observation_time/trusted_at")
+            .and_then(Value::as_str);
+        let verification = node.get("verification");
+        let verified = verification
+            .and_then(|item| item.get("result"))
             .and_then(Value::as_str)
-            .is_some_and(|trusted_at| {
-                trusted_at.ends_with('Z')
-                    && effective_at.ends_with('Z')
-                    && trusted_at < effective_at
+            == Some("verified");
+        let fresh_until = verification
+            .and_then(|item| item.get("fresh_until"))
+            .and_then(Value::as_str);
+        let checked_at = verification
+            .and_then(|item| item.get("checked_at"))
+            .and_then(Value::as_str);
+        verified
+            && trusted_at.is_some_and(|time| {
+                time.ends_with('Z') && effective_at.ends_with('Z') && time < effective_at
             })
+            && fresh_until.is_some_and(|time| time.ends_with('Z') && time >= evaluated_at)
+            && checked_at.is_some_and(|time| time.ends_with('Z') && time <= evaluated_at)
     })
 }
 
@@ -439,6 +486,7 @@ fn build_impact_report(
         "effective_at",
         "event.valid_time",
     )?;
+    let evaluated_at = required_string(expected_metadata, "evaluated_at", "expected report metadata")?;
     let event_scope = event.get("scope").ok_or("event scope missing")?;
     let targets = event
         .get("targets")
@@ -530,7 +578,7 @@ fn build_impact_report(
                     "ineligible",
                     vec!["ISSUER_KEY_COMPROMISED", "CURRENT_KEY_TRUST_WITHDRAWN"],
                 )
-            } else if signed_statement_precedes_compromise(path, nodes, effective_at) {
+            } else if signed_statement_precedes_compromise(path, nodes, effective_at, evaluated_at) {
                 (
                     "historical_record_only",
                     "valid_at_time",
@@ -618,6 +666,14 @@ fn build_impact_report(
         "results": results,
         "summary": summary,
         "historical_record_preserved": true,
+        "not_checked": [
+            "invalidation event COSE signature and revoker authorization receipt",
+            "SCITT trusted timestamp receipt and proof of issuer signature creation time",
+            "external key-compromise incident evidence truth and effective-time adjudication",
+            "operator identity and administrative independence",
+            "SLSA/in-toto provenance of this impact auditor executable",
+            "source measurement truth, model fitness and physical consequence"
+        ],
         "claim_ceiling": "incomplete_or_indeterminate",
         "action_authority": "none"
     }))
@@ -735,6 +791,23 @@ mod tests {
             "relation":"revoked_by"
         }));
         // Recompute the graph digest so the cycle check, not only the digest check, is exercised.
+        let mut core = fixture["graph"].clone();
+        core.as_object_mut().unwrap().remove("graph_snapshot_sha256");
+        fixture["graph"]["graph_snapshot_sha256"] = json!(canonical_json_digest(&core).unwrap());
+        assert!(evaluate_fixture(&fixture).is_err());
+    }
+
+    #[test]
+    fn invalidation_cause_must_match_target_type() {
+        let mut fixture = fixture();
+        fixture["invalidation_event"]["cause_class"] = json!("model_superseded");
+        assert!(evaluate_fixture(&fixture).is_err());
+    }
+
+    #[test]
+    fn invalidation_scope_must_cover_target_node() {
+        let mut fixture = fixture();
+        fixture["graph"]["nodes"][0]["scope"]["domain"] = json!("water");
         let mut core = fixture["graph"].clone();
         core.as_object_mut().unwrap().remove("graph_snapshot_sha256");
         fixture["graph"]["graph_snapshot_sha256"] = json!(canonical_json_digest(&core).unwrap());
