@@ -868,10 +868,35 @@ mod tests {
     #[test]
     fn minimum_independent_domains_are_not_replaced_by_action_count() {
         let mut request = request();
-        request["candidate_actions"][2]["independence_domain_id"] = json!("solver-team-a");
-        request["candidate_actions"][3]["independence_domain_id"] = json!("solver-team-a");
+        for index in [2usize, 3, 4] {
+            request["candidate_actions"][index]["independence_domain_id"] = json!("solver-team-a");
+        }
         let report = test_report(&request);
-        assert_ne!(report["plan_status"], "optimal_plan");
+        assert_eq!(report["plan_status"], "infeasible");
+        assert_eq!(report["optimality_status"], "proven_infeasible");
+        assert!(report["unsatisfied_controls"].as_array().unwrap().iter()
+            .any(|control| control == "numerical_known_answers"));
+    }
+
+    #[test]
+    fn large_greedy_plan_counts_domain_deficit_not_control_count() {
+        let mut request = request();
+        let base = request["candidate_actions"].as_array().unwrap().clone();
+        for index in 0..10 {
+            let mut row = base[0].clone();
+            row["action_id"] = json!(format!("unused-scale-action-{index:02}"));
+            row["action_sha256"] = json!(format!("{:064x}", index + 700));
+            row["covers_control_ids"] = json!([]);
+            row["prerequisites"] = json!([]);
+            row["conflicts_with"] = json!([]);
+            request["candidate_actions"].as_array_mut().unwrap().push(row);
+        }
+        let report = test_report(&request);
+        assert_eq!(report["plan_status"], "feasible_heuristic");
+        assert_eq!(report["optimality_status"], "not_proven");
+        assert!(report["covered_controls"].as_array().unwrap().iter()
+            .any(|control| control == "numerical_known_answers"));
+        assert_eq!(report["action_authority"], "none");
     }
 
     #[test]
