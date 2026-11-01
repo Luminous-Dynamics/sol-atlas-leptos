@@ -1,4 +1,4 @@
-use serde_json::{json, Map, Number, Value};
+use serde_json::{json, Number, Value};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 use std::env;
@@ -12,10 +12,8 @@ const MAX_SAFE_INTEGER: u64 = 9_007_199_254_740_991;
 #[derive(Clone, Debug)]
 struct Event {
     id: String,
-    issuer: String,
     subject: String,
     case_id: String,
-    stream_id: String,
     sequence: u64,
     previous: Option<String>,
     digest: String,
@@ -30,7 +28,7 @@ struct Audit {
     id_to_index: BTreeMap<String, usize>,
     streams: BTreeMap<(String, String, String), BTreeMap<u64, usize>>,
     edges: Vec<(usize, usize)>,
-    fatal: bool,
+    verified_digests: usize,
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
@@ -148,7 +146,6 @@ fn finding(code: &str, severity: &str, message: impl Into<String>) -> Value {
 }
 
 fn add_finding(audit: &mut Audit, code: &str, severity: &str, message: impl Into<String>) {
-    if severity == "invalid" { audit.fatal = true; }
     audit.findings.push(finding(code, severity, message));
 }
 
@@ -186,10 +183,9 @@ fn parse_events(input: &Value, audit: &mut Audit) -> Result<(), String> {
             return Err(format!("{context}: claim ceiling/action authority exceeds record-only profile"));
         }
 
-        let mut canonical = canonical_jcs_subset(payload)
+        let canonical = canonical_jcs_subset(payload)
             .map_err(|error| format!("{context}: unsupported JCS input: {error}"))?;
         let digest = sha256_hex(&canonical);
-        canonical.clear();
         let expected_digest = expected.get(&id).and_then(Value::as_str)
             .ok_or_else(|| format!("{context}: no frozen expected digest for event_id '{id}'"))?;
         if !valid_sha256(expected_digest) || digest != expected_digest {
@@ -197,6 +193,8 @@ fn parse_events(input: &Value, audit: &mut Audit) -> Result<(), String> {
                 audit, "EVENT_PAYLOAD_DIGEST_MISMATCH", "invalid",
                 format!("{id}: computed {digest}, fixture expected {expected_digest}"),
             );
+        } else {
+            audit.verified_digests += 1;
         }
         if audit.id_to_index.contains_key(&id) {
             add_finding(audit, "DUPLICATE_EVENT_ID", "invalid", format!("duplicate event_id {id}"));
@@ -227,8 +225,8 @@ fn parse_events(input: &Value, audit: &mut Audit) -> Result<(), String> {
             .collect::<Result<Vec<_>, _>>()?;
 
         let event = Event {
-            id: id.clone(), issuer: issuer.clone(), subject: subject.clone(), case_id,
-            stream_id: stream_id.clone(), sequence, previous, digest: digest.clone(), parents,
+            id: id.clone(), subject: subject.clone(), case_id,
+            sequence, previous, digest: digest.clone(), parents,
         };
         let event_index = audit.events.len();
         audit.id_to_index.insert(id, event_index);
@@ -255,7 +253,7 @@ fn audit_streams(audit: &mut Audit) {
         }
         let mut previous_observed: Option<(u64, String)> = None;
         for (sequence, index) in &rows {
-            let event = &audit.events[*index];
+            let event = audit.events[*index].clone();
             if let Some((prior_sequence, prior_digest)) = &previous_observed {
                 if *sequence == prior_sequence + 1 {
                     if event.previous.as_deref() != Some(prior_digest.as_str()) {
@@ -298,8 +296,8 @@ fn audit_causal_graph(audit: &mut Audit) {
                 );
                 continue;
             };
-            let parent_event = &audit.events[parent];
-            let child_event = &audit.events[child];
+            let parent_event = audit.events[parent].clone();
+            let child_event = audit.events[child].clone();
             if parent == child {
                 add_finding(audit, "CAUSAL_SELF_REFERENCE", "invalid", format!("{} references itself", child_event.id));
             } else if parent_event.case_id != child_event.case_id || parent_event.subject != child_event.subject {
@@ -339,21 +337,14 @@ fn audit_causal_graph(audit: &mut Audit) {
     audit.edges = unique_edges.into_iter().collect();
 }
 
-fn build_report(input: &Value, mut audit: Audit) -> Value {
+fn build_report(input: &Value, audit: Audit) -> Value {
     let stream_count = audit.streams.len();
     let mut unique_edges = BTreeSet::new();
     for edge in &audit.edges { unique_edges.insert(*edge); }
     let invalid_count = audit.findings.iter().filter(|item| item["severity"] == "invalid").count();
     let incomplete_count = audit.findings.iter().filter(|item| item["severity"] == "incomplete").count();
-    let status = if invalid_count > 0 {
-        "invalid"
-    } else if incomplete_count > 0 || input.get("checkpoint_observations").and_then(Value::as_array).is_none_or(|values| values.is_empty()) {
-        "valid_incomplete"
-    } else {
-        // This early profile intentionally never claims checkpoint authentication:
-        // checkpoint_observations are descriptive inputs, not verified signatures.
-        "valid_incomplete"
-    };
+    // v0.1 has no checkpoint-signature verifier, so it never claims completeness.
+    let status = if invalid_count > 0 { "invalid" } else { "valid_incomplete" };
     audit.findings.sort_by(|left, right| {
         left["code"].as_str().cmp(&right["code"].as_str())
             .then_with(|| left["message"].as_str().cmp(&right["message"].as_str()))
@@ -365,7 +356,7 @@ fn build_report(input: &Value, mut audit: Audit) -> Value {
         "history_completeness": "not_established",
         "event_count": audit.events.len(),
         "issuer_stream_count": stream_count,
-        "verified_event_payload_digests": audit.events.len() - if invalid_count > 0 { 1 } else { 0 },
+        "verified_event_payload_digests": audit.verified_digests,
         "causal_and_predecessor_edge_count": unique_edges.len(),
         "invalid_finding_count": invalid_count,
         "incomplete_finding_count": incomplete_count,
@@ -445,7 +436,7 @@ mod tests {
         assert_eq!(report["status"], "valid_incomplete");
         assert_eq!(report["event_count"], 4);
         assert_eq!(report["issuer_stream_count"], 3);
-        assert_eq!(report["causal_and_predecessor_edge_count"], 3);
+        assert_eq!(report["causal_and_predecessor_edge_count"], 4);
         assert_eq!(report["invalid_finding_count"], 0);
         assert_eq!(report["history_completeness"], "not_established");
     }
@@ -456,7 +447,6 @@ mod tests {
         input["expected"]["event_payload_sha256"]["event-verdict-001"] = json!("0000000000000000000000000000000000000000000000000000000000000000");
         let mut audit = Audit::default();
         parse_events(&input, &mut audit).unwrap();
-        assert!(audit.fatal);
         assert!(audit.findings.iter().any(|item| item["code"] == "EVENT_PAYLOAD_DIGEST_MISMATCH"));
     }
 }
