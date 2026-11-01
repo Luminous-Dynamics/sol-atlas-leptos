@@ -1,0 +1,206 @@
+name: Energy Replan Policy Bake-off
+
+on:
+  pull_request:
+    paths:
+      - "tools/energy-replan-policy-bakeoff/**"
+      - ".github/workflows/energy-replan-policy-bakeoff.yml"
+  push:
+    branches:
+      - "research/energy-replan-policy-bakeoff-v0-1"
+    paths:
+      - "tools/energy-replan-policy-bakeoff/**"
+      - ".github/workflows/energy-replan-policy-bakeoff.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: energy-replan-policy-bakeoff-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  policy-bakeoff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CARGO_NET_OFFLINE: "true"
+      CARGO_TERM_COLOR: always
+      EXPECTED_SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Assert exact subject before execution
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SUBJECT_SHA"
+      - uses: dtolnay/rust-toolchain@1.96.0
+        with:
+          components: rustfmt, clippy
+      - name: Format
+        run: cargo fmt --manifest-path tools/energy-replan-policy-bakeoff/Cargo.toml --check
+      - name: Check locked dependency-free crate
+        run: cargo check --locked --all-targets --manifest-path tools/energy-replan-policy-bakeoff/Cargo.toml
+      - name: Run adversarial policy tests
+        run: cargo test --locked --all-targets --manifest-path tools/energy-replan-policy-bakeoff/Cargo.toml
+      - name: Strict Clippy
+        run: cargo clippy --locked --all-targets --manifest-path tools/energy-replan-policy-bakeoff/Cargo.toml -- -D warnings
+      - name: Generate deterministic report
+        run: |
+          mkdir -p target/energy-replan-policy-bakeoff
+          cargo run --release --locked --manifest-path tools/energy-replan-policy-bakeoff/Cargo.toml \
+            > target/energy-replan-policy-bakeoff/report.csv
+          test "$(grep -vc '^#\|^policy,' target/energy-replan-policy-bakeoff/report.csv)" -eq 5
+          grep -q '^fixed-cadence,32,20,' target/energy-replan-policy-bakeoff/report.csv
+          grep -q '^forecast-residual,32,20,' target/energy-replan-policy-bakeoff/report.csv
+          grep -q '^forecast-uncertainty,32,20,' target/energy-replan-policy-bakeoff/report.csv
+          grep -q '^decision-value,32,20,' target/energy-replan-policy-bakeoff/report.csv
+          grep -q '^hybrid-safety,32,20,' target/energy-replan-policy-bakeoff/report.csv
+      - name: Build and test the independent standalone schedule auditor
+        env:
+          CARGO_NET_OFFLINE: "false"
+          AUDITOR_SOURCE_DIR: ${{ runner.temp }}/energy-dispatch-schedule-auditor-source
+          AUDITOR_TARGET_DIR: ${{ github.workspace }}/target/energy-replan-policy-bakeoff/auditor-target
+          CARGO_TARGET_DIR: ${{ github.workspace }}/target/energy-replan-policy-bakeoff/auditor-target
+        run: |
+          set -euo pipefail
+          mkdir -p "$AUDITOR_SOURCE_DIR" "$AUDITOR_TARGET_DIR" target/energy-replan-policy-bakeoff/auditor-provenance
+          cp -a tools/energy-dispatch-schedule-auditor/. "$AUDITOR_SOURCE_DIR/"
+
+          # Bind the exact checked-out source and the normalized build copy separately.
+          find tools/energy-dispatch-schedule-auditor -type f -name '*.rs' -print0 \
+            | sort -z | xargs -0 sha256sum \
+            > target/energy-replan-policy-bakeoff/auditor-provenance/original-source-sha256.txt
+
+          auditor_manifest="$AUDITOR_SOURCE_DIR/Cargo.toml"
+          test "$(sha256sum "$AUDITOR_SOURCE_DIR/Cargo.lock" | cut -d ' ' -f 1)" = "0ab5e2fd068a53ece3a48b38e649a447190102043fb656967a1cae259639a23c"
+          # Match the parent auditor workflow's formatter behavior, but never
+          # rewrite files in the PR checkout.
+          cargo fmt --manifest-path "$auditor_manifest" --all
+          cargo fmt --manifest-path "$auditor_manifest" --all -- --check
+          find "$AUDITOR_SOURCE_DIR" -type f -name '*.rs' -print0 \
+            | sort -z | xargs -0 sha256sum \
+            > target/energy-replan-policy-bakeoff/auditor-provenance/normalized-source-sha256.txt
+
+          cargo test --locked --manifest-path "$auditor_manifest"
+          cargo clippy --all-targets --locked --manifest-path "$auditor_manifest" -- -D warnings
+          cargo build --release --locked --manifest-path "$auditor_manifest"
+
+          cp "$AUDITOR_SOURCE_DIR/Cargo.lock" \
+            target/energy-replan-policy-bakeoff/auditor-provenance/Cargo.lock
+          auditor_bin="$AUDITOR_TARGET_DIR/release/energy-dispatch-schedule-auditor"
+          test -x "$auditor_bin"
+          {
+            printf 'subject_commit=%s\n' "$(git rev-parse HEAD)"
+            printf 'rustc='; rustc --version
+            printf 'cargo='; cargo --version
+            printf 'auditor_binary_sha256=%s\n' "$(sha256sum "$auditor_bin" | cut -d ' ' -f 1)"
+            printf 'auditor_manifest_sha256=%s\n' "$(sha256sum "$AUDITOR_SOURCE_DIR/Cargo.toml" | cut -d ' ' -f 1)"
+            printf 'auditor_lock_sha256=%s\n' "$(sha256sum "$AUDITOR_SOURCE_DIR/Cargo.lock" | cut -d ' ' -f 1)"
+          } > target/energy-replan-policy-bakeoff/auditor-provenance/build.txt
+
+      - name: Audit known-answer and mutated trajectories with the real auditor binary
+        env:
+          AUDITOR_TARGET_DIR: ${{ github.workspace }}/target/energy-replan-policy-bakeoff/auditor-target
+        run: |
+          set -euo pipefail
+          auditor_bin="$AUDITOR_TARGET_DIR/release/energy-dispatch-schedule-auditor"
+          fixture_root="tools/energy-replan-policy-bakeoff/fixtures"
+          receipts="target/energy-replan-policy-bakeoff/auditor-receipts"
+          mkdir -p "$receipts"
+          auditor_sha="$(sha256sum "$auditor_bin" | cut -d ' ' -f 1)"
+          request_sha="$(sha256sum "$fixture_root/h2-request.json" | cut -d ' ' -f 1)"
+          accepted_schedule_sha="$(sha256sum "$fixture_root/h2-schedule-accepted.json" | cut -d ' ' -f 1)"
+          rejected_schedule_sha="$(sha256sum "$fixture_root/h2-schedule-rejected.json" | cut -d ' ' -f 1)"
+
+          # Freeze the fixture bytes: changing a known-answer vector requires
+          # an explicit corpus/profile revision, not a silent benchmark update.
+          test "$request_sha" = "e1fc548c7d82e6aa9f95ace133f25c650df6f8c51018ee3a7bf16a980b8af804"
+          test "$accepted_schedule_sha" = "fbeef792114c62eb516b8e0d92fd771f71932670a4d2249a11d0ced1f8a39397"
+          test "$rejected_schedule_sha" = "6c43b474312ab870e65fbdb9e22093f0e78aaca53337fcee35626bf7c60058df"
+
+          "$auditor_bin" \
+            "$fixture_root/h2-request.json" \
+            "$fixture_root/h2-schedule-accepted.json" \
+            "$receipts/accepted.json" > "$receipts/accepted.log"
+
+          set +e
+          "$auditor_bin" \
+            "$fixture_root/h2-request.json" \
+            "$fixture_root/h2-schedule-rejected.json" \
+            "$receipts/rejected.json" > "$receipts/rejected.log" 2>&1
+          rejected_exit=$?
+          set -e
+          test "$rejected_exit" -eq 1
+
+          jq -e --arg auditor "$auditor_sha" --arg request "$request_sha" --arg schedule "$accepted_schedule_sha" '
+            .receipt_schema == "energy-dispatch-schedule-audit-receipt-v0.1" and
+            .auditor_id == "energy-dispatch-schedule-auditor" and
+            .case_id == "schedule-audit-fixture" and
+            .disposition == "accepted" and
+            .auditor_binary_sha256 == $auditor and
+            .request_sha256 == $request and
+            .schedule_sha256 == $schedule and
+            .interval_count == 2
+          ' "$receipts/accepted.json"
+
+          jq -e --arg auditor "$auditor_sha" --arg request "$request_sha" --arg schedule "$rejected_schedule_sha" '
+            .receipt_schema == "energy-dispatch-schedule-audit-receipt-v0.1" and
+            .auditor_id == "energy-dispatch-schedule-auditor" and
+            .case_id == "schedule-audit-fixture" and
+            .disposition == "rejected" and
+            .auditor_binary_sha256 == $auditor and
+            .request_sha256 == $request and
+            .schedule_sha256 == $schedule and
+            (.findings | any(.passed == false))
+          ' "$receipts/rejected.json"
+
+          jq -n \
+            --arg auditor_binary_sha256 "$auditor_sha" \
+            --arg request_sha256 "$request_sha" \
+            --arg accepted_schedule_sha256 "$accepted_schedule_sha" \
+            --arg rejected_schedule_sha256 "$rejected_schedule_sha" \
+            --arg accepted_receipt_sha256 "$(jq -r .receipt_sha256 "$receipts/accepted.json")" \
+            --arg rejected_receipt_sha256 "$(jq -r .receipt_sha256 "$receipts/rejected.json")" \
+            '{
+              schema: "energy-replan-independent-auditor-smoke-v0.1",
+              case_id: "schedule-audit-fixture",
+              auditor_binary_sha256: $auditor_binary_sha256,
+              request_sha256: $request_sha256,
+              accepted_schedule_sha256: $accepted_schedule_sha256,
+              rejected_schedule_sha256: $rejected_schedule_sha256,
+              accepted_receipt_sha256: $accepted_receipt_sha256,
+              rejected_receipt_sha256: $rejected_receipt_sha256,
+              accepted_disposition: "accepted",
+              rejected_disposition: "rejected",
+              claim_ceiling: "fixed H2 known-answer and mutation integration only; not every policy-generated schedule"
+            }' > "$receipts/summary.json"
+
+      - name: Assert exact subject and clean tracked source after execution
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SUBJECT_SHA"
+          git diff --exit-code
+          status="$(git status --porcelain --untracked-files=all)"
+          printf '%s\n' "$status"
+          unexpected=""
+          if [ -n "$status" ]; then
+            unexpected="$(printf '%s' "$status" | grep -vE '^\?\? (target/energy-replan-policy-bakeoff/|tools/energy-replan-policy-bakeoff/target/)' || true)"
+          fi
+          test -z "$unexpected"
+
+      - name: Upload benchmark report and provenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: energy-replan-policy-bakeoff-${{ github.sha }}
+          path: |
+            target/energy-replan-policy-bakeoff/
+            target/energy-replan-policy-bakeoff/auditor-provenance/
+            tools/energy-dispatch-schedule-auditor/Cargo.lock
+            tools/energy-replan-policy-bakeoff/Cargo.toml
+            tools/energy-replan-policy-bakeoff/Cargo.lock
+            tools/energy-replan-policy-bakeoff/README.md
+            tools/energy-replan-policy-bakeoff/src/
+            tools/energy-replan-policy-bakeoff/fixtures/
+          if-no-files-found: error
+          retention-days: 14
