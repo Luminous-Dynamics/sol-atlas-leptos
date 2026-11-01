@@ -1,0 +1,226 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/industry-scitt-witness-observation-v0.1.schema.json",
+  "title": "IEAC SCITT Transparency Witness Observation v0.1",
+  "description": "Observation-input contract only. It does not verify TS signatures, VDS consistency proofs, witness signatures, operator independence, or issuer-history completeness.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "observation_id",
+    "observed_at",
+    "observer_id",
+    "observer_operator_id",
+    "observer_build_sha256",
+    "transparency_service_id",
+    "transparency_service_operator_id",
+    "vds_type",
+    "log_id",
+    "receipt_keyset_sha256",
+    "registration_policy_sha256",
+    "signed_tree_head",
+    "consistency_from",
+    "consistency_proof_sha256",
+    "statement_digests",
+    "observation_method"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.ieac-scitt-witness-observation.v0.1"
+    },
+    "observation_id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "observer_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "observer_operator_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "observer_build_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "transparency_service_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "transparency_service_operator_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "vds_type": {
+      "enum": [
+        "CCF_LEDGER_SHA256",
+        "RFC9162_SHA256"
+      ]
+    },
+    "log_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "receipt_keyset_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "registration_policy_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "signed_tree_head": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tree_size",
+        "root_sha256",
+        "issued_at",
+        "signed_bytes_sha256"
+      ],
+      "properties": {
+        "tree_size": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "root_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "signed_bytes_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "consistency_from": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "tree_size",
+            "root_sha256"
+          ],
+          "properties": {
+            "tree_size": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "root_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        }
+      ]
+    },
+    "consistency_proof_sha256": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      ]
+    },
+    "statement_digests": {
+      "type": "array",
+      "uniqueItems": true,
+      "maxItems": 4096,
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "observation_method": {
+      "enum": [
+        "authenticated_service_api",
+        "independent_archive",
+        "independent_peer_exchange"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "consistency_from": {
+            "type": "null"
+          }
+        },
+        "required": [
+          "consistency_from"
+        ]
+      },
+      "then": {
+        "properties": {
+          "consistency_proof_sha256": {
+            "type": "null"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "consistency_proof_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "consistency_from": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "consistency_from"
+        ]
+      },
+      "then": {
+        "properties": {
+          "signed_tree_head": {
+            "properties": {
+              "tree_size": {
+                "exclusiveMinimum": 0
+              }
+            }
+          },
+          "consistency_from": {
+            "properties": {
+              "tree_size": {
+                "maximum": 9007199254740990
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
