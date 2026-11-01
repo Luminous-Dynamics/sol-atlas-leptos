@@ -60,7 +60,7 @@ No generic sum or weighted total across incompatible units is defined. A metric 
 
 ### 3.3 Interpretation and causality are separate
 
-Each metric declares one of:
+A top-level `not_identified` ceiling means that the causal effect is not identified; it does **not** erase valid descriptive observations or before/after differences. Those lower-level observations may remain in the receipt, but no metric may assert a causal effect. The top-level ceiling still caps every nested metric.\n\nEach metric declares one of:
 - `observation_only`: a source reports a measurement or count;
 - `before_after_difference`: two values differ over time, without asserting why;
 - `descriptive_association`: variables co-vary under the observed design;
