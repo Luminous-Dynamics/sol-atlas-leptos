@@ -44,14 +44,15 @@ Every request binds:
 - the underlying IEAC profile digest;
 - the risk-control policy digest;
 - one pinned independence-registry digest;
-- one pinned control-mapping-policy digest;
+- one pinned control-mapping-policy digest; the digest is recomputed from the compact, key-sorted JSON mapping rows supplied in the request;
 - a normalized planning time;
 - a fixed, mandatory control set with trigger reasons and minimum independent domains;
 - current existing evidence receipts;
 - candidate action specifications and their rights receipts;
+- explicit action-to-control mapping rows binding action digest, control ID, IEAC evidence dimension, proof method, required verifier role and independence domain;
 - resource-unit identities and hard aggregate budgets.
 
-All existing-evidence and candidate-action registry rows must match the request-pinned independence registry. Every candidate action's control mapping digest must match the request-pinned mapping policy. These pins allow an independent checker to replay the exact assumptions. They do not authenticate the registry, the mapping policy or the rights receipt; their signatures, authority and content must be verified by their owning trust/evidence validators.
+All existing-evidence and candidate-action registry rows must match the request-pinned independence registry. Every candidate action's control mapping digest must match the request-pinned mapping policy. The request also contains the full action-to-control mapping rows; their compact key-sorted JSON serialization must hash to the pinned mapping digest. Every action's declared control set must exactly equal the control IDs in its mapping rows. This prevents a candidate from claiming a control merely by repeating a digest string. The rows preserve the requested evidence dimension, proof method, verifier role and source domain for independent review. These pins do not authenticate the registry or rights evidence; their signatures, authority and content must be verified by their owning trust/evidence validators.
 
 ### 2.2 Evidence and action semantics
 
@@ -108,7 +109,7 @@ The solver never changes the mandatory control set to improve its score. If its 
 
 ## 4. Benchmark programme
 
-The planner currently has 24 authored Rust tests. The separate auditor has six authored tests, including its own exact-enumeration replay and a collapsed-independence-domain infeasibility case. The current tests cover:
+The planner currently has 27 authored Rust tests. The separate auditor has eleven authored tests, including its own exact-enumeration replay and a collapsed-independence-domain infeasibility case. The current tests cover:
 - exact action-set sizes of 5, 10, 15 and 20, with frozen expected optimum;
 - deterministic heuristic sizes of 50, 100 and 500, always marked not proven optimal;
 - independent auditor agreement with the frozen exact optimum and infeasibility when source domains collapse;
