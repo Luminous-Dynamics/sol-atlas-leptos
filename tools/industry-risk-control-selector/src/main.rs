@@ -188,6 +188,20 @@ fn validate_policy_catalog(policy: &Value) -> Result<BTreeMap<String, Value>, St
     {
         return Err("risk selector policy may not authorize actions or attest qualification".into());
     }
+    let action_policy = policy.get("action_policy").ok_or("policy.action_policy is missing")?;
+    if action_policy.get("selector_may_authorize_action").and_then(Value::as_bool) != Some(false)
+        || action_policy.get("selector_may_upgrade_tier").and_then(Value::as_bool) != Some(false)
+        || action_policy.get("unknown_risk_blocks_clearance").and_then(Value::as_bool) != Some(true)
+        || action_policy.get("direct_actuation_requires_tier").and_then(Value::as_str) != Some("D3_autonomous_control")
+    {
+        return Err("risk selector action policy violates non-authority and D3 boundaries".into());
+    }
+    let unknown_policy = policy.get("unknown_policy").ok_or("policy.unknown_policy is missing")?;
+    if unknown_policy.get("never_reduce_controls").and_then(Value::as_bool) != Some(true)
+        || unknown_policy.get("mode").and_then(Value::as_str) != Some("worst_case_union_plus_review")
+    {
+        return Err("risk selector unknown policy must be monotone and worst-case conservative".into());
+    }
     let mut catalog = BTreeMap::new();
     for (index, item) in array(policy, "control_catalog", "policy")?.iter().enumerate() {
         let context = format!("policy.control_catalog[{index}]");
@@ -198,6 +212,68 @@ fn validate_policy_catalog(policy: &Value) -> Result<BTreeMap<String, Value>, St
         }
         if catalog.insert(id.to_owned(), item.clone()).is_some() {
             return Err(format!("{context}: duplicate control_id '{id}'"));
+        }
+    }
+
+    let mut referenced = BTreeSet::new();
+    let mut tier_keys = BTreeSet::new();
+    for item in array(policy, "tier_minimums", "policy")? {
+        let tier = required_string(item, "decision_tier", "tier rule")?;
+        if !TIERS.contains(&tier) || !tier_keys.insert(tier.to_owned()) {
+            return Err(format!("invalid or duplicate tier minimum '{tier}'"));
+        }
+        for control in array(item, "control_ids", "tier rule")? {
+            referenced.insert(control.as_str().ok_or("tier control ID must be a string")?.to_owned());
+        }
+    }
+    if tier_keys.len() != TIERS.len() {
+        return Err("policy must define exactly one minimum for each D0-D3 tier".into());
+    }
+
+    let mut dimension_keys = BTreeSet::new();
+    for item in array(policy, "dimension_rules", "policy")? {
+        let dimension = required_string(item, "dimension", "dimension rule")?;
+        let value = required_string(item, "value", "dimension rule")?;
+        if !DIMENSIONS.contains(&dimension)
+            || !dimension_keys.insert((dimension.to_owned(), value.to_owned()))
+        {
+            return Err(format!("invalid or duplicate risk rule '{dimension}={value}'"));
+        }
+        for control in array(item, "control_ids", "dimension rule")? {
+            referenced.insert(control.as_str().ok_or("dimension control ID must be a string")?.to_owned());
+        }
+    }
+
+    let mut combination_ids = BTreeSet::new();
+    for item in array(policy, "combination_rules", "policy")? {
+        let id = required_string(item, "rule_id", "combination rule")?;
+        if !combination_ids.insert(id.to_owned()) {
+            return Err(format!("duplicate combination rule '{id}'"));
+        }
+        for control in array(item, "control_ids", "combination rule")? {
+            referenced.insert(control.as_str().ok_or("combination control ID must be a string")?.to_owned());
+        }
+    }
+    let mut reviewed_classes = BTreeSet::new();
+    for item in array(policy, "reviewed_class_rules", "policy")? {
+        let class = required_string(item, "reviewed_class", "reviewed class rule")?;
+        if !reviewed_classes.insert(class.to_owned()) {
+            return Err(format!("duplicate reviewed-class rule '{class}'"));
+        }
+        for control in array(item, "additional_control_ids", "reviewed class rule")? {
+            referenced.insert(control.as_str().ok_or("reviewed class control ID must be a string")?.to_owned());
+        }
+    }
+    for control in array(unknown_policy, "additional_control_ids", "unknown policy")? {
+        referenced.insert(control.as_str().ok_or("unknown-policy control ID must be a string")?.to_owned());
+    }
+    let worst_values = unknown_policy.get("worst_case_values").ok_or("unknown_policy.worst_case_values is missing")?;
+    for dimension in DIMENSIONS {
+        required_string(worst_values, dimension, "unknown_policy.worst_case_values")?;
+    }
+    for id in referenced {
+        if !catalog.contains_key(&id) {
+            return Err(format!("policy references unknown control_id '{id}'"));
         }
     }
     Ok(catalog)
@@ -237,6 +313,8 @@ fn select_requirements(profile: &Value, policy: &Value, input_digest: &str, poli
     )?;
 
     let dimension_rules = array(policy, "dimension_rules", "policy")?;
+    let unknown_policy = policy.get("unknown_policy").ok_or("policy.unknown_policy is missing")?;
+    let worst_values = unknown_policy.get("worst_case_values").ok_or("unknown_policy.worst_case_values is missing")?;
     for dimension in DIMENSIONS {
         let value = required_string(dimensions, dimension, "risk dimensions")?;
         risk_values.insert((*dimension).to_owned(), json!(value));
@@ -269,8 +347,13 @@ fn select_requirements(profile: &Value, policy: &Value, input_digest: &str, poli
         let mut matches = true;
         for condition in array(combination, "conditions", "combination rule")? {
             let axis = required_string(condition, "dimension", "combination condition")?;
-            let current = dimensions.get(axis).and_then(Value::as_str)
+            let actual = dimensions.get(axis).and_then(Value::as_str)
                 .ok_or_else(|| format!("profile risk dimension '{axis}' is missing"))?;
+            let current = if actual == "unknown" || risk_unassessed {
+                required_string(worst_values, axis, "unknown_policy.worst_case_values")?
+            } else {
+                actual
+            };
             let values = array(condition, "values", "combination condition")?;
             if !values.iter().any(|value| value.as_str() == Some(current)) {
                 matches = false;
@@ -286,7 +369,6 @@ fn select_requirements(profile: &Value, policy: &Value, input_digest: &str, poli
         }
     }
 
-    let unknown_policy = policy.get("unknown_policy").ok_or("policy.unknown_policy is missing")?;
     if risk_has_unknown || risk_unassessed {
         add_controls(
             &mut required,
@@ -296,7 +378,12 @@ fn select_requirements(profile: &Value, policy: &Value, input_digest: &str, poli
     }
 
     let influence = dimensions.get("model_influence").and_then(Value::as_str).unwrap_or("unknown");
-    let tier_compatibility = if influence == "direct_actuation" && tier != "D3_autonomous_control" {
+    let required_actuation_tier = required_string(
+        policy.get("action_policy").ok_or("policy.action_policy is missing")?,
+        "direct_actuation_requires_tier",
+        "policy.action_policy",
+    )?;
+    let tier_compatibility = if influence == "direct_actuation" && tier != required_actuation_tier {
         "blocked"
     } else {
         "compatible"
