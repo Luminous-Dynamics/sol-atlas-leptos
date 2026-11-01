@@ -930,3 +930,95 @@ fn main() -> ExitCode {
         }
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn fixture() -> Value {
+        serde_json::from_str(include_str!(
+            "../../../schemas/examples/ieac-proof-plan-synthetic-v0.1.json"
+        )).unwrap()
+    }
+
+    fn request() -> Value {
+        fixture()["request"].clone()
+    }
+
+    fn stub_report(request: &Value, request_bytes: &[u8]) -> Value {
+        json!({
+            "schema_version": REPORT_SCHEMA,
+            "request_id": request["request_id"],
+            "request_sha256": digest(request_bytes),
+            "risk_control_report_sha256": request["risk_control_report_sha256"],
+            "profile_sha256": request["profile_sha256"],
+            "policy_sha256": request["policy_sha256"],
+            "independence_registry_sha256": request["independence_registry_sha256"],
+            "control_mapping_policy_sha256": request["control_mapping_policy_sha256"],
+            "decision_tier": request["decision_tier"],
+            "currency_code": request["currency_code"],
+            "compute_unit_id": request["compute_unit_id"]
+        })
+    }
+
+    fn inputs_for(request: &Value) -> Inputs {
+        let bytes = serde_json::to_vec(request).unwrap();
+        let report = stub_report(request, &bytes);
+        load_inputs(request, &bytes, &report).unwrap()
+    }
+
+    #[test]
+    fn independent_exact_oracle_matches_frozen_optimal_action_set() {
+        let fixture = fixture();
+        let request = &fixture["request"];
+        let inputs = inputs_for(request);
+        let selected = exact_oracle(&inputs).unwrap().unwrap();
+        let expected: BTreeSet<String> = fixture["expected"]["selected_action_ids"]
+            .as_array().unwrap().iter()
+            .map(|item| item.as_str().unwrap().to_owned()).collect();
+        assert_eq!(selected, expected);
+    }
+
+    #[test]
+    fn independent_exact_oracle_proves_collapsed_domains_infeasible() {
+        let mut request = request();
+        for index in [2usize, 3, 4] {
+            request["candidate_actions"][index]["independence_domain_id"] = json!("one-source-domain");
+        }
+        let inputs = inputs_for(&request);
+        assert_eq!(exact_oracle(&inputs).unwrap(), None);
+    }
+
+    #[test]
+    fn auditor_rejects_report_not_bound_to_exact_request_bytes() {
+        let request = request();
+        let bytes = serde_json::to_vec(&request).unwrap();
+        let mut report = stub_report(&request, &bytes);
+        report["request_sha256"] = json!("0".repeat(64));
+        assert!(load_inputs(&request, &bytes, &report).is_err());
+    }
+
+    #[test]
+    fn auditor_rejects_cyclic_candidate_action_graph() {
+        let mut request = request();
+        request["candidate_actions"][0]["prerequisites"] = json!(["numeric-reference-run-a"]);
+        request["candidate_actions"][2]["prerequisites"] = json!(["artifact-provenance-capture"]);
+        let bytes = serde_json::to_vec(&request).unwrap();
+        let report = stub_report(&request, &bytes);
+        assert!(load_inputs(&request, &bytes, &report).is_err());
+    }
+
+    #[test]
+    fn duplicate_json_members_are_rejected() {
+        assert!(serde_json::from_str::<StrictJson>(r#"{"key":1,"key":2}"#).is_err());
+    }
+
+    #[test]
+    fn sha256_known_answer() {
+        assert_eq!(
+            digest(b"abc"),
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+    }
+}
