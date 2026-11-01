@@ -885,12 +885,12 @@ mod tests {
             let actual = report["control_results"].as_array().unwrap().iter()
                 .find(|row| row["control_id"] == expected).unwrap();
             assert_eq!(
-                actual["maximum_independent_count"],
-                fixture["expected"][expected]["maximum_independent_count"]
+                actual["independent_source_count"],
+                fixture["expected"][expected]["independent_source_count"]
             );
             assert_eq!(
-                actual["maximum_independent_source_ids"],
-                fixture["expected"][expected]["maximum_independent_source_ids"]
+                actual["independent_source_ids"],
+                fixture["expected"][expected]["independent_source_ids"]
             );
             assert_eq!(actual["threshold_met"], true);
             assert_eq!(actual["optimality_status"], "proven_optimal");
