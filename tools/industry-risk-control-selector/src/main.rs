@@ -760,6 +760,47 @@ mod tests {
     }
 
     #[test]
+    fn frozen_50_case_truth_table_matches_exact_control_sets() {
+        let truth: Value = serde_json::from_str(include_str!(
+            "../../../schemas/examples/ieac-risk-control-truth-table-synthetic-v0.2.json"
+        )).unwrap();
+        assert_eq!(truth["fixture_schema_version"], "luminous.ieac-risk-control-truth-table.v0.2");
+        assert_eq!(truth["fixture_status"], "synthetic_only");
+        let cases = truth["cases"].as_array().unwrap();
+        assert_eq!(cases.len(), 50);
+        assert_eq!(truth["case_count"], 50);
+
+        let mut case_ids = BTreeSet::new();
+        for case in cases {
+            let case_id = case["case_id"].as_str().expect("case ID must be a string");
+            assert!(case_ids.insert(case_id.to_owned()), "duplicate truth-table case {case_id}");
+
+            let mut profile = fixture();
+            profile["decision_tier"] = case["decision_tier"].clone();
+            profile["risk_assessment"]["reviewed_class"] = case["reviewed_class"].clone();
+            profile["risk_assessment"]["dimensions"] = case["risk_dimensions"].clone();
+
+            let report = select(&profile);
+            let expected: BTreeSet<String> = case["expected_control_ids"]
+                .as_array().unwrap().iter()
+                .map(|value| value.as_str().expect("expected control ID").to_owned())
+                .collect();
+            assert_eq!(
+                control_set(&report),
+                expected,
+                "control-set mismatch for frozen truth-table case {case_id}"
+            );
+            assert_eq!(
+                report["risk_assessment_state"],
+                case["expected_risk_assessment_state"],
+                "risk state mismatch for frozen truth-table case {case_id}"
+            );
+            assert_eq!(report["action_authority"], "none");
+            assert_eq!(report["independent_qualification_attested"], false);
+        }
+    }
+
+    #[test]
     fn policy_rejects_unmapped_combination_values() {
         let mut policy = policy();
         policy["combination_rules"][0]["conditions"][0]["values"] = json!(["catastrophe"]);
