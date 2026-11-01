@@ -1021,18 +1021,22 @@ mod tests {
     }
 
     #[test]
-    fn unknown_dependency_set_cannot_claim_more_than_one_independent_source() {
+    fn unknown_dependency_set_cannot_claim_two_independent_sources() {
         let mut request = request();
-        request["control_requirements"][0]["minimum_independent_sources"] = json!(2);
         request["registry"]["domains"][0]["dependency_completeness"] = json!("unknown");
+        request["sources"].as_array_mut().unwrap().remove(2);
         let registry_bytes = serde_json::to_vec(&request["registry"]).unwrap();
         request["registry_sha256"] = json!(sha256_hex(&registry_bytes));
         let report = evaluate_fixture(&request);
         let row = report["control_results"].as_array().unwrap().iter()
             .find(|item| item["control_id"] == "numerical_known_answers").unwrap();
-        assert!(row["independent_source_count"].as_u64().unwrap() <= 2);
-        assert_eq!(row["threshold_met"], true);
-        assert_eq!(row["optimality_status"], "proven_optimal");
+        assert_eq!(row["independent_source_count"], 1);
+        assert_eq!(row["threshold_met"], false);
+        assert_eq!(row["registry_model_disposition"], "indeterminate_under_registry_model");
+        let unknown_edges = report["conflict_edges"].as_array().unwrap().iter()
+            .filter(|edge| edge["source_id_a"] == "num-alpha" || edge["source_id_b"] == "num-alpha")
+            .count();
+        assert_eq!(unknown_edges, 2);
     }
 
     #[test]
