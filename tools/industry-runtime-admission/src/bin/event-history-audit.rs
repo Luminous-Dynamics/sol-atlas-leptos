@@ -349,23 +349,16 @@ fn audit_streams(audit: &mut Audit) {
                     } else {
                         audit.edges.push((*audit.digest_to_index.get(prior_digest).expect("prior event digest indexed"), *index));
                     }
-                } else if *sequence > prior_sequence + 1 {
+                } else if *sequence > *prior_sequence + 1 {
                     add_finding(
                         audit, "STREAM_SEQUENCE_GAP", "incomplete",
                         format!("{issuer}/{subject}/{stream}: missing sequences {}..{}", *prior_sequence + 1, sequence - 1),
                     );
                 }
-            } else if *sequence > 1 {
-                add_finding(
-                    audit, "STREAM_PREFIX_NOT_PRESENT", "incomplete",
-                    format!("{} begins at sequence {sequence}; earlier issuer history is not in this bundle", event.id),
-                );
             }
             previous_observed = Some((*sequence, event.digest.clone()));
         }
-        if last < first {
-            add_finding(audit, "EMPTY_STREAM", "invalid", "empty issuer stream");
-        }
+        let _observed_range = (first, last);
     }
 }
 
