@@ -1,0 +1,649 @@
+{
+  "schema_version": "luminous.ieac-risk-control-policy.v0.2",
+  "policy_id": "luminous.ieac.risk-control-selector",
+  "policy_version": "0.2.0",
+  "description": "Deterministic non-compensating mapping from the IEAC six-dimensional risk vector and decision tier to minimum assurance controls. It selects proof obligations only and never qualifies or authorizes an action.",
+  "action_authority": "none",
+  "always_required_controls": [
+    "artifact_identity_integrity",
+    "schema_interface_conformance",
+    "source_rights_lineage",
+    "numerical_known_answers",
+    "unit_semantics_validation"
+  ],
+  "tier_controls": {
+    "D0_descriptive": [],
+    "D1_advisory": [
+      "physical_reference_validation",
+      "uncertainty_calibration",
+      "out_of_domain_abstention",
+      "human_review_override",
+      "operational_monitoring",
+      "prospective_outcome_reconciliation"
+    ],
+    "D2_delegated_planning": [
+      "independent_constraint_reconstruction",
+      "group_disjoint_holdout",
+      "compound_fault_stress",
+      "rollback_recovery_test",
+      "dual_control_authorization",
+      "shadow_hardware_in_loop_trial",
+      "safe_fallback_validation"
+    ],
+    "D3_autonomous_control": [
+      "independent_safety_case",
+      "hazard_analysis",
+      "independent_safety_assessment",
+      "secure_control_boundary",
+      "hardware_in_loop_qualification",
+      "fail_safe_emergency_stop",
+      "continuous_requalification",
+      "field_operational_authorization"
+    ]
+  },
+  "risk_class_controls": {
+    "low": [],
+    "moderate": [
+      "out_of_domain_abstention",
+      "uncertainty_calibration"
+    ],
+    "high": [
+      "out_of_domain_abstention",
+      "uncertainty_calibration",
+      "independent_constraint_reconstruction",
+      "group_disjoint_holdout",
+      "compound_fault_stress",
+      "operational_monitoring",
+      "rollback_recovery_test"
+    ],
+    "critical": [
+      "out_of_domain_abstention",
+      "uncertainty_calibration",
+      "independent_constraint_reconstruction",
+      "group_disjoint_holdout",
+      "compound_fault_stress",
+      "operational_monitoring",
+      "rollback_recovery_test",
+      "independent_safety_case",
+      "hazard_analysis",
+      "independent_safety_assessment",
+      "dual_control_authorization",
+      "safe_fallback_validation",
+      "fail_safe_emergency_stop"
+    ],
+    "unassessed": [
+      "out_of_domain_abstention",
+      "uncertainty_calibration",
+      "independent_constraint_reconstruction",
+      "group_disjoint_holdout",
+      "compound_fault_stress",
+      "operational_monitoring",
+      "rollback_recovery_test",
+      "independent_safety_case",
+      "hazard_analysis",
+      "independent_safety_assessment",
+      "dual_control_authorization",
+      "safe_fallback_validation",
+      "fail_safe_emergency_stop",
+      "continuous_requalification",
+      "request_measurement_or_abstain"
+    ]
+  },
+  "dimensions": {
+    "consequence": {
+      "negligible": [],
+      "minor": [
+        "uncertainty_calibration"
+      ],
+      "major": [
+        "physical_reference_validation",
+        "uncertainty_calibration",
+        "out_of_domain_abstention"
+      ],
+      "severe": [
+        "physical_reference_validation",
+        "uncertainty_calibration",
+        "out_of_domain_abstention",
+        "independent_constraint_reconstruction",
+        "compound_fault_stress",
+        "human_review_override",
+        "rollback_recovery_test",
+        "independent_safety_case"
+      ],
+      "catastrophic": [
+        "physical_reference_validation",
+        "uncertainty_calibration",
+        "out_of_domain_abstention",
+        "independent_constraint_reconstruction",
+        "compound_fault_stress",
+        "human_review_override",
+        "rollback_recovery_test",
+        "independent_safety_case",
+        "hazard_analysis",
+        "independent_safety_assessment",
+        "dual_control_authorization",
+        "safe_fallback_validation",
+        "fail_safe_emergency_stop",
+        "continuous_requalification"
+      ],
+      "unknown": [
+        "physical_reference_validation",
+        "uncertainty_calibration",
+        "out_of_domain_abstention",
+        "independent_constraint_reconstruction",
+        "compound_fault_stress",
+        "human_review_override",
+        "rollback_recovery_test",
+        "independent_safety_case",
+        "hazard_analysis",
+        "independent_safety_assessment",
+        "dual_control_authorization",
+        "safe_fallback_validation",
+        "fail_safe_emergency_stop",
+        "continuous_requalification",
+        "request_measurement_or_abstain"
+      ]
+    },
+    "model_influence": {
+      "informational": [],
+      "advisory": [
+        "human_review_override",
+        "uncertainty_calibration",
+        "out_of_domain_abstention"
+      ],
+      "constraint_gating": [
+        "independent_constraint_reconstruction",
+        "group_disjoint_holdout",
+        "compound_fault_stress",
+        "operational_monitoring"
+      ],
+      "selection": [
+        "independent_constraint_reconstruction",
+        "group_disjoint_holdout",
+        "uncertainty_calibration",
+        "human_review_override",
+        "compound_fault_stress"
+      ],
+      "direct_actuation": [
+        "independent_safety_case",
+        "hazard_analysis",
+        "independent_safety_assessment",
+        "secure_control_boundary",
+        "hardware_in_loop_qualification",
+        "fail_safe_emergency_stop",
+        "continuous_requalification",
+        "field_operational_authorization",
+        "dual_control_authorization",
+        "safe_fallback_validation"
+      ],
+      "unknown": [
+        "independent_constraint_reconstruction",
+        "group_disjoint_holdout",
+        "compound_fault_stress",
+        "operational_monitoring",
+        "independent_safety_case",
+        "hazard_analysis",
+        "independent_safety_assessment",
+        "secure_control_boundary",
+        "hardware_in_loop_qualification",
+        "fail_safe_emergency_stop",
+        "continuous_requalification",
+        "field_operational_authorization",
+        "dual_control_authorization",
+        "safe_fallback_validation",
+        "request_measurement_or_abstain"
+      ]
+    },
+    "exposure": {
+      "single_asset": [],
+      "site_or_facility": [
+        "group_disjoint_holdout",
+        "operational_monitoring"
+      ],
+      "multi_site": [
+        "group_disjoint_holdout",
+        "cross_site_replication",
+        "drift_detection"
+      ],
+      "regional": [
+        "cross_site_replication",
+        "common_cause_scenario_test",
+        "regional_failover_drill",
+        "continuous_requalification"
+      ],
+      "national_or_larger": [
+        "cross_site_replication",
+        "common_cause_scenario_test",
+        "regional_failover_drill",
+        "independent_safety_assessment",
+        "continuous_requalification",
+        "field_operational_authorization"
+      ],
+      "unknown": [
+        "cross_site_replication",
+        "common_cause_scenario_test",
+        "regional_failover_drill",
+        "independent_safety_assessment",
+        "continuous_requalification",
+        "field_operational_authorization",
+        "request_measurement_or_abstain"
+      ]
+    },
+    "reversibility": {
+      "readily_reversible": [],
+      "costly_or_delayed": [
+        "rollback_recovery_test",
+        "human_review_override",
+        "staged_rollout"
+      ],
+      "difficult_or_irreversible": [
+        "dual_control_authorization",
+        "independent_safety_assessment",
+        "safe_fallback_validation",
+        "staged_rollout",
+        "field_operational_authorization"
+      ],
+      "unknown": [
+        "dual_control_authorization",
+        "independent_safety_assessment",
+        "safe_fallback_validation",
+        "staged_rollout",
+        "field_operational_authorization",
+        "request_measurement_or_abstain"
+      ]
+    },
+    "detectability": {
+      "immediate_and_reliable": [],
+      "delayed_or_partial": [
+        "operational_monitoring",
+        "drift_detection",
+        "prospective_outcome_reconciliation",
+        "incident_response_playbook"
+      ],
+      "poor": [
+        "operational_monitoring",
+        "drift_detection",
+        "prospective_outcome_reconciliation",
+        "incident_response_playbook",
+        "independent_monitoring",
+        "redundant_measurement",
+        "fail_safe_emergency_stop",
+        "hazard_analysis",
+        "independent_safety_assessment"
+      ],
+      "unknown": [
+        "operational_monitoring",
+        "drift_detection",
+        "prospective_outcome_reconciliation",
+        "incident_response_playbook",
+        "independent_monitoring",
+        "redundant_measurement",
+        "fail_safe_emergency_stop",
+        "hazard_analysis",
+        "independent_safety_assessment",
+        "request_measurement_or_abstain"
+      ]
+    },
+    "fallback": {
+      "independent_tested_fallback": [
+        "safe_fallback_validation"
+      ],
+      "human_fallback": [
+        "human_review_override",
+        "human_response_sla"
+      ],
+      "degraded_fallback": [
+        "safe_fallback_validation",
+        "degraded_mode_qualification",
+        "operational_monitoring"
+      ],
+      "no_verified_fallback": [
+        "safe_fallback_validation",
+        "tested_safe_stop",
+        "human_review_override",
+        "field_operational_authorization"
+      ],
+      "unknown": [
+        "safe_fallback_validation",
+        "tested_safe_stop",
+        "human_review_override",
+        "field_operational_authorization",
+        "request_measurement_or_abstain"
+      ]
+    }
+  },
+  "unknown_policy": {
+    "dimension_value": "unknown",
+    "behavior": "apply_the_maximum_control_set_for_that_dimension_and_mark_indeterminate",
+    "conflicted_dimension_behavior": "same_as_unknown_and_mark_indeterminate",
+    "reviewed_class_unassessed": "apply_unassessed_controls_and_mark_indeterminate"
+  },
+  "controls": {
+    "artifact_identity_integrity": {
+      "description": "Bind every input/evidence artifact to exact acquired bytes, source identity and content digest.",
+      "human_approval": false,
+      "obligations": [
+        "provenance"
+      ]
+    },
+    "schema_interface_conformance": {
+      "description": "Validate versioned schemas, units/interfaces and reject unknown or malformed fields.",
+      "human_approval": false,
+      "obligations": [
+        "conformance"
+      ]
+    },
+    "source_rights_lineage": {
+      "description": "Verify source identity, permitted purpose, licensing/rights and transformation lineage.",
+      "human_approval": true,
+      "obligations": [
+        "rights_review",
+        "provenance"
+      ]
+    },
+    "numerical_known_answers": {
+      "description": "Run analytical known-answer, invariant, conservation and deterministic reference checks.",
+      "human_approval": false,
+      "obligations": [
+        "numerical_verification"
+      ]
+    },
+    "unit_semantics_validation": {
+      "description": "Verify dimensions, units, semantic mappings, population and temporal support.",
+      "human_approval": false,
+      "obligations": [
+        "semantic_validation"
+      ]
+    },
+    "physical_reference_validation": {
+      "description": "Compare against independent physical/empirical reference cases in the declared validity domain.",
+      "human_approval": false,
+      "obligations": [
+        "physical_validation"
+      ]
+    },
+    "uncertainty_calibration": {
+      "description": "Assess calibration, interval coverage, proper scores and parameter/model-form uncertainty.",
+      "human_approval": false,
+      "obligations": [
+        "uncertainty_quantification"
+      ]
+    },
+    "out_of_domain_abstention": {
+      "description": "Test validity-domain detection and safe abstention on missing, shifted or unsupported inputs.",
+      "human_approval": false,
+      "obligations": [
+        "abstention"
+      ]
+    },
+    "human_review_override": {
+      "description": "Provide accountable human review, override, and escalation before consequential reliance.",
+      "human_approval": true,
+      "obligations": [
+        "human_review"
+      ]
+    },
+    "operational_monitoring": {
+      "description": "Monitor service, drift, alarms and execution conditions during use.",
+      "human_approval": false,
+      "obligations": [
+        "monitoring"
+      ]
+    },
+    "prospective_outcome_reconciliation": {
+      "description": "Reconcile predeclared expected outcomes against observed outcomes without causal overclaim.",
+      "human_approval": false,
+      "obligations": [
+        "outcome_reconciliation"
+      ]
+    },
+    "independent_constraint_reconstruction": {
+      "description": "Independently reconstruct hard constraints and feasibility without invoking candidate decision logic.",
+      "human_approval": false,
+      "obligations": [
+        "independent_verification"
+      ]
+    },
+    "group_disjoint_holdout": {
+      "description": "Hold out independent sites, assets, topologies, time periods or process groups to prevent leakage.",
+      "human_approval": false,
+      "obligations": [
+        "generalization"
+      ]
+    },
+    "compound_fault_stress": {
+      "description": "Exercise pairwise and higher-order fault combinations, boundary cases and common-cause failures.",
+      "human_approval": false,
+      "obligations": [
+        "robustness"
+      ]
+    },
+    "rollback_recovery_test": {
+      "description": "Demonstrate rollback, restart recovery and restoration to a known-safe state.",
+      "human_approval": true,
+      "obligations": [
+        "recovery"
+      ]
+    },
+    "dual_control_authorization": {
+      "description": "Require two separately authorized human/organizational approvals for high-consequence changes.",
+      "human_approval": true,
+      "obligations": [
+        "human_approval",
+        "authorization"
+      ]
+    },
+    "shadow_hardware_in_loop_trial": {
+      "description": "Run bounded shadow or hardware-in-loop trials before delegated planning or physical operation.",
+      "human_approval": true,
+      "obligations": [
+        "staged_validation"
+      ]
+    },
+    "safe_fallback_validation": {
+      "description": "Verify an independent, tested fallback path and its switching conditions.",
+      "human_approval": true,
+      "obligations": [
+        "fallback",
+        "recovery"
+      ]
+    },
+    "independent_safety_case": {
+      "description": "Build a domain-specific safety case with traceable claims, arguments and evidence.",
+      "human_approval": true,
+      "obligations": [
+        "safety_case"
+      ]
+    },
+    "hazard_analysis": {
+      "description": "Perform systematic hazard identification, severity analysis and risk-control verification.",
+      "human_approval": true,
+      "obligations": [
+        "safety",
+        "human_review"
+      ]
+    },
+    "independent_safety_assessment": {
+      "description": "Obtain independent safety assessment with organizational and technical separation.",
+      "human_approval": true,
+      "obligations": [
+        "independent_safety_review"
+      ]
+    },
+    "secure_control_boundary": {
+      "description": "Verify the secure boundary between advisory computation and any external control system.",
+      "human_approval": true,
+      "obligations": [
+        "cybersecurity",
+        "authorization"
+      ]
+    },
+    "hardware_in_loop_qualification": {
+      "description": "Qualify control behavior with hardware-in-loop and fault-injection tests under the declared envelope.",
+      "human_approval": true,
+      "obligations": [
+        "hardware_in_loop"
+      ]
+    },
+    "fail_safe_emergency_stop": {
+      "description": "Demonstrate fail-safe behavior, emergency stop and independent safe-state transition.",
+      "human_approval": true,
+      "obligations": [
+        "fallback",
+        "emergency_response"
+      ]
+    },
+    "continuous_requalification": {
+      "description": "Re-evaluate qualification when dependencies, operating conditions, policy or outcomes change.",
+      "human_approval": false,
+      "obligations": [
+        "continuous_assurance"
+      ]
+    },
+    "field_operational_authorization": {
+      "description": "Obtain explicit site/operator/jurisdiction-specific authorization before field operation.",
+      "human_approval": true,
+      "obligations": [
+        "operational_authorization"
+      ]
+    },
+    "cross_site_replication": {
+      "description": "Replicate key findings across independently held-out sites or operators.",
+      "human_approval": false,
+      "obligations": [
+        "replication"
+      ]
+    },
+    "drift_detection": {
+      "description": "Detect distribution, calibration, sensor and operating-regime drift with predefined response thresholds.",
+      "human_approval": false,
+      "obligations": [
+        "monitoring",
+        "drift_response"
+      ]
+    },
+    "common_cause_scenario_test": {
+      "description": "Stress shared dependencies, regional hazards and correlated failures.",
+      "human_approval": false,
+      "obligations": [
+        "robustness",
+        "resilience"
+      ]
+    },
+    "regional_failover_drill": {
+      "description": "Exercise regional failover, backhaul/power dependency loss and recovery at scale.",
+      "human_approval": true,
+      "obligations": [
+        "resilience",
+        "recovery"
+      ]
+    },
+    "staged_rollout": {
+      "description": "Limit rollout blast radius and require staged expansion based on independent evidence.",
+      "human_approval": true,
+      "obligations": [
+        "staged_validation",
+        "human_review"
+      ]
+    },
+    "incident_response_playbook": {
+      "description": "Define alert ownership, incident escalation, containment and response-time objectives.",
+      "human_approval": true,
+      "obligations": [
+        "incident_response"
+      ]
+    },
+    "independent_monitoring": {
+      "description": "Use an independently instrumented monitor to detect failures missed by the candidate system.",
+      "human_approval": false,
+      "obligations": [
+        "monitoring",
+        "independence"
+      ]
+    },
+    "redundant_measurement": {
+      "description": "Use independent/redundant measurement channels and evaluate disagreement and common-mode faults.",
+      "human_approval": false,
+      "obligations": [
+        "measurement_redundancy"
+      ]
+    },
+    "human_response_sla": {
+      "description": "Specify and exercise human-response ownership and maximum response time.",
+      "human_approval": true,
+      "obligations": [
+        "human_review",
+        "response_time"
+      ]
+    },
+    "degraded_mode_qualification": {
+      "description": "Bound and validate the degraded operating mode and its service floors.",
+      "human_approval": true,
+      "obligations": [
+        "fallback",
+        "service_floor"
+      ]
+    },
+    "tested_safe_stop": {
+      "description": "Provide a tested safe-stop path when no verified fallback is available.",
+      "human_approval": true,
+      "obligations": [
+        "fallback",
+        "emergency_response"
+      ]
+    },
+    "request_measurement_or_abstain": {
+      "description": "Request missing evidence or abstain; do not authorize a recommendation/action under unresolved critical uncertainty.",
+      "human_approval": true,
+      "obligations": [
+        "abstention",
+        "human_review"
+      ]
+    }
+  },
+  "monotonicity_order": {
+    "consequence": [
+      "negligible",
+      "minor",
+      "major",
+      "severe",
+      "catastrophic",
+      "unknown"
+    ],
+    "model_influence": [
+      "informational",
+      "advisory",
+      "constraint_gating",
+      "selection",
+      "direct_actuation",
+      "unknown"
+    ],
+    "exposure": [
+      "single_asset",
+      "site_or_facility",
+      "multi_site",
+      "regional",
+      "national_or_larger",
+      "unknown"
+    ],
+    "reversibility": [
+      "readily_reversible",
+      "costly_or_delayed",
+      "difficult_or_irreversible",
+      "unknown"
+    ],
+    "detectability": [
+      "immediate_and_reliable",
+      "delayed_or_partial",
+      "poor",
+      "unknown"
+    ],
+    "fallback": [
+      "independent_tested_fallback",
+      "human_fallback",
+      "degraded_fallback",
+      "no_verified_fallback",
+      "unknown"
+    ]
+  }
+}
