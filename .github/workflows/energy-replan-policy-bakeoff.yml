@@ -61,6 +61,7 @@ jobs:
           CARGO_NET_OFFLINE: "false"
           AUDITOR_SOURCE_DIR: ${{ runner.temp }}/energy-dispatch-schedule-auditor-source
           AUDITOR_TARGET_DIR: ${{ github.workspace }}/target/energy-replan-policy-bakeoff/auditor-target
+          CARGO_TARGET_DIR: ${{ github.workspace }}/target/energy-replan-policy-bakeoff/auditor-target
         run: |
           set -euo pipefail
           mkdir -p "$AUDITOR_SOURCE_DIR" "$AUDITOR_TARGET_DIR" target/energy-replan-policy-bakeoff/auditor-provenance
