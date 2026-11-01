@@ -263,6 +263,7 @@ struct Action {
 struct Requirement {
     minimum_domains: usize,
     reason_codes: Vec<String>,
+    human_approval_required: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -436,6 +437,9 @@ fn validate_request(value: &Value) -> Result<ValidatedRequest, String> {
     let independence_registry_sha256 = parse_digest(value, "independence_registry_sha256", "request")?;
     let control_mapping_policy_sha256 = parse_digest(value, "control_mapping_policy_sha256", "request")?;
     let decision_tier = required_string(value, "decision_tier", "request")?.to_owned();
+    if !["D0_descriptive", "D1_advisory", "D2_delegated_planning", "D3_autonomous_control"].contains(&decision_tier.as_str()) {
+        return Err(format!("unsupported decision tier '{decision_tier}'"));
+    }
     let evaluated_at = parse_timestamp(value, "evaluated_at", "request")?;
     let budget = Resources::from_value(value.get("resource_budgets").ok_or("resource_budgets missing")?, "resource_budgets")?;
 
@@ -456,7 +460,9 @@ fn validate_request(value: &Value) -> Result<ValidatedRequest, String> {
         if row.get("mandatory").and_then(Value::as_bool) != Some(true) {
             return Err(format!("{context}: every selected control must remain mandatory"));
         }
-        if requirements.insert(id.clone(), Requirement { minimum_domains, reason_codes }).is_some() {
+        let human_approval_required = row.get("human_approval_required").and_then(Value::as_bool)
+            .ok_or_else(|| format!("{context}.human_approval_required must be boolean"))?;
+        if requirements.insert(id.clone(), Requirement { minimum_domains, reason_codes, human_approval_required }).is_some() {
             return Err(format!("duplicate required control '{id}'"));
         }
     }
@@ -788,7 +794,16 @@ fn report_for(
     let domains = control_domains(selected, request);
     let execution_order = topological_selected_order(selected, &request.actions)?;
     let mut selected_actions = Vec::new();
+    let mut human_approval_actions = BTreeSet::new();
+    let mut human_approval_controls = BTreeSet::new();
     let mut human_approvals = BTreeSet::new();
+
+    for (control, requirement) in &request.requirements {
+        if requirement.human_approval_required {
+            human_approval_controls.insert(control.clone());
+            human_approvals.insert(format!("control:{control}"));
+        }
+    }
 
     for id in &execution_order {
         let action = request.actions.get(id).ok_or_else(|| format!("selected action '{id}' disappeared"))?;
@@ -796,7 +811,8 @@ fn report_for(
             request.actions.get(other).is_some_and(|candidate| candidate.prerequisites.contains(id))
         });
         if action.human_approval_required {
-            human_approvals.insert(id.clone());
+            human_approval_actions.insert(id.clone());
+            human_approvals.insert(format!("action:{id}"));
         }
         selected_actions.push(json!({
             "action_id": action.id,
@@ -864,6 +880,8 @@ fn report_for(
         "covered_controls": covered,
         "unsatisfied_controls": unsatisfied,
         "human_approvals_required": human_approvals,
+        "human_approval_controls": human_approval_controls,
+        "human_approval_actions": human_approval_actions,
         "resource_totals": resources.as_value(),
         "resource_budgets": request.budget.as_value(),
         "objective_order": OBJECTIVE_ORDER,
