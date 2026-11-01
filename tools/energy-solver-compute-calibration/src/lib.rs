@@ -650,7 +650,7 @@ mod tests {
     #[test]
     fn rejects_malformed_sha256_and_identifiers() {
         let mut bad_digest = trace(0, SolveStatus::Optimal);
-        bad_digest.mesh_sha256 = "deadbeef".to_owned();
+        bad_digest.mesh_instance_sha256 = "deadbeef".to_owned();
         assert_eq!(bad_digest.validate(), Err(TraceError::InvalidDigest));
 
         let mut bad_id = trace(0, SolveStatus::Optimal);
@@ -932,6 +932,7 @@ mod tests {
     }
 }
 
+#[cfg(test)]
 fn trace_to_csv(trace: &SolverTrace) -> String {
     let optional = |value: Option<u64>| {
         value
