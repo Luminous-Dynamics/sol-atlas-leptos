@@ -864,8 +864,9 @@ mod tests {
         assert_eq!(summary.optimal_count, 20);
         assert_eq!(summary.timeout_count, 4);
         assert_eq!(summary.infeasible_count, 6);
-        assert_eq!(summary.completed_latency_p95_ns, Some(1_200_000));
-        assert!(summary.observed_attempt_elapsed_p95_ns.is_some());
+        assert_eq!(summary.completed_sample_count, 20);
+        assert_eq!(summary.completed_latency_p95_ns, Some(1_180_000));
+        assert_eq!(summary.observed_attempt_elapsed_p95_ns, Some(20_000_000));
     }
 
     #[test]
@@ -892,6 +893,15 @@ mod tests {
         assert_eq!(summary.feasible_count, 4);
         assert_eq!(summary.timeout_count, 4);
         assert_eq!(summary.infeasible_count, 4);
+        assert_eq!(summary.completed_sample_count, 22);
+        assert_eq!(summary.first_feasible_sample_count, 22);
+        assert_eq!(summary.peak_memory_sample_count, 30);
+        assert_eq!(summary.completed_latency_p95_ns, Some(1_200_000));
+        assert_eq!(summary.first_feasible_p95_ns, Some(600_000));
+        assert_eq!(summary.peak_memory_p95_bytes, Some(2_028_672));
+        assert_eq!(summary.observed_attempt_elapsed_p95_ns, Some(20_000_000));
+        assert_eq!(summary.completed_latency_p99_ns, None);
+        assert!(!summary.p99_ready);
     }
 
     #[test]
