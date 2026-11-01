@@ -84,7 +84,7 @@
       {
         "action_id": "artifact-provenance-capture",
         "action_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
-        "mapping_policy_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
         "covers_control_ids": [
           "artifact_identity_integrity"
         ],
@@ -110,7 +110,7 @@
       {
         "action_id": "artifact-provenance-full-audit",
         "action_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
-        "mapping_policy_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
         "covers_control_ids": [
           "artifact_identity_integrity"
         ],
@@ -136,7 +136,7 @@
       {
         "action_id": "numeric-reference-run-a",
         "action_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "mapping_policy_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
         "covers_control_ids": [
           "numerical_known_answers"
         ],
@@ -160,7 +160,7 @@
       {
         "action_id": "numeric-reference-run-b",
         "action_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "mapping_policy_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
         "covers_control_ids": [
           "numerical_known_answers"
         ],
@@ -186,7 +186,7 @@
       {
         "action_id": "numeric-reference-run-c",
         "action_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-        "mapping_policy_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
         "covers_control_ids": [
           "numerical_known_answers"
         ],
@@ -212,7 +212,7 @@
       {
         "action_id": "physical-lab-reservation",
         "action_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-        "mapping_policy_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
         "covers_control_ids": [],
         "prerequisites": [],
         "conflicts_with": [],
@@ -234,7 +234,7 @@
       {
         "action_id": "physical-calibration-lab",
         "action_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-        "mapping_policy_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
         "covers_control_ids": [
           "physical_reference_validation"
         ],
@@ -260,7 +260,7 @@
       {
         "action_id": "physical-independent-field-check",
         "action_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        "mapping_policy_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
         "covers_control_ids": [
           "physical_reference_validation"
         ],
@@ -284,7 +284,7 @@
       {
         "action_id": "uq-calibration-analysis",
         "action_sha256": "1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a",
-        "mapping_policy_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
         "covers_control_ids": [
           "uncertainty_calibration"
         ],
@@ -308,7 +308,7 @@
       {
         "action_id": "ood-heldout-validation",
         "action_sha256": "1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b",
-        "mapping_policy_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
         "covers_control_ids": [
           "out_of_domain_abstention"
         ],
@@ -332,7 +332,7 @@
       {
         "action_id": "combined-uq-ood-audit",
         "action_sha256": "1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c",
-        "mapping_policy_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
         "covers_control_ids": [
           "uncertainty_calibration",
           "out_of_domain_abstention"
@@ -365,9 +365,121 @@
     "exact_search_limit": 20,
     "action_authority": "none",
     "independence_registry_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
-    "control_mapping_policy_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+    "control_mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
     "currency_code": "ZAR",
-    "compute_unit_id": "normalized-compute-micro-unit-v1"
+    "compute_unit_id": "normalized-compute-micro-unit-v1",
+    "control_mappings": [
+      {
+        "mapping_id": "map-artifact-provenance-capture-artifact_identity_integrity",
+        "action_id": "artifact-provenance-capture",
+        "action_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+        "control_id": "artifact_identity_integrity",
+        "evidence_dimension": "software_conformance",
+        "proof_method_id": "content_digest_and_source_binding",
+        "required_verifier_role": "independent_provenance_verifier",
+        "independence_domain_id": "repo-integrity-team"
+      },
+      {
+        "mapping_id": "map-artifact-provenance-full-audit-artifact_identity_integrity",
+        "action_id": "artifact-provenance-full-audit",
+        "action_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+        "control_id": "artifact_identity_integrity",
+        "evidence_dimension": "software_conformance",
+        "proof_method_id": "content_digest_and_source_binding",
+        "required_verifier_role": "independent_provenance_verifier",
+        "independence_domain_id": "independent-provenance-review"
+      },
+      {
+        "mapping_id": "map-combined-uq-ood-audit-out_of_domain_abstention",
+        "action_id": "combined-uq-ood-audit",
+        "action_sha256": "1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c",
+        "control_id": "out_of_domain_abstention",
+        "evidence_dimension": "robustness",
+        "proof_method_id": "heldout_shift_and_abstention_stress",
+        "required_verifier_role": "independent_ood_verifier",
+        "independence_domain_id": "shared-quality-assurance-team"
+      },
+      {
+        "mapping_id": "map-combined-uq-ood-audit-uncertainty_calibration",
+        "action_id": "combined-uq-ood-audit",
+        "action_sha256": "1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c",
+        "control_id": "uncertainty_calibration",
+        "evidence_dimension": "uncertainty_credibility",
+        "proof_method_id": "heldout_calibration_and_proper_score_review",
+        "required_verifier_role": "independent_uncertainty_reviewer",
+        "independence_domain_id": "shared-quality-assurance-team"
+      },
+      {
+        "mapping_id": "map-numeric-reference-run-a-numerical_known_answers",
+        "action_id": "numeric-reference-run-a",
+        "action_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "control_id": "numerical_known_answers",
+        "evidence_dimension": "numerical_verification",
+        "proof_method_id": "independent_known_answer_replay",
+        "required_verifier_role": "independent_numerical_verifier",
+        "independence_domain_id": "solver-team-a"
+      },
+      {
+        "mapping_id": "map-numeric-reference-run-b-numerical_known_answers",
+        "action_id": "numeric-reference-run-b",
+        "action_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "control_id": "numerical_known_answers",
+        "evidence_dimension": "numerical_verification",
+        "proof_method_id": "independent_known_answer_replay",
+        "required_verifier_role": "independent_numerical_verifier",
+        "independence_domain_id": "independent-oracle-b"
+      },
+      {
+        "mapping_id": "map-numeric-reference-run-c-numerical_known_answers",
+        "action_id": "numeric-reference-run-c",
+        "action_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "control_id": "numerical_known_answers",
+        "evidence_dimension": "numerical_verification",
+        "proof_method_id": "independent_known_answer_replay",
+        "required_verifier_role": "independent_numerical_verifier",
+        "independence_domain_id": "vendor-neutral-lab-c"
+      },
+      {
+        "mapping_id": "map-ood-heldout-validation-out_of_domain_abstention",
+        "action_id": "ood-heldout-validation",
+        "action_sha256": "1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b",
+        "control_id": "out_of_domain_abstention",
+        "evidence_dimension": "robustness",
+        "proof_method_id": "heldout_shift_and_abstention_stress",
+        "required_verifier_role": "independent_ood_verifier",
+        "independence_domain_id": "heldout-site-validation-team"
+      },
+      {
+        "mapping_id": "map-physical-calibration-lab-physical_reference_validation",
+        "action_id": "physical-calibration-lab",
+        "action_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "control_id": "physical_reference_validation",
+        "evidence_dimension": "physical_validation",
+        "proof_method_id": "calibrated_physical_reference_comparison",
+        "required_verifier_role": "independent_physical_verifier",
+        "independence_domain_id": "accredited-test-laboratory"
+      },
+      {
+        "mapping_id": "map-physical-independent-field-check-physical_reference_validation",
+        "action_id": "physical-independent-field-check",
+        "action_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "control_id": "physical_reference_validation",
+        "evidence_dimension": "physical_validation",
+        "proof_method_id": "calibrated_physical_reference_comparison",
+        "required_verifier_role": "independent_physical_verifier",
+        "independence_domain_id": "site-measurement-crew"
+      },
+      {
+        "mapping_id": "map-uq-calibration-analysis-uncertainty_calibration",
+        "action_id": "uq-calibration-analysis",
+        "action_sha256": "1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a",
+        "control_id": "uncertainty_calibration",
+        "evidence_dimension": "uncertainty_credibility",
+        "proof_method_id": "heldout_calibration_and_proper_score_review",
+        "required_verifier_role": "independent_uncertainty_reviewer",
+        "independence_domain_id": "uncertainty-analysis-group"
+      }
+    ]
   },
   "expected": {
     "plan_status": "optimal_plan",
