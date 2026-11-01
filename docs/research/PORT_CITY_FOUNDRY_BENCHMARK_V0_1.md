@@ -466,3 +466,21 @@ Real-world decisions require local data, qualified independent engineering, envi
 ---
 
 **Status note:** This document is a proposed benchmark contract. No code implementation, physical simulation, site assessment, independent validation, or industry-performance comparison is claimed by this specification.
+
+
+## 15. Geographic discovery and ex-post outcome extensions
+
+The parent programme now has three explicitly separated follow-ons:
+
+- [GEO-OPPORTUNITY-001 #377](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/377): discover coast–hinterland opportunity systems and compare natural, engineered, inland, dry-port and no-build alternatives. Its research note is [PORT_CITY_GEOGRAPHIC_OPPORTUNITY_DISCOVERY_V0_1.md](PORT_CITY_GEOGRAPHIC_OPPORTUNITY_DISCOVERY_V0_1.md).
+- [PCF-CORPUS-001 #378](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/378): 30+ frozen synthetic alternatives and an independent verifier. Draft implementation: [PR #379](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/379).
+- [PORT-OUTCOME-001 #380](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/380): ex-post causal outcome and forecast-calibration benchmark for completed, delayed, underused or canceled port/corridor projects.
+
+The ex-post extension responds to a 2026 systematic review of 90 peer-reviewed port–hinterland studies. Its synthesis spans port choice, corridor competition, dry ports, governance, multimodal operations, digitalization, sustainability and resilience, and reports that much of the evidence remains model-based with limited causal identification. The Foundry should therefore distinguish modelled counterfactuals from measured outcomes and use pre-registered event-study, difference-in-differences, synthetic-control or other defensible designs where data and assumptions permit. Source: https://doi.org/10.3390/jmse14151434
+
+The geographic extension also incorporates the 24 September 2026 *Nature Communications* barrier-island field study, which found morphology-dependent sediment redistribution and incomplete post-storm recovery in its studied system. Generic island geometries and unvalidated sediment assumptions must not be treated as stable designs. Source: https://www.nature.com/articles/s41467-026-77143-6
+
+These additions expand the benchmark from "can we generate an alternative?" to:
+1. can we discover a credible opportunity without missing important candidate classes?
+2. can we preserve hard evidence and engineering boundaries while comparing alternatives?
+3. can we determine after the project whether the forecasted regional value actually materialized?
