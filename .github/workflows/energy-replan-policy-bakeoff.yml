@@ -185,7 +185,7 @@ jobs:
           printf '%s\n' "$status"
           unexpected=""
           if [ -n "$status" ]; then
-            unexpected="$(printf '%s' "$status" | grep -vE '^\?\? target/energy-replan-policy-bakeoff/' || true)"
+            unexpected="$(printf '%s' "$status" | grep -vE '^\?\? (target/energy-replan-policy-bakeoff/|tools/energy-replan-policy-bakeoff/target/)' || true)"
           fi
           test -z "$unexpected"
 
