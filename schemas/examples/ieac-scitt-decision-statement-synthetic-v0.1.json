@@ -1,0 +1,175 @@
+{
+  "fixture_schema_version": "luminous.ieac-scitt-fixture-corpus.v0.1",
+  "fixture_status": "synthetic_only",
+  "note": "Synthetic control fixture; no real signer, asset, measurement, SCITT service, or operational authority is represented. Artifact digests refer to labelled synthetic byte strings that are not included.",
+  "statement_content_type": "application/vnd.luminous.ieac.scitt-decision-statement.v0.1+json",
+  "events": [
+    {
+      "schema_version": "luminous.ieac-scitt-decision-statement.v0.1",
+      "decision_case_id": "case-synthetic-0001",
+      "subject_id": "urn:example:asset:pump-17",
+      "issued_at": "2026-11-01T00:00:00Z",
+      "ieac_profile": {
+        "profile_id": "luminous.ieac-runtime-admission.v0.1",
+        "profile_sha256": "f608f6e912f71b3db4cdd1ffaacba590fdbc1dc29a8af6f4bc3af999cd57c749"
+      },
+      "claim_ceiling": "record_only",
+      "action_authority": "none",
+      "event_id": "event-request-001",
+      "event_kind": "request_committed",
+      "issuer_id": "urn:example:issuer:site-gateway",
+      "issuer_stream_id": "stream:case-synthetic-0001:site-gateway",
+      "issuer_sequence": 1,
+      "previous_event_payload_sha256": null,
+      "causal_parent_payload_sha256": [],
+      "disposition": null,
+      "artifact_bindings": [
+        {
+          "binding_id": "request-001",
+          "role": "ieac_signed_envelope",
+          "media_type": "application/vnd.luminous.ieac.signed-envelope.v0.2+json",
+          "sha256": "d486d39ee81b411ac467f44e51ee21779c3333877afc98199f06c45738ffe12e",
+          "disclosure": "digest_only"
+        }
+      ]
+    },
+    {
+      "schema_version": "luminous.ieac-scitt-decision-statement.v0.1",
+      "decision_case_id": "case-synthetic-0001",
+      "subject_id": "urn:example:asset:pump-17",
+      "issued_at": "2026-11-01T00:00:00Z",
+      "ieac_profile": {
+        "profile_id": "luminous.ieac-runtime-admission.v0.1",
+        "profile_sha256": "f608f6e912f71b3db4cdd1ffaacba590fdbc1dc29a8af6f4bc3af999cd57c749"
+      },
+      "claim_ceiling": "record_only",
+      "action_authority": "none",
+      "event_id": "event-verdict-001",
+      "event_kind": "admission_verdict",
+      "issuer_id": "urn:example:issuer:ieac-evaluator",
+      "issuer_stream_id": "stream:case-synthetic-0001:ieac-evaluator",
+      "issuer_sequence": 1,
+      "previous_event_payload_sha256": null,
+      "causal_parent_payload_sha256": [
+        "22c6b6f0b6fabb596c0c4c0db484e2a68ce637d53a9f26a6afed578fb8a5e762"
+      ],
+      "disposition": "admit_descriptive",
+      "artifact_bindings": [
+        {
+          "binding_id": "case-ledger-001",
+          "role": "evidence_ledger",
+          "media_type": "application/vnd.luminous.ieac.case-ledger.v0.1+jsonl",
+          "sha256": "501be645ab5b7926d20a0ee7adac8eb38c3201d14bbcdb1dcd0874041dbdba97",
+          "disclosure": "digest_only"
+        },
+        {
+          "binding_id": "candidate-report-001",
+          "role": "candidate_report",
+          "media_type": "application/vnd.luminous.ieac.admission-report.v0.1+json",
+          "sha256": "130dfb3542e0a90df6f30fc0eb39d459c4eafe9c5359e4420f6dbc7abc23ed80",
+          "disclosure": "digest_only"
+        },
+        {
+          "binding_id": "independent-verifier-001",
+          "role": "independent_verifier_report",
+          "media_type": "application/vnd.luminous.ieac.verifier-report.v0.1+json",
+          "sha256": "837fc59e17894a485e5b5e5ec980e549ce2ad17604d2bf724c477a4886fe0e29",
+          "disclosure": "digest_only"
+        }
+      ]
+    },
+    {
+      "schema_version": "luminous.ieac-scitt-decision-statement.v0.1",
+      "decision_case_id": "case-synthetic-0001",
+      "subject_id": "urn:example:asset:pump-17",
+      "issued_at": "2026-11-01T00:00:00Z",
+      "ieac_profile": {
+        "profile_id": "luminous.ieac-runtime-admission.v0.1",
+        "profile_sha256": "f608f6e912f71b3db4cdd1ffaacba590fdbc1dc29a8af6f4bc3af999cd57c749"
+      },
+      "claim_ceiling": "record_only",
+      "action_authority": "none",
+      "event_id": "event-outcome-001",
+      "event_kind": "outcome_reconciliation",
+      "issuer_id": "urn:example:issuer:telemetry-witness",
+      "issuer_stream_id": "stream:case-synthetic-0001:telemetry-witness",
+      "issuer_sequence": 1,
+      "previous_event_payload_sha256": null,
+      "causal_parent_payload_sha256": [
+        "41db653f69795d879c42b8fcbc59f0646ced7fae5d23be2f036076260098e2f2"
+      ],
+      "disposition": null,
+      "artifact_bindings": [
+        {
+          "binding_id": "synthetic-outcome-001",
+          "role": "outcome_record",
+          "media_type": "application/vnd.luminous.ieac.outcome-record.v0.1+json",
+          "sha256": "a9fad27d0651a762b595b20e04ea72ef4509270a3c5f97a8a60e263dca9be952",
+          "disclosure": "digest_only"
+        }
+      ]
+    },
+    {
+      "schema_version": "luminous.ieac-scitt-decision-statement.v0.1",
+      "decision_case_id": "case-synthetic-0001",
+      "subject_id": "urn:example:asset:pump-17",
+      "issued_at": "2026-11-01T00:00:00Z",
+      "ieac_profile": {
+        "profile_id": "luminous.ieac-runtime-admission.v0.1",
+        "profile_sha256": "f608f6e912f71b3db4cdd1ffaacba590fdbc1dc29a8af6f4bc3af999cd57c749"
+      },
+      "claim_ceiling": "record_only",
+      "action_authority": "none",
+      "event_id": "event-verdict-002",
+      "event_kind": "admission_verdict",
+      "issuer_id": "urn:example:issuer:ieac-evaluator",
+      "issuer_stream_id": "stream:case-synthetic-0001:ieac-evaluator",
+      "issuer_sequence": 2,
+      "previous_event_payload_sha256": "41db653f69795d879c42b8fcbc59f0646ced7fae5d23be2f036076260098e2f2",
+      "causal_parent_payload_sha256": [
+        "f06e4eef3265936764da6811356e3cfe74049c7191e0189038a6cc9b5c9cd8ea"
+      ],
+      "disposition": "abstain",
+      "artifact_bindings": [
+        {
+          "binding_id": "updated-case-ledger-002",
+          "role": "evidence_ledger",
+          "media_type": "application/vnd.luminous.ieac.case-ledger.v0.1+jsonl",
+          "sha256": "0ba25344811ef7af4aa472464482fb5d4ab532319e6c19dc4df0742695125764",
+          "disclosure": "digest_only"
+        },
+        {
+          "binding_id": "updated-verifier-002",
+          "role": "independent_verifier_report",
+          "media_type": "application/vnd.luminous.ieac.verifier-report.v0.1+json",
+          "sha256": "2742ce57eac4e658aca4ec430ff35ff6e7a0e1cd376771f3e414d5d3806ac220",
+          "disclosure": "digest_only"
+        }
+      ]
+    }
+  ],
+  "expected": {
+    "event_payload_sha256": {
+      "event-request-001": "22c6b6f0b6fabb596c0c4c0db484e2a68ce637d53a9f26a6afed578fb8a5e762",
+      "event-verdict-001": "41db653f69795d879c42b8fcbc59f0646ced7fae5d23be2f036076260098e2f2",
+      "event-outcome-001": "f06e4eef3265936764da6811356e3cfe74049c7191e0189038a6cc9b5c9cd8ea",
+      "event-verdict-002": "6b2f4dbe9036e44a1743ad1f4fb50b1ededa1598cb716c20f445e9b050146eb9"
+    },
+    "issuer_subject_streams": 3,
+    "event_count": 4,
+    "causal_edges": 3,
+    "same_issuer_sequence_advances": 1,
+    "latest_ieac_disposition": "abstain",
+    "action_authority": "none",
+    "expected_fail_closed_conditions": [
+      "missing_scitt_receipt",
+      "receipt_for_different_statement",
+      "cwt_issuer_payload_mismatch",
+      "cwt_subject_payload_mismatch",
+      "missing_predecessor",
+      "same_sequence_different_digest",
+      "unanchored_checkpoint",
+      "unavailable_receipt_keyset"
+    ]
+  }
+}
