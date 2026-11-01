@@ -1068,7 +1068,10 @@ fn marginal_cost_is_better(
         ),
         (candidate_cost.reviewer_minutes, best_cost.reviewer_minutes),
         (candidate_cost.duration_minutes, best_cost.duration_minutes),
-        (candidate_cost.compute_microunits, best_cost.compute_microunits),
+        (
+            candidate_cost.compute_microunits,
+            best_cost.compute_microunits,
+        ),
     ];
 
     for (candidate, best) in comparisons {
@@ -1115,16 +1118,14 @@ fn greedy_plan(request: &ValidatedRequest) -> Option<BTreeSet<String>> {
             let score = resources.score(&candidate);
             let replace = match &best {
                 None => true,
-                Some((best_gain, best_marginal, best_score, _)) => {
-                    marginal_cost_is_better(
-                        marginal_resources,
-                        gain,
-                        &score,
-                        *best_marginal,
-                        *best_gain,
-                        best_score,
-                    )
-                }
+                Some((best_gain, best_marginal, best_score, _)) => marginal_cost_is_better(
+                    marginal_resources,
+                    gain,
+                    &score,
+                    *best_marginal,
+                    *best_gain,
+                    best_score,
+                ),
             };
             if replace {
                 best = Some((gain, marginal_resources, score, candidate));
