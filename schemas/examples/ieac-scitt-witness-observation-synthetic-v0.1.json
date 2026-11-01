@@ -1,0 +1,164 @@
+{
+  "fixture_schema_version": "luminous.ieac-scitt-witness-fixture.v0.1",
+  "fixture_status": "synthetic_only",
+  "note": "The digests are synthetic labels. No TS signature, witness signature or VDS proof bytes are included. These records are inputs for structural classification only.",
+  "observations": [
+    {
+      "schema_version": "luminous.ieac-scitt-witness-observation.v0.1",
+      "observation_id": "observation-ts-a-size-9-witness-a",
+      "observed_at": "2026-11-01T08:00:00Z",
+      "observer_id": "witness:audit-01",
+      "observer_operator_id": "operator:witness-alpha",
+      "observer_build_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "transparency_service_id": "ts:service-a",
+      "transparency_service_operator_id": "operator:ts-alpha",
+      "vds_type": "CCF_LEDGER_SHA256",
+      "log_id": "log:service-a:primary",
+      "receipt_keyset_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "registration_policy_sha256": "1212121212121212121212121212121212121212121212121212121212121212",
+      "signed_tree_head": {
+        "tree_size": 9,
+        "root_sha256": "1313131313131313131313131313131313131313131313131313131313131313",
+        "issued_at": "2026-11-01T07:59:00Z",
+        "signed_bytes_sha256": "1414141414141414141414141414141414141414141414141414141414141414"
+      },
+      "consistency_from": null,
+      "consistency_proof_sha256": null,
+      "statement_digests": [
+        "2121212121212121212121212121212121212121212121212121212121212121"
+      ],
+      "observation_method": "authenticated_service_api"
+    },
+    {
+      "schema_version": "luminous.ieac-scitt-witness-observation.v0.1",
+      "observation_id": "observation-ts-a-size-10-witness-a",
+      "observed_at": "2026-11-01T08:01:00Z",
+      "observer_id": "witness:audit-01",
+      "observer_operator_id": "operator:witness-alpha",
+      "observer_build_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "transparency_service_id": "ts:service-a",
+      "transparency_service_operator_id": "operator:ts-alpha",
+      "vds_type": "CCF_LEDGER_SHA256",
+      "log_id": "log:service-a:primary",
+      "receipt_keyset_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "registration_policy_sha256": "1212121212121212121212121212121212121212121212121212121212121212",
+      "signed_tree_head": {
+        "tree_size": 10,
+        "root_sha256": "1515151515151515151515151515151515151515151515151515151515151515",
+        "issued_at": "2026-11-01T08:00:30Z",
+        "signed_bytes_sha256": "1616161616161616161616161616161616161616161616161616161616161616"
+      },
+      "consistency_from": {
+        "tree_size": 9,
+        "root_sha256": "1313131313131313131313131313131313131313131313131313131313131313"
+      },
+      "consistency_proof_sha256": "1717171717171717171717171717171717171717171717171717171717171717",
+      "statement_digests": [
+        "2121212121212121212121212121212121212121212121212121212121212121",
+        "2222222222222222222222222222222222222222222222222222222222222222"
+      ],
+      "observation_method": "authenticated_service_api"
+    },
+    {
+      "schema_version": "luminous.ieac-scitt-witness-observation.v0.1",
+      "observation_id": "observation-ts-a-size-10-witness-b",
+      "observed_at": "2026-11-01T08:01:03Z",
+      "observer_id": "witness:audit-02",
+      "observer_operator_id": "operator:witness-beta",
+      "observer_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "transparency_service_id": "ts:service-a",
+      "transparency_service_operator_id": "operator:ts-alpha",
+      "vds_type": "CCF_LEDGER_SHA256",
+      "log_id": "log:service-a:primary",
+      "receipt_keyset_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "registration_policy_sha256": "1212121212121212121212121212121212121212121212121212121212121212",
+      "signed_tree_head": {
+        "tree_size": 10,
+        "root_sha256": "1515151515151515151515151515151515151515151515151515151515151515",
+        "issued_at": "2026-11-01T08:00:30Z",
+        "signed_bytes_sha256": "1616161616161616161616161616161616161616161616161616161616161616"
+      },
+      "consistency_from": {
+        "tree_size": 9,
+        "root_sha256": "1313131313131313131313131313131313131313131313131313131313131313"
+      },
+      "consistency_proof_sha256": "1717171717171717171717171717171717171717171717171717171717171717",
+      "statement_digests": [
+        "2121212121212121212121212121212121212121212121212121212121212121",
+        "2222222222222222222222222222222222222222222222222222222222222222"
+      ],
+      "observation_method": "independent_peer_exchange"
+    },
+    {
+      "schema_version": "luminous.ieac-scitt-witness-observation.v0.1",
+      "observation_id": "observation-ts-a-size-10-fork-candidate",
+      "observed_at": "2026-11-01T08:01:05Z",
+      "observer_id": "witness:audit-03",
+      "observer_operator_id": "operator:witness-gamma",
+      "observer_build_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "transparency_service_id": "ts:service-a",
+      "transparency_service_operator_id": "operator:ts-alpha",
+      "vds_type": "CCF_LEDGER_SHA256",
+      "log_id": "log:service-a:primary",
+      "receipt_keyset_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "registration_policy_sha256": "1212121212121212121212121212121212121212121212121212121212121212",
+      "signed_tree_head": {
+        "tree_size": 10,
+        "root_sha256": "3131313131313131313131313131313131313131313131313131313131313131",
+        "issued_at": "2026-11-01T08:00:30Z",
+        "signed_bytes_sha256": "3232323232323232323232323232323232323232323232323232323232323232"
+      },
+      "consistency_from": {
+        "tree_size": 9,
+        "root_sha256": "1313131313131313131313131313131313131313131313131313131313131313"
+      },
+      "consistency_proof_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+      "statement_digests": [
+        "2121212121212121212121212121212121212121212121212121212121212121"
+      ],
+      "observation_method": "independent_peer_exchange"
+    },
+    {
+      "schema_version": "luminous.ieac-scitt-witness-observation.v0.1",
+      "observation_id": "observation-ts-b-size-7-independent",
+      "observed_at": "2026-11-01T08:01:10Z",
+      "observer_id": "witness:audit-01",
+      "observer_operator_id": "operator:witness-alpha",
+      "observer_build_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "transparency_service_id": "ts:service-b",
+      "transparency_service_operator_id": "operator:ts-beta",
+      "vds_type": "CCF_LEDGER_SHA256",
+      "log_id": "log:service-b:primary",
+      "receipt_keyset_sha256": "4141414141414141414141414141414141414141414141414141414141414141",
+      "registration_policy_sha256": "4242424242424242424242424242424242424242424242424242424242424242",
+      "signed_tree_head": {
+        "tree_size": 7,
+        "root_sha256": "4343434343434343434343434343434343434343434343434343434343434343",
+        "issued_at": "2026-11-01T08:00:45Z",
+        "signed_bytes_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+      },
+      "consistency_from": null,
+      "consistency_proof_sha256": null,
+      "statement_digests": [
+        "2121212121212121212121212121212121212121212121212121212121212121"
+      ],
+      "observation_method": "authenticated_service_api"
+    }
+  ],
+  "expected_structural_comparison": {
+    "same_ts_same_size_equal_head_pairs": [
+      ["observation-ts-a-size-10-witness-a", "observation-ts-a-size-10-witness-b"]
+    ],
+    "same_ts_same_size_conflict_candidate_pairs": [
+      ["observation-ts-a-size-10-witness-a", "observation-ts-a-size-10-fork-candidate"],
+      ["observation-ts-a-size-10-witness-b", "observation-ts-a-size-10-fork-candidate"]
+    ],
+    "cross_ts_same_statement_digest_pairs_are_not_root_comparisons": [
+      ["observation-ts-a-size-10-witness-a", "observation-ts-b-size-7-independent"]
+    ],
+    "shared_statement_digest": "2121212121212121212121212121212121212121212121212121212121212121",
+    "witness_operator_diversity_for_equal_head": 2,
+    "cross_ts_root_comparison": "not_comparable",
+    "fixture_status": "synthetic_only"
+  }
+}
