@@ -101,20 +101,15 @@ impl<'de> Deserialize<'de> for StrictJson {
 
 #[derive(Clone, Debug)]
 struct Domain {
-    id: String,
     organization_id: String,
     status: String,
     dependency_completeness: String,
     dependency_ids: BTreeSet<String>,
     common_cause_group_ids: BTreeSet<String>,
-    valid_from: String,
-    valid_until: Option<String>,
 }
 
 #[derive(Clone, Debug)]
 struct DependencyNode {
-    id: String,
-    dependency_type: String,
     status: String,
     common_cause_group_ids: BTreeSet<String>,
 }
@@ -142,6 +137,14 @@ struct ControlRequirement {
 struct SourceResolution {
     source_id: String,
     domain_id: String,
+    organization_id: String,
+    source_kind: String,
+    source_identity_sha256: String,
+    evidence_state: String,
+    rights_status: String,
+    rights_evidence_sha256: String,
+    verified_at: String,
+    valid_until: Option<String>,
     dependency_completeness: String,
     dependency_closure: BTreeSet<String>,
     common_cause_group_ids: BTreeSet<String>,
@@ -161,10 +164,7 @@ struct RegistryResolution {
     registry_version: String,
     authority_id: String,
     registry_sha256: String,
-    groups: BTreeMap<String, String>,
-    nodes: BTreeMap<String, DependencyNode>,
     domains: BTreeMap<String, Domain>,
-    dependency_edges: BTreeMap<String, BTreeSet<String>>,
     resolved_domains: BTreeMap<String, SourceResolution>,
 }
 
@@ -340,6 +340,12 @@ fn build_registry(
         let context = format!("common_cause_groups[{index}]");
         let id = required_string(row, "group_id", &context)?.to_owned();
         let cause_type = required_string(row, "cause_type", &context)?.to_owned();
+        if !["upstream_data_feed", "calibration_lineage", "reference_standard", "software_build",
+            "test_harness", "operator_process", "facility", "power_supply", "communications",
+            "shared_environment", "maintenance_process", "other"].contains(&cause_type.as_str())
+        {
+            return Err(format!("{context} has an unsupported cause_type"));
+        }
         if groups.insert(id.clone(), cause_type).is_some() {
             return Err(format!("duplicate common-cause group '{id}'"));
         }
@@ -349,7 +355,13 @@ fn build_registry(
     for (index, row) in array(registry, "dependency_nodes", "registry")?.iter().enumerate() {
         let context = format!("dependency_nodes[{index}]");
         let id = required_string(row, "dependency_id", &context)?.to_owned();
-        let dependency_type = required_string(row, "dependency_type", &context)?.to_owned();
+        let dependency_type = required_string(row, "dependency_type", &context)?;
+        if !["upstream_data_feed", "calibration_chain", "reference_standard", "software_build",
+            "test_harness", "operator_process", "facility", "power_supply", "communications",
+            "shared_environment", "maintenance_process", "other"].contains(&dependency_type)
+        {
+            return Err(format!("{context} has an unsupported dependency_type"));
+        }
         let status = required_string(row, "status", &context)?.to_owned();
         if !["active", "revoked"].contains(&status.as_str()) {
             return Err(format!("{context} has unsupported status"));
@@ -359,7 +371,7 @@ fn build_registry(
             return Err(format!("{context} refers to an unknown common-cause group"));
         }
         if nodes.insert(id.clone(), DependencyNode {
-            id: id.clone(), dependency_type, status, common_cause_group_ids: group_ids,
+            status, common_cause_group_ids: group_ids,
         }).is_some() {
             return Err(format!("duplicate dependency node '{id}'"));
         }
@@ -404,14 +416,20 @@ fn build_registry(
         let valid_until = parse_optional_timestamp(row, "valid_until", &context)?;
         checked_current(&valid_from, valid_until.as_deref(), evaluated_at, &context)?;
         if domains.insert(id.clone(), Domain {
-            id: id.clone(), organization_id, status, dependency_completeness,
-            dependency_ids, common_cause_group_ids, valid_from, valid_until,
+            organization_id, status, dependency_completeness,
+            dependency_ids, common_cause_group_ids,
         }).is_some() {
             return Err(format!("duplicate source domain '{id}'"));
         }
     }
 
     let mut memo = BTreeMap::new();
+    // Validate every active dependency node, including unreferenced nodes, for cycles/revocation.
+    for id in nodes.keys() {
+        if nodes[id].status == "active" {
+            let _ = expand_dependency(id, &nodes, &edges, &mut BTreeSet::new(), &mut memo)?;
+        }
+    }
     let mut resolved_domains = BTreeMap::new();
     for (id, domain) in &domains {
         if domain.status != "active" {
@@ -436,7 +454,15 @@ fn build_registry(
         };
         resolved_domains.insert(id.clone(), SourceResolution {
             source_id: String::new(),
-            domain_id: domain.id.clone(),
+            domain_id: id.clone(),
+            organization_id: domain.organization_id.clone(),
+            source_kind: String::new(),
+            source_identity_sha256: String::new(),
+            evidence_state: String::new(),
+            rights_status: String::new(),
+            rights_evidence_sha256: String::new(),
+            verified_at: String::new(),
+            valid_until: None,
             dependency_completeness: domain.dependency_completeness.clone(),
             dependency_closure: closure,
             common_cause_group_ids: groups_for_domain,
@@ -446,7 +472,7 @@ fn build_registry(
 
     Ok(RegistryResolution {
         registry_id, registry_version, authority_id, registry_sha256: actual_digest,
-        groups, nodes, domains, dependency_edges: edges, resolved_domains,
+        domains, resolved_domains,
     })
 }
 
@@ -569,6 +595,13 @@ fn validate_request(request: &Value, request_bytes: &[u8]) -> Result<Inputs, Str
             .ok_or_else(|| format!("source '{}' has no resolved registry domain", source.id))?
             .clone();
         resolved.source_id = id.clone();
+        resolved.source_kind = source.source_kind.clone();
+        resolved.source_identity_sha256 = source.identity_sha256.clone();
+        resolved.evidence_state = source.evidence_state.clone();
+        resolved.rights_status = source.rights_status.clone();
+        resolved.rights_evidence_sha256 = source.rights_evidence_sha256.clone();
+        resolved.verified_at = source.verified_at.clone();
+        resolved.valid_until = source.valid_until.clone();
         source_resolutions.insert(id.clone(), resolved);
     }
 
@@ -659,8 +692,15 @@ fn greedy_independent_lower_bound(
     candidates: &[String],
     conflicts: &BTreeMap<(String, String), Conflict>,
 ) -> BTreeSet<String> {
+    let candidate_set: BTreeSet<&str> = candidates.iter().map(String::as_str).collect();
     let mut ranked: Vec<(usize, String)> = candidates.iter().map(|id| {
-        let degree = conflicts.keys().filter(|(left, right)| left == id || right == id).count();
+        let degree = conflicts.keys()
+            .filter(|(left, right)| {
+                (left == id || right == id)
+                    && candidate_set.contains(left.as_str())
+                    && candidate_set.contains(right.as_str())
+            })
+            .count();
         (degree, id.clone())
     }).collect();
     ranked.sort();
@@ -692,6 +732,14 @@ fn evaluate(request_value: &Value, request_bytes: &[u8]) -> Result<Value, String
         json!({
             "source_id": row.source_id,
             "domain_id": row.domain_id,
+            "organization_id": row.organization_id,
+            "source_kind": row.source_kind,
+            "source_identity_sha256": row.source_identity_sha256,
+            "evidence_state": row.evidence_state,
+            "rights_status": row.rights_status,
+            "rights_evidence_sha256": row.rights_evidence_sha256,
+            "verified_at": row.verified_at,
+            "valid_until": row.valid_until,
             "dependency_completeness": row.dependency_completeness,
             "dependency_closure": row.dependency_closure,
             "common_cause_group_ids": row.common_cause_group_ids,
@@ -739,7 +787,7 @@ fn evaluate(request_value: &Value, request_bytes: &[u8]) -> Result<Value, String
         });
         let registry_model_disposition = if threshold_met {
             "qualified_by_registry_model"
-        } else if unresolved_present {
+        } else if unresolved_present || optimality_status == "lower_bound_not_proven" {
             "indeterminate_under_registry_model"
         } else {
             "not_qualified_by_registry_model"
@@ -749,8 +797,8 @@ fn evaluate(request_value: &Value, request_bytes: &[u8]) -> Result<Value, String
             "minimum_independent_sources": requirement.minimum_independent_sources,
             "candidate_source_ids": candidates,
             "conflicting_source_pairs": control_conflicts,
-            "maximum_independent_source_ids": independent_set,
-            "maximum_independent_count": independent_set.len(),
+            "independent_source_ids": independent_set,
+            "independent_source_count": independent_set.len(),
             "threshold_met": threshold_met,
             "method": method,
             "optimality_status": optimality_status,
@@ -765,6 +813,7 @@ fn evaluate(request_value: &Value, request_bytes: &[u8]) -> Result<Value, String
         "registry_sha256": inputs.registry.registry_sha256,
         "registry_id": inputs.registry.registry_id,
         "registry_version": inputs.registry.registry_version,
+        "registry_authority_id": inputs.registry.authority_id,
         "evaluated_at": inputs.evaluated_at,
         "control_results": control_results,
         "source_resolutions": source_resolutions,
