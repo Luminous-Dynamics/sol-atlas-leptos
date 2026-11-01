@@ -94,7 +94,8 @@
           "compute_microunits": 10,
           "duration_minutes": 15
         },
-        "human_approval_required": false
+        "human_approval_required": false,
+        "rights_status": "verified"
       },
       {
         "action_id": "artifact-provenance-full-audit",
@@ -116,7 +117,8 @@
           "compute_microunits": 20,
           "duration_minutes": 30
         },
-        "human_approval_required": true
+        "human_approval_required": true,
+        "rights_status": "verified"
       },
       {
         "action_id": "numeric-reference-run-a",
@@ -136,7 +138,8 @@
           "compute_microunits": 100,
           "duration_minutes": 30
         },
-        "human_approval_required": false
+        "human_approval_required": false,
+        "rights_status": "verified"
       },
       {
         "action_id": "numeric-reference-run-b",
@@ -158,7 +161,8 @@
           "compute_microunits": 150,
           "duration_minutes": 45
         },
-        "human_approval_required": false
+        "human_approval_required": false,
+        "rights_status": "verified"
       },
       {
         "action_id": "numeric-reference-run-c",
@@ -180,7 +184,8 @@
           "compute_microunits": 100,
           "duration_minutes": 40
         },
-        "human_approval_required": true
+        "human_approval_required": true,
+        "rights_status": "verified"
       },
       {
         "action_id": "physical-lab-reservation",
@@ -198,7 +203,8 @@
           "compute_microunits": 0,
           "duration_minutes": 60
         },
-        "human_approval_required": false
+        "human_approval_required": false,
+        "rights_status": "verified"
       },
       {
         "action_id": "physical-calibration-lab",
@@ -220,7 +226,8 @@
           "compute_microunits": 50,
           "duration_minutes": 90
         },
-        "human_approval_required": true
+        "human_approval_required": true,
+        "rights_status": "verified"
       },
       {
         "action_id": "physical-independent-field-check",
@@ -240,7 +247,8 @@
           "compute_microunits": 20,
           "duration_minutes": 90
         },
-        "human_approval_required": true
+        "human_approval_required": true,
+        "rights_status": "verified"
       },
       {
         "action_id": "uq-calibration-analysis",
@@ -260,7 +268,8 @@
           "compute_microunits": 120,
           "duration_minutes": 60
         },
-        "human_approval_required": false
+        "human_approval_required": false,
+        "rights_status": "verified"
       },
       {
         "action_id": "ood-heldout-validation",
@@ -280,7 +289,8 @@
           "compute_microunits": 80,
           "duration_minutes": 40
         },
-        "human_approval_required": false
+        "human_approval_required": false,
+        "rights_status": "verified"
       },
       {
         "action_id": "combined-uq-ood-audit",
@@ -301,7 +311,8 @@
           "compute_microunits": 200,
           "duration_minutes": 100
         },
-        "human_approval_required": true
+        "human_approval_required": true,
+        "rights_status": "verified"
       }
     ],
     "resource_budgets": {
