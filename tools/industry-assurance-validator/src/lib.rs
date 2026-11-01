@@ -636,12 +636,12 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
                         risk_dims.insert(key, value);
                     }
                     let enums: [(&str, &[&str]); 6] = [
-                        ("consequence", &["negligible", "minor", "major", "severe", "catastrophic", "unknown"]),
-                        ("model_influence", &["informational", "advisory", "constraint_gating", "selection", "direct_actuation", "unknown"]),
-                        ("exposure", &["single_asset", "site_or_facility", "multi_site", "regional", "national_or_larger", "unknown"]),
-                        ("reversibility", &["readily_reversible", "costly_or_delayed", "difficult_or_irreversible", "unknown"]),
-                        ("detectability", &["immediate_and_reliable", "delayed_or_partial", "poor", "unknown"]),
-                        ("fallback", &["independent_tested_fallback", "human_fallback", "degraded_fallback", "no_verified_fallback", "unknown"])
+                        ("consequence", &["negligible", "minor", "major", "severe", "catastrophic", "unknown", "conflicted"]),
+                        ("model_influence", &["informational", "advisory", "constraint_gating", "selection", "direct_actuation", "unknown", "conflicted"]),
+                        ("exposure", &["single_asset", "site_or_facility", "multi_site", "regional", "national_or_larger", "unknown", "conflicted"]),
+                        ("reversibility", &["readily_reversible", "costly_or_delayed", "difficult_or_irreversible", "unknown", "conflicted"]),
+                        ("detectability", &["immediate_and_reliable", "delayed_or_partial", "poor", "unknown", "conflicted"]),
+                        ("fallback", &["independent_tested_fallback", "human_fallback", "degraded_fallback", "no_verified_fallback", "unknown", "conflicted"])
                     ];
                     for (key, allowed) in enums {
                         if let Some(value) = risk_dims.get(key) {
@@ -660,6 +660,9 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
                 }
                 if risk_dims.values().any(|value| *value == "unknown") {
                     issue(&mut out, "QUALIFIED_WITH_UNKNOWN_RISK", "/risk_assessment/dimensions", "A qualified profile cannot retain unknown risk dimensions.");
+                }
+                if risk_dims.values().any(|value| *value == "conflicted") {
+                    issue(&mut out, "QUALIFIED_WITH_CONFLICTED_RISK", "/risk_assessment/dimensions", "A qualified profile cannot retain conflicted risk dimensions.");
                 }
                 match tier {
                     "D2_delegated_planning" => {
@@ -927,6 +930,18 @@ mod tests {
         p["authority"]["actuation_enabled"] = json!(true);
         let issues = validate_profile(&p);
         assert!(has_code(&issues, "D1_AUTHORITY_ESCALATION"));
+    }
+
+    #[test]
+    fn conflicted_risk_dimension_is_valid_but_cannot_qualify() {
+        let mut profile = make_qualified_d1();
+        profile["risk_assessment"]["dimensions"]["consequence"] = json!("conflicted");
+        let issues = validate_profile(&profile);
+        assert!(has_code(&issues, "QUALIFIED_WITH_CONFLICTED_RISK"));
+        let mut advisory = fixture();
+        advisory["risk_assessment"]["dimensions"]["consequence"] = json!("conflicted");
+        let issues = validate_profile(&advisory);
+        assert!(!has_code(&issues, "INVALID_RISK_DIMENSION"));
     }
 
     #[test]
