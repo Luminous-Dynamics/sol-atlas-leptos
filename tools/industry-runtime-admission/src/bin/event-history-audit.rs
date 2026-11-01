@@ -83,7 +83,6 @@ struct Event {
     id: String,
     subject: String,
     case_id: String,
-    sequence: u64,
     previous: Option<String>,
     digest: String,
     parents: Vec<String>,
@@ -295,7 +294,7 @@ fn parse_events(input: &Value, audit: &mut Audit) -> Result<(), String> {
 
         let event = Event {
             id: id.clone(), subject: subject.clone(), case_id,
-            sequence, previous, digest: digest.clone(), parents,
+            previous, digest: digest.clone(), parents,
         };
         let event_index = audit.events.len();
         let stream_key = (issuer, subject, stream_id);
@@ -527,7 +526,7 @@ mod tests {
     #[test]
     fn missing_prefix_and_parent_are_incomplete_not_validated_complete() {
         let mut input: Value = serde_json::from_str(include_str!("../../../../schemas/examples/ieac-scitt-decision-statement-synthetic-v0.1.json")).unwrap();
-        input["events"].as_array_mut().unwrap().retain(|event| event["event_id"] != "event-verdict-001");
+        input["events"].as_array_mut().unwrap().retain(|event| event["event_id"].as_str() != Some("event-verdict-001"));
         input["expected"]["event_payload_sha256"].as_object_mut().unwrap().remove("event-verdict-001");
         let mut audit = Audit::default();
         parse_events(&input, &mut audit).unwrap();
@@ -557,7 +556,6 @@ mod tests {
             id: id.to_owned(),
             subject: "subject:test".to_owned(),
             case_id: "case:test".to_owned(),
-            sequence: 1,
             previous: None,
             digest: digest.to_owned(),
             parents: vec![parent.to_owned()],
