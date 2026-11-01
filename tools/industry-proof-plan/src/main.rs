@@ -904,6 +904,10 @@ mod tests {
         let reservation = report["selected_actions"].as_array().unwrap().iter()
             .find(|row| row["action_id"] == "physical-lab-reservation").unwrap();
         assert_eq!(reservation["prerequisite"], true);
+        let order = report["execution_order"].as_array().unwrap();
+        let reservation_index = order.iter().position(|id| id == "physical-lab-reservation").unwrap();
+        let lab_index = order.iter().position(|id| id == "physical-calibration-lab").unwrap();
+        assert!(reservation_index < lab_index);
     }
 
     #[test]
