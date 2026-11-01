@@ -365,7 +365,9 @@
     "exact_search_limit": 20,
     "action_authority": "none",
     "independence_registry_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
-    "control_mapping_policy_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
+    "control_mapping_policy_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+    "currency_code": "ZAR",
+    "compute_unit_id": "normalized-compute-micro-unit-v1"
   },
   "expected": {
     "plan_status": "optimal_plan",
