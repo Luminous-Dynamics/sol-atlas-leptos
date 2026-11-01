@@ -715,6 +715,17 @@ fn evaluate_fixture(fixture: &Value) -> Result<Value, String> {
     if report["invalidation_event_sha256"] != expected["invalidation_event_sha256"] {
         return Err("impact report invalidation-event digest does not match expected binding".into());
     }
+    for field in [
+        "report_id",
+        "not_checked",
+        "historical_record_preserved",
+        "claim_ceiling",
+        "action_authority",
+    ] {
+        if report[field] != expected[field] {
+            return Err(format!("impact report field '{field}' does not match the frozen expected contract"));
+        }
+    }
     Ok(report)
 }
 
@@ -783,11 +794,12 @@ mod tests {
     #[test]
     fn dependency_cycle_is_rejected() {
         let mut fixture = fixture();
-        let id = fixture["graph"]["nodes"][0]["node_id"].as_str().unwrap().to_owned();
+        let key_id = fixture["graph"]["nodes"][0]["node_id"].as_str().unwrap().to_owned();
+        let terminal_outcome_id = fixture["graph"]["nodes"][14]["node_id"].as_str().unwrap().to_owned();
         fixture["graph"]["edges"].as_array_mut().unwrap().push(json!({
             "edge_id":"edge-cycle-test",
-            "from_node_id":id,
-            "to_node_id":id,
+            "from_node_id":terminal_outcome_id,
+            "to_node_id":key_id,
             "relation":"revoked_by"
         }));
         // Recompute the graph digest so the cycle check, not only the digest check, is exercised.
