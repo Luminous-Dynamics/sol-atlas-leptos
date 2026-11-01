@@ -169,6 +169,18 @@ struct Requirement {
     human_approval: bool,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct ControlMapping {
+    mapping_id: String,
+    action_id: String,
+    action_sha256: String,
+    control_id: String,
+    evidence_dimension: String,
+    proof_method_id: String,
+    required_verifier_role: String,
+    independence_domain_id: String,
+}
+
 #[derive(Clone, Debug)]
 struct Action {
     id: String,
@@ -178,6 +190,7 @@ struct Action {
     rights_digest: String,
     domain: String,
     covers: BTreeSet<String>,
+    control_mappings: Vec<ControlMapping>,
     prerequisites: BTreeSet<String>,
     conflicts: BTreeSet<String>,
     costs: Resources,
@@ -496,6 +509,7 @@ fn load_inputs(request: &Value, request_bytes: &[u8], report: &Value) -> Result<
             rights_digest,
             domain,
             covers,
+            control_mappings: Vec::new(),
             prerequisites,
             conflicts,
             costs,
@@ -503,6 +517,76 @@ fn load_inputs(request: &Value, request_bytes: &[u8], report: &Value) -> Result<
             rights_verified_at,
             rights_valid_until,
         });
+    }
+
+    let control_mappings_value = request.get("control_mappings")
+        .ok_or("request.control_mappings is missing")?;
+    let mapping_bytes = serde_json::to_vec(control_mappings_value)
+        .map_err(|error| format!("cannot serialize control mappings: {error}"))?;
+    if digest(&mapping_bytes) != mapping_digest {
+        return Err("request control mappings do not match the pinned mapping-policy digest".into());
+    }
+    let evidence_dimensions = [
+        "software_conformance", "numerical_verification", "physical_validation",
+        "data_integrity_rights", "uncertainty_credibility", "generalization", "robustness",
+        "operational_assurance", "safety_security_authority", "prospective_outcomes"
+    ];
+    let mut mapping_ids = BTreeSet::new();
+    let mut action_control_pairs = BTreeSet::new();
+    let mut mappings_by_action = BTreeMap::<String, Vec<ControlMapping>>::new();
+    for (index, row) in array(request, "control_mappings", "request")?.iter().enumerate() {
+        let context = format!("control_mappings[{index}]");
+        let mapping_id = string(row, "mapping_id", &context)?.to_owned();
+        let action_id = string(row, "action_id", &context)?.to_owned();
+        let action_sha256 = sha(row, "action_sha256", &context)?;
+        let control_id = string(row, "control_id", &context)?.to_owned();
+        let evidence_dimension = string(row, "evidence_dimension", &context)?.to_owned();
+        let proof_method_id = string(row, "proof_method_id", &context)?.to_owned();
+        let required_verifier_role = string(row, "required_verifier_role", &context)?.to_owned();
+        let independence_domain_id = string(row, "independence_domain_id", &context)?.to_owned();
+
+        if !mapping_ids.insert(mapping_id.clone()) {
+            return Err(format!("{context} duplicates mapping ID '{mapping_id}'"));
+        }
+        if !evidence_dimensions.contains(&evidence_dimension.as_str()) {
+            return Err(format!("{context} uses an unsupported IEAC evidence dimension"));
+        }
+        if !requirements.contains_key(&control_id) {
+            return Err(format!("{context} maps an unrequired control '{control_id}'"));
+        }
+        let action = actions.get(&action_id)
+            .ok_or_else(|| format!("{context} maps an unknown candidate action '{action_id}'"))?;
+        if action.digest != action_sha256 || action.domain != independence_domain_id {
+            return Err(format!("{context} does not match its candidate action identity/domain"));
+        }
+        if !action.covers.contains(&control_id) {
+            return Err(format!("{context} maps a control not declared by the action"));
+        }
+        if !action_control_pairs.insert((action_id.clone(), control_id.clone())) {
+            return Err(format!("{context} duplicates an action/control pair"));
+        }
+        mappings_by_action.entry(action_id.clone()).or_default().push(ControlMapping {
+            mapping_id,
+            action_id,
+            action_sha256,
+            control_id,
+            evidence_dimension,
+            proof_method_id,
+            required_verifier_role,
+            independence_domain_id,
+        });
+    }
+    for (action_id, action) in actions.iter_mut() {
+        let mut mappings = mappings_by_action.remove(action_id).unwrap_or_default();
+        mappings.sort_by(|left, right| left.control_id.cmp(&right.control_id).then(left.mapping_id.cmp(&right.mapping_id)));
+        let mapped_controls: BTreeSet<String> = mappings.iter().map(|mapping| mapping.control_id.clone()).collect();
+        if mapped_controls != action.covers {
+            return Err(format!("candidate action '{action_id}' coverage does not match its digest-bound mapping rows"));
+        }
+        action.control_mappings = mappings;
+    }
+    if !mappings_by_action.is_empty() {
+        return Err("control mappings include an unrecognized action".into());
     }
 
     for action in actions.values() {
@@ -738,6 +822,24 @@ fn verify_report(request: &Value, request_bytes: &[u8], report: &Value, report_b
         {
             return Err(format!("selected action '{id}' changed its coverage or resource costs"));
         }
+        let reported_mappings = array(row, "control_mappings", id)?;
+        if reported_mappings.len() != action.control_mappings.len() {
+            return Err(format!("selected action '{id}' changed its proof mapping count"));
+        }
+        for mapping in &action.control_mappings {
+            if !reported_mappings.iter().any(|reported| {
+                reported.get("mapping_id").and_then(Value::as_str) == Some(mapping.mapping_id.as_str())
+                    && reported.get("action_id").and_then(Value::as_str) == Some(mapping.action_id.as_str())
+                    && reported.get("action_sha256").and_then(Value::as_str) == Some(mapping.action_sha256.as_str())
+                    && reported.get("control_id").and_then(Value::as_str) == Some(mapping.control_id.as_str())
+                    && reported.get("evidence_dimension").and_then(Value::as_str) == Some(mapping.evidence_dimension.as_str())
+                    && reported.get("proof_method_id").and_then(Value::as_str) == Some(mapping.proof_method_id.as_str())
+                    && reported.get("required_verifier_role").and_then(Value::as_str) == Some(mapping.required_verifier_role.as_str())
+                    && reported.get("independence_domain_id").and_then(Value::as_str) == Some(mapping.independence_domain_id.as_str())
+            }) {
+                return Err(format!("selected action '{id}' has an altered proof mapping"));
+            }
+        }
         let expected_prerequisite = report_actions.iter().any(|other_id| {
             inputs.actions.get(other_id).is_some_and(|other| other.prerequisites.contains(id))
         });
@@ -791,6 +893,14 @@ fn verify_report(request: &Value, request_bytes: &[u8], report: &Value, report_b
             || strings(row, "reason_codes", control)? != requirement.reasons
         {
             return Err(format!("control coverage row for '{control}' is inconsistent"));
+        }
+        let expected_mapping_ids: BTreeSet<String> = report_actions.iter()
+            .flat_map(|action_id| inputs.actions[action_id].control_mappings.iter())
+            .filter(|mapping| mapping.control_id == *control)
+            .map(|mapping| mapping.mapping_id.clone())
+            .collect();
+        if strings(row, "control_mapping_ids", control)? != expected_mapping_ids {
+            return Err(format!("control mapping references for '{control}' do not match selected actions"));
         }
         let expected_existing = inputs.existing_rows.get(control).cloned().unwrap_or_default();
         let existing_report = array(row, "existing_verified_evidence", control)?;
