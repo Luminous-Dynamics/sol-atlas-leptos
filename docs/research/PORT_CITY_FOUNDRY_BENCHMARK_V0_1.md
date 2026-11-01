@@ -484,3 +484,22 @@ These additions expand the benchmark from "can we generate an alternative?" to:
 1. can we discover a credible opportunity without missing important candidate classes?
 2. can we preserve hard evidence and engineering boundaries while comparing alternatives?
 3. can we determine after the project whether the forecasted regional value actually materialized?
+
+
+## 16. Port–hinterland redundancy is not port count
+
+Port-City Foundry must measure **effective independent access**, not how many port markers appear within a region. A hinterland with several gateways can still be dependent on a shared rail line, bridge, border crossing, power source, floodplain, carrier or chokepoint. Conversely, a landlocked region may have multiple viable port ranges even when all routes are relatively costly.
+
+A 2026 *Transportation Research Part A* study of African port-hinterland redundancy reports trade-offs between accessibility and redundancy. It notes that terminal expansion can reduce redundancy for a core hinterland while increasing it for the periphery, and that rail connections can broaden access to ports while potentially reinforcing reliance on a single cost-efficient connection. Source: https://doi.org/10.1016/j.tra.2026.104920.
+
+Sol-Atlas discovery should expose the source/coverage of access and failure-domain data. Symtropy should own the path, cut-set, capacity, disruption and network service benchmark under [MARITIME-REDUNDANCY-001 #3199](https://github.com/Luminous-Dynamics/symtropy/issues/3199), composing [TRANSPORT-OPT-001 #1601](https://github.com/Luminous-Dynamics/symtropy/issues/1601) and historical disruption replay [#1671](https://github.com/Luminous-Dynamics/symtropy/issues/1671).
+
+Add to PCF-NET-009: accessibility and effective redundancy curves; edge-/node-/risk-domain-disjoint paths; min-cut and shared-bottleneck exposure; normal vs disrupted gateway reachability; delivered vs unmet demand; traffic diversion vs new demand; service recovery; and incremental resilience per lifecycle dollar. Do not assign probabilities to correlated failures without evidence. Treat failure-domain independence as Unknown when dependencies are not mapped.
+
+The aim is not maximum redundancy at any cost. Compare the cost of independent access against the value of avoided disruptions and the option to divert cargo under stress. A new port should lose when upgrading a shared inland bottleneck or improving existing alternatives produces greater risk-adjusted public value.
+
+## 17. Ex-post outcomes and forecast calibration
+
+[PORT-OUTCOME-001 #380](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/380) adds a separate evidence track for comparing ex-ante project forecasts against later observed outcomes and defensible counterfactuals. A 2026 systematic review of 90 port–hinterland studies found 51/90 (56.7%) were model-based optimisation/simulation/analytical designs, while quasi-experimental identification was absent from the reviewed corpus. This is a published review's sample and search protocol, not a claim about every port study. Source: https://doi.org/10.3390/jmse14151434.
+
+The Foundry's claimed advantage should therefore include outcome calibration and causal evidence where possible, not only better simulation or a larger candidate search. Historical forecasts must be frozen at their information cut-off; projects should be evaluated for additional network-wide service/value rather than traffic diverted from other gateways. Quasi-experimental methods require pre-registered outcomes, credible comparison groups, trend/placebo checks and transparent identification limits.
