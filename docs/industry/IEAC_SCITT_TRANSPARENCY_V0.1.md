@@ -109,6 +109,13 @@ A missing Receipt, unavailable keyset, unanchored checkpoint, inconsistent tree 
 
 Issuer signing keys and Transparency Service receipt-signing keys are distinct authorities. They require separate identities, independently provisioned trust roots, rotation/revocation policy, validity periods, and freshness controls. The IEAC root/keyset work in #347 does not automatically establish trust in a SCITT service's receipt key.
 
+A relying-party policy must also distinguish the two issuer namespaces in the SCITT COSE objects:
+
+- The protected CWT `iss` claim identifies the **Signed Statement issuer** (the IEAC producer).
+- The `iss` claim carried by a **COSE Receipt** identifies the Transparency Service that issued the receipt.
+
+These are not interchangeable. Pin both independently, constrain the protected CWT `sub` to the expected asset or decision subject, and require the configured receipt count / service set. In the Microsoft verifier's policy vocabulary, `issuer` constrains receipt issuers, while `statementIssuer` constrains the statement's CWT issuer; a policy that pins only `issuer` does not authenticate the IEAC statement signer. Receipt presence alone is not enough: the receipt must cryptographically bind to the exact statement and verify under the independently pinned service trust material.
+
 SCITT registration is not a substitute for signer authorization. A signature proves that a key signed bytes; the relying party still decides whether that key is authorized for that event, subject, scope, and decision profile.
 
 ### 5.2 Privacy
