@@ -1,0 +1,274 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/ieac-proof-plan-audit-report-v0.1.schema.json",
+  "title": "IEAC Proof Plan Independent Audit Report v0.1",
+  "description": "Independent replay of a planner report. Confirms plan semantics and bounded optimality/infeasibility where claimed. Never qualifies a profile or authorizes an action.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_id",
+    "request_sha256",
+    "plan_report_sha256",
+    "risk_control_report_sha256",
+    "profile_sha256",
+    "policy_sha256",
+    "independence_registry_sha256",
+    "control_mapping_policy_sha256",
+    "planner_version",
+    "planner_build_id",
+    "auditor_version",
+    "auditor_build_id",
+    "plan_status",
+    "verdict",
+    "selected_action_count",
+    "candidate_action_count",
+    "covered_control_count",
+    "unsatisfied_control_count",
+    "resources_recomputed",
+    "hard_constraints_verified",
+    "optimality_independently_checked",
+    "action_authority",
+    "qualification_attested"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.ieac-proof-plan-audit-report.v0.1"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128
+    },
+    "request_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "plan_report_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "risk_control_report_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "profile_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "policy_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "independence_registry_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "control_mapping_policy_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "planner_version": {
+      "const": "0.1.0"
+    },
+    "planner_build_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "auditor_version": {
+      "const": "0.1.0"
+    },
+    "auditor_build_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "plan_status": {
+      "enum": [
+        "optimal_plan",
+        "infeasible",
+        "feasible_heuristic",
+        "no_feasible_plan_found"
+      ]
+    },
+    "verdict": {
+      "enum": [
+        "accepted_optimal",
+        "accepted_infeasible",
+        "accepted_heuristic",
+        "accepted_no_plan_found"
+      ]
+    },
+    "selected_action_count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 500
+    },
+    "candidate_action_count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 500
+    },
+    "covered_control_count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 128
+    },
+    "unsatisfied_control_count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 128
+    },
+    "resources_recomputed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "money_microunits",
+        "reviewer_minutes",
+        "field_interruption_minutes",
+        "compute_microunits",
+        "duration_minutes"
+      ],
+      "properties": {
+        "money_microunits": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "reviewer_minutes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "field_interruption_minutes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "compute_microunits": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "duration_minutes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "hard_constraints_verified": {
+      "const": true
+    },
+    "optimality_independently_checked": {
+      "type": "boolean"
+    },
+    "action_authority": {
+      "const": "none"
+    },
+    "qualification_attested": {
+      "const": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "plan_status": {
+            "const": "optimal_plan"
+          }
+        },
+        "required": [
+          "plan_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "verdict": {
+            "const": "accepted_optimal"
+          },
+          "optimality_independently_checked": {
+            "const": true
+          },
+          "unsatisfied_control_count": {
+            "const": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "plan_status": {
+            "const": "infeasible"
+          }
+        },
+        "required": [
+          "plan_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "verdict": {
+            "const": "accepted_infeasible"
+          },
+          "optimality_independently_checked": {
+            "const": true
+          },
+          "selected_action_count": {
+            "const": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "plan_status": {
+            "const": "feasible_heuristic"
+          }
+        },
+        "required": [
+          "plan_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "verdict": {
+            "const": "accepted_heuristic"
+          },
+          "optimality_independently_checked": {
+            "const": false
+          },
+          "unsatisfied_control_count": {
+            "const": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "plan_status": {
+            "const": "no_feasible_plan_found"
+          }
+        },
+        "required": [
+          "plan_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "verdict": {
+            "const": "accepted_no_plan_found"
+          },
+          "optimality_independently_checked": {
+            "const": false
+          },
+          "selected_action_count": {
+            "const": 0
+          },
+          "unsatisfied_control_count": {
+            "minimum": 1
+          }
+        }
+      }
+    }
+  ]
+}

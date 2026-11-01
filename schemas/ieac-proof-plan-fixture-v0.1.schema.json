@@ -1,0 +1,570 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/ieac-proof-plan-fixture-v0.1.schema.json",
+  "title": "IEAC Proof Plan Synthetic Fixture v0.1",
+  "description": "A synthetic request paired with a hand-calculated exact solution. No evidence or operational claim.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "fixture_schema_version",
+    "fixture_status",
+    "note",
+    "request",
+    "expected"
+  ],
+  "properties": {
+    "fixture_schema_version": {
+      "const": "luminous.ieac-proof-plan-fixture.v0.1"
+    },
+    "fixture_status": {
+      "const": "synthetic_only"
+    },
+    "note": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "request": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "title": "IEAC Proof Plan Request v0.1",
+      "description": "Resource-bounded candidate evidence-acquisition actions for a fixed mandatory control set. A plan is not evidence completion, qualification or action authority.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "request_id",
+        "risk_control_report_sha256",
+        "profile_sha256",
+        "policy_sha256",
+        "decision_tier",
+        "evaluated_at",
+        "required_controls",
+        "verified_evidence",
+        "candidate_actions",
+        "resource_budgets",
+        "exact_search_limit",
+        "action_authority",
+        "independence_registry_sha256",
+        "control_mapping_policy_sha256",
+        "currency_code",
+        "compute_unit_id",
+        "control_mappings"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "luminous.ieac-proof-plan-request.v0.1"
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 128
+        },
+        "risk_control_report_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "profile_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "policy_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "decision_tier": {
+          "enum": [
+            "D0_descriptive",
+            "D1_advisory",
+            "D2_delegated_planning",
+            "D3_autonomous_control"
+          ]
+        },
+        "evaluated_at": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$",
+          "format": "date-time"
+        },
+        "required_controls": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "control_id",
+              "reason_codes",
+              "minimum_independent_domains",
+              "mandatory",
+              "human_approval_required"
+            ],
+            "properties": {
+              "control_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "reason_codes": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^[A-Z0-9_]+$"
+                }
+              },
+              "minimum_independent_domains": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 32
+              },
+              "mandatory": {
+                "const": true
+              },
+              "human_approval_required": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "verified_evidence": {
+          "type": "array",
+          "maxItems": 512,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "control_id",
+              "artifact_sha256",
+              "verifier_build_sha256",
+              "independence_domain_id",
+              "independence_registry_sha256",
+              "verification_status",
+              "rights_status",
+              "verified_at",
+              "valid_until",
+              "rights_evidence_sha256"
+            ],
+            "properties": {
+              "control_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "artifact_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "verifier_build_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "independence_domain_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "independence_registry_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "verification_status": {
+                "enum": [
+                  "verified",
+                  "failed",
+                  "unknown",
+                  "revoked"
+                ]
+              },
+              "rights_status": {
+                "enum": [
+                  "verified",
+                  "restricted",
+                  "unknown",
+                  "revoked"
+                ]
+              },
+              "verified_at": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$",
+                "format": "date-time"
+              },
+              "valid_until": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "rights_evidence_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            }
+          }
+        },
+        "candidate_actions": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 500,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action_id",
+              "action_sha256",
+              "mapping_policy_sha256",
+              "covers_control_ids",
+              "prerequisites",
+              "conflicts_with",
+              "independence_domain_id",
+              "independence_registry_sha256",
+              "resource_costs",
+              "human_approval_required",
+              "rights_status",
+              "rights_verified_at",
+              "rights_valid_until",
+              "rights_evidence_sha256"
+            ],
+            "properties": {
+              "action_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "action_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "mapping_policy_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "covers_control_ids": {
+                "type": "array",
+                "uniqueItems": true,
+                "maxItems": 128,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                }
+              },
+              "prerequisites": {
+                "type": "array",
+                "uniqueItems": true,
+                "maxItems": 64,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                }
+              },
+              "conflicts_with": {
+                "type": "array",
+                "uniqueItems": true,
+                "maxItems": 64,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                }
+              },
+              "independence_domain_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "independence_registry_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "resource_costs": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "money_microunits",
+                  "reviewer_minutes",
+                  "field_interruption_minutes",
+                  "compute_microunits",
+                  "duration_minutes"
+                ],
+                "properties": {
+                  "money_microunits": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "reviewer_minutes": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "field_interruption_minutes": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "compute_microunits": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "duration_minutes": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                }
+              },
+              "human_approval_required": {
+                "type": "boolean"
+              },
+              "rights_status": {
+                "const": "verified"
+              },
+              "rights_verified_at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+              },
+              "rights_valid_until": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+              },
+              "rights_evidence_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            }
+          }
+        },
+        "resource_budgets": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "money_microunits",
+            "reviewer_minutes",
+            "field_interruption_minutes",
+            "compute_microunits",
+            "duration_minutes"
+          ],
+          "properties": {
+            "money_microunits": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "reviewer_minutes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "field_interruption_minutes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "compute_microunits": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "duration_minutes": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "exact_search_limit": {
+          "const": 20
+        },
+        "action_authority": {
+          "const": "none"
+        },
+        "independence_registry_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "control_mapping_policy_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "currency_code": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "compute_unit_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9][a-z0-9._:-]*$"
+        },
+        "control_mappings": {
+          "type": "array",
+          "maxItems": 512,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "mapping_id",
+              "action_id",
+              "action_sha256",
+              "control_id",
+              "evidence_dimension",
+              "proof_method_id",
+              "required_verifier_role",
+              "independence_domain_id"
+            ],
+            "properties": {
+              "mapping_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "action_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "action_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "control_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "evidence_dimension": {
+                "enum": [
+                  "software_conformance",
+                  "numerical_verification",
+                  "physical_validation",
+                  "data_integrity_rights",
+                  "uncertainty_credibility",
+                  "generalization",
+                  "robustness",
+                  "operational_assurance",
+                  "safety_security_authority",
+                  "prospective_outcomes"
+                ]
+              },
+              "proof_method_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "required_verifier_role": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "independence_domain_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              }
+            }
+          }
+        }
+      }
+    },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "plan_status",
+        "optimization_method",
+        "optimality_status",
+        "selected_action_ids",
+        "covered_controls",
+        "unsatisfied_controls",
+        "resource_totals",
+        "hard_constraints_preserved",
+        "action_authority",
+        "qualification_attested"
+      ],
+      "properties": {
+        "plan_status": {
+          "const": "optimal_plan"
+        },
+        "optimization_method": {
+          "const": "exact_subset_enumeration"
+        },
+        "optimality_status": {
+          "const": "proven_optimal"
+        },
+        "selected_action_ids": {
+          "type": "array",
+          "minItems": 8,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        },
+        "covered_controls": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        },
+        "unsatisfied_controls": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "resource_totals": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "money_microunits",
+            "reviewer_minutes",
+            "field_interruption_minutes",
+            "compute_microunits",
+            "duration_minutes"
+          ],
+          "properties": {
+            "money_microunits": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "reviewer_minutes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "field_interruption_minutes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "compute_microunits": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "duration_minutes": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "hard_constraints_preserved": {
+          "const": true
+        },
+        "action_authority": {
+          "const": "none"
+        },
+        "qualification_attested": {
+          "const": false
+        }
+      }
+    }
+  }
+}

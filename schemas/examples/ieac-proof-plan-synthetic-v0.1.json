@@ -1,0 +1,518 @@
+{
+  "fixture_schema_version": "luminous.ieac-proof-plan-fixture.v0.1",
+  "fixture_status": "synthetic_only",
+  "note": "Synthetic bounded evidence-acquisition planning instance. Independence domain identifiers are placeholder inputs; the planner does not authenticate organizational independence or prove planned tests will pass.",
+  "request": {
+    "schema_version": "luminous.ieac-proof-plan-request.v0.1",
+    "request_id": "proof-plan-synthetic-001",
+    "risk_control_report_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "profile_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "policy_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+    "decision_tier": "D1_advisory",
+    "evaluated_at": "2026-11-01T14:00:00Z",
+    "required_controls": [
+      {
+        "control_id": "artifact_identity_integrity",
+        "reason_codes": [
+          "BASELINE_REQUIRED"
+        ],
+        "minimum_independent_domains": 1,
+        "mandatory": true,
+        "human_approval_required": false
+      },
+      {
+        "control_id": "numerical_known_answers",
+        "reason_codes": [
+          "BASELINE_REQUIRED"
+        ],
+        "minimum_independent_domains": 2,
+        "mandatory": true,
+        "human_approval_required": false
+      },
+      {
+        "control_id": "physical_reference_validation",
+        "reason_codes": [
+          "TIER_D1_ADVISORY"
+        ],
+        "minimum_independent_domains": 2,
+        "mandatory": true,
+        "human_approval_required": true
+      },
+      {
+        "control_id": "source_rights_lineage",
+        "reason_codes": [
+          "BASELINE_REQUIRED"
+        ],
+        "minimum_independent_domains": 1,
+        "mandatory": true,
+        "human_approval_required": false
+      },
+      {
+        "control_id": "uncertainty_calibration",
+        "reason_codes": [
+          "TIER_D1_ADVISORY"
+        ],
+        "minimum_independent_domains": 1,
+        "mandatory": true,
+        "human_approval_required": true
+      },
+      {
+        "control_id": "out_of_domain_abstention",
+        "reason_codes": [
+          "TIER_D1_ADVISORY"
+        ],
+        "minimum_independent_domains": 1,
+        "mandatory": true,
+        "human_approval_required": false
+      }
+    ],
+    "verified_evidence": [
+      {
+        "control_id": "source_rights_lineage",
+        "artifact_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+        "verifier_build_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+        "independence_domain_id": "rights-governance-office",
+        "independence_registry_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+        "verification_status": "verified",
+        "rights_status": "verified",
+        "verified_at": "2026-11-01T12:00:00Z",
+        "valid_until": "2026-11-02T00:00:00Z",
+        "rights_evidence_sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+      }
+    ],
+    "candidate_actions": [
+      {
+        "action_id": "artifact-provenance-capture",
+        "action_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
+        "covers_control_ids": [
+          "artifact_identity_integrity"
+        ],
+        "prerequisites": [],
+        "conflicts_with": [
+          "artifact-provenance-full-audit"
+        ],
+        "independence_domain_id": "repo-integrity-team",
+        "independence_registry_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+        "resource_costs": {
+          "money_microunits": 10,
+          "reviewer_minutes": 10,
+          "field_interruption_minutes": 0,
+          "compute_microunits": 10,
+          "duration_minutes": 15
+        },
+        "human_approval_required": false,
+        "rights_status": "verified",
+        "rights_verified_at": "2026-11-01T12:00:00Z",
+        "rights_valid_until": "2026-11-02T00:00:00Z",
+        "rights_evidence_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+      },
+      {
+        "action_id": "artifact-provenance-full-audit",
+        "action_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
+        "covers_control_ids": [
+          "artifact_identity_integrity"
+        ],
+        "prerequisites": [],
+        "conflicts_with": [
+          "artifact-provenance-capture"
+        ],
+        "independence_domain_id": "independent-provenance-review",
+        "independence_registry_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+        "resource_costs": {
+          "money_microunits": 25,
+          "reviewer_minutes": 30,
+          "field_interruption_minutes": 0,
+          "compute_microunits": 20,
+          "duration_minutes": 30
+        },
+        "human_approval_required": true,
+        "rights_status": "verified",
+        "rights_verified_at": "2026-11-01T12:00:00Z",
+        "rights_valid_until": "2026-11-02T00:00:00Z",
+        "rights_evidence_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+      },
+      {
+        "action_id": "numeric-reference-run-a",
+        "action_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
+        "covers_control_ids": [
+          "numerical_known_answers"
+        ],
+        "prerequisites": [],
+        "conflicts_with": [],
+        "independence_domain_id": "solver-team-a",
+        "independence_registry_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+        "resource_costs": {
+          "money_microunits": 20,
+          "reviewer_minutes": 15,
+          "field_interruption_minutes": 0,
+          "compute_microunits": 100,
+          "duration_minutes": 30
+        },
+        "human_approval_required": false,
+        "rights_status": "verified",
+        "rights_verified_at": "2026-11-01T12:00:00Z",
+        "rights_valid_until": "2026-11-02T00:00:00Z",
+        "rights_evidence_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+      },
+      {
+        "action_id": "numeric-reference-run-b",
+        "action_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
+        "covers_control_ids": [
+          "numerical_known_answers"
+        ],
+        "prerequisites": [],
+        "conflicts_with": [
+          "numeric-reference-run-c"
+        ],
+        "independence_domain_id": "independent-oracle-b",
+        "independence_registry_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+        "resource_costs": {
+          "money_microunits": 30,
+          "reviewer_minutes": 30,
+          "field_interruption_minutes": 0,
+          "compute_microunits": 150,
+          "duration_minutes": 45
+        },
+        "human_approval_required": false,
+        "rights_status": "verified",
+        "rights_verified_at": "2026-11-01T12:00:00Z",
+        "rights_valid_until": "2026-11-02T00:00:00Z",
+        "rights_evidence_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+      },
+      {
+        "action_id": "numeric-reference-run-c",
+        "action_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
+        "covers_control_ids": [
+          "numerical_known_answers"
+        ],
+        "prerequisites": [],
+        "conflicts_with": [
+          "numeric-reference-run-b"
+        ],
+        "independence_domain_id": "vendor-neutral-lab-c",
+        "independence_registry_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+        "resource_costs": {
+          "money_microunits": 50,
+          "reviewer_minutes": 30,
+          "field_interruption_minutes": 0,
+          "compute_microunits": 100,
+          "duration_minutes": 40
+        },
+        "human_approval_required": true,
+        "rights_status": "verified",
+        "rights_verified_at": "2026-11-01T12:00:00Z",
+        "rights_valid_until": "2026-11-02T00:00:00Z",
+        "rights_evidence_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+      },
+      {
+        "action_id": "physical-lab-reservation",
+        "action_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
+        "covers_control_ids": [],
+        "prerequisites": [],
+        "conflicts_with": [],
+        "independence_domain_id": "external-lab-administration",
+        "independence_registry_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+        "resource_costs": {
+          "money_microunits": 5,
+          "reviewer_minutes": 5,
+          "field_interruption_minutes": 0,
+          "compute_microunits": 0,
+          "duration_minutes": 60
+        },
+        "human_approval_required": false,
+        "rights_status": "verified",
+        "rights_verified_at": "2026-11-01T12:00:00Z",
+        "rights_valid_until": "2026-11-02T00:00:00Z",
+        "rights_evidence_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+      },
+      {
+        "action_id": "physical-calibration-lab",
+        "action_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
+        "covers_control_ids": [
+          "physical_reference_validation"
+        ],
+        "prerequisites": [
+          "physical-lab-reservation"
+        ],
+        "conflicts_with": [],
+        "independence_domain_id": "accredited-test-laboratory",
+        "independence_registry_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+        "resource_costs": {
+          "money_microunits": 25,
+          "reviewer_minutes": 20,
+          "field_interruption_minutes": 0,
+          "compute_microunits": 50,
+          "duration_minutes": 90
+        },
+        "human_approval_required": true,
+        "rights_status": "verified",
+        "rights_verified_at": "2026-11-01T12:00:00Z",
+        "rights_valid_until": "2026-11-02T00:00:00Z",
+        "rights_evidence_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+      },
+      {
+        "action_id": "physical-independent-field-check",
+        "action_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
+        "covers_control_ids": [
+          "physical_reference_validation"
+        ],
+        "prerequisites": [],
+        "conflicts_with": [],
+        "independence_domain_id": "site-measurement-crew",
+        "independence_registry_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+        "resource_costs": {
+          "money_microunits": 40,
+          "reviewer_minutes": 60,
+          "field_interruption_minutes": 60,
+          "compute_microunits": 20,
+          "duration_minutes": 90
+        },
+        "human_approval_required": true,
+        "rights_status": "verified",
+        "rights_verified_at": "2026-11-01T12:00:00Z",
+        "rights_valid_until": "2026-11-02T00:00:00Z",
+        "rights_evidence_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+      },
+      {
+        "action_id": "uq-calibration-analysis",
+        "action_sha256": "1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
+        "covers_control_ids": [
+          "uncertainty_calibration"
+        ],
+        "prerequisites": [],
+        "conflicts_with": [],
+        "independence_domain_id": "uncertainty-analysis-group",
+        "independence_registry_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+        "resource_costs": {
+          "money_microunits": 30,
+          "reviewer_minutes": 30,
+          "field_interruption_minutes": 0,
+          "compute_microunits": 120,
+          "duration_minutes": 60
+        },
+        "human_approval_required": false,
+        "rights_status": "verified",
+        "rights_verified_at": "2026-11-01T12:00:00Z",
+        "rights_valid_until": "2026-11-02T00:00:00Z",
+        "rights_evidence_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+      },
+      {
+        "action_id": "ood-heldout-validation",
+        "action_sha256": "1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
+        "covers_control_ids": [
+          "out_of_domain_abstention"
+        ],
+        "prerequisites": [],
+        "conflicts_with": [],
+        "independence_domain_id": "heldout-site-validation-team",
+        "independence_registry_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+        "resource_costs": {
+          "money_microunits": 30,
+          "reviewer_minutes": 20,
+          "field_interruption_minutes": 0,
+          "compute_microunits": 80,
+          "duration_minutes": 40
+        },
+        "human_approval_required": false,
+        "rights_status": "verified",
+        "rights_verified_at": "2026-11-01T12:00:00Z",
+        "rights_valid_until": "2026-11-02T00:00:00Z",
+        "rights_evidence_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+      },
+      {
+        "action_id": "combined-uq-ood-audit",
+        "action_sha256": "1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c",
+        "mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
+        "covers_control_ids": [
+          "uncertainty_calibration",
+          "out_of_domain_abstention"
+        ],
+        "prerequisites": [],
+        "conflicts_with": [],
+        "independence_domain_id": "shared-quality-assurance-team",
+        "independence_registry_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+        "resource_costs": {
+          "money_microunits": 80,
+          "reviewer_minutes": 80,
+          "field_interruption_minutes": 0,
+          "compute_microunits": 200,
+          "duration_minutes": 100
+        },
+        "human_approval_required": true,
+        "rights_status": "verified",
+        "rights_verified_at": "2026-11-01T12:00:00Z",
+        "rights_valid_until": "2026-11-02T00:00:00Z",
+        "rights_evidence_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+      }
+    ],
+    "resource_budgets": {
+      "money_microunits": 190,
+      "reviewer_minutes": 190,
+      "field_interruption_minutes": 60,
+      "compute_microunits": 530,
+      "duration_minutes": 430
+    },
+    "exact_search_limit": 20,
+    "action_authority": "none",
+    "independence_registry_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+    "control_mapping_policy_sha256": "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60",
+    "currency_code": "ZAR",
+    "compute_unit_id": "normalized-compute-micro-unit-v1",
+    "control_mappings": [
+      {
+        "mapping_id": "map-artifact-provenance-capture-artifact_identity_integrity",
+        "action_id": "artifact-provenance-capture",
+        "action_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+        "control_id": "artifact_identity_integrity",
+        "evidence_dimension": "software_conformance",
+        "proof_method_id": "content_digest_and_source_binding",
+        "required_verifier_role": "independent_provenance_verifier",
+        "independence_domain_id": "repo-integrity-team"
+      },
+      {
+        "mapping_id": "map-artifact-provenance-full-audit-artifact_identity_integrity",
+        "action_id": "artifact-provenance-full-audit",
+        "action_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+        "control_id": "artifact_identity_integrity",
+        "evidence_dimension": "software_conformance",
+        "proof_method_id": "content_digest_and_source_binding",
+        "required_verifier_role": "independent_provenance_verifier",
+        "independence_domain_id": "independent-provenance-review"
+      },
+      {
+        "mapping_id": "map-combined-uq-ood-audit-out_of_domain_abstention",
+        "action_id": "combined-uq-ood-audit",
+        "action_sha256": "1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c",
+        "control_id": "out_of_domain_abstention",
+        "evidence_dimension": "robustness",
+        "proof_method_id": "heldout_shift_and_abstention_stress",
+        "required_verifier_role": "independent_ood_verifier",
+        "independence_domain_id": "shared-quality-assurance-team"
+      },
+      {
+        "mapping_id": "map-combined-uq-ood-audit-uncertainty_calibration",
+        "action_id": "combined-uq-ood-audit",
+        "action_sha256": "1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c",
+        "control_id": "uncertainty_calibration",
+        "evidence_dimension": "uncertainty_credibility",
+        "proof_method_id": "heldout_calibration_and_proper_score_review",
+        "required_verifier_role": "independent_uncertainty_reviewer",
+        "independence_domain_id": "shared-quality-assurance-team"
+      },
+      {
+        "mapping_id": "map-numeric-reference-run-a-numerical_known_answers",
+        "action_id": "numeric-reference-run-a",
+        "action_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "control_id": "numerical_known_answers",
+        "evidence_dimension": "numerical_verification",
+        "proof_method_id": "independent_known_answer_replay",
+        "required_verifier_role": "independent_numerical_verifier",
+        "independence_domain_id": "solver-team-a"
+      },
+      {
+        "mapping_id": "map-numeric-reference-run-b-numerical_known_answers",
+        "action_id": "numeric-reference-run-b",
+        "action_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "control_id": "numerical_known_answers",
+        "evidence_dimension": "numerical_verification",
+        "proof_method_id": "independent_known_answer_replay",
+        "required_verifier_role": "independent_numerical_verifier",
+        "independence_domain_id": "independent-oracle-b"
+      },
+      {
+        "mapping_id": "map-numeric-reference-run-c-numerical_known_answers",
+        "action_id": "numeric-reference-run-c",
+        "action_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "control_id": "numerical_known_answers",
+        "evidence_dimension": "numerical_verification",
+        "proof_method_id": "independent_known_answer_replay",
+        "required_verifier_role": "independent_numerical_verifier",
+        "independence_domain_id": "vendor-neutral-lab-c"
+      },
+      {
+        "mapping_id": "map-ood-heldout-validation-out_of_domain_abstention",
+        "action_id": "ood-heldout-validation",
+        "action_sha256": "1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b",
+        "control_id": "out_of_domain_abstention",
+        "evidence_dimension": "robustness",
+        "proof_method_id": "heldout_shift_and_abstention_stress",
+        "required_verifier_role": "independent_ood_verifier",
+        "independence_domain_id": "heldout-site-validation-team"
+      },
+      {
+        "mapping_id": "map-physical-calibration-lab-physical_reference_validation",
+        "action_id": "physical-calibration-lab",
+        "action_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "control_id": "physical_reference_validation",
+        "evidence_dimension": "physical_validation",
+        "proof_method_id": "calibrated_physical_reference_comparison",
+        "required_verifier_role": "independent_physical_verifier",
+        "independence_domain_id": "accredited-test-laboratory"
+      },
+      {
+        "mapping_id": "map-physical-independent-field-check-physical_reference_validation",
+        "action_id": "physical-independent-field-check",
+        "action_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "control_id": "physical_reference_validation",
+        "evidence_dimension": "physical_validation",
+        "proof_method_id": "calibrated_physical_reference_comparison",
+        "required_verifier_role": "independent_physical_verifier",
+        "independence_domain_id": "site-measurement-crew"
+      },
+      {
+        "mapping_id": "map-uq-calibration-analysis-uncertainty_calibration",
+        "action_id": "uq-calibration-analysis",
+        "action_sha256": "1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a",
+        "control_id": "uncertainty_calibration",
+        "evidence_dimension": "uncertainty_credibility",
+        "proof_method_id": "heldout_calibration_and_proper_score_review",
+        "required_verifier_role": "independent_uncertainty_reviewer",
+        "independence_domain_id": "uncertainty-analysis-group"
+      }
+    ]
+  },
+  "expected": {
+    "plan_status": "optimal_plan",
+    "optimization_method": "exact_subset_enumeration",
+    "optimality_status": "proven_optimal",
+    "selected_action_ids": [
+      "artifact-provenance-capture",
+      "numeric-reference-run-a",
+      "numeric-reference-run-b",
+      "ood-heldout-validation",
+      "physical-calibration-lab",
+      "physical-independent-field-check",
+      "physical-lab-reservation",
+      "uq-calibration-analysis"
+    ],
+    "covered_controls": [
+      "artifact_identity_integrity",
+      "numerical_known_answers",
+      "out_of_domain_abstention",
+      "physical_reference_validation",
+      "source_rights_lineage",
+      "uncertainty_calibration"
+    ],
+    "unsatisfied_controls": [],
+    "resource_totals": {
+      "money_microunits": 190,
+      "reviewer_minutes": 190,
+      "field_interruption_minutes": 60,
+      "compute_microunits": 530,
+      "duration_minutes": 430
+    },
+    "hard_constraints_preserved": true,
+    "action_authority": "none",
+    "qualification_attested": false
+  }
+}

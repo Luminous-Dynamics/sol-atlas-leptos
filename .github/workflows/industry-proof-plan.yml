@@ -1,0 +1,197 @@
+name: IEAC proof-plan contract
+
+on:
+  pull_request:
+    paths:
+      - "tools/industry-proof-plan/**"
+      - "tools/industry-proof-plan-auditor/**"
+      - "schemas/ieac-proof-plan-audit-report-v0.1.schema.json"
+      - "schemas/ieac-proof-plan-*.json"
+      - "schemas/examples/ieac-proof-plan-*.json"
+      - ".github/workflows/industry-proof-plan.yml"
+      - "docs/industry/IEAC_PROOF_PLAN_V0.1.md"
+  push:
+    branches:
+      - feat/ieac-proof-plan-v0-1
+      - research/ind-assurance-001-risk-weighted-qualification
+      - main
+    paths:
+      - "tools/industry-proof-plan/**"
+      - "tools/industry-proof-plan-auditor/**"
+      - "schemas/ieac-proof-plan-audit-report-v0.1.schema.json"
+      - "schemas/ieac-proof-plan-*.json"
+      - "schemas/examples/ieac-proof-plan-*.json"
+      - ".github/workflows/industry-proof-plan.yml"
+      - "docs/industry/IEAC_PROOF_PLAN_V0.1.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ieac-proof-plan-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  proof-plan:
+    name: Rust proof planner and exact/heuristic adversarial benchmarks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact source revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Check formatting
+        run: cargo fmt --manifest-path tools/industry-proof-plan/Cargo.toml -- --check
+
+      - name: Run Clippy with warnings denied
+        run: cargo clippy --manifest-path tools/industry-proof-plan/Cargo.toml --all-targets --locked -- -D warnings
+
+      - name: Run proof-planning contract and adversarial benchmarks
+        run: cargo test --manifest-path tools/industry-proof-plan/Cargo.toml --locked
+
+      - name: Check independent auditor formatting
+        run: cargo fmt --manifest-path tools/industry-proof-plan-auditor/Cargo.toml -- --check
+
+      - name: Run independent auditor Clippy with warnings denied
+        run: cargo clippy --manifest-path tools/industry-proof-plan-auditor/Cargo.toml --all-targets --locked -- -D warnings
+
+      - name: Run independent exact-oracle and adversarial auditor tests
+        run: cargo test --manifest-path tools/industry-proof-plan-auditor/Cargo.toml --locked
+
+      - name: Install pinned Draft 2020-12 schema CLI
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Add schema CLI to PATH
+        run: echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+
+      - name: Validate request, report and fixture schemas
+        run: |
+          set -euo pipefail
+          meta=https://json-schema.org/draft/2020-12/schema
+          for schema in \
+            schemas/ieac-proof-plan-request-v0.1.schema.json \
+            schemas/ieac-proof-plan-report-v0.1.schema.json \
+            schemas/ieac-proof-plan-fixture-v0.1.schema.json \
+            schemas/ieac-proof-plan-audit-report-v0.1.schema.json; do
+            jsonschema-cli validate --draft 2020 --assert-format "$meta" --instance "$schema"
+          done
+          jsonschema-cli validate --draft 2020 --assert-format --offline \
+            schemas/ieac-proof-plan-fixture-v0.1.schema.json \
+            --instance schemas/examples/ieac-proof-plan-synthetic-v0.1.json
+          jq -e '
+            .fixture_schema_version == "luminous.ieac-proof-plan-fixture.v0.1" and
+            .fixture_status == "synthetic_only" and
+            (.request.candidate_actions | length) == 11 and
+            (.expected.selected_action_ids | length) == 8 and
+            .expected.plan_status == "optimal_plan" and
+            .expected.hard_constraints_preserved == true
+          ' schemas/examples/ieac-proof-plan-synthetic-v0.1.json
+
+      - name: Replay exact bounded synthetic plan and bind report
+        env:
+          IEAC_PROOF_PLANNER_BUILD_ID: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          jq '.request' schemas/examples/ieac-proof-plan-synthetic-v0.1.json > "$RUNNER_TEMP/proof-plan-request.json"
+          request_sha="$(sha256sum "$RUNNER_TEMP/proof-plan-request.json" | awk '{print $1}')"
+          cargo run --manifest-path tools/industry-proof-plan/Cargo.toml --locked -- \
+            "$RUNNER_TEMP/proof-plan-request.json" "$RUNNER_TEMP/proof-plan-report.json"
+          jq -e --arg build "${{ github.event.pull_request.head.sha || github.sha }}" --arg request_sha "$request_sha" '
+            .schema_version == "luminous.ieac-proof-plan-report.v0.1" and
+            .request_sha256 == $request_sha and
+            .planner_build_id == $build and
+            .plan_status == "optimal_plan" and
+            .optimization_method == "exact_subset_enumeration" and
+            .optimality_status == "proven_optimal" and
+            .unsatisfied_controls == [] and
+            .action_authority == "none" and
+            .qualification_attested == false and
+            ([.selected_actions[].action_id] == .execution_order)
+          ' "$RUNNER_TEMP/proof-plan-report.json"
+          jq -e --slurpfile expected <(jq '.expected' schemas/examples/ieac-proof-plan-synthetic-v0.1.json) '
+            ([.selected_actions[].action_id] | sort) == ($expected[0].selected_action_ids | sort) and
+            .resource_totals == $expected[0].resource_totals and
+            .covered_controls == $expected[0].covered_controls and
+            .unsatisfied_controls == $expected[0].unsatisfied_controls
+          ' "$RUNNER_TEMP/proof-plan-report.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline \
+            schemas/ieac-proof-plan-report-v0.1.schema.json \
+            --instance "$RUNNER_TEMP/proof-plan-report.json"
+
+      - name: Independently audit exact plan and optimality
+        env:
+          IEAC_PROOF_AUDITOR_BUILD_ID: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          cargo run --manifest-path tools/industry-proof-plan-auditor/Cargo.toml --locked -- \
+            "$RUNNER_TEMP/proof-plan-request.json" \
+            "$RUNNER_TEMP/proof-plan-report.json" \
+            "$RUNNER_TEMP/proof-plan-audit.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline \
+            schemas/ieac-proof-plan-audit-report-v0.1.schema.json \
+            --instance "$RUNNER_TEMP/proof-plan-audit.json"
+          jq -e --arg build "${{ github.event.pull_request.head.sha || github.sha }}" '
+            .schema_version == "luminous.ieac-proof-plan-audit-report.v0.1" and
+            .auditor_build_id == $build and
+            .verdict == "accepted_optimal" and
+            .hard_constraints_verified == true and
+            .optimality_independently_checked == true and
+            .unsatisfied_control_count == 0 and
+            .action_authority == "none" and
+            .qualification_attested == false
+          ' "$RUNNER_TEMP/proof-plan-audit.json"
+
+      - name: Negative control - independent auditor rejects tampered plan totals
+        run: |
+          set -euo pipefail
+          jq '.resource_totals.money_microunits = 0' "$RUNNER_TEMP/proof-plan-report.json" > "$RUNNER_TEMP/tampered-plan-report.json"
+          if cargo run --quiet --manifest-path tools/industry-proof-plan-auditor/Cargo.toml --locked -- \
+            "$RUNNER_TEMP/proof-plan-request.json" "$RUNNER_TEMP/tampered-plan-report.json" \
+            "$RUNNER_TEMP/tampered-plan-audit.json"; then
+            echo "ERROR: independent auditor accepted tampered resource totals"
+            exit 1
+          fi
+
+      - name: Negative control - reject expired candidate action rights
+        run: |
+          set -euo pipefail
+          jq '.request.candidate_actions[0].rights_valid_until = "2026-10-31T23:59:59Z" | .request.evaluated_at = "2026-11-01T14:00:00Z" | .request' \
+            schemas/examples/ieac-proof-plan-synthetic-v0.1.json > "$RUNNER_TEMP/expired-rights-request.json"
+          if cargo run --quiet --manifest-path tools/industry-proof-plan/Cargo.toml --locked -- \
+            "$RUNNER_TEMP/expired-rights-request.json" "$RUNNER_TEMP/expired-rights-report.json"; then
+            echo "ERROR: planner accepted an action with expired rights"
+            exit 1
+          fi
+
+      - name: Negative control - reject mismatched independence registry
+        run: |
+          set -euo pipefail
+          jq '.candidate_actions[0].independence_registry_sha256 = ("9" * 64)' \
+            "$RUNNER_TEMP/proof-plan-request.json" > "$RUNNER_TEMP/registry-mismatch-request.json"
+          if cargo run --quiet --manifest-path tools/industry-proof-plan/Cargo.toml --locked -- \
+            "$RUNNER_TEMP/registry-mismatch-request.json" "$RUNNER_TEMP/registry-mismatch-report.json"; then
+            echo "ERROR: planner accepted an unpinned independence registry"
+            exit 1
+          fi
+
+      - name: Upload exact-head proof-plan report
+        uses: actions/upload-artifact@v4
+        with:
+          name: ieac-proof-plan-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            $RUNNER_TEMP/proof-plan-report.json
+            $RUNNER_TEMP/proof-plan-audit.json
+          if-no-files-found: error
+          retention-days: 30
