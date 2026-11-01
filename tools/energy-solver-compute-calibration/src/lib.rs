@@ -499,16 +499,8 @@ fn summarize_group(traces: &[&SolverTrace]) -> CohortSummary {
             .map(|trace| trace.binary_variables)
             .max()
             .unwrap(),
-        constraints_min: traces
-            .iter()
-            .map(|trace| trace.constraints)
-            .min()
-            .unwrap(),
-        constraints_max: traces
-            .iter()
-            .map(|trace| trace.constraints)
-            .max()
-            .unwrap(),
+        constraints_min: traces.iter().map(|trace| trace.constraints).min().unwrap(),
+        constraints_max: traces.iter().map(|trace| trace.constraints).max().unwrap(),
         p99_ready: traces
             .iter()
             .filter(|trace| trace.status.has_feasible_solution())
