@@ -44,8 +44,10 @@ jobs:
           cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
           echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
 
-      - name: Compile strict Draft 2020-12 profile schema and validate fixture
+      - name: Validate schema against its declared Draft 2020-12 meta-schema
         run: |
+          jsonschema-cli validate --draft 2020 --assert-format \
+            --instance schemas/ieac-scitt-event-chain-v0.1.schema.json
 
       - name: Validate synthetic multi-issuer event chain
         run: |
@@ -67,6 +69,66 @@ jobs:
             .events[2].previous_event_sha256 == .fixture_event_digests[0] and
             .events[2].causal_parents[0].event_sha256 == .fixture_event_digests[1]
           ' schemas/examples/ieac-scitt-event-chain-synthetic-v0.1.json
+
+      - name: Recompute JCS event digests and verify history links
+        run: |
+          node <<'NODE'
+          const fs = require("node:fs");
+          const { createHash } = require("node:crypto");
+          const fixture = JSON.parse(fs.readFileSync(
+            "schemas/examples/ieac-scitt-event-chain-synthetic-v0.1.json",
+            "utf8"
+          ));
+
+          // This synthetic fixture deliberately stays inside a JCS-safe subset:
+          // ASCII object keys/strings and safe integer numbers only. JavaScript's
+          // JSON.stringify provides the RFC 8785 primitive serialization, while
+          // default Array.sort uses UTF-16 code-unit ordering for property names.
+          function canonical(value) {
+            if (value === null || typeof value === "boolean" || typeof value === "string") {
+              if (typeof value === "string" && !/^[\x00-\x7f]*$/.test(value)) {
+                throw new Error("fixture strings must remain ASCII in this v0.1 hash smoke test");
+              }
+              return JSON.stringify(value);
+            }
+            if (typeof value === "number") {
+              if (!Number.isSafeInteger(value)) {
+                throw new Error("fixture numbers must remain safe integers in this v0.1 hash smoke test");
+              }
+              return JSON.stringify(value);
+            }
+            if (Array.isArray(value)) {
+              return "[" + value.map(canonical).join(",") + "]";
+            }
+            if (typeof value === "object") {
+              const keys = Object.keys(value).sort();
+              if (keys.some((key) => !/^[\x00-\x7f]*$/.test(key))) {
+                throw new Error("fixture object keys must remain ASCII in this v0.1 hash smoke test");
+              }
+              return "{" + keys.map((key) =>
+                JSON.stringify(key) + ":" + canonical(value[key])
+              ).join(",") + "}";
+            }
+            throw new Error("unsupported fixture JSON value");
+          }
+
+          const digests = fixture.events.map((event) =>
+            createHash("sha256").update(canonical(event), "utf8").digest("hex")
+          );
+          if (JSON.stringify(digests) !== JSON.stringify(fixture.fixture_event_digests)) {
+            throw new Error("event JCS digests differ from fixture_event_digests");
+          }
+          if (fixture.events[1].causal_parents[0].event_sha256 !== digests[0]) {
+            throw new Error("auditor event causal parent does not bind request-commit event");
+          }
+          if (fixture.events[2].previous_event_sha256 !== digests[0]) {
+            throw new Error("operator admission event predecessor does not bind issuer's prior event");
+          }
+          if (fixture.events[2].causal_parents[0].event_sha256 !== digests[1]) {
+            throw new Error("operator admission event causal parent does not bind schedule audit");
+          }
+          console.log(JSON.stringify({ event_jcs_sha256: digests }, null, 2));
+          NODE
 
       - name: Check protected CWT issuer and subject projections match payload
         run: |
