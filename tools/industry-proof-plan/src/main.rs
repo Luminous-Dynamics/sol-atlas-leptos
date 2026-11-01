@@ -241,12 +241,25 @@ struct PlanScore {
     action_ids: Vec<String>,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct ControlMapping {
+    mapping_id: String,
+    action_id: String,
+    action_sha256: String,
+    control_id: String,
+    evidence_dimension: String,
+    proof_method_id: String,
+    required_verifier_role: String,
+    independence_domain_id: String,
+}
+
 #[derive(Clone, Debug)]
 struct Action {
     id: String,
     artifact_sha256: String,
     independence_domain_id: String,
     covers: BTreeSet<String>,
+    control_mappings: Vec<ControlMapping>,
     prerequisites: BTreeSet<String>,
     conflicts: BTreeSet<String>,
     resources: Resources,
@@ -576,12 +589,96 @@ fn validate_request(value: &Value) -> Result<ValidatedRequest, String> {
         }
         action_order.push(id.clone());
         actions.insert(id.clone(), Action {
-            id, artifact_sha256, independence_domain_id, covers,
+            id, artifact_sha256, independence_domain_id, covers, control_mappings: Vec::new(),
             prerequisites, conflicts, resources, human_approval_required,
             mapping_policy_sha256, independence_registry_sha256: action_registry_sha256,
             rights_evidence_sha256, rights_status: rights_status.to_owned(), rights_verified_at, rights_valid_until,
         });
     }
+    let mapping_rows_value = value.get("control_mappings")
+        .ok_or("request.control_mappings is missing")?;
+    let mapping_bytes = serde_json::to_vec(mapping_rows_value)
+        .map_err(|error| format!("cannot serialize control mappings: {error}"))?;
+    if sha256_hex(&mapping_bytes) != control_mapping_policy_sha256 {
+        return Err("control mappings do not match the request-pinned policy digest".into());
+    }
+
+    let evidence_dimensions = [
+        "software_conformance",
+        "numerical_verification",
+        "physical_validation",
+        "data_integrity_rights",
+        "uncertainty_credibility",
+        "generalization",
+        "robustness",
+        "operational_assurance",
+        "safety_security_authority",
+        "prospective_outcomes",
+    ];
+    let mut mapping_ids = BTreeSet::new();
+    let mut mappings_by_action = BTreeMap::<String, Vec<ControlMapping>>::new();
+    let mut mapped_control_pairs = BTreeSet::<(String, String)>::new();
+    for (index, row) in array(value, "control_mappings", "request")?.iter().enumerate() {
+        let context = format!("control_mappings[{index}]");
+        let mapping_id = required_string(row, "mapping_id", &context)?.to_owned();
+        let action_id = required_string(row, "action_id", &context)?.to_owned();
+        let action_sha256 = parse_digest(row, "action_sha256", &context)?;
+        let control_id = required_string(row, "control_id", &context)?.to_owned();
+        let evidence_dimension = required_string(row, "evidence_dimension", &context)?.to_owned();
+        let proof_method_id = required_string(row, "proof_method_id", &context)?.to_owned();
+        let required_verifier_role = required_string(row, "required_verifier_role", &context)?.to_owned();
+        let independence_domain_id = required_string(row, "independence_domain_id", &context)?.to_owned();
+
+        if !mapping_ids.insert(mapping_id.clone()) {
+            return Err(format!("{context} duplicates mapping_id '{mapping_id}'"));
+        }
+        if !evidence_dimensions.contains(&evidence_dimension.as_str()) {
+            return Err(format!("{context} uses unknown IEAC evidence dimension '{evidence_dimension}'"));
+        }
+        if !requirements.contains_key(&control_id) {
+            return Err(format!("{context} maps an unrequired control '{control_id}'"));
+        }
+        let action = actions.get(&action_id)
+            .ok_or_else(|| format!("{context} maps an unknown candidate action '{action_id}'"))?;
+        if action.artifact_sha256 != action_sha256 {
+            return Err(format!("{context} action digest does not match the candidate action"));
+        }
+        if action.independence_domain_id != independence_domain_id {
+            return Err(format!("{context} independence domain does not match the candidate action"));
+        }
+        if !action.covers.contains(&control_id) {
+            return Err(format!("{context} maps a control the candidate action did not declare"));
+        }
+        if !mapped_control_pairs.insert((action_id.clone(), control_id.clone())) {
+            return Err(format!("{context} duplicates an action/control mapping"));
+        }
+        mappings_by_action.entry(action_id.clone()).or_default().push(ControlMapping {
+            mapping_id,
+            action_id,
+            action_sha256,
+            control_id,
+            evidence_dimension,
+            proof_method_id,
+            required_verifier_role,
+            independence_domain_id,
+        });
+    }
+
+    for (action_id, action) in actions.iter_mut() {
+        let mut mappings = mappings_by_action.remove(action_id).unwrap_or_default();
+        mappings.sort_by(|left, right| left.control_id.cmp(&right.control_id).then(left.mapping_id.cmp(&right.mapping_id)));
+        let mapped_controls: BTreeSet<String> = mappings.iter().map(|mapping| mapping.control_id.clone()).collect();
+        if mapped_controls != action.covers {
+            return Err(format!(
+                "candidate action '{action_id}' control coverage does not exactly match its digest-bound proof mappings"
+            ));
+        }
+        action.control_mappings = mappings;
+    }
+    if !mappings_by_action.is_empty() {
+        return Err("control mapping references an unrecognized candidate action".into());
+    }
+
     validate_prerequisite_dag(&actions)?;
 
     Ok(ValidatedRequest {
@@ -837,6 +934,16 @@ fn report_for(
             "rights_verified_at": action.rights_verified_at,
             "rights_valid_until": action.rights_valid_until,
             "covers_control_ids": action.covers,
+            "control_mappings": action.control_mappings.iter().map(|mapping| json!({
+                "mapping_id": mapping.mapping_id,
+                "action_id": mapping.action_id,
+                "action_sha256": mapping.action_sha256,
+                "control_id": mapping.control_id,
+                "evidence_dimension": mapping.evidence_dimension,
+                "proof_method_id": mapping.proof_method_id,
+                "required_verifier_role": mapping.required_verifier_role,
+                "independence_domain_id": mapping.independence_domain_id
+            })).collect::<Vec<_>>(),
             "resource_costs": action.resources.as_value()
         }));
     }
@@ -859,8 +966,14 @@ fn report_for(
             "independence_registry_sha256": row.independence_registry_sha256,
             "rights_evidence_sha256": row.rights_evidence_sha256
         })).collect::<Vec<_>>()).unwrap_or_default();
+        let control_mapping_ids: Vec<String> = selected.iter()
+            .flat_map(|action_id| request.actions[action_id].control_mappings.iter())
+            .filter(|mapping| mapping.control_id == *control)
+            .map(|mapping| mapping.mapping_id.clone())
+            .collect();
         coverage.push(json!({
             "control_id": control,
+            "control_mapping_ids": control_mapping_ids,
             "existing_verified_evidence": existing_evidence,
             "minimum_independent_domains": requirement.minimum_domains,
             "planned_or_existing_domain_ids": present,
