@@ -1792,7 +1792,7 @@ mod tests {
             .unwrap();
         assert_eq!(
             action["mapping_policy_sha256"],
-            "8888888888888888888888888888888888888888888888888888888888888888"
+            "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60"
         );
         assert_eq!(action["rights_status"], "verified");
     }
