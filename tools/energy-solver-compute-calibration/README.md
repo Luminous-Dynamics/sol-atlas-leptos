@@ -32,9 +32,21 @@ Optimal, feasible, infeasible, timed-out, cancelled and error outcomes remain se
 
 The current schema records elapsed wall time, time-to-first-feasible, time-to-optimal, objective/best-bound/gap, peak memory and timeout limit. It also retains intervals, binary variables and constraints so cost-vs-size behavior can be stratified.
 
+## Test panel
+
+The crate has **18 unit tests** covering:
+- exact digest and comma-free identifier validation;
+- timing/status semantics for optimal, feasible, infeasible, timeout and incumbent-bearing records;
+- exact cohort isolation across mesh, solver binary, hardware fingerprint and measurement class;
+- duplicate sample suppression;
+- nearest-rank percentile semantics;
+- p50/p95/p99 sample-count gates;
+- separate timeout/infeasible denominators from completed-solve latency;
+- fixed-header/field-count parsing and an end-to-end parse of the checked-in 30-row fixture.
+
 ## Frozen fixture and exact-head workflow
 
-The checked-in 30-row fixture is tagged `synthetic`. CI validates the entire strict parser → type validator → cohort guard → summary pipeline. Its numbers demonstrate the output schema only; they are not used as a performance claim.
+The checked-in 30-row fixture is tagged `synthetic`: 18 optimal, 4 feasible, 4 timed out and 4 infeasible. CI validates the entire strict parser → type validator → cohort guard → summary pipeline and records the fixture digest, aggregator-binary digest, source commit, Rust/Cargo versions and runner profile. Its numbers demonstrate the output schema only; they are not used as a performance claim.
 
 The next real measurement campaign should run the same frozen scenario panel over:
 - 60/30/15-minute mesh candidates and each selected horizon;
