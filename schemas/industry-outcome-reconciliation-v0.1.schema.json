@@ -671,22 +671,30 @@
       "properties": {
         "metrics": {
           "items": {
-            "anyOf": [
-              {
-                "properties": {
-                  "expected": {
-                    "type": "null"
-                  }
+            "if": {
+              "anyOf": [
+                {
+                  "properties": {
+                    "expected": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "expected"
+                  ]
+                },
+                {
+                  "properties": {
+                    "observed": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "observed"
+                  ]
                 }
-              },
-              {
-                "properties": {
-                  "observed": {
-                    "type": "null"
-                  }
-                }
-              }
-            ],
+              ]
+            },
             "then": {
               "properties": {
                 "reconciliation": {
