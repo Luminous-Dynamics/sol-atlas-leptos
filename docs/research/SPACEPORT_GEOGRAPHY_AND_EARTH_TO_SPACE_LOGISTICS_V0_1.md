@@ -34,6 +34,17 @@ The US FAA identifies access to useful orbits and public safety as primary space
 
 Use these as reference cases only. Verify current operating status, supported mission/orbit envelope, safety corridors, data currency and source rights before admitting a site to a benchmark. The Kipini feasibility study should be followed as a live project evidence stream; do not assume the broad regional location is the final surveyed site or that the feasibility study has recommended a particular launch architecture.
 
+### Kipini/Tana Delta: mandatory avoidance-first screen
+
+The general Kipini study area sits within the wider Tana Delta landscape. This is a material environmental and climate-screening issue, not a minor score penalty:
+
+- The Ramsar Sites Information Service lists the Tana River Delta as site 2082, 163,600 ha, designated 9 July 2012, with freshwater, floodplain, estuarine and coastal habitats, mangroves and important threatened-species/migratory-bird functions. https://rsis.ramsar.org/sites/default/files/rsiswp_search/exports/Ramsar-Sites-annotated-summary-Kenya.pdf
+- The confirmed Tana River Delta Key Biodiversity Area is 1,576.2 km², with elevation 0–37 m and 85.6% protected-area coverage. Its description says the low-lying delta coastal base extends from Kipini toward Mto Kilifi. https://www.keybiodiversityareas.org/en/site/factsheet/6412
+- Tana River County's Participatory Climate Risk Assessment identifies Kipini East and West among wards affected by flooding and seawater intrusion and describes coastal erosion, wetland/freshwater-ecosystem loss and livelihood impacts. https://maarifa.cog.go.ke/sites/default/files/2024-12/Tana%20River%20County%20PCRA%20Report%20DEC%202024%283%29.pdf
+- UNESCO IHP-WINS publishes a Tana River Basin historical-inundation dataset based on 1999–2020 satellite observations. https://ihp-wins.unesco.org/en/dataset/flood-risk
+
+The actual future project footprint is not established by the general place name Kipini. Do not assert exact Ramsar-polygon overlap until official current boundaries and actual candidate polygons have been intersected. Nevertheless, the wider-area evidence requires early avoidance/alternatives analysis before any latitude, port-access or financial score. Track this explicitly in [KIPINI-SPACEPORT-SCREEN-001 #395](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/395). A separate manufacturing, integration, tracking or logistics site outside the sensitive delta may have a different impact profile from a launch range and must be evaluated as a distinct alternative.
+
 ## 3. System boundary: ecosystem, not pin
 
 Represent distinct but connectable asset classes:
