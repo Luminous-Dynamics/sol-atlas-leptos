@@ -5,20 +5,21 @@ use std::collections::BTreeSet;
 const CORPUS: &str = include_str!("fixtures/port_city/manifest_cases.jsonl");
 
 fn nonempty(value: Option<&Value>) -> bool {
-    value.and_then(Value::as_str).is_some_and(|s| !s.trim().is_empty())
+    value
+        .and_then(Value::as_str)
+        .is_some_and(|s| !s.trim().is_empty())
 }
 
 fn valid_digest(value: Option<&Value>) -> bool {
-    value.and_then(Value::as_str).is_some_and(|s| {
-        s.len() == 64 && s.bytes().all(|b| b.is_ascii_hexdigit())
-    })
+    value
+        .and_then(Value::as_str)
+        .is_some_and(|s| s.len() == 64 && s.bytes().all(|b| b.is_ascii_hexdigit()))
 }
 
 /// Deliberately independent JSON-value oracle. It does not call PortStudyManifest::validate.
 fn reference_valid(manifest: &Value) -> bool {
     if manifest.get("schema_version").and_then(Value::as_u64) != Some(1)
-        || manifest.get("claim_ceiling").and_then(Value::as_str)
-            != Some("concept_description_only")
+        || manifest.get("claim_ceiling").and_then(Value::as_str) != Some("concept_description_only")
         || !nonempty(manifest.get("study_id"))
         || !nonempty(manifest.get("study_region_id"))
     {
@@ -48,9 +49,15 @@ fn reference_valid(manifest: &Value) -> bool {
             return false;
         };
         const FAMILIES: &[&str] = &[
-            "no_build_operational", "existing_port_upgrade", "brownfield_expansion",
-            "offshore_terminal", "barrier_island_network", "inland_basin_canal",
-            "inland_waterway_port", "dry_port_rail", "distributed_network",
+            "no_build_operational",
+            "existing_port_upgrade",
+            "brownfield_expansion",
+            "offshore_terminal",
+            "barrier_island_network",
+            "inland_basin_canal",
+            "inland_waterway_port",
+            "dry_port_rail",
+            "distributed_network",
         ];
         if !FAMILIES.contains(&family) {
             return false;
@@ -127,7 +134,10 @@ fn reference_valid(manifest: &Value) -> bool {
 
         let models = match alt.get("required_models") {
             None => &[][..],
-            Some(v) => match v.as_array() { Some(a) => a.as_slice(), None => return false },
+            Some(v) => match v.as_array() {
+                Some(a) => a.as_slice(),
+                None => return false,
+            },
         };
         const MODEL_DOMAINS: &[&str] = &[
             "hydrodynamics",
@@ -154,7 +164,10 @@ fn reference_valid(manifest: &Value) -> bool {
 
         let assumptions = match alt.get("assumptions") {
             None => &[][..],
-            Some(v) => match v.as_array() { Some(a) => a.as_slice(), None => return false },
+            Some(v) => match v.as_array() {
+                Some(a) => a.as_slice(),
+                None => return false,
+            },
         };
         if assumptions
             .iter()
