@@ -121,12 +121,16 @@ jobs:
           IEAC_SELECTOR_BUILD_ID: ${{ github.sha }}
         run: |
           set -euo pipefail
+          profile=schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json
+          policy=schemas/ieac-risk-control-policy-v0.2.json
+          profile_sha="$(sha256sum "$profile" | awk '{print $1}')"
+          policy_sha="$(sha256sum "$policy" | awk '{print $1}')"
           cargo run --manifest-path tools/industry-risk-control-selector/Cargo.toml --locked -- \
-            schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json \
-            schemas/ieac-risk-control-policy-v0.2.json \
-            "$RUNNER_TEMP/ieac-risk-control-report.json"
-          jq -e --arg build "$GITHUB_SHA" '
+            "$profile" "$policy" "$RUNNER_TEMP/ieac-risk-control-report.json"
+          jq -e --arg build "$GITHUB_SHA" --arg profile_sha "$profile_sha" --arg policy_sha "$policy_sha" '
             .schema_version == "luminous.ieac-risk-control-selection-report.v0.1" and
+            .input_profile_sha256 == $profile_sha and
+            .policy_sha256 == $policy_sha and
             .selector_version == "0.2.0" and
             .selector_build_id == $build and
             .decision_tier == "D1_advisory" and
