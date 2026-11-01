@@ -1,0 +1,148 @@
+name: IEAC trust-lifecycle impact auditor
+
+on:
+  pull_request:
+    paths:
+      - "tools/industry-trust-lifecycle-auditor/**"
+      - "schemas/industry-assurance-dependency-graph-v0.1.schema.json"
+      - "schemas/industry-assurance-invalidation-event-v0.1.schema.json"
+      - "schemas/industry-assurance-impact-report-v0.1.schema.json"
+      - "schemas/examples/ieac-trust-lifecycle-key-compromise-synthetic-v0.1.json"
+      - "docs/industry/IEAC_TRUST_LIFECYCLE_V0.1.md"
+      - ".github/workflows/industry-trust-lifecycle.yml"
+  push:
+    branches:
+      - main
+      - feat/ieac-trust-lifecycle-v0-1
+    paths:
+      - "tools/industry-trust-lifecycle-auditor/**"
+      - "schemas/industry-assurance-dependency-graph-v0.1.schema.json"
+      - "schemas/industry-assurance-invalidation-event-v0.1.schema.json"
+      - "schemas/industry-assurance-impact-report-v0.1.schema.json"
+      - "schemas/examples/ieac-trust-lifecycle-key-compromise-synthetic-v0.1.json"
+      - "docs/industry/IEAC_TRUST_LIFECYCLE_V0.1.md"
+      - ".github/workflows/industry-trust-lifecycle.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ieac-trust-lifecycle-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: Independent bitemporal dependency impact replay
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact workflow revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Install pinned Draft 2020-12 validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Add schema CLI to PATH
+        run: echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+
+      - name: Check package formatting
+        run: cargo fmt --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml -- --check
+
+      - name: Run package Clippy with warnings denied
+        run: cargo clippy --locked --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml --all-targets -- -D warnings
+
+      - name: Run standalone impact auditor tests
+        run: cargo test --locked --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml
+
+      - name: Validate dependency, invalidation and report schemas
+        run: |
+          set -euo pipefail
+          meta=https://json-schema.org/draft/2020-12/schema
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-assurance-dependency-graph-v0.1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-assurance-invalidation-event-v0.1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-assurance-impact-report-v0.1.schema.json
+
+      - name: Replay synthetic bitemporal key-compromise impact
+        run: |
+          set -euo pipefail
+          fixture=schemas/examples/ieac-trust-lifecycle-key-compromise-synthetic-v0.1.json
+          schema_graph=schemas/industry-assurance-dependency-graph-v0.1.schema.json
+          schema_event=schemas/industry-assurance-invalidation-event-v0.1.schema.json
+          schema_report=schemas/industry-assurance-impact-report-v0.1.schema.json
+          jq -e '.graph' "$fixture" > "$RUNNER_TEMP/assurance-graph.json"
+          jq -e '.invalidation_event' "$fixture" > "$RUNNER_TEMP/invalidation-event.json"
+          jq -e '.expected_impact_report' "$fixture" > "$RUNNER_TEMP/expected-impact-report.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$schema_graph" -i "$RUNNER_TEMP/assurance-graph.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$schema_event" -i "$RUNNER_TEMP/invalidation-event.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$schema_report" -i "$RUNNER_TEMP/expected-impact-report.json"
+
+          cargo run --locked --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml --bin industry-trust-lifecycle-audit -- \
+            "$fixture" "$RUNNER_TEMP/impact-report.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$schema_report" -i "$RUNNER_TEMP/impact-report.json"
+          jq -e '
+            .schema_version == "luminous.ieac-assurance-impact-report.v0.1" and
+            .summary.node_count == 17 and
+            .summary.no_impact_count == 4 and
+            .summary.historical_record_only_count == 6 and
+            .summary.reverify_required_count == 3 and
+            .summary.claim_invalidated_count == 1 and
+            .summary.quarantined_pending_review_count == 3 and
+            .historical_record_preserved == true and
+            .action_authority == "none"
+          ' "$RUNNER_TEMP/impact-report.json"
+
+      - name: Reject uncertain or disputed retroactive boundaries
+        run: |
+          set -euo pipefail
+          fixture=schemas/examples/ieac-trust-lifecycle-key-compromise-synthetic-v0.1.json
+          jq '.invalidation_event.valid_time.effective_time_confidence = "unknown"' "$fixture" > "$RUNNER_TEMP/unknown-effective-time.json"
+          jq '.invalidation_event.dispute_state = "disputed"' "$fixture" > "$RUNNER_TEMP/disputed-retroactive-event.json"
+          for mutant in "$RUNNER_TEMP/unknown-effective-time.json" "$RUNNER_TEMP/disputed-retroactive-event.json"; do
+            if cargo run --quiet --locked --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml --bin industry-trust-lifecycle-audit -- "$mutant" "$RUNNER_TEMP/mutant-report.json"; then
+              echo "ERROR: auditor accepted an uncertain/disputed retroactive invalidation"
+              exit 1
+            fi
+          done
+
+      - name: Reject cycle and out-of-scope mutations after digest recomputation
+        run: |
+          set -euo pipefail
+          fixture=schemas/examples/ieac-trust-lifecycle-key-compromise-synthetic-v0.1.json
+          jq '.graph.edges += [{"edge_id":"edge-cycle-negative","from_node_id":.graph.nodes[0].node_id,"to_node_id":.graph.nodes[0].node_id,"relation":"revoked_by"}]' "$fixture" > "$RUNNER_TEMP/cyclic-graph-raw.json"
+          graph_hash="$(jq -cS '.graph | del(.graph_snapshot_sha256)' "$RUNNER_TEMP/cyclic-graph-raw.json" | sha256sum | awk '{print $1}')"
+          jq --arg digest "$graph_hash" '.graph.graph_snapshot_sha256 = $digest' "$RUNNER_TEMP/cyclic-graph-raw.json" > "$RUNNER_TEMP/cyclic-graph.json"
+          if cargo run --quiet --locked --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml --bin industry-trust-lifecycle-audit -- "$RUNNER_TEMP/cyclic-graph.json" "$RUNNER_TEMP/cycle-report.json"; then
+            echo "ERROR: auditor accepted a dependency cycle with a recomputed graph digest"
+            exit 1
+          fi
+
+          jq '(.graph.nodes[] | select(.node_type == "issuer_key").scope.domain) = "water"' "$fixture" > "$RUNNER_TEMP/out-of-scope-graph-raw.json"
+          graph_hash="$(jq -cS '.graph | del(.graph_snapshot_sha256)' "$RUNNER_TEMP/out-of-scope-graph-raw.json" | sha256sum | awk '{print $1}')"
+          jq --arg digest "$graph_hash" '.graph.graph_snapshot_sha256 = $digest' "$RUNNER_TEMP/out-of-scope-graph-raw.json" > "$RUNNER_TEMP/out-of-scope-graph.json"
+          if cargo run --quiet --locked --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml --bin industry-trust-lifecycle-audit -- "$RUNNER_TEMP/out-of-scope-graph.json" "$RUNNER_TEMP/scope-report.json"; then
+            echo "ERROR: auditor accepted an invalidation outside its declared node scope"
+            exit 1
+          fi
+
+      - name: Reject expected-report tampering and duplicate JSON members
+        run: |
+          set -euo pipefail
+          fixture=schemas/examples/ieac-trust-lifecycle-key-compromise-synthetic-v0.1.json
+          jq '.expected_impact_report.results[2].impact_class = "claim_invalidated"' "$fixture" > "$RUNNER_TEMP/changed-impact-expectation.json"
+          if cargo run --quiet --locked --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml --bin industry-trust-lifecycle-audit -- "$RUNNER_TEMP/changed-impact-expectation.json" "$RUNNER_TEMP/changed-expectation-report.json"; then
+            echo "ERROR: auditor accepted a tampered expected impact classification"
+            exit 1
+          fi
+          printf '%s\n' '{"fixture_status":"synthetic_only","fixture_status":"synthetic_only"}' > "$RUNNER_TEMP/duplicate-members.json"
+          if cargo run --quiet --locked --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml --bin industry-trust-lifecycle-audit -- "$RUNNER_TEMP/duplicate-members.json" "$RUNNER_TEMP/duplicate-members-report.json"; then
+            echo "ERROR: auditor accepted duplicate JSON object member names"
+            exit 1
+          fi
