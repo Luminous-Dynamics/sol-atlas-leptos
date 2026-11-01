@@ -969,6 +969,57 @@ mod tests {
     }
 
     #[test]
+    fn exact_solver_replays_5_10_15_and_20_action_oracle_sizes() {
+        for action_count in [5usize, 10, 15, 20] {
+            let base = request();
+            let mut request = base.clone();
+            request["required_controls"] = json!([{
+                "control_id": "artifact_identity_integrity",
+                "reason_codes": ["BASELINE_REQUIRED"],
+                "minimum_independent_domains": 1,
+                "mandatory": true,
+                "human_approval_required": false
+            }]);
+            request["verified_evidence"] = json!([]);
+            let original = base["candidate_actions"].as_array().unwrap();
+            let mut actions = vec![original[0].clone(), original[1].clone()];
+            for index in 2..action_count {
+                let mut dummy = original[0].clone();
+                dummy["action_id"] = json!(format!("exact-oracle-dummy-{index:02}"));
+                dummy["action_sha256"] = json!(format!("{:064x}", 10_000 + index));
+                dummy["covers_control_ids"] = json!([]);
+                dummy["prerequisites"] = json!([]);
+                dummy["conflicts_with"] = json!([]);
+                dummy["resource_costs"] = json!({
+                    "money_microunits": 1000,
+                    "reviewer_minutes": 1000,
+                    "field_interruption_minutes": 1000,
+                    "compute_microunits": 1000,
+                    "duration_minutes": 1000
+                });
+                actions.push(dummy);
+            }
+            request["candidate_actions"] = json!(actions);
+            request["resource_budgets"] = json!({
+                "money_microunits": 2000,
+                "reviewer_minutes": 2000,
+                "field_interruption_minutes": 2000,
+                "compute_microunits": 2000,
+                "duration_minutes": 2000
+            });
+
+            let report = test_report(&request);
+            assert_eq!(report["plan_status"], "optimal_plan", "action_count={action_count}");
+            assert_eq!(report["optimization_method"], "exact_subset_enumeration");
+            assert_eq!(report["optimality_status"], "proven_optimal");
+            assert_eq!(report["selected_actions"].as_array().unwrap().len(), 1);
+            assert_eq!(report["selected_actions"][0]["action_id"], "artifact-provenance-capture");
+            assert_eq!(report["resource_totals"]["money_microunits"], 10);
+            assert_eq!(report["action_authority"], "none");
+        }
+    }
+
+    #[test]
     fn bounded_exact_fixture_replays_frozen_optimal_plan() {
         let fixture = fixture();
         let request = &fixture["request"];
@@ -1140,6 +1191,31 @@ mod tests {
         let report = test_report(&request);
         assert_eq!(report["plan_status"], "infeasible");
         assert_eq!(report["optimality_status"], "proven_infeasible");
+    }
+
+    #[test]
+    fn heuristic_scaling_cases_50_100_500_never_claim_optimality() {
+        let base = request();
+        let original = base["candidate_actions"].as_array().unwrap().clone();
+        for target in [50usize, 100, 500] {
+            let mut request = base.clone();
+            let mut actions = original.clone();
+            for index in actions.len()..target {
+                let mut dummy = original[0].clone();
+                dummy["action_id"] = json!(format!("scale-{target}-dummy-{index:03}"));
+                dummy["action_sha256"] = json!(format!("{:064x}", 20_000 + index));
+                dummy["covers_control_ids"] = json!([]);
+                dummy["prerequisites"] = json!([]);
+                dummy["conflicts_with"] = json!([]);
+                actions.push(dummy);
+            }
+            request["candidate_actions"] = json!(actions);
+            let report = test_report(&request);
+            assert_eq!(report["optimization_method"], "deterministic_greedy");
+            assert_eq!(report["optimality_status"], "not_proven");
+            assert_eq!(report["plan_status"], "feasible_heuristic");
+            assert_eq!(report["action_authority"], "none");
+        }
     }
 
     #[test]
