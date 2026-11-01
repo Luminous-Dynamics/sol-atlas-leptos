@@ -223,6 +223,24 @@ impl AggregateMetrics {
     }
 }
 
+/// Apply the shared telemetry-quality gate, then invoke exactly one policy
+/// decision per observation. Evaluator-only truth is never exposed here.
+pub fn run_policy(policy: PolicyKind, scenario: &Scenario) -> PolicyRun {
+    let actions: Vec<ReplanAction> = scenario
+        .observations
+        .iter()
+        .map(|observation| {
+            if observation.telemetry_status != TelemetryStatus::Fresh {
+                ReplanAction::Abstain
+            } else {
+                policy.decide(observation)
+            }
+        })
+        .collect();
+
+    evaluate_run(policy, scenario, actions)
+}
+
 fn evaluate_run(policy: PolicyKind, scenario: &Scenario, actions: Vec<ReplanAction>) -> PolicyRun {
     let replan_steps: Vec<u32> = scenario
         .observations
