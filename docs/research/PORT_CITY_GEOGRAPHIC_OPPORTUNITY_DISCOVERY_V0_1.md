@@ -289,3 +289,30 @@ For each inland node, measure least-cost access to multiple gateways, shared lin
 The South African National Ports Authority's published Port Development Framework Plan update (2022) lists its major ports and says that port plans were built from revised nationwide freight-demand forecasts, scenarios/concepts and options analysis. It is a useful historical reference snapshot, not current as-operated capacity or a substitute for updated port master plans and actual performance evidence. The document is also visibly marked confidential in the source copy; review access and reuse terms before ingest, cite only appropriately shareable metadata, and do not redistribute the document. https://www.transnetnationalportsauthority.net/Infrastructure%20and%20Port%20Planning/Documents/Port%20Development%20Framework%20Plans%20Update%202022.pdf
 
 **Initial study recommendation:** build a corridor-source inventory for the Maputo–Gaborone–Walvis Bay, Durban–Lusaka–Lubumbashi and Lobito–Kolwezi–Lubumbashi–Solwezi–Ndola graph hypotheses. Select one as the first detailed case only after operational data, route continuity, survey coverage, land/water rights, ecological evidence and stakeholder access have been audited. A corridor designation is not proof of a functioning, competitive or investable freight service.
+
+
+## 12. Initial continental topology source: African Transport Systems Database (AfTS-Db v3)
+
+A concrete source candidate is the African Transport Systems Database v3, described in *Scientific Data* (published 24 December 2025; version of record 4 February 2026) and published on Zenodo (v3):
+
+- Article: https://doi.org/10.1038/s41597-025-06483-7
+- Dataset: https://doi.org/10.5281/zenodo.17861120
+- Processing repository: https://github.com/nismod/Africa-transport-database
+- Qualification work item: [AFRICA-TRANSPORT-DATA-001 #381](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/381)
+
+The article describes 234 airports, 179 maritime ports, 132 inland ports / docking sites, 4,412 railway stations, 99,373 km of rail, and 1,004,512 km of roads. The Zenodo v3 package contains separate maritime, inland-waterway, multimodal, rail and road GeoPackages, plus rail/road investment-cost tables and metadata. This offers a useful starting topology for Africa-wide coast–hinterland discovery and Southern African corridor screening.
+
+Important limitations must be encoded, not left in prose:
+
+- Rail base topology uses an OSM extract from November 2021, refined by later review and project/status data; road topology uses an OSM extract from August 2025.
+- Port/maritime inputs include PortWatch data extracted June 2025; AIS-derived cargo-use attributes cover 2019–2024.
+- Inland-waterway port usage is not credibly available continent-wide; the dataset provides node/edge topology, not validated commercial demand or operating service.
+- The authors explicitly describe multimodal edges as **notional inferred links**, often created by connecting a port/airport to the nearest road node or relevant railway station. They are not proof of a built transfer asset or operating service.
+- Some river/lake links rely on OSM waterways or straight-line links between lake ports; that does not establish vessel class, seasonal draft, navigation availability or freight service.
+- Road attributes such as surface and lane count are partly imputed when OSM fields are missing; preserve an inferred/derived status rather than treating them as measured.
+- Road/rail investment costs are generalized estimates, not quantity-surveyor estimates or local project bids.
+- Rail state categories include open, under construction, planned, proposed, under rehabilitation, suspended, disused, abandoned, razed and unknown; do not map all non-null states to currently usable capacity.
+
+Rights: the Scientific Data article is CC BY 4.0 and the GitHub processing code is MIT-licensed. The inspected Zenodo dataset record does not populate its own license field. Those are different objects. Review component and inherited-source terms (including OSM and third-party inputs) before redistribution; no raw-data mirror is authorized by the code license alone.
+
+Recommended first slice: after source/rights review, begin with the small maritime, inland-waterway, multimodal and rail layers plus the metadata workbook. Avoid pulling the 1.6 GB road graph wholesale. Create source receipts and a scoped regional subset first, then independently check route continuity, operational status, capacity and intermodal access against national port authorities, rail / road operators, border and freight evidence. A topological network can suggest where to investigate, not determine current accessibility or project feasibility.
