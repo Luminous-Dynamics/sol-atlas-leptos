@@ -18,7 +18,10 @@
     "conflict_edges",
     "action_authority",
     "profile_qualification_attested",
-    "registry_authority_id"
+    "registry_authority_id",
+    "auditor_version",
+    "auditor_build_id",
+    "claim_scope"
   ],
   "properties": {
     "schema_version": {
@@ -300,6 +303,17 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 128
+    },
+    "auditor_version": {
+      "const": "0.1.0"
+    },
+    "auditor_build_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "claim_scope": {
+      "const": "registry_model_only"
     }
   },
   "allOf": []
