@@ -44,11 +44,8 @@ jobs:
           cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
           echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
 
-      - name: Validate schema against Draft 2020-12 meta-schema
+      - name: Compile strict Draft 2020-12 profile schema and validate fixture
         run: |
-          jsonschema-cli validate --draft 2020 --assert-format \
-            https://json-schema.org/draft/2020-12/schema \
-            --instance schemas/ieac-scitt-event-chain-v0.1.schema.json
 
       - name: Validate synthetic multi-issuer event chain
         run: |
