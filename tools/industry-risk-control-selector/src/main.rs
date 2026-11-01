@@ -8,11 +8,16 @@ use std::fmt;
 use std::fs;
 use std::process::ExitCode;
 
-const POLICY_SCHEMA: &str = "luminous.ieac-risk-assurance-policy.v0.1";
+const POLICY_SCHEMA: &str = "luminous.ieac-risk-control-policy.v0.2";
 const PROFILE_SCHEMA: &str = "luminous.industry-assurance-profile.v0.1";
-const REPORT_SCHEMA: &str = "luminous.ieac-risk-control-selector-report.v0.1";
+const REPORT_SCHEMA: &str = "luminous.ieac-risk-control-selection-report.v0.1";
 const DIMENSIONS: &[&str] = &[
     "consequence", "model_influence", "exposure", "reversibility", "detectability", "fallback",
+];
+const EVIDENCE_DIMENSIONS: &[&str] = &[
+    "software_conformance", "numerical_verification", "physical_validation",
+    "data_integrity_rights", "uncertainty_credibility", "generalization", "robustness",
+    "operational_assurance", "safety_security_authority", "prospective_outcomes",
 ];
 const TIERS: &[&str] = &[
     "D0_descriptive", "D1_advisory", "D2_delegated_planning", "D3_autonomous_control",
@@ -53,9 +58,9 @@ impl<'de> Deserialize<'de> for StrictJson {
         D: serde::Deserializer<'de>,
     {
         struct StrictVisitor;
+
         impl<'de> Visitor<'de> for StrictVisitor {
             type Value = StrictJson;
-
             fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
                 formatter.write_str("JSON without duplicate object member names")
             }
@@ -81,8 +86,7 @@ impl<'de> Deserialize<'de> for StrictJson {
             }
             fn visit_f64<E>(self, value: f64) -> Result<Self::Value, E>
             where E: de::Error {
-                Number::from_f64(value)
-                    .map(StrictJson::Number)
+                Number::from_f64(value).map(StrictJson::Number)
                     .ok_or_else(|| E::custom("non-finite JSON number"))
             }
             fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
@@ -106,9 +110,7 @@ impl<'de> Deserialize<'de> for StrictJson {
                 let mut values = BTreeMap::new();
                 while let Some((key, value)) = access.next_entry::<String, StrictJson>()? {
                     if values.contains_key(&key) {
-                        return Err(de::Error::custom(format!(
-                            "duplicate JSON object member: {key}"
-                        )));
+                        return Err(de::Error::custom(format!("duplicate JSON object member: {key}")));
                     }
                     values.insert(key, value);
                 }
@@ -123,9 +125,15 @@ fn sha256_hex(bytes: &[u8]) -> String {
     Sha256::digest(bytes).iter().map(|byte| format!("{byte:02x}")).collect()
 }
 
+fn json_digest(value: &Value) -> Result<String, String> {
+    // serde_json uses sorted object keys by default; policy and profile are
+    // structurally validated before hashing and contain no floating-point policy values.
+    let bytes = serde_json::to_vec(value).map_err(|error| format!("cannot serialize digest input: {error}"))?;
+    Ok(sha256_hex(&bytes))
+}
+
 fn required_string<'a>(value: &'a Value, key: &str, context: &str) -> Result<&'a str, String> {
-    value.get(key).and_then(Value::as_str)
-        .filter(|item| !item.trim().is_empty())
+    value.get(key).and_then(Value::as_str).filter(|item| !item.trim().is_empty())
         .ok_or_else(|| format!("{context}: required non-empty string '{key}' is missing"))
 }
 
@@ -136,26 +144,15 @@ fn array<'a>(value: &'a Value, key: &str, context: &str) -> Result<&'a [Value], 
 
 fn add_controls(
     required: &mut BTreeMap<String, BTreeSet<String>>,
-    control_ids: &[Value],
+    controls: &[Value],
     reason_code: &str,
 ) -> Result<(), String> {
-    for control in control_ids {
-        let id = control.as_str()
-            .filter(|value| !value.is_empty())
-            .ok_or_else(|| "policy control_ids must contain non-empty strings".to_owned())?;
+    for control in controls {
+        let id = control.as_str().filter(|value| !value.is_empty())
+            .ok_or_else(|| "policy control IDs must be non-empty strings".to_owned())?;
         required.entry(id.to_owned()).or_default().insert(reason_code.to_owned());
     }
     Ok(())
-}
-
-fn add_controls_strings(
-    required: &mut BTreeMap<String, BTreeSet<String>>,
-    control_ids: &[String],
-    reason_code: &str,
-) {
-    for id in control_ids {
-        required.entry(id.clone()).or_default().insert(reason_code.to_owned());
-    }
 }
 
 fn control_evidence_state(profile: &Value, evidence_dimension: &str) -> (String, usize) {
@@ -181,111 +178,123 @@ fn control_evidence_state(profile: &Value, evidence_dimension: &str) -> (String,
 
 fn validate_policy_catalog(policy: &Value) -> Result<BTreeMap<String, Value>, String> {
     if policy.get("schema_version").and_then(Value::as_str) != Some(POLICY_SCHEMA) {
-        return Err("unsupported risk assurance policy schema".into());
+        return Err("unsupported IEAC risk-control policy schema".into());
     }
-    if policy.get("action_authority").and_then(Value::as_str) != Some("none")
-        || policy.get("independent_qualification_attested").and_then(Value::as_bool) != Some(false)
-    {
-        return Err("risk selector policy may not authorize actions or attest qualification".into());
+    if policy.get("action_authority").and_then(Value::as_str) != Some("none") {
+        return Err("risk-control policy cannot grant action authority".into());
     }
-    let action_policy = policy.get("action_policy").ok_or("policy.action_policy is missing")?;
-    if action_policy.get("selector_may_authorize_action").and_then(Value::as_bool) != Some(false)
-        || action_policy.get("selector_may_upgrade_tier").and_then(Value::as_bool) != Some(false)
-        || action_policy.get("unknown_risk_blocks_clearance").and_then(Value::as_bool) != Some(true)
-        || action_policy.get("direct_actuation_requires_tier").and_then(Value::as_str) != Some("D3_autonomous_control")
-    {
-        return Err("risk selector action policy violates non-authority and D3 boundaries".into());
-    }
-    let unknown_policy = policy.get("unknown_policy").ok_or("policy.unknown_policy is missing")?;
-    if unknown_policy.get("never_reduce_controls").and_then(Value::as_bool) != Some(true)
-        || unknown_policy.get("mode").and_then(Value::as_str) != Some("worst_case_union_plus_review")
-    {
-        return Err("risk selector unknown policy must be monotone and worst-case conservative".into());
-    }
+
     let mut catalog = BTreeMap::new();
-    for (index, item) in array(policy, "control_catalog", "policy")?.iter().enumerate() {
-        let context = format!("policy.control_catalog[{index}]");
-        let id = required_string(item, "control_id", &context)?;
-        let dimension = required_string(item, "evidence_dimension", &context)?;
-        if !DIMENSION_EVIDENCE_FIELDS.contains(&dimension) {
-            return Err(format!("{context}: unknown evidence dimension '{dimension}'"));
+    let controls = policy.get("controls").and_then(Value::as_object)
+        .ok_or("policy.controls must be an object")?;
+    for (id, definition) in controls {
+        let dimension = required_string(definition, "evidence_dimension", id)?;
+        if !EVIDENCE_DIMENSIONS.contains(&dimension) {
+            return Err(format!("control '{id}' maps to unknown evidence dimension '{dimension}'"));
         }
-        if catalog.insert(id.to_owned(), item.clone()).is_some() {
-            return Err(format!("{context}: duplicate control_id '{id}'"));
+        required_string(definition, "description", id)?;
+        if definition.get("human_approval").and_then(Value::as_bool).is_none() {
+            return Err(format!("control '{id}' must declare human_approval"));
         }
+        for obligation in array(definition, "obligations", id)? {
+            if obligation.as_str().is_none_or(str::is_empty) {
+                return Err(format!("control '{id}' contains an invalid obligation"));
+            }
+        }
+        catalog.insert(id.clone(), definition.clone());
     }
 
     let mut referenced = BTreeSet::new();
-    let mut tier_keys = BTreeSet::new();
-    for item in array(policy, "tier_minimums", "policy")? {
-        let tier = required_string(item, "decision_tier", "tier rule")?;
-        if !TIERS.contains(&tier) || !tier_keys.insert(tier.to_owned()) {
-            return Err(format!("invalid or duplicate tier minimum '{tier}'"));
+    let mut tiers = BTreeSet::new();
+    for (tier, rows) in policy.get("tier_controls").and_then(Value::as_object)
+        .ok_or("policy.tier_controls must be an object")? {
+        if !TIERS.contains(&tier.as_str()) || !tiers.insert(tier.clone()) {
+            return Err(format!("invalid or duplicate decision tier '{tier}'"));
         }
-        for control in array(item, "control_ids", "tier rule")? {
+        for control in rows.as_array().ok_or("tier control list must be an array")? {
             referenced.insert(control.as_str().ok_or("tier control ID must be a string")?.to_owned());
         }
     }
-    if tier_keys.len() != TIERS.len() {
-        return Err("policy must define exactly one minimum for each D0-D3 tier".into());
+    if tiers.len() != TIERS.len() {
+        return Err("policy must define one tier control set for each D0-D3 tier".into());
     }
 
-    let mut dimension_keys = BTreeSet::new();
-    for item in array(policy, "dimension_rules", "policy")? {
-        let dimension = required_string(item, "dimension", "dimension rule")?;
-        let value = required_string(item, "value", "dimension rule")?;
-        if !DIMENSIONS.contains(&dimension)
-            || !dimension_keys.insert((dimension.to_owned(), value.to_owned()))
-        {
-            return Err(format!("invalid or duplicate risk rule '{dimension}={value}'"));
+    let risk_classes = policy.get("risk_class_controls").and_then(Value::as_object)
+        .ok_or("policy.risk_class_controls must be an object")?;
+    for class in ["low", "moderate", "high", "critical", "unassessed"] {
+        let controls = risk_classes.get(class).and_then(Value::as_array)
+            .ok_or_else(|| format!("policy has no risk class control set for '{class}'"))?;
+        for control in controls {
+            referenced.insert(control.as_str().ok_or("risk class control ID must be a string")?.to_owned());
         }
-        for control in array(item, "control_ids", "dimension rule")? {
-            referenced.insert(control.as_str().ok_or("dimension control ID must be a string")?.to_owned());
+    }
+
+    let dimensions = policy.get("dimensions").and_then(Value::as_object)
+        .ok_or("policy.dimensions must be an object")?;
+    for axis in DIMENSIONS {
+        let rules = dimensions.get(*axis).and_then(Value::as_object)
+            .ok_or_else(|| format!("policy is missing dimension rules for '{axis}'"))?;
+        if !rules.contains_key("unknown") {
+            return Err(format!("policy must define a conservative unknown value for '{axis}'"));
         }
+        for (value, controls) in rules {
+            if value.is_empty() {
+                return Err(format!("dimension '{axis}' has an empty value rule"));
+            }
+            for control in controls.as_array()
+                .ok_or_else(|| format!("'{axis}={value}' controls must be an array"))? {
+                referenced.insert(control.as_str().ok_or("dimension control ID must be a string")?.to_owned());
+            }
+        }
+    }
+
+    for control in array(policy, "always_required_controls", "policy")? {
+        referenced.insert(control.as_str().ok_or("baseline control ID must be a string")?.to_owned());
+    }
+    let unknown = policy.get("unknown_policy").ok_or("policy.unknown_policy is missing")?;
+    if unknown.get("dimension_value").and_then(Value::as_str) != Some("unknown")
+        || unknown.get("behavior").and_then(Value::as_str)
+            != Some("apply_the_maximum_control_set_for_that_dimension_and_mark_indeterminate")
+        || unknown.get("conflicted_dimension_behavior").and_then(Value::as_str)
+            != Some("same_as_unknown_and_mark_indeterminate") {
+        return Err("unknown/conflicted policy must be worst-case conservative and indeterminate".into());
+    }
+    for control in array(unknown, "reviewed_class_unassessed", "unknown policy")? {
+        referenced.insert(control.as_str().ok_or("unassessed control ID must be a string")?.to_owned());
     }
 
     let mut combination_ids = BTreeSet::new();
-    for item in array(policy, "combination_rules", "policy")? {
-        let id = required_string(item, "rule_id", "combination rule")?;
+    for rule in array(policy, "combination_rules", "policy")? {
+        let id = required_string(rule, "rule_id", "combination rule")?;
         if !combination_ids.insert(id.to_owned()) {
             return Err(format!("duplicate combination rule '{id}'"));
         }
-        for control in array(item, "control_ids", "combination rule")? {
+        required_string(rule, "reason_code", "combination rule")?;
+        for condition in array(rule, "conditions", "combination rule")? {
+            let axis = required_string(condition, "dimension", "combination condition")?;
+            if !DIMENSIONS.contains(&axis) {
+                return Err(format!("combination rule '{id}' uses unknown dimension '{axis}'"));
+            }
+            for value in array(condition, "values", "combination condition")? {
+                if value.as_str().is_none_or(str::is_empty) {
+                    return Err(format!("combination rule '{id}' contains an empty value"));
+                }
+            }
+        }
+        for control in array(rule, "control_ids", "combination rule")? {
             referenced.insert(control.as_str().ok_or("combination control ID must be a string")?.to_owned());
         }
     }
-    let mut reviewed_classes = BTreeSet::new();
-    for item in array(policy, "reviewed_class_rules", "policy")? {
-        let class = required_string(item, "reviewed_class", "reviewed class rule")?;
-        if !reviewed_classes.insert(class.to_owned()) {
-            return Err(format!("duplicate reviewed-class rule '{class}'"));
-        }
-        for control in array(item, "additional_control_ids", "reviewed class rule")? {
-            referenced.insert(control.as_str().ok_or("reviewed class control ID must be a string")?.to_owned());
-        }
-    }
-    for control in array(unknown_policy, "additional_control_ids", "unknown policy")? {
-        referenced.insert(control.as_str().ok_or("unknown-policy control ID must be a string")?.to_owned());
-    }
-    let worst_values = unknown_policy.get("worst_case_values").ok_or("unknown_policy.worst_case_values is missing")?;
-    for dimension in DIMENSIONS {
-        required_string(worst_values, dimension, "unknown_policy.worst_case_values")?;
-    }
+
     for id in referenced {
         if !catalog.contains_key(&id) {
-            return Err(format!("policy references unknown control_id '{id}'"));
+            return Err(format!("policy references unknown control ID '{id}'"));
         }
     }
     Ok(catalog)
 }
 
-const DIMENSION_EVIDENCE_FIELDS: &[&str] = &[
-    "software_conformance", "numerical_verification", "physical_validation",
-    "data_integrity_rights", "uncertainty_credibility", "generalization", "robustness",
-    "operational_assurance", "safety_security_authority", "prospective_outcomes",
-];
-
-fn select_requirements(profile: &Value, policy: &Value, input_digest: &str, policy_digest: &str) -> Result<Value, String> {
+fn evaluate(profile: &Value, policy: &Value, build_id: &str) -> Result<Value, String> {
     if profile.get("schema_version").and_then(Value::as_str) != Some(PROFILE_SCHEMA) {
         return Err("unsupported IEAC qualification profile schema".into());
     }
@@ -294,104 +303,89 @@ fn select_requirements(profile: &Value, policy: &Value, input_digest: &str, poli
         return Err(format!("unsupported decision tier '{tier}'"));
     }
     let risk = profile.get("risk_assessment").ok_or("profile.risk_assessment is missing")?;
-    let reviewed_class = required_string(risk, "reviewed_class", "risk_assessment")?;
+    let reviewed_class = required_string(risk, "reviewed_class", "risk assessment")?;
+    let risk_classes = ["low", "moderate", "high", "critical", "unassessed"];
+    if !risk_classes.contains(&reviewed_class) {
+        return Err(format!("unsupported risk class '{reviewed_class}'"));
+    }
     let dimensions = risk.get("dimensions").ok_or("risk_assessment.dimensions is missing")?;
     let catalog = validate_policy_catalog(policy)?;
-    let mut required: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+
+    let mut required = BTreeMap::<String, BTreeSet<String>>::new();
     let mut risk_has_unknown = false;
-    let mut risk_unassessed = reviewed_class == "unassessed";
+    let mut risk_has_conflicted = false;
+    let risk_unassessed = reviewed_class == "unassessed";
     let mut risk_values = Map::new();
+    let mut lookup_values = BTreeMap::<String, String>::new();
 
-    let tier_rule = array(policy, "tier_minimums", "policy")?
-        .iter()
-        .find(|item| item.get("decision_tier").and_then(Value::as_str) == Some(tier))
-        .ok_or_else(|| format!("policy has no minimum controls for tier '{tier}'"))?;
-    add_controls(
-        &mut required,
-        array(tier_rule, "control_ids", "tier rule")?,
-        required_string(tier_rule, "reason_code", "tier rule")?,
-    )?;
+    add_controls(&mut required, array(policy, "always_required_controls", "policy")?, "BASELINE_REQUIRED")?;
+    let tier_controls = policy.get("tier_controls").and_then(Value::as_object)
+        .and_then(|object| object.get(tier)).and_then(Value::as_array)
+        .ok_or_else(|| format!("policy has no control set for tier '{tier}'"))?;
+    add_controls(&mut required, tier_controls, &format!("TIER_{}", tier.to_ascii_uppercase()))?;
 
-    let dimension_rules = array(policy, "dimension_rules", "policy")?;
-    let unknown_policy = policy.get("unknown_policy").ok_or("policy.unknown_policy is missing")?;
-    let worst_values = unknown_policy.get("worst_case_values").ok_or("unknown_policy.worst_case_values is missing")?;
-    for dimension in DIMENSIONS {
-        let actual = required_string(dimensions, dimension, "risk dimensions")?;
-        risk_values.insert((*dimension).to_owned(), json!(actual));
-        if actual == "unknown" {
-            risk_has_unknown = true;
+    let risk_class_controls = policy.get("risk_class_controls").and_then(Value::as_object)
+        .and_then(|object| object.get(reviewed_class)).and_then(Value::as_array)
+        .ok_or_else(|| format!("policy has no control set for risk class '{reviewed_class}'"))?;
+    add_controls(&mut required, risk_class_controls, &format!("RISK_CLASS_{}", reviewed_class.to_ascii_uppercase()))?;
+
+    let dimension_rules = policy.get("dimensions").and_then(Value::as_object)
+        .ok_or("policy.dimensions is missing")?;
+    for axis in DIMENSIONS {
+        let actual = required_string(dimensions, axis, "risk dimensions")?;
+        let rules = dimension_rules.get(*axis).and_then(Value::as_object)
+            .ok_or_else(|| format!("policy is missing risk axis '{axis}'"))?;
+        if !rules.contains_key(actual) && !["unknown", "conflicted"].contains(&actual) {
+            return Err(format!("unsupported risk value '{actual}' for '{axis}'"));
         }
-        let lookup_value = if actual == "unknown" || risk_unassessed {
-            required_string(worst_values, dimension, "unknown_policy.worst_case_values")?
+        let lookup = if risk_unassessed || actual == "unknown" || actual == "conflicted" {
+            "unknown"
         } else {
             actual
         };
-        let rule = dimension_rules.iter()
-            .find(|item| item.get("dimension").and_then(Value::as_str) == Some(dimension)
-                && item.get("value").and_then(Value::as_str) == Some(lookup_value))
-            .ok_or_else(|| format!("policy has no rule for risk dimension '{dimension}' value '{lookup_value}'"))?;
+        risk_has_unknown |= actual == "unknown";
+        risk_has_conflicted |= actual == "conflicted";
+        lookup_values.insert((*axis).to_owned(), lookup.to_owned());
+        risk_values.insert((*axis).to_owned(), json!(actual));
+        let controls = rules.get(lookup).and_then(Value::as_array)
+            .ok_or_else(|| format!("policy is missing conservative mapping '{axis}={lookup}'"))?;
         let reason = if risk_unassessed {
-            "RISK_UNASSESSED_WORST_CASE_DIMENSION"
+            "RISK_CLASS_UNASSESSED_WORST_CASE".to_owned()
+        } else if actual == "conflicted" {
+            "RISK_DIMENSION_CONFLICTED_WORST_CASE".to_owned()
         } else if actual == "unknown" {
-            "RISK_UNKNOWN_WORST_CASE_DIMENSION"
+            "RISK_DIMENSION_UNKNOWN_WORST_CASE".to_owned()
         } else {
-            required_string(rule, "reason_code", "dimension rule")?
+            format!("RISK_{}_{}", axis, actual).to_ascii_uppercase()
         };
-        add_controls(&mut required, array(rule, "control_ids", "dimension rule")?, reason)?;
+        add_controls(&mut required, controls, &reason)?;
     }
 
-    let class_rule = array(policy, "reviewed_class_rules", "policy")?
-        .iter()
-        .find(|item| item.get("reviewed_class").and_then(Value::as_str) == Some(reviewed_class))
-        .ok_or_else(|| format!("policy has no reviewed-class rule for '{reviewed_class}'"))?;
-    let class_reason = format!("REVIEWED_CLASS_{}", reviewed_class.to_ascii_uppercase());
-    add_controls(
-        &mut required,
-        array(class_rule, "additional_control_ids", "reviewed class rule")?,
-        &class_reason,
-    )?;
-
-    for combination in array(policy, "combination_rules", "policy")? {
+    for rule in array(policy, "combination_rules", "policy")? {
         let mut matches = true;
-        for condition in array(combination, "conditions", "combination rule")? {
+        for condition in array(rule, "conditions", "combination rule")? {
             let axis = required_string(condition, "dimension", "combination condition")?;
-            let actual = dimensions.get(axis).and_then(Value::as_str)
-                .ok_or_else(|| format!("profile risk dimension '{axis}' is missing"))?;
-            let current = if actual == "unknown" || risk_unassessed {
-                required_string(worst_values, axis, "unknown_policy.worst_case_values")?
-            } else {
-                actual
-            };
-            let values = array(condition, "values", "combination condition")?;
-            if !values.iter().any(|value| value.as_str() == Some(current)) {
+            let current = lookup_values.get(axis)
+                .ok_or_else(|| format!("combination rule references unavailable axis '{axis}'"))?;
+            let allowed = array(condition, "values", "combination condition")?;
+            if !allowed.iter().any(|value| value.as_str() == Some(current.as_str())) {
                 matches = false;
                 break;
             }
         }
         if matches {
-            add_controls(
-                &mut required,
-                array(combination, "control_ids", "combination rule")?,
-                required_string(combination, "reason_code", "combination rule")?,
-            )?;
+            add_controls(&mut required, array(rule, "control_ids", "combination rule")?,
+                required_string(rule, "reason_code", "combination rule")?)?;
         }
     }
 
-    if risk_has_unknown || risk_unassessed {
-        add_controls(
-            &mut required,
-            array(unknown_policy, "additional_control_ids", "unknown policy")?,
-            "UNKNOWN_OR_UNASSESSED_RISK",
-        )?;
+    if risk_unassessed {
+        add_controls(&mut required, array(policy.get("unknown_policy").ok_or("unknown policy missing")?,
+            "reviewed_class_unassessed", "unknown policy")?, "RISK_CLASS_UNASSESSED_CONSERVATIVE")?;
     }
 
-    let influence = dimensions.get("model_influence").and_then(Value::as_str).unwrap_or("unknown");
-    let required_actuation_tier = required_string(
-        policy.get("action_policy").ok_or("policy.action_policy is missing")?,
-        "direct_actuation_requires_tier",
-        "policy.action_policy",
-    )?;
-    let tier_compatibility = if influence == "direct_actuation" && tier != required_actuation_tier {
+    let model_influence = dimensions.get("model_influence").and_then(Value::as_str).unwrap_or("unknown");
+    let tier_compatibility = if model_influence == "direct_actuation" && tier != "D3_autonomous_control" {
         "blocked"
     } else {
         "compatible"
@@ -401,19 +395,36 @@ fn select_requirements(profile: &Value, policy: &Value, input_digest: &str, poli
     let mut unknown = Vec::new();
     let mut conflicted = Vec::new();
     let mut not_applicable = Vec::new();
+    let mut controls_with_evidence = Vec::new();
     let mut output_controls = Vec::new();
+    let mut human_approvals = BTreeSet::new();
+    let mut operational_obligations = BTreeSet::new();
+
     for (id, reasons) in &required {
         let definition = catalog.get(id)
-            .ok_or_else(|| format!("policy requirement references unknown control_id '{id}'"))?;
-        let evidence_dimension = required_string(definition, "evidence_dimension", "control catalog")?;
-        let description = required_string(definition, "description", "control catalog")?;
+            .ok_or_else(|| format!("selected control '{id}' is absent from policy catalog"))?;
+        let evidence_dimension = required_string(definition, "evidence_dimension", id)?;
+        let description = required_string(definition, "description", id)?;
+        let human_approval = definition.get("human_approval").and_then(Value::as_bool)
+            .ok_or_else(|| format!("control '{id}' has invalid human_approval"))?;
+        let obligations = array(definition, "obligations", id)?;
+        if human_approval {
+            human_approvals.insert(id.clone());
+        }
+        let mut obligation_values = Vec::new();
+        for obligation in obligations {
+            let value = obligation.as_str().ok_or_else(|| format!("control '{id}' has non-string obligation"))?;
+            operational_obligations.insert(value.to_owned());
+            obligation_values.push(value.to_owned());
+        }
         let (state, evidence_count) = control_evidence_state(profile, evidence_dimension);
         match state.as_str() {
+            "established" => controls_with_evidence.push(id.clone()),
             "missing" => missing.push(id.clone()),
             "unknown" => unknown.push(id.clone()),
             "conflicted" => conflicted.push(id.clone()),
             "not_applicable" => not_applicable.push(id.clone()),
-            _ => {}
+            _ => unknown.push(id.clone()),
         }
         output_controls.push(json!({
             "control_id": id,
@@ -421,54 +432,39 @@ fn select_requirements(profile: &Value, policy: &Value, input_digest: &str, poli
             "description": description,
             "evidence_state": state,
             "evidence_count": evidence_count,
+            "human_approval": human_approval,
+            "obligations": obligation_values,
             "reason_codes": reasons.iter().cloned().collect::<Vec<_>>()
         }));
     }
 
-    let disposition = if tier_compatibility == "blocked"
-        || risk_unassessed
-        || risk_has_unknown
-        || !unknown.is_empty()
-        || !conflicted.is_empty()
-        || !not_applicable.is_empty()
-    {
-        "indeterminate"
-    } else if !missing.is_empty() {
-        "requirements_missing"
-    } else {
-        "requirements_satisfied"
-    };
-
-    let approvals: Vec<String> = required.keys()
-        .filter(|id| ["HUMAN","DUAL","SAFETY","HAZARD","GOVERN","PRECHECK"].contains(&id.as_str()))
-        .cloned().collect();
-    let monitoring: Vec<String> = required.keys()
-        .filter(|id| ["MONITOR","DRIFT","CANARY","STAGED","REDUNDANT","INSPECT","COMMON","FAILMON","FLOOR"].contains(&id.as_str()))
-        .cloned().collect();
-    let fallback: Vec<String> = required.keys()
-        .filter(|id| ["FALLBACK","STOP","SAFESTATE","FALLBACK_BUILD","RECOVERY","ROLLBACK","FAILSAFE","DEGRADED","DRILL"].contains(&id.as_str()))
-        .cloned().collect();
+    let indeterminate = tier_compatibility == "blocked" || risk_unassessed || risk_has_unknown
+        || risk_has_conflicted || !unknown.is_empty() || !conflicted.is_empty() || !not_applicable.is_empty();
+    let disposition = if indeterminate { "indeterminate" }
+        else if !missing.is_empty() { "requirements_missing" }
+        else { "requirements_satisfied" };
 
     Ok(json!({
         "schema_version": REPORT_SCHEMA,
         "profile_id": required_string(profile, "profile_id", "profile")?,
         "decision_tier": tier,
-        "risk_assessment_state": if risk_unassessed { "unassessed" } else if risk_has_unknown { "contains_unknown" } else { "reviewed" },
+        "risk_assessment_state": if risk_unassessed { "unassessed" } else if risk_has_conflicted { "contains_conflicted" } else if risk_has_unknown { "contains_unknown" } else { "reviewed" },
         "risk_assessment_class": reviewed_class,
         "risk_dimensions": risk_values,
         "policy_id": required_string(policy, "policy_id", "policy")?,
         "policy_version": required_string(policy, "policy_version", "policy")?,
-        "policy_sha256": policy_digest,
-        "selector_version": required_string(policy, "selector_version", "policy")?,
-        "input_profile_sha256": input_digest,
+        "policy_sha256": json_digest(policy)?,
+        "selector_version": "0.2.0",
+        "selector_build_id": build_id,
+        "input_profile_sha256": json_digest(profile)?,
         "required_controls": output_controls,
+        "controls_with_evidence": controls_with_evidence,
         "missing_controls": missing,
         "unknown_controls": unknown,
         "conflicted_controls": conflicted,
         "not_applicable_controls": not_applicable,
-        "human_approvals": approvals,
-        "monitoring_obligations": monitoring,
-        "fallback_obligations": fallback,
+        "human_approvals": human_approvals.into_iter().collect::<Vec<_>>(),
+        "operational_obligations": operational_obligations.into_iter().collect::<Vec<_>>(),
         "tier_compatibility": tier_compatibility,
         "requirements_disposition": disposition,
         "independent_qualification_attested": false,
@@ -476,26 +472,20 @@ fn select_requirements(profile: &Value, policy: &Value, input_digest: &str, poli
     }))
 }
 
-fn read_strict(path: &str) -> Result<(Vec<u8>, Value), String> {
+fn read_strict(path: &str) -> Result<Value, String> {
     let bytes = fs::read(path).map_err(|error| format!("cannot read {path}: {error}"))?;
     let parsed: StrictJson = serde_json::from_slice(&bytes)
         .map_err(|error| format!("{path}: invalid or duplicate-member JSON: {error}"))?;
-    Ok((bytes, parsed.into_value()))
+    Ok(parsed.into_value())
 }
 
-fn run(profile_path: &str, policy_path: &str, output_path: &str) -> Result<(), String> {
-    let (profile_bytes, profile) = read_strict(profile_path)?;
-    let (policy_bytes, policy) = read_strict(policy_path)?;
-    let report = select_requirements(
-        &profile,
-        &policy,
-        &sha256_hex(&profile_bytes),
-        &sha256_hex(&policy_bytes),
-    )?;
+fn run(profile_path: &str, policy_path: &str, output_path: &str, build_id: &str) -> Result<(), String> {
+    let profile = read_strict(profile_path)?;
+    let policy = read_strict(policy_path)?;
+    let report = evaluate(&profile, &policy, build_id)?;
     let encoded = serde_json::to_vec_pretty(&report)
         .map_err(|error| format!("cannot encode selector report: {error}"))?;
-    fs::write(output_path, encoded)
-        .map_err(|error| format!("cannot write selector report: {error}"))?;
+    fs::write(output_path, encoded).map_err(|error| format!("cannot write selector report: {error}"))?;
     Ok(())
 }
 
@@ -505,7 +495,8 @@ fn main() -> ExitCode {
         eprintln!("usage: industry-risk-control-selector <ieac-profile.json> <risk-policy.json> <report.json>");
         return ExitCode::from(4);
     }
-    match run(&args[1], &args[2], &args[3]) {
+    let build_id = env::var("IEAC_SELECTOR_BUILD_ID").unwrap_or_else(|_| "local-unattested".to_owned());
+    match run(&args[1], &args[2], &args[3], &build_id) {
         Ok(()) => ExitCode::SUCCESS,
         Err(error) => {
             eprintln!("risk-control selection failed closed: {error}");
@@ -519,22 +510,15 @@ mod tests {
     use super::*;
 
     fn fixture() -> Value {
-        serde_json::from_str(include_str!(
-            "../../../schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json"
-        )).unwrap()
+        serde_json::from_str(include_str!("../../../schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json")).unwrap()
     }
 
     fn policy() -> Value {
-        serde_json::from_str(include_str!(
-            "../../../schemas/industry-risk-assurance-policy-v0.1.json"
-        )).unwrap()
+        serde_json::from_str(include_str!("../../../schemas/ieac-risk-control-policy-v0.2.json")).unwrap()
     }
 
     fn select(profile: &Value) -> Value {
-        let policy = policy();
-        let profile_bytes = serde_json::to_vec(profile).unwrap();
-        let policy_bytes = serde_json::to_vec(&policy).unwrap();
-        select_requirements(profile, &policy, &sha256_hex(&profile_bytes), &sha256_hex(&policy_bytes)).unwrap()
+        evaluate(profile, &policy(), "test-build").unwrap()
     }
 
     fn control_set(report: &Value) -> BTreeSet<String> {
@@ -588,6 +572,46 @@ mod tests {
     }
 
     #[test]
+    fn conflicted_risk_uses_worst_case_controls_and_cannot_clear() {
+        let mut profile = fixture();
+        profile["risk_assessment"]["dimensions"]["consequence"] = json!("conflicted");
+        let conflicted = select(&profile);
+        profile["risk_assessment"]["dimensions"]["consequence"] = json!("unknown");
+        let unknown = select(&profile);
+        assert_eq!(control_set(&conflicted), control_set(&unknown));
+        assert_eq!(conflicted["requirements_disposition"], "indeterminate");
+    }
+
+    #[test]
+    fn risk_class_controls_are_monotone() {
+        let classes = ["low", "moderate", "high", "critical", "unassessed"];
+        let mut previous = BTreeSet::new();
+        for class in classes {
+            let mut profile = fixture();
+            profile["risk_assessment"]["reviewed_class"] = json!(class);
+            let current = control_set(&select(&profile));
+            assert!(previous.is_subset(&current), "requirements decreased for reviewed_class={class}");
+            previous = current;
+        }
+    }
+
+    #[test]
+    fn tier_minimum_controls_are_monotone_and_do_not_authorize() {
+        let tiers = ["D0_descriptive", "D1_advisory", "D2_delegated_planning", "D3_autonomous_control"];
+        let mut previous = BTreeSet::new();
+        for tier in tiers {
+            let mut profile = fixture();
+            profile["decision_tier"] = json!(tier);
+            let report = select(&profile);
+            let current = control_set(&report);
+            assert!(previous.is_subset(&current), "requirements decreased for tier={tier}");
+            assert_eq!(report["decision_tier"], tier);
+            assert_eq!(report["action_authority"], "none");
+            previous = current;
+        }
+    }
+
+    #[test]
     fn direct_actuation_cannot_be_used_below_d3() {
         let mut profile = fixture();
         profile["risk_assessment"]["dimensions"]["model_influence"] = json!("direct_actuation");
@@ -606,19 +630,31 @@ mod tests {
         profile["risk_assessment"]["dimensions"]["detectability"] = json!("poor");
         profile["risk_assessment"]["dimensions"]["fallback"] = json!("no_verified_fallback");
         let ids = control_set(&select(&profile));
-        for required in ["SAFETY","HIL","CASE","DUAL","STOP","SAFESTATE","FAILMON"] {
+        for required in [
+            "independent_safety_assessment", "fail_safe_emergency_stop", "dual_control_authorization",
+            "independent_monitoring", "redundant_measurement", "incident_response_playbook", "tested_safe_stop",
+        ] {
             assert!(ids.contains(required), "missing compound control {required}");
         }
     }
 
     #[test]
-    fn an_established_dimension_without_evidence_does_not_satisfy_a_control() {
+    fn established_dimension_without_evidence_does_not_satisfy_a_control() {
         let mut profile = fixture();
         profile["evidence_vector"]["software_conformance"]["state"] = json!("established");
         profile["evidence_vector"]["software_conformance"]["evidence"] = json!([]);
         let report = select(&profile);
         assert!(report["missing_controls"].as_array().unwrap().iter()
-            .any(|item| item.as_str() == Some("SOFT")));
+            .any(|item| item.as_str() == Some("artifact_identity_integrity")));
+    }
+
+    #[test]
+    fn conflicted_evidence_cannot_become_established() {
+        let mut profile = fixture();
+        profile["evidence_vector"]["safety_security_authority"]["state"] = json!("conflicted");
+        let report = select(&profile);
+        assert_eq!(report["requirements_disposition"], "indeterminate");
+        assert!(!report["conflicted_controls"].as_array().unwrap().is_empty());
     }
 
     #[test]
@@ -626,13 +662,30 @@ mod tests {
         let profile = fixture();
         let report_a = select(&profile);
         let mut reordered = profile.clone();
-        let reordered_obj = reordered.as_object_mut().unwrap();
-        let mut keys: Vec<_> = reordered_obj.keys().cloned().collect();
-        keys.sort_by(|a,b| b.cmp(a));
-        let values: BTreeMap<_,_> = keys.into_iter().map(|key| (key.clone(), reordered_obj.remove(&key).unwrap())).collect();
-        for (key,value) in values { reordered_obj.insert(key,value); }
+        let object = reordered.as_object_mut().unwrap();
+        let keys: Vec<_> = object.keys().cloned().collect();
+        for key in keys {
+            let value = object.remove(&key).unwrap();
+            object.insert(key, value);
+        }
         let report_b = select(&reordered);
         assert_eq!(report_a["required_controls"], report_b["required_controls"]);
+        assert_eq!(report_a["input_profile_sha256"], report_b["input_profile_sha256"]);
+    }
+
+    #[test]
+    fn policy_rejects_unknown_control_references() {
+        let mut policy = policy();
+        policy["always_required_controls"][0] = json!("not-a-real-control");
+        assert!(validate_policy_catalog(&policy).is_err());
+    }
+
+    #[test]
+    fn sha256_matches_known_vector() {
+        assert_eq!(
+            sha256_hex(b"abc"),
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
     }
 
     #[test]
