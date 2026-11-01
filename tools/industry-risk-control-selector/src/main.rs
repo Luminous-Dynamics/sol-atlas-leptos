@@ -275,9 +275,17 @@ fn validate_policy_catalog(policy: &Value) -> Result<BTreeMap<String, Value>, St
             if !DIMENSIONS.contains(&axis) {
                 return Err(format!("combination rule '{id}' uses unknown dimension '{axis}'"));
             }
+            let valid_values = dimensions.get(axis).and_then(Value::as_object)
+                .ok_or_else(|| format!("combination rule '{id}' references unknown dimension '{axis}'"))?;
+            let mut seen_values = BTreeSet::new();
             for value in array(condition, "values", "combination condition")? {
-                if value.as_str().is_none_or(str::is_empty) {
-                    return Err(format!("combination rule '{id}' contains an empty value"));
+                let value = value.as_str().filter(|value| !value.is_empty())
+                    .ok_or_else(|| format!("combination rule '{id}' contains an empty value"))?;
+                if !valid_values.contains_key(value) {
+                    return Err(format!("combination rule '{id}' references unmapped value '{axis}={value}'"));
+                }
+                if !seen_values.insert(value.to_owned()) {
+                    return Err(format!("combination rule '{id}' duplicates value '{axis}={value}'"));
                 }
             }
         }
@@ -747,6 +755,13 @@ mod tests {
         let report_b = select(&reordered);
         assert_eq!(report_a["required_controls"], report_b["required_controls"]);
         assert_eq!(report_a["input_profile_sha256"], report_b["input_profile_sha256"]);
+    }
+
+    #[test]
+    fn policy_rejects_unmapped_combination_values() {
+        let mut policy = policy();
+        policy["combination_rules"][0]["conditions"][0]["values"] = json!(["catastrophe"]);
+        assert!(validate_policy_catalog(&policy).is_err());
     }
 
     #[test]
