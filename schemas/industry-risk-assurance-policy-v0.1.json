@@ -335,11 +335,11 @@
       "dimension": "consequence",
       "value": "major",
       "control_ids": [
-        "PHYS",
         "CAL",
         "HOLD",
-        "STRESS",
-        "HUMAN"
+        "HUMAN",
+        "PHYS",
+        "STRESS"
       ],
       "reason_code": "RISK_CONSEQUENCE_MAJOR"
     },
@@ -347,16 +347,17 @@
       "dimension": "consequence",
       "value": "severe",
       "control_ids": [
-        "PHYS",
         "CAL",
-        "HOLD",
-        "STRESS",
-        "HAZARD",
-        "SAFETY",
         "DUAL",
-        "MONITOR",
         "FALLBACK",
-        "ROLLBACK"
+        "HAZARD",
+        "HOLD",
+        "HUMAN",
+        "MONITOR",
+        "PHYS",
+        "ROLLBACK",
+        "SAFETY",
+        "STRESS"
       ],
       "reason_code": "RISK_CONSEQUENCE_SEVERE"
     },
@@ -364,21 +365,22 @@
       "dimension": "consequence",
       "value": "catastrophic",
       "control_ids": [
-        "PHYS",
         "CAL",
-        "HOLD",
-        "STRESS",
-        "HAZARD",
-        "SAFETY",
-        "DUAL",
-        "MONITOR",
-        "FALLBACK",
-        "ROLLBACK",
-        "HIL",
         "CASE",
-        "FAILSAFE",
+        "DUAL",
         "ESTOP",
-        "ISOLATE"
+        "FAILSAFE",
+        "FALLBACK",
+        "HAZARD",
+        "HIL",
+        "HOLD",
+        "HUMAN",
+        "ISOLATE",
+        "MONITOR",
+        "PHYS",
+        "ROLLBACK",
+        "SAFETY",
+        "STRESS"
       ],
       "reason_code": "RISK_CONSEQUENCE_CATASTROPHIC"
     },
@@ -386,22 +388,22 @@
       "dimension": "consequence",
       "value": "unknown",
       "control_ids": [
-        "PHYS",
         "CAL",
-        "HOLD",
-        "STRESS",
-        "HAZARD",
-        "SAFETY",
-        "DUAL",
-        "MONITOR",
-        "FALLBACK",
-        "ROLLBACK",
-        "HIL",
         "CASE",
-        "FAILSAFE",
+        "DUAL",
         "ESTOP",
+        "FAILSAFE",
+        "FALLBACK",
+        "HAZARD",
+        "HIL",
+        "HOLD",
         "ISOLATE",
-        "REVIEW_UNKNOWN"
+        "MONITOR",
+        "PHYS",
+        "REVIEW_UNKNOWN",
+        "ROLLBACK",
+        "SAFETY",
+        "STRESS"
       ],
       "reason_code": "RISK_CONSEQUENCE_UNKNOWN"
     },
@@ -416,8 +418,8 @@
       "value": "advisory",
       "control_ids": [
         "CAL",
-        "OOD",
-        "HUMAN"
+        "HUMAN",
+        "OOD"
       ],
       "reason_code": "RISK_MODEL_INFLUENCE_ADVISORY"
     },
@@ -425,13 +427,13 @@
       "dimension": "model_influence",
       "value": "constraint_gating",
       "control_ids": [
+        "AUDIT",
         "CAL",
-        "OOD",
         "HUMAN",
         "INDEP",
-        "STRESS",
+        "OOD",
         "SENSITIVITY",
-        "AUDIT"
+        "STRESS"
       ],
       "reason_code": "RISK_MODEL_INFLUENCE_CONSTRAINT_GATING"
     },
@@ -439,13 +441,13 @@
       "dimension": "model_influence",
       "value": "selection",
       "control_ids": [
+        "AUDIT",
         "CAL",
-        "OOD",
         "HUMAN",
         "INDEP",
-        "STRESS",
+        "OOD",
         "SENSITIVITY",
-        "AUDIT"
+        "STRESS"
       ],
       "reason_code": "RISK_MODEL_INFLUENCE_SELECTION"
     },
@@ -453,19 +455,19 @@
       "dimension": "model_influence",
       "value": "direct_actuation",
       "control_ids": [
+        "AUDIT",
         "CAL",
-        "OOD",
+        "DUAL",
+        "ESTOP",
+        "FAILSAFE",
+        "HIL",
         "HUMAN",
         "INDEP",
-        "STRESS",
-        "SENSITIVITY",
-        "AUDIT",
-        "HIL",
         "ISOLATE",
-        "FAILSAFE",
-        "ESTOP",
         "MONITOR",
-        "DUAL"
+        "OOD",
+        "SENSITIVITY",
+        "STRESS"
       ],
       "reason_code": "RISK_MODEL_INFLUENCE_DIRECT_ACTUATION"
     },
@@ -473,20 +475,20 @@
       "dimension": "model_influence",
       "value": "unknown",
       "control_ids": [
+        "AUDIT",
         "CAL",
-        "OOD",
+        "DUAL",
+        "ESTOP",
+        "FAILSAFE",
+        "HIL",
         "HUMAN",
         "INDEP",
-        "STRESS",
-        "SENSITIVITY",
-        "AUDIT",
-        "HIL",
         "ISOLATE",
-        "FAILSAFE",
-        "ESTOP",
         "MONITOR",
-        "DUAL",
-        "REVIEW_UNKNOWN"
+        "OOD",
+        "REVIEW_UNKNOWN",
+        "SENSITIVITY",
+        "STRESS"
       ],
       "reason_code": "RISK_MODEL_INFLUENCE_UNKNOWN"
     },
@@ -511,12 +513,12 @@
       "dimension": "exposure",
       "value": "multi_site",
       "control_ids": [
+        "CANARY",
+        "COMMON",
+        "DRIFT",
         "HOLD",
         "MONITOR",
-        "STAGED",
-        "DRIFT",
-        "CANARY",
-        "COMMON"
+        "STAGED"
       ],
       "reason_code": "RISK_EXPOSURE_MULTI_SITE"
     },
@@ -524,13 +526,13 @@
       "dimension": "exposure",
       "value": "regional",
       "control_ids": [
-        "HOLD",
-        "MONITOR",
-        "STAGED",
-        "DRIFT",
         "CANARY",
         "COMMON",
-        "REGIONAL"
+        "DRIFT",
+        "HOLD",
+        "MONITOR",
+        "REGIONAL",
+        "STAGED"
       ],
       "reason_code": "RISK_EXPOSURE_REGIONAL"
     },
@@ -538,14 +540,14 @@
       "dimension": "exposure",
       "value": "national_or_larger",
       "control_ids": [
-        "HOLD",
-        "MONITOR",
-        "STAGED",
-        "DRIFT",
         "CANARY",
         "COMMON",
+        "DRIFT",
+        "GOVERN",
+        "HOLD",
+        "MONITOR",
         "REGIONAL",
-        "GOVERN"
+        "STAGED"
       ],
       "reason_code": "RISK_EXPOSURE_NATIONAL_OR_LARGER"
     },
@@ -553,15 +555,15 @@
       "dimension": "exposure",
       "value": "unknown",
       "control_ids": [
-        "HOLD",
-        "MONITOR",
-        "STAGED",
-        "DRIFT",
         "CANARY",
         "COMMON",
-        "REGIONAL",
+        "DRIFT",
         "GOVERN",
-        "REVIEW_UNKNOWN"
+        "HOLD",
+        "MONITOR",
+        "REGIONAL",
+        "REVIEW_UNKNOWN",
+        "STAGED"
       ],
       "reason_code": "RISK_EXPOSURE_UNKNOWN"
     },
@@ -577,10 +579,10 @@
       "dimension": "reversibility",
       "value": "costly_or_delayed",
       "control_ids": [
-        "ROLLBACK",
         "BOUNDED",
+        "HUMAN",
         "MONITOR",
-        "HUMAN"
+        "ROLLBACK"
       ],
       "reason_code": "RISK_REVERSIBILITY_COSTLY_OR_DELAYED"
     },
@@ -588,14 +590,14 @@
       "dimension": "reversibility",
       "value": "difficult_or_irreversible",
       "control_ids": [
-        "ROLLBACK",
         "BOUNDED",
-        "MONITOR",
-        "HUMAN",
-        "PRECHECK",
         "DUAL",
         "HAZARD",
-        "REVERSIBILITY"
+        "HUMAN",
+        "MONITOR",
+        "PRECHECK",
+        "REVERSIBILITY",
+        "ROLLBACK"
       ],
       "reason_code": "RISK_REVERSIBILITY_DIFFICULT_OR_IRREVERSIBLE"
     },
@@ -603,15 +605,15 @@
       "dimension": "reversibility",
       "value": "unknown",
       "control_ids": [
-        "ROLLBACK",
         "BOUNDED",
-        "MONITOR",
-        "HUMAN",
-        "PRECHECK",
         "DUAL",
         "HAZARD",
+        "HUMAN",
+        "MONITOR",
+        "PRECHECK",
         "REVERSIBILITY",
-        "REVIEW_UNKNOWN"
+        "REVIEW_UNKNOWN",
+        "ROLLBACK"
       ],
       "reason_code": "RISK_REVERSIBILITY_UNKNOWN"
     },
@@ -625,10 +627,10 @@
       "dimension": "detectability",
       "value": "delayed_or_partial",
       "control_ids": [
-        "REDUNDANT",
         "DRIFT",
         "INSPECT",
-        "MONITOR"
+        "MONITOR",
+        "REDUNDANT"
       ],
       "reason_code": "RISK_DETECTABILITY_DELAYED_OR_PARTIAL"
     },
@@ -636,12 +638,12 @@
       "dimension": "detectability",
       "value": "poor",
       "control_ids": [
-        "REDUNDANT",
         "DRIFT",
+        "ESTOP",
+        "FAILMON",
         "INSPECT",
         "MONITOR",
-        "FAILMON",
-        "ESTOP",
+        "REDUNDANT",
         "SAFETY"
       ],
       "reason_code": "RISK_DETECTABILITY_POOR"
@@ -650,14 +652,14 @@
       "dimension": "detectability",
       "value": "unknown",
       "control_ids": [
-        "REDUNDANT",
         "DRIFT",
+        "ESTOP",
+        "FAILMON",
         "INSPECT",
         "MONITOR",
-        "FAILMON",
-        "ESTOP",
-        "SAFETY",
-        "REVIEW_UNKNOWN"
+        "REDUNDANT",
+        "REVIEW_UNKNOWN",
+        "SAFETY"
       ],
       "reason_code": "RISK_DETECTABILITY_UNKNOWN"
     },
@@ -673,9 +675,9 @@
       "dimension": "fallback",
       "value": "human_fallback",
       "control_ids": [
-        "HUMAN",
         "DRILL",
-        "FALLBACK"
+        "FALLBACK",
+        "HUMAN"
       ],
       "reason_code": "RISK_FALLBACK_HUMAN_FALLBACK"
     },
@@ -683,11 +685,11 @@
       "dimension": "fallback",
       "value": "degraded_fallback",
       "control_ids": [
-        "HUMAN",
-        "DRILL",
         "DEGRADED",
+        "DRILL",
+        "FALLBACK",
         "FLOOR",
-        "FALLBACK"
+        "HUMAN"
       ],
       "reason_code": "RISK_FALLBACK_DEGRADED_FALLBACK"
     },
@@ -695,10 +697,15 @@
       "dimension": "fallback",
       "value": "no_verified_fallback",
       "control_ids": [
-        "STOP",
-        "SAFESTATE",
+        "DEGRADED",
+        "DRILL",
+        "FALLBACK",
         "FALLBACK_BUILD",
-        "RECOVERY"
+        "FLOOR",
+        "HUMAN",
+        "RECOVERY",
+        "SAFESTATE",
+        "STOP"
       ],
       "reason_code": "RISK_FALLBACK_NO_VERIFIED_FALLBACK"
     },
@@ -706,11 +713,16 @@
       "dimension": "fallback",
       "value": "unknown",
       "control_ids": [
-        "STOP",
-        "SAFESTATE",
+        "DEGRADED",
+        "DRILL",
+        "FALLBACK",
         "FALLBACK_BUILD",
+        "FLOOR",
+        "HUMAN",
         "RECOVERY",
-        "REVIEW_UNKNOWN"
+        "REVIEW_UNKNOWN",
+        "SAFESTATE",
+        "STOP"
       ],
       "reason_code": "RISK_FALLBACK_UNKNOWN"
     }
