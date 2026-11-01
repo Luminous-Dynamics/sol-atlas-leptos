@@ -837,24 +837,32 @@ mod tests {
     fn frozen_panel_exercises_solve_and_independent_audit_failure_denominators() {
         let scenarios = frozen_scenarios();
         let has_timeout = scenarios.iter().any(|scenario| {
-            scenario.truth.replan_executions.iter().any(|execution| {
-                execution.solve_outcome == SolveOutcomeTruth::TimedOut
-            })
+            scenario
+                .truth
+                .replan_executions
+                .iter()
+                .any(|execution| execution.solve_outcome == SolveOutcomeTruth::TimedOut)
         });
         let has_infeasible = scenarios.iter().any(|scenario| {
-            scenario.truth.replan_executions.iter().any(|execution| {
-                execution.solve_outcome == SolveOutcomeTruth::Infeasible
-            })
+            scenario
+                .truth
+                .replan_executions
+                .iter()
+                .any(|execution| execution.solve_outcome == SolveOutcomeTruth::Infeasible)
         });
         let has_rejection = scenarios.iter().any(|scenario| {
-            scenario.truth.replan_executions.iter().any(|execution| {
-                execution.audit_outcome == AuditOutcomeTruth::Rejected
-            })
+            scenario
+                .truth
+                .replan_executions
+                .iter()
+                .any(|execution| execution.audit_outcome == AuditOutcomeTruth::Rejected)
         });
         let has_unavailable = scenarios.iter().any(|scenario| {
-            scenario.truth.replan_executions.iter().any(|execution| {
-                execution.audit_outcome == AuditOutcomeTruth::Unavailable
-            })
+            scenario
+                .truth
+                .replan_executions
+                .iter()
+                .any(|execution| execution.audit_outcome == AuditOutcomeTruth::Unavailable)
         });
 
         assert!(has_timeout);
