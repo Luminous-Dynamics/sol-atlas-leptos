@@ -373,7 +373,11 @@
     "dimension_value": "unknown",
     "behavior": "apply_the_maximum_control_set_for_that_dimension_and_mark_indeterminate",
     "conflicted_dimension_behavior": "same_as_unknown_and_mark_indeterminate",
-    "reviewed_class_unassessed": "apply_unassessed_controls_and_mark_indeterminate"
+    "reviewed_class_unassessed_behavior": "apply_unassessed_controls_and_mark_indeterminate",
+    "reviewed_class_unassessed_controls": [
+      "continuous_requalification",
+      "request_measurement_or_abstain"
+    ]
   },
   "controls": {
     "artifact_identity_integrity": {
