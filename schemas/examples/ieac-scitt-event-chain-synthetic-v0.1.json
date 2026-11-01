@@ -170,5 +170,21 @@
     "receipt_bytes_embedded_in_event_payload": false,
     "receipt_validation_status": "not_performed_synthetic_fixture",
     "claim_ceiling": "Receipt validation is out of scope for this fixture; relying parties must verify receipt-to-statement binding, VDS inclusion and trust policy using an independent SCITT verifier."
-  }
+  },
+  "issuer_history_heads": [
+    {
+      "issuer": "did:web:operator.example",
+      "subject": "asset:site-demo-01",
+      "authority_scope": "site:site-demo-01:energy-dispatch",
+      "latest_sequence": 2,
+      "latest_event_sha256": "166fa7bddb08f639df5fde4313cdc8cba70b3339d1cca41fd4c75bf1706b3376"
+    },
+    {
+      "issuer": "did:web:auditor.example",
+      "subject": "asset:site-demo-01",
+      "authority_scope": "site:site-demo-01:energy-dispatch",
+      "latest_sequence": 1,
+      "latest_event_sha256": "1c5934b27bab355ec390d9c36677673a2c0da21de81cb9df49283982961f9d33"
+    }
+  ]
 }
