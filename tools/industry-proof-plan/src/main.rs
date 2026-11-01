@@ -1317,6 +1317,16 @@ mod tests {
     }
 
     #[test]
+    fn fixture_mapping_policy_digest_matches_canonical_json_rows() {
+        let fixture = fixture();
+        let bytes = serde_json::to_vec(&fixture["request"]["control_mappings"]).unwrap();
+        assert_eq!(
+            sha256_hex(&bytes),
+            "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60"
+        );
+    }
+
+    #[test]
     fn action_control_coverage_requires_digest_bound_mapping_rows() {
         let mut request = request();
         request["control_mappings"].as_array_mut().unwrap().remove(0);
