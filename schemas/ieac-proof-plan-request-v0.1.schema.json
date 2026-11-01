@@ -182,7 +182,9 @@
           "independence_registry_sha256",
           "resource_costs",
           "human_approval_required",
-          "rights_status"
+          "rights_status",
+          "rights_verified_at",
+          "rights_valid_until"
         ],
         "properties": {
           "action_id": {
@@ -280,6 +282,19 @@
           },
           "rights_status": {
             "const": "verified"
+          },
+          "rights_verified_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+          },
+          "rights_valid_until": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
           }
         }
       }
