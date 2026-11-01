@@ -124,9 +124,13 @@ impl SolverTrace {
         if self.schema_version != TRACE_SCHEMA {
             return Err(TraceError::UnsupportedSchema);
         }
-        for value in [&self.cohort_id, &self.sample_id, &self.scenario_id,
-            &self.solver_name, &self.solver_version]
-        {
+        for value in [
+            &self.cohort_id,
+            &self.sample_id,
+            &self.scenario_id,
+            &self.solver_name,
+            &self.solver_version,
+        ] {
             if !safe_identifier(value) {
                 return Err(TraceError::InvalidIdentifier);
             }
@@ -292,7 +296,10 @@ fn parse_i64(value: &str) -> Result<i64, TraceError> {
     value.parse().map_err(|_| TraceError::InvalidCsvValue)
 }
 
-fn parse_optional<T>(value: &str, parser: impl FnOnce(&str) -> Result<T, TraceError>) -> Result<Option<T>, TraceError> {
+fn parse_optional<T>(
+    value: &str,
+    parser: impl FnOnce(&str) -> Result<T, TraceError>,
+) -> Result<Option<T>, TraceError> {
     if value == "NA" {
         Ok(None)
     } else {
@@ -472,12 +479,36 @@ fn summarize_group(traces: &[&SolverTrace]) -> CohortSummary {
         first_feasible_p95_ns: gated_quantile(first_feasible, 95, P95_MIN_SAMPLES),
         observed_attempt_elapsed_p95_ns: gated_quantile(observed_elapsed, 95, P95_MIN_SAMPLES),
         peak_memory_p95_bytes: gated_quantile(peak_memory, 95, P95_MIN_SAMPLES),
-        interval_count_min: traces.iter().map(|trace| trace.interval_count).min().unwrap(),
-        interval_count_max: traces.iter().map(|trace| trace.interval_count).max().unwrap(),
-        binary_variables_min: traces.iter().map(|trace| trace.binary_variables).min().unwrap(),
-        binary_variables_max: traces.iter().map(|trace| trace.binary_variables).max().unwrap(),
-        constraints_min: traces.iter().map(|trace| trace.constraints).min().unwrap(),
-        constraints_max: traces.iter().map(|trace| trace.constraints).max().unwrap(),
+        interval_count_min: traces
+            .iter()
+            .map(|trace| trace.interval_count)
+            .min()
+            .unwrap(),
+        interval_count_max: traces
+            .iter()
+            .map(|trace| trace.interval_count)
+            .max()
+            .unwrap(),
+        binary_variables_min: traces
+            .iter()
+            .map(|trace| trace.binary_variables)
+            .min()
+            .unwrap(),
+        binary_variables_max: traces
+            .iter()
+            .map(|trace| trace.binary_variables)
+            .max()
+            .unwrap(),
+        constraints_min: traces
+            .iter()
+            .map(|trace| trace.constraints)
+            .min()
+            .unwrap(),
+        constraints_max: traces
+            .iter()
+            .map(|trace| trace.constraints)
+            .max()
+            .unwrap(),
         p99_ready: traces
             .iter()
             .filter(|trace| trace.status.has_feasible_solution())
@@ -530,7 +561,11 @@ pub fn render_summary_csv(summaries: &[CohortSummary]) -> String {
         "cohort_id,measurement_class,samples,completed_samples,first_feasible_samples,peak_memory_samples,optimal,feasible,infeasible,timeouts,cancelled,errors,completed_p50_ns,completed_p95_ns,completed_p99_ns,first_feasible_p50_ns,first_feasible_p95_ns,observed_attempt_elapsed_p95_ns,peak_memory_p95_bytes,interval_count_min,interval_count_max,binary_variables_min,binary_variables_max,constraints_min,constraints_max,p99_ready\n",
     );
     for summary in summaries {
-        let optional = |value: Option<u64>| value.map(|number| number.to_string()).unwrap_or_else(|| "NA".to_owned());
+        let optional = |value: Option<u64>| {
+            value
+                .map(|number| number.to_string())
+                .unwrap_or_else(|| "NA".to_owned())
+        };
         output.push_str(&format!(
             "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n",
             summary.cohort_id,
@@ -668,14 +703,11 @@ mod tests {
 
     #[test]
     fn refuses_to_pool_different_meshes_under_one_cohort_id() {
-        let rows = vec![
-            trace(0, SolveStatus::Optimal),
-            {
-                let mut row = trace(1, SolveStatus::Optimal);
-                row.mesh_policy_sha256 = digest('9');
-                row
-            },
-        ];
+        let rows = vec![trace(0, SolveStatus::Optimal), {
+            let mut row = trace(1, SolveStatus::Optimal);
+            row.mesh_policy_sha256 = digest('9');
+            row
+        }];
         assert_eq!(
             summarize_traces(&rows),
             Err(TraceError::MixedCohortIdentity)
@@ -684,40 +716,31 @@ mod tests {
 
     #[test]
     fn refuses_to_pool_different_hardware_or_solver_binaries() {
-        let rows = vec![
-            trace(0, SolveStatus::Optimal),
-            {
-                let mut row = trace(1, SolveStatus::Optimal);
-                row.hardware_profile_sha256 = digest('9');
-                row
-            },
-        ];
+        let rows = vec![trace(0, SolveStatus::Optimal), {
+            let mut row = trace(1, SolveStatus::Optimal);
+            row.hardware_profile_sha256 = digest('9');
+            row
+        }];
         assert_eq!(
             summarize_traces(&rows),
             Err(TraceError::MixedCohortIdentity)
         );
 
-        let rows = vec![
-            trace(0, SolveStatus::Optimal),
-            {
-                let mut row = trace(1, SolveStatus::Optimal);
-                row.solver_binary_sha256 = digest('9');
-                row
-            },
-        ];
+        let rows = vec![trace(0, SolveStatus::Optimal), {
+            let mut row = trace(1, SolveStatus::Optimal);
+            row.solver_binary_sha256 = digest('9');
+            row
+        }];
         assert_eq!(
             summarize_traces(&rows),
             Err(TraceError::MixedCohortIdentity)
         );
 
-        let rows = vec![
-            trace(0, SolveStatus::Optimal),
-            {
-                let mut row = trace(1, SolveStatus::Optimal);
-                row.solver_config_sha256 = digest('9');
-                row
-            },
-        ];
+        let rows = vec![trace(0, SolveStatus::Optimal), {
+            let mut row = trace(1, SolveStatus::Optimal);
+            row.solver_config_sha256 = digest('9');
+            row
+        }];
         assert_eq!(
             summarize_traces(&rows),
             Err(TraceError::MixedCohortIdentity)
@@ -868,7 +891,10 @@ mod tests {
     fn checked_in_csv_fixture_is_parseable_and_keeps_its_synthetic_label() {
         let rows = parse_trace_csv(include_str!("../fixtures/synthetic-traces.csv")).unwrap();
         assert_eq!(rows.len(), 30);
-        assert!(rows.iter().all(|row| row.measurement_class == MeasurementClass::Synthetic));
+        assert!(
+            rows.iter()
+                .all(|row| row.measurement_class == MeasurementClass::Synthetic)
+        );
         let summary = summarize_traces(&rows).unwrap().remove(0);
         assert_eq!(summary.optimal_count, 18);
         assert_eq!(summary.feasible_count, 4);
@@ -915,9 +941,21 @@ mod tests {
 }
 
 fn trace_to_csv(trace: &SolverTrace) -> String {
-    let optional = |value: Option<u64>| value.map(|number| number.to_string()).unwrap_or_else(|| "NA".to_owned());
-    let optional_i64 = |value: Option<i64>| value.map(|number| number.to_string()).unwrap_or_else(|| "NA".to_owned());
-    let optional_u32 = |value: Option<u32>| value.map(|number| number.to_string()).unwrap_or_else(|| "NA".to_owned());
+    let optional = |value: Option<u64>| {
+        value
+            .map(|number| number.to_string())
+            .unwrap_or_else(|| "NA".to_owned())
+    };
+    let optional_i64 = |value: Option<i64>| {
+        value
+            .map(|number| number.to_string())
+            .unwrap_or_else(|| "NA".to_owned())
+    };
+    let optional_u32 = |value: Option<u32>| {
+        value
+            .map(|number| number.to_string())
+            .unwrap_or_else(|| "NA".to_owned())
+    };
     format!(
         "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
         trace.schema_version,
