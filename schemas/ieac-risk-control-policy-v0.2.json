@@ -22,6 +22,12 @@
       "prospective_outcome_reconciliation"
     ],
     "D2_delegated_planning": [
+      "physical_reference_validation",
+      "uncertainty_calibration",
+      "out_of_domain_abstention",
+      "human_review_override",
+      "operational_monitoring",
+      "prospective_outcome_reconciliation",
       "independent_constraint_reconstruction",
       "group_disjoint_holdout",
       "compound_fault_stress",
@@ -31,6 +37,19 @@
       "safe_fallback_validation"
     ],
     "D3_autonomous_control": [
+      "physical_reference_validation",
+      "uncertainty_calibration",
+      "out_of_domain_abstention",
+      "human_review_override",
+      "operational_monitoring",
+      "prospective_outcome_reconciliation",
+      "independent_constraint_reconstruction",
+      "group_disjoint_holdout",
+      "compound_fault_stress",
+      "rollback_recovery_test",
+      "dual_control_authorization",
+      "shadow_hardware_in_loop_trial",
+      "safe_fallback_validation",
       "independent_safety_case",
       "hazard_analysis",
       "independent_safety_assessment",
