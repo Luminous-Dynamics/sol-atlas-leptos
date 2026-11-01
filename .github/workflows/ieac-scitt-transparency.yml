@@ -1,0 +1,111 @@
+name: IEAC SCITT transparency profile
+
+on:
+  pull_request:
+    paths:
+      - "schemas/ieac-scitt-event-chain-v0.1.schema.json"
+      - "schemas/examples/ieac-scitt-event-chain-synthetic-v0.1.json"
+      - "docs/industry/IEAC_SCITT_TRANSPARENCY_PROFILE_V0.1.md"
+      - ".github/workflows/ieac-scitt-transparency.yml"
+  push:
+    branches:
+      - main
+      - feat/ieac-trust-v0-2-signed-envelope-profile
+    paths:
+      - "schemas/ieac-scitt-event-chain-v0.1.schema.json"
+      - "schemas/examples/ieac-scitt-event-chain-synthetic-v0.1.json"
+      - "docs/industry/IEAC_SCITT_TRANSPARENCY_PROFILE_V0.1.md"
+      - ".github/workflows/ieac-scitt-transparency.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ieac-scitt-transparency-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  schema-conformance:
+    name: Draft 2020-12 SCITT payload and synthetic event-chain conformance
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact source revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install pinned Rust JSON Schema CLI
+        run: |
+          cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+          echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+
+      - name: Validate schema against Draft 2020-12 meta-schema
+        run: |
+          jsonschema-cli validate --draft 2020 --assert-format \
+            https://json-schema.org/draft/2020-12/schema \
+            --instance schemas/ieac-scitt-event-chain-v0.1.schema.json
+
+      - name: Validate synthetic multi-issuer event chain
+        run: |
+          set -euo pipefail
+          jsonschema-cli validate --draft 2020 --assert-format --offline \
+            schemas/ieac-scitt-event-chain-v0.1.schema.json \
+            --instance schemas/examples/ieac-scitt-event-chain-synthetic-v0.1.json
+          jq -e '
+            .synthetic == true and
+            (.events | length) == 3 and
+            (.cose_header_bindings | length) == 3 and
+            .receipt_boundary.cose_unprotected_receipt_label == 394 and
+            .receipt_boundary.receipt_bytes_embedded_in_event_payload == false and
+            .events[0].issuer_sequence == 1 and
+            .events[1].issuer_sequence == 1 and
+            .events[2].issuer_sequence == 2 and
+            .events[0].initial_checkpoint_sha256 != null and
+            .events[1].initial_checkpoint_sha256 != null and
+            .events[2].previous_event_sha256 == .fixture_event_digests[0] and
+            .events[2].causal_parents[0].event_sha256 == .fixture_event_digests[1]
+          ' schemas/examples/ieac-scitt-event-chain-synthetic-v0.1.json
+
+      - name: Check protected CWT issuer and subject projections match payload
+        run: |
+          jq -e '
+            . as $fixture
+            | all($fixture.cose_header_bindings[];
+                .event_index as $index
+                | .protected_iss == $fixture.events[$index].issuer
+                and .protected_sub == $fixture.events[$index].subject
+                and .protected_content_type == "application/vnd.luminous.ieac.scitt-event.v0.1+json"
+            )
+          ' schemas/examples/ieac-scitt-event-chain-synthetic-v0.1.json
+
+      - name: Prove strict event and artifact boundaries reject unknown fields
+        run: |
+          set -euo pipefail
+          source=schemas/examples/ieac-scitt-event-chain-synthetic-v0.1.json
+          schema=schemas/ieac-scitt-event-chain-v0.1.schema.json
+          jq '.unexpected = true' "$source" > "$RUNNER_TEMP/root-mutant.json"
+          jq '.events[0].unexpected = true' "$source" > "$RUNNER_TEMP/event-mutant.json"
+          jq '.events[0].artifacts[0].unexpected = true' "$source" > "$RUNNER_TEMP/artifact-mutant.json"
+          jq '.events[0].build_provenance.unexpected = true' "$source" > "$RUNNER_TEMP/provenance-mutant.json"
+          for mutant in "$RUNNER_TEMP"/{root,event,artifact,provenance}-mutant.json; do
+            if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" --instance "$mutant"; then
+              echo "ERROR: strict SCITT schema accepted unknown field in $mutant"
+              exit 1
+            fi
+          done
+
+      - name: Record exact fixture and schema identity
+        run: |
+          {
+            printf 'commit_sha=%s\n' "$(git rev-parse HEAD)"
+            sha256sum schemas/ieac-scitt-event-chain-v0.1.schema.json
+            sha256sum schemas/examples/ieac-scitt-event-chain-synthetic-v0.1.json
+            printf 'schema_profile=luminous.ieac-scitt-event.v0.1\n'
+            printf 'receipt_verification=not_implemented_by_this_profile_pr\n'
+            printf 'claim_ceiling=synthetic_schema_and_binding_conformance_only\n'
+          } | tee "$RUNNER_TEMP/ieac-scitt-conformance.txt"
