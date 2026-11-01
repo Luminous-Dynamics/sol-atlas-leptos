@@ -220,6 +220,7 @@ struct Inputs {
     currency: String,
     compute_unit: String,
     tier: String,
+    evaluated_at: String,
     budget: Resources,
     requirements: BTreeMap<String, Requirement>,
     existing_rows: BTreeMap<String, Vec<ExistingReceipt>>,
@@ -649,6 +650,7 @@ fn load_inputs(request: &Value, request_bytes: &[u8], report: &Value) -> Result<
         currency,
         compute_unit,
         tier,
+        evaluated_at,
         budget,
         requirements,
         existing_rows,
@@ -770,6 +772,9 @@ fn verify_report(request: &Value, request_bytes: &[u8], report: &Value, report_b
     }
     if string(report, "decision_tier", "report")? != inputs.tier {
         return Err("report decision tier does not match the original request".into());
+    }
+    if timestamp(report, "evaluated_at", "report")? != inputs.evaluated_at {
+        return Err("report evaluation timestamp does not match the original request".into());
     }
     let report_build_id = string(report, "planner_build_id", "report")?;
     if report_build_id.is_empty() {
