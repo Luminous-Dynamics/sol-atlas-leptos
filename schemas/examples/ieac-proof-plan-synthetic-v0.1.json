@@ -17,7 +17,8 @@
           "BASELINE_REQUIRED"
         ],
         "minimum_independent_domains": 1,
-        "mandatory": true
+        "mandatory": true,
+        "human_approval_required": false
       },
       {
         "control_id": "numerical_known_answers",
@@ -25,7 +26,8 @@
           "BASELINE_REQUIRED"
         ],
         "minimum_independent_domains": 2,
-        "mandatory": true
+        "mandatory": true,
+        "human_approval_required": false
       },
       {
         "control_id": "physical_reference_validation",
@@ -33,7 +35,8 @@
           "TIER_D1_ADVISORY"
         ],
         "minimum_independent_domains": 2,
-        "mandatory": true
+        "mandatory": true,
+        "human_approval_required": true
       },
       {
         "control_id": "source_rights_lineage",
@@ -41,7 +44,8 @@
           "BASELINE_REQUIRED"
         ],
         "minimum_independent_domains": 1,
-        "mandatory": true
+        "mandatory": true,
+        "human_approval_required": false
       },
       {
         "control_id": "uncertainty_calibration",
@@ -49,7 +53,8 @@
           "TIER_D1_ADVISORY"
         ],
         "minimum_independent_domains": 1,
-        "mandatory": true
+        "mandatory": true,
+        "human_approval_required": true
       },
       {
         "control_id": "out_of_domain_abstention",
@@ -57,7 +62,8 @@
           "TIER_D1_ADVISORY"
         ],
         "minimum_independent_domains": 1,
-        "mandatory": true
+        "mandatory": true,
+        "human_approval_required": false
       }
     ],
     "verified_evidence": [
