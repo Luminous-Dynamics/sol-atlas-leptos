@@ -1,0 +1,280 @@
+name: IEAC SCITT transparency profile
+
+on:
+  pull_request:
+    paths:
+      - "schemas/ieac-scitt-event-chain-v0.1.schema.json"
+      - "schemas/examples/ieac-scitt-event-chain-synthetic-v0.1.json"
+      - "docs/industry/IEAC_SCITT_TRANSPARENCY_PROFILE_V0.1.md"
+      - ".github/workflows/ieac-scitt-transparency.yml"
+  push:
+    branches:
+      - main
+      - feat/ieac-trust-v0-2-signed-envelope-profile
+    paths:
+      - "schemas/ieac-scitt-event-chain-v0.1.schema.json"
+      - "schemas/examples/ieac-scitt-event-chain-synthetic-v0.1.json"
+      - "docs/industry/IEAC_SCITT_TRANSPARENCY_PROFILE_V0.1.md"
+      - ".github/workflows/ieac-scitt-transparency.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ieac-scitt-transparency-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  schema-conformance:
+    name: Draft 2020-12 SCITT payload and synthetic event-chain conformance
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact source revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install pinned Rust JSON Schema CLI
+        run: |
+          cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+          echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+
+      - name: Validate schema against its declared Draft 2020-12 meta-schema
+        run: |
+          jsonschema-cli validate --draft 2020 --assert-format \
+            --instance schemas/ieac-scitt-event-chain-v0.1.schema.json
+
+      - name: Validate synthetic multi-issuer event chain
+        run: |
+          set -euo pipefail
+          jsonschema-cli validate --draft 2020 --assert-format --offline \
+            schemas/ieac-scitt-event-chain-v0.1.schema.json \
+            --instance schemas/examples/ieac-scitt-event-chain-synthetic-v0.1.json
+          jq -e '
+            .synthetic == true and
+            (.events | length) == 3 and
+            (.cose_header_bindings | length) == 3 and
+            .receipt_boundary.cose_unprotected_receipt_label == 394 and
+            .receipt_boundary.receipt_bytes_embedded_in_event_payload == false and
+            .events[0].issuer_sequence == 1 and
+            .events[1].issuer_sequence == 1 and
+            .events[2].issuer_sequence == 2 and
+            .events[0].initial_checkpoint_sha256 != null and
+            .events[1].initial_checkpoint_sha256 != null and
+            .events[2].previous_event_sha256 == .fixture_event_digests[0] and
+            .events[2].causal_parents[0].event_sha256 == .fixture_event_digests[1]
+          ' schemas/examples/ieac-scitt-event-chain-synthetic-v0.1.json
+
+      - name: Recompute JCS event digests and verify issuer histories
+        run: |
+          node <<'NODE'
+          const fs = require("node:fs");
+          const { createHash } = require("node:crypto");
+          const fixture = JSON.parse(fs.readFileSync(
+            "schemas/examples/ieac-scitt-event-chain-synthetic-v0.1.json",
+            "utf8"
+          ));
+
+          // This synthetic fixture deliberately stays inside a JCS-safe subset:
+          // ASCII object keys/strings and safe integer numbers only. JavaScript's
+          // JSON.stringify provides RFC 8785 primitive serialization for this
+          // subset; default Array.sort uses UTF-16 code-unit key ordering.
+          function canonical(value) {
+            if (value === null || typeof value === "boolean" || typeof value === "string") {
+              if (typeof value === "string" && !/^[\x00-\x7f]*$/.test(value)) {
+                throw new Error("fixture strings must remain ASCII in this v0.1 hash smoke test");
+              }
+              return JSON.stringify(value);
+            }
+            if (typeof value === "number") {
+              if (!Number.isSafeInteger(value)) {
+                throw new Error("fixture numbers must remain safe integers in this v0.1 hash smoke test");
+              }
+              return JSON.stringify(value);
+            }
+            if (Array.isArray(value)) {
+              return "[" + value.map(canonical).join(",") + "]";
+            }
+            if (typeof value === "object") {
+              const keys = Object.keys(value).sort();
+              if (keys.some((key) => !/^[\x00-\x7f]*$/.test(key))) {
+                throw new Error("fixture object keys must remain ASCII in this v0.1 hash smoke test");
+              }
+              return "{" + keys.map((key) =>
+                JSON.stringify(key) + ":" + canonical(value[key])
+              ).join(",") + "}";
+            }
+            throw new Error("unsupported fixture JSON value");
+          }
+
+          function digest(event) {
+            return createHash("sha256").update(canonical(event), "utf8").digest("hex");
+          }
+
+          function historyKey(issuer, scope, sequence) {
+            return issuer + "\u0000" + scope + "\u0000" + sequence;
+          }
+
+          function assertHistory(events, heads) {
+            const digests = events.map(digest);
+            const byKey = new Map();
+
+            events.forEach((event, index) => {
+              const key = historyKey(event.issuer, event.authority_scope, event.issuer_sequence);
+              if (byKey.has(key)) {
+                throw new Error("duplicate issuer-local sequence (same or conflicting digest)");
+              }
+              byKey.set(key, { event, digest: digests[index] });
+              if (event.issuer_sequence === 1) {
+                if (event.previous_event_sha256 !== null || !event.initial_checkpoint_sha256) {
+                  throw new Error("sequence 1 requires a checkpoint and no predecessor");
+                }
+              } else if (event.initial_checkpoint_sha256 !== null || !event.previous_event_sha256) {
+                throw new Error("sequence greater than 1 requires a predecessor and no new checkpoint");
+              }
+            });
+
+            for (const event of events) {
+              if (event.issuer_sequence > 1) {
+                const prior = byKey.get(historyKey(
+                  event.issuer, event.authority_scope, event.issuer_sequence - 1
+                ));
+                if (!prior) throw new Error("issuer-local predecessor is missing");
+                if (prior.digest !== event.previous_event_sha256) {
+                  throw new Error("issuer-local predecessor digest mismatch");
+                }
+                if (prior.event.subject !== event.subject || prior.event.case_id !== event.case_id) {
+                  throw new Error("issuer-local predecessor crosses subject or case");
+                }
+              }
+
+              for (const parent of event.causal_parents) {
+                const referenced = byKey.get(historyKey(
+                  parent.issuer, event.authority_scope, parent.issuer_sequence
+                ));
+                if (!referenced) throw new Error("causal parent is missing from the declared fixture history");
+                if (referenced.digest !== parent.event_sha256) {
+                  throw new Error("causal-parent digest mismatch");
+                }
+                if (referenced.event.subject !== event.subject || referenced.event.case_id !== event.case_id) {
+                  throw new Error("causal parent crosses subject or case");
+                }
+              }
+            }
+
+            for (const head of heads) {
+              const headKey = historyKey(head.issuer, head.authority_scope, head.latest_sequence);
+              const latest = byKey.get(headKey);
+              if (!latest) throw new Error("declared issuer history head is missing (possible omitted suffix)");
+              if (latest.digest !== head.latest_event_sha256) {
+                throw new Error("declared issuer history-head digest mismatch");
+              }
+              if (latest.event.subject !== head.subject) {
+                throw new Error("declared issuer history head subject mismatch");
+              }
+              for (let sequence = 1; sequence <= head.latest_sequence; sequence++) {
+                if (!byKey.has(historyKey(head.issuer, head.authority_scope, sequence))) {
+                  throw new Error("issuer history contains a missing sequence");
+                }
+              }
+              const issuerEvents = events.filter((event) =>
+                event.issuer === head.issuer && event.authority_scope === head.authority_scope
+              );
+              if (issuerEvents.length !== head.latest_sequence) {
+                throw new Error("issuer history has an undeclared event or omitted suffix");
+              }
+            }
+          }
+
+          const eventDigests = fixture.events.map(digest);
+          if (JSON.stringify(eventDigests) !== JSON.stringify(fixture.fixture_event_digests)) {
+            throw new Error("event JCS digests differ from fixture_event_digests");
+          }
+          assertHistory(fixture.events, fixture.issuer_history_heads);
+
+          function mustReject(label, mutate) {
+            const mutant = structuredClone(fixture);
+            mutate(mutant);
+            try {
+              assertHistory(mutant.events, mutant.issuer_history_heads);
+            } catch (_) {
+              return;
+            }
+            throw new Error("history invariant accepted negative control: " + label);
+          }
+
+          mustReject("omitted operator suffix", (value) => {
+            value.events = value.events.filter((event) =>
+              !(event.issuer === "did:web:operator.example" && event.issuer_sequence === 2)
+            );
+          });
+          mustReject("missing predecessor", (value) => {
+            value.events.find((event) => event.issuer_sequence === 2).previous_event_sha256 = null;
+          });
+          mustReject("rollback sequence", (value) => {
+            value.events.find((event) => event.issuer_sequence === 2).issuer_sequence = 1;
+          });
+          mustReject("duplicate sequence same digest", (value) => {
+            value.events.push(structuredClone(value.events[0]));
+          });
+          mustReject("duplicate sequence conflicting digest", (value) => {
+            const duplicate = structuredClone(value.events[0]);
+            duplicate.event_kind = "admission_verdict";
+            value.events.push(duplicate);
+          });
+          mustReject("cross-subject causal chain", (value) => {
+            value.events[2].subject = "asset:another-site";
+          });
+          mustReject("causal-parent digest substitution", (value) => {
+            value.events[2].causal_parents[0].event_sha256 = "0".repeat(64);
+          });
+
+          console.log(JSON.stringify({
+            event_jcs_sha256: eventDigests,
+            issuer_history_heads: fixture.issuer_history_heads,
+            negative_controls_rejected: 7
+          }, null, 2));
+          NODE
+      - name: Check protected CWT issuer and subject projections match payload
+        run: |
+          jq -e '
+            . as $fixture
+            | all($fixture.cose_header_bindings[];
+                .event_index as $index
+                | .protected_iss == $fixture.events[$index].issuer
+                and .protected_sub == $fixture.events[$index].subject
+                and .protected_content_type == "application/vnd.luminous.ieac.scitt-event.v0.1+json"
+            )
+          ' schemas/examples/ieac-scitt-event-chain-synthetic-v0.1.json
+
+      - name: Prove strict event and artifact boundaries reject unknown fields
+        run: |
+          set -euo pipefail
+          source=schemas/examples/ieac-scitt-event-chain-synthetic-v0.1.json
+          schema=schemas/ieac-scitt-event-chain-v0.1.schema.json
+          jq '.unexpected = true' "$source" > "$RUNNER_TEMP/root-mutant.json"
+          jq '.events[0].unexpected = true' "$source" > "$RUNNER_TEMP/event-mutant.json"
+          jq '.events[0].artifacts[0].unexpected = true' "$source" > "$RUNNER_TEMP/artifact-mutant.json"
+          jq '.events[0].build_provenance.unexpected = true' "$source" > "$RUNNER_TEMP/provenance-mutant.json"
+          for mutant in "$RUNNER_TEMP"/{root,event,artifact,provenance}-mutant.json; do
+            if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" --instance "$mutant"; then
+              echo "ERROR: strict SCITT schema accepted unknown field in $mutant"
+              exit 1
+            fi
+          done
+
+      - name: Record exact fixture and schema identity
+        run: |
+          {
+            printf 'commit_sha=%s\n' "$(git rev-parse HEAD)"
+            sha256sum schemas/ieac-scitt-event-chain-v0.1.schema.json
+            sha256sum schemas/examples/ieac-scitt-event-chain-synthetic-v0.1.json
+            printf 'schema_profile=luminous.ieac-scitt-event.v0.1\n'
+            printf 'receipt_verification=not_implemented_by_this_profile_pr\n'
+            printf 'claim_ceiling=synthetic_schema_and_binding_conformance_only\n'
+          } | tee "$RUNNER_TEMP/ieac-scitt-conformance.txt"

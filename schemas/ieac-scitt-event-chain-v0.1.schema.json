@@ -1,0 +1,400 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/ieac-scitt-event-chain-v0.1.schema.json",
+  "title": "IEAC SCITT event-chain fixture v0.1",
+  "description": "Strict wire-shape profile for synthetic IEAC event statements and their issuer-local history links. Does not verify JCS, COSE, SCITT receipts, signer authority, log consistency or source truth.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "synthetic",
+    "profile",
+    "claim_ceiling",
+    "events",
+    "fixture_event_digests",
+    "issuer_history_heads",
+    "cose_header_bindings",
+    "receipt_boundary"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.ieac-scitt-event-chain-fixture.v0.1"
+    },
+    "synthetic": {
+      "const": true
+    },
+    "profile": {
+      "const": "luminous.ieac-scitt-event.v0.1"
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "events": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "$ref": "#/$defs/event"
+      }
+    },
+    "fixture_event_digests": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "cose_header_bindings": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "$ref": "#/$defs/header_binding"
+      }
+    },
+    "receipt_boundary": {
+      "$ref": "#/$defs/receipt_boundary"
+    },
+    "issuer_history_heads": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "issuer",
+          "subject",
+          "authority_scope",
+          "latest_sequence",
+          "latest_event_sha256"
+        ],
+        "properties": {
+          "issuer": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "subject": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "authority_scope": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "latest_sequence": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "latest_event_sha256": {
+            "$ref": "#/$defs/hash"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "case_id",
+        "event_kind",
+        "issuer",
+        "subject",
+        "authority_scope",
+        "issuer_sequence",
+        "issued_at",
+        "previous_event_sha256",
+        "initial_checkpoint_sha256",
+        "causal_parents",
+        "ieac_profile_sha256",
+        "artifacts",
+        "build_provenance",
+        "evidence_class",
+        "domain_payload",
+        "claim_ceiling"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "luminous.ieac-scitt-event.v0.1"
+        },
+        "case_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "event_kind": {
+          "enum": [
+            "request_committed",
+            "admission_verdict",
+            "schedule_audit"
+          ]
+        },
+        "issuer": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "authority_scope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "issuer_sequence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "previous_event_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/hash"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "initial_checkpoint_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/hash"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "causal_parents": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "issuer",
+              "issuer_sequence",
+              "event_sha256"
+            ],
+            "properties": {
+              "issuer": {
+                "type": "string",
+                "minLength": 1
+              },
+              "issuer_sequence": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "event_sha256": {
+                "$ref": "#/$defs/hash"
+              }
+            }
+          }
+        },
+        "ieac_profile_sha256": {
+          "$ref": "#/$defs/hash"
+        },
+        "artifacts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "role",
+              "sha256",
+              "byte_length",
+              "media_type",
+              "classification"
+            ],
+            "properties": {
+              "role": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "sha256": {
+                "$ref": "#/$defs/hash"
+              },
+              "byte_length": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "media_type": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "classification": {
+                "enum": [
+                  "public_metadata",
+                  "sensitive_external",
+                  "encrypted_external",
+                  "synthetic"
+                ]
+              }
+            }
+          }
+        },
+        "build_provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source_revision",
+            "evaluator_sha256",
+            "verifier_sha256",
+            "builder_identity",
+            "attestation_sha256"
+          ],
+          "properties": {
+            "source_revision": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"
+            },
+            "evaluator_sha256": {
+              "$ref": "#/$defs/hash"
+            },
+            "verifier_sha256": {
+              "$ref": "#/$defs/hash"
+            },
+            "builder_identity": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            "attestation_sha256": {
+              "$ref": "#/$defs/hash"
+            }
+          }
+        },
+        "evidence_class": {
+          "enum": [
+            "synthetic",
+            "field_observation",
+            "model_output",
+            "derived"
+          ]
+        },
+        "domain_payload": {
+          "type": "object",
+          "description": "Opaque domain-owned payload. Preserve native domain semantics; this envelope does not reinterpret them."
+        },
+        "claim_ceiling": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "issuer_sequence": {
+                "const": 1
+              }
+            },
+            "required": [
+              "issuer_sequence"
+            ]
+          },
+          "then": {
+            "properties": {
+              "previous_event_sha256": {
+                "type": "null"
+              },
+              "initial_checkpoint_sha256": {
+                "$ref": "#/$defs/hash"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "previous_event_sha256": {
+                "$ref": "#/$defs/hash"
+              },
+              "initial_checkpoint_sha256": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "header_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_index",
+        "protected_iss",
+        "protected_sub",
+        "protected_content_type",
+        "protected_kid"
+      ],
+      "properties": {
+        "event_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "protected_iss": {
+          "type": "string",
+          "minLength": 1
+        },
+        "protected_sub": {
+          "type": "string",
+          "minLength": 1
+        },
+        "protected_content_type": {
+          "const": "application/vnd.luminous.ieac.scitt-event.v0.1+json"
+        },
+        "protected_kid": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "receipt_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cose_unprotected_receipt_label",
+        "receipt_bytes_embedded_in_event_payload",
+        "receipt_validation_status",
+        "claim_ceiling"
+      ],
+      "properties": {
+        "cose_unprotected_receipt_label": {
+          "const": 394
+        },
+        "receipt_bytes_embedded_in_event_payload": {
+          "const": false
+        },
+        "receipt_validation_status": {
+          "const": "not_performed_synthetic_fixture"
+        },
+        "claim_ceiling": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,190 @@
+{
+  "schema_version": "luminous.ieac-scitt-event-chain-fixture.v0.1",
+  "synthetic": true,
+  "profile": "luminous.ieac-scitt-event.v0.1",
+  "claim_ceiling": "Shape-only synthetic multi-issuer event chain. Event JCS digests and in-fixture history links are computed and checked; initial checkpoints, artifact, IEAC-profile, build and attestation digests are placeholders. Signatures, SCITT receipts, VDS proofs, authority and external history completeness are not verified.",
+  "events": [
+    {
+      "schema_version": "luminous.ieac-scitt-event.v0.1",
+      "case_id": "synthetic-energy-case-001",
+      "event_kind": "request_committed",
+      "issuer": "did:web:operator.example",
+      "subject": "asset:site-demo-01",
+      "authority_scope": "site:site-demo-01:energy-dispatch",
+      "issuer_sequence": 1,
+      "issued_at": "2026-11-01T08:00:00Z",
+      "previous_event_sha256": null,
+      "initial_checkpoint_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "causal_parents": [],
+      "ieac_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "artifacts": [
+        {
+          "role": "dispatch-source-request",
+          "sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+          "byte_length": 512,
+          "media_type": "application/json",
+          "classification": "synthetic"
+        }
+      ],
+      "build_provenance": {
+        "source_revision": "0123456789abcdef0123456789abcdef01234567",
+        "evaluator_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "verifier_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+        "builder_identity": "synthetic-ci-builder",
+        "attestation_sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+      },
+      "evidence_class": "synthetic",
+      "domain_payload": {
+        "request_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "requested_action": "evaluate_dispatch",
+        "requested_at": "2026-11-01T08:00:00Z"
+      },
+      "claim_ceiling": "Synthetic request-commit event shape only; no telemetry, source authenticity, operational authorization or schedule correctness."
+    },
+    {
+      "schema_version": "luminous.ieac-scitt-event.v0.1",
+      "case_id": "synthetic-energy-case-001",
+      "event_kind": "schedule_audit",
+      "issuer": "did:web:auditor.example",
+      "subject": "asset:site-demo-01",
+      "authority_scope": "site:site-demo-01:energy-dispatch",
+      "issuer_sequence": 1,
+      "issued_at": "2026-11-01T08:00:02Z",
+      "previous_event_sha256": null,
+      "initial_checkpoint_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+      "causal_parents": [
+        {
+          "issuer": "did:web:operator.example",
+          "issuer_sequence": 1,
+          "event_sha256": "013a3f321243dfe9a8994ec872b1654a1ab3755a63613fd844007dc8c9519c58"
+        }
+      ],
+      "ieac_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "artifacts": [
+        {
+          "role": "dispatch-schedule",
+          "sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+          "byte_length": 768,
+          "media_type": "application/json",
+          "classification": "synthetic"
+        },
+        {
+          "role": "schedule-audit-receipt",
+          "sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+          "byte_length": 1024,
+          "media_type": "application/json",
+          "classification": "synthetic"
+        }
+      ],
+      "build_provenance": {
+        "source_revision": "89abcdef0123456789abcdef0123456789abcdef",
+        "evaluator_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+        "verifier_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "builder_identity": "synthetic-ci-builder",
+        "attestation_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      },
+      "evidence_class": "synthetic",
+      "domain_payload": {
+        "request_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "schedule_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+        "audit_receipt_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+        "disposition": "accepted"
+      },
+      "claim_ceiling": "Synthetic schedule-audit statement shape only; accepted disposition does not establish physical truth, solver optimality or permission to execute."
+    },
+    {
+      "schema_version": "luminous.ieac-scitt-event.v0.1",
+      "case_id": "synthetic-energy-case-001",
+      "event_kind": "admission_verdict",
+      "issuer": "did:web:operator.example",
+      "subject": "asset:site-demo-01",
+      "authority_scope": "site:site-demo-01:energy-dispatch",
+      "issuer_sequence": 2,
+      "issued_at": "2026-11-01T08:00:03Z",
+      "previous_event_sha256": "013a3f321243dfe9a8994ec872b1654a1ab3755a63613fd844007dc8c9519c58",
+      "initial_checkpoint_sha256": null,
+      "causal_parents": [
+        {
+          "issuer": "did:web:auditor.example",
+          "issuer_sequence": 1,
+          "event_sha256": "1c5934b27bab355ec390d9c36677673a2c0da21de81cb9df49283982961f9d33"
+        }
+      ],
+      "ieac_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "artifacts": [
+        {
+          "role": "admission-report",
+          "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "byte_length": 640,
+          "media_type": "application/json",
+          "classification": "synthetic"
+        }
+      ],
+      "build_provenance": {
+        "source_revision": "fedcba9876543210fedcba9876543210fedcba98",
+        "evaluator_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "verifier_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "builder_identity": "synthetic-ci-builder",
+        "attestation_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "evidence_class": "synthetic",
+      "domain_payload": {
+        "request_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "audit_receipt_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+        "admission": "abstain",
+        "highest_permitted_action": null
+      },
+      "claim_ceiling": "Synthetic admission-verdict event shape only; SCITT registration and cryptographic integrity do not create physical or actuation authority."
+    }
+  ],
+  "fixture_event_digests": [
+    "013a3f321243dfe9a8994ec872b1654a1ab3755a63613fd844007dc8c9519c58",
+    "1c5934b27bab355ec390d9c36677673a2c0da21de81cb9df49283982961f9d33",
+    "166fa7bddb08f639df5fde4313cdc8cba70b3339d1cca41fd4c75bf1706b3376"
+  ],
+  "cose_header_bindings": [
+    {
+      "event_index": 0,
+      "protected_iss": "did:web:operator.example",
+      "protected_sub": "asset:site-demo-01",
+      "protected_content_type": "application/vnd.luminous.ieac.scitt-event.v0.1+json",
+      "protected_kid": "synthetic-operator-key-01"
+    },
+    {
+      "event_index": 1,
+      "protected_iss": "did:web:auditor.example",
+      "protected_sub": "asset:site-demo-01",
+      "protected_content_type": "application/vnd.luminous.ieac.scitt-event.v0.1+json",
+      "protected_kid": "synthetic-auditor-key-01"
+    },
+    {
+      "event_index": 2,
+      "protected_iss": "did:web:operator.example",
+      "protected_sub": "asset:site-demo-01",
+      "protected_content_type": "application/vnd.luminous.ieac.scitt-event.v0.1+json",
+      "protected_kid": "synthetic-operator-key-01"
+    }
+  ],
+  "receipt_boundary": {
+    "cose_unprotected_receipt_label": 394,
+    "receipt_bytes_embedded_in_event_payload": false,
+    "receipt_validation_status": "not_performed_synthetic_fixture",
+    "claim_ceiling": "Receipt validation is out of scope for this fixture; relying parties must verify receipt-to-statement binding, VDS inclusion and trust policy using an independent SCITT verifier."
+  },
+  "issuer_history_heads": [
+    {
+      "issuer": "did:web:operator.example",
+      "subject": "asset:site-demo-01",
+      "authority_scope": "site:site-demo-01:energy-dispatch",
+      "latest_sequence": 2,
+      "latest_event_sha256": "166fa7bddb08f639df5fde4313cdc8cba70b3339d1cca41fd4c75bf1706b3376"
+    },
+    {
+      "issuer": "did:web:auditor.example",
+      "subject": "asset:site-demo-01",
+      "authority_scope": "site:site-demo-01:energy-dispatch",
+      "latest_sequence": 1,
+      "latest_event_sha256": "1c5934b27bab355ec390d9c36677673a2c0da21de81cb9df49283982961f9d33"
+    }
+  ]
+}
