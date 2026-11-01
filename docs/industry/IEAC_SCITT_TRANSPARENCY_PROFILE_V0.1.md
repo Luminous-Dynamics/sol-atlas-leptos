@@ -47,7 +47,13 @@ For each issuer and scope:
 
 The synthetic fixture contains three stages from two issuers: an operator request commitment, an auditor schedule-audit statement, and a later operator admission verdict. The admission verdict links to both the operator's preceding event and the auditor's event. The three event digests are recomputed from each event's JCS bytes in CI and every predecessor/causal-parent reference is checked against the corresponding event digest. Initial-checkpoint, artifact, IEAC-profile, build and attestation digests remain placeholders; this does not verify signatures, checkpoint authenticity, source truth or external evidence.
 
-### 2.2 Synthetic JCS digest conformance
+### 2.2 Expected issuer heads and omission detection
+
+The fixture declares one expected terminal sequence and digest per issuer/scope. This is a test oracle for this synthetic fixture, not an authenticated or externally witnessed production checkpoint. CI requires each issuer's sequence range from 1 through the declared head to be present and verifies that the declared head digest matches the corresponding event. The check detects an omitted terminal suffix in the fixture. In production, the expected head must come from an independently provisioned or transparency-anchored checkpoint; an issuer cannot establish completeness merely by declaring its own latest sequence.
+
+CI also mutates the fixture to test duplicate issuer-local sequence (same and conflicting event digests), rollback, missing predecessor, omitted suffix, cross-subject causal parent, and causal-parent digest substitution. These are bounded synthetic controls over the declared profile, not a general SCITT verifier.
+
+### 2.3 Synthetic JCS digest conformance
 
 The fixture keeps its event JSON inside a deliberately narrow hash-test subset: ASCII keys and strings plus safe integer numbers. CI serializes primitives with JavaScript's ECMAScript JSON serialization, sorts property names by UTF-16 code units, and recomputes SHA-256 for each event. It then verifies both issuer-local predecessor links and cross-issuer causal-parent references against those computed digests. This catches accidental stale references when a fixture event changes.
 
