@@ -262,7 +262,8 @@ jobs:
             fi
           done
 \t' read -r event_id expected; do
-            actual="$(jq -cS --arg id "$event_id" '.events[] | select(.event_id == $id)' "$fixture" | sha256sum | awk '{print $1}')"
+            canonical="$(jq -cS --arg id "$event_id" '.events[] | select(.event_id == $id)' "$fixture")"
+            actual="$(printf '%s' "$canonical" | sha256sum | awk '{print $1}')"
             test "$actual" = "$expected"
           done < <(jq -r '.expected.event_payload_sha256 | to_entries[] | [.key,.value] | @tsv' "$fixture")
           # Resolve every causal edge and predecessor against the frozen digest map.
