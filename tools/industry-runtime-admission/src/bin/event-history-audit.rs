@@ -576,6 +576,53 @@ mod tests {
     }
 
     #[test]
+    fn predecessor_with_wrong_sequence_is_invalid() {
+        let mut input: Value = serde_json::from_str(include_str!("../../../../schemas/examples/ieac-scitt-decision-statement-synthetic-v0.1.json")).unwrap();
+        input["events"][3]["issuer_sequence"] = json!(3);
+        let digest = sha256_hex(&canonical_jcs_subset(&input["events"][3]).unwrap());
+        input["expected"]["event_payload_sha256"]["event-verdict-002"] = json!(digest);
+        let mut audit = Audit::default();
+        parse_events(&input, &mut audit).unwrap();
+        audit_streams(&mut audit);
+        assert!(audit.findings.iter().any(|item| item["code"] == "PREDECESSOR_SEQUENCE_MISMATCH"));
+    }
+
+    #[test]
+    fn causal_parent_from_another_case_or_subject_is_invalid() {
+        let digest_a = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned();
+        let digest_b = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".to_owned();
+        let parent = Event {
+            id: "parent".to_owned(),
+            issuer: "issuer:a".to_owned(),
+            subject: "subject:a".to_owned(),
+            stream_id: "stream:a".to_owned(),
+            sequence: 1,
+            case_id: "case:a".to_owned(),
+            previous: None,
+            digest: digest_a.clone(),
+            parents: Vec::new(),
+        };
+        let child = Event {
+            id: "child".to_owned(),
+            issuer: "issuer:b".to_owned(),
+            subject: "subject:b".to_owned(),
+            stream_id: "stream:b".to_owned(),
+            sequence: 1,
+            case_id: "case:b".to_owned(),
+            previous: None,
+            digest: digest_b.clone(),
+            parents: vec![digest_a.clone()],
+        };
+        let mut audit = Audit::default();
+        audit.events.push(parent);
+        audit.events.push(child);
+        audit.digest_to_index.insert(digest_a, 0);
+        audit.digest_to_index.insert(digest_b, 1);
+        audit_causal_graph(&mut audit);
+        assert!(audit.findings.iter().any(|item| item["code"] == "CAUSAL_SCOPE_MISMATCH"));
+    }
+
+    #[test]
     fn duplicate_issuer_sequence_is_invalid() {
         let mut input: Value = serde_json::from_str(include_str!("../../../../schemas/examples/ieac-scitt-decision-statement-synthetic-v0.1.json")).unwrap();
         input["events"][3]["issuer_sequence"] = json!(1);
