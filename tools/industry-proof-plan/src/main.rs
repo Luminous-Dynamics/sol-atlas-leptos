@@ -1084,6 +1084,15 @@ mod tests {
         fixture()["request"].clone()
     }
 
+    fn refresh_mapping_digest(request: &mut Value) {
+        let bytes = serde_json::to_vec(&request["control_mappings"]).unwrap();
+        let mapping_digest = sha256_hex(&bytes);
+        request["control_mapping_policy_sha256"] = json!(mapping_digest);
+        for action in request["candidate_actions"].as_array_mut().unwrap() {
+            action["mapping_policy_sha256"] = json!(mapping_digest);
+        }
+    }
+
     fn validate() -> ValidatedRequest {
         validate_request(&request()).unwrap()
     }
@@ -1217,8 +1226,15 @@ mod tests {
     fn minimum_independent_domains_are_not_replaced_by_action_count() {
         let mut request = request();
         for index in [2usize, 3, 4] {
+            let action_id = request["candidate_actions"][index]["action_id"].as_str().unwrap().to_owned();
             request["candidate_actions"][index]["independence_domain_id"] = json!("solver-team-a");
+            for mapping in request["control_mappings"].as_array_mut().unwrap() {
+                if mapping["action_id"] == action_id {
+                    mapping["independence_domain_id"] = json!("solver-team-a");
+                }
+            }
         }
+        refresh_mapping_digest(&mut request);
         let report = test_report(&request);
         assert_eq!(report["plan_status"], "infeasible");
         assert_eq!(report["optimality_status"], "proven_infeasible");
@@ -1295,6 +1311,32 @@ mod tests {
 
         let mut request = request();
         request["verified_evidence"][0]["independence_registry_sha256"] = json!("9".repeat(64));
+        assert!(validate_request(&request).is_err());
+    }
+
+    #[test]
+    fn action_control_coverage_requires_digest_bound_mapping_rows() {
+        let mut request = request();
+        request["control_mappings"].as_array_mut().unwrap().remove(0);
+        refresh_mapping_digest(&mut request);
+        assert!(validate_request(&request).is_err());
+
+        let mut request = request();
+        request["control_mappings"][0]["proof_method_id"] = json!("unreviewed-shortcut");
+        // The pinned digest is deliberately not recomputed: the body no longer matches the policy.
+        assert!(validate_request(&request).is_err());
+    }
+
+    #[test]
+    fn mapping_row_must_match_action_identity_and_independence_domain() {
+        let mut request = request();
+        request["control_mappings"][0]["action_sha256"] = json!("0".repeat(64));
+        refresh_mapping_digest(&mut request);
+        assert!(validate_request(&request).is_err());
+
+        let mut request = request();
+        request["control_mappings"][0]["independence_domain_id"] = json!("another-domain");
+        refresh_mapping_digest(&mut request);
         assert!(validate_request(&request).is_err());
     }
 
