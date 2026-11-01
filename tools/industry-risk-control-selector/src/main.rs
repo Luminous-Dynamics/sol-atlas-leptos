@@ -471,7 +471,9 @@ fn evaluate(profile: &Value, policy: &Value, build_id: &str) -> Result<Value, St
     }
 
     let model_influence = dimensions.get("model_influence").and_then(Value::as_str).unwrap_or("unknown");
-    let tier_compatibility = if model_influence == "direct_actuation" && tier != "D3_autonomous_control" {
+    let tier_compatibility = if ["direct_actuation", "unknown", "conflicted"].contains(&model_influence)
+        && tier != "D3_autonomous_control"
+    {
         "blocked"
     } else {
         "compatible"
@@ -709,6 +711,19 @@ mod tests {
         assert_eq!(report["tier_compatibility"], "blocked");
         assert_eq!(report["requirements_disposition"], "indeterminate");
         assert_eq!(report["action_authority"], "none");
+    }
+
+    #[test]
+    fn unknown_or_conflicted_model_influence_blocks_below_d3() {
+        for value in ["unknown", "conflicted"] {
+            let mut profile = fixture();
+            profile["risk_assessment"]["dimensions"]["model_influence"] = json!(value);
+            profile["decision_tier"] = json!("D2_delegated_planning");
+            let report = select(&profile);
+            assert_eq!(report["tier_compatibility"], "blocked", "value={value}");
+            assert_eq!(report["requirements_disposition"], "indeterminate", "value={value}");
+            assert_eq!(report["action_authority"], "none");
+        }
     }
 
     #[test]
