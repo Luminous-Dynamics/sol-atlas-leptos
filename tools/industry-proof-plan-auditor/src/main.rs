@@ -337,7 +337,9 @@ fn load_inputs(request: &Value, request_bytes: &[u8], report: &Value) -> Result<
         return Err("report does not bind the exact request file bytes".into());
     }
 
-    let report_digest = sha(report, "request_sha256", "report")?;
+    if sha(report, "request_sha256", "report")? != request_digest {
+        return Err("report does not bind the exact request file digest".into());
+    }
     let report_profile = sha(report, "profile_sha256", "report")?;
     let report_policy = sha(report, "policy_sha256", "report")?;
     let request_profile = sha(request, "profile_sha256", "request")?;
@@ -514,7 +516,7 @@ fn load_inputs(request: &Value, request_bytes: &[u8], report: &Value) -> Result<
     Ok(Inputs {
         request_id,
         request_digest,
-        report_digest,
+        report_digest: request_report,
         profile_digest: report_profile,
         policy_digest: report_policy,
         registry_digest,
@@ -642,6 +644,9 @@ fn verify_report(request: &Value, request_bytes: &[u8], report: &Value, report_b
     if report.get("planner_version").and_then(Value::as_str) != Some(PLANNER_VERSION) {
         return Err("unsupported planner version in report".into());
     }
+    if string(report, "decision_tier", "report")? != inputs.tier {
+        return Err("report decision tier does not match the original request".into());
+    }
     let report_build_id = string(report, "planner_build_id", "report")?;
     if report_build_id.is_empty() {
         return Err("missing planner build identity".into());
@@ -663,6 +668,11 @@ fn verify_report(request: &Value, request_bytes: &[u8], report: &Value, report_b
     for row in array(report, "selected_actions", "report")? {
         let id = string(row, "action_id", "selected action")?;
         let action = inputs.actions.get(id).ok_or_else(|| format!("report selects unknown action '{id}'"))?;
+        let rights_valid_until_matches = match (&action.rights_valid_until, row.get("rights_valid_until")) {
+            (None, Some(Value::Null)) => true,
+            (Some(expected), Some(Value::String(actual))) => expected == actual,
+            _ => false,
+        };
         if sha(row, "action_sha256", id)? != action.digest
             || sha(row, "mapping_policy_sha256", id)? != action.mapping_digest
             || sha(row, "independence_registry_sha256", id)? != action.registry_digest
@@ -670,7 +680,7 @@ fn verify_report(request: &Value, request_bytes: &[u8], report: &Value, report_b
             || string(row, "independence_domain_id", id)? != action.domain
             || string(row, "rights_status", id)? != "verified"
             || timestamp(row, "rights_verified_at", id)? != action.rights_verified_at
-            || row.get("rights_valid_until") != Some(&action.rights_valid_until.as_ref().map_or(Value::Null, |s| json!(s)))
+            || !rights_valid_until_matches
         {
             return Err(format!("selected action '{id}' differs from the request-bound action record"));
         }
