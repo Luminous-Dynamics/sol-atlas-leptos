@@ -299,12 +299,11 @@ fn evaluate_run(policy: PolicyKind, scenario: &Scenario, actions: Vec<ReplanActi
                 if completed_at_step >= requested_at_step =>
             {
                 solver_completed += 1;
-                if let Some(event) = scenario.truth.material_event {
-                    if requested_at_step >= event.observable_at_step
-                        && completed_at_step > event.response_deadline_step
-                    {
-                        late_solver_completions += 1;
-                    }
+                if let Some(event) = scenario.truth.material_event
+                    && requested_at_step >= event.observable_at_step
+                    && completed_at_step > event.response_deadline_step
+                {
+                    late_solver_completions += 1;
                 }
 
                 match execution.audit_outcome {
