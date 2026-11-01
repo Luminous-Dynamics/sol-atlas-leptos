@@ -67,7 +67,7 @@ Candidate actions are not evidence. They remain planned until an action is execu
 
 A control is considered *planned-covered* only when the set of distinct verified existing domains plus distinct domains represented by selected actions reaches its `minimum_independent_domains`. The report labels the domains as planned-or-existing and preserves existing artifact/verifier/rights identities separately from candidate action identities.
 
-The planner does not authenticate whether two organizational domains are truly independent. That requires a trusted, versioned independence registry and an independent verifier. The planner only requires all rows to refer to one pinned registry digest and does not silently treat duplicate action count as independent domains.
+The planner does not authenticate whether two organizational domains are truly independent. That requires a trusted, versioned independence registry and an independent verifier. The planner only requires all rows to refer to one pinned registry digest and does not silently treat duplicate action count as independent domains. **Important v0.1 limit:** the planner counts distinct declared domain IDs; it does not yet resolve shared common-cause dependencies between otherwise distinct domains (shared calibration chains, upstream feeds, software/test harnesses, operators, facilities or environmental exposures). Distinct IDs are therefore not a proof of physical or organizational independence. The next tranche is tracked in [IEAC-CCF-001 / #406](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/406), which introduces a registry-backed common-cause dependency graph and conservative independent-set semantics.
 
 ### 2.3 Rights and time
 
