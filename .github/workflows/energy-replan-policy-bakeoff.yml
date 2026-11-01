@@ -72,7 +72,7 @@ jobs:
             > target/energy-replan-policy-bakeoff/auditor-provenance/original-source-sha256.txt
 
           auditor_manifest="$AUDITOR_SOURCE_DIR/Cargo.toml"
-          cargo generate-lockfile --manifest-path "$auditor_manifest"
+          test "$(sha256sum "$AUDITOR_SOURCE_DIR/Cargo.lock" | cut -d ' ' -f 1)" = "0ab5e2fd068a53ece3a48b38e649a447190102043fb656967a1cae259639a23c"
           # Match the parent auditor workflow's formatter behavior, but never
           # rewrite files in the PR checkout.
           cargo fmt --manifest-path "$auditor_manifest" --all
@@ -188,6 +188,7 @@ jobs:
           path: |
             target/energy-replan-policy-bakeoff/
             target/energy-replan-policy-bakeoff/auditor-provenance/
+            tools/energy-dispatch-schedule-auditor/Cargo.lock
             tools/energy-replan-policy-bakeoff/Cargo.toml
             tools/energy-replan-policy-bakeoff/Cargo.lock
             tools/energy-replan-policy-bakeoff/README.md
