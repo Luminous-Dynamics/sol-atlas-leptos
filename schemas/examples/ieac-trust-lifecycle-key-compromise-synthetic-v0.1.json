@@ -703,7 +703,7 @@
     ],
     "claim_ceiling": "observation_only",
     "action_authority": "none",
-    "graph_snapshot_sha256": "85673180db33861aa25bab360dafbdcb89eb086457210030dc2648eaf1e29aeb"
+    "graph_snapshot_sha256": "38348929c5062f2c2649f8b04b4985ef78f109ba95684d019d28de665f19a1c3"
   },
   "invalidation_event": {
     "schema_version": "luminous.ieac-assurance-invalidation-event.v0.1",
@@ -763,8 +763,8 @@
   "expected_impact_report": {
     "schema_version": "luminous.ieac-assurance-impact-report.v0.1",
     "report_id": "impact-issuer-key-compromise-event-0003",
-    "graph_snapshot_sha256": "85673180db33861aa25bab360dafbdcb89eb086457210030dc2648eaf1e29aeb",
-    "invalidation_event_sha256": "df88bd2e1e9e54e947c266d4aa18d777db5cc1c44be83565843f5cc49ef07f27",
+    "graph_snapshot_sha256": "38348929c5062f2c2649f8b04b4985ef78f109ba95684d019d28de665f19a1c3",
+    "invalidation_event_sha256": "d23d44e7b6b5d2b26c2824d2d336f5f4154ee91e5866520703a496ede96a76ee",
     "impact_policy_sha256": "2424242424242424242424242424242424242424242424242424242424242424",
     "impact_engine_build_sha256": "2525252525252525252525252525252525252525252525252525252525252525",
     "evaluated_at": "2026-11-01T10:30:00Z",
