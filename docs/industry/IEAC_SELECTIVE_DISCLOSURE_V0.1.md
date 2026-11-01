@@ -25,14 +25,16 @@ RFC 9901 defines selective disclosure of individual JSON claims through salted h
 Important operational rules:
 - the relying-party verifier must decide from its policy whether holder Key Binding is required **before** examining whether the holder supplied a Key Binding JWT;
 - for this case-sensitive IEAC profile, require SD-JWT+KB and reject an SD-JWT without its Key Binding JWT;
-- verify the holder's Key Binding JWT signature and its `aud` and one-time `nonce` against this request; verify `sd_hash` over the exact issuer-signed SD-JWT and presented Disclosures;
+- verify the holder's Key Binding JWT signature using the holder public key bound in the issuer-signed SD-JWT; reject `alg=none` and require `typ = kb+jwt`;
+- verify exact `aud`, one-time `nonce` and an acceptable `iat` window against the relying-party request; consume the nonce atomically and reject replay;
+- calculate `sd_hash` using the same hash algorithm named by the SD-JWT's `_sd_alg` (default as defined by RFC 9901) over the **US-ASCII bytes** of `<Issuer-signed JWT>~<Disclosure 1>~...~<Disclosure N>~`, including the trailing tilde, then base64url-encode the digest; compare it exactly with the Key Binding JWT claim;
 - use a cryptographically secure random salt with at least a 128-bit random component;
 - use a distinct salt per claim;
 - do not disclose unrevealed salts;
 - verify each disclosed claim against the original signed SD-JWT;
 - bind the presentation to the relying party, decision case, purpose, nonce and expiry using an explicit holder/key-binding design where the profile requires it.
 
-A deterministic SHA-256 digest of a low-entropy value is not adequate privacy. An attacker can enumerate likely values. A high-entropy, independent salt prevents the straightforward dictionary attack described in RFC 9901, provided the salt remains secret.
+The holder Key Binding checks follow RFC 9901 §4.3.1 and §7.3: `sd_hash` covers the exact compact issuer-signed JWT and every selected encoded Disclosure, in presentation order, with a trailing `~`; the same hash algorithm as the disclosure digests is used. Do not reconstruct a semantically equivalent JSON object and hash that instead.\n\nA deterministic SHA-256 digest of a low-entropy value is not adequate privacy. An attacker can enumerate likely values. A high-entropy, independent salt prevents the straightforward dictionary attack described in RFC 9901, provided the salt remains secret.
 
 SD-JWT discloses claims; it does not by itself prove a computation over undisclosed source data.
 
