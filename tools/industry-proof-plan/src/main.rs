@@ -670,6 +670,45 @@ fn greedy_plan(request: &ValidatedRequest) -> Option<BTreeSet<String>> {
     selection_valid(&selected, request).then_some(selected)
 }
 
+fn topological_selected_order(
+    selected: &BTreeSet<String>,
+    actions: &BTreeMap<String, Action>,
+) -> Result<Vec<String>, String> {
+    let mut indegree: BTreeMap<String, usize> =
+        selected.iter().map(|id| (id.clone(), 0usize)).collect();
+    let mut dependents: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    for id in selected {
+        let action = actions.get(id).ok_or_else(|| format!("selected action '{id}' is missing"))?;
+        for prerequisite in &action.prerequisites {
+            if selected.contains(prerequisite) {
+                *indegree.get_mut(id).ok_or_else(|| "missing selected action indegree".to_owned())? += 1;
+                dependents.entry(prerequisite.clone()).or_default().push(id.clone());
+            }
+        }
+    }
+    let mut ready: BTreeSet<String> = indegree.iter()
+        .filter_map(|(id, degree)| (*degree == 0).then_some(id.clone()))
+        .collect();
+    let mut order = Vec::with_capacity(selected.len());
+    while let Some(id) = ready.pop_first() {
+        order.push(id.clone());
+        if let Some(rows) = dependents.get(&id) {
+            for dependent in rows {
+                let degree = indegree.get_mut(dependent)
+                    .ok_or_else(|| "missing dependent action indegree".to_owned())?;
+                *degree = degree.saturating_sub(1);
+                if *degree == 0 {
+                    ready.insert(dependent.clone());
+                }
+            }
+        }
+    }
+    if order.len() != selected.len() {
+        return Err("selected action subgraph contains a dependency cycle".into());
+    }
+    Ok(order)
+}
+
 fn report_for(
     raw_request: &[u8],
     request: &ValidatedRequest,
@@ -681,10 +720,11 @@ fn report_for(
 ) -> Result<Value, String> {
     let resources = selected_resources(selected, &request.actions)?;
     let domains = control_domains(selected, request);
+    let execution_order = topological_selected_order(selected, &request.actions)?;
     let mut selected_actions = Vec::new();
     let mut human_approvals = BTreeSet::new();
 
-    for id in selected {
+    for id in &execution_order {
         let action = request.actions.get(id).ok_or_else(|| format!("selected action '{id}' disappeared"))?;
         let prerequisite = selected.iter().any(|other| {
             request.actions.get(other).is_some_and(|candidate| candidate.prerequisites.contains(id))
@@ -747,6 +787,7 @@ fn report_for(
         "optimality_status": optimality,
         "plan_status": status,
         "selected_actions": selected_actions,
+        "execution_order": execution_order,
         "control_coverage": coverage,
         "covered_controls": covered,
         "unsatisfied_controls": unsatisfied,
