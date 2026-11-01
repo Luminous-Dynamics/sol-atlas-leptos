@@ -159,10 +159,11 @@ jobs:
           cargo run --manifest-path tools/industry-independence-auditor/Cargo.toml --locked -- \
             "$RUNNER_TEMP/ccf-unknown-request.json" "$RUNNER_TEMP/ccf-unknown-report.json"
           jq -e '
-            .control_results[] |
-            .independent_source_count == 1 and
-            .threshold_met == false and
-            .registry_model_disposition == "indeterminate_under_registry_model"
+            all(.control_results[];
+              .independent_source_count == 1 and
+              .threshold_met == false and
+              .registry_model_disposition == "indeterminate_under_registry_model"
+            )
           ' "$RUNNER_TEMP/ccf-unknown-report.json"
 
       - name: Upload exact-head common-cause report
