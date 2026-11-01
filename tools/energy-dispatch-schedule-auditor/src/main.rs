@@ -1,6 +1,7 @@
 use energy_dispatch_schedule_auditor::{
     audit_schedule_bytes, AuditDisposition, MAX_REQUEST_BYTES, MAX_SCHEDULE_BYTES,
 };
+use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
