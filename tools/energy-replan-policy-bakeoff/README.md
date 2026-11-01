@@ -30,6 +30,19 @@ The report keeps separate columns for scenario count, event count, timely detect
 
 There is no single scalar winner and no authority output. All loss/cost fields are dimensionless benchmark units, not kWh, MWh, currency or measured battery degradation. The total penalty is a synthetic unit-comparable accounting field for this panel only; policy comparison should also inspect the underlying service-loss and compute/switching components.
 
+## Independent auditor CLI qualification in exact-head CI
+
+The workflow uses the standalone auditor as a separate executable. It copies the auditor package to a temporary source tree, normalizes formatting in that copy only, runs locked tests/Clippy and builds the release CLI. It records both the original checked-out source file digests and the normalized build-copy digests; the PR checkout is required to remain clean.
+
+The auditor dependency graph is committed in `tools/energy-dispatch-schedule-auditor/Cargo.lock` (SHA-256 `0ab5e2fd068a53ece3a48b38e649a447190102043fb656967a1cae259639a23c`). The workflow asserts that digest before use and compiles with `--locked`.
+
+The CLI smoke-test freezes these exact inputs:
+- request SHA-256: `e1fc548c7d82e6aa9f95ace133f25c650df6f8c51018ee3a7bf16a980b8af804`;
+- accepted H=2 schedule SHA-256: `fbeef792114c62eb516b8e0d92fd771f71932670a4d2249a11d0ced1f8a39397`;
+- mutated H=2 schedule SHA-256: `6c43b474312ab870e65fbdb9e22093f0e78aaca53337fcee35626bf7c60058df`.
+
+Both returned receipts must bind the exact request/schedule digests, schema/case identity and actual built auditor-binary SHA-256. This is a fixed known-answer and mutation smoke-test, not yet a run of the auditor on each policy-generated dispatch candidate.
+
 ## Claim ceiling
 
 Passing this model establishes only that the typed observation boundary and finite synthetic benchmark behave as specified, and that the separate auditor CLI accepts its frozen H=2 known answer and rejects its frozen mutation with exact receipt bindings. It does not establish per-policy-candidate auditor integration, optimal dispatch, physical/electrochemical battery behavior, real-site resilience, forecast calibration, real auditor implementation correctness beyond the tested profile, safety certification, an operator's authority, or permission to actuate hardware. Every proposed/executed schedule in a future integrated runner must still be submitted to the independent trajectory auditor.
