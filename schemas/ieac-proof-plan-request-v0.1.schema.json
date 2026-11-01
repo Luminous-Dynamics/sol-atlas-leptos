@@ -20,7 +20,9 @@
     "exact_search_limit",
     "action_authority",
     "independence_registry_sha256",
-    "control_mapping_policy_sha256"
+    "control_mapping_policy_sha256",
+    "currency_code",
+    "compute_unit_id"
   ],
   "properties": {
     "schema_version": {
@@ -361,6 +363,16 @@
     "control_mapping_policy_sha256": {
       "type": "string",
       "pattern": "^[0-9a-f]{64}$"
+    },
+    "currency_code": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$"
+    },
+    "compute_unit_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z0-9][a-z0-9._:-]*$"
     }
   }
 }
