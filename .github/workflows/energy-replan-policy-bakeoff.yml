@@ -1,0 +1,74 @@
+name: Energy Replan Policy Bake-off
+
+on:
+  pull_request:
+    paths:
+      - "tools/energy-replan-policy-bakeoff/**"
+      - ".github/workflows/energy-replan-policy-bakeoff.yml"
+  push:
+    branches:
+      - "research/energy-replan-policy-bakeoff-v0-1"
+    paths:
+      - "tools/energy-replan-policy-bakeoff/**"
+      - ".github/workflows/energy-replan-policy-bakeoff.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: energy-replan-policy-bakeoff-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  policy-bakeoff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CARGO_NET_OFFLINE: "true"
+      CARGO_TERM_COLOR: always
+      EXPECTED_SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Assert exact subject before execution
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SUBJECT_SHA"
+      - uses: dtolnay/rust-toolchain@1.96.0
+        with:
+          components: rustfmt, clippy
+      - name: Format
+        run: cargo fmt --manifest-path tools/energy-replan-policy-bakeoff/Cargo.toml --check
+      - name: Check locked dependency-free crate
+        run: cargo check --locked --all-targets --manifest-path tools/energy-replan-policy-bakeoff/Cargo.toml
+      - name: Run adversarial policy tests
+        run: cargo test --locked --all-targets --manifest-path tools/energy-replan-policy-bakeoff/Cargo.toml
+      - name: Strict Clippy
+        run: cargo clippy --locked --all-targets --manifest-path tools/energy-replan-policy-bakeoff/Cargo.toml -- -D warnings
+      - name: Generate deterministic report
+        run: |
+          mkdir -p target/energy-replan-policy-bakeoff
+          cargo run --release --locked --manifest-path tools/energy-replan-policy-bakeoff/Cargo.toml \
+            > target/energy-replan-policy-bakeoff/report.csv
+          test "$(grep -vc '^#\|^policy,' target/energy-replan-policy-bakeoff/report.csv)" -eq 5
+          grep -q '^fixed-cadence,32,20,' target/energy-replan-policy-bakeoff/report.csv
+          grep -q '^forecast-residual,32,20,' target/energy-replan-policy-bakeoff/report.csv
+          grep -q '^forecast-uncertainty,32,20,' target/energy-replan-policy-bakeoff/report.csv
+          grep -q '^decision-value,32,20,' target/energy-replan-policy-bakeoff/report.csv
+          grep -q '^hybrid-safety,32,20,' target/energy-replan-policy-bakeoff/report.csv
+      - name: Assert exact subject and clean source after execution
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SUBJECT_SHA"
+          test -z "$(git status --porcelain --untracked-files=no)"
+      - name: Upload benchmark report and provenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: energy-replan-policy-bakeoff-${{ github.sha }}
+          path: |
+            target/energy-replan-policy-bakeoff/report.csv
+            tools/energy-replan-policy-bakeoff/Cargo.toml
+            tools/energy-replan-policy-bakeoff/Cargo.lock
+            tools/energy-replan-policy-bakeoff/README.md
+            tools/energy-replan-policy-bakeoff/src/
+          if-no-files-found: error
+          retention-days: 14
