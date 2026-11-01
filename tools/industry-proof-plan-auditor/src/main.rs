@@ -1153,6 +1153,16 @@ mod tests {
     }
 
     #[test]
+    fn fixture_mapping_policy_digest_matches_canonical_json_rows() {
+        let fixture = fixture();
+        let bytes = serde_json::to_vec(&fixture["request"]["control_mappings"]).unwrap();
+        assert_eq!(
+            digest(&bytes),
+            "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60"
+        );
+    }
+
+    #[test]
     fn auditor_rejects_control_mapping_digest_or_coverage_mismatch() {
         let mut request = request();
         request["control_mappings"][0]["proof_method_id"] = json!("unreviewed-method");
@@ -1353,6 +1363,16 @@ mod tests {
         bad_coverage["covered_controls"] = json!([]);
         let bytes = serde_json::to_vec_pretty(&bad_coverage).unwrap();
         assert!(verify_report(&request, &request_bytes, &bad_coverage, &bytes, "test-auditor").is_err());
+
+        let mut bad_mapping = report.clone();
+        bad_mapping["selected_actions"][0]["control_mappings"][0]["required_verifier_role"] = json!("forged-verifier");
+        let bytes = serde_json::to_vec_pretty(&bad_mapping).unwrap();
+        assert!(verify_report(&request, &request_bytes, &bad_mapping, &bytes, "test-auditor").is_err());
+
+        let mut bad_mapping_reference = report.clone();
+        bad_mapping_reference["control_coverage"][0]["control_mapping_ids"] = json!([]);
+        let bytes = serde_json::to_vec_pretty(&bad_mapping_reference).unwrap();
+        assert!(verify_report(&request, &request_bytes, &bad_mapping_reference, &bytes, "test-auditor").is_err());
     }
 
     #[test]
