@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/industry-scitt-event-history-audit-report-v0.1.schema.json",
+  "title": "IEAC SCITT Event-History Audit Report v0.1",
+  "description": "Report from the structural event-history auditor. A valid_incomplete result is not a complete history, a SCITT verification result, a signer authorization, a physical-truth claim, or action authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "structural_integrity",
+    "history_completeness",
+    "event_count",
+    "issuer_stream_count",
+    "verified_event_payload_digests",
+    "causal_and_predecessor_edge_count",
+    "invalid_finding_count",
+    "incomplete_finding_count",
+    "findings",
+    "not_checked",
+    "claim_ceiling",
+    "action_authority"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.ieac-scitt-event-history-audit-report.v0.1"
+    },
+    "status": {
+      "enum": ["invalid", "valid_incomplete"]
+    },
+    "structural_integrity": {
+      "enum": ["valid", "invalid"]
+    },
+    "history_completeness": {
+      "const": "not_established"
+    },
+    "event_count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "issuer_stream_count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "verified_event_payload_digests": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "causal_and_predecessor_edge_count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "invalid_finding_count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "incomplete_finding_count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "severity", "message"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1
+          },
+          "severity": {
+            "enum": ["invalid", "incomplete"]
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "not_checked": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "claim_ceiling": {
+      "const": "record_only"
+    },
+    "action_authority": {
+      "const": "none"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "invalid"
+          }
+        },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "structural_integrity": {
+            "const": "invalid"
+          },
+          "invalid_finding_count": {
+            "minimum": 1
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "structural_integrity": {
+            "const": "valid"
+          },
+          "invalid_finding_count": {
+            "const": 0
+          }
+        }
+      }
+    }
+  ]
+}
