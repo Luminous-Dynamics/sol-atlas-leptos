@@ -81,6 +81,7 @@ pub enum MeshError {
     EmptyEventId,
     DuplicateEventId,
     InvalidEventWindow,
+    InvalidMeshCertificate,
     SafetyBudgetInsufficient {
         minimum_required: u32,
         available: u32,
@@ -242,30 +243,28 @@ fn safety_violations(cells: &[MeshCell], events: &[TemporalRisk]) -> u32 {
 }
 
 fn unresolved_loss(events: &[TemporalRisk], cells: &[MeshCell]) -> u64 {
-    events
-        .iter()
-        .map(|event| {
-            let coarse_minutes: u64 = cells
-                .iter()
-                .filter(|cell| {
-                    cell.start_minute < event.end_minute
-                        && cell.end_minute > event.start_minute
-                        && cell.resolution_minutes > FINE_STEP_MINUTES
-                })
-                .map(|cell| {
-                    u64::from(
-                        cell.end_minute.min(event.end_minute)
-                            - cell.start_minute.max(event.start_minute),
-                    )
-                })
-                .sum();
-            let event_duration = u64::from(event.end_minute - event.start_minute);
-            event
-                .avoidable_loss_lower_bound_units
-                .saturating_mul(coarse_minutes)
-                .div_ceil(event_duration)
-        })
-        .sum()
+    let total = events.iter().fold(0u128, |total, event| {
+        let coarse_minutes: u64 = cells
+            .iter()
+            .filter(|cell| {
+                cell.start_minute < event.end_minute
+                    && cell.end_minute > event.start_minute
+                    && cell.resolution_minutes > FINE_STEP_MINUTES
+            })
+            .map(|cell| {
+                u64::from(
+                    cell.end_minute.min(event.end_minute)
+                        - cell.start_minute.max(event.start_minute),
+                )
+            })
+            .sum();
+        let event_duration = u128::from(event.end_minute - event.start_minute);
+        let event_loss = u128::from(event.avoidable_loss_lower_bound_units)
+            .saturating_mul(u128::from(coarse_minutes))
+            .div_ceil(event_duration);
+        total.saturating_add(event_loss)
+    });
+    u64::try_from(total).unwrap_or(u64::MAX)
 }
 
 fn compare_value_density(
@@ -274,12 +273,12 @@ fn compare_value_density(
     right: &TemporalRisk,
     right_cost: u32,
 ) -> std::cmp::Ordering {
-    let left_score = left
-        .avoidable_loss_lower_bound_units
-        .saturating_mul(u64::from(right_cost.max(1)));
-    let right_score = right
-        .avoidable_loss_lower_bound_units
-        .saturating_mul(u64::from(left_cost.max(1)));
+    // u64 values multiplied by u32 marginal costs require up to 96 bits.
+    // Compare in u128 to preserve ordering instead of saturating both scores.
+    let left_score =
+        u128::from(left.avoidable_loss_lower_bound_units) * u128::from(right_cost.max(1));
+    let right_score =
+        u128::from(right.avoidable_loss_lower_bound_units) * u128::from(left_cost.max(1));
     right_score
         .cmp(&left_score)
         .then_with(|| left.id.cmp(&right.id))
@@ -389,11 +388,17 @@ pub fn verify_mesh(events: &[TemporalRisk], plan: &MeshPlan) -> Result<(), MeshE
     }
 
     for (index, cell) in plan.cells.iter().enumerate() {
+        let strategy_resolution_mismatch = match plan.strategy {
+            MeshStrategy::UniformCoarse => cell.resolution_minutes != COARSE_STEP_MINUTES,
+            MeshStrategy::UniformFine => cell.resolution_minutes != FINE_STEP_MINUTES,
+            MeshStrategy::SafetyFirstValueOfInformation => false,
+        };
         if cell.start_minute >= cell.end_minute
             || cell.end_minute - cell.start_minute > cell.resolution_minutes
             || ![FINE_STEP_MINUTES, COARSE_STEP_MINUTES].contains(&cell.resolution_minutes)
+            || strategy_resolution_mismatch
         {
-            return Err(MeshError::InvalidEventWindow);
+            return Err(MeshError::InvalidMeshCertificate);
         }
         if index > 0 && plan.cells[index - 1].end_minute != cell.start_minute {
             return Err(MeshError::InvalidEventWindow);
@@ -407,14 +412,35 @@ pub fn verify_mesh(events: &[TemporalRisk], plan: &MeshPlan) -> Result<(), MeshE
         }
     }
 
+    if plan.strategy == MeshStrategy::SafetyFirstValueOfInformation
+        && safety_violations(&plan.cells, events) > 0
+    {
+        return Err(MeshError::InvalidMeshCertificate);
+    }
+
+    let mut expected_refined_event_ids: Vec<String> = events
+        .iter()
+        .filter(|event| {
+            plan.cells
+                .iter()
+                .filter(|cell| {
+                    cell.start_minute < event.end_minute && cell.end_minute > event.start_minute
+                })
+                .all(|cell| cell.resolution_minutes == FINE_STEP_MINUTES)
+        })
+        .map(|event| event.id.clone())
+        .collect();
+    expected_refined_event_ids.sort();
+
     let measured_cost = u32::try_from(plan.cells.len()).unwrap_or(u32::MAX);
     if measured_cost != plan.compute_cost_units
         || plan.budget_remaining_units
             != i64::from(plan.compute_budget_units) - i64::from(measured_cost)
         || plan.safety_resolution_violations != safety_violations(&plan.cells, events)
         || plan.unresolved_loss_units != unresolved_loss(events, &plan.cells)
+        || plan.refined_event_ids != expected_refined_event_ids
     {
-        return Err(MeshError::InvalidEventWindow);
+        return Err(MeshError::InvalidMeshCertificate);
     }
     Ok(())
 }
@@ -711,6 +737,83 @@ mod tests {
         let second = frozen_scenarios();
         assert_eq!(first, second);
         assert_eq!(first.len(), 32);
+    }
+
+    #[test]
+    fn value_density_ordering_remains_exact_near_u64_maximum() {
+        let events = vec![
+            event("a-lower-density", 180, 240, u64::MAX - 1, false),
+            event("z-higher-density", 900, 960, u64::MAX, false),
+        ];
+        let plan = plan_mesh(
+            &events,
+            MeshStrategy::SafetyFirstValueOfInformation,
+            27,
+        )
+        .unwrap();
+
+        assert!(plan
+            .refined_event_ids
+            .contains(&"z-higher-density".to_owned()));
+        assert!(!plan
+            .refined_event_ids
+            .contains(&"a-lower-density".to_owned()));
+    }
+
+    #[test]
+    fn verifier_rejects_tampered_refined_event_metadata() {
+        let events = vec![event("safety", 840, 960, 8_000, true)];
+        let mut plan = plan_mesh(
+            &events,
+            MeshStrategy::SafetyFirstValueOfInformation,
+            40,
+        )
+        .unwrap();
+        plan.refined_event_ids.clear();
+
+        assert_eq!(
+            verify_mesh(&events, &plan),
+            Err(MeshError::InvalidMeshCertificate)
+        );
+    }
+
+    #[test]
+    fn verifier_rejects_a_fine_plan_relabelled_as_uniform_coarse() {
+        let events = vec![event("optional", 840, 960, 8_000, false)];
+        let mut plan = plan_mesh(&events, MeshStrategy::UniformFine, 100).unwrap();
+        plan.strategy = MeshStrategy::UniformCoarse;
+
+        assert_eq!(
+            verify_mesh(&events, &plan),
+            Err(MeshError::InvalidMeshCertificate)
+        );
+    }
+
+    #[test]
+    fn verifier_rejects_safety_window_coarsening_even_when_report_counters_are_recomputed() {
+        let events = vec![event("safety", 840, 960, 8_000, true)];
+        let mut plan = plan_mesh(
+            &events,
+            MeshStrategy::SafetyFirstValueOfInformation,
+            40,
+        )
+        .unwrap();
+        for cell in plan.cells.iter_mut().filter(|cell| {
+            cell.start_minute >= 840 && cell.end_minute <= 960
+        }) {
+            cell.resolution_minutes = COARSE_STEP_MINUTES;
+        }
+        plan.compute_cost_units =
+            u32::try_from(plan.cells.len()).unwrap_or(u32::MAX);
+        plan.budget_remaining_units =
+            i64::from(plan.compute_budget_units) - i64::from(plan.compute_cost_units);
+        plan.safety_resolution_violations = safety_violations(&plan.cells, &events);
+        plan.unresolved_loss_units = unresolved_loss(&events, &plan.cells);
+
+        assert_eq!(
+            verify_mesh(&events, &plan),
+            Err(MeshError::InvalidMeshCertificate)
+        );
     }
 
     #[test]
