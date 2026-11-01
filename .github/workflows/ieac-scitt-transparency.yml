@@ -70,7 +70,7 @@ jobs:
             .events[2].causal_parents[0].event_sha256 == .fixture_event_digests[1]
           ' schemas/examples/ieac-scitt-event-chain-synthetic-v0.1.json
 
-      - name: Recompute JCS event digests and verify history links
+      - name: Recompute JCS event digests and verify issuer histories
         run: |
           node <<'NODE'
           const fs = require("node:fs");
@@ -82,8 +82,8 @@ jobs:
 
           // This synthetic fixture deliberately stays inside a JCS-safe subset:
           // ASCII object keys/strings and safe integer numbers only. JavaScript's
-          // JSON.stringify provides the RFC 8785 primitive serialization, while
-          // default Array.sort uses UTF-16 code-unit ordering for property names.
+          // JSON.stringify provides RFC 8785 primitive serialization for this
+          // subset; default Array.sort uses UTF-16 code-unit key ordering.
           function canonical(value) {
             if (value === null || typeof value === "boolean" || typeof value === "string") {
               if (typeof value === "string" && !/^[\x00-\x7f]*$/.test(value)) {
@@ -112,24 +112,135 @@ jobs:
             throw new Error("unsupported fixture JSON value");
           }
 
-          const digests = fixture.events.map((event) =>
-            createHash("sha256").update(canonical(event), "utf8").digest("hex")
-          );
-          if (JSON.stringify(digests) !== JSON.stringify(fixture.fixture_event_digests)) {
+          function digest(event) {
+            return createHash("sha256").update(canonical(event), "utf8").digest("hex");
+          }
+
+          function historyKey(issuer, scope, sequence) {
+            return issuer + "\u0000" + scope + "\u0000" + sequence;
+          }
+
+          function assertHistory(events, heads) {
+            const digests = events.map(digest);
+            const byKey = new Map();
+
+            events.forEach((event, index) => {
+              const key = historyKey(event.issuer, event.authority_scope, event.issuer_sequence);
+              if (byKey.has(key)) {
+                throw new Error("duplicate issuer-local sequence (same or conflicting digest)");
+              }
+              byKey.set(key, { event, digest: digests[index] });
+              if (event.issuer_sequence === 1) {
+                if (event.previous_event_sha256 !== null || !event.initial_checkpoint_sha256) {
+                  throw new Error("sequence 1 requires a checkpoint and no predecessor");
+                }
+              } else if (event.initial_checkpoint_sha256 !== null || !event.previous_event_sha256) {
+                throw new Error("sequence greater than 1 requires a predecessor and no new checkpoint");
+              }
+            });
+
+            for (const event of events) {
+              const currentDigest = digests[events.indexOf(event)];
+              if (event.issuer_sequence > 1) {
+                const prior = byKey.get(historyKey(
+                  event.issuer, event.authority_scope, event.issuer_sequence - 1
+                ));
+                if (!prior) throw new Error("issuer-local predecessor is missing");
+                if (prior.digest !== event.previous_event_sha256) {
+                  throw new Error("issuer-local predecessor digest mismatch");
+                }
+                if (prior.event.subject !== event.subject || prior.event.case_id !== event.case_id) {
+                  throw new Error("issuer-local predecessor crosses subject or case");
+                }
+              }
+
+              for (const parent of event.causal_parents) {
+                const referenced = byKey.get(historyKey(
+                  parent.issuer, event.authority_scope, parent.issuer_sequence
+                ));
+                if (!referenced) throw new Error("causal parent is missing from the declared fixture history");
+                if (referenced.digest !== parent.event_sha256) {
+                  throw new Error("causal-parent digest mismatch");
+                }
+                if (referenced.event.subject !== event.subject || referenced.event.case_id !== event.case_id) {
+                  throw new Error("causal parent crosses subject or case");
+                }
+              }
+            }
+
+            for (const head of heads) {
+              const headKey = historyKey(head.issuer, head.authority_scope, head.latest_sequence);
+              const latest = byKey.get(headKey);
+              if (!latest) throw new Error("declared issuer history head is missing (possible omitted suffix)");
+              if (latest.digest !== head.latest_event_sha256) {
+                throw new Error("declared issuer history-head digest mismatch");
+              }
+              if (latest.event.subject !== head.subject) {
+                throw new Error("declared issuer history head subject mismatch");
+              }
+              for (let sequence = 1; sequence <= head.latest_sequence; sequence++) {
+                if (!byKey.has(historyKey(head.issuer, head.authority_scope, sequence))) {
+                  throw new Error("issuer history contains a missing sequence");
+                }
+              }
+              const issuerEvents = events.filter((event) =>
+                event.issuer === head.issuer && event.authority_scope === head.authority_scope
+              );
+              if (issuerEvents.length !== head.latest_sequence) {
+                throw new Error("issuer history has an undeclared event or omitted suffix");
+              }
+            }
+          }
+
+          const eventDigests = fixture.events.map(digest);
+          if (JSON.stringify(eventDigests) !== JSON.stringify(fixture.fixture_event_digests)) {
             throw new Error("event JCS digests differ from fixture_event_digests");
           }
-          if (fixture.events[1].causal_parents[0].event_sha256 !== digests[0]) {
-            throw new Error("auditor event causal parent does not bind request-commit event");
-          }
-          if (fixture.events[2].previous_event_sha256 !== digests[0]) {
-            throw new Error("operator admission event predecessor does not bind issuer's prior event");
-          }
-          if (fixture.events[2].causal_parents[0].event_sha256 !== digests[1]) {
-            throw new Error("operator admission event causal parent does not bind schedule audit");
-          }
-          console.log(JSON.stringify({ event_jcs_sha256: digests }, null, 2));
-          NODE
+          assertHistory(fixture.events, fixture.issuer_history_heads);
 
+          function mustReject(label, mutate) {
+            const mutant = structuredClone(fixture);
+            mutate(mutant);
+            try {
+              assertHistory(mutant.events, mutant.issuer_history_heads);
+            } catch (_) {
+              return;
+            }
+            throw new Error("history invariant accepted negative control: " + label);
+          }
+
+          mustReject("omitted operator suffix", (value) => {
+            value.events = value.events.filter((event) =>
+              !(event.issuer === "did:web:operator.example" && event.issuer_sequence === 2)
+            );
+          });
+          mustReject("missing predecessor", (value) => {
+            value.events.find((event) => event.issuer_sequence === 2).previous_event_sha256 = null;
+          });
+          mustReject("rollback sequence", (value) => {
+            value.events.find((event) => event.issuer_sequence === 2).issuer_sequence = 1;
+          });
+          mustReject("duplicate sequence same digest", (value) => {
+            value.events.push(structuredClone(value.events[0]));
+          });
+          mustReject("duplicate sequence conflicting digest", (value) => {
+            const duplicate = structuredClone(value.events[0]);
+            duplicate.event_kind = "admission_verdict";
+            value.events.push(duplicate);
+          });
+          mustReject("cross-subject causal chain", (value) => {
+            value.events[2].subject = "asset:another-site";
+          });
+          mustReject("causal-parent digest substitution", (value) => {
+            value.events[2].causal_parents[0].event_sha256 = "0".repeat(64);
+          });
+
+          console.log(JSON.stringify({
+            event_jcs_sha256: eventDigests,
+            issuer_history_heads: fixture.issuer_history_heads,
+            negative_controls_rejected: 7
+          }, null, 2));
+          NODE
       - name: Check protected CWT issuer and subject projections match payload
         run: |
           jq -e '
