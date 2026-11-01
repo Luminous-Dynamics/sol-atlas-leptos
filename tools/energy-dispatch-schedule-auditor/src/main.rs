@@ -21,6 +21,7 @@ fn read_bounded_bytes<R: std::io::Read>(
     Ok(bytes)
 }
 
+// Inspect and bound the same opened file handle that supplies the parser bytes.
 fn read_bounded(path: &Path, limit: usize, label: &str) -> Result<Vec<u8>, String> {
     let file = std::fs::File::open(path)
         .map_err(|error| format!("open {label}: {error}"))?;
