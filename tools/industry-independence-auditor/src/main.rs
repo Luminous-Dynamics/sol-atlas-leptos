@@ -928,7 +928,9 @@ mod tests {
     #[test]
     fn unknown_dependency_completeness_conflicts_with_every_other_source() {
         let report = evaluate_fixture(&request());
-        let unknown_edges = report["conflict_edges"].as_array().unwrap().iter()
+        let numerical = report["control_results"].as_array().unwrap().iter()
+            .find(|row| row["control_id"] == "numerical_known_answers").unwrap();
+        let unknown_edges = numerical["conflicting_source_pairs"].as_array().unwrap().iter()
             .filter(|row| row["source_id_a"] == "num-unknown" || row["source_id_b"] == "num-unknown")
             .count();
         assert_eq!(unknown_edges, 3);
