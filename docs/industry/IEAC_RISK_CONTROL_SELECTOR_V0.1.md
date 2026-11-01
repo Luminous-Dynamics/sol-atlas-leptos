@@ -105,7 +105,7 @@ The selector:
 9. emits canonicalized profile and policy digests plus a selector build ID;
 10. always emits independent_qualification_attested = false and action_authority = none.
 
-The core selector is pure: its risk mapping depends only on the supplied profile and policy. The CLI handles file I/O. The selector does not read its own clock, perform network/database operations or actuate controls.
+The core selector is pure: its risk mapping depends only on the supplied profile and policy. The CLI handles file I/O. The selector does not read its own clock, perform network/database operations or actuate controls. Unknown or conflicted model influence is blocked below D3; even a D3 result is only a proof-obligation plan, never an actuation grant.
 
 ### 4.1 Evidence semantics
 
@@ -121,17 +121,17 @@ If model_influence = direct_actuation but the declared tier is below D3, the rep
 
 ## 5. Benchmarks
 
-The implementation includes tests for:
+The implementation includes a frozen 50-case expected-control truth table at `schemas/examples/ieac-risk-control-truth-table-synthetic-v0.2.json`, with its strict Draft 2020-12 schema at `schemas/ieac-risk-control-truth-table-v0.2.schema.json`. The Rust test replays every case and compares the exact selected control IDs and risk-assessment state. The table covers 31 risk-axis values, six conflicted aliases, five reviewed classes, four decision tiers and four compound triggers. It is a frozen expected-output snapshot for the current policy, not a field safety dataset.\n\nThe implementation includes tests for:
 - every adjacent transition across all six ordered dimensions, including the unknown worst-case state;
 - ordered reviewed-class and D0-D3 monotonicity;
 - unknown, conflicted and unassessed risk;
-- direct actuation below D3;
+- direct actuation below D3, including unknown/conflicted model influence below D3;
 - compound trigger controls;
 - established evidence with no evidence rows;
 - conflicted evidence;
 - field-order stability and deterministic output;
 - unknown control references, unmapped compound values and non-monotone policy edits;
-- duplicate JSON members and the SHA-256 known-answer vector.
+- duplicate JSON members, exact file-byte digest binding and the SHA-256 known-answer vector.
 
 ### 5.1 Promotion targets
 
