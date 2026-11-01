@@ -321,22 +321,31 @@ pub fn plan_mesh(
                 .iter()
                 .filter(|event| !event.safety_critical)
                 .collect();
-            candidates.sort_by(|left, right| {
-                let left_cost = additional_cost(&segments, &fine, left);
-                let right_cost = additional_cost(&segments, &fine, right);
-                compare_value_density(left, left_cost, right, right_cost)
-            });
 
             let mut current_cost = safety_cost;
-            for event in candidates {
-                let marginal_cost = additional_cost(&segments, &fine, event);
-                if marginal_cost == 0 {
-                    continue;
-                }
-                if current_cost.saturating_add(marginal_cost) <= compute_budget_units {
-                    mark_event_fine(&segments, &mut fine, event);
-                    current_cost += marginal_cost;
-                }
+            loop {
+                // Recompute marginal cost after each refinement. Overlapping
+                // event windows can share already-refined segments, changing
+                // their value-per-incremental-cell ranking.
+                let mut ranked: Vec<(&TemporalRisk, u32)> = candidates
+                    .iter()
+                    .filter_map(|event| {
+                        let marginal_cost = additional_cost(&segments, &fine, event);
+                        (marginal_cost > 0
+                            && current_cost.saturating_add(marginal_cost) <= compute_budget_units)
+                            .then_some((*event, marginal_cost))
+                    })
+                    .collect();
+                ranked.sort_by(|(left, left_cost), (right, right_cost)| {
+                    compare_value_density(left, *left_cost, right, *right_cost)
+                });
+
+                let Some((selected, marginal_cost)) = ranked.first().copied() else {
+                    break;
+                };
+                mark_event_fine(&segments, &mut fine, selected);
+                current_cost += marginal_cost;
+                candidates.retain(|candidate| candidate.id != selected.id);
             }
         }
     }
@@ -591,6 +600,28 @@ mod tests {
         let plan = plan_mesh(&events, MeshStrategy::SafetyFirstValueOfInformation, 28).unwrap();
         assert!(plan.refined_event_ids.contains(&"high".to_owned()));
         assert!(!plan.refined_event_ids.contains(&"low".to_owned()));
+    }
+
+    #[test]
+    fn overlapping_optional_windows_recompute_marginal_value_after_each_refinement() {
+        let events = vec![
+            event("first", 180, 300, 10_000, false),
+            event("overlap", 240, 360, 4_000, false),
+            event("separate", 360, 420, 3_000, false),
+        ];
+        let plan = plan_mesh(
+            &events,
+            MeshStrategy::SafetyFirstValueOfInformation,
+            33,
+        )
+        .unwrap();
+
+        // First consumes six extra cells. The overlap then costs only three
+        // marginal cells and outranks the separate lower-density event.
+        assert!(plan.refined_event_ids.contains(&"first".to_owned()));
+        assert!(plan.refined_event_ids.contains(&"overlap".to_owned()));
+        assert!(!plan.refined_event_ids.contains(&"separate".to_owned()));
+        assert_eq!(plan.compute_cost_units, 33);
     }
 
     #[test]
