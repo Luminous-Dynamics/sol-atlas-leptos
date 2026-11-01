@@ -992,16 +992,43 @@ pub fn audit_schedule_bytes(
 mod tests {
     use super::*;
 
-    fn request_with_intervals(
-        capacity: u16,
-        initial_soc: u16,
-        charge_limit: u16,
-        discharge_limit: u16,
+    struct BatteryFixture {
+        capacity_quanta: u16,
+        initial_soc_quanta: u16,
+        charge_input_limit_quanta: u16,
+        discharge_withdrawal_limit_quanta: u16,
         charge_efficiency: (u16, u16),
         discharge_efficiency: (u16, u16),
-        terminal_reserve: u16,
-        intervals: Value,
-    ) -> Vec<u8> {
+        terminal_reserve_quanta: u16,
+    }
+
+    struct IntervalFixture<'a> {
+        interval_id: &'a str,
+        start_unix_seconds: i64,
+        grid_outage: bool,
+        pv_available_quanta: u16,
+        grid_import_limit_quanta: u16,
+        essential_demand_quanta: u16,
+        flexible_demand_quanta: u16,
+        grid_cost_units_per_quantum: u32,
+        grid_carbon_grams_per_quantum: u32,
+    }
+
+    struct DispatchStepFixture<'a> {
+        interval_id: &'a str,
+        grid_import_quanta: u16,
+        charge_input_quanta: u16,
+        discharge_withdrawal_quanta: u16,
+        soc_after_quanta: u16,
+        essential_served_quanta: u16,
+        essential_unserved_quanta: u16,
+        flexible_served_quanta: u16,
+        flexible_unserved_quanta: u16,
+        pv_used_quanta: u16,
+        pv_curtailed_quanta: u16,
+    }
+
+    fn request_with_intervals(battery: BatteryFixture, intervals: Value) -> Vec<u8> {
         serde_json::to_vec(&serde_json::json!({
             "schema_version": "energy-dispatch-v0.1",
             "case_id": "schedule-audit-fixture",
@@ -1012,71 +1039,49 @@ mod tests {
             "energy_quantum_kwh": 1.0,
             "max_candidate_expansions": 100000,
             "battery": {
-                "capacity_quanta": capacity,
-                "initial_soc_quanta": initial_soc,
-                "charge_input_limit_quanta": charge_limit,
-                "discharge_withdrawal_limit_quanta": discharge_limit,
-                "charge_efficiency_numerator": charge_efficiency.0,
-                "charge_efficiency_denominator": charge_efficiency.1,
-                "discharge_efficiency_numerator": discharge_efficiency.0,
-                "discharge_efficiency_denominator": discharge_efficiency.1,
-                "terminal_reserve_quanta": terminal_reserve
+                "capacity_quanta": battery.capacity_quanta,
+                "initial_soc_quanta": battery.initial_soc_quanta,
+                "charge_input_limit_quanta": battery.charge_input_limit_quanta,
+                "discharge_withdrawal_limit_quanta": battery.discharge_withdrawal_limit_quanta,
+                "charge_efficiency_numerator": battery.charge_efficiency.0,
+                "charge_efficiency_denominator": battery.charge_efficiency.1,
+                "discharge_efficiency_numerator": battery.discharge_efficiency.0,
+                "discharge_efficiency_denominator": battery.discharge_efficiency.1,
+                "terminal_reserve_quanta": battery.terminal_reserve_quanta
             },
             "intervals": intervals
         }))
         .unwrap()
     }
 
-    fn interval(
-        id: &str,
-        start: i64,
-        outage: bool,
-        pv: u16,
-        grid_limit: u16,
-        essential: u16,
-        flexible: u16,
-        cost: u32,
-        carbon: u32,
-    ) -> Value {
+    fn interval(fixture: IntervalFixture<'_>) -> Value {
         serde_json::json!({
-            "interval_id": id,
-            "start_unix_seconds": start,
+            "interval_id": fixture.interval_id,
+            "start_unix_seconds": fixture.start_unix_seconds,
             "duration_seconds": 3600,
-            "grid_outage": outage,
-            "pv_available_quanta": pv,
-            "grid_import_limit_quanta": grid_limit,
-            "essential_demand_quanta": essential,
-            "flexible_demand_quanta": flexible,
-            "grid_cost_units_per_quantum": cost,
-            "grid_carbon_grams_per_quantum": carbon
+            "grid_outage": fixture.grid_outage,
+            "pv_available_quanta": fixture.pv_available_quanta,
+            "grid_import_limit_quanta": fixture.grid_import_limit_quanta,
+            "essential_demand_quanta": fixture.essential_demand_quanta,
+            "flexible_demand_quanta": fixture.flexible_demand_quanta,
+            "grid_cost_units_per_quantum": fixture.grid_cost_units_per_quantum,
+            "grid_carbon_grams_per_quantum": fixture.grid_carbon_grams_per_quantum
         })
     }
 
-    fn step(
-        id: &str,
-        grid: u16,
-        charge: u16,
-        withdrawal: u16,
-        soc_after: u16,
-        essential_served: u16,
-        essential_unserved: u16,
-        flexible_served: u16,
-        flexible_unserved: u16,
-        pv_used: u16,
-        pv_curtailed: u16,
-    ) -> Value {
+    fn step(fixture: DispatchStepFixture<'_>) -> Value {
         serde_json::json!({
-            "interval_id": id,
-            "grid_import_quanta": grid,
-            "charge_input_quanta": charge,
-            "discharge_withdrawal_quanta": withdrawal,
-            "soc_after_quanta": soc_after,
-            "essential_served_quanta": essential_served,
-            "essential_unserved_quanta": essential_unserved,
-            "flexible_served_quanta": flexible_served,
-            "flexible_unserved_quanta": flexible_unserved,
-            "pv_used_quanta": pv_used,
-            "pv_curtailed_quanta": pv_curtailed
+            "interval_id": fixture.interval_id,
+            "grid_import_quanta": fixture.grid_import_quanta,
+            "charge_input_quanta": fixture.charge_input_quanta,
+            "discharge_withdrawal_quanta": fixture.discharge_withdrawal_quanta,
+            "soc_after_quanta": fixture.soc_after_quanta,
+            "essential_served_quanta": fixture.essential_served_quanta,
+            "essential_unserved_quanta": fixture.essential_unserved_quanta,
+            "flexible_served_quanta": fixture.flexible_served_quanta,
+            "flexible_unserved_quanta": fixture.flexible_unserved_quanta,
+            "pv_used_quanta": fixture.pv_used_quanta,
+            "pv_curtailed_quanta": fixture.pv_curtailed_quanta
         })
     }
 
@@ -1093,16 +1098,38 @@ mod tests {
 
     fn h2_request() -> Vec<u8> {
         request_with_intervals(
-            1,
-            0,
-            2,
-            2,
-            (1, 1),
-            (1, 1),
-            0,
+            BatteryFixture {
+                capacity_quanta: 1,
+                initial_soc_quanta: 0,
+                charge_input_limit_quanta: 2,
+                discharge_withdrawal_limit_quanta: 2,
+                charge_efficiency: (1, 1),
+                discharge_efficiency: (1, 1),
+                terminal_reserve_quanta: 0,
+            },
             serde_json::json!([
-                interval("charge-from-pv", 1_800_000_000, false, 1, 0, 0, 0, 3, 7),
-                interval("serve-during-outage", 1_800_003_600, true, 0, 0, 1, 0, 3, 7)
+                interval(IntervalFixture {
+                interval_id: "charge-from-pv",
+                start_unix_seconds: 1_800_000_000,
+                grid_outage: false,
+                pv_available_quanta: 1,
+                grid_import_limit_quanta: 0,
+                essential_demand_quanta: 0,
+                flexible_demand_quanta: 0,
+                grid_cost_units_per_quantum: 3,
+                grid_carbon_grams_per_quantum: 7,
+            }),
+                interval(IntervalFixture {
+                interval_id: "serve-during-outage",
+                start_unix_seconds: 1_800_003_600,
+                grid_outage: true,
+                pv_available_quanta: 0,
+                grid_import_limit_quanta: 0,
+                essential_demand_quanta: 1,
+                flexible_demand_quanta: 0,
+                grid_cost_units_per_quantum: 3,
+                grid_carbon_grams_per_quantum: 7,
+            })
             ]),
         )
     }
@@ -1111,8 +1138,32 @@ mod tests {
         schedule_bytes(
             request,
             serde_json::json!([
-                step("charge-from-pv", 0, 1, 0, 1, 0, 0, 0, 0, 1, 0),
-                step("serve-during-outage", 0, 0, 1, 0, 1, 0, 0, 0, 0, 0)
+                step(DispatchStepFixture {
+                interval_id: "charge-from-pv",
+                grid_import_quanta: 0,
+                charge_input_quanta: 1,
+                discharge_withdrawal_quanta: 0,
+                soc_after_quanta: 1,
+                essential_served_quanta: 0,
+                essential_unserved_quanta: 0,
+                flexible_served_quanta: 0,
+                flexible_unserved_quanta: 0,
+                pv_used_quanta: 1,
+                pv_curtailed_quanta: 0,
+            }),
+                step(DispatchStepFixture {
+                interval_id: "serve-during-outage",
+                grid_import_quanta: 0,
+                charge_input_quanta: 0,
+                discharge_withdrawal_quanta: 1,
+                soc_after_quanta: 0,
+                essential_served_quanta: 1,
+                essential_unserved_quanta: 0,
+                flexible_served_quanta: 0,
+                flexible_unserved_quanta: 0,
+                pv_used_quanta: 0,
+                pv_curtailed_quanta: 0,
+            })
             ]),
             0,
         )
@@ -1217,24 +1268,60 @@ mod tests {
     fn accepts_h3_and_h4_schedules_with_idle_and_recovery_intervals() {
         let h2 = h2_request();
         let mut h3_value: Value = serde_json::from_slice(&h2).unwrap();
-        h3_value["intervals"].as_array_mut().unwrap().push(interval(
-            "post-outage-idle",
-            1_800_007_200,
-            false,
-            0,
-            0,
-            0,
-            0,
-            3,
-            7,
-        ));
+        h3_value["intervals"].as_array_mut().unwrap().push(interval(IntervalFixture {
+                interval_id: "post-outage-idle",
+                start_unix_seconds: 1_800_007_200,
+                grid_outage: false,
+                pv_available_quanta: 0,
+                grid_import_limit_quanta: 0,
+                essential_demand_quanta: 0,
+                flexible_demand_quanta: 0,
+                grid_cost_units_per_quantum: 3,
+                grid_carbon_grams_per_quantum: 7,
+            }));
         let h3 = serde_json::to_vec(&h3_value).unwrap();
         let h3_schedule = schedule_bytes(
             &h3,
             serde_json::json!([
-                step("charge-from-pv", 0, 1, 0, 1, 0, 0, 0, 0, 1, 0),
-                step("serve-during-outage", 0, 0, 1, 0, 1, 0, 0, 0, 0, 0),
-                step("post-outage-idle", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+                step(DispatchStepFixture {
+                interval_id: "charge-from-pv",
+                grid_import_quanta: 0,
+                charge_input_quanta: 1,
+                discharge_withdrawal_quanta: 0,
+                soc_after_quanta: 1,
+                essential_served_quanta: 0,
+                essential_unserved_quanta: 0,
+                flexible_served_quanta: 0,
+                flexible_unserved_quanta: 0,
+                pv_used_quanta: 1,
+                pv_curtailed_quanta: 0,
+            }),
+                step(DispatchStepFixture {
+                interval_id: "serve-during-outage",
+                grid_import_quanta: 0,
+                charge_input_quanta: 0,
+                discharge_withdrawal_quanta: 1,
+                soc_after_quanta: 0,
+                essential_served_quanta: 1,
+                essential_unserved_quanta: 0,
+                flexible_served_quanta: 0,
+                flexible_unserved_quanta: 0,
+                pv_used_quanta: 0,
+                pv_curtailed_quanta: 0,
+            }),
+                step(DispatchStepFixture {
+                interval_id: "post-outage-idle",
+                grid_import_quanta: 0,
+                charge_input_quanta: 0,
+                discharge_withdrawal_quanta: 0,
+                soc_after_quanta: 0,
+                essential_served_quanta: 0,
+                essential_unserved_quanta: 0,
+                flexible_served_quanta: 0,
+                flexible_unserved_quanta: 0,
+                pv_used_quanta: 0,
+                pv_curtailed_quanta: 0,
+            })
             ]),
             0,
         );
@@ -1244,25 +1331,73 @@ mod tests {
         );
 
         let mut h4_value: Value = serde_json::from_slice(&h3).unwrap();
-        h4_value["intervals"].as_array_mut().unwrap().push(interval(
-            "post-outage-recovery",
-            1_800_010_800,
-            false,
-            1,
-            1,
-            0,
-            0,
-            3,
-            7,
-        ));
+        h4_value["intervals"].as_array_mut().unwrap().push(interval(IntervalFixture {
+                interval_id: "post-outage-recovery",
+                start_unix_seconds: 1_800_010_800,
+                grid_outage: false,
+                pv_available_quanta: 1,
+                grid_import_limit_quanta: 1,
+                essential_demand_quanta: 0,
+                flexible_demand_quanta: 0,
+                grid_cost_units_per_quantum: 3,
+                grid_carbon_grams_per_quantum: 7,
+            }));
         let h4 = serde_json::to_vec(&h4_value).unwrap();
         let h4_schedule = schedule_bytes(
             &h4,
             serde_json::json!([
-                step("charge-from-pv", 0, 1, 0, 1, 0, 0, 0, 0, 1, 0),
-                step("serve-during-outage", 0, 0, 1, 0, 1, 0, 0, 0, 0, 0),
-                step("post-outage-idle", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-                step("post-outage-recovery", 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
+                step(DispatchStepFixture {
+                interval_id: "charge-from-pv",
+                grid_import_quanta: 0,
+                charge_input_quanta: 1,
+                discharge_withdrawal_quanta: 0,
+                soc_after_quanta: 1,
+                essential_served_quanta: 0,
+                essential_unserved_quanta: 0,
+                flexible_served_quanta: 0,
+                flexible_unserved_quanta: 0,
+                pv_used_quanta: 1,
+                pv_curtailed_quanta: 0,
+            }),
+                step(DispatchStepFixture {
+                interval_id: "serve-during-outage",
+                grid_import_quanta: 0,
+                charge_input_quanta: 0,
+                discharge_withdrawal_quanta: 1,
+                soc_after_quanta: 0,
+                essential_served_quanta: 1,
+                essential_unserved_quanta: 0,
+                flexible_served_quanta: 0,
+                flexible_unserved_quanta: 0,
+                pv_used_quanta: 0,
+                pv_curtailed_quanta: 0,
+            }),
+                step(DispatchStepFixture {
+                interval_id: "post-outage-idle",
+                grid_import_quanta: 0,
+                charge_input_quanta: 0,
+                discharge_withdrawal_quanta: 0,
+                soc_after_quanta: 0,
+                essential_served_quanta: 0,
+                essential_unserved_quanta: 0,
+                flexible_served_quanta: 0,
+                flexible_unserved_quanta: 0,
+                pv_used_quanta: 0,
+                pv_curtailed_quanta: 0,
+            }),
+                step(DispatchStepFixture {
+                interval_id: "post-outage-recovery",
+                grid_import_quanta: 0,
+                charge_input_quanta: 0,
+                discharge_withdrawal_quanta: 0,
+                soc_after_quanta: 0,
+                essential_served_quanta: 0,
+                essential_unserved_quanta: 0,
+                flexible_served_quanta: 0,
+                flexible_unserved_quanta: 0,
+                pv_used_quanta: 0,
+                pv_curtailed_quanta: 1,
+            })
             ]),
             0,
         );
@@ -1275,21 +1410,45 @@ mod tests {
     #[test]
     fn checks_non_integral_efficiency_with_exact_floor_semantics() {
         let charge_request = request_with_intervals(
-            2,
-            0,
-            2,
-            2,
-            (2, 3),
-            (2, 3),
-            1,
+            BatteryFixture {
+                capacity_quanta: 2,
+                initial_soc_quanta: 0,
+                charge_input_limit_quanta: 2,
+                discharge_withdrawal_limit_quanta: 2,
+                charge_efficiency: (2, 3),
+                discharge_efficiency: (2, 3),
+                terminal_reserve_quanta: 1,
+            },
             serde_json::json!([
-                interval("fractional-charge", 1_800_000_000, false, 2, 0, 0, 0, 3, 7)
+                interval(IntervalFixture {
+                interval_id: "fractional-charge",
+                start_unix_seconds: 1_800_000_000,
+                grid_outage: false,
+                pv_available_quanta: 2,
+                grid_import_limit_quanta: 0,
+                essential_demand_quanta: 0,
+                flexible_demand_quanta: 0,
+                grid_cost_units_per_quantum: 3,
+                grid_carbon_grams_per_quantum: 7,
+            })
             ]),
         );
         let charge_schedule = schedule_bytes(
             &charge_request,
             serde_json::json!([
-                step("fractional-charge", 0, 2, 0, 1, 0, 0, 0, 0, 2, 0)
+                step(DispatchStepFixture {
+                interval_id: "fractional-charge",
+                grid_import_quanta: 0,
+                charge_input_quanta: 2,
+                discharge_withdrawal_quanta: 0,
+                soc_after_quanta: 1,
+                essential_served_quanta: 0,
+                essential_unserved_quanta: 0,
+                flexible_served_quanta: 0,
+                flexible_unserved_quanta: 0,
+                pv_used_quanta: 2,
+                pv_curtailed_quanta: 0,
+            })
             ]),
             1,
         );
@@ -1301,21 +1460,45 @@ mod tests {
         );
 
         let discharge_request = request_with_intervals(
-            2,
-            2,
-            2,
-            2,
-            (2, 3),
-            (2, 3),
-            0,
+            BatteryFixture {
+                capacity_quanta: 2,
+                initial_soc_quanta: 2,
+                charge_input_limit_quanta: 2,
+                discharge_withdrawal_limit_quanta: 2,
+                charge_efficiency: (2, 3),
+                discharge_efficiency: (2, 3),
+                terminal_reserve_quanta: 0,
+            },
             serde_json::json!([
-                interval("fractional-discharge", 1_800_000_000, false, 0, 0, 1, 0, 3, 7)
+                interval(IntervalFixture {
+                interval_id: "fractional-discharge",
+                start_unix_seconds: 1_800_000_000,
+                grid_outage: false,
+                pv_available_quanta: 0,
+                grid_import_limit_quanta: 0,
+                essential_demand_quanta: 1,
+                flexible_demand_quanta: 0,
+                grid_cost_units_per_quantum: 3,
+                grid_carbon_grams_per_quantum: 7,
+            })
             ]),
         );
         let discharge_schedule = schedule_bytes(
             &discharge_request,
             serde_json::json!([
-                step("fractional-discharge", 0, 0, 2, 0, 1, 0, 0, 0, 0, 0)
+                step(DispatchStepFixture {
+                interval_id: "fractional-discharge",
+                grid_import_quanta: 0,
+                charge_input_quanta: 0,
+                discharge_withdrawal_quanta: 2,
+                soc_after_quanta: 0,
+                essential_served_quanta: 1,
+                essential_unserved_quanta: 0,
+                flexible_served_quanta: 0,
+                flexible_unserved_quanta: 0,
+                pv_used_quanta: 0,
+                pv_curtailed_quanta: 0,
+            })
             ]),
             0,
         );
@@ -1330,21 +1513,45 @@ mod tests {
     #[test]
     fn recomputes_nonzero_grid_cost_and_carbon_from_source_coefficients() {
         let request = request_with_intervals(
-            1,
-            0,
-            0,
-            0,
-            (1, 1),
-            (1, 1),
-            0,
+            BatteryFixture {
+                capacity_quanta: 1,
+                initial_soc_quanta: 0,
+                charge_input_limit_quanta: 0,
+                discharge_withdrawal_limit_quanta: 0,
+                charge_efficiency: (1, 1),
+                discharge_efficiency: (1, 1),
+                terminal_reserve_quanta: 0,
+            },
             serde_json::json!([
-                interval("grid-service", 1_800_000_000, false, 0, 1, 1, 0, 3, 7)
+                interval(IntervalFixture {
+                interval_id: "grid-service",
+                start_unix_seconds: 1_800_000_000,
+                grid_outage: false,
+                pv_available_quanta: 0,
+                grid_import_limit_quanta: 1,
+                essential_demand_quanta: 1,
+                flexible_demand_quanta: 0,
+                grid_cost_units_per_quantum: 3,
+                grid_carbon_grams_per_quantum: 7,
+            })
             ]),
         );
         let schedule = schedule_bytes(
             &request,
             serde_json::json!([
-                step("grid-service", 1, 0, 0, 0, 1, 0, 0, 0, 0, 0)
+                step(DispatchStepFixture {
+                interval_id: "grid-service",
+                grid_import_quanta: 1,
+                charge_input_quanta: 0,
+                discharge_withdrawal_quanta: 0,
+                soc_after_quanta: 0,
+                essential_served_quanta: 1,
+                essential_unserved_quanta: 0,
+                flexible_served_quanta: 0,
+                flexible_unserved_quanta: 0,
+                pv_used_quanta: 0,
+                pv_curtailed_quanta: 0,
+            })
             ]),
             0,
         );
