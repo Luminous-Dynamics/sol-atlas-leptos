@@ -67,7 +67,8 @@
           "control_id",
           "reason_codes",
           "minimum_independent_domains",
-          "mandatory"
+          "mandatory",
+          "human_approval_required"
         ],
         "properties": {
           "control_id": {
@@ -91,6 +92,9 @@
           },
           "mandatory": {
             "const": true
+          },
+          "human_approval_required": {
+            "type": "boolean"
           }
         }
       }
