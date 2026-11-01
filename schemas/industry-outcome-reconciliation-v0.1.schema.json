@@ -709,6 +709,148 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "claim_ceiling": {
+            "const": "observation_only"
+          }
+        },
+        "required": [
+          "claim_ceiling"
+        ]
+      },
+      "then": {
+        "properties": {
+          "metrics": {
+            "items": {
+              "properties": {
+                "interpretation": {
+                  "enum": [
+                    "observation_only",
+                    "not_identified"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "claim_ceiling": {
+            "const": "before_after_difference"
+          }
+        },
+        "required": [
+          "claim_ceiling"
+        ]
+      },
+      "then": {
+        "properties": {
+          "metrics": {
+            "items": {
+              "properties": {
+                "interpretation": {
+                  "enum": [
+                    "observation_only",
+                    "before_after_difference",
+                    "not_identified"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "claim_ceiling": {
+            "const": "descriptive_association"
+          }
+        },
+        "required": [
+          "claim_ceiling"
+        ]
+      },
+      "then": {
+        "properties": {
+          "metrics": {
+            "items": {
+              "properties": {
+                "interpretation": {
+                  "enum": [
+                    "observation_only",
+                    "before_after_difference",
+                    "descriptive_association",
+                    "not_identified"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "claim_ceiling": {
+            "const": "not_identified"
+          }
+        },
+        "required": [
+          "claim_ceiling"
+        ]
+      },
+      "then": {
+        "properties": {
+          "metrics": {
+            "items": {
+              "properties": {
+                "interpretation": {
+                  "enum": [
+                    "not_identified"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "claim_ceiling": {
+            "const": "incomplete_or_indeterminate"
+          }
+        },
+        "required": [
+          "claim_ceiling"
+        ]
+      },
+      "then": {
+        "properties": {
+          "metrics": {
+            "items": {
+              "properties": {
+                "interpretation": {
+                  "enum": [
+                    "observation_only",
+                    "not_identified"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
     }
   ]
 }
