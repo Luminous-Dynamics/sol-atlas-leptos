@@ -67,7 +67,7 @@ Each metric declares one of:
 - `causal_effect_estimate`: a declared causal estimand supported by a preregistered design and independently reviewed analysis;
 - `not_identified`: the available evidence does not identify the effect.
 
-The top-level `claim_ceiling` caps what the combined receipt may claim. The schema requires a causal assessment when the top-level ceiling is causal, requires a metric to carry the causal interpretation, and forbids synthetic or rights-unknown/revoked inputs from claiming causal effect.
+The top-level `claim_ceiling` caps what the combined receipt may claim. The schema enforces a monotonic ceiling across every nested metric: an observation-only receipt cannot contain a metric labelled as a before/after, descriptive-association or causal estimate; a descriptive-association receipt cannot contain a causal metric. It also requires a causal assessment when the top-level ceiling is causal, requires a metric to carry the causal interpretation, and forbids synthetic or rights-unknown/revoked inputs from claiming causal effect.
 
 A before/after difference is **not** a causal estimate. A randomized or quasi-experimental design is not automatically valid merely because its name is present. Domain-specific analysis must evaluate assumptions, diagnostics, interference, selection, missingness, measurement validity and sensitivity to unmeasured confounding.
 
