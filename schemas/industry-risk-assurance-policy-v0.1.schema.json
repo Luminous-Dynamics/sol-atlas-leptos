@@ -187,7 +187,61 @@
       }
     },
     "unknown_policy": {
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "additional_control_ids",
+        "never_reduce_controls",
+        "worst_case_values"
+      ],
+      "properties": {
+        "mode": {
+          "const": "worst_case_union_plus_review"
+        },
+        "additional_control_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "never_reduce_controls": {
+          "const": true
+        },
+        "worst_case_values": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "consequence",
+            "model_influence",
+            "exposure",
+            "reversibility",
+            "detectability",
+            "fallback"
+          ],
+          "properties": {
+            "consequence": {
+              "const": "catastrophic"
+            },
+            "model_influence": {
+              "const": "direct_actuation"
+            },
+            "exposure": {
+              "const": "national_or_larger"
+            },
+            "reversibility": {
+              "const": "difficult_or_irreversible"
+            },
+            "detectability": {
+              "const": "poor"
+            },
+            "fallback": {
+              "const": "no_verified_fallback"
+            }
+          }
+        }
+      }
     },
     "reviewed_class_rules": {
       "type": "array"
