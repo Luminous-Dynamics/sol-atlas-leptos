@@ -13,6 +13,9 @@ on:
       - "schemas/examples/ieac-signed-envelope-synthetic-v0.2.json"
       - "schemas/examples/ieac-jcs-vectors-v0.2.json"
       - "schemas/industry-scitt-decision-statement-v0.1.schema.json"
+      - "schemas/industry-scitt-witness-observation-v0.1.schema.json"
+      - "schemas/examples/ieac-scitt-witness-observation-synthetic-v0.1.json"
+      - "docs/industry/IEAC_SCITT_WITNESS_OBSERVATION_V0.1.md"
       - "schemas/examples/ieac-scitt-decision-statement-synthetic-v0.1.json"
       - "docs/industry/IEAC_SCITT_TRANSPARENCY_V0.1.md"
       - "docs/industry/IEAC_TRUST_V0.2_SIGNED_ENVELOPE_PROFILE.md"
@@ -35,6 +38,9 @@ on:
       - "schemas/examples/ieac-signed-envelope-synthetic-v0.2.json"
       - "schemas/examples/ieac-jcs-vectors-v0.2.json"
       - "schemas/industry-scitt-decision-statement-v0.1.schema.json"
+      - "schemas/industry-scitt-witness-observation-v0.1.schema.json"
+      - "schemas/examples/ieac-scitt-witness-observation-synthetic-v0.1.json"
+      - "docs/industry/IEAC_SCITT_WITNESS_OBSERVATION_V0.1.md"
       - "schemas/examples/ieac-scitt-decision-statement-synthetic-v0.1.json"
       - "docs/industry/IEAC_SCITT_TRANSPARENCY_V0.1.md"
       - "docs/industry/IEAC_TRUST_V0.2_SIGNED_ENVELOPE_PROFILE.md"
@@ -278,6 +284,35 @@ jobs:
           jq '.events[0].action_authority = "execute"' "$fixture" | jq -c '.events[0]' > "$RUNNER_TEMP/ieac-scitt-invalid.json"
           if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$RUNNER_TEMP/ieac-scitt-invalid.json"; then
             echo "ERROR: SCITT fixture schema accepted an unauthorized action claim"
+            exit 1
+          fi
+
+      - name: Validate SCITT witness observations and fork-vs-cross-service controls
+        run: |
+          set -euo pipefail
+          meta=https://json-schema.org/draft/2020-12/schema
+          schema=schemas/industry-scitt-witness-observation-v0.1.schema.json
+          fixture=schemas/examples/ieac-scitt-witness-observation-synthetic-v0.1.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i "$schema"
+          jq -c '.observations[]' "$fixture" | while IFS= read -r observation; do
+            printf '%s\n' "$observation" > "$RUNNER_TEMP/ieac-scitt-witness-observation.json"
+            jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$RUNNER_TEMP/ieac-scitt-witness-observation.json"
+          done
+          jq -e '
+            .fixture_schema_version == "luminous.ieac-scitt-witness-fixture.v0.1" and
+            .fixture_status == "synthetic_only" and
+            (.observations | length == 5) and
+            ([.observations[].observation_id] | unique | length) == (.observations | length) and
+            ([.observations[] | select(.transparency_service_id == "ts:service-a" and .signed_tree_head.tree_size == 10)] | length) == 3 and
+            ([.observations[] | select(.transparency_service_id == "ts:service-b" and .signed_tree_head.tree_size == 7)] | length) == 1 and
+            .expected_structural_comparison.cross_ts_root_comparison == "not_comparable" and
+            .expected_structural_comparison.witness_operator_diversity_for_equal_head == 2
+          ' "$fixture"
+          # A consistency proof is mandatory whenever a prior tree head is named.
+          jq '.observations[1].consistency_proof_sha256 = null' "$fixture" > "$RUNNER_TEMP/witness-missing-consistency-proof.json"
+          jq -e '.observations[1]' "$RUNNER_TEMP/witness-missing-consistency-proof.json" > "$RUNNER_TEMP/witness-mutated-observation.json"
+          if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$RUNNER_TEMP/witness-mutated-observation.json"; then
+            echo "ERROR: witness schema accepted a prior head without its consistency proof"
             exit 1
           fi
 
