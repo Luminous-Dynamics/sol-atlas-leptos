@@ -96,6 +96,7 @@ jobs:
             .summary.claim_invalidated_count == 1 and
             .summary.quarantined_pending_review_count == 3 and
             .historical_record_preserved == true and
+            (.not_checked | length >= 5) and
             .action_authority == "none"
           ' "$RUNNER_TEMP/impact-report.json"
 
@@ -116,7 +117,7 @@ jobs:
         run: |
           set -euo pipefail
           fixture=schemas/examples/ieac-trust-lifecycle-key-compromise-synthetic-v0.1.json
-          jq '.graph.edges += [{"edge_id":"edge-cycle-negative","from_node_id":.graph.nodes[0].node_id,"to_node_id":.graph.nodes[0].node_id,"relation":"revoked_by"}]' "$fixture" > "$RUNNER_TEMP/cyclic-graph-raw.json"
+          jq '.graph.edges += [{"edge_id":"edge-cycle-negative","from_node_id":.graph.nodes[14].node_id,"to_node_id":.graph.nodes[0].node_id,"relation":"revoked_by"}]' "$fixture" > "$RUNNER_TEMP/cyclic-graph-raw.json"
           graph_hash="$(jq -cS '.graph | del(.graph_snapshot_sha256)' "$RUNNER_TEMP/cyclic-graph-raw.json" | sha256sum | awk '{print $1}')"
           jq --arg digest "$graph_hash" '.graph.graph_snapshot_sha256 = $digest' "$RUNNER_TEMP/cyclic-graph-raw.json" > "$RUNNER_TEMP/cyclic-graph.json"
           if cargo run --quiet --locked --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml --bin industry-trust-lifecycle-audit -- "$RUNNER_TEMP/cyclic-graph.json" "$RUNNER_TEMP/cycle-report.json"; then
