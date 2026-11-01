@@ -32,6 +32,22 @@ rejected and marks all six objective fields null because a partial trajectory
 cannot support complete objective recomputation; it is not converted into a
 fake zero-valued result.
 
+
+## CLI input resource boundary
+
+The CLI accepts at most 1 MiB for the source request and 1 MiB for the
+dispatch schedule. It opens each input first, inspects regular-file metadata
+on that same opened handle, rejects an over-limit size, and then reads through
+a bounded stream capped at limit+1 bytes. The final byte count is checked
+before parsing. This prevents metadata-only checks from being bypassed by
+file growth or path replacement between stat and read. Directories, FIFOs and
+other non-regular inputs are rejected.
+
+The unit tests cover the exact-limit and one-byte-over stream boundary. These
+controls establish bounded local file ingestion; they do not authenticate the
+input producer or protect the receipt output directory from an untrusted
+filesystem namespace.
+
 ## Schedule contract
 
 The schedule DTO is defined in src/lib.rs and the JSON Schema is
