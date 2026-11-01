@@ -1,0 +1,72 @@
+name: Energy Temporal Mesh VoI Allocator
+
+on:
+  pull_request:
+    paths:
+      - "tools/energy-temporal-mesh-voi/**"
+      - ".github/workflows/energy-temporal-mesh-voi.yml"
+  push:
+    branches:
+      - "research/energy-temporal-mesh-voi-v0-1"
+    paths:
+      - "tools/energy-temporal-mesh-voi/**"
+      - ".github/workflows/energy-temporal-mesh-voi.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: energy-temporal-mesh-voi-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  temporal-mesh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CARGO_NET_OFFLINE: "true"
+      EXPECTED_SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Assert exact subject before execution
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SUBJECT_SHA"
+      - uses: dtolnay/rust-toolchain@1.96.0
+        with:
+          components: rustfmt, clippy
+      - name: Format
+        run: cargo fmt --manifest-path tools/energy-temporal-mesh-voi/Cargo.toml --check
+      - name: Check locked dependency-free allocator
+        run: cargo check --locked --all-targets --manifest-path tools/energy-temporal-mesh-voi/Cargo.toml
+      - name: Run mesh invariant and adversarial tests
+        run: cargo test --locked --all-targets --manifest-path tools/energy-temporal-mesh-voi/Cargo.toml
+      - name: Strict Clippy
+        run: cargo clippy --locked --all-targets --manifest-path tools/energy-temporal-mesh-voi/Cargo.toml -- -D warnings
+      - name: Generate report and assert every denominator
+        run: |
+          mkdir -p target/energy-temporal-mesh-voi
+          cargo run --release --locked --manifest-path tools/energy-temporal-mesh-voi/Cargo.toml \
+            > target/energy-temporal-mesh-voi/report.csv
+          test "$(grep -vc '^#\|^scenario_id,' target/energy-temporal-mesh-voi/report.csv)" -eq 96
+          test "$(grep -c ',safety-first-voi,' target/energy-temporal-mesh-voi/report.csv)" -eq 32
+          grep -q 'uniform-15m' target/energy-temporal-mesh-voi/report.csv
+          grep -q 'uniform-60m' target/energy-temporal-mesh-voi/report.csv
+      - name: Assert exact subject and clean tracked source
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SUBJECT_SHA"
+          git diff --exit-code
+          test -z "$(git status --porcelain --untracked-files=all | grep -v '^?? target/energy-temporal-mesh-voi/' || true)"
+      - name: Upload report and source provenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: energy-temporal-mesh-voi-${{ github.sha }}
+          path: |
+            target/energy-temporal-mesh-voi/report.csv
+            tools/energy-temporal-mesh-voi/Cargo.toml
+            tools/energy-temporal-mesh-voi/Cargo.lock
+            tools/energy-temporal-mesh-voi/README.md
+            tools/energy-temporal-mesh-voi/src/
+          if-no-files-found: error
+          retention-days: 14
