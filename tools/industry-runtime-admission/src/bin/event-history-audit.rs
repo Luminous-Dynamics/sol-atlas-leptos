@@ -329,7 +329,6 @@ fn audit_streams(audit: &mut Audit) {
         .collect();
     for ((issuer, subject, stream), rows) in groups {
         let first = rows.keys().next().copied().unwrap_or(0);
-        let last = rows.keys().next_back().copied().unwrap_or(0);
         if first != 1 {
             add_finding(
                 audit, "STREAM_PREFIX_NOT_PRESENT", "incomplete",
@@ -358,7 +357,6 @@ fn audit_streams(audit: &mut Audit) {
             }
             previous_observed = Some((*sequence, event.digest.clone()));
         }
-        let _observed_range = (first, last);
     }
 }
 
