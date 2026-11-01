@@ -207,7 +207,6 @@ struct Inputs {
     currency: String,
     compute_unit: String,
     tier: String,
-    evaluated_at: String,
     budget: Resources,
     requirements: BTreeMap<String, Requirement>,
     existing_rows: BTreeMap<String, Vec<ExistingReceipt>>,
@@ -566,7 +565,6 @@ fn load_inputs(request: &Value, request_bytes: &[u8], report: &Value) -> Result<
         currency,
         compute_unit,
         tier,
-        evaluated_at,
         budget,
         requirements,
         existing_rows,
@@ -694,9 +692,15 @@ fn verify_report(request: &Value, request_bytes: &[u8], report: &Value, report_b
         return Err("missing planner build identity".into());
     }
     let report_actions = selected_set(report)?;
+    let selected_sequence: Vec<String> = array(report, "selected_actions", "report")?.iter()
+        .map(|row| string(row, "action_id", "selected action").map(str::to_owned))
+        .collect::<Result<_, _>>()?;
     let report_order: Vec<String> = array(report, "execution_order", "report")?.iter()
         .map(|value| value.as_str().map(str::to_owned).ok_or("execution_order contains non-string"))
         .collect::<Result<_, _>>()?;
+    if selected_sequence != report_order {
+        return Err("selected_actions are not emitted in the declared execution order".into());
+    }
     let order_set: BTreeSet<String> = report_order.iter().cloned().collect();
     if report_order.len() != order_set.len() || order_set != report_actions {
         return Err("execution_order is not an exact permutation of selected actions".into());
