@@ -291,7 +291,83 @@ fn validate_policy_catalog(policy: &Value) -> Result<BTreeMap<String, Value>, St
             return Err(format!("policy references unknown control ID '{id}'"));
         }
     }
+    validate_policy_monotonicity(policy)?;
     Ok(catalog)
+}
+
+fn string_set(value: &Value, context: &str) -> Result<BTreeSet<String>, String> {
+    let mut values = BTreeSet::new();
+    for item in value.as_array().ok_or_else(|| format!("{context} must be an array"))? {
+        let text = item.as_str().filter(|value| !value.is_empty())
+            .ok_or_else(|| format!("{context} contains a non-string or empty value"))?;
+        values.insert(text.to_owned());
+    }
+    Ok(values)
+}
+
+fn require_monotone_superset(
+    previous: &BTreeSet<String>,
+    current: &BTreeSet<String>,
+    context: &str,
+) -> Result<(), String> {
+    if !previous.is_subset(current) {
+        let missing: Vec<_> = previous.difference(current).cloned().collect();
+        return Err(format!("{context} is not monotone; later state removed controls: {}", missing.join(", ")));
+    }
+    Ok(())
+}
+
+fn validate_policy_monotonicity(policy: &Value) -> Result<(), String> {
+    let dimensions = policy.get("dimensions").and_then(Value::as_object)
+        .ok_or("policy.dimensions is missing")?;
+    let orders = policy.get("monotonicity_order").and_then(Value::as_object)
+        .ok_or("policy.monotonicity_order is missing")?;
+    for axis in DIMENSIONS {
+        let order = orders.get(*axis).and_then(Value::as_array)
+            .ok_or_else(|| format!("policy.monotonicity_order is missing '{axis}'"))?;
+        let rules = dimensions.get(*axis).and_then(Value::as_object)
+            .ok_or_else(|| format!("policy.dimensions is missing '{axis}'"))?;
+        let mut previous: Option<(String, BTreeSet<String>)> = None;
+        for value in order {
+            let value = value.as_str().ok_or_else(|| format!("monotonicity order for '{axis}' contains a non-string"))?;
+            let controls = rules.get(value)
+                .ok_or_else(|| format!("monotonicity order for '{axis}' references unmapped value '{value}'"))?;
+            let current = string_set(controls, &format!("dimensions.{axis}.{value}"))?;
+            if let Some((previous_value, previous_controls)) = &previous {
+                require_monotone_superset(previous_controls, &current, &format!("{axis}: {previous_value} -> {value}"))?;
+            }
+            previous = Some((value.to_owned(), current));
+        }
+    }
+
+    let class_order = ["low", "moderate", "high", "critical", "unassessed"];
+    let class_rules = policy.get("risk_class_controls").and_then(Value::as_object)
+        .ok_or("policy.risk_class_controls is missing")?;
+    let mut previous_class: Option<(String, BTreeSet<String>)> = None;
+    for class in class_order {
+        let controls = class_rules.get(class)
+            .ok_or_else(|| format!("policy.risk_class_controls is missing '{class}'"))?;
+        let current = string_set(controls, &format!("risk_class_controls.{class}"))?;
+        if let Some((previous_name, previous_controls)) = &previous_class {
+            require_monotone_superset(previous_controls, &current, &format!("risk class: {previous_name} -> {class}"))?;
+        }
+        previous_class = Some((class.to_owned(), current));
+    }
+
+    let tier_order = ["D0_descriptive", "D1_advisory", "D2_delegated_planning", "D3_autonomous_control"];
+    let tier_rules = policy.get("tier_controls").and_then(Value::as_object)
+        .ok_or("policy.tier_controls is missing")?;
+    let mut previous_tier: Option<(String, BTreeSet<String>)> = None;
+    for tier in tier_order {
+        let controls = tier_rules.get(tier)
+            .ok_or_else(|| format!("policy.tier_controls is missing '{tier}'"))?;
+        let current = string_set(controls, &format!("tier_controls.{tier}"))?;
+        if let Some((previous_name, previous_controls)) = &previous_tier {
+            require_monotone_superset(previous_controls, &current, &format!("decision tier: {previous_name} -> {tier}"))?;
+        }
+        previous_tier = Some((tier.to_owned(), current));
+    }
+    Ok(())
 }
 
 fn evaluate(profile: &Value, policy: &Value, build_id: &str) -> Result<Value, String> {
@@ -671,6 +747,21 @@ mod tests {
         let report_b = select(&reordered);
         assert_eq!(report_a["required_controls"], report_b["required_controls"]);
         assert_eq!(report_a["input_profile_sha256"], report_b["input_profile_sha256"]);
+    }
+
+    #[test]
+    fn policy_rejects_non_monotone_dimension_risk_class_or_tier_rules() {
+        let mut bad_fallback = policy();
+        bad_fallback["dimensions"]["fallback"]["human_fallback"] = json!([]);
+        assert!(validate_policy_catalog(&bad_fallback).is_err());
+
+        let mut bad_class = policy();
+        bad_class["risk_class_controls"]["unassessed"] = json!([]);
+        assert!(validate_policy_catalog(&bad_class).is_err());
+
+        let mut bad_tier = policy();
+        bad_tier["tier_controls"]["D3_autonomous_control"] = json!([]);
+        assert!(validate_policy_catalog(&bad_tier).is_err());
     }
 
     #[test]
