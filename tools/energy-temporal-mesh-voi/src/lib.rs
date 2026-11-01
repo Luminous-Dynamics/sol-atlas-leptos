@@ -761,6 +761,17 @@ mod tests {
     }
 
     #[test]
+    fn unresolved_event_loss_saturates_instead_of_wrapping() {
+        let events = vec![
+            event("first", 180, 300, u64::MAX, false),
+            event("second", 840, 960, u64::MAX, false),
+        ];
+        let plan = plan_mesh(&events, MeshStrategy::UniformCoarse, 32).unwrap();
+
+        assert_eq!(plan.unresolved_loss_units, u64::MAX);
+    }
+
+    #[test]
     fn verifier_rejects_tampered_refined_event_metadata() {
         let events = vec![event("safety", 840, 960, 8_000, true)];
         let mut plan = plan_mesh(
