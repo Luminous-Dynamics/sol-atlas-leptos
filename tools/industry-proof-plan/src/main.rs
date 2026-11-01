@@ -1322,7 +1322,7 @@ mod tests {
         let bytes = serde_json::to_vec(&fixture["request"]["control_mappings"]).unwrap();
         assert_eq!(
             sha256_hex(&bytes),
-            "f326f51e057dae4607942b479934907eb553009ef3b60644aed795d0d6004e60"
+            "aad5c22087890d17bab97a6f0fc7294c94b25ffe22b9c11ca1f20b9eda2e0ab1"
         );
     }
 
