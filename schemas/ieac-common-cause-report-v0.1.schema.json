@@ -17,7 +17,8 @@
     "source_resolutions",
     "conflict_edges",
     "action_authority",
-    "profile_qualification_attested"
+    "profile_qualification_attested",
+    "registry_authority_id"
   ],
   "properties": {
     "schema_version": {
@@ -60,7 +61,15 @@
           "dependency_completeness",
           "dependency_closure",
           "common_cause_group_ids",
-          "registry_model_status"
+          "registry_model_status",
+          "organization_id",
+          "source_kind",
+          "source_identity_sha256",
+          "evidence_state",
+          "rights_status",
+          "rights_evidence_sha256",
+          "verified_at",
+          "valid_until"
         ],
         "properties": {
           "source_id": {
@@ -96,6 +105,47 @@
               "unknown_dependency",
               "disputed_dependency"
             ]
+          },
+          "organization_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "source_kind": {
+            "enum": [
+              "existing_evidence",
+              "planned_action"
+            ]
+          },
+          "source_identity_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "evidence_state": {
+            "enum": [
+              "verified",
+              "planned"
+            ]
+          },
+          "rights_status": {
+            "const": "verified"
+          },
+          "rights_evidence_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "verified_at": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$",
+            "format": "date-time"
+          },
+          "valid_until": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$",
+            "format": "date-time"
           }
         }
       }
@@ -155,12 +205,12 @@
           "minimum_independent_sources",
           "candidate_source_ids",
           "conflicting_source_pairs",
-          "maximum_independent_source_ids",
-          "maximum_independent_count",
           "threshold_met",
           "method",
           "optimality_status",
-          "registry_model_disposition"
+          "registry_model_disposition",
+          "independent_source_ids",
+          "independent_source_count"
         ],
         "properties": {
           "control_id": {
@@ -203,17 +253,6 @@
               }
             }
           },
-          "maximum_independent_source_ids": {
-            "type": "array",
-            "uniqueItems": true,
-            "items": {
-              "type": "string"
-            }
-          },
-          "maximum_independent_count": {
-            "type": "integer",
-            "minimum": 0
-          },
           "threshold_met": {
             "type": "boolean"
           },
@@ -235,6 +274,18 @@
               "not_qualified_by_registry_model",
               "indeterminate_under_registry_model"
             ]
+          },
+          "independent_source_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "independent_source_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 512
           }
         }
       }
@@ -244,36 +295,12 @@
     },
     "profile_qualification_attested": {
       "const": false
+    },
+    "registry_authority_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
     }
   },
-  "allOf": [
-    {
-      "if": {
-        "properties": {
-          "control_results": {
-            "contains": {
-              "properties": {
-                "method": {
-                  "const": "deterministic_greedy_lower_bound"
-                }
-              },
-              "required": [
-                "method"
-              ]
-            }
-          }
-        },
-        "required": [
-          "control_results"
-        ]
-      },
-      "then": {
-        "properties": {
-          "control_results": {
-            "items": {}
-          }
-        }
-      }
-    }
-  ]
+  "allOf": []
 }
