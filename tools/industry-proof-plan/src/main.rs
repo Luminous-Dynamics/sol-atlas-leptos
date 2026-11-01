@@ -566,6 +566,14 @@ fn control_domains(
     domains
 }
 
+fn total_domain_deficit(selected: &BTreeSet<String>, request: &ValidatedRequest) -> usize {
+    let domains = control_domains(selected, request);
+    request.requirements.iter().map(|(control, requirement)| {
+        let count = domains.get(control).map_or(0, BTreeSet::len);
+        requirement.minimum_domains.saturating_sub(count)
+    }).sum()
+}
+
 fn unsatisfied_controls(selected: &BTreeSet<String>, request: &ValidatedRequest) -> Vec<String> {
     let domains = control_domains(selected, request);
     request.requirements.iter().filter_map(|(control, requirement)| {
@@ -620,7 +628,7 @@ fn exact_plan(request: &ValidatedRequest) -> Result<Option<BTreeSet<String>>, St
 fn greedy_plan(request: &ValidatedRequest) -> Option<BTreeSet<String>> {
     let mut selected = BTreeSet::new();
     while !unsatisfied_controls(&selected, request).is_empty() {
-        let before = unsatisfied_controls(&selected, request);
+        let before = total_domain_deficit(&selected, request);
         let mut best: Option<(usize, PlanScore, BTreeSet<String>)> = None;
 
         for id in &request.action_order {
@@ -640,8 +648,8 @@ fn greedy_plan(request: &ValidatedRequest) -> Option<BTreeSet<String>> {
             if !resources.within(request.budget) {
                 continue;
             }
-            let after = unsatisfied_controls(&candidate, request);
-            let gain = before.len().saturating_sub(after.len());
+            let after = total_domain_deficit(&candidate, request);
+            let gain = before.saturating_sub(after);
             if gain == 0 {
                 continue;
             }
