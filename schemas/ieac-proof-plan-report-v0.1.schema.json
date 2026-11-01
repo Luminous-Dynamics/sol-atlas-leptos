@@ -107,7 +107,8 @@
           "rights_status",
           "rights_verified_at",
           "rights_valid_until",
-          "rights_evidence_sha256"
+          "rights_evidence_sha256",
+          "control_mappings"
         ],
         "properties": {
           "action_id": {
@@ -197,6 +198,75 @@
           "rights_evidence_sha256": {
             "type": "string",
             "pattern": "^[0-9a-f]{64}$"
+          },
+          "control_mappings": {
+            "type": "array",
+            "maxItems": 128,
+            "uniqueItems": true,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "mapping_id",
+                "action_id",
+                "action_sha256",
+                "control_id",
+                "evidence_dimension",
+                "proof_method_id",
+                "required_verifier_role",
+                "independence_domain_id"
+              ],
+              "properties": {
+                "mapping_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                },
+                "action_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                },
+                "action_sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "control_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                },
+                "evidence_dimension": {
+                  "enum": [
+                    "software_conformance",
+                    "numerical_verification",
+                    "physical_validation",
+                    "data_integrity_rights",
+                    "uncertainty_credibility",
+                    "generalization",
+                    "robustness",
+                    "operational_assurance",
+                    "safety_security_authority",
+                    "prospective_outcomes"
+                  ]
+                },
+                "proof_method_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                },
+                "required_verifier_role": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                },
+                "independence_domain_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                }
+              }
+            }
           }
         }
       }
@@ -319,7 +389,8 @@
           "planned_or_existing_domain_ids",
           "domain_count",
           "covered",
-          "reason_codes"
+          "reason_codes",
+          "control_mapping_ids"
         ],
         "properties": {
           "control_id": {
@@ -394,6 +465,15 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 128
+            }
+          },
+          "control_mapping_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
             }
           }
         }
