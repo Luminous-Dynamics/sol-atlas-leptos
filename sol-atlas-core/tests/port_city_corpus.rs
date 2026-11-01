@@ -152,7 +152,7 @@ fn frozen_port_study_corpus_matches_independent_oracle() {
         assert_eq!(production, expected, "production validator disagreed for {case_id}");
         count += 1;
     }
-    assert_eq!(count, 32, "frozen corpus size changed without manifest update");
+    assert_eq!(count, 34, "frozen corpus size changed without manifest update");
 }
 
 #[test]
