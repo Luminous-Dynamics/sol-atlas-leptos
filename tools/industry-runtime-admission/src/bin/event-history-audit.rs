@@ -231,9 +231,25 @@ fn parse_events(input: &Value, audit: &mut Audit) -> Result<(), String> {
         let event_index = audit.events.len();
         audit.id_to_index.insert(id, event_index);
         audit.digest_to_index.insert(digest, event_index);
-        audit.streams.entry((issuer, subject, stream_id))
-            .or_default().insert(sequence, event_index);
+        let stream_key = (issuer, subject, stream_id);
+        let duplicate = audit.streams.get(&stream_key)
+            .and_then(|rows| rows.get(&sequence)).copied();
+        if let Some(existing_index) = duplicate {
+            let existing_id = audit.events[existing_index].id.clone();
+            add_finding(
+                audit, "DUPLICATE_ISSUER_SEQUENCE", "invalid",
+                format!("{existing_id} and {} claim the same issuer/subject/stream sequence {sequence}", event.id),
+            );
+            continue;
+        }
+        audit.streams.entry(stream_key).or_default().insert(sequence, event_index);
         audit.events.push(event);
+    }
+    if expected.len() != rows.len() {
+        add_finding(
+            audit, "UNREFERENCED_EXPECTED_DIGEST", "invalid",
+            "frozen expected digest map does not have exactly one entry per event",
+        );
     }
     Ok(())
 }
