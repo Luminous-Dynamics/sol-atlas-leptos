@@ -1247,6 +1247,8 @@ fn report_for(
     Ok(json!({
         "schema_version": REPORT_SCHEMA,
         "request_id": request.request_id,
+        "decision_tier": request.decision_tier,
+        "evaluated_at": request.evaluated_at,
         "request_sha256": sha256_hex(raw_request),
         "risk_control_report_sha256": request.risk_control_report_sha256,
         "profile_sha256": request.profile_sha256,
@@ -1369,7 +1371,7 @@ mod tests {
         .unwrap()
     }
 
-    fn request() -> Value {
+    fn sample_request() -> Value {
         fixture()["request"].clone()
     }
 
@@ -1383,7 +1385,7 @@ mod tests {
     }
 
     fn validate() -> ValidatedRequest {
-        validate_request(&request()).unwrap()
+        validate_request(&sample_request()).unwrap()
     }
 
     fn test_report(value: &Value) -> Value {
@@ -1394,7 +1396,7 @@ mod tests {
     #[test]
     fn exact_solver_replays_5_10_15_and_20_action_oracle_sizes() {
         for action_count in [5usize, 10, 15, 20] {
-            let base = request();
+            let base = sample_request();
             let mut request = base.clone();
             request["required_controls"] = json!([{
                 "control_id": "artifact_identity_integrity",
@@ -1484,7 +1486,7 @@ mod tests {
 
     #[test]
     fn prerequisite_action_is_included_and_marked() {
-        let report = test_report(&request());
+        let report = test_report(&sample_request());
         let reservation = report["selected_actions"]
             .as_array()
             .unwrap()
@@ -1506,7 +1508,7 @@ mod tests {
 
     #[test]
     fn existing_verified_evidence_can_produce_zero_action_optimal_plan() {
-        let mut request = request();
+        let mut request = sample_request();
         let requirements = request["required_controls"].as_array().unwrap().clone();
         let base = request["verified_evidence"][0].clone();
         let mut evidence = Vec::new();
@@ -1544,7 +1546,7 @@ mod tests {
 
     #[test]
     fn empty_action_set_with_open_proof_gaps_is_proven_infeasible() {
-        let mut request = request();
+        let mut request = sample_request();
         request["candidate_actions"] = json!([]);
         let report = test_report(&request);
         assert_eq!(report["plan_status"], "infeasible");
@@ -1559,7 +1561,7 @@ mod tests {
 
     #[test]
     fn minimum_independent_domains_are_not_replaced_by_action_count() {
-        let mut request = request();
+        let mut request = sample_request();
         for index in [2usize, 3, 4] {
             let action_id = request["candidate_actions"][index]["action_id"]
                 .as_str()
@@ -1587,7 +1589,7 @@ mod tests {
 
     #[test]
     fn large_greedy_plan_counts_domain_deficit_not_control_count() {
-        let mut request = request();
+        let mut request = sample_request();
         let base = request["candidate_actions"].as_array().unwrap().clone();
         for index in 0..10 {
             let mut row = base[0].clone();
@@ -1616,7 +1618,7 @@ mod tests {
 
     #[test]
     fn same_existing_artifact_cannot_claim_multiple_independent_domains() {
-        let mut request = request();
+        let mut request = sample_request();
         let mut second = request["verified_evidence"][0].clone();
         second["independence_domain_id"] = json!("another-domain");
         request["verified_evidence"]
@@ -1628,7 +1630,7 @@ mod tests {
 
     #[test]
     fn expired_or_rights_revoked_existing_evidence_does_not_satisfy_controls() {
-        let mut request = request();
+        let mut request = sample_request();
         request["verified_evidence"][0]["rights_status"] = json!("revoked");
         let report = test_report(&request);
         assert!(
@@ -1642,33 +1644,33 @@ mod tests {
 
     #[test]
     fn malformed_calendar_timestamps_are_rejected() {
-        let mut request = request();
+        let mut request = sample_request();
         request["candidate_actions"][0]["rights_valid_until"] = json!("2026-02-29T00:00:00Z");
         assert!(validate_request(&request).is_err());
 
-        request = request();
+        request = sample_request();
         request["evaluated_at"] = json!("2026-13-01T00:00:00Z");
         assert!(validate_request(&request).is_err());
     }
 
     #[test]
     fn unsupported_decision_tier_is_rejected_before_planning() {
-        let mut request = request();
+        let mut request = sample_request();
         request["decision_tier"] = json!("D4_autonomous_everything");
         assert!(validate_request(&request).is_err());
     }
 
     #[test]
     fn rows_must_match_request_pinned_registry_and_mapping_policy() {
-        let mut request = request();
+        let mut request = sample_request();
         request["candidate_actions"][0]["independence_registry_sha256"] = json!("9".repeat(64));
         assert!(validate_request(&request).is_err());
 
-        let mut request = request();
+        let mut request = sample_request();
         request["candidate_actions"][0]["mapping_policy_sha256"] = json!("9".repeat(64));
         assert!(validate_request(&request).is_err());
 
-        let mut request = request();
+        let mut request = sample_request();
         request["verified_evidence"][0]["independence_registry_sha256"] = json!("9".repeat(64));
         assert!(validate_request(&request).is_err());
     }
@@ -1685,7 +1687,7 @@ mod tests {
 
     #[test]
     fn action_control_coverage_requires_digest_bound_mapping_rows() {
-        let mut request = request();
+        let mut request = sample_request();
         request["control_mappings"]
             .as_array_mut()
             .unwrap()
@@ -1693,7 +1695,7 @@ mod tests {
         refresh_mapping_digest(&mut request);
         assert!(validate_request(&request).is_err());
 
-        let mut request = request();
+        let mut request = sample_request();
         request["control_mappings"][0]["proof_method_id"] = json!("unreviewed-shortcut");
         // The pinned digest is deliberately not recomputed: the body no longer matches the policy.
         assert!(validate_request(&request).is_err());
@@ -1701,12 +1703,12 @@ mod tests {
 
     #[test]
     fn mapping_row_must_match_action_identity_and_independence_domain() {
-        let mut request = request();
+        let mut request = sample_request();
         request["control_mappings"][0]["action_sha256"] = json!("0".repeat(64));
         refresh_mapping_digest(&mut request);
         assert!(validate_request(&request).is_err());
 
-        let mut request = request();
+        let mut request = sample_request();
         request["control_mappings"][0]["independence_domain_id"] = json!("another-domain");
         refresh_mapping_digest(&mut request);
         assert!(validate_request(&request).is_err());
@@ -1714,18 +1716,18 @@ mod tests {
 
     #[test]
     fn candidate_action_rights_must_be_current_at_planning_time() {
-        let mut request = request();
+        let mut request = sample_request();
         request["candidate_actions"][0]["rights_valid_until"] = json!("2026-10-31T23:59:59Z");
         assert!(validate_request(&request).is_err());
 
-        request = request();
+        request = sample_request();
         request["candidate_actions"][0]["rights_verified_at"] = json!("2026-11-02T00:00:00Z");
         assert!(validate_request(&request).is_err());
     }
 
     #[test]
     fn report_keeps_control_and_action_approval_gates_distinct() {
-        let report = test_report(&request());
+        let report = test_report(&sample_request());
         let control_approvals: BTreeSet<String> = report["human_approval_controls"]
             .as_array()
             .unwrap()
@@ -1760,7 +1762,7 @@ mod tests {
 
     #[test]
     fn report_preserves_existing_evidence_and_action_mapping_identity() {
-        let report = test_report(&request());
+        let report = test_report(&sample_request());
         let row = report["control_coverage"]
             .as_array()
             .unwrap()
@@ -1786,7 +1788,7 @@ mod tests {
 
     #[test]
     fn prerequisite_cycles_are_rejected() {
-        let mut request = request();
+        let mut request = sample_request();
         request["candidate_actions"][0]["prerequisites"] = json!(["numeric-reference-run-a"]);
         request["candidate_actions"][2]["prerequisites"] = json!(["artifact-provenance-capture"]);
         assert!(validate_request(&request).is_err());
@@ -1794,7 +1796,7 @@ mod tests {
 
     #[test]
     fn asymmetric_conflict_declarations_are_rejected() {
-        let mut request = request();
+        let mut request = sample_request();
         request["candidate_actions"][0]["conflicts_with"] =
             json!(["artifact-provenance-full-audit"]);
         request["candidate_actions"][1]["conflicts_with"] = json!([]);
@@ -1803,7 +1805,7 @@ mod tests {
 
     #[test]
     fn unknown_control_mapping_is_rejected() {
-        let mut request = request();
+        let mut request = sample_request();
         request["candidate_actions"][0]["covers_control_ids"] = json!(["not-required"]);
         request["control_mappings"][0]["control_id"] = json!("not-required");
         refresh_mapping_digest(&mut request);
@@ -1812,7 +1814,7 @@ mod tests {
 
     #[test]
     fn resource_overrun_is_not_accepted() {
-        let mut request = request();
+        let mut request = sample_request();
         request["resource_budgets"]["money_microunits"] = json!(189);
         let report = test_report(&request);
         assert_ne!(report["plan_status"], "optimal_plan");
@@ -1820,7 +1822,7 @@ mod tests {
 
     #[test]
     fn exact_solver_proves_infeasibility_when_independent_domain_is_unavailable() {
-        let mut request = request();
+        let mut request = sample_request();
         for index in [3usize, 4] {
             let action_id = request["candidate_actions"][index]["action_id"]
                 .as_str()
@@ -1843,7 +1845,7 @@ mod tests {
 
     #[test]
     fn heuristic_scaling_cases_50_100_500_never_claim_optimality() {
-        let base = request();
+        let base = sample_request();
         let original = base["candidate_actions"].as_array().unwrap().clone();
         for target in [50usize, 100, 500] {
             let mut request = base.clone();
@@ -1868,7 +1870,7 @@ mod tests {
 
     #[test]
     fn large_action_set_uses_heuristic_and_never_claims_optimality() {
-        let mut request = request();
+        let mut request = sample_request();
         let base = request["candidate_actions"].as_array().unwrap().clone();
         for index in 0..10 {
             let mut row = base[index % base.len()].clone();
