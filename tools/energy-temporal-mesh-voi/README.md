@@ -38,6 +38,22 @@ Every field is synthetic and dimensionless. The panel is not calibrated to measu
 
 The CSV report emits per-scenario, per-strategy compute budget/cost, remaining budget, safety-resolution violations, unresolved loss lower bound, acceptance disposition, and selected event windows. Compare the Pareto frontier; do not rank by a single weighted score. The current allocator's greedy rule is a deterministic heuristic, not a globally optimal knapsack solver; the 32-case report makes its choices inspectable.
 
+## Adversarial test panel
+
+The crate has **20 unit tests** covering:
+- full-horizon coverage, no gaps/overlaps and exact source-event boundaries;
+- safety-first refinement and hard rejection when the safety budget is insufficient;
+- greedy selection by marginal avoided-loss lower bound per additional interval;
+- recalculation of marginal value after overlapping windows are refined;
+- a four-point compound-event budget ladder that forces partial optional refinement;
+- extreme `u64` lower-bound values to verify 128-bit cross-product ordering;
+- saturating loss aggregation rather than integer wraparound;
+- uniform-coarse safety violations and uniform-fine budget exhaustion;
+- input identity/window validation and scenario-order invariance;
+- tampered refined-event IDs, strategy relabelling and safety-window coarsening even when report counters are forged.
+
+The greedy ranking is a **deterministic value-density heuristic**, not a fully probabilistic expected-value-of-information calculation or a globally optimal knapsack solver. It ranks authored lower bounds by marginal interval count; it has no calibrated event probabilities, posterior distributions, or measured solver-latency model.
+
 ## Run
 
 ```sh
