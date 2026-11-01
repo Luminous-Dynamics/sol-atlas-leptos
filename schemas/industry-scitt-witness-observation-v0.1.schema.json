@@ -21,6 +21,7 @@
     "signed_tree_head",
     "consistency_from",
     "consistency_proof_sha256",
+    "inclusion_proofs",
     "statement_digests",
     "observation_method"
   ],
@@ -163,6 +164,42 @@
         "independent_archive",
         "independent_peer_exchange"
       ]
+    },
+    "inclusion_proofs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4096,
+      "uniqueItems": true,
+      "description": "Per-statement receipt and inclusion-proof artifact digests. Runtime MUST require a one-to-one set match with statement_digests, verify receipt-to-statement binding, and verify each VDS inclusion proof against the authenticated signed_tree_head.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "statement_sha256",
+          "receipt_sha256",
+          "vds_inclusion_proof_sha256",
+          "leaf_index"
+        ],
+        "properties": {
+          "statement_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "receipt_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "vds_inclusion_proof_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "leaf_index": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        }
+      }
     }
   },
   "allOf": [
