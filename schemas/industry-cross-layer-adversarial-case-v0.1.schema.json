@@ -115,7 +115,9 @@
                   "const": "not_applicable"
                 }
               },
-              "required": ["state"]
+              "required": [
+                "state"
+              ]
             },
             "then": {
               "properties": {
@@ -132,7 +134,9 @@
                   "const": "pass"
                 }
               },
-              "required": ["state"]
+              "required": [
+                "state"
+              ]
             },
             "then": {
               "properties": {
@@ -215,7 +219,9 @@
             }
           }
         },
-        "required": ["gates"]
+        "required": [
+          "gates"
+        ]
       },
       "then": {
         "properties": {
@@ -268,7 +274,9 @@
               }
             }
           },
-          "required": ["gates"]
+          "required": [
+            "gates"
+          ]
         },
         "then": {
           "properties": {
@@ -286,7 +294,9 @@
             "const": "admit_descriptive"
           }
         },
-        "required": ["expected_disposition"]
+        "required": [
+          "expected_disposition"
+        ]
       },
       "then": {
         "properties": {
@@ -313,6 +323,86 @@
           },
           "expected_blocking_gate_ids": {
             "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "expected_disposition": {
+            "const": "reject"
+          }
+        },
+        "required": [
+          "expected_disposition"
+        ]
+      },
+      "then": {
+        "properties": {
+          "gates": {
+            "contains": {
+              "properties": {
+                "mandatory": {
+                  "const": true
+                },
+                "state": {
+                  "const": "fail"
+                }
+              },
+              "required": [
+                "mandatory",
+                "state"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "expected_disposition": {
+            "const": "abstain"
+          }
+        },
+        "required": [
+          "expected_disposition"
+        ]
+      },
+      "then": {
+        "properties": {
+          "gates": {
+            "contains": {
+              "properties": {
+                "mandatory": {
+                  "const": true
+                },
+                "state": {
+                  "const": "unknown"
+                }
+              },
+              "required": [
+                "mandatory",
+                "state"
+              ]
+            },
+            "not": {
+              "contains": {
+                "properties": {
+                  "mandatory": {
+                    "const": true
+                  },
+                  "state": {
+                    "const": "fail"
+                  }
+                },
+                "required": [
+                  "mandatory",
+                  "state"
+                ]
+              }
+            }
           }
         }
       }
