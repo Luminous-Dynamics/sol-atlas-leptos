@@ -11,13 +11,13 @@ This crate does not invent or infer solver timings. The checked-in CSV is a **sy
 ## Trace identity
 
 Every row binds:
-- scenario panel, scenario request, solver model and temporal mesh SHA-256;
+- scenario panel, exact scenario request, solver model, temporal-mesh policy, exact mesh instance and solver-configuration SHA-256;
 - solver name/version and exact executable SHA-256;
 - hardware profile fingerprint SHA-256;
 - horizon and observed model-size counts;
 - sample ID, seed, status and timing milestones.
 
-Records with the same cohort ID are rejected if measurement class, scenario panel, model, mesh, solver binary/version, hardware fingerprint or horizon differ. Duplicate sample IDs are rejected. The aggregator never silently pools across machines or solver builds.
+Records with the same cohort ID are rejected if measurement class, scenario panel, model formulation, mesh policy, solver binary/version, solver configuration, hardware fingerprint or horizon differ. Exact mesh-instance digests and request digests vary by sample, but are retained on every row. Duplicate sample IDs are rejected. The aggregator never silently pools across machines or solver builds.
 
 The CSV grammar is fixed-column and deliberately excludes quoted/free-form fields. Identifiers must use a comma-free ASCII alphabet; digest fields must be exactly 64 lowercase hexadecimal characters.
 
@@ -34,10 +34,13 @@ The current schema records elapsed wall time, time-to-first-feasible, time-to-op
 
 ## Test panel
 
-The crate has **18 unit tests** covering:
+The crate has **21 unit tests** covering:
 - exact digest and comma-free identifier validation;
 - timing/status semantics for optimal, feasible, infeasible, timeout and incumbent-bearing records;
-- exact cohort isolation across mesh, solver binary, hardware fingerprint and measurement class;
+- exact cohort isolation across mesh policy, solver binary, solver configuration, hardware fingerprint and measurement class;
+- different exact mesh instances may vary inside one stable mesh-policy cohort;
+- a timeout with an incumbent remains a timeout for completed latency and a valid first-feasible observation;
+- completed, first-feasible and memory percentiles expose separate sample denominators;
 - duplicate sample suppression;
 - nearest-rank percentile semantics;
 - p50/p95/p99 sample-count gates;
@@ -46,7 +49,7 @@ The crate has **18 unit tests** covering:
 
 ## Frozen fixture and exact-head workflow
 
-The checked-in 30-row fixture is tagged `synthetic`: 18 optimal, 4 feasible, 4 timed out and 4 infeasible. CI validates the entire strict parser → type validator → cohort guard → summary pipeline and records the fixture digest, aggregator-binary digest, source commit, Rust/Cargo versions and runner profile. Its numbers demonstrate the output schema only; they are not used as a performance claim.
+The checked-in 30-row fixture is tagged `synthetic`: 18 optimal, 4 feasible, 4 timed out and 4 infeasible. It uses the current 31-column schema, including stable mesh-policy, per-sample mesh-instance and solver-configuration fingerprints. CI validates the entire strict parser → type validator → cohort guard → summary pipeline and records the fixture digest, aggregator-binary digest, source commit, Rust/Cargo versions and runner profile. Its numbers demonstrate the output schema only; they are not used as a performance claim.
 
 The next real measurement campaign should run the same frozen scenario panel over:
 - 60/30/15-minute mesh candidates and each selected horizon;
