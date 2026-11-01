@@ -1,0 +1,100 @@
+{
+  "fixture_schema_version": "luminous.ieac-outcome-fixture.v0.1",
+  "fixture_status": "synthetic_only",
+  "note": "Synthetic domain-receipt references and metric observations. They are not field outcomes, measured causal effects, or evidence of real service restoration or employment.",
+  "receipt": {
+    "schema_version": "luminous.ieac-outcome-reconciliation.v0.1",
+    "outcome_receipt_id": "outcome-case-0001",
+    "evidence_class": "synthetic",
+    "decision_case_id": "case-synthetic-0001",
+    "subject_pseudonym": "case:0001:subject:7f3a1c9d",
+    "decision_statement_sha256": "d486d39ee81b411ac467f44e51ee21779c3333877afc98199f06c45738ffe12e",
+    "ieac_profile": {
+      "profile_id": "luminous.ieac-runtime-admission.v0.1",
+      "profile_sha256": "f608f6e912f71b3db4cdd1ffaacba590fdbc1dc29a8af6f4bc3af999cd57c749"
+    },
+    "intervention": {
+      "action_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "authorization_receipt_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "execution_receipt_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+      "execution_state": "completed"
+    },
+    "domain_receipts": [
+      {
+        "receipt_id": "energy-service-result-001",
+        "domain": "energy",
+        "media_type": "application/vnd.luminous.sol-atlas.energy-service-outcome.v0.1+json",
+        "schema_version": "energy-service-outcome-v0.1",
+        "receipt_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+        "metric_contract_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+        "evidence_class": "synthetic"
+      },
+      {
+        "receipt_id": "workforce-result-001",
+        "domain": "workforce",
+        "media_type": "application/vnd.luminous.workforce-outcome-receipt.v0.1+json",
+        "schema_version": "workforce-outcome-receipt-v0.1",
+        "receipt_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+        "metric_contract_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+        "evidence_class": "synthetic"
+      }
+    ],
+    "metric_contract_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+    "observation_window": {
+      "start": "2026-10-01T00:00:00Z",
+      "end": "2026-10-31T23:59:59Z",
+      "population_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+      "population_definition": "Synthetic cohort of one service asset and its linked work package; not a real population.",
+      "denominator": 1
+    },
+    "metrics": [
+      {
+        "metric_id": "essential_power.restoration_minutes",
+        "domain_receipt_id": "energy-service-result-001",
+        "unit": "minutes",
+        "expected": 45,
+        "observed": 52,
+        "uncertainty": {
+          "lower": 48,
+          "upper": 56
+        },
+        "missingness": "complete",
+        "interpretation": "observation_only",
+        "reconciliation": "outside_expected_range"
+      },
+      {
+        "metric_id": "workforce.gross_paid_work_events",
+        "domain_receipt_id": "workforce-result-001",
+        "unit": "events",
+        "expected": 4,
+        "observed": 4,
+        "uncertainty": null,
+        "missingness": "complete",
+        "interpretation": "observation_only",
+        "reconciliation": "within_expected_range"
+      }
+    ],
+    "claim_ceiling": "observation_only",
+    "causal_assessment": null,
+    "confounders_and_deviations": [
+      "No comparison group is included.",
+      "Concurrent demand, maintenance and environmental changes have not been assessed.",
+      "Workforce paid-work counts do not establish net additional employment or hours."
+    ],
+    "data_quality": {
+      "source_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "rights_status": "verified_for_purpose",
+      "missingness_policy": "Missing or censored values remain unknown and are not replaced with zero.",
+      "measurement_system_identity": "synthetic:source-bundle-0001"
+    },
+    "action_authority": "none"
+  },
+  "expected_checks": {
+    "domain_receipt_count": 2,
+    "metric_count": 2,
+    "claim_ceiling": "observation_only",
+    "causal_assessment": null,
+    "raw_values_in_transparency_payload": false,
+    "action_authority": "none"
+  }
+}

@@ -13,6 +13,9 @@ on:
       - "schemas/examples/ieac-signed-envelope-synthetic-v0.2.json"
       - "schemas/examples/ieac-jcs-vectors-v0.2.json"
       - "schemas/industry-scitt-decision-statement-v0.1.schema.json"
+      - "schemas/industry-outcome-reconciliation-v0.1.schema.json"
+      - "schemas/examples/ieac-outcome-reconciliation-synthetic-v0.1.json"
+      - "docs/industry/IEAC_OUTCOME_RECONCILIATION_V0.1.md"
       - "schemas/examples/ieac-scitt-decision-statement-synthetic-v0.1.json"
       - "docs/industry/IEAC_SCITT_TRANSPARENCY_V0.1.md"
       - "docs/industry/IEAC_TRUST_V0.2_SIGNED_ENVELOPE_PROFILE.md"
@@ -35,6 +38,9 @@ on:
       - "schemas/examples/ieac-signed-envelope-synthetic-v0.2.json"
       - "schemas/examples/ieac-jcs-vectors-v0.2.json"
       - "schemas/industry-scitt-decision-statement-v0.1.schema.json"
+      - "schemas/industry-outcome-reconciliation-v0.1.schema.json"
+      - "schemas/examples/ieac-outcome-reconciliation-synthetic-v0.1.json"
+      - "docs/industry/IEAC_OUTCOME_RECONCILIATION_V0.1.md"
       - "schemas/examples/ieac-scitt-decision-statement-synthetic-v0.1.json"
       - "docs/industry/IEAC_SCITT_TRANSPARENCY_V0.1.md"
       - "docs/industry/IEAC_TRUST_V0.2_SIGNED_ENVELOPE_PROFILE.md"
@@ -280,6 +286,46 @@ jobs:
             echo "ERROR: SCITT fixture schema accepted an unauthorized action claim"
             exit 1
           fi
+
+      - name: Validate domain outcome reconciliation and causal claim ceiling
+        run: |
+          set -euo pipefail
+          meta=https://json-schema.org/draft/2020-12/schema
+          schema=schemas/industry-outcome-reconciliation-v0.1.schema.json
+          fixture=schemas/examples/ieac-outcome-reconciliation-synthetic-v0.1.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i "$schema"
+          jq -e '.receipt' "$fixture" > "$RUNNER_TEMP/ieac-outcome-receipt.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$RUNNER_TEMP/ieac-outcome-receipt.json"
+          jq -e '
+            .fixture_schema_version == "luminous.ieac-outcome-fixture.v0.1" and
+            .fixture_status == "synthetic_only" and
+            (.receipt.domain_receipts | length == 2) and
+            (.receipt.metrics | length == 2) and
+            (.receipt.metrics | all(.[]; .interpretation == "observation_only")) and
+            (.receipt as $r | all($r.metrics[]; . as $m | ([ $r.domain_receipts[] | select(.receipt_id == $m.domain_receipt_id) ] | length) == 1)) and
+            .receipt.claim_ceiling == "observation_only" and
+            .receipt.causal_assessment == null and
+            .receipt.intervention.execution_state == "completed" and
+            (.receipt.intervention.execution_receipt_sha256 | test("^[0-9a-f]{64}$")) and
+            .receipt.action_authority == "none" and
+            .expected_checks.claim_ceiling == "observation_only" and
+            .expected_checks.causal_assessment == null and
+            .expected_checks.raw_values_in_transparency_payload == false and
+            .expected_checks.action_authority == "none"
+          ' "$fixture"
+
+          jq '.receipt.claim_ceiling = "causal_effect_estimate"' "$fixture" | jq '.receipt' > "$RUNNER_TEMP/outcome-causal-without-assessment.json"
+          jq '.receipt.metrics[0].interpretation = "causal_effect_estimate"' "$fixture" | jq '.receipt' > "$RUNNER_TEMP/outcome-metric-causal-under-observation-ceiling.json"
+          jq '.receipt.claim_ceiling = "not_identified" | .receipt.metrics[0].interpretation = "causal_effect_estimate"' "$fixture" | jq '.receipt' > "$RUNNER_TEMP/outcome-metric-causal-under-unidentified-ceiling.json"
+          jq '.receipt.metrics[0].missingness = "unavailable"' "$fixture" | jq '.receipt' > "$RUNNER_TEMP/outcome-missing-as-success.json"
+          jq '.receipt.metrics[0].observed = null' "$fixture" | jq '.receipt' > "$RUNNER_TEMP/outcome-null-observation-as-success.json"
+          jq '.receipt.intervention.execution_receipt_sha256 = null' "$fixture" | jq '.receipt' > "$RUNNER_TEMP/outcome-completed-without-execution-receipt.json"
+          for mutant in "$RUNNER_TEMP/outcome-causal-without-assessment.json" "$RUNNER_TEMP/outcome-metric-causal-under-observation-ceiling.json" "$RUNNER_TEMP/outcome-metric-causal-under-unidentified-ceiling.json" "$RUNNER_TEMP/outcome-missing-as-success.json" "$RUNNER_TEMP/outcome-null-observation-as-success.json" "$RUNNER_TEMP/outcome-completed-without-execution-receipt.json"; do
+            if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$mutant"; then
+              echo "ERROR: outcome schema accepted negative control $mutant"
+              exit 1
+            fi
+          done
 
       - name: Prove unknown request fields and malformed time are rejected
         run: |
