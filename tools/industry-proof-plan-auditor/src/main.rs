@@ -555,7 +555,6 @@ fn load_inputs(request: &Value, request_bytes: &[u8], report: &Value) -> Result<
         return Err("candidate action prerequisite graph contains a cycle".into());
     }
 
-    let _ = report_digest;
     Ok(Inputs {
         request_id,
         request_digest,
@@ -858,7 +857,7 @@ fn verify_report(request: &Value, request_bytes: &[u8], report: &Value, report_b
         }
         "no_feasible_plan_found" => {
             if count <= EXACT_LIMIT || method != "deterministic_greedy" || optimality != "not_proven"
-                || !report_actions.is_empty()
+                || !report_actions.is_empty() || unsatisfied.is_empty()
             {
                 return Err("no-feasible-plan-found status is mislabeled".into());
             }
