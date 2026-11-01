@@ -76,7 +76,10 @@ fn reference_valid(manifest: &Value) -> bool {
 
         let evidence = match alt.get("evidence") {
             None => &[][..],
-            Some(v) => match v.as_array() { Some(a) => a.as_slice(), None => return false },
+            Some(v) => match v.as_array() {
+                Some(a) => a.as_slice(),
+                None => return false,
+            },
         };
         let mut evidence_ids = BTreeSet::new();
         for ev in evidence {
@@ -116,17 +119,31 @@ fn reference_valid(manifest: &Value) -> bool {
             None => &[][..],
             Some(v) => match v.as_array() { Some(a) => a.as_slice(), None => return false },
         };
+        const MODEL_DOMAINS: &[&str] = &[
+            "hydrodynamics", "waves", "sediment_morphology", "geotechnical",
+            "structural", "navigation", "flood_risk", "ecology_water_quality",
+        ];
         let mut model_ids = BTreeSet::new();
         for m in models {
-            let Some(id) = m.as_str() else { return false; };
-            if !model_ids.insert(id.to_owned()) { return false; }
+            let Some(id) = m.as_str() else {
+                return false;
+            };
+            if !MODEL_DOMAINS.contains(&id) {
+                return false;
+            }
+            if !model_ids.insert(id.to_owned()) {
+                return false;
+            }
         }
 
         let assumptions = match alt.get("assumptions") {
             None => &[][..],
             Some(v) => match v.as_array() { Some(a) => a.as_slice(), None => return false },
         };
-        if assumptions.iter().any(|a| !a.as_str().is_some_and(|s| !s.trim().is_empty())) {
+        if assumptions
+            .iter()
+            .any(|a| !a.as_str().is_some_and(|s| !s.trim().is_empty()))
+        {
             return false;
         }
     }
@@ -138,18 +155,30 @@ fn frozen_port_study_corpus_matches_independent_oracle() {
     let mut seen = BTreeSet::new();
     let mut count = 0usize;
     for (line_no, line) in CORPUS.lines().enumerate() {
-        if line.trim().is_empty() { continue; }
+        if line.trim().is_empty() {
+            continue;
+        }
         let case: Value = serde_json::from_str(line).expect("fixture JSON must parse");
         let case_id = case["case_id"].as_str().expect("case_id");
-        assert!(seen.insert(case_id.to_owned()), "duplicate case_id at line {}", line_no + 1);
+        assert!(
+            seen.insert(case_id.to_owned()),
+            "duplicate case_id at line {}",
+            line_no + 1
+        );
         let expected = case["expected_valid"].as_bool().expect("expected_valid");
         let manifest_value = &case["manifest"];
         let reference = reference_valid(manifest_value);
         let production = serde_json::from_value::<PortStudyManifest>(manifest_value.clone())
             .map(|m| m.validate().is_ok())
             .unwrap_or(false);
-        assert_eq!(reference, expected, "reference oracle disagreed for {case_id}");
-        assert_eq!(production, expected, "production validator disagreed for {case_id}");
+        assert_eq!(
+            reference, expected,
+            "reference oracle disagreed for {case_id}"
+        );
+        assert_eq!(
+            production, expected,
+            "production validator disagreed for {case_id}"
+        );
         count += 1;
     }
     assert_eq!(count, 34, "frozen corpus size changed without manifest update");
@@ -157,9 +186,13 @@ fn frozen_port_study_corpus_matches_independent_oracle() {
 
 #[test]
 fn canonical_output_is_invariant_to_alternative_order() {
-    let case: Value = serde_json::from_str(CORPUS.lines().find(|line| {
-        line.contains("valid_permuted_collection_order")
-    }).expect("permutation fixture")).unwrap();
+    let case: Value = serde_json::from_str(
+        CORPUS
+            .lines()
+            .find(|line| line.contains("valid_permuted_collection_order"))
+            .expect("permutation fixture"),
+    )
+    .unwrap();
     let manifest: PortStudyManifest = serde_json::from_value(case["manifest"].clone()).unwrap();
     let mut reversed = manifest.clone();
     reversed.alternatives.reverse();
@@ -169,5 +202,8 @@ fn canonical_output_is_invariant_to_alternative_order() {
         alt.required_models.reverse();
         alt.assumptions.reverse();
     }
-    assert_eq!(manifest.canonical_json().unwrap(), reversed.canonical_json().unwrap());
+    assert_eq!(
+        manifest.canonical_json().unwrap(),
+        reversed.canonical_json().unwrap()
+    );
 }
