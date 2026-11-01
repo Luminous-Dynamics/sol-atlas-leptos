@@ -29,3 +29,7 @@ path = "src/bin/admission-benchmark.rs"
 [[bin]]
 name = "industry-admission-corpus-check"
 path = "src/bin/admission-corpus-check.rs"
+
+[[bin]]
+name = "industry-event-history-audit"
+path = "src/bin/event-history-audit.rs"
