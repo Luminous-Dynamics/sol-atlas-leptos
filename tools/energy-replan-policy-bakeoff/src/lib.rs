@@ -22,13 +22,13 @@ pub struct DecisionObservation {
     /// Declared upper uncertainty bound for the current forecast.
     pub uncertainty_bound_kw: u32,
     /// Current estimated usable energy above the hard reserve floor.
-    pub reserve_margin_mwh: u32,
+    pub reserve_margin_units: u32,
     /// Model-estimated avoidable service loss if a new schedule is made.
-    pub estimated_avoidable_loss_mwh: u32,
+    pub estimated_avoidable_loss_units: u32,
     /// Replanning compute cost in the same synthetic accounting units.
-    pub estimated_solver_cost_mwh: u32,
+    pub estimated_solver_cost_units: u32,
     /// Estimated switching/wear cost of changing the current schedule.
-    pub estimated_switching_cost_mwh: u32,
+    pub estimated_switching_cost_units: u32,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -73,9 +73,9 @@ impl PolicyKind {
     /// through this interface.
     fn decide(self, observation: &DecisionObservation) -> ReplanAction {
         let estimated_cost = observation
-            .estimated_solver_cost_mwh
-            .saturating_add(observation.estimated_switching_cost_mwh);
-        let positive_estimated_value = observation.estimated_avoidable_loss_mwh > estimated_cost;
+            .estimated_solver_cost_units
+            .saturating_add(observation.estimated_switching_cost_units);
+        let positive_estimated_value = observation.estimated_avoidable_loss_units > estimated_cost;
 
         match self {
             Self::FixedCadence => {
@@ -107,7 +107,7 @@ impl PolicyKind {
                 }
             }
             Self::HybridSafetyOverride => {
-                let hard_reserve_override = observation.reserve_margin_mwh <= 2_000;
+                let hard_reserve_override = observation.reserve_margin_units <= 2_000;
                 let corroborated_value_trigger = positive_estimated_value
                     && (observation.forecast_residual_kw >= 2_500
                         || observation.uncertainty_bound_kw >= 3_000);
@@ -125,8 +125,8 @@ impl PolicyKind {
 pub struct MaterialEvent {
     pub observable_at_step: u32,
     pub response_deadline_step: u32,
-    pub service_loss_without_replan_mwh: u64,
-    pub service_loss_with_timely_replan_mwh: u64,
+    pub service_loss_without_replan_units: u64,
+    pub service_loss_with_timely_replan_units: u64,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -185,9 +185,9 @@ pub struct PolicyRun {
     pub auditor_unavailable: u32,
     pub accepted_replans: u32,
     pub abstentions: u32,
-    pub service_loss_mwh: u64,
-    pub replanning_cost_mwh: u64,
-    pub total_penalty_mwh: u64,
+    pub service_loss_units: u64,
+    pub replanning_cost_units: u64,
+    pub total_penalty_units: u64,
     pub audited_schedule_latency_steps: Option<u32>,
 }
 
@@ -207,9 +207,9 @@ pub struct AggregateMetrics {
     pub auditor_unavailable: u32,
     pub accepted_replans: u32,
     pub abstentions: u32,
-    pub service_loss_mwh: u64,
-    pub replanning_cost_mwh: u64,
-    pub total_penalty_mwh: u64,
+    pub service_loss_units: u64,
+    pub replanning_cost_units: u64,
+    pub total_penalty_units: u64,
     pub audited_schedule_latency_step_sum: u64,
     pub audited_schedule_latency_event_count: u32,
 }
@@ -259,14 +259,14 @@ fn evaluate_run(policy: PolicyKind, scenario: &Scenario, actions: Vec<ReplanActi
     )
     .unwrap_or(u32::MAX);
     let solver_invocations = u32::try_from(replan_steps.len()).unwrap_or(u32::MAX);
-    let replanning_cost_mwh = scenario
+    let replanning_cost_units = scenario
         .observations
         .iter()
         .zip(&actions)
         .filter(|(_, action)| **action == ReplanAction::RequestReplan)
         .map(|(observation, _)| {
-            u64::from(observation.estimated_solver_cost_mwh)
-                + u64::from(observation.estimated_switching_cost_mwh)
+            u64::from(observation.estimated_solver_cost_units)
+                + u64::from(observation.estimated_switching_cost_units)
         })
         .sum();
 
@@ -328,7 +328,7 @@ fn evaluate_run(policy: PolicyKind, scenario: &Scenario, actions: Vec<ReplanActi
         missed_events,
         false_triggers,
         redundant_triggers,
-        service_loss_mwh,
+        service_loss_units,
         audited_schedule_latency_steps,
     ) = match scenario.truth.material_event {
         None => (0, 0, 0, solver_invocations, 0, 0, None),
@@ -354,9 +354,9 @@ fn evaluate_run(policy: PolicyKind, scenario: &Scenario, actions: Vec<ReplanActi
             .unwrap_or(u32::MAX);
             let detected = usable_at.is_some();
             let service_loss = if detected {
-                event.service_loss_with_timely_replan_mwh
+                event.service_loss_with_timely_replan_units
             } else {
-                event.service_loss_without_replan_mwh
+                event.service_loss_without_replan_units
             };
             (
                 1,
@@ -370,7 +370,7 @@ fn evaluate_run(policy: PolicyKind, scenario: &Scenario, actions: Vec<ReplanActi
         }
     };
 
-    let total_penalty_mwh = service_loss_mwh.saturating_add(replanning_cost_mwh);
+    let total_penalty_units = service_loss_units.saturating_add(replanning_cost_units);
     PolicyRun {
         policy,
         scenario_id: scenario.id.clone(),
@@ -388,9 +388,9 @@ fn evaluate_run(policy: PolicyKind, scenario: &Scenario, actions: Vec<ReplanActi
         auditor_unavailable,
         accepted_replans,
         abstentions,
-        service_loss_mwh,
-        replanning_cost_mwh,
-        total_penalty_mwh,
+        service_loss_units,
+        replanning_cost_units,
+        total_penalty_units,
         audited_schedule_latency_steps,
     }
 }
@@ -415,9 +415,9 @@ pub fn aggregate_runs(runs: &[PolicyRun]) -> AggregateMetrics {
         metrics.auditor_unavailable += run.auditor_unavailable;
         metrics.accepted_replans += run.accepted_replans;
         metrics.abstentions += run.abstentions;
-        metrics.service_loss_mwh += run.service_loss_mwh;
-        metrics.replanning_cost_mwh += run.replanning_cost_mwh;
-        metrics.total_penalty_mwh += run.total_penalty_mwh;
+        metrics.service_loss_units += run.service_loss_units;
+        metrics.replanning_cost_units += run.replanning_cost_units;
+        metrics.total_penalty_units += run.total_penalty_units;
         if let Some(latency) = run.audited_schedule_latency_steps {
             metrics.audited_schedule_latency_step_sum += u64::from(latency);
             metrics.audited_schedule_latency_event_count += 1;
@@ -471,10 +471,10 @@ fn observation(step: u32, variant: u32, telemetry_status: TelemetryStatus) -> De
         telemetry_status,
         forecast_residual_kw: 500 + variant * 100,
         uncertainty_bound_kw: 1_000 + variant * 250,
-        reserve_margin_mwh: 9_000 - variant * 200,
-        estimated_avoidable_loss_mwh: 300 + variant * 20,
-        estimated_solver_cost_mwh: 600,
-        estimated_switching_cost_mwh: 200,
+        reserve_margin_units: 9_000 - variant * 200,
+        estimated_avoidable_loss_units: 300 + variant * 20,
+        estimated_solver_cost_units: 600,
+        estimated_switching_cost_units: 200,
     }
 }
 
@@ -488,34 +488,36 @@ fn build_scenario(kind: ScenarioKind, variant: u32) -> Scenario {
                 if step >= 2 {
                     item.forecast_residual_kw = 1_000 + (step - 2) * 2_000 + variant * 200;
                     item.uncertainty_bound_kw = 2_000 + (step - 2) * 1_000;
-                    item.reserve_margin_mwh = 9_000 - (step - 2) * 1_000 - variant * 100;
+                    item.reserve_margin_units = 9_000 - (step - 2) * 1_000 - variant * 100;
                     if step >= 3 {
-                        item.estimated_avoidable_loss_mwh = 3_500 + variant * 250;
+                        item.estimated_avoidable_loss_units = 3_500 + variant * 250;
                     }
                 }
             }
             ScenarioKind::SuddenOutage => {
                 if step >= 2 {
-                    item.forecast_residual_kw = 12_000;
-                    item.uncertainty_bound_kw = 10_000;
-                    item.reserve_margin_mwh = 1_000 + variant * 100;
-                    item.estimated_avoidable_loss_mwh = 12_000;
+                    // Deliberately under-estimated consequence and weak forecast
+                    // signals: only the hard reserve override should trigger.
+                    item.forecast_residual_kw = 1_000;
+                    item.uncertainty_bound_kw = 1_500;
+                    item.reserve_margin_units = 1_000 + variant * 100;
+                    item.estimated_avoidable_loss_units = 400 + variant * 50;
                 }
             }
             ScenarioKind::NuisanceSpike => {
                 if step == 3 {
                     item.forecast_residual_kw = 9_500;
                     item.uncertainty_bound_kw = 800;
-                    item.reserve_margin_mwh = 9_000;
-                    item.estimated_avoidable_loss_mwh = 100;
+                    item.reserve_margin_units = 9_000;
+                    item.estimated_avoidable_loss_units = 100;
                 }
             }
             ScenarioKind::UncertaintyShock => {
                 if step >= 2 {
                     item.forecast_residual_kw = 1_000;
                     item.uncertainty_bound_kw = 9_000;
-                    item.reserve_margin_mwh = 8_500;
-                    item.estimated_avoidable_loss_mwh = 200;
+                    item.reserve_margin_units = 8_500;
+                    item.estimated_avoidable_loss_units = 200;
                 }
             }
             ScenarioKind::TelemetryGap => {
@@ -526,24 +528,26 @@ fn build_scenario(kind: ScenarioKind, variant: u32) -> Scenario {
                 } else if step >= 4 {
                     item.forecast_residual_kw = 9_000;
                     item.uncertainty_bound_kw = 7_000;
-                    item.reserve_margin_mwh = 4_000;
-                    item.estimated_avoidable_loss_mwh = 5_000;
+                    item.reserve_margin_units = 4_000;
+                    item.estimated_avoidable_loss_units = 5_000;
                 }
             }
             ScenarioKind::HighValueDrift => {
                 if step >= 3 {
-                    item.forecast_residual_kw = 3_000;
-                    item.uncertainty_bound_kw = 3_500;
-                    item.reserve_margin_mwh = 8_500;
-                    item.estimated_avoidable_loss_mwh = 4_000 + variant * 250;
+                    // Large expected decision value but no hard reserve warning
+                    // or corroborating residual/uncertainty signal.
+                    item.forecast_residual_kw = 1_500;
+                    item.uncertainty_bound_kw = 2_000;
+                    item.reserve_margin_units = 8_500;
+                    item.estimated_avoidable_loss_units = 4_000 + variant * 250;
                 }
             }
             ScenarioKind::HeavyTailedShock => {
                 if step >= 4 {
                     item.forecast_residual_kw = 18_000 + variant * 500;
                     item.uncertainty_bound_kw = 12_000;
-                    item.reserve_margin_mwh = 3_000;
-                    item.estimated_avoidable_loss_mwh = 8_000;
+                    item.reserve_margin_units = 3_000;
+                    item.estimated_avoidable_loss_units = 8_000;
                 }
             }
         }
@@ -554,32 +558,32 @@ fn build_scenario(kind: ScenarioKind, variant: u32) -> Scenario {
         ScenarioKind::SlowDrift => Some(MaterialEvent {
             observable_at_step: 2,
             response_deadline_step: 5,
-            service_loss_without_replan_mwh: 7_000 + u64::from(variant) * 500,
-            service_loss_with_timely_replan_mwh: 2_000 + u64::from(variant) * 100,
+            service_loss_without_replan_units: 7_000 + u64::from(variant) * 500,
+            service_loss_with_timely_replan_units: 2_000 + u64::from(variant) * 100,
         }),
         ScenarioKind::SuddenOutage => Some(MaterialEvent {
             observable_at_step: 2,
             response_deadline_step: 3,
-            service_loss_without_replan_mwh: 14_000 + u64::from(variant) * 500,
-            service_loss_with_timely_replan_mwh: 1_500 + u64::from(variant) * 100,
+            service_loss_without_replan_units: 14_000 + u64::from(variant) * 500,
+            service_loss_with_timely_replan_units: 1_500 + u64::from(variant) * 100,
         }),
         ScenarioKind::TelemetryGap => Some(MaterialEvent {
             observable_at_step: 4,
             response_deadline_step: 6,
-            service_loss_without_replan_mwh: 8_000 + u64::from(variant) * 300,
-            service_loss_with_timely_replan_mwh: 2_500 + u64::from(variant) * 100,
+            service_loss_without_replan_units: 8_000 + u64::from(variant) * 300,
+            service_loss_with_timely_replan_units: 2_500 + u64::from(variant) * 100,
         }),
         ScenarioKind::HighValueDrift => Some(MaterialEvent {
             observable_at_step: 3,
             response_deadline_step: 5,
-            service_loss_without_replan_mwh: 6_500 + u64::from(variant) * 400,
-            service_loss_with_timely_replan_mwh: 1_500 + u64::from(variant) * 100,
+            service_loss_without_replan_units: 6_500 + u64::from(variant) * 400,
+            service_loss_with_timely_replan_units: 1_500 + u64::from(variant) * 100,
         }),
         ScenarioKind::HeavyTailedShock => Some(MaterialEvent {
             observable_at_step: 4,
             response_deadline_step: 5,
-            service_loss_without_replan_mwh: 16_000 + u64::from(variant) * 600,
-            service_loss_with_timely_replan_mwh: 2_000 + u64::from(variant) * 150,
+            service_loss_without_replan_units: 16_000 + u64::from(variant) * 600,
+            service_loss_with_timely_replan_units: 2_000 + u64::from(variant) * 150,
         }),
         ScenarioKind::Nominal | ScenarioKind::NuisanceSpike | ScenarioKind::UncertaintyShock => {
             None
@@ -587,12 +591,78 @@ fn build_scenario(kind: ScenarioKind, variant: u32) -> Scenario {
     };
 
     let replan_executions = (0..8)
-        .map(|requested_at_step| ReplanExecutionTruth {
-            requested_at_step,
-            solve_outcome: SolveOutcomeTruth::Completed {
+        .map(|requested_at_step| {
+            let mut solve_outcome = SolveOutcomeTruth::Completed {
                 completed_at_step: requested_at_step + 1,
-            },
-            audit_outcome: AuditOutcomeTruth::Accepted,
+            };
+            let mut audit_outcome = AuditOutcomeTruth::Accepted;
+
+            match kind {
+                ScenarioKind::SlowDrift if requested_at_step >= 4 => {
+                    solve_outcome = SolveOutcomeTruth::Completed {
+                        completed_at_step: requested_at_step + 2,
+                    };
+                }
+                ScenarioKind::SuddenOutage if requested_at_step == 3 => {
+                    solve_outcome = SolveOutcomeTruth::Completed {
+                        completed_at_step: requested_at_step + 1,
+                    };
+                }
+                ScenarioKind::NuisanceSpike if requested_at_step == 3 => {
+                    audit_outcome = AuditOutcomeTruth::Rejected;
+                }
+                ScenarioKind::UncertaintyShock
+                    if requested_at_step == 2 && variant.is_multiple_of(2) =>
+                {
+                    audit_outcome = AuditOutcomeTruth::Unavailable;
+                }
+                ScenarioKind::TelemetryGap if variant.is_multiple_of(2) => {
+                    if requested_at_step == 4 {
+                        audit_outcome = AuditOutcomeTruth::Unavailable;
+                    } else if requested_at_step >= 5 {
+                        solve_outcome = SolveOutcomeTruth::TimedOut;
+                    }
+                }
+                ScenarioKind::HighValueDrift if requested_at_step == 4 => {
+                    audit_outcome = AuditOutcomeTruth::Rejected;
+                }
+                ScenarioKind::HighValueDrift if requested_at_step == 5 => {
+                    solve_outcome = SolveOutcomeTruth::Completed {
+                        completed_at_step: requested_at_step + 2,
+                    };
+                }
+                ScenarioKind::HeavyTailedShock if variant.is_multiple_of(2) => {
+                    if requested_at_step == 4 || requested_at_step >= 6 {
+                        solve_outcome = SolveOutcomeTruth::TimedOut;
+                    } else if requested_at_step == 5 {
+                        audit_outcome = AuditOutcomeTruth::Rejected;
+                    }
+                }
+                ScenarioKind::HeavyTailedShock => {
+                    if requested_at_step == 4 {
+                        solve_outcome = SolveOutcomeTruth::Completed {
+                            completed_at_step: requested_at_step + 2,
+                        };
+                    } else if requested_at_step == 5 {
+                        audit_outcome = AuditOutcomeTruth::Unavailable;
+                    } else if requested_at_step >= 6 {
+                        solve_outcome = SolveOutcomeTruth::Infeasible;
+                    }
+                }
+                ScenarioKind::Nominal
+                | ScenarioKind::SlowDrift
+                | ScenarioKind::SuddenOutage
+                | ScenarioKind::NuisanceSpike
+                | ScenarioKind::UncertaintyShock
+                | ScenarioKind::TelemetryGap
+                | ScenarioKind::HighValueDrift => {}
+            }
+
+            ReplanExecutionTruth {
+                requested_at_step,
+                solve_outcome,
+                audit_outcome,
+            }
         })
         .collect();
 
@@ -657,8 +727,8 @@ mod tests {
             let mut item = observation(3, 0, status);
             item.forecast_residual_kw = 99_000;
             item.uncertainty_bound_kw = 99_000;
-            item.reserve_margin_mwh = 0;
-            item.estimated_avoidable_loss_mwh = 99_000;
+            item.reserve_margin_units = 0;
+            item.estimated_avoidable_loss_units = 99_000;
             for policy in PolicyKind::ALL {
                 let scenario = Scenario {
                     id: "invalid-telemetry".to_owned(),
@@ -678,8 +748,8 @@ mod tests {
         counterfactual.truth.material_event = Some(MaterialEvent {
             observable_at_step: 7,
             response_deadline_step: 7,
-            service_loss_without_replan_mwh: 1,
-            service_loss_with_timely_replan_mwh: 0,
+            service_loss_without_replan_units: 1,
+            service_loss_with_timely_replan_units: 0,
         });
 
         for policy in PolicyKind::ALL {
@@ -692,8 +762,8 @@ mod tests {
     #[test]
     fn hybrid_policy_triggers_on_hard_reserve_override() {
         let mut item = observation(1, 0, TelemetryStatus::Fresh);
-        item.reserve_margin_mwh = 1_000;
-        item.estimated_avoidable_loss_mwh = 0;
+        item.reserve_margin_units = 1_000;
+        item.estimated_avoidable_loss_units = 0;
         assert_eq!(
             PolicyKind::HybridSafetyOverride.decide(&item),
             ReplanAction::RequestReplan
@@ -730,13 +800,67 @@ mod tests {
         scenario.truth.material_event = Some(MaterialEvent {
             observable_at_step: 2,
             response_deadline_step: 2,
-            service_loss_without_replan_mwh: 5_000,
-            service_loss_with_timely_replan_mwh: 1_000,
+            service_loss_without_replan_units: 5_000,
+            service_loss_with_timely_replan_units: 1_000,
         });
         let run = run_policy(PolicyKind::FixedCadence, &scenario);
         assert_eq!(run.missed_events, 1);
         assert_eq!(run.timely_detections, 0);
-        assert_eq!(run.service_loss_mwh, 5_000);
+        assert_eq!(run.service_loss_units, 5_000);
+    }
+
+    #[test]
+    fn hybrid_reserve_override_detects_an_outage_that_value_policy_underestimates() {
+        let scenario = scenario_of(ScenarioKind::SuddenOutage, 0);
+        let hybrid = run_policy(PolicyKind::HybridSafetyOverride, &scenario);
+        let value = run_policy(PolicyKind::DecisionValue, &scenario);
+
+        assert_eq!(hybrid.timely_detections, 1);
+        assert_eq!(hybrid.missed_events, 0);
+        assert_eq!(value.timely_detections, 0);
+        assert_eq!(value.missed_events, 1);
+    }
+
+    #[test]
+    fn decision_value_detects_high_value_drift_without_a_hard_reserve_override() {
+        let scenario = scenario_of(ScenarioKind::HighValueDrift, 0);
+        let value = run_policy(PolicyKind::DecisionValue, &scenario);
+        let hybrid = run_policy(PolicyKind::HybridSafetyOverride, &scenario);
+
+        assert_eq!(value.timely_detections, 1);
+        assert_eq!(value.missed_events, 0);
+        assert_eq!(hybrid.timely_detections, 0);
+        assert_eq!(hybrid.missed_events, 1);
+    }
+
+    #[test]
+    fn frozen_panel_exercises_solve_and_independent_audit_failure_denominators() {
+        let scenarios = frozen_scenarios();
+        let has_timeout = scenarios.iter().any(|scenario| {
+            scenario.truth.replan_executions.iter().any(|execution| {
+                execution.solve_outcome == SolveOutcomeTruth::TimedOut
+            })
+        });
+        let has_infeasible = scenarios.iter().any(|scenario| {
+            scenario.truth.replan_executions.iter().any(|execution| {
+                execution.solve_outcome == SolveOutcomeTruth::Infeasible
+            })
+        });
+        let has_rejection = scenarios.iter().any(|scenario| {
+            scenario.truth.replan_executions.iter().any(|execution| {
+                execution.audit_outcome == AuditOutcomeTruth::Rejected
+            })
+        });
+        let has_unavailable = scenarios.iter().any(|scenario| {
+            scenario.truth.replan_executions.iter().any(|execution| {
+                execution.audit_outcome == AuditOutcomeTruth::Unavailable
+            })
+        });
+
+        assert!(has_timeout);
+        assert!(has_infeasible);
+        assert!(has_rejection);
+        assert!(has_unavailable);
     }
 
     #[test]
