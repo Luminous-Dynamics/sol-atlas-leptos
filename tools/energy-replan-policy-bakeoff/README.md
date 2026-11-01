@@ -20,7 +20,7 @@ The evaluator has a separate ScenarioTruth object containing material-event obse
 
 ## Frozen synthetic panel
 
-The initial panel has 32 scenarios: four variants each of nominal operation, slow forecast drift, sudden outage, nuisance forecast spike, uncertainty shock, telemetry gap, high-value drift and heavy-tailed shock.
+The initial panel has 32 scenarios: four variants each of nominal operation, slow forecast drift, sudden outage, nuisance forecast spike, uncertainty shock, telemetry gap, high-value drift and heavy-tailed shock. Execution truth includes late completion, timeout, infeasibility, rejected audit and unavailable audit cases.
 
 It is a deterministic authored/generative synthetic panel. It is not a real weather, load, tariff, asset, or grid trace.
 
@@ -28,7 +28,7 @@ It is a deterministic authored/generative synthetic panel. It is not a real weat
 
 The report keeps separate columns for scenario count, event count, timely detections, missed events, false triggers, redundant triggers, solver invocations, abstentions, service-loss proxy, replanning cost proxy, total penalty proxy and mean event-detection latency.
 
-There is no single scalar winner and no authority output. The total penalty is a synthetic unit-comparable accounting field for this panel only; policy comparison should also inspect the underlying service-loss and compute/switching components.
+There is no single scalar winner and no authority output. All loss/cost fields are dimensionless benchmark units, not kWh, MWh, currency or measured battery degradation. The total penalty is a synthetic unit-comparable accounting field for this panel only; policy comparison should also inspect the underlying service-loss and compute/switching components.
 
 ## Claim ceiling
 
