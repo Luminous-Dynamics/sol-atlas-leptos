@@ -957,7 +957,7 @@ fn trace_to_csv(trace: &SolverTrace) -> String {
             .unwrap_or_else(|| "NA".to_owned())
     };
     format!(
-        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
+        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
         trace.schema_version,
         trace.measurement_class.as_str(),
         trace.cohort_id,
