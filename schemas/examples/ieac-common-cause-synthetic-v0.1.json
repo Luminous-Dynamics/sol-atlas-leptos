@@ -291,20 +291,20 @@
   },
   "expected": {
     "numerical_known_answers": {
-      "maximum_independent_count": 2,
-      "maximum_independent_source_ids": [
+      "threshold_met": true,
+      "independent_source_count": 2,
+      "independent_source_ids": [
         "num-alpha",
         "num-gamma"
-      ],
-      "threshold_met": true
+      ]
     },
     "physical_reference_validation": {
-      "maximum_independent_count": 2,
-      "maximum_independent_source_ids": [
+      "threshold_met": true,
+      "independent_source_count": 2,
+      "independent_source_ids": [
         "physical-delta",
         "physical-zeta"
-      ],
-      "threshold_met": true
+      ]
     }
   }
 }
