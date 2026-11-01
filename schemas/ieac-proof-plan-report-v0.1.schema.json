@@ -29,7 +29,9 @@
     "control_coverage",
     "execution_order",
     "independence_registry_sha256",
-    "control_mapping_policy_sha256"
+    "control_mapping_policy_sha256",
+    "human_approval_controls",
+    "human_approval_actions"
   ],
   "properties": {
     "schema_version": {
@@ -411,6 +413,24 @@
     "control_mapping_policy_sha256": {
       "type": "string",
       "pattern": "^[0-9a-f]{64}$"
+    },
+    "human_approval_controls": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128
+      }
+    },
+    "human_approval_actions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128
+      }
     }
   },
   "allOf": [
