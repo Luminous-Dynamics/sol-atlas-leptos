@@ -253,6 +253,7 @@ struct Action {
     human_approval_required: bool,
     mapping_policy_sha256: String,
     independence_registry_sha256: String,
+    rights_evidence_sha256: String,
     rights_status: String,
     rights_verified_at: String,
     rights_valid_until: Option<String>,
@@ -829,7 +830,8 @@ fn report_for(
             "artifact_sha256": row.artifact_sha256,
             "verifier_build_sha256": row.verifier_build_sha256,
             "independence_domain_id": row.domain_id,
-            "independence_registry_sha256": row.independence_registry_sha256
+            "independence_registry_sha256": row.independence_registry_sha256,
+            "rights_evidence_sha256": row.rights_evidence_sha256
         })).collect::<Vec<_>>()).unwrap_or_default();
         coverage.push(json!({
             "control_id": control,
