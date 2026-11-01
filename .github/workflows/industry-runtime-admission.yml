@@ -13,6 +13,8 @@ on:
       - "schemas/examples/ieac-signed-envelope-synthetic-v0.2.json"
       - "schemas/examples/ieac-jcs-vectors-v0.2.json"
       - "schemas/industry-scitt-decision-statement-v0.1.schema.json"
+      - "schemas/industry-scitt-event-history-audit-report-v0.1.schema.json"
+      - "docs/industry/IEAC_EVENT_HISTORY_AUDITOR_V0.1.md"
       - "schemas/examples/ieac-scitt-decision-statement-synthetic-v0.1.json"
       - "docs/industry/IEAC_SCITT_TRANSPARENCY_V0.1.md"
       - "docs/industry/IEAC_TRUST_V0.2_SIGNED_ENVELOPE_PROFILE.md"
@@ -35,6 +37,8 @@ on:
       - "schemas/examples/ieac-signed-envelope-synthetic-v0.2.json"
       - "schemas/examples/ieac-jcs-vectors-v0.2.json"
       - "schemas/industry-scitt-decision-statement-v0.1.schema.json"
+      - "schemas/industry-scitt-event-history-audit-report-v0.1.schema.json"
+      - "docs/industry/IEAC_EVENT_HISTORY_AUDITOR_V0.1.md"
       - "schemas/examples/ieac-scitt-decision-statement-synthetic-v0.1.json"
       - "docs/industry/IEAC_SCITT_TRANSPARENCY_V0.1.md"
       - "docs/industry/IEAC_TRUST_V0.2_SIGNED_ENVELOPE_PROFILE.md"
@@ -140,6 +144,44 @@ jobs:
             ${{ runner.temp }}/ieac-admission-cases.jsonl
           if-no-files-found: warn
           retention-days: 30
+
+      - name: Execute IEAC SCITT event-history structural auditor
+        run: |
+          set +e
+          cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked --bin industry-event-history-audit -- \
+            schemas/examples/ieac-scitt-decision-statement-synthetic-v0.1.json \
+            "$RUNNER_TEMP/ieac-event-history-report.json"
+          audit_status=$?
+          set -e
+          test "$audit_status" -eq 3
+          jq -e '
+            .schema_version == "luminous.ieac-scitt-event-history-audit-report.v0.1" and
+            .status == "valid_incomplete" and
+            .structural_integrity == "valid" and
+            .history_completeness == "not_established" and
+            .event_count == 4 and
+            .issuer_stream_count == 3 and
+            .matched_event_payload_digests == 4 and
+            .causal_and_predecessor_edge_count == 4 and
+            .invalid_finding_count == 0 and
+            .claim_ceiling == "record_only" and
+            .action_authority == "none"
+          ' "$RUNNER_TEMP/ieac-event-history-report.json"
+
+          jq '.expected.event_payload_sha256["event-verdict-001"] = "0000000000000000000000000000000000000000000000000000000000000000"' \
+            schemas/examples/ieac-scitt-decision-statement-synthetic-v0.1.json > "$RUNNER_TEMP/ieac-event-history-mutated.json"
+          set +e
+          cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked --bin industry-event-history-audit -- \
+            "$RUNNER_TEMP/ieac-event-history-mutated.json" \
+            "$RUNNER_TEMP/ieac-event-history-mutated-report.json"
+          mutated_status=$?
+          set -e
+          test "$mutated_status" -eq 2
+          jq -e '
+            .status == "invalid" and
+            .structural_integrity == "invalid" and
+            .invalid_finding_count > 0
+          ' "$RUNNER_TEMP/ieac-event-history-mutated-report.json"
 
       - name: Prove locked dependency graphs remain committed
         run: git diff --exit-code -- tools/industry-assurance-validator/Cargo.lock tools/industry-runtime-admission/Cargo.lock
