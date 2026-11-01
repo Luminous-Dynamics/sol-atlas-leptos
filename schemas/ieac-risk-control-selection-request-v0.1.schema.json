@@ -1,0 +1,232 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/ieac-risk-control-selection-request-v0.1.schema.json",
+  "title": "IEAC Risk Control Selection Request v0.1",
+  "description": "Risk vector, decision tier and externally reported control evidence supplied to the pure requirements selector. It is not an IEAC qualification profile.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_id",
+    "decision_tier",
+    "risk_assessment",
+    "evaluated_at",
+    "control_evidence"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.ieac-risk-control-selection-request.v0.1"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "decision_tier": {
+      "enum": [
+        "D0_descriptive",
+        "D1_advisory",
+        "D2_delegated_planning",
+        "D3_autonomous_control"
+      ]
+    },
+    "risk_assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reviewed_class",
+        "dimensions"
+      ],
+      "properties": {
+        "reviewed_class": {
+          "enum": [
+            "low",
+            "moderate",
+            "high",
+            "critical",
+            "unassessed"
+          ]
+        },
+        "dimensions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "consequence",
+            "model_influence",
+            "exposure",
+            "reversibility",
+            "detectability",
+            "fallback"
+          ],
+          "properties": {
+            "consequence": {
+              "enum": [
+                "negligible",
+                "minor",
+                "major",
+                "severe",
+                "catastrophic",
+                "unknown"
+              ]
+            },
+            "model_influence": {
+              "enum": [
+                "informational",
+                "advisory",
+                "constraint_gating",
+                "selection",
+                "direct_actuation",
+                "unknown"
+              ]
+            },
+            "exposure": {
+              "enum": [
+                "single_asset",
+                "site_or_facility",
+                "multi_site",
+                "regional",
+                "national_or_larger",
+                "unknown"
+              ]
+            },
+            "reversibility": {
+              "enum": [
+                "readily_reversible",
+                "costly_or_delayed",
+                "difficult_or_irreversible",
+                "unknown"
+              ]
+            },
+            "detectability": {
+              "enum": [
+                "immediate_and_reliable",
+                "delayed_or_partial",
+                "poor",
+                "unknown"
+              ]
+            },
+            "fallback": {
+              "enum": [
+                "independent_tested_fallback",
+                "human_fallback",
+                "degraded_fallback",
+                "no_verified_fallback",
+                "unknown"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "conflicted_dimensions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "consequence",
+          "model_influence",
+          "exposure",
+          "reversibility",
+          "detectability",
+          "fallback"
+        ]
+      }
+    },
+    "evaluated_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$",
+      "format": "date-time"
+    },
+    "control_evidence": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "control_id",
+          "artifact_sha256",
+          "status",
+          "verifier_id",
+          "verified_at",
+          "valid_until"
+        ],
+        "properties": {
+          "control_id": {
+            "enum": [
+              "artifact_identity_integrity",
+              "schema_interface_conformance",
+              "source_rights_lineage",
+              "numerical_known_answers",
+              "unit_semantics_validation",
+              "physical_reference_validation",
+              "uncertainty_calibration",
+              "out_of_domain_abstention",
+              "human_review_override",
+              "operational_monitoring",
+              "prospective_outcome_reconciliation",
+              "independent_constraint_reconstruction",
+              "group_disjoint_holdout",
+              "compound_fault_stress",
+              "rollback_recovery_test",
+              "dual_control_authorization",
+              "shadow_hardware_in_loop_trial",
+              "safe_fallback_validation",
+              "independent_safety_case",
+              "hazard_analysis",
+              "independent_safety_assessment",
+              "secure_control_boundary",
+              "hardware_in_loop_qualification",
+              "fail_safe_emergency_stop",
+              "continuous_requalification",
+              "field_operational_authorization",
+              "cross_site_replication",
+              "drift_detection",
+              "common_cause_scenario_test",
+              "regional_failover_drill",
+              "staged_rollout",
+              "incident_response_playbook",
+              "independent_monitoring",
+              "redundant_measurement",
+              "human_response_sla",
+              "degraded_mode_qualification",
+              "tested_safe_stop",
+              "request_measurement_or_abstain"
+            ]
+          },
+          "artifact_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "status": {
+            "enum": [
+              "verified",
+              "unverified",
+              "expired",
+              "conflicted"
+            ]
+          },
+          "verifier_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "verified_at": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$",
+            "format": "date-time"
+          },
+          "valid_until": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+          }
+        }
+      }
+    }
+  }
+}
