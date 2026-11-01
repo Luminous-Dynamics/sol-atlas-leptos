@@ -75,8 +75,7 @@ impl PolicyKind {
         let estimated_cost = observation
             .estimated_solver_cost_mwh
             .saturating_add(observation.estimated_switching_cost_mwh);
-        let positive_estimated_value =
-            observation.estimated_avoidable_loss_mwh > estimated_cost;
+        let positive_estimated_value = observation.estimated_avoidable_loss_mwh > estimated_cost;
 
         match self {
             Self::FixedCadence => {
@@ -181,8 +180,7 @@ pub struct AggregateMetrics {
 impl AggregateMetrics {
     pub fn mean_detection_latency_steps(&self) -> Option<f64> {
         (self.detection_latency_event_count > 0).then(|| {
-            self.detection_latency_step_sum as f64
-                / f64::from(self.detection_latency_event_count)
+            self.detection_latency_step_sum as f64 / f64::from(self.detection_latency_event_count)
         })
     }
 }
@@ -203,11 +201,7 @@ pub fn run_policy(policy: PolicyKind, scenario: &Scenario) -> PolicyRun {
     evaluate_run(policy, scenario, actions)
 }
 
-fn evaluate_run(
-    policy: PolicyKind,
-    scenario: &Scenario,
-    actions: Vec<ReplanAction>,
-) -> PolicyRun {
+fn evaluate_run(policy: PolicyKind, scenario: &Scenario, actions: Vec<ReplanAction>) -> PolicyRun {
     let replan_steps: Vec<u32> = scenario
         .observations
         .iter()
@@ -365,11 +359,7 @@ impl ScenarioKind {
     }
 }
 
-fn observation(
-    step: u32,
-    variant: u32,
-    telemetry_status: TelemetryStatus,
-) -> DecisionObservation {
+fn observation(step: u32, variant: u32, telemetry_status: TelemetryStatus) -> DecisionObservation {
     DecisionObservation {
         step,
         telemetry_status,
@@ -485,7 +475,9 @@ fn build_scenario(kind: ScenarioKind, variant: u32) -> Scenario {
             service_loss_without_replan_mwh: 16_000 + u64::from(variant) * 600,
             service_loss_with_timely_replan_mwh: 2_000 + u64::from(variant) * 150,
         }),
-        ScenarioKind::Nominal | ScenarioKind::NuisanceSpike | ScenarioKind::UncertaintyShock => None,
+        ScenarioKind::Nominal | ScenarioKind::NuisanceSpike | ScenarioKind::UncertaintyShock => {
+            None
+        }
     };
 
     Scenario {
