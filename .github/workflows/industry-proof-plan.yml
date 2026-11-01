@@ -104,7 +104,7 @@ jobs:
             .unsatisfied_controls == [] and
             .action_authority == "none" and
             .qualification_attested == false and
-            .selected_actions == (.selected_actions | sort_by(.action_id))
+            ([.selected_actions[].action_id] == .execution_order)
           ' "$RUNNER_TEMP/proof-plan-report.json"
           jq -e --slurpfile expected <(jq '.expected' schemas/examples/ieac-proof-plan-synthetic-v0.1.json) '
             ([.selected_actions[].action_id] | sort) == ($expected[0].selected_action_ids | sort) and
