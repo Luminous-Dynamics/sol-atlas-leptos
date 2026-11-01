@@ -1000,7 +1000,7 @@ mod tests {
         let mut request = base.clone();
         let original = request["sources"].as_array().unwrap().clone();
         let mut rows = original.clone();
-        while rows.len() < 21 {
+        while rows.len() < 24 {
             let index = rows.len();
             let mut row = original[2].clone();
             row["source_id"] = json!(format!("large-source-{index:03}"));
@@ -1010,8 +1010,39 @@ mod tests {
         request["sources"] = json!(rows);
         let bytes = serde_json::to_vec(&request).unwrap();
         let report = evaluate(&request, &bytes).unwrap();
-        assert!(report["control_results"].as_array().unwrap().iter()
-            .all(|row| row["optimality_status"] == "lower_bound_not_proven"));
+        let numerical = report["control_results"].as_array().unwrap().iter()
+            .find(|row| row["control_id"] == "numerical_known_answers").unwrap();
+        let physical = report["control_results"].as_array().unwrap().iter()
+            .find(|row| row["control_id"] == "physical_reference_validation").unwrap();
+        assert_eq!(numerical["method"], "deterministic_greedy_lower_bound");
+        assert_eq!(numerical["optimality_status"], "lower_bound_not_proven");
+        assert_eq!(physical["method"], "exact_maximum_independent_set");
+        assert_eq!(physical["optimality_status"], "proven_optimal");
+    }
+
+    #[test]
+    fn unknown_dependency_set_cannot_claim_more_than_one_independent_source() {
+        let mut request = request();
+        request["control_requirements"][0]["minimum_independent_sources"] = json!(2);
+        request["registry"]["domains"][0]["dependency_completeness"] = json!("unknown");
+        let registry_bytes = serde_json::to_vec(&request["registry"]).unwrap();
+        request["registry_sha256"] = json!(sha256_hex(&registry_bytes));
+        let report = evaluate_fixture(&request);
+        let row = report["control_results"].as_array().unwrap().iter()
+            .find(|item| item["control_id"] == "numerical_known_answers").unwrap();
+        assert!(row["independent_source_count"].as_u64().unwrap() <= 2);
+        assert_eq!(row["threshold_met"], true);
+        assert_eq!(row["optimality_status"], "proven_optimal");
+    }
+
+    #[test]
+    fn registry_validity_expiry_is_fail_closed() {
+        let mut request = request();
+        request["registry"]["valid_until"] = json!("2026-10-31T23:59:59Z");
+        let registry_bytes = serde_json::to_vec(&request["registry"]).unwrap();
+        request["registry_sha256"] = json!(sha256_hex(&registry_bytes));
+        let bytes = serde_json::to_vec(&request).unwrap();
+        assert!(evaluate(&request, &bytes).is_err());
     }
 
     #[test]
