@@ -22,7 +22,8 @@
     "independence_registry_sha256",
     "control_mapping_policy_sha256",
     "currency_code",
-    "compute_unit_id"
+    "compute_unit_id",
+    "control_mappings"
   ],
   "properties": {
     "schema_version": {
@@ -373,6 +374,75 @@
       "minLength": 1,
       "maxLength": 64,
       "pattern": "^[a-z0-9][a-z0-9._:-]*$"
+    },
+    "control_mappings": {
+      "type": "array",
+      "maxItems": 512,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mapping_id",
+          "action_id",
+          "action_sha256",
+          "control_id",
+          "evidence_dimension",
+          "proof_method_id",
+          "required_verifier_role",
+          "independence_domain_id"
+        ],
+        "properties": {
+          "mapping_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "action_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "action_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "control_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "evidence_dimension": {
+            "enum": [
+              "software_conformance",
+              "numerical_verification",
+              "physical_validation",
+              "data_integrity_rights",
+              "uncertainty_credibility",
+              "generalization",
+              "robustness",
+              "operational_assurance",
+              "safety_security_authority",
+              "prospective_outcomes"
+            ]
+          },
+          "proof_method_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "required_verifier_role": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "independence_domain_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        }
+      }
     }
   }
 }
