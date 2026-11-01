@@ -26,7 +26,7 @@ It is a deterministic authored/generative synthetic panel. It is not a real weat
 
 ## Metrics
 
-The report keeps separate columns for scenario count, event count, timely detections, missed events, false triggers, redundant triggers, solver invocations, abstentions, service-loss proxy, replanning cost proxy, total penalty proxy and mean event-detection latency.
+The report keeps separate columns for scenario count, event count, timely detections, missed events, false triggers, redundant triggers, solver requests, completions, failures, late completions, audit rejections, audit unavailability, accepted replans, abstentions, synthetic service-loss units, replanning-cost units, total-penalty units and mean time-to-audited-usable-schedule.
 
 There is no single scalar winner and no authority output. All loss/cost fields are dimensionless benchmark units, not kWh, MWh, currency or measured battery degradation. The total penalty is a synthetic unit-comparable accounting field for this panel only; policy comparison should also inspect the underlying service-loss and compute/switching components.
 
