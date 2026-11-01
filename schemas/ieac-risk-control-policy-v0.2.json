@@ -152,19 +152,31 @@
         "out_of_domain_abstention"
       ],
       "constraint_gating": [
+        "human_review_override",
+        "uncertainty_calibration",
+        "out_of_domain_abstention",
         "independent_constraint_reconstruction",
         "group_disjoint_holdout",
         "compound_fault_stress",
         "operational_monitoring"
       ],
       "selection": [
+        "human_review_override",
+        "uncertainty_calibration",
+        "out_of_domain_abstention",
         "independent_constraint_reconstruction",
         "group_disjoint_holdout",
-        "uncertainty_calibration",
-        "human_review_override",
-        "compound_fault_stress"
+        "compound_fault_stress",
+        "operational_monitoring"
       ],
       "direct_actuation": [
+        "human_review_override",
+        "uncertainty_calibration",
+        "out_of_domain_abstention",
+        "independent_constraint_reconstruction",
+        "group_disjoint_holdout",
+        "compound_fault_stress",
+        "operational_monitoring",
         "independent_safety_case",
         "hazard_analysis",
         "independent_safety_assessment",
@@ -177,6 +189,9 @@
         "safe_fallback_validation"
       ],
       "unknown": [
+        "human_review_override",
+        "uncertainty_calibration",
+        "out_of_domain_abstention",
         "independent_constraint_reconstruction",
         "group_disjoint_holdout",
         "compound_fault_stress",
@@ -202,29 +217,39 @@
       ],
       "multi_site": [
         "group_disjoint_holdout",
+        "operational_monitoring",
         "cross_site_replication",
         "drift_detection"
       ],
       "regional": [
+        "group_disjoint_holdout",
+        "operational_monitoring",
         "cross_site_replication",
+        "drift_detection",
         "common_cause_scenario_test",
         "regional_failover_drill",
         "continuous_requalification"
       ],
       "national_or_larger": [
+        "group_disjoint_holdout",
+        "operational_monitoring",
         "cross_site_replication",
+        "drift_detection",
         "common_cause_scenario_test",
         "regional_failover_drill",
-        "independent_safety_assessment",
         "continuous_requalification",
+        "independent_safety_assessment",
         "field_operational_authorization"
       ],
       "unknown": [
+        "group_disjoint_holdout",
+        "operational_monitoring",
         "cross_site_replication",
+        "drift_detection",
         "common_cause_scenario_test",
         "regional_failover_drill",
-        "independent_safety_assessment",
         "continuous_requalification",
+        "independent_safety_assessment",
         "field_operational_authorization",
         "request_measurement_or_abstain"
       ]
@@ -237,17 +262,21 @@
         "staged_rollout"
       ],
       "difficult_or_irreversible": [
+        "rollback_recovery_test",
+        "human_review_override",
+        "staged_rollout",
         "dual_control_authorization",
         "independent_safety_assessment",
         "safe_fallback_validation",
-        "staged_rollout",
         "field_operational_authorization"
       ],
       "unknown": [
+        "rollback_recovery_test",
+        "human_review_override",
+        "staged_rollout",
         "dual_control_authorization",
         "independent_safety_assessment",
         "safe_fallback_validation",
-        "staged_rollout",
         "field_operational_authorization",
         "request_measurement_or_abstain"
       ]
@@ -289,24 +318,33 @@
         "safe_fallback_validation"
       ],
       "human_fallback": [
+        "safe_fallback_validation",
         "human_review_override",
         "human_response_sla"
       ],
       "degraded_fallback": [
         "safe_fallback_validation",
+        "human_review_override",
+        "human_response_sla",
         "degraded_mode_qualification",
         "operational_monitoring"
       ],
       "no_verified_fallback": [
         "safe_fallback_validation",
-        "tested_safe_stop",
         "human_review_override",
+        "human_response_sla",
+        "degraded_mode_qualification",
+        "operational_monitoring",
+        "tested_safe_stop",
         "field_operational_authorization"
       ],
       "unknown": [
         "safe_fallback_validation",
-        "tested_safe_stop",
         "human_review_override",
+        "human_response_sla",
+        "degraded_mode_qualification",
+        "operational_monitoring",
+        "tested_safe_stop",
         "field_operational_authorization",
         "request_measurement_or_abstain"
       ]
