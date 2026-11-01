@@ -92,7 +92,9 @@ impl fmt::Display for MeshError {
         match self {
             Self::EmptyEventId => formatter.write_str("event identifier must not be empty"),
             Self::DuplicateEventId => formatter.write_str("event identifiers must be unique"),
-            Self::InvalidEventWindow => formatter.write_str("event window must be non-empty and inside the horizon"),
+            Self::InvalidEventWindow => {
+                formatter.write_str("event window must be non-empty and inside the horizon")
+            }
             Self::SafetyBudgetInsufficient {
                 minimum_required,
                 available,
@@ -180,11 +182,7 @@ fn event_segment_indices(segments: &[Segment], event: &TemporalRisk) -> Vec<usiz
         .collect()
 }
 
-fn additional_cost(
-    segments: &[Segment],
-    fine: &[bool],
-    event: &TemporalRisk,
-) -> u32 {
+fn additional_cost(segments: &[Segment], fine: &[bool], event: &TemporalRisk) -> u32 {
     event_segment_indices(segments, event)
         .into_iter()
         .filter(|index| !fine[*index])
@@ -195,11 +193,7 @@ fn additional_cost(
         .sum()
 }
 
-fn mark_event_fine(
-    segments: &[Segment],
-    fine: &mut [bool],
-    event: &TemporalRisk,
-) {
+fn mark_event_fine(segments: &[Segment], fine: &mut [bool], event: &TemporalRisk) {
     for index in event_segment_indices(segments, event) {
         fine[index] = true;
     }
@@ -323,8 +317,10 @@ pub fn plan_mesh(
                 });
             }
 
-            let mut candidates: Vec<&TemporalRisk> =
-                events.iter().filter(|event| !event.safety_critical).collect();
+            let mut candidates: Vec<&TemporalRisk> = events
+                .iter()
+                .filter(|event| !event.safety_critical)
+                .collect();
             candidates.sort_by(|left, right| {
                 let left_cost = additional_cost(&segments, &fine, left);
                 let right_cost = additional_cost(&segments, &fine, right);
@@ -362,8 +358,7 @@ pub fn plan_mesh(
         strategy,
         compute_cost_units,
         compute_budget_units,
-        budget_remaining_units: i64::from(compute_budget_units)
-            - i64::from(compute_cost_units),
+        budget_remaining_units: i64::from(compute_budget_units) - i64::from(compute_cost_units),
         safety_resolution_violations: safety_violations(&cells, events),
         unresolved_loss_units: unresolved_loss(events, &cells),
         cells,
@@ -422,10 +417,7 @@ pub struct MeshScenario {
     pub compute_budget_units: u32,
 }
 
-fn make_scenario(
-    kind: usize,
-    variant: u32,
-) -> MeshScenario {
+fn make_scenario(kind: usize, variant: u32) -> MeshScenario {
     let scale = u64::from(variant + 1);
     let mut events = Vec::new();
     match kind {
@@ -560,24 +552,21 @@ mod tests {
             event("a", 113, 287, 1_000, false),
             event("b", 777, 901, 2_000, true),
         ];
-        let plan = plan_mesh(
-            &events,
-            MeshStrategy::SafetyFirstValueOfInformation,
-            80,
-        )
-        .unwrap();
+        let plan = plan_mesh(&events, MeshStrategy::SafetyFirstValueOfInformation, 80).unwrap();
         for boundary in [113, 287, 777, 901] {
             assert!(plan.cells.iter().any(|cell| cell.start_minute == boundary));
             assert!(plan.cells.iter().any(|cell| cell.end_minute == boundary));
         }
-        assert!(plan
-            .cells
-            .iter()
-            .all(|cell| !(cell.start_minute < 777 && cell.end_minute > 777)));
-        assert!(plan
-            .cells
-            .iter()
-            .all(|cell| !(cell.start_minute < 901 && cell.end_minute > 901)));
+        assert!(
+            plan.cells
+                .iter()
+                .all(|cell| !(cell.start_minute < 777 && cell.end_minute > 777))
+        );
+        assert!(
+            plan.cells
+                .iter()
+                .all(|cell| !(cell.start_minute < 901 && cell.end_minute > 901))
+        );
     }
 
     #[test]
@@ -586,12 +575,7 @@ mod tests {
             event("optional", 180, 300, 10_000, false),
             event("safety", 840, 960, 1, true),
         ];
-        let plan = plan_mesh(
-            &events,
-            MeshStrategy::SafetyFirstValueOfInformation,
-            32,
-        )
-        .unwrap();
+        let plan = plan_mesh(&events, MeshStrategy::SafetyFirstValueOfInformation, 32).unwrap();
         assert!(plan.refined_event_ids.contains(&"safety".to_owned()));
         assert!(!plan.refined_event_ids.contains(&"optional".to_owned()));
         assert_eq!(plan.safety_resolution_violations, 0);
@@ -604,12 +588,7 @@ mod tests {
             event("low", 180, 240, 2_000, false),
             event("high", 900, 960, 9_000, false),
         ];
-        let plan = plan_mesh(
-            &events,
-            MeshStrategy::SafetyFirstValueOfInformation,
-            28,
-        )
-        .unwrap();
+        let plan = plan_mesh(&events, MeshStrategy::SafetyFirstValueOfInformation, 28).unwrap();
         assert!(plan.refined_event_ids.contains(&"high".to_owned()));
         assert!(!plan.refined_event_ids.contains(&"low".to_owned()));
     }
@@ -617,12 +596,8 @@ mod tests {
     #[test]
     fn insufficient_compute_for_mandatory_safety_refinement_fails_closed() {
         let events = vec![event("safety", 840, 960, 5_000, true)];
-        let error = plan_mesh(
-            &events,
-            MeshStrategy::SafetyFirstValueOfInformation,
-            25,
-        )
-        .unwrap_err();
+        let error =
+            plan_mesh(&events, MeshStrategy::SafetyFirstValueOfInformation, 25).unwrap_err();
         assert_eq!(
             error,
             MeshError::SafetyBudgetInsufficient {
@@ -655,12 +630,7 @@ mod tests {
             event("safety", 420, 600, 4_000, true),
             event("value", 540, 720, 8_000, false),
         ];
-        let plan = plan_mesh(
-            &events,
-            MeshStrategy::SafetyFirstValueOfInformation,
-            64,
-        )
-        .unwrap();
+        let plan = plan_mesh(&events, MeshStrategy::SafetyFirstValueOfInformation, 64).unwrap();
         verify_mesh(&events, &plan).unwrap();
         assert_eq!(plan.cells.first().unwrap().start_minute, 0);
         assert_eq!(plan.cells.last().unwrap().end_minute, HORIZON_MINUTES);
@@ -674,19 +644,9 @@ mod tests {
             event("a", 840, 960, 6_000, true),
             event("c", 1_020, 1_200, 3_000, false),
         ];
-        let first = plan_mesh(
-            &events,
-            MeshStrategy::SafetyFirstValueOfInformation,
-            56,
-        )
-        .unwrap();
+        let first = plan_mesh(&events, MeshStrategy::SafetyFirstValueOfInformation, 56).unwrap();
         events.reverse();
-        let second = plan_mesh(
-            &events,
-            MeshStrategy::SafetyFirstValueOfInformation,
-            56,
-        )
-        .unwrap();
+        let second = plan_mesh(&events, MeshStrategy::SafetyFirstValueOfInformation, 56).unwrap();
         assert_eq!(first, second);
     }
 
@@ -739,12 +699,7 @@ mod tests {
     #[test]
     fn residual_loss_is_zero_when_every_event_window_is_refined() {
         let events = vec![event("safety", 840, 960, 8_000, true)];
-        let plan = plan_mesh(
-            &events,
-            MeshStrategy::SafetyFirstValueOfInformation,
-            40,
-        )
-        .unwrap();
+        let plan = plan_mesh(&events, MeshStrategy::SafetyFirstValueOfInformation, 40).unwrap();
         assert_eq!(plan.unresolved_loss_units, 0);
     }
 }
