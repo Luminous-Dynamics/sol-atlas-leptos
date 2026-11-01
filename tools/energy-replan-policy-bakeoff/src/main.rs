@@ -8,7 +8,7 @@ fn main() {
 
     for (policy, metrics) in run_bakeoff() {
         let mean_latency = metrics
-            .mean_detection_latency_steps()
+            .mean_audited_schedule_latency_steps()
             .map(|value| format!("{value:.3}"))
             .unwrap_or_else(|| "NA".to_owned());
         println!(
