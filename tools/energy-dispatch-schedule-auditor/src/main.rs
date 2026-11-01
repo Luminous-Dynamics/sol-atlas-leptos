@@ -4,20 +4,35 @@ use energy_dispatch_schedule_auditor::{
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
+fn read_bounded_bytes<R: std::io::Read>(
+    reader: R,
+    limit: usize,
+    label: &str,
+) -> Result<Vec<u8>, String> {
+    let mut bytes = Vec::new();
+    reader
+        .take(limit as u64 + 1)
+        .read_to_end(&mut bytes)
+        .map_err(|error| format!("bounded read {label}: {error}"))?;
+    if bytes.len() > limit {
+        return Err(format!("{label} exceeded {limit} byte limit while reading"));
+    }
+    Ok(bytes)
+}
+
 fn read_bounded(path: &Path, limit: usize, label: &str) -> Result<Vec<u8>, String> {
-    let metadata = std::fs::metadata(path)
-        .map_err(|error| format!("inspect {label} path: {error}"))?;
-    if !metadata.file_type().is_file() {
+    let file = std::fs::File::open(path)
+        .map_err(|error| format!("open {label}: {error}"))?;
+    let metadata = file
+        .metadata()
+        .map_err(|error| format!("inspect opened {label}: {error}"))?;
+    if !metadata.is_file() {
         return Err(format!("{label} path must identify a regular file"));
     }
     if metadata.len() > limit as u64 {
         return Err(format!("{label} exceeds {limit} byte limit"));
     }
-    let bytes = std::fs::read(path).map_err(|error| format!("read {label}: {error}"))?;
-    if bytes.len() > limit {
-        return Err(format!("{label} exceeded {limit} byte limit while reading"));
-    }
-    Ok(bytes)
+    read_bounded_bytes(file, limit, label)
 }
 
 fn run() -> Result<ExitCode, String> {
@@ -85,5 +100,28 @@ fn main() -> ExitCode {
             eprintln!("energy dispatch schedule audit failed closed: {error}");
             ExitCode::from(2)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::read_bounded_bytes;
+
+    #[test]
+    fn bounded_read_accepts_exact_limit_and_rejects_one_byte_over() {
+        let at_limit = read_bounded_bytes(
+            std::io::Cursor::new(b"1234".as_slice()),
+            4,
+            "test input",
+        )
+        .expect("exactly-at-limit input is accepted");
+        assert_eq!(at_limit, b"1234");
+
+        let over_limit = read_bounded_bytes(
+            std::io::Cursor::new(b"12345".as_slice()),
+            4,
+            "test input",
+        );
+        assert!(over_limit.is_err(), "one byte over the cap must be rejected");
     }
 }
