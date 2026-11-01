@@ -762,7 +762,7 @@
   },
   "expected_impact_report": {
     "schema_version": "luminous.ieac-assurance-impact-report.v0.1",
-    "report_id": "impact-report-key-compromise-001",
+    "report_id": "impact-issuer-key-compromise-event-0003",
     "graph_snapshot_sha256": "85673180db33861aa25bab360dafbdcb89eb086457210030dc2648eaf1e29aeb",
     "invalidation_event_sha256": "df88bd2e1e9e54e947c266d4aa18d777db5cc1c44be83565843f5cc49ef07f27",
     "impact_policy_sha256": "2424242424242424242424242424242424242424242424242424242424242424",
@@ -777,11 +777,23 @@
         "historical_authenticity": "unknown",
         "current_reliance": "ineligible",
         "dependency_path": [
-          "issuer-key:sha256:0101010101010101010101010101010101010101010101010101010101010101"
+          "issuer_key:sha256:0101010101010101010101010101010101010101010101010101010101010101"
         ],
         "reason_codes": [
           "ISSUER_KEY_COMPROMISED",
           "CURRENT_KEY_TRUST_WITHDRAWN"
+        ]
+      },
+      {
+        "node_id": "source_measurement:sha256:0202020202020202020202020202020202020202020202020202020202020202",
+        "node_type": "source_measurement",
+        "artifact_sha256": "0202020202020202020202020202020202020202020202020202020202020202",
+        "impact_class": "no_impact",
+        "historical_authenticity": "valid_at_time",
+        "current_reliance": "eligible",
+        "dependency_path": [],
+        "reason_codes": [
+          "NO_DEPENDENCY_PATH"
         ]
       },
       {
@@ -796,7 +808,7 @@
           "signed_statement:sha256:0303030303030303030303030303030303030303030303030303030303030303"
         ],
         "reason_codes": [
-          "TRUSTED_RECEIPT_PRECEDES_EFFECTIVE_COMPROMISE",
+          "TRUSTED_REGISTRATION_PRECEDES_EFFECTIVE_COMPROMISE",
           "PRESERVE_HISTORICAL_RECORD"
         ]
       },
@@ -813,7 +825,7 @@
           "transparency_receipt:sha256:0404040404040404040404040404040404040404040404040404040404040404"
         ],
         "reason_codes": [
-          "STATEMENT_REGISTERED_BEFORE_EFFECTIVE_COMPROMISE",
+          "TRUSTED_REGISTRATION_PRECEDES_EFFECTIVE_COMPROMISE",
           "PRESERVE_HISTORICAL_RECORD"
         ]
       },
@@ -831,8 +843,80 @@
           "decision:sha256:0505050505050505050505050505050505050505050505050505050505050505"
         ],
         "reason_codes": [
-          "DECISION_PRECEDES_EFFECTIVE_COMPROMISE",
-          "HISTORICAL_DECISION_RETAINED"
+          "TRUSTED_REGISTRATION_PRECEDES_EFFECTIVE_COMPROMISE",
+          "PRESERVE_HISTORICAL_RECORD"
+        ]
+      },
+      {
+        "node_id": "action_authorization:sha256:0606060606060606060606060606060606060606060606060606060606060606",
+        "node_type": "action_authorization",
+        "artifact_sha256": "0606060606060606060606060606060606060606060606060606060606060606",
+        "impact_class": "historical_record_only",
+        "historical_authenticity": "valid_at_time",
+        "current_reliance": "eligible",
+        "dependency_path": [
+          "issuer_key:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+          "signed_statement:sha256:0303030303030303030303030303030303030303030303030303030303030303",
+          "transparency_receipt:sha256:0404040404040404040404040404040404040404040404040404040404040404",
+          "decision:sha256:0505050505050505050505050505050505050505050505050505050505050505",
+          "action_authorization:sha256:0606060606060606060606060606060606060606060606060606060606060606"
+        ],
+        "reason_codes": [
+          "TRUSTED_REGISTRATION_PRECEDES_EFFECTIVE_COMPROMISE",
+          "PRESERVE_HISTORICAL_RECORD"
+        ]
+      },
+      {
+        "node_id": "execution:sha256:0707070707070707070707070707070707070707070707070707070707070707",
+        "node_type": "execution",
+        "artifact_sha256": "0707070707070707070707070707070707070707070707070707070707070707",
+        "impact_class": "historical_record_only",
+        "historical_authenticity": "valid_at_time",
+        "current_reliance": "eligible",
+        "dependency_path": [
+          "issuer_key:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+          "signed_statement:sha256:0303030303030303030303030303030303030303030303030303030303030303",
+          "transparency_receipt:sha256:0404040404040404040404040404040404040404040404040404040404040404",
+          "decision:sha256:0505050505050505050505050505050505050505050505050505050505050505",
+          "action_authorization:sha256:0606060606060606060606060606060606060606060606060606060606060606",
+          "execution:sha256:0707070707070707070707070707070707070707070707070707070707070707"
+        ],
+        "reason_codes": [
+          "TRUSTED_REGISTRATION_PRECEDES_EFFECTIVE_COMPROMISE",
+          "PRESERVE_HISTORICAL_RECORD"
+        ]
+      },
+      {
+        "node_id": "outcome:sha256:0808080808080808080808080808080808080808080808080808080808080808",
+        "node_type": "outcome",
+        "artifact_sha256": "0808080808080808080808080808080808080808080808080808080808080808",
+        "impact_class": "historical_record_only",
+        "historical_authenticity": "valid_at_time",
+        "current_reliance": "eligible",
+        "dependency_path": [
+          "issuer_key:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+          "signed_statement:sha256:0303030303030303030303030303030303030303030303030303030303030303",
+          "transparency_receipt:sha256:0404040404040404040404040404040404040404040404040404040404040404",
+          "decision:sha256:0505050505050505050505050505050505050505050505050505050505050505",
+          "action_authorization:sha256:0606060606060606060606060606060606060606060606060606060606060606",
+          "execution:sha256:0707070707070707070707070707070707070707070707070707070707070707",
+          "outcome:sha256:0808080808080808080808080808080808080808080808080808080808080808"
+        ],
+        "reason_codes": [
+          "TRUSTED_REGISTRATION_PRECEDES_EFFECTIVE_COMPROMISE",
+          "PRESERVE_HISTORICAL_RECORD"
+        ]
+      },
+      {
+        "node_id": "source_measurement:sha256:0909090909090909090909090909090909090909090909090909090909090909",
+        "node_type": "source_measurement",
+        "artifact_sha256": "0909090909090909090909090909090909090909090909090909090909090909",
+        "impact_class": "no_impact",
+        "historical_authenticity": "valid_at_time",
+        "current_reliance": "eligible",
+        "dependency_path": [],
+        "reason_codes": [
+          "NO_DEPENDENCY_PATH"
         ]
       },
       {
@@ -847,9 +931,9 @@
           "signed_statement:sha256:0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a"
         ],
         "reason_codes": [
-          "RECEIPT_AFTER_COMPROMISE_BOUNDARY",
-          "NO_TRUSTED_SIGNATURE_TIME",
-          "SIGNATURE_MAY_PRECEDE_REGISTRATION"
+          "REGISTRATION_AFTER_COMPROMISE_BOUNDARY",
+          "SIGNATURE_TIME_NOT_ESTABLISHED",
+          "QUARANTINE_UNTIL_REVERIFIED"
         ]
       },
       {
@@ -865,8 +949,9 @@
           "transparency_receipt:sha256:0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b"
         ],
         "reason_codes": [
-          "RECEIPT_AFTER_COMPROMISE_BOUNDARY",
-          "ISSUER_SIGNATURE_TIME_NOT_ESTABLISHED"
+          "REGISTRATION_AFTER_COMPROMISE_BOUNDARY",
+          "ISSUER_SIGNATURE_TIME_NOT_ESTABLISHED",
+          "QUARANTINE_UNTIL_REVERIFIED"
         ]
       },
       {
@@ -883,8 +968,9 @@
           "decision:sha256:0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c"
         ],
         "reason_codes": [
+          "REGISTRATION_AFTER_COMPROMISE_BOUNDARY",
           "DECISION_DEPENDS_ON_QUARANTINED_STATEMENT",
-          "REVALIDATION_REQUIRED"
+          "QUARANTINE_UNTIL_REVERIFIED"
         ]
       },
       {
@@ -958,12 +1044,24 @@
         "reason_codes": [
           "OUTSIDE_INVALIDATION_SCOPE"
         ]
+      },
+      {
+        "node_id": "policy:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "node_type": "policy",
+        "artifact_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "impact_class": "no_impact",
+        "historical_authenticity": "valid_at_time",
+        "current_reliance": "eligible",
+        "dependency_path": [],
+        "reason_codes": [
+          "NO_DEPENDENCY_PATH"
+        ]
       }
     ],
     "summary": {
-      "node_count": 11,
-      "no_impact_count": 1,
-      "historical_record_only_count": 3,
+      "node_count": 17,
+      "no_impact_count": 4,
+      "historical_record_only_count": 6,
       "reverify_required_count": 3,
       "claim_invalidated_count": 1,
       "quarantined_pending_review_count": 3
