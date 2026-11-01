@@ -15,7 +15,7 @@ pub const P50_MIN_SAMPLES: usize = 5;
 pub const P95_MIN_SAMPLES: usize = 20;
 pub const P99_MIN_SAMPLES: usize = 1_000;
 
-pub const TRACE_HEADER: &str = "schema_version,measurement_class,cohort_id,sample_id,scenario_id,scenario_panel_sha256,request_sha256,model_sha256,mesh_sha256,solver_name,solver_version,solver_binary_sha256,hardware_profile_sha256,horizon_minutes,interval_count,continuous_variables,integer_variables,binary_variables,constraints,random_seed,status,elapsed_ns,time_to_first_feasible_ns,time_to_optimal_ns,objective_value_units,best_bound_units,optimality_gap_ppm,peak_memory_bytes,timeout_limit_ns";
+pub const TRACE_HEADER: &str = "schema_version,measurement_class,cohort_id,sample_id,scenario_id,scenario_panel_sha256,request_sha256,model_sha256,mesh_policy_sha256,mesh_instance_sha256,solver_name,solver_version,solver_binary_sha256,solver_config_sha256,hardware_profile_sha256,horizon_minutes,interval_count,continuous_variables,integer_variables,binary_variables,constraints,random_seed,status,elapsed_ns,time_to_first_feasible_ns,time_to_optimal_ns,objective_value_units,best_bound_units,optimality_gap_ppm,peak_memory_bytes,timeout_limit_ns";
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum MeasurementClass {
@@ -89,10 +89,15 @@ pub struct SolverTrace {
     pub scenario_panel_sha256: String,
     pub request_sha256: String,
     pub model_sha256: String,
-    pub mesh_sha256: String,
+    /// Stable temporal-mesh policy/design digest for a comparable cohort.
+    pub mesh_policy_sha256: String,
+    /// Exact selected mesh instance digest for this request and scenario.
+    pub mesh_instance_sha256: String,
     pub solver_name: String,
     pub solver_version: String,
     pub solver_binary_sha256: String,
+    /// Solver tolerances, presolve, thread count and other material settings.
+    pub solver_config_sha256: String,
     pub hardware_profile_sha256: String,
     pub horizon_minutes: u16,
     pub interval_count: u32,
@@ -130,8 +135,10 @@ impl SolverTrace {
             &self.scenario_panel_sha256,
             &self.request_sha256,
             &self.model_sha256,
-            &self.mesh_sha256,
+            &self.mesh_policy_sha256,
+            &self.mesh_instance_sha256,
             &self.solver_binary_sha256,
+            &self.solver_config_sha256,
             &self.hardware_profile_sha256,
         ] {
             if !is_sha256_hex(digest) {
@@ -201,10 +208,11 @@ struct CohortIdentity {
     cohort_id: String,
     scenario_panel_sha256: String,
     model_sha256: String,
-    mesh_sha256: String,
+    mesh_policy_sha256: String,
     solver_name: String,
     solver_version: String,
     solver_binary_sha256: String,
+    solver_config_sha256: String,
     hardware_profile_sha256: String,
     horizon_minutes: u16,
 }
@@ -216,10 +224,11 @@ impl From<&SolverTrace> for CohortIdentity {
             cohort_id: trace.cohort_id.clone(),
             scenario_panel_sha256: trace.scenario_panel_sha256.clone(),
             model_sha256: trace.model_sha256.clone(),
-            mesh_sha256: trace.mesh_sha256.clone(),
+            mesh_policy_sha256: trace.mesh_policy_sha256.clone(),
             solver_name: trace.solver_name.clone(),
             solver_version: trace.solver_version.clone(),
             solver_binary_sha256: trace.solver_binary_sha256.clone(),
+            solver_config_sha256: trace.solver_config_sha256.clone(),
             hardware_profile_sha256: trace.hardware_profile_sha256.clone(),
             horizon_minutes: trace.horizon_minutes,
         }
@@ -293,7 +302,7 @@ fn parse_optional<T>(value: &str, parser: impl FnOnce(&str) -> Result<T, TraceEr
 
 fn parse_csv_row(line: &str) -> Result<SolverTrace, TraceError> {
     let fields: Vec<&str> = line.split(',').collect();
-    if fields.len() != 29 {
+    if fields.len() != 31 {
         return Err(TraceError::InvalidCsvFieldCount);
     }
     Ok(SolverTrace {
@@ -305,27 +314,29 @@ fn parse_csv_row(line: &str) -> Result<SolverTrace, TraceError> {
         scenario_panel_sha256: fields[5].to_owned(),
         request_sha256: fields[6].to_owned(),
         model_sha256: fields[7].to_owned(),
-        mesh_sha256: fields[8].to_owned(),
-        solver_name: fields[9].to_owned(),
-        solver_version: fields[10].to_owned(),
-        solver_binary_sha256: fields[11].to_owned(),
-        hardware_profile_sha256: fields[12].to_owned(),
-        horizon_minutes: parse_u16(fields[13])?,
-        interval_count: parse_u32(fields[14])?,
-        continuous_variables: parse_u64(fields[15])?,
-        integer_variables: parse_u64(fields[16])?,
-        binary_variables: parse_u64(fields[17])?,
-        constraints: parse_u64(fields[18])?,
-        random_seed: parse_u64(fields[19])?,
-        status: SolveStatus::parse(fields[20])?,
-        elapsed_ns: parse_u64(fields[21])?,
-        time_to_first_feasible_ns: parse_optional(fields[22], parse_u64)?,
-        time_to_optimal_ns: parse_optional(fields[23], parse_u64)?,
-        objective_value_units: parse_optional(fields[24], parse_i64)?,
-        best_bound_units: parse_optional(fields[25], parse_i64)?,
-        optimality_gap_ppm: parse_optional(fields[26], parse_u32)?,
-        peak_memory_bytes: parse_optional(fields[27], parse_u64)?,
-        timeout_limit_ns: parse_u64(fields[28])?,
+        mesh_policy_sha256: fields[8].to_owned(),
+        mesh_instance_sha256: fields[9].to_owned(),
+        solver_name: fields[10].to_owned(),
+        solver_version: fields[11].to_owned(),
+        solver_binary_sha256: fields[12].to_owned(),
+        solver_config_sha256: fields[13].to_owned(),
+        hardware_profile_sha256: fields[14].to_owned(),
+        horizon_minutes: parse_u16(fields[15])?,
+        interval_count: parse_u32(fields[16])?,
+        continuous_variables: parse_u64(fields[17])?,
+        integer_variables: parse_u64(fields[18])?,
+        binary_variables: parse_u64(fields[19])?,
+        constraints: parse_u64(fields[20])?,
+        random_seed: parse_u64(fields[21])?,
+        status: SolveStatus::parse(fields[22])?,
+        elapsed_ns: parse_u64(fields[23])?,
+        time_to_first_feasible_ns: parse_optional(fields[24], parse_u64)?,
+        time_to_optimal_ns: parse_optional(fields[25], parse_u64)?,
+        objective_value_units: parse_optional(fields[26], parse_i64)?,
+        best_bound_units: parse_optional(fields[27], parse_i64)?,
+        optimality_gap_ppm: parse_optional(fields[28], parse_u32)?,
+        peak_memory_bytes: parse_optional(fields[29], parse_u64)?,
+        timeout_limit_ns: parse_u64(fields[30])?,
     })
 }
 
@@ -569,10 +580,12 @@ mod tests {
             scenario_panel_sha256: digest('a'),
             request_sha256: digest(char::from(b'b' + (sample % 5) as u8)),
             model_sha256: digest('c'),
-            mesh_sha256: digest('d'),
+            mesh_policy_sha256: digest('d'),
+            mesh_instance_sha256: digest(char::from(b'0' + (sample % 10) as u8)),
             solver_name: "highs".to_owned(),
             solver_version: "1.12.0".to_owned(),
             solver_binary_sha256: digest('e'),
+            solver_config_sha256: digest('1'),
             hardware_profile_sha256: digest('f'),
             horizon_minutes: 1_440,
             interval_count: 96,
@@ -650,7 +663,7 @@ mod tests {
             trace(0, SolveStatus::Optimal),
             {
                 let mut row = trace(1, SolveStatus::Optimal);
-                row.mesh_sha256 = digest('9');
+                row.mesh_policy_sha256 = digest('9');
                 row
             },
         ];
@@ -687,6 +700,31 @@ mod tests {
             summarize_traces(&rows),
             Err(TraceError::MixedCohortIdentity)
         );
+
+        let rows = vec![
+            trace(0, SolveStatus::Optimal),
+            {
+                let mut row = trace(1, SolveStatus::Optimal);
+                row.solver_config_sha256 = digest('9');
+                row
+            },
+        ];
+        assert_eq!(
+            summarize_traces(&rows),
+            Err(TraceError::MixedCohortIdentity)
+        );
+    }
+
+    #[test]
+    fn exact_mesh_instances_vary_within_one_stable_mesh_policy_cohort() {
+        let first = trace(0, SolveStatus::Optimal);
+        let mut second = trace(1, SolveStatus::Optimal);
+        assert_eq!(first.mesh_policy_sha256, second.mesh_policy_sha256);
+        second.mesh_instance_sha256 = digest('9');
+
+        let summary = summarize_traces(&[first, second]).unwrap();
+        assert_eq!(summary.len(), 1);
+        assert_eq!(summary[0].sample_count, 2);
     }
 
     #[test]
@@ -843,10 +881,12 @@ fn trace_to_csv(trace: &SolverTrace) -> String {
         trace.scenario_panel_sha256,
         trace.request_sha256,
         trace.model_sha256,
-        trace.mesh_sha256,
+        trace.mesh_policy_sha256,
+        trace.mesh_instance_sha256,
         trace.solver_name,
         trace.solver_version,
         trace.solver_binary_sha256,
+        trace.solver_config_sha256,
         trace.hardware_profile_sha256,
         trace.horizon_minutes,
         trace.interval_count,
