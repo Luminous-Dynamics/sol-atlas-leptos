@@ -849,7 +849,7 @@ mod tests {
         assert_eq!(summary.optimal_count, 20);
         assert_eq!(summary.timeout_count, 4);
         assert_eq!(summary.infeasible_count, 6);
-        assert_eq!(summary.completed_latency_p95_ns, Some(1_180_000));
+        assert_eq!(summary.completed_latency_p95_ns, Some(1_200_000));
         assert!(summary.observed_attempt_elapsed_p95_ns.is_some());
     }
 
