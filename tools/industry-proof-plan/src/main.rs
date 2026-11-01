@@ -1055,13 +1055,20 @@ mod tests {
     }
 
     #[test]
+    fn unsupported_decision_tier_is_rejected_before_planning() {
+        let mut request = request();
+        request["decision_tier"] = json!("D4_autonomous_everything");
+        assert!(validate_request(&request).is_err());
+    }
+
+    #[test]
     fn rows_must_match_request_pinned_registry_and_mapping_policy() {
         let mut request = request();
         request["candidate_actions"][0]["independence_registry_sha256"] = json!("9".repeat(64));
         assert!(validate_request(&request).is_err());
 
         let mut request = request();
-        request["candidate_actions"][0]["mapping_policy_sha256"] = json!("8".repeat(64));
+        request["candidate_actions"][0]["mapping_policy_sha256"] = json!("9".repeat(64));
         assert!(validate_request(&request).is_err());
 
         let mut request = request();
