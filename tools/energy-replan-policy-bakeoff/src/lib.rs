@@ -129,9 +129,34 @@ pub struct MaterialEvent {
     pub service_loss_with_timely_replan_mwh: u64,
 }
 
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum SolveOutcomeTruth {
+    Completed { completed_at_step: u32 },
+    TimedOut,
+    Infeasible,
+    Cancelled,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum AuditOutcomeTruth {
+    Accepted,
+    Rejected,
+    Unavailable,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct ReplanExecutionTruth {
+    pub requested_at_step: u32,
+    pub solve_outcome: SolveOutcomeTruth,
+    pub audit_outcome: AuditOutcomeTruth,
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct ScenarioTruth {
     pub material_event: Option<MaterialEvent>,
+    /// Evaluator-only execution outcomes, keyed to an exact replan request step.
+    /// These are never exposed to the policy decision function.
+    pub replan_executions: Vec<ReplanExecutionTruth>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -153,11 +178,17 @@ pub struct PolicyRun {
     pub false_triggers: u32,
     pub redundant_triggers: u32,
     pub solver_invocations: u32,
+    pub solver_completed: u32,
+    pub solver_failures: u32,
+    pub late_solver_completions: u32,
+    pub auditor_rejections: u32,
+    pub auditor_unavailable: u32,
+    pub accepted_replans: u32,
     pub abstentions: u32,
     pub service_loss_mwh: u64,
     pub replanning_cost_mwh: u64,
     pub total_penalty_mwh: u64,
-    pub detection_latency_steps: Option<u32>,
+    pub audited_schedule_latency_steps: Option<u32>,
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -169,39 +200,12 @@ pub struct AggregateMetrics {
     pub false_triggers: u32,
     pub redundant_triggers: u32,
     pub solver_invocations: u32,
-    pub abstentions: u32,
-    pub service_loss_mwh: u64,
-    pub replanning_cost_mwh: u64,
-    pub total_penalty_mwh: u64,
-    pub detection_latency_step_sum: u64,
-    pub detection_latency_event_count: u32,
-}
-
-impl AggregateMetrics {
-    pub fn mean_detection_latency_steps(&self) -> Option<f64> {
-        (self.detection_latency_event_count > 0).then(|| {
-            self.detection_latency_step_sum as f64 / f64::from(self.detection_latency_event_count)
-        })
-    }
-}
-
-pub fn run_policy(policy: PolicyKind, scenario: &Scenario) -> PolicyRun {
-    let actions: Vec<ReplanAction> = scenario
-        .observations
-        .iter()
-        .map(|observation| {
-            if observation.telemetry_status != TelemetryStatus::Fresh {
-                ReplanAction::Abstain
-            } else {
-                policy.decide(observation)
-            }
-        })
-        .collect();
-
-    evaluate_run(policy, scenario, actions)
-}
-
-fn evaluate_run(policy: PolicyKind, scenario: &Scenario, actions: Vec<ReplanAction>) -> PolicyRun {
+    pub solver_completed: u32,
+    pub solver_fafn evaluate_run(
+    policy: PolicyKind,
+    scenario: &Scenario,
+    actions: Vec<ReplanAction>,
+) -> PolicyRun {
     let replan_steps: Vec<u32> = scenario
         .observations
         .iter()
@@ -230,6 +234,59 @@ fn evaluate_run(policy: PolicyKind, scenario: &Scenario, actions: Vec<ReplanActi
         })
         .sum();
 
+    let mut solver_completed = 0u32;
+    let mut solver_failures = 0u32;
+    let mut late_solver_completions = 0u32;
+    let mut auditor_rejections = 0u32;
+    let mut auditor_unavailable = 0u32;
+    let mut accepted_replans = 0u32;
+    let mut audited_replans = Vec::<(u32, u32)>::new();
+
+    for requested_at_step in replan_steps.iter().copied() {
+        let mut matching = scenario
+            .truth
+            .replan_executions
+            .iter()
+            .filter(|entry| entry.requested_at_step == requested_at_step);
+        let Some(execution) = matching.next() else {
+            solver_failures += 1;
+            continue;
+        };
+        if matching.next().is_some() {
+            // Ambiguous evaluator provenance cannot establish an execution.
+            solver_failures += 1;
+            continue;
+        }
+
+        match execution.solve_outcome {
+            SolveOutcomeTruth::Completed { completed_at_step }
+                if completed_at_step >= requested_at_step =>
+            {
+                solver_completed += 1;
+                if let Some(event) = scenario.truth.material_event {
+                    if requested_at_step >= event.observable_at_step
+                        && completed_at_step > event.response_deadline_step
+                    {
+                        late_solver_completions += 1;
+                    }
+                }
+
+                match execution.audit_outcome {
+                    AuditOutcomeTruth::Accepted => {
+                        accepted_replans += 1;
+                        audited_replans.push((requested_at_step, completed_at_step));
+                    }
+                    AuditOutcomeTruth::Rejected => auditor_rejections += 1,
+                    AuditOutcomeTruth::Unavailable => auditor_unavailable += 1,
+                }
+            }
+            SolveOutcomeTruth::Completed { .. }
+            | SolveOutcomeTruth::TimedOut
+            | SolveOutcomeTruth::Infeasible
+            | SolveOutcomeTruth::Cancelled => solver_failures += 1,
+        }
+    }
+
     let (
         event_count,
         timely_detections,
@@ -237,18 +294,20 @@ fn evaluate_run(policy: PolicyKind, scenario: &Scenario, actions: Vec<ReplanActi
         false_triggers,
         redundant_triggers,
         service_loss_mwh,
-        detection_latency_steps,
+        audited_schedule_latency_steps,
     ) = match scenario.truth.material_event {
         None => (0, 0, 0, solver_invocations, 0, 0, None),
         Some(event) => {
-            let qualifying: Vec<u32> = replan_steps
+            let qualifying: Vec<(u32, u32)> = audited_replans
                 .iter()
                 .copied()
-                .filter(|step| {
-                    *step >= event.observable_at_step && *step <= event.response_deadline_step
+                .filter(|(requested, completed)| {
+                    *requested >= event.observable_at_step
+                        && *requested <= event.response_deadline_step
+                        && *completed <= event.response_deadline_step
                 })
                 .collect();
-            let detected_at = qualifying.first().copied();
+            let usable_at = qualifying.iter().map(|(_, completed)| *completed).min();
             let false_count = u32::try_from(
                 replan_steps
                     .iter()
@@ -256,6 +315,52 @@ fn evaluate_run(policy: PolicyKind, scenario: &Scenario, actions: Vec<ReplanActi
                         **step < event.observable_at_step || **step > event.response_deadline_step
                     })
                     .count(),
+            )
+            .unwrap_or(u32::MAX);
+            let detected = usable_at.is_some();
+            let service_loss = if detected {
+                event.service_loss_with_timely_replan_mwh
+            } else {
+                event.service_loss_without_replan_mwh
+            };
+            (
+                1,
+                if detected { 1 } else { 0 },
+                if detected { 0 } else { 1 },
+                false_count,
+                u32::try_from(qualifying.len().saturating_sub(1)).unwrap_or(u32::MAX),
+                service_loss,
+                usable_at.map(|completed| completed - event.observable_at_step),
+            )
+        }
+    };
+
+    let total_penalty_mwh = service_loss_mwh.saturating_add(replanning_cost_mwh);
+    PolicyRun {
+        policy,
+        scenario_id: scenario.id.clone(),
+        actions,
+        event_count,
+        timely_detections,
+        missed_events,
+        false_triggers,
+        redundant_triggers,
+        solver_invocations,
+        solver_completed,
+        solver_failures,
+        late_solver_completions,
+        auditor_rejections,
+        auditor_unavailable,
+        accepted_replans,
+        abstentions,
+        service_loss_mwh,
+        replanning_cost_mwh,
+        total_penalty_mwh,
+        audited_schedule_latency_steps,
+    }
+}
+
+,
             )
             .unwrap_or(u32::MAX);
             let detected = detected_at.is_some();
@@ -308,13 +413,19 @@ pub fn aggregate_runs(runs: &[PolicyRun]) -> AggregateMetrics {
         metrics.false_triggers += run.false_triggers;
         metrics.redundant_triggers += run.redundant_triggers;
         metrics.solver_invocations += run.solver_invocations;
+        metrics.solver_completed += run.solver_completed;
+        metrics.solver_failures += run.solver_failures;
+        metrics.late_solver_completions += run.late_solver_completions;
+        metrics.auditor_rejections += run.auditor_rejections;
+        metrics.auditor_unavailable += run.auditor_unavailable;
+        metrics.accepted_replans += run.accepted_replans;
         metrics.abstentions += run.abstentions;
         metrics.service_loss_mwh += run.service_loss_mwh;
         metrics.replanning_cost_mwh += run.replanning_cost_mwh;
         metrics.total_penalty_mwh += run.total_penalty_mwh;
-        if let Some(latency) = run.detection_latency_steps {
-            metrics.detection_latency_step_sum += u64::from(latency);
-            metrics.detection_latency_event_count += 1;
+        if let Some(latency) = run.audited_schedule_latency_steps {
+            metrics.audited_schedule_latency_step_sum += u64::from(latency);
+            metrics.audited_schedule_latency_event_count += 1;
         }
     }
 
@@ -480,10 +591,23 @@ fn build_scenario(kind: ScenarioKind, variant: u32) -> Scenario {
         }
     };
 
+    let replan_executions = (0..8)
+        .map(|requested_at_step| ReplanExecutionTruth {
+            requested_at_step,
+            solve_outcome: SolveOutcomeTruth::Completed {
+                completed_at_step: requested_at_step + 1,
+            },
+            audit_outcome: AuditOutcomeTruth::Accepted,
+        })
+        .collect();
+
     Scenario {
         id: format!("{}-{:02}", kind.name(), variant),
         observations,
-        truth: ScenarioTruth { material_event },
+        truth: ScenarioTruth {
+            material_event,
+            replan_executions,
+        },
     }
 }
 
@@ -556,14 +680,12 @@ mod tests {
     fn policies_cannot_observe_hidden_truth_for_identical_observations() {
         let scenario = scenario_of(ScenarioKind::SuddenOutage, 0);
         let mut counterfactual = scenario.clone();
-        counterfactual.truth = ScenarioTruth {
-            material_event: Some(MaterialEvent {
-                observable_at_step: 7,
-                response_deadline_step: 7,
-                service_loss_without_replan_mwh: 1,
-                service_loss_with_timely_replan_mwh: 0,
-            }),
-        };
+        counterfactual.truth.material_event = Some(MaterialEvent {
+            observable_at_step: 7,
+            response_deadline_step: 7,
+            service_loss_without_replan_mwh: 1,
+            service_loss_with_timely_replan_mwh: 0,
+        });
 
         for policy in PolicyKind::ALL {
             let original_actions = run_policy(policy, &scenario).actions;
@@ -620,6 +742,100 @@ mod tests {
         assert_eq!(run.missed_events, 1);
         assert_eq!(run.timely_detections, 0);
         assert_eq!(run.service_loss_mwh, 5_000);
+    }
+
+    #[test]
+    fn late_solver_completion_does_not_count_as_a_timely_replan() {
+        let mut scenario = scenario_of(ScenarioKind::SuddenOutage, 0);
+        let execution = scenario
+            .truth
+            .replan_executions
+            .iter_mut()
+            .find(|entry| entry.requested_at_step == 2)
+            .unwrap();
+        execution.solve_outcome = SolveOutcomeTruth::Completed {
+            completed_at_step: 4,
+        };
+
+        let actions = scenario
+            .observations
+            .iter()
+            .map(|observation| {
+                if observation.step == 2 {
+                    ReplanAction::RequestReplan
+                } else {
+                    ReplanAction::KeepPlan
+                }
+            })
+            .collect();
+        let run = evaluate_run(PolicyKind::HybridSafetyOverride, &scenario, actions);
+
+        assert_eq!(run.solver_invocations, 1);
+        assert_eq!(run.solver_completed, 1);
+        assert_eq!(run.late_solver_completions, 1);
+        assert_eq!(run.timely_detections, 0);
+        assert_eq!(run.missed_events, 1);
+    }
+
+    #[test]
+    fn an_independently_rejected_schedule_never_counts_as_usable() {
+        let mut scenario = scenario_of(ScenarioKind::SuddenOutage, 0);
+        let execution = scenario
+            .truth
+            .replan_executions
+            .iter_mut()
+            .find(|entry| entry.requested_at_step == 2)
+            .unwrap();
+        execution.audit_outcome = AuditOutcomeTruth::Rejected;
+
+        let actions = scenario
+            .observations
+            .iter()
+            .map(|observation| {
+                if observation.step == 2 {
+                    ReplanAction::RequestReplan
+                } else {
+                    ReplanAction::KeepPlan
+                }
+            })
+            .collect();
+        let run = evaluate_run(PolicyKind::HybridSafetyOverride, &scenario, actions);
+
+        assert_eq!(run.solver_completed, 1);
+        assert_eq!(run.auditor_rejections, 1);
+        assert_eq!(run.accepted_replans, 0);
+        assert_eq!(run.timely_detections, 0);
+        assert_eq!(run.missed_events, 1);
+    }
+
+    #[test]
+    fn a_solver_timeout_is_counted_but_never_treated_as_a_schedule() {
+        let mut scenario = scenario_of(ScenarioKind::SuddenOutage, 0);
+        let execution = scenario
+            .truth
+            .replan_executions
+            .iter_mut()
+            .find(|entry| entry.requested_at_step == 2)
+            .unwrap();
+        execution.solve_outcome = SolveOutcomeTruth::TimedOut;
+
+        let actions = scenario
+            .observations
+            .iter()
+            .map(|observation| {
+                if observation.step == 2 {
+                    ReplanAction::RequestReplan
+                } else {
+                    ReplanAction::KeepPlan
+                }
+            })
+            .collect();
+        let run = evaluate_run(PolicyKind::HybridSafetyOverride, &scenario, actions);
+
+        assert_eq!(run.solver_invocations, 1);
+        assert_eq!(run.solver_failures, 1);
+        assert_eq!(run.accepted_replans, 0);
+        assert_eq!(run.missed_events, 1);
     }
 
     #[test]
