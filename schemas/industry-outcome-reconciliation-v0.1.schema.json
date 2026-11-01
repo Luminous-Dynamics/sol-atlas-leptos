@@ -815,6 +815,9 @@
               "properties": {
                 "interpretation": {
                   "enum": [
+                    "observation_only",
+                    "before_after_difference",
+                    "descriptive_association",
                     "not_identified"
                   ]
                 }
