@@ -357,6 +357,9 @@ fn load_inputs(request: &Value, request_bytes: &[u8], report: &Value) -> Result<
         return Err("report registry/mapping-policy pins do not match request".into());
     }
 
+    if request.get("exact_search_limit").and_then(Value::as_u64) != Some(EXACT_LIMIT as u64) {
+        return Err("request exact_search_limit does not match auditor contract".into());
+    }
     let tier = string(request, "decision_tier", "request")?.to_owned();
     if !["D0_descriptive", "D1_advisory", "D2_delegated_planning", "D3_autonomous_control"].contains(&tier.as_str()) {
         return Err("unsupported decision tier".into());
@@ -420,8 +423,14 @@ fn load_inputs(request: &Value, request_bytes: &[u8], report: &Value) -> Result<
             Some(Value::String(value)) if canonical_utc(value) => Some(value.as_str()),
             _ => return Err("existing evidence has invalid valid_until".into()),
         };
-        let statuses_ok = row.get("verification_status").and_then(Value::as_str) == Some("verified")
-            && row.get("rights_status").and_then(Value::as_str) == Some("verified");
+        let verification_status = string(row, "verification_status", context)?;
+        let rights_status = string(row, "rights_status", context)?;
+        if !["verified", "failed", "unknown", "revoked"].contains(&verification_status)
+            || !["verified", "restricted", "unknown", "revoked"].contains(&rights_status)
+        {
+            return Err("existing evidence contains an unsupported verification/rights state".into());
+        }
+        let statuses_ok = verification_status == "verified" && rights_status == "verified";
         let current = statuses_ok && verified_at <= evaluated_at
             && valid_until.is_none_or(|until| until >= evaluated_at.as_str());
         if current {
@@ -510,6 +519,40 @@ fn load_inputs(request: &Value, request_bytes: &[u8], report: &Value) -> Result<
                 return Err(format!("candidate action '{}' has an asymmetric/invalid conflict", action.id));
             }
         }
+    }
+
+    let mut indegree: BTreeMap<String, usize> = actions.keys().map(|id| (id.clone(), 0)).collect();
+    let mut dependents: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    for action in actions.values() {
+        for prerequisite in &action.prerequisites {
+            if prerequisite == &action.id || !actions.contains_key(prerequisite) {
+                return Err(format!("candidate action '{}' has an invalid prerequisite", action.id));
+            }
+            *indegree.get_mut(&action.id).ok_or("missing action indegree")? += 1;
+            dependents.entry(prerequisite.clone()).or_default().push(action.id.clone());
+        }
+        for conflict in &action.conflicts {
+            let other = actions.get(conflict).ok_or("unknown conflict reference")?;
+            if conflict == &action.id || !other.conflicts.contains(&action.id) {
+                return Err(format!("candidate action '{}' has an asymmetric conflict", action.id));
+            }
+        }
+    }
+    let mut ready: BTreeSet<String> = indegree.iter()
+        .filter_map(|(id, degree)| (*degree == 0).then_some(id.clone())).collect();
+    let mut visited = 0usize;
+    while let Some(id) = ready.pop_first() {
+        visited += 1;
+        if let Some(rows) = dependents.get(&id) {
+            for dependent in rows {
+                let degree = indegree.get_mut(dependent).ok_or("missing dependent indegree")?;
+                *degree -= 1;
+                if *degree == 0 { ready.insert(dependent.clone()); }
+            }
+        }
+    }
+    if visited != actions.len() {
+        return Err("candidate action prerequisite graph contains a cycle".into());
     }
 
     let _ = report_digest;
