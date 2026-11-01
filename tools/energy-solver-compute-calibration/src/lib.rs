@@ -238,6 +238,7 @@ pub enum TraceError {
     InvalidStatusSemantics,
     InvalidCsvHeader,
     InvalidCsvFieldCount,
+    CsvSizeLimitExceeded,
     InvalidCsvValue,
     DuplicateSampleId,
     MixedCohortIdentity,
@@ -333,7 +334,7 @@ fn parse_csv_row(line: &str) -> Result<SolverTrace, TraceError> {
 /// accepted. This deliberately small grammar avoids ambiguous parsing.
 pub fn parse_trace_csv(input: &str) -> Result<Vec<SolverTrace>, TraceError> {
     if input.len() > MAX_TRACE_CSV_BYTES {
-        return Err(TraceError::InvalidCsvFieldCount);
+        return Err(TraceError::CsvSizeLimitExceeded);
     }
     let mut lines = input.lines();
     let header = lines.next().ok_or(TraceError::InvalidCsvHeader)?;
@@ -552,7 +553,12 @@ mod tests {
     }
 
     fn trace(sample: usize, status: SolveStatus) -> SolverTrace {
-        let elapsed_ns = 1_000_000 + sample as u64 * 10_000;
+        let timeout_limit_ns = 20_000_000;
+        let elapsed_ns = if status == SolveStatus::TimedOut {
+            timeout_limit_ns
+        } else {
+            1_000_000 + sample as u64 * 10_000
+        };
         let feasible = status.has_feasible_solution();
         SolverTrace {
             schema_version: TRACE_SCHEMA.to_owned(),
@@ -583,7 +589,7 @@ mod tests {
             best_bound_units: feasible.then_some(10_000 - sample as i64),
             optimality_gap_ppm: feasible.then_some(0),
             peak_memory_bytes: Some(2_000_000 + sample as u64 * 1_024),
-            timeout_limit_ns: 20_000_000,
+            timeout_limit_ns,
         }
     }
 
@@ -760,6 +766,29 @@ mod tests {
         assert_eq!(summary.infeasible_count, 6);
         assert_eq!(summary.completed_latency_p95_ns, Some(1_180_000));
         assert!(summary.observed_attempt_elapsed_p95_ns.is_some());
+    }
+
+    #[test]
+    fn measurement_class_cannot_be_mixed_inside_one_cohort() {
+        let first = trace(0, SolveStatus::Optimal);
+        let mut second = trace(1, SolveStatus::Optimal);
+        second.measurement_class = MeasurementClass::Measured;
+        assert_eq!(
+            summarize_traces(&[first, second]),
+            Err(TraceError::MixedCohortIdentity)
+        );
+    }
+
+    #[test]
+    fn checked_in_csv_fixture_is_parseable_and_keeps_its_synthetic_label() {
+        let rows = parse_trace_csv(include_str!("../fixtures/synthetic-traces.csv")).unwrap();
+        assert_eq!(rows.len(), 30);
+        assert!(rows.iter().all(|row| row.measurement_class == MeasurementClass::Synthetic));
+        let summary = summarize_traces(&rows).unwrap().remove(0);
+        assert_eq!(summary.optimal_count, 18);
+        assert_eq!(summary.feasible_count, 4);
+        assert_eq!(summary.timeout_count, 4);
+        assert_eq!(summary.infeasible_count, 4);
     }
 
     #[test]
