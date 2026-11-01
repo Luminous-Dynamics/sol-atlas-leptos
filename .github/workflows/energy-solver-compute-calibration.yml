@@ -1,0 +1,87 @@
+name: Energy Solver Compute Trace Calibration
+
+on:
+  pull_request:
+    paths:
+      - "tools/energy-solver-compute-calibration/**"
+  push:
+    branches:
+      - "research/energy-solver-compute-calibration-*"
+    paths:
+      - "tools/energy-solver-compute-calibration/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: energy-solver-compute-calibration-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trace-calibration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CARGO_NET_OFFLINE: "true"
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/energy-solver-compute-calibration/cargo-target
+      EXPECTED_SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Assert exact subject before execution
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SUBJECT_SHA"
+      - uses: dtolnay/rust-toolchain@1.96.0
+        with:
+          components: rustfmt, clippy
+      - name: Format
+        run: cargo fmt --manifest-path tools/energy-solver-compute-calibration/Cargo.toml --check
+      - name: Check locked dependency-free trace validator
+        run: cargo check --locked --all-targets --manifest-path tools/energy-solver-compute-calibration/Cargo.toml
+      - name: Run trace schema, denominator and cohort isolation tests
+        run: cargo test --locked --all-targets --manifest-path tools/energy-solver-compute-calibration/Cargo.toml
+      - name: Strict Clippy
+        run: cargo clippy --locked --all-targets --manifest-path tools/energy-solver-compute-calibration/Cargo.toml -- -D warnings
+      - name: Validate synthetic fixture and render calibration report
+        run: |
+          set -euo pipefail
+          mkdir -p target/energy-solver-compute-calibration
+          cargo run --release --locked --manifest-path tools/energy-solver-compute-calibration/Cargo.toml -- \
+            tools/energy-solver-compute-calibration/fixtures/synthetic-traces.csv \
+            > target/energy-solver-compute-calibration/synthetic-fixture-report.csv
+          test "$(grep -vc '^cohort_id,' target/energy-solver-compute-calibration/synthetic-fixture-report.csv)" -eq 1
+          grep -q '^cohort-a,synthetic,30,22,22,30,18,4,4,4,' target/energy-solver-compute-calibration/synthetic-fixture-report.csv
+          grep -q ',NA,.*false$' target/energy-solver-compute-calibration/synthetic-fixture-report.csv
+          sha256sum tools/energy-solver-compute-calibration/fixtures/synthetic-traces.csv \
+            > target/energy-solver-compute-calibration/fixture-source.sha256
+          sha256sum "$CARGO_TARGET_DIR/release/energy-solver-compute-calibration" \
+            > target/energy-solver-compute-calibration/aggregator-binary.sha256
+          {
+            printf 'subject_commit=%s\n' "$(git rev-parse HEAD)"
+            printf 'rustc='; rustc --version
+            printf 'cargo='; cargo --version
+            printf 'runner_os=%s\n' "$RUNNER_OS"
+            printf 'runner_arch=%s\n' "$RUNNER_ARCH"
+            printf 'cpu_model='; lscpu | awk -F: '/Model name/ {gsub(/^ +/, "", $2); print $2; exit}'
+            printf 'logical_cpu_count='; nproc
+            printf 'runner_ram_kib='; awk '/MemTotal/ {print $2}' /proc/meminfo
+          } > target/energy-solver-compute-calibration/build-provenance.txt
+      - name: Assert exact subject and clean tracked source
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SUBJECT_SHA"
+          git diff --exit-code
+          test -z "$(git status --porcelain --untracked-files=all)"
+      - name: Upload calibration fixture report and provenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: energy-solver-compute-calibration-${{ github.sha }}
+          path: |
+            target/energy-solver-compute-calibration/
+            tools/energy-solver-compute-calibration/Cargo.toml
+            tools/energy-solver-compute-calibration/Cargo.lock
+            tools/energy-solver-compute-calibration/README.md
+            tools/energy-solver-compute-calibration/src/
+            tools/energy-solver-compute-calibration/fixtures/
+          if-no-files-found: error
+          retention-days: 14
