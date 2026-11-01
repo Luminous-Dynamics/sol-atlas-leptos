@@ -283,6 +283,8 @@ struct ValidatedRequest {
     policy_sha256: String,
     independence_registry_sha256: String,
     control_mapping_policy_sha256: String,
+    currency_code: String,
+    compute_unit_id: String,
     decision_tier: String,
     evaluated_at: String,
     requirements: BTreeMap<String, Requirement>,
@@ -436,6 +438,14 @@ fn validate_request(value: &Value) -> Result<ValidatedRequest, String> {
     let policy_sha256 = parse_digest(value, "policy_sha256", "request")?;
     let independence_registry_sha256 = parse_digest(value, "independence_registry_sha256", "request")?;
     let control_mapping_policy_sha256 = parse_digest(value, "control_mapping_policy_sha256", "request")?;
+    let currency_code = required_string(value, "currency_code", "request")?.to_owned();
+    if currency_code.len() != 3 || !currency_code.bytes().all(|byte| byte.is_ascii_uppercase()) {
+        return Err("request.currency_code must be a three-letter uppercase currency code".into());
+    }
+    let compute_unit_id = required_string(value, "compute_unit_id", "request")?.to_owned();
+    if compute_unit_id.len() > 64 || !compute_unit_id.bytes().all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || b"._:-".contains(&byte)) {
+        return Err("request.compute_unit_id must be a stable lowercase unit identifier".into());
+    }
     let decision_tier = required_string(value, "decision_tier", "request")?.to_owned();
     if !["D0_descriptive", "D1_advisory", "D2_delegated_planning", "D3_autonomous_control"].contains(&decision_tier.as_str()) {
         return Err(format!("unsupported decision tier '{decision_tier}'"));
@@ -575,6 +585,7 @@ fn validate_request(value: &Value) -> Result<ValidatedRequest, String> {
     Ok(ValidatedRequest {
         request_id, risk_control_report_sha256, profile_sha256, policy_sha256,
         independence_registry_sha256, control_mapping_policy_sha256,
+        currency_code, compute_unit_id,
         decision_tier, evaluated_at, requirements, existing, actions,
         action_order, budget,
     })
@@ -866,6 +877,8 @@ fn report_for(
         "policy_sha256": request.policy_sha256,
         "independence_registry_sha256": request.independence_registry_sha256,
         "control_mapping_policy_sha256": request.control_mapping_policy_sha256,
+        "currency_code": request.currency_code,
+        "compute_unit_id": request.compute_unit_id,
         "planner_version": PLANNER_VERSION,
         "planner_build_id": build_id,
         "optimization_method": method,
