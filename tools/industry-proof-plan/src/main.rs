@@ -970,6 +970,29 @@ mod tests {
     }
 
     #[test]
+    fn candidate_action_rights_must_be_current_at_planning_time() {
+        let mut request = request();
+        request["candidate_actions"][0]["rights_valid_until"] = json!("2026-10-31T23:59:59Z");
+        assert!(validate_request(&request).is_err());
+
+        request = request();
+        request["candidate_actions"][0]["rights_verified_at"] = json!("2026-11-02T00:00:00Z");
+        assert!(validate_request(&request).is_err());
+    }
+
+    #[test]
+    fn report_preserves_existing_evidence_and_action_mapping_identity() {
+        let report = test_report(&request());
+        let row = report["control_coverage"].as_array().unwrap().iter()
+            .find(|item| item["control_id"] == "source_rights_lineage").unwrap();
+        assert_eq!(row["existing_verified_evidence"][0]["artifact_sha256"], "4444444444444444444444444444444444444444444444444444444444444444");
+        let action = report["selected_actions"].as_array().unwrap().iter()
+            .find(|item| item["action_id"] == "artifact-provenance-capture").unwrap();
+        assert_eq!(action["mapping_policy_sha256"], "8888888888888888888888888888888888888888888888888888888888888888");
+        assert_eq!(action["rights_status"], "verified");
+    }
+
+    #[test]
     fn prerequisite_cycles_are_rejected() {
         let mut request = request();
         request["candidate_actions"][0]["prerequisites"] = json!(["numeric-reference-run-a"]);
