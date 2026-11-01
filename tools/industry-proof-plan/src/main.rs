@@ -326,10 +326,43 @@ fn parse_digest(value: &Value, key: &str, context: &str) -> Result<String, Strin
     Ok(digest.to_owned())
 }
 
+fn is_canonical_utc(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    if bytes.len() != 20
+        || bytes[4] != b'-' || bytes[7] != b'-' || bytes[10] != b'T'
+        || bytes[13] != b':' || bytes[16] != b':' || bytes[19] != b'Z'
+        || !bytes.iter().enumerate().all(|(index, byte)| {
+            [4, 7, 10, 13, 16, 19].contains(&index) || byte.is_ascii_digit()
+        })
+    {
+        return false;
+    }
+    let part = |range: std::ops::Range<usize>| {
+        std::str::from_utf8(&bytes[range]).ok()?.parse::<u32>().ok()
+    };
+    let (Some(year), Some(month), Some(day), Some(hour), Some(minute), Some(second)) = (
+        part(0..4), part(5..7), part(8..10),
+        part(11..13), part(14..16), part(17..19)
+    ) else {
+        return false;
+    };
+    if year == 0 || !(1..=12).contains(&month) || hour > 23 || minute > 59 || second > 59 {
+        return false;
+    }
+    let leap_year = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+    let days = match month {
+        2 if leap_year => 29,
+        2 => 28,
+        4 | 6 | 9 | 11 => 30,
+        _ => 31,
+    };
+    (1..=days).contains(&day)
+}
+
 fn parse_timestamp(value: &Value, key: &str, context: &str) -> Result<String, String> {
     let timestamp = required_string(value, key, context)?;
-    if timestamp.len() != 20 || !timestamp.ends_with('Z') {
-        return Err(format!("{context}.{key} must be normalized UTC YYYY-MM-DDTHH:MM:SSZ"));
+    if !is_canonical_utc(timestamp) {
+        return Err(format!("{context}.{key} must be a real UTC calendar value in YYYY-MM-DDTHH:MM:SSZ"));
     }
     Ok(timestamp.to_owned())
 }
@@ -439,7 +472,7 @@ fn validate_request(value: &Value) -> Result<ValidatedRequest, String> {
         let verified_at = parse_timestamp(row, "verified_at", &context)?;
         let valid_until = match row.get("valid_until") {
             Some(Value::Null) => None,
-            Some(Value::String(value)) => Some(value.as_str()),
+            Some(Value::String(value)) if is_canonical_utc(value) => Some(value.as_str()),
             _ => return Err(format!("{context}.valid_until must be a UTC timestamp or null")),
         };
         if row.get("verification_status").and_then(Value::as_str)
@@ -491,7 +524,7 @@ fn validate_request(value: &Value) -> Result<ValidatedRequest, String> {
         let rights_verified_at = parse_timestamp(row, "rights_verified_at", &context)?;
         let rights_valid_until = match row.get("rights_valid_until") {
             Some(Value::Null) => None,
-            Some(Value::String(value)) => Some(value.clone()),
+            Some(Value::String(value)) if is_canonical_utc(value) => Some(value.clone()),
             _ => return Err(format!("{context}.rights_valid_until must be a UTC timestamp or null")),
         };
         if rights_verified_at > evaluated_at
@@ -967,6 +1000,17 @@ mod tests {
         let report = test_report(&request);
         assert!(report["unsatisfied_controls"].as_array().unwrap().iter()
             .any(|control| control == "source_rights_lineage"));
+    }
+
+    #[test]
+    fn malformed_calendar_timestamps_are_rejected() {
+        let mut request = request();
+        request["candidate_actions"][0]["rights_valid_until"] = json!("2026-02-29T00:00:00Z");
+        assert!(validate_request(&request).is_err());
+
+        request = request();
+        request["evaluated_at"] = json!("2026-13-01T00:00:00Z");
+        assert!(validate_request(&request).is_err());
     }
 
     #[test]
