@@ -431,11 +431,22 @@ fn validate_request(value: &Value) -> Result<ValidatedRequest, String> {
             return Err(format!("{context} refers to a control not in the fixed requirement set"));
         }
         let artifact = parse_digest(row, "artifact_sha256", &context)?;
-        let _verifier = parse_digest(row, "verifier_build_sha256", &context)?;
+        let verifier_build_sha256 = parse_digest(row, "verifier_build_sha256", &context)?;
         let domain = required_string(row, "independence_domain_id", &context)?.to_owned();
-        let _registry = parse_digest(row, "independence_registry_sha256", &context)?;
+        let independence_registry_sha256 = parse_digest(row, "independence_registry_sha256", &context)?;
         let verified_at = parse_timestamp(row, "verified_at", &context)?;
-        let valid_until = row.get("valid_until").and_then(Value::as_str);
+        let valid_until = match row.get("valid_until") {
+            Some(Value::Null) => None,
+            Some(Value::String(value)) => Some(value.as_str()),
+            _ => return Err(format!("{context}.valid_until must be a UTC timestamp or null")),
+        };
+        if row.get("verification_status").and_then(Value::as_str)
+            .is_none_or(|value| !["verified", "failed", "unknown", "revoked"].contains(&value))
+            || row.get("rights_status").and_then(Value::as_str)
+                .is_none_or(|value| !["verified", "restricted", "unknown", "revoked"].contains(&value))
+        {
+            return Err(format!("{context} has an unsupported verification or rights state"));
+        }
         let valid_time = valid_until.is_none_or(|until| until >= evaluated_at.as_str());
         let current = row.get("verification_status").and_then(Value::as_str) == Some("verified")
             && row.get("rights_status").and_then(Value::as_str) == Some("verified")
@@ -444,7 +455,12 @@ fn validate_request(value: &Value) -> Result<ValidatedRequest, String> {
 
         if current {
             existing.entry(control.clone()).or_default().entry(domain.clone()).or_insert(
-                ExistingEvidence { domain_id: domain, artifact_sha256: artifact }
+                ExistingEvidence {
+                    domain_id: domain,
+                    artifact_sha256: artifact,
+                    verifier_build_sha256,
+                    independence_registry_sha256,
+                }
             );
         }
     }
