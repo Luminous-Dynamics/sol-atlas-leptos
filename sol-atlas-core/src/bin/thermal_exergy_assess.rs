@@ -55,7 +55,10 @@ fn report_from_bytes(raw_input: &[u8]) -> Result<RunReport, Box<dyn Error>> {
             "or prove physical performance",
         ),
     };
-    Ok(RunReport { receipt, assessment })
+    Ok(RunReport {
+        receipt,
+        assessment,
+    })
 }
 
 fn run() -> Result<(), Box<dyn Error>> {
@@ -105,7 +108,10 @@ mod tests {
         let trimmed = FIXTURE.trim().as_bytes();
         let original = report_from_bytes(FIXTURE.as_bytes()).unwrap();
         let whitespace_variant = report_from_bytes(trimmed).unwrap();
-        assert_ne!(original.receipt.input_sha256, whitespace_variant.receipt.input_sha256);
+        assert_ne!(
+            original.receipt.input_sha256,
+            whitespace_variant.receipt.input_sha256
+        );
         assert_eq!(
             original.assessment_sha256_for_test(),
             whitespace_variant.assessment_sha256_for_test()

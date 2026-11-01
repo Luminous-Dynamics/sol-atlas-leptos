@@ -36,9 +36,8 @@ fn sha256_hex(bytes: &[u8]) -> String {
 
 fn report_from_bytes(raw_input: &[u8]) -> Result<RunReport, Box<dyn Error>> {
     let request: EnergyPathwayRequest = serde_json::from_slice(raw_input)?;
-    let assessment = assess_energy_pathway(&request).map_err(|error| {
-        io::Error::new(io::ErrorKind::InvalidData, format!("{error:?}"))
-    })?;
+    let assessment = assess_energy_pathway(&request)
+        .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, format!("{error:?}")))?;
     let assessment_bytes = serde_json::to_vec(&assessment)?;
     let receipt = RunReceipt {
         receipt_schema_version: "1",
@@ -56,7 +55,10 @@ fn report_from_bytes(raw_input: &[u8]) -> Result<RunReport, Box<dyn Error>> {
             "or prove physical output",
         ),
     };
-    Ok(RunReport { receipt, assessment })
+    Ok(RunReport {
+        receipt,
+        assessment,
+    })
 }
 
 fn run() -> Result<(), Box<dyn Error>> {
@@ -106,7 +108,10 @@ mod tests {
         let compact = FIXTURE.trim().as_bytes();
         let original = report_from_bytes(FIXTURE.as_bytes()).unwrap();
         let whitespace_variant = report_from_bytes(compact).unwrap();
-        assert_ne!(original.receipt.input_sha256, whitespace_variant.receipt.input_sha256);
+        assert_ne!(
+            original.receipt.input_sha256,
+            whitespace_variant.receipt.input_sha256
+        );
         assert_eq!(
             original.assessment_sha256_for_test(),
             whitespace_variant.assessment_sha256_for_test()

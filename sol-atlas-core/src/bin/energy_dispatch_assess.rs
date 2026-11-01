@@ -55,7 +55,10 @@ fn report_from_bytes(raw_input: &[u8]) -> Result<RunReport, Box<dyn Error>> {
             "evidence truth, meter calibration, physical safety, or model adequacy",
         ),
     };
-    Ok(RunReport { receipt, assessment })
+    Ok(RunReport {
+        receipt,
+        assessment,
+    })
 }
 
 fn run() -> Result<(), Box<dyn Error>> {

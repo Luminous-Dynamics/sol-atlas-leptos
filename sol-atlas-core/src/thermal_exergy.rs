@@ -41,10 +41,14 @@ pub struct ThermalExergyRequest {
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ThermalExergyError {
     EmptySchemaVersion,
-    UnsupportedSchemaVersion { schema_version: String },
+    UnsupportedSchemaVersion {
+        schema_version: String,
+    },
     EmptyScenarioId,
     InvalidHeatQuantity,
-    InvalidAbsoluteTemperature { field: String },
+    InvalidAbsoluteTemperature {
+        field: String,
+    },
     HeatBelowReference {
         heat_temperature_kelvin: f64,
         reference_temperature_kelvin: f64,
@@ -151,15 +155,10 @@ pub fn assess_thermal_exergy(
     }
 
     let exergy_fraction =
-        (1.0 - reference_environment_temperature_kelvin / heat_temperature_kelvin)
-            .clamp(0.0, 1.0);
+        (1.0 - reference_environment_temperature_kelvin / heat_temperature_kelvin).clamp(0.0, 1.0);
     let thermal_exergy_kwh = request.heat_quantity_kwh * exergy_fraction;
     let energy_minus_exergy_kwh = request.heat_quantity_kwh - thermal_exergy_kwh;
-    for value in [
-        exergy_fraction,
-        thermal_exergy_kwh,
-        energy_minus_exergy_kwh,
-    ] {
+    for value in [exergy_fraction, thermal_exergy_kwh, energy_minus_exergy_kwh] {
         if !value.is_finite() {
             return Err(ThermalExergyError::NonFiniteDerivedValue);
         }
@@ -249,13 +248,19 @@ mod tests {
     #[test]
     fn rejects_heat_below_reference_instead_of_misclassifying_cold_exergy() {
         let error = assess_thermal_exergy(&request(2.0, 10.0)).unwrap_err();
-        assert!(matches!(error, ThermalExergyError::HeatBelowReference { .. }));
+        assert!(matches!(
+            error,
+            ThermalExergyError::HeatBelowReference { .. }
+        ));
     }
 
     #[test]
     fn rejects_nonpositive_absolute_temperature() {
         let error = assess_thermal_exergy(&request(2.0, -273.15)).unwrap_err();
-        assert!(matches!(error, ThermalExergyError::InvalidAbsoluteTemperature { .. }));
+        assert!(matches!(
+            error,
+            ThermalExergyError::InvalidAbsoluteTemperature { .. }
+        ));
     }
 
     #[test]
