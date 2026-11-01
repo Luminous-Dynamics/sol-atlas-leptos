@@ -251,6 +251,9 @@ struct Action {
     conflicts: BTreeSet<String>,
     resources: Resources,
     human_approval_required: bool,
+    mapping_policy_sha256: String,
+    independence_registry_sha256: String,
+    rights_status: String,
 }
 
 #[derive(Clone, Debug)]
@@ -263,6 +266,8 @@ struct Requirement {
 struct ExistingEvidence {
     domain_id: String,
     artifact_sha256: String,
+    verifier_build_sha256: String,
+    independence_registry_sha256: String,
 }
 
 #[derive(Clone, Debug)]
