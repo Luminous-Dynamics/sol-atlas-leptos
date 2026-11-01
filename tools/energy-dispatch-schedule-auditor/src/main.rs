@@ -86,7 +86,11 @@ fn run() -> Result<ExitCode, String> {
     println!("receipt_sha256={}", receipt.receipt_sha256);
     println!(
         "failed_predicates={}",
-        receipt.findings.iter().filter(|finding| !finding.passed).count()
+        receipt
+            .findings
+            .iter()
+            .filter(|finding| !finding.passed)
+            .count()
     );
 
     Ok(match receipt.disposition {
@@ -111,19 +115,16 @@ mod tests {
 
     #[test]
     fn bounded_read_accepts_exact_limit_and_rejects_one_byte_over() {
-        let at_limit = read_bounded_bytes(
-            std::io::Cursor::new(b"1234".as_slice()),
-            4,
-            "test input",
-        )
-        .expect("exactly-at-limit input is accepted");
+        let at_limit =
+            read_bounded_bytes(std::io::Cursor::new(b"1234".as_slice()), 4, "test input")
+                .expect("exactly-at-limit input is accepted");
         assert_eq!(at_limit, b"1234");
 
-        let over_limit = read_bounded_bytes(
-            std::io::Cursor::new(b"12345".as_slice()),
-            4,
-            "test input",
+        let over_limit =
+            read_bounded_bytes(std::io::Cursor::new(b"12345".as_slice()), 4, "test input");
+        assert!(
+            over_limit.is_err(),
+            "one byte over the cap must be rejected"
         );
-        assert!(over_limit.is_err(), "one byte over the cap must be rejected");
     }
 }
