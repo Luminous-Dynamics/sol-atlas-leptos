@@ -4,6 +4,11 @@ on:
   pull_request:
     paths:
       - "tools/industry-assurance-validator/**"
+      - "tools/industry-risk-control-selector/**"
+      - "schemas/ieac-risk-control-policy-v0.2.schema.json"
+      - "schemas/ieac-risk-control-policy-v0.2.json"
+      - "schemas/ieac-risk-control-selection-report-v0.1.schema.json"
+      - "docs/industry/IEAC_RISK_CONTROL_SELECTOR_V0.1.md"
       - "schemas/industry-assurance-qualification-profile-v0.1.schema.json"
       - "schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json"
       - "schemas/examples/industry-assurance-water-food-energy-profile-synthetic-v0.1.json"
@@ -20,6 +25,11 @@ on:
       - feat/ieac-risk-control-selector-v0-1
     paths:
       - "tools/industry-assurance-validator/**"
+      - "tools/industry-risk-control-selector/**"
+      - "schemas/ieac-risk-control-policy-v0.2.schema.json"
+      - "schemas/ieac-risk-control-policy-v0.2.json"
+      - "schemas/ieac-risk-control-selection-report-v0.1.schema.json"
+      - "docs/industry/IEAC_RISK_CONTROL_SELECTOR_V0.1.md"
       - "schemas/industry-assurance-qualification-profile-v0.1.schema.json"
       - "schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json"
       - "schemas/examples/industry-assurance-water-food-energy-profile-synthetic-v0.1.json"
@@ -93,6 +103,35 @@ jobs:
             .issue_count == 0
           ' schemas/examples/industry-assurance-validation-report-synthetic-v0.1.json
 
+      - name: Check risk-control selector formatting
+        run: cargo fmt --manifest-path tools/industry-risk-control-selector/Cargo.toml -- --check
+
+      - name: Run risk-control selector Clippy with warnings denied
+        run: cargo clippy --manifest-path tools/industry-risk-control-selector/Cargo.toml --all-targets --locked -- -D warnings
+
+      - name: Run monotonicity and adversarial risk-selector tests
+        run: cargo test --manifest-path tools/industry-risk-control-selector/Cargo.toml --locked
+
+      - name: Replay synthetic risk-to-control selection
+        env:
+          IEAC_SELECTOR_BUILD_ID: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          cargo run --manifest-path tools/industry-risk-control-selector/Cargo.toml --locked -- \
+            schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json \
+            schemas/ieac-risk-control-policy-v0.2.json \
+            "$RUNNER_TEMP/ieac-risk-control-report.json"
+          jq -e --arg build "$GITHUB_SHA" '
+            .schema_version == "luminous.ieac-risk-control-selection-report.v0.1" and
+            .selector_version == "0.2.0" and
+            .selector_build_id == $build and
+            .decision_tier == "D1_advisory" and
+            (.required_controls | length >= 10) and
+            ([.required_controls[].reason_codes[]] | length > 0) and
+            .independent_qualification_attested == false and
+            .action_authority == "none"
+          ' "$RUNNER_TEMP/ieac-risk-control-report.json"
+
   schema-conformance:
     name: Draft 2020-12 schema and differential negative controls
     runs-on: ubuntu-latest
@@ -116,6 +155,14 @@ jobs:
       - name: Add JSON Schema CLI to PATH
         run: echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
 
+      - name: Validate the risk-control policy and selector report schemas
+        run: |
+          set -euo pipefail
+          meta=https://json-schema.org/draft/2020-12/schema
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" --instance schemas/ieac-risk-control-policy-v0.2.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" --instance schemas/ieac-risk-control-selection-report-v0.1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/ieac-risk-control-policy-v0.2.schema.json --instance schemas/ieac-risk-control-policy-v0.2.json
+
       - name: Validate schemas against the Draft 2020-12 meta-schema
         run: |
           set -euo pipefail
@@ -125,6 +172,41 @@ jobs:
           jsonschema-cli validate --draft 2020 --assert-format \
             https://json-schema.org/draft/2020-12/schema \
             --instance schemas/industry-assurance-validation-report-v0.1.schema.json
+
+      - name: Validate conflicted risk vocabulary and reject false qualification
+        run: |
+          set -euo pipefail
+          source=schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json
+          schema=schemas/industry-assurance-qualification-profile-v0.1.schema.json
+          jq '.risk_assessment.dimensions.consequence = "conflicted"' "$source" > "$RUNNER_TEMP/conflicted-risk-profile.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" --instance "$RUNNER_TEMP/conflicted-risk-profile.json"
+          jq '.risk_assessment.dimensions.consequence = "conflicted" | .disposition = "qualified_for_profile"' "$source" > "$RUNNER_TEMP/qualified-conflicted-risk-profile.json"
+          if cargo run --manifest-path tools/industry-assurance-validator/Cargo.toml --locked -- "$RUNNER_TEMP/qualified-conflicted-risk-profile.json" "$RUNNER_TEMP/qualified-conflicted-risk-report.json"; then
+            echo "ERROR: IEAC validator accepted a qualified profile with conflicted risk"
+            exit 1
+          fi
+          jq -e 'any(.issues[]; .code == "QUALIFIED_WITH_CONFLICTED_RISK")' "$RUNNER_TEMP/qualified-conflicted-risk-report.json"
+
+      - name: Validate selector report schema and conflicted-risk abstention
+        env:
+          IEAC_SELECTOR_BUILD_ID: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          source=schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json
+          schema=schemas/ieac-risk-control-selection-report-v0.1.schema.json
+          jq '.risk_assessment.dimensions.consequence = "conflicted"' "$source" > "$RUNNER_TEMP/conflicted-selector-profile.json"
+          cargo run --manifest-path tools/industry-risk-control-selector/Cargo.toml --locked -- \
+            "$RUNNER_TEMP/conflicted-selector-profile.json" schemas/ieac-risk-control-policy-v0.2.json \
+            "$RUNNER_TEMP/conflicted-selector-report.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" --instance "$RUNNER_TEMP/conflicted-selector-report.json"
+          jq -e '.risk_assessment_state == "contains_conflicted" and .requirements_disposition == "indeterminate" and .action_authority == "none" and .independent_qualification_attested == false' "$RUNNER_TEMP/conflicted-selector-report.json"
+
+          jq '.dimensions.fallback.human_fallback = []' schemas/ieac-risk-control-policy-v0.2.json > "$RUNNER_TEMP/non-monotone-policy.json"
+          if cargo run --quiet --manifest-path tools/industry-risk-control-selector/Cargo.toml --locked -- \
+            "$source" "$RUNNER_TEMP/non-monotone-policy.json" "$RUNNER_TEMP/non-monotone-report.json"; then
+            echo "ERROR: selector accepted a policy that removes a fallback control at a worse risk state"
+            exit 1
+          fi
 
       - name: Validate all profile examples against the full schema
         run: |
