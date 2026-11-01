@@ -1,0 +1,31 @@
+use energy_replan_policy_bakeoff::run_bakeoff;
+
+fn main() {
+    println!("# schema=energy-replan-policy-report-v0.1");
+    println!(
+        "policy,scenario_count,event_count,timely_detections,missed_events,false_triggers,redundant_triggers,solver_invocations,abstentions,service_loss_mwh,replanning_cost_mwh,total_penalty_mwh,mean_detection_latency_steps"
+    );
+
+    for (policy, metrics) in run_bakeoff() {
+        let mean_latency = metrics
+            .mean_detection_latency_steps()
+            .map(|value| format!("{value:.3}"))
+            .unwrap_or_else(|| "NA".to_owned());
+        println!(
+            "{},{},{},{},{},{},{},{},{},{},{},{},{}",
+            policy.name(),
+            metrics.scenario_count,
+            metrics.event_count,
+            metrics.timely_detections,
+            metrics.missed_events,
+            metrics.false_triggers,
+            metrics.redundant_triggers,
+            metrics.solver_invocations,
+            metrics.abstentions,
+            metrics.service_loss_mwh,
+            metrics.replanning_cost_mwh,
+            metrics.total_penalty_mwh,
+            mean_latency
+        );
+    }
+}
