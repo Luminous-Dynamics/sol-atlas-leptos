@@ -1,0 +1,341 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/ieac-proof-plan-report-v0.1.schema.json",
+  "title": "IEAC Proof Plan Report v0.1",
+  "description": "Evidence acquisition plan only. Selected actions are planned, not executed or verified. No mandatory control may be relaxed.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_id",
+    "request_sha256",
+    "risk_control_report_sha256",
+    "profile_sha256",
+    "policy_sha256",
+    "planner_version",
+    "planner_build_id",
+    "optimization_method",
+    "optimality_status",
+    "plan_status",
+    "selected_actions",
+    "covered_controls",
+    "unsatisfied_controls",
+    "human_approvals_required",
+    "resource_totals",
+    "resource_budgets",
+    "objective_order",
+    "action_authority",
+    "qualification_attested"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.ieac-proof-plan-report.v0.1"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128
+    },
+    "request_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "risk_control_report_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "profile_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "policy_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "planner_version": {
+      "const": "0.1.0"
+    },
+    "planner_build_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "optimization_method": {
+      "enum": [
+        "exact_subset_enumeration",
+        "deterministic_greedy"
+      ]
+    },
+    "optimality_status": {
+      "enum": [
+        "proven_optimal",
+        "proven_infeasible",
+        "not_proven"
+      ]
+    },
+    "plan_status": {
+      "enum": [
+        "optimal_plan",
+        "infeasible",
+        "feasible_heuristic",
+        "no_feasible_plan_found"
+      ]
+    },
+    "selected_actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action_id",
+          "action_sha256",
+          "prerequisite",
+          "human_approval_required",
+          "independence_domain_id",
+          "covers_control_ids",
+          "resource_costs"
+        ],
+        "properties": {
+          "action_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "action_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "prerequisite": {
+            "type": "boolean"
+          },
+          "human_approval_required": {
+            "type": "boolean"
+          },
+          "independence_domain_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "covers_control_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "resource_costs": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "money_microunits",
+              "reviewer_minutes",
+              "field_interruption_minutes",
+              "compute_microunits",
+              "duration_minutes"
+            ],
+            "properties": {
+              "money_microunits": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "reviewer_minutes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "field_interruption_minutes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "compute_microunits": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "duration_minutes": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "covered_controls": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "unsatisfied_controls": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "human_approvals_required": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "resource_totals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "money_microunits",
+        "reviewer_minutes",
+        "field_interruption_minutes",
+        "compute_microunits",
+        "duration_minutes"
+      ],
+      "properties": {
+        "money_microunits": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "reviewer_minutes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "field_interruption_minutes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "compute_microunits": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "duration_minutes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "resource_budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "money_microunits",
+        "reviewer_minutes",
+        "field_interruption_minutes",
+        "compute_microunits",
+        "duration_minutes"
+      ],
+      "properties": {
+        "money_microunits": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "reviewer_minutes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "field_interruption_minutes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "compute_microunits": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "duration_minutes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "objective_order": {
+      "const": [
+        "money_microunits",
+        "field_interruption_minutes",
+        "reviewer_minutes",
+        "duration_minutes",
+        "compute_microunits",
+        "action_count",
+        "lexicographic_action_ids"
+      ]
+    },
+    "action_authority": {
+      "const": "none"
+    },
+    "qualification_attested": {
+      "const": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "plan_status": {
+            "const": "optimal_plan"
+          }
+        },
+        "required": [
+          "plan_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "optimization_method": {
+            "const": "exact_subset_enumeration"
+          },
+          "optimality_status": {
+            "const": "proven_optimal"
+          },
+          "unsatisfied_controls": {
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "plan_status": {
+            "const": "infeasible"
+          }
+        },
+        "required": [
+          "plan_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "optimization_method": {
+            "const": "exact_subset_enumeration"
+          },
+          "optimality_status": {
+            "const": "proven_infeasible"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "plan_status": {
+            "enum": [
+              "feasible_heuristic",
+              "no_feasible_plan_found"
+            ]
+          }
+        },
+        "required": [
+          "plan_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "optimization_method": {
+            "const": "deterministic_greedy"
+          },
+          "optimality_status": {
+            "const": "not_proven"
+          }
+        }
+      }
+    }
+  ]
+}
