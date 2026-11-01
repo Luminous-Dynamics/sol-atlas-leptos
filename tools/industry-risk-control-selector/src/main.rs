@@ -256,10 +256,12 @@ fn validate_policy_catalog(policy: &Value) -> Result<BTreeMap<String, Value>, St
         || unknown.get("behavior").and_then(Value::as_str)
             != Some("apply_the_maximum_control_set_for_that_dimension_and_mark_indeterminate")
         || unknown.get("conflicted_dimension_behavior").and_then(Value::as_str)
-            != Some("same_as_unknown_and_mark_indeterminate") {
+            != Some("same_as_unknown_and_mark_indeterminate")
+        || unknown.get("reviewed_class_unassessed_behavior").and_then(Value::as_str)
+            != Some("apply_unassessed_controls_and_mark_indeterminate") {
         return Err("unknown/conflicted policy must be worst-case conservative and indeterminate".into());
     }
-    for control in array(unknown, "reviewed_class_unassessed", "unknown policy")? {
+    for control in array(unknown, "reviewed_class_unassessed_controls", "unknown policy")? {
         referenced.insert(control.as_str().ok_or("unassessed control ID must be a string")?.to_owned());
     }
 
@@ -465,7 +467,7 @@ fn evaluate(profile: &Value, policy: &Value, build_id: &str) -> Result<Value, St
 
     if risk_unassessed {
         add_controls(&mut required, array(policy.get("unknown_policy").ok_or("unknown policy missing")?,
-            "reviewed_class_unassessed", "unknown policy")?, "RISK_CLASS_UNASSESSED_CONSERVATIVE")?;
+            "reviewed_class_unassessed_controls", "unknown policy")?, "RISK_CLASS_UNASSESSED_CONSERVATIVE")?;
     }
 
     let model_influence = dimensions.get("model_influence").and_then(Value::as_str).unwrap_or("unknown");
