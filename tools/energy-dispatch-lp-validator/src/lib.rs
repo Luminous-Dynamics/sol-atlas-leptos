@@ -720,7 +720,7 @@ pub fn derive_reference_model(
         add_row(
             &mut model,
             indexed("charge_floor_upper", index),
-            vec![(cn, charge_input), (-cd, charge_gain)],
+            vec![(cn, charge_input.clone()), (-cd, charge_gain)],
             Relation::Le,
             cd - 1,
         )?;
@@ -738,7 +738,7 @@ pub fn derive_reference_model(
         add_row(
             &mut model,
             indexed("discharge_floor_upper", index),
-            vec![(discharge_num, withdrawal), (-discharge_den, delivered)],
+            vec![(discharge_num, withdrawal), (-discharge_den, delivered.clone())],
             Relation::Le,
             discharge_den - 1,
         )?;
@@ -1063,10 +1063,9 @@ fn model_diff(expected: &SemanticModel, actual: &SemanticModel) -> ValidationErr
         return error("semantic model mismatch: constraint inventory differs");
     }
     for (name, expected_row) in &expected.constraints {
-        let actual_row = actual
-            .constraints
-            .get(name)
-            .ok_or_else(|| error(format!("semantic model mismatch: missing constraint {name}")))?;
+        let Some(actual_row) = actual.constraints.get(name) else {
+            return error(format!("semantic model mismatch: missing constraint {name}"));
+        };
         if expected_row != actual_row {
             return error(format!(
                 "semantic model mismatch: constraint {name} has a different coefficient, relation, or RHS"
