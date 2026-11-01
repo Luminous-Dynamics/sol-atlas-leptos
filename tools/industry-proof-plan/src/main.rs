@@ -1204,6 +1204,8 @@ mod tests {
         }
         request["verified_evidence"] = json!(evidence);
         request["candidate_actions"] = json!([]);
+        request["control_mappings"] = json!([]);
+        refresh_mapping_digest(&mut request);
         let report = test_report(&request);
         assert_eq!(report["plan_status"], "optimal_plan");
         assert_eq!(report["optimality_status"], "proven_optimal");
@@ -1400,6 +1402,8 @@ mod tests {
     fn unknown_control_mapping_is_rejected() {
         let mut request = request();
         request["candidate_actions"][0]["covers_control_ids"] = json!(["not-required"]);
+        request["control_mappings"][0]["control_id"] = json!("not-required");
+        refresh_mapping_digest(&mut request);
         assert!(validate_request(&request).is_err());
     }
 
@@ -1414,10 +1418,18 @@ mod tests {
     #[test]
     fn exact_solver_proves_infeasibility_when_independent_domain_is_unavailable() {
         let mut request = request();
-        request["candidate_actions"][3]["independence_domain_id"] = json!("solver-team-a");
-        request["candidate_actions"][4]["independence_domain_id"] = json!("solver-team-a");
+        for index in [3usize, 4] {
+            let action_id = request["candidate_actions"][index]["action_id"].as_str().unwrap().to_owned();
+            request["candidate_actions"][index]["independence_domain_id"] = json!("solver-team-a");
+            for mapping in request["control_mappings"].as_array_mut().unwrap() {
+                if mapping["action_id"] == action_id {
+                    mapping["independence_domain_id"] = json!("solver-team-a");
+                }
+            }
+        }
         request["candidate_actions"][4]["conflicts_with"] = json!(["numeric-reference-run-b"]);
         request["candidate_actions"][3]["conflicts_with"] = json!(["numeric-reference-run-c"]);
+        refresh_mapping_digest(&mut request);
         let report = test_report(&request);
         assert_eq!(report["plan_status"], "infeasible");
         assert_eq!(report["optimality_status"], "proven_infeasible");
