@@ -80,7 +80,7 @@ impl PolicyKind {
 
         match self {
             Self::FixedCadence => {
-                if observation.step > 0 && observation.step % 3 == 0 {
+                if observation.step > 0 && observation.step.is_multiple_of(3) {
                     ReplanAction::RequestReplan
                 } else {
                     ReplanAction::KeepPlan
@@ -217,11 +217,14 @@ fn evaluate_run(
         })
         .collect();
 
-    let abstentions = actions
-        .iter()
-        .filter(|action| **action == ReplanAction::Abstain)
-        .count() as u32;
-    let solver_invocations = replan_steps.len() as u32;
+    let abstentions = u32::try_from(
+        actions
+            .iter()
+            .filter(|action| **action == ReplanAction::Abstain)
+            .count(),
+    )
+    .unwrap_or(u32::MAX);
+    let solver_invocations = u32::try_from(replan_steps.len()).unwrap_or(u32::MAX);
     let replanning_cost_mwh = scenario
         .observations
         .iter()
@@ -252,12 +255,15 @@ fn evaluate_run(
                 })
                 .collect();
             let detected_at = qualifying.first().copied();
-            let false_count = replan_steps
-                .iter()
-                .filter(|step| {
-                    **step < event.observable_at_step || **step > event.response_deadline_step
-                })
-                .count() as u32;
+            let false_count = u32::try_from(
+                replan_steps
+                    .iter()
+                    .filter(|step| {
+                        **step < event.observable_at_step || **step > event.response_deadline_step
+                    })
+                    .count(),
+            )
+            .unwrap_or(u32::MAX);
             let detected = detected_at.is_some();
             let service_loss = if detected {
                 event.service_loss_with_timely_replan_mwh
@@ -266,10 +272,10 @@ fn evaluate_run(
             };
             (
                 1,
-                u32::from(detected),
-                u32::from(!detected),
+                if detected { 1 } else { 0 },
+                if detected { 0 } else { 1 },
                 false_count,
-                qualifying.len().saturating_sub(1) as u32,
+                u32::try_from(qualifying.len().saturating_sub(1)).unwrap_or(u32::MAX),
                 service_loss,
                 detected_at.map(|step| step - event.observable_at_step),
             )
