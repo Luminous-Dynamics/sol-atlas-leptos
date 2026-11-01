@@ -323,6 +323,18 @@ jobs:
             exit 1
           fi
 
+      - name: Validate and schema-check the SCITT event-history audit report
+        run: |
+          set -euo pipefail
+          meta=https://json-schema.org/draft/2020-12/schema
+          report_schema=schemas/industry-scitt-event-history-audit-report-v0.1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i "$report_schema"
+          cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked --bin industry-event-history-audit -- \
+            schemas/examples/ieac-scitt-decision-statement-synthetic-v0.1.json \
+            "$RUNNER_TEMP/ieac-event-history-report.json" || audit_status=$?
+          test "${audit_status:-0}" -eq 3
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$report_schema" -i "$RUNNER_TEMP/ieac-event-history-report.json"
+
       - name: Prove unknown request fields and malformed time are rejected
         run: |
           set -euo pipefail
