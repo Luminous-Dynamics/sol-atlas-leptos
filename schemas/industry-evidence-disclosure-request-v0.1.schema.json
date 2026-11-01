@@ -178,11 +178,15 @@
                   "const": "zero_knowledge_predicate"
                 }
               },
-              "required": ["proof_semantics"]
+              "required": [
+                "proof_semantics"
+              ]
             }
           }
         },
-        "required": ["requested_claims"]
+        "required": [
+          "requested_claims"
+        ]
       },
       "then": {
         "properties": {
@@ -194,7 +198,9 @@
                     "const": "zero_knowledge_predicate"
                   }
                 },
-                "required": ["proof_semantics"]
+                "required": [
+                  "proof_semantics"
+                ]
               },
               "then": {
                 "properties": {
@@ -218,7 +224,9 @@
                   "const": "bbs_di_v1_experimental"
                 }
               },
-              "required": ["presentation_profile"]
+              "required": [
+                "presentation_profile"
+              ]
             },
             "then": {
               "properties": {
@@ -227,6 +235,84 @@
                     "disclosed_signed_claim",
                     "issuer_signed_predicate"
                   ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "requested_claims": {
+          "items": {
+            "if": {
+              "properties": {
+                "proof_semantics": {
+                  "const": "disclosed_signed_claim"
+                }
+              },
+              "required": [
+                "proof_semantics"
+              ]
+            },
+            "then": {
+              "properties": {
+                "semantic_class": {
+                  "enum": [
+                    "source_measurement",
+                    "source_status"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "requested_claims": {
+          "items": {
+            "if": {
+              "properties": {
+                "proof_semantics": {
+                  "const": "issuer_signed_predicate"
+                }
+              },
+              "required": [
+                "proof_semantics"
+              ]
+            },
+            "then": {
+              "properties": {
+                "semantic_class": {
+                  "const": "issuer_derived_assertion"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "requested_claims": {
+          "items": {
+            "if": {
+              "properties": {
+                "proof_semantics": {
+                  "const": "zero_knowledge_predicate"
+                }
+              },
+              "required": [
+                "proof_semantics"
+              ]
+            },
+            "then": {
+              "properties": {
+                "semantic_class": {
+                  "const": "computed_predicate"
                 }
               }
             }
