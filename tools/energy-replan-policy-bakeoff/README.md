@@ -16,7 +16,7 @@ The comparison target is the decision to spend compute and operational switching
 
 All policies receive the same immutable, time-indexed observations. The policy interface receives only one current DecisionObservation; it does not receive a scenario, hidden future, event label, outcome, or evaluator truth. A common input-quality gate returns Abstain for stale, missing, or conflicting telemetry before any policy is invoked.
 
-The evaluator has a separate ScenarioTruth object containing material-event observability time, response deadline and counterfactual service-loss values. It uses that truth only after policy decisions are fixed.
+The evaluator has a separate ScenarioTruth object containing material-event observability time, response deadline, counterfactual service-loss values, solver completion outcomes and synthetic independent-auditor outcomes. It uses that truth only after policy decisions are fixed. A replan request counts as event recovery only when the solver completes by the response deadline and the synthetic audit outcome is Accepted. Missing/ambiguous execution receipts, timeout, infeasibility, cancellation, late completion, audit rejection or audit unavailability never count as a usable schedule.
 
 ## Frozen synthetic panel
 
@@ -32,7 +32,7 @@ There is no single scalar winner and no authority output. The total penalty is a
 
 ## Claim ceiling
 
-Passing this model establishes only that the typed observation boundary and finite synthetic benchmark behave as specified. It does not establish optimal dispatch, physical/electrochemical battery behavior, real-site resilience, forecast calibration, safety certification, an operator's authority, or permission to actuate hardware. Every executed schedule in a future integrated runner must still pass the independent trajectory auditor.
+Passing this model establishes only that the typed observation boundary and finite synthetic benchmark behave as specified. It does not establish optimal dispatch, physical/electrochemical battery behavior, real-site resilience, forecast calibration, real auditor implementation correctness, safety certification, an operator's authority, or permission to actuate hardware. Every executed schedule in a future integrated runner must still pass the independent trajectory auditor.
 
 ## Run
 
