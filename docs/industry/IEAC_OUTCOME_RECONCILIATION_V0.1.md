@@ -84,7 +84,7 @@ The schema checks shape only. It does not establish that an identification assum
 
 ## 4. Missingness, rights and privacy
 
-- Missing, delayed, censored, disputed or unavailable outcomes remain explicit. They cannot be converted into zero, within-target or successful completion.
+- Missing, delayed, censored, disputed, partially missing or unavailable outcomes remain explicit. Null expected/observed values and any non-complete missingness state cannot be reconciled as within/outside target; they remain indeterminate, not comparable or not observed. They cannot be converted into zero or successful completion.
 - Rights unknown or revoked block causal-effect claims. A rights status of restricted requires a separate permitted-use check; this envelope does not grant disclosure.
 - Raw measurements, worker data, PII, confidential source payloads and salt/preimage material remain in domain-controlled stores.
 - SCITT records only approved metadata and the digest of this envelope/domain evidence.
