@@ -698,6 +698,9 @@ fn report_for(
             "prerequisite": prerequisite,
             "human_approval_required": action.human_approval_required,
             "independence_domain_id": action.independence_domain_id,
+            "independence_registry_sha256": action.independence_registry_sha256,
+            "mapping_policy_sha256": action.mapping_policy_sha256,
+            "rights_status": action.rights_status,
             "covers_control_ids": action.covers,
             "resource_costs": action.resources.as_value()
         }));
@@ -714,8 +717,15 @@ fn report_for(
         } else {
             unsatisfied.push(control.clone());
         }
+        let existing_evidence = request.existing.get(control).map(|rows| rows.values().map(|row| json!({
+            "artifact_sha256": row.artifact_sha256,
+            "verifier_build_sha256": row.verifier_build_sha256,
+            "independence_domain_id": row.domain_id,
+            "independence_registry_sha256": row.independence_registry_sha256
+        })).collect::<Vec<_>>()).unwrap_or_default();
         coverage.push(json!({
             "control_id": control,
+            "existing_verified_evidence": existing_evidence,
             "minimum_independent_domains": requirement.minimum_domains,
             "planned_or_existing_domain_ids": present,
             "domain_count": present.len(),
