@@ -1113,6 +1113,30 @@ mod tests {
     }
 
     #[test]
+    fn auditor_rejects_action_mapping_that_is_not_bound_to_the_policy_digest() {
+        let mut request = request();
+        request["control_mappings"][0]["required_verifier_role"] = json!("unreviewed-role");
+        let bytes = serde_json::to_vec(&request).unwrap();
+        let report = stub_report(&request, &bytes);
+        assert!(load_inputs(&request, &bytes, &report).is_err());
+    }
+
+    #[test]
+    fn auditor_rejects_coverage_claim_without_mapping_row_even_when_digest_is_recomputed() {
+        let mut request = request();
+        request["control_mappings"].as_array_mut().unwrap().remove(0);
+        let mapping_bytes = serde_json::to_vec(&request["control_mappings"]).unwrap();
+        let mapping_digest = digest(&mapping_bytes);
+        request["control_mapping_policy_sha256"] = json!(mapping_digest);
+        for action in request["candidate_actions"].as_array_mut().unwrap() {
+            action["mapping_policy_sha256"] = json!(mapping_digest);
+        }
+        let bytes = serde_json::to_vec(&request).unwrap();
+        let report = stub_report(&request, &bytes);
+        assert!(load_inputs(&request, &bytes, &report).is_err());
+    }
+
+    #[test]
     fn auditor_rejects_cyclic_candidate_action_graph() {
         let mut request = request();
         request["candidate_actions"][0]["prerequisites"] = json!(["numeric-reference-run-a"]);
@@ -1178,6 +1202,16 @@ mod tests {
                 "rights_verified_at": action.rights_verified_at,
                 "rights_valid_until": action.rights_valid_until,
                 "covers_control_ids": action.covers,
+                "control_mappings": action.control_mappings.iter().map(|mapping| json!({
+                    "mapping_id": mapping.mapping_id,
+                    "action_id": mapping.action_id,
+                    "action_sha256": mapping.action_sha256,
+                    "control_id": mapping.control_id,
+                    "evidence_dimension": mapping.evidence_dimension,
+                    "proof_method_id": mapping.proof_method_id,
+                    "required_verifier_role": mapping.required_verifier_role,
+                    "independence_domain_id": mapping.independence_domain_id
+                })).collect::<Vec<_>>(),
                 "resource_costs": action.costs.as_value()
             }));
         }
@@ -1203,8 +1237,14 @@ mod tests {
                 "independence_domain_id": row.domain,
                 "independence_registry_sha256": row.registry_digest
             })).collect();
+            let control_mapping_ids: Vec<String> = selected.iter()
+                .flat_map(|action_id| inputs.actions[action_id].control_mappings.iter())
+                .filter(|mapping| mapping.control_id == *control)
+                .map(|mapping| mapping.mapping_id.clone())
+                .collect();
             coverage.push(json!({
                 "control_id": control,
+                "control_mapping_ids": control_mapping_ids,
                 "existing_verified_evidence": existing_json,
                 "minimum_independent_domains": requirement.minimum_domains,
                 "planned_or_existing_domain_ids": present,
