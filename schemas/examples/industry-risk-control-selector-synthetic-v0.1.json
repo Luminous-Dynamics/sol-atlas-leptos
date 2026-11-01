@@ -1,0 +1,260 @@
+{
+  "fixture_schema_version": "luminous.ieac-risk-control-selector-fixture.v0.1",
+  "fixture_status": "synthetic_only",
+  "note": "Synthetic profile and policy fixture. This report is requirements selection only and does not qualify an engineering claim or authorize any action.",
+  "expected_report": {
+    "schema_version": "luminous.ieac-risk-control-selector-report.v0.1",
+    "profile_id": "synthetic-telecom-site-resilience-advisory-v0.1",
+    "decision_tier": "D1_advisory",
+    "risk_assessment_state": "reviewed",
+    "risk_assessment_class": "moderate",
+    "risk_dimensions": {
+      "consequence": "major",
+      "model_influence": "advisory",
+      "exposure": "site_or_facility",
+      "reversibility": "readily_reversible",
+      "detectability": "delayed_or_partial",
+      "fallback": "human_fallback"
+    },
+    "policy_id": "IEAC-RISK-CONTROLS-001",
+    "policy_version": "0.1.0",
+    "policy_sha256": "6ca29d1660c4603daee5874518485f14e734f847b85801b180629007d62004b1",
+    "selector_version": "industry-risk-control-selector/0.1.0",
+    "input_profile_sha256": "e7a2b3a30e6146fc47121f2502370437b8b725bf269fbcc10dad85a957cdd8be",
+    "required_controls": [
+      {
+        "control_id": "AUDIT",
+        "evidence_dimension": "operational_assurance",
+        "description": "audit",
+        "evidence_state": "unknown",
+        "evidence_count": 0,
+        "reason_codes": [
+          "TIER_MINIMUM_D1_ADVISORY"
+        ]
+      },
+      {
+        "control_id": "CAL",
+        "evidence_dimension": "uncertainty_credibility",
+        "description": "cal",
+        "evidence_state": "missing",
+        "evidence_count": 0,
+        "reason_codes": [
+          "RISK_CONSEQUENCE_MAJOR",
+          "RISK_MODEL_INFLUENCE_ADVISORY",
+          "TIER_MINIMUM_D1_ADVISORY"
+        ]
+      },
+      {
+        "control_id": "DATA",
+        "evidence_dimension": "data_integrity_rights",
+        "description": "data",
+        "evidence_state": "missing",
+        "evidence_count": 0,
+        "reason_codes": [
+          "TIER_MINIMUM_D1_ADVISORY"
+        ]
+      },
+      {
+        "control_id": "DRIFT",
+        "evidence_dimension": "operational_assurance",
+        "description": "drift",
+        "evidence_state": "unknown",
+        "evidence_count": 0,
+        "reason_codes": [
+          "RISK_DETECTABILITY_DELAYED_OR_PARTIAL"
+        ]
+      },
+      {
+        "control_id": "DRILL",
+        "evidence_dimension": "operational_assurance",
+        "description": "drill",
+        "evidence_state": "unknown",
+        "evidence_count": 0,
+        "reason_codes": [
+          "RISK_FALLBACK_HUMAN_FALLBACK"
+        ]
+      },
+      {
+        "control_id": "FALLBACK",
+        "evidence_dimension": "operational_assurance",
+        "description": "fallback",
+        "evidence_state": "unknown",
+        "evidence_count": 0,
+        "reason_codes": [
+          "RISK_FALLBACK_HUMAN_FALLBACK"
+        ]
+      },
+      {
+        "control_id": "HOLD",
+        "evidence_dimension": "generalization",
+        "description": "hold",
+        "evidence_state": "unknown",
+        "evidence_count": 0,
+        "reason_codes": [
+          "RISK_CONSEQUENCE_MAJOR",
+          "RISK_EXPOSURE_SITE_OR_FACILITY",
+          "TIER_MINIMUM_D1_ADVISORY"
+        ]
+      },
+      {
+        "control_id": "HUMAN",
+        "evidence_dimension": "operational_assurance",
+        "description": "human",
+        "evidence_state": "unknown",
+        "evidence_count": 0,
+        "reason_codes": [
+          "RISK_CONSEQUENCE_MAJOR",
+          "RISK_FALLBACK_HUMAN_FALLBACK",
+          "RISK_MODEL_INFLUENCE_ADVISORY",
+          "TIER_MINIMUM_D1_ADVISORY"
+        ]
+      },
+      {
+        "control_id": "INSPECT",
+        "evidence_dimension": "physical_validation",
+        "description": "inspect",
+        "evidence_state": "unknown",
+        "evidence_count": 0,
+        "reason_codes": [
+          "RISK_DETECTABILITY_DELAYED_OR_PARTIAL"
+        ]
+      },
+      {
+        "control_id": "MONITOR",
+        "evidence_dimension": "operational_assurance",
+        "description": "monitor",
+        "evidence_state": "unknown",
+        "evidence_count": 0,
+        "reason_codes": [
+          "RISK_DETECTABILITY_DELAYED_OR_PARTIAL",
+          "RISK_EXPOSURE_SITE_OR_FACILITY"
+        ]
+      },
+      {
+        "control_id": "NUM",
+        "evidence_dimension": "numerical_verification",
+        "description": "num",
+        "evidence_state": "missing",
+        "evidence_count": 0,
+        "reason_codes": [
+          "TIER_MINIMUM_D1_ADVISORY"
+        ]
+      },
+      {
+        "control_id": "OOD",
+        "evidence_dimension": "robustness",
+        "description": "ood",
+        "evidence_state": "missing",
+        "evidence_count": 0,
+        "reason_codes": [
+          "RISK_MODEL_INFLUENCE_ADVISORY",
+          "TIER_MINIMUM_D1_ADVISORY"
+        ]
+      },
+      {
+        "control_id": "PHYS",
+        "evidence_dimension": "physical_validation",
+        "description": "phys",
+        "evidence_state": "unknown",
+        "evidence_count": 0,
+        "reason_codes": [
+          "RISK_CONSEQUENCE_MAJOR",
+          "TIER_MINIMUM_D1_ADVISORY"
+        ]
+      },
+      {
+        "control_id": "REDUNDANT",
+        "evidence_dimension": "operational_assurance",
+        "description": "redundant",
+        "evidence_state": "unknown",
+        "evidence_count": 0,
+        "reason_codes": [
+          "RISK_DETECTABILITY_DELAYED_OR_PARTIAL"
+        ]
+      },
+      {
+        "control_id": "ROLLBACK",
+        "evidence_dimension": "operational_assurance",
+        "description": "rollback",
+        "evidence_state": "unknown",
+        "evidence_count": 0,
+        "reason_codes": [
+          "RISK_REVERSIBILITY_READILY_REVERSIBLE"
+        ]
+      },
+      {
+        "control_id": "SCOPE",
+        "evidence_dimension": "uncertainty_credibility",
+        "description": "scope",
+        "evidence_state": "missing",
+        "evidence_count": 0,
+        "reason_codes": [
+          "TIER_MINIMUM_D1_ADVISORY"
+        ]
+      },
+      {
+        "control_id": "SOFT",
+        "evidence_dimension": "software_conformance",
+        "description": "soft",
+        "evidence_state": "missing",
+        "evidence_count": 0,
+        "reason_codes": [
+          "TIER_MINIMUM_D1_ADVISORY"
+        ]
+      },
+      {
+        "control_id": "STRESS",
+        "evidence_dimension": "robustness",
+        "description": "stress",
+        "evidence_state": "missing",
+        "evidence_count": 0,
+        "reason_codes": [
+          "RISK_CONSEQUENCE_MAJOR",
+          "TIER_MINIMUM_D1_ADVISORY"
+        ]
+      }
+    ],
+    "missing_controls": [
+      "CAL",
+      "DATA",
+      "NUM",
+      "OOD",
+      "SCOPE",
+      "SOFT",
+      "STRESS"
+    ],
+    "unknown_controls": [
+      "AUDIT",
+      "DRIFT",
+      "DRILL",
+      "FALLBACK",
+      "HOLD",
+      "HUMAN",
+      "INSPECT",
+      "MONITOR",
+      "PHYS",
+      "REDUNDANT",
+      "ROLLBACK"
+    ],
+    "conflicted_controls": [],
+    "not_applicable_controls": [],
+    "human_approvals": [
+      "HUMAN"
+    ],
+    "monitoring_obligations": [
+      "DRIFT",
+      "INSPECT",
+      "MONITOR",
+      "REDUNDANT"
+    ],
+    "fallback_obligations": [
+      "DRILL",
+      "FALLBACK",
+      "ROLLBACK"
+    ],
+    "tier_compatibility": "compatible",
+    "requirements_disposition": "indeterminate",
+    "independent_qualification_attested": false,
+    "action_authority": "none"
+  }
+}
