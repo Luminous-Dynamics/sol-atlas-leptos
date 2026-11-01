@@ -61,6 +61,8 @@ jobs:
           key: ${{ runner.os }}-cargo-native-${{ hashFiles('**/Cargo.lock') }}
       # sol-atlas-core is a separate path package. Its own unit tests do not
       # run as dependency tests when only the application binary is tested.
+      - name: Verify frozen port corpus digest
+        run: sha256sum --check sol-atlas-core/tests/fixtures/port_city/manifest_cases.sha256
       - name: Test sol-atlas-core
         run: cargo test --manifest-path sol-atlas-core/Cargo.toml --all-targets
       # The wasm-bindgen-heavy application package has no [lib] target.
