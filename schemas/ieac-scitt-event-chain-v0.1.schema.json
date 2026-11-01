@@ -12,6 +12,7 @@
     "claim_ceiling",
     "events",
     "fixture_event_digests",
+    "issuer_history_heads",
     "cose_header_bindings",
     "receipt_boundary"
   ],
@@ -54,6 +55,46 @@
     },
     "receipt_boundary": {
       "$ref": "#/$defs/receipt_boundary"
+    },
+    "issuer_history_heads": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "issuer",
+          "subject",
+          "authority_scope",
+          "latest_sequence",
+          "latest_event_sha256"
+        ],
+        "properties": {
+          "issuer": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "subject": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "authority_scope": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "latest_sequence": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "latest_event_sha256": {
+            "$ref": "#/$defs/hash"
+          }
+        }
+      }
     }
   },
   "$defs": {
