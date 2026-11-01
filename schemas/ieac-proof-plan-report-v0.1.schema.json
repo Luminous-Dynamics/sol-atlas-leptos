@@ -26,7 +26,8 @@
     "objective_order",
     "action_authority",
     "qualification_attested",
-    "control_coverage"
+    "control_coverage",
+    "execution_order"
   ],
   "properties": {
     "schema_version": {
@@ -365,6 +366,15 @@
             }
           }
         }
+      }
+    },
+    "execution_order": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128
       }
     }
   },
