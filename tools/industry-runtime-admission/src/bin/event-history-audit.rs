@@ -432,7 +432,7 @@ fn build_report(audit: Audit) -> Value {
         "history_completeness": "not_established",
         "event_count": audit.events.len(),
         "issuer_stream_count": stream_count,
-        "verified_event_payload_digests": audit.verified_digests,
+        "matched_event_payload_digests": audit.verified_digests,
         "causal_and_predecessor_edge_count": unique_edges.len(),
         "invalid_finding_count": invalid_count,
         "incomplete_finding_count": incomplete_count,
