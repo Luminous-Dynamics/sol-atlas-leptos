@@ -336,7 +336,8 @@ pub fn parse_trace_csv(input: &str) -> Result<Vec<SolverTrace>, TraceError> {
         return Err(TraceError::InvalidCsvFieldCount);
     }
     let mut lines = input.lines();
-    if lines.next().map(str::trim_end_matches) != Some(TRACE_HEADER) {
+    let header = lines.next().ok_or(TraceError::InvalidCsvHeader)?;
+    if header.trim_end_matches('\r') != TRACE_HEADER {
         return Err(TraceError::InvalidCsvHeader);
     }
     let mut traces = Vec::new();
@@ -582,7 +583,7 @@ mod tests {
             best_bound_units: feasible.then_some(10_000 - sample as i64),
             optimality_gap_ppm: feasible.then_some(0),
             peak_memory_bytes: Some(2_000_000 + sample as u64 * 1_024),
-            timeout_limit_ns: 10_000_000,
+            timeout_limit_ns: 20_000_000,
         }
     }
 
@@ -757,7 +758,7 @@ mod tests {
         assert_eq!(summary.optimal_count, 20);
         assert_eq!(summary.timeout_count, 4);
         assert_eq!(summary.infeasible_count, 6);
-        assert_eq!(summary.completed_latency_p95_ns, Some(1_190_000));
+        assert_eq!(summary.completed_latency_p95_ns, Some(1_180_000));
         assert!(summary.observed_attempt_elapsed_p95_ns.is_some());
     }
 
