@@ -1,6 +1,6 @@
-use serde::de::{self, MapAccess, SeqAccess, Visitor};
 use serde::Deserialize;
-use serde_json::{json, Map, Number, Value};
+use serde::de::{self, MapAccess, SeqAccess, Visitor};
+use serde_json::{Map, Number, Value, json};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 use std::env;
@@ -64,26 +64,59 @@ impl<'de> Deserialize<'de> for StrictJson {
                 formatter.write_str("JSON without duplicate object member names")
             }
             fn visit_unit<E>(self) -> Result<Self::Value, E>
-            where E: de::Error { Ok(StrictJson::Null) }
+            where
+                E: de::Error,
+            {
+                Ok(StrictJson::Null)
+            }
             fn visit_none<E>(self) -> Result<Self::Value, E>
-            where E: de::Error { Ok(StrictJson::Null) }
+            where
+                E: de::Error,
+            {
+                Ok(StrictJson::Null)
+            }
             fn visit_bool<E>(self, value: bool) -> Result<Self::Value, E>
-            where E: de::Error { Ok(StrictJson::Bool(value)) }
+            where
+                E: de::Error,
+            {
+                Ok(StrictJson::Bool(value))
+            }
             fn visit_i64<E>(self, value: i64) -> Result<Self::Value, E>
-            where E: de::Error { Ok(StrictJson::Number(Number::from(value))) }
+            where
+                E: de::Error,
+            {
+                Ok(StrictJson::Number(Number::from(value)))
+            }
             fn visit_u64<E>(self, value: u64) -> Result<Self::Value, E>
-            where E: de::Error { Ok(StrictJson::Number(Number::from(value))) }
+            where
+                E: de::Error,
+            {
+                Ok(StrictJson::Number(Number::from(value)))
+            }
             fn visit_f64<E>(self, value: f64) -> Result<Self::Value, E>
-            where E: de::Error {
-                Number::from_f64(value).map(StrictJson::Number)
+            where
+                E: de::Error,
+            {
+                Number::from_f64(value)
+                    .map(StrictJson::Number)
                     .ok_or_else(|| E::custom("non-finite JSON number"))
             }
             fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-            where E: de::Error { Ok(StrictJson::String(value.to_owned())) }
+            where
+                E: de::Error,
+            {
+                Ok(StrictJson::String(value.to_owned()))
+            }
             fn visit_string<E>(self, value: String) -> Result<Self::Value, E>
-            where E: de::Error { Ok(StrictJson::String(value)) }
+            where
+                E: de::Error,
+            {
+                Ok(StrictJson::String(value))
+            }
             fn visit_seq<A>(self, mut sequence: A) -> Result<Self::Value, A::Error>
-            where A: SeqAccess<'de> {
+            where
+                A: SeqAccess<'de>,
+            {
                 let mut values = Vec::new();
                 while let Some(value) = sequence.next_element::<StrictJson>()? {
                     values.push(value);
@@ -91,11 +124,15 @@ impl<'de> Deserialize<'de> for StrictJson {
                 Ok(StrictJson::Array(values))
             }
             fn visit_map<A>(self, mut access: A) -> Result<Self::Value, A::Error>
-            where A: MapAccess<'de> {
+            where
+                A: MapAccess<'de>,
+            {
                 let mut values = BTreeMap::new();
                 while let Some((key, value)) = access.next_entry::<String, StrictJson>()? {
                     if values.contains_key(&key) {
-                        return Err(de::Error::custom(format!("duplicate JSON object member: {key}")));
+                        return Err(de::Error::custom(format!(
+                            "duplicate JSON object member: {key}"
+                        )));
                     }
                     values.insert(key, value);
                 }
@@ -119,7 +156,9 @@ impl Resources {
     fn read(value: &Value, context: &str) -> Result<Self, String> {
         let mut result = Self::default();
         for key in RESOURCE_FIELDS {
-            let amount = value.get(*key).and_then(Value::as_u64)
+            let amount = value
+                .get(*key)
+                .and_then(Value::as_u64)
                 .ok_or_else(|| format!("{context}.{key} must be a non-negative integer"))?;
             match *key {
                 "money_microunits" => result.money = amount,
@@ -241,29 +280,45 @@ struct Score {
 }
 
 fn digest(bytes: &[u8]) -> String {
-    Sha256::digest(bytes).iter().map(|byte| format!("{byte:02x}")).collect()
+    Sha256::digest(bytes)
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect()
 }
 
 fn sha(value: &Value, key: &str, context: &str) -> Result<String, String> {
-    let value = value.get(key).and_then(Value::as_str)
+    let value = value
+        .get(key)
+        .and_then(Value::as_str)
         .ok_or_else(|| format!("{context}.{key} is missing"))?;
-    if value.len() != 64 || !value.bytes().all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase()) {
+    if value.len() != 64
+        || !value
+            .bytes()
+            .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+    {
         return Err(format!("{context}.{key} is not lowercase SHA-256"));
     }
     Ok(value.to_owned())
 }
 
 fn string<'a>(value: &'a Value, key: &str, context: &str) -> Result<&'a str, String> {
-    value.get(key).and_then(Value::as_str).filter(|text| !text.trim().is_empty())
+    value
+        .get(key)
+        .and_then(Value::as_str)
+        .filter(|text| !text.trim().is_empty())
         .ok_or_else(|| format!("{context}.{key} must be a non-empty string"))
 }
 
 fn strings(value: &Value, key: &str, context: &str) -> Result<BTreeSet<String>, String> {
-    let rows = value.get(key).and_then(Value::as_array)
+    let rows = value
+        .get(key)
+        .and_then(Value::as_array)
         .ok_or_else(|| format!("{context}.{key} must be an array"))?;
     let mut result = BTreeSet::new();
     for row in rows {
-        let text = row.as_str().filter(|text| !text.is_empty())
+        let text = row
+            .as_str()
+            .filter(|text| !text.is_empty())
             .ok_or_else(|| format!("{context}.{key} contains a non-string or empty value"))?;
         if !result.insert(text.to_owned()) {
             return Err(format!("{context}.{key} contains duplicate '{text}'"));
@@ -273,18 +328,26 @@ fn strings(value: &Value, key: &str, context: &str) -> Result<BTreeSet<String>, 
 }
 
 fn array<'a>(value: &'a Value, key: &str, context: &str) -> Result<&'a [Value], String> {
-    value.get(key).and_then(Value::as_array).map(Vec::as_slice)
+    value
+        .get(key)
+        .and_then(Value::as_array)
+        .map(Vec::as_slice)
         .ok_or_else(|| format!("{context}.{key} must be an array"))
 }
 
 fn canonical_utc(value: &str) -> bool {
     let bytes = value.as_bytes();
     if bytes.len() != 20
-        || bytes[4] != b'-' || bytes[7] != b'-' || bytes[10] != b'T'
-        || bytes[13] != b':' || bytes[16] != b':' || bytes[19] != b'Z'
-        || !bytes.iter().enumerate().all(|(index, byte)| {
-            [4, 7, 10, 13, 16, 19].contains(&index) || byte.is_ascii_digit()
-        })
+        || bytes[4] != b'-'
+        || bytes[7] != b'-'
+        || bytes[10] != b'T'
+        || bytes[13] != b':'
+        || bytes[16] != b':'
+        || bytes[19] != b'Z'
+        || !bytes
+            .iter()
+            .enumerate()
+            .all(|(index, byte)| [4, 7, 10, 13, 16, 19].contains(&index) || byte.is_ascii_digit())
     {
         return false;
     }
@@ -292,9 +355,15 @@ fn canonical_utc(value: &str) -> bool {
         std::str::from_utf8(&bytes[range]).ok()?.parse::<u32>().ok()
     };
     let (Some(year), Some(month), Some(day), Some(hour), Some(minute), Some(second)) = (
-        part(0..4), part(5..7), part(8..10),
-        part(11..13), part(14..16), part(17..19)
-    ) else { return false; };
+        part(0..4),
+        part(5..7),
+        part(8..10),
+        part(11..13),
+        part(14..16),
+        part(17..19),
+    ) else {
+        return false;
+    };
     if year == 0 || !(1..=12).contains(&month) || hour > 23 || minute > 59 || second > 59 {
         return false;
     }
@@ -311,7 +380,9 @@ fn canonical_utc(value: &str) -> bool {
 fn timestamp(value: &Value, key: &str, context: &str) -> Result<String, String> {
     let value = string(value, key, context)?;
     if !canonical_utc(value) {
-        return Err(format!("{context}.{key} is not a canonical UTC calendar timestamp"));
+        return Err(format!(
+            "{context}.{key} is not a canonical UTC calendar timestamp"
+        ));
     }
     Ok(value.to_owned())
 }
@@ -336,7 +407,10 @@ fn load_inputs(request: &Value, request_bytes: &[u8], report: &Value) -> Result<
     }
     if request.get("action_authority").and_then(Value::as_str) != Some("none")
         || report.get("action_authority").and_then(Value::as_str) != Some("none")
-        || report.get("qualification_attested").and_then(Value::as_bool) != Some(false)
+        || report
+            .get("qualification_attested")
+            .and_then(Value::as_bool)
+            != Some(false)
     {
         return Err("request/report crosses the no-authority or no-qualification boundary".into());
     }
@@ -359,8 +433,13 @@ fn load_inputs(request: &Value, request_bytes: &[u8], report: &Value) -> Result<
     let request_policy = sha(request, "policy_sha256", "request")?;
     let request_report = sha(request, "risk_control_report_sha256", "request")?;
     let report_control = sha(report, "risk_control_report_sha256", "report")?;
-    if report_profile != request_profile || report_policy != request_policy || report_control != request_report {
-        return Err("report profile, policy or risk-control receipt binding does not match request".into());
+    if report_profile != request_profile
+        || report_policy != request_policy
+        || report_control != request_report
+    {
+        return Err(
+            "report profile, policy or risk-control receipt binding does not match request".into(),
+        );
     }
     let registry_digest = sha(request, "independence_registry_sha256", "request")?;
     let mapping_digest = sha(request, "control_mapping_policy_sha256", "request")?;
@@ -374,7 +453,14 @@ fn load_inputs(request: &Value, request_bytes: &[u8], report: &Value) -> Result<
         return Err("request exact_search_limit does not match auditor contract".into());
     }
     let tier = string(request, "decision_tier", "request")?.to_owned();
-    if !["D0_descriptive", "D1_advisory", "D2_delegated_planning", "D3_autonomous_control"].contains(&tier.as_str()) {
+    if ![
+        "D0_descriptive",
+        "D1_advisory",
+        "D2_delegated_planning",
+        "D3_autonomous_control",
+    ]
+    .contains(&tier.as_str())
+    {
         return Err("unsupported decision tier".into());
     }
     if string(report, "decision_tier", "report")? != tier {
@@ -386,7 +472,11 @@ fn load_inputs(request: &Value, request_bytes: &[u8], report: &Value) -> Result<
         return Err("invalid currency_code".into());
     }
     let compute_unit = string(request, "compute_unit_id", "request")?.to_owned();
-    if compute_unit.len() > 64 || !compute_unit.bytes().all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || b"._:-".contains(&byte)) {
+    if compute_unit.len() > 64
+        || !compute_unit.bytes().all(|byte| {
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || b"._:-".contains(&byte)
+        })
+    {
         return Err("invalid compute_unit_id".into());
     }
     if string(report, "currency_code", "report")? != currency
@@ -399,14 +489,29 @@ fn load_inputs(request: &Value, request_bytes: &[u8], report: &Value) -> Result<
     for row in array(request, "required_controls", "request")? {
         let id = string(row, "control_id", "required control")?.to_owned();
         let reasons = strings(row, "reason_codes", "required control")?;
-        let minimum = row.get("minimum_independent_domains").and_then(Value::as_u64)
-            .filter(|value| *value > 0 && *value <= 32).ok_or("invalid minimum_independent_domains")? as usize;
+        let minimum = row
+            .get("minimum_independent_domains")
+            .and_then(Value::as_u64)
+            .filter(|value| *value > 0 && *value <= 32)
+            .ok_or("invalid minimum_independent_domains")? as usize;
         if row.get("mandatory").and_then(Value::as_bool) != Some(true) {
             return Err(format!("required control '{id}' is not mandatory"));
         }
-        let human_approval = row.get("human_approval_required").and_then(Value::as_bool)
+        let human_approval = row
+            .get("human_approval_required")
+            .and_then(Value::as_bool)
             .ok_or_else(|| format!("required control '{id}' has no approval flag"))?;
-        if requirements.insert(id.clone(), Requirement { minimum_domains: minimum, reasons, human_approval }).is_some() {
+        if requirements
+            .insert(
+                id.clone(),
+                Requirement {
+                    minimum_domains: minimum,
+                    reasons,
+                    human_approval,
+                },
+            )
+            .is_some()
+        {
             return Err(format!("duplicate required control '{id}'"));
         }
     }
@@ -441,15 +546,23 @@ fn load_inputs(request: &Value, request_bytes: &[u8], report: &Value) -> Result<
         if !["verified", "failed", "unknown", "revoked"].contains(&verification_status)
             || !["verified", "restricted", "unknown", "revoked"].contains(&rights_status)
         {
-            return Err("existing evidence contains an unsupported verification/rights state".into());
+            return Err(
+                "existing evidence contains an unsupported verification/rights state".into(),
+            );
         }
         let statuses_ok = verification_status == "verified" && rights_status == "verified";
-        let current = statuses_ok && verified_at <= evaluated_at
+        let current = statuses_ok
+            && verified_at <= evaluated_at
             && valid_until.is_none_or(|until| until >= evaluated_at.as_str());
         if current {
             let rows = existing_rows.entry(control.clone()).or_default();
-            if rows.iter().any(|other| other.artifact_digest == artifact_digest && other.domain != domain) {
-                return Err("one evidence artifact is claimed by multiple independence domains".into());
+            if rows
+                .iter()
+                .any(|other| other.artifact_digest == artifact_digest && other.domain != domain)
+            {
+                return Err(
+                    "one evidence artifact is claimed by multiple independence domains".into(),
+                );
             }
             if !rows.iter().any(|other| other.domain == domain) {
                 rows.push(ExistingReceipt {
@@ -464,7 +577,12 @@ fn load_inputs(request: &Value, request_bytes: &[u8], report: &Value) -> Result<
         }
     }
 
-    let budget = Resources::read(request.get("resource_budgets").ok_or("request.resource_budgets missing")?, "resource_budgets")?;
+    let budget = Resources::read(
+        request
+            .get("resource_budgets")
+            .ok_or("request.resource_budgets missing")?,
+        "resource_budgets",
+    )?;
     let mut actions = BTreeMap::new();
     let mut action_order = Vec::new();
     for row in array(request, "candidate_actions", "request")? {
@@ -474,11 +592,18 @@ fn load_inputs(request: &Value, request_bytes: &[u8], report: &Value) -> Result<
         let action_registry_digest = sha(row, "independence_registry_sha256", &id)?;
         let rights_digest = sha(row, "rights_evidence_sha256", &id)?;
         if mapping_policy_digest != mapping_digest || action_registry_digest != registry_digest {
-            return Err(format!("candidate action '{id}' is outside the pinned registry/mapping policy"));
+            return Err(format!(
+                "candidate action '{id}' is outside the pinned registry/mapping policy"
+            ));
         }
         let covers = strings(row, "covers_control_ids", &id)?;
-        if covers.iter().any(|control| !requirements.contains_key(control)) {
-            return Err(format!("candidate action '{id}' covers an unrequired control"));
+        if covers
+            .iter()
+            .any(|control| !requirements.contains_key(control))
+        {
+            return Err(format!(
+                "candidate action '{id}' covers an unrequired control"
+            ));
         }
         let prerequisites = strings(row, "prerequisites", &id)?;
         let conflicts = strings(row, "conflicts_with", &id)?;
@@ -488,54 +613,85 @@ fn load_inputs(request: &Value, request_bytes: &[u8], report: &Value) -> Result<
         let rights_valid_until = match row.get("rights_valid_until") {
             Some(Value::Null) => None,
             Some(Value::String(value)) if canonical_utc(value) => Some(value.clone()),
-            _ => return Err(format!("candidate action '{id}' has invalid rights_valid_until")),
+            _ => {
+                return Err(format!(
+                    "candidate action '{id}' has invalid rights_valid_until"
+                ));
+            }
         };
-        if rights_status != "verified" || rights_verified_at > evaluated_at
-            || rights_valid_until.as_ref().is_some_and(|until| until < &evaluated_at)
+        if rights_status != "verified"
+            || rights_verified_at > evaluated_at
+            || rights_valid_until
+                .as_ref()
+                .is_some_and(|until| until < &evaluated_at)
         {
-            return Err(format!("candidate action '{id}' has no current verified rights"));
+            return Err(format!(
+                "candidate action '{id}' has no current verified rights"
+            ));
         }
-        let costs = Resources::read(row.get("resource_costs").ok_or("candidate resource_costs missing")?, &id)?;
-        let human_approval = row.get("human_approval_required").and_then(Value::as_bool)
+        let costs = Resources::read(
+            row.get("resource_costs")
+                .ok_or("candidate resource_costs missing")?,
+            &id,
+        )?;
+        let human_approval = row
+            .get("human_approval_required")
+            .and_then(Value::as_bool)
             .ok_or_else(|| format!("candidate action '{id}' has no human approval flag"))?;
         if actions.contains_key(&id) {
             return Err(format!("duplicate candidate action '{id}'"));
         }
         action_order.push(id.clone());
-        actions.insert(id.clone(), Action {
-            id,
-            digest: action_digest,
-            mapping_digest: mapping_policy_digest,
-            registry_digest: action_registry_digest,
-            rights_digest,
-            domain,
-            covers,
-            control_mappings: Vec::new(),
-            prerequisites,
-            conflicts,
-            costs,
-            human_approval,
-            rights_verified_at,
-            rights_valid_until,
-        });
+        actions.insert(
+            id.clone(),
+            Action {
+                id,
+                digest: action_digest,
+                mapping_digest: mapping_policy_digest,
+                registry_digest: action_registry_digest,
+                rights_digest,
+                domain,
+                covers,
+                control_mappings: Vec::new(),
+                prerequisites,
+                conflicts,
+                costs,
+                human_approval,
+                rights_verified_at,
+                rights_valid_until,
+            },
+        );
     }
 
-    let control_mappings_value = request.get("control_mappings")
+    let control_mappings_value = request
+        .get("control_mappings")
         .ok_or("request.control_mappings is missing")?;
     let mapping_bytes = serde_json::to_vec(control_mappings_value)
         .map_err(|error| format!("cannot serialize control mappings: {error}"))?;
     if digest(&mapping_bytes) != mapping_digest {
-        return Err("request control mappings do not match the pinned mapping-policy digest".into());
+        return Err(
+            "request control mappings do not match the pinned mapping-policy digest".into(),
+        );
     }
     let evidence_dimensions = [
-        "software_conformance", "numerical_verification", "physical_validation",
-        "data_integrity_rights", "uncertainty_credibility", "generalization", "robustness",
-        "operational_assurance", "safety_security_authority", "prospective_outcomes"
+        "software_conformance",
+        "numerical_verification",
+        "physical_validation",
+        "data_integrity_rights",
+        "uncertainty_credibility",
+        "generalization",
+        "robustness",
+        "operational_assurance",
+        "safety_security_authority",
+        "prospective_outcomes",
     ];
     let mut mapping_ids = BTreeSet::new();
     let mut action_control_pairs = BTreeSet::new();
     let mut mappings_by_action = BTreeMap::<String, Vec<ControlMapping>>::new();
-    for (index, row) in array(request, "control_mappings", "request")?.iter().enumerate() {
+    for (index, row) in array(request, "control_mappings", "request")?
+        .iter()
+        .enumerate()
+    {
         let context = format!("control_mappings[{index}]");
         let mapping_id = string(row, "mapping_id", &context)?.to_owned();
         let action_id = string(row, "action_id", &context)?.to_owned();
@@ -550,39 +706,60 @@ fn load_inputs(request: &Value, request_bytes: &[u8], report: &Value) -> Result<
             return Err(format!("{context} duplicates mapping ID '{mapping_id}'"));
         }
         if !evidence_dimensions.contains(&evidence_dimension.as_str()) {
-            return Err(format!("{context} uses an unsupported IEAC evidence dimension"));
+            return Err(format!(
+                "{context} uses an unsupported IEAC evidence dimension"
+            ));
         }
         if !requirements.contains_key(&control_id) {
-            return Err(format!("{context} maps an unrequired control '{control_id}'"));
+            return Err(format!(
+                "{context} maps an unrequired control '{control_id}'"
+            ));
         }
-        let action = actions.get(&action_id)
+        let action = actions
+            .get(&action_id)
             .ok_or_else(|| format!("{context} maps an unknown candidate action '{action_id}'"))?;
         if action.digest != action_sha256 || action.domain != independence_domain_id {
-            return Err(format!("{context} does not match its candidate action identity/domain"));
+            return Err(format!(
+                "{context} does not match its candidate action identity/domain"
+            ));
         }
         if !action.covers.contains(&control_id) {
-            return Err(format!("{context} maps a control not declared by the action"));
+            return Err(format!(
+                "{context} maps a control not declared by the action"
+            ));
         }
         if !action_control_pairs.insert((action_id.clone(), control_id.clone())) {
             return Err(format!("{context} duplicates an action/control pair"));
         }
-        mappings_by_action.entry(action_id.clone()).or_default().push(ControlMapping {
-            mapping_id,
-            action_id,
-            action_sha256,
-            control_id,
-            evidence_dimension,
-            proof_method_id,
-            required_verifier_role,
-            independence_domain_id,
-        });
+        mappings_by_action
+            .entry(action_id.clone())
+            .or_default()
+            .push(ControlMapping {
+                mapping_id,
+                action_id,
+                action_sha256,
+                control_id,
+                evidence_dimension,
+                proof_method_id,
+                required_verifier_role,
+                independence_domain_id,
+            });
     }
     for (action_id, action) in actions.iter_mut() {
         let mut mappings = mappings_by_action.remove(action_id).unwrap_or_default();
-        mappings.sort_by(|left, right| left.control_id.cmp(&right.control_id).then(left.mapping_id.cmp(&right.mapping_id)));
-        let mapped_controls: BTreeSet<String> = mappings.iter().map(|mapping| mapping.control_id.clone()).collect();
+        mappings.sort_by(|left, right| {
+            left.control_id
+                .cmp(&right.control_id)
+                .then(left.mapping_id.cmp(&right.mapping_id))
+        });
+        let mapped_controls: BTreeSet<String> = mappings
+            .iter()
+            .map(|mapping| mapping.control_id.clone())
+            .collect();
         if mapped_controls != action.covers {
-            return Err(format!("candidate action '{action_id}' coverage does not match its digest-bound mapping rows"));
+            return Err(format!(
+                "candidate action '{action_id}' coverage does not match its digest-bound mapping rows"
+            ));
         }
         action.control_mappings = mappings;
     }
@@ -593,14 +770,21 @@ fn load_inputs(request: &Value, request_bytes: &[u8], report: &Value) -> Result<
     for action in actions.values() {
         for prerequisite in &action.prerequisites {
             if !actions.contains_key(prerequisite) {
-                return Err(format!("candidate action '{}' has unknown prerequisite", action.id));
+                return Err(format!(
+                    "candidate action '{}' has unknown prerequisite",
+                    action.id
+                ));
             }
         }
         for conflict in &action.conflicts {
-            let other = actions.get(conflict)
+            let other = actions
+                .get(conflict)
                 .ok_or_else(|| format!("candidate action '{}' has unknown conflict", action.id))?;
             if !other.conflicts.contains(&action.id) || conflict == &action.id {
-                return Err(format!("candidate action '{}' has an asymmetric/invalid conflict", action.id));
+                return Err(format!(
+                    "candidate action '{}' has an asymmetric/invalid conflict",
+                    action.id
+                ));
             }
         }
     }
@@ -610,28 +794,45 @@ fn load_inputs(request: &Value, request_bytes: &[u8], report: &Value) -> Result<
     for action in actions.values() {
         for prerequisite in &action.prerequisites {
             if prerequisite == &action.id || !actions.contains_key(prerequisite) {
-                return Err(format!("candidate action '{}' has an invalid prerequisite", action.id));
+                return Err(format!(
+                    "candidate action '{}' has an invalid prerequisite",
+                    action.id
+                ));
             }
-            *indegree.get_mut(&action.id).ok_or("missing action indegree")? += 1;
-            dependents.entry(prerequisite.clone()).or_default().push(action.id.clone());
+            *indegree
+                .get_mut(&action.id)
+                .ok_or("missing action indegree")? += 1;
+            dependents
+                .entry(prerequisite.clone())
+                .or_default()
+                .push(action.id.clone());
         }
         for conflict in &action.conflicts {
             let other = actions.get(conflict).ok_or("unknown conflict reference")?;
             if conflict == &action.id || !other.conflicts.contains(&action.id) {
-                return Err(format!("candidate action '{}' has an asymmetric conflict", action.id));
+                return Err(format!(
+                    "candidate action '{}' has an asymmetric conflict",
+                    action.id
+                ));
             }
         }
     }
-    let mut ready: BTreeSet<String> = indegree.iter()
-        .filter_map(|(id, degree)| (*degree == 0).then_some(id.clone())).collect();
+    let mut ready: BTreeSet<String> = indegree
+        .iter()
+        .filter_map(|(id, degree)| (*degree == 0).then_some(id.clone()))
+        .collect();
     let mut visited = 0usize;
     while let Some(id) = ready.pop_first() {
         visited += 1;
         if let Some(rows) = dependents.get(&id) {
             for dependent in rows {
-                let degree = indegree.get_mut(dependent).ok_or("missing dependent indegree")?;
+                let degree = indegree
+                    .get_mut(dependent)
+                    .ok_or("missing dependent indegree")?;
                 *degree -= 1;
-                if *degree == 0 { ready.insert(dependent.clone()); }
+                if *degree == 0 {
+                    ready.insert(dependent.clone());
+                }
             }
         }
     }
@@ -663,7 +864,10 @@ fn load_inputs(request: &Value, request_bytes: &[u8], report: &Value) -> Result<
 fn total_cost(selected: &BTreeSet<String>, inputs: &Inputs) -> Result<Resources, String> {
     let mut total = Resources::default();
     for id in selected {
-        let action = inputs.actions.get(id).ok_or_else(|| format!("unknown selected action '{id}'"))?;
+        let action = inputs
+            .actions
+            .get(id)
+            .ok_or_else(|| format!("unknown selected action '{id}'"))?;
         total = total.plus(action.costs).ok_or("resource overflow")?;
     }
     Ok(total)
@@ -674,7 +878,10 @@ fn domains_for(selected: &BTreeSet<String>, inputs: &Inputs) -> BTreeMap<String,
     for id in selected {
         if let Some(action) = inputs.actions.get(id) {
             for control in &action.covers {
-                domains.entry(control.clone()).or_default().insert(action.domain.clone());
+                domains
+                    .entry(control.clone())
+                    .or_default()
+                    .insert(action.domain.clone());
             }
         }
     }
@@ -683,21 +890,31 @@ fn domains_for(selected: &BTreeSet<String>, inputs: &Inputs) -> BTreeMap<String,
 
 fn gaps(selected: &BTreeSet<String>, inputs: &Inputs) -> Vec<String> {
     let domains = domains_for(selected, inputs);
-    inputs.requirements.iter().filter_map(|(control, requirement)| {
-        (domains.get(control).map_or(0, BTreeSet::len) < requirement.minimum_domains)
-            .then_some(control.clone())
-    }).collect()
+    inputs
+        .requirements
+        .iter()
+        .filter_map(|(control, requirement)| {
+            (domains.get(control).map_or(0, BTreeSet::len) < requirement.minimum_domains)
+                .then_some(control.clone())
+        })
+        .collect()
 }
 
 fn conflicts_clear(selected: &BTreeSet<String>, inputs: &Inputs) -> bool {
     selected.iter().all(|id| {
-        inputs.actions.get(id).is_some_and(|action| action.conflicts.is_disjoint(selected))
+        inputs
+            .actions
+            .get(id)
+            .is_some_and(|action| action.conflicts.is_disjoint(selected))
     })
 }
 
 fn dependencies_closed(selected: &BTreeSet<String>, inputs: &Inputs) -> bool {
     selected.iter().all(|id| {
-        inputs.actions.get(id).is_some_and(|action| action.prerequisites.is_subset(selected))
+        inputs
+            .actions
+            .get(id)
+            .is_some_and(|action| action.prerequisites.is_subset(selected))
     })
 }
 
@@ -736,7 +953,10 @@ fn exact_oracle(inputs: &Inputs) -> Result<Option<BTreeSet<String>>, String> {
         }
         if feasibility(&selected, inputs) {
             let candidate_score = score(&selected, inputs)?;
-            if best.as_ref().is_none_or(|(best_score, _)| candidate_score < *best_score) {
+            if best
+                .as_ref()
+                .is_none_or(|(best_score, _)| candidate_score < *best_score)
+            {
                 best = Some((candidate_score, selected));
             }
         }
@@ -744,19 +964,29 @@ fn exact_oracle(inputs: &Inputs) -> Result<Option<BTreeSet<String>>, String> {
     Ok(best.map(|(_, selected)| selected))
 }
 
-fn same_string_array(actual: &Value, expected: &BTreeSet<String>, context: &str) -> Result<(), String> {
+fn same_string_array(
+    actual: &Value,
+    expected: &BTreeSet<String>,
+    context: &str,
+) -> Result<(), String> {
     let actual_values = strings_value(actual, context)?;
     if &actual_values != expected {
-        return Err(format!("{context} does not match independently recomputed values"));
+        return Err(format!(
+            "{context} does not match independently recomputed values"
+        ));
     }
     Ok(())
 }
 
 fn strings_value(value: &Value, context: &str) -> Result<BTreeSet<String>, String> {
-    let rows = value.as_array().ok_or_else(|| format!("{context} must be an array"))?;
+    let rows = value
+        .as_array()
+        .ok_or_else(|| format!("{context} must be an array"))?;
     let mut result = BTreeSet::new();
     for row in rows {
-        let text = row.as_str().filter(|text| !text.is_empty())
+        let text = row
+            .as_str()
+            .filter(|text| !text.is_empty())
             .ok_or_else(|| format!("{context} contains an invalid string"))?;
         if !result.insert(text.to_owned()) {
             return Err(format!("{context} contains a duplicate value"));
@@ -765,7 +995,13 @@ fn strings_value(value: &Value, context: &str) -> Result<BTreeSet<String>, Strin
     Ok(result)
 }
 
-fn verify_report(request: &Value, request_bytes: &[u8], report: &Value, report_bytes: &[u8], build_id: &str) -> Result<Value, String> {
+fn verify_report(
+    request: &Value,
+    request_bytes: &[u8],
+    report: &Value,
+    report_bytes: &[u8],
+    build_id: &str,
+) -> Result<Value, String> {
     let inputs = load_inputs(request, request_bytes, report)?;
     if report.get("planner_version").and_then(Value::as_str) != Some(PLANNER_VERSION) {
         return Err("unsupported planner version in report".into());
@@ -781,11 +1017,18 @@ fn verify_report(request: &Value, request_bytes: &[u8], report: &Value, report_b
         return Err("missing planner build identity".into());
     }
     let report_actions = selected_set(report)?;
-    let selected_sequence: Vec<String> = array(report, "selected_actions", "report")?.iter()
+    let selected_sequence: Vec<String> = array(report, "selected_actions", "report")?
+        .iter()
         .map(|row| string(row, "action_id", "selected action").map(str::to_owned))
         .collect::<Result<_, _>>()?;
-    let report_order: Vec<String> = array(report, "execution_order", "report")?.iter()
-        .map(|value| value.as_str().map(str::to_owned).ok_or("execution_order contains non-string"))
+    let report_order: Vec<String> = array(report, "execution_order", "report")?
+        .iter()
+        .map(|value| {
+            value
+                .as_str()
+                .map(str::to_owned)
+                .ok_or("execution_order contains non-string")
+        })
         .collect::<Result<_, _>>()?;
     if selected_sequence != report_order {
         return Err("selected_actions are not emitted in the declared execution order".into());
@@ -802,12 +1045,16 @@ fn verify_report(request: &Value, request_bytes: &[u8], report: &Value, report_b
     let mut selected_human_actions = BTreeSet::new();
     for row in array(report, "selected_actions", "report")? {
         let id = string(row, "action_id", "selected action")?;
-        let action = inputs.actions.get(id).ok_or_else(|| format!("report selects unknown action '{id}'"))?;
-        let rights_valid_until_matches = match (&action.rights_valid_until, row.get("rights_valid_until")) {
-            (None, Some(Value::Null)) => true,
-            (Some(expected), Some(Value::String(actual))) => expected == actual,
-            _ => false,
-        };
+        let action = inputs
+            .actions
+            .get(id)
+            .ok_or_else(|| format!("report selects unknown action '{id}'"))?;
+        let rights_valid_until_matches =
+            match (&action.rights_valid_until, row.get("rights_valid_until")) {
+                (None, Some(Value::Null)) => true,
+                (Some(expected), Some(Value::String(actual))) => expected == actual,
+                _ => false,
+            };
         if sha(row, "action_sha256", id)? != action.digest
             || sha(row, "mapping_policy_sha256", id)? != action.mapping_digest
             || sha(row, "independence_registry_sha256", id)? != action.registry_digest
@@ -817,62 +1064,115 @@ fn verify_report(request: &Value, request_bytes: &[u8], report: &Value, report_b
             || timestamp(row, "rights_verified_at", id)? != action.rights_verified_at
             || !rights_valid_until_matches
         {
-            return Err(format!("selected action '{id}' differs from the request-bound action record"));
+            return Err(format!(
+                "selected action '{id}' differs from the request-bound action record"
+            ));
         }
-        if row.get("human_approval_required").and_then(Value::as_bool) != Some(action.human_approval) {
-            return Err(format!("selected action '{id}' changed its human-approval requirement"));
+        if row.get("human_approval_required").and_then(Value::as_bool)
+            != Some(action.human_approval)
+        {
+            return Err(format!(
+                "selected action '{id}' changed its human-approval requirement"
+            ));
         }
         if strings(row, "covers_control_ids", id)? != action.covers
-            || Resources::read(row.get("resource_costs").ok_or("selected action resource costs missing")?, id)? != action.costs
+            || Resources::read(
+                row.get("resource_costs")
+                    .ok_or("selected action resource costs missing")?,
+                id,
+            )? != action.costs
         {
-            return Err(format!("selected action '{id}' changed its coverage or resource costs"));
+            return Err(format!(
+                "selected action '{id}' changed its coverage or resource costs"
+            ));
         }
         let reported_mappings = array(row, "control_mappings", id)?;
         if reported_mappings.len() != action.control_mappings.len() {
-            return Err(format!("selected action '{id}' changed its proof mapping count"));
+            return Err(format!(
+                "selected action '{id}' changed its proof mapping count"
+            ));
         }
         for mapping in &action.control_mappings {
             if !reported_mappings.iter().any(|reported| {
-                reported.get("mapping_id").and_then(Value::as_str) == Some(mapping.mapping_id.as_str())
-                    && reported.get("action_id").and_then(Value::as_str) == Some(mapping.action_id.as_str())
-                    && reported.get("action_sha256").and_then(Value::as_str) == Some(mapping.action_sha256.as_str())
-                    && reported.get("control_id").and_then(Value::as_str) == Some(mapping.control_id.as_str())
-                    && reported.get("evidence_dimension").and_then(Value::as_str) == Some(mapping.evidence_dimension.as_str())
-                    && reported.get("proof_method_id").and_then(Value::as_str) == Some(mapping.proof_method_id.as_str())
-                    && reported.get("required_verifier_role").and_then(Value::as_str) == Some(mapping.required_verifier_role.as_str())
-                    && reported.get("independence_domain_id").and_then(Value::as_str) == Some(mapping.independence_domain_id.as_str())
+                reported.get("mapping_id").and_then(Value::as_str)
+                    == Some(mapping.mapping_id.as_str())
+                    && reported.get("action_id").and_then(Value::as_str)
+                        == Some(mapping.action_id.as_str())
+                    && reported.get("action_sha256").and_then(Value::as_str)
+                        == Some(mapping.action_sha256.as_str())
+                    && reported.get("control_id").and_then(Value::as_str)
+                        == Some(mapping.control_id.as_str())
+                    && reported.get("evidence_dimension").and_then(Value::as_str)
+                        == Some(mapping.evidence_dimension.as_str())
+                    && reported.get("proof_method_id").and_then(Value::as_str)
+                        == Some(mapping.proof_method_id.as_str())
+                    && reported
+                        .get("required_verifier_role")
+                        .and_then(Value::as_str)
+                        == Some(mapping.required_verifier_role.as_str())
+                    && reported
+                        .get("independence_domain_id")
+                        .and_then(Value::as_str)
+                        == Some(mapping.independence_domain_id.as_str())
             }) {
-                return Err(format!("selected action '{id}' has an altered proof mapping"));
+                return Err(format!(
+                    "selected action '{id}' has an altered proof mapping"
+                ));
             }
         }
         let expected_prerequisite = report_actions.iter().any(|other_id| {
-            inputs.actions.get(other_id).is_some_and(|other| other.prerequisites.contains(id))
+            inputs
+                .actions
+                .get(other_id)
+                .is_some_and(|other| other.prerequisites.contains(id))
         });
         if row.get("prerequisite").and_then(Value::as_bool) != Some(expected_prerequisite) {
-            return Err(format!("selected action '{id}' has incorrect prerequisite marker"));
+            return Err(format!(
+                "selected action '{id}' has incorrect prerequisite marker"
+            ));
         }
         if action.human_approval {
             selected_human_actions.insert(id.to_owned());
         }
         for prerequisite in &action.prerequisites {
             if !report_actions.contains(prerequisite) {
-                return Err(format!("selected action '{id}' omits prerequisite '{prerequisite}'"));
+                return Err(format!(
+                    "selected action '{id}' omits prerequisite '{prerequisite}'"
+                ));
             }
-            if position.get(prerequisite).is_none_or(|pre| *pre >= *position.get(id).unwrap_or(&usize::MAX)) {
-                return Err(format!("prerequisite '{prerequisite}' is not before '{id}'"));
+            if position
+                .get(prerequisite)
+                .is_none_or(|pre| *pre >= *position.get(id).unwrap_or(&usize::MAX))
+            {
+                return Err(format!(
+                    "prerequisite '{prerequisite}' is not before '{id}'"
+                ));
             }
         }
     }
-    if !conflicts_clear(&report_actions, &inputs) || !dependencies_closed(&report_actions, &inputs) {
+    if !conflicts_clear(&report_actions, &inputs) || !dependencies_closed(&report_actions, &inputs)
+    {
         return Err("selected actions violate conflict/dependency constraints".into());
     }
 
     let calculated_cost = total_cost(&report_actions, &inputs)?;
     if !calculated_cost.within(inputs.budget)
-        || Resources::read(report.get("resource_totals").ok_or("report.resource_totals missing")?, "resource_totals")? != calculated_cost
-        || Resources::read(report.get("resource_budgets").ok_or("report.resource_budgets missing")?, "resource_budgets")? != inputs.budget
+        || Resources::read(
+            report
+                .get("resource_totals")
+                .ok_or("report.resource_totals missing")?,
+            "resource_totals",
+        )? != calculated_cost
+        || Resources::read(
+            report
+                .get("resource_budgets")
+                .ok_or("report.resource_budgets missing")?,
+            "resource_budgets",
+        )? != inputs.budget
     {
-        return Err("report resource totals/budgets do not match independently recomputed values".into());
+        return Err(
+            "report resource totals/budgets do not match independently recomputed values".into(),
+        );
     }
 
     let domains = domains_for(&report_actions, &inputs);
@@ -888,39 +1188,61 @@ fn verify_report(request: &Value, request_bytes: &[u8], report: &Value, report_b
         } else {
             unsatisfied.insert(control.clone());
         }
-        let row = array(report, "control_coverage", "report")?.iter()
+        let row = array(report, "control_coverage", "report")?
+            .iter()
             .find(|row| row.get("control_id").and_then(Value::as_str) == Some(control.as_str()))
             .ok_or_else(|| format!("report lacks control-coverage row for '{control}'"))?;
-        if row.get("minimum_independent_domains").and_then(Value::as_u64) != Some(requirement.minimum_domains as u64)
+        if row
+            .get("minimum_independent_domains")
+            .and_then(Value::as_u64)
+            != Some(requirement.minimum_domains as u64)
             || row.get("domain_count").and_then(Value::as_u64) != Some(found.len() as u64)
             || row.get("covered").and_then(Value::as_bool) != Some(is_covered)
             || strings(row, "planned_or_existing_domain_ids", control)? != found
             || strings(row, "reason_codes", control)? != requirement.reasons
         {
-            return Err(format!("control coverage row for '{control}' is inconsistent"));
+            return Err(format!(
+                "control coverage row for '{control}' is inconsistent"
+            ));
         }
-        let expected_mapping_ids: BTreeSet<String> = report_actions.iter()
+        let expected_mapping_ids: BTreeSet<String> = report_actions
+            .iter()
             .flat_map(|action_id| inputs.actions[action_id].control_mappings.iter())
             .filter(|mapping| mapping.control_id == *control)
             .map(|mapping| mapping.mapping_id.clone())
             .collect();
         if strings(row, "control_mapping_ids", control)? != expected_mapping_ids {
-            return Err(format!("control mapping references for '{control}' do not match selected actions"));
+            return Err(format!(
+                "control mapping references for '{control}' do not match selected actions"
+            ));
         }
-        let expected_existing = inputs.existing_rows.get(control).cloned().unwrap_or_default();
+        let expected_existing = inputs
+            .existing_rows
+            .get(control)
+            .cloned()
+            .unwrap_or_default();
         let existing_report = array(row, "existing_verified_evidence", control)?;
         if existing_report.len() != expected_existing.len() {
             return Err(format!("existing evidence count for '{control}' changed"));
         }
         for receipt in &expected_existing {
             if !existing_report.iter().any(|record| {
-                record.get("artifact_sha256").and_then(Value::as_str) == Some(receipt.artifact_digest.as_str())
-                    && record.get("verifier_build_sha256").and_then(Value::as_str) == Some(receipt.verifier_digest.as_str())
-                    && record.get("rights_evidence_sha256").and_then(Value::as_str) == Some(receipt.rights_digest.as_str())
-                    && record.get("independence_domain_id").and_then(Value::as_str) == Some(receipt.domain.as_str())
-                    && record.get("independence_registry_sha256").and_then(Value::as_str) == Some(receipt.registry_digest.as_str())
+                record.get("artifact_sha256").and_then(Value::as_str)
+                    == Some(receipt.artifact_digest.as_str())
+                    && record.get("verifier_build_sha256").and_then(Value::as_str)
+                        == Some(receipt.verifier_digest.as_str())
+                    && record.get("rights_evidence_sha256").and_then(Value::as_str)
+                        == Some(receipt.rights_digest.as_str())
+                    && record.get("independence_domain_id").and_then(Value::as_str)
+                        == Some(receipt.domain.as_str())
+                    && record
+                        .get("independence_registry_sha256")
+                        .and_then(Value::as_str)
+                        == Some(receipt.registry_digest.as_str())
             }) {
-                return Err(format!("existing evidence provenance for '{control}' changed"));
+                return Err(format!(
+                    "existing evidence provenance for '{control}' changed"
+                ));
             }
         }
         if requirement.human_approval {
@@ -931,14 +1253,44 @@ fn verify_report(request: &Value, request_bytes: &[u8], report: &Value, report_b
     if array(report, "control_coverage", "report")?.len() != inputs.requirements.len() {
         return Err("report control coverage has duplicate or extra controls".into());
     }
-    same_string_array(report.get("covered_controls").ok_or("covered_controls missing")?, &covered, "covered_controls")?;
-    same_string_array(report.get("unsatisfied_controls").ok_or("unsatisfied_controls missing")?, &unsatisfied, "unsatisfied_controls")?;
-    same_string_array(report.get("human_approval_controls").ok_or("human_approval_controls missing")?, &control_approvals, "human_approval_controls")?;
-    same_string_array(report.get("human_approval_actions").ok_or("human_approval_actions missing")?, &selected_human_actions, "human_approval_actions")?;
+    same_string_array(
+        report
+            .get("covered_controls")
+            .ok_or("covered_controls missing")?,
+        &covered,
+        "covered_controls",
+    )?;
+    same_string_array(
+        report
+            .get("unsatisfied_controls")
+            .ok_or("unsatisfied_controls missing")?,
+        &unsatisfied,
+        "unsatisfied_controls",
+    )?;
+    same_string_array(
+        report
+            .get("human_approval_controls")
+            .ok_or("human_approval_controls missing")?,
+        &control_approvals,
+        "human_approval_controls",
+    )?;
+    same_string_array(
+        report
+            .get("human_approval_actions")
+            .ok_or("human_approval_actions missing")?,
+        &selected_human_actions,
+        "human_approval_actions",
+    )?;
     for id in &selected_human_actions {
         all_approvals.insert(format!("action:{id}"));
     }
-    same_string_array(report.get("human_approvals_required").ok_or("human_approvals_required missing")?, &all_approvals, "human_approvals_required")?;
+    same_string_array(
+        report
+            .get("human_approvals_required")
+            .ok_or("human_approvals_required missing")?,
+        &all_approvals,
+        "human_approvals_required",
+    )?;
 
     let method = string(report, "optimization_method", "report")?;
     let optimality = string(report, "optimality_status", "report")?;
@@ -947,36 +1299,56 @@ fn verify_report(request: &Value, request_bytes: &[u8], report: &Value, report_b
     let mut optimality_checked = false;
     let verdict = match status {
         "optimal_plan" => {
-            if count > EXACT_LIMIT || method != "exact_subset_enumeration" || optimality != "proven_optimal" || !unsatisfied.is_empty() {
-                return Err("optimal_plan status is inconsistent with method, limit or coverage".into());
+            if count > EXACT_LIMIT
+                || method != "exact_subset_enumeration"
+                || optimality != "proven_optimal"
+                || !unsatisfied.is_empty()
+            {
+                return Err(
+                    "optimal_plan status is inconsistent with method, limit or coverage".into(),
+                );
             }
             let best = exact_oracle(&inputs)?;
             if best.as_ref() != Some(&report_actions) {
-                return Err("independent exact oracle does not agree with the planner's claimed optimum".into());
+                return Err(
+                    "independent exact oracle does not agree with the planner's claimed optimum"
+                        .into(),
+                );
             }
             optimality_checked = true;
             "accepted_optimal"
         }
         "infeasible" => {
-            if count > EXACT_LIMIT || method != "exact_subset_enumeration" || optimality != "proven_infeasible"
-                || !report_actions.is_empty() || exact_oracle(&inputs)?.is_some()
+            if count > EXACT_LIMIT
+                || method != "exact_subset_enumeration"
+                || optimality != "proven_infeasible"
+                || !report_actions.is_empty()
+                || exact_oracle(&inputs)?.is_some()
             {
-                return Err("infeasible claim is not confirmed by the independent exact oracle".into());
+                return Err(
+                    "infeasible claim is not confirmed by the independent exact oracle".into(),
+                );
             }
             optimality_checked = true;
             "accepted_infeasible"
         }
         "feasible_heuristic" => {
-            if count <= EXACT_LIMIT || method != "deterministic_greedy" || optimality != "not_proven"
-                || !unsatisfied.is_empty() || !feasibility(&report_actions, &inputs)
+            if count <= EXACT_LIMIT
+                || method != "deterministic_greedy"
+                || optimality != "not_proven"
+                || !unsatisfied.is_empty()
+                || !feasibility(&report_actions, &inputs)
             {
                 return Err("heuristic plan is infeasible or mislabeled".into());
             }
             "accepted_heuristic"
         }
         "no_feasible_plan_found" => {
-            if count <= EXACT_LIMIT || method != "deterministic_greedy" || optimality != "not_proven"
-                || !report_actions.is_empty() || unsatisfied.is_empty()
+            if count <= EXACT_LIMIT
+                || method != "deterministic_greedy"
+                || optimality != "not_proven"
+                || !report_actions.is_empty()
+                || unsatisfied.is_empty()
             {
                 return Err("no-feasible-plan-found status is mislabeled".into());
             }
@@ -1022,24 +1394,32 @@ fn read_strict(path: &str) -> Result<(Vec<u8>, Value), String> {
     Ok((bytes, parsed.into_value()))
 }
 
-fn run(request_path: &str, report_path: &str, output_path: &str, build_id: &str) -> Result<(), String> {
+fn run(
+    request_path: &str,
+    report_path: &str,
+    output_path: &str,
+    build_id: &str,
+) -> Result<(), String> {
     let (request_bytes, request) = read_strict(request_path)?;
     let (report_bytes, report) = read_strict(report_path)?;
     let audit = verify_report(&request, &request_bytes, &report, &report_bytes, build_id)?;
     let encoded = serde_json::to_vec_pretty(&audit)
         .map_err(|error| format!("cannot encode audit report: {error}"))?;
-    fs::write(output_path, encoded).map_err(|error| format!("cannot write audit report: {error}"))?;
+    fs::write(output_path, encoded)
+        .map_err(|error| format!("cannot write audit report: {error}"))?;
     Ok(())
 }
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().collect();
     if args.len() != 4 {
-        eprintln!("usage: industry-proof-plan-audit <request.json> <plan-report.json> <audit-report.json>");
+        eprintln!(
+            "usage: industry-proof-plan-audit <request.json> <plan-report.json> <audit-report.json>"
+        );
         return ExitCode::from(4);
     }
-    let build_id = env::var("IEAC_PROOF_AUDITOR_BUILD_ID")
-        .unwrap_or_else(|_| "local-unattested".to_owned());
+    let build_id =
+        env::var("IEAC_PROOF_AUDITOR_BUILD_ID").unwrap_or_else(|_| "local-unattested".to_owned());
     match run(&args[1], &args[2], &args[3], &build_id) {
         Ok(()) => ExitCode::SUCCESS,
         Err(error) => {
@@ -1049,7 +1429,6 @@ fn main() -> ExitCode {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1057,7 +1436,8 @@ mod tests {
     fn fixture() -> Value {
         serde_json::from_str(include_str!(
             "../../../schemas/examples/ieac-proof-plan-synthetic-v0.1.json"
-        )).unwrap()
+        ))
+        .unwrap()
     }
 
     fn request() -> Value {
@@ -1102,8 +1482,11 @@ mod tests {
         let inputs = inputs_for(request);
         let selected = exact_oracle(&inputs).unwrap().unwrap();
         let expected: BTreeSet<String> = fixture["expected"]["selected_action_ids"]
-            .as_array().unwrap().iter()
-            .map(|item| item.as_str().unwrap().to_owned()).collect();
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|item| item.as_str().unwrap().to_owned())
+            .collect();
         assert_eq!(selected, expected);
     }
 
@@ -1111,8 +1494,12 @@ mod tests {
     fn independent_exact_oracle_proves_collapsed_domains_infeasible() {
         let mut request = request();
         for index in [2usize, 3, 4] {
-            let action_id = request["candidate_actions"][index]["action_id"].as_str().unwrap().to_owned();
-            request["candidate_actions"][index]["independence_domain_id"] = json!("one-source-domain");
+            let action_id = request["candidate_actions"][index]["action_id"]
+                .as_str()
+                .unwrap()
+                .to_owned();
+            request["candidate_actions"][index]["independence_domain_id"] =
+                json!("one-source-domain");
             for mapping in request["control_mappings"].as_array_mut().unwrap() {
                 if mapping["action_id"] == action_id {
                     mapping["independence_domain_id"] = json!("one-source-domain");
@@ -1145,7 +1532,10 @@ mod tests {
     #[test]
     fn auditor_rejects_coverage_claim_without_mapping_row_even_when_digest_is_recomputed() {
         let mut request = request();
-        request["control_mappings"].as_array_mut().unwrap().remove(0);
+        request["control_mappings"]
+            .as_array_mut()
+            .unwrap()
+            .remove(0);
         let mapping_bytes = serde_json::to_vec(&request["control_mappings"]).unwrap();
         let mapping_digest = digest(&mapping_bytes);
         request["control_mapping_policy_sha256"] = json!(mapping_digest);
@@ -1176,7 +1566,10 @@ mod tests {
         assert!(load_inputs(&request, &bytes, &report).is_err());
 
         let mut request = request();
-        request["control_mappings"].as_array_mut().unwrap().remove(0);
+        request["control_mappings"]
+            .as_array_mut()
+            .unwrap()
+            .remove(0);
         refresh_mapping_digest(&mut request);
         let bytes = serde_json::to_vec(&request).unwrap();
         let report = stub_report(&request, &bytes);
@@ -1205,12 +1598,17 @@ mod tests {
             for prerequisite in &inputs.actions[id].prerequisites {
                 if selected.contains(prerequisite) {
                     *indegree.get_mut(id).unwrap() += 1;
-                    dependents.entry(prerequisite.clone()).or_default().push(id.clone());
+                    dependents
+                        .entry(prerequisite.clone())
+                        .or_default()
+                        .push(id.clone());
                 }
             }
         }
-        let mut ready: BTreeSet<String> = indegree.iter()
-            .filter_map(|(id, degree)| (*degree == 0).then_some(id.clone())).collect();
+        let mut ready: BTreeSet<String> = indegree
+            .iter()
+            .filter_map(|(id, degree)| (*degree == 0).then_some(id.clone()))
+            .collect();
         let mut execution_order = Vec::new();
         while let Some(id) = ready.pop_first() {
             execution_order.push(id.clone());
@@ -1230,9 +1628,9 @@ mod tests {
         let mut human_actions = BTreeSet::new();
         for id in &execution_order {
             let action = &inputs.actions[id];
-            let prerequisite = selected.iter().any(|other| {
-                inputs.actions[other].prerequisites.contains(id)
-            });
+            let prerequisite = selected
+                .iter()
+                .any(|other| inputs.actions[other].prerequisites.contains(id));
             if action.human_approval {
                 human_actions.insert(id.clone());
             }
@@ -1276,15 +1674,25 @@ mod tests {
             } else {
                 unsatisfied.insert(control.clone());
             }
-            let existing = inputs.existing_rows.get(control).cloned().unwrap_or_default();
-            let existing_json: Vec<Value> = existing.iter().map(|row| json!({
-                "artifact_sha256": row.artifact_digest,
-                "verifier_build_sha256": row.verifier_digest,
-                "rights_evidence_sha256": row.rights_digest,
-                "independence_domain_id": row.domain,
-                "independence_registry_sha256": row.registry_digest
-            })).collect();
-            let control_mapping_ids: Vec<String> = selected.iter()
+            let existing = inputs
+                .existing_rows
+                .get(control)
+                .cloned()
+                .unwrap_or_default();
+            let existing_json: Vec<Value> = existing
+                .iter()
+                .map(|row| {
+                    json!({
+                        "artifact_sha256": row.artifact_digest,
+                        "verifier_build_sha256": row.verifier_digest,
+                        "rights_evidence_sha256": row.rights_digest,
+                        "independence_domain_id": row.domain,
+                        "independence_registry_sha256": row.registry_digest
+                    })
+                })
+                .collect();
+            let control_mapping_ids: Vec<String> = selected
+                .iter()
                 .flat_map(|action_id| inputs.actions[action_id].control_mappings.iter())
                 .filter(|mapping| mapping.control_id == *control)
                 .map(|mapping| mapping.mapping_id.clone())
@@ -1314,7 +1722,7 @@ mod tests {
             "duration_minutes",
             "compute_microunits",
             "action_count",
-            "lexicographic_action_ids"
+            "lexicographic_action_ids",
         ];
         json!({
             "schema_version": REPORT_SCHEMA,
@@ -1356,7 +1764,14 @@ mod tests {
         let request_bytes = serde_json::to_vec(&request).unwrap();
         let report = complete_report_for_request(&request, &request_bytes);
         let report_bytes = serde_json::to_vec_pretty(&report).unwrap();
-        let audit = verify_report(&request, &request_bytes, &report, &report_bytes, "test-auditor").unwrap();
+        let audit = verify_report(
+            &request,
+            &request_bytes,
+            &report,
+            &report_bytes,
+            "test-auditor",
+        )
+        .unwrap();
         assert_eq!(audit["verdict"], "accepted_optimal");
         assert_eq!(audit["optimality_independently_checked"], true);
         assert_eq!(audit["action_authority"], "none");
@@ -1364,22 +1779,52 @@ mod tests {
         let mut bad_cost = report.clone();
         bad_cost["resource_totals"]["money_microunits"] = json!(0);
         let bytes = serde_json::to_vec_pretty(&bad_cost).unwrap();
-        assert!(verify_report(&request, &request_bytes, &bad_cost, &bytes, "test-auditor").is_err());
+        assert!(
+            verify_report(&request, &request_bytes, &bad_cost, &bytes, "test-auditor").is_err()
+        );
 
         let mut bad_coverage = report.clone();
         bad_coverage["covered_controls"] = json!([]);
         let bytes = serde_json::to_vec_pretty(&bad_coverage).unwrap();
-        assert!(verify_report(&request, &request_bytes, &bad_coverage, &bytes, "test-auditor").is_err());
+        assert!(
+            verify_report(
+                &request,
+                &request_bytes,
+                &bad_coverage,
+                &bytes,
+                "test-auditor"
+            )
+            .is_err()
+        );
 
         let mut bad_mapping = report.clone();
-        bad_mapping["selected_actions"][0]["control_mappings"][0]["required_verifier_role"] = json!("forged-verifier");
+        bad_mapping["selected_actions"][0]["control_mappings"][0]["required_verifier_role"] =
+            json!("forged-verifier");
         let bytes = serde_json::to_vec_pretty(&bad_mapping).unwrap();
-        assert!(verify_report(&request, &request_bytes, &bad_mapping, &bytes, "test-auditor").is_err());
+        assert!(
+            verify_report(
+                &request,
+                &request_bytes,
+                &bad_mapping,
+                &bytes,
+                "test-auditor"
+            )
+            .is_err()
+        );
 
         let mut bad_mapping_reference = report.clone();
         bad_mapping_reference["control_coverage"][0]["control_mapping_ids"] = json!([]);
         let bytes = serde_json::to_vec_pretty(&bad_mapping_reference).unwrap();
-        assert!(verify_report(&request, &request_bytes, &bad_mapping_reference, &bytes, "test-auditor").is_err());
+        assert!(
+            verify_report(
+                &request,
+                &request_bytes,
+                &bad_mapping_reference,
+                &bytes,
+                "test-auditor"
+            )
+            .is_err()
+        );
     }
 
     #[test]
