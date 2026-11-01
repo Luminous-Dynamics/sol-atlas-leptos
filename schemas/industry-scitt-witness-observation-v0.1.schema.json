@@ -134,7 +134,8 @@
             }
           }
         }
-      ]
+      ],
+      "description": "The previous signed tree head in this same log. Runtime MUST enforce previous tree_size < signed_tree_head.tree_size and verify the supplied VDS consistency proof against both authenticated roots."
     },
     "consistency_proof_sha256": {
       "oneOf": [
@@ -188,36 +189,6 @@
           "consistency_proof_sha256": {
             "type": "string",
             "pattern": "^[0-9a-f]{64}$"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "consistency_from": {
-            "type": "object"
-          }
-        },
-        "required": [
-          "consistency_from"
-        ]
-      },
-      "then": {
-        "properties": {
-          "signed_tree_head": {
-            "properties": {
-              "tree_size": {
-                "exclusiveMinimum": 0
-              }
-            }
-          },
-          "consistency_from": {
-            "properties": {
-              "tree_size": {
-                "maximum": 9007199254740990
-              }
-            }
           }
         }
       }
