@@ -59,9 +59,10 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-native-${{ hashFiles('**/Cargo.lock') }}
-      # This crate is a wasm-bindgen-heavy [[bin]] with no [lib] target —
-      # native `cargo test` still works (verified 2026-07-11) and is much
-      # faster than a wasm test harness for the pure-logic unit tests
-      # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
-      # `cargo test --lib` fails with "no library targets found".
-      - run: cargo test --bin sol-atlas-leptos
+      # sol-atlas-core is a separate path package. Its own unit tests do not
+      # run as dependency tests when only the application binary is tested.
+      - name: Test sol-atlas-core
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml
+      # The wasm-bindgen-heavy application package has no [lib] target.
+      - name: Test application binary
+        run: cargo test --bin sol-atlas-leptos
