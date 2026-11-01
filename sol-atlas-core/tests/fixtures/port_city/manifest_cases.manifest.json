@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "fixture_file": "manifest_cases.jsonl",
+  "case_count": 34,
+  "sha256": "41e4c1df606843ed7ab46586f2b55b58918b12400b7e38d1e90e32aa77d55c79",
+  "claim_ceiling": "synthetic_contract_conformance_only",
+  "generator": "hand-authored-v0.1"
+}
