@@ -152,17 +152,31 @@ jobs:
         with:
           name: energy-dispatch-profiled-runner-${{ github.sha }}
           path: |
-            target/energy-dispatch-profiled-runner/
+            target/energy-dispatch-profiled-runner/trace.csv
+            target/energy-dispatch-profiled-runner/trace-summary.csv
+            target/energy-dispatch-profiled-runner/report-*.json
+            target/energy-dispatch-profiled-runner/schedule-*.json
+            target/energy-dispatch-profiled-runner/audit-receipt-*.json
+            target/energy-dispatch-profiled-runner/*.sha256
+            target/energy-dispatch-profiled-runner/build-provenance.txt
             tools/energy-dispatch-profile-runner/src/main.rs
             tools/energy-dispatch-profile-runner/Cargo.toml
+            tools/energy-dispatch-profile-runner/README.md
             tools/energy-dispatch-schedule-auditor/Cargo.toml
             tools/energy-dispatch-schedule-auditor/Cargo.lock
-            tools/energy-solver-compute-calibration/Cargo.toml
-            tools/energy-solver-compute-calibration/Cargo.lock
             tools/energy-dispatch-schedule-auditor/src/
             tools/energy-dispatch-schedule-auditor/schedule-schema-v0.1.json
+            tools/energy-solver-compute-calibration/Cargo.toml
+            tools/energy-solver-compute-calibration/Cargo.lock
             tools/energy-solver-compute-calibration/src/
             tools/energy-solver-compute-calibration/README.md
+            sol-atlas-core/src/energy_dispatch.rs
+            sol-atlas-core/src/energy_pathway.rs
+            sol-atlas-core/src/lib.rs
+            sol-atlas-core/Cargo.toml
+            Cargo.toml
+            Cargo.lock
+            schemas/examples/energy-dispatch-pv-outage.synthetic.json
             sol-atlas-core/src/energy_dispatch.rs
             sol-atlas-core/src/energy_pathway.rs
             sol-atlas-core/Cargo.toml
