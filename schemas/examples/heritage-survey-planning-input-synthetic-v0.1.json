@@ -1,0 +1,257 @@
+{
+  "priors": [
+    {
+      "hypothesis_id": "archaeological",
+      "probability": 0.5
+    },
+    {
+      "hypothesis_id": "geological",
+      "probability": 0.5
+    }
+  ],
+  "actions": [
+    {
+      "action_id": "satellite-screen",
+      "modality": "satellite_optical",
+      "non_invasive": true,
+      "expected_cost_units": 1,
+      "expected_duration_hours": 0.25,
+      "impact_score": 0,
+      "authorization": {
+        "source_data": [
+          {
+            "source_id": "source-s2",
+            "asset_ref": "urn:synthetic:asset:source-s2",
+            "rights_profile": {
+              "state": "verified",
+              "permitted_uses": [
+                "view",
+                "research"
+              ],
+              "access_tier": "approved_research",
+              "exact_geometry_policy": "approved_research_only",
+              "licence_uri": "https://example.invalid/licence",
+              "consent_or_authority_ref": "urn:synthetic:custodial-approval:01",
+              "jurisdiction": "synthetic"
+            },
+            "geometry_access_tier": "approved_research",
+            "purpose": "research",
+            "access_context": {
+              "max_tier": "approved_research",
+              "exact_geometry_authorized": true
+            },
+            "exact_geometry": true
+          }
+        ],
+        "requires_land_access": false,
+        "land_access_confirmed": false,
+        "requires_permit": false,
+        "permit_confirmed": false,
+        "requires_custodial_review": false,
+        "custodial_review_complete": false
+      },
+      "outcomes": [
+        {
+          "outcome_id": "positive_signal",
+          "likelihood_by_hypothesis": {
+            "archaeological": 0.75,
+            "geological": 0.25
+          }
+        },
+        {
+          "outcome_id": "negative_signal",
+          "likelihood_by_hypothesis": {
+            "archaeological": 0.25,
+            "geological": 0.75
+          }
+        }
+      ],
+      "likelihood_basis_ref": "urn:synthetic:likelihood-model:calibrated-example",
+      "likelihood_model_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    {
+      "action_id": "magnetometry",
+      "modality": "magnetometry",
+      "non_invasive": true,
+      "expected_cost_units": 8,
+      "expected_duration_hours": 4,
+      "impact_score": 0.05,
+      "authorization": {
+        "source_data": [
+          {
+            "source_id": "source-mag",
+            "asset_ref": "urn:synthetic:asset:source-mag",
+            "rights_profile": {
+              "state": "verified",
+              "permitted_uses": [
+                "view",
+                "research"
+              ],
+              "access_tier": "approved_research",
+              "exact_geometry_policy": "approved_research_only",
+              "licence_uri": "https://example.invalid/licence",
+              "consent_or_authority_ref": "urn:synthetic:custodial-approval:01",
+              "jurisdiction": "synthetic"
+            },
+            "geometry_access_tier": "approved_research",
+            "purpose": "research",
+            "access_context": {
+              "max_tier": "approved_research",
+              "exact_geometry_authorized": true
+            },
+            "exact_geometry": true
+          }
+        ],
+        "requires_land_access": true,
+        "land_access_confirmed": true,
+        "requires_permit": true,
+        "permit_confirmed": true,
+        "requires_custodial_review": true,
+        "custodial_review_complete": true
+      },
+      "outcomes": [
+        {
+          "outcome_id": "positive_signal",
+          "likelihood_by_hypothesis": {
+            "archaeological": 0.9,
+            "geological": 0.1
+          }
+        },
+        {
+          "outcome_id": "negative_signal",
+          "likelihood_by_hypothesis": {
+            "archaeological": 0.09999999999999998,
+            "geological": 0.9
+          }
+        }
+      ],
+      "likelihood_basis_ref": "urn:synthetic:likelihood-model:calibrated-example",
+      "likelihood_model_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    {
+      "action_id": "excavation",
+      "modality": "other",
+      "non_invasive": false,
+      "expected_cost_units": 30,
+      "expected_duration_hours": 12,
+      "impact_score": 0.8,
+      "authorization": {
+        "source_data": [
+          {
+            "source_id": "source-exc",
+            "asset_ref": "urn:synthetic:asset:source-exc",
+            "rights_profile": {
+              "state": "verified",
+              "permitted_uses": [
+                "view",
+                "research"
+              ],
+              "access_tier": "approved_research",
+              "exact_geometry_policy": "approved_research_only",
+              "licence_uri": "https://example.invalid/licence",
+              "consent_or_authority_ref": "urn:synthetic:custodial-approval:01",
+              "jurisdiction": "synthetic"
+            },
+            "geometry_access_tier": "approved_research",
+            "purpose": "research",
+            "access_context": {
+              "max_tier": "approved_research",
+              "exact_geometry_authorized": true
+            },
+            "exact_geometry": true
+          }
+        ],
+        "requires_land_access": true,
+        "land_access_confirmed": true,
+        "requires_permit": true,
+        "permit_confirmed": true,
+        "requires_custodial_review": true,
+        "custodial_review_complete": true
+      },
+      "outcomes": [
+        {
+          "outcome_id": "positive_signal",
+          "likelihood_by_hypothesis": {
+            "archaeological": 0.99,
+            "geological": 0.01
+          }
+        },
+        {
+          "outcome_id": "negative_signal",
+          "likelihood_by_hypothesis": {
+            "archaeological": 0.010000000000000009,
+            "geological": 0.99
+          }
+        }
+      ],
+      "likelihood_basis_ref": "urn:synthetic:likelihood-model:calibrated-example",
+      "likelihood_model_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    {
+      "action_id": "rights-pending",
+      "modality": "satellite_sar",
+      "non_invasive": true,
+      "expected_cost_units": 2,
+      "expected_duration_hours": 0.5,
+      "impact_score": 0,
+      "authorization": {
+        "source_data": [
+          {
+            "source_id": "source-pending",
+            "asset_ref": "urn:synthetic:asset:source-pending",
+            "rights_profile": {
+              "state": "pending",
+              "permitted_uses": [
+                "view",
+                "research"
+              ],
+              "access_tier": "approved_research",
+              "exact_geometry_policy": "approved_research_only",
+              "licence_uri": "https://example.invalid/licence",
+              "consent_or_authority_ref": "urn:synthetic:custodial-approval:01",
+              "jurisdiction": "synthetic"
+            },
+            "geometry_access_tier": "approved_research",
+            "purpose": "research",
+            "access_context": {
+              "max_tier": "approved_research",
+              "exact_geometry_authorized": true
+            },
+            "exact_geometry": true
+          }
+        ],
+        "requires_land_access": false,
+        "land_access_confirmed": false,
+        "requires_permit": false,
+        "permit_confirmed": false,
+        "requires_custodial_review": false,
+        "custodial_review_complete": false
+      },
+      "outcomes": [
+        {
+          "outcome_id": "positive_signal",
+          "likelihood_by_hypothesis": {
+            "archaeological": 0.8,
+            "geological": 0.2
+          }
+        },
+        {
+          "outcome_id": "negative_signal",
+          "likelihood_by_hypothesis": {
+            "archaeological": 0.19999999999999996,
+            "geological": 0.8
+          }
+        }
+      ],
+      "likelihood_basis_ref": "urn:synthetic:likelihood-model:calibrated-example",
+      "likelihood_model_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+  ],
+  "constraints": {
+    "max_cost_units": 20,
+    "max_duration_hours": 8,
+    "max_impact_score": 0.2,
+    "probability_tolerance": 1e-9
+  },
+  "cost_unit": "survey_credit"
+}

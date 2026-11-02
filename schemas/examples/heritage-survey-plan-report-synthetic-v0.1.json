@@ -1,0 +1,71 @@
+{
+  "schema_version": "luminous.heritage-survey-plan.v0.1",
+  "prior_entropy_nats": 0.6931471805599453,
+  "cost_unit": "survey_credit",
+  "ranked_actions": [
+    {
+      "action_id": "satellite-screen",
+      "modality": "satellite_optical",
+      "expected_information_gain_nats": 0.130812035941137,
+      "expected_posterior_entropy_nats": 0.5623351446188083,
+      "information_gain_per_cost": 0.130812035941137,
+      "information_gain_per_hour": 0.523248143764548,
+      "expected_cost_units": 1,
+      "expected_duration_hours": 0.25,
+      "impact_score": 0,
+      "pareto_optimal": true,
+      "likelihood_basis_ref": "urn:synthetic:likelihood-model:calibrated-example",
+      "likelihood_model_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    {
+      "action_id": "magnetometry",
+      "modality": "magnetometry",
+      "expected_information_gain_nats": 0.3680642071684971,
+      "expected_posterior_entropy_nats": 0.3250829733914482,
+      "information_gain_per_cost": 0.046008025896062135,
+      "information_gain_per_hour": 0.09201605179212427,
+      "expected_cost_units": 8,
+      "expected_duration_hours": 4,
+      "impact_score": 0.05,
+      "pareto_optimal": true,
+      "likelihood_basis_ref": "urn:synthetic:likelihood-model:calibrated-example",
+      "likelihood_model_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+  ],
+  "rejected_actions": [
+    {
+      "action_id": "excavation",
+      "modality": "other",
+      "reasons": [
+        "invasive_action_not_supported",
+        "cost_budget_exceeded",
+        "impact_ceiling_exceeded"
+      ],
+      "expected_cost_units": 30,
+      "expected_duration_hours": 12,
+      "impact_score": 0.8,
+      "likelihood_basis_ref": "urn:synthetic:likelihood-model:calibrated-example",
+      "likelihood_model_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    {
+      "action_id": "rights-pending",
+      "modality": "satellite_sar",
+      "reasons": [
+        {
+          "source_rights_denied": {
+            "rights_not_verified": "pending"
+          }
+        }
+      ],
+      "expected_cost_units": 2,
+      "expected_duration_hours": 0.5,
+      "impact_score": 0,
+      "likelihood_basis_ref": "urn:synthetic:likelihood-model:calibrated-example",
+      "likelihood_model_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+  ],
+  "pareto_front_action_ids": [
+    "magnetometry",
+    "satellite-screen"
+  ]
+}

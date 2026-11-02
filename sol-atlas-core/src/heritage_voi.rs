@@ -10,7 +10,25 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SurveyModality {
+    SatelliteOptical,
+    SatelliteSar,
+    UavOptical,
+    UavThermal,
+    AirborneLidar,
+    FieldWalkover,
+    Magnetometry,
+    GroundPenetratingRadar,
+    ElectricalResistivity,
+    ArchivalReview,
+    CommunityEngagement,
+    Other,
+}
+
 pub const PROBABILITY_TOLERANCE: f64 = 1e-9;
+pub const SURVEY_PLAN_SCHEMA_VERSION: &str = "luminous.heritage-survey-plan.v0.1";
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct HypothesisPrior {
@@ -49,18 +67,24 @@ pub struct SurveyAuthorization {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SurveyAction {
     pub action_id: String,
+    pub modality: SurveyModality,
+    /// Invasive actions are outside this planner's remit even if a permit exists.
+    pub non_invasive: bool,
     pub expected_cost_units: f64,
+    pub expected_duration_hours: f64,
     /// Declared impact score in [0, 1], not a claim of safety.
     pub impact_score: f64,
     pub authorization: SurveyAuthorization,
     pub outcomes: Vec<SurveyOutcomeModel>,
     /// Source or review reference for the likelihood model; never silently infer it.
     pub likelihood_basis_ref: String,
+    pub likelihood_model_sha256: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct SurveyPlanningConstraints {
     pub max_cost_units: f64,
+    pub max_duration_hours: f64,
     pub max_impact_score: f64,
     pub probability_tolerance: f64,
 }
@@ -68,36 +92,53 @@ pub struct SurveyPlanningConstraints {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SurveyRecommendation {
     pub action_id: String,
+    pub modality: SurveyModality,
     pub expected_information_gain_nats: f64,
     pub expected_posterior_entropy_nats: f64,
     pub expected_cost_units: f64,
-    pub information_gain_per_cost: f64,
+    pub expected_duration_hours: f64,
+    pub information_gain_per_cost: Option<f64>,
+    pub information_gain_per_hour: Option<f64>,
     pub impact_score: f64,
+    pub pareto_optimal: bool,
+    pub likelihood_basis_ref: String,
+    pub likelihood_model_sha256: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SurveyRejectionReason {
     SourceRightsDenied(RightsDenial),
+    InvasiveActionNotSupported,
     LandAccessNotConfirmed,
     PermitNotConfirmed,
     CustodialReviewIncomplete,
     CostBudgetExceeded,
+    DurationBudgetExceeded,
     ImpactCeilingExceeded,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RejectedSurveyAction {
     pub action_id: String,
-    pub reason: SurveyRejectionReason,
+    pub modality: SurveyModality,
+    pub reasons: Vec<SurveyRejectionReason>,
+    pub expected_cost_units: f64,
+    pub expected_duration_hours: f64,
+    pub impact_score: f64,
+    pub likelihood_basis_ref: String,
+    pub likelihood_model_sha256: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SurveyPlan {
+    pub schema_version: String,
     pub prior_entropy_nats: f64,
     pub cost_unit: String,
     pub ranked_actions: Vec<SurveyRecommendation>,
     pub rejected_actions: Vec<RejectedSurveyAction>,
+    /// Nondominated eligible actions over information, cost, duration and impact.
+    pub pareto_front_action_ids: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -108,11 +149,14 @@ pub enum SurveyPlannerError {
     InvalidPriorProbability { hypothesis_id: String },
     PriorProbabilitiesDoNotSumToOne { sum: f64, tolerance: f64 },
     EmptyActionId,
+    EmptyCostUnit,
     EmptySourceDataAuthorizations { action_id: String },
     EmptySourceId { action_id: String },
     EmptyAssetReference { action_id: String },
     DuplicateActionId(String),
     InvalidCost { action_id: String },
+    InvalidDuration { action_id: String },
+    InvalidLikelihoodModelDigest { action_id: String },
     InvalidImpactScore { action_id: String },
     EmptyLikelihoodBasis { action_id: String },
     EmptyOutcomes { action_id: String },
@@ -122,6 +166,7 @@ pub enum SurveyPlannerError {
     InvalidLikelihood { action_id: String, outcome_id: String, hypothesis_id: String },
     LikelihoodsDoNotSumToOne { action_id: String, hypothesis_id: String, sum: f64, tolerance: f64 },
     InvalidMaxCost,
+    InvalidMaxDuration,
     InvalidMaxImpact,
     InvalidProbabilityTolerance,
     NegativeInformationGain { action_id: String, value: f64 },
@@ -134,6 +179,10 @@ impl fmt::Display for SurveyPlannerError {
 }
 
 impl std::error::Error for SurveyPlannerError {}
+
+fn is_sha256(value: &str) -> bool {
+    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
+}
 
 fn entropy_nats(probabilities: impl Iterator<Item = f64>) -> f64 {
     probabilities
@@ -193,8 +242,18 @@ fn validate_action(
     if action.action_id.trim().is_empty() {
         return Err(SurveyPlannerError::EmptyActionId);
     }
-    if !action.expected_cost_units.is_finite() || action.expected_cost_units <= 0.0 {
+    if !action.expected_cost_units.is_finite() || action.expected_cost_units < 0.0 {
         return Err(SurveyPlannerError::InvalidCost {
+            action_id: action.action_id.clone(),
+        });
+    }
+    if !action.expected_duration_hours.is_finite() || action.expected_duration_hours < 0.0 {
+        return Err(SurveyPlannerError::InvalidDuration {
+            action_id: action.action_id.clone(),
+        });
+    }
+    if !is_sha256(&action.likelihood_model_sha256) {
+        return Err(SurveyPlannerError::InvalidLikelihoodModelDigest {
             action_id: action.action_id.clone(),
         });
     }
@@ -280,10 +339,11 @@ fn validate_action(
     Ok(())
 }
 
-fn rejection_reason(
+fn rejection_reasons(
     action: &SurveyAction,
     constraints: SurveyPlanningConstraints,
-) -> Option<SurveyRejectionReason> {
+) -> Vec<SurveyRejectionReason> {
+    let mut reasons = Vec::new();
     for source in &action.authorization.source_data {
         if let Err(reason) = authorize_rights_and_geometry(
             &source.rights_profile,
@@ -292,27 +352,33 @@ fn rejection_reason(
             source.access_context,
             source.exact_geometry,
         ) {
-            return Some(SurveyRejectionReason::SourceRightsDenied(reason));
+            reasons.push(SurveyRejectionReason::SourceRightsDenied(reason));
         }
     }
+    if !action.non_invasive {
+        reasons.push(SurveyRejectionReason::InvasiveActionNotSupported);
+    }
     if action.authorization.requires_land_access && !action.authorization.land_access_confirmed {
-        return Some(SurveyRejectionReason::LandAccessNotConfirmed);
+        reasons.push(SurveyRejectionReason::LandAccessNotConfirmed);
     }
     if action.authorization.requires_permit && !action.authorization.permit_confirmed {
-        return Some(SurveyRejectionReason::PermitNotConfirmed);
+        reasons.push(SurveyRejectionReason::PermitNotConfirmed);
     }
     if action.authorization.requires_custodial_review
         && !action.authorization.custodial_review_complete
     {
-        return Some(SurveyRejectionReason::CustodialReviewIncomplete);
+        reasons.push(SurveyRejectionReason::CustodialReviewIncomplete);
     }
     if action.expected_cost_units > constraints.max_cost_units {
-        return Some(SurveyRejectionReason::CostBudgetExceeded);
+        reasons.push(SurveyRejectionReason::CostBudgetExceeded);
+    }
+    if action.expected_duration_hours > constraints.max_duration_hours {
+        reasons.push(SurveyRejectionReason::DurationBudgetExceeded);
     }
     if action.impact_score > constraints.max_impact_score {
-        return Some(SurveyRejectionReason::ImpactCeilingExceeded);
+        reasons.push(SurveyRejectionReason::ImpactCeilingExceeded);
     }
-    None
+    reasons
 }
 
 /// Returns (EIG in nats, expected posterior entropy in nats).
@@ -351,6 +417,12 @@ pub fn expected_information_gain_nats(
     }
 
     let raw_information_gain = prior_entropy - expected_posterior_entropy;
+    if !raw_information_gain.is_finite() || !expected_posterior_entropy.is_finite() {
+        return Err(SurveyPlannerError::NegativeInformationGain {
+            action_id: action.action_id.clone(),
+            value: raw_information_gain,
+        });
+    }
     if raw_information_gain < -probability_tolerance {
         return Err(SurveyPlannerError::NegativeInformationGain {
             action_id: action.action_id.clone(),
@@ -369,8 +441,15 @@ pub fn plan_non_invasive_surveys(
     constraints: SurveyPlanningConstraints,
     cost_unit: impl Into<String>,
 ) -> Result<SurveyPlan, SurveyPlannerError> {
+    let cost_unit = cost_unit.into();
+    if cost_unit.trim().is_empty() {
+        return Err(SurveyPlannerError::EmptyCostUnit);
+    }
     if !constraints.max_cost_units.is_finite() || constraints.max_cost_units <= 0.0 {
         return Err(SurveyPlannerError::InvalidMaxCost);
+    }
+    if !constraints.max_duration_hours.is_finite() || constraints.max_duration_hours < 0.0 {
+        return Err(SurveyPlannerError::InvalidMaxDuration);
     }
     if !constraints.max_impact_score.is_finite()
         || !(0.0..=1.0).contains(&constraints.max_impact_score)
@@ -399,10 +478,17 @@ pub fn plan_non_invasive_surveys(
         }
         validate_action(action, &prior_by_id, constraints.probability_tolerance)?;
 
-        if let Some(reason) = rejection_reason(action, constraints) {
+        let reasons = rejection_reasons(action, constraints);
+        if !reasons.is_empty() {
             rejected_actions.push(RejectedSurveyAction {
                 action_id: action.action_id.clone(),
-                reason,
+                modality: action.modality,
+                reasons,
+                expected_cost_units: action.expected_cost_units,
+                expected_duration_hours: action.expected_duration_hours,
+                impact_score: action.impact_score,
+                likelihood_basis_ref: action.likelihood_basis_ref.clone(),
+                likelihood_model_sha256: action.likelihood_model_sha256.clone(),
             });
             continue;
         }
@@ -411,32 +497,65 @@ pub fn plan_non_invasive_surveys(
             expected_information_gain_nats(priors, action, constraints.probability_tolerance)?;
         ranked_actions.push(SurveyRecommendation {
             action_id: action.action_id.clone(),
+            modality: action.modality,
             expected_information_gain_nats: gain,
             expected_posterior_entropy_nats: posterior_entropy,
             expected_cost_units: action.expected_cost_units,
-            information_gain_per_cost: gain / action.expected_cost_units,
+            expected_duration_hours: action.expected_duration_hours,
+            information_gain_per_cost: (action.expected_cost_units > 0.0)
+                .then_some(gain / action.expected_cost_units)
+                .filter(|ratio| ratio.is_finite()),
+            information_gain_per_hour: (action.expected_duration_hours > 0.0)
+                .then_some(gain / action.expected_duration_hours)
+                .filter(|ratio| ratio.is_finite()),
             impact_score: action.impact_score,
+            pareto_optimal: false,
+            likelihood_basis_ref: action.likelihood_basis_ref.clone(),
+            likelihood_model_sha256: action.likelihood_model_sha256.clone(),
         });
     }
 
+    let dominates = |left: &SurveyRecommendation, right: &SurveyRecommendation| {
+        let no_worse = left.expected_information_gain_nats >= right.expected_information_gain_nats
+            && left.expected_cost_units <= right.expected_cost_units
+            && left.expected_duration_hours <= right.expected_duration_hours
+            && left.impact_score <= right.impact_score;
+        let strictly_better =
+            left.expected_information_gain_nats > right.expected_information_gain_nats
+                || left.expected_cost_units < right.expected_cost_units
+                || left.expected_duration_hours < right.expected_duration_hours
+                || left.impact_score < right.impact_score;
+        no_worse && strictly_better
+    };
+
+    let mut pareto_front_action_ids = Vec::new();
+    for index in 0..ranked_actions.len() {
+        let dominated = ranked_actions.iter().enumerate().any(|(other_index, other)| {
+            index != other_index && dominates(other, &ranked_actions[index])
+        });
+        ranked_actions[index].pareto_optimal = !dominated;
+        if !dominated {
+            pareto_front_action_ids.push(ranked_actions[index].action_id.clone());
+        }
+    }
+    pareto_front_action_ids.sort();
+
     ranked_actions.sort_by(|left, right| {
-        right
-            .information_gain_per_cost
-            .total_cmp(&left.information_gain_per_cost)
-            .then_with(|| {
-                right
-                    .expected_information_gain_nats
-                    .total_cmp(&left.expected_information_gain_nats)
-            })
+        right.information_gain_per_cost.unwrap_or(f64::NEG_INFINITY)
+            .total_cmp(&left.information_gain_per_cost.unwrap_or(f64::NEG_INFINITY))
+            .then_with(|| right.expected_information_gain_nats.total_cmp(&left.expected_information_gain_nats))
+            .then_with(|| left.expected_cost_units.total_cmp(&right.expected_cost_units))
             .then_with(|| left.action_id.cmp(&right.action_id))
     });
     rejected_actions.sort_by(|left, right| left.action_id.cmp(&right.action_id));
 
     Ok(SurveyPlan {
+        schema_version: SURVEY_PLAN_SCHEMA_VERSION.to_owned(),
         prior_entropy_nats: prior_entropy,
-        cost_unit: cost_unit.into(),
+        cost_unit,
         ranked_actions,
         rejected_actions,
+        pareto_front_action_ids,
     })
 }
 
@@ -494,7 +613,10 @@ mod tests {
 
         SurveyAction {
             action_id: action_id.into(),
+            modality: SurveyModality::Magnetometry,
+            non_invasive: true,
             expected_cost_units: cost,
+            expected_duration_hours: 2.0,
             impact_score: impact,
             authorization: authorization(),
             outcomes: vec![
@@ -502,12 +624,14 @@ mod tests {
                 SurveyOutcomeModel { outcome_id: "negative".into(), likelihood_by_hypothesis: negative },
             ],
             likelihood_basis_ref: "urn:synthetic:likelihoods:v1".into(),
+            likelihood_model_sha256: "b".repeat(64),
         }
     }
 
     fn constraints() -> SurveyPlanningConstraints {
         SurveyPlanningConstraints {
             max_cost_units: 10.0,
+            max_duration_hours: 24.0,
             max_impact_score: 0.25,
             probability_tolerance: PROBABILITY_TOLERANCE,
         }
@@ -569,12 +693,15 @@ mod tests {
 
         assert!(plan.ranked_actions.is_empty());
         assert_eq!(plan.rejected_actions.len(), 6);
-        assert!(plan.rejected_actions.iter().any(|r| matches!(r.reason, SurveyRejectionReason::SourceRightsDenied(RightsDenial::RightsNotVerified(_)))));
-        assert!(plan.rejected_actions.iter().any(|r| r.reason == SurveyRejectionReason::LandAccessNotConfirmed));
-        assert!(plan.rejected_actions.iter().any(|r| r.reason == SurveyRejectionReason::PermitNotConfirmed));
-        assert!(plan.rejected_actions.iter().any(|r| r.reason == SurveyRejectionReason::CustodialReviewIncomplete));
-        assert!(plan.rejected_actions.iter().any(|r| r.reason == SurveyRejectionReason::CostBudgetExceeded));
-        assert!(plan.rejected_actions.iter().any(|r| r.reason == SurveyRejectionReason::ImpactCeilingExceeded));
+        assert!(plan.rejected_actions.iter().any(|r| r.reasons.iter().any(|reason| matches!(
+            reason,
+            SurveyRejectionReason::SourceRightsDenied(RightsDenial::RightsNotVerified(_))
+        ))));
+        assert!(plan.rejected_actions.iter().any(|r| r.reasons.contains(&SurveyRejectionReason::LandAccessNotConfirmed));
+        assert!(plan.rejected_actions.iter().any(|r| r.reasons.contains(&SurveyRejectionReason::PermitNotConfirmed));
+        assert!(plan.rejected_actions.iter().any(|r| r.reasons.contains(&SurveyRejectionReason::CustodialReviewIncomplete));
+        assert!(plan.rejected_actions.iter().any(|r| r.reasons.contains(&SurveyRejectionReason::CostBudgetExceeded));
+        assert!(plan.rejected_actions.iter().any(|r| r.reasons.contains(&SurveyRejectionReason::ImpactCeilingExceeded));
     }
 
     #[test]
@@ -588,7 +715,7 @@ mod tests {
             "hours",
         ).unwrap();
         assert!(matches!(
-            plan.rejected_actions[0].reason,
+            plan.rejected_actions[0].reasons[0],
             SurveyRejectionReason::SourceRightsDenied(
                 RightsDenial::PurposeNotPermitted(HeritageUse::Training)
             )
@@ -603,7 +730,7 @@ mod tests {
             "hours",
         ).unwrap();
         assert!(matches!(
-            plan.rejected_actions[0].reason,
+            plan.rejected_actions[0].reasons[0],
             SurveyRejectionReason::SourceRightsDenied(RightsDenial::ExactGeometryNotAuthorized)
         ));
 
@@ -616,12 +743,60 @@ mod tests {
             "hours",
         ).unwrap();
         assert!(matches!(
-            plan.rejected_actions[0].reason,
+            plan.rejected_actions[0].reasons[0],
             SurveyRejectionReason::SourceRightsDenied(RightsDenial::AccessTierInsufficient {
                 required: AccessTier::Custodial,
                 granted: AccessTier::ApprovedResearch
             })
         ));
+    }
+
+    #[test]
+    fn invasive_actions_are_never_ranked_even_with_confirmed_permits() {
+        let mut invasive = action("excavation", 1.0, 0.0, [(1.0, 0.0), (0.0, 1.0)]);
+        invasive.non_invasive = false;
+        let report = plan_non_invasive_surveys(
+            &priors(), &[invasive], constraints(), "hours"
+        ).unwrap();
+        assert!(report.ranked_actions.is_empty());
+        assert!(report.rejected_actions[0].reasons.contains(
+            &SurveyRejectionReason::InvasiveActionNotSupported
+        ));
+    }
+
+    #[test]
+    fn duration_is_a_hard_constraint_and_reported_in_rejection_reasons() {
+        let mut slow = action("slow", 1.0, 0.0, [(1.0, 0.0), (0.0, 1.0)]);
+        slow.expected_duration_hours = 30.0;
+        let report = plan_non_invasive_surveys(
+            &priors(), &[slow], constraints(), "hours"
+        ).unwrap();
+        assert!(report.ranked_actions.is_empty());
+        assert!(report.rejected_actions[0].reasons.contains(
+            &SurveyRejectionReason::DurationBudgetExceeded
+        ));
+    }
+
+    #[test]
+    fn pareto_front_preserves_information_cost_time_and_impact_tradeoffs() {
+        let high_information = action("high-info", 5.0, 0.1, [(0.95, 0.05), (0.05, 0.95)]);
+        let mut faster = action("faster-lower-info", 3.0, 0.0, [(0.8, 0.2), (0.2, 0.8)]);
+        faster.expected_duration_hours = 0.5;
+        let report = plan_non_invasive_surveys(
+            &priors(), &[high_information, faster], constraints(), "hours"
+        ).unwrap();
+        assert_eq!(report.pareto_front_action_ids.len(), 2);
+        assert!(report.ranked_actions.iter().all(|item| item.pareto_optimal));
+    }
+
+
+    #[test]
+    fn zero_cost_actions_are_allowed_but_cost_efficiency_is_null() {
+        let free = action("free-source", 0.0, 0.0, [(0.9, 0.1), (0.1, 0.9)]);
+        let report = plan_non_invasive_surveys(&priors(), &[free], constraints(), "hours").unwrap();
+        assert_eq!(report.ranked_actions.len(), 1);
+        assert!(report.ranked_actions[0].information_gain_per_cost.is_none());
+        assert!(report.ranked_actions[0].information_gain_per_hour.is_some());
     }
 
     #[test]

@@ -1,0 +1,343 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-survey-plan-report-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Survey Plan Report",
+  "description": "Expected information gain in nats, explicit exclusions and a Pareto frontier over information, cost, duration and declared impact. Not an authorization or survey order.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "prior_entropy_nats",
+    "cost_unit",
+    "ranked_actions",
+    "rejected_actions",
+    "pareto_front_action_ids"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-survey-plan.v0.1"
+    },
+    "prior_entropy_nats": {
+      "type": "number",
+      "minimum": 0
+    },
+    "cost_unit": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ranked_actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action_id",
+          "modality",
+          "expected_information_gain_nats",
+          "expected_posterior_entropy_nats",
+          "expected_cost_units",
+          "expected_duration_hours",
+          "information_gain_per_cost",
+          "information_gain_per_hour",
+          "impact_score",
+          "pareto_optimal",
+          "likelihood_basis_ref",
+          "likelihood_model_sha256"
+        ],
+        "properties": {
+          "action_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "modality": {
+            "enum": [
+              "satellite_optical",
+              "satellite_sar",
+              "uav_optical",
+              "uav_thermal",
+              "airborne_lidar",
+              "field_walkover",
+              "magnetometry",
+              "ground_penetrating_radar",
+              "electrical_resistivity",
+              "archival_review",
+              "community_engagement",
+              "other"
+            ]
+          },
+          "expected_information_gain_nats": {
+            "type": "number",
+            "minimum": 0
+          },
+          "expected_posterior_entropy_nats": {
+            "type": "number",
+            "minimum": 0
+          },
+          "expected_cost_units": {
+            "type": "number",
+            "minimum": 0
+          },
+          "expected_duration_hours": {
+            "type": "number",
+            "minimum": 0
+          },
+          "information_gain_per_cost": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "information_gain_per_hour": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "impact_score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "pareto_optimal": {
+            "type": "boolean"
+          },
+          "likelihood_basis_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "likelihood_model_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          }
+        }
+      }
+    },
+    "rejected_actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action_id",
+          "modality",
+          "reasons",
+          "expected_cost_units",
+          "expected_duration_hours",
+          "impact_score",
+          "likelihood_basis_ref",
+          "likelihood_model_sha256"
+        ],
+        "properties": {
+          "action_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "modality": {
+            "enum": [
+              "satellite_optical",
+              "satellite_sar",
+              "uav_optical",
+              "uav_thermal",
+              "airborne_lidar",
+              "field_walkover",
+              "magnetometry",
+              "ground_penetrating_radar",
+              "electrical_resistivity",
+              "archival_review",
+              "community_engagement",
+              "other"
+            ]
+          },
+          "reasons": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "invasive_action_not_supported",
+                    "land_access_not_confirmed",
+                    "permit_not_confirmed",
+                    "custodial_review_incomplete",
+                    "cost_budget_exceeded",
+                    "duration_budget_exceeded",
+                    "impact_ceiling_exceeded"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "source_rights_denied"
+                  ],
+                  "properties": {
+                    "source_rights_denied": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "exact_geometry_not_authorized",
+                            "exact_geometry_withheld",
+                            "withheld_asset",
+                            "invalid_rights_profile"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "rights_not_verified"
+                          ],
+                          "properties": {
+                            "rights_not_verified": {
+                              "enum": [
+                                "verified",
+                                "pending",
+                                "denied",
+                                "unknown"
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "purpose_not_permitted"
+                          ],
+                          "properties": {
+                            "purpose_not_permitted": {
+                              "enum": [
+                                "view",
+                                "research",
+                                "training",
+                                "evaluation",
+                                "publication",
+                                "redistribution",
+                                "commercial"
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "access_tier_insufficient"
+                          ],
+                          "properties": {
+                            "access_tier_insufficient": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "required",
+                                "granted"
+                              ],
+                              "properties": {
+                                "required": {
+                                  "enum": [
+                                    "public",
+                                    "registered",
+                                    "approved_research",
+                                    "custodial",
+                                    "restricted",
+                                    "withheld"
+                                  ]
+                                },
+                                "granted": {
+                                  "enum": [
+                                    "public",
+                                    "registered",
+                                    "approved_research",
+                                    "custodial",
+                                    "restricted",
+                                    "withheld"
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "exact_geometry_tier_insufficient"
+                          ],
+                          "properties": {
+                            "exact_geometry_tier_insufficient": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "required",
+                                "granted"
+                              ],
+                              "properties": {
+                                "required": {
+                                  "enum": [
+                                    "public",
+                                    "registered",
+                                    "approved_research",
+                                    "custodial",
+                                    "restricted",
+                                    "withheld"
+                                  ]
+                                },
+                                "granted": {
+                                  "enum": [
+                                    "public",
+                                    "registered",
+                                    "approved_research",
+                                    "custodial",
+                                    "restricted",
+                                    "withheld"
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "expected_cost_units": {
+            "type": "number",
+            "minimum": 0
+          },
+          "expected_duration_hours": {
+            "type": "number",
+            "minimum": 0
+          },
+          "impact_score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "likelihood_basis_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "likelihood_model_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          }
+        }
+      }
+    },
+    "pareto_front_action_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}
