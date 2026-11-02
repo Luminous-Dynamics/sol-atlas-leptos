@@ -8,7 +8,7 @@
 
 use super::{
     audit_error, current_binary_sha256, parse_unique_json, recompute_objectives, sha256,
-    validate_request, validate_schedule, AuditError, AuditFinding, DispatchSchedule,
+    validate_request, validate_schedule, AuditError, DispatchSchedule,
     IntervalDispatch, SourceRequest, MAX_INTERVALS, MAX_REQUEST_BYTES, MAX_SCHEDULE_BYTES,
 };
 use serde::{Deserialize, Serialize};
@@ -59,6 +59,7 @@ pub struct NonAnticipativityFindingV1 {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct NonAnticipativityReceiptV1 {
     pub receipt_schema: String,
+    pub scenario_set_id: String,
     pub auditor_id: String,
     pub auditor_version: String,
     pub auditor_binary_sha256: String,
@@ -76,6 +77,7 @@ pub struct NonAnticipativityReceiptV1 {
 #[derive(Serialize)]
 struct NonAnticipativityReceiptSubjectV1<'a> {
     receipt_schema: &'a str,
+    scenario_set_id: &'a str,
     auditor_id: &'a str,
     auditor_version: &'a str,
     auditor_binary_sha256: &'a str,
@@ -172,8 +174,12 @@ fn add_finding(
 /// The evaluator does not prove that caller-supplied information-set labels
 /// correspond to authentic, complete or decision-time-available observations.
 pub fn evaluate_nonanticipativity_bytes(
+    scenario_set_id: &str,
     scenarios: &[NonAnticipativityScenarioBytes<'_>],
 ) -> Result<NonAnticipativityReceiptV1, AuditError> {
+    if !safe_scenario_id(scenario_set_id) {
+        return Err(audit_error("scenario_set_id must be a safe non-empty identifier"));
+    }
     if !(2..=MAX_SCENARIOS).contains(&scenarios.len()) {
         return Err(audit_error(format!(
             "scenario count must be between 2 and {MAX_SCENARIOS}"
@@ -444,6 +450,7 @@ pub fn evaluate_nonanticipativity_bytes(
     );
     let subject = NonAnticipativityReceiptSubjectV1 {
         receipt_schema,
+        scenario_set_id,
         auditor_id,
         auditor_version,
         auditor_binary_sha256: &auditor_binary_sha256,
@@ -461,6 +468,7 @@ pub fn evaluate_nonanticipativity_bytes(
 
     Ok(NonAnticipativityReceiptV1 {
         receipt_schema: receipt_schema.to_owned(),
+        scenario_set_id: scenario_set_id.to_owned(),
         auditor_id: auditor_id.to_owned(),
         auditor_version: auditor_version.to_owned(),
         auditor_binary_sha256,
@@ -613,7 +621,7 @@ mod tests {
         let schedule_b = schedule_bytes(&request_b, false, false);
         let labels = [digest(1), digest(2)];
 
-        let receipt = evaluate_nonanticipativity_bytes(&[
+        let receipt = evaluate_nonanticipativity_bytes("nonanticipativity-test-set", &[
             scenario("scenario-a", &request_a, &schedule_a, &labels),
             scenario("scenario-b", &request_b, &schedule_b, &labels),
         ])
