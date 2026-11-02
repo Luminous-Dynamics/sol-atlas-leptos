@@ -36,7 +36,8 @@
         "policy_sha256",
         "evaluator_build_sha256",
         "time_verifier_build_sha256",
-        "time_verification_policy_sha256"
+        "time_verification_policy_sha256",
+        "evidence_channel_id"
       ],
       "properties": {
         "decision_case_id": {
@@ -79,6 +80,11 @@
           "type": "string",
           "pattern": "^[0-9a-f]{64}$",
           "description": "Pinned policy digest accepted for time/availability verification facts in this snapshot."
+        },
+        "evidence_channel_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
         }
       }
     },
@@ -503,7 +509,7 @@
               }
             ]
           },
-          "first_available": {
+          "availability_evidence": {
             "oneOf": [
               {
                 "type": "null"
@@ -513,9 +519,11 @@
                 "additionalProperties": false,
                 "required": [
                   "relying_party_id",
+                  "evidence_channel_id",
                   "proof_kind",
                   "artifact_sha256",
-                  "time"
+                  "time",
+                  "coverage"
                 ],
                 "properties": {
                   "relying_party_id": {
@@ -528,6 +536,7 @@
                       "relying_party_ingest_receipt",
                       "authenticated_access_log",
                       "sealed_cache_manifest",
+                      "complete_first_availability_ledger",
                       "scitt_receipt",
                       "rfc3161_timestamp_token",
                       "source_assertion"
@@ -644,8 +653,141 @@
                         }
                       }
                     ]
+                  },
+                  "evidence_channel_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "coverage": {
+                    "oneOf": [
+                      {
+                        "type": "null"
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "relying_party_id",
+                          "evidence_channel_id",
+                          "coverage_from",
+                          "complete_through",
+                          "coverage_proof_sha256",
+                          "completeness",
+                          "verification_status",
+                          "verifier_build_sha256",
+                          "verification_policy_sha256"
+                        ],
+                        "properties": {
+                          "relying_party_id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 256
+                          },
+                          "evidence_channel_id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 256
+                          },
+                          "coverage_from": {
+                            "$ref": "#/$defs/timeBound"
+                          },
+                          "complete_through": {
+                            "$ref": "#/$defs/timeBound"
+                          },
+                          "coverage_proof_sha256": {
+                            "type": "string",
+                            "pattern": "^[0-9a-f]{64}$"
+                          },
+                          "completeness": {
+                            "enum": [
+                              "complete",
+                              "partial",
+                              "unknown"
+                            ]
+                          },
+                          "verification_status": {
+                            "enum": [
+                              "verified",
+                              "failed",
+                              "unknown",
+                              "not_checked",
+                              "disputed"
+                            ]
+                          },
+                          "verifier_build_sha256": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "pattern": "^[0-9a-f]{64}$"
+                          },
+                          "verification_policy_sha256": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "pattern": "^[0-9a-f]{64}$"
+                          }
+                        },
+                        "allOf": [
+                          {
+                            "if": {
+                              "properties": {
+                                "verification_status": {
+                                  "const": "verified"
+                                }
+                              },
+                              "required": [
+                                "verification_status"
+                              ]
+                            },
+                            "then": {
+                              "properties": {
+                                "verifier_build_sha256": {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-f]{64}$"
+                                },
+                                "verification_policy_sha256": {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-f]{64}$"
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
                   }
-                }
+                },
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "proof_kind": {
+                          "const": "complete_first_availability_ledger"
+                        }
+                      },
+                      "required": [
+                        "proof_kind"
+                      ]
+                    },
+                    "then": {
+                      "properties": {
+                        "coverage": {
+                          "type": "object"
+                        }
+                      }
+                    },
+                    "else": {
+                      "properties": {
+                        "coverage": {
+                          "type": "null"
+                        }
+                      }
+                    }
+                  }
+                ]
               }
             ]
           }
