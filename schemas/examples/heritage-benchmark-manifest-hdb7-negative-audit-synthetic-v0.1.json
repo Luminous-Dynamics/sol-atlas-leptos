@@ -1,0 +1,54 @@
+{
+  "schema_version": "luminous.heritage-benchmark-manifest.v0.1",
+  "benchmark_id": "HDB-7-NEGATIVE-SPACE-SYNTHETIC",
+  "benchmark_version": "0.1.0",
+  "task_id": "HDB-7",
+  "created_at": "2026-11-02T10:00:00Z",
+  "dataset_inventory_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "split_protocol": "held_out_site",
+  "splits": [
+    {
+      "split_id": "synthetic-held-out-site-v1",
+      "train_site_ids": [
+        "synthetic-site-a"
+      ],
+      "validation_site_ids": [
+        "synthetic-site-b"
+      ],
+      "test_site_ids": [
+        "synthetic-site-c"
+      ],
+      "spatial_buffer_m": 500,
+      "estimated_spatial_dependence_m": 250,
+      "split_manifest_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+  ],
+  "evaluation": {
+    "primary_metric": "design_weighted_recall_and_false_negative_total",
+    "review_budget": {
+      "unit": "analyst_hours",
+      "limit": 4
+    },
+    "metrics": [
+      "horvitz_thompson_true_positive_total",
+      "horvitz_thompson_false_negative_total",
+      "design_weighted_precision",
+      "design_weighted_recall",
+      "false_negative_sample_count",
+      "unknown_fraction",
+      "unobservable_fraction",
+      "kish_effective_sample_size",
+      "sampled_false_negative_discoveries_per_100_reviewer_hours"
+    ],
+    "confidence_interval_method": "not_computed_requires_joint_inclusion_or_cluster_variance_design",
+    "bootstrap_unit": "landscape",
+    "blind_labels": true,
+    "evaluation_code_revision": "synthetic-commit",
+    "environment_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "sampling_design_ref": "urn:synthetic:probability-sampling-design:v1",
+    "population_frame_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "inclusion_probability_unit": "landscape_block",
+    "variance_method": "not_computed_requires_design"
+  },
+  "notes": "Synthetic HDB-7 fixture. No real sites, coordinates, labels or performance data."
+}

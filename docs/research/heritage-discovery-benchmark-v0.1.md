@@ -418,3 +418,16 @@ The v0.1 implementation is one-step and myopic. HDB-8 defines the full multi-ste
 Every HDB run involving ranked candidates must publish a frozen population frame and state whether the final audit is probability-sampled. If no valid sample design exists, recall and false-negative burden are conditional on the observed reviewed subset and must not be presented as population estimates.
 
 For survey-policy tasks, no expected information gain may be presented as real-world information value unless the action likelihood model is calibrated on independent modality-specific evidence. A synthetic fixture tests only the calculation.
+## 9. Published baselines: match the evaluation unit before comparing scores
+
+HDB's reproduction matrix should include the following task-matched reference implementations:
+
+| Baseline | Task scope | Published result / evidence | Required Sol-Atlas reproduction caveat |
+|---|---|---|---|
+| Q2000 | 1 m LiDAR Maya structure detection | F1 0.89 across 35,584 km² | Train samples and test cells are both drawn from South/North2 macro-regions; test is unreviewed terrain within those regions. Hybrid detection/cell confusion accounting and curated 240:160 positive:negative cells must be reproduced separately from object-level metrics. |
+| ADAF | ALS barrows/ringforts/enclosures | 84% recall on known sites in an Irish corridor | 116 extra detections remain candidates until independent review; cross-region Herzegovina report is early and should be separately reproduced. |
+| PlanetScope looting CNN | Looted vs preserved Afghan sites | F1 0.926 on 1,943 sites | 4.7 m PlanetScope, spatial masks and temporal label alignment are task-specific; verify site/landscape disjointness in split code before claiming external transfer. |
+| ESA TerraMind / RemoteCLIP | Central Iraq tell mapping | Preliminary mini-dataset / label-scarcity work | Full-area scaling, object/tile metrics and Iran OOD test were listed as future work on the project page; do not present as completed. |
+| Drone stone/wall segmentation | Stone instances and wall segments | Nine sites | Keep instance, boundary, geolocation and held-out-site metrics separate from regional candidate ranking. |
+
+Reference metadata belongs in a frozen benchmark manifest alongside exact input channel semantics, source/data/weight licenses, label evidence tier, sample design, preprocessing hash and evaluation unit.

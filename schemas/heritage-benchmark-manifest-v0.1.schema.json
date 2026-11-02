@@ -190,11 +190,124 @@
         "environment_digest": {
           "type": "string",
           "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "sampling_design_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "population_frame_digest": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "inclusion_probability_unit": {
+          "enum": [
+            "feature",
+            "candidate",
+            "site",
+            "landscape_block",
+            "grid_cell"
+          ]
+        },
+        "variance_method": {
+          "enum": [
+            "joint_inclusion_probability",
+            "stratified_srswor",
+            "psu_cluster_variance",
+            "not_computed_requires_design"
+          ]
+        },
+        "decision_horizon_steps": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 24
+        },
+        "policy_baselines": {
+          "type": "array",
+          "minItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "random",
+              "uniform_grid",
+              "expert_prioritized",
+              "highest_anomaly_first",
+              "cost_only",
+              "myopic_eig",
+              "finite_horizon_eig"
+            ]
+          }
+        },
+        "likelihood_model_inventory_digest": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "authorization_policy_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "non_invasive_only": {
+          "type": "boolean"
         }
       }
     },
     "notes": {
       "type": "string"
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "task_id": {
+            "const": "HDB-7"
+          }
+        },
+        "required": [
+          "task_id"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evaluation": {
+            "required": [
+              "sampling_design_ref",
+              "population_frame_digest",
+              "inclusion_probability_unit",
+              "variance_method"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "task_id": {
+            "const": "HDB-8"
+          }
+        },
+        "required": [
+          "task_id"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evaluation": {
+            "required": [
+              "decision_horizon_steps",
+              "policy_baselines",
+              "likelihood_model_inventory_digest",
+              "authorization_policy_ref",
+              "non_invasive_only"
+            ],
+            "properties": {
+              "non_invasive_only": {
+                "const": true
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }

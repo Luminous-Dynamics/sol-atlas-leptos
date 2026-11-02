@@ -173,3 +173,39 @@ The field now has at least four strong but task-specific numerical anchors: Q200
 Sol-Atlas should beat the relevant method on matched data and splits, then prove a stronger operational claim: higher independent candidate yield at the same review budget, a lower false-negative rate under a probability-sampled audit, calibrated abstention under geographic shift, and lower cost/time/disturbance to reach a justified decision.
 
 Do not claim general SOTA from a cross-task comparison. The strongest defensible claims will be task-specific and external: held-out site, held-out region, held-out sensor, and independent blind audit, each with proper population sampling and site/landscape uncertainty.
+## 9. Further baseline audit: broadscale LiDAR, looting monitoring and workflow platforms
+
+### 9.1 Q2000 broadscale Maya LiDAR
+
+Britton et al., *Evaluating Broadscale Deep Learning for Maya Settlement Detection in G-LiHT Lidar*, Journal of Archaeological Method and Theory, DOI 10.1007/s10816-025-09741-5.
+
+Q2000 uses a YOLOv3 detector trained on 2,000 high-confidence, visually assessed Maya structures (1,000 each from the G-LiHT South and North2 regions) and 1 m LiDAR-derived visualizations across approximately 35,584 km². It reports combined F1 0.89. This is an important broadscale ALS result, but it is not a held-out-region transfer test: the model is trained from both macro-regions and evaluated on previously unreviewed cells within those same regions. The authors identify Chiapas and out-of-Yucatán regions as future tests.
+
+Evaluation caveat: the paper samples 400 100 m x 100 m cells per region, curated to 240 positive and 160 negative cells. TP/FP are counted per detection, while FN/TN are counted per cell. This is a useful hybrid landscape-evaluation protocol, but it is not standard object-level F1 nor a prevalence-representative probability sample. The selected test cells are designed to test the detector, not to yield prevalence-representative confusion totals. This directly motivates HDB-7's inclusion probabilities and design-weighted negative-space audit.
+
+The paper reports that approximately 70% of research time was spent on human visual review. Sol-Atlas should measure review-hours, validated detections per hour, ambiguous-case yield and the cost of checking predicted-negative terrain alongside model metrics.
+
+Reference: https://doi.org/10.1007/s10816-025-09741-5
+
+### 9.2 Afghanistan looting detection from PlanetScope
+
+Tadesse et al., *Satellite-Based Detection of Looted Archaeological Sites Using Machine Learning*, WACVW 2026, DOI 10.1109/wacvw68408.2026.00093; arXiv 2602.19608.
+
+The study uses 4.7 m PlanetScope monthly mosaics and a curated dataset of 1,943 Afghanistan sites (898 looted, 1,045 preserved) across 2016–2023. ImageNet-pretrained CNNs with spatial masking report F1 0.926, compared with 0.710 for the strongest traditional setup (SatCLIP-V + Random Forest + mean temporal aggregation). The results show that localized site-footprint information and image texture can matter more than broad geospatial foundation embeddings for this specific looting task.
+
+The public repository documents fixed five-fold CNN splits, dynamic stratified splits, seed = 42 + fold index, and recommends year 2023 to align with final-state labels. A site-level/landscape-level holdout must be verified from the actual split code before describing any result as geographic transfer; stratification alone does not prove geographic independence. The repository's code is MIT-licensed, but complete imagery, labels and other third-party rights must be cleared separately. Its example chips are not the complete dataset.
+
+References:
+- Paper: https://doi.org/10.1109/wacvw68408.2026.00093
+- Preprint: https://arxiv.org/abs/2602.19608
+- Code and split workflow: https://github.com/microsoft/looted_site_detection
+
+### 9.3 S.A.D.A. and archaeological CV best practices
+
+S.A.D.A. (Ciccone et al., Journal of Cultural Heritage 81, 2026, DOI 10.1016/j.culher.2026.06.026) is a relevant accessible GUI workflow that unifies remote-sensing indices, PCA, detectors, clustering, LISA and GIS-ready exports. Sol-Atlas should interoperate with such tools and distinguish itself through rights-aware provenance, competing explanations, independent negative audits, global transfer and survey decision support—not by duplicating a desktop GIS GUI.
+
+Berganzo-Besga, Orengo and Lumbreras, *Best practices for the application of computer vision-based machine learning in archaeology*, Journal of Archaeological Science 191, 106577 (July 2026), DOI 10.1016/j.jas.2026.106577. The paper groups best practices across sources, preprocessing, algorithms, training, post-treatment, validation, ethics and communication. These should be treated as benchmark gates and required metadata, not optional documentation.
+
+### 9.4 Updated comparison rule
+
+Q2000 F1 0.89, ADAF recall 0.84, PlanetScope looting F1 0.926 and cropmark DSS results are not one leaderboard. Their sensors, target classes, spatial evaluation units, sample construction, geography and evidence tiers differ. Sol-Atlas should reproduce each relevant baseline on matched inputs/splits, then claim improvement only on task-specific held-out sites/regions, calibrated risk/coverage, review-budget utility and independently audited false-negative burden.
