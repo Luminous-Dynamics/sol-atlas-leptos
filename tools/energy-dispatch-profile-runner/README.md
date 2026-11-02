@@ -129,3 +129,50 @@ The exact 30-sample campaign and independent audit commands are kept in `.github
 ## Claim ceiling
 
 This runner measures execution of the actual current bounded exact enumerator on a declared request and uses a separate executable to audit the selected trajectory. The current first panel is a single two-interval synthetic case; its 30 repeats are not an external baseline comparison or evidence of SOTA superiority. It does not establish grid safety, real-world optimality, network feasibility, battery life, forecast accuracy, field reliability, regulatory compliance, or SOTA superiority. Those require additional physics, data, operating constraints and matched baselines.
+
+## Anytime / v0.3 runner
+
+The additive energy-dispatch-anytime-profile binary emits the
+energy-solver-compute-trace-v0.3 schema without changing the legacy v0.2 runner.
+It calls assess_energy_dispatch_execution once, so the exact and anytime views
+share one traversal and a cap-interrupted run does not repeat the search to
+recover its incumbent.
+
+Run it with exact request and panel bytes, output paths, a pinned service-floor
+policy, and the two already-built independent executables:
+
+```sh
+cargo run --release --locked \
+  --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml \
+  --bin energy-dispatch-anytime-profile -- \
+  request.json scenario-panel.sha256 trace-v0.3.csv report.json \
+  candidate-schedule.json schedule-audit-receipt.json \
+  service-floor-policy.json service-floor-receipt.json \
+  energy-dispatch-schedule-auditor energy-dispatch-service-floor-auditor
+```
+
+The runner records:
+- the core-measured first-complete-horizon-candidate timestamp;
+- candidate and search disposition (exact_complete, feasible_unproven,
+  proven_infeasible, or limit_without_candidate);
+- exact request/schedule SHA-256 values;
+- an external schedule-auditor process duration, exact receipt-subject hash,
+  request/schedule echoes and executable SHA-256;
+- a second external service-floor-auditor process duration, exact policy hash,
+  preceding schedule-audit receipt link, service-floor receipt-subject hash
+  and evaluator executable SHA-256;
+- end-to-end elapsed time through service-floor completion.
+
+The two receipt output paths are removed before each external process starts;
+an old file cannot be reused as current-run evidence. Malformed, missing,
+non-matching or non-canonical receipts are represented as unavailable rather
+than counted as accepted. If no candidate exists, neither auditor is run and
+the trace explicitly records not_run / not_evaluated.
+
+The v0.3 summary CLI is the separate energy-solver-compute-calibration-v03
+binary in the calibration crate. The workflow exercises 30 repeated runs on
+the frozen synthetic PV/outage micro-case and requires all 30 schedule and
+service-floor receipts to pass. The reported timing distributions are
+within-case measurements on one hosted runner cohort. They do not establish
+horizon scaling, multi-site reliability, network feasibility or SOTA
+superiority.
