@@ -440,13 +440,13 @@ pub fn validate_manifest(value: &Value) -> Vec<ValidationIssue> {
                 &base,
                 &mut issues,
             );
-            if let Some(id) = string_at(relationship, &["relationship_id"]) {
-                if !relationship_ids.insert(id.to_owned()) {
-                    issues.push(ValidationIssue::new(
-                        "RELATIONSHIP_ID_DUPLICATE",
-                        format!("{base}.relationship_id"),
-                    ));
-                }
+            if let Some(id) = string_at(relationship, &["relationship_id"])
+                && !relationship_ids.insert(id.to_owned())
+            {
+                issues.push(ValidationIssue::new(
+                    "RELATIONSHIP_ID_DUPLICATE",
+                    format!("{base}.relationship_id"),
+                ));
             }
             let from = string_at(relationship, &["from_participant_id"]);
             let to = string_at(relationship, &["to_participant_id"]);
@@ -513,13 +513,13 @@ pub fn validate_manifest(value: &Value) -> Vec<ValidationIssue> {
                 &format!("{base}.transform"),
                 &mut issues,
             );
-            if let Some(id) = string_at(mapping, &["mapping_id"]) {
-                if !mapping_ids.insert(id.to_owned()) {
-                    issues.push(ValidationIssue::new(
-                        "MAPPING_ID_DUPLICATE",
-                        format!("{base}.mapping_id"),
-                    ));
-                }
+            if let Some(id) = string_at(mapping, &["mapping_id"])
+                && !mapping_ids.insert(id.to_owned())
+            {
+                issues.push(ValidationIssue::new(
+                    "MAPPING_ID_DUPLICATE",
+                    format!("{base}.mapping_id"),
+                ));
             }
             let source_participant = string_at(mapping, &["source_participant_id"]);
             if source_participant.is_none_or(|id| !participants_by_id.contains_key(id)) {
