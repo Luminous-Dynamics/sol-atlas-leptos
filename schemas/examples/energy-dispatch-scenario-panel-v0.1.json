@@ -1,0 +1,31 @@
+{
+  "schema_version": "energy-dispatch-scenario-panel-v0.1",
+  "panel_id": "sol-atlas-islanded-microgrid-stress-v0.1",
+  "claim_ceiling": "scenario-conditioned independent finite-horizon dispatch solves; not a non-anticipative multi-stage policy or network-feasibility proof",
+  "scenarios": [
+    {
+      "scenario_id": "nominal-pv-charge-outage",
+      "request_path": "schemas/examples/energy-dispatch-scenarios/nominal-pv-charge-outage.json",
+      "expected_schedule_audit": "accepted",
+      "expected_service_floor": "passed"
+    },
+    {
+      "scenario_id": "battery-only-outage-backup",
+      "request_path": "schemas/examples/energy-dispatch-scenarios/battery-only-outage-backup.json",
+      "expected_schedule_audit": "accepted",
+      "expected_service_floor": "passed"
+    },
+    {
+      "scenario_id": "pv-derate-islanded",
+      "request_path": "schemas/examples/energy-dispatch-scenarios/pv-derate-islanded.json",
+      "expected_schedule_audit": "accepted",
+      "expected_service_floor": "failed"
+    },
+    {
+      "scenario_id": "demand-surge-outage",
+      "request_path": "schemas/examples/energy-dispatch-scenarios/demand-surge-outage.json",
+      "expected_schedule_audit": "accepted",
+      "expected_service_floor": "failed"
+    }
+  ]
+}
