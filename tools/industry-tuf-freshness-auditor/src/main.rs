@@ -792,7 +792,8 @@ mod tests{
     fn base()->(Value,Value,Value){
         let report=json!({
           "schema_version":VERIFIER_SCHEMA,"repository_id":"tuf:ieac-production",
-          "root":{"version":3,"sha256":d('1'),"expires_at":"2026-12-01T00:00:00Z"},
+          "root":{"version":3,"sha256":d('1'),"expires_at":"2026-12-01T00:00:00Z",
+            "timestamp_keyset_sha256":d('a'),"snapshot_keyset_sha256":d('b')},
           "timestamp":{"version":14,"sha256":d('2'),"expires_at":"2026-11-03T00:00:00Z"},
           "snapshot":{"version":9,"sha256":d('3'),"expires_at":"2026-11-10T00:00:00Z"},
           "target_roles":[
@@ -824,7 +825,7 @@ mod tests{
           "verification_checks":{
             "timestamp_snapshot_binding_verified":true,"snapshot_targets_binding_verified":true,
             "delegation_authorization_verified":true,"target_hash_length_verified":true,
-            "root_chain_verified":true
+            "root_chain_verified":true,"timestamp_snapshot_key_rotation_recovery_verified":false
           },
           "evaluation_time":{
             "time_utc":"2026-11-02T09:30:00Z","uncertainty_before_seconds":2,
@@ -865,7 +866,8 @@ mod tests{
           "tenant_scope":"tenant:plant-17","purpose":"industrial_resilience_assurance",
           "ledger_id":"ledger:plant-17-evidence","sequence_namespace":"plant-17-events",
           "sequence_epoch":"epoch:2026-11-01","last_sequence":118,
-          "root":{"version":3,"sha256":d('1')},
+          "root":{"version":3,"sha256":d('1'),"expires_at":"2026-12-01T00:00:00Z",
+            "timestamp_keyset_sha256":d('a'),"snapshot_keyset_sha256":d('b')},
           "timestamp":{"version":13,"sha256":d('9')},
           "snapshot":{"version":8,"sha256":d('8')},
           "target_roles":[
