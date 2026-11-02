@@ -951,7 +951,7 @@ mod tests{
         s["root"]["timestamp_keyset_sha256"]=json!(d('b'));
         s["root"]["snapshot_keyset_sha256"]=json!(d('c'));
         let rb=serde_json::to_vec(&r).unwrap();let pb=serde_json::to_vec(&p).unwrap();let sb=serde_json::to_vec(&s).unwrap();
-        assert_eq!(audit(&r,&p,&s,&rb,&pb,&sb).unwrap().status,"current");
+        assert_eq!(audit(&r,&p,&s,&rb,&pb,&sb).unwrap().structural_status,"consistent");
     }
     #[test]fn unverified_role_key_rotation_recovery_is_unknown(){
         let (mut r,p,mut s)=base();
@@ -979,7 +979,7 @@ mod tests{
     #[test]fn excessive_timestamp_expiry_horizon_is_unknown(){
         let (mut r,p,s)=base();r["timestamp"]["expires_at"]=json!("2026-11-15T00:00:00Z");
         let rb=serde_json::to_vec(&r).unwrap();let pb=serde_json::to_vec(&p).unwrap();let sb=serde_json::to_vec(&s).unwrap();
-        assert_eq!(audit(&r,&p,&s,&rb,&pb,&sb).unwrap().status,"unknown");
+        assert_eq!(audit(&r,&p,&s,&rb,&pb,&sb).unwrap().structural_status,"unknown");
     }
 
     #[test]fn timestamp_version_rollback_is_rejected(){
@@ -995,7 +995,7 @@ mod tests{
     #[test]fn expired_timestamp_is_unknown_not_current(){
         let (mut r,p,s)=base();r["timestamp"]["expires_at"]=json!("2026-11-02T09:29:00Z");
         let rb=serde_json::to_vec(&r).unwrap();let pb=serde_json::to_vec(&p).unwrap();let sb=serde_json::to_vec(&s).unwrap();
-        assert_eq!(audit(&r,&p,&s,&rb,&pb,&sb).unwrap().status,"unknown");
+        assert_eq!(audit(&r,&p,&s,&rb,&pb,&sb).unwrap().structural_status,"unknown");
     }
     #[test]fn wrong_tuf_trust_bundle_is_rejected(){
         let (mut r,p,s)=base();r["verifier"]["trust_bundle_sha256"]=json!(d('9'));
@@ -1047,7 +1047,7 @@ mod tests{
     #[test]fn unverified_tuf_check_yields_unknown(){
         let (mut r,p,s)=base();r["verification_checks"]["delegation_authorization_verified"]=json!(false);
         let rb=serde_json::to_vec(&r).unwrap();let pb=serde_json::to_vec(&p).unwrap();let sb=serde_json::to_vec(&s).unwrap();
-        assert_eq!(audit(&r,&p,&s,&rb,&pb,&sb).unwrap().status,"unknown");
+        assert_eq!(audit(&r,&p,&s,&rb,&pb,&sb).unwrap().structural_status,"unknown");
     }
     #[test]fn wrong_target_path_is_rejected(){
         let (mut r,p,s)=base();r["channel_binding"]["channel_manifest"]["target_path"]=json!("channels/plant-17/evil.json");
