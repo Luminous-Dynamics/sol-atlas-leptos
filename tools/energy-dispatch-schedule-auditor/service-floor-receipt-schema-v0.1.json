@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/energy-service-floor-receipt-v0.1.json",
+  "title": "Energy Service Floor Receipt v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "receipt_schema",
+    "policy_id",
+    "policy_sha256",
+    "request_sha256",
+    "schedule_sha256",
+    "schedule_audit_receipt_sha256",
+    "schedule_auditor_binary_sha256",
+    "service_floor_auditor_binary_sha256",
+    "disposition",
+    "findings",
+    "receipt_sha256",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "receipt_schema": { "const": "energy-service-floor-receipt-v0.1" },
+    "policy_id": { "type": "string", "minLength": 1 },
+    "policy_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "request_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "schedule_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "schedule_audit_receipt_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "schedule_auditor_binary_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "service_floor_auditor_binary_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "disposition": { "enum": ["passed", "failed"] },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["predicate", "interval_index", "interval_id", "passed", "detail"],
+        "properties": {
+          "predicate": { "type": "string" },
+          "interval_index": { "type": ["integer", "null"], "minimum": 0 },
+          "interval_id": { "type": ["string", "null"] },
+          "passed": { "type": "boolean" },
+          "detail": { "type": "string" }
+        }
+      }
+    },
+    "receipt_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "claim_ceiling": { "type": "string", "minLength": 1 }
+  }
+}
