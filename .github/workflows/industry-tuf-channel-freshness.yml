@@ -95,7 +95,9 @@ jobs:
           cargo run --manifest-path "$tool" --locked -- "$verifier" "$policy" "$state" "$report"
           jsonschema-cli validate --draft 2020 --assert-format --offline \
             schemas/industry-ieac-tuf-freshness-report-v0.1.schema.json -i "$report"
-          jq --slurpfile expected "$expected" -e '
+          state_sha=$(sha256sum "$state" | cut -d' ' -f1)
+          next_state_sha=$(jq -cS '.state_transition.next_state' "$report" | sha256sum | cut -d' ' -f1)
+          jq --slurpfile expected "$expected" --arg state_sha "$state_sha" --arg next_state_sha "$next_state_sha" -e '
             . as $report |
             $expected[0].expected as $want |
             $report.schema_version == "luminous.ieac-tuf-freshness-report.v0.1" and
@@ -111,6 +113,8 @@ jobs:
             $report.state_transition.expected_previous_state_revision == $want.state_transition.expected_previous_state_revision and
             $report.state_transition.next_state_revision == $want.state_transition.next_state_revision and
             $report.state_transition.commit_semantics == $want.state_transition.commit_semantics and
+            $report.state_transition.expected_previous_state_sha256 == $state_sha and
+            $report.state_transition.next_state_sha256 == $next_state_sha and
             $report.state_transition.next_state.state_revision == $want.state_transition.next_state_revision and
             $report.state_transition.next_state.last_sequence == $want.state_transition.next_sequence and
             ($report.state_transition.next_state.target_roles | length) == $want.state_transition.next_target_role_count and
@@ -139,6 +143,7 @@ jobs:
           jq '.channel_binding.checkpoint_state.target_sha256 = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" | .target_roles[1].target_sha256 = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"' "$verifier" > "$RUNNER_TEMP/tuf-same-sequence-equivocation.json"
           jq '.channel_binding.completeness_attestation.target_sha256 = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"' "$verifier" > "$RUNNER_TEMP/tuf-completeness-attestation-substitution.json"
           jq '.channel_binding.availability_audit_report.target_sha256 = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"' "$verifier" > "$RUNNER_TEMP/tuf-availability-report-substitution.json"
+          jq '.root.version = 4 | .root.sha256 = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" | .root.timestamp_keyset_sha256 = "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd" | .root.snapshot_keyset_sha256 = "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" | .root_update_chain = [{"from_version":3,"from_sha256":"1111111111111111111111111111111111111111111111111111111111111111","to_version":4,"to_sha256":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","old_threshold_verified":true,"new_threshold_verified":true}] | .timestamp.version = 1 | .snapshot.version = 1' "$verifier" > "$RUNNER_TEMP/tuf-unverified-key-rotation-recovery.json"
           printf '{"schema_version":"x","schema_version":"y"}' > "$RUNNER_TEMP/tuf-duplicate-members.json"
 
           for mutant in \
@@ -162,7 +167,8 @@ jobs:
           for mutant in \
             "$RUNNER_TEMP/tuf-expired-timestamp.json" \
             "$RUNNER_TEMP/tuf-unknown-delegation.json" \
-            "$RUNNER_TEMP/tuf-expiry-horizon.json"; do
+            "$RUNNER_TEMP/tuf-expiry-horizon.json" \
+            "$RUNNER_TEMP/tuf-unverified-key-rotation-recovery.json"; do
             set +e
             cargo run --manifest-path "$tool" --locked -- "$mutant" "$policy" "$state" "$report"
             status=$?
