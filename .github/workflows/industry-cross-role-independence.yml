@@ -83,6 +83,7 @@ jobs:
             ($shared_case.request) as $q |
             (shared(assignment($q; "ledger-operator"); assignment($q; "query-signer")) | length > 0) and
             (shared(assignment($q; "query-signer"); assignment($q; "verifier-build")) | length > 0) and
+            (shared(assignment($q; "verifier-build"); assignment($q; "verifier-deployment")) | length > 0) and
             (shared(assignment($q; "witness-a"); assignment($q; "witness-b")) | length > 0) and
             (assignment($q; "ledger-operator").organization_id != assignment($q; "query-signer").organization_id) and
             ($shared_case.expected.overall_disposition == "not_independent_under_registry_model") and
