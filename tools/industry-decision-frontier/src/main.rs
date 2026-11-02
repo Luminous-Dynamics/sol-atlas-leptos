@@ -30,6 +30,8 @@ struct DecisionRef {
     profile_sha256: String,
     policy_sha256: String,
     evaluator_build_sha256: String,
+    time_verifier_build_sha256: String,
+    time_verification_policy_sha256: String,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -94,7 +96,7 @@ struct Classification {
 #[derive(Debug, Serialize)]
 struct Summary {
     evidence_count: usize,
-    included_by_cutoff: usize,
+    candidate_as_known_count: usize,
     excluded_after_cutoff: usize,
     unknown: usize,
     false_admission_count: usize,
@@ -109,7 +111,7 @@ struct Report {
     decision_case_id: String,
     decision_cutoff_interval: Option<TimeInterval>,
     classifications: Vec<Classification>,
-    as_known_evidence_ids: Vec<String>,
+    candidate_as_known_evidence_ids: Vec<String>,
     later_available_evidence_ids: Vec<String>,
     unresolved_evidence_ids: Vec<String>,
     summary: Summary,
@@ -200,6 +202,8 @@ fn validate_snapshot(snapshot: &Snapshot) -> Result<(), String> {
         ("profile_sha256", &snapshot.decision.profile_sha256),
         ("policy_sha256", &snapshot.decision.policy_sha256),
         ("evaluator_build_sha256", &snapshot.decision.evaluator_build_sha256),
+        ("time_verifier_build_sha256", &snapshot.decision.time_verifier_build_sha256),
+        ("time_verification_policy_sha256", &snapshot.decision.time_verification_policy_sha256),
     ] {
         if !is_sha256(digest) {
             return Err(format!("decision.{name} must be 64 lowercase hex characters"));
@@ -216,6 +220,7 @@ fn validate_snapshot(snapshot: &Snapshot) -> Result<(), String> {
     }
 
     validate_time_bound(&snapshot.decision_cutoff, "decision_cutoff")?;
+    validate_verifier_pin(&snapshot.decision_cutoff, &snapshot.decision, "decision_cutoff")?;
 
     let mut ids = BTreeSet::new();
     for (index, item) in snapshot.evidence.iter().enumerate() {
@@ -243,9 +248,11 @@ fn validate_snapshot(snapshot: &Snapshot) -> Result<(), String> {
         }
         if let Some(observed) = &item.observed_at {
             validate_time_bound(observed, &format!("{path}.observed_at"))?;
+            validate_verifier_pin(observed, &snapshot.decision, &format!("{path}.observed_at"))?;
         }
         if let Some(recorded) = &item.source_recorded_at {
             validate_time_bound(recorded, &format!("{path}.source_recorded_at"))?;
+            validate_verifier_pin(recorded, &snapshot.decision, &format!("{path}.source_recorded_at"))?;
         }
         if let Some(availability) = &item.first_available {
             if availability.relying_party_id.trim().is_empty() {
@@ -260,7 +267,28 @@ fn validate_snapshot(snapshot: &Snapshot) -> Result<(), String> {
                 &availability.time,
                 &format!("{path}.first_available.time"),
             )?;
+            validate_verifier_pin(
+                &availability.time,
+                &snapshot.decision,
+                &format!("{path}.first_available.time"),
+            )?;
         }
+    }
+    Ok(())
+}
+
+fn validate_verifier_pin(
+    bound: &TimeBound,
+    decision: &DecisionRef,
+    path: &str,
+) -> Result<(), String> {
+    if bound.verification_status == "verified"
+        && (bound.verifier_build_sha256.as_deref()
+            != Some(decision.time_verifier_build_sha256.as_str())
+            || bound.verification_policy_sha256.as_deref()
+                != Some(decision.time_verification_policy_sha256.as_str()))
+    {
+        return Err(format!("{path} uses an unpinned time verifier build or policy"));
     }
     Ok(())
 }
@@ -460,7 +488,7 @@ fn audit(snapshot: &Snapshot, raw: &[u8]) -> Result<Report, String> {
     };
 
     let mut classifications = Vec::with_capacity(snapshot.evidence.len());
-    let mut as_known = Vec::new();
+    let mut candidate_as_known = Vec::new();
     let mut later = Vec::new();
     let mut unresolved = Vec::new();
     let mut included = 0usize;
@@ -483,7 +511,7 @@ fn audit(snapshot: &Snapshot, raw: &[u8]) -> Result<Report, String> {
         match status {
             DecisionStatus::Included => {
                 included += 1;
-                as_known.push(item.evidence_id.clone());
+                candidate_as_known.push(item.evidence_id.clone());
             }
             DecisionStatus::ExcludedAfterCutoff => {
                 excluded += 1;
@@ -499,7 +527,7 @@ fn audit(snapshot: &Snapshot, raw: &[u8]) -> Result<Report, String> {
             evidence_id: item.evidence_id.clone(),
             artifact_sha256: item.artifact_sha256.clone(),
             as_known_status: match status {
-                DecisionStatus::Included => "included".to_string(),
+                DecisionStatus::Included => "candidate_included".to_string(),
                 DecisionStatus::ExcludedAfterCutoff => "excluded_after_cutoff".to_string(),
                 DecisionStatus::Unknown => "unknown".to_string(),
             },
@@ -517,12 +545,12 @@ fn audit(snapshot: &Snapshot, raw: &[u8]) -> Result<Report, String> {
         decision_case_id: snapshot.decision.decision_case_id.clone(),
         decision_cutoff_interval: cutoff_interval,
         classifications,
-        as_known_evidence_ids: as_known,
+        candidate_as_known_evidence_ids: candidate_as_known,
         later_available_evidence_ids: later,
         unresolved_evidence_ids: unresolved,
         summary: Summary {
             evidence_count: snapshot.evidence.len(),
-            included_by_cutoff: included,
+            candidate_as_known_count: included,
             excluded_after_cutoff: excluded,
             unknown,
             false_admission_count: 0,
@@ -636,6 +664,8 @@ mod tests {
                 profile_sha256: digest('2'),
                 policy_sha256: digest('3'),
                 evaluator_build_sha256: digest('4'),
+                time_verifier_build_sha256: digest('b'),
+                time_verification_policy_sha256: digest('c'),
             },
             decision_cutoff: time(
                 "2026-11-02T09:10:00Z",
@@ -685,7 +715,7 @@ mod tests {
         let snapshot = snapshot_with(vec![item]);
         let raw = br#"{}"#;
         let report = audit(&snapshot, raw).expect("audit should succeed");
-        assert_eq!(report.summary.included_by_cutoff, 1);
+        assert_eq!(report.summary.candidate_as_known_count, 1);
         assert_eq!(report.summary.unknown, 0);
     }
 
