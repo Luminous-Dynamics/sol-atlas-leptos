@@ -444,6 +444,74 @@ mod tests {
         "2026-06-01T00:00:00Z".parse().expect("fixed fixture time")
     }
 
+    fn valid_request() -> VerificationRequest {
+        VerificationRequest {
+            schema_version: REQUEST_SCHEMA.to_string(),
+            repository_id: "test-repository".to_string(),
+            repository_url: "https://tuf.example.invalid".to_string(),
+            bootstrap_root_path: PathBuf::from("/etc/ieac/root.json"),
+            metadata_cache_path: PathBuf::from("/var/lib/ieac/tuf"),
+            max_target_bytes: 1024 * 1024,
+            target_bindings: vec![
+                TargetBinding {
+                    id: "channel_manifest".to_string(),
+                    path: "channels/plant-17/manifest.json".to_string(),
+                    expected_sha256: None,
+                    expected_length: None,
+                },
+                TargetBinding {
+                    id: "checkpoint_state".to_string(),
+                    path: "channels/plant-17/checkpoint.json".to_string(),
+                    expected_sha256: None,
+                    expected_length: None,
+                },
+                TargetBinding {
+                    id: "completeness_attestation".to_string(),
+                    path: "channels/plant-17/completeness-attestation.json".to_string(),
+                    expected_sha256: None,
+                    expected_length: None,
+                },
+                TargetBinding {
+                    id: "availability_audit_report".to_string(),
+                    path: "channels/plant-17/completeness-report.json".to_string(),
+                    expected_sha256: None,
+                    expected_length: None,
+                },
+            ],
+        }
+    }
+
+    #[test]
+    fn request_requires_https_without_redirect_or_authority_overrides() {
+        for url in [
+            "http://tuf.example.invalid",
+            "https://user@tuf.example.invalid",
+            "https://tuf.example.invalid?mirror=other",
+            "https://tuf.example.invalid#fragment",
+            "file:///etc/passwd",
+        ] {
+            let mut request = valid_request();
+            request.repository_url = url.to_string();
+            assert!(validate_request(&request).is_err(), "must reject {url}");
+        }
+        assert!(validate_request(&valid_request()).is_ok());
+    }
+
+    #[test]
+    fn request_requires_exact_target_id_set_and_unique_paths() {
+        let mut request = valid_request();
+        request.target_bindings.pop();
+        assert!(validate_request(&request).is_err());
+
+        let mut request = valid_request();
+        request.target_bindings[3].path = request.target_bindings[2].path.clone();
+        assert!(validate_request(&request).is_err());
+
+        let mut request = valid_request();
+        request.target_bindings[3].id = request.target_bindings[2].id.clone();
+        assert!(validate_request(&request).is_err());
+    }
+
     #[tokio::test]
     async fn verifies_python_tuf_repository_and_delegated_target() {
         let root = fixture_root();
