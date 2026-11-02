@@ -527,10 +527,10 @@ fn audit(snapshot: &Snapshot, raw: &[u8]) -> Result<Report, String> {
 
     let mut classifications = Vec::with_capacity(snapshot.evidence.len());
     let mut candidate_as_known = Vec::new();
-    let mut later = Vec::new();
+    let later = Vec::new();
     let mut unresolved = Vec::new();
     let mut included = 0usize;
-    let mut excluded = 0usize;
+    let excluded = 0usize;
     let mut unknown = 0usize;
 
     for item in &snapshot.evidence {
