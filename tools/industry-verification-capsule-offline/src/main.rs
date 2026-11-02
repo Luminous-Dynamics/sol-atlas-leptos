@@ -653,7 +653,12 @@ fn validate_manifest_files(
             "snapshot" => "snapshot.json".to_string(),
             role => format!("{role}.json"),
         };
-        if metadata.repository_path != expected_name {
+        let versioned_name = if metadata.role_name == "root" {
+            expected_name.clone()
+        } else {
+            format!("{}.{}", metadata.version, expected_name)
+        };
+        if metadata.repository_path != expected_name && metadata.repository_path != versioned_name {
             return Err(format!("TUF repository filename does not match role/version: {}", metadata.repository_path));
         }
         let expected_kind = match metadata.role_name.as_str() {
@@ -1033,6 +1038,31 @@ mod tests {
     }
 
     #[test]
+    fn consistent_snapshot_target_name_resolves_to_original_path() {
+        let mut sources = BTreeMap::new();
+        let digest = "141f740f53781d1ca54b8a50af22cbf74e44c21a998fa2a8a05aaac2c002886b".to_string();
+        sources.insert(
+            "channels/plant-17/manifest.json".to_string(),
+            TargetSource::Embedded {
+                capsule_path: "targets/channels/plant-17/manifest.json".to_string(),
+                sha256: digest.clone(),
+            },
+        );
+        let repo = CapsuleRepository {
+            capsule_root: PathBuf::from("/tmp"),
+            cas_root: None,
+            metadata_paths: BTreeMap::new(),
+            target_sources: sources,
+        };
+        let transformed = format!("channels/plant-17/{digest}.manifest.json");
+        assert!(repo.target_sources.iter().any(|(original, source)| {
+            let TargetSource::Embedded { sha256, .. } = source else { return false; };
+            let (directory, name) = original.rsplit_once('/').unwrap();
+            format!("{directory}/{sha256}.{name}") == transformed
+        }));
+    }
+
+    #[test]
     fn inventory_jcs_is_order_sensitive_until_paths_are_sorted() {
         let mut one = vec![
             FileEntry { path: "b.json".into(), length: 2, sha256: "b".repeat(64), kind: "other".into() },
@@ -1165,7 +1195,7 @@ mod tests {
         let temp = tempfile::tempdir().unwrap();
         let root_dir = copy_reference_repository(temp.path(), false);
         let root_bytes = fs::read(root_dir.join("metadata/1.root.json")).unwrap();
-        let repo = reference_repository(root_dir, TargetSource::Withheld);
+        let repo = reference_repository(root_dir, TargetSource::Withheld { sha256: "141f740f53781d1ca54b8a50af22cbf74e44c21a998fa2a8a05aaac2c002886b".to_string() });
         let mut updater = Updater::new(repo, &root_bytes)
             .expect("pinned Python-TUF root self-verifies")
             .with_store(MemoryStore::new());
