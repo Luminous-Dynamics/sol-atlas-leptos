@@ -197,6 +197,10 @@ jobs:
             echo "ERROR: time oracle accepted a boundary that is not after cutoff"
             exit 1
           fi
+          if jq -e '(.coverage_start_checkpoint.observed_at.time_utc | fromdateiso8601) <= (.decision_cutoff.time_utc | fromdateiso8601)' "$RUNNER_TEMP/coverage-start-after-cutoff.json"; then
+            echo "ERROR: time oracle accepted a coverage start after the decision cutoff"
+            exit 1
+          fi
 
       - name: Retain synthetic channel evidence
         if: always()
