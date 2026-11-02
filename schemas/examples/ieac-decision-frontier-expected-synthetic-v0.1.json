@@ -4,8 +4,8 @@
   "snapshot_file": "ieac-decision-frontier-snapshot-synthetic-v0.1.json",
   "expected": {
     "evidence_count": 13,
-    "excluded_after_cutoff": 2,
-    "unknown": 9,
+    "excluded_after_cutoff": 0,
+    "unknown": 11,
     "history_completeness": "not_established",
     "classifications": [
       {
@@ -21,12 +21,12 @@
       {
         "evidence_id": "late-ingested-observation",
         "status": "unknown",
-        "reason_code": "post_cutoff_access_does_not_prove_prior_absence"
+        "reason_code": "post_cutoff_access_requires_complete_channel_attestation"
       },
       {
         "evidence_id": "backdated-source-correction",
-        "status": "excluded_after_cutoff",
-        "reason_code": "complete_channel_history_proves_first_availability_after_cutoff"
+        "status": "unknown",
+        "reason_code": "post_cutoff_access_requires_complete_channel_attestation"
       },
       {
         "evidence_id": "scitt-registration-is-not-access",
@@ -61,7 +61,7 @@
       {
         "evidence_id": "late-outcome-observation",
         "status": "unknown",
-        "reason_code": "post_cutoff_access_does_not_prove_prior_absence"
+        "reason_code": "post_cutoff_access_requires_complete_channel_attestation"
       },
       {
         "evidence_id": "unverified-ingest-proof",
@@ -70,8 +70,8 @@
       },
       {
         "evidence_id": "late-complete-ledger-record",
-        "status": "excluded_after_cutoff",
-        "reason_code": "complete_channel_history_proves_first_availability_after_cutoff"
+        "status": "unknown",
+        "reason_code": "post_cutoff_access_requires_complete_channel_attestation"
       }
     ],
     "candidate_as_known_count": 2
