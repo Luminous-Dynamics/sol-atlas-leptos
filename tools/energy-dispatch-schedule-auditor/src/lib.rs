@@ -39,6 +39,13 @@ fn sha256(bytes: &[u8]) -> String {
     hex::encode(Sha256::digest(bytes))
 }
 
+fn is_sha256_hex(value: &str) -> bool {
+    value.len() == 64
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+}
+
 fn current_binary_sha256() -> Result<String, AuditError> {
     let executable = std::env::current_exe()
         .map_err(|error| audit_error(format!("resolve auditor executable: {error}")))?;
@@ -1124,6 +1131,9 @@ pub fn evaluate_service_floor_bytes(
         || audit_receipt.source_schema_version != request.schema_version
         || audit_receipt.schedule_schema_version != schedule.schema_version
         || audit_receipt.case_id != request.case_id
+        || audit_receipt.synthetic_source != request.synthetic
+        || audit_receipt.max_candidate_expansions != request.max_candidate_expansions
+        || audit_receipt.auditor_version.trim().is_empty()
         || audit_receipt.request_sha256 != request_sha256
         || audit_receipt.schedule_sha256 != schedule_sha256
         || audit_receipt.interval_count != schedule.interval_dispatches.len()
@@ -1485,6 +1495,134 @@ mod tests {
             ]),
             0,
         )
+    }
+
+    fn h2_service_floor_policy() -> Vec<u8> {
+        serde_json::to_vec(&ServiceFloorPolicyV1 {
+            schema_version: "energy-service-floor-policy-v0.1".to_owned(),
+            policy_id: "synthetic-h2-essential-service-v1".to_owned(),
+            minimum_essential_service_bps_per_interval: 10_000,
+            max_total_essential_unserved_quanta: 0,
+            max_consecutive_below_floor_intervals: 0,
+            minimum_terminal_soc_quanta: 0,
+        })
+        .unwrap()
+    }
+
+    #[test]
+    fn service_floor_pass_binds_exact_request_schedule_and_schedule_audit_receipt() {
+        let request = h2_request();
+        let schedule = h2_schedule(&request);
+        let audit = audit_schedule_bytes(&request, &schedule).unwrap();
+        assert_eq!(audit.disposition, AuditDisposition::Accepted);
+        let audit_bytes = serde_json::to_vec(&audit).unwrap();
+
+        let receipt = evaluate_service_floor_bytes(
+            &request,
+            &schedule,
+            &h2_service_floor_policy(),
+            &audit_bytes,
+        )
+        .unwrap();
+        assert_eq!(receipt.disposition, ServiceFloorDisposition::Passed);
+        assert_eq!(receipt.request_sha256, sha256(&request));
+        assert_eq!(receipt.schedule_sha256, sha256(&schedule));
+        assert_eq!(receipt.schedule_audit_receipt_sha256, audit.receipt_sha256);
+        assert!(receipt.findings.iter().all(|finding| finding.passed));
+        assert!(is_sha256_hex(&receipt.service_floor_auditor_binary_sha256));
+        assert!(is_sha256_hex(&receipt.receipt_sha256));
+    }
+
+    #[test]
+    fn service_floor_fail_is_distinct_from_schedule_audit_rejection() {
+        let request = h2_request();
+        let schedule = h2_schedule(&request);
+        let audit = audit_schedule_bytes(&request, &schedule).unwrap();
+        let audit_bytes = serde_json::to_vec(&audit).unwrap();
+        let policy = serde_json::to_vec(&ServiceFloorPolicyV1 {
+            schema_version: "energy-service-floor-policy-v0.1".to_owned(),
+            policy_id: "synthetic-h2-terminal-reserve-too-high".to_owned(),
+            minimum_essential_service_bps_per_interval: 10_000,
+            max_total_essential_unserved_quanta: 0,
+            max_consecutive_below_floor_intervals: 0,
+            minimum_terminal_soc_quanta: 1,
+        })
+        .unwrap();
+
+        let receipt =
+            evaluate_service_floor_bytes(&request, &schedule, &policy, &audit_bytes).unwrap();
+        assert_eq!(audit.disposition, AuditDisposition::Accepted);
+        assert_eq!(receipt.disposition, ServiceFloorDisposition::Failed);
+        assert!(receipt
+            .findings
+            .iter()
+            .any(|finding| finding.predicate == "minimum-terminal-soc" && !finding.passed));
+    }
+
+    #[test]
+    fn service_floor_rejects_a_receipt_for_another_schedule() {
+        let request = h2_request();
+        let schedule = h2_schedule(&request);
+        let audit = audit_schedule_bytes(&request, &schedule).unwrap();
+        let audit_bytes = serde_json::to_vec(&audit).unwrap();
+
+        let other_schedule = schedule_bytes(
+            &request,
+            serde_json::json!([
+                step(DispatchStepFixture {
+                    interval_id: "charge-from-pv",
+                    grid_import_quanta: 0,
+                    charge_input_quanta: 0,
+                    discharge_withdrawal_quanta: 0,
+                    soc_after_quanta: 0,
+                    essential_served_quanta: 0,
+                    essential_unserved_quanta: 0,
+                    flexible_served_quanta: 0,
+                    flexible_unserved_quanta: 0,
+                    pv_used_quanta: 0,
+                    pv_curtailed_quanta: 1,
+                }),
+                step(DispatchStepFixture {
+                    interval_id: "serve-during-outage",
+                    grid_import_quanta: 0,
+                    charge_input_quanta: 0,
+                    discharge_withdrawal_quanta: 0,
+                    soc_after_quanta: 0,
+                    essential_served_quanta: 0,
+                    essential_unserved_quanta: 1,
+                    flexible_served_quanta: 0,
+                    flexible_unserved_quanta: 0,
+                    pv_used_quanta: 0,
+                    pv_curtailed_quanta: 0,
+                })
+            ]),
+            0,
+        );
+        assert!(evaluate_service_floor_bytes(
+            &request,
+            &other_schedule,
+            &h2_service_floor_policy(),
+            &audit_bytes,
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn service_floor_rejects_tampered_audit_receipt_subject_digest() {
+        let request = h2_request();
+        let schedule = h2_schedule(&request);
+        let audit = audit_schedule_bytes(&request, &schedule).unwrap();
+        let mut audit_value: Value = serde_json::to_value(audit).unwrap();
+        audit_value["receipt_sha256"] = Value::String("0".repeat(64));
+        let audit_bytes = serde_json::to_vec(&audit_value).unwrap();
+
+        assert!(evaluate_service_floor_bytes(
+            &request,
+            &schedule,
+            &h2_service_floor_policy(),
+            &audit_bytes,
+        )
+        .is_err());
     }
 
     #[test]
