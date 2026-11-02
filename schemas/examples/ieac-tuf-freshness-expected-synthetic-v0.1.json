@@ -15,12 +15,22 @@
         "version": 8
       },
       {
+        "role_name": "ieac-channel-completeness-attestations",
+        "version": 2
+      },
+      {
+        "role_name": "ieac-channel-completeness-reports",
+        "version": 2
+      },
+      {
         "role_name": "ieac-channel-manifests",
         "version": 5
       }
     ],
     "checkpoint_sequence": 120,
     "ledger_epoch": "epoch:2026-11-01",
-    "action_authority": "none"
+    "action_authority": "none",
+    "completeness_attestation_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+    "availability_report_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
   }
 }
