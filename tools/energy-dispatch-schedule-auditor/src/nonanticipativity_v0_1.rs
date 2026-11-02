@@ -150,7 +150,7 @@ struct ObservationHistorySubjectV1<'a> {
     interval_index: usize,
     previous_history_sha256: &'a str,
     observed_at_unix_seconds: i64,
-    observation_bundle_sha256: &'a str,
+    canonical_observation_payload_sha256: &'a str,
 }
 
 #[derive(Serialize)]
@@ -160,7 +160,6 @@ struct InformationSetSubjectV1<'a> {
     decision_time_unix_seconds: i64,
     observation_history_sha256: &'a str,
     observed_at_unix_seconds: i64,
-    observation_bundle_sha256: &'a str,
     forecast_as_of_unix_seconds: i64,
     forecast_bundle_sha256: &'a str,
 }
@@ -261,6 +260,9 @@ fn derive_information_set_sha256(
     }
 
     let observation_bundle_sha256 = sha256(information_set.observation_bundle_bytes);
+    let canonical_observation_payload_bytes = serde_json::to_vec(&observation.observation_payload)
+        .map_err(|error| audit_error(format!("canonicalize observation payload: {error}")))?;
+    let canonical_observation_payload_sha256 = sha256(&canonical_observation_payload_bytes);
     let forecast_bundle_sha256 = sha256(information_set.forecast_bundle_bytes);
     let history_subject = ObservationHistorySubjectV1 {
         schema_version: "energy-dispatch-observation-history-v0.1",
@@ -268,7 +270,7 @@ fn derive_information_set_sha256(
         interval_index,
         previous_history_sha256,
         observed_at_unix_seconds: information_set.observed_at_unix_seconds,
-        observation_bundle_sha256: &observation_bundle_sha256,
+        canonical_observation_payload_sha256: &canonical_observation_payload_sha256,
     };
     let history_bytes = serde_json::to_vec(&history_subject)
         .map_err(|error| audit_error(format!("serialize observation history: {error}")))?;
@@ -279,7 +281,6 @@ fn derive_information_set_sha256(
         decision_time_unix_seconds: decision_time,
         observation_history_sha256: &observation_history_sha256,
         observed_at_unix_seconds: information_set.observed_at_unix_seconds,
-        observation_bundle_sha256: &observation_bundle_sha256,
         forecast_as_of_unix_seconds: information_set.forecast_as_of_unix_seconds,
         forecast_bundle_sha256: &forecast_bundle_sha256,
     };
@@ -573,8 +574,10 @@ pub fn evaluate_nonanticipativity_bytes(
         let first = &parsed[members[0]];
         let first_information_set = &first.information_sets_by_interval[interval_index];
         let forecast_consistent = members.iter().skip(1).all(|member| {
-            &parsed[*member].information_sets_by_interval[interval_index]
-                == first_information_set
+            let candidate = &parsed[*member].information_sets_by_interval[interval_index];
+            candidate.forecast_as_of_unix_seconds
+                == first_information_set.forecast_as_of_unix_seconds
+                && candidate.forecast_bundle_sha256 == first_information_set.forecast_bundle_sha256
         });
         let mut scenario_ids: Vec<_> = members
             .iter()
