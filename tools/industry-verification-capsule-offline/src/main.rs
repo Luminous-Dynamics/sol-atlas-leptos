@@ -143,6 +143,11 @@ struct TrustPin {
     root_sha256: String,
     policy_id: String,
     policy_sha256: String,
+    policy_scope_id: String,
+    policy_kind: String,
+    time_policy_sha256: String,
+    time_verifier_build_sha256: String,
+    time_verifier_trust_bundle_sha256: String,
     evaluation_time: String,
     uncertainty_before_ms: u64,
     uncertainty_after_ms: u64,
@@ -447,13 +452,24 @@ fn validate_mode(manifest: &Manifest, pin: &TrustPin) -> Result<(), String> {
 }
 
 fn validate_pin(manifest: &Manifest, pin: &TrustPin) -> Result<(), String> {
-    if pin.schema_version != PIN_SCHEMA || pin.action_authority != "none" {
-        return Err("invalid trust-pin schema or action-authority boundary".to_string());
+    if pin.schema_version != PIN_SCHEMA || pin.action_authority != "none"
+        || pin.max_capsule_bytes == 0 || pin.max_capsule_bytes > 1_073_741_824
+        || pin.max_file_count < 4 || pin.max_file_count > 4096
+        || !is_sha256(&pin.root_sha256) || !is_sha256(&pin.policy_sha256)
+        || !is_sha256(&pin.time_policy_sha256)
+        || !is_sha256(&pin.time_verifier_build_sha256)
+        || !is_sha256(&pin.time_verifier_trust_bundle_sha256)
+    {
+        return Err("invalid trust-pin schema, digest, limit or action-authority boundary".to_string());
     }
     if manifest.schema_version != MANIFEST_SCHEMA
         || manifest.action_authority != "none"
         || manifest.claim_ceiling != "replayable_integrity_of_included_signed_metadata_and_target_bytes_only"
         || manifest.canonicalization != "RFC8785_JCS_FOR_CAPSULE_MANIFEST_ONLY"
+        || manifest.verifier_identity.implementation != "sigstore-tuf"
+        || manifest.verifier_identity.version != "0.15.1"
+        || !manifest.verifier_identity.independent_verifier_required
+        || !is_sha256(&manifest.verifier_identity.build_sha256)
     {
         return Err("invalid capsule schema, claim ceiling or canonicalization profile".to_string());
     }
@@ -462,6 +478,11 @@ fn validate_pin(manifest: &Manifest, pin: &TrustPin) -> Result<(), String> {
         || manifest.trust_bootstrap.root_sha256 != pin.root_sha256
         || manifest.policy.policy_id != pin.policy_id
         || manifest.policy.policy_sha256 != pin.policy_sha256
+        || manifest.policy.scope_id != pin.policy_scope_id
+        || manifest.policy.policy_kind != pin.policy_kind
+        || manifest.replay_context.time_policy_sha256 != pin.time_policy_sha256
+        || manifest.replay_context.time_verifier_build_sha256 != pin.time_verifier_build_sha256
+        || manifest.replay_context.time_verifier_trust_bundle_sha256 != pin.time_verifier_trust_bundle_sha256
         || manifest.replay_context.evaluation_time != pin.evaluation_time
         || manifest.replay_context.uncertainty_before_ms != pin.uncertainty_before_ms
         || manifest.replay_context.uncertainty_after_ms != pin.uncertainty_after_ms
