@@ -892,7 +892,7 @@ mod tests {
         assert_eq!(result.admitted_enumeration_prefix_visits, 100);
         assert!(result.admitted_enumeration_prefix_visits <= request.max_candidate_expansions);
         assert_eq!(result.complete_pareto_frontier, None);
-        assert_eq!(result.pareto_frontier_entries_observed, 0.max(result.pareto_frontier_entries_observed));
+        assert!(result.pareto_frontier_entries_observed > 0);
     }
 
     #[test]
