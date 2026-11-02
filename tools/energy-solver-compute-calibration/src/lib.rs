@@ -818,7 +818,7 @@ mod tests {
     #[test]
     fn rejects_binary_variable_count_above_integer_variable_count() {
         let mut row = trace(0, SolveStatus::Optimal);
-        row.binary_variables = row.integer_variables + 1;
+        row.binary_variables = Some(row.integer_variables.unwrap() + 1);
         assert_eq!(row.validate(), Err(TraceError::InvalidModelOrTiming));
     }
 
