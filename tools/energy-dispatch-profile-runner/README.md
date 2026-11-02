@@ -152,7 +152,9 @@ cargo run --release --locked \
 ```
 
 The runner records:
+- solver-only elapsed nanoseconds measured around the shared core search call;
 - the core-measured first-complete-horizon-candidate timestamp;
+- end-to-end elapsed nanoseconds through the independent service-floor receipt;
 - candidate and search disposition (exact_complete, feasible_unproven,
   proven_infeasible, or limit_without_candidate);
 - exact request/schedule SHA-256 values;
