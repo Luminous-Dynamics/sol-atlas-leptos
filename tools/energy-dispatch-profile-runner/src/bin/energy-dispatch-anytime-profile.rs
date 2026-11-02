@@ -448,6 +448,7 @@ fn run_profile(
     schedule_auditor_path: &Path,
     service_floor_auditor_path: &Path,
 ) -> Result<AnytimeProfileReport, String> {
+    let invocation_started = Instant::now();
     if !valid_sha256(scenario_panel_sha256) {
         return Err("scenario panel SHA-256 must be 64 lowercase hex characters".to_owned());
     }
@@ -520,7 +521,7 @@ fn run_profile(
     );
     let scenario_id = format!("scenario-{}", &sha256(request.case_id.as_bytes())[..24]);
 
-    let invocation_started = Instant::now();
+    let solver_started = Instant::now();
     let (anytime, exact_report, mut core_failure) =
         match assess_energy_dispatch_execution(&request) {
             Ok(execution) => (Some(execution.anytime), execution.exact, None),
@@ -530,6 +531,8 @@ fn run_profile(
                 Some(format!("anytime dispatch execution error: {error:?}")),
             ),
         };
+    let solver_elapsed_ns = u64::try_from(solver_started.elapsed().as_nanos())
+        .map_err(|_| "solver elapsed nanoseconds overflow".to_owned())?;
 
     let candidate = anytime
         .as_ref()
@@ -888,6 +891,7 @@ fn run_profile(
         interval_count,
         search_disposition,
         elapsed_ns,
+        solver_elapsed_ns,
         time_to_first_candidate_ns,
         time_to_first_audit_accept_ns,
         peak_memory_bytes: None,
