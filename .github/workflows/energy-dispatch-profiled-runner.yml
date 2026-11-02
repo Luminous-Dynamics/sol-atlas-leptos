@@ -62,6 +62,18 @@ jobs:
             > target/energy-dispatch-profiled-runner/Cargo.lock.diff || true
           sha256sum target/energy-dispatch-profiled-runner/Cargo.lock.resolved \
             > target/energy-dispatch-profiled-runner/Cargo.lock.resolved.sha256
+      - name: Upload resolver-generated lockfile for reconciliation
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: energy-dispatch-lockfile-resolution-${{ github.sha }}
+          path: |
+            target/energy-dispatch-profiled-runner/Cargo.lock.committed
+            target/energy-dispatch-profiled-runner/Cargo.lock.resolved
+            target/energy-dispatch-profiled-runner/Cargo.lock.diff
+            target/energy-dispatch-profiled-runner/Cargo.lock.resolved.sha256
+          if-no-files-found: warn
+          retention-days: 14
       - name: Verify tests against the generated lockfile
         run: cargo test --locked --manifest-path sol-atlas-core/Cargo.toml --bin energy-dispatch-profile
       - name: Strict Clippy against the generated lockfile
