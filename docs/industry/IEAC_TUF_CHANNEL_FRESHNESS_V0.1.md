@@ -16,13 +16,13 @@ The trusted high-water file is a separate CLI argument; it is not embedded in th
 
 TUF has four required top-level roles: root, targets, snapshot and timestamp. Root establishes trust in other roles; timestamp metadata points to snapshot metadata; snapshot binds the current targets/delegation metadata; targets metadata binds paths, hashes and lengths of target artifacts. Delegated target roles let channel-specific state be authorized separately. [TUF roles and metadata](https://theupdateframework.io/docs/metadata/).
 
-The TUF client workflow fixes an update-start time, requires incremental N+1 root updates verified by predecessor and successor thresholds, rejects metadata rollback, and checks timestamp/snapshot/targets expiration and hash/version consistency. The adapter therefore consumes the verifier's result rather than trying to reproduce these cryptographic rules. [TUF v1.0.36 specification](https://theupdateframework.github.io/specification/v1.0.36/).
+The TUF 1.0.37 client workflow fixes an update-start time, requires incremental N+1 root updates verified by predecessor and successor thresholds, rejects metadata rollback, and checks timestamp/snapshot/targets expiration and hash/version consistency. The adapter therefore consumes the verifier's result rather than trying to reproduce these cryptographic rules. [TUF v1.0.37 specification](https://github.com/theupdateframework/specification/blob/master/tuf-spec.md).
 
 Rust implementation selection matters:
-- `sigstore-tuf` 0.14.0 describes a pure-Rust TUF client with root chaining, timestamp/snapshot/targets verification, delegated target discovery and offline cache support.
-- `tough` 0.24.0 describes TUF 1.0 support but explicitly lists delegated roles as not yet supported.
+- `sigstore-tuf` 0.15.1 documents a pure-Rust TUF client with root chaining, timestamp/snapshot/targets verification, delegated-target discovery, anti-rollback, expiry, threshold checks and offline cache support.
+- `tough` 0.24.0 documents TUF 1.0 support but explicitly lists delegated roles as not yet supported; it is not a fit for this delegated-channel profile without another supported delegation layer.
 
-The actual integration must select a compatible, pinned implementation and prove compatibility against the chosen repository profile. Do not infer support from the crate name alone. [sigstore-tuf](https://docs.rs/sigstore-tuf/latest/sigstore_tuf/) · [tough](https://docs.rs/tough/latest/tough/).
+The adapter branch does not yet depend on either crate. Select and pin the actual client after running the repository's TUF conformance corpus against it; no crate documentation substitutes for integration tests. [sigstore-tuf 0.15.1](https://docs.rs/crate/sigstore-tuf/latest) · [tough 0.24.0](https://docs.rs/tough/latest/tough/).
 
 ## 3. Inputs
 
@@ -37,7 +37,8 @@ The TUF report is not trusted just because it says `verified`. Its verifier buil
 ## 4. Checks performed by this adapter
 
 - Exact repository, relying-party, channel, tenant, purpose, ledger and sequence-namespace binding.
-- Exact manifest and checkpoint target-role/path/length/SHA-256 binding between the verifier report, policy and target metadata.
+- Exact manifest, checkpoint, completeness-attestation and availability-audit-report target-role/path/length/SHA-256 binding between the verifier report, policy and delegated target metadata.
+- Persisted high-water digests for all four artifacts; the report returns the exact four accepted digests.
 - Monotonic root, timestamp, snapshot and delegated-target metadata versions compared with persisted high-water state.
 - Same-version metadata equivocation detection: equal version with a different metadata digest is rejected.
 - Incremental root-chain structure: each root transition is N → N+1 and carries externally verified old-root and new-root threshold results; the chain must end at the reported root digest.
@@ -92,7 +93,7 @@ The test suite also covers timestamp rollback, same-version digest equivocation,
 Promotion targets:
 - 100% rejection of the frozen rollback, same-version equivocation, target substitution, root-chain discontinuity and unauthorized epoch-reset controls.
 - 100% unknown for expiry/freshness boundaries or unavailable external verifier facts.
-- 100% binding of exact repo, root, timestamp, snapshot, delegated role, target path/length/hash, channel identity, epoch and high-water state.
+- 100% binding of exact repo, root, timestamp, snapshot, delegated role, target path/length/hash for all four IEAC channel artifacts, channel identity, epoch and high-water state.
 - Zero current status when the persisted high-water state is absent.
 - Report p50/p95/p99 metadata verification and adapter latency, target count, root-chain length, offline window, state bytes and recovery time.
 - Compare sequence-only, signed-checkpoint-only, wall-clock-expiry-only and TUF-backed persisted-high-water baselines.
