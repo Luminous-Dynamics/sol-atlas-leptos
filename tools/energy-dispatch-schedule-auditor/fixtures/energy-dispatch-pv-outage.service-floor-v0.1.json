@@ -1,0 +1,8 @@
+{
+  "schema_version": "energy-service-floor-policy-v0.1",
+  "policy_id": "synthetic-pv-outage-essential-service-v1",
+  "minimum_essential_service_bps_per_interval": 10000,
+  "max_total_essential_unserved_quanta": 0,
+  "max_consecutive_below_floor_intervals": 0,
+  "minimum_terminal_soc_quanta": 0
+}
