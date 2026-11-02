@@ -194,16 +194,10 @@ fn valid_sha256(value: &str) -> bool {
 fn current_binary_sha256() -> Result<String, String> {
     let executable = std::env::current_exe()
         .map_err(|error| format!("resolve this runner binary: {error}"))?;
-    sha256(&fs::read(executable).map_err(|error| format!("read this runner binary: {error}"))?)
-        .pipe(Ok)
+    let bytes = fs::read(executable)
+        .map_err(|error| format!("read this runner binary: {error}"))?;
+    Ok(sha256(&bytes))
 }
-
-trait Pipe: Sized {
-    fn pipe<R>(self, f: impl FnOnce(Self) -> R) -> R {
-        f(self)
-    }
-}
-impl<T> Pipe for T {}
 
 fn file_sha256(path: &Path, label: &str) -> Result<String, String> {
     let bytes = fs::read(path).map_err(|error| format!("read {label} for digest: {error}"))?;
@@ -464,17 +458,6 @@ fn run_profile(
     let mut service_floor_receipt_value = None;
     let mut failure = None;
 
-    if schedule.is_some() {
-        let audit_started = Instant::now();
-        let audit_output = Command::new(schedule_auditor_path)
-            .arg(Path::new("request-placeholder"));
-        drop(audit_output);
-        let audit_status = Command::new(schedule_auditor_path)
-            .arg(std::env::current_dir().map_err(|e| format!("current dir: {e}"))?.join("unused"))
-            .status();
-        let _ = audit_status;
-    }
-
     // The exact source bytes are supplied through an immutable file path. Write
     // them beside the report so both independent processes consume those bytes.
     let request_path = report_path.with_extension("request.json");
@@ -633,10 +616,11 @@ fn run_profile(
     let search_disposition = stop_reason_and_status.0;
     let pareto_frontier_complete = stop_reason_and_status.1;
     let pareto_frontier_count = stop_reason_and_status.2;
-    let policy_hash_for_trace = if schedule.is_some() {
-        Some(policy_hash.clone())
-    } else {
-        None
+    let policy_hash_for_trace = match service_floor_disposition {
+        ServiceFloorDispositionV03::NotEvaluated => None,
+        ServiceFloorDispositionV03::Passed
+        | ServiceFloorDispositionV03::Failed
+        | ServiceFloorDispositionV03::Unavailable => Some(policy_hash.clone()),
     };
     let measurement_class = if request.synthetic {
         MeasurementClass::Synthetic
