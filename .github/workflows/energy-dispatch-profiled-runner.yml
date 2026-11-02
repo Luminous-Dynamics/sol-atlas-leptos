@@ -5,6 +5,9 @@ on:
     paths:
       - "tools/energy-dispatch-profile-runner/src/main.rs"
       - "tools/energy-dispatch-profile-runner/Cargo.toml"
+      - "tools/energy-dispatch-schedule-auditor/**"
+      - "tools/energy-solver-compute-calibration/**"
+      - "tools/energy-dispatch-profile-runner/Cargo.toml"
       - "Cargo.toml"
       - "sol-atlas-core/src/energy_dispatch.rs"
       - "sol-atlas-core/src/energy_pathway.rs"
@@ -58,23 +61,63 @@ jobs:
         run: cargo test --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-profile
       - name: Strict Clippy for the new profiler binary
         run: cargo clippy --no-deps --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-profile -- -D warnings
-      - name: Execute the real exact enumerator on the frozen synthetic request
+      - name: Build profiler, independent schedule auditor and trace aggregator
+        run: |
+          set -euo pipefail
+          cargo build --release --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-profile
+          cargo build --release --locked --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml --bin energy-dispatch-schedule-auditor
+          cargo build --release --locked --manifest-path tools/energy-solver-compute-calibration/Cargo.toml --bin energy-solver-compute-calibration
+      - name: Execute 30 exact-search runs and independently audit every selected schedule
         run: |
           set -euo pipefail
           mkdir -p target/energy-dispatch-profiled-runner
           panel_sha="$(sha256sum schemas/examples/energy-dispatch-pv-outage.synthetic.json | awk '{print $1}')"
-          cargo run --release --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-profile -- \
-            schemas/examples/energy-dispatch-pv-outage.synthetic.json \
-            "$panel_sha" \
-            target/energy-dispatch-profiled-runner/trace.csv \
-            target/energy-dispatch-profiled-runner/report.json
+          profiler="$CARGO_TARGET_DIR/release/energy-dispatch-profile"
+          auditor="$CARGO_TARGET_DIR/release/energy-dispatch-schedule-auditor"
+          for sample in $(seq -w 1 30); do
+            "$profiler" \
+              schemas/examples/energy-dispatch-pv-outage.synthetic.json \
+              "$panel_sha" \
+              target/energy-dispatch-profiled-runner/trace.csv \
+              "target/energy-dispatch-profiled-runner/report-$sample.json" \
+              "target/energy-dispatch-profiled-runner/schedule-$sample.json"
+            request_sha="$(jq -r '.request_sha256' "target/energy-dispatch-profiled-runner/report-$sample.json")"
+            schedule_sha="$(jq -r '.schedule_sha256' "target/energy-dispatch-profiled-runner/report-$sample.json")"
+            "$auditor" \
+              schemas/examples/energy-dispatch-pv-outage.synthetic.json \
+              "target/energy-dispatch-profiled-runner/schedule-$sample.json" \
+              "target/energy-dispatch-profiled-runner/audit-receipt-$sample.json"
+            jq --arg request_sha "$request_sha" --arg schedule_sha "$schedule_sha" -e '
+              .disposition == "accepted" and
+              .request_sha256 == $request_sha and
+              .schedule_sha256 == $schedule_sha and
+              all(.findings[]; .passed == true) and
+              (.auditor_binary_sha256 | length == 64) and
+              (.receipt_sha256 | length == 64)
+            ' "target/energy-dispatch-profiled-runner/audit-receipt-$sample.json"
+          done
           awk -F, 'NF != 34 { exit 1 }' target/energy-dispatch-profiled-runner/trace.csv
+          test "$(wc -l < target/energy-dispatch-profiled-runner/trace.csv)" -eq 31
+          test "$(find target/energy-dispatch-profiled-runner -name 'audit-receipt-*.json' | wc -l)" -eq 30
           grep -q ',optimal,' target/energy-dispatch-profiled-runner/trace.csv
           grep -q ',NA,NA,NA,' target/energy-dispatch-profiled-runner/trace.csv
-          jq -e '.status == "optimal" and .assessment.search_is_exact == true and .assessment.pareto_frontier_complete == true' \
-            target/energy-dispatch-profiled-runner/report.json
-          jq -e '.assessment.evaluated_action_expansions > 0 and .assessment.feasible_complete_schedules > 0 and .assessment.pareto_frontier_count > 0' \
-            target/energy-dispatch-profiled-runner/report.json
+          jq -e '.status == "optimal" and .assessment.search_is_exact == true and .assessment.pareto_frontier_complete == true and .selected_schedule != null' \
+            target/energy-dispatch-profiled-runner/report-30.json
+          jq -e '.assessment.evaluated_action_expansions > 0 and .assessment.feasible_complete_schedules > 0 and .assessment.pareto_frontier_count > 0 and (.schedule_sha256 | length == 64)' \
+            target/energy-dispatch-profiled-runner/report-30.json
+      - name: Aggregate measured search timings and require an auditable p95
+        run: |
+          set -euo pipefail
+          cargo run --release --locked --manifest-path tools/energy-solver-compute-calibration/Cargo.toml -- \
+            target/energy-dispatch-profiled-runner/trace.csv \
+            > target/energy-dispatch-profiled-runner/trace-summary.csv
+          awk -F, 'NR == 2 { if ($3 != 30 || $4 != 30 || $13 == "NA" || $14 == "NA" || $15 != "NA" || $26 != "false") exit 1 }' \
+            target/energy-dispatch-profiled-runner/trace-summary.csv
+          jq -s -e 'length == 30 and all(.[]; .disposition == "accepted")' \
+            target/energy-dispatch-profiled-runner/audit-receipt-*.json
+          jq -r '.assessment | "search_action_expansions=\(.evaluated_action_expansions)\nfeasible_complete_schedules=\(.feasible_complete_schedules)\npareto_frontier_count=\(.pareto_frontier_count)"' \
+            target/energy-dispatch-profiled-runner/report-30.json
+          cat target/energy-dispatch-profiled-runner/trace-summary.csv
       - name: Capture source, fixture and runner provenance
         run: |
           sha256sum schemas/examples/energy-dispatch-pv-outage.synthetic.json \
@@ -104,6 +147,11 @@ jobs:
             target/energy-dispatch-profiled-runner/
             tools/energy-dispatch-profile-runner/src/main.rs
             tools/energy-dispatch-profile-runner/Cargo.toml
+            tools/energy-dispatch-schedule-auditor/Cargo.toml
+            tools/energy-dispatch-schedule-auditor/Cargo.lock
+            tools/energy-solver-compute-calibration/Cargo.toml
+            tools/energy-solver-compute-calibration/Cargo.lock
+            target/energy-dispatch-profiled-runner/trace-summary.csv
             sol-atlas-core/src/energy_dispatch.rs
             sol-atlas-core/src/energy_pathway.rs
             sol-atlas-core/Cargo.toml
