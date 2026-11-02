@@ -162,83 +162,103 @@ The checked-in synthetic PV/outage policy requires 100% essential service in eve
 
 The profiler workflow now runs both executables for each of its 30 repeated synthetic schedules and requires 30 accepted schedule receipts plus 30 passed service-floor receipts. The existing v0.2 solver trace remains unchanged; these separate service-floor receipts are uploaded as independent artifacts until the v0.3 trace-runner migration composes them.
 
-## Non-anticipativity auditor v0.2: exact forecast artifacts and derived information sets
+## Non-anticipativity auditor v0.3: causal observation and forecast histories
 
 The additive `energy-dispatch-nonanticipativity-auditor` binary evaluates
-whether complete scenario schedules can be interpreted as one policy under a
-shared, time-indexed information process. It is separate from the
-single-scenario schedule auditor and the service-floor evaluator.
+whether complete scenario schedules can represent one implementable policy
+under the information actually declared available at each decision time. It
+is separate from the single-scenario schedule auditor and the service-floor
+evaluator.
 
-### Manifest and forecast evidence
+### Two evidence streams, not one omniscient scenario request
 
-The v0.2 manifest lists 2–256 scenarios and binds a safe `scenario_set_id`.
-Each scenario supplies an exact source-request path, exact schedule path, and
-one forecast artifact plus its issue/vintage time for every source interval.
-The manifest does **not** accept information-set hash strings.
+The scenario request remains the full realized trajectory used by the domain
+schedule auditor and by after-the-fact scoring. **It is not used to derive the
+policy's information set.** This distinction prevents future realized PV,
+load, outage or price values in the request from silently becoming information
+available to an earlier decision.
 
-Each forecast artifact is strict JSON with:
-- schema `energy-dispatch-forecast-bundle-v0.1`;
-- the same `scenario_set_id` as the manifest;
-- a safe `bundle_id`;
-- `issued_at_unix_seconds`, `valid_from_unix_seconds`, and
-  `valid_through_unix_seconds`;
-- a non-empty `forecast_payload` object containing the declared forecast
-  distribution / trajectory data.
+The v0.3 manifest lists 2–256 scenarios and, for each scenario and decision
+interval, references two exact, time-stamped artifacts:
 
-The CLI loads every forecast file using the same canonical manifest-root path
-restriction and bounded reader as source requests and schedules. It rejects
-duplicate JSON keys, unknown top-level fields, out-of-root paths and files
-larger than 1 MiB. The auditor recomputes SHA-256 over the **exact forecast
-file bytes**; no caller-supplied forecast hash is trusted. It checks that the
-bundle's scenario-set ID and issue time match the manifest and that the bundle
-is valid at the interval's decision timestamp.
+1. an observation bundle (`energy-dispatch-observation-bundle-v0.1`) with
+   `observed_at_unix_seconds` and a non-empty `observation_payload`;
+2. a forecast bundle (`energy-dispatch-forecast-bundle-v0.1`) with issue time,
+   validity window and non-empty `forecast_payload`.
 
-### Canonical information-set identity
+Both artifacts bind the same `scenario_set_id` as the manifest. The manifest
+contains file paths and declared timestamps, never caller-chosen information
+set hashes. The CLI loads both exact byte streams using bounded readers and
+canonical path resolution beneath the manifest directory. It rejects duplicate
+JSON object keys, unknown top-level fields, path traversal, symlink escape,
+oversize inputs, future-dated observations and forecasts, expired forecasts,
+and cross-scenario-set bundles.
 
-For scenario (s) at interval (t), the auditor computes:
+### Causal information-history derivation
+
+At interval (t), the evaluator chains only the observation artifacts through
+that decision:
 
 [
-I_{s,t} = H(
-  	ext{schema},
+O_{s,t}=H(
+  	ext{history schema},
   	ext{scenario-set ID},
-  	ext{decision time}_t,
-  H(	ext{source observation prefix}_{s,0..t}),
-  	ext{forecast vintage}_{s,t},
-  H(	ext{exact forecast bundle bytes}_{s,t})
+  t,
+  O_{s,t-1},
+  	ext{observed-at}_t,
+  H(	ext{exact observation bundle bytes}_t)
 )
 ]
 
-The source observation prefix is taken only through the current decision
-interval; future request intervals are not included in earlier information-set
-identities. The exact bundle bytes, their vintage and the observation prefix
-are all retained in the receipt binding. A caller can no longer split two
-identical histories by assigning unrelated arbitrary information-set hashes.
-A branch may diverge after its observed prefix changes. If two scenarios
-have identical observation prefixes at the same decision time, they must use
-the same forecast vintage and exact forecast bundle bytes; supplying different
-forecast files for an otherwise identical history is a hard rejection. This
-prevents a caller from creating a branch merely by selecting a different
-forecast artifact for one scenario.
+It then derives the information-set identity:
 
-The evaluator still requires every scenario request and schedule to pass the
-existing standalone domain predicates/objective recomputation. It then
-requires a common source schema, evidence class, search budget, energy quantum,
-battery configuration and interval chronology; a common root information set;
-and identical dispatch action fields for all scenarios with the same derived
-identity at each interval. It rejects a scenario set with no shared information
-set rather than passing vacuously.
+[
+I_{s,t}=H(
+  	ext{information-set schema},
+  	ext{scenario-set ID},
+  	ext{decision time}_t,
+  O_{s,t},
+  	ext{forecast vintage}_t,
+  H(	ext{exact forecast bundle bytes}_t)
+)
+]
 
-### Receipt and execution
+The initial observation-history seed is a fixed, domain-separated digest.
+Every subsequent history digest includes the previous one, the current
+observation timestamp and the SHA-256 of the exact observation bytes. Forecast
+bytes are hashed separately and included in the information-set identity.
 
-The v0.2 receipt binds the scenario-set ID, exact request/schedule digests,
-per-interval forecast vintage, SHA-256 of each exact forecast bundle, derived
-information-set digests, action-comparison counts, findings, receipt digest,
-and exact auditor executable digest. Its contract is
-`nonanticipativity-receipt-schema-v0.2.json`; the manifest and forecast
-contracts are `nonanticipativity-manifest-schema-v0.2.json` and
-`forecast-bundle-schema-v0.1.json`.
+This design has three important consequences:
 
-Run the auditor with a manifest and output receipt path:
+- Future realized intervals in the full scenario request cannot change an
+  earlier information-set identity.
+- Scenarios with identical cumulative observation histories at a decision time
+  must use the same forecast vintage and exact forecast bytes. A caller cannot
+  manufacture a branch by selecting a different forecast file for one scenario.
+- A genuine new observation changes the cumulative history and may permit
+  scenario schedules to choose different actions from that decision onward.
+
+The evaluator still requires a common source schema, evidence class, search
+budget, energy quantum, battery configuration and interval chronology. It
+requires one common initial root history, rejects vacuous success, validates
+each complete trajectory with the existing standalone domain predicates and
+recomputes its objectives. For every interval, all scenarios with equal derived
+information-set identities must take identical dispatch actions, including
+grid import, charge/discharge, SOC after the interval, essential/flexible
+service, unserved energy and PV use/curtailment.
+
+### Manifest, receipt and execution
+
+The v0.3 manifest is defined by
+`nonanticipativity-manifest-schema-v0.3.json`. The observation and forecast
+artifact contracts are `observation-bundle-schema-v0.1.json` and
+`forecast-bundle-schema-v0.1.json`. The receipt schema,
+`nonanticipativity-receipt-schema-v0.3.json`, binds the scenario-set ID,
+exact request/schedule digests, exact observation/forecast digests and
+timestamps, cumulative observation-history identities, derived information-set
+identities, findings, receipt digest and auditor executable digest.
+
+Run the auditor with the manifest and receipt path:
 
 ```sh
 cargo run --release --locked \
@@ -247,38 +267,39 @@ cargo run --release --locked \
   nonanticipativity-manifest.json nonanticipativity-receipt.json
 ```
 
-Exit code 0 means the complete scenario set passed the declared
-non-anticipativity checks; 1 means a well-formed but rejected scenario policy;
-2 means an input or audit error. The receipt is content-addressed, not
-externally signed.
+Exit 0 means the complete scenario set passed; exit 1 means a well-formed but
+non-anticipative policy was rejected; exit 2 means an input or audit error.
+The receipt is content-addressed, not externally signed.
 
 ### Controls and claim boundary
 
 The checked-in controls under `schemas/examples/nonanticipativity-v0.1/`
 exercise:
-- positive: both branches share the exact forecast artifact and root
-  observations, take the same 2-quanta PV charge action, then diverge only
-  after the second-interval essential-demand observation differs;
-- negative: both schedules are individually domain-valid and have the same
-  root observation/forecast, but choose different root charge actions; the
-  auditor must reject the set;
-- derived digest controls: the receipt's forecast digest must equal the SHA-256
-  of the exact file bytes; information-set hashes must match at the shared
-  root and diverge only after the declared observation prefix changes;
-- two schedules cannot split their policy by citing different forecast bundle
-  bytes while their complete declared observation prefixes are identical;
-- future-dated forecast and wrong-scenario-set forecast artifacts are rejected.
 
-**Critical limit:** the auditor binds the exact forecast bytes and checks their
-declared issue/validity times, and it requires identical histories to carry the
-same forecast artifact. It does not authenticate the forecast producer, prove
-the bundle was actually available to the controller, validate forecast
-calibration, or prove that the scenario probabilities are statistically correct. A future Mycelix evidence adapter should verify signed publisher
-identity, forecast vintage, revocation/freshness and model provenance. That
-source attestation must remain separate from this byte-level verifier.
+- **Positive:** both branches share the exact root observation and forecast,
+  take the same root PV-charge action, then receive distinct decision-time
+  essential-demand observations and choose different subsequent actions.
+- **Negative:** both schedules are individually valid and share the same root
+  observation and forecast, but choose different root actions; the auditor
+  must reject the policy.
+- **Future-data isolation:** different full realized request trajectories do
+  not alter an earlier information-set digest when the observation/forecast
+  artifacts available at that earlier decision are identical.
+- **Forecast escape control:** two scenarios with identical observation
+  histories cannot select different forecast artifacts to obtain different
+  actions.
+- **Freshness controls:** future-dated observations/forecasts and bundles from
+  another scenario set are rejected.
 
-The evaluator also does not prove stochastic optimality, service-floor
-compliance, physical/network safety or actuation authority. It is a
-non-anticipativity verifier primitive for
+**Critical limit:** these artifacts are content-bound and time-checked, but this
+verifier does not authenticate the observation publisher, prove the
+measurements were actually available to the controller, authenticate the
+forecast producer, or establish forecast calibration/probability validity.
+Those require independent provenance, signed publisher identity, clock and
+freshness assurance, revocation handling and calibration evidence. The current
+auditor cannot prove the semantic truth of caller-supplied observation payloads.
+
+This is the causal-information verifier for
 [ENERGY-UNCERTAINTY-001 / #312](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/312),
-not yet a scenario-tree optimizer or a deployable rolling-horizon controller.
+not yet a scenario-tree optimizer, a stochastic optimality proof or a
+deployable rolling-horizon controller.
