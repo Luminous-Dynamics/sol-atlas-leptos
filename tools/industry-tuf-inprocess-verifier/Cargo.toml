@@ -9,6 +9,10 @@ description = "In-process TUF verification for IEAC channel completeness evidenc
 name = "industry-tuf-inprocess-verify"
 path = "src/main.rs"
 
+[[bin]]
+name = "tuf-conformance-client"
+path = "src/bin/conformance_client.rs"
+
 [dependencies]
 jiff = { version = "=0.2.38" }
 serde = { version = "=1.0.229", features = ["derive"] }
