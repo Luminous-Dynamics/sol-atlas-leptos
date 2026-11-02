@@ -470,9 +470,10 @@ fn run_profile(
     ]);
     let solver_config_hash = sha256(
         format!(
-            "algorithm=bounded-exhaustive-anytime-v0.1\ncandidate_policy=lexicographic-dispatch-objective-v1\nmax_candidate_expansions={}\nmax_frontier={}\n",
+            "algorithm=bounded-exhaustive-anytime-v0.1\ncandidate_policy=lexicographic-dispatch-objective-v1\nmax_candidate_expansions={}\nmax_frontier={}\nservice_floor_policy_sha256={}\n",
             request.max_candidate_expansions,
-            sol_atlas_core::energy_dispatch::MAX_PARETO_FRONTIER
+            sol_atlas_core::energy_dispatch::MAX_PARETO_FRONTIER,
+            policy_hash
         )
         .as_bytes(),
     );
@@ -519,7 +520,7 @@ fn run_profile(
         &request_sha256[..16],
         std::process::id()
     );
-    let scenario_id = format!("scenario-{}", &sha256(request.case_id.as_bytes())[..24]);
+    let scenario_id = request.case_id.clone();
 
     let solver_started = Instant::now();
     let (anytime, exact_report, mut core_failure) =
