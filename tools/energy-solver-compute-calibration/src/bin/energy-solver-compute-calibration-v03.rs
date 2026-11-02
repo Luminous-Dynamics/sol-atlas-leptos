@@ -72,12 +72,12 @@ fn summarize(path: &Path) -> Result<String, String> {
     if bytes.len() > trace_support::MAX_TRACE_CSV_BYTES {
         return Err("v0.3 trace exceeded the declared byte limit while reading".to_owned());
     }
-    let input = String::from_utf8(bytes)
-        .map_err(|error| format!("v0.3 trace is not UTF-8: {error}"))?;
-    let traces = parse_trace_csv_v03(&input)
-        .map_err(|error| format!("parse v0.3 trace: {error}"))?;
-    let summaries = summarize_traces_v03(&traces)
-        .map_err(|error| format!("aggregate v0.3 trace: {error}"))?;
+    let input =
+        String::from_utf8(bytes).map_err(|error| format!("v0.3 trace is not UTF-8: {error}"))?;
+    let traces =
+        parse_trace_csv_v03(&input).map_err(|error| format!("parse v0.3 trace: {error}"))?;
+    let summaries =
+        summarize_traces_v03(&traces).map_err(|error| format!("aggregate v0.3 trace: {error}"))?;
 
     let mut output = String::new();
     output.push_str(SUMMARY_HEADER);
@@ -124,9 +124,10 @@ fn summarize(path: &Path) -> Result<String, String> {
             optional(row.decision_ready_latency_p50_ns),
             optional(row.decision_ready_latency_p95_ns),
         ];
-        if fields.iter().any(|value| {
-            value.contains(',') || value.contains('\n') || value.contains('\r')
-        }) {
+        if fields
+            .iter()
+            .any(|value| value.contains(',') || value.contains('\n') || value.contains('\r'))
+        {
             return Err("v0.3 summary contains an invalid CSV identifier".to_owned());
         }
         output.push_str(&fields.join(","));
