@@ -615,6 +615,12 @@ pub struct TraceSummaryV03 {
     pub total_prefix_visits: Option<u64>,
     pub audit_accepted_per_million_prefix_visits: Option<u64>,
     pub decision_ready_per_million_prefix_visits: Option<u64>,
+    pub service_floor_sample_count: usize,
+    pub service_floor_elapsed_p50_ns: Option<u64>,
+    pub service_floor_elapsed_p95_ns: Option<u64>,
+    pub decision_ready_latency_sample_count: usize,
+    pub decision_ready_latency_p50_ns: Option<u64>,
+    pub decision_ready_latency_p95_ns: Option<u64>,
 }
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -701,9 +707,17 @@ pub fn summarize_traces_v03(records: &[SolverTraceV03]) -> Result<Vec<TraceSumma
             total_prefix_visits: None,
             audit_accepted_per_million_prefix_visits: None,
             decision_ready_per_million_prefix_visits: None,
+            service_floor_sample_count: 0,
+            service_floor_elapsed_p50_ns: None,
+            service_floor_elapsed_p95_ns: None,
+            decision_ready_latency_sample_count: 0,
+            decision_ready_latency_p50_ns: None,
+            decision_ready_latency_p95_ns: None,
         };
         let mut first_candidates = Vec::new();
         let mut first_audits = Vec::new();
+        let mut service_floor_elapsed = Vec::new();
+        let mut decision_ready_elapsed = Vec::new();
         let mut prefix_visits = 0u64;
         let mut all_have_prefix_visits = true;
         for row in &rows {
@@ -749,6 +763,10 @@ pub fn summarize_traces_v03(records: &[SolverTraceV03]) -> Result<Vec<TraceSumma
             }
             if row.decision_ready() {
                 summary.decision_ready_count += 1;
+                decision_ready_elapsed.push(row.elapsed_ns);
+            }
+            if let Some(value) = row.service_floor_elapsed_ns {
+                service_floor_elapsed.push(value);
             }
             if let Some(value) = row.time_to_first_candidate_ns {
                 first_candidates.push(value);
@@ -763,6 +781,30 @@ pub fn summarize_traces_v03(records: &[SolverTraceV03]) -> Result<Vec<TraceSumma
         }
         first_candidates.sort_unstable();
         first_audits.sort_unstable();
+        service_floor_elapsed.sort_unstable();
+        decision_ready_elapsed.sort_unstable();
+        summary.service_floor_sample_count = service_floor_elapsed.len();
+        summary.service_floor_elapsed_p50_ns = if service_floor_elapsed.len() >= P50_MIN_SAMPLES {
+            nearest_rank_v03(&service_floor_elapsed, 50)
+        } else {
+            None
+        };
+        summary.service_floor_elapsed_p95_ns = if service_floor_elapsed.len() >= P95_MIN_SAMPLES {
+            nearest_rank_v03(&service_floor_elapsed, 95)
+        } else {
+            None
+        };
+        summary.decision_ready_latency_sample_count = decision_ready_elapsed.len();
+        summary.decision_ready_latency_p50_ns = if decision_ready_elapsed.len() >= P50_MIN_SAMPLES {
+            nearest_rank_v03(&decision_ready_elapsed, 50)
+        } else {
+            None
+        };
+        summary.decision_ready_latency_p95_ns = if decision_ready_elapsed.len() >= P95_MIN_SAMPLES {
+            nearest_rank_v03(&decision_ready_elapsed, 95)
+        } else {
+            None
+        };
         summary.first_candidate_sample_count = first_candidates.len();
         summary.first_audit_accept_sample_count = first_audits.len();
         summary.first_candidate_p50_ns = nearest_rank_v03(&first_candidates, 50);
