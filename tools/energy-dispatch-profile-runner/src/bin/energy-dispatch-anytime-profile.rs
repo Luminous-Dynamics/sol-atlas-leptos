@@ -220,7 +220,7 @@ struct AnytimeProfileReport {
     elapsed_ns: u64,
     trace_csv_header: &'static str,
     trace_csv_row: String,
-    anytime_assessment: EnergyDispatchAnytimeAssessment,
+    anytime_assessment: Option<EnergyDispatchAnytimeAssessment>,
     selected_schedule: Option<DispatchScheduleForAudit>,
     schedule_audit_receipt: Option<Value>,
     service_floor_receipt: Option<Value>,
@@ -504,11 +504,19 @@ fn run_profile(
     let scenario_id = format!("scenario-{}", &sha256(request.case_id.as_bytes())[..24]);
 
     let invocation_started = Instant::now();
-    let execution = assess_energy_dispatch_execution(&request)
-        .map_err(|error| format!("anytime dispatch execution error: {error:?}"))?;
-    let anytime = execution.anytime;
+    let (anytime, exact_report, mut core_failure) =
+        match assess_energy_dispatch_execution(&request) {
+            Ok(execution) => (Some(execution.anytime), execution.exact, None),
+            Err(error) => (
+                None,
+                None,
+                Some(format!("anytime dispatch execution error: {error:?}")),
+            ),
+        };
 
-    let candidate = anytime.candidate.as_ref();
+    let candidate = anytime
+        .as_ref()
+        .and_then(|assessment| assessment.candidate.as_ref());
     let schedule = candidate.map(|value| schedule_from_candidate(&request, &request_sha256, value));
     let schedule_bytes = schedule
         .as_ref()
@@ -538,7 +546,7 @@ fn run_profile(
     let mut service_floor_binary_sha = None;
     let mut service_floor_receipt_value = None;
     let mut service_floor_elapsed_ns = None;
-    let mut failure = None;
+    let mut failure = core_failure.take();
 
     // The exact source bytes are supplied through an immutable file path. Write
     // them beside the report so both independent processes consume those bytes.
@@ -784,25 +792,54 @@ fn run_profile(
 
     let elapsed_ns = u64::try_from(invocation_started.elapsed().as_nanos())
         .map_err(|_| "profile elapsed nanoseconds overflow".to_owned())?;
-    let stop_reason_and_status = match anytime.disposition {
-        EnergyDispatchAnytimeDisposition::ExactComplete => (
-            SearchDispositionV03::ExactComplete,
-            true,
-            execution.exact.as_ref().map(|report| report.pareto_frontier_count as u32),
-        ),
-        EnergyDispatchAnytimeDisposition::FeasibleUnproven => {
-            (SearchDispositionV03::FeasibleUnproven, false, None)
-        }
-        EnergyDispatchAnytimeDisposition::ProvenInfeasible => {
-            (SearchDispositionV03::ProvenInfeasible, true, Some(0))
-        }
-        EnergyDispatchAnytimeDisposition::LimitWithoutCandidate => {
-            (SearchDispositionV03::LimitWithoutCandidate, false, None)
-        }
-    };
-    let search_disposition = stop_reason_and_status.0;
-    let pareto_frontier_complete = stop_reason_and_status.1;
-    let pareto_frontier_count = stop_reason_and_status.2;
+    let (search_disposition, pareto_frontier_complete, pareto_frontier_count,
+        enumeration_prefix_visits, feasible_complete_schedules, time_to_first_candidate_ns) =
+        match anytime.as_ref() {
+            Some(assessment) => match assessment.disposition {
+                EnergyDispatchAnytimeDisposition::ExactComplete => (
+                    SearchDispositionV03::ExactComplete,
+                    true,
+                    exact_report
+                        .as_ref()
+                        .map(|report| report.pareto_frontier_count as u32),
+                    Some(assessment.enumeration_prefix_visits),
+                    Some(assessment.feasible_complete_schedules),
+                    assessment.time_to_first_complete_candidate_ns,
+                ),
+                EnergyDispatchAnytimeDisposition::FeasibleUnproven => (
+                    SearchDispositionV03::FeasibleUnproven,
+                    false,
+                    None,
+                    Some(assessment.enumeration_prefix_visits),
+                    Some(assessment.feasible_complete_schedules),
+                    assessment.time_to_first_complete_candidate_ns,
+                ),
+                EnergyDispatchAnytimeDisposition::ProvenInfeasible => (
+                    SearchDispositionV03::ProvenInfeasible,
+                    true,
+                    Some(0),
+                    Some(assessment.enumeration_prefix_visits),
+                    Some(assessment.feasible_complete_schedules),
+                    None,
+                ),
+                EnergyDispatchAnytimeDisposition::LimitWithoutCandidate => (
+                    SearchDispositionV03::LimitWithoutCandidate,
+                    false,
+                    None,
+                    Some(assessment.enumeration_prefix_visits),
+                    Some(assessment.feasible_complete_schedules),
+                    None,
+                ),
+            },
+            None => (
+                SearchDispositionV03::Error,
+                false,
+                None,
+                None,
+                None,
+                None,
+            ),
+        };
     let policy_hash_for_trace = match service_floor_disposition {
         ServiceFloorDispositionV03::NotEvaluated => None,
         ServiceFloorDispositionV03::Passed
@@ -834,12 +871,12 @@ fn run_profile(
         interval_count,
         search_disposition,
         elapsed_ns,
-        time_to_first_candidate_ns: anytime.time_to_first_complete_candidate_ns,
+        time_to_first_candidate_ns,
         time_to_first_audit_accept_ns,
         peak_memory_bytes: None,
         timeout_limit_ns: None,
-        enumeration_prefix_visits: Some(anytime.enumeration_prefix_visits),
-        feasible_complete_schedules: Some(anytime.feasible_complete_schedules),
+        enumeration_prefix_visits,
+        feasible_complete_schedules,
         pareto_frontier_complete,
         pareto_frontier_count,
         candidate_complete_horizon: schedule.is_some(),
