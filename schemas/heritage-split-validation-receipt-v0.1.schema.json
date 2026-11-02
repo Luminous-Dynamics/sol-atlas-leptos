@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-split-validation-receipt-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Split Validation Receipt",
+  "description": "A deterministic receipt of site-partition or declared external spatial-block split checks. It distinguishes direct site-ID checks from spatial distances supplied by an external geospatial audit; the Rust core does not recompute geometries.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "split_id",
+    "protocol",
+    "scope",
+    "train_site_count",
+    "validation_site_count",
+    "test_site_count",
+    "spatial_block_count",
+    "geometry_distances_recomputed_by_core",
+    "manifest_sha256",
+    "receipt_sha256",
+    "sample_count"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-split-validation-receipt.v0.1"
+    },
+    "split_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "protocol": {
+      "enum": [
+        "within_site_spatial_block",
+        "held_out_site",
+        "held_out_region",
+        "leave_one_biome_out",
+        "leave_one_sensor_out",
+        "temporal_holdout",
+        "external_blind"
+      ]
+    },
+    "scope": {
+      "enum": [
+        "site_id_disjointness",
+        "declared_external_spatial_block_audit"
+      ]
+    },
+    "train_site_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "validation_site_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "test_site_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "spatial_block_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "estimated_spatial_dependence_m": {
+      "type": "number",
+      "minimum": 0
+    },
+    "declared_spatial_buffer_m": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "minimum_declared_cross_partition_distance_m": {
+      "type": "number",
+      "minimum": 0
+    },
+    "spatial_distance_audit_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "geometry_distances_recomputed_by_core": {
+      "const": false
+    },
+    "manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "receipt_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "sample_count": {
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}

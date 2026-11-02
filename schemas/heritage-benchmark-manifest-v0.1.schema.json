@@ -67,7 +67,8 @@
           "split_id",
           "train_site_ids",
           "validation_site_ids",
-          "test_site_ids"
+          "test_site_ids",
+          "protocol"
         ],
         "properties": {
           "split_id": {
@@ -97,7 +98,7 @@
           },
           "spatial_buffer_m": {
             "type": "number",
-            "minimum": 0
+            "exclusiveMinimum": 0
           },
           "estimated_spatial_dependence_m": {
             "type": "number",
@@ -119,8 +120,246 @@
           "split_manifest_digest": {
             "type": "string",
             "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "spatial_block_assignments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "site_id",
+                "block_id",
+                "partition",
+                "nearest_other_partition_distance_m"
+              ],
+              "properties": {
+                "site_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "block_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "partition": {
+                  "enum": [
+                    "train",
+                    "validation",
+                    "test"
+                  ]
+                },
+                "nearest_other_partition_distance_m": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "spatial_distance_audit_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "protocol": {
+            "enum": [
+              "within_site_spatial_block",
+              "held_out_site",
+              "held_out_region",
+              "leave_one_biome_out",
+              "leave_one_sensor_out",
+              "temporal_holdout",
+              "external_blind"
+            ]
+          },
+          "sample_assignments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "sample_id",
+                "site_id",
+                "partition"
+              ],
+              "properties": {
+                "sample_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "site_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "partition": {
+                  "enum": [
+                    "train",
+                    "validation",
+                    "test"
+                  ]
+                },
+                "region_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "biome_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sensor_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "acquisition_start_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "acquisition_end_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "external_blind_evaluation_ref": {
+            "type": "string",
+            "minLength": 1
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "protocol": {
+                  "const": "within_site_spatial_block"
+                }
+              },
+              "required": [
+                "protocol"
+              ]
+            },
+            "then": {
+              "required": [
+                "spatial_block_assignments",
+                "spatial_distance_audit_ref",
+                "estimated_spatial_dependence_m",
+                "spatial_buffer_m"
+              ],
+              "properties": {
+                "spatial_block_assignments": {
+                  "minItems": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "protocol": {
+                  "const": "held_out_region"
+                }
+              },
+              "required": [
+                "protocol"
+              ]
+            },
+            "then": {
+              "required": [
+                "held_out_region_id",
+                "sample_assignments"
+              ],
+              "properties": {
+                "sample_assignments": {
+                  "minItems": 3
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "protocol": {
+                  "const": "leave_one_biome_out"
+                }
+              },
+              "required": [
+                "protocol"
+              ]
+            },
+            "then": {
+              "required": [
+                "held_out_biome_id",
+                "sample_assignments"
+              ],
+              "properties": {
+                "sample_assignments": {
+                  "minItems": 3
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "protocol": {
+                  "const": "leave_one_sensor_out"
+                }
+              },
+              "required": [
+                "protocol"
+              ]
+            },
+            "then": {
+              "required": [
+                "held_out_sensor_id",
+                "sample_assignments"
+              ],
+              "properties": {
+                "sample_assignments": {
+                  "minItems": 3
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "protocol": {
+                  "const": "temporal_holdout"
+                }
+              },
+              "required": [
+                "protocol"
+              ]
+            },
+            "then": {
+              "required": [
+                "temporal_cutoff_at",
+                "sample_assignments"
+              ],
+              "properties": {
+                "sample_assignments": {
+                  "minItems": 3
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "protocol": {
+                  "const": "external_blind"
+                }
+              },
+              "required": [
+                "protocol"
+              ]
+            },
+            "then": {
+              "required": [
+                "external_blind_evaluation_ref"
+              ]
+            }
+          }
+        ]
       }
     },
     "evaluation": {

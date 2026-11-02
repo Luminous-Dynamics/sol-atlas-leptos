@@ -380,3 +380,52 @@ Start with a **two-stage reproducibility challenge**, not a global model trainin
 - For every transfer, report the false-candidate burden, abstention, calibration and per-site results.
 
 The initial release can reproduce public benchmarks without claiming global coverage. The global benchmark only becomes credible after independently governed site packs from multiple geographic/cultural regions and environmental settings are available.
+
+
+## 15. Executable survey-planning and split-guard contract (2026-11-02)
+
+The first Rust research implementation adds two core capabilities:
+
+### Explicit expected-information-gain planner
+
+Given a prior distribution over competing explanations H and a proposed observation action A, the planner computes:
+
+\[
+\mathrm{EIG}(A)=\mathcal{H}(H)-\sum_o P(o\mid A)\mathcal{H}(H\mid o,A)
+\]
+
+- It accepts explicit hypothesis priors and action-specific outcome likelihoods.
+- It requires probabilities to be finite, complete, and normalized within a declared tolerance.
+- It rejects missing or extra hypothesis keys, duplicate IDs, invalid probabilities, and empty likelihood provenance.
+- It reports EIG in nats, expected posterior entropy, cost, and EIG/cost as separate fields. It does not hide trade-offs inside an arbitrary weighted score.
+- It rejects actions where data rights, required land access, method permit, or custodial review are not confirmed, and where cost or declared impact exceed the caller's constraints.
+- It deterministically ranks eligible actions and retains ineligible actions with the first rejection reason.
+
+The model does not fabricate priors, costs, likelihoods, permits, or field permissions. It consumes probability models and declarations supplied by a research team. EIG is a decision-support measure, not an archaeological truth score.
+
+### Benchmark split guard
+
+The core validator distinguishes two different evaluation designs:
+
+- **Held-out site/region/sensor/time:** train, validation and test site IDs must be unique and disjoint.
+- **Within-site spatial blocks:** the same site may contribute spatially separated blocks to multiple partitions, but every block must have a stable ID and an externally computed nearest cross-partition separation. The declared buffer must meet or exceed the estimated spatial-dependence distance.
+
+For spatial-block runs, the receipt records the external geometry-audit reference and explicitly states geometry_distances_recomputed_by_core = false. This is intentional: the Rust core checks declared audit evidence and threshold consistency; a pinned geospatial adapter must compute and preserve the actual geometry-distance results. Site-ID disjointness alone cannot prove the absence of duplicate imagery, overlapping campaigns, or derived-tile leakage.
+
+These are executable contract and negative-control tests over synthetic data. They are not benchmark scores or evidence that a real-world survey has improved discovery yield.
+
+
+## 16. Expanded split contracts: region, biome, sensor, time and blind holdout
+
+The executable split contract now distinguishes:
+
+- **Held-out region:** sample-level assignments carry region IDs; all test samples must belong to the declared held-out region; train/validation samples must not; a site may not cross partitions.
+- **Leave-one-biome-out:** same rule for a declared biome.
+- **Leave-one-sensor-out:** sample assignments carry sensor IDs; all test samples must belong to the held-out sensor, while train/validation samples must not. This protocol may intentionally compare sensors at sites that occur in more than one partition; that design must be explicit in the preregistration and should not be mistaken for geographic generalization.
+- **Temporal holdout:** acquisition intervals in train/validation must end on or before the cutoff; test intervals must start strictly after it. The same site may appear before and after the cutoff by design.
+- **External blind:** a separately controlled evaluation reference is mandatory, in addition to site-disjoint train/validation/test IDs.
+- **Within-site spatial blocks:** block assignments and an external CRS-aware distance audit remain mandatory, with the buffer at least as large as the estimated spatial-dependence range.
+
+The validator does not compute geometry or confirm the authenticity of an external blind custodian. It checks supplied declarations, exact sample/site IDs, timestamps, groups and digest inputs. The split-validation receipt records its scope.
+
+This reduces obvious site/region/time leakage. It does not prove that duplicated imagery, near-duplicate raster chips, overlapping survey campaigns, derivatives, labels copied between catalogues, or leaked model pretraining data are absent. Those require a separate asset-level and lineage audit before any blind evaluation is trusted.
