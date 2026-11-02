@@ -108,6 +108,12 @@ jobs:
             $report.accepted_channel_state.availability_report_sha256 == $want.availability_report_sha256 and
             $report.accepted_channel_state.last_sequence == $want.checkpoint_sequence and
             $report.accepted_channel_state.ledger_epoch == $want.ledger_epoch and
+            $report.state_transition.expected_previous_state_revision == $want.state_transition.expected_previous_state_revision and
+            $report.state_transition.next_state_revision == $want.state_transition.next_state_revision and
+            $report.state_transition.commit_semantics == $want.state_transition.commit_semantics and
+            $report.state_transition.next_state.state_revision == $want.state_transition.next_state_revision and
+            $report.state_transition.next_state.last_sequence == $want.state_transition.next_sequence and
+            ($report.state_transition.next_state.target_roles | length) == $want.state_transition.next_target_role_count and
             $report.action_authority == "none" and
             $report.claim_ceiling == "tuf_freshness_and_anti_rollback_only"
           ' "$report"
@@ -162,7 +168,7 @@ jobs:
             status=$?
             set -e
             test "$status" -eq 3
-            jq -e '.status == "unknown" and .action_authority == "none"' "$report"
+            jq -e '.status == "unknown" and .state_transition == null and .action_authority == "none"' "$report"
           done
 
       - name: Retain exact audit report and input digests
