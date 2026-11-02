@@ -1067,187 +1067,187 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
     if let Some(risk) = profile.get("risk_assessment")
         && object(risk, "/risk_assessment", &mut out).is_some()
     {
-            let class = string(risk, "reviewed_class", "/risk_assessment", &mut out).unwrap_or("");
-            if !["low", "moderate", "high", "critical", "unassessed"].contains(&class) {
-                issue(
-                    &mut out,
-                    "INVALID_RISK_CLASS",
-                    "/risk_assessment/reviewed_class",
-                    "Unsupported reviewed risk class.",
-                );
-            }
-            for key in [
-                "rationale",
-                "reviewer_id",
-                "reviewed_at",
-                "rule_set_version",
-            ] {
-                let _ = string(risk, key, "/risk_assessment", &mut out);
-            }
-            if let Some(reviewed_at) = risk.get("reviewed_at").and_then(Value::as_str) {
-                validate_canonical_timestamp(reviewed_at, "/risk_assessment/reviewed_at", &mut out);
-            }
-            let mut risk_dims = BTreeMap::new();
-            if let Some(dims) = risk.get("dimensions") {
-                if object(dims, "/risk_assessment/dimensions", &mut out).is_some() {
-                    for key in [
+        let class = string(risk, "reviewed_class", "/risk_assessment", &mut out).unwrap_or("");
+        if !["low", "moderate", "high", "critical", "unassessed"].contains(&class) {
+            issue(
+                &mut out,
+                "INVALID_RISK_CLASS",
+                "/risk_assessment/reviewed_class",
+                "Unsupported reviewed risk class.",
+            );
+        }
+        for key in [
+            "rationale",
+            "reviewer_id",
+            "reviewed_at",
+            "rule_set_version",
+        ] {
+            let _ = string(risk, key, "/risk_assessment", &mut out);
+        }
+        if let Some(reviewed_at) = risk.get("reviewed_at").and_then(Value::as_str) {
+            validate_canonical_timestamp(reviewed_at, "/risk_assessment/reviewed_at", &mut out);
+        }
+        let mut risk_dims = BTreeMap::new();
+        if let Some(dims) = risk.get("dimensions") {
+            if object(dims, "/risk_assessment/dimensions", &mut out).is_some() {
+                for key in [
+                    "consequence",
+                    "model_influence",
+                    "exposure",
+                    "reversibility",
+                    "detectability",
+                    "fallback",
+                ] {
+                    let value = string(dims, key, "/risk_assessment/dimensions", &mut out)
+                        .unwrap_or("");
+                    risk_dims.insert(key, value);
+                }
+                let enums: [(&str, &[&str]); 6] = [
+                    (
                         "consequence",
+                        &[
+                            "negligible",
+                            "minor",
+                            "major",
+                            "severe",
+                            "catastrophic",
+                            "unknown",
+                        ],
+                    ),
+                    (
                         "model_influence",
+                        &[
+                            "informational",
+                            "advisory",
+                            "constraint_gating",
+                            "selection",
+                            "direct_actuation",
+                            "unknown",
+                        ],
+                    ),
+                    (
                         "exposure",
+                        &[
+                            "single_asset",
+                            "site_or_facility",
+                            "multi_site",
+                            "regional",
+                            "national_or_larger",
+                            "unknown",
+                        ],
+                    ),
+                    (
                         "reversibility",
+                        &[
+                            "readily_reversible",
+                            "costly_or_delayed",
+                            "difficult_or_irreversible",
+                            "unknown",
+                        ],
+                    ),
+                    (
                         "detectability",
+                        &[
+                            "immediate_and_reliable",
+                            "delayed_or_partial",
+                            "poor",
+                            "unknown",
+                        ],
+                    ),
+                    (
                         "fallback",
-                    ] {
-                        let value = string(dims, key, "/risk_assessment/dimensions", &mut out)
-                            .unwrap_or("");
-                        risk_dims.insert(key, value);
-                    }
-                    let enums: [(&str, &[&str]); 6] = [
-                        (
-                            "consequence",
-                            &[
-                                "negligible",
-                                "minor",
-                                "major",
-                                "severe",
-                                "catastrophic",
-                                "unknown",
-                            ],
-                        ),
-                        (
-                            "model_influence",
-                            &[
-                                "informational",
-                                "advisory",
-                                "constraint_gating",
-                                "selection",
-                                "direct_actuation",
-                                "unknown",
-                            ],
-                        ),
-                        (
-                            "exposure",
-                            &[
-                                "single_asset",
-                                "site_or_facility",
-                                "multi_site",
-                                "regional",
-                                "national_or_larger",
-                                "unknown",
-                            ],
-                        ),
-                        (
-                            "reversibility",
-                            &[
-                                "readily_reversible",
-                                "costly_or_delayed",
-                                "difficult_or_irreversible",
-                                "unknown",
-                            ],
-                        ),
-                        (
-                            "detectability",
-                            &[
-                                "immediate_and_reliable",
-                                "delayed_or_partial",
-                                "poor",
-                                "unknown",
-                            ],
-                        ),
-                        (
-                            "fallback",
-                            &[
-                                "independent_tested_fallback",
-                                "human_fallback",
-                                "degraded_fallback",
-                                "no_verified_fallback",
-                                "unknown",
-                            ],
-                        ),
-                    ];
-                    for (key, allowed) in enums {
-                        if let Some(value) = risk_dims.get(key)
-                            && !allowed.contains(value)
-                        {
-                            issue(
-                                &mut out,
-                                "INVALID_RISK_DIMENSION",
-                                format!("/risk_assessment/dimensions/{key}"),
-                                "Unrecognized risk dimension value.",
-                            );
-                        }
+                        &[
+                            "independent_tested_fallback",
+                            "human_fallback",
+                            "degraded_fallback",
+                            "no_verified_fallback",
+                            "unknown",
+                        ],
+                    ),
+                ];
+                for (key, allowed) in enums {
+                    if let Some(value) = risk_dims.get(key)
+                        && !allowed.contains(value)
+                    {
+                        issue(
+                            &mut out,
+                            "INVALID_RISK_DIMENSION",
+                            format!("/risk_assessment/dimensions/{key}"),
+                            "Unrecognized risk dimension value.",
+                        );
                     }
                 }
-            } else {
+            }
+        } else {
+            issue(
+                &mut out,
+                "MISSING_RISK_DIMENSIONS",
+                "/risk_assessment/dimensions",
+                "Risk dimensions are required.",
+            );
+        }
+        if disposition == "qualified_for_profile" {
+            if class == "unassessed" {
                 issue(
                     &mut out,
-                    "MISSING_RISK_DIMENSIONS",
-                    "/risk_assessment/dimensions",
-                    "Risk dimensions are required.",
+                    "QUALIFIED_WITH_UNASSESSED_RISK",
+                    "/risk_assessment/reviewed_class",
+                    "A qualified profile requires a reviewed risk class.",
                 );
             }
-            if disposition == "qualified_for_profile" {
-                if class == "unassessed" {
-                    issue(
-                        &mut out,
-                        "QUALIFIED_WITH_UNASSESSED_RISK",
-                        "/risk_assessment/reviewed_class",
-                        "A qualified profile requires a reviewed risk class.",
-                    );
-                }
-                if risk_dims.values().any(|value| *value == "unknown") {
-                    issue(
-                        &mut out,
-                        "QUALIFIED_WITH_UNKNOWN_RISK",
-                        "/risk_assessment/dimensions",
-                        "A qualified profile cannot retain unknown risk dimensions.",
-                    );
-                }
-                match tier {
-                    "D2_delegated_planning" => {
-                        if !["constraint_gating", "selection"]
-                            .contains(&risk_dims.get("model_influence").copied().unwrap_or(""))
-                        {
-                            issue(
-                                &mut out,
-                                "D2_RISK_INFLUENCE_MISMATCH",
-                                "/risk_assessment/dimensions/model_influence",
-                                "D2 requires a reviewed constraint-gating or selection influence.",
-                            );
-                        }
-                        if !["independent_tested_fallback", "human_fallback"]
-                            .contains(&risk_dims.get("fallback").copied().unwrap_or(""))
-                        {
-                            issue(
-                                &mut out,
-                                "D2_FALLBACK_INSUFFICIENT",
-                                "/risk_assessment/dimensions/fallback",
-                                "D2 requires a human or independently tested fallback.",
-                            );
-                        }
-                    }
-                    "D3_autonomous_control" => {
-                        if risk_dims.get("model_influence").copied() != Some("direct_actuation") {
-                            issue(
-                                &mut out,
-                                "D3_RISK_INFLUENCE_MISMATCH",
-                                "/risk_assessment/dimensions/model_influence",
-                                "D3 requires direct_actuation to be declared.",
-                            );
-                        }
-                        if risk_dims.get("fallback").copied() != Some("independent_tested_fallback")
-                        {
-                            issue(
-                                &mut out,
-                                "D3_FALLBACK_INSUFFICIENT",
-                                "/risk_assessment/dimensions/fallback",
-                                "D3 requires an independently tested fallback.",
-                            );
-                        }
-                    }
-                    _ => {}
-                }
+            if risk_dims.values().any(|value| *value == "unknown") {
+                issue(
+                    &mut out,
+                    "QUALIFIED_WITH_UNKNOWN_RISK",
+                    "/risk_assessment/dimensions",
+                    "A qualified profile cannot retain unknown risk dimensions.",
+                );
             }
+            match tier {
+                "D2_delegated_planning" => {
+                    if !["constraint_gating", "selection"]
+                        .contains(&risk_dims.get("model_influence").copied().unwrap_or(""))
+                    {
+                        issue(
+                            &mut out,
+                            "D2_RISK_INFLUENCE_MISMATCH",
+                            "/risk_assessment/dimensions/model_influence",
+                            "D2 requires a reviewed constraint-gating or selection influence.",
+                        );
+                    }
+                    if !["independent_tested_fallback", "human_fallback"]
+                        .contains(&risk_dims.get("fallback").copied().unwrap_or(""))
+                    {
+                        issue(
+                            &mut out,
+                            "D2_FALLBACK_INSUFFICIENT",
+                            "/risk_assessment/dimensions/fallback",
+                            "D2 requires a human or independently tested fallback.",
+                        );
+                    }
+                }
+                "D3_autonomous_control" => {
+                    if risk_dims.get("model_influence").copied() != Some("direct_actuation") {
+                        issue(
+                            &mut out,
+                            "D3_RISK_INFLUENCE_MISMATCH",
+                            "/risk_assessment/dimensions/model_influence",
+                            "D3 requires direct_actuation to be declared.",
+                        );
+                    }
+                    if risk_dims.get("fallback").copied() != Some("independent_tested_fallback")
+                    {
+                        issue(
+                            &mut out,
+                            "D3_FALLBACK_INSUFFICIENT",
+                            "/risk_assessment/dimensions/fallback",
+                            "D3 requires an independently tested fallback.",
+                        );
+                    }
+                }
+                _ => {}
+            }
+        }
     }
 
     let (artifact_ids, roles) = validate_artifacts(profile, &mut out);
@@ -1268,75 +1268,75 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
     if let Some(envelope) = profile.get("operating_envelope")
         && object(envelope, "/operating_envelope", &mut out).is_some()
     {
-            for key in ["envelope_id", "domain_description", "out_of_domain_policy"] {
-                let _ = string(envelope, key, "/operating_envelope", &mut out);
-            }
-            if let Some(conditions) = array(envelope, "conditions", "/operating_envelope", &mut out)
-            {
-                for (i, condition) in conditions.iter().enumerate() {
-                    let path = format!("/operating_envelope/conditions/{i}");
-                    if object(condition, &path, &mut out).is_some() {
-                        let minimum = condition.get("minimum").map(Value::as_f64);
-                        let maximum = condition.get("maximum").map(Value::as_f64);
-                        if condition.get("minimum").is_some() && minimum.flatten().is_none() {
-                            issue(
-                                &mut out,
-                                "INVALID_OPERATING_RANGE_BOUND",
-                                format!("{path}/minimum"),
-                                "minimum must be a finite JSON number.",
-                            );
-                        }
-                        if condition.get("maximum").is_some() && maximum.flatten().is_none() {
-                            issue(
-                                &mut out,
-                                "INVALID_OPERATING_RANGE_BOUND",
-                                format!("{path}/maximum"),
-                                "maximum must be a finite JSON number.",
-                            );
-                        }
-                        if let (Some(Some(min)), Some(Some(max))) = (minimum, maximum)
-                            && (!min.is_finite() || !max.is_finite() || min > max)
-                        {
-                            issue(
-                                &mut out,
-                                "REVERSED_OPERATING_RANGE",
-                                &path,
-                                "When both bounds are supplied, minimum must be finite and no greater than maximum.",
-                            );
-                        }
-                        for key in ["variable", "unit", "support", "evidence_state"] {
-                            let _ = string(condition, key, &path, &mut out);
-                        }
-                        if let Some(max_age) = condition.get("max_age_seconds")
-                            && max_age.as_u64().is_none()
-                        {
-                            issue(
-                                &mut out,
-                                "INVALID_MAX_AGE_SECONDS",
-                                format!("{path}/max_age_seconds"),
-                                "max_age_seconds must be a non-negative integer when present.",
-                            );
-                        }
-                        if let Some(source_ids) = condition
-                            .get("source_artifact_ids")
-                            .and_then(Value::as_array)
-                        {
-                            for (j, source) in source_ids.iter().enumerate() {
-                                if let Some(id) = source.as_str()
-                                    && !artifact_ids.contains_key(id)
-                                {
-                                    issue(
-                                        &mut out,
-                                        "DANGLING_ENVELOPE_ARTIFACT",
-                                        format!("{path}/source_artifact_ids/{j}"),
-                                        "Source artifact ID is not bound.",
-                                    );
-                                }
+        for key in ["envelope_id", "domain_description", "out_of_domain_policy"] {
+            let _ = string(envelope, key, "/operating_envelope", &mut out);
+        }
+        if let Some(conditions) = array(envelope, "conditions", "/operating_envelope", &mut out)
+        {
+            for (i, condition) in conditions.iter().enumerate() {
+                let path = format!("/operating_envelope/conditions/{i}");
+                if object(condition, &path, &mut out).is_some() {
+                    let minimum = condition.get("minimum").map(Value::as_f64);
+                    let maximum = condition.get("maximum").map(Value::as_f64);
+                    if condition.get("minimum").is_some() && minimum.flatten().is_none() {
+                        issue(
+                            &mut out,
+                            "INVALID_OPERATING_RANGE_BOUND",
+                            format!("{path}/minimum"),
+                            "minimum must be a finite JSON number.",
+                        );
+                    }
+                    if condition.get("maximum").is_some() && maximum.flatten().is_none() {
+                        issue(
+                            &mut out,
+                            "INVALID_OPERATING_RANGE_BOUND",
+                            format!("{path}/maximum"),
+                            "maximum must be a finite JSON number.",
+                        );
+                    }
+                    if let (Some(Some(min)), Some(Some(max))) = (minimum, maximum)
+                        && (!min.is_finite() || !max.is_finite() || min > max)
+                    {
+                        issue(
+                            &mut out,
+                            "REVERSED_OPERATING_RANGE",
+                            &path,
+                            "When both bounds are supplied, minimum must be finite and no greater than maximum.",
+                        );
+                    }
+                    for key in ["variable", "unit", "support", "evidence_state"] {
+                        let _ = string(condition, key, &path, &mut out);
+                    }
+                    if let Some(max_age) = condition.get("max_age_seconds")
+                        && max_age.as_u64().is_none()
+                    {
+                        issue(
+                            &mut out,
+                            "INVALID_MAX_AGE_SECONDS",
+                            format!("{path}/max_age_seconds"),
+                            "max_age_seconds must be a non-negative integer when present.",
+                        );
+                    }
+                    if let Some(source_ids) = condition
+                        .get("source_artifact_ids")
+                        .and_then(Value::as_array)
+                    {
+                        for (j, source) in source_ids.iter().enumerate() {
+                            if let Some(id) = source.as_str()
+                                && !artifact_ids.contains_key(id)
+                            {
+                                issue(
+                                    &mut out,
+                                    "DANGLING_ENVELOPE_ARTIFACT",
+                                    format!("{path}/source_artifact_ids/{j}"),
+                                    "Source artifact ID is not bound.",
+                                );
                             }
                         }
                     }
                 }
             }
+        }
     }
 
     out.sort_by(|a, b| (&a.path, &a.code, &a.message).cmp(&(&b.path, &b.code, &b.message)));
