@@ -408,7 +408,7 @@
     },
     "file_inventory": {
       "type": "array",
-      "minItems": 9,
+      "minItems": 6,
       "maxItems": 1024,
       "items": {
         "type": "object",
