@@ -4,7 +4,7 @@
 use std::path::Path;
 use std::process::ExitCode;
 
-mod trace_support {
+pub mod trace_support {
     #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
     pub enum MeasurementClass {
         Synthetic,
