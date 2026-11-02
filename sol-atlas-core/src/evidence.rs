@@ -27,11 +27,13 @@ pub enum EpistemicClass {
     ConfirmedDetection,
 }
 
-/// Missingness is data. These states must never be converted to numeric zero.
+/// Value availability is data. `Present` does not imply empirical
+/// measurement: the epistemic class distinguishes observed values from model
+/// outputs, assumptions and hypotheses. Missing states must never become 0.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Missingness {
-    Measured,
+    Present,
     NotObserved,
     Unknown,
     NotApplicable,
@@ -231,7 +233,7 @@ impl EvidenceMetadata {
         }
 
         match self.missingness {
-            Missingness::Measured => {
+            Missingness::Present => {
                 let measurement = self.measurement.as_ref()
                     .ok_or(EvidenceError::MeasuredValueMissing)?;
                 measurement.validate()?;
@@ -245,7 +247,7 @@ impl EvidenceMetadata {
         match self.epistemic_class {
             EpistemicClass::ObservedMeasurement => {
                 self.require_source()?;
-                if self.missingness != Missingness::Measured {
+                if self.missingness != Missingness::Present {
                     return Err(EvidenceError::ObservedMeasurementNotMeasured);
                 }
             }
@@ -337,7 +339,7 @@ impl fmt::Display for EvidenceError {
             Self::MissingReference(field) => write!(f, "{field} is required for this epistemic class"),
             Self::MeasuredValueMissing => write!(f, "measured records require a measurement"),
             Self::ValuePresentForMissingRecord => write!(f, "non-measured records must not contain a numeric measurement"),
-            Self::ObservedMeasurementNotMeasured => write!(f, "observed_measurement requires measured missingness state"),
+            Self::ObservedMeasurementNotMeasured => write!(f, "observed_measurement requires a present value"),
             Self::ModelInferenceWithoutLineage => write!(f, "model inference requires a source or derivation reference"),
             Self::ConfirmedDetectionWithoutVerifier => write!(f, "confirmed detection requires an independent verifier receipt"),
             Self::ConfirmedDetectionNotIndependentlyVerified => write!(f, "confirmed detection requires independently_verified status"),
@@ -395,7 +397,7 @@ mod tests {
         EvidenceMetadata {
             record_id: "site-001-capacity".into(),
             epistemic_class: EpistemicClass::ObservedMeasurement,
-            missingness: Missingness::Measured,
+            missingness: Missingness::Present,
             temporal: temporal(),
             spatial: SpatialScope::Point {
                 latitude: -26.2,
@@ -462,6 +464,15 @@ mod tests {
         assert_eq!(record.validate(), Err(EvidenceError::MissingReference("scenario_ref")));
 
         record.scenario_ref = Some("water-shock-scenario-v1".into());
+        assert!(record.validate().is_ok());
+    }
+
+    #[test]
+    fn scenario_numeric_value_is_present_but_not_misclassified_as_observed() {
+        let mut record = measured_record();
+        record.epistemic_class = EpistemicClass::ScenarioAssumption;
+        record.scenario_ref = Some("drought-response-v1".into());
+        record.missingness = Missingness::Present;
         assert!(record.validate().is_ok());
     }
 
