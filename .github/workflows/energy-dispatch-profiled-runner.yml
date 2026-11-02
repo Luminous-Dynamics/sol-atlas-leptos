@@ -458,7 +458,6 @@ jobs:
             tools/energy-dispatch-schedule-auditor/src/
             tools/energy-dispatch-schedule-auditor/schedule-schema-v0.1.json
             tools/energy-dispatch-schedule-auditor/nonanticipativity-manifest-schema-v0.2.json
-            tools/energy-dispatch-schedule-auditor/forecast-bundle-schema-v0.1.json
             tools/energy-dispatch-schedule-auditor/nonanticipativity-manifest-schema-v0.3.json
             tools/energy-dispatch-schedule-auditor/observation-bundle-schema-v0.1.json
             tools/energy-dispatch-schedule-auditor/forecast-bundle-schema-v0.1.json
