@@ -697,11 +697,11 @@ mod tests {
             reason,
             SurveyRejectionReason::SourceRightsDenied(RightsDenial::RightsNotVerified(_))
         ))));
-        assert!(plan.rejected_actions.iter().any(|r| r.reasons.contains(&SurveyRejectionReason::LandAccessNotConfirmed));
-        assert!(plan.rejected_actions.iter().any(|r| r.reasons.contains(&SurveyRejectionReason::PermitNotConfirmed));
-        assert!(plan.rejected_actions.iter().any(|r| r.reasons.contains(&SurveyRejectionReason::CustodialReviewIncomplete));
-        assert!(plan.rejected_actions.iter().any(|r| r.reasons.contains(&SurveyRejectionReason::CostBudgetExceeded));
-        assert!(plan.rejected_actions.iter().any(|r| r.reasons.contains(&SurveyRejectionReason::ImpactCeilingExceeded));
+        assert!(plan.rejected_actions.iter().any(|r| r.reasons.contains(&SurveyRejectionReason::LandAccessNotConfirmed)));
+        assert!(plan.rejected_actions.iter().any(|r| r.reasons.contains(&SurveyRejectionReason::PermitNotConfirmed)));
+        assert!(plan.rejected_actions.iter().any(|r| r.reasons.contains(&SurveyRejectionReason::CustodialReviewIncomplete)));
+        assert!(plan.rejected_actions.iter().any(|r| r.reasons.contains(&SurveyRejectionReason::CostBudgetExceeded)));
+        assert!(plan.rejected_actions.iter().any(|r| r.reasons.contains(&SurveyRejectionReason::ImpactCeilingExceeded)));
     }
 
     #[test]
