@@ -27,7 +27,7 @@ Each observation binds:
 - VDS type and log ID;
 - receipt-keyset and registration-policy/configuration digests;
 - tree size, root hash, signed-head timestamp and exact signed-head byte digest;
-- optional earlier tree size/root and exact consistency-proof digest;
+- optional earlier tree size/root, the exact prior signed-head byte digest, and the exact consistency-proof digest;
 - observer identity, observer operator domain, build digest and observation method;
 - digests of statements observed in the relevant service view.
 
@@ -49,7 +49,8 @@ For observations with the same tree size:
 - unsigned or unverified roots are only conflicting claims, not proven TS equivocation.
 
 For different tree sizes:
-- verify the RFC 9942 VDS consistency proof from the old checkpoint to the new checkpoint;
+- verify the exact prior signed-head artifact identified by `consistency_from.signed_bytes_sha256`, then verify the RFC 9942 VDS consistency proof from that old checkpoint to the new checkpoint;
+- do not reconstruct the prior checkpoint from only its tree size and root; the exact prior signed-head bytes must remain available for offline replay;
 - a missing, invalid or unsupported consistency proof is unknown or invalid according to the verifier result, never pass;
 - an older head must not be silently discarded because a newer timestamp was observed.
 
