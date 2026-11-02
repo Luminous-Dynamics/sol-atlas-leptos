@@ -456,7 +456,7 @@ Reference metadata belongs in a frozen benchmark manifest alongside exact input 
 
 **Input:** a locked event/candidate set; complete multi-label cause taxonomy; per-cause calibrated probabilities; typed support and contradiction records; source digests, acquisition/independence groups, modalities, evidence tiers, event scope, rights receipts, reviewer/authority references and detectability assessments for non-detections.
 
-**Outputs:** per-cause calibration and classification metrics, unsupported asserted-cause rate, independent support/contradiction counts, contested-hypothesis counts, counter-evidence retention, repeated-source double-count robustness, and abstention risk/coverage.
+**Outputs:** per-cause calibration and classification metrics, unsupported asserted-cause rate, independent support/contradiction counts, cross-polarity source/group conflict counts, contested-hypothesis counts, counter-evidence retention, repeated-source double-count robustness, and abstention risk/coverage.
 
 **Required safeguards:**
 - Cause attribution is separate from change detection, event-time localization and heritage significance.
