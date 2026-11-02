@@ -264,6 +264,8 @@ struct AuditResult {
     target_role_versions: BTreeMap<String, u64>,
     manifest_sha256: String,
     checkpoint_sha256: String,
+    completeness_attestation_sha256: String,
+    availability_report_sha256: String,
     checkpoint_sequence: u64,
     checkpoint_epoch: String,
     verifier_report_sha256: String,
@@ -329,6 +331,8 @@ fn audit(
           "tenant_scope","purpose","ledger_id","sequence_namespace",
           "manifest_target_path","manifest_target_role",
           "checkpoint_target_path","checkpoint_target_role",
+          "completeness_attestation_target_path","completeness_attestation_target_role",
+          "availability_report_target_path","availability_report_target_role",
           "max_timestamp_expiry_horizon_seconds",
           "time_verifier_build_sha256","time_verification_policy_sha256",
           "time_verification_trust_bundle_sha256",
@@ -340,7 +344,8 @@ fn audit(
           "relying_party_id","channel_id","tenant_scope","purpose","ledger_id",
           "sequence_namespace","sequence_epoch","last_sequence",
           "root","timestamp","snapshot","target_roles",
-          "manifest_sha256","checkpoint_state_sha256"],
+          "manifest_sha256","checkpoint_state_sha256",
+          "completeness_attestation_sha256","availability_report_sha256"],
         "trusted_state")?;
 
     if string(report,"schema_version","verifier_report")? != VERIFIER_SCHEMA
@@ -528,13 +533,20 @@ fn audit(
     let manifest_role=string(policy,"manifest_target_role","policy")?;
     let checkpoint_path=string(policy,"checkpoint_target_path","policy")?;
     let checkpoint_role=string(policy,"checkpoint_target_role","policy")?;
-    if manifest_role == checkpoint_role || manifest_path == checkpoint_path {
-        return Err("channel manifest and checkpoint must use distinct TUF target roles and paths".to_string());
+    let completeness_path=string(policy,"completeness_attestation_target_path","policy")?;
+    let completeness_role=string(policy,"completeness_attestation_target_role","policy")?;
+    let availability_report_path=string(policy,"availability_report_target_path","policy")?;
+    let availability_report_role=string(policy,"availability_report_target_role","policy")?;
+    let unique_roles:BTreeSet<&str>=[manifest_role,checkpoint_role,completeness_role,availability_report_role].into_iter().collect();
+    let unique_paths:BTreeSet<&str>=[manifest_path,checkpoint_path,completeness_path,availability_report_path].into_iter().collect();
+    if unique_roles.len()!=4 || unique_paths.len()!=4 {
+        return Err("manifest, checkpoint, completeness attestation and audit report must use distinct TUF target roles and paths".to_string());
     }
     let binding=field(report,"channel_binding","verifier_report")?;
     deny_unknown(binding,&["relying_party_id","channel_id","tenant_scope","purpose",
         "ledger_id","sequence_namespace","sequence_epoch","last_sequence",
-        "channel_manifest","checkpoint_state","epoch_transition"],"channel_binding")?;
+        "channel_manifest","checkpoint_state","completeness_attestation",
+        "availability_audit_report","epoch_transition"],"channel_binding")?;
     for (k,expected) in [
         ("relying_party_id",string(policy,"relying_party_id","policy")?),
         ("channel_id",string(policy,"channel_id","policy")?),
@@ -550,7 +562,12 @@ fn audit(
 
     let manifest=field(binding,"channel_manifest","channel_binding")?;
     let checkpoint=field(binding,"checkpoint_state","channel_binding")?;
-    for (t,p) in [(manifest,"channel_manifest"),(checkpoint,"checkpoint_state")] {
+    let completeness=field(binding,"completeness_attestation","channel_binding")?;
+    let availability_report=field(binding,"availability_audit_report","channel_binding")?;
+    for (t,p) in [
+        (manifest,"channel_manifest"),(checkpoint,"checkpoint_state"),
+        (completeness,"completeness_attestation"),(availability_report,"availability_audit_report")
+    ] {
         deny_unknown(t,&["role_name","target_path","target_length","target_sha256"],p)?;
         require_digest(t,"target_sha256",p)?;
         if uint(t,"target_length",p)? == 0 {
@@ -561,6 +578,10 @@ fn audit(
         || string(manifest,"target_path","channel_manifest")? != manifest_path
         || string(checkpoint,"role_name","checkpoint_state")? != checkpoint_role
         || string(checkpoint,"target_path","checkpoint_state")? != checkpoint_path
+        || string(completeness,"role_name","completeness_attestation")? != completeness_role
+        || string(completeness,"target_path","completeness_attestation")? != completeness_path
+        || string(availability_report,"role_name","availability_audit_report")? != availability_report_role
+        || string(availability_report,"target_path","availability_audit_report")? != availability_report_path
     {
         return Err("TUF target role/path does not match the pinned channel policy".to_string());
     }
@@ -568,13 +589,22 @@ fn audit(
         .ok_or_else(||"required channel-manifest TUF target role missing".to_string())?;
     let checkpoint_role_info=new_role_map.get(checkpoint_role)
         .ok_or_else(||"required checkpoint-state TUF target role missing".to_string())?;
+    let completeness_role_info=new_role_map.get(completeness_role)
+        .ok_or_else(||"required completeness-attestation TUF target role missing".to_string())?;
+    let availability_report_role_info=new_role_map.get(availability_report_role)
+        .ok_or_else(||"required availability-report TUF target role missing".to_string())?;
     let old_manifest_sha=string(state,"manifest_sha256","trusted_state")?;
     let old_checkpoint_sha=string(state,"checkpoint_state_sha256","trusted_state")?;
-    if !is_sha256(old_manifest_sha)||!is_sha256(old_checkpoint_sha) {
+    let old_completeness_sha=string(state,"completeness_attestation_sha256","trusted_state")?;
+    let old_availability_report_sha=string(state,"availability_report_sha256","trusted_state")?;
+    if !is_sha256(old_manifest_sha)||!is_sha256(old_checkpoint_sha)
+        || !is_sha256(old_completeness_sha)||!is_sha256(old_availability_report_sha) {
         return Err("persisted target digest is invalid".to_string());
     }
     let manifest_sha=string(manifest,"target_sha256","channel_manifest")?.to_string();
     let checkpoint_sha=string(checkpoint,"target_sha256","checkpoint_state")?.to_string();
+    let completeness_sha=string(completeness,"target_sha256","completeness_attestation")?.to_string();
+    let availability_report_sha=string(availability_report,"target_sha256","availability_audit_report")?.to_string();
     if manifest_role_info.target_path != manifest_path
         || manifest_role_info.target_path != string(manifest,"target_path","channel_manifest")?
         || manifest_role_info.target_length != uint(manifest,"target_length","channel_manifest")?
@@ -583,6 +613,14 @@ fn audit(
         || checkpoint_role_info.target_path != string(checkpoint,"target_path","checkpoint_state")?
         || checkpoint_role_info.target_length != uint(checkpoint,"target_length","checkpoint_state")?
         || checkpoint_role_info.target_sha256 != checkpoint_sha
+        || completeness_role_info.target_path != completeness_path
+        || completeness_role_info.target_path != string(completeness,"target_path","completeness_attestation")?
+        || completeness_role_info.target_length != uint(completeness,"target_length","completeness_attestation")?
+        || completeness_role_info.target_sha256 != completeness_sha
+        || availability_report_role_info.target_path != availability_report_path
+        || availability_report_role_info.target_path != string(availability_report,"target_path","availability_audit_report")?
+        || availability_report_role_info.target_length != uint(availability_report,"target_length","availability_audit_report")?
+        || availability_report_role_info.target_sha256 != availability_report_sha
     {
         return Err("TUF metadata target path/length/digest does not match channel binding".to_string());
     }
@@ -594,6 +632,16 @@ fn audit(
     if let Some((old_version,_))=old_role_map.get(checkpoint_role) {
         if checkpoint_role_info.version == *old_version && checkpoint_sha != old_checkpoint_sha {
             return Err("checkpoint state target changed without a delegated metadata version advance".to_string());
+        }
+    }
+    if let Some((old_version,_))=old_role_map.get(completeness_role) {
+        if completeness_role_info.version == *old_version && completeness_sha != old_completeness_sha {
+            return Err("completeness attestation changed without a delegated metadata version advance".to_string());
+        }
+    }
+    if let Some((old_version,_))=old_role_map.get(availability_report_role) {
+        if availability_report_role_info.version == *old_version && availability_report_sha != old_availability_report_sha {
+            return Err("availability audit report changed without a delegated metadata version advance".to_string());
         }
     }
     let old_epoch=string(state,"sequence_epoch","trusted_state")?;
@@ -634,6 +682,8 @@ fn audit(
         target_role_versions:role_versions,
         manifest_sha256:manifest_sha,
         checkpoint_sha256:checkpoint_sha,
+        completeness_attestation_sha256:completeness_sha,
+        availability_report_sha256:availability_report_sha,
         checkpoint_sequence:new_seq,
         checkpoint_epoch:new_epoch.to_string(),
         verifier_report_sha256:digest(report_raw),
@@ -667,6 +717,8 @@ fn to_report(result: &AuditResult, state_id: &str) -> Value {
         "accepted_channel_state": {
             "manifest_sha256": result.manifest_sha256,
             "checkpoint_state_sha256": result.checkpoint_sha256,
+            "completeness_attestation_sha256": result.completeness_attestation_sha256,
+            "availability_report_sha256": result.availability_report_sha256,
             "ledger_epoch": result.checkpoint_epoch,
             "last_sequence": result.checkpoint_sequence
         },
