@@ -855,6 +855,16 @@ fn pack(
 ) -> Result<PackReceipt, String> {
     let staging_canonical = fs::canonicalize(staging_root)
         .map_err(|error| format!("cannot canonicalize staging root: {error}"))?;
+    let template_canonical = fs::canonicalize(template_path)
+        .map_err(|error| format!("cannot canonicalize build template: {error}"))?;
+    let trust_pin_canonical = fs::canonicalize(trust_pin_path)
+        .map_err(|error| format!("cannot canonicalize trust pin: {error}"))?;
+    if template_canonical.starts_with(&staging_canonical)
+        || trust_pin_canonical.starts_with(&staging_canonical)
+        || template_canonical == trust_pin_canonical
+    {
+        return Err("build template and trust pin must be distinct files outside staging root".to_string());
+    }
     let output_parent = output_dir
         .parent()
         .filter(|value| !value.as_os_str().is_empty())
@@ -878,8 +888,10 @@ fn pack(
     if let Some(root) = cas_root {
         let cas_canonical = fs::canonicalize(root)
             .map_err(|error| format!("cannot canonicalize local CAS root: {error}"))?;
-        if cas_canonical.starts_with(&output_final) {
-            return Err("local CAS root must be outside output capsule directory".to_string());
+        if cas_canonical.starts_with(&output_final)
+            || cas_canonical.starts_with(&staging_canonical)
+        {
+            return Err("local CAS root must be outside staging and output capsule directories".to_string());
         }
     }
     let (pin, pin_bytes) = read_trust_pin(trust_pin_path)?;
