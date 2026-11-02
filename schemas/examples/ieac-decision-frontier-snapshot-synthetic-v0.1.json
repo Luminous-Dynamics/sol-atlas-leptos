@@ -11,7 +11,8 @@
     "evaluator_build_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
     "time_verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
     "time_verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    "evidence_channel_id": "channel:ieac-ingest-registry"
+    "evidence_channel_id": "channel:ieac-ingest-registry",
+    "time_verification_trust_bundle_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
   },
   "decision_cutoff": {
     "time_utc": "2026-11-02T09:10:00Z",
@@ -22,7 +23,8 @@
     "verification_status": "verified",
     "proof_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
     "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-    "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "trust_bundle_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
   },
   "evidence": [
     {
@@ -40,7 +42,8 @@
         "verification_status": "not_checked",
         "proof_sha256": null,
         "verifier_build_sha256": null,
-        "verification_policy_sha256": null
+        "verification_policy_sha256": null,
+        "trust_bundle_sha256": null
       },
       "source_recorded_at": {
         "time_utc": "2026-11-02T09:02:00Z",
@@ -51,7 +54,8 @@
         "verification_status": "not_checked",
         "proof_sha256": null,
         "verifier_build_sha256": null,
-        "verification_policy_sha256": null
+        "verification_policy_sha256": null,
+        "trust_bundle_sha256": null
       },
       "availability_evidence": {
         "relying_party_id": "rp:industrial-assurance",
@@ -66,7 +70,8 @@
           "verification_status": "verified",
           "proof_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "trust_bundle_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         },
         "evidence_channel_id": "channel:ieac-ingest-registry",
         "coverage": null
@@ -87,7 +92,8 @@
         "verification_status": "not_checked",
         "proof_sha256": null,
         "verifier_build_sha256": null,
-        "verification_policy_sha256": null
+        "verification_policy_sha256": null,
+        "trust_bundle_sha256": null
       },
       "source_recorded_at": {
         "time_utc": "2026-11-02T09:04:00Z",
@@ -98,7 +104,8 @@
         "verification_status": "not_checked",
         "proof_sha256": null,
         "verifier_build_sha256": null,
-        "verification_policy_sha256": null
+        "verification_policy_sha256": null,
+        "trust_bundle_sha256": null
       },
       "availability_evidence": {
         "relying_party_id": "rp:industrial-assurance",
@@ -113,7 +120,8 @@
           "verification_status": "verified",
           "proof_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "trust_bundle_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         },
         "evidence_channel_id": "channel:ieac-ingest-registry",
         "coverage": null
@@ -134,7 +142,8 @@
         "verification_status": "not_checked",
         "proof_sha256": null,
         "verifier_build_sha256": null,
-        "verification_policy_sha256": null
+        "verification_policy_sha256": null,
+        "trust_bundle_sha256": null
       },
       "source_recorded_at": {
         "time_utc": "2026-11-02T09:14:00Z",
@@ -145,7 +154,8 @@
         "verification_status": "not_checked",
         "proof_sha256": null,
         "verifier_build_sha256": null,
-        "verification_policy_sha256": null
+        "verification_policy_sha256": null,
+        "trust_bundle_sha256": null
       },
       "availability_evidence": {
         "relying_party_id": "rp:industrial-assurance",
@@ -160,7 +170,8 @@
           "verification_status": "verified",
           "proof_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "trust_bundle_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         },
         "evidence_channel_id": "channel:ieac-ingest-registry",
         "coverage": null
@@ -184,7 +195,8 @@
         "verification_status": "not_checked",
         "proof_sha256": null,
         "verifier_build_sha256": null,
-        "verification_policy_sha256": null
+        "verification_policy_sha256": null,
+        "trust_bundle_sha256": null
       },
       "source_recorded_at": {
         "time_utc": "2026-11-02T09:55:00Z",
@@ -195,7 +207,8 @@
         "verification_status": "not_checked",
         "proof_sha256": null,
         "verifier_build_sha256": null,
-        "verification_policy_sha256": null
+        "verification_policy_sha256": null,
+        "trust_bundle_sha256": null
       },
       "availability_evidence": {
         "relying_party_id": "rp:industrial-assurance",
@@ -210,7 +223,8 @@
           "verification_status": "verified",
           "proof_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "trust_bundle_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         },
         "evidence_channel_id": "channel:ieac-ingest-registry",
         "coverage": {
@@ -225,7 +239,8 @@
             "verification_status": "verified",
             "proof_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-            "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "trust_bundle_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
           },
           "complete_through": {
             "time_utc": "2026-11-02T10:05:00Z",
@@ -236,13 +251,15 @@
             "verification_status": "verified",
             "proof_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
             "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-            "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "trust_bundle_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
           },
           "coverage_proof_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
           "completeness": "complete",
           "verification_status": "verified",
           "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "trust_bundle_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         }
       }
     },
@@ -261,7 +278,8 @@
         "verification_status": "not_checked",
         "proof_sha256": null,
         "verifier_build_sha256": null,
-        "verification_policy_sha256": null
+        "verification_policy_sha256": null,
+        "trust_bundle_sha256": null
       },
       "source_recorded_at": null,
       "availability_evidence": {
@@ -277,7 +295,8 @@
           "verification_status": "verified",
           "proof_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "trust_bundle_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         },
         "evidence_channel_id": "channel:ieac-ingest-registry",
         "coverage": null
@@ -298,7 +317,8 @@
         "verification_status": "not_checked",
         "proof_sha256": null,
         "verifier_build_sha256": null,
-        "verification_policy_sha256": null
+        "verification_policy_sha256": null,
+        "trust_bundle_sha256": null
       },
       "source_recorded_at": null,
       "availability_evidence": {
@@ -314,7 +334,8 @@
           "verification_status": "verified",
           "proof_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "trust_bundle_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         },
         "evidence_channel_id": "channel:ieac-ingest-registry",
         "coverage": null
@@ -341,7 +362,8 @@
           "verification_status": "verified",
           "proof_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "trust_bundle_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         },
         "evidence_channel_id": "channel:ieac-ingest-registry",
         "coverage": null
@@ -362,7 +384,8 @@
         "verification_status": "not_checked",
         "proof_sha256": null,
         "verifier_build_sha256": null,
-        "verification_policy_sha256": null
+        "verification_policy_sha256": null,
+        "trust_bundle_sha256": null
       },
       "source_recorded_at": null,
       "availability_evidence": null
@@ -388,7 +411,8 @@
           "verification_status": "verified",
           "proof_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "trust_bundle_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         },
         "evidence_channel_id": "channel:ieac-ingest-registry",
         "coverage": null
@@ -409,7 +433,8 @@
         "verification_status": "not_checked",
         "proof_sha256": null,
         "verifier_build_sha256": null,
-        "verification_policy_sha256": null
+        "verification_policy_sha256": null,
+        "trust_bundle_sha256": null
       },
       "source_recorded_at": null,
       "availability_evidence": {
@@ -425,7 +450,8 @@
           "verification_status": "verified",
           "proof_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "trust_bundle_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         },
         "evidence_channel_id": "channel:ieac-ingest-registry",
         "coverage": null
@@ -446,7 +472,8 @@
         "verification_status": "not_checked",
         "proof_sha256": null,
         "verifier_build_sha256": null,
-        "verification_policy_sha256": null
+        "verification_policy_sha256": null,
+        "trust_bundle_sha256": null
       },
       "source_recorded_at": null,
       "availability_evidence": {
@@ -462,7 +489,8 @@
           "verification_status": "verified",
           "proof_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "trust_bundle_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         },
         "evidence_channel_id": "channel:ieac-ingest-registry",
         "coverage": null
@@ -489,7 +517,8 @@
           "verification_status": "not_checked",
           "proof_sha256": null,
           "verifier_build_sha256": null,
-          "verification_policy_sha256": null
+          "verification_policy_sha256": null,
+          "trust_bundle_sha256": null
         },
         "evidence_channel_id": "channel:ieac-ingest-registry",
         "coverage": null
@@ -510,7 +539,8 @@
         "verification_status": "verified",
         "proof_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
         "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "trust_bundle_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
       },
       "source_recorded_at": {
         "time_utc": "2026-11-02T09:22:00Z",
@@ -521,7 +551,8 @@
         "verification_status": "verified",
         "proof_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
         "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "trust_bundle_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
       },
       "availability_evidence": {
         "relying_party_id": "rp:industrial-assurance",
@@ -537,7 +568,8 @@
           "verification_status": "verified",
           "proof_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
           "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "trust_bundle_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         },
         "coverage": {
           "relying_party_id": "rp:industrial-assurance",
@@ -551,7 +583,8 @@
             "verification_status": "verified",
             "proof_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
             "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-            "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "trust_bundle_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
           },
           "complete_through": {
             "time_utc": "2026-11-02T09:30:00Z",
@@ -562,13 +595,15 @@
             "verification_status": "verified",
             "proof_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
             "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-            "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "trust_bundle_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
           },
           "coverage_proof_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
           "completeness": "complete",
           "verification_status": "verified",
           "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "trust_bundle_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         }
       }
     }
