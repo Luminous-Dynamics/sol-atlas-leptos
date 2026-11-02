@@ -205,6 +205,9 @@ pub enum AdmissionReason {
 pub struct AdmissionReport {
     pub disposition: AdmissionDisposition,
     pub reason: AdmissionReason,
+    /// Decision timestamp and the earliest proposal/observation expiry.
+    pub checked_at_unix_seconds: u64,
+    pub valid_until_unix_seconds: u64,
     pub proposal_digest: Digest,
     pub request_digest: Digest,
     pub schedule_digest: Digest,
@@ -234,6 +237,7 @@ fn report(
     proposal: &ActionProposal,
     observation: &Observation,
     policy: &AdmissionPolicy,
+    checked_at_unix_seconds: u64,
     disposition: AdmissionDisposition,
     reason: AdmissionReason,
     selected_action: Option<ControlAction>,
@@ -254,6 +258,10 @@ fn report(
         uncertainty_profile_digest: policy.uncertainty_profile_digest,
         future_envelope_digest: policy.future_envelope_digest,
         monitor_digest: policy.monitor_digest,
+        checked_at_unix_seconds,
+        valid_until_unix_seconds: proposal
+            .expires_at_unix_seconds
+            .min(observation.expires_at_unix_seconds),
         selected_action,
         current_states_checked: evaluation.current_states_checked,
         future_conditions_checked: evaluation.future_conditions_checked,
@@ -264,12 +272,14 @@ fn abstain(
     proposal: &ActionProposal,
     observation: &Observation,
     policy: &AdmissionPolicy,
+    checked_at_unix_seconds: u64,
     reason: AdmissionReason,
 ) -> AdmissionReport {
     report(
         proposal,
         observation,
         policy,
+        checked_at_unix_seconds,
         AdmissionDisposition::Abstain,
         reason,
         None,
@@ -282,6 +292,7 @@ fn replan(
     proposal: &ActionProposal,
     observation: &Observation,
     policy: &AdmissionPolicy,
+    checked_at_unix_seconds: u64,
     reason: AdmissionReason,
     evaluation: Evaluation,
 ) -> AdmissionReport {
@@ -289,6 +300,7 @@ fn replan(
         proposal,
         observation,
         policy,
+        checked_at_unix_seconds,
         AdmissionDisposition::Replan,
         reason,
         None,
@@ -328,9 +340,8 @@ fn validate_observation(
     if now >= observation.expires_at_unix_seconds {
         return Err(AdmissionReason::ObservationExpired);
     }
-    if policy.max_observation_age_seconds == 0
-        || now.saturating_sub(observation.sampled_at_unix_seconds)
-            > policy.max_observation_age_seconds
+    if now.saturating_sub(observation.sampled_at_unix_seconds)
+        > policy.max_observation_age_seconds
     {
         return Err(AdmissionReason::StaleObservation);
     }
@@ -352,9 +363,10 @@ fn validate_policy(
     battery: BatteryContract,
     policy: &AdmissionPolicy,
 ) -> Result<(), AdmissionReason> {
-    if !battery.is_valid(policy.future_reserve_quanta)
-        || policy.max_observation_age_seconds == 0
-    {
+    if !battery.is_valid(policy.future_reserve_quanta) {
+        return Err(AdmissionReason::InvalidBatteryContract);
+    }
+    if policy.max_observation_age_seconds == 0 {
         return Err(AdmissionReason::InvalidPolicy);
     }
     if policy.future_conditions.is_empty() {
@@ -515,11 +527,11 @@ pub fn admit_action(
     policy: &AdmissionPolicy,
     now: u64,
 ) -> AdmissionReport {
-    if let Err(reason) = validate_observation(observation, policy, now) {
-        return abstain(proposal, observation, policy, reason);
-    }
     if let Err(reason) = validate_policy(battery, policy) {
-        return abstain(proposal, observation, policy, reason);
+        return abstain(proposal, observation, policy, now, reason);
+    }
+    if let Err(reason) = validate_observation(observation, policy, now) {
+        return abstain(proposal, observation, policy, now, reason);
     }
     if proposal.interval_id.trim().is_empty()
         || proposal.expires_at_unix_seconds <= proposal.issued_at_unix_seconds
@@ -532,6 +544,7 @@ pub fn admit_action(
             proposal,
             observation,
             policy,
+            now,
             AdmissionReason::InvalidProposalEnvelope,
         );
     }
@@ -540,6 +553,7 @@ pub fn admit_action(
             proposal,
             observation,
             policy,
+            now,
             AdmissionReason::ProposalExpired,
             Evaluation::default(),
         );
@@ -558,6 +572,7 @@ pub fn admit_action(
             proposal,
             observation,
             policy,
+            now,
             AdmissionDisposition::Admit,
             AdmissionReason::ProposedActionAdmitted,
             Some(proposal.proposed_action),
@@ -572,6 +587,7 @@ pub fn admit_action(
             proposal,
             observation,
             policy,
+            now,
             AdmissionReason::ProposedActionRejected(proposed_failure),
             proposed,
         );
@@ -589,6 +605,7 @@ pub fn admit_action(
             proposal,
             observation,
             policy,
+            now,
             AdmissionDisposition::FallbackAdmitted,
             AdmissionReason::FallbackActionAdmitted,
             Some(fallback),
