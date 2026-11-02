@@ -763,6 +763,24 @@ mod tests {
     use super::*;
 
     #[test]
+    fn tiny_signed_float_values_roundtrip_to_identical_canonical_json() {
+        let value = serde_json::json!({
+            "lower": -8.0e-9_f64,
+            "upper": -8.0e-9_f64,
+            "value": -8.0e-9_f64,
+            "positive": 8.0e-9_f64,
+            "zero": 0.0_f64
+        });
+        let encoded = serde_json::to_vec(&value).unwrap();
+        let decoded: Value = serde_json::from_slice(&encoded).unwrap();
+        let replayed = serde_json::to_vec(&decoded).unwrap();
+        assert_eq!(replayed, encoded);
+    }
+
+
+    use super::*;
+
+    #[test]
     fn reason_code_matching_rejects_non_string_entries() {
         assert!(!exact_reason_codes_match(
             &serde_json::json!({"reason_codes": ["EXPECTED", 7]}),
