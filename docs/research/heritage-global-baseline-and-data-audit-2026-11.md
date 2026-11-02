@@ -252,3 +252,6 @@ Key adversarial baselines:
 Report cause Brier, per-class reliability, macro F1 and archaeological false claims per 100 covered samples alongside unsupported assertion rate, support/contradiction retention, independent-source counts, duplicate-source robustness and risk/coverage. Cause probabilities across categories are one-vs-rest and are not required to sum to one because more than one cause can coexist.
 
 Do not call a cause confirmed because the model's probability crosses a threshold. The typed evidence audit checks the integrity of the declared bundle; human archaeologists, custodians and regulators retain causal adjudication and significance authority.
+### HDB-10 implementation refinement: cross-polarity independence conflict
+
+The current HCEA audit excludes an eligible source digest or acquisition group from *both* independent support and independent contradiction counts when that same digest/group appears on both polarities for the same cause. The records remain visible and the hypothesis remains contested. HDB-10 therefore measures `cross_polarity_conflict_count` in addition to duplicate-source robustness. A non-detection must be represented as contradictory evidence and include a detectability assessment.

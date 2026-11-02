@@ -63,7 +63,8 @@
       "independent_contradiction_count",
       "counter_evidence_retention",
       "double_count_robustness",
-      "abstention_risk_coverage"
+      "abstention_risk_coverage",
+      "cross_polarity_conflict_count"
     ]
   },
   "notes": "Synthetic HDB-10 fixture. Cause probabilities and evidence records are fictional; no archaeological claims."
