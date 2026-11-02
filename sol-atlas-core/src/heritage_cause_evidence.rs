@@ -207,6 +207,9 @@ pub enum CauseEvidenceAuditError {
     MissingDetectabilityAssessment {
         evidence_id: String,
     },
+    NonDetectionPolarityMustContradict {
+        evidence_id: String,
+    },
     EmptyEvidenceReference {
         cause: ChangeCause,
     },
@@ -320,9 +323,11 @@ fn validate_evidence_record(
         });
     }
     if record.is_non_detection && record.polarity != CauseEvidencePolarity::Contradicts {
-        return Err(CauseEvidenceAuditError::NonDetectionPolarityMustContradict {
-            evidence_id: record.evidence_id.clone(),
-        });
+        return Err(
+            CauseEvidenceAuditError::NonDetectionPolarityMustContradict {
+                evidence_id: record.evidence_id.clone(),
+            },
+        );
     }
     Ok(())
 }
@@ -344,17 +349,26 @@ fn cross_polarity_conflict_keys(
     let mut digest_polarities: BTreeMap<String, (bool, bool)> = BTreeMap::new();
     let mut group_polarities: BTreeMap<String, (bool, bool)> = BTreeMap::new();
 
-    for (records, is_support) in [
-        (support_records, true),
-        (contradiction_records, false),
-    ] {
-        for record in records.iter().copied().filter(|record| independent_eligible(record)) {
+    for (records, is_support) in [(support_records, true), (contradiction_records, false)] {
+        for record in records
+            .iter()
+            .copied()
+            .filter(|record| independent_eligible(record))
+        {
             let digest = record.source_asset_sha256.to_ascii_lowercase();
             let group = record.independence_group_id.trim().to_owned();
             let entry = digest_polarities.entry(digest).or_default();
-            if is_support { entry.0 = true; } else { entry.1 = true; }
+            if is_support {
+                entry.0 = true;
+            } else {
+                entry.1 = true;
+            }
             let entry = group_polarities.entry(group).or_default();
-            if is_support { entry.0 = true; } else { entry.1 = true; }
+            if is_support {
+                entry.0 = true;
+            } else {
+                entry.1 = true;
+            }
         }
     }
 
@@ -1083,8 +1097,20 @@ mod tests {
     fn same_source_used_for_support_and_contradiction_is_not_independent_on_either_side() {
         let cause = ChangeCause::ArchaeologicalExcavationLooting;
         let records = vec![
-            evidence("supports", cause, CauseEvidencePolarity::Supports, 'a', "group-a"),
-            evidence("contradicts", cause, CauseEvidencePolarity::Contradicts, 'a', "group-b"),
+            evidence(
+                "supports",
+                cause,
+                CauseEvidencePolarity::Supports,
+                'a',
+                "group-a",
+            ),
+            evidence(
+                "contradicts",
+                cause,
+                CauseEvidencePolarity::Contradicts,
+                'a',
+                "group-b",
+            ),
         ];
         let mut hypotheses = hypotheses();
         let claim = hypothesis_mut(&mut hypotheses, cause);
@@ -1093,7 +1119,11 @@ mod tests {
         claim.contradiction_evidence_refs = vec!["contradicts".into()];
 
         let report = audit_cause_evidence(&case(hypotheses, records)).unwrap();
-        let summary = report.hypothesis_summaries.iter().find(|item| item.cause == cause).unwrap();
+        let summary = report
+            .hypothesis_summaries
+            .iter()
+            .find(|item| item.cause == cause)
+            .unwrap();
         assert!(summary.contested);
         assert_eq!(summary.independent_support_count, 0);
         assert_eq!(summary.independent_contradiction_count, 0);
@@ -1105,8 +1135,20 @@ mod tests {
     fn same_independence_group_on_both_sides_is_not_independent_twice() {
         let cause = ChangeCause::ArchaeologicalExcavationLooting;
         let records = vec![
-            evidence("supports", cause, CauseEvidencePolarity::Supports, 'a', "group-shared"),
-            evidence("contradicts", cause, CauseEvidencePolarity::Contradicts, 'b', "group-shared"),
+            evidence(
+                "supports",
+                cause,
+                CauseEvidencePolarity::Supports,
+                'a',
+                "group-shared",
+            ),
+            evidence(
+                "contradicts",
+                cause,
+                CauseEvidencePolarity::Contradicts,
+                'b',
+                "group-shared",
+            ),
         ];
         let mut hypotheses = hypotheses();
         let claim = hypothesis_mut(&mut hypotheses, cause);
@@ -1123,7 +1165,13 @@ mod tests {
     #[test]
     fn non_detection_cannot_be_marked_as_supporting_evidence() {
         let cause = ChangeCause::ArchaeologicalExcavationLooting;
-        let mut record = evidence("non-detection", cause, CauseEvidencePolarity::Supports, 'a', "group-a");
+        let mut record = evidence(
+            "non-detection",
+            cause,
+            CauseEvidencePolarity::Supports,
+            'a',
+            "group-a",
+        );
         record.is_non_detection = true;
         record.detectability_assessment_ref = Some("urn:synthetic:detectability".into());
         let mut hypotheses = hypotheses();
