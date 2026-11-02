@@ -1,86 +1,123 @@
-# Terra Atlas — Planetary Energy Transition Visualization
+# Sol Atlas — Planetary Energy and Infrastructure Demonstrator
 
-**Live:** [atlas.luminousdynamics.io](https://atlas.luminousdynamics.io)
+**Live application:** [atlas.luminousdynamics.io](https://atlas.luminousdynamics.io)  
+**Application README:** [README.md](README.md)  
+**Demo recording:** [demo.mp4](demo.mp4)
 
-## What You're Looking At
+This guide describes the visualization layers and scenario concepts currently documented for Sol Atlas (the project was previously described as Terra Atlas in older material).
 
-Terra Atlas is an interactive 3D globe showing the global energy transition in real time. It visualizes three clocks ticking on fossil fuels:
+> **Interpretation boundary:** This is a visualization and research demonstrator, not a live global infrastructure feed, a calibrated energy-system forecast, or a utility operations system. The default app path loads bundled static data. Selected Holochain fetches are optional and feature-gated. Counts below describe the documented demonstration dataset, not a complete or current inventory of global assets. Planned infrastructure, future timelines, stress indicators, and animated exchanges are scenarios or visualizations unless the app explicitly presents a verified live source, its timestamp, and a provenance record.
 
-### 1. The Geological Clock (Reserves)
-73 major fossil fuel deposits — oil fields, gas formations, coal basins, tar sands — positioned at their real geographic coordinates with reserves data from EIA, USGS, and BP Statistical Review. Marker size scales logarithmically with proven reserves (million barrels of oil equivalent).
+## What the demonstration shows
 
-### 2. The Thermodynamic Clock (EROI)
-Each deposit is color-coded by its **Energy Return on Investment** — the ratio of energy extracted to energy spent extracting:
-- **Green (>12:1)**: Can sustain modern civilization — Saudi Arabia's conventional fields
-- **Amber (5-12:1)**: Basic sustainability — US shale (Permian Basin, Bakken)
-- **Red (3-5:1)**: Marginal — Canadian tar sands (Athabasca, 4:1)
-- **Dark Red (<3:1)**: Thermodynamically unviable — Venezuelan Orinoco Belt
+Sol Atlas presents a navigable 3D globe with energy and infrastructure layers and scenario-oriented controls. The demonstration explores three ways of looking at energy assets:
 
-Use the **timeline slider** to scrub through time. Watch EROI decline as easy reserves deplete — oil at 2%/year, tar sands at 3%/year. What was green in 1950 turns amber by 2030, red by 2060.
+### 1. Resource and asset context
 
-### 3. The Atmospheric Clock (Carbon)
-Translucent red halos surround each fossil deposit, sized by annual CO2 emissions (production × emission factor per fuel type). The economics module computes:
-- **Breakeven carbon price**: the carbon tax at which a deposit becomes unprofitable
-- **Social cost of carbon**: $51/ton (EPA 2024 central estimate)
-- Deposits that lose money when carbon is priced are **carbon-negative stranded assets**
+The documented bundled scenario includes fossil-fuel deposit records positioned geographically, with marker size intended to represent reserve scale. The guide lists EIA, USGS, and BP publications as source families for parts of the dataset.
 
-## Data Layers (toggleable)
+Before using any individual value analytically, verify the underlying source document, publication date, units, geographic definition, and transformation applied to create the bundled record.
 
-| Layer | Count | Source |
-|-------|-------|--------|
-| Energy Sites | 70 | EIA, clustered |
-| Geothermal Nodes | 18 | Global survey |
-| Maglev Corridors | 15 | Planned routes |
-| Terra Lumina Sites | 12 | Renewable mega-sites |
-| Resontia Vaults | 12 | Underground infrastructure |
-| Fossil Deposits | 73 | EIA, USGS, BP |
-| Nuclear / SMR | 50 | IAEA, planned SMR pipeline |
+### 2. Energy-return scenario bands
 
-## The Transition Narrative
+The demonstration assigns visualization bands to Energy Return on Investment (EROI) values:
 
-Scrub the timeline from Year 0 to Year 300:
-- **Year 0**: Fossil deposits glow green (high EROI). Renewables are dim. No vaults or corridors.
-- **Year 50**: US shale turns amber. Tar sands turn red. First maglev corridors appear. Renewable sites brighten.
-- **Year 100**: Saudi oil enters amber zone (EROI ~7:1). Most coal still green. Vaults begin construction. Nuclear/SMR sites at peak brightness.
-- **Year 150**: All oil is amber or red. Renewable sites at full brightness. Full maglev grid. All 12 vaults operational.
-- **Year 300**: Fossil deposits invisible (EROI < 1:1). The globe shows only renewable infrastructure, nuclear, and deep civilization vaults.
+- Green: above 12:1
+- Amber: 5:1–12:1
+- Red: 3:1–5:1
+- Dark red: below 3:1
 
-## Grid Stress Overlay (FEP)
+These are **scenario visualization categories**, not universal engineering, economic, or civilizational viability thresholds. EROI depends on system boundaries, energy quality, lifecycle assumptions, co-products, and the study methodology. Comparisons require a consistent and cited methodology.
 
-16 major population centers show **allostatic load** — a measure of grid fragility from Symthaea's Free Energy Principle (FEP) engine:
-- **High-stress regions**: Elevated demand, aging infrastructure (0.7-0.8 load)
-- **Lagos / Cairo**: High stress (growing demand, limited infrastructure)
-- **Tokyo / Seoul**: Low stress (diversified, well-maintained grid)
+### 3. Carbon-cost scenario
 
-As fossil EROI declines on the timeline, grid stress increases everywhere — but regions with high renewable penetration stabilize faster.
+The demo includes carbon-cost calculations based on fuel-specific production and emission-factor assumptions. An EPA 2024 social-cost-of-carbon estimate is referenced in the historical scenario notes.
 
-## P2P Energy Trading
+Treat that figure as a dated scenario input, not a current universal carbon price or a substitute for jurisdiction-specific policy, lifecycle analysis, or a current social-cost estimate. Revalidate source documents and assumptions before reusing the calculation.
 
-Animated green arcs show simulated peer-to-peer energy trades between renewable sites — surplus solar kWh flowing between neighborhoods via the Mycelix Holochain DHT. When a conductor is running, these arcs show real trades.
+## Documented data layers
 
-## Technical Architecture
+The historical demonstration notes describe the following dataset entries:
 
-```
-terra-atlas-core (Rust)     — shared types, math, economics, 51 tests
-terra-atlas-leptos (WASM)   — WebGL2 renderer, live at atlas.luminousdynamics.io
-terra-atlas-bevy (Bevy 0.18) — wgpu renderer, embedded in Symtropy game
-mycelix-atlas (Holochain)   — DHT storage for all data layers
-```
+| Layer | Documented entries | Notes |
+|---|---:|---|
+| Energy sites | 70 | EIA-related and clustered records |
+| Geothermal nodes | 18 | Global survey-derived demonstration layer |
+| Maglev corridors | 15 | Planned-route visualization |
+| Terra Lumina sites | 12 | Conceptual renewable-site layer |
+| Resontia vaults | 12 | Conceptual underground-infrastructure layer |
+| Fossil deposits | 73 | EIA, USGS, and BP source families cited |
+| Nuclear / SMR | 50 | Includes planned pipeline concepts |
 
-The same data flows to both renderers. The Holochain bridge (feature-gated) enables real-time decentralized data.
+These counts are the counts stated in the demonstration guide. They should be checked against the current bundled dataset before publication or analysis. A planned or conceptual layer must be labeled as such in the interface.
 
-## Economics Engine
+## Timeline and scenario narrative
 
-Pure Rust module computing per-deposit:
-- Annual revenue, extraction cost, carbon cost
-- ROI with and without carbon pricing
-- Breakeven carbon price ($/ton CO2)
-- IRR via Newton-Raphson
-- Years to depletion
+The timeline explores a long-horizon transition scenario. The Year 0–300 sequence in the visualization is an illustrative model narrative, not a prediction.
 
-**Key insight**: Athabasca tar sands at $45/boe extraction cost and 0.58 tCO2/boe emission factor becomes **carbon-negative** at just $17/ton carbon price — well below the EPA's $51 social cost.
+Its assumptions include reserve depletion, changing EROI bands, renewable build-out, corridor construction, and the introduction of conceptual infrastructure. The scenario is useful for exploring relationships and communicating assumptions; it is not validated as a forecast of specific assets, markets, or dates.
+
+For decision support, publish the scenario parameters, equations, calibration evidence, sensitivity ranges, and alternative assumptions alongside results.
+
+## Grid-stress visualization
+
+The demo describes a stress indicator for 16 population centers, motivated by Symthaea's Free Energy Principle vocabulary.
+
+This is a **modeled scenario indicator**, not telemetry from grid operators and not an independently validated measurement of regional grid fragility. A real infrastructure deployment would need documented input data, clear units, calibration against observed events, uncertainty bounds, and independent validation.
+
+## Peer-to-peer energy exchange visualization
+
+Animated arcs in the demo represent peer-to-peer energy-exchange concepts. Do not interpret an arc as a real trade, settlement, or power flow merely because it is animated.
+
+A live transaction claim requires an explicitly connected exchange implementation and inspectable evidence such as source and destination identities, transaction identifiers, timestamps, quantities, authorization, and settlement status. Otherwise label the visualization simulated.
+
+## Technical architecture
+
+The current web application is organized around:
+
+~~~text
+sol-atlas-core (Rust)
+    Shared domain types, geospatial logic, and constants
+
+sol-atlas-leptos (Rust / Leptos / WebAssembly)
+    Browser application, routes, state, and WebGL2 globe renderer
+
+Optional Holochain data adapter
+    Feature-gated fetches for selected datasets when configured
+~~~
+
+The app loads bundled static data as its default fallback. Optional Holochain integration is compiled behind a feature flag; its presence in the source does not mean a live conductor is configured or that every layer is dynamically sourced.
+
+## Experimental reactor digital-twin route
+
+The application includes an experimental /labs/reactor-twin route. Treat this as a research demonstration. It is not a validated reactor design tool, a safety case, or a substitute for qualified engineering simulation and review.
+
+## Economics calculations
+
+The demonstration describes calculations for individual deposits, including:
+
+- Annual revenue and extraction-cost assumptions.
+- Carbon-cost scenarios.
+- Break-even carbon-price calculations.
+- Internal-rate-of-return estimation.
+- Years-to-depletion estimates.
+
+Every reported output depends on source data, units, boundaries, and assumptions. For analytical use, publish the input dataset revision, calculation version, parameter file, sensitivity analysis, and validation cases with the output.
+
+## What is needed before operational use
+
+Before Sol Atlas is used for planning, investment, or infrastructure operations, each relevant layer should have:
+
+1. A traceable source and permission to reuse it.
+2. A retrieval timestamp and source publication/effective date.
+3. Explicit observed / estimated / modeled / planned / simulated status.
+4. Units, coordinate reference assumptions, and transformation history.
+5. Missing-data, uncertainty, and sensitivity reporting.
+6. Validation against independent reference data or operational outcomes.
+7. A reproducible export of the inputs, parameters, code revision, and result.
+
+Sol Atlas is intended to make complex systems easier to explore. Trustworthy decisions require more than an attractive globe: they require transparent data, explicit assumptions, and independently checkable evidence.
 
 ---
 
-*Built with consciousness-first technology serving all beings.*
-*Luminous Dynamics — luminousdynamics.org*
+*Luminous Dynamics — truth, dignity, flourishing, and sovereignty.*
