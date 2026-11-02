@@ -807,10 +807,7 @@ mod tests {
     fn duplicate_action_ids_are_rejected() {
         let mut problem = two_state_problem();
         problem.actions[1] = problem.actions[0].clone();
-        assert_eq!(
-            problem.validate(),
-            Err(EvsiError::DuplicateIdentifier)
-        );
+        assert_eq!(problem.validate(), Err(EvsiError::DuplicateIdentifier));
     }
 
     #[test]
