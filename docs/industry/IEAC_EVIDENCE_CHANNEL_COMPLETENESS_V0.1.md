@@ -52,7 +52,7 @@ A channel cannot claim completeness for paths it does not instrument or explicit
 
 ## 4. Completeness attestation
 
-`industry-ieac-availability-completeness-attestation-v0.1.schema.json` binds the exact channel-manifest digest and repeated channel identity; tenant, subject pseudonym, purpose and artifact digest; decision cutoff and coverage interval; all three checkpoint identities, roots, exact signed-byte digests, receipts, ledger/namespace/epoch and sequence; both consistency receipts; first-access event digest, artifact, type, sequence, time and inclusion receipt; and the zero-match query identity, explicit predicate binding, sequence interval, zero result, signed statement, signer identity, signature digest, receipt and verifier facts.
+`industry-ieac-availability-completeness-attestation-v0.1.schema.json` binds the exact channel-manifest digest and repeated channel identity; tenant, subject pseudonym, purpose and artifact digest; decision cutoff and coverage interval; all three checkpoint identities, roots, exact signed-byte digests, receipts, ledger/namespace/epoch and sequence; both consistency receipts; first-access event digest, artifact, type, sequence, time and inclusion receipt; and the zero-match query identity, explicit predicate binding, sequence interval, zero result, signed statement, signer identity, signature digest, receipt and verifier facts. The channel manifest pins an allow-list of authorized completeness-query issuers; a correctly signed query from an unapproved issuer is not admissible.
 
 For a `complete` result, hard requirements are:
 - all mandatory time, query, checkpoint and continuity verification facts are independently verified under pinned build/policy identities;
