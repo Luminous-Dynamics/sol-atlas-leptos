@@ -1098,8 +1098,8 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
                     "detectability",
                     "fallback",
                 ] {
-                    let value = string(dims, key, "/risk_assessment/dimensions", &mut out)
-                        .unwrap_or("");
+                    let value =
+                        string(dims, key, "/risk_assessment/dimensions", &mut out).unwrap_or("");
                     risk_dims.insert(key, value);
                 }
                 let enums: [(&str, &[&str]); 6] = [
@@ -1235,8 +1235,7 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
                             "D3 requires direct_actuation to be declared.",
                         );
                     }
-                    if risk_dims.get("fallback").copied() != Some("independent_tested_fallback")
-                    {
+                    if risk_dims.get("fallback").copied() != Some("independent_tested_fallback") {
                         issue(
                             &mut out,
                             "D3_FALLBACK_INSUFFICIENT",
@@ -1271,8 +1270,7 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
         for key in ["envelope_id", "domain_description", "out_of_domain_policy"] {
             let _ = string(envelope, key, "/operating_envelope", &mut out);
         }
-        if let Some(conditions) = array(envelope, "conditions", "/operating_envelope", &mut out)
-        {
+        if let Some(conditions) = array(envelope, "conditions", "/operating_envelope", &mut out) {
             for (i, condition) in conditions.iter().enumerate() {
                 let path = format!("/operating_envelope/conditions/{i}");
                 if object(condition, &path, &mut out).is_some() {
