@@ -45,18 +45,6 @@ jobs:
         with:
           components: rustfmt, clippy
 
-      - name: Materialize Cargo's resolved lockfile for review
-        run: cargo generate-lockfile --manifest-path tools/industry-twin-interface-validator/Cargo.toml
-
-      - name: Upload resolved lockfile candidate
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: itip-validator-lockfile-candidate
-          path: tools/industry-twin-interface-validator/Cargo.lock
-          if-no-files-found: error
-          retention-days: 3
-
       - name: Check formatting
         run: cargo fmt --manifest-path tools/industry-twin-interface-validator/Cargo.toml -- --check
 
