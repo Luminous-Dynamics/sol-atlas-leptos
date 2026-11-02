@@ -139,7 +139,11 @@ impl SpatialScope {
                 }
                 validate_crs(crs)
             }
-            Self::Point { latitude, longitude, crs } => {
+            Self::Point {
+                latitude,
+                longitude,
+                crs,
+            } => {
                 if !latitude.is_finite() || !(-90.0..=90.0).contains(latitude) {
                     return Err(EvidenceError::InvalidCoordinate("latitude"));
                 }
@@ -148,7 +152,11 @@ impl SpatialScope {
                 }
                 validate_crs(crs)
             }
-            Self::GeometryRef { geometry_ref, crs, resolution_metres } => {
+            Self::GeometryRef {
+                geometry_ref,
+                crs,
+                resolution_metres,
+            } => {
                 if geometry_ref.trim().is_empty() {
                     return Err(EvidenceError::EmptyField("geometry_ref"));
                 }
@@ -191,7 +199,9 @@ impl Measurement {
         }
         if let Some(uncertainty) = self.standard_uncertainty {
             if !uncertainty.is_finite() || uncertainty < 0.0 {
-                return Err(EvidenceError::InvalidNonNegativeValue("standard_uncertainty"));
+                return Err(EvidenceError::InvalidNonNegativeValue(
+                    "standard_uncertainty",
+                ));
             }
         }
         Ok(())
@@ -234,7 +244,9 @@ impl EvidenceMetadata {
 
         match self.missingness {
             Missingness::Present => {
-                let measurement = self.measurement.as_ref()
+                let measurement = self
+                    .measurement
+                    .as_ref()
                     .ok_or(EvidenceError::MeasuredValueMissing)?;
                 measurement.validate()?;
             }
@@ -269,7 +281,13 @@ impl EvidenceMetadata {
                 }
             }
             EpistemicClass::SpeculativeHypothesis => {
-                if self.hypothesis_ref.as_deref().unwrap_or("").trim().is_empty() {
+                if self
+                    .hypothesis_ref
+                    .as_deref()
+                    .unwrap_or("")
+                    .trim()
+                    .is_empty()
+                {
                     return Err(EvidenceError::MissingReference("hypothesis_ref"));
                 }
             }
@@ -326,24 +344,53 @@ impl fmt::Display for EvidenceError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::EmptyField(field) => write!(f, "{field} must not be empty"),
-            Self::InvalidDigest => write!(f, "snapshot digest must be sha256:<64 lowercase hex chars>"),
+            Self::InvalidDigest => {
+                write!(f, "snapshot digest must be sha256:<64 lowercase hex chars>")
+            }
             Self::InvalidTemporalInterval { start, end } => {
-                write!(f, "temporal interval ends before it starts: {start} > {end}")
+                write!(
+                    f,
+                    "temporal interval ends before it starts: {start} > {end}"
+                )
             }
             Self::InvalidCoordinate(field) => write!(f, "invalid {field} coordinate"),
             Self::InvalidPositiveValue(field) => write!(f, "{field} must be finite and positive"),
-            Self::InvalidNonNegativeValue(field) => write!(f, "{field} must be finite and non-negative"),
+            Self::InvalidNonNegativeValue(field) => {
+                write!(f, "{field} must be finite and non-negative")
+            }
             Self::NonFiniteValue(field) => write!(f, "{field} must be finite"),
             Self::InvalidCrs => write!(f, "coordinate reference system must not be empty"),
-            Self::MissingSource => write!(f, "this epistemic class requires at least one source reference"),
-            Self::MissingReference(field) => write!(f, "{field} is required for this epistemic class"),
+            Self::MissingSource => write!(
+                f,
+                "this epistemic class requires at least one source reference"
+            ),
+            Self::MissingReference(field) => {
+                write!(f, "{field} is required for this epistemic class")
+            }
             Self::MeasuredValueMissing => write!(f, "measured records require a measurement"),
-            Self::ValuePresentForMissingRecord => write!(f, "non-measured records must not contain a numeric measurement"),
-            Self::ObservedMeasurementNotMeasured => write!(f, "observed_measurement requires a present value"),
-            Self::ModelInferenceWithoutLineage => write!(f, "model inference requires a source or derivation reference"),
-            Self::ConfirmedDetectionWithoutVerifier => write!(f, "confirmed detection requires an independent verifier receipt"),
-            Self::ConfirmedDetectionNotIndependentlyVerified => write!(f, "confirmed detection requires independently_verified status"),
-            Self::IndependentVerificationWithoutReceipt => write!(f, "independent verification requires at least one verifier receipt"),
+            Self::ValuePresentForMissingRecord => write!(
+                f,
+                "non-measured records must not contain a numeric measurement"
+            ),
+            Self::ObservedMeasurementNotMeasured => {
+                write!(f, "observed_measurement requires a present value")
+            }
+            Self::ModelInferenceWithoutLineage => write!(
+                f,
+                "model inference requires a source or derivation reference"
+            ),
+            Self::ConfirmedDetectionWithoutVerifier => write!(
+                f,
+                "confirmed detection requires an independent verifier receipt"
+            ),
+            Self::ConfirmedDetectionNotIndependentlyVerified => write!(
+                f,
+                "confirmed detection requires independently_verified status"
+            ),
+            Self::IndependentVerificationWithoutReceipt => write!(
+                f,
+                "independent verification requires at least one verifier receipt"
+            ),
         }
     }
 }
@@ -354,7 +401,11 @@ fn validate_sha256(digest: &str) -> Result<(), EvidenceError> {
     let Some(hex) = digest.strip_prefix("sha256:") else {
         return Err(EvidenceError::InvalidDigest);
     };
-    if hex.len() != 64 || !hex.bytes().all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase()) {
+    if hex.len() != 64
+        || !hex
+            .bytes()
+            .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+    {
         return Err(EvidenceError::InvalidDigest);
     }
     Ok(())
@@ -451,7 +502,10 @@ mod tests {
             method_ref: None,
             aggregation_window: None,
         });
-        assert_eq!(record.validate(), Err(EvidenceError::ValuePresentForMissingRecord));
+        assert_eq!(
+            record.validate(),
+            Err(EvidenceError::ValuePresentForMissingRecord)
+        );
     }
 
     #[test]
@@ -461,7 +515,10 @@ mod tests {
         record.missingness = Missingness::Unknown;
         record.measurement = None;
         record.scenario_ref = None;
-        assert_eq!(record.validate(), Err(EvidenceError::MissingReference("scenario_ref")));
+        assert_eq!(
+            record.validate(),
+            Err(EvidenceError::MissingReference("scenario_ref"))
+        );
 
         record.scenario_ref = Some("water-shock-scenario-v1".into());
         assert!(record.validate().is_ok());
@@ -482,7 +539,10 @@ mod tests {
         record.epistemic_class = EpistemicClass::ModelInference;
         record.model_ref = Some("grid-stress-model-v2".into());
         record.sources.clear();
-        assert_eq!(record.validate(), Err(EvidenceError::ModelInferenceWithoutLineage));
+        assert_eq!(
+            record.validate(),
+            Err(EvidenceError::ModelInferenceWithoutLineage)
+        );
 
         record.derivation_refs.push("input-observation-001".into());
         assert!(record.validate().is_ok());
@@ -492,10 +552,18 @@ mod tests {
     fn confirmed_detection_requires_independent_verifier_receipt() {
         let mut record = measured_record();
         record.epistemic_class = EpistemicClass::ConfirmedDetection;
-        assert_eq!(record.validate(), Err(EvidenceError::ConfirmedDetectionWithoutVerifier));
+        assert_eq!(
+            record.validate(),
+            Err(EvidenceError::ConfirmedDetectionWithoutVerifier)
+        );
 
-        record.verifier_refs.push("independent-review-receipt-1".into());
-        assert_eq!(record.validate(), Err(EvidenceError::ConfirmedDetectionNotIndependentlyVerified));
+        record
+            .verifier_refs
+            .push("independent-review-receipt-1".into());
+        assert_eq!(
+            record.validate(),
+            Err(EvidenceError::ConfirmedDetectionNotIndependentlyVerified)
+        );
 
         record.verification_status = VerificationStatus::IndependentlyVerified;
         assert!(record.validate().is_ok());
@@ -505,7 +573,10 @@ mod tests {
     fn independent_verification_without_receipt_is_rejected() {
         let mut record = measured_record();
         record.verification_status = VerificationStatus::IndependentlyVerified;
-        assert_eq!(record.validate(), Err(EvidenceError::IndependentVerificationWithoutReceipt));
+        assert_eq!(
+            record.validate(),
+            Err(EvidenceError::IndependentVerificationWithoutReceipt)
+        );
     }
 
     #[test]
@@ -527,18 +598,29 @@ mod tests {
             longitude: 28.0,
             crs: "EPSG:4326".into(),
         };
-        assert_eq!(record.validate(), Err(EvidenceError::InvalidCoordinate("latitude")));
+        assert_eq!(
+            record.validate(),
+            Err(EvidenceError::InvalidCoordinate("latitude"))
+        );
     }
 
     #[test]
     fn non_finite_measurement_and_negative_uncertainty_are_rejected() {
         let mut record = measured_record();
         record.measurement.as_mut().unwrap().value = f64::NAN;
-        assert_eq!(record.validate(), Err(EvidenceError::NonFiniteValue("measurement.value")));
+        assert_eq!(
+            record.validate(),
+            Err(EvidenceError::NonFiniteValue("measurement.value"))
+        );
 
         record = measured_record();
         record.measurement.as_mut().unwrap().standard_uncertainty = Some(-1.0);
-        assert_eq!(record.validate(), Err(EvidenceError::InvalidNonNegativeValue("standard_uncertainty")));
+        assert_eq!(
+            record.validate(),
+            Err(EvidenceError::InvalidNonNegativeValue(
+                "standard_uncertainty"
+            ))
+        );
     }
 
     #[test]
@@ -557,7 +639,10 @@ mod tests {
         record.missingness = Missingness::Unknown;
         record.measurement = None;
         record.hypothesis_ref = None;
-        assert_eq!(record.validate(), Err(EvidenceError::MissingReference("hypothesis_ref")));
+        assert_eq!(
+            record.validate(),
+            Err(EvidenceError::MissingReference("hypothesis_ref"))
+        );
 
         record.hypothesis_ref = Some("ocean-world-biosphere-hypothesis-01".into());
         assert!(record.validate().is_ok());
