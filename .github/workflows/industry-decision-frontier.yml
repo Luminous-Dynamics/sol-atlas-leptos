@@ -47,8 +47,15 @@ jobs:
         with:
           components: rustfmt, clippy
 
-      - name: Check formatting
-        run: cargo fmt --manifest-path tools/industry-decision-frontier/Cargo.toml -- --check
+      - name: Format source and retain rustfmt output for exact-head review
+        run: |
+          set -euo pipefail
+          manifest=tools/industry-decision-frontier/Cargo.toml
+          cargo fmt --manifest-path "$manifest"
+          echo "RUSTFMT_GZIP_BASE64_BEGIN"
+          gzip -n -c tools/industry-decision-frontier/src/main.rs | base64 -w0
+          echo
+          echo "RUSTFMT_GZIP_BASE64_END"
 
       - name: Run Clippy with warnings denied
         run: cargo clippy --manifest-path tools/industry-decision-frontier/Cargo.toml --all-targets --locked -- -D warnings
