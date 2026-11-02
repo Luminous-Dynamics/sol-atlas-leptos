@@ -95,11 +95,20 @@ jobs:
           fixture_dir="schemas/examples/nonanticipativity-v0.1"
           positive_forecast_sha="$(sha256sum "$fixture_dir/forecast-bundle-positive.json" | awk '{print $1}')"
           negative_forecast_sha="$(sha256sum "$fixture_dir/forecast-bundle-negative.json" | awk '{print $1}')"
+          positive_root_observation_sha="$(sha256sum "$fixture_dir/observation-positive-root.json" | awk '{print $1}')"
+          positive_branch_a_observation_sha="$(sha256sum "$fixture_dir/observation-positive-scenario-a-branch.json" | awk '{print $1}')"
+          positive_branch_b_observation_sha="$(sha256sum "$fixture_dir/observation-positive-scenario-b-branch.json" | awk '{print $1}')"
+          negative_root_observation_sha="$(sha256sum "$fixture_dir/observation-negative-root.json" | awk '{print $1}')"
+          negative_branch_a_observation_sha="$(sha256sum "$fixture_dir/observation-negative-scenario-a-branch.json" | awk '{print $1}')"
+          negative_branch_b_observation_sha="$(sha256sum "$fixture_dir/observation-negative-scenario-b-branch.json" | awk '{print $1}')"
           "$auditor" \
             "$fixture_dir/nonanticipativity-positive.manifest.json" \
             target/energy-dispatch-profiled-runner/nonanticipativity-positive-receipt.json
-          jq --arg forecast_sha "$positive_forecast_sha" -e '
-            .receipt_schema == "energy-dispatch-nonanticipativity-receipt-v0.2" and
+          jq --arg forecast_sha "$positive_forecast_sha" \
+             --arg root_observation_sha "$positive_root_observation_sha" \
+             --arg branch_a_observation_sha "$positive_branch_a_observation_sha" \
+             --arg branch_b_observation_sha "$positive_branch_b_observation_sha" -e '
+            .receipt_schema == "energy-dispatch-nonanticipativity-receipt-v0.3" and
             .disposition == "accepted" and
             .scenario_set_id == "demo-nonanticipativity-branching-v0.1" and
             .scenario_count == 2 and
@@ -107,10 +116,12 @@ jobs:
             all(.scenario_bindings[];
               (.information_sets_by_interval | length == 2) and
               (.information_set_sha256_by_interval | length == 2) and
-              all(.information_sets_by_interval[];
-                .forecast_bundle_sha256 == $forecast_sha
-              )
+              .information_sets_by_interval[0].observation_bundle_sha256 == $root_observation_sha and
+              .information_sets_by_interval[0].forecast_bundle_sha256 == $forecast_sha and
+              .information_sets_by_interval[1].forecast_bundle_sha256 == $forecast_sha
             ) and
+            (.scenario_bindings[0].information_sets_by_interval[1].observation_bundle_sha256 == $branch_a_observation_sha) and
+            (.scenario_bindings[1].information_sets_by_interval[1].observation_bundle_sha256 == $branch_b_observation_sha) and
             (.scenario_bindings[0].information_set_sha256_by_interval[0] ==
               .scenario_bindings[1].information_set_sha256_by_interval[0]) and
             (.scenario_bindings[0].information_set_sha256_by_interval[1] !=
@@ -131,15 +142,20 @@ jobs:
           negative_status=$?
           set -e
           test "$negative_status" -eq 1
-          jq --arg forecast_sha "$negative_forecast_sha" -e '
-            .receipt_schema == "energy-dispatch-nonanticipativity-receipt-v0.2" and
+          jq --arg forecast_sha "$negative_forecast_sha" \
+             --arg root_observation_sha "$negative_root_observation_sha" \
+             --arg branch_a_observation_sha "$negative_branch_a_observation_sha" \
+             --arg branch_b_observation_sha "$negative_branch_b_observation_sha" -e '
+            .receipt_schema == "energy-dispatch-nonanticipativity-receipt-v0.3" and
             .disposition == "rejected" and
             all(.scenario_bindings[];
               (.information_sets_by_interval | length == 2) and
-              all(.information_sets_by_interval[];
-                .forecast_bundle_sha256 == $forecast_sha
-              )
+              .information_sets_by_interval[0].observation_bundle_sha256 == $root_observation_sha and
+              .information_sets_by_interval[0].forecast_bundle_sha256 == $forecast_sha and
+              .information_sets_by_interval[1].forecast_bundle_sha256 == $forecast_sha
             ) and
+            (.scenario_bindings[0].information_sets_by_interval[1].observation_bundle_sha256 == $branch_a_observation_sha) and
+            (.scenario_bindings[1].information_sets_by_interval[1].observation_bundle_sha256 == $branch_b_observation_sha) and
             any(.findings[];
               .predicate == "nonanticipative-dispatch-action" and
               .interval_index == 0 and
@@ -444,9 +460,12 @@ jobs:
             tools/energy-dispatch-schedule-auditor/nonanticipativity-manifest-schema-v0.2.json
             tools/energy-dispatch-schedule-auditor/forecast-bundle-schema-v0.1.json
             tools/energy-dispatch-schedule-auditor/nonanticipativity-manifest-schema-v0.2.json
+            tools/energy-dispatch-schedule-auditor/nonanticipativity-manifest-schema-v0.3.json
+            tools/energy-dispatch-schedule-auditor/observation-bundle-schema-v0.1.json
             tools/energy-dispatch-schedule-auditor/forecast-bundle-schema-v0.1.json
             tools/energy-dispatch-schedule-auditor/nonanticipativity-receipt-schema-v0.1.json
             tools/energy-dispatch-schedule-auditor/nonanticipativity-receipt-schema-v0.2.json
+            tools/energy-dispatch-schedule-auditor/nonanticipativity-receipt-schema-v0.3.json
             tools/energy-dispatch-schedule-auditor/service-floor-policy-schema-v0.1.json
             tools/energy-dispatch-schedule-auditor/service-floor-receipt-schema-v0.1.json
             tools/energy-dispatch-schedule-auditor/fixtures/energy-dispatch-pv-outage.service-floor-v0.1.json
