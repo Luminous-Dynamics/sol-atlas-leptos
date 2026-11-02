@@ -173,6 +173,50 @@ fn valid_sha256(value: &str) -> bool {
             .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
 }
 
+/// Accept only canonical UTC whole-second timestamps (YYYY-MM-DDTHH:MM:SSZ).
+/// Lexicographic ordering is chronological only after this normalization.
+fn valid_utc_timestamp(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    if bytes.len() != 20
+        || bytes[4] != b'-'
+        || bytes[7] != b'-'
+        || bytes[10] != b'T'
+        || bytes[13] != b':'
+        || bytes[16] != b':'
+        || bytes[19] != b'Z'
+    {
+        return false;
+    }
+
+    let number = |start: usize, end: usize| -> Option<u32> {
+        bytes[start..end].iter().try_fold(0u32, |value, byte| {
+            byte.is_ascii_digit()
+                .then_some(value * 10 + u32::from(byte - b'0'))
+        })
+    };
+    let Some(year) = number(0, 4) else { return false };
+    let Some(month) = number(5, 7) else { return false };
+    let Some(day) = number(8, 10) else { return false };
+    let Some(hour) = number(11, 13) else { return false };
+    let Some(minute) = number(14, 16) else { return false };
+    let Some(second) = number(17, 19) else { return false };
+
+    if year == 0 || !(1..=12).contains(&month) || !(0..=23).contains(&hour)
+        || !(0..=59).contains(&minute) || !(0..=59).contains(&second)
+    {
+        return false;
+    }
+    let leap_year = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+    let days_in_month = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if leap_year => 29,
+        2 => 28,
+        _ => return false,
+    };
+    (1..=days_in_month).contains(&day)
+}
+
 fn scope_matches(node: &Value, event_scope: &Value) -> bool {
     let Some(node_scope) = node.get("scope") else {
         return false;
@@ -393,9 +437,9 @@ fn validate_event(event: &Value, nodes: &BTreeMap<String, Value>) -> Result<(), 
         let system_time = event.get("system_time").ok_or("system_time missing")?;
         let recorded_at = required_string(system_time, "recorded_at", "system_time")?;
         let trusted_at = required_string(system_time, "trusted_at", "system_time")?;
-        if !effective_at.ends_with('Z')
-            || !recorded_at.ends_with('Z')
-            || !trusted_at.ends_with('Z')
+        if !valid_utc_timestamp(effective_at)
+            || !valid_utc_timestamp(recorded_at)
+            || !valid_utc_timestamp(trusted_at)
             || trusted_at < recorded_at
         {
             return Err(
@@ -530,7 +574,7 @@ fn validate_event_chain(
             .ok_or("event system_time is required for chain ordering")?;
         let recorded_at = required_string(system_time, "recorded_at", "event.system_time")?;
         let trusted_at = required_string(system_time, "trusted_at", "event.system_time")?;
-        if !recorded_at.ends_with('Z') || !trusted_at.ends_with('Z') {
+        if !valid_utc_timestamp(recorded_at) || !valid_utc_timestamp(trusted_at) {
             return Err(format!(
                 "authority event sequence {sequence} requires normalized UTC recorded/trusted times"
             ));
@@ -585,10 +629,16 @@ fn signed_statement_precedes_compromise(
             .and_then(Value::as_str);
         verified
             && trusted_at.is_some_and(|time| {
-                time.ends_with('Z') && effective_at.ends_with('Z') && time < effective_at
+                valid_utc_timestamp(time)
+                    && valid_utc_timestamp(effective_at)
+                    && time < effective_at
             })
-            && fresh_until.is_some_and(|time| time.ends_with('Z') && time >= evaluated_at)
-            && checked_at.is_some_and(|time| time.ends_with('Z') && time <= evaluated_at)
+            && fresh_until.is_some_and(|time| {
+                valid_utc_timestamp(time) && time >= evaluated_at
+            })
+            && checked_at.is_some_and(|time| {
+                valid_utc_timestamp(time) && time <= evaluated_at
+            })
     })
 }
 
@@ -610,14 +660,18 @@ fn build_impact_report(
         "evaluated_at",
         "expected report metadata",
     )?;
-    if !evaluated_at.ends_with('Z') {
-        return Err("impact evaluation time must be normalized UTC".into());
+    if !valid_utc_timestamp(evaluated_at) {
+        return Err("impact evaluation time must be normalized UTC whole-second RFC 3339".into());
     }
     let system_time = event
         .get("system_time")
         .ok_or("event system_time missing")?;
     let trusted_at = required_string(system_time, "trusted_at", "event.system_time")?;
-    if trusted_at > evaluated_at || effective_at > evaluated_at {
+    if !valid_utc_timestamp(trusted_at)
+        || !valid_utc_timestamp(effective_at)
+        || trusted_at > evaluated_at
+        || effective_at > evaluated_at
+    {
         return Err(
             "invalidation event was not trusted/effective at the requested evaluation time".into(),
         );
@@ -965,6 +1019,17 @@ mod tests {
         backdated["system_time"]["recorded_at"] = json!("2026-10-31T00:00:00Z");
         backdated["system_time"]["trusted_at"] = json!("2026-10-31T00:00:00Z");
         assert!(validate_event_chain(&[first, backdated], &nodes).is_err());
+    }
+
+    #[test]
+    fn only_canonical_utc_whole_second_timestamps_are_orderable() {
+        assert!(valid_utc_timestamp("2026-11-02T21:29:00Z"));
+        assert!(valid_utc_timestamp("2024-02-29T23:59:59Z"));
+        assert!(!valid_utc_timestamp("2026-02-29T00:00:00Z"));
+        assert!(!valid_utc_timestamp("2026-11-02T24:00:00Z"));
+        assert!(!valid_utc_timestamp("2026-11-02T21:29:00+00:00"));
+        assert!(!valid_utc_timestamp("2026-11-02T21:29:00.1Z"));
+        assert!(!valid_utc_timestamp("2026-13-01T00:00:00Z"));
     }
 
     #[test]
