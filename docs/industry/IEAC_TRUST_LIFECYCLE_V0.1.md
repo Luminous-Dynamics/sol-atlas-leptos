@@ -218,3 +218,9 @@ The auditor now includes an in-memory batch verifier for authority invalidation 
 Exact duplicate replay of the same event ID, sequence and canonical content is idempotent. A different event at an already-used sequence, a reused ID with different content, a gap, a broken predecessor digest or backwards recorded/trusted time is rejected before impact classification. Tests cover out-of-order delivery, exact replay, conflicting same-sequence events, ID reuse, sequence gaps, bad predecessors and time rollback.
 
 This is only an in-memory chain consistency check over supplied events. It does not authenticate the issuer signature, revoker authority, trusted timestamp proof, or persist a monotonic high-water mark across process restart. Durable anti-rollback storage and concurrent/crash-recovery behavior remain explicit follow-on work.
+
+## 9.3 Canonical UTC time ordering
+
+Event-chain ordering now accepts only canonical whole-second UTC timestamps in `YYYY-MM-DDTHH:MM:SSZ` form. The parser validates separators, digits, hour/minute/second ranges, calendar day ranges and leap years before lexical ordering is used. This intentionally excludes offsets and fractional seconds in v0.1 so two accepted timestamps have one representation and lexical order matches chronological order. A broader timestamp representation would require a canonical conversion layer before comparison.
+
+Regression cases cover valid leap-day values, impossible calendar dates, hour overflow, offsets, fractional seconds and invalid months.
