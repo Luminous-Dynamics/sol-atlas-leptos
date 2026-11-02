@@ -36,8 +36,20 @@
       "role_name": "ieac-channel-checkpoints",
       "version": 7,
       "metadata_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "role_name": "ieac-channel-completeness-attestations",
+      "version": 1,
+      "metadata_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    {
+      "role_name": "ieac-channel-completeness-reports",
+      "version": 1,
+      "metadata_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
     }
   ],
   "manifest_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-  "checkpoint_state_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "checkpoint_state_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "completeness_attestation_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "availability_report_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
 }
