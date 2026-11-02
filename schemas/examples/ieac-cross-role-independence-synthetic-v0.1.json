@@ -417,7 +417,8 @@
               "different_cloud_account",
               "different_control_plane",
               "different_break_glass_authority",
-              "disjoint_ccf_dependency_closure"
+              "disjoint_ccf_dependency_closure",
+              "different_ci_release_pipeline"
             ],
             "minimum_independent_sources": 1,
             "mandatory": true
@@ -903,7 +904,8 @@
               "different_cloud_account",
               "different_control_plane",
               "different_break_glass_authority",
-              "disjoint_ccf_dependency_closure"
+              "disjoint_ccf_dependency_closure",
+              "different_ci_release_pipeline"
             ],
             "minimum_independent_sources": 1,
             "mandatory": true
