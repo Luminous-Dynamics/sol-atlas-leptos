@@ -273,6 +273,42 @@ jobs:
               if (NR != 5 || length(seen) != 4) exit 1
             }
           ' target/energy-dispatch-profiled-runner/v0.3/trace-summary.csv
+          awk -F, '
+            BEGIN {
+              expected["battery-only-outage-backup"] = 1
+              expected["nominal-pv-charge-outage"] = 1
+              expected["demand-surge-outage"] = 0
+              expected["pv-derate-islanded"] = 0
+            }
+            NR > 1 {
+              scenarios += 1
+              samples += $3
+              audit_accepted += $16
+              floor_passed += $20
+              floor_failed += $21
+              decision_ready += $24
+              if (expected[$1] == 1) {
+                false_alarm += $21
+              } else {
+                false_safe += $20
+              }
+            }
+            END {
+              printf "{\n  \"scenario_count\": %d,\n  \"sample_count\": %d,\n  \"accepted_schedule_audits\": %d,\n  \"service_floor_passed_runs\": %d,\n  \"service_floor_failed_runs\": %d,\n  \"decision_ready_runs\": %d,\n  \"false_safe_runs\": %d,\n  \"false_alarm_runs\": %d\n}\n", scenarios, samples, audit_accepted, floor_passed, floor_failed, decision_ready, false_safe, false_alarm
+              if (scenarios != 4 || samples != 80 || audit_accepted != 80 || floor_passed != 40 || floor_failed != 40 || decision_ready != 40 || false_safe != 0 || false_alarm != 0) exit 1
+            }
+          ' target/energy-dispatch-profiled-runner/v0.3/trace-summary.csv \
+            > target/energy-dispatch-profiled-runner/v0.3/scenario-panel-rollup.json
+          jq -e '
+            .scenario_count == 4 and
+            .sample_count == 80 and
+            .accepted_schedule_audits == 80 and
+            .service_floor_passed_runs == 40 and
+            .service_floor_failed_runs == 40 and
+            .decision_ready_runs == 40 and
+            .false_safe_runs == 0 and
+            .false_alarm_runs == 0
+          ' target/energy-dispatch-profiled-runner/v0.3/scenario-panel-rollup.json
           cat target/energy-dispatch-profiled-runner/v0.3/trace-summary.csv
       - name: Capture source, fixture and runner provenance
         run: |
