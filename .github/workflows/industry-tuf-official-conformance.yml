@@ -1,0 +1,59 @@
+name: Official TUF client conformance
+
+on:
+  pull_request:
+    paths:
+      - "tools/industry-tuf-inprocess-verifier/Cargo.toml"
+      - "tools/industry-tuf-inprocess-verifier/Cargo.lock"
+      - "tools/industry-tuf-inprocess-verifier/src/**"
+      - "tools/industry-tuf-inprocess-verifier/THIRD_PARTY_NOTICES.md"
+      - ".github/workflows/industry-tuf-official-conformance.yml"
+  push:
+    branches: [main]
+    paths:
+      - "tools/industry-tuf-inprocess-verifier/Cargo.toml"
+      - "tools/industry-tuf-inprocess-verifier/Cargo.lock"
+      - "tools/industry-tuf-inprocess-verifier/src/**"
+      - ".github/workflows/industry-tuf-official-conformance.yml"
+  schedule:
+    - cron: "30 6 * * 3"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tuf-official-conformance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  official-conformance:
+    name: TUF official 119-vector client conformance
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact source revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build pinned sigstore-tuf CLI adapter
+        run: |
+          set -euo pipefail
+          cargo build --manifest-path tools/industry-tuf-inprocess-verifier/Cargo.toml \
+            --locked --bin tuf-conformance-client
+          test -x target/debug/tuf-conformance-client
+
+      - name: Run official TUF conformance suite
+        uses: theupdateframework/tuf-conformance@8535468cf76f5395a579809c4e72ca5698a2a1cd
+        with:
+          entrypoint: ${{ github.workspace }}/target/debug/tuf-conformance-client
+          artifact-name: sigstore-tuf-0.15.1-ieac-${{ github.event.pull_request.head.sha || github.sha }}
+

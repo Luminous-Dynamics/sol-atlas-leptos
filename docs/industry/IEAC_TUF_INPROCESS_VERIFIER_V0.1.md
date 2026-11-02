@@ -106,7 +106,20 @@ The report explicitly states:
 
 A signed evidence bundle / independent offline verifier and an authenticated monotonic high-water store remain follow-on work under #441.
 
-## 9. Claim ceiling
+## 9. Official TUF conformance
+
+A second binary, `tuf-conformance-client`, implements the official TUF client-under-test CLI protocol:
+- `init` seeds a trusted `root.json` without contacting the repository;
+- `refresh` performs the TUF metadata refresh and persists canonical non-versioned trusted metadata files;
+- `download` refreshes first, processes repeatable targets in argument order, resolves delegated roles through one updater instance, verifies downloaded bytes and caches matching target files.
+
+The adapter is adapted from `sigstore-rust`'s Apache-2.0 `conformance_client.rs` example. Attribution and the upstream licence are preserved in `THIRD_PARTY_NOTICES.md` and `LICENSE-APACHE-2.0`.
+
+Exact-head CI invokes the upstream `theupdateframework/tuf-conformance` action pinned to commit `8535468cf76f5395a579809c4e72ca5698a2a1cd`. A weekly scheduled run keeps the result current. The promotion target is the public suite's full 119/119 vectors, zero failures and zero skips/xfails. Any unsupported vector must be explicitly justified and agreed; no broad xfail file is added by default.
+
+The public dashboard snapshot dated 2026-11-01 reports `sigstore-rust` and `python-tuf` at 119/119 (100%), with `go-tuf` and `tuf-js` at 116/119 (97%). This gives a concrete external baseline. The official conformance score measures TUF implementation compatibility only; it does not measure IEAC policy, channel completeness, clock authenticity, high-water durability or source truth. <Cite refs={["turn790017view0","turn289553search5"]} />
+
+## 10. Claim ceiling
 
 A `cryptographically_verified` report from this package means the pinned `sigstore-tuf` implementation verified the metadata chain, signatures/thresholds, expiry/version relationships and delegation path under the supplied out-of-band root, and that the returned target bytes match authenticated length/hash metadata.
 
