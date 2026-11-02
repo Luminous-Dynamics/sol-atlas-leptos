@@ -1117,6 +1117,55 @@ mod tests {
     }
 
     #[test]
+    fn every_pairwise_failure_family_applies_both_mutations_and_exact_reasons() {
+        for (family, expected_admission, expected_reasons, negative) in FAMILIES
+            .iter()
+            .filter(|(family, _, _, _)| family.contains("_plus_"))
+        {
+            assert!(*negative, "{family} must be a negative control");
+            let mut profile = read_fixture(
+                "schemas/examples/industry-runtime-admission-profile-synthetic-v0.1.json",
+            )
+            .unwrap();
+            let mut pin =
+                read_fixture("schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json")
+                    .unwrap();
+            let mut request = read_fixture(
+                "schemas/examples/industry-runtime-admission-request-synthetic-v0.1.json",
+            )
+            .unwrap();
+            build_vertical_fixture(
+                "industrial_maintenance",
+                &mut profile,
+                &mut pin,
+                &mut request,
+            )
+            .unwrap();
+
+            let mut rng = Rng::new(0x2026_1031);
+            apply_family(
+                family,
+                0,
+                &mut rng,
+                &mut profile,
+                &mut pin,
+                &mut request,
+            );
+            let report = evaluate_admission(&profile, &pin, &request);
+            assert_eq!(
+                report["admission"].as_str(),
+                Some(*expected_admission),
+                "{family}: unexpected admission disposition"
+            );
+            assert!(
+                reason_codes_match(&report, expected_reasons),
+                "{family}: expected exact reason codes {expected_reasons:?}, observed {:?}",
+                report["reason_codes"]
+            );
+        }
+    }
+
+    #[test]
     fn splitmix_seed_replays_exactly() {
         let mut left = Rng::new(0x2026_1031);
         let mut right = Rng::new(0x2026_1031);
