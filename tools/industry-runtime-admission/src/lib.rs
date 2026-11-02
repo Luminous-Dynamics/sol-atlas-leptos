@@ -301,27 +301,27 @@ fn validate_schema_subset(instance: &Value, schema: &Value, path: &str, out: &mu
         }
     }
 
-    if let Some(constant) = schema.get("const") {
-        if instance != constant {
-            out.insert(format!("WIRE_CONST_MISMATCH:{path}"));
-        }
+    if let Some(constant) = schema.get("const")
+        && instance != constant
+    {
+        out.insert(format!("WIRE_CONST_MISMATCH:{path}"));
     }
-    if let Some(values) = schema.get("enum").and_then(Value::as_array) {
-        if !values.contains(instance) {
-            out.insert(format!("WIRE_ENUM_MISMATCH:{path}"));
-        }
+    if let Some(values) = schema.get("enum").and_then(Value::as_array)
+        && !values.contains(instance)
+    {
+        out.insert(format!("WIRE_ENUM_MISMATCH:{path}"));
     }
 
     if let Some(text) = instance.as_str() {
-        if let Some(minimum) = schema.get("minLength").and_then(Value::as_u64) {
-            if text.chars().count() < minimum as usize {
-                out.insert(format!("WIRE_STRING_TOO_SHORT:{path}"));
-            }
+        if let Some(minimum) = schema.get("minLength").and_then(Value::as_u64)
+            && text.chars().count() < minimum as usize
+        {
+            out.insert(format!("WIRE_STRING_TOO_SHORT:{path}"));
         }
-        if let Some(maximum) = schema.get("maxLength").and_then(Value::as_u64) {
-            if text.chars().count() > maximum as usize {
-                out.insert(format!("WIRE_STRING_TOO_LONG:{path}"));
-            }
+        if let Some(maximum) = schema.get("maxLength").and_then(Value::as_u64)
+            && text.chars().count() > maximum as usize
+        {
+            out.insert(format!("WIRE_STRING_TOO_LONG:{path}"));
         }
         if let Some(pattern) = schema.get("pattern").and_then(Value::as_str) {
             let valid = if pattern.contains("[0-9a-fA-F]{64}") {
@@ -342,15 +342,15 @@ fn validate_schema_subset(instance: &Value, schema: &Value, path: &str, out: &mu
         }
     }
 
-    if let Some(minimum) = schema.get("minimum").and_then(Value::as_f64) {
-        if instance.as_f64().is_some_and(|value| value < minimum) {
-            out.insert(format!("WIRE_NUMBER_BELOW_MINIMUM:{path}"));
-        }
+    if let Some(minimum) = schema.get("minimum").and_then(Value::as_f64)
+        && instance.as_f64().is_some_and(|value| value < minimum)
+    {
+        out.insert(format!("WIRE_NUMBER_BELOW_MINIMUM:{path}"));
     }
-    if let Some(minimum) = schema.get("minItems").and_then(Value::as_u64) {
-        if instance.as_array().is_some_and(|items| items.len() < minimum as usize) {
-            out.insert(format!("WIRE_ARRAY_TOO_SHORT:{path}"));
-        }
+    if let Some(minimum) = schema.get("minItems").and_then(Value::as_u64)
+        && instance.as_array().is_some_and(|items| items.len() < minimum as usize)
+    {
+        out.insert(format!("WIRE_ARRAY_TOO_SHORT:{path}"));
     }
 
     if let Some(object) = instance.as_object() {
@@ -361,12 +361,12 @@ fn validate_schema_subset(instance: &Value, schema: &Value, path: &str, out: &mu
                 }
             }
         }
-        if schema.get("additionalProperties") == Some(&Value::Bool(false)) {
-            if let Some(properties) = schema.get("properties").and_then(Value::as_object) {
-                for key in object.keys() {
-                    if !properties.contains_key(key) {
-                        out.insert(format!("WIRE_UNKNOWN_PROPERTY:{path}/{key}"));
-                    }
+        if schema.get("additionalProperties") == Some(&Value::Bool(false))
+            && let Some(properties) = schema.get("properties").and_then(Value::as_object)
+        {
+            for key in object.keys() {
+                if !properties.contains_key(key) {
+                    out.insert(format!("WIRE_UNKNOWN_PROPERTY:{path}/{key}"));
                 }
             }
         }
@@ -1239,12 +1239,11 @@ pub fn independent_check(profile: &Value, profile_pin: &Value, request: &Value, 
     if report.get("report_sha256").is_some() && !report_digest_is_valid(report) {
         failures.push("REPORT_DIGEST_MISMATCH".to_owned());
     }
-    if let Some(checker) = report.get("independent_checker") {
-        if checker.get("status").and_then(Value::as_str) != Some("passed")
-            || checker.get("errors").and_then(Value::as_array).is_none_or(|items| !items.is_empty())
-        {
-            failures.push("REPORT_CHECKER_ATTESTATION_INVALID".to_owned());
-        }
+    if let Some(checker) = report.get("independent_checker")
+        && (checker.get("status").and_then(Value::as_str) != Some("passed")
+            || checker.get("errors").and_then(Value::as_array).is_none_or(|items| !items.is_empty()))
+    {
+        failures.push("REPORT_CHECKER_ATTESTATION_INVALID".to_owned());
     }
     if report.get("schema_version").and_then(Value::as_str)
         != Some("luminous.ieac-runtime-admission-report.v0.1")
