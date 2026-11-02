@@ -5,7 +5,7 @@
 //! search completeness, audit disposition and service-floor qualification as
 //! separate facts. It deliberately does not infer actuation authority.
 
-use super::{MeasurementClass, P50_MIN_SAMPLES, P95_MIN_SAMPLES, P99_MIN_SAMPLES};
+use super::{MeasurementClass, P50_MIN_SAMPLES, P95_MIN_SAMPLES};
 use std::collections::BTreeMap;
 
 pub const TRACE_V03_SCHEMA: &str = "energy-solver-compute-trace-v0.3";
