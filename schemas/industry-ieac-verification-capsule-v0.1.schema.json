@@ -21,7 +21,8 @@
     "file_inventory",
     "file_inventory_sha256",
     "claim_ceiling",
-    "action_authority"
+    "action_authority",
+    "policy_file_path"
   ],
   "properties": {
     "schema_version": {
@@ -323,9 +324,7 @@
             "properties": {
               "scheme": {
                 "enum": [
-                  "file",
-                  "cas",
-                  "https"
+                  "cas"
                 ]
               },
               "locator": {
@@ -465,6 +464,12 @@
     },
     "action_authority": {
       "const": "none"
+    },
+    "policy_file_path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?/)(?!.*[\\\\?#])[^\\\\?#]+$"
     }
   },
   "allOf": [
