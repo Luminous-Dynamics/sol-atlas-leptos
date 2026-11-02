@@ -98,7 +98,7 @@ jobs:
           pin=schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json
           request=schemas/examples/industry-runtime-admission-request-synthetic-v0.1.json
           report="$RUNNER_TEMP/runtime-admission-report.json"
-          cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked -- "$profile" "$pin" "$request" "$report"
+          cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked --bin industry-runtime-admission -- "$profile" "$pin" "$request" "$report"
           jq -e '
             .schema_version == "luminous.ieac-runtime-admission-report.v0.1" and
             .admission == "admit_descriptive" and
