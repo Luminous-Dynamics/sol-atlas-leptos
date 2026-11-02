@@ -78,6 +78,8 @@ struct VerificationReport {
     metadata_cache: &'static str,
     persistent_high_water: &'static str,
     claim_ceiling: &'static str,
+    report_authentication: &'static str,
+    standalone_admission_proof: &'static str,
     action_authority: &'static str,
 }
 
@@ -206,6 +208,15 @@ fn write_new_report(path: &Path, report: &VerificationReport) -> Result<(), Stri
 }
 
 async fn verify_repository(request: VerificationRequest) -> Result<VerificationReport, String> {
+    let root_metadata = fs::metadata(&request.bootstrap_root_path).map_err(|error| {
+        format!(
+            "cannot inspect out-of-band bootstrap root {}: {error}",
+            request.bootstrap_root_path.display()
+        )
+    })?;
+    if !root_metadata.is_file() || root_metadata.len() > 512_000 {
+        return Err("bootstrap root must be a regular file no larger than 512000 bytes".to_string());
+    }
     let root_metadata = fs::metadata(&request.bootstrap_root_path).map_err(|error| {
         format!(
             "cannot inspect out-of-band bootstrap root {}: {error}",
@@ -370,6 +381,8 @@ async fn verify_repository(request: VerificationRequest) -> Result<VerificationR
         metadata_cache: "sigstore_tuf_file_store_reverified_from_pinned_bootstrap_root",
         persistent_high_water: "not_managed_by_this_binary",
         claim_ceiling: "tuf_metadata_signatures_thresholds_expiry_rollback_delegation_and_target_integrity_only",
+        report_authentication: "unsigned_audit_output",
+        standalone_admission_proof: "no_requires_reverification_or_authenticated_binding_before_offline_admission",
         action_authority: "none",
     })
 }
