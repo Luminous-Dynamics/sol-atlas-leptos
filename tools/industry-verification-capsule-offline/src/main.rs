@@ -202,6 +202,9 @@ struct AuditReport {
     tufs_evaluation_time_upper_bound: String,
     tuf_implementation: &'static str,
     metadata_verification: &'static str,
+    clock_verification: &'static str,
+    policy_evaluation: &'static str,
+    ieac_domain_checks: &'static str,
     targets: Vec<TargetResult>,
     unsigned_report: bool,
     claim_ceiling: &'static str,
@@ -859,6 +862,13 @@ async fn audit_capsule(
     if trust_pin_canonical.starts_with(&capsule_canonical) {
         return Err("out-of-band trust pin must be stored outside the untrusted capsule".to_string());
     }
+    if let Some(root) = &cas_root {
+        let cas_canonical = fs::canonicalize(root)
+            .map_err(|error| format!("cannot canonicalize local CAS root: {error}"))?;
+        if cas_canonical.starts_with(&capsule_canonical) {
+            return Err("local CAS root must be outside the untrusted capsule directory".to_string());
+        }
+    }
     let manifest_path = capsule_root.join(MANIFEST_FILE);
     let manifest_bytes = read_regular_file(&manifest_path, 8 * 1024 * 1024)?;
     let manifest: Manifest = serde_json::from_slice(&manifest_bytes)
@@ -1011,6 +1021,9 @@ async fn audit_capsule(
         tufs_evaluation_time_upper_bound: eval_upper.to_string(),
         tuf_implementation: "sigstore-tuf/0.15.1",
         metadata_verification: "verified_in_process_offline_from_pinned_root",
+        clock_verification: "not_performed_identity_pins_only",
+        policy_evaluation: "not_performed_policy_digest_binding_only",
+        ieac_domain_checks: "not_performed",
         targets: target_results,
         unsigned_report: true,
         claim_ceiling: "included_signed_tuf_metadata_and_replayed_target_byte_integrity_only",
@@ -1040,7 +1053,12 @@ async fn run() -> Result<(), String> {
     let trust_pin = Path::new(&args[1]);
     let report_path = Path::new(&args[2]);
     let cas_root = args.get(3).map(PathBuf::from);
-    if report_path.starts_with(capsule_root) {
+    let capsule_canonical = fs::canonicalize(capsule_root)
+        .map_err(|error| format!("cannot canonicalize capsule root: {error}"))?;
+    let report_parent = report_path.parent().filter(|path| !path.as_os_str().is_empty()).unwrap_or(Path::new("."));
+    let report_parent_canonical = fs::canonicalize(report_parent)
+        .map_err(|error| format!("cannot canonicalize audit report parent: {error}"))?;
+    if report_parent_canonical.starts_with(&capsule_canonical) {
         return Err("audit report destination must be outside the untrusted capsule directory".to_string());
     }
     let report = audit_capsule(capsule_root, trust_pin, cas_root).await?;
