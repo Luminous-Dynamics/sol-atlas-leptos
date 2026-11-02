@@ -1123,16 +1123,17 @@ mod tests {
             .filter(|(family, _, _, _)| family.contains("_plus_"))
         {
             assert!(*negative, "{family} must be a negative control");
-            let mut profile = read_fixture(
-                "schemas/examples/industry-runtime-admission-profile-synthetic-v0.1.json",
-            )
+            let mut profile: Value = serde_json::from_str(include_str!(
+                "../../../../schemas/examples/industry-runtime-admission-profile-synthetic-v0.1.json"
+            ))
             .unwrap();
-            let mut pin =
-                read_fixture("schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json")
-                    .unwrap();
-            let mut request = read_fixture(
-                "schemas/examples/industry-runtime-admission-request-synthetic-v0.1.json",
-            )
+            let mut pin: Value = serde_json::from_str(include_str!(
+                "../../../../schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json"
+            ))
+            .unwrap();
+            let mut request: Value = serde_json::from_str(include_str!(
+                "../../../../schemas/examples/industry-runtime-admission-request-synthetic-v0.1.json"
+            ))
             .unwrap();
             build_vertical_fixture(
                 "industrial_maintenance",
