@@ -106,3 +106,26 @@ References:
 ## Claim ceiling
 
 A passing finite shield/reference panel establishes only agreement for the exact finite model, state/action set and predicates. It does not establish physical completeness, real-plant stability, sensor accuracy, electrochemical safety, field reliability, standards conformity, grid-code approval or permission to actuate equipment. HIL, commissioning and field trials are separate evidence layers.
+
+## Current industry research comparators (2026)
+
+The first finite SOC shield is a reference layer, not a direct replacement for converter-level safety controllers. The next matched comparisons should include:
+
+- **Proximal-reserve control-barrier functions:** a June 2026 *IEEE Transactions on Industrial Informatics* paper reports a distributed nominal controller plus proximal-reserve CBF safety layer, with forward-invariance, closed-loop stability and recursive feasibility analysis, validated by HIL on a four-dispatch-unit autonomous DC microgrid (DOI: https://doi.org/10.1109/TII.2026.3659902). Once our physical model includes voltage/current/converter states, compare transient constraint violations, chattering, recovery and computation on the same plant model. Our present SOC-only shield cannot claim those properties.
+- **Attack-resilient distributed secondary control:** a May 2026 *Applied Energy* study combines deception-attack resilience, event-triggered communication and converter-level large-signal modeling with HIL validation (DOI: https://doi.org/10.1016/j.apenergy.2026.127521). Expand future threat panels to message replay, spoofed observations, delay/loss, clock skew and common-mode communications faults; do not claim that simple freshness checks reproduce that controller.
+- **Learning-enhanced stochastic MPC:** an *Applied Energy* paper dated November 1, 2026 reports a learning-enhanced stochastic MPC framework for resilient multi-energy microgrids, including cases with 30% battery capacity loss and a reported approximately 40% forecasting-error reduction against its selected baselines (DOI: https://doi.org/10.1016/j.apenergy.2026.128321). These results are specific to the paper's data/model/baselines and have not been reproduced here. A fair comparison needs matched forecasts, degradation assumptions, physical models, horizons and operational objectives.
+
+Testing references:
+- [IEC TS 62898-3-5:2026](https://webstore.iec.ch/en/publication/84175), published June 11, 2026, specifies HIL, commissioning and periodic testing of microgrid monitoring/control/energy-management systems.
+- [IEEE P2030.8](https://standards.ieee.org/ieee/2030.8/12543/) is an active PAR approved March 26, 2026, proposing procedures to compare common microgrid-controller functions. It is not yet a published standard. Obtain the normative/official documents before claiming conformity.
+
+## Promotion ladder
+
+1. Finite software reference with exhaustive differential tests for all admitted/rejected state/action tuples and uncertainty-envelope boundaries.
+2. Dynamic simulator with voltage/current, inverter saturation, line/network constraints, disturbance sets and model mismatch; compare against proximal-reserve CBF and robust MPC on identical equations.
+3. Cyber-resilience simulation with replay, spoofing, deception, delay/loss, clock skew, event-triggered updates and common-source compromise.
+4. HIL measuring transient limit violations, settling/recovery, command-to-effect mismatch, replan/fallback latency, false-safe admissions and false rejects.
+5. Commissioning/periodic tests only with equipment owners and applicable utility/safety processes.
+
+No step may be skipped based on a software-only pass. The finite SOC proof remains conditional on its declared model and uncertainty set.
+
