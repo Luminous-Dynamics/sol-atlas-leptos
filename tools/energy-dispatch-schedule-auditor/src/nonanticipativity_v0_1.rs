@@ -70,7 +70,7 @@ pub struct NonAnticipativityFindingV1 {
     pub predicate: String,
     pub interval_index: Option<usize>,
     pub information_set_sha256: Option<String>,
-    pub observation_prefix_sha256: Option<String>,
+    pub observation_history_sha256: Option<String>,
     pub scenario_ids: Vec<String>,
     pub passed: bool,
     pub detail: String,
@@ -303,7 +303,7 @@ struct ParsedScenario {
     request: SourceRequest,
     schedule: DispatchSchedule,
     information_sets_by_interval: Vec<NonAnticipativityInformationSetV1>,
-    observation_prefix_sha256_by_interval: Vec<String>,
+    observation_history_sha256_by_interval: Vec<String>,
     information_set_sha256_by_interval: Vec<String>,
     domain_valid: bool,
     domain_failure_detail: String,
@@ -322,7 +322,7 @@ fn add_finding(
     predicate: &str,
     interval_index: Option<usize>,
     information_set_sha256: Option<String>,
-    observation_prefix_sha256: Option<String>,
+    observation_history_sha256: Option<String>,
     scenario_ids: Vec<String>,
     passed: bool,
     detail: impl Into<String>,
@@ -331,7 +331,7 @@ fn add_finding(
         predicate: predicate.to_owned(),
         interval_index,
         information_set_sha256,
-        observation_prefix_sha256,
+        observation_history_sha256,
         scenario_ids,
         passed,
         detail: detail.into(),
@@ -401,24 +401,29 @@ pub fn evaluate_nonanticipativity_bytes(
                  per source interval",
             ));
         }
-        let information_set_material = source
-            .information_sets_by_interval
-            .iter()
-            .enumerate()
-            .map(|(interval_index, information_set)| {
-                derive_information_set_sha256(
-                    scenario_set_id,
-                    &request,
-                    interval_index,
-                    information_set,
-                )
-            })
-            .collect::<Result<Vec<_>, _>>()?;
+        let mut information_set_material = Vec::with_capacity(
+            source.information_sets_by_interval.len(),
+        );
+        let mut previous_history_sha256 =
+            sha256(b"energy-dispatch-observation-history-root-v0.1");
+        for (interval_index, information_set) in
+            source.information_sets_by_interval.iter().enumerate()
+        {
+            let material = derive_information_set_sha256(
+                scenario_set_id,
+                &request,
+                interval_index,
+                &previous_history_sha256,
+                information_set,
+            )?;
+            previous_history_sha256 = material.1.clone();
+            information_set_material.push(material);
+        }
         let information_sets_by_interval = information_set_material
             .iter()
             .map(|(information_set, _, _)| information_set.clone())
             .collect::<Vec<_>>();
-        let observation_prefix_sha256_by_interval = information_set_material
+        let observation_history_sha256_by_interval = information_set_material
             .iter()
             .map(|(_, observation_digest, _)| observation_digest.clone())
             .collect::<Vec<_>>();
@@ -459,7 +464,7 @@ pub fn evaluate_nonanticipativity_bytes(
             request,
             schedule,
             information_sets_by_interval,
-            observation_prefix_sha256_by_interval,
+            observation_history_sha256_by_interval,
             information_set_sha256_by_interval,
             domain_valid,
             domain_failure_detail,
@@ -550,17 +555,17 @@ pub fn evaluate_nonanticipativity_bytes(
     // must be presented to every scenario with the same observed history.
     let mut observation_groups = BTreeMap::<(usize, String), Vec<usize>>::new();
     for (scenario_index, scenario) in parsed.iter().enumerate() {
-        for (interval_index, observation_prefix_sha256) in
-            scenario.observation_prefix_sha256_by_interval.iter().enumerate()
+        for (interval_index, observation_history_sha256) in
+            scenario.observation_history_sha256_by_interval.iter().enumerate()
         {
             observation_groups
-                .entry((interval_index, observation_prefix_sha256.clone()))
+                .entry((interval_index, observation_history_sha256.clone()))
                 .or_default()
                 .push(scenario_index);
         }
     }
 
-    for ((interval_index, observation_prefix_sha256), members) in observation_groups {
+    for ((interval_index, observation_history_sha256), members) in observation_groups {
         if members.len() < 2 {
             continue;
         }
@@ -580,7 +585,7 @@ pub fn evaluate_nonanticipativity_bytes(
             "shared-observation-forecast-bundle-consistency",
             Some(interval_index),
             Some(first.information_set_sha256_by_interval[interval_index].clone()),
-            Some(observation_prefix_sha256),
+            Some(observation_history_sha256),
             scenario_ids,
             forecast_consistent,
             if forecast_consistent {
@@ -617,12 +622,12 @@ pub fn evaluate_nonanticipativity_bytes(
             .ok_or_else(|| audit_error("action comparison count overflow"))?;
 
         let first = &parsed[members[0]];
-        let observation_prefix = &first.request.intervals[..=interval_index];
-        let observation_prefix_bytes = serde_json::to_vec(observation_prefix)
+        let observation_history = &first.request.intervals[..=interval_index];
+        let observation_history_bytes = serde_json::to_vec(observation_history)
             .map_err(|error| audit_error(format!("serialize observation prefix: {error}")))?;
-        let observation_prefix_sha256 = sha256(&observation_prefix_bytes);
-        let observation_prefix_equal = members.iter().skip(1).all(|member| {
-            &parsed[*member].request.intervals[..=interval_index] == observation_prefix
+        let observation_history_sha256 = sha256(&observation_history_bytes);
+        let observation_history_equal = members.iter().skip(1).all(|member| {
+            &parsed[*member].request.intervals[..=interval_index] == observation_history
         });
         let first_action =
             DispatchActionV1::from(&first.schedule.interval_dispatches[interval_index]);
@@ -642,10 +647,10 @@ pub fn evaluate_nonanticipativity_bytes(
             "shared-information-set-observation-prefix",
             Some(interval_index),
             Some(information_set_sha256.clone()),
-            Some(observation_prefix_sha256),
+            Some(observation_history_sha256),
             scenario_ids.clone(),
-            observation_prefix_equal,
-            if observation_prefix_equal {
+            observation_history_equal,
+            if observation_history_equal {
                 "scenarios sharing this information set have identical declared \
                  exogenous observation prefixes"
             } else {
