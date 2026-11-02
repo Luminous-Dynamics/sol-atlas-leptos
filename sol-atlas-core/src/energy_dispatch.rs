@@ -184,8 +184,9 @@ pub struct EnergyDispatchAnytimeAssessment {
     pub search_complete: bool,
     pub optimality_proven: bool,
     pub enumeration_prefix_visits: u64,
-    /// Monotonic elapsed nanoseconds from search start to materializing the
-    /// first complete horizon trajectory. None means no complete candidate.
+    /// Host-monotonic elapsed nanoseconds from search start to materializing
+    /// the first complete horizon trajectory. None means no complete candidate
+    /// or the target does not expose a supported monotonic clock (e.g. WASM).
     pub time_to_first_complete_candidate_ns: Option<u64>,
     pub configured_expansion_limit: u64,
     pub feasible_complete_schedules: u64,
@@ -345,7 +346,7 @@ struct ExactSearch<'a> {
     feasible_complete_schedules: u64,
     frontier: Vec<DispatchParetoAlternative>,
     best_incumbent: Option<DispatchParetoAlternative>,
-    search_started_at: Instant,
+    search_started_at: Option<Instant>,
     time_to_first_complete_candidate_ns: Option<u64>,
 }
 
@@ -382,13 +383,15 @@ impl<'a> ExactSearch<'a> {
         };
 
         if self.time_to_first_complete_candidate_ns.is_none() {
-            self.time_to_first_complete_candidate_ns = Some(
-                u64::try_from(self.search_started_at.elapsed().as_nanos()).map_err(|_| {
-                    EnergyDispatchError::ArithmeticOverflow {
-                        context: "first-complete-candidate elapsed nanoseconds".to_owned(),
-                    }
-                })?,
-            );
+            if let Some(search_started_at) = self.search_started_at {
+                self.time_to_first_complete_candidate_ns = Some(
+                    u64::try_from(search_started_at.elapsed().as_nanos()).map_err(|_| {
+                        EnergyDispatchError::ArithmeticOverflow {
+                            context: "first-complete-candidate elapsed nanoseconds".to_owned(),
+                        }
+                    })?,
+                );
+            }
         }
 
         // Keep the best complete trajectory separately. Frontier insertion can
@@ -635,6 +638,16 @@ fn validate_energy_dispatch_request(
     Ok(())
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+fn monotonic_search_start() -> Option<Instant> {
+    Some(Instant::now())
+}
+
+#[cfg(target_arch = "wasm32")]
+fn monotonic_search_start() -> Option<Instant> {
+    None
+}
+
 fn run_energy_dispatch_search(
     request: &EnergyDispatchRequest,
 ) -> Result<(ExactSearch<'_>, EnergyDispatchAnytimeStopReason), EnergyDispatchError> {
@@ -646,7 +659,7 @@ fn run_energy_dispatch_search(
         feasible_complete_schedules: 0,
         frontier: Vec::new(),
         best_incumbent: None,
-        search_started_at: Instant::now(),
+        search_started_at: monotonic_search_start(),
         time_to_first_complete_candidate_ns: None,
     };
     let mut path = Vec::with_capacity(request.intervals.len());
