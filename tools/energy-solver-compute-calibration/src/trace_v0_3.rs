@@ -593,6 +593,7 @@ pub fn parse_trace_row_v03(line: &str) -> Result<SolverTraceV03, TraceV03Error> 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TraceSummaryV03 {
     pub cohort_id: String,
+    pub scenario_id: String,
     pub sample_count: usize,
     pub exact_complete_count: usize,
     pub feasible_unproven_count: usize,
@@ -648,9 +649,10 @@ struct CohortV03Key {
 }
 
 pub fn summarize_traces_v03(records: &[SolverTraceV03]) -> Result<Vec<TraceSummaryV03>, TraceV03Error> {
-    let mut groups = BTreeMap::<CohortV03Key, Vec<&SolverTraceV03>>::new();
+    let mut groups =
+        BTreeMap::<(CohortV03Key, String), Vec<&SolverTraceV03>>::new();
     let mut seen =
-        BTreeMap::<CohortV03Key, BTreeMap<String, SolverTraceV03>>::new();
+        BTreeMap::<(CohortV03Key, String), BTreeMap<String, SolverTraceV03>>::new();
     let mut cohort_identity_by_id = BTreeMap::<String, CohortV03Key>::new();
     for record in records {
         record.validate()?;
@@ -674,7 +676,8 @@ pub fn summarize_traces_v03(records: &[SolverTraceV03]) -> Result<Vec<TraceSumma
         } else {
             cohort_identity_by_id.insert(record.cohort_id.clone(), key.clone());
         }
-        let samples = seen.entry(key.clone()).or_default();
+        let scenario_key = (key.clone(), record.scenario_id.clone());
+        let samples = seen.entry(scenario_key.clone()).or_default();
         if let Some(existing) = samples.get(&record.sample_id) {
             if existing != record {
                 return Err(TraceV03Error::DuplicateSampleConflict);
@@ -682,12 +685,13 @@ pub fn summarize_traces_v03(records: &[SolverTraceV03]) -> Result<Vec<TraceSumma
             continue;
         }
         samples.insert(record.sample_id.clone(), record.clone());
-        groups.entry(key).or_default().push(record);
+        groups.entry(scenario_key).or_default().push(record);
     }
     let mut summaries = Vec::new();
-    for (key, rows) in groups {
+    for ((key, scenario_id), rows) in groups {
         let mut summary = TraceSummaryV03 {
             cohort_id: key.cohort_id,
+            scenario_id,
             sample_count: rows.len(),
             exact_complete_count: 0,
             feasible_unproven_count: 0,
@@ -1258,7 +1262,7 @@ mod tests {
     #[test]
     fn duplicate_sample_ids_are_suppressed_within_a_cohort() {
         let first = base(SearchDispositionV03::ExactComplete);
-        let duplicate = base(SearchDispositionV03::LimitWithoutCandidate);
+        let duplicate = first.clone();
         let summary = summarize_traces_v03(&[first, duplicate]).unwrap().remove(0);
         assert_eq!(summary.sample_count, 1);
         assert_eq!(summary.exact_complete_count, 1);
