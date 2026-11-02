@@ -59,7 +59,8 @@
     "jurisdiction": "synthetic",
     "restrictions": [
       "Not a real dataset; do not use as evidence."
-    ]
+    ],
+    "exact_geometry_policy": "restricted"
   },
   "provenance": {
     "upstream_dataset_version": "synthetic-v0",

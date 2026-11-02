@@ -78,11 +78,17 @@ pub struct RightsProfile {
     pub permitted_uses: BTreeSet<HeritageUse>,
     pub access_tier: AccessTier,
     pub exact_geometry_policy: ExactGeometryPolicy,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub licence_uri: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub attribution_text: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub consent_or_authority_ref: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub jurisdiction: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub review_due_at: Option<String>,
+    #[serde(default)]
     pub restrictions: Vec<String>,
 }
 
@@ -243,18 +249,25 @@ pub enum OrbitDirection {
 pub struct ProviderIdentity {
     pub provider_id: String,
     pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub homepage: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub contact_ref: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct AssetIdentity {
     pub asset_ref: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub stac_item_uri: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub stac_asset_key: Option<String>,
     pub media_type: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub upstream_asset_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub content_sha256: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub byte_length: Option<u64>,
 }
 
@@ -262,11 +275,16 @@ pub struct AssetIdentity {
 pub struct AcquisitionInterval {
     pub start_at: String,
     pub end_at: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub platform: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub sensor: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub product_level: Option<String>,
+    #[serde(default)]
     pub bands_or_polarisations: Vec<String>,
     pub orbit_direction: OrbitDirection,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub acquisition_notes: Option<String>,
 }
 
@@ -275,32 +293,46 @@ pub struct SpatialMetadata {
     /// Source bounding box in the declared CRS: 2D [minx, miny, maxx, maxy]
     /// or 3D [minx, miny, minz, maxx, maxy, maxz]. Axis semantics remain
     /// those of the declared CRS; this layer does not silently reproject.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub bbox: Option<Vec<f64>>,
     pub crs_uri: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub vertical_datum: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub native_resolution_m: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub point_density_points_per_m2: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub positional_accuracy_m: Option<f64>,
     pub geometry_access_tier: AccessTier,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub coverage_notes: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct QualityMetadata {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cloud_fraction: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub nodata_fraction: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub registration_error_m: Option<f64>,
+    #[serde(default)]
     pub known_issues: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct IngestionProvenance {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub upstream_dataset_version: Option<String>,
     pub ingested_at: String,
     pub ingestion_pipeline_id: String,
     pub ingestion_pipeline_version: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub ingestion_manifest_ref: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub retrieval_receipt_ref: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub content_sha256: Option<String>,
 }
 
@@ -313,6 +345,7 @@ pub struct SourceAssetMetadata {
     pub modality: HeritageModality,
     pub acquisition: AcquisitionInterval,
     pub spatial: SpatialMetadata,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub quality: Option<QualityMetadata>,
     pub rights: RightsProfile,
     pub provenance: IngestionProvenance,
