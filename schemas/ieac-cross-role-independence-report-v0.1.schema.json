@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/ieac-cross-role-independence-report-v0.1.schema.json",
+  "title": "IEAC Cross-Role Independence Report v0.1",
+  "description": "Per-role and per-separation disposition under an exact pinned CCF registry/report. No universal independence or profile qualification claim.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_id",
+    "request_sha256",
+    "channel_manifest_sha256",
+    "availability_attestation_sha256",
+    "ccf_registry_sha256",
+    "ccf_report_sha256",
+    "role_results",
+    "separation_results",
+    "overall_disposition",
+    "claim_ceiling",
+    "action_authority",
+    "profile_qualification_attested"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.ieac-cross-role-independence-report.v0.1"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128
+    },
+    "request_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "channel_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "availability_attestation_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "ccf_registry_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "ccf_report_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "role_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "assignment_id",
+          "role_id",
+          "ccf_source_id",
+          "status",
+          "conflict_reasons",
+          "dependency_closure_status"
+        ],
+        "properties": {
+          "assignment_id": {
+            "type": "string"
+          },
+          "role_id": {
+            "enum": [
+              "channel_policy_owner",
+              "ledger_operator",
+              "query_signer",
+              "transparency_service_operator",
+              "witness_operator",
+              "verifier_build_release_authority",
+              "verifier_deployment_operator",
+              "trust_root_key_manager",
+              "relying_party_policy_owner",
+              "independent_reviewer"
+            ]
+          },
+          "ccf_source_id": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "independent_candidate",
+              "conflicted",
+              "unknown"
+            ]
+          },
+          "conflict_reasons": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "dependency_closure_status": {
+            "enum": [
+              "complete",
+              "unknown",
+              "disputed"
+            ]
+          }
+        }
+      }
+    },
+    "separation_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requirement_id",
+          "assignment_id_a",
+          "assignment_id_b",
+          "status",
+          "conflict_reasons",
+          "shared_ccf_dependency_ids",
+          "shared_common_cause_group_ids"
+        ],
+        "properties": {
+          "requirement_id": {
+            "type": "string"
+          },
+          "assignment_id_a": {
+            "type": "string"
+          },
+          "assignment_id_b": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "separate_under_pinned_ccf_model",
+              "conflict_under_pinned_ccf_model",
+              "unknown"
+            ]
+          },
+          "conflict_reasons": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "shared_ccf_dependency_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "shared_common_cause_group_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "overall_disposition": {
+      "enum": [
+        "independence_satisfied_under_registry_model",
+        "not_independent_under_registry_model",
+        "independence_unknown"
+      ]
+    },
+    "claim_ceiling": {
+      "const": "independence_under_exact_pinned_ccf_registry_only"
+    },
+    "action_authority": {
+      "const": "none"
+    },
+    "profile_qualification_attested": {
+      "const": false
+    }
+  }
+}
