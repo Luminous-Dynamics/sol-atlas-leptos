@@ -45,7 +45,7 @@
     "repository_origin": {
       "type": "string",
       "format": "uri",
-      "pattern": "^https://[^\\s]+$"
+      "pattern": "^https://[^/?#@\\\\s]+$"
     },
     "root_sha256": {
       "type": "string",
@@ -116,7 +116,7 @@
     },
     "max_file_count": {
       "type": "integer",
-      "minimum": 4,
+      "minimum": 6,
       "maximum": 4096
     },
     "allowed_capsule_modes": {
