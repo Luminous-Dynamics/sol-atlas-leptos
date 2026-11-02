@@ -1,4 +1,6 @@
 #![forbid(unsafe_code)]
+
+pub mod trace_v0_3;
 //! Strict solver-trace validation and per-cohort latency/quality aggregation.
 //!
 //! This crate deliberately does not synthesize solver measurements. Its checked-in

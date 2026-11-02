@@ -9,3 +9,11 @@ description = "Strict, source-bound solver trace validation and compute calibrat
 [dependencies]
 
 [workspace]
+
+[[bin]]
+name = "energy-solver-compute-calibration"
+path = "src/main.rs"
+
+[[bin]]
+name = "energy-solver-compute-calibration-v03"
+path = "src/bin/energy-solver-compute-calibration-v03.rs"

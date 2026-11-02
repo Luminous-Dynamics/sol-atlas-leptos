@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/energy-dispatch-scenario-panel-v0.1.json",
+  "title": "Energy Dispatch Scenario Panel v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "panel_id", "claim_ceiling", "scenarios"],
+  "properties": {
+    "schema_version": { "const": "energy-dispatch-scenario-panel-v0.1" },
+    "panel_id": { "type": "string", "pattern": "^[A-Za-z0-9_.:-]{1,128}$" },
+    "claim_ceiling": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "scenarios": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["scenario_id", "request_path", "expected_schedule_audit", "expected_service_floor"],
+        "properties": {
+          "scenario_id": { "type": "string", "pattern": "^[A-Za-z0-9_.:-]{1,128}$" },
+          "request_path": {
+            "type": "string",
+            "pattern": "^schemas/examples/energy-dispatch-scenarios/[A-Za-z0-9_.-]+[.]json$"
+          },
+          "expected_schedule_audit": { "enum": ["accepted", "rejected", "unavailable"] },
+          "expected_service_floor": { "enum": ["passed", "failed", "unavailable", "not_evaluated"] }
+        }
+      }
+    }
+  }
+}

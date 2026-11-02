@@ -79,3 +79,30 @@ cargo run --release --locked --manifest-path tools/energy-solver-compute-calibra
 ## Claim ceiling
 
 This is trace integrity and aggregation machinery. It does not run an optimizer, measure real solver performance by itself, guarantee that a hardware fingerprint is truthful, prove model correctness, or establish SOTA superiority. Every measured trace still needs an independent source/model/schedule identity chain. The first real output should be published only after an instrumented solver runner emits actual executable and host fingerprints.
+
+## Anytime and audit trace schema v0.3 (additive prototype)
+
+The existing v0.2 CSV parser and fixture remain unchanged. The new `src/trace_v0_3.rs` module introduces a separately named v0.3 record and strict parser for the anytime energy-dispatch contract.
+
+The v0.3 record separates:
+- search disposition: `exact_complete`, `feasible_unproven`, `proven_infeasible`, `limit_without_candidate`, `timed_out`, `cancelled`, `error`;
+- complete candidate availability and exact schedule digest;
+- independent audit disposition, receipt digest, echoed request/schedule digests and auditor binary digest;
+- service-floor disposition and policy digest, with its own receipt digest, evaluator executable digest and an explicit link back to the exact schedule-audit receipt;
+- search-prefix visits, complete schedules, complete-frontier status, first-candidate timing and first accepted-audit timing.
+
+Validation rejects impossible combinations. For example, a `feasible_unproven` result cannot claim a complete Pareto frontier; an accepted receipt must bind the exact request and candidate digest; and a passed service-floor status must carry its own receipt/evaluator digests and reference the exact preceding schedule-audit receipt. Audit acceptance without a passed service-floor policy is not a decision-ready result.
+
+The v0.3 aggregator reports search outcomes, candidate yield, audit-attempt acceptance/rejection/unavailability, service-floor outcomes and decision-ready yield as separate counts. Identical duplicate sample replays are idempotently suppressed; reusing a sample ID with different evidence, outcomes or scenario labels anywhere within the same cohort is a hard error. Scenario rows are stratified beneath a shared cohort rather than pooled, while sample identity remains cohort-wide. Cohort IDs are also checked against solver name/version, horizon, source/model, configuration and hardware identity. It does not interpret a candidate as optimal merely because the independent schedule auditor accepts it.
+
+The legacy `energy-dispatch-profile` runner continues to emit v0.2 for compatibility. The additive `energy-dispatch-anytime-profile` binary now emits v0.3 from the shared one-pass anytime execution, then invokes the schedule and service-floor auditors as separate processes. It records the measured first-complete-candidate time, schedule-audit process time, service-floor process time, and total time to the end of the service-floor evaluation. The v0.3 aggregator is available as `energy-solver-compute-calibration-v03`; the v0.2 parser/aggregator and checked-in v0.2 fixture remain untouched.
+
+Run the v0.3 aggregator against an emitted trace:
+
+```sh
+cargo run --release --locked \
+  --manifest-path tools/energy-solver-compute-calibration/Cargo.toml \
+  --bin energy-solver-compute-calibration-v03 -- trace-v0.3.csv
+```
+
+The summary keeps candidate yield, accepted schedule-audit yield and decision-ready yield distinct. It reports solver-only elapsed p50/p95 separately from end-to-end profile elapsed (which includes the independent audits), as well as p50/p95 first-candidate time, first accepted schedule-audit time, service-floor subprocess time and end-to-end decision-ready latency, with their own eligible sample counts. p50 requires five samples, p95 twenty, and p99 is not emitted by this v0.3 summary. The trace rejects a candidate timestamp later than solver completion, or solver elapsed time later than the end-to-end elapsed time. The profile workflow now uses a frozen four-scenario, two-interval synthetic microgrid panel with 20 repeats per scenario. The v0.3 aggregator emits one row per scenario within the shared hardware/model/solver cohort, so two expected service-floor passes and two expected failures cannot be hidden by pooling. Those rows are within-case classification and repeatability evidence, not a multi-stage non-anticipative policy, broad scenario-scale performance, an empirical resilience claim, or an industry/SOTA comparison.

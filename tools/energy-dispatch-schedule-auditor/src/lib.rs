@@ -39,6 +39,13 @@ fn sha256(bytes: &[u8]) -> String {
     hex::encode(Sha256::digest(bytes))
 }
 
+fn is_sha256_hex(value: &str) -> bool {
+    value.len() == 64
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+}
+
 fn current_binary_sha256() -> Result<String, AuditError> {
     let executable = std::env::current_exe()
         .map_err(|error| audit_error(format!("resolve auditor executable: {error}")))?;
@@ -988,6 +995,327 @@ pub fn audit_schedule_bytes(
         .map(|profiled| profiled.receipt)
 }
 
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceFloorPolicyV1 {
+    pub schema_version: String,
+    pub policy_id: String,
+    /// Minimum essential-load service per interval, in basis points (0..=10000).
+    pub minimum_essential_service_bps_per_interval: u16,
+    /// Maximum cumulative essential unserved energy over the full horizon.
+    pub max_total_essential_unserved_quanta: u64,
+    /// Maximum consecutive intervals that miss the per-interval service floor.
+    pub max_consecutive_below_floor_intervals: u16,
+    /// Minimum terminal state of charge required by this policy.
+    pub minimum_terminal_soc_quanta: u16,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum ServiceFloorDisposition {
+    Passed,
+    Failed,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ServiceFloorFinding {
+    pub predicate: String,
+    pub interval_index: Option<usize>,
+    pub interval_id: Option<String>,
+    pub passed: bool,
+    pub detail: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ServiceFloorReceipt {
+    pub receipt_schema: String,
+    pub policy_id: String,
+    pub policy_sha256: String,
+    pub request_sha256: String,
+    pub schedule_sha256: String,
+    pub schedule_audit_receipt_sha256: String,
+    pub schedule_auditor_binary_sha256: String,
+    pub service_floor_auditor_binary_sha256: String,
+    pub disposition: ServiceFloorDisposition,
+    pub findings: Vec<ServiceFloorFinding>,
+    pub receipt_sha256: String,
+    pub claim_ceiling: String,
+}
+
+#[derive(Serialize)]
+struct ServiceFloorReceiptSubject<'a> {
+    receipt_schema: &'a str,
+    policy_id: &'a str,
+    policy_sha256: &'a str,
+    request_sha256: &'a str,
+    schedule_sha256: &'a str,
+    schedule_audit_receipt_sha256: &'a str,
+    schedule_auditor_binary_sha256: &'a str,
+    service_floor_auditor_binary_sha256: &'a str,
+    disposition: ServiceFloorDisposition,
+    findings: &'a [ServiceFloorFinding],
+    claim_ceiling: &'a str,
+}
+
+fn service_floor_finding(
+    findings: &mut Vec<ServiceFloorFinding>,
+    predicate: &str,
+    interval_index: Option<usize>,
+    interval_id: Option<&str>,
+    passed: bool,
+    detail: impl Into<String>,
+) {
+    findings.push(ServiceFloorFinding {
+        predicate: predicate.to_owned(),
+        interval_index,
+        interval_id: interval_id.map(str::to_owned),
+        passed,
+        detail: detail.into(),
+    });
+}
+
+/// Re-evaluate a separately pinned service-floor policy over exact request,
+/// schedule and audit-receipt bytes. This function does not trust optimizer
+/// objective values or the audit receipt's claims: it independently parses the
+/// inputs, recomputes schedule findings/objectives, verifies the receipt subject
+/// digest, then evaluates the policy over the source-aligned trajectory.
+pub fn evaluate_service_floor_bytes(
+    request_bytes: &[u8],
+    schedule_bytes: &[u8],
+    policy_bytes: &[u8],
+    audit_receipt_bytes: &[u8],
+) -> Result<ServiceFloorReceipt, AuditError> {
+    if request_bytes.len() > MAX_REQUEST_BYTES
+        || schedule_bytes.len() > MAX_SCHEDULE_BYTES
+        || policy_bytes.len() > MAX_SCHEDULE_BYTES
+        || audit_receipt_bytes.len() > MAX_SCHEDULE_BYTES
+    {
+        return Err(audit_error("service-floor input exceeds declared byte limit"));
+    }
+
+    let request_value = parse_unique_json(request_bytes)?;
+    let request: SourceRequest = serde_json::from_value(request_value)
+        .map_err(|error| audit_error(format!("service-floor request schema: {error}")))?;
+    let schedule_value = parse_unique_json(schedule_bytes)?;
+    let schedule: DispatchSchedule = serde_json::from_value(schedule_value)
+        .map_err(|error| audit_error(format!("service-floor schedule schema: {error}")))?;
+    let policy_value = parse_unique_json(policy_bytes)?;
+    let policy: ServiceFloorPolicyV1 = serde_json::from_value(policy_value)
+        .map_err(|error| audit_error(format!("service-floor policy schema: {error}")))?;
+    let receipt_value = parse_unique_json(audit_receipt_bytes)?;
+    let audit_receipt: AuditReceipt = serde_json::from_value(receipt_value)
+        .map_err(|error| audit_error(format!("schedule audit receipt schema: {error}")))?;
+
+    if policy.schema_version != "energy-service-floor-policy-v0.1"
+        || policy.policy_id.trim().is_empty()
+        || policy.minimum_essential_service_bps_per_interval > 10_000
+    {
+        return Err(audit_error("service-floor policy is unsupported or malformed"));
+    }
+
+    let request_sha256 = sha256(request_bytes);
+    let schedule_sha256 = sha256(schedule_bytes);
+    let policy_sha256 = sha256(policy_bytes);
+
+    // Independently regenerate the schedule auditor's complete predicate and
+    // objective material. This is intentionally separate from parsing the
+    // receipt and does not trust its findings or recomputed-objective payload.
+    let mut audit_findings = Vec::new();
+    validate_request(&request, &mut audit_findings);
+    validate_schedule(&request, &schedule, &request_sha256, &mut audit_findings);
+    let recomputed_objectives = recompute_objectives(&request, &schedule)?;
+
+    if audit_receipt.receipt_schema != "energy-dispatch-schedule-audit-receipt-v0.1"
+        || audit_receipt.auditor_id != AUDITOR_ID
+        || audit_receipt.source_schema_version != request.schema_version
+        || audit_receipt.schedule_schema_version != schedule.schema_version
+        || audit_receipt.case_id != request.case_id
+        || audit_receipt.synthetic_source != request.synthetic
+        || audit_receipt.max_candidate_expansions != request.max_candidate_expansions
+        || audit_receipt.auditor_version.trim().is_empty()
+        || audit_receipt.request_sha256 != request_sha256
+        || audit_receipt.schedule_sha256 != schedule_sha256
+        || audit_receipt.interval_count != schedule.interval_dispatches.len()
+        || audit_receipt.disposition != AuditDisposition::Accepted
+        || audit_receipt.findings != audit_findings
+        || audit_receipt.recomputed_objectives != recomputed_objectives
+        || audit_findings.iter().any(|finding| !finding.passed)
+        || !is_sha256_hex(&audit_receipt.auditor_binary_sha256)
+    {
+        return Err(audit_error(
+            "schedule audit receipt is not accepted for the exact independently rechecked inputs",
+        ));
+    }
+
+    let audit_subject = ReceiptSubject {
+        receipt_schema: &audit_receipt.receipt_schema,
+        auditor_id: &audit_receipt.auditor_id,
+        auditor_version: &audit_receipt.auditor_version,
+        auditor_binary_sha256: &audit_receipt.auditor_binary_sha256,
+        source_schema_version: &audit_receipt.source_schema_version,
+        schedule_schema_version: &audit_receipt.schedule_schema_version,
+        case_id: &audit_receipt.case_id,
+        synthetic_source: audit_receipt.synthetic_source,
+        max_candidate_expansions: audit_receipt.max_candidate_expansions,
+        request_sha256: &audit_receipt.request_sha256,
+        schedule_sha256: &audit_receipt.schedule_sha256,
+        interval_count: audit_receipt.interval_count,
+        disposition: audit_receipt.disposition,
+        findings: &audit_receipt.findings,
+        recomputed_objectives: &audit_receipt.recomputed_objectives,
+        claim_ceiling: &audit_receipt.claim_ceiling,
+    };
+    let audit_subject_bytes = serde_json::to_vec(&audit_subject)
+        .map_err(|error| audit_error(format!("serialize audit receipt subject: {error}")))?;
+    if sha256(&audit_subject_bytes) != audit_receipt.receipt_sha256 {
+        return Err(audit_error("schedule audit receipt subject digest mismatch"));
+    }
+
+    if schedule.interval_dispatches.len() != request.intervals.len() {
+        return Err(audit_error("accepted schedule interval count changed after audit"));
+    }
+
+    let mut findings = Vec::new();
+    let mut total_essential_unserved = 0u64;
+    let mut consecutive_below_floor = 0u16;
+    let mut maximum_consecutive_below_floor = 0u16;
+
+    for (index, (source, dispatch)) in request
+        .intervals
+        .iter()
+        .zip(&schedule.interval_dispatches)
+        .enumerate()
+    {
+        total_essential_unserved = total_essential_unserved
+            .checked_add(u64::from(dispatch.essential_unserved_quanta))
+            .ok_or_else(|| audit_error("essential unserved total overflowed"))?;
+
+        let demand = u128::from(source.essential_demand_quanta);
+        let served = u128::from(dispatch.essential_served_quanta);
+        let service_floor_bps = u128::from(policy.minimum_essential_service_bps_per_interval);
+        let interval_passed = if demand == 0 {
+            true
+        } else {
+            served * 10_000 >= demand * service_floor_bps
+        };
+        if interval_passed {
+            consecutive_below_floor = 0;
+        } else {
+            consecutive_below_floor = consecutive_below_floor
+                .checked_add(1)
+                .ok_or_else(|| audit_error("consecutive interval counter overflowed"))?;
+            maximum_consecutive_below_floor =
+                maximum_consecutive_below_floor.max(consecutive_below_floor);
+        }
+
+        let service_bps = if demand == 0 {
+            10_000
+        } else {
+            ((served * 10_000) / demand) as u16
+        };
+        service_floor_finding(
+            &mut findings,
+            "per-interval-essential-service-floor",
+            Some(index),
+            Some(&source.interval_id),
+            interval_passed,
+            format!(
+                "essential service {service_bps} bps; required {} bps",
+                policy.minimum_essential_service_bps_per_interval
+            ),
+        );
+    }
+
+    service_floor_finding(
+        &mut findings,
+        "total-essential-unserved-limit",
+        None,
+        None,
+        total_essential_unserved <= policy.max_total_essential_unserved_quanta,
+        format!(
+            "total essential unserved {} quanta; maximum {}",
+            total_essential_unserved,
+            policy.max_total_essential_unserved_quanta
+        ),
+    );
+    service_floor_finding(
+        &mut findings,
+        "consecutive-essential-floor-miss-limit",
+        None,
+        None,
+        maximum_consecutive_below_floor
+            <= policy.max_consecutive_below_floor_intervals,
+        format!(
+            "maximum consecutive floor misses {}; maximum {}",
+            maximum_consecutive_below_floor,
+            policy.max_consecutive_below_floor_intervals
+        ),
+    );
+    let terminal_soc = u16::try_from(
+        recomputed_objectives
+            .terminal_soc_quanta
+            .ok_or_else(|| audit_error("terminal SOC could not be independently recomputed"))?,
+    )
+    .map_err(|_| audit_error("recomputed terminal SOC does not fit u16"))?;
+    service_floor_finding(
+        &mut findings,
+        "minimum-terminal-soc",
+        None,
+        None,
+        terminal_soc >= policy.minimum_terminal_soc_quanta,
+        format!(
+            "terminal SOC {} quanta; minimum {}",
+            terminal_soc, policy.minimum_terminal_soc_quanta
+        ),
+    );
+
+    let disposition = if findings.iter().all(|finding| finding.passed) {
+        ServiceFloorDisposition::Passed
+    } else {
+        ServiceFloorDisposition::Failed
+    };
+    let receipt_schema = "energy-service-floor-receipt-v0.1";
+    let service_floor_auditor_binary_sha256 = current_binary_sha256()?;
+    let claim_ceiling = concat!(
+        "independent evaluation of the exact declared service-floor policy against ",
+        "the request-bound, independently rechecked integer dispatch trajectory; ",
+        "not proof of physical safety, source evidence authenticity, field reliability ",
+        "or actuation authority"
+    );
+
+    let subject = ServiceFloorReceiptSubject {
+        receipt_schema,
+        policy_id: &policy.policy_id,
+        policy_sha256: &policy_sha256,
+        request_sha256: &request_sha256,
+        schedule_sha256: &schedule_sha256,
+        schedule_audit_receipt_sha256: &audit_receipt.receipt_sha256,
+        schedule_auditor_binary_sha256: &audit_receipt.auditor_binary_sha256,
+        service_floor_auditor_binary_sha256: &service_floor_auditor_binary_sha256,
+        disposition,
+        findings: &findings,
+        claim_ceiling,
+    };
+    let subject_bytes = serde_json::to_vec(&subject)
+        .map_err(|error| audit_error(format!("serialize service-floor receipt subject: {error}")))?;
+
+    Ok(ServiceFloorReceipt {
+        receipt_schema: receipt_schema.to_owned(),
+        policy_id: policy.policy_id,
+        policy_sha256,
+        request_sha256,
+        schedule_sha256,
+        schedule_audit_receipt_sha256: audit_receipt.receipt_sha256,
+        schedule_auditor_binary_sha256: audit_receipt.auditor_binary_sha256,
+        service_floor_auditor_binary_sha256,
+        disposition,
+        findings,
+        receipt_sha256: sha256(&subject_bytes),
+        claim_ceiling: claim_ceiling.to_owned(),
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1167,6 +1495,134 @@ mod tests {
             ]),
             0,
         )
+    }
+
+    fn h2_service_floor_policy() -> Vec<u8> {
+        serde_json::to_vec(&ServiceFloorPolicyV1 {
+            schema_version: "energy-service-floor-policy-v0.1".to_owned(),
+            policy_id: "synthetic-h2-essential-service-v1".to_owned(),
+            minimum_essential_service_bps_per_interval: 10_000,
+            max_total_essential_unserved_quanta: 0,
+            max_consecutive_below_floor_intervals: 0,
+            minimum_terminal_soc_quanta: 0,
+        })
+        .unwrap()
+    }
+
+    #[test]
+    fn service_floor_pass_binds_exact_request_schedule_and_schedule_audit_receipt() {
+        let request = h2_request();
+        let schedule = h2_schedule(&request);
+        let audit = audit_schedule_bytes(&request, &schedule).unwrap();
+        assert_eq!(audit.disposition, AuditDisposition::Accepted);
+        let audit_bytes = serde_json::to_vec(&audit).unwrap();
+
+        let receipt = evaluate_service_floor_bytes(
+            &request,
+            &schedule,
+            &h2_service_floor_policy(),
+            &audit_bytes,
+        )
+        .unwrap();
+        assert_eq!(receipt.disposition, ServiceFloorDisposition::Passed);
+        assert_eq!(receipt.request_sha256, sha256(&request));
+        assert_eq!(receipt.schedule_sha256, sha256(&schedule));
+        assert_eq!(receipt.schedule_audit_receipt_sha256, audit.receipt_sha256);
+        assert!(receipt.findings.iter().all(|finding| finding.passed));
+        assert!(is_sha256_hex(&receipt.service_floor_auditor_binary_sha256));
+        assert!(is_sha256_hex(&receipt.receipt_sha256));
+    }
+
+    #[test]
+    fn service_floor_fail_is_distinct_from_schedule_audit_rejection() {
+        let request = h2_request();
+        let schedule = h2_schedule(&request);
+        let audit = audit_schedule_bytes(&request, &schedule).unwrap();
+        let audit_bytes = serde_json::to_vec(&audit).unwrap();
+        let policy = serde_json::to_vec(&ServiceFloorPolicyV1 {
+            schema_version: "energy-service-floor-policy-v0.1".to_owned(),
+            policy_id: "synthetic-h2-terminal-reserve-too-high".to_owned(),
+            minimum_essential_service_bps_per_interval: 10_000,
+            max_total_essential_unserved_quanta: 0,
+            max_consecutive_below_floor_intervals: 0,
+            minimum_terminal_soc_quanta: 1,
+        })
+        .unwrap();
+
+        let receipt =
+            evaluate_service_floor_bytes(&request, &schedule, &policy, &audit_bytes).unwrap();
+        assert_eq!(audit.disposition, AuditDisposition::Accepted);
+        assert_eq!(receipt.disposition, ServiceFloorDisposition::Failed);
+        assert!(receipt
+            .findings
+            .iter()
+            .any(|finding| finding.predicate == "minimum-terminal-soc" && !finding.passed));
+    }
+
+    #[test]
+    fn service_floor_rejects_a_receipt_for_another_schedule() {
+        let request = h2_request();
+        let schedule = h2_schedule(&request);
+        let audit = audit_schedule_bytes(&request, &schedule).unwrap();
+        let audit_bytes = serde_json::to_vec(&audit).unwrap();
+
+        let other_schedule = schedule_bytes(
+            &request,
+            serde_json::json!([
+                step(DispatchStepFixture {
+                    interval_id: "charge-from-pv",
+                    grid_import_quanta: 0,
+                    charge_input_quanta: 0,
+                    discharge_withdrawal_quanta: 0,
+                    soc_after_quanta: 0,
+                    essential_served_quanta: 0,
+                    essential_unserved_quanta: 0,
+                    flexible_served_quanta: 0,
+                    flexible_unserved_quanta: 0,
+                    pv_used_quanta: 0,
+                    pv_curtailed_quanta: 1,
+                }),
+                step(DispatchStepFixture {
+                    interval_id: "serve-during-outage",
+                    grid_import_quanta: 0,
+                    charge_input_quanta: 0,
+                    discharge_withdrawal_quanta: 0,
+                    soc_after_quanta: 0,
+                    essential_served_quanta: 0,
+                    essential_unserved_quanta: 1,
+                    flexible_served_quanta: 0,
+                    flexible_unserved_quanta: 0,
+                    pv_used_quanta: 0,
+                    pv_curtailed_quanta: 0,
+                })
+            ]),
+            0,
+        );
+        assert!(evaluate_service_floor_bytes(
+            &request,
+            &other_schedule,
+            &h2_service_floor_policy(),
+            &audit_bytes,
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn service_floor_rejects_tampered_audit_receipt_subject_digest() {
+        let request = h2_request();
+        let schedule = h2_schedule(&request);
+        let audit = audit_schedule_bytes(&request, &schedule).unwrap();
+        let mut audit_value: Value = serde_json::to_value(audit).unwrap();
+        audit_value["receipt_sha256"] = Value::String("0".repeat(64));
+        let audit_bytes = serde_json::to_vec(&audit_value).unwrap();
+
+        assert!(evaluate_service_floor_bytes(
+            &request,
+            &schedule,
+            &h2_service_floor_policy(),
+            &audit_bytes,
+        )
+        .is_err());
     }
 
     #[test]

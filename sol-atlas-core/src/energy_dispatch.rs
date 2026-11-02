@@ -818,6 +818,79 @@ mod tests {
     }
 
     #[test]
+    fn four_case_resilience_panel_matches_expected_essential_service_outcomes() {
+        let scenarios = [
+            (
+                "nominal-pv-charge-outage",
+                include_str!(
+                    "../../schemas/examples/energy-dispatch-scenarios/nominal-pv-charge-outage.json"
+                ),
+                0_u64,
+            ),
+            (
+                "battery-only-outage-backup",
+                include_str!(
+                    "../../schemas/examples/energy-dispatch-scenarios/battery-only-outage-backup.json"
+                ),
+                0_u64,
+            ),
+            (
+                "pv-derate-islanded",
+                include_str!(
+                    "../../schemas/examples/energy-dispatch-scenarios/pv-derate-islanded.json"
+                ),
+                1_u64,
+            ),
+            (
+                "demand-surge-outage",
+                include_str!(
+                    "../../schemas/examples/energy-dispatch-scenarios/demand-surge-outage.json"
+                ),
+                1_u64,
+            ),
+        ];
+
+        for (scenario_id, fixture, expected_unserved) in scenarios {
+            let request: EnergyDispatchRequest =
+                serde_json::from_str(fixture).expect("scenario request parses");
+            assert_eq!(request.case_id, scenario_id);
+
+            let anytime =
+                assess_energy_dispatch_anytime(&request).expect("scenario search completes");
+            assert_eq!(
+                anytime.disposition,
+                EnergyDispatchAnytimeDisposition::ExactComplete,
+                "{scenario_id} must complete the finite search"
+            );
+            assert!(anytime.optimality_proven);
+            let candidate = anytime
+                .candidate
+                .expect("every panel member has a complete horizon candidate");
+            assert_eq!(candidate.schedule.len(), request.intervals.len());
+
+            let essential_unserved = candidate
+                .schedule
+                .iter()
+                .map(|step| u64::from(step.essential_unserved_quanta))
+                .sum::<u64>();
+            assert_eq!(
+                essential_unserved, expected_unserved,
+                "{scenario_id} essential-service outcome"
+            );
+            for step in &candidate.schedule {
+                assert_eq!(step.bus_energy_balance_residual_quanta, 0);
+                assert_eq!(
+                    step.essential_served_quanta + step.essential_unserved_quanta,
+                    step.essential_demand_quanta
+                );
+                if step.grid_outage {
+                    assert_eq!(step.grid_import_quanta, 0);
+                }
+            }
+        }
+    }
+
+    #[test]
     fn shared_execution_returns_exact_and_anytime_views_from_one_traversal() {
         let request = fixture_request();
         let execution =
