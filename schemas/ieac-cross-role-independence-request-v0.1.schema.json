@@ -51,7 +51,11 @@
         "ccf_request_sha256",
         "ccf_report_sha256",
         "ccf_auditor_build_sha256",
-        "source_mapping_status"
+        "source_mapping_status",
+        "ccf_report_verification_status",
+        "ccf_report_verifier_build_sha256",
+        "ccf_report_verification_policy_sha256",
+        "ccf_report_trust_bundle_sha256"
       ],
       "properties": {
         "registry_id": {
@@ -91,6 +95,26 @@
             "unknown",
             "disputed"
           ]
+        },
+        "ccf_report_verification_status": {
+          "enum": [
+            "verified",
+            "failed",
+            "unknown",
+            "disputed"
+          ]
+        },
+        "ccf_report_verifier_build_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "ccf_report_verification_policy_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "ccf_report_trust_bundle_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
         }
       }
     },
@@ -116,7 +140,8 @@
           "dependency_completeness",
           "binding_status",
           "identity_evidence_sha256",
-          "dependency_tokens"
+          "dependency_tokens",
+          "ccf_control_id"
         ],
         "properties": {
           "assignment_id": {
@@ -237,6 +262,11 @@
                 }
               }
             }
+          },
+          "ccf_control_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
           }
         }
       }
