@@ -55,6 +55,18 @@ jobs:
         with:
           components: rustfmt, clippy
 
+      - name: Generate validator lockfile candidate for review
+        run: cargo generate-lockfile --manifest-path tools/industry-assurance-validator/Cargo.toml
+
+      - name: Upload validator lockfile candidate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: industry-assurance-validator-lockfile-candidate
+          path: tools/industry-assurance-validator/Cargo.lock
+          if-no-files-found: error
+          retention-days: 3
+
       - name: Check formatting
         run: cargo fmt --manifest-path tools/industry-assurance-validator/Cargo.toml -- --check
 
