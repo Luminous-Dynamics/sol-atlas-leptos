@@ -394,9 +394,7 @@ pub fn evaluate_threat_monitoring(
     series: &[ThreatMonitoringSeries],
     config: ThreatEvaluationConfig,
 ) -> Result<ThreatMonitoringReport, ThreatEvaluationError> {
-    if !config.alert_threshold.is_finite()
-        || !(0.0..=1.0).contains(&config.alert_threshold)
-    {
+    if !config.alert_threshold.is_finite() || !(0.0..=1.0).contains(&config.alert_threshold) {
         return Err(ThreatEvaluationError::InvalidConfig);
     }
 
@@ -430,10 +428,8 @@ pub fn evaluate_threat_monitoring(
                 monitoring_end_month,
             } => {
                 confirmed_no_event_site_count += 1;
-                let total_months = u64::try_from(
-                    monitoring_end_month - monitoring_start_month + 1,
-                )
-                .expect("validated positive month span must fit u64");
+                let total_months = u64::try_from(monitoring_end_month - monitoring_start_month + 1)
+                    .expect("validated positive month span must fit u64");
                 let observed_months = site
                     .observations
                     .iter()
@@ -464,10 +460,8 @@ pub fn evaluate_threat_monitoring(
             } => {
                 known_event_site_count += 1;
                 known_event_count += event_months.len();
-                let total_months = u64::try_from(
-                    monitoring_end_month - monitoring_start_month + 1,
-                )
-                .expect("validated positive month span must fit u64");
+                let total_months = u64::try_from(monitoring_end_month - monitoring_start_month + 1)
+                    .expect("validated positive month span must fit u64");
                 let observed_months = site
                     .observations
                     .iter()
@@ -512,29 +506,26 @@ pub fn evaluate_threat_monitoring(
                 early_warning_event_count += early_matches.len();
                 early_warning_leads.extend(early_matches.iter().map(|(_, _, lead)| *lead));
 
-                let mut counted_alerts: BTreeSet<usize> =
-                    matches.iter().map(|(_, alert_index, _)| *alert_index).collect();
-                counted_alerts.extend(
-                    early_matches.iter().map(|(_, alert_index, _)| *alert_index),
-                );
+                let mut counted_alerts: BTreeSet<usize> = matches
+                    .iter()
+                    .map(|(_, alert_index, _)| *alert_index)
+                    .collect();
+                counted_alerts.extend(early_matches.iter().map(|(_, alert_index, _)| *alert_index));
                 false_alert_count += alerts.len().saturating_sub(counted_alerts.len());
             }
         }
     }
 
-    let event_recall_within_tolerance = (known_event_count > 0)
-        .then_some(matched_event_count as f64 / known_event_count as f64);
+    let event_recall_within_tolerance =
+        (known_event_count > 0).then_some(matched_event_count as f64 / known_event_count as f64);
     let exact_month_event_recall = (known_event_count > 0)
         .then_some(exact_month_matched_event_count as f64 / known_event_count as f64);
     let early_warning_event_rate = (known_event_count > 0)
         .then_some(early_warning_event_count as f64 / known_event_count as f64);
-    let observation_coverage = (expected_labelled_site_months > 0).then_some(
-        observed_labelled_site_months as f64 / expected_labelled_site_months as f64,
-    );
-    let false_alerts_per_100_observed_site_months =
-        (observed_labelled_site_months > 0).then_some(
-            false_alert_count as f64 * 100.0 / observed_labelled_site_months as f64,
-        );
+    let observation_coverage = (expected_labelled_site_months > 0)
+        .then_some(observed_labelled_site_months as f64 / expected_labelled_site_months as f64);
+    let false_alerts_per_100_observed_site_months = (observed_labelled_site_months > 0)
+        .then_some(false_alert_count as f64 * 100.0 / observed_labelled_site_months as f64);
 
     Ok(ThreatMonitoringReport {
         schema_version: THREAT_REPORT_SCHEMA_VERSION.to_owned(),
@@ -843,10 +834,7 @@ mod tests {
             Err(ThreatEvaluationError::InvalidAlertScore { .. })
         ));
 
-        bad_score.observations = vec![
-            observation(month, Some(0.1)),
-            observation(month, Some(0.2)),
-        ];
+        bad_score.observations = vec![observation(month, Some(0.1)), observation(month, Some(0.2))];
         assert!(matches!(
             evaluate_threat_monitoring(&[bad_score], config()),
             Err(ThreatEvaluationError::ObservationsNotStrictlyIncreasing { .. })
@@ -861,15 +849,16 @@ mod tests {
         );
         assert_eq!(
             evaluate_threat_monitoring(&[good.clone(), good], config()),
-            Err(ThreatEvaluationError::DuplicateSiteId("site-duplicate".to_owned()))
+            Err(ThreatEvaluationError::DuplicateSiteId(
+                "site-duplicate".to_owned()
+            ))
         );
     }
 
     #[test]
     fn invalid_or_ambiguous_ground_truth_fails_closed() {
         let month = month_ordinal(2023, 1).unwrap();
-        let mut empty_events =
-            known_series("site-empty", month, month + 1, Vec::new(), Vec::new());
+        let mut empty_events = known_series("site-empty", month, month + 1, Vec::new(), Vec::new());
         assert!(matches!(
             evaluate_threat_monitoring(&[empty_events.clone()], config()),
             Err(ThreatEvaluationError::KnownEventsListEmpty { .. })

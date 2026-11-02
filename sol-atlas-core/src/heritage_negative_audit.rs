@@ -11,8 +11,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
-pub const NEGATIVE_AUDIT_SCHEMA_VERSION: &str =
-    "luminous.heritage-negative-audit.v0.1";
+pub const NEGATIVE_AUDIT_SCHEMA_VERSION: &str = "luminous.heritage-negative-audit.v0.1";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -55,7 +54,10 @@ pub enum AuditEvidenceTier {
 
 impl AuditEvidenceTier {
     fn is_independent_ground_evidence(self) -> bool {
-        matches!(self, Self::FieldAssessed | Self::IndependentlyExpertReviewed)
+        matches!(
+            self,
+            Self::FieldAssessed | Self::IndependentlyExpertReviewed
+        )
     }
 }
 
@@ -177,7 +179,7 @@ pub struct NegativeAuditReport {
     pub confidence_interval_status: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum NegativeAuditError {
     EmptyPopulationFrameId,
     EmptySamplingDesignId,
@@ -186,31 +188,74 @@ pub enum NegativeAuditError {
     InvalidConfig,
     EmptyStratumId,
     DuplicateStratumId(String),
-    EmptyStratumDesignReference { stratum_id: String },
-    ZeroPopulationStratum { stratum_id: String },
-    InvalidSelectedUnitCount { stratum_id: String },
-    SelectedCountMismatch { stratum_id: String, declared: u64, actual: usize },
+    EmptyStratumDesignReference {
+        stratum_id: String,
+    },
+    ZeroPopulationStratum {
+        stratum_id: String,
+    },
+    InvalidSelectedUnitCount {
+        stratum_id: String,
+    },
+    SelectedCountMismatch {
+        stratum_id: String,
+        declared: u64,
+        actual: usize,
+    },
     EmptySampleId,
     DuplicateSampleId(String),
-    EmptyUnitId { sample_id: String },
+    EmptyUnitId {
+        sample_id: String,
+    },
     DuplicateUnitId(String),
-    EmptyLandscapeId { sample_id: String },
-    UnknownStratum { sample_id: String, stratum_id: String },
-    InvalidInclusionProbability { sample_id: String },
-    IncorrectSrsInclusionProbability { sample_id: String, expected: f64, actual: f64 },
-    InvalidReviewerHours { sample_id: String },
-    InvalidExpansionWeight { sample_id: String },
+    EmptyLandscapeId {
+        sample_id: String,
+    },
+    UnknownStratum {
+        sample_id: String,
+        stratum_id: String,
+    },
+    InvalidInclusionProbability {
+        sample_id: String,
+    },
+    IncorrectSrsInclusionProbability {
+        sample_id: String,
+        expected: f64,
+        actual: f64,
+    },
+    InvalidReviewerHours {
+        sample_id: String,
+    },
+    InvalidExpansionWeight {
+        sample_id: String,
+    },
     NonFiniteWeightedTotals,
     NonFiniteReviewerHours,
     PopulationCountOverflow,
-    MissingAdjudicationReference { sample_id: String },
-    InvalidEvidenceTier { sample_id: String },
-    MissingReviewerReference { sample_id: String },
-    MissingAuthorityReference { sample_id: String },
-    MissingRightsReceipt { sample_id: String },
-    MissingDetectabilityAssessment { sample_id: String },
-    MissingUnresolvedReason { sample_id: String },
-    PredictionStratumMismatch { sample_id: String },
+    MissingAdjudicationReference {
+        sample_id: String,
+    },
+    InvalidEvidenceTier {
+        sample_id: String,
+    },
+    MissingReviewerReference {
+        sample_id: String,
+    },
+    MissingAuthorityReference {
+        sample_id: String,
+    },
+    MissingRightsReceipt {
+        sample_id: String,
+    },
+    MissingDetectabilityAssessment {
+        sample_id: String,
+    },
+    MissingUnresolvedReason {
+        sample_id: String,
+    },
+    PredictionStratumMismatch {
+        sample_id: String,
+    },
 }
 
 impl fmt::Display for NegativeAuditError {
@@ -221,9 +266,7 @@ impl fmt::Display for NegativeAuditError {
 
 impl std::error::Error for NegativeAuditError {}
 
-fn validate_ground_truth(
-    sample: &NegativeAuditSample,
-) -> Result<(), NegativeAuditError> {
+fn validate_ground_truth(sample: &NegativeAuditSample) -> Result<(), NegativeAuditError> {
     match &sample.ground_truth {
         AuditGroundTruth::ConfirmedPositive {
             adjudication_ref,
@@ -314,12 +357,10 @@ fn validate_prediction_stratum(
     kind: AuditStratumKind,
 ) -> Result<(), NegativeAuditError> {
     let consistent = match kind {
-        AuditStratumKind::HighScoreCandidates
-        | AuditStratumKind::MediumScoreCandidates => {
+        AuditStratumKind::HighScoreCandidates | AuditStratumKind::MediumScoreCandidates => {
             sample.model_prediction == ModelPrediction::Positive
         }
-        AuditStratumKind::LowScoreCandidates
-        | AuditStratumKind::PredictedNegativeLandscape => {
+        AuditStratumKind::LowScoreCandidates | AuditStratumKind::PredictedNegativeLandscape => {
             sample.model_prediction == ModelPrediction::Negative
         }
         AuditStratumKind::ModelAbstained | AuditStratumKind::DataUnavailable => {
@@ -370,7 +411,10 @@ pub fn evaluate_negative_space_audit(
         if stratum.stratum_id.trim().is_empty() {
             return Err(NegativeAuditError::EmptyStratumId);
         }
-        if strata_by_id.insert(stratum.stratum_id.as_str(), stratum).is_some() {
+        if strata_by_id
+            .insert(stratum.stratum_id.as_str(), stratum)
+            .is_some()
+        {
             return Err(NegativeAuditError::DuplicateStratumId(
                 stratum.stratum_id.clone(),
             ));
@@ -397,23 +441,29 @@ pub fn evaluate_negative_space_audit(
     let mut sample_ids = BTreeSet::new();
     let mut unit_ids = BTreeSet::new();
     let mut counts_by_stratum: BTreeMap<String, usize> = BTreeMap::new();
-    let mut summaries: BTreeMap<String, StratumAuditSummary> = strata.iter().map(|stratum| {
-        (stratum.stratum_id.clone(), StratumAuditSummary {
-            stratum_id: stratum.stratum_id.clone(),
-            kind: stratum.kind,
-            population_unit_count: stratum.population_unit_count,
-            selected_unit_count: stratum.selected_unit_count,
-            adjudicated_positive_count: 0,
-            adjudicated_negative_count: 0,
-            unknown_count: 0,
-            unobservable_count: 0,
-            unresolved_fraction: 0.0,
-            weighted_false_negative_total: None,
-            weighted_true_positive_total: None,
-            weighted_false_positive_total: None,
-            weighted_true_negative_total: None,
+    let mut summaries: BTreeMap<String, StratumAuditSummary> = strata
+        .iter()
+        .map(|stratum| {
+            (
+                stratum.stratum_id.clone(),
+                StratumAuditSummary {
+                    stratum_id: stratum.stratum_id.clone(),
+                    kind: stratum.kind,
+                    population_unit_count: stratum.population_unit_count,
+                    selected_unit_count: stratum.selected_unit_count,
+                    adjudicated_positive_count: 0,
+                    adjudicated_negative_count: 0,
+                    unknown_count: 0,
+                    unobservable_count: 0,
+                    unresolved_fraction: 0.0,
+                    weighted_false_negative_total: None,
+                    weighted_true_positive_total: None,
+                    weighted_false_positive_total: None,
+                    weighted_true_negative_total: None,
+                },
+            )
         })
-    }).collect();
+        .collect();
 
     let mut raw_confusion = ConfusionTotals::default();
     let mut ht_confusion = ConfusionTotals::default();
@@ -434,7 +484,9 @@ pub fn evaluate_negative_space_audit(
             return Err(NegativeAuditError::EmptySampleId);
         }
         if !sample_ids.insert(sample.sample_id.as_str()) {
-            return Err(NegativeAuditError::DuplicateSampleId(sample.sample_id.clone()));
+            return Err(NegativeAuditError::DuplicateSampleId(
+                sample.sample_id.clone(),
+            ));
         }
         if sample.unit_id.trim().is_empty() {
             return Err(NegativeAuditError::EmptyUnitId {
@@ -463,14 +515,11 @@ pub fn evaluate_negative_space_audit(
                 sample_id: sample.sample_id.clone(),
             });
         }
-        if stratum.sampling_design
-            == AuditSamplingDesign::StratifiedSimpleRandomWithoutReplacement
+        if stratum.sampling_design == AuditSamplingDesign::StratifiedSimpleRandomWithoutReplacement
         {
-            let expected = stratum.selected_unit_count as f64
-                / stratum.population_unit_count as f64;
-            if (sample.inclusion_probability - expected).abs()
-                > config.probability_tolerance
-            {
+            let expected =
+                stratum.selected_unit_count as f64 / stratum.population_unit_count as f64;
+            if (sample.inclusion_probability - expected).abs() > config.probability_tolerance {
                 return Err(NegativeAuditError::IncorrectSrsInclusionProbability {
                     sample_id: sample.sample_id.clone(),
                     expected,
@@ -503,10 +552,18 @@ pub fn evaluate_negative_space_audit(
         if !weight_sum.is_finite() || !squared_weight_sum.is_finite() {
             return Err(NegativeAuditError::NonFiniteWeightedTotals);
         }
-        *counts_by_stratum.entry(sample.stratum_id.clone()).or_default() += 1;
+        *counts_by_stratum
+            .entry(sample.stratum_id.clone())
+            .or_default() += 1;
 
-        let truth_positive = matches!(&sample.ground_truth, AuditGroundTruth::ConfirmedPositive { .. });
-        let truth_negative = matches!(&sample.ground_truth, AuditGroundTruth::ConfirmedNegative { .. });
+        let truth_positive = matches!(
+            &sample.ground_truth,
+            AuditGroundTruth::ConfirmedPositive { .. }
+        );
+        let truth_negative = matches!(
+            &sample.ground_truth,
+            AuditGroundTruth::ConfirmedNegative { .. }
+        );
 
         if matches!(&sample.ground_truth, AuditGroundTruth::Unknown { .. }) {
             unknown_count += 1;
@@ -516,18 +573,27 @@ pub fn evaluate_negative_space_audit(
         }
         if matches!(&sample.ground_truth, AuditGroundTruth::Unobservable { .. }) {
             unobservable_count += 1;
-            summaries.get_mut(&sample.stratum_id).unwrap().unobservable_count += 1;
+            summaries
+                .get_mut(&sample.stratum_id)
+                .unwrap()
+                .unobservable_count += 1;
             all_resolved = false;
             continue;
         }
 
         if truth_positive {
             positive_count += 1;
-            summaries.get_mut(&sample.stratum_id).unwrap().adjudicated_positive_count += 1;
+            summaries
+                .get_mut(&sample.stratum_id)
+                .unwrap()
+                .adjudicated_positive_count += 1;
         }
         if truth_negative {
             negative_count += 1;
-            summaries.get_mut(&sample.stratum_id).unwrap().adjudicated_negative_count += 1;
+            summaries
+                .get_mut(&sample.stratum_id)
+                .unwrap()
+                .adjudicated_negative_count += 1;
         }
 
         match (sample.model_prediction, truth_positive, truth_negative) {
@@ -561,7 +627,10 @@ pub fn evaluate_negative_space_audit(
     }
 
     for stratum in strata {
-        let actual = counts_by_stratum.get(&stratum.stratum_id).copied().unwrap_or(0);
+        let actual = counts_by_stratum
+            .get(&stratum.stratum_id)
+            .copied()
+            .unwrap_or(0);
         if actual as u64 != stratum.selected_unit_count {
             return Err(NegativeAuditError::SelectedCountMismatch {
                 stratum_id: stratum.stratum_id.clone(),
@@ -575,6 +644,10 @@ pub fn evaluate_negative_space_audit(
     }
 
     let unresolved_count = unknown_count + unobservable_count;
+    let model_abstained_count = samples
+        .iter()
+        .filter(|sample| sample.model_prediction == ModelPrediction::Abstained)
+        .count();
     let adjudication_coverage =
         (selected_unit_count - unresolved_count) as f64 / selected_unit_count as f64;
     let effective_sample_size = if squared_weight_sum > 0.0 {
@@ -619,8 +692,7 @@ pub fn evaluate_negative_space_audit(
                 .then_some(ht_confusion.true_positive / precision_denominator),
             recall: (recall_denominator > 0.0)
                 .then_some(ht_confusion.true_positive / recall_denominator),
-            f1: (f1_denominator > 0.0)
-                .then_some(2.0 * ht_confusion.true_positive / f1_denominator),
+            f1: (f1_denominator > 0.0).then_some(2.0 * ht_confusion.true_positive / f1_denominator),
             false_negative_rate: (recall_denominator > 0.0)
                 .then_some(ht_confusion.false_negative / recall_denominator),
             false_negative_total: ht_confusion.false_negative,
@@ -631,11 +703,13 @@ pub fn evaluate_negative_space_audit(
         None
     };
 
-    let stratum_summaries: Vec<StratumAuditSummary> =
-        summaries.into_values().collect();
-    let total_population_units = strata.iter().try_fold(0_u64, |total, stratum| {
-        total.checked_add(stratum.population_unit_count)
-    }).ok_or(NegativeAuditError::PopulationCountOverflow)?;
+    let stratum_summaries: Vec<StratumAuditSummary> = summaries.into_values().collect();
+    let total_population_units = strata
+        .iter()
+        .try_fold(0_u64, |total, stratum| {
+            total.checked_add(stratum.population_unit_count)
+        })
+        .ok_or(NegativeAuditError::PopulationCountOverflow)?;
 
     Ok(NegativeAuditReport {
         schema_version: NEGATIVE_AUDIT_SCHEMA_VERSION.to_owned(),
@@ -727,27 +801,75 @@ mod tests {
     #[test]
     fn stratified_ht_estimator_expands_confusion_totals_by_inclusion_probability() {
         let strata = vec![
-            stratum("predicted-positive", AuditStratumKind::HighScoreCandidates, 100, 2),
-            stratum("predicted-negative", AuditStratumKind::PredictedNegativeLandscape, 200, 2),
+            stratum(
+                "predicted-positive",
+                AuditStratumKind::HighScoreCandidates,
+                100,
+                2,
+            ),
+            stratum(
+                "predicted-negative",
+                AuditStratumKind::PredictedNegativeLandscape,
+                200,
+                2,
+            ),
         ];
         let samples = vec![
-            sample("s1", "u1", "l1", "predicted-positive", ModelPrediction::Positive, positive(), 0.02),
-            sample("s2", "u2", "l1", "predicted-positive", ModelPrediction::Positive, negative(), 0.02),
-            sample("s3", "u3", "l2", "predicted-negative", ModelPrediction::Negative, positive(), 0.01),
-            sample("s4", "u4", "l2", "predicted-negative", ModelPrediction::Negative, negative(), 0.01),
+            sample(
+                "s1",
+                "u1",
+                "l1",
+                "predicted-positive",
+                ModelPrediction::Positive,
+                positive(),
+                0.02,
+            ),
+            sample(
+                "s2",
+                "u2",
+                "l1",
+                "predicted-positive",
+                ModelPrediction::Positive,
+                negative(),
+                0.02,
+            ),
+            sample(
+                "s3",
+                "u3",
+                "l2",
+                "predicted-negative",
+                ModelPrediction::Negative,
+                positive(),
+                0.01,
+            ),
+            sample(
+                "s4",
+                "u4",
+                "l2",
+                "predicted-negative",
+                ModelPrediction::Negative,
+                negative(),
+                0.01,
+            ),
         ];
         let report = evaluate_negative_space_audit(
             "synthetic-frame",
             "synthetic-design",
             &strata,
             &samples,
-            NegativeAuditConfig { probability_tolerance: 1e-9 },
-        ).unwrap();
+            NegativeAuditConfig {
+                probability_tolerance: 1e-9,
+            },
+        )
+        .unwrap();
 
         let weighted = report.design_weighted_metrics.unwrap();
         assert_eq!(weighted.estimated_population_confusion.true_positive, 50.0);
         assert_eq!(weighted.estimated_population_confusion.false_positive, 50.0);
-        assert_eq!(weighted.estimated_population_confusion.false_negative, 100.0);
+        assert_eq!(
+            weighted.estimated_population_confusion.false_negative,
+            100.0
+        );
         assert_eq!(weighted.estimated_population_confusion.true_negative, 100.0);
         assert!((weighted.precision.unwrap() - 0.5).abs() < 1e-12);
         assert!((weighted.recall.unwrap() - (1.0 / 3.0)).abs() < 1e-12);
@@ -755,22 +877,60 @@ mod tests {
 
     #[test]
     fn predicted_negative_stratum_detects_false_negatives_instead_of_assuming_zero() {
-        let strata = vec![
-            stratum("negative-space", AuditStratumKind::PredictedNegativeLandscape, 1000, 4),
-        ];
+        let strata = vec![stratum(
+            "negative-space",
+            AuditStratumKind::PredictedNegativeLandscape,
+            1000,
+            4,
+        )];
         let samples = vec![
-            sample("s1", "u1", "l1", "negative-space", ModelPrediction::Negative, positive(), 0.004),
-            sample("s2", "u2", "l1", "negative-space", ModelPrediction::Negative, negative(), 0.004),
-            sample("s3", "u3", "l2", "negative-space", ModelPrediction::Negative, positive(), 0.004),
-            sample("s4", "u4", "l2", "negative-space", ModelPrediction::Negative, negative(), 0.004),
+            sample(
+                "s1",
+                "u1",
+                "l1",
+                "negative-space",
+                ModelPrediction::Negative,
+                positive(),
+                0.004,
+            ),
+            sample(
+                "s2",
+                "u2",
+                "l1",
+                "negative-space",
+                ModelPrediction::Negative,
+                negative(),
+                0.004,
+            ),
+            sample(
+                "s3",
+                "u3",
+                "l2",
+                "negative-space",
+                ModelPrediction::Negative,
+                positive(),
+                0.004,
+            ),
+            sample(
+                "s4",
+                "u4",
+                "l2",
+                "negative-space",
+                ModelPrediction::Negative,
+                negative(),
+                0.004,
+            ),
         ];
         let report = evaluate_negative_space_audit(
             "frame",
             "design",
             &strata,
             &samples,
-            NegativeAuditConfig { probability_tolerance: 1e-9 },
-        ).unwrap();
+            NegativeAuditConfig {
+                probability_tolerance: 1e-9,
+            },
+        )
+        .unwrap();
         let weighted = report.design_weighted_metrics.unwrap();
         assert_eq!(report.false_negative_sample_count, 2);
         assert_eq!(weighted.false_negative_total, 500.0);
@@ -780,25 +940,55 @@ mod tests {
 
     #[test]
     fn unknown_and_unobservable_are_not_converted_to_negative_or_population_estimates() {
-        let strata = vec![
-            stratum("negative-space", AuditStratumKind::PredictedNegativeLandscape, 10, 3),
-        ];
+        let strata = vec![stratum(
+            "negative-space",
+            AuditStratumKind::PredictedNegativeLandscape,
+            10,
+            3,
+        )];
         let samples = vec![
-            sample("s1", "u1", "l1", "negative-space", ModelPrediction::Negative, positive(), 0.3),
-            sample("s2", "u2", "l1", "negative-space", ModelPrediction::Negative, AuditGroundTruth::Unknown {
-                reason_ref: "urn:synthetic:not-adjudicated".into(),
-            }, 0.3),
-            sample("s3", "u3", "l2", "negative-space", ModelPrediction::Negative, AuditGroundTruth::Unobservable {
-                reason_ref: "urn:synthetic:cloud-or-access-limit".into(),
-            }, 0.3),
+            sample(
+                "s1",
+                "u1",
+                "l1",
+                "negative-space",
+                ModelPrediction::Negative,
+                positive(),
+                0.3,
+            ),
+            sample(
+                "s2",
+                "u2",
+                "l1",
+                "negative-space",
+                ModelPrediction::Negative,
+                AuditGroundTruth::Unknown {
+                    reason_ref: "urn:synthetic:not-adjudicated".into(),
+                },
+                0.3,
+            ),
+            sample(
+                "s3",
+                "u3",
+                "l2",
+                "negative-space",
+                ModelPrediction::Negative,
+                AuditGroundTruth::Unobservable {
+                    reason_ref: "urn:synthetic:cloud-or-access-limit".into(),
+                },
+                0.3,
+            ),
         ];
         let report = evaluate_negative_space_audit(
             "frame",
             "design",
             &strata,
             &samples,
-            NegativeAuditConfig { probability_tolerance: 1e-9 },
-        ).unwrap();
+            NegativeAuditConfig {
+                probability_tolerance: 1e-9,
+            },
+        )
+        .unwrap();
         assert_eq!(report.unknown_count, 1);
         assert_eq!(report.unobservable_count, 1);
         assert_eq!(report.unresolved_count, 2);
@@ -809,7 +999,12 @@ mod tests {
 
     #[test]
     fn model_abstentions_are_reported_and_block_population_metrics() {
-        let strata = vec![stratum("abstained", AuditStratumKind::ModelAbstained, 10, 1)];
+        let strata = vec![stratum(
+            "abstained",
+            AuditStratumKind::ModelAbstained,
+            10,
+            1,
+        )];
         let samples = vec![sample(
             "s1",
             "u1",
@@ -824,8 +1019,11 @@ mod tests {
             "design",
             &strata,
             &samples,
-            NegativeAuditConfig { probability_tolerance: 1e-9 },
-        ).unwrap();
+            NegativeAuditConfig {
+                probability_tolerance: 1e-9,
+            },
+        )
+        .unwrap();
         assert_eq!(report.adjudicated_positive_count, 1);
         assert_eq!(report.model_abstained_count, 1);
         assert_eq!(report.unresolved_count, 0);
@@ -843,17 +1041,37 @@ mod tests {
             authority_ref: "urn:synthetic:authority".into(),
             rights_receipt_ref: "urn:synthetic:rights".into(),
         };
-        let samples = vec![sample("s1", "u1", "l1", "high", ModelPrediction::Positive, invalid, 1.0)];
+        let samples = vec![sample(
+            "s1",
+            "u1",
+            "l1",
+            "high",
+            ModelPrediction::Positive,
+            invalid,
+            1.0,
+        )];
         assert!(matches!(
-            evaluate_negative_space_audit("frame", "design", &strata, &samples,
-                NegativeAuditConfig { probability_tolerance: 1e-9 }),
+            evaluate_negative_space_audit(
+                "frame",
+                "design",
+                &strata,
+                &samples,
+                NegativeAuditConfig {
+                    probability_tolerance: 1e-9
+                }
+            ),
             Err(NegativeAuditError::InvalidEvidenceTier { .. })
         ));
     }
 
     #[test]
     fn confirmed_negative_requires_detectability_assessment() {
-        let strata = vec![stratum("negative", AuditStratumKind::PredictedNegativeLandscape, 1, 1)];
+        let strata = vec![stratum(
+            "negative",
+            AuditStratumKind::PredictedNegativeLandscape,
+            1,
+            1,
+        )];
         let invalid = AuditGroundTruth::ConfirmedNegative {
             adjudication_ref: "urn:synthetic:negative".into(),
             evidence_tier: AuditEvidenceTier::FieldAssessed,
@@ -862,32 +1080,139 @@ mod tests {
             rights_receipt_ref: "urn:synthetic:rights".into(),
             detectability_assessment_ref: " ".into(),
         };
-        let samples = vec![sample("s1", "u1", "l1", "negative", ModelPrediction::Negative, invalid, 1.0)];
+        let samples = vec![sample(
+            "s1",
+            "u1",
+            "l1",
+            "negative",
+            ModelPrediction::Negative,
+            invalid,
+            1.0,
+        )];
         assert!(matches!(
-            evaluate_negative_space_audit("frame", "design", &strata, &samples,
-                NegativeAuditConfig { probability_tolerance: 1e-9 }),
+            evaluate_negative_space_audit(
+                "frame",
+                "design",
+                &strata,
+                &samples,
+                NegativeAuditConfig {
+                    probability_tolerance: 1e-9
+                }
+            ),
             Err(NegativeAuditError::MissingDetectabilityAssessment { .. })
         ));
     }
 
     #[test]
     fn srswOR_inclusion_probability_must_match_declared_stratum_design() {
-        let strata = vec![stratum("negative", AuditStratumKind::PredictedNegativeLandscape, 100, 10)];
+        let strata = vec![stratum(
+            "negative",
+            AuditStratumKind::PredictedNegativeLandscape,
+            100,
+            10,
+        )];
         let samples = vec![
-            sample("s1", "u1", "l1", "negative", ModelPrediction::Negative, negative(), 0.2),
-            sample("s2", "u2", "l1", "negative", ModelPrediction::Negative, negative(), 0.2),
-            sample("s3", "u3", "l1", "negative", ModelPrediction::Negative, negative(), 0.2),
-            sample("s4", "u4", "l2", "negative", ModelPrediction::Negative, negative(), 0.2),
-            sample("s5", "u5", "l2", "negative", ModelPrediction::Negative, negative(), 0.2),
-            sample("s6", "u6", "l2", "negative", ModelPrediction::Negative, negative(), 0.2),
-            sample("s7", "u7", "l3", "negative", ModelPrediction::Negative, negative(), 0.2),
-            sample("s8", "u8", "l3", "negative", ModelPrediction::Negative, negative(), 0.2),
-            sample("s9", "u9", "l3", "negative", ModelPrediction::Negative, negative(), 0.2),
-            sample("s10", "u10", "l4", "negative", ModelPrediction::Negative, negative(), 0.2),
+            sample(
+                "s1",
+                "u1",
+                "l1",
+                "negative",
+                ModelPrediction::Negative,
+                negative(),
+                0.2,
+            ),
+            sample(
+                "s2",
+                "u2",
+                "l1",
+                "negative",
+                ModelPrediction::Negative,
+                negative(),
+                0.2,
+            ),
+            sample(
+                "s3",
+                "u3",
+                "l1",
+                "negative",
+                ModelPrediction::Negative,
+                negative(),
+                0.2,
+            ),
+            sample(
+                "s4",
+                "u4",
+                "l2",
+                "negative",
+                ModelPrediction::Negative,
+                negative(),
+                0.2,
+            ),
+            sample(
+                "s5",
+                "u5",
+                "l2",
+                "negative",
+                ModelPrediction::Negative,
+                negative(),
+                0.2,
+            ),
+            sample(
+                "s6",
+                "u6",
+                "l2",
+                "negative",
+                ModelPrediction::Negative,
+                negative(),
+                0.2,
+            ),
+            sample(
+                "s7",
+                "u7",
+                "l3",
+                "negative",
+                ModelPrediction::Negative,
+                negative(),
+                0.2,
+            ),
+            sample(
+                "s8",
+                "u8",
+                "l3",
+                "negative",
+                ModelPrediction::Negative,
+                negative(),
+                0.2,
+            ),
+            sample(
+                "s9",
+                "u9",
+                "l3",
+                "negative",
+                ModelPrediction::Negative,
+                negative(),
+                0.2,
+            ),
+            sample(
+                "s10",
+                "u10",
+                "l4",
+                "negative",
+                ModelPrediction::Negative,
+                negative(),
+                0.2,
+            ),
         ];
         assert!(matches!(
-            evaluate_negative_space_audit("frame", "design", &strata, &samples,
-                NegativeAuditConfig { probability_tolerance: 1e-9 }),
+            evaluate_negative_space_audit(
+                "frame",
+                "design",
+                &strata,
+                &samples,
+                NegativeAuditConfig {
+                    probability_tolerance: 1e-9
+                }
+            ),
             Err(NegativeAuditError::IncorrectSrsInclusionProbability { .. })
         ));
     }
@@ -897,11 +1222,35 @@ mod tests {
         let mut design_stratum = stratum("high", AuditStratumKind::HighScoreCandidates, 100, 2);
         design_stratum.sampling_design = AuditSamplingDesign::KnownUnequalFirstOrderProbability;
         let samples = vec![
-            sample("s1", "u1", "l1", "high", ModelPrediction::Positive, positive(), 0.01),
-            sample("s2", "u2", "l2", "high", ModelPrediction::Positive, positive(), 0.04),
+            sample(
+                "s1",
+                "u1",
+                "l1",
+                "high",
+                ModelPrediction::Positive,
+                positive(),
+                0.01,
+            ),
+            sample(
+                "s2",
+                "u2",
+                "l2",
+                "high",
+                ModelPrediction::Positive,
+                positive(),
+                0.04,
+            ),
         ];
-        let report = evaluate_negative_space_audit("frame", "design", &[design_stratum], &samples,
-            NegativeAuditConfig { probability_tolerance: 1e-9 }).unwrap();
+        let report = evaluate_negative_space_audit(
+            "frame",
+            "design",
+            &[design_stratum],
+            &samples,
+            NegativeAuditConfig {
+                probability_tolerance: 1e-9,
+            },
+        )
+        .unwrap();
         let weighted = report.design_weighted_metrics.unwrap();
         assert_eq!(weighted.estimated_population_confusion.true_positive, 125.0);
         assert_eq!(weighted.recall, Some(1.0));
@@ -909,49 +1258,116 @@ mod tests {
 
     #[test]
     fn sample_counts_must_match_design_and_duplicate_units_fail_closed() {
-        let strata = vec![stratum("negative", AuditStratumKind::PredictedNegativeLandscape, 10, 2)];
-        let one = sample("s1", "u1", "l1", "negative", ModelPrediction::Negative, negative(), 0.2);
+        let strata = vec![stratum(
+            "negative",
+            AuditStratumKind::PredictedNegativeLandscape,
+            10,
+            2,
+        )];
+        let one = sample(
+            "s1",
+            "u1",
+            "l1",
+            "negative",
+            ModelPrediction::Negative,
+            negative(),
+            0.2,
+        );
         assert!(matches!(
-            evaluate_negative_space_audit("frame", "design", &strata, &[one.clone()],
-                NegativeAuditConfig { probability_tolerance: 1e-9 }),
+            evaluate_negative_space_audit(
+                "frame",
+                "design",
+                &strata,
+                &[one.clone()],
+                NegativeAuditConfig {
+                    probability_tolerance: 1e-9
+                }
+            ),
             Err(NegativeAuditError::SelectedCountMismatch { .. })
         ));
-        let duplicate = sample("s2", "u1", "l2", "negative", ModelPrediction::Negative, negative(), 0.2);
+        let duplicate = sample(
+            "s2",
+            "u1",
+            "l2",
+            "negative",
+            ModelPrediction::Negative,
+            negative(),
+            0.2,
+        );
         assert!(matches!(
-            evaluate_negative_space_audit("frame", "design", &strata, &[one, duplicate],
-                NegativeAuditConfig { probability_tolerance: 1e-9 }),
+            evaluate_negative_space_audit(
+                "frame",
+                "design",
+                &strata,
+                &[one, duplicate],
+                NegativeAuditConfig {
+                    probability_tolerance: 1e-9
+                }
+            ),
             Err(NegativeAuditError::DuplicateUnitId(_))
         ));
     }
 
-
     #[test]
     fn non_finite_expansion_weights_fail_closed() {
         let strata = vec![AuditPopulationStratum {
-            stratum_id:"unequal".into(),
-            kind:AuditStratumKind::PredictedNegativeLandscape,
-            population_unit_count:1,
-            selected_unit_count:1,
-            sampling_design:AuditSamplingDesign::KnownUnequalFirstOrderProbability,
-            design_reference:"urn:synthetic:design:unequal".into()
+            stratum_id: "unequal".into(),
+            kind: AuditStratumKind::PredictedNegativeLandscape,
+            population_unit_count: 1,
+            selected_unit_count: 1,
+            sampling_design: AuditSamplingDesign::KnownUnequalFirstOrderProbability,
+            design_reference: "urn:synthetic:design:unequal".into(),
         }];
         let samples = vec![sample(
-            "s1","u1","l1","unequal",ModelPrediction::Negative,negative(),1e-320
+            "s1",
+            "u1",
+            "l1",
+            "unequal",
+            ModelPrediction::Negative,
+            negative(),
+            1e-320,
         )];
         assert!(matches!(
-            evaluate_negative_space_audit("frame","design",&strata,&samples,
-                NegativeAuditConfig {probability_tolerance:1e-9}),
+            evaluate_negative_space_audit(
+                "frame",
+                "design",
+                &strata,
+                &samples,
+                NegativeAuditConfig {
+                    probability_tolerance: 1e-9
+                }
+            ),
             Err(NegativeAuditError::InvalidExpansionWeight { .. })
         ));
     }
 
     #[test]
     fn prediction_and_stratum_semantics_must_match() {
-        let strata = vec![stratum("negative", AuditStratumKind::PredictedNegativeLandscape, 1, 1)];
-        let samples = vec![sample("s1", "u1", "l1", "negative", ModelPrediction::Positive, positive(), 1.0)];
+        let strata = vec![stratum(
+            "negative",
+            AuditStratumKind::PredictedNegativeLandscape,
+            1,
+            1,
+        )];
+        let samples = vec![sample(
+            "s1",
+            "u1",
+            "l1",
+            "negative",
+            ModelPrediction::Positive,
+            positive(),
+            1.0,
+        )];
         assert!(matches!(
-            evaluate_negative_space_audit("frame", "design", &strata, &samples,
-                NegativeAuditConfig { probability_tolerance: 1e-9 }),
+            evaluate_negative_space_audit(
+                "frame",
+                "design",
+                &strata,
+                &samples,
+                NegativeAuditConfig {
+                    probability_tolerance: 1e-9
+                }
+            ),
             Err(NegativeAuditError::PredictionStratumMismatch { .. })
         ));
     }
@@ -959,9 +1375,25 @@ mod tests {
     #[test]
     fn f1_and_precision_are_none_when_their_denominators_are_zero() {
         let strata = vec![stratum("high", AuditStratumKind::HighScoreCandidates, 1, 1)];
-        let samples = vec![sample("s1", "u1", "l1", "high", ModelPrediction::Positive, negative(), 1.0)];
-        let report = evaluate_negative_space_audit("frame", "design", &strata, &samples,
-            NegativeAuditConfig { probability_tolerance: 1e-9 }).unwrap();
+        let samples = vec![sample(
+            "s1",
+            "u1",
+            "l1",
+            "high",
+            ModelPrediction::Positive,
+            negative(),
+            1.0,
+        )];
+        let report = evaluate_negative_space_audit(
+            "frame",
+            "design",
+            &strata,
+            &samples,
+            NegativeAuditConfig {
+                probability_tolerance: 1e-9,
+            },
+        )
+        .unwrap();
         let metrics = report.design_weighted_metrics.unwrap();
         assert_eq!(metrics.precision, Some(0.0));
         assert_eq!(metrics.recall, None);

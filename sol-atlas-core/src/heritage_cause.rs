@@ -14,12 +14,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use std::fmt;
 
-pub const CAUSE_EVALUATION_SCHEMA_VERSION: &str =
-    "luminous.heritage-cause-evaluation.v0.1";
+pub const CAUSE_EVALUATION_SCHEMA_VERSION: &str = "luminous.heritage-cause-evaluation.v0.1";
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize,
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ChangeCause {
     ArchaeologicalExcavationLooting,
@@ -66,9 +63,7 @@ pub enum CauseGroundTruth {
     },
     /// A reviewer confirmed that no relevant change occurred in the reviewed
     /// observation window. This is a verified negative, not an unknown.
-    ConfirmedNoRelevantChange {
-        adjudication_ref: String,
-    },
+    ConfirmedNoRelevantChange { adjudication_ref: String },
     /// The cause is not known or cannot be adjudicated. This contributes to
     /// neither positive nor negative cause metrics.
     Unknown,
@@ -144,14 +139,36 @@ pub enum CauseEvaluationError {
     InvalidThreshold,
     EmptySampleId,
     DuplicateSampleId(String),
-    EmptyAdjudicationReference { sample_id: String },
-    CompleteCauseListEmpty { sample_id: String },
-    DuplicateGroundTruthCause { sample_id: String, cause: ChangeCause },
-    DuplicatePredictionCause { sample_id: String, cause: ChangeCause },
-    MissingPredictionCause { sample_id: String, cause: ChangeCause },
-    ExtraPredictionCause { sample_id: String, cause: ChangeCause },
-    InvalidProbability { sample_id: String, cause: ChangeCause },
-    AssertedCauseMissingEvidence { sample_id: String, cause: ChangeCause },
+    EmptyAdjudicationReference {
+        sample_id: String,
+    },
+    CompleteCauseListEmpty {
+        sample_id: String,
+    },
+    DuplicateGroundTruthCause {
+        sample_id: String,
+        cause: ChangeCause,
+    },
+    DuplicatePredictionCause {
+        sample_id: String,
+        cause: ChangeCause,
+    },
+    MissingPredictionCause {
+        sample_id: String,
+        cause: ChangeCause,
+    },
+    ExtraPredictionCause {
+        sample_id: String,
+        cause: ChangeCause,
+    },
+    InvalidProbability {
+        sample_id: String,
+        cause: ChangeCause,
+    },
+    AssertedCauseMissingEvidence {
+        sample_id: String,
+        cause: ChangeCause,
+    },
 }
 
 impl fmt::Display for CauseEvaluationError {
@@ -227,9 +244,7 @@ fn validate_sample(
                 cause: score.cause,
             });
         }
-        if !score.probability.is_finite()
-            || !(0.0..=1.0).contains(&score.probability)
-        {
+        if !score.probability.is_finite() || !(0.0..=1.0).contains(&score.probability) {
             return Err(CauseEvaluationError::InvalidProbability {
                 sample_id: sample.sample_id.clone(),
                 cause: score.cause,
@@ -237,7 +252,10 @@ fn validate_sample(
         }
         if !sample.prediction.abstained
             && score.probability >= config.cause_threshold
-            && score.evidence_refs.iter().all(|reference| reference.trim().is_empty())
+            && score
+                .evidence_refs
+                .iter()
+                .all(|reference| reference.trim().is_empty())
         {
             return Err(CauseEvaluationError::AssertedCauseMissingEvidence {
                 sample_id: sample.sample_id.clone(),
@@ -273,9 +291,7 @@ pub fn evaluate_change_causes(
     samples: &[CauseEvaluationSample],
     config: CauseEvaluationConfig,
 ) -> Result<CauseEvaluationReport, CauseEvaluationError> {
-    if !config.cause_threshold.is_finite()
-        || !(0.0..=1.0).contains(&config.cause_threshold)
-    {
+    if !config.cause_threshold.is_finite() || !(0.0..=1.0).contains(&config.cause_threshold) {
         return Err(CauseEvaluationError::InvalidThreshold);
     }
 
@@ -321,7 +337,9 @@ pub fn evaluate_change_causes(
 
         let mut predicted_archaeological = false;
         for (index, cause) in CHANGE_CAUSES.iter().enumerate() {
-            let score = sample.prediction.scores
+            let score = sample
+                .prediction
+                .scores
                 .iter()
                 .find(|score| score.cause == *cause)
                 .expect("validated predictions contain every cause");
@@ -344,9 +362,7 @@ pub fn evaluate_change_causes(
             confusion[index].brier_sum +=
                 (score.probability - target) * (score.probability - target);
 
-            if *cause == ChangeCause::ArchaeologicalExcavationLooting
-                && predicted_positive
-            {
+            if *cause == ChangeCause::ArchaeologicalExcavationLooting && predicted_positive {
                 predicted_archaeological = true;
             }
         }
@@ -361,29 +377,32 @@ pub fn evaluate_change_causes(
         }
     }
 
-    let classes: Vec<CauseClassMetrics> = CHANGE_CAUSES.iter().enumerate().map(|(index, cause)| {
-        let values = confusion[index];
-        let precision = ratio(values.tp, values.predicted);
-        let recall = ratio(values.tp, values.support);
-        let f1_denominator = 2 * values.tp + values.fp + values.fn_count;
-        let f1 = (f1_denominator > 0)
-            .then_some((2 * values.tp) as f64 / f1_denominator as f64);
-        CauseClassMetrics {
-            cause: *cause,
-            support_count: values.support,
-            predicted_positive_count: values.predicted,
-            true_positive: values.tp,
-            false_positive: values.fp,
-            false_negative: values.fn_count,
-            precision,
-            recall,
-            f1,
-            brier_score: (covered_count > 0)
-                .then_some(values.brier_sum / covered_count as f64),
-        }
-    }).collect();
+    let classes: Vec<CauseClassMetrics> = CHANGE_CAUSES
+        .iter()
+        .enumerate()
+        .map(|(index, cause)| {
+            let values = confusion[index];
+            let precision = ratio(values.tp, values.predicted);
+            let recall = ratio(values.tp, values.support);
+            let f1_denominator = 2 * values.tp + values.fp + values.fn_count;
+            let f1 = (f1_denominator > 0).then_some((2 * values.tp) as f64 / f1_denominator as f64);
+            CauseClassMetrics {
+                cause: *cause,
+                support_count: values.support,
+                predicted_positive_count: values.predicted,
+                true_positive: values.tp,
+                false_positive: values.fp,
+                false_negative: values.fn_count,
+                precision,
+                recall,
+                f1,
+                brier_score: (covered_count > 0).then_some(values.brier_sum / covered_count as f64),
+            }
+        })
+        .collect();
 
-    let supported_f1: Vec<f64> = classes.iter()
+    let supported_f1: Vec<f64> = classes
+        .iter()
         .filter(|metrics| metrics.support_count > 0 || metrics.predicted_positive_count > 0)
         .filter_map(|metrics| metrics.f1)
         .collect();
@@ -420,25 +439,31 @@ mod tests {
     use super::*;
 
     fn config() -> CauseEvaluationConfig {
-        CauseEvaluationConfig { cause_threshold: 0.7 }
+        CauseEvaluationConfig {
+            cause_threshold: 0.7,
+        }
     }
 
     fn scores(predicted: &[(ChangeCause, f64)], abstained: bool) -> CausePrediction {
-        let scores = CHANGE_CAUSES.iter().map(|cause| {
-            let probability = predicted.iter()
-                .find(|(predicted_cause, _)| predicted_cause == cause)
-                .map(|(_, probability)| *probability)
-                .unwrap_or(0.05);
-            CauseProbability {
-                cause: *cause,
-                probability,
-                evidence_refs: if probability >= 0.7 {
-                    vec![format!("urn:synthetic:evidence:{cause:?}")]
-                } else {
-                    Vec::new()
-                },
-            }
-        }).collect();
+        let scores = CHANGE_CAUSES
+            .iter()
+            .map(|cause| {
+                let probability = predicted
+                    .iter()
+                    .find(|(predicted_cause, _)| predicted_cause == cause)
+                    .map(|(_, probability)| *probability)
+                    .unwrap_or(0.05);
+                CauseProbability {
+                    cause: *cause,
+                    probability,
+                    evidence_refs: if probability >= 0.7 {
+                        vec![format!("urn:synthetic:evidence:{cause:?}")]
+                    } else {
+                        Vec::new()
+                    },
+                }
+            })
+            .collect();
         CausePrediction { abstained, scores }
     }
 
@@ -462,7 +487,10 @@ mod tests {
                 causes: vec![ChangeCause::ArchaeologicalExcavationLooting],
                 adjudication_ref: "urn:review:a".into(),
             },
-            scores(&[(ChangeCause::ArchaeologicalExcavationLooting, 0.95)], false),
+            scores(
+                &[(ChangeCause::ArchaeologicalExcavationLooting, 0.95)],
+                false,
+            ),
         );
         let report = evaluate_change_causes(&[sample], config()).unwrap();
         assert_eq!(report.predicted_archaeological_claim_count, 1);
@@ -479,14 +507,20 @@ mod tests {
                 causes: vec![ChangeCause::AgricultureCultivation],
                 adjudication_ref: "urn:review:b".into(),
             },
-            scores(&[
-                (ChangeCause::AgricultureCultivation, 0.9),
-                (ChangeCause::ArchaeologicalExcavationLooting, 0.85),
-            ], false),
+            scores(
+                &[
+                    (ChangeCause::AgricultureCultivation, 0.9),
+                    (ChangeCause::ArchaeologicalExcavationLooting, 0.85),
+                ],
+                false,
+            ),
         );
         let report = evaluate_change_causes(&[sample], config()).unwrap();
         assert_eq!(report.false_archaeological_claim_count, 1);
-        assert_eq!(report.false_archaeological_claims_per_100_covered_samples, Some(100.0));
+        assert_eq!(
+            report.false_archaeological_claims_per_100_covered_samples,
+            Some(100.0)
+        );
         assert_eq!(report.archaeological_claim_precision, Some(0.0));
     }
 
@@ -497,12 +531,18 @@ mod tests {
             CauseGroundTruth::ConfirmedNoRelevantChange {
                 adjudication_ref: "urn:review:no-change".into(),
             },
-            scores(&[(ChangeCause::ArchaeologicalExcavationLooting, 0.8)], false),
+            scores(
+                &[(ChangeCause::ArchaeologicalExcavationLooting, 0.8)],
+                false,
+            ),
         );
         let unknown = sample(
             "unknown",
             CauseGroundTruth::Unknown,
-            scores(&[(ChangeCause::ArchaeologicalExcavationLooting, 0.95)], false),
+            scores(
+                &[(ChangeCause::ArchaeologicalExcavationLooting, 0.95)],
+                false,
+            ),
         );
         let report = evaluate_change_causes(&[no_change, unknown], config()).unwrap();
         assert_eq!(report.confirmed_no_change_count, 1);
@@ -520,7 +560,10 @@ mod tests {
                 causes: vec![ChangeCause::ArchaeologicalExcavationLooting],
                 adjudication_ref: "urn:review:abstain".into(),
             },
-            scores(&[(ChangeCause::ArchaeologicalExcavationLooting, 0.99)], true),
+            scores(
+                &[(ChangeCause::ArchaeologicalExcavationLooting, 0.99)],
+                true,
+            ),
         );
         let report = evaluate_change_causes(&[sample], config()).unwrap();
         assert_eq!(report.coverage, Some(0.0));
@@ -540,10 +583,13 @@ mod tests {
                 ],
                 adjudication_ref: "urn:review:mixed".into(),
             },
-            scores(&[
-                (ChangeCause::AgricultureCultivation, 0.9),
-                (ChangeCause::SeasonalVegetationPhenology, 0.8),
-            ], false),
+            scores(
+                &[
+                    (ChangeCause::AgricultureCultivation, 0.9),
+                    (ChangeCause::SeasonalVegetationPhenology, 0.8),
+                ],
+                false,
+            ),
         );
         let report = evaluate_change_causes(&[sample], config()).unwrap();
         assert_eq!(report.supported_macro_f1, Some(1.0));
@@ -551,10 +597,17 @@ mod tests {
 
     #[test]
     fn every_asserted_cause_requires_an_evidence_reference() {
-        let mut prediction = scores(&[(ChangeCause::ArchaeologicalExcavationLooting, 0.9)], false);
-        prediction.scores.iter_mut()
+        let mut prediction = scores(
+            &[(ChangeCause::ArchaeologicalExcavationLooting, 0.9)],
+            false,
+        );
+        prediction
+            .scores
+            .iter_mut()
             .find(|score| score.cause == ChangeCause::ArchaeologicalExcavationLooting)
-            .unwrap().evidence_refs.clear();
+            .unwrap()
+            .evidence_refs
+            .clear();
         let sample = sample(
             "no-evidence",
             CauseGroundTruth::CompleteCauses {
@@ -577,14 +630,20 @@ mod tests {
         let mut missing = scores(&[], false);
         missing.scores.pop();
         assert!(matches!(
-            evaluate_change_causes(&[sample("missing", ground_truth.clone(), missing)], config()),
+            evaluate_change_causes(
+                &[sample("missing", ground_truth.clone(), missing)],
+                config()
+            ),
             Err(CauseEvaluationError::MissingPredictionCause { .. })
         ));
 
         let mut duplicate = scores(&[], false);
         duplicate.scores[1].cause = duplicate.scores[0].cause;
         assert!(matches!(
-            evaluate_change_causes(&[sample("duplicate", ground_truth.clone(), duplicate)], config()),
+            evaluate_change_causes(
+                &[sample("duplicate", ground_truth.clone(), duplicate)],
+                config()
+            ),
             Err(CauseEvaluationError::DuplicatePredictionCause { .. })
         ));
 
@@ -607,7 +666,9 @@ mod tests {
             scores(&[], false),
         );
         let report = evaluate_change_causes(&[sample], config()).unwrap();
-        let metrics = report.classes.iter()
+        let metrics = report
+            .classes
+            .iter()
             .find(|metrics| metrics.cause == ChangeCause::ArchaeologicalExcavationLooting)
             .unwrap();
         assert_eq!(metrics.precision, None);
@@ -629,7 +690,12 @@ mod tests {
         ));
 
         assert_eq!(
-            evaluate_change_causes(&[], CauseEvaluationConfig { cause_threshold: 1.5 }),
+            evaluate_change_causes(
+                &[],
+                CauseEvaluationConfig {
+                    cause_threshold: 1.5
+                }
+            ),
             Err(CauseEvaluationError::InvalidThreshold)
         );
     }
