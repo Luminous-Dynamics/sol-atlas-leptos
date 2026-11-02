@@ -23,10 +23,6 @@ on:
       - "schemas/industry-ieac-decision-frontier-*.json"
       - "schemas/examples/ieac-decision-frontier-*.json"
       - "docs/industry/IEAC_DECISION_TIME_FRONTIER_V0.1.md"
-      - "tools/industry-decision-frontier/**"
-      - "schemas/industry-ieac-decision-frontier-*.json"
-      - "schemas/examples/ieac-decision-frontier-*.json"
-      - "docs/industry/IEAC_DECISION_TIME_FRONTIER_V0.1.md"
       - ".github/workflows/industry-runtime-admission.yml"
   push:
     branches:
@@ -48,6 +44,10 @@ on:
       - "docs/industry/IEAC_TRUST_V0.2_SIGNED_ENVELOPE_PROFILE.md"
       - "schemas/industry-assurance-qualification-profile-v0.1.schema.json"
       - "schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json"
+      - "tools/industry-decision-frontier/**"
+      - "schemas/industry-ieac-decision-frontier-*.json"
+      - "schemas/examples/ieac-decision-frontier-*.json"
+      - "docs/industry/IEAC_DECISION_TIME_FRONTIER_V0.1.md"
       - ".github/workflows/industry-runtime-admission.yml"
   workflow_dispatch:
 
