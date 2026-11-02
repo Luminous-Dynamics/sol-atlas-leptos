@@ -54,7 +54,8 @@ The repeated campaign:
 - emits 30 unique sample IDs and a 34-column trace;
 - serializes the first lexicographic Pareto alternative as the domain-level schedule DTO;
 - audits all 30 selected schedules in a separate process and requires 30 accepted receipts bound to their exact request/schedule hashes;
-- computes nearest-rank p50 and p95 for completed search latency;
+- computes nearest-rank p50 and p95 for completed search latency and peak memory;
+- explicitly leaves first-feasible timing unavailable because the current DFS kernel does not expose an incumbent callback or timestamp (zero eligible observations, `NA` quantiles);
 - withholds p99 because the required 1,000 completed samples are not available;
 - reports the sample denominators and full runner/auditor/aggregator provenance.
 
