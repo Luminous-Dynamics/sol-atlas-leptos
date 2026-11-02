@@ -322,7 +322,7 @@ fn parse_utc_seconds(value: &str) -> Result<i64, String> {
         return Err("timestamp is not a supported Gregorian UTC instant".to_string());
     }
 
-    let adjusted_year = year - i64::from(month <= 2);
+    let adjusted_year = year - if month <= 2 { 1 } else { 0 };
     let era = adjusted_year.div_euclid(400);
     let year_of_era = adjusted_year - era * 400;
     let adjusted_month = month + if month > 2 { -3 } else { 9 };
@@ -375,6 +375,13 @@ fn classify(
             None,
         ));
     };
+
+    if availability.time.verification_status == "failed" {
+        return Err(format!(
+            "availability proof verification failed for {}",
+            item.evidence_id
+        ));
+    }
 
     if availability.relying_party_id != snapshot.decision.relying_party_id {
         return Ok((
@@ -439,6 +446,9 @@ fn classify(
 fn audit(snapshot: &Snapshot, raw: &[u8]) -> Result<Report, String> {
     validate_snapshot(snapshot)?;
 
+    if snapshot.decision_cutoff.verification_status == "failed" {
+        return Err("decision cutoff trust verification failed".to_string());
+    }
     let cutoff_trusted = snapshot.decision_cutoff.basis == "trusted_clock_attestation"
         && snapshot.decision_cutoff.verification_status == "verified";
     let cutoff_interval = if cutoff_trusted {
