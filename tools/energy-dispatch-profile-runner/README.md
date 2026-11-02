@@ -178,3 +178,38 @@ service-floor receipts to pass. The reported timing distributions are
 within-case measurements on one hosted runner cohort. They do not establish
 horizon scaling, multi-site reliability, network feasibility or SOTA
 superiority.
+
+## Scenario-stratified resilience panel v0.1
+
+The v0.3 campaign now uses the checked-in
+schemas/examples/energy-dispatch-scenario-panel-v0.1.json manifest and its
+strict JSON schema. The frozen panel contains four separate two-interval
+scenario-conditioned solves:
+
+| Scenario | Disturbance / operating condition | Expected schedule audit | Expected service-floor result |
+|---|---|---|---|
+| nominal-pv-charge-outage | PV charges a 2 kWh-equivalent battery before a grid outage | accepted | passed |
+| battery-only-outage-backup | Initially charged battery supplies the outage without PV | accepted | passed |
+| pv-derate-islanded | Islanded PV availability falls from 2 to 1 quanta before outage | accepted | failed |
+| demand-surge-outage | Essential outage demand rises from 2 to 3 quanta | accepted | failed |
+
+Each scenario receives 20 repeats. The scenario panel digest is held constant
+across runs; scenario IDs are the request case IDs and remain separate in the
+aggregated output. The service-floor policy is part of the solver configuration
+digest, so policy changes create a different cohort. CI requires 80 accepted
+schedule receipts, 40 passed service-floor receipts and 40 correctly classified
+service-floor failures. It also requires p50/p95 timing availability per
+scenario (20 samples).
+
+This test is designed to detect both false-safe and false-alarm behavior in a
+small integer model: the two expected-pass cases must pass the declared policy,
+and the two resource-insufficient cases must fail it. A schedule can still be
+mathematically accepted while failing the service floor; those are deliberately
+different outcomes.
+
+**Claim boundary:** each scenario is solved with the full scenario request
+available to the optimizer. This is a scenario-conditioned oracle campaign,
+not a single non-anticipative dispatch policy, not a multi-stage stochastic
+program, not a distributionally robust guarantee, and not a grid-network
+feasibility result. The four fixtures are synthetic positive/negative controls,
+not empirical forecasts or field data.
