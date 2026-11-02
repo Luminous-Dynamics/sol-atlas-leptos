@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/industry-ieac-tuf-inprocess-request-v0.1.schema.json",
+  "title": "IEAC In-process TUF Verification Request v0.1",
+  "description": "Operator-provisioned TUF repository locator, out-of-band bootstrap root and four required IEAC target paths. Cryptographic verification is performed by sigstore-tuf inside the verifier process.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "repository_id",
+    "repository_url",
+    "bootstrap_root_path",
+    "metadata_cache_path",
+    "max_target_bytes",
+    "target_bindings"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.ieac-tuf-inprocess-request.v0.1"
+    },
+    "repository_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "repository_url": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://[^\\s]+$"
+    },
+    "bootstrap_root_path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "metadata_cache_path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "max_target_bytes": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 67108864
+    },
+    "target_bindings": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "path"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "channel_manifest",
+              "checkpoint_state",
+              "completeness_attestation",
+              "availability_audit_report"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?/)(?!.*[\\\\?#])[^\\\\?#]+$"
+          },
+          "expected_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "expected_length": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 67108864
+          }
+        }
+      }
+    }
+  }
+}
