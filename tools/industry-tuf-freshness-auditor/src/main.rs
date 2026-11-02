@@ -528,6 +528,9 @@ fn audit(
     let manifest_role=string(policy,"manifest_target_role","policy")?;
     let checkpoint_path=string(policy,"checkpoint_target_path","policy")?;
     let checkpoint_role=string(policy,"checkpoint_target_role","policy")?;
+    if manifest_role == checkpoint_role || manifest_path == checkpoint_path {
+        return Err("channel manifest and checkpoint must use distinct TUF target roles and paths".to_string());
+    }
     let binding=field(report,"channel_binding","verifier_report")?;
     deny_unknown(binding,&["relying_party_id","channel_id","tenant_scope","purpose",
         "ledger_id","sequence_namespace","sequence_epoch","last_sequence",
