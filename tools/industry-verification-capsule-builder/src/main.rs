@@ -1047,14 +1047,228 @@ mod tests {
         assert!(safe_relative_path("metadata/2.root.json"));
     }
 
+    struct FixturePaths {
+        root: PathBuf,
+        staging: PathBuf,
+        template: PathBuf,
+        pin: PathBuf,
+        output: PathBuf,
+        receipt: PathBuf,
+    }
+
+    fn test_workspace() -> PathBuf {
+        use std::sync::atomic::{AtomicUsize, Ordering};
+        static NEXT: AtomicUsize = AtomicUsize::new(0);
+        let path = env::temp_dir().join(format!(
+            "ieac-capsule-builder-{}-{}",
+            std::process::id(),
+            NEXT.fetch_add(1, Ordering::Relaxed)
+        ));
+        fs::create_dir_all(&path).unwrap();
+        path
+    }
+
+    fn write_staged(root: &Path, relative: &str, bytes: &[u8]) {
+        let path = root.join(relative);
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(path, bytes).unwrap();
+    }
+
+    fn valid_fixture() -> FixturePaths {
+        let root = test_workspace();
+        let staging = root.join("staging");
+        fs::create_dir_all(&staging).unwrap();
+
+        let root_bytes = b"synthetic pinned root bytes";
+        let policy_bytes = b"synthetic policy bytes";
+        write_staged(&staging, "root/1.root.json", root_bytes);
+        write_staged(&staging, "policy/ieac-policy.json", policy_bytes);
+
+        let metadata = vec![
+            ("timestamp", "timestamp.json", "metadata/timestamp.json", b"synthetic timestamp metadata".as_slice()),
+            ("snapshot", "snapshot.json", "metadata/snapshot.json", b"synthetic snapshot metadata".as_slice()),
+            ("targets", "targets.json", "metadata/targets.json", b"synthetic targets metadata".as_slice()),
+            ("ieac-channel-manifests", "ieac-channel-manifests.json", "metadata/ieac-channel-manifests.json", b"synthetic manifest role".as_slice()),
+            ("ieac-channel-checkpoints", "ieac-channel-checkpoints.json", "metadata/ieac-channel-checkpoints.json", b"synthetic checkpoint role".as_slice()),
+            ("ieac-channel-completeness-attestations", "ieac-channel-completeness-attestations.json", "metadata/ieac-channel-completeness-attestations.json", b"synthetic attestation role".as_slice()),
+            ("ieac-channel-completeness-reports", "ieac-channel-completeness-reports.json", "metadata/ieac-channel-completeness-reports.json", b"synthetic report role".as_slice()),
+        ];
+        let metadata_json: Vec<serde_json::Value> = metadata.iter().map(|(role, repo_path, staged_path, bytes)| {
+            write_staged(&staging, staged_path, bytes);
+            serde_json::json!({
+                "role_name": role,
+                "version": 1,
+                "repository_path": repo_path,
+                "staged_path": staged_path,
+                "capsule_file_path": staged_path,
+                "expires_at": "2030-01-01T00:00:00Z"
+            })
+        }).collect();
+
+        let target_bytes = vec![
+            ("channel_manifest", "channels/plant-17/manifest.json", "target-bytes/manifest.json", b"synthetic channel manifest".to_vec()),
+            ("checkpoint_state", "channels/plant-17/checkpoint.json", "target-bytes/checkpoint.json", b"synthetic checkpoint state".to_vec()),
+            ("completeness_attestation", "channels/plant-17/completeness-attestation.json", "target-bytes/attestation.json", b"synthetic completeness attestation".to_vec()),
+            ("availability_audit_report", "channels/plant-17/completeness-report.json", "target-bytes/report.json", b"synthetic audit report".to_vec()),
+        ];
+        let target_json: Vec<serde_json::Value> = target_bytes.iter().map(|(id, repo_path, staged_path, bytes)| {
+            write_staged(&staging, staged_path, bytes);
+            serde_json::json!({
+                "id": id,
+                "repository_path": repo_path,
+                "length": bytes.len(),
+                "sha256": sha256(bytes),
+                "content_mode": "embedded",
+                "staged_path": staged_path
+            })
+        }).collect();
+
+        let root_sha = sha256(root_bytes);
+        let policy_sha = sha256(policy_bytes);
+        let pin = serde_json::json!({
+            "schema_version": PIN_SCHEMA,
+            "pin_id": "test-capsule-pin-v1",
+            "repository_id": "tuf:test-plant17",
+            "repository_origin": "https://tuf.example.invalid",
+            "root_sha256": root_sha,
+            "policy_id": "test-plant17-policy",
+            "policy_sha256": policy_sha,
+            "policy_scope_id": "plant-17/test",
+            "policy_kind": "composite",
+            "time_policy_sha256": "2".repeat(64),
+            "time_verifier_build_sha256": "3".repeat(64),
+            "time_verifier_trust_bundle_sha256": "4".repeat(64),
+            "evaluation_time": "2026-06-01T00:00:00Z",
+            "uncertainty_before_ms": 2,
+            "uncertainty_after_ms": 2,
+            "clock_id": "clock:test-plant17",
+            "targets": [
+                {"id":"channel_manifest","repository_path":"channels/plant-17/manifest.json"},
+                {"id":"checkpoint_state","repository_path":"channels/plant-17/checkpoint.json"},
+                {"id":"completeness_attestation","repository_path":"channels/plant-17/completeness-attestation.json"},
+                {"id":"availability_audit_report","repository_path":"channels/plant-17/completeness-report.json"}
+            ],
+            "max_capsule_bytes": 10485760,
+            "max_file_count": 256,
+            "allowed_capsule_modes": ["self_contained"],
+            "action_authority": "none"
+        });
+        let template = serde_json::json!({
+            "schema_version": TEMPLATE_SCHEMA,
+            "capsule_id": "test-capsule-plant17",
+            "capsule_mode": "self_contained",
+            "replayability": "fully_replayable",
+            "created_at": "2026-06-01T00:00:02Z",
+            "bootstrap_root": {
+                "version": 1,
+                "staged_path": "root/1.root.json",
+                "capsule_file_path": "root/1.root.json"
+            },
+            "policy_file": {
+                "staged_path": "policy/ieac-policy.json",
+                "capsule_file_path": "policy/ieac-policy.json"
+            },
+            "verifier_identity": {
+                "implementation": "sigstore-tuf",
+                "version": "0.15.1",
+                "build_sha256": "5".repeat(64),
+                "independent_verifier_required": true
+            },
+            "metadata_artifacts": metadata_json,
+            "targets": target_json
+        });
+        let template_path = root.join("template.json");
+        let pin_path = root.join("trust-pin.json");
+        fs::write(&template_path, serde_json::to_vec_pretty(&template).unwrap()).unwrap();
+        fs::write(&pin_path, serde_json::to_vec_pretty(&pin).unwrap()).unwrap();
+
+        FixturePaths {
+            root: root.clone(),
+            staging,
+            template: template_path,
+            pin: pin_path,
+            output: root.join("capsule"),
+            receipt: root.join("pack-receipt.json"),
+        }
+    }
+
+    #[test]
+    fn packer_builds_deterministic_unverified_capsule() {
+        let fixture = valid_fixture();
+        let receipt = pack(
+            &fixture.staging,
+            &fixture.template,
+            &fixture.pin,
+            &fixture.output,
+            None,
+            &fixture.receipt,
+        ).unwrap();
+        assert_eq!(receipt.status, "packed_unverified");
+        assert!(!receipt.verification_performed);
+        assert_eq!(receipt.targets.len(), 4);
+        assert!(fixture.output.join("capsule.json").is_file());
+
+        let manifest_bytes = fs::read(fixture.output.join("capsule.json")).unwrap();
+        let manifest: serde_json::Value = serde_json::from_slice(&manifest_bytes).unwrap();
+        let inventory = &manifest["file_inventory"];
+        let inventory_digest = sha256(&jcs_to_vec(inventory).unwrap());
+        assert_eq!(inventory_digest, manifest["file_inventory_sha256"].as_str().unwrap());
+        assert_eq!(manifest["action_authority"], "none");
+        assert_eq!(manifest["capsule_mode"], "self_contained");
+
+        let collision = pack(
+            &fixture.staging,
+            &fixture.template,
+            &fixture.pin,
+            &fixture.output,
+            None,
+            &fixture.root.join("second-receipt.json"),
+        );
+        assert!(collision.is_err(), "packer must refuse to overwrite output capsule");
+        fs::remove_dir_all(fixture.root).unwrap();
+    }
+
+    #[test]
+    fn packer_rejects_bootstrap_root_substitution() {
+        let fixture = valid_fixture();
+        let mut pin: serde_json::Value =
+            serde_json::from_slice(&fs::read(&fixture.pin).unwrap()).unwrap();
+        pin["root_sha256"] = serde_json::Value::String("a".repeat(64));
+        fs::write(&fixture.pin, serde_json::to_vec_pretty(&pin).unwrap()).unwrap();
+
+        let result = pack(
+            &fixture.staging,
+            &fixture.template,
+            &fixture.pin,
+            &fixture.output,
+            None,
+            &fixture.receipt,
+        );
+        assert!(result.is_err());
+        assert!(!fixture.output.exists(), "failed trust-pin check must not create output");
+        fs::remove_dir_all(fixture.root).unwrap();
+    }
+
+    #[test]
+    fn packer_rejects_unlisted_staging_files() {
+        let fixture = valid_fixture();
+        fs::write(fixture.staging.join("unexpected.bin"), b"unlisted").unwrap();
+        let result = pack(
+            &fixture.staging,
+            &fixture.template,
+            &fixture.pin,
+            &fixture.output,
+            None,
+            &fixture.receipt,
+        );
+        assert!(result.is_err());
+        assert!(!fixture.output.exists());
+        fs::remove_dir_all(fixture.root).unwrap();
+    }
+
     #[test]
     fn output_guard_removes_partial_directories_on_failure() {
-        let parent = env::temp_dir().join(format!(
-            "ieac-capsule-builder-test-{}",
-            std::process::id()
-        ));
-        let _ = fs::remove_dir_all(&parent);
-        fs::create_dir(&parent).unwrap();
+        let parent = test_workspace();
         let child = parent.join("partial");
         fs::create_dir(&child).unwrap();
         {
