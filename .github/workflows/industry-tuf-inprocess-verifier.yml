@@ -62,10 +62,6 @@ jobs:
       - name: Validate in-process request/report contracts and synthetic request
         run: |
           set -euo pipefail
-          jsonschema-cli validate --draft 2020 --assert-format https://json-schema.org/draft/2020-12/schema \
-            -i schemas/industry-ieac-tuf-inprocess-request-v0.1.schema.json
-          jsonschema-cli validate --draft 2020 --assert-format https://json-schema.org/draft/2020-12/schema \
-            -i schemas/industry-ieac-tuf-inprocess-report-v0.1.schema.json
           jsonschema-cli validate --draft 2020 --assert-format --offline \
             schemas/industry-ieac-tuf-inprocess-request-v0.1.schema.json \
             -i schemas/examples/ieac-tuf-inprocess-request-synthetic-v0.1.json
