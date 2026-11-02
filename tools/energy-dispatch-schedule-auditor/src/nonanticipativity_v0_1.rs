@@ -19,15 +19,27 @@ pub const NONANTICIPATIVITY_RECEIPT_SCHEMA_V1: &str =
     "energy-dispatch-nonanticipativity-receipt-v0.1";
 pub const MAX_SCENARIOS: usize = 256;
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct NonAnticipativityInformationSetV1 {
+    /// The forecast issue/vintage time represented in the decision-maker's
+    /// information set. It must not be later than the interval decision time.
+    pub forecast_as_of_unix_seconds: i64,
+    /// Content digest of the forecast bundle available at that vintage.
+    /// Authenticity and calibration of the underlying bundle require a
+    /// separate evidence adapter and are not established by this digest.
+    pub forecast_bundle_sha256: String,
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct NonAnticipativityScenarioBytes<'a> {
     pub scenario_id: &'a str,
     pub request_bytes: &'a [u8],
     pub schedule_bytes: &'a [u8],
-    /// One SHA-256 information-set label per interval. Equal labels assert
-    /// that the corresponding scenario histories are indistinguishable to
-    /// the decision-maker at that decision time.
-    pub information_set_sha256_by_interval: &'a [String],
+    /// Forecast vintage and bundle commitment for each decision interval.
+    /// The actual information-set digest is derived from this metadata plus
+    /// the exact source-observation prefix and interval decision time.
+    pub information_sets_by_interval: &'a [NonAnticipativityInformationSetV1],
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -42,6 +54,7 @@ pub struct NonAnticipativityScenarioBindingV1 {
     pub scenario_id: String,
     pub request_sha256: String,
     pub schedule_sha256: String,
+    pub information_sets_by_interval: Vec<NonAnticipativityInformationSetV1>,
     pub information_set_sha256_by_interval: Vec<String>,
 }
 
@@ -122,12 +135,59 @@ impl From<&IntervalDispatch> for DispatchActionV1 {
     }
 }
 
+#[derive(Serialize)]
+struct InformationSetSubjectV1<'a> {
+    schema_version: &'a str,
+    decision_time_unix_seconds: i64,
+    observation_prefix_sha256: &'a str,
+    forecast_as_of_unix_seconds: i64,
+    forecast_bundle_sha256: &'a str,
+}
+
+const INFORMATION_SET_SCHEMA_V1: &str = "energy-dispatch-information-set-v0.1";
+
+fn derive_information_set_sha256(
+    request: &SourceRequest,
+    interval_index: usize,
+    information_set: &NonAnticipativityInformationSetV1,
+) -> Result<String, AuditError> {
+    if !super::is_sha256_hex(&information_set.forecast_bundle_sha256) {
+        return Err(audit_error(
+            "forecast bundle SHA-256 must be 64 lowercase hexadecimal characters",
+        ));
+    }
+    let interval = request
+        .intervals
+        .get(interval_index)
+        .ok_or_else(|| audit_error("information-set interval index is outside the request"))?;
+    if information_set.forecast_as_of_unix_seconds > interval.start_unix_seconds {
+        return Err(audit_error(
+            "forecast vintage cannot be later than the interval decision time",
+        ));
+    }
+    let observation_prefix_bytes =
+        serde_json::to_vec(&request.intervals[..=interval_index])
+            .map_err(|error| audit_error(format!("serialize observation prefix: {error}")))?;
+    let observation_prefix_sha256 = sha256(&observation_prefix_bytes);
+    let subject = InformationSetSubjectV1 {
+        schema_version: INFORMATION_SET_SCHEMA_V1,
+        decision_time_unix_seconds: interval.start_unix_seconds,
+        observation_prefix_sha256: &observation_prefix_sha256,
+        forecast_as_of_unix_seconds: information_set.forecast_as_of_unix_seconds,
+        forecast_bundle_sha256: &information_set.forecast_bundle_sha256,
+    };
+    let bytes = serde_json::to_vec(&subject)
+        .map_err(|error| audit_error(format!("serialize information-set subject: {error}")))?;
+    Ok(sha256(&bytes))
+}
+
 struct ParsedScenario {
     scenario_id: String,
     request_sha256: String,
     schedule_sha256: String,
     request: SourceRequest,
     schedule: DispatchSchedule,
+    information_sets_by_interval: Vec<NonAnticipativityInformationSetV1>,
     information_set_sha256_by_interval: Vec<String>,
     domain_valid: bool,
     domain_failure_detail: String,
@@ -214,7 +274,7 @@ pub fn evaluate_nonanticipativity_bytes(
         }
         if request.intervals.is_empty()
             || request.intervals.len() > MAX_INTERVALS
-            || source.information_set_sha256_by_interval.len() != request.intervals.len()
+            || source.information_sets_by_interval.len() != request.intervals.len()
             || schedule.interval_dispatches.len() != request.intervals.len()
         {
             return Err(audit_error(
@@ -222,15 +282,14 @@ pub fn evaluate_nonanticipativity_bytes(
                  per source interval",
             ));
         }
-        if source
-            .information_set_sha256_by_interval
+        let information_set_sha256_by_interval = source
+            .information_sets_by_interval
             .iter()
-            .any(|digest| !super::is_sha256_hex(digest))
-        {
-            return Err(audit_error(
-                "information-set labels must be 64 lowercase hexadecimal characters",
-            ));
-        }
+            .enumerate()
+            .map(|(interval_index, information_set)| {
+                derive_information_set_sha256(&request, interval_index, information_set)
+            })
+            .collect::<Result<Vec<_>, _>>()?;
 
         let request_sha256 = sha256(source.request_bytes);
         let schedule_sha256 = sha256(source.schedule_bytes);
@@ -263,9 +322,8 @@ pub fn evaluate_nonanticipativity_bytes(
             schedule_sha256,
             request,
             schedule,
-            information_set_sha256_by_interval: source
-                .information_set_sha256_by_interval
-                .to_vec(),
+            information_sets_by_interval: source.information_sets_by_interval.to_vec(),
+            information_set_sha256_by_interval,
             domain_valid,
             domain_failure_detail,
         });
@@ -307,6 +365,7 @@ pub fn evaluate_nonanticipativity_bytes(
             scenario_id: scenario.scenario_id.clone(),
             request_sha256: scenario.request_sha256.clone(),
             schedule_sha256: scenario.schedule_sha256.clone(),
+            information_sets_by_interval: scenario.information_sets_by_interval.clone(),
             information_set_sha256_by_interval: scenario
                 .information_set_sha256_by_interval
                 .clone(),
