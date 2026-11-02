@@ -189,6 +189,15 @@ pub struct EnergyDispatchAnytimeAssessment {
     pub candidate: Option<DispatchParetoAlternative>,
 }
 
+/// Both views of one search traversal. `exact` is present only when the
+/// complete finite search succeeded; `anytime` always preserves the typed
+/// stop reason and any complete incumbent.
+#[derive(Clone, Debug, PartialEq)]
+pub struct EnergyDispatchExecutionAssessment {
+    pub anytime: EnergyDispatchAnytimeAssessment,
+    pub exact: Option<EnergyDispatchAssessment>,
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum EnergyDispatchError {
@@ -610,73 +619,9 @@ fn validate_energy_dispatch_request(
     Ok(())
 }
 
-/// Exhaustively enumerate the complete bounded model and return its non-dominated
-/// feasible schedules. Any configured search or frontier cap hit is an error; no
-/// partial frontier is returned with an "exact" label.
-pub fn assess_energy_dispatch(
+fn run_energy_dispatch_search(
     request: &EnergyDispatchRequest,
-) -> Result<EnergyDispatchAssessment, EnergyDispatchError> {
-    validate_energy_dispatch_request(request)?;
-
-    let mut search = ExactSearch {
-        request,
-        enumeration_prefix_visits: 0,
-        feasible_complete_schedules: 0,
-        frontier: Vec::new(),
-        best_incumbent: None,
-    };
-    let mut path = Vec::with_capacity(request.intervals.len());
-    search.visit(0, battery.initial_soc_quanta, &mut path)?;
-    if search.feasible_complete_schedules == 0 || search.frontier.is_empty() {
-        return Err(EnergyDispatchError::NoFeasibleSchedules);
-    }
-
-    search.frontier.sort_by_key(|alternative| {
-        let objective = &alternative.objective;
-        (
-            objective.essential_unserved_quanta,
-            objective.flexible_unserved_quanta,
-            objective.operating_cost_units,
-            objective.grid_carbon_grams,
-            objective.curtailed_pv_quanta,
-            Reverse(objective.terminal_soc_quanta),
-        )
-    });
-
-    Ok(EnergyDispatchAssessment {
-        assessment_schema_version: "energy-dispatch-report-v1".to_owned(),
-        case_id: request.case_id.clone(),
-        synthetic: request.synthetic,
-        evidence_class: request.evidence_class,
-        evidence_ref: request.evidence_ref.clone(),
-        evidence_as_of: request.evidence_as_of.clone(),
-        claim_ceiling: concat!(
-            "exact only over the declared finite quantized model; not a continuous ",
-            "physics, network-flow, forecast, safety, or real-world optimality claim; ",
-            "evidence metadata is not independently authenticated"
-        )
-        .to_owned(),
-        energy_quantum_kwh: request.energy_quantum_kwh,
-        search_is_exact: true,
-        pareto_frontier_complete: true,
-        evaluated_action_expansions: search.enumeration_prefix_visits,
-        feasible_complete_schedules: search.feasible_complete_schedules,
-        pareto_frontier_count: search.frontier.len(),
-        pareto_alternatives: search.frontier,
-    })
-}
-
-/// Run the same bounded exact enumerator while retaining its best complete
-/// lexicographic candidate across expansion/frontier-cap interruptions.
-///
-/// This function does not run the standalone schedule auditor. Callers must
-/// serialize the exact request and candidate bytes and obtain an independent
-/// auditor receipt before treating a candidate as decision-ready. Only the two
-/// declared resource-cap errors become typed incomplete outcomes; every other
-/// validation or execution error is propagated.
-pub fn assess_energy_dispatch_anytime(
-    request: &EnergyDispatchRequest,
-) -> Result<EnergyDispatchAnytimeAssessment, EnergyDispatchError> {
+) -> Result<(ExactSearch<'_>, EnergyDispatchAnytimeStopReason), EnergyDispatchError> {
     validate_energy_dispatch_request(request)?;
 
     let mut search = ExactSearch {
@@ -697,9 +642,16 @@ pub fn assess_energy_dispatch_anytime(
         }
         Err(error) => return Err(error),
     };
+    Ok((search, stop_reason))
+}
 
+fn anytime_report_from_search(
+    request: &EnergyDispatchRequest,
+    search: &ExactSearch<'_>,
+    stop_reason: EnergyDispatchAnytimeStopReason,
+) -> EnergyDispatchAnytimeAssessment {
     let search_complete = stop_reason == EnergyDispatchAnytimeStopReason::SearchExhausted;
-    let candidate = search.best_incumbent;
+    let candidate = search.best_incumbent.clone();
     let disposition = match (search_complete, candidate.is_some()) {
         (true, true) => EnergyDispatchAnytimeDisposition::ExactComplete,
         (true, false) => EnergyDispatchAnytimeDisposition::ProvenInfeasible,
@@ -707,7 +659,7 @@ pub fn assess_energy_dispatch_anytime(
         (false, false) => EnergyDispatchAnytimeDisposition::LimitWithoutCandidate,
     };
 
-    Ok(EnergyDispatchAnytimeAssessment {
+    EnergyDispatchAnytimeAssessment {
         assessment_schema_version: "energy-dispatch-anytime-report-v1".to_owned(),
         case_id: request.case_id.clone(),
         synthetic: request.synthetic,
@@ -730,7 +682,96 @@ pub fn assess_energy_dispatch_anytime(
         configured_expansion_limit: request.max_candidate_expansions,
         feasible_complete_schedules: search.feasible_complete_schedules,
         candidate,
-    })
+    }
+}
+
+fn exact_report_from_search(
+    request: &EnergyDispatchRequest,
+    mut search: ExactSearch<'_>,
+) -> EnergyDispatchAssessment {
+    search.frontier.sort_by_key(|alternative| {
+        dispatch_objective_order_key(&alternative.objective)
+    });
+
+    EnergyDispatchAssessment {
+        assessment_schema_version: "energy-dispatch-report-v1".to_owned(),
+        case_id: request.case_id.clone(),
+        synthetic: request.synthetic,
+        evidence_class: request.evidence_class,
+        evidence_ref: request.evidence_ref.clone(),
+        evidence_as_of: request.evidence_as_of.clone(),
+        claim_ceiling: concat!(
+            "exact only over the declared finite quantized model; not a continuous ",
+            "physics, network-flow, forecast, safety, or real-world optimality claim; ",
+            "evidence metadata is not independently authenticated"
+        )
+        .to_owned(),
+        energy_quantum_kwh: request.energy_quantum_kwh,
+        search_is_exact: true,
+        pareto_frontier_complete: true,
+        evaluated_action_expansions: search.enumeration_prefix_visits,
+        feasible_complete_schedules: search.feasible_complete_schedules,
+        pareto_frontier_count: search.frontier.len(),
+        pareto_alternatives: search.frontier,
+    }
+}
+
+/// Execute the bounded enumerator once and return both the backward-compatible
+/// exact view (when complete) and the additive anytime view. This is the
+/// preferred entry point for profilers that need to preserve an incumbent
+/// without rerunning the same search after a cap error.
+pub fn assess_energy_dispatch_execution(
+    request: &EnergyDispatchRequest,
+) -> Result<EnergyDispatchExecutionAssessment, EnergyDispatchError> {
+    let (search, stop_reason) = run_energy_dispatch_search(request)?;
+    let anytime = anytime_report_from_search(request, &search, stop_reason);
+    let exact = if stop_reason == EnergyDispatchAnytimeStopReason::SearchExhausted
+        && search.feasible_complete_schedules > 0
+        && !search.frontier.is_empty()
+    {
+        Some(exact_report_from_search(request, search))
+    } else {
+        None
+    };
+    Ok(EnergyDispatchExecutionAssessment { anytime, exact })
+}
+
+/// Backward-compatible all-or-nothing exact API. Any cap interruption remains
+/// an error, even when the shared execution captured a complete incumbent.
+pub fn assess_energy_dispatch(
+    request: &EnergyDispatchRequest,
+) -> Result<EnergyDispatchAssessment, EnergyDispatchError> {
+    let execution = assess_energy_dispatch_execution(request)?;
+    if let Some(exact) = execution.exact {
+        return Ok(exact);
+    }
+    match execution.anytime.stop_reason {
+        EnergyDispatchAnytimeStopReason::SearchExhausted => {
+            Err(EnergyDispatchError::NoFeasibleSchedules)
+        }
+        EnergyDispatchAnytimeStopReason::CandidateExpansionCap => {
+            Err(EnergyDispatchError::CandidateExpansionCapExceeded {
+                cap: request.max_candidate_expansions,
+            })
+        }
+        EnergyDispatchAnytimeStopReason::ParetoFrontierCap => {
+            Err(EnergyDispatchError::ParetoFrontierCapExceeded {
+                cap: MAX_PARETO_FRONTIER,
+            })
+        }
+    }
+}
+
+/// Return a complete horizon incumbent on expansion/frontier-cap interruption.
+///
+/// This function does not run the standalone schedule auditor. Callers must
+/// serialize exact request/candidate bytes and obtain an independent receipt
+/// before treating a candidate as decision-ready. Validation, arithmetic and
+/// unexpected execution errors continue to propagate.
+pub fn assess_energy_dispatch_anytime(
+    request: &EnergyDispatchRequest,
+) -> Result<EnergyDispatchAnytimeAssessment, EnergyDispatchError> {
+    Ok(assess_energy_dispatch_execution(request)?.anytime)
 }
 
 #[cfg(test)]
