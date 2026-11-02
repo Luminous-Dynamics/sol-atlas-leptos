@@ -95,4 +95,14 @@ Validation rejects impossible combinations. For example, a `feasible_unproven` r
 
 The v0.3 aggregator reports search outcomes, candidate yield, audit-attempt acceptance/rejection/unavailability, service-floor outcomes and decision-ready yield as separate counts. Identical duplicate sample replays are idempotently suppressed; reusing a sample ID with different evidence or outcomes is a hard error. Cohort IDs are also checked against solver name/version, horizon, source/model, configuration and hardware identity. It does not interpret a candidate as optimal merely because the independent schedule auditor accepts it.
 
-This module is a typed parser/validator/summary prototype. The existing profile runner still emits v0.2 and has not yet been migrated to emit v0.3. The migration must preserve old v0.2 parsing and add a new exact-head runner/auditor integration rather than coercing unproven candidates into the old `feasible` or `limit_reached` statuses.
+The legacy `energy-dispatch-profile` runner continues to emit v0.2 for compatibility. The additive `energy-dispatch-anytime-profile` binary now emits v0.3 from the shared one-pass anytime execution, then invokes the schedule and service-floor auditors as separate processes. It records the measured first-complete-candidate time, schedule-audit process time, service-floor process time, and total time to the end of the service-floor evaluation. The v0.3 aggregator is available as `energy-solver-compute-calibration-v03`; the v0.2 parser/aggregator and checked-in v0.2 fixture remain untouched.
+
+Run the v0.3 aggregator against an emitted trace:
+
+```sh
+cargo run --release --locked \
+  --manifest-path tools/energy-solver-compute-calibration/Cargo.toml \
+  --bin energy-solver-compute-calibration-v03 -- trace-v0.3.csv
+```
+
+The summary keeps candidate yield, accepted schedule-audit yield and decision-ready yield distinct. It reports p50/p95 first-candidate time, first accepted schedule-audit time, service-floor subprocess time and end-to-end decision-ready latency, with their own eligible sample counts. p50 requires five samples, p95 twenty, and p99 is not emitted by this v0.3 summary. The profile workflow uses 30 repeated runs on one frozen synthetic two-interval case; those rows are within-case repeatability evidence, not broad scenario-scale performance or an industry/SOTA comparison.
