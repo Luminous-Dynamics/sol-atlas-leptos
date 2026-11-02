@@ -31,6 +31,8 @@ const DISPATCH_SOURCE: &[u8] = include_bytes!("../../../sol-atlas-core/src/energ
 const PATHWAY_SOURCE: &[u8] = include_bytes!("../../../sol-atlas-core/src/energy_pathway.rs");
 const CORE_LIB_SOURCE: &[u8] = include_bytes!("../../../sol-atlas-core/src/lib.rs");
 const CORE_MANIFEST: &[u8] = include_bytes!("../../../sol-atlas-core/Cargo.toml");
+const RUNNER_MANIFEST: &[u8] = include_bytes!("../Cargo.toml");
+const ROOT_MANIFEST: &[u8] = include_bytes!("../../../Cargo.toml");
 const ROOT_LOCKFILE: &[u8] = include_bytes!("../../../Cargo.lock");
 
 #[derive(Clone, Debug, Serialize)]
@@ -218,6 +220,8 @@ fn model_fingerprint() -> String {
         PATHWAY_SOURCE,
         CORE_LIB_SOURCE,
         CORE_MANIFEST,
+        RUNNER_MANIFEST,
+        ROOT_MANIFEST,
         ROOT_LOCKFILE,
     ])
 }
