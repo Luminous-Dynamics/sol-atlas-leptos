@@ -46,9 +46,9 @@ Positive availability evidence can establish that an artifact was available to t
 - `authenticated_access_log` backed by an authenticated access log;
 - `sealed_cache_manifest` backed by the pinned trusted-clock policy.
 
-A positive access/ingest event after the decision cutoff proves availability by that later time. It does **not** prove the artifact was unavailable before then. Therefore a post-cutoff access event is `unknown`, not automatically `excluded_after_cutoff`.
+A positive access/ingest event after the decision cutoff proves availability by that later time. It does **not** prove the artifact was unavailable before then. Therefore a post-cutoff access event is `unknown`, not automatically `excluded_after_cutoff`. This version intentionally defers late-exclusion to the full channel-completeness auditor in #422.
 
-To classify an artifact as first available after the cutoff, require `complete_first_availability_ledger` plus a separately bound coverage proof for the exact relying-party and evidence-channel identity. The proof must establish a complete, independently verified observation interval beginning no later than the earliest possible decision cutoff and continuing through the latest possible first-access time. Both coverage endpoints carry their own clock uncertainty and are verified under the pinned verifier build and policy. Missing, partial, disputed, out-of-scope or temporally insufficient coverage remains `unknown`.
+The decision-frontier v0.1 auditor does **not** classify first availability after cutoff. That stronger claim is owned by [IEAC-AVAIL-001 / #419 and its channel-completeness auditor PR #422](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/422). It requires the four-stage coverage-start checkpoint, post-cutoff decision-boundary checkpoint, signed zero-match query over the exact event predicate, first-access inclusion event, and consistency-linked coverage-end checkpoint. The frontier auditor remains `unknown` for every post-cutoff positive access event until a future integration consumes the independently verified #422 attestation/report. This avoids using a local `complete` flag or two timestamps as a substitute for the full absence proof.
 
 A SCITT receipt, RFC 3161 token or source assertion is retained as evidence but classifies as `unknown` for relying-party availability unless accompanied by a separate access/ingest proof. Those existence proofs must not be relabelled as access proofs. Every availability proof binds the exact evidence artifact digest and the relying-party/evidence-channel scope.
 
@@ -107,7 +107,7 @@ The checked-in 13-item corpus includes:
 10. A late outcome observation.
 11. An ingest proof without a verified external result.
 
-Expected distribution: 2 candidate-included, 2 excluded-after-cutoff and 9 unknown. The two exclusions have complete channel-history coverage proving first availability after cutoff; ordinary late access observations remain unknown. These are synthetic contract outcomes, not measured operational accuracy or risk.
+Expected distribution: 2 candidate-included, 0 excluded-after-cutoff and 11 unknown. All post-cutoff positive access observations remain unknown in this tranche; the stronger first-availability/absence proof belongs to #419/#422 and is not yet consumed by this auditor. These are synthetic contract outcomes, not measured operational accuracy or risk.
 
 ## 7. Benchmarks and promotion gates
 
