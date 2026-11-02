@@ -145,7 +145,6 @@ struct Report {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum DecisionStatus {
     Included,
-    ExcludedAfterCutoff,
     Unknown,
 }
 
@@ -498,21 +497,16 @@ fn classify(
     }
 
     let available = interval(&availability.time)?;
-    let status;
-    let reason;
-    if available.latest_epoch_seconds <= cutoff.earliest_epoch_seconds {
-        status = DecisionStatus::Included;
-        reason = "verified_available_before_cutoff";
-    } else if available.earliest_epoch_seconds > cutoff.latest_epoch_seconds {
-        // A positive post-cutoff access record does not prove earlier absence.
-        // The complete four-stage channel attestation is owned by #419/#422;
-        // this frontier auditor does not downgrade that claim to a local boolean.
-        status = DecisionStatus::Unknown;
-        reason = "post_cutoff_access_requires_complete_channel_attestation";
-    } else {
-        status = DecisionStatus::Unknown;
-        reason = "availability_and_cutoff_intervals_overlap";
-    }
+    // Positive pre-cutoff availability is the only inclusion path here.
+    // Late exclusion requires the four-stage channel proof owned by #419/#422.
+    let (status, reason) =
+        if available.latest_epoch_seconds <= cutoff.earliest_epoch_seconds {
+            (DecisionStatus::Included, "verified_available_before_cutoff")
+        } else if available.earliest_epoch_seconds > cutoff.latest_epoch_seconds {
+            (DecisionStatus::Unknown, "post_cutoff_access_requires_complete_channel_attestation")
+        } else {
+            (DecisionStatus::Unknown, "availability_and_cutoff_intervals_overlap")
+        };
 
     Ok((status, reason.to_string(), Some(available)))
 }
@@ -557,10 +551,6 @@ fn audit(snapshot: &Snapshot, raw: &[u8]) -> Result<Report, String> {
                 included += 1;
                 candidate_as_known.push(item.evidence_id.clone());
             }
-            DecisionStatus::ExcludedAfterCutoff => {
-                excluded += 1;
-                later.push(item.evidence_id.clone());
-            }
             DecisionStatus::Unknown => {
                 unknown += 1;
                 unresolved.push(item.evidence_id.clone());
@@ -572,7 +562,6 @@ fn audit(snapshot: &Snapshot, raw: &[u8]) -> Result<Report, String> {
             artifact_sha256: item.artifact_sha256.clone(),
             as_known_status: match status {
                 DecisionStatus::Included => "candidate_included".to_string(),
-                DecisionStatus::ExcludedAfterCutoff => "excluded_after_cutoff".to_string(),
                 DecisionStatus::Unknown => "unknown".to_string(),
             },
             reason_code: reason,
