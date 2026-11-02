@@ -1,0 +1,20 @@
+[package]
+name = "industry-tuf-inprocess-verifier"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+description = "In-process TUF verification for IEAC channel completeness evidence"
+
+[[bin]]
+name = "industry-tuf-inprocess-verify"
+path = "src/main.rs"
+
+[dependencies]
+jiff = { version = "=0.2.38" }
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = { version = "=1.0.154" }
+sigstore-tuf = { version = "=0.15.1" }
+tokio = { version = "=1.54.1", features = ["macros", "rt-multi-thread"] }
+
+[dev-dependencies]
+tempfile = { version = "=3.27.0" }
