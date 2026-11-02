@@ -22,7 +22,8 @@
     "metadata_cache",
     "persistent_high_water",
     "claim_ceiling",
-    "action_authority"
+    "action_authority",
+    "bootstrap_root_sha256"
   ],
   "properties": {
     "schema_version": {
@@ -128,6 +129,10 @@
     },
     "action_authority": {
       "const": "none"
+    },
+    "bootstrap_root_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
     }
   }
 }
