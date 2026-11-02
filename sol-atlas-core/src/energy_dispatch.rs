@@ -786,6 +786,44 @@ mod tests {
     }
 
     #[test]
+    fn shared_execution_returns_exact_and_anytime_views_from_one_traversal() {
+        let request = fixture_request();
+        let execution =
+            assess_energy_dispatch_execution(&request).expect("single shared traversal");
+        let exact = execution.exact.expect("exact view after exhaustive completion");
+        assert_eq!(
+            execution.anytime.disposition,
+            EnergyDispatchAnytimeDisposition::ExactComplete
+        );
+        assert!(execution.anytime.optimality_proven);
+        assert_eq!(
+            execution.anytime.enumeration_prefix_visits,
+            exact.evaluated_action_expansions
+        );
+        let candidate = execution.anytime.candidate.expect("anytime incumbent");
+        assert!(exact.pareto_alternatives.iter().any(|alternative| {
+            alternative.objective == candidate.objective
+                && alternative.schedule == candidate.schedule
+        }));
+    }
+
+    #[test]
+    fn shared_execution_preserves_incumbent_without_repeating_capped_search() {
+        let full = fixture_request();
+        let exact = assess_energy_dispatch(&full).expect("exact baseline");
+        let mut bounded = full;
+        bounded.max_candidate_expansions = exact.evaluated_action_expansions - 1;
+        let execution =
+            assess_energy_dispatch_execution(&bounded).expect("shared cap-interrupted traversal");
+        assert!(execution.exact.is_none());
+        assert_eq!(
+            execution.anytime.disposition,
+            EnergyDispatchAnytimeDisposition::FeasibleUnproven
+        );
+        assert!(execution.anytime.candidate.is_some());
+    }
+
+    #[test]
     fn anytime_exact_completion_returns_a_complete_lexicographic_candidate() {
         let request = fixture_request();
         let exact = assess_energy_dispatch(&request).expect("exact baseline");
