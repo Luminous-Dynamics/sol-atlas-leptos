@@ -36,7 +36,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      CARGO_NET_OFFLINE: "true"
       CARGO_TARGET_DIR: ${{ github.workspace }}/target/energy-dispatch-profiled-runner/cargo-target
       EXPECTED_SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
@@ -52,17 +51,17 @@ jobs:
       - name: Format the profiled runner source
         run: rustfmt --edition 2024 --check sol-atlas-core/src/bin/energy-dispatch-profile.rs
       - name: Check exact-search profiler against the locked core
-        run: cargo check --locked --offline --manifest-path sol-atlas-core/Cargo.toml --bin energy-dispatch-profile
+        run: cargo check --locked --manifest-path sol-atlas-core/Cargo.toml --bin energy-dispatch-profile
       - name: Run exact-search profiler positive and negative controls
-        run: cargo test --locked --offline --manifest-path sol-atlas-core/Cargo.toml --bin energy-dispatch-profile
+        run: cargo test --locked --manifest-path sol-atlas-core/Cargo.toml --bin energy-dispatch-profile
       - name: Strict Clippy
-        run: cargo clippy --locked --offline --manifest-path sol-atlas-core/Cargo.toml --bin energy-dispatch-profile -- -D warnings
+        run: cargo clippy --locked --manifest-path sol-atlas-core/Cargo.toml --bin energy-dispatch-profile -- -D warnings
       - name: Execute the real exact enumerator on the frozen synthetic request
         run: |
           set -euo pipefail
           mkdir -p target/energy-dispatch-profiled-runner
           panel_sha="$(sha256sum schemas/examples/energy-dispatch-pv-outage.synthetic.json | awk '{print $1}')"
-          cargo run --release --locked --offline --manifest-path sol-atlas-core/Cargo.toml \
+          cargo run --release --locked --manifest-path sol-atlas-core/Cargo.toml \
             --bin energy-dispatch-profile -- \
             schemas/examples/energy-dispatch-pv-outage.synthetic.json \
             "$panel_sha" \
