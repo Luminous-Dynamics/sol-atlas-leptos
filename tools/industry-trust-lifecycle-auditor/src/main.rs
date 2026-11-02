@@ -190,8 +190,11 @@ fn valid_utc_timestamp(value: &str) -> bool {
 
     let number = |start: usize, end: usize| -> Option<u32> {
         bytes[start..end].iter().try_fold(0u32, |value, byte| {
-            byte.is_ascii_digit()
-                .then_some(value * 10 + u32::from(byte - b'0'))
+            if byte.is_ascii_digit() {
+                Some(value * 10 + u32::from(*byte - b'0'))
+            } else {
+                None
+            }
         })
     };
     let Some(year) = number(0, 4) else { return false };
