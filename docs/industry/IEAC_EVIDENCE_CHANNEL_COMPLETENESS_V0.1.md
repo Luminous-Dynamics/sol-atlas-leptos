@@ -12,7 +12,7 @@ To classify an artifact as *first available after* a decision cutoff, the relyin
 
 This profile makes only a bounded claim:
 
-> Under this declared relying-party, tenant, subject, purpose, event taxonomy and access-capture policy, a signed query found zero qualifying access events from the coverage-start checkpoint through a decision-boundary checkpoint that is later than the decision cutoff; the first qualifying access event occurred afterward and is included before the coverage-end checkpoint.
+> Under this declared relying-party, tenant, subject, purpose, event taxonomy and access-capture policy, a signed query found zero qualifying access events from the coverage-start checkpoint through the checkpoint immediately preceding the claimed first access, which is later than the decision cutoff; the first qualifying access event occurred afterward and is included before the coverage-end checkpoint.
 
 It is not a universal statement that the artifact did not exist, was not accessible through another path, or was never disclosed by its source.
 
@@ -33,11 +33,11 @@ Synthetic example:
 |---|---:|---|
 | Coverage start | 90 | 08:00:00 |
 | Decision cutoff | — | 09:10:00 ± 30s |
-| Decision boundary | 100 | 09:11:00 |
+| Decision boundary | 100 | 09:24:00 |
 | First access | 110 | 09:25:00 ± 2s |
 | Coverage end | 120 | 09:30:00 |
 
-The zero-match query is bound to sequence range `(90, 100]`. The first access event is beyond that range and included before the end checkpoint.
+The zero-match query is bound to sequence range `(90, 109]`. The first access event is beyond that range and included before the end checkpoint.
 
 ## 3. Channel manifest
 
