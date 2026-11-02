@@ -286,7 +286,7 @@ fn run_profile(request_bytes: &[u8], scenario_panel_sha256: &str) -> Result<Prof
         .map_err(|_| "interval count does not fit u32".to_owned())?;
 
     let cohort_material = format!(
-        "{}:{}:{}:{}:{}:{}",
+        "{}:{}:{}:{}:{}:{}:{}",
         scenario_panel_sha256,
         model_sha256,
         mesh_policy_sha256,
