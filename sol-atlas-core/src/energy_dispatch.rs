@@ -895,6 +895,104 @@ mod tests {
     }
 
     #[test]
+    fn complete_incumbent_survives_pareto_frontier_cap_failure() {
+        let request = EnergyDispatchRequest {
+            schema_version: "energy-dispatch-v0.1".to_owned(),
+            case_id: "frontier-cap-incumbent".to_owned(),
+            synthetic: true,
+            evidence_class: EvidenceClass::AnalystAssumption,
+            evidence_ref: None,
+            evidence_as_of: None,
+            energy_quantum_kwh: 1.0,
+            max_candidate_expansions: 100,
+            battery: DispatchBattery {
+                capacity_quanta: 1,
+                initial_soc_quanta: 0,
+                charge_input_limit_quanta: 0,
+                discharge_withdrawal_limit_quanta: 0,
+                charge_efficiency_numerator: 1,
+                charge_efficiency_denominator: 1,
+                discharge_efficiency_numerator: 1,
+                discharge_efficiency_denominator: 1,
+                terminal_reserve_quanta: 0,
+            },
+            intervals: vec![DispatchIntervalInput {
+                interval_id: "t0".to_owned(),
+                start_unix_seconds: 1_800_000_000,
+                duration_seconds: 3_600,
+                grid_outage: false,
+                pv_available_quanta: 0,
+                grid_import_limit_quanta: 1,
+                essential_demand_quanta: 1,
+                flexible_demand_quanta: 0,
+                grid_cost_units_per_quantum: 1,
+                grid_carbon_grams_per_quantum: 0,
+            }],
+        };
+        let complete_schedule = vec![DispatchIntervalDecision {
+            interval_id: "t0".to_owned(),
+            start_unix_seconds: 1_800_000_000,
+            duration_seconds: 3_600,
+            grid_outage: false,
+            pv_available_quanta: 0,
+            pv_used_quanta: 0,
+            pv_curtailed_quanta: 0,
+            grid_import_quanta: 1,
+            battery_soc_before_quanta: 0,
+            battery_charge_input_quanta: 0,
+            battery_soc_withdrawal_quanta: 0,
+            battery_discharge_delivered_quanta: 0,
+            battery_soc_after_quanta: 0,
+            essential_demand_quanta: 1,
+            essential_served_quanta: 1,
+            essential_unserved_quanta: 0,
+            flexible_demand_quanta: 0,
+            flexible_served_quanta: 0,
+            flexible_unserved_quanta: 0,
+            grid_cost_units_per_quantum: 1,
+            grid_carbon_grams_per_quantum: 0,
+            bus_energy_balance_residual_quanta: 0,
+        }];
+
+        let seeded_frontier = (0..MAX_PARETO_FRONTIER)
+            .map(|_| DispatchParetoAlternative {
+                objective: DispatchObjective {
+                    essential_unserved_quanta: 1,
+                    flexible_unserved_quanta: 0,
+                    operating_cost_units: 0,
+                    grid_carbon_grams: 0,
+                    curtailed_pv_quanta: 0,
+                    terminal_soc_quanta: 0,
+                },
+                schedule: Vec::new(),
+            })
+            .collect();
+        let mut search = ExactSearch {
+            request: &request,
+            evaluated_action_expansions: 0,
+            admitted_action_expansions: 0,
+            feasible_complete_schedules: 0,
+            frontier: seeded_frontier,
+            best_incumbent: None,
+        };
+
+        assert!(matches!(
+            search.record_schedule(&complete_schedule),
+            Err(EnergyDispatchError::ParetoFrontierCapExceeded {
+                cap: MAX_PARETO_FRONTIER
+            })
+        ));
+        assert_eq!(search.feasible_complete_schedules, 1);
+        assert_eq!(search.frontier.len(), MAX_PARETO_FRONTIER + 1);
+        let incumbent = search
+            .best_incumbent
+            .expect("complete candidate must survive frontier cap");
+        assert_eq!(incumbent.schedule, complete_schedule);
+        assert_eq!(incumbent.objective.essential_unserved_quanta, 0);
+        assert_eq!(incumbent.objective.operating_cost_units, 1);
+    }
+
+    #[test]
     fn anytime_exhaustive_search_can_prove_finite_model_infeasibility() {
         let mut request = fixture_request();
         request.max_candidate_expansions = 10_000;
