@@ -22,6 +22,7 @@ pub mod geometry;
 pub mod heritage;
 pub mod heritage_threat;
 pub mod heritage_cause;
+pub mod heritage_negative_audit;
 pub mod math;
 pub mod picking;
 pub mod simulation;
