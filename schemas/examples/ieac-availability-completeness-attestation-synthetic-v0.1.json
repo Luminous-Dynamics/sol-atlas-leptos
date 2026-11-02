@@ -30,13 +30,13 @@
   },
   "coverage": {
     "coverage_from": {
-      "time_utc": "2026-11-02T09:00:00Z",
+      "time_utc": "2026-11-02T08:00:00Z",
       "uncertainty_before_seconds": 1,
       "uncertainty_after_seconds": 1,
       "clock_id": "clock:channel-attested",
       "basis": "authenticated_ingest_log",
       "verification_status": "verified",
-      "proof_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+      "proof_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
       "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     },
@@ -47,62 +47,18 @@
       "clock_id": "clock:channel-attested",
       "basis": "authenticated_ingest_log",
       "verification_status": "verified",
-      "proof_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+      "proof_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
       "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
       "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     },
     "completeness": "complete"
-  },
-  "lower_checkpoint": {
-    "checkpoint_id": "checkpoint:lower-0090",
-    "ledger_id": "ledger:plant-17-evidence",
-    "sequence_namespace": "plant-17-evidence-events",
-    "sequence_epoch": "epoch:2026-11-01",
-    "sequence": 90,
-    "tree_size": 90,
-    "root_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-    "signed_bytes_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-    "receipt_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-    "observed_at": {
-      "time_utc": "2026-11-02T09:00:00Z",
-      "uncertainty_before_seconds": 1,
-      "uncertainty_after_seconds": 1,
-      "clock_id": "clock:channel-attested",
-      "basis": "authenticated_ingest_log",
-      "verification_status": "verified",
-      "proof_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-      "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-      "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-    }
-  },
-  "upper_checkpoint": {
-    "checkpoint_id": "checkpoint:upper-0120",
-    "ledger_id": "ledger:plant-17-evidence",
-    "sequence_namespace": "plant-17-evidence-events",
-    "sequence_epoch": "epoch:2026-11-01",
-    "sequence": 120,
-    "tree_size": 120,
-    "root_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
-    "signed_bytes_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
-    "receipt_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
-    "observed_at": {
-      "time_utc": "2026-11-02T09:30:00Z",
-      "uncertainty_before_seconds": 1,
-      "uncertainty_after_seconds": 1,
-      "clock_id": "clock:channel-attested",
-      "basis": "authenticated_ingest_log",
-      "verification_status": "verified",
-      "proof_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
-      "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-      "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-    }
   },
   "first_access": {
     "event_id": "access-event-00120",
     "event_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
     "artifact_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
     "event_type": "ingest",
-    "sequence": 120,
+    "sequence": 110,
     "observed_at": {
       "time_utc": "2026-11-02T09:25:00Z",
       "uncertainty_before_seconds": 2,
@@ -110,7 +66,7 @@
       "clock_id": "clock:channel-attested",
       "basis": "authenticated_ingest_log",
       "verification_status": "verified",
-      "proof_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+      "proof_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
       "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     },
@@ -119,7 +75,8 @@
   "continuity": {
     "vds_id": "rfc9162-sha256",
     "proof_type": "rfc9162_sha256_consistency",
-    "consistency_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "start_to_boundary_receipt_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+    "boundary_to_end_receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "verifier_status": "verified",
     "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
     "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -135,7 +92,7 @@
     "retention_loss": false,
     "clock_health": "healthy"
   },
-  "absence_basis": "complete_capture_channel_attestation",
+  "absence_basis": "complete_channel_signed_query",
   "absence_proof": null,
   "verifier": {
     "status": "verified",
@@ -144,5 +101,83 @@
     "trust_bundle_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
   },
   "claim_ceiling": "absence_within_declared_access_channel_only",
-  "action_authority": "none"
+  "action_authority": "none",
+  "coverage_start_checkpoint": {
+    "checkpoint_id": "checkpoint:coverage-start-0090",
+    "ledger_id": "ledger:plant-17-evidence",
+    "sequence_namespace": "plant-17-evidence-events",
+    "sequence_epoch": "epoch:2026-11-01",
+    "sequence": 90,
+    "tree_size": 90,
+    "root_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "signed_bytes_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "receipt_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "observed_at": {
+      "time_utc": "2026-11-02T08:00:00Z",
+      "uncertainty_before_seconds": 1,
+      "uncertainty_after_seconds": 1,
+      "clock_id": "clock:channel-attested",
+      "basis": "authenticated_ingest_log",
+      "verification_status": "verified",
+      "proof_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  "decision_boundary_checkpoint": {
+    "checkpoint_id": "checkpoint:decision-boundary-0100",
+    "ledger_id": "ledger:plant-17-evidence",
+    "sequence_namespace": "plant-17-evidence-events",
+    "sequence_epoch": "epoch:2026-11-01",
+    "sequence": 100,
+    "tree_size": 100,
+    "root_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "signed_bytes_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "receipt_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+    "observed_at": {
+      "time_utc": "2026-11-02T09:11:00Z",
+      "uncertainty_before_seconds": 1,
+      "uncertainty_after_seconds": 1,
+      "clock_id": "clock:channel-attested",
+      "basis": "authenticated_ingest_log",
+      "verification_status": "verified",
+      "proof_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+      "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  "coverage_end_checkpoint": {
+    "checkpoint_id": "checkpoint:coverage-end-0120",
+    "ledger_id": "ledger:plant-17-evidence",
+    "sequence_namespace": "plant-17-evidence-events",
+    "sequence_epoch": "epoch:2026-11-01",
+    "sequence": 120,
+    "tree_size": 120,
+    "root_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+    "signed_bytes_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+    "receipt_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+    "observed_at": {
+      "time_utc": "2026-11-02T09:30:00Z",
+      "uncertainty_before_seconds": 1,
+      "uncertainty_after_seconds": 1,
+      "clock_id": "clock:channel-attested",
+      "basis": "authenticated_ingest_log",
+      "verification_status": "verified",
+      "proof_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+      "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  "absence_query": {
+    "query_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "predicate_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "sequence_from_exclusive": 90,
+    "sequence_through_inclusive": 100,
+    "matching_event_count": 0,
+    "result_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+    "receipt_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+    "verification_status": "verified",
+    "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  }
 }
