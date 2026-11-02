@@ -88,10 +88,10 @@ The v0.3 record separates:
 - search disposition: `exact_complete`, `feasible_unproven`, `proven_infeasible`, `limit_without_candidate`, `timed_out`, `cancelled`, `error`;
 - complete candidate availability and exact schedule digest;
 - independent audit disposition, receipt digest, echoed request/schedule digests and auditor binary digest;
-- service-floor disposition and policy digest;
+- service-floor disposition and policy digest, with its own receipt digest, evaluator executable digest and an explicit link back to the exact schedule-audit receipt;
 - search-prefix visits, complete schedules, complete-frontier status, first-candidate timing and first accepted-audit timing.
 
-Validation rejects impossible combinations. For example, a `feasible_unproven` result cannot claim a complete Pareto frontier; an accepted receipt must bind the exact request and candidate digest; and audit acceptance without a passed service-floor policy is not a decision-ready result.
+Validation rejects impossible combinations. For example, a `feasible_unproven` result cannot claim a complete Pareto frontier; an accepted receipt must bind the exact request and candidate digest; and a passed service-floor status must carry its own receipt/evaluator digests and reference the exact preceding schedule-audit receipt. Audit acceptance without a passed service-floor policy is not a decision-ready result.
 
 The v0.3 aggregator reports search outcomes, candidate yield, audit acceptance/rejection/unavailability, service-floor outcomes and decision-ready yield as separate counts. It does not interpret a candidate as optimal merely because the independent schedule auditor accepts it.
 
