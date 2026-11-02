@@ -15,3 +15,7 @@ sol-atlas-core = { path = "../../sol-atlas-core" }
 [[bin]]
 name = "energy-dispatch-profile"
 path = "src/main.rs"
+
+[[bin]]
+name = "energy-dispatch-anytime-profile"
+path = "src/bin/energy-dispatch-anytime-profile.rs"
