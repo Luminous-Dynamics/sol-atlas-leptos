@@ -34,7 +34,9 @@
         "relying_party_id",
         "profile_sha256",
         "policy_sha256",
-        "evaluator_build_sha256"
+        "evaluator_build_sha256",
+        "time_verifier_build_sha256",
+        "time_verification_policy_sha256"
       ],
       "properties": {
         "decision_case_id": {
@@ -67,6 +69,16 @@
         "evaluator_build_sha256": {
           "type": "string",
           "pattern": "^[0-9a-f]{64}$"
+        },
+        "time_verifier_build_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Pinned verifier build accepted for time/availability verification facts in this snapshot."
+        },
+        "time_verification_policy_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Pinned policy digest accepted for time/availability verification facts in this snapshot."
         }
       }
     },
