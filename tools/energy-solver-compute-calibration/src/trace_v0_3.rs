@@ -9,7 +9,7 @@ use super::{MeasurementClass, P50_MIN_SAMPLES, P95_MIN_SAMPLES};
 use std::collections::BTreeMap;
 
 pub const TRACE_V03_SCHEMA: &str = "energy-solver-compute-trace-v0.3";
-pub const TRACE_V03_HEADER: &str = "schema_version,measurement_class,cohort_id,sample_id,scenario_id,scenario_panel_sha256,request_sha256,model_sha256,mesh_policy_sha256,mesh_instance_sha256,solver_name,solver_version,solver_binary_sha256,solver_config_sha256,hardware_profile_sha256,horizon_minutes,interval_count,search_disposition,elapsed_ns,time_to_first_candidate_ns,time_to_first_audit_accept_ns,peak_memory_bytes,timeout_limit_ns,enumeration_prefix_visits,feasible_complete_schedules,pareto_frontier_complete,pareto_frontier_count,candidate_complete_horizon,candidate_schedule_sha256,audit_disposition,audit_receipt_sha256,audit_request_sha256,audit_schedule_sha256,auditor_binary_sha256,audit_elapsed_ns,service_floor_disposition,service_floor_policy_sha256,service_floor_schedule_audit_receipt_sha256,service_floor_receipt_sha256,service_floor_auditor_binary_sha256,service_floor_elapsed_ns";
+pub const TRACE_V03_HEADER: &str = "schema_version,measurement_class,cohort_id,sample_id,scenario_id,scenario_panel_sha256,request_sha256,model_sha256,mesh_policy_sha256,mesh_instance_sha256,solver_name,solver_version,solver_binary_sha256,solver_config_sha256,hardware_profile_sha256,horizon_minutes,interval_count,search_disposition,elapsed_ns,solver_elapsed_ns,time_to_first_candidate_ns,time_to_first_audit_accept_ns,peak_memory_bytes,timeout_limit_ns,enumeration_prefix_visits,feasible_complete_schedules,pareto_frontier_complete,pareto_frontier_count,candidate_complete_horizon,candidate_schedule_sha256,audit_disposition,audit_receipt_sha256,audit_request_sha256,audit_schedule_sha256,auditor_binary_sha256,audit_elapsed_ns,service_floor_disposition,service_floor_policy_sha256,service_floor_schedule_audit_receipt_sha256,service_floor_receipt_sha256,service_floor_auditor_binary_sha256,service_floor_elapsed_ns";
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum SearchDispositionV03 {
@@ -160,7 +160,10 @@ pub struct SolverTraceV03 {
     pub search_disposition: SearchDispositionV03,
     /// Entire solver invocation elapsed time. Audit time is included only when
     /// the runner actually executes the auditor within this invocation.
+    /// End-to-end search-through-service-floor time measured by the runner.
     pub elapsed_ns: u64,
+    /// Time spent inside the bounded dispatch search call only.
+    pub solver_elapsed_ns: u64,
     /// Optional: only present when the kernel measured the first complete candidate.
     pub time_to_first_candidate_ns: Option<u64>,
     /// Optional: invocation-relative time when an exact receipt was accepted.
@@ -237,6 +240,8 @@ impl SolverTraceV03 {
             || self.horizon_minutes > 1_440
             || self.interval_count == 0
             || self.elapsed_ns == 0
+            || self.solver_elapsed_ns == 0
+            || self.solver_elapsed_ns > self.elapsed_ns
             || self.timeout_limit_ns.is_some_and(|value| value == 0)
             || self.audit_elapsed_ns.is_some_and(|value| value == 0)
         {
@@ -244,7 +249,7 @@ impl SolverTraceV03 {
         }
         if self
             .time_to_first_candidate_ns
-            .is_some_and(|time| time > self.elapsed_ns)
+            .is_some_and(|time| time > self.solver_elapsed_ns)
             || self
                 .time_to_first_audit_accept_ns
                 .is_some_and(|time| time > self.elapsed_ns)
@@ -471,6 +476,7 @@ impl SolverTraceV03 {
             self.interval_count.to_string(),
             self.search_disposition.as_str().to_owned(),
             self.elapsed_ns.to_string(),
+            self.solver_elapsed_ns.to_string(),
             option(self.time_to_first_candidate_ns),
             option(self.time_to_first_audit_accept_ns),
             option(self.peak_memory_bytes),
@@ -521,7 +527,7 @@ pub fn parse_trace_csv_v03(input: &str) -> Result<Vec<SolverTraceV03>, TraceV03E
 
 pub fn parse_trace_row_v03(line: &str) -> Result<SolverTraceV03, TraceV03Error> {
     let fields: Vec<&str> = line.split(',').collect();
-    if fields.len() != 41 {
+    if fields.len() != 42 {
         return Err(TraceV03Error::InvalidFieldCount);
     }
     let parse_u64 = |value: &str| value.parse::<u64>().map_err(|_| TraceV03Error::InvalidNumber);
@@ -557,28 +563,29 @@ pub fn parse_trace_row_v03(line: &str) -> Result<SolverTraceV03, TraceV03Error> 
         interval_count: parse_u32(fields[16])?,
         search_disposition: SearchDispositionV03::parse(fields[17])?,
         elapsed_ns: parse_u64(fields[18])?,
-        time_to_first_candidate_ns: parse_option_u64(fields[19])?,
-        time_to_first_audit_accept_ns: parse_option_u64(fields[20])?,
-        peak_memory_bytes: parse_option_u64(fields[21])?,
-        timeout_limit_ns: parse_option_u64(fields[22])?,
-        enumeration_prefix_visits: parse_option_u64(fields[23])?,
-        feasible_complete_schedules: parse_option_u64(fields[24])?,
-        pareto_frontier_complete: parse_bool(fields[25])?,
-        pareto_frontier_count: parse_option_u32(fields[26])?,
-        candidate_complete_horizon: parse_bool(fields[27])?,
-        candidate_schedule_sha256: parse_option_string(fields[28])?,
-        audit_disposition: AuditDispositionV03::parse(fields[29])?,
-        audit_receipt_sha256: parse_option_string(fields[30])?,
-        audit_request_sha256: parse_option_string(fields[31])?,
-        audit_schedule_sha256: parse_option_string(fields[32])?,
-        auditor_binary_sha256: parse_option_string(fields[33])?,
-        audit_elapsed_ns: parse_option_u64(fields[34])?,
-        service_floor_disposition: ServiceFloorDispositionV03::parse(fields[35])?,
-        service_floor_policy_sha256: parse_option_string(fields[36])?,
-        service_floor_schedule_audit_receipt_sha256: parse_option_string(fields[37])?,
-        service_floor_receipt_sha256: parse_option_string(fields[38])?,
-        service_floor_auditor_binary_sha256: parse_option_string(fields[39])?,
-        service_floor_elapsed_ns: parse_option_u64(fields[40])?,
+        solver_elapsed_ns: parse_u64(fields[19])?,
+        time_to_first_candidate_ns: parse_option_u64(fields[20])?,
+        time_to_first_audit_accept_ns: parse_option_u64(fields[21])?,
+        peak_memory_bytes: parse_option_u64(fields[22])?,
+        timeout_limit_ns: parse_option_u64(fields[23])?,
+        enumeration_prefix_visits: parse_option_u64(fields[24])?,
+        feasible_complete_schedules: parse_option_u64(fields[25])?,
+        pareto_frontier_complete: parse_bool(fields[26])?,
+        pareto_frontier_count: parse_option_u32(fields[27])?,
+        candidate_complete_horizon: parse_bool(fields[28])?,
+        candidate_schedule_sha256: parse_option_string(fields[29])?,
+        audit_disposition: AuditDispositionV03::parse(fields[30])?,
+        audit_receipt_sha256: parse_option_string(fields[31])?,
+        audit_request_sha256: parse_option_string(fields[32])?,
+        audit_schedule_sha256: parse_option_string(fields[33])?,
+        auditor_binary_sha256: parse_option_string(fields[34])?,
+        audit_elapsed_ns: parse_option_u64(fields[35])?,
+        service_floor_disposition: ServiceFloorDispositionV03::parse(fields[36])?,
+        service_floor_policy_sha256: parse_option_string(fields[37])?,
+        service_floor_schedule_audit_receipt_sha256: parse_option_string(fields[38])?,
+        service_floor_receipt_sha256: parse_option_string(fields[39])?,
+        service_floor_auditor_binary_sha256: parse_option_string(fields[40])?,
+        service_floor_elapsed_ns: parse_option_u64(fields[41])?,
     };
     trace.validate()?;
     Ok(trace)
@@ -606,6 +613,9 @@ pub struct TraceSummaryV03 {
     pub service_floor_not_evaluated_count: usize,
     pub service_floor_unavailable_count: usize,
     pub decision_ready_count: usize,
+    pub solver_time_sample_count: usize,
+    pub solver_elapsed_p50_ns: Option<u64>,
+    pub solver_elapsed_p95_ns: Option<u64>,
     pub first_candidate_sample_count: usize,
     pub first_candidate_p50_ns: Option<u64>,
     pub first_candidate_p95_ns: Option<u64>,
@@ -698,6 +708,9 @@ pub fn summarize_traces_v03(records: &[SolverTraceV03]) -> Result<Vec<TraceSumma
             service_floor_not_evaluated_count: 0,
             service_floor_unavailable_count: 0,
             decision_ready_count: 0,
+            solver_time_sample_count: 0,
+            solver_elapsed_p50_ns: None,
+            solver_elapsed_p95_ns: None,
             first_candidate_sample_count: 0,
             first_candidate_p50_ns: None,
             first_candidate_p95_ns: None,
@@ -714,6 +727,7 @@ pub fn summarize_traces_v03(records: &[SolverTraceV03]) -> Result<Vec<TraceSumma
             decision_ready_latency_p50_ns: None,
             decision_ready_latency_p95_ns: None,
         };
+        let mut solver_elapsed = Vec::new();
         let mut first_candidates = Vec::new();
         let mut first_audits = Vec::new();
         let mut service_floor_elapsed = Vec::new();
@@ -768,6 +782,7 @@ pub fn summarize_traces_v03(records: &[SolverTraceV03]) -> Result<Vec<TraceSumma
             if let Some(value) = row.service_floor_elapsed_ns {
                 service_floor_elapsed.push(value);
             }
+            solver_elapsed.push(row.solver_elapsed_ns);
             if let Some(value) = row.time_to_first_candidate_ns {
                 first_candidates.push(value);
             }
@@ -781,8 +796,20 @@ pub fn summarize_traces_v03(records: &[SolverTraceV03]) -> Result<Vec<TraceSumma
         }
         first_candidates.sort_unstable();
         first_audits.sort_unstable();
+        solver_elapsed.sort_unstable();
         service_floor_elapsed.sort_unstable();
         decision_ready_elapsed.sort_unstable();
+        summary.solver_time_sample_count = solver_elapsed.len();
+        summary.solver_elapsed_p50_ns = if solver_elapsed.len() >= P50_MIN_SAMPLES {
+            nearest_rank_v03(&solver_elapsed, 50)
+        } else {
+            None
+        };
+        summary.solver_elapsed_p95_ns = if solver_elapsed.len() >= P95_MIN_SAMPLES {
+            nearest_rank_v03(&solver_elapsed, 95)
+        } else {
+            None
+        };
         summary.service_floor_sample_count = service_floor_elapsed.len();
         summary.service_floor_elapsed_p50_ns = if service_floor_elapsed.len() >= P50_MIN_SAMPLES {
             nearest_rank_v03(&service_floor_elapsed, 50)
@@ -886,6 +913,7 @@ mod tests {
             interval_count: 2,
             search_disposition: disposition,
             elapsed_ns: 100,
+            solver_elapsed_ns: 50,
             time_to_first_candidate_ns: candidate.then_some(10),
             time_to_first_audit_accept_ns: None,
             peak_memory_bytes: Some(1024),
