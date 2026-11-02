@@ -628,6 +628,24 @@ fn validate_manifest_files(
         {
             return Err(format!("metadata artifact byte commitment mismatch: {}", metadata.repository_path));
         }
+        let expected_name = match metadata.role_name.as_str() {
+            "root" => format!("{}.root.json", metadata.version),
+            "timestamp" => "timestamp.json".to_string(),
+            "snapshot" => "snapshot.json".to_string(),
+            role => format!("{role}.json"),
+        };
+        if metadata.repository_path != expected_name {
+            return Err(format!("TUF repository filename does not match role/version: {}", metadata.repository_path));
+        }
+        let expected_kind = match metadata.role_name.as_str() {
+            "root" => "root_history",
+            "timestamp" => "timestamp",
+            "snapshot" => "snapshot",
+            _ => "targets_role",
+        };
+        if entry.kind != expected_kind {
+            return Err(format!("metadata inventory kind mismatch for {}", metadata.capsule_file_path));
+        }
         *roles.entry(metadata.role_name.as_str()).or_default() += 1;
     }
     for required in ["timestamp", "snapshot", "targets"] {
@@ -767,9 +785,11 @@ async fn audit_capsule(
     // No HTTP feature is enabled in this package. The only repository passed
     // to Updater is the capsule-backed transport above.
     let mut updater = Updater::new(repository, &root_bytes)
-        .map_err(|error| format!("pinned TUF root signature verification failed: {error}"))?
-        .with_config(config)
-        .with_store(MemoryStore::new());
+        .map_err(|error| format!("pinned TUF root signature verification failed: {error}"))?;
+    if updater.trusted().root().version != manifest.trust_bootstrap.root_version {
+        return Err("bootstrap root version differs from operator-pinned capsule manifest".to_string());
+    }
+    updater = updater.with_config(config).with_store(MemoryStore::new());
     updater.refresh(eval_upper).await
         .map_err(|error| format!("offline TUF metadata verification failed: {error}"))?;
 
@@ -849,9 +869,9 @@ async fn audit_capsule(
                 // root claims are not used as a trust input.
             }
             role => {
-                if let Some(targets) = updater.trusted().targets_role(role) {
-                    metadata_claim(artifact, targets.version, &targets.expires.to_string())?;
-                }
+                let targets = updater.trusted().targets_role(role)
+                    .ok_or_else(|| format!("delegated metadata artifact {role} was not reached by the signed delegation graph"))?;
+                metadata_claim(artifact, targets.version, &targets.expires.to_string())?;
             }
         }
     }
