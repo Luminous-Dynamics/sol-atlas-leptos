@@ -1076,7 +1076,7 @@ mod tests {
         sources.insert(
             "channels/plant-17/manifest.json".to_string(),
             TargetSource::Embedded {
-                capsule_path: "targets/channels/plant-17/manifest.json".to_string(),
+                bytes: b"manifest bytes".to_vec(),
                 sha256: digest.clone(),
             },
         );
@@ -1134,8 +1134,10 @@ mod tests {
         }
     }
 
-    fn reference_repository(root: PathBuf, target_source: TargetSource) -> CapsuleRepository {
-        let metadata_paths = [
+    fn reference_repository(target_source: TargetSource) -> (Vec<u8>, CapsuleRepository) {
+        let base = fixture_root().join("tuf-reference-impl");
+        let root_bytes = fs::read(base.join("metadata/1.root.json")).unwrap();
+        let metadata_bytes = [
             ("timestamp.json", "metadata/timestamp.json"),
             ("snapshot.json", "metadata/snapshot.json"),
             ("targets.json", "metadata/targets.json"),
@@ -1143,41 +1145,15 @@ mod tests {
             ("role2.json", "metadata/role2.json"),
         ]
         .into_iter()
-        .map(|(name, path)| (name.to_string(), path.to_string()))
+        .map(|(name, path)| {
+            (name.to_string(), fs::read(base.join(path)).unwrap())
+        })
         .collect();
         let target_sources = [("file3.txt".to_string(), target_source)].into_iter().collect();
-        CapsuleRepository {
-            capsule_root: root,
-            cas_root: None,
-            metadata_paths,
-            target_sources,
-        }
-    }
-
-    fn copy_reference_repository(destination: &Path, corrupt_target: bool) -> PathBuf {
-        let source = fixture_root().join("tuf-reference-impl");
-        for directory in ["metadata", "targets"] {
-            fs::create_dir_all(destination.join(directory)).unwrap();
-        }
-        for name in [
-            "1.root.json",
-            "timestamp.json",
-            "snapshot.json",
-            "targets.json",
-            "role1.json",
-            "role2.json",
-        ] {
-            fs::copy(source.join("metadata").join(name), destination.join("metadata").join(name))
-                .unwrap();
-        }
-        for name in ["file1.txt", "file2.txt", "file3.txt"] {
-            fs::copy(source.join("targets").join(name), destination.join("targets").join(name))
-                .unwrap();
-        }
-        if corrupt_target {
-            fs::write(destination.join("targets/file3.txt"), b"tampered target bytes").unwrap();
-        }
-        destination.to_path_buf()
+        (
+            root_bytes,
+            CapsuleRepository { metadata_bytes, target_sources },
+        )
     }
 
     fn fixture_eval_time() -> jiff::Timestamp {
@@ -1186,12 +1162,13 @@ mod tests {
 
     #[tokio::test]
     async fn offline_capsule_transport_verifies_reference_metadata_and_delegated_target() {
-        let temp = tempfile::tempdir().unwrap();
-        let root_dir = copy_reference_repository(temp.path(), false);
-        let root_bytes = fs::read(root_dir.join("metadata/1.root.json")).unwrap();
-        let repo = reference_repository(
-            root_dir,
-            TargetSource::Embedded { capsule_path: "targets/file3.txt".to_string(), sha256: "141f740f53781d1ca54b8a50af22cbf74e44c21a998fa2a8a05aaac2c002886b".to_string() },
+        let base = fixture_root().join("tuf-reference-impl");
+        let target_bytes = fs::read(base.join("targets/file3.txt")).unwrap();
+        let (root_bytes, repo) = reference_repository(
+            TargetSource::Embedded {
+                bytes: target_bytes,
+                sha256: "141f740f53781d1ca54b8a50af22cbf74e44c21a998fa2a8a05aaac2c002886b".to_string(),
+            },
         );
         let mut updater = Updater::new(repo, &root_bytes)
             .expect("pinned Python-TUF root self-verifies")
@@ -1207,12 +1184,14 @@ mod tests {
 
     #[tokio::test]
     async fn offline_capsule_transport_rejects_target_byte_substitution() {
-        let temp = tempfile::tempdir().unwrap();
-        let root_dir = copy_reference_repository(temp.path(), true);
-        let root_bytes = fs::read(root_dir.join("metadata/1.root.json")).unwrap();
-        let repo = reference_repository(
-            root_dir,
-            TargetSource::Embedded { capsule_path: "targets/file3.txt".to_string(), sha256: "141f740f53781d1ca54b8a50af22cbf74e44c21a998fa2a8a05aaac2c002886b".to_string() },
+        let base = fixture_root().join("tuf-reference-impl");
+        let mut target_bytes = fs::read(base.join("targets/file3.txt")).unwrap();
+        target_bytes[0] ^= 0x01;
+        let (root_bytes, repo) = reference_repository(
+            TargetSource::Embedded {
+                bytes: target_bytes,
+                sha256: "141f740f53781d1ca54b8a50af22cbf74e44c21a998fa2a8a05aaac2c002886b".to_string(),
+            },
         );
         let mut updater = Updater::new(repo, &root_bytes)
             .expect("pinned Python-TUF root self-verifies")
@@ -1228,10 +1207,11 @@ mod tests {
 
     #[tokio::test]
     async fn withheld_target_is_not_replayable_but_metadata_can_still_be_verified() {
-        let temp = tempfile::tempdir().unwrap();
-        let root_dir = copy_reference_repository(temp.path(), false);
-        let root_bytes = fs::read(root_dir.join("metadata/1.root.json")).unwrap();
-        let repo = reference_repository(root_dir, TargetSource::Withheld { sha256: "141f740f53781d1ca54b8a50af22cbf74e44c21a998fa2a8a05aaac2c002886b".to_string() });
+        let (root_bytes, repo) = reference_repository(
+            TargetSource::Withheld {
+                sha256: "141f740f53781d1ca54b8a50af22cbf74e44c21a998fa2a8a05aaac2c002886b".to_string(),
+            },
+        );
         let mut updater = Updater::new(repo, &root_bytes)
             .expect("pinned Python-TUF root self-verifies")
             .with_store(MemoryStore::new());
