@@ -8,6 +8,16 @@ use std::process::ExitCode;
 const SNAPSHOT_SCHEMA: &str = "luminous.ieac-decision-frontier-snapshot.v0.1";
 const REPORT_SCHEMA: &str = "luminous.ieac-decision-frontier-report.v0.1";
 
+fn deserialize_present_option<'de, D, T>(
+    deserializer: D,
+) -> Result<Option<T>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: Deserialize<'de>,
+{
+    Option::<T>::deserialize(deserializer)
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Snapshot {
@@ -43,8 +53,11 @@ struct TimeBound {
     clock_id: String,
     basis: String,
     verification_status: String,
+    #[serde(deserialize_with = "deserialize_present_option")]
     proof_sha256: Option<String>,
+    #[serde(deserialize_with = "deserialize_present_option")]
     verifier_build_sha256: Option<String>,
+    #[serde(deserialize_with = "deserialize_present_option")]
     verification_policy_sha256: Option<String>,
 }
 
@@ -55,16 +68,22 @@ struct EvidenceItem {
     evidence_kind: String,
     source_id: String,
     artifact_sha256: String,
+    #[serde(deserialize_with = "deserialize_present_option")]
     valid_time: Option<ValidTime>,
+    #[serde(deserialize_with = "deserialize_present_option")]
     observed_at: Option<TimeBound>,
+    #[serde(deserialize_with = "deserialize_present_option")]
     source_recorded_at: Option<TimeBound>,
+    #[serde(deserialize_with = "deserialize_present_option")]
     first_available: Option<FirstAvailability>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct ValidTime {
+    #[serde(deserialize_with = "deserialize_present_option")]
     valid_from: Option<String>,
+    #[serde(deserialize_with = "deserialize_present_option")]
     valid_until: Option<String>,
 }
 
@@ -894,6 +913,21 @@ mod tests {
         });
         let result = audit(&snapshot_with(vec![item]), br#"{}"#);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn required_nullable_fields_must_be_present_even_when_null() {
+        let raw = br#"{
+          "time_utc":"2026-11-02T09:10:00Z",
+          "uncertainty_before_seconds":0,
+          "uncertainty_after_seconds":0,
+          "clock_id":"clock:test",
+          "basis":"source_assertion",
+          "verification_status":"not_checked",
+          "verifier_build_sha256":null,
+          "verification_policy_sha256":null
+        }"#;
+        assert!(serde_json::from_slice::<TimeBound>(raw).is_err());
     }
 
     #[test]
