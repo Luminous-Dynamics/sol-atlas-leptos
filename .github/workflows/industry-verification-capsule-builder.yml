@@ -79,9 +79,10 @@ jobs:
             jsonschema-cli validate --draft 2020 --assert-format \
               https://json-schema.org/draft/2020-12/schema -i "$schema"
           done
-          jsonschema-cli validate --draft 2020 --assert-format --offline \
-            schemas/industry-ieac-verification-capsule-build-template-v0.1.schema.json \
-            -i schemas/examples/ieac-verification-capsule-build-template-synthetic-v0.1.json
+          for fixture in schemas/examples/ieac-verification-capsule-build-template-*-synthetic-v0.1.json; do
+            jsonschema-cli validate --draft 2020 --assert-format --offline \
+              schemas/industry-ieac-verification-capsule-build-template-v0.1.schema.json -i "$fixture"
+          done
           jsonschema-cli validate --draft 2020 --assert-format --offline \
             schemas/industry-ieac-verification-capsule-trust-pin-v0.1.schema.json \
             -i schemas/examples/ieac-verification-capsule-trust-pin-synthetic-v0.1.json
