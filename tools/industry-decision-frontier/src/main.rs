@@ -608,6 +608,10 @@ fn classify(
                 reason = "availability_coverage_scope_mismatch";
             } else if coverage.verification_status != "verified"
                 || coverage.completeness != "complete"
+                || coverage.coverage_from.verification_status != "verified"
+                || coverage.complete_through.verification_status != "verified"
+                || coverage.coverage_from.basis != "authenticated_ingest_log"
+                || coverage.complete_through.basis != "authenticated_ingest_log"
             {
                 status = DecisionStatus::Unknown;
                 reason = "availability_coverage_not_complete_and_verified";
