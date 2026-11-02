@@ -766,36 +766,78 @@ fn metadata_claim(artifact: &MetadataArtifact, version: u64, expires_at: &str) -
     Ok(())
 }
 
-fn build_repository(root: &Path, cas_root: Option<PathBuf>, manifest: &Manifest) -> Result<CapsuleRepository, String> {
-    let mut metadata_paths = BTreeMap::new();
+fn read_optional_cas_blob(root: &Path, digest: &str, max_length: u64) -> Result<Option<Vec<u8>>, String> {
+    if !is_sha256(digest) {
+        return Err("invalid CAS digest".to_string());
+    }
+    let root = fs::canonicalize(root)
+        .map_err(|error| format!("cannot canonicalize local CAS root: {error}"))?;
+    let path = root.join(digest);
+    let metadata = match fs::symlink_metadata(&path) {
+        Ok(value) => value,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+        Err(error) => return Err(format!("cannot inspect local CAS blob: {error}")),
+    };
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        return Err("local CAS object must be a regular non-symlink file".to_string());
+    }
+    if metadata.len() > max_length {
+        return Err("local CAS object exceeds target size limit".to_string());
+    }
+    let bytes = fs::read(&path).map_err(|error| format!("cannot read local CAS object: {error}"))?;
+    if bytes.len() as u64 > max_length {
+        return Err("local CAS object grew beyond target size limit".to_string());
+    }
+    Ok(Some(bytes))
+}
+
+fn build_repository(
+    manifest: &Manifest,
+    files: &BTreeMap<String, Vec<u8>>,
+    cas_root: Option<&Path>,
+) -> Result<CapsuleRepository, String> {
+    let mut metadata_bytes = BTreeMap::new();
     for item in &manifest.metadata_artifacts {
-        metadata_paths.insert(item.repository_path.clone(), item.capsule_file_path.clone());
+        let bytes = files.get(&item.capsule_file_path)
+            .ok_or_else(|| format!("validated metadata bytes disappeared: {}", item.capsule_file_path))?
+            .clone();
+        metadata_bytes.insert(item.repository_path.clone(), bytes.clone());
         if item.role_name != "root" {
             let base_name = format!("{}.json", item.role_name);
-            metadata_paths.insert(base_name.clone(), item.capsule_file_path.clone());
-            metadata_paths.insert(format!("{}.{}", item.version, base_name), item.capsule_file_path.clone());
+            metadata_bytes.insert(base_name.clone(), bytes.clone());
+            metadata_bytes.insert(format!("{}.{}", item.version, base_name), bytes);
         }
     }
+
     let mut target_sources = BTreeMap::new();
     for target in &manifest.targets {
         let source = match target.content_mode.as_str() {
-            "embedded" => TargetSource::Embedded {
-                capsule_path: target.capsule_file_path.clone()
-                    .ok_or_else(|| format!("embedded target {} missing path", target.id))?,
-                sha256: target.sha256.clone(),
-            },
-            "referenced" => TargetSource::Referenced { sha256: target.sha256.clone() },
+            "embedded" => {
+                let path = target.capsule_file_path.as_ref()
+                    .ok_or_else(|| format!("embedded target {} missing capsule path", target.id))?;
+                let bytes = files.get(path)
+                    .ok_or_else(|| format!("validated embedded target bytes disappeared: {path}"))?
+                    .clone();
+                TargetSource::Embedded { bytes, sha256: target.sha256.clone() }
+            }
+            "referenced" => {
+                let bytes = if let Some(root) = cas_root {
+                    match read_optional_cas_blob(root, &target.sha256, target.length)? {
+                        Some(bytes) if bytes.len() as u64 == target.length && sha256(&bytes) == target.sha256 => Some(bytes),
+                        Some(_) => return Err(format!("local CAS object does not match target commitment: {}", target.id)),
+                        None => None,
+                    }
+                } else {
+                    None
+                };
+                TargetSource::Referenced { bytes, sha256: target.sha256.clone() }
+            }
             "withheld" => TargetSource::Withheld { sha256: target.sha256.clone() },
             _ => return Err(format!("unsupported content mode {}", target.content_mode)),
         };
         target_sources.insert(target.repository_path.clone(), source);
     }
-    Ok(CapsuleRepository {
-        capsule_root: fs::canonicalize(root).map_err(|error| format!("cannot canonicalize capsule root: {error}"))?,
-        cas_root,
-        metadata_paths,
-        target_sources,
-    })
+    Ok(CapsuleRepository { metadata_bytes, target_sources })
 }
 
 async fn audit_capsule(
@@ -844,7 +886,10 @@ async fn audit_capsule(
     let root_bytes = validate_manifest_files(&manifest, &pin, &files)?;
     let eval_upper = conservative_eval_time(&manifest.replay_context)?;
 
-    let repository = build_repository(capsule_root, cas_root.clone(), &manifest)?;
+    let repository = build_repository(&manifest, &files, cas_root.as_deref())?;
+    let target_availability: BTreeMap<String, bool> = manifest.targets.iter()
+        .map(|target| (target.id.clone(), repository.has_target_bytes(&target.repository_path)))
+        .collect();
     let mut config = UpdaterConfig::default();
     config.target_max_length = MAX_SINGLE_FILE_BYTES.min(pin.max_capsule_bytes);
     config.root_max_length = MAX_METADATA_BYTES;
@@ -875,26 +920,7 @@ async fn audit_capsule(
             return Err(format!("capsule target claim differs from verified TUF metadata: {}", target.id));
         }
 
-        let available = match target.content_mode.as_str() {
-            "embedded" => true,
-            "referenced" => {
-                if let Some(root) = &cas_root {
-                    let reference = target.reference.as_ref().ok_or_else(|| "missing CAS reference".to_string())?;
-                    let digest = reference.locator.strip_prefix("cas://sha256/")
-                        .ok_or_else(|| "invalid CAS reference URI".to_string())?;
-                    match CapsuleRepository::read_limited(root, digest, target.length) {
-                        Ok(Some(bytes)) if bytes.len() as u64 == target.length && sha256(&bytes) == target.sha256 => true,
-                        Ok(None) => false,
-                        Ok(Some(_)) => return Err(format!("CAS target bytes mismatch: {}", target.id)),
-                        Err(error) => return Err(format!("CAS target read failed: {error}")),
-                    }
-                } else {
-                    false
-                }
-            }
-            "withheld" => false,
-            _ => return Err(format!("unsupported target content mode: {}", target.content_mode)),
-        };
+        let available = target_availability.get(&target.id).copied().unwrap_or(false);
 
         let bytes_status = if available {
             let bytes = updater.download_target(&info, &target.repository_path).await
