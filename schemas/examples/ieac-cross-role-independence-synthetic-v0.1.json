@@ -1,0 +1,936 @@
+{
+  "fixture_schema_version": "luminous.ieac-cross-role-independence-fixture.v0.1",
+  "fixture_status": "synthetic_only",
+  "note": "Synthetic role/source/dependency identities only. The CCF registry/report digests and identity evidence are placeholders; an implementation must verify them with the external CCF auditor and owning authority. This fixture demonstrates control-domain overlap semantics, not real independence.",
+  "cases": [
+    {
+      "case_id": "shared-cloud-kms-ci-control-plane",
+      "request": {
+        "schema_version": "luminous.ieac-cross-role-independence-request.v0.1",
+        "request_id": "request:shared-control-plane",
+        "evaluated_at": "2026-11-02T09:00:00Z",
+        "channel_manifest_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "availability_attestation_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "ccf_reference": {
+          "registry_id": "synthetic-industrial-evidence-registry",
+          "registry_version": "2026.11.01",
+          "registry_authority_id": "synthetic-registry-authority",
+          "registry_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "ccf_request_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "ccf_report_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "ccf_auditor_build_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+          "source_mapping_status": "verified"
+        },
+        "independence_policy_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "role_assignments": [
+          {
+            "assignment_id": "ledger-operator",
+            "role_id": "ledger_operator",
+            "principal_id": "principal:ledger-operator",
+            "organization_id": "org:ledger",
+            "ccf_source_id": "source:ledger-operator",
+            "ccf_domain_id": "domain:ledger-operator",
+            "source_identity_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+            "dependency_completeness": "complete",
+            "binding_status": "verified",
+            "identity_evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "dependency_tokens": [
+              {
+                "token_id": "acct:prod",
+                "token_type": "cloud_account",
+                "ccf_reference_id": "dep:cloud-prod",
+                "binding_status": "verified",
+                "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              {
+                "token_id": "cp:prod",
+                "token_type": "control_plane",
+                "ccf_reference_id": "dep:control-plane-prod",
+                "binding_status": "verified",
+                "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              },
+              {
+                "token_id": "kms:prod",
+                "token_type": "kms_admin_domain",
+                "ccf_reference_id": "dep:kms-admin-prod",
+                "binding_status": "verified",
+                "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              },
+              {
+                "token_id": "breakglass:prod",
+                "token_type": "break_glass_authority",
+                "ccf_reference_id": "dep:breakglass-prod",
+                "binding_status": "verified",
+                "evidence_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+              }
+            ]
+          },
+          {
+            "assignment_id": "query-signer",
+            "role_id": "query_signer",
+            "principal_id": "principal:query-signer",
+            "organization_id": "org:query",
+            "ccf_source_id": "source:query-signer",
+            "ccf_domain_id": "domain:query-signer",
+            "source_identity_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+            "dependency_completeness": "complete",
+            "binding_status": "verified",
+            "identity_evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "dependency_tokens": [
+              {
+                "token_id": "acct:prod",
+                "token_type": "cloud_account",
+                "ccf_reference_id": "dep:cloud-prod",
+                "binding_status": "verified",
+                "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              {
+                "token_id": "cp:prod",
+                "token_type": "control_plane",
+                "ccf_reference_id": "dep:control-plane-prod",
+                "binding_status": "verified",
+                "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              },
+              {
+                "token_id": "kms:prod",
+                "token_type": "kms_admin_domain",
+                "ccf_reference_id": "dep:kms-admin-prod",
+                "binding_status": "verified",
+                "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              },
+              {
+                "token_id": "breakglass:prod",
+                "token_type": "break_glass_authority",
+                "ccf_reference_id": "dep:breakglass-prod",
+                "binding_status": "verified",
+                "evidence_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+              }
+            ]
+          },
+          {
+            "assignment_id": "transparency-service",
+            "role_id": "transparency_service_operator",
+            "principal_id": "principal:transparency-service",
+            "organization_id": "org:ts",
+            "ccf_source_id": "source:transparency-service",
+            "ccf_domain_id": "domain:transparency-service",
+            "source_identity_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+            "dependency_completeness": "complete",
+            "binding_status": "verified",
+            "identity_evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "dependency_tokens": [
+              {
+                "token_id": "acct:prod",
+                "token_type": "cloud_account",
+                "ccf_reference_id": "dep:cloud-prod",
+                "binding_status": "verified",
+                "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              {
+                "token_id": "cp:prod",
+                "token_type": "control_plane",
+                "ccf_reference_id": "dep:control-plane-prod",
+                "binding_status": "verified",
+                "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              },
+              {
+                "token_id": "kms:prod",
+                "token_type": "kms_admin_domain",
+                "ccf_reference_id": "dep:kms-admin-prod",
+                "binding_status": "verified",
+                "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              }
+            ]
+          },
+          {
+            "assignment_id": "verifier-build",
+            "role_id": "verifier_build_release_authority",
+            "principal_id": "principal:verifier-build",
+            "organization_id": "org:build",
+            "ccf_source_id": "source:verifier-build",
+            "ccf_domain_id": "domain:verifier-build",
+            "source_identity_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+            "dependency_completeness": "complete",
+            "binding_status": "verified",
+            "identity_evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "dependency_tokens": [
+              {
+                "token_id": "ci:prod",
+                "token_type": "ci_release_pipeline",
+                "ccf_reference_id": "dep:release-pipeline-prod",
+                "binding_status": "verified",
+                "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              {
+                "token_id": "kms:prod",
+                "token_type": "kms_admin_domain",
+                "ccf_reference_id": "dep:kms-admin-prod",
+                "binding_status": "verified",
+                "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              }
+            ]
+          },
+          {
+            "assignment_id": "verifier-deployment",
+            "role_id": "verifier_deployment_operator",
+            "principal_id": "principal:verifier-deployment",
+            "organization_id": "org:deploy",
+            "ccf_source_id": "source:verifier-deployment",
+            "ccf_domain_id": "domain:verifier-deployment",
+            "source_identity_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+            "dependency_completeness": "complete",
+            "binding_status": "verified",
+            "identity_evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "dependency_tokens": [
+              {
+                "token_id": "acct:prod",
+                "token_type": "cloud_account",
+                "ccf_reference_id": "dep:cloud-prod",
+                "binding_status": "verified",
+                "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              {
+                "token_id": "cp:prod",
+                "token_type": "control_plane",
+                "ccf_reference_id": "dep:control-plane-prod",
+                "binding_status": "verified",
+                "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              },
+              {
+                "token_id": "breakglass:prod",
+                "token_type": "break_glass_authority",
+                "ccf_reference_id": "dep:breakglass-prod",
+                "binding_status": "verified",
+                "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              }
+            ]
+          },
+          {
+            "assignment_id": "witness-a",
+            "role_id": "witness_operator",
+            "principal_id": "principal:witness-a",
+            "organization_id": "org:witness-a",
+            "ccf_source_id": "source:witness-a",
+            "ccf_domain_id": "domain:witness-a",
+            "source_identity_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+            "dependency_completeness": "complete",
+            "binding_status": "verified",
+            "identity_evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "dependency_tokens": [
+              {
+                "token_id": "acct:prod",
+                "token_type": "cloud_account",
+                "ccf_reference_id": "dep:cloud-prod",
+                "binding_status": "verified",
+                "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              {
+                "token_id": "kms:prod",
+                "token_type": "kms_admin_domain",
+                "ccf_reference_id": "dep:kms-admin-prod",
+                "binding_status": "verified",
+                "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              }
+            ]
+          },
+          {
+            "assignment_id": "witness-b",
+            "role_id": "witness_operator",
+            "principal_id": "principal:witness-b",
+            "organization_id": "org:witness-b",
+            "ccf_source_id": "source:witness-b",
+            "ccf_domain_id": "domain:witness-b",
+            "source_identity_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+            "dependency_completeness": "complete",
+            "binding_status": "verified",
+            "identity_evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "dependency_tokens": [
+              {
+                "token_id": "acct:prod",
+                "token_type": "cloud_account",
+                "ccf_reference_id": "dep:cloud-prod",
+                "binding_status": "verified",
+                "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              {
+                "token_id": "kms:prod",
+                "token_type": "kms_admin_domain",
+                "ccf_reference_id": "dep:kms-admin-prod",
+                "binding_status": "verified",
+                "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              }
+            ]
+          },
+          {
+            "assignment_id": "trust-root-admin",
+            "role_id": "trust_root_key_manager",
+            "principal_id": "principal:trust-root-admin",
+            "organization_id": "org:root",
+            "ccf_source_id": "source:trust-root-admin",
+            "ccf_domain_id": "domain:trust-root-admin",
+            "source_identity_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "dependency_completeness": "complete",
+            "binding_status": "verified",
+            "identity_evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "dependency_tokens": [
+              {
+                "token_id": "kms:prod",
+                "token_type": "kms_admin_domain",
+                "ccf_reference_id": "dep:kms-admin-prod",
+                "binding_status": "verified",
+                "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              {
+                "token_id": "rootadmin:prod",
+                "token_type": "trust_root_admin_domain",
+                "ccf_reference_id": "dep:trust-root-admin-prod",
+                "binding_status": "verified",
+                "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              }
+            ]
+          },
+          {
+            "assignment_id": "rp-policy",
+            "role_id": "relying_party_policy_owner",
+            "principal_id": "principal:rp-policy",
+            "organization_id": "org:rp",
+            "ccf_source_id": "source:rp-policy",
+            "ccf_domain_id": "domain:rp-policy",
+            "source_identity_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+            "dependency_completeness": "complete",
+            "binding_status": "verified",
+            "identity_evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "dependency_tokens": [
+              {
+                "token_id": "acct:rp",
+                "token_type": "cloud_account",
+                "ccf_reference_id": "dep:rp-cloud",
+                "binding_status": "verified",
+                "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              {
+                "token_id": "cp:rp",
+                "token_type": "control_plane",
+                "ccf_reference_id": "dep:rp-control-plane",
+                "binding_status": "verified",
+                "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              }
+            ]
+          },
+          {
+            "assignment_id": "reviewer",
+            "role_id": "independent_reviewer",
+            "principal_id": "principal:reviewer",
+            "organization_id": "org:reviewer",
+            "ccf_source_id": "source:reviewer",
+            "ccf_domain_id": "domain:reviewer",
+            "source_identity_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "dependency_completeness": "complete",
+            "binding_status": "verified",
+            "identity_evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "dependency_tokens": [
+              {
+                "token_id": "acct:review",
+                "token_type": "cloud_account",
+                "ccf_reference_id": "dep:review-cloud",
+                "binding_status": "verified",
+                "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              {
+                "token_id": "cp:review",
+                "token_type": "control_plane",
+                "ccf_reference_id": "dep:review-control-plane",
+                "binding_status": "verified",
+                "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              },
+              {
+                "token_id": "kms:review",
+                "token_type": "kms_admin_domain",
+                "ccf_reference_id": "dep:review-kms",
+                "binding_status": "verified",
+                "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              }
+            ]
+          }
+        ],
+        "separation_requirements": [
+          {
+            "requirement_id": "sep:ledger-vs-query",
+            "assignment_id_a": "ledger-operator",
+            "assignment_id_b": "query-signer",
+            "required_distinctions": [
+              "different_principal",
+              "different_organization",
+              "different_cloud_account",
+              "different_control_plane",
+              "different_kms_admin_domain",
+              "different_break_glass_authority",
+              "disjoint_ccf_dependency_closure",
+              "disjoint_ccf_common_cause_groups"
+            ],
+            "minimum_independent_sources": 1,
+            "mandatory": true
+          },
+          {
+            "requirement_id": "sep:query-vs-verifier-build",
+            "assignment_id_a": "query-signer",
+            "assignment_id_b": "verifier-build",
+            "required_distinctions": [
+              "different_principal",
+              "different_organization",
+              "different_kms_admin_domain",
+              "different_ci_release_pipeline",
+              "disjoint_ccf_dependency_closure",
+              "disjoint_ccf_common_cause_groups"
+            ],
+            "minimum_independent_sources": 1,
+            "mandatory": true
+          },
+          {
+            "requirement_id": "sep:verifier-build-vs-deployer",
+            "assignment_id_a": "verifier-build",
+            "assignment_id_b": "verifier-deployment",
+            "required_distinctions": [
+              "different_principal",
+              "different_organization",
+              "different_cloud_account",
+              "different_control_plane",
+              "different_break_glass_authority",
+              "disjoint_ccf_dependency_closure"
+            ],
+            "minimum_independent_sources": 1,
+            "mandatory": true
+          },
+          {
+            "requirement_id": "sep:witness-a-vs-b",
+            "assignment_id_a": "witness-a",
+            "assignment_id_b": "witness-b",
+            "required_distinctions": [
+              "different_principal",
+              "different_organization",
+              "different_cloud_account",
+              "different_kms_admin_domain",
+              "disjoint_ccf_dependency_closure",
+              "disjoint_ccf_common_cause_groups"
+            ],
+            "minimum_independent_sources": 1,
+            "mandatory": true
+          },
+          {
+            "requirement_id": "sep:reviewer-vs-query",
+            "assignment_id_a": "independent-reviewer",
+            "assignment_id_b": "query-signer",
+            "required_distinctions": [
+              "different_principal",
+              "different_organization",
+              "different_cloud_account",
+              "different_control_plane",
+              "different_kms_admin_domain",
+              "different_break_glass_authority",
+              "disjoint_ccf_dependency_closure",
+              "disjoint_ccf_common_cause_groups"
+            ],
+            "minimum_independent_sources": 1,
+            "mandatory": true
+          },
+          {
+            "requirement_id": "sep:reviewer-vs-verifier",
+            "assignment_id_a": "independent-reviewer",
+            "assignment_id_b": "verifier-deployment",
+            "required_distinctions": [
+              "different_principal",
+              "different_organization",
+              "different_cloud_account",
+              "different_control_plane",
+              "different_kms_admin_domain",
+              "disjoint_ccf_dependency_closure"
+            ],
+            "minimum_independent_sources": 1,
+            "mandatory": true
+          }
+        ],
+        "claim_ceiling": "independence_under_exact_pinned_ccf_registry_only",
+        "action_authority": "none"
+      },
+      "expected": {
+        "overall_disposition": "not_independent_under_registry_model",
+        "conflicted_pairs": [
+          "sep:ledger-vs-query",
+          "sep:query-vs-verifier-build",
+          "sep:verifier-build-vs-deployer",
+          "sep:witness-a-vs-b"
+        ],
+        "separate_pairs": [
+          "sep:reviewer-vs-query",
+          "sep:reviewer-vs-verifier"
+        ],
+        "claim_ceiling": "independence_under_exact_pinned_ccf_registry_only",
+        "action_authority": "none"
+      }
+    },
+    {
+      "case_id": "distinct-control-and-failure-domains",
+      "request": {
+        "schema_version": "luminous.ieac-cross-role-independence-request.v0.1",
+        "request_id": "request:disjoint-domains-positive",
+        "evaluated_at": "2026-11-02T09:00:00Z",
+        "channel_manifest_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "availability_attestation_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "ccf_reference": {
+          "registry_id": "synthetic-industrial-evidence-registry",
+          "registry_version": "2026.11.01",
+          "registry_authority_id": "synthetic-registry-authority",
+          "registry_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "ccf_request_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "ccf_report_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "ccf_auditor_build_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+          "source_mapping_status": "verified"
+        },
+        "independence_policy_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "role_assignments": [
+          {
+            "assignment_id": "ledger-operator",
+            "role_id": "ledger_operator",
+            "principal_id": "principal:independent:0",
+            "organization_id": "org:independent:0",
+            "ccf_source_id": "source:ledger-operator",
+            "ccf_domain_id": "domain:ledger-operator",
+            "source_identity_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+            "dependency_completeness": "complete",
+            "binding_status": "verified",
+            "identity_evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "dependency_tokens": [
+              {
+                "token_id": "acct:prod:ind:0",
+                "token_type": "cloud_account",
+                "ccf_reference_id": "dep:ind:0:0",
+                "binding_status": "verified",
+                "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              {
+                "token_id": "cp:prod:ind:0",
+                "token_type": "control_plane",
+                "ccf_reference_id": "dep:ind:0:1",
+                "binding_status": "verified",
+                "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              },
+              {
+                "token_id": "kms:prod:ind:0",
+                "token_type": "kms_admin_domain",
+                "ccf_reference_id": "dep:ind:0:2",
+                "binding_status": "verified",
+                "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              },
+              {
+                "token_id": "breakglass:prod:ind:0",
+                "token_type": "break_glass_authority",
+                "ccf_reference_id": "dep:ind:0:3",
+                "binding_status": "verified",
+                "evidence_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+              }
+            ]
+          },
+          {
+            "assignment_id": "query-signer",
+            "role_id": "query_signer",
+            "principal_id": "principal:independent:1",
+            "organization_id": "org:independent:1",
+            "ccf_source_id": "source:query-signer",
+            "ccf_domain_id": "domain:query-signer",
+            "source_identity_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+            "dependency_completeness": "complete",
+            "binding_status": "verified",
+            "identity_evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "dependency_tokens": [
+              {
+                "token_id": "acct:prod:ind:1",
+                "token_type": "cloud_account",
+                "ccf_reference_id": "dep:ind:1:0",
+                "binding_status": "verified",
+                "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              {
+                "token_id": "cp:prod:ind:1",
+                "token_type": "control_plane",
+                "ccf_reference_id": "dep:ind:1:1",
+                "binding_status": "verified",
+                "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              },
+              {
+                "token_id": "kms:prod:ind:1",
+                "token_type": "kms_admin_domain",
+                "ccf_reference_id": "dep:ind:1:2",
+                "binding_status": "verified",
+                "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              },
+              {
+                "token_id": "breakglass:prod:ind:1",
+                "token_type": "break_glass_authority",
+                "ccf_reference_id": "dep:ind:1:3",
+                "binding_status": "verified",
+                "evidence_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+              }
+            ]
+          },
+          {
+            "assignment_id": "transparency-service",
+            "role_id": "transparency_service_operator",
+            "principal_id": "principal:independent:2",
+            "organization_id": "org:independent:2",
+            "ccf_source_id": "source:transparency-service",
+            "ccf_domain_id": "domain:transparency-service",
+            "source_identity_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+            "dependency_completeness": "complete",
+            "binding_status": "verified",
+            "identity_evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "dependency_tokens": [
+              {
+                "token_id": "acct:prod:ind:2",
+                "token_type": "cloud_account",
+                "ccf_reference_id": "dep:ind:2:0",
+                "binding_status": "verified",
+                "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              {
+                "token_id": "cp:prod:ind:2",
+                "token_type": "control_plane",
+                "ccf_reference_id": "dep:ind:2:1",
+                "binding_status": "verified",
+                "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              },
+              {
+                "token_id": "kms:prod:ind:2",
+                "token_type": "kms_admin_domain",
+                "ccf_reference_id": "dep:ind:2:2",
+                "binding_status": "verified",
+                "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              }
+            ]
+          },
+          {
+            "assignment_id": "verifier-build",
+            "role_id": "verifier_build_release_authority",
+            "principal_id": "principal:independent:3",
+            "organization_id": "org:independent:3",
+            "ccf_source_id": "source:verifier-build",
+            "ccf_domain_id": "domain:verifier-build",
+            "source_identity_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+            "dependency_completeness": "complete",
+            "binding_status": "verified",
+            "identity_evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "dependency_tokens": [
+              {
+                "token_id": "ci:prod:ind:3",
+                "token_type": "ci_release_pipeline",
+                "ccf_reference_id": "dep:ind:3:0",
+                "binding_status": "verified",
+                "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              {
+                "token_id": "kms:prod:ind:3",
+                "token_type": "kms_admin_domain",
+                "ccf_reference_id": "dep:ind:3:1",
+                "binding_status": "verified",
+                "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              }
+            ]
+          },
+          {
+            "assignment_id": "verifier-deployment",
+            "role_id": "verifier_deployment_operator",
+            "principal_id": "principal:independent:4",
+            "organization_id": "org:independent:4",
+            "ccf_source_id": "source:verifier-deployment",
+            "ccf_domain_id": "domain:verifier-deployment",
+            "source_identity_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+            "dependency_completeness": "complete",
+            "binding_status": "verified",
+            "identity_evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "dependency_tokens": [
+              {
+                "token_id": "acct:prod:ind:4",
+                "token_type": "cloud_account",
+                "ccf_reference_id": "dep:ind:4:0",
+                "binding_status": "verified",
+                "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              {
+                "token_id": "cp:prod:ind:4",
+                "token_type": "control_plane",
+                "ccf_reference_id": "dep:ind:4:1",
+                "binding_status": "verified",
+                "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              },
+              {
+                "token_id": "breakglass:prod:ind:4",
+                "token_type": "break_glass_authority",
+                "ccf_reference_id": "dep:ind:4:2",
+                "binding_status": "verified",
+                "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              }
+            ]
+          },
+          {
+            "assignment_id": "witness-a",
+            "role_id": "witness_operator",
+            "principal_id": "principal:independent:5",
+            "organization_id": "org:independent:5",
+            "ccf_source_id": "source:witness-a",
+            "ccf_domain_id": "domain:witness-a",
+            "source_identity_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+            "dependency_completeness": "complete",
+            "binding_status": "verified",
+            "identity_evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "dependency_tokens": [
+              {
+                "token_id": "acct:prod:ind:5",
+                "token_type": "cloud_account",
+                "ccf_reference_id": "dep:ind:5:0",
+                "binding_status": "verified",
+                "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              {
+                "token_id": "kms:prod:ind:5",
+                "token_type": "kms_admin_domain",
+                "ccf_reference_id": "dep:ind:5:1",
+                "binding_status": "verified",
+                "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              }
+            ]
+          },
+          {
+            "assignment_id": "witness-b",
+            "role_id": "witness_operator",
+            "principal_id": "principal:independent:6",
+            "organization_id": "org:independent:6",
+            "ccf_source_id": "source:witness-b",
+            "ccf_domain_id": "domain:witness-b",
+            "source_identity_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+            "dependency_completeness": "complete",
+            "binding_status": "verified",
+            "identity_evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "dependency_tokens": [
+              {
+                "token_id": "acct:prod:ind:6",
+                "token_type": "cloud_account",
+                "ccf_reference_id": "dep:ind:6:0",
+                "binding_status": "verified",
+                "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              {
+                "token_id": "kms:prod:ind:6",
+                "token_type": "kms_admin_domain",
+                "ccf_reference_id": "dep:ind:6:1",
+                "binding_status": "verified",
+                "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              }
+            ]
+          },
+          {
+            "assignment_id": "trust-root-admin",
+            "role_id": "trust_root_key_manager",
+            "principal_id": "principal:independent:7",
+            "organization_id": "org:independent:7",
+            "ccf_source_id": "source:trust-root-admin",
+            "ccf_domain_id": "domain:trust-root-admin",
+            "source_identity_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "dependency_completeness": "complete",
+            "binding_status": "verified",
+            "identity_evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "dependency_tokens": [
+              {
+                "token_id": "kms:prod:ind:7",
+                "token_type": "kms_admin_domain",
+                "ccf_reference_id": "dep:ind:7:0",
+                "binding_status": "verified",
+                "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              {
+                "token_id": "rootadmin:prod:ind:7",
+                "token_type": "trust_root_admin_domain",
+                "ccf_reference_id": "dep:ind:7:1",
+                "binding_status": "verified",
+                "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              }
+            ]
+          },
+          {
+            "assignment_id": "rp-policy",
+            "role_id": "relying_party_policy_owner",
+            "principal_id": "principal:independent:8",
+            "organization_id": "org:independent:8",
+            "ccf_source_id": "source:rp-policy",
+            "ccf_domain_id": "domain:rp-policy",
+            "source_identity_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+            "dependency_completeness": "complete",
+            "binding_status": "verified",
+            "identity_evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "dependency_tokens": [
+              {
+                "token_id": "acct:rp:ind:8",
+                "token_type": "cloud_account",
+                "ccf_reference_id": "dep:ind:8:0",
+                "binding_status": "verified",
+                "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              {
+                "token_id": "cp:rp:ind:8",
+                "token_type": "control_plane",
+                "ccf_reference_id": "dep:ind:8:1",
+                "binding_status": "verified",
+                "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              }
+            ]
+          },
+          {
+            "assignment_id": "reviewer",
+            "role_id": "independent_reviewer",
+            "principal_id": "principal:independent:9",
+            "organization_id": "org:independent:9",
+            "ccf_source_id": "source:reviewer",
+            "ccf_domain_id": "domain:reviewer",
+            "source_identity_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "dependency_completeness": "complete",
+            "binding_status": "verified",
+            "identity_evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "dependency_tokens": [
+              {
+                "token_id": "acct:review:ind:9",
+                "token_type": "cloud_account",
+                "ccf_reference_id": "dep:ind:9:0",
+                "binding_status": "verified",
+                "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              {
+                "token_id": "cp:review:ind:9",
+                "token_type": "control_plane",
+                "ccf_reference_id": "dep:ind:9:1",
+                "binding_status": "verified",
+                "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              },
+              {
+                "token_id": "kms:review:ind:9",
+                "token_type": "kms_admin_domain",
+                "ccf_reference_id": "dep:ind:9:2",
+                "binding_status": "verified",
+                "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              }
+            ]
+          }
+        ],
+        "separation_requirements": [
+          {
+            "requirement_id": "sep:ledger-vs-query",
+            "assignment_id_a": "ledger-operator",
+            "assignment_id_b": "query-signer",
+            "required_distinctions": [
+              "different_principal",
+              "different_organization",
+              "different_cloud_account",
+              "different_control_plane",
+              "different_kms_admin_domain",
+              "different_break_glass_authority",
+              "disjoint_ccf_dependency_closure",
+              "disjoint_ccf_common_cause_groups"
+            ],
+            "minimum_independent_sources": 1,
+            "mandatory": true
+          },
+          {
+            "requirement_id": "sep:query-vs-verifier-build",
+            "assignment_id_a": "query-signer",
+            "assignment_id_b": "verifier-build",
+            "required_distinctions": [
+              "different_principal",
+              "different_organization",
+              "different_kms_admin_domain",
+              "different_ci_release_pipeline",
+              "disjoint_ccf_dependency_closure",
+              "disjoint_ccf_common_cause_groups"
+            ],
+            "minimum_independent_sources": 1,
+            "mandatory": true
+          },
+          {
+            "requirement_id": "sep:verifier-build-vs-deployer",
+            "assignment_id_a": "verifier-build",
+            "assignment_id_b": "verifier-deployment",
+            "required_distinctions": [
+              "different_principal",
+              "different_organization",
+              "different_cloud_account",
+              "different_control_plane",
+              "different_break_glass_authority",
+              "disjoint_ccf_dependency_closure"
+            ],
+            "minimum_independent_sources": 1,
+            "mandatory": true
+          },
+          {
+            "requirement_id": "sep:witness-a-vs-b",
+            "assignment_id_a": "witness-a",
+            "assignment_id_b": "witness-b",
+            "required_distinctions": [
+              "different_principal",
+              "different_organization",
+              "different_cloud_account",
+              "different_kms_admin_domain",
+              "disjoint_ccf_dependency_closure",
+              "disjoint_ccf_common_cause_groups"
+            ],
+            "minimum_independent_sources": 1,
+            "mandatory": true
+          },
+          {
+            "requirement_id": "sep:reviewer-vs-query",
+            "assignment_id_a": "independent-reviewer",
+            "assignment_id_b": "query-signer",
+            "required_distinctions": [
+              "different_principal",
+              "different_organization",
+              "different_cloud_account",
+              "different_control_plane",
+              "different_kms_admin_domain",
+              "different_break_glass_authority",
+              "disjoint_ccf_dependency_closure",
+              "disjoint_ccf_common_cause_groups"
+            ],
+            "minimum_independent_sources": 1,
+            "mandatory": true
+          },
+          {
+            "requirement_id": "sep:reviewer-vs-verifier",
+            "assignment_id_a": "independent-reviewer",
+            "assignment_id_b": "verifier-deployment",
+            "required_distinctions": [
+              "different_principal",
+              "different_organization",
+              "different_cloud_account",
+              "different_control_plane",
+              "different_kms_admin_domain",
+              "disjoint_ccf_dependency_closure"
+            ],
+            "minimum_independent_sources": 1,
+            "mandatory": true
+          }
+        ],
+        "claim_ceiling": "independence_under_exact_pinned_ccf_registry_only",
+        "action_authority": "none"
+      },
+      "expected": {
+        "overall_disposition": "independence_satisfied_under_registry_model",
+        "conflicted_pairs": [],
+        "separate_pairs": [
+          "sep:ledger-vs-query",
+          "sep:query-vs-verifier-build",
+          "sep:verifier-build-vs-deployer",
+          "sep:witness-a-vs-b",
+          "sep:reviewer-vs-query",
+          "sep:reviewer-vs-verifier"
+        ],
+        "claim_ceiling": "independence_under_exact_pinned_ccf_registry_only",
+        "action_authority": "none"
+      }
+    }
+  ]
+}
