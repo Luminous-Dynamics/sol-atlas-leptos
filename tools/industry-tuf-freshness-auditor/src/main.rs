@@ -261,6 +261,11 @@ fn audit(
     {
         return Err("policy claim ceiling or action-authority boundary is invalid".to_string());
     }
+    if uint(state,"state_revision","trusted_state")? == 0
+        || string(state,"state_id","trusted_state")?.is_empty()
+    {
+        return Err("trusted high-water state identity/revision is invalid".to_string());
+    }
     for (field, expected) in [
         ("repository_id", string(policy,"repository_id","policy")?),
     ] {
@@ -321,7 +326,7 @@ fn audit(
     let old_timestamp = field(state,"timestamp","trusted_state")?;
     let old_snapshot = field(state,"snapshot","trusted_state")?;
     for (v,path) in [(old_root,"state.root"),(old_timestamp,"state.timestamp"),(old_snapshot,"state.snapshot")] {
-        deny_unknown(v,&["version","sha256"],path)?;
+        deny_unknown(v,&["version","sha256","expires_at"],path)?;
         require_digest(v,"sha256",path)?;
     }
     check_metadata_version("root",root_version,string(root,"sha256","root")?,
@@ -690,6 +695,29 @@ mod tests{
         audit(&r,&p,&s,&rb,&pb,&sb)
     }
     #[test]fn accepts_verified_monotonic_tuf_state(){assert_eq!(audit_base().unwrap().status,"current");}
+    #[test]fn valid_root_rotation_accepts_contiguous_dual_threshold_chain(){
+        let (mut r,p,s)=base();
+        r["root"]["version"]=json!(4);
+        r["root"]["sha256"]=json!(d('z'));
+        r["root_update_chain"]=json!([{
+            "from_version":3,"from_sha256":d('1'),
+            "to_version":4,"to_sha256":d('z'),
+            "old_threshold_verified":true,"new_threshold_verified":true
+        }]);
+        let rb=serde_json::to_vec(&r).unwrap();let pb=serde_json::to_vec(&p).unwrap();let sb=serde_json::to_vec(&s).unwrap();
+        assert_eq!(audit(&r,&p,&s,&rb,&pb,&sb).unwrap().status,"current");
+    }
+    #[test]fn target_role_rollback_is_rejected(){
+        let (mut r,p,s)=base();r["target_roles"][0]["version"]=json!(3);
+        let rb=serde_json::to_vec(&r).unwrap();let pb=serde_json::to_vec(&p).unwrap();let sb=serde_json::to_vec(&s).unwrap();
+        assert!(audit(&r,&p,&s,&rb,&pb,&sb).is_err());
+    }
+    #[test]fn excessive_timestamp_expiry_horizon_is_unknown(){
+        let (mut r,p,s)=base();r["timestamp"]["expires_at"]=json!("2026-11-15T00:00:00Z");
+        let rb=serde_json::to_vec(&r).unwrap();let pb=serde_json::to_vec(&p).unwrap();let sb=serde_json::to_vec(&s).unwrap();
+        assert_eq!(audit(&r,&p,&s,&rb,&pb,&sb).unwrap().status,"unknown");
+    }
+
     #[test]fn timestamp_version_rollback_is_rejected(){
         let (mut r,p,s)=base();r["timestamp"]["version"]=json!(12);
         let rb=serde_json::to_vec(&r).unwrap();let pb=serde_json::to_vec(&p).unwrap();let sb=serde_json::to_vec(&s).unwrap();
@@ -716,9 +744,9 @@ mod tests{
         assert!(audit(&r,&p,&s,&rb,&pb,&sb).is_err());
     }
     #[test]fn same_sequence_checkpoint_equivocation_is_rejected(){
-        let (mut r,mut p,s)=base();r["channel_binding"]["last_sequence"]=json!(118);
+        let (mut r,p,s)=base();r["channel_binding"]["last_sequence"]=json!(118);
         r["channel_binding"]["checkpoint_state"]["target_sha256"]=json!(d('x'));
-        p["checkpoint_target_path"]=json!("channels/plant-17/checkpoint.json");
+        r["target_roles"][1]["target_sha256"]=json!(d('x'));
         let rb=serde_json::to_vec(&r).unwrap();let pb=serde_json::to_vec(&p).unwrap();let sb=serde_json::to_vec(&s).unwrap();
         assert!(audit(&r,&p,&s,&rb,&pb,&sb).is_err());
     }
