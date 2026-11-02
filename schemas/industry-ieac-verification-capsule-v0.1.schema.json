@@ -21,7 +21,8 @@
     "file_inventory",
     "file_inventory_sha256",
     "claim_ceiling",
-    "action_authority"
+    "action_authority",
+    "policy_file_path"
   ],
   "properties": {
     "schema_version": {
@@ -216,7 +217,7 @@
           "length",
           "sha256",
           "expires_at",
-          "authorized_by"
+          "capsule_file_path"
         ],
         "properties": {
           "role_name": {
@@ -248,10 +249,11 @@
             "format": "date-time",
             "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]Z$"
           },
-          "authorized_by": {
+          "capsule_file_path": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 256
+            "maxLength": 1024,
+            "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?/)(?!.*[\\\\?#])[^\\\\?#]+$"
           }
         }
       }
@@ -266,7 +268,6 @@
         "required": [
           "id",
           "repository_path",
-          "authorized_role",
           "length",
           "sha256",
           "content_mode"
@@ -285,11 +286,6 @@
             "minLength": 1,
             "maxLength": 1024,
             "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?/)(?!.*[\\\\?#])[^\\\\?#]+$"
-          },
-          "authorized_role": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 256
           },
           "length": {
             "type": "integer",
@@ -323,9 +319,7 @@
             "properties": {
               "scheme": {
                 "enum": [
-                  "file",
-                  "cas",
-                  "https"
+                  "cas"
                 ]
               },
               "locator": {
@@ -414,7 +408,7 @@
     },
     "file_inventory": {
       "type": "array",
-      "minItems": 1,
+      "minItems": 6,
       "maxItems": 1024,
       "items": {
         "type": "object",
@@ -465,6 +459,12 @@
     },
     "action_authority": {
       "const": "none"
+    },
+    "policy_file_path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?/)(?!.*[\\\\?#])[^\\\\?#]+$"
     }
   },
   "allOf": [
