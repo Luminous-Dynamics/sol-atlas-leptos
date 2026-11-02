@@ -279,11 +279,7 @@ impl CapsuleRepository {
                     | TargetSource::Referenced { sha256 }
                     | TargetSource::Withheld { sha256 } => sha256,
                 };
-                let consistent_name = match original.rsplit_once('/') {
-                    Some((directory, name)) => format!("{directory}/{digest}.{name}"),
-                    None => format!("{digest}.{original}"),
-                };
-                (consistent_name == path).then_some(source)
+                (consistent_snapshot_target_name(original, digest) == path).then_some(source)
             })
         });
         let Some(source) = resolved else {
@@ -316,6 +312,13 @@ impl Repository for CapsuleRepository {
 
     fn fetch_target<'a>(&'a self, path: &'a str, max_length: u64) -> FetchFuture<'a> {
         Box::pin(async move { self.target_bytes(path, max_length) })
+    }
+}
+
+fn consistent_snapshot_target_name(original: &str, sha256: &str) -> String {
+    match original.rsplit_once('/') {
+        Some((directory, name)) => format!("{directory}/{sha256}.{name}"),
+        None => format!("{sha256}.{original}"),
     }
 }
 
@@ -584,7 +587,6 @@ fn validate_file_inventory(root: &Path, manifest: &Manifest, pin: &TrustPin) -> 
 }
 
 fn validate_manifest_files(
-    root: &Path,
     manifest: &Manifest,
     pin: &TrustPin,
     files: &BTreeMap<String, Vec<u8>>,
@@ -621,6 +623,7 @@ fn validate_manifest_files(
     }
 
     let mut names = BTreeSet::new();
+    let mut metadata_capsule_paths = BTreeSet::new();
     let mut roles = BTreeMap::<&str, usize>::new();
     for metadata in &manifest.metadata_artifacts {
         if !validate_metadata_name(&metadata.repository_path)
@@ -670,6 +673,7 @@ fn validate_manifest_files(
         if entry.kind != expected_kind {
             return Err(format!("metadata inventory kind mismatch for {}", metadata.capsule_file_path));
         }
+        metadata_capsule_paths.insert(metadata.capsule_file_path.as_str());
         *roles.entry(metadata.role_name.as_str()).or_default() += 1;
     }
     for required in ["timestamp", "snapshot", "targets"] {
@@ -681,6 +685,13 @@ fn validate_manifest_files(
         if *role != "root" && *count != 1 {
             return Err(format!("capsule contains duplicate metadata role {role}"));
         }
+    }
+    let inventory_metadata_paths: BTreeSet<&str> = manifest.file_inventory.iter()
+        .filter(|entry| matches!(entry.kind.as_str(), "root_history" | "timestamp" | "snapshot" | "targets_role"))
+        .map(|entry| entry.path.as_str())
+        .collect();
+    if inventory_metadata_paths != metadata_capsule_paths {
+        return Err("metadata artifact list and metadata file inventory are not identical".to_string());
     }
     let mut root_versions: Vec<u64> = manifest.metadata_artifacts
         .iter()
@@ -697,6 +708,7 @@ fn validate_manifest_files(
     }
 
     let mut target_paths = BTreeSet::new();
+    let mut embedded_target_paths = BTreeSet::new();
     for target in &manifest.targets {
         if !target_paths.insert(target.repository_path.as_str())
             || !safe_relative_path(&target.repository_path)
@@ -708,6 +720,7 @@ fn validate_manifest_files(
             "embedded" => {
                 let path = target.capsule_file_path.as_deref()
                     .ok_or_else(|| format!("embedded target {} lacks capsule_file_path", target.id))?;
+                embedded_target_paths.insert(path);
                 let bytes = files.get(path)
                     .ok_or_else(|| format!("embedded target bytes absent: {}", target.id))?;
                 let entry = manifest.file_inventory.iter().find(|item| item.path == path)
@@ -736,6 +749,13 @@ fn validate_manifest_files(
             }
             _ => return Err(format!("unsupported content mode for {}", target.id)),
         }
+    }
+    let inventory_target_paths: BTreeSet<&str> = manifest.file_inventory.iter()
+        .filter(|entry| entry.kind == "target_bytes")
+        .map(|entry| entry.path.as_str())
+        .collect();
+    if inventory_target_paths != embedded_target_paths {
+        return Err("embedded target declarations and target-byte inventory are not identical".to_string());
     }
     Ok(root_bytes)
 }
@@ -835,7 +855,7 @@ async fn audit_capsule(
         return Err("capsule manifest plus payload exceeds operator byte limit".to_string());
     }
     let files = validate_file_inventory(capsule_root, &manifest, &pin)?;
-    let root_bytes = validate_manifest_files(capsule_root, &manifest, &pin, &files)?;
+    let root_bytes = validate_manifest_files(&manifest, &pin, &files)?;
     let eval_upper = conservative_eval_time(&manifest.replay_context)?;
 
     let repository = build_repository(capsule_root, cas_root.clone(), &manifest)?;
@@ -1055,11 +1075,11 @@ mod tests {
             target_sources: sources,
         };
         let transformed = format!("channels/plant-17/{digest}.manifest.json");
-        assert!(repo.target_sources.iter().any(|(original, source)| {
-            let TargetSource::Embedded { sha256, .. } = source else { return false; };
-            let (directory, name) = original.rsplit_once('/').unwrap();
-            format!("{directory}/{sha256}.{name}") == transformed
-        }));
+        assert_eq!(
+            consistent_snapshot_target_name("channels/plant-17/manifest.json", &digest),
+            transformed
+        );
+        assert!(repo.target_sources.contains_key("channels/plant-17/manifest.json"));
     }
 
     #[test]
