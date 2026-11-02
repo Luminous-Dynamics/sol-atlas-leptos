@@ -1,10 +1,9 @@
-//! Independent audit of declared non-anticipativity across scenario schedules.
+//! Independent audit of non-anticipativity across scenario schedules.
 //!
-//! The evaluator checks that scenarios carrying the same caller-declared
-//! information-set digest have identical dispatch actions at that interval.
-//! It also checks that those scenarios carry the same source-observation
-//! prefix through that interval. It cannot establish that the labels faithfully
-//! represent what an operator/controller could actually observe.
+//! Information-set identities are derived from exact source-observation
+//! prefixes, decision timestamps, and the exact bytes of time-bounded forecast
+//! bundles. Callers cannot submit an arbitrary information-set hash. Forecast
+//! authenticity and calibration still require an independent provenance layer.
 
 use super::{
     audit_error, current_binary_sha256, parse_unique_json, recompute_objectives, sha256,
@@ -193,7 +192,10 @@ fn derive_information_set_sha256(
         || bundle.issued_at_unix_seconds > interval.start_unix_seconds
         || bundle.valid_from_unix_seconds > interval.start_unix_seconds
         || bundle.valid_through_unix_seconds < interval.start_unix_seconds
-        || !bundle.forecast_payload.is_object()
+        || bundle.valid_through_unix_seconds < bundle.valid_from_unix_seconds
+        || !bundle.forecast_payload
+            .as_object()
+            .is_some_and(|payload| !payload.is_empty())
     {
         return Err(audit_error(
             "forecast bundle identity, issue time, validity window or payload is invalid for this decision",
@@ -264,17 +266,20 @@ fn add_finding(
     });
 }
 
-/// Evaluate a set of source-bound complete-horizon schedules against declared
-/// information-set labels.
+/// Evaluate complete-horizon scenario schedules using auditor-derived information sets.
 ///
-/// For every interval, scenarios that share an information-set digest must:
-/// 1. have identical source-observation prefixes through that interval; and
-/// 2. take identical dispatch actions at that interval.
+/// Each interval's information-set identity is derived from the exact source
+/// observation prefix, decision timestamp, forecast vintage, scenario-set ID,
+/// and SHA-256 of the exact strict-parsed forecast bundle bytes. The bundle's
+/// issue time and validity window must cover the decision time.
 ///
-/// Distinct information-set labels may take different actions. A missing
-/// shared information set is rejected rather than treated as vacuous success.
-/// The evaluator does not prove that caller-supplied information-set labels
-/// correspond to authentic, complete or decision-time-available observations.
+/// For every interval, scenarios with equal derived identities must take the
+/// same dispatch action. Distinct identities may diverge after new observations
+/// or a new forecast artifact becomes available. A missing shared information
+/// set is rejected rather than treated as vacuous success.
+///
+/// The evaluator binds forecast bytes but does not authenticate their producer,
+/// prove their availability to an operator, or establish forecast calibration.
 pub fn evaluate_nonanticipativity_bytes(
     scenario_set_id: &str,
     scenarios: &[NonAnticipativityScenarioBytes<'_>],
@@ -561,11 +566,11 @@ pub fn evaluate_nonanticipativity_bytes(
     let auditor_version = env!("CARGO_PKG_VERSION");
     let auditor_binary_sha256 = current_binary_sha256()?;
     let claim_ceiling = concat!(
-        "equality of exact dispatch action fields for scenarios sharing caller-declared ",
-        "information-set SHA-256 labels, plus equality of their declared source-observation ",
-        "prefixes; does not authenticate information-set labels or prove observation ",
-        "availability, forecast calibration, stochastic optimality, service-floor compliance, ",
-        "physical safety or actuation authority"
+        "equality of exact dispatch action fields for scenarios sharing information-set ",
+        "SHA-256 identities derived by this auditor from exact source-observation prefixes ",
+        "and exact time-bounded forecast bundle bytes; forecast bytes are content-bound but ",
+        "their producer authenticity, actual operator availability and calibration are not ",
+        "verified; no stochastic optimality, service-floor, physical safety or actuation claim"
     );
     let subject = NonAnticipativityReceiptSubjectV1 {
         receipt_schema,
