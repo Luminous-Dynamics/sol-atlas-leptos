@@ -318,6 +318,7 @@ jobs:
             ([$fixture.observations[] | select(.transparency_service_id == "ts:service-b" and .signed_tree_head.tree_size == 7)] | length) == 1 and
             all($fixture.observations[]; ([.statement_digests[]] | sort) == ([.inclusion_proofs[].statement_sha256] | sort)) and
             all($fixture.observations[]; .consistency_from == null or (.consistency_from.signed_bytes_sha256 | test("^[0-9a-f]{64}$"))) and
+            all($fixture.observations[] | select(.consistency_from != null); .consistency_from.tree_size < .signed_tree_head.tree_size) and
             all($fixture.observations[] | select(.consistency_from != null); . as $current | prior_head_matches($fixture; $current)) and
             ([$fixture.observations[].inclusion_proofs | length] | add) == $fixture.expected_structural_comparison.inclusion_proof_count and
             $fixture.expected_structural_comparison.cross_ts_root_comparison == "not_comparable" and
@@ -341,6 +342,12 @@ jobs:
           jq -e '.observations[1]' "$RUNNER_TEMP/witness-missing-prior-head-bytes.json" > "$RUNNER_TEMP/witness-mutated-observation.json"
           if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$RUNNER_TEMP/witness-mutated-observation.json"; then
             echo "ERROR: witness schema accepted a prior head without its exact signed-byte digest"
+            exit 1
+          fi
+          # A prior checkpoint must be strictly smaller than the observed tree.
+          jq '.observations[1].consistency_from.tree_size = .observations[1].signed_tree_head.tree_size' "$fixture" > "$RUNNER_TEMP/witness-non-advancing-tree-size.json"
+          if jq -e 'all(.observations[] | select(.consistency_from != null); .consistency_from.tree_size < .signed_tree_head.tree_size)' "$RUNNER_TEMP/witness-non-advancing-tree-size.json"; then
+            echo "ERROR: witness fixture accepted a non-advancing tree size"
             exit 1
           fi
 
