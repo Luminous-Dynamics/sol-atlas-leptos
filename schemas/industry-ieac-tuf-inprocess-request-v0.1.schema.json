@@ -12,7 +12,8 @@
     "bootstrap_root_path",
     "metadata_cache_path",
     "max_target_bytes",
-    "target_bindings"
+    "target_bindings",
+    "bootstrap_root_sha256"
   ],
   "properties": {
     "schema_version": {
@@ -80,6 +81,11 @@
           }
         }
       }
+    },
+    "bootstrap_root_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Exact SHA-256 of the out-of-band root bytes; checked before TUF bootstrap."
     }
   }
 }
