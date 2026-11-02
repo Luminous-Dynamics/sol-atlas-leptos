@@ -299,8 +299,8 @@ jobs:
             jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$RUNNER_TEMP/ieac-scitt-witness-observation.json"
           done
           jq -e '
-            def prior_head_matches($current):
-              any(.observations[];
+            def prior_head_matches($fixture; $current):
+              any($fixture.observations[];
                 .transparency_service_id == $current.transparency_service_id and
                 .transparency_service_operator_id == $current.transparency_service_operator_id and
                 .vds_type == $current.vds_type and
@@ -309,18 +309,19 @@ jobs:
                 .signed_tree_head.root_sha256 == $current.consistency_from.root_sha256 and
                 .signed_tree_head.signed_bytes_sha256 == $current.consistency_from.signed_bytes_sha256
               );
-            .fixture_schema_version == "luminous.ieac-scitt-witness-fixture.v0.1" and
-            .fixture_status == "synthetic_only" and
-            (.observations | length == 5) and
-            ([.observations[].observation_id] | unique | length) == (.observations | length) and
-            ([.observations[] | select(.transparency_service_id == "ts:service-a" and .signed_tree_head.tree_size == 10)] | length) == 3 and
-            ([.observations[] | select(.transparency_service_id == "ts:service-b" and .signed_tree_head.tree_size == 7)] | length) == 1 and
-            all(.observations[]; ([.statement_digests[]] | sort) == ([.inclusion_proofs[].statement_sha256] | sort)) and
-            all(.observations[]; .consistency_from == null or (.consistency_from.signed_bytes_sha256 | test("^[0-9a-f]{64}$"))) and
-            all(.observations[] | select(.consistency_from != null); . as $current | prior_head_matches($current)) and
-            ([.observations[].inclusion_proofs | length] | add) == .expected_structural_comparison.inclusion_proof_count and
-            .expected_structural_comparison.cross_ts_root_comparison == "not_comparable" and
-            .expected_structural_comparison.witness_operator_diversity_for_equal_head == 2
+            . as $fixture |
+            $fixture.fixture_schema_version == "luminous.ieac-scitt-witness-fixture.v0.1" and
+            $fixture.fixture_status == "synthetic_only" and
+            ($fixture.observations | length == 5) and
+            ([$fixture.observations[].observation_id] | unique | length) == ($fixture.observations | length) and
+            ([$fixture.observations[] | select(.transparency_service_id == "ts:service-a" and .signed_tree_head.tree_size == 10)] | length) == 3 and
+            ([$fixture.observations[] | select(.transparency_service_id == "ts:service-b" and .signed_tree_head.tree_size == 7)] | length) == 1 and
+            all($fixture.observations[]; ([.statement_digests[]] | sort) == ([.inclusion_proofs[].statement_sha256] | sort)) and
+            all($fixture.observations[]; .consistency_from == null or (.consistency_from.signed_bytes_sha256 | test("^[0-9a-f]{64}$"))) and
+            all($fixture.observations[] | select(.consistency_from != null); . as $current | prior_head_matches($fixture; $current)) and
+            ([$fixture.observations[].inclusion_proofs | length] | add) == $fixture.expected_structural_comparison.inclusion_proof_count and
+            $fixture.expected_structural_comparison.cross_ts_root_comparison == "not_comparable" and
+            $fixture.expected_structural_comparison.witness_operator_diversity_for_equal_head == 2
           ' "$fixture"
           # Every listed statement must have exactly one receipt/proof reference; a missing proof is not a coverage pass.
           jq '.observations[1].inclusion_proofs |= .[1:]' "$fixture" > "$RUNNER_TEMP/witness-missing-inclusion-proof.json"
