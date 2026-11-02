@@ -1190,7 +1190,6 @@ mod tests {
         }
     }
 
-
     #[test]
     fn uri_scheme_validation_accepts_absolute_uri_schemes_and_rejects_malformed_values() {
         for valid in [
