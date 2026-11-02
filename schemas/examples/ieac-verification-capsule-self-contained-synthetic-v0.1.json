@@ -120,16 +120,10 @@
   ],
   "file_inventory": [
     {
-      "path": "root/1.root.json",
-      "length": 3396,
-      "sha256": "7777777777777777777777777777777777777777777777777777777777777777",
-      "kind": "root"
-    },
-    {
-      "path": "metadata/timestamp.json",
-      "length": 557,
-      "sha256": "8888888888888888888888888888888888888888888888888888888888888888",
-      "kind": "timestamp"
+      "path": "metadata/role1.json",
+      "length": 1252,
+      "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "kind": "targets_role"
     },
     {
       "path": "metadata/snapshot.json",
@@ -144,16 +138,16 @@
       "kind": "targets_role"
     },
     {
-      "path": "metadata/role1.json",
-      "length": 1252,
-      "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-      "kind": "targets_role"
+      "path": "metadata/timestamp.json",
+      "length": 557,
+      "sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+      "kind": "timestamp"
     },
     {
-      "path": "targets/channels/plant-17/manifest.json",
-      "length": 4096,
-      "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-      "kind": "target_bytes"
+      "path": "root/1.root.json",
+      "length": 3396,
+      "sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+      "kind": "root"
     },
     {
       "path": "targets/channels/plant-17/checkpoint.json",
@@ -171,6 +165,12 @@
       "path": "targets/channels/plant-17/completeness-report.json",
       "length": 2048,
       "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "kind": "target_bytes"
+    },
+    {
+      "path": "targets/channels/plant-17/manifest.json",
+      "length": 4096,
+      "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "kind": "target_bytes"
     }
   ],
