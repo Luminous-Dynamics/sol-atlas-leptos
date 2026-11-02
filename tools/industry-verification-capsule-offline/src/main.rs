@@ -210,9 +210,9 @@ struct AuditReport {
 
 #[derive(Debug, Clone)]
 enum TargetSource {
-    Embedded { capsule_path: String },
+    Embedded { capsule_path: String, sha256: String },
     Referenced { sha256: String },
-    Withheld,
+    Withheld { sha256: String },
 }
 
 struct CapsuleRepository {
@@ -271,11 +271,26 @@ impl CapsuleRepository {
     }
 
     fn target_bytes(&self, path: &str, max_length: u64) -> sigstore_tuf::Result<Option<Vec<u8>>> {
-        let Some(source) = self.target_sources.get(path) else {
+        let direct = self.target_sources.get(path);
+        let resolved = direct.or_else(|| {
+            self.target_sources.iter().find_map(|(original, source)| {
+                let digest = match source {
+                    TargetSource::Embedded { sha256, .. }
+                    | TargetSource::Referenced { sha256 }
+                    | TargetSource::Withheld { sha256 } => sha256,
+                };
+                let consistent_name = match original.rsplit_once('/') {
+                    Some((directory, name)) => format!("{directory}/{digest}.{name}"),
+                    None => format!("{digest}.{original}"),
+                };
+                (consistent_name == path).then_some(source)
+            })
+        });
+        let Some(source) = resolved else {
             return Ok(None);
         };
         match source {
-            TargetSource::Embedded { capsule_path } => {
+            TargetSource::Embedded { capsule_path, .. } => {
                 Self::read_limited(&self.capsule_root, capsule_path, max_length)
             }
             TargetSource::Referenced { sha256 } => {
@@ -284,7 +299,7 @@ impl CapsuleRepository {
                 };
                 Self::read_limited(root, sha256, max_length)
             }
-            TargetSource::Withheld => Ok(None),
+            TargetSource::Withheld { .. } => Ok(None),
         }
     }
 }
@@ -744,6 +759,11 @@ fn build_repository(root: &Path, cas_root: Option<PathBuf>, manifest: &Manifest)
     let mut metadata_paths = BTreeMap::new();
     for item in &manifest.metadata_artifacts {
         metadata_paths.insert(item.repository_path.clone(), item.capsule_file_path.clone());
+        if item.role_name != "root" {
+            let base_name = format!("{}.json", item.role_name);
+            metadata_paths.insert(base_name.clone(), item.capsule_file_path.clone());
+            metadata_paths.insert(format!("{}.{}", item.version, base_name), item.capsule_file_path.clone());
+        }
     }
     let mut target_sources = BTreeMap::new();
     for target in &manifest.targets {
@@ -751,9 +771,10 @@ fn build_repository(root: &Path, cas_root: Option<PathBuf>, manifest: &Manifest)
             "embedded" => TargetSource::Embedded {
                 capsule_path: target.capsule_file_path.clone()
                     .ok_or_else(|| format!("embedded target {} missing path", target.id))?,
+                sha256: target.sha256.clone(),
             },
             "referenced" => TargetSource::Referenced { sha256: target.sha256.clone() },
-            "withheld" => TargetSource::Withheld,
+            "withheld" => TargetSource::Withheld { sha256: target.sha256.clone() },
             _ => return Err(format!("unsupported content mode {}", target.content_mode)),
         };
         target_sources.insert(target.repository_path.clone(), source);
@@ -1104,7 +1125,7 @@ mod tests {
         let root_bytes = fs::read(root_dir.join("metadata/1.root.json")).unwrap();
         let repo = reference_repository(
             root_dir,
-            TargetSource::Embedded { capsule_path: "targets/file3.txt".to_string() },
+            TargetSource::Embedded { capsule_path: "targets/file3.txt".to_string(), sha256: "141f740f53781d1ca54b8a50af22cbf74e44c21a998fa2a8a05aaac2c002886b".to_string() },
         );
         let mut updater = Updater::new(repo, &root_bytes)
             .expect("pinned Python-TUF root self-verifies")
@@ -1125,7 +1146,7 @@ mod tests {
         let root_bytes = fs::read(root_dir.join("metadata/1.root.json")).unwrap();
         let repo = reference_repository(
             root_dir,
-            TargetSource::Embedded { capsule_path: "targets/file3.txt".to_string() },
+            TargetSource::Embedded { capsule_path: "targets/file3.txt".to_string(), sha256: "141f740f53781d1ca54b8a50af22cbf74e44c21a998fa2a8a05aaac2c002886b".to_string() },
         );
         let mut updater = Updater::new(repo, &root_bytes)
             .expect("pinned Python-TUF root self-verifies")
