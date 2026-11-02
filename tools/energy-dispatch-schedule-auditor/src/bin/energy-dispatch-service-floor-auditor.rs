@@ -5,6 +5,22 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
+fn read_bounded_bytes<R: std::io::Read>(
+    reader: R,
+    limit: usize,
+    label: &str,
+) -> Result<Vec<u8>, String> {
+    let mut bytes = Vec::new();
+    reader
+        .take(limit as u64 + 1)
+        .read_to_end(&mut bytes)
+        .map_err(|error| format!("read {label}: {error}"))?;
+    if bytes.len() > limit {
+        return Err(format!("{label} exceeded {limit} byte limit while reading"));
+    }
+    Ok(bytes)
+}
+
 fn read_bounded(path: &Path, limit: usize, label: &str) -> Result<Vec<u8>, String> {
     let file = std::fs::File::open(path).map_err(|error| format!("open {label}: {error}"))?;
     let metadata = file
@@ -16,14 +32,7 @@ fn read_bounded(path: &Path, limit: usize, label: &str) -> Result<Vec<u8>, Strin
     if metadata.len() > limit as u64 {
         return Err(format!("{label} exceeds {limit} byte limit"));
     }
-    let mut bytes = Vec::new();
-    file.take(limit as u64 + 1)
-        .read_to_end(&mut bytes)
-        .map_err(|error| format!("read {label}: {error}"))?;
-    if bytes.len() > limit {
-        return Err(format!("{label} exceeded {limit} byte limit while reading"));
-    }
-    Ok(bytes)
+    read_bounded_bytes(file, limit, label)
 }
 
 fn run() -> Result<ExitCode, String> {
@@ -101,12 +110,15 @@ fn main() -> ExitCode {
 
 #[cfg(test)]
 mod tests {
-    use super::read_bounded;
+    use super::read_bounded_bytes;
     use std::io::Cursor;
 
     #[test]
-    fn bounded_file_reader_accepts_limit_and_rejects_one_byte_over() {
-        assert_eq!(read_bounded(&Cursor::new(b"1234"), 4, "fixture").unwrap(), b"1234");
-        assert!(read_bounded(&Cursor::new(b"12345"), 4, "fixture").is_err());
+    fn bounded_stream_reader_accepts_limit_and_rejects_one_byte_over() {
+        assert_eq!(
+            read_bounded_bytes(Cursor::new(b"1234"), 4, "fixture").unwrap(),
+            b"1234"
+        );
+        assert!(read_bounded_bytes(Cursor::new(b"12345"), 4, "fixture").is_err());
     }
 }
