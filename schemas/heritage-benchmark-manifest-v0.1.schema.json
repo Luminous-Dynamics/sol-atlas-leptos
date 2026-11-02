@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://luminousdynamics.io/schemas/heritage-benchmark-manifest-v0.1.schema.json",
   "title": "Heritage Discovery Benchmark Manifest",
-  "description": "A frozen, reproducible benchmark specification for HDB-1 to HDB-9. Dataset and split references must resolve to rights-cleared, independently governed site packs. HDB-7 adds probability-sampled negative-space audits; HDB-8 adds sequential non-invasive survey policy evaluation; HDB-9 adds interval-censored event timing and partial chronology.",
+  "description": "A frozen, reproducible benchmark specification for HDB-1 to HDB-10. Dataset and split references must resolve to rights-cleared, independently governed site packs. HDB-7 adds probability-sampled negative-space audits; HDB-8 adds sequential non-invasive survey policy evaluation; HDB-9 adds interval-censored event timing and partial chronology; HDB-10 adds evidence-balanced cause attribution and contradiction retention.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -38,7 +38,8 @@
         "HDB-6",
         "HDB-7",
         "HDB-8",
-        "HDB-9"
+        "HDB-9",
+        "HDB-10"
       ]
     },
     "created_at": {
@@ -317,6 +318,50 @@
         },
         "cause_classification_separate": {
           "type": "boolean"
+        },
+        "cause_taxonomy_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_manifest_digest": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "cause_evidence_policy_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "independence_policy_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "counter_evidence_required": {
+          "type": "boolean"
+        },
+        "non_detection_detectability_required": {
+          "type": "boolean"
+        },
+        "multilabel_cause_predictions": {
+          "type": "boolean"
+        },
+        "cause_evidence_metrics": {
+          "type": "array",
+          "minItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "per_cause_brier",
+              "per_cause_reliability",
+              "macro_f1",
+              "false_archaeological_claims_per_100_covered",
+              "unsupported_asserted_cause_rate",
+              "independent_support_count",
+              "independent_contradiction_count",
+              "counter_evidence_retention",
+              "double_count_robustness",
+              "abstention_risk_coverage"
+            ]
+          }
         }
       }
     },
@@ -411,6 +456,45 @@
                 "const": "month_ordinal"
               },
               "cause_classification_separate": {
+                "const": true
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "task_id": {
+            "const": "HDB-10"
+          }
+        },
+        "required": [
+          "task_id"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evaluation": {
+            "required": [
+              "cause_taxonomy_version",
+              "evidence_manifest_digest",
+              "cause_evidence_policy_ref",
+              "independence_policy_ref",
+              "counter_evidence_required",
+              "non_detection_detectability_required",
+              "multilabel_cause_predictions",
+              "cause_evidence_metrics"
+            ],
+            "properties": {
+              "counter_evidence_required": {
+                "const": true
+              },
+              "non_detection_detectability_required": {
+                "const": true
+              },
+              "multilabel_cause_predictions": {
                 "const": true
               }
             }

@@ -450,3 +450,37 @@ Reference metadata belongs in a frozen benchmark manifest alongside exact input 
 - Report results by region, sensor, observation cadence, interval width, season and event type.
 
 **Primary target:** at least 10% lower interval NLL than the strongest matched WATCH baseline on a preregistered held-out-site set, plus at least 10% lower pairwise chronology Brier than nearest-observation midpoint, while preserving/improving WATCH Recall@K at matched review budget. These are aspirations, not current results.
+### HDB-10: evidence-balanced cause attribution
+
+**Question:** when a physical change is known, can the model preserve plausible competing causes, cite event-specific evidence for and against each hypothesis, avoid counting repeated interpretations of the same source as independent corroboration, and abstain when the evidence is insufficient?
+
+**Input:** a locked event/candidate set; complete multi-label cause taxonomy; per-cause calibrated probabilities; typed support and contradiction records; source digests, acquisition/independence groups, modalities, evidence tiers, event scope, rights receipts, reviewer/authority references and detectability assessments for non-detections.
+
+**Outputs:** per-cause calibration and classification metrics, unsupported asserted-cause rate, independent support/contradiction counts, contested-hypothesis counts, counter-evidence retention, repeated-source double-count robustness, and abstention risk/coverage.
+
+**Required safeguards:**
+- Cause attribution is separate from change detection, event-time localization and heritage significance.
+- Every cited evidence record resolves to the same event and cause with an explicit support/contradiction polarity.
+- Independent corroboration requires new raw-source digest and new independence group, verified rights and an admissible evidence tier.
+- Model-derived, catalogue-only, same-source interpretation, context-only and rights-unverified evidence remain visible but do not count as independent corroboration.
+- Non-detection requires a target detectability assessment; missing survey coverage is not counter-evidence.
+- Competing explanations and contradictions remain visible; no automatic causal winner or accusation.
+
+**Primary target:** reduce unsupported archaeological/looting assertions by at least 30% at matched coverage versus a probability-only cause classifier, while maintaining cause Brier score and macro F1 within a preregistered non-inferiority margin. Retain at least 95% of adjudicated counter-evidence records in the evidence bundle. These are aspirations, not current results.
+### HDB-10: evidence-balanced cause attribution
+
+**Question:** when a physical change is known, can the model preserve plausible competing causes, cite event-specific evidence for and against each hypothesis, avoid counting repeated interpretations of the same source as independent corroboration, and abstain when the evidence is insufficient?
+
+**Input:** a locked event/candidate set; complete multi-label cause taxonomy; per-cause calibrated probabilities; typed support and contradiction records; source digests, acquisition/independence groups, modalities, evidence tiers, event scope, rights receipts, reviewer/authority references and detectability assessments for non-detections.
+
+**Outputs:** per-cause calibration and classification metrics, unsupported asserted-cause rate, independent support/contradiction counts, contested-hypothesis counts, counter-evidence retention, repeated-source double-count robustness, and abstention risk/coverage.
+
+**Required safeguards:**
+- Cause attribution is separate from change detection, event-time localization and heritage significance.
+- Every cited evidence record resolves to the same event and cause with an explicit support/contradiction polarity.
+- Independent corroboration requires new raw-source digest and new independence group, verified rights and an admissible evidence tier.
+- Model-derived, catalogue-only, same-source interpretation, context-only and rights-unverified evidence remain visible but do not count as independent corroboration.
+- Non-detection requires a target detectability assessment; missing survey coverage is not counter-evidence.
+- Competing explanations and contradictions remain visible; no automatic causal winner or accusation.
+
+**Primary target:** reduce unsupported archaeological/looting assertions by at least 30% at matched coverage versus a probability-only cause classifier, while maintaining cause Brier score and macro F1 within a preregistered non-inferiority margin. Retain at least 95% of adjudicated counter-evidence records in the evidence bundle. These are aspirations, not current results.

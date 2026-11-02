@@ -233,3 +233,22 @@ Reference: https://doi.org/10.1038/s41598-026-63132-8.
 ### 10.3 Temporal comparison rule
 
 Do not compare WATCH monthly satellite Recall@K with UAV pixel F1 or false-alarm rate as one score. HDB-9 must reproduce WATCH's own event-month ranking protocol on matched imagery and splits, then add interval-censored likelihood, MAP-to-interval distance and pairwise chronology Brier. UAV baselines should be evaluated separately on comparable fine-scale geometry and phenology conditions.
+## 11. Evidence-grounded cause attribution baseline and required comparison
+
+The current local implementation separates multi-label cause scoring (`heritage_cause.rs`) from typed evidence auditing (`heritage_cause_evidence.rs`). This is intentionally not positioned as a new cause detector: it is an evidence-integrity and claim-accountability layer.
+
+Taxonomy v0.1 contains 11 competing causes: archaeological excavation/looting, agriculture/cultivation, seasonal vegetation phenology, geomorphic erosion, hydrology/flood, fire/vegetation clearance, modern construction/infrastructure, quarry/mining, military conflict, sensor/processing artifact, and other known cause.
+
+HDB-10 evaluates both predictive quality and evidentiary quality. The evidence bundle records support and contradiction separately, event-specific scope, raw-source digest, method and independence group, modality, evidence tier, rights receipt, reviewer/authority references and detectability assessment for non-detections.
+
+Key adversarial baselines:
+- Probability-only multi-label cause classifier with no typed evidence.
+- Same-source duplicated evidence bundle (must not improve independent corroboration).
+- Context-only evidence bundle (must not support event-specific cause claims).
+- Model-derived-only support (must not count as independent ground evidence).
+- Missing counter-evidence and non-detection sensitivity (must trigger unsupported/abstain behavior).
+- Rights-pending and rights-denied evidence (must remain visible but ineligible).
+
+Report cause Brier, per-class reliability, macro F1 and archaeological false claims per 100 covered samples alongside unsupported assertion rate, support/contradiction retention, independent-source counts, duplicate-source robustness and risk/coverage. Cause probabilities across categories are one-vs-rest and are not required to sum to one because more than one cause can coexist.
+
+Do not call a cause confirmed because the model's probability crosses a threshold. The typed evidence audit checks the integrity of the declared bundle; human archaeologists, custodians and regulators retain causal adjudication and significance authority.
