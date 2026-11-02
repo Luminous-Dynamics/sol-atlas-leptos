@@ -19,7 +19,7 @@ use std::fs::{self, OpenOptions};
 use std::io::{Read, Write};
 use std::path::Path;
 use std::process::ExitCode;
-use std::time::Instant;
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 const REPORT_SCHEMA: &str = "sol-atlas-profiled-dispatch-run-v0.1";
 const TRACE_SCHEMA: &str = "energy-solver-compute-trace-v0.2";
@@ -290,13 +290,22 @@ fn run_profile(request_bytes: &[u8], scenario_panel_sha256: &str) -> Result<Prof
         scenario_panel_sha256,
         model_sha256,
         mesh_policy_sha256,
+        horizon_minutes,
         solver_binary_sha256,
         solver_config_sha256,
         hardware.profile_sha256
     );
     let cohort_digest = sha256(cohort_material.as_bytes());
     let cohort_id = format!("cohort-{}", &cohort_digest[..24]);
-    let sample_id = format!("sample-{}", &request_sha256[..24]);
+    let invocation_ns = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_err(|error| format!("system clock predates UNIX epoch: {error}"))?
+        .as_nanos();
+    let sample_id = format!(
+        "sample-{}-{}-{invocation_ns}",
+        &request_sha256[..16],
+        std::process::id()
+    );
     let scenario_digest = sha256(request.case_id.as_bytes());
     let scenario_id = format!("scenario-{}", &scenario_digest[..24]);
 
