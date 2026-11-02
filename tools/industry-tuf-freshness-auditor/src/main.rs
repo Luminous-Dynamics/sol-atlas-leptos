@@ -772,7 +772,13 @@ mod tests{
              "target_length":8192,"target_sha256":d('5')},
             {"role_name":"ieac-channel-checkpoints","version":8,"metadata_sha256":d('6'),
              "expires_at":"2026-11-10T00:00:00Z","target_path":"channels/plant-17/checkpoint.json",
-             "target_length":2048,"target_sha256":d('7')}
+             "target_length":2048,"target_sha256":d('7')},
+            {"role_name":"ieac-channel-completeness-attestations","version":2,"metadata_sha256":d('8'),
+             "expires_at":"2026-11-10T00:00:00Z","target_path":"channels/plant-17/completeness-attestation.json",
+             "target_length":16384,"target_sha256":d('9')},
+            {"role_name":"ieac-channel-completeness-reports","version":2,"metadata_sha256":d('b'),
+             "expires_at":"2026-11-10T00:00:00Z","target_path":"channels/plant-17/completeness-report.json",
+             "target_length":4096,"target_sha256":d('c')}
           ],
           "channel_binding":{
             "relying_party_id":"rp:industrial-assurance","channel_id":"channel:plant-17",
@@ -781,6 +787,8 @@ mod tests{
             "sequence_epoch":"epoch:2026-11-01","last_sequence":120,
             "channel_manifest":{"role_name":"ieac-channel-manifests","target_path":"channels/plant-17/manifest.json","target_length":8192,"target_sha256":d('5')},
             "checkpoint_state":{"role_name":"ieac-channel-checkpoints","target_path":"channels/plant-17/checkpoint.json","target_length":2048,"target_sha256":d('7')},
+            "completeness_attestation":{"role_name":"ieac-channel-completeness-attestations","target_path":"channels/plant-17/completeness-attestation.json","target_length":16384,"target_sha256":d('9')},
+            "availability_audit_report":{"role_name":"ieac-channel-completeness-reports","target_path":"channels/plant-17/completeness-report.json","target_length":4096,"target_sha256":d('c')},
             "epoch_transition":null
           },
           "root_update_chain":[],
@@ -808,6 +816,10 @@ mod tests{
           "manifest_target_role":"ieac-channel-manifests",
           "checkpoint_target_path":"channels/plant-17/checkpoint.json",
           "checkpoint_target_role":"ieac-channel-checkpoints",
+          "completeness_attestation_target_path":"channels/plant-17/completeness-attestation.json",
+          "completeness_attestation_target_role":"ieac-channel-completeness-attestations",
+          "availability_report_target_path":"channels/plant-17/completeness-report.json",
+          "availability_report_target_role":"ieac-channel-completeness-reports",
           "max_timestamp_expiry_horizon_seconds":172800,
           "time_verifier_build_sha256":d('a'),
           "time_verification_policy_sha256":d('b'),
@@ -829,9 +841,12 @@ mod tests{
           "snapshot":{"version":8,"sha256":d('8')},
           "target_roles":[
             {"role_name":"ieac-channel-manifests","version":4,"metadata_sha256":d('0')},
-            {"role_name":"ieac-channel-checkpoints","version":7,"metadata_sha256":d('a')}
+            {"role_name":"ieac-channel-checkpoints","version":7,"metadata_sha256":d('a')},
+            {"role_name":"ieac-channel-completeness-attestations","version":1,"metadata_sha256":d('e')},
+            {"role_name":"ieac-channel-completeness-reports","version":1,"metadata_sha256":d('f')}
           ],
-          "manifest_sha256":d('0'),"checkpoint_state_sha256":d('a')
+          "manifest_sha256":d('0'),"checkpoint_state_sha256":d('a'),
+          "completeness_attestation_sha256":d('e'),"availability_report_sha256":d('f')
         });
         (report,policy,state)
     }
