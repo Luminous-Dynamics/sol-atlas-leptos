@@ -21,6 +21,7 @@ pub mod mycelix_flows;
 pub mod geometry;
 pub mod heritage;
 pub mod heritage_baseline;
+pub mod heritage_seasonal;
 pub mod math;
 pub mod picking;
 pub mod simulation;

@@ -1,0 +1,224 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-seasonal-baseline-report-v0.1.schema.json",
+  "title": "Sol-Atlas Seasonal Robust Deviation Report",
+  "description": "Fixed-reference same-month-of-year median/MAD anomaly report. Anomaly strength is not a calibrated probability. Missing coverage is explicit.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "feature_id",
+    "units",
+    "source_ref",
+    "feature_definition_sha256",
+    "reference_start_month",
+    "reference_end_month",
+    "evaluation_start_month",
+    "evaluation_end_month",
+    "minimum_reference_years",
+    "scale_floor",
+    "expected_evaluation_months",
+    "supplied_evaluation_months",
+    "unobserved_evaluation_months",
+    "unobserved_month_ordinals",
+    "valid_evaluation_observations",
+    "missing_evaluation_observations",
+    "insufficient_reference_observations",
+    "scored_observations",
+    "unscored_evaluation_months",
+    "observation_coverage",
+    "score_coverage",
+    "alert_count",
+    "robust_z_alert_threshold",
+    "results"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-seasonal-baseline.v0.1"
+    },
+    "feature_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "units": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "feature_definition_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "reference_start_month": {
+      "type": "integer",
+      "minimum": 12,
+      "maximum": 119999
+    },
+    "reference_end_month": {
+      "type": "integer",
+      "minimum": 12,
+      "maximum": 119999
+    },
+    "evaluation_start_month": {
+      "type": "integer",
+      "minimum": 12,
+      "maximum": 119999
+    },
+    "evaluation_end_month": {
+      "type": "integer",
+      "minimum": 12,
+      "maximum": 119999
+    },
+    "minimum_reference_years": {
+      "type": "integer",
+      "minimum": 2
+    },
+    "scale_floor": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "expected_evaluation_months": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 240
+    },
+    "supplied_evaluation_months": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 240
+    },
+    "unobserved_evaluation_months": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 240
+    },
+    "unobserved_month_ordinals": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 12,
+        "maximum": 119999
+      },
+      "uniqueItems": true
+    },
+    "valid_evaluation_observations": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "missing_evaluation_observations": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "insufficient_reference_observations": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "scored_observations": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "unscored_evaluation_months": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "observation_coverage": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "score_coverage": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "alert_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "robust_z_alert_threshold": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "month_ordinal",
+          "status",
+          "reference_sample_count",
+          "reference_year_count",
+          "reference_median",
+          "reference_mad",
+          "signed_robust_z",
+          "absolute_robust_z",
+          "anomaly_strength",
+          "alert"
+        ],
+        "properties": {
+          "month_ordinal": {
+            "type": "integer",
+            "minimum": 12,
+            "maximum": 119999
+          },
+          "status": {
+            "enum": [
+              "scored",
+              "missing_observation",
+              "insufficient_reference"
+            ]
+          },
+          "reference_sample_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "reference_year_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "reference_median": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "reference_mad": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "signed_robust_z": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "absolute_robust_z": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "anomaly_strength": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 1
+          },
+          "alert": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

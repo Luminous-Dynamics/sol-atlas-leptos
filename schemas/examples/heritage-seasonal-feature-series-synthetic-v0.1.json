@@ -1,0 +1,24 @@
+{
+  "feature_id": "synthetic-index",
+  "units": "synthetic-units",
+  "source_ref": "urn:synthetic:feature-series:01",
+  "feature_definition_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "observations": [
+    {
+      "month_ordinal": 24252,
+      "value": 0.3
+    },
+    {
+      "month_ordinal": 24264,
+      "value": 0.3
+    },
+    {
+      "month_ordinal": 24276,
+      "value": 4.3
+    },
+    {
+      "month_ordinal": 24277,
+      "value": null
+    }
+  ]
+}
