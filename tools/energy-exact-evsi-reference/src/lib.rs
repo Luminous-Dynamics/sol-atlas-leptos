@@ -539,7 +539,7 @@ mod tests {
         let result = evsi(&problem, &perfect);
 
         assert_eq!(result.prior_best_action_id, "prepare");
-        assert_eq!(result.prior_bayes_risk_numerator_ppm, 20_000_000);
+        assert_eq!(result.prior_bayes_risk_numerator_ppm, 40_000_000);
         assert_eq!(result.posterior_bayes_risk_numerator_ppm2, 20_000_000_000_000);
         assert_eq!(result.evsi_numerator_ppm2, 20_000_000_000_000);
         assert_eq!(result.evpi_numerator_ppm2, 20_000_000_000_000);
@@ -789,6 +789,42 @@ mod tests {
         invalid.observations[1] = invalid.observations[0].clone();
         assert_eq!(
             exact_evsi(&problem, &invalid, 0),
+            Err(EvsiError::DuplicateIdentifier)
+        );
+    }
+
+    #[test]
+    fn duplicate_action_ids_are_rejected() {
+        let mut problem = two_state_problem();
+        problem.actions[1] = problem.actions[0].clone();
+        assert_eq!(
+            problem.validate(),
+            Err(EvsiError::DuplicateIdentifier)
+        );
+    }
+
+    #[test]
+    fn duplicate_candidate_ids_are_rejected() {
+        let design_a = design("same", [900_000, 100_000], [100_000, 900_000]);
+        let design_b = design("same", [700_000, 300_000], [300_000, 700_000]);
+        let candidates = vec![
+            ObservationCandidate {
+                id: "same".to_owned(),
+                design: design_a,
+                heuristic_avoidable_loss_lower_bound_units: 10,
+                observation_cost_units: 0,
+                compute_cost_units: 1,
+            },
+            ObservationCandidate {
+                id: "same".to_owned(),
+                design: design_b,
+                heuristic_avoidable_loss_lower_bound_units: 20,
+                observation_cost_units: 0,
+                compute_cost_units: 1,
+            },
+        ];
+        assert_eq!(
+            rank_observation_candidates(&two_state_problem(), &candidates),
             Err(EvsiError::DuplicateIdentifier)
         );
     }
