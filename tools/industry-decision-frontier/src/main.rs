@@ -857,6 +857,46 @@ mod tests {
     }
 
     #[test]
+    fn verified_time_facts_must_use_the_pinned_verifier_and_policy() {
+        let mut item = evidence(
+            "wrong-verifier",
+            Some(available(
+                "relying_party_ingest_receipt",
+                "rp:test",
+                time(
+                    "2026-11-02T09:00:00Z",
+                    0,
+                    0,
+                    "authenticated_ingest_log",
+                    "verified",
+                ),
+            )),
+            None,
+        );
+        item.first_available.as_mut().unwrap().time.verifier_build_sha256 = Some(digest('9'));
+        let result = audit(&snapshot_with(vec![item]), br#"{}"#);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn reversed_source_valid_time_interval_is_rejected() {
+        let mut item = evidence("reversed-valid-time", None, None);
+        item.valid_time = Some(ValidTime {
+            valid_from: Some("2026-11-02T10:00:00Z".to_string()),
+            valid_until: Some("2026-11-02T09:00:00Z".to_string()),
+        });
+        let result = audit(&snapshot_with(vec![item]), br#"{}"#);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn duplicate_json_struct_fields_are_rejected_by_serde() {
+        let raw = br#"{"schema_version":"one","schema_version":"two"}"#;
+        let result = serde_json::from_slice::<Snapshot>(raw);
+        assert!(result.is_err());
+    }
+
+    #[test]
     fn untrusted_cutoff_makes_every_item_unknown() {
         let mut snapshot = snapshot_with(vec![evidence("evidence", None, None)]);
         snapshot.decision_cutoff.verification_status = "not_checked".to_string();
