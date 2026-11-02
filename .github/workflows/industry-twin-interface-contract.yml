@@ -65,7 +65,9 @@ jobs:
           set -euo pipefail
           schema=schemas/industry-twin-interface-manifest-v0.1.schema.json
           meta=https://json-schema.org/draft/2020-12/schema
-          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i "$schema"
+          meta_schema="$RUNNER_TEMP/draft-2020-12-meta-schema.json"
+          curl --fail --location --retry 5 --retry-connrefused "$meta" -o "$meta_schema"
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i "$schema"
           for fixture in \
             schemas/examples/industry-twin-interface-unified-synthetic-v0.1.json \
             schemas/examples/industry-twin-interface-federated-synthetic-v0.1.json; do
