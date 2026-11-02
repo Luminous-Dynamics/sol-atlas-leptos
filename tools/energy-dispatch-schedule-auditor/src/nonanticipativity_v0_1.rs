@@ -198,7 +198,8 @@ fn derive_information_set_sha256(
             .is_some_and(|payload| !payload.is_empty())
     {
         return Err(audit_error(
-            "forecast bundle identity, issue time, validity window or payload is invalid for this decision",
+            "forecast bundle identity, issue time, validity window or payload is invalid \
+             for this decision",
         ));
     }
     let forecast_bundle_sha256 = sha256(information_set.forecast_bundle_bytes);
@@ -514,9 +515,11 @@ pub fn evaluate_nonanticipativity_bytes(
             scenario_ids,
             forecast_consistent,
             if forecast_consistent {
-                "scenarios with identical observed history use the same forecast vintage and exact forecast bundle"
+                "scenarios with identical observed history use the same forecast vintage \
+                 and exact forecast bundle"
             } else {
-                "scenarios with identical observed history cite different forecast vintages or exact forecast bundles"
+                "scenarios with identical observed history cite different forecast \
+                 vintages or exact forecast bundles"
             },
         );
     }
