@@ -332,6 +332,9 @@ impl SolverTraceV03 {
             AuditDispositionV03::NotRun => {
                 if audit_receipt_present
                     || audit_binding_present
+                    || self.audit_request_sha256.is_some()
+                    || self.audit_schedule_sha256.is_some()
+                    || self.auditor_binary_sha256.is_some()
                     || self.audit_elapsed_ns.is_some()
                     || self.time_to_first_audit_accept_ns.is_some()
                 {
@@ -368,6 +371,7 @@ impl SolverTraceV03 {
                     || audit_receipt_present
                     || self.audit_request_sha256.is_some()
                     || self.audit_schedule_sha256.is_some()
+                    || self.audit_elapsed_ns.is_none()
                     || self.time_to_first_audit_accept_ns.is_some()
                 {
                     return Err(TraceV03Error::InvalidAuditBindings);
@@ -572,6 +576,7 @@ struct CohortV03Key {
 pub fn summarize_traces_v03(records: &[SolverTraceV03]) -> Result<Vec<TraceSummaryV03>, TraceV03Error> {
     let mut groups = BTreeMap::<CohortV03Key, Vec<&SolverTraceV03>>::new();
     let mut seen = BTreeMap::<CohortV03Key, std::collections::BTreeSet<String>>::new();
+    let mut cohort_identity_by_id = BTreeMap::<String, CohortV03Key>::new();
     for record in records {
         record.validate()?;
         let key = CohortV03Key {
@@ -584,6 +589,13 @@ pub fn summarize_traces_v03(records: &[SolverTraceV03]) -> Result<Vec<TraceSumma
             solver_config_sha256: record.solver_config_sha256.clone(),
             hardware_profile_sha256: record.hardware_profile_sha256.clone(),
         };
+        if let Some(existing) = cohort_identity_by_id.get(&record.cohort_id) {
+            if existing != &key {
+                return Err(TraceV03Error::MixedCohortIdentity);
+            }
+        } else {
+            cohort_identity_by_id.insert(record.cohort_id.clone(), key.clone());
+        }
         let samples = seen.entry(key.clone()).or_default();
         if !samples.insert(record.sample_id.clone()) {
             continue;
@@ -823,6 +835,21 @@ mod tests {
         trace.audit_elapsed_ns = Some(5);
         trace.validate().unwrap();
         assert!(!trace.decision_ready());
+    }
+
+    #[test]
+    fn not_run_audit_cannot_carry_partial_receipt_bindings() {
+        let mut trace = base(SearchDispositionV03::FeasibleUnproven);
+        trace.auditor_binary_sha256 = Some(digest(11));
+        assert_eq!(trace.validate(), Err(TraceV03Error::InvalidAuditBindings));
+    }
+
+    #[test]
+    fn unavailable_audit_requires_an_actual_attempt_duration() {
+        let mut trace = base(SearchDispositionV03::FeasibleUnproven);
+        trace.audit_disposition = AuditDispositionV03::Unavailable;
+        trace.auditor_binary_sha256 = Some(digest(11));
+        assert_eq!(trace.validate(), Err(TraceV03Error::InvalidAuditBindings));
     }
 
     #[test]
