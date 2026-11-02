@@ -1,6 +1,7 @@
 #![forbid(unsafe_code)]
 //! Strict v0.3 anytime/audit trace summary CLI.
 
+use std::io::Read;
 use std::path::Path;
 use std::process::ExitCode;
 
@@ -53,13 +54,26 @@ fn optional(value: Option<u64>) -> String {
 }
 
 fn summarize(path: &Path) -> Result<String, String> {
-    let metadata = std::fs::metadata(path)
-        .map_err(|error| format!("inspect v0.3 trace: {error}"))?;
-    if !metadata.is_file() || metadata.len() > trace_support::MAX_TRACE_CSV_BYTES as u64 {
-        return Err("v0.3 trace must be a regular file within the declared byte limit".to_owned());
+    let file = std::fs::File::open(path)
+        .map_err(|error| format!("open v0.3 trace: {error}"))?;
+    let metadata = file
+        .metadata()
+        .map_err(|error| format!("inspect opened v0.3 trace: {error}"))?;
+    if !metadata.is_file() {
+        return Err("v0.3 trace must be a regular file".to_owned());
     }
-    let input = std::fs::read_to_string(path)
-        .map_err(|error| format!("read v0.3 trace: {error}"))?;
+    if metadata.len() > trace_support::MAX_TRACE_CSV_BYTES as u64 {
+        return Err("v0.3 trace exceeds the declared byte limit".to_owned());
+    }
+    let mut bytes = Vec::new();
+    file.take(trace_support::MAX_TRACE_CSV_BYTES as u64 + 1)
+        .read_to_end(&mut bytes)
+        .map_err(|error| format!("bounded read of v0.3 trace: {error}"))?;
+    if bytes.len() > trace_support::MAX_TRACE_CSV_BYTES {
+        return Err("v0.3 trace exceeded the declared byte limit while reading".to_owned());
+    }
+    let input = String::from_utf8(bytes)
+        .map_err(|error| format!("v0.3 trace is not UTF-8: {error}"))?;
     let traces = parse_trace_csv_v03(&input)
         .map_err(|error| format!("parse v0.3 trace: {error}"))?;
     let summaries = summarize_traces_v03(&traces)
