@@ -19,7 +19,11 @@
           "ccf_request_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "ccf_report_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
           "ccf_auditor_build_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
-          "source_mapping_status": "verified"
+          "source_mapping_status": "verified",
+          "ccf_report_verification_status": "verified",
+          "ccf_report_verifier_build_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+          "ccf_report_verification_policy_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+          "ccf_report_trust_bundle_sha256": "5555555555555555555555555555555555555555555555555555555555555555"
         },
         "independence_policy_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
         "role_assignments": [
@@ -63,7 +67,8 @@
                 "binding_status": "verified",
                 "evidence_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
-            ]
+            ],
+            "ccf_control_id": "ledger-operator"
           },
           {
             "assignment_id": "query-signer",
@@ -105,7 +110,8 @@
                 "binding_status": "verified",
                 "evidence_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
-            ]
+            ],
+            "ccf_control_id": "query-signer"
           },
           {
             "assignment_id": "transparency-service",
@@ -140,7 +146,8 @@
                 "binding_status": "verified",
                 "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               }
-            ]
+            ],
+            "ccf_control_id": "transparency-service"
           },
           {
             "assignment_id": "verifier-build",
@@ -168,7 +175,8 @@
                 "binding_status": "verified",
                 "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
-            ]
+            ],
+            "ccf_control_id": "verifier-build"
           },
           {
             "assignment_id": "verifier-deployment",
@@ -203,7 +211,8 @@
                 "binding_status": "verified",
                 "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               }
-            ]
+            ],
+            "ccf_control_id": "verifier-deployment"
           },
           {
             "assignment_id": "witness-a",
@@ -231,7 +240,8 @@
                 "binding_status": "verified",
                 "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
-            ]
+            ],
+            "ccf_control_id": "witness-operators"
           },
           {
             "assignment_id": "witness-b",
@@ -259,7 +269,8 @@
                 "binding_status": "verified",
                 "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
-            ]
+            ],
+            "ccf_control_id": "witness-operators"
           },
           {
             "assignment_id": "trust-root-admin",
@@ -287,7 +298,8 @@
                 "binding_status": "verified",
                 "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
-            ]
+            ],
+            "ccf_control_id": "trust-root-admin"
           },
           {
             "assignment_id": "rp-policy",
@@ -315,7 +327,8 @@
                 "binding_status": "verified",
                 "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
-            ]
+            ],
+            "ccf_control_id": "rp-policy"
           },
           {
             "assignment_id": "reviewer",
@@ -350,7 +363,8 @@
                 "binding_status": "verified",
                 "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               }
-            ]
+            ],
+            "ccf_control_id": "independent-reviewer"
           }
         ],
         "separation_requirements": [
@@ -484,7 +498,11 @@
           "ccf_request_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "ccf_report_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
           "ccf_auditor_build_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
-          "source_mapping_status": "verified"
+          "source_mapping_status": "verified",
+          "ccf_report_verification_status": "verified",
+          "ccf_report_verifier_build_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+          "ccf_report_verification_policy_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+          "ccf_report_trust_bundle_sha256": "5555555555555555555555555555555555555555555555555555555555555555"
         },
         "independence_policy_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
         "role_assignments": [
@@ -528,7 +546,8 @@
                 "binding_status": "verified",
                 "evidence_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
-            ]
+            ],
+            "ccf_control_id": "ledger-operator"
           },
           {
             "assignment_id": "query-signer",
@@ -570,7 +589,8 @@
                 "binding_status": "verified",
                 "evidence_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
-            ]
+            ],
+            "ccf_control_id": "query-signer"
           },
           {
             "assignment_id": "transparency-service",
@@ -605,7 +625,8 @@
                 "binding_status": "verified",
                 "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               }
-            ]
+            ],
+            "ccf_control_id": "transparency-service"
           },
           {
             "assignment_id": "verifier-build",
@@ -633,7 +654,8 @@
                 "binding_status": "verified",
                 "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
-            ]
+            ],
+            "ccf_control_id": "verifier-build"
           },
           {
             "assignment_id": "verifier-deployment",
@@ -668,7 +690,8 @@
                 "binding_status": "verified",
                 "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               }
-            ]
+            ],
+            "ccf_control_id": "verifier-deployment"
           },
           {
             "assignment_id": "witness-a",
@@ -696,7 +719,8 @@
                 "binding_status": "verified",
                 "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
-            ]
+            ],
+            "ccf_control_id": "witness-operators"
           },
           {
             "assignment_id": "witness-b",
@@ -724,7 +748,8 @@
                 "binding_status": "verified",
                 "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
-            ]
+            ],
+            "ccf_control_id": "witness-operators"
           },
           {
             "assignment_id": "trust-root-admin",
@@ -752,7 +777,8 @@
                 "binding_status": "verified",
                 "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
-            ]
+            ],
+            "ccf_control_id": "trust-root-admin"
           },
           {
             "assignment_id": "rp-policy",
@@ -780,7 +806,8 @@
                 "binding_status": "verified",
                 "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
-            ]
+            ],
+            "ccf_control_id": "rp-policy"
           },
           {
             "assignment_id": "reviewer",
@@ -815,7 +842,8 @@
                 "binding_status": "verified",
                 "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               }
-            ]
+            ],
+            "ccf_control_id": "independent-reviewer"
           }
         ],
         "separation_requirements": [
