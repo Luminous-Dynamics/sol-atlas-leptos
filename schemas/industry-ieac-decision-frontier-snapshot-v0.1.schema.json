@@ -528,8 +528,7 @@
                   "evidence_channel_id",
                   "proof_kind",
                   "artifact_sha256",
-                  "time",
-                  "coverage"
+                  "time"
                 ],
                 "properties": {
                   "relying_party_id": {
@@ -542,7 +541,6 @@
                       "relying_party_ingest_receipt",
                       "authenticated_access_log",
                       "sealed_cache_manifest",
-                      "complete_first_availability_ledger",
                       "scitt_receipt",
                       "rfc3161_timestamp_token",
                       "source_assertion"
@@ -664,118 +662,6 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 256
-                  },
-                  "coverage": {
-                    "oneOf": [
-                      {
-                        "type": "null"
-                      },
-                      {
-                        "type": "object",
-                        "additionalProperties": false,
-                        "required": [
-                          "relying_party_id",
-                          "evidence_channel_id",
-                          "coverage_from",
-                          "complete_through",
-                          "coverage_proof_sha256",
-                          "completeness",
-                          "verification_status",
-                          "verifier_build_sha256",
-                          "verification_policy_sha256",
-                          "trust_bundle_sha256"
-                        ],
-                        "properties": {
-                          "relying_party_id": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 256
-                          },
-                          "evidence_channel_id": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 256
-                          },
-                          "coverage_from": {
-                            "$ref": "#/$defs/timeBound"
-                          },
-                          "complete_through": {
-                            "$ref": "#/$defs/timeBound"
-                          },
-                          "coverage_proof_sha256": {
-                            "type": "string",
-                            "pattern": "^[0-9a-f]{64}$"
-                          },
-                          "completeness": {
-                            "enum": [
-                              "complete",
-                              "partial",
-                              "unknown"
-                            ]
-                          },
-                          "verification_status": {
-                            "enum": [
-                              "verified",
-                              "failed",
-                              "unknown",
-                              "not_checked",
-                              "disputed"
-                            ]
-                          },
-                          "verifier_build_sha256": {
-                            "type": [
-                              "string",
-                              "null"
-                            ],
-                            "pattern": "^[0-9a-f]{64}$"
-                          },
-                          "verification_policy_sha256": {
-                            "type": [
-                              "string",
-                              "null"
-                            ],
-                            "pattern": "^[0-9a-f]{64}$"
-                          },
-                          "trust_bundle_sha256": {
-                            "type": [
-                              "string",
-                              "null"
-                            ],
-                            "pattern": "^[0-9a-f]{64}$"
-                          }
-                        },
-                        "allOf": [
-                          {
-                            "if": {
-                              "properties": {
-                                "verification_status": {
-                                  "const": "verified"
-                                }
-                              },
-                              "required": [
-                                "verification_status"
-                              ]
-                            },
-                            "then": {
-                              "properties": {
-                                "verifier_build_sha256": {
-                                  "type": "string",
-                                  "pattern": "^[0-9a-f]{64}$"
-                                },
-                                "verification_policy_sha256": {
-                                  "type": "string",
-                                  "pattern": "^[0-9a-f]{64}$"
-                                },
-                                "trust_bundle_sha256": {
-                                  "type": "string",
-                                  "pattern": "^[0-9a-f]{64}$"
-                                }
-                              }
-                            }
-                          }
-                        ]
-                      }
-                    ]
                   }
                 },
                 "allOf": [
