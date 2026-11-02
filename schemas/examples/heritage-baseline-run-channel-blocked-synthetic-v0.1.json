@@ -1,0 +1,188 @@
+{
+  "schema_version": "luminous.heritage-baseline-run.v0.1",
+  "run_id": "synthetic-watch-channel-contract-demo",
+  "baseline_id": "watch_temporal_distance",
+  "task_id": "HPB-2",
+  "status": "blocked",
+  "created_at": "2026-11-02T12:00:00Z",
+  "upstream_snapshots": [
+    {
+      "role": "implementation",
+      "repository_uri": "https://github.com/microsoft/WATCH",
+      "commit_sha": "ec6e1539673da46437c276c3ce42534982d2faff",
+      "code_license_spdx": "MIT",
+      "license_evidence_ref": "https://github.com/microsoft/WATCH/blob/main/LICENSE"
+    },
+    {
+      "role": "dataset_documentation",
+      "repository_uri": "https://github.com/microsoft/HERITAGE",
+      "commit_sha": "46d895bf2c983f6fc2269a1268922bf3ba247e73",
+      "code_license_spdx": "MIT",
+      "license_evidence_ref": "https://github.com/microsoft/HERITAGE/blob/main/LICENSE"
+    }
+  ],
+  "data_assets": [
+    {
+      "source_id": "synthetic-source",
+      "asset_ref": "urn:synthetic:heritage:png:site-01",
+      "release_id": "synthetic-rgb-validity-mask-release",
+      "subset": "synthetic-only",
+      "media_type": "image/png",
+      "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "manifest_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "license_spdx": "CC-BY-4.0",
+      "license_evidence_ref": "https://datasetcatalog.nlm.nih.gov/dataset?q=0003365987",
+      "attribution_text": "Synthetic metadata example; no dataset pixels included.",
+      "permitted_uses": [
+        "view",
+        "research",
+        "evaluation"
+      ],
+      "rights_state": "verified",
+      "contains_exact_coordinates": false,
+      "channels": [
+        {
+          "index": 0,
+          "semantic": "red",
+          "units": "8-bit display value",
+          "data_type": "uint8",
+          "nodata_value": 0
+        },
+        {
+          "index": 1,
+          "semantic": "green",
+          "units": "8-bit display value",
+          "data_type": "uint8",
+          "nodata_value": 0
+        },
+        {
+          "index": 2,
+          "semantic": "blue",
+          "units": "8-bit display value",
+          "data_type": "uint8",
+          "nodata_value": 0
+        },
+        {
+          "index": 3,
+          "semantic": "validity_mask",
+          "units": "0=invalid, 255=valid",
+          "data_type": "uint8",
+          "nodata_value": 0
+        }
+      ]
+    }
+  ],
+  "model": {
+    "model_id": "watch_ted_nir_feature_path",
+    "method_family": "temporal_embedding_distance",
+    "expects_channels": [
+      {
+        "position": 0,
+        "semantic": "red",
+        "units": "reflectance"
+      },
+      {
+        "position": 1,
+        "semantic": "green",
+        "units": "reflectance"
+      },
+      {
+        "position": 2,
+        "semantic": "blue",
+        "units": "reflectance"
+      },
+      {
+        "position": 3,
+        "semantic": "near_infrared",
+        "units": "reflectance"
+      }
+    ],
+    "weight_artifacts": [],
+    "pretrained": true,
+    "checkpoint_status": "not_shipped"
+  },
+  "channel_contract": {
+    "data_asset_ref": "urn:synthetic:heritage:png:site-01",
+    "mappings": [
+      {
+        "model_position": 0,
+        "source_channel_index": 0,
+        "source_semantic": "red",
+        "target_semantic": "red",
+        "transform_id": null,
+        "reviewed": true,
+        "evidence_ref": "synthetic RGB identity mapping"
+      },
+      {
+        "model_position": 1,
+        "source_channel_index": 1,
+        "source_semantic": "green",
+        "target_semantic": "green",
+        "transform_id": null,
+        "reviewed": true,
+        "evidence_ref": "synthetic RGB identity mapping"
+      },
+      {
+        "model_position": 2,
+        "source_channel_index": 2,
+        "source_semantic": "blue",
+        "target_semantic": "blue",
+        "transform_id": null,
+        "reviewed": true,
+        "evidence_ref": "synthetic RGB identity mapping"
+      },
+      {
+        "model_position": 3,
+        "source_channel_index": 3,
+        "source_semantic": "validity_mask",
+        "target_semantic": "near_infrared",
+        "transform_id": null,
+        "reviewed": false,
+        "evidence_ref": "Synthetic negative control: invalid role mismatch."
+      }
+    ],
+    "decision": "blocked",
+    "review_ref": "urn:synthetic:channel-review:01",
+    "decision_reason": "A validity mask is not near-infrared reflectance; strict NIR-dependent reproduction is blocked."
+  },
+  "split": {
+    "protocol": "held_out_site",
+    "manifest_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "validation_receipt_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "train_site_count": 0,
+    "validation_site_count": 0,
+    "test_site_count": 0
+  },
+  "label_snapshot": {
+    "label_source_ref": "urn:synthetic:label-snapshot:01",
+    "label_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "annotator_count": 0,
+    "review_method": "Synthetic-only fixture",
+    "site_count": 0,
+    "looted_site_count": 0,
+    "preserved_site_count": 0,
+    "known_event_month_count": 0,
+    "unknown_event_month_count": 0,
+    "reported_event_month_counts": [],
+    "reconciliation_status": "unresolved",
+    "reconciliation_note": "Synthetic example; illustrates a blocked run rather than a real dataset count."
+  },
+  "preprocessing": {
+    "pipeline_id": "synthetic-watch-preprocessing",
+    "pipeline_version": "0.1.0",
+    "code_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "config_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "steps": [
+      "Synthetic channel semantics validation only."
+    ]
+  },
+  "runtime": {
+    "os": "not-run",
+    "architecture": "not-run",
+    "package_lock_sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+  },
+  "seed": 42,
+  "metrics": [],
+  "outputs": [],
+  "notes": "Synthetic metadata only; no image pixels, model weights, site IDs or real run output are included."
+}
