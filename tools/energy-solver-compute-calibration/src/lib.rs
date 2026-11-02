@@ -921,7 +921,7 @@ mod tests {
 
     #[test]
     fn exact_enumerator_can_report_a_complete_pareto_frontier_without_fake_scalar_variables_or_first_hit_time()
-    {
+     {
         let mut row = trace(0, SolveStatus::Optimal);
         row.time_to_first_feasible_ns = None;
         row.objective_value_units = None;
