@@ -26,7 +26,8 @@
     "independent_contradiction_evidence_count",
     "non_independent_support_evidence_count",
     "non_independent_contradiction_evidence_count",
-    "hypothesis_summaries"
+    "hypothesis_summaries",
+    "cross_polarity_conflict_record_count"
   ],
   "properties": {
     "schema_version": {
@@ -128,7 +129,8 @@
           "non_independent_contradiction_count",
           "independent_support_modality_count",
           "independent_contradiction_modality_count",
-          "contested"
+          "contested",
+          "cross_polarity_conflict_record_count"
         ],
         "properties": {
           "cause": {
@@ -191,9 +193,17 @@
           },
           "contested": {
             "type": "boolean"
+          },
+          "cross_polarity_conflict_record_count": {
+            "type": "integer",
+            "minimum": 0
           }
         }
       }
+    },
+    "cross_polarity_conflict_record_count": {
+      "type": "integer",
+      "minimum": 0
     }
   }
 }

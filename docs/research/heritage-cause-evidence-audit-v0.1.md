@@ -58,3 +58,12 @@ Tests cover independent source/group counts, repeated source digests, shared acq
 ## Claim ceiling
 
 HCEA audits the structure of the evidence bundle. It cannot prove source authenticity, geometry overlap, independence-group truth, reviewer competence, custodial authority, rights interpretation or survey sensitivity. It does not infer cause, assess severity or issue an accusation.
+## Cross-polarity source conflicts
+
+An eligible source digest or independence group that appears on both the support and contradiction sides for the same cause is not two independent observations. Every eligible record in that cross-polarity conflict is retained, but none is counted as independent support or contradiction. The report exposes `cross_polarity_conflict_record_count` at hypothesis and event level. This does not erase the contested state; it prevents a single acquisition from artificially strengthening both sides.
+
+A non-detection is only valid with a detectability assessment and must be marked as contradictory evidence. A non-detection can never be represented as supporting evidence.
+
+## Updated test suite
+
+15 synthetic tests now cover same-source cross-polarity conflicts, shared-independence-group cross-polarity conflicts, and rejection of non-detections marked as support, in addition to the original provenance, rights and independence tests.

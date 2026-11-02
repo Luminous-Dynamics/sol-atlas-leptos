@@ -294,6 +294,25 @@
                 }
               }
             }
+          },
+          {
+            "if": {
+              "properties": {
+                "is_non_detection": {
+                  "const": true
+                }
+              },
+              "required": [
+                "is_non_detection"
+              ]
+            },
+            "then": {
+              "properties": {
+                "polarity": {
+                  "const": "contradicts"
+                }
+              }
+            }
           }
         ]
       }
