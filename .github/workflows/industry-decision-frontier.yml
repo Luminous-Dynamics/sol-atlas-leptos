@@ -72,12 +72,13 @@ jobs:
       - name: Validate snapshot and report contracts
         run: |
           set -euo pipefail
-          meta=https://json-schema.org/draft/2020-12/schema
           snapshot_schema=schemas/industry-ieac-decision-frontier-snapshot-v0.1.schema.json
           report_schema=schemas/industry-ieac-decision-frontier-report-v0.1.schema.json
           fixture=schemas/examples/ieac-decision-frontier-snapshot-synthetic-v0.1.json
-          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i "$snapshot_schema"
-          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i "$report_schema"
+          # Each schema document's own $schema identifies Draft 2020-12; validate
+          # the schema document as an instance against its declared meta-schema.
+          jsonschema-cli validate --draft 2020 --assert-format -i "$snapshot_schema"
+          jsonschema-cli validate --draft 2020 --assert-format -i "$report_schema"
           jsonschema-cli validate --draft 2020 --assert-format --offline "$snapshot_schema" -i "$fixture"
 
       - name: Execute frozen temporal replay and independent expected-vector check
