@@ -2,8 +2,7 @@ use serde::{Deserialize, Serialize};
 use sigstore_tuf::{
     cache::FileStore,
     client::{HttpRepository, Updater},
-    transport::{Repository, UpdaterConfig},
-    StoreRepository,
+    transport::UpdaterConfig,
 };
 use std::{
     collections::BTreeSet,
