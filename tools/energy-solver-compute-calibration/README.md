@@ -1,4 +1,4 @@
-# Energy solver compute calibration v0.1
+# Energy solver compute calibration v0.2
 
 A dependency-free Rust validator and cohort aggregator for exact solver-run traces. This is the instrumentation layer needed to calibrate temporal-mesh interval budgets against measured solver work.
 
@@ -23,21 +23,24 @@ The CSV grammar is fixed-column and deliberately excludes quoted/free-form field
 
 ## Outcome semantics
 
-Optimal, feasible, infeasible, timed-out, cancelled and error outcomes remain separate denominators. Completed-latency percentiles use only optimal/feasible runs. The observed-attempt elapsed percentile includes timeout termination times and is explicitly labelled right-censored; it must not be interpreted as eventual solve completion latency.
+Optimal, feasible, infeasible, timed-out, expansion-limit-reached, cancelled and error outcomes remain separate denominators. Completed-latency percentiles use only optimal/feasible runs. The observed-attempt elapsed percentile includes timeout termination times and is explicitly labelled right-censored; it must not be interpreted as eventual solve completion latency.
 
 - p50 is emitted only with at least 5 eligible samples.
 - p95 is emitted only with at least 20 eligible samples.
 - p99 is withheld until at least 1,000 eligible completed samples.
 - Nearest-rank quantiles are used; no interpolation hides the discrete sample count.
 
-The current schema records elapsed wall time, time-to-first-feasible, time-to-optimal, objective/best-bound/gap, peak memory and timeout limit. It also retains intervals, binary variables and constraints so cost-vs-size behavior can be stratified.
+The 34-column schema records elapsed wall time, optional time-to-first-feasible and time-to-optimal, optional scalar objective/best-bound/gap, peak memory, optional timeout limit, explicit mathematical-program size where available, and exact-search action expansions / feasible complete schedules / Pareto-frontier size when exposed. Missing metrics are `NA`, not zero. Exact multi-objective enumeration may certify exhaustive optimality from complete-search counters without inventing a scalar objective or first-hit time.
 
 ## Test panel
 
-The crate has **21 unit tests** covering:
+The crate has **24 unit tests** covering:
 - exact digest and comma-free identifier validation;
 - timing/status semantics for optimal, feasible, infeasible, timeout and incumbent-bearing records;
 - exact cohort isolation across mesh policy, solver binary, solver configuration, hardware fingerprint and measurement class;
+- exhaustive exact-search certificates without fabricated scalar objectives or MILP variable counts;
+- expansion-cap exhaustion as a distinct `limit_reached` outcome;
+- incomplete exact-search counter triples are rejected;
 - different exact mesh instances may vary inside one stable mesh-policy cohort;
 - a timeout with an incumbent remains a timeout for completed latency and a valid first-feasible observation;
 - completed, first-feasible and memory percentiles expose separate sample denominators;
@@ -49,7 +52,7 @@ The crate has **21 unit tests** covering:
 
 ## Frozen fixture and exact-head workflow
 
-The checked-in 30-row fixture is tagged `synthetic`: 18 optimal, 4 feasible, 4 timed out and 4 infeasible. It uses the current 31-column schema, including stable mesh-policy, per-sample mesh-instance and solver-configuration fingerprints. CI validates the entire strict parser → type validator → cohort guard → summary pipeline and records the fixture digest, aggregator-binary digest, source commit, Rust/Cargo versions and runner profile. Its numbers demonstrate the output schema only; they are not used as a performance claim.
+The checked-in 30-row fixture is tagged `synthetic`: 18 optimal, 4 feasible, 4 timed out and 4 infeasible. It uses the v0.2 34-column schema, including stable mesh-policy, per-sample mesh-instance and solver-configuration fingerprints. The optional exact-search counters and expansion-limit status are `NA`/zero in this generic fixture; the actual engine-runner will exercise those fields. CI validates the entire strict parser → type validator → cohort guard → summary pipeline and records the fixture digest, aggregator-binary digest, source commit, Rust/Cargo versions and runner profile. Its numbers demonstrate the output schema only; they are not used as a performance claim.
 
 The next real measurement campaign should run the same frozen scenario panel over:
 - 60/30/15-minute mesh candidates and each selected horizon;
@@ -58,7 +61,7 @@ The next real measurement campaign should run the same frozen scenario panel ove
 - at least 20 completed attempts for p95, and at least 1,000 completed attempts for p99;
 - repeated scenario seeds, with timeouts and infeasibility preserved in the denominator.
 
-Report p50/p95/p99 for completed latency, time-to-first-feasible, memory and observed attempt elapsed, alongside timeout/infeasible/error rates and model-size ranges. Do not convert timeout time into a completed solve time.
+Report p50/p95/p99 for completed latency, time-to-first-feasible, memory and observed attempt elapsed, alongside timeout/limit-reached/infeasible/error rates, model-size ranges, exact action expansions, feasible complete schedules and Pareto-frontier size. Do not convert timeout time into a completed solve time.
 
 ## Run
 
