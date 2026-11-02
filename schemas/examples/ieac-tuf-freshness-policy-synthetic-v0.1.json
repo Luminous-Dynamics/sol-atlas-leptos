@@ -19,5 +19,9 @@
   "tuf_verification_policy_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
   "tuf_trust_bundle_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
   "claim_ceiling": "tuf_freshness_and_anti_rollback_only",
-  "action_authority": "none"
+  "action_authority": "none",
+  "completeness_attestation_target_path": "channels/plant-17/completeness-attestation.json",
+  "completeness_attestation_target_role": "ieac-channel-completeness-attestations",
+  "availability_report_target_path": "channels/plant-17/completeness-report.json",
+  "availability_report_target_role": "ieac-channel-completeness-reports"
 }
