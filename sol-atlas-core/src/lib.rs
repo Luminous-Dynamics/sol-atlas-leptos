@@ -20,6 +20,7 @@ pub mod mycelix_flows;
 // pub mod relativity_viz;
 pub mod geometry;
 pub mod heritage;
+pub mod heritage_baseline;
 pub mod math;
 pub mod picking;
 pub mod simulation;

@@ -1,0 +1,798 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-baseline-run-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Baseline Run Manifest",
+  "description": "Provenance and rights-bound record of one baseline execution or blocked reproduction attempt. Data, source code and model weights have independent licence and identity fields. Channel semantics are explicit; a channel-count match alone is not a compatibility proof.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "baseline_id",
+    "task_id",
+    "status",
+    "created_at",
+    "upstream_snapshots",
+    "data_assets",
+    "model",
+    "channel_contract",
+    "split",
+    "label_snapshot",
+    "preprocessing",
+    "runtime",
+    "seed",
+    "metrics",
+    "outputs",
+    "notes"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-baseline-run.v0.1"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "baseline_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_id": {
+      "enum": [
+        "HDB-1",
+        "HDB-2",
+        "HDB-3",
+        "HDB-4",
+        "HDB-5",
+        "HDB-6",
+        "HPB-1",
+        "HPB-2",
+        "HPB-3",
+        "HPB-4",
+        "HPB-5",
+        "HPB-6"
+      ]
+    },
+    "status": {
+      "enum": [
+        "planned",
+        "blocked",
+        "running",
+        "reproduced",
+        "not_reproduced",
+        "adapted",
+        "aborted"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "upstream_snapshots": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "role",
+          "repository_uri",
+          "commit_sha",
+          "code_license_spdx",
+          "license_evidence_ref"
+        ],
+        "properties": {
+          "role": {
+            "enum": [
+              "implementation",
+              "dataset_documentation",
+              "preprocessing",
+              "model_definition",
+              "evaluation_code"
+            ]
+          },
+          "repository_uri": {
+            "type": "string",
+            "format": "uri"
+          },
+          "commit_sha": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{40}$"
+          },
+          "code_license_spdx": {
+            "type": "string",
+            "minLength": 1
+          },
+          "license_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "data_assets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source_id",
+          "asset_ref",
+          "release_id",
+          "subset",
+          "media_type",
+          "content_sha256",
+          "manifest_sha256",
+          "license_spdx",
+          "license_evidence_ref",
+          "permitted_uses",
+          "rights_state",
+          "contains_exact_coordinates",
+          "channels"
+        ],
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "asset_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "release_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "subset": {
+            "type": "string",
+            "minLength": 1
+          },
+          "media_type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "content_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "manifest_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "license_spdx": {
+            "type": "string",
+            "minLength": 1
+          },
+          "license_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "attribution_text": {
+            "type": "string"
+          },
+          "permitted_uses": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "view",
+                "research",
+                "training",
+                "evaluation",
+                "publication",
+                "redistribution",
+                "commercial"
+              ]
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "rights_state": {
+            "enum": [
+              "verified",
+              "pending",
+              "denied",
+              "unknown"
+            ]
+          },
+          "contains_exact_coordinates": {
+            "type": "boolean"
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "index",
+                "semantic",
+                "units",
+                "data_type"
+              ],
+              "properties": {
+                "index": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "semantic": {
+                  "enum": [
+                    "red",
+                    "green",
+                    "blue",
+                    "near_infrared",
+                    "shortwave_infrared",
+                    "thermal",
+                    "sar_vv",
+                    "sar_vh",
+                    "elevation",
+                    "validity_mask",
+                    "site_geometry_mask",
+                    "other"
+                  ]
+                },
+                "units": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "data_type": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "nodata_value": {
+                  "type": [
+                    "number",
+                    "integer",
+                    "string",
+                    "null"
+                  ]
+                },
+                "band_name": {
+                  "type": "string"
+                }
+              }
+            },
+            "minItems": 1
+          }
+        }
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_id",
+        "method_family",
+        "expects_channels",
+        "weight_artifacts"
+      ],
+      "properties": {
+        "model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "method_family": {
+          "enum": [
+            "cnn_classifier",
+            "embedding_classifier",
+            "temporal_embedding_distance",
+            "self_supervised_change_detection",
+            "weakly_supervised_temporal",
+            "object_detector",
+            "semantic_segmenter",
+            "classical_geoai",
+            "human_in_loop",
+            "other"
+          ]
+        },
+        "expects_channels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "position",
+              "semantic",
+              "units"
+            ],
+            "properties": {
+              "position": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "semantic": {
+                "enum": [
+                  "red",
+                  "green",
+                  "blue",
+                  "near_infrared",
+                  "shortwave_infrared",
+                  "thermal",
+                  "sar_vv",
+                  "sar_vh",
+                  "elevation",
+                  "validity_mask",
+                  "site_geometry_mask",
+                  "other"
+                ]
+              },
+              "units": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "weight_artifacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "artifact_id",
+              "content_sha256",
+              "license_spdx",
+              "license_evidence_ref",
+              "restrictions"
+            ],
+            "properties": {
+              "artifact_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "content_sha256": {
+                "type": "string",
+                "pattern": "^[a-fA-F0-9]{64}$"
+              },
+              "license_spdx": {
+                "type": "string",
+                "minLength": 1
+              },
+              "license_evidence_ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "restrictions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "pretrained": {
+          "type": "boolean"
+        },
+        "checkpoint_status": {
+          "enum": [
+            "pinned",
+            "not_shipped",
+            "not_required",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "channel_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "data_asset_ref",
+        "mappings",
+        "decision",
+        "review_ref"
+      ],
+      "properties": {
+        "data_asset_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mappings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "model_position",
+              "source_channel_index",
+              "source_semantic",
+              "target_semantic",
+              "transform_id",
+              "reviewed",
+              "evidence_ref"
+            ],
+            "properties": {
+              "model_position": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "source_channel_index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "source_semantic": {
+                "enum": [
+                  "red",
+                  "green",
+                  "blue",
+                  "near_infrared",
+                  "shortwave_infrared",
+                  "thermal",
+                  "sar_vv",
+                  "sar_vh",
+                  "elevation",
+                  "validity_mask",
+                  "site_geometry_mask",
+                  "other"
+                ]
+              },
+              "target_semantic": {
+                "enum": [
+                  "red",
+                  "green",
+                  "blue",
+                  "near_infrared",
+                  "shortwave_infrared",
+                  "thermal",
+                  "sar_vv",
+                  "sar_vh",
+                  "elevation",
+                  "validity_mask",
+                  "site_geometry_mask",
+                  "other"
+                ]
+              },
+              "transform_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "transform_sha256": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[a-fA-F0-9]{64}$"
+              },
+              "reviewed": {
+                "type": "boolean"
+              },
+              "evidence_ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "decision": {
+          "enum": [
+            "compatible",
+            "adapted",
+            "blocked",
+            "unreviewed"
+          ]
+        },
+        "review_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "decision_reason": {
+          "type": "string"
+        }
+      }
+    },
+    "split": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol",
+        "manifest_sha256",
+        "validation_receipt_sha256",
+        "train_site_count",
+        "validation_site_count",
+        "test_site_count"
+      ],
+      "properties": {
+        "protocol": {
+          "enum": [
+            "within_site_spatial_block",
+            "held_out_site",
+            "held_out_region",
+            "leave_one_biome_out",
+            "leave_one_sensor_out",
+            "temporal_holdout",
+            "external_blind"
+          ]
+        },
+        "manifest_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "validation_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "train_site_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "validation_site_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "test_site_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "external_blind_ref": {
+          "type": "string"
+        }
+      }
+    },
+    "label_snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "label_source_ref",
+        "label_digest",
+        "annotator_count",
+        "review_method",
+        "site_count",
+        "known_event_month_count",
+        "unknown_event_month_count",
+        "reconciliation_status"
+      ],
+      "properties": {
+        "label_source_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label_digest": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "annotator_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "review_method": {
+          "type": "string",
+          "minLength": 1
+        },
+        "site_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "looted_site_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "preserved_site_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "known_event_month_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unknown_event_month_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "event_annotation_start_month": {
+          "type": "integer"
+        },
+        "event_annotation_end_month": {
+          "type": "integer"
+        },
+        "reported_event_month_counts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_ref",
+              "count",
+              "meaning"
+            ],
+            "properties": {
+              "source_ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "meaning": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "reconciliation_status": {
+          "enum": [
+            "reconciled",
+            "unresolved",
+            "not_applicable"
+          ]
+        },
+        "reconciliation_note": {
+          "type": "string"
+        }
+      }
+    },
+    "preprocessing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pipeline_id",
+        "pipeline_version",
+        "code_sha256",
+        "config_sha256",
+        "steps"
+      ],
+      "properties": {
+        "pipeline_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pipeline_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "code_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "config_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "os",
+        "architecture",
+        "package_lock_sha256"
+      ],
+      "properties": {
+        "os": {
+          "type": "string",
+          "minLength": 1
+        },
+        "architecture": {
+          "type": "string",
+          "minLength": 1
+        },
+        "container_digest": {
+          "type": "string"
+        },
+        "package_lock_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "python_version": {
+          "type": "string"
+        },
+        "rust_version": {
+          "type": "string"
+        },
+        "cuda_version": {
+          "type": "string"
+        },
+        "driver_version": {
+          "type": "string"
+        },
+        "accelerator": {
+          "type": "string"
+        },
+        "device_memory_bytes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "metrics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "value",
+          "unit",
+          "task_semantics",
+          "split"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string",
+            "minLength": 1
+          },
+          "task_semantics": {
+            "type": "string",
+            "minLength": 1
+          },
+          "split": {
+            "type": "string",
+            "minLength": 1
+          },
+          "confidence_interval_low": {
+            "type": "number"
+          },
+          "confidence_interval_high": {
+            "type": "number"
+          },
+          "bootstrap_unit": {
+            "enum": [
+              "site",
+              "landscape",
+              "region",
+              "event"
+            ]
+          },
+          "evaluated_sites": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "evaluated_events": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "artifact_ref",
+          "content_sha256",
+          "media_type"
+        ],
+        "properties": {
+          "artifact_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "content_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "media_type": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}
