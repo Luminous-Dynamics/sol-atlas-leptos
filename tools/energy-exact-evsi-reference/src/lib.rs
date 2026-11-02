@@ -451,8 +451,8 @@ fn compare_candidate_exact(left: &CandidateEvaluation, right: &CandidateEvaluati
 
 /// Evaluate each observation and return both the current heuristic ranking and
 /// the exact posterior-risk reduction ranking. Exact ranks use net EVSI per
-/// marginal compute unit; candidates with negative or zero net value follow all
-/// candidates with strictly positive net value.
+/// marginal compute unit; candidates with negative net value follow all
+/// candidates with nonnegative net value.
 pub fn rank_observation_candidates(
     problem: &DecisionProblem,
     candidates: &[ObservationCandidate],
