@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-evidence-audit-input-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Evidence Audit Input",
+  "description": "The candidate manifest plus all evidence records to audit. Candidates without records remain explicit through candidate_ids.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "candidate_ids",
+    "records"
+  ],
+  "properties": {
+    "candidate_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "$ref": "https://luminousdynamics.io/schemas/heritage-evidence-record-v0.1.schema.json"
+      }
+    }
+  }
+}

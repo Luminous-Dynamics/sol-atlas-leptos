@@ -1,0 +1,195 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-evidence-audit-report-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Evidence Audit Report",
+  "description": "Counts only independent same-candidate ground measurements with sufficient candidate coverage and verified rights as corroboration. Negative controls also require a detectability assessment.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "candidate_count",
+    "evidence_record_count",
+    "candidates_with_any_evidence",
+    "same_candidate_ground_measurement_count",
+    "independently_corroborated_candidate_count",
+    "independent_corroboration_record_count",
+    "eligible_negative_control_candidate_count",
+    "eligible_negative_control_record_count",
+    "independent_interpretation_same_source_count",
+    "context_only_record_count",
+    "untested_record_count",
+    "unavailable_record_count",
+    "inconclusive_record_count",
+    "rights_not_verified_record_count",
+    "minimum_candidate_coverage_fraction",
+    "assessments"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-evidence-audit.v0.1"
+    },
+    "candidate_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "evidence_record_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "candidates_with_any_evidence": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "same_candidate_ground_measurement_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "independently_corroborated_candidate_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "independent_corroboration_record_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "eligible_negative_control_candidate_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "eligible_negative_control_record_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "independent_interpretation_same_source_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "context_only_record_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "untested_record_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "unavailable_record_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "inconclusive_record_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "rights_not_verified_record_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "minimum_candidate_coverage_fraction": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1
+    },
+    "assessments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "evidence_id",
+          "candidate_id",
+          "outcome",
+          "modality",
+          "relationship",
+          "independence",
+          "rights_state",
+          "same_candidate_ground_measurement",
+          "eligible_independent_corroboration",
+          "eligible_negative_control",
+          "adequate_candidate_coverage",
+          "explanatory_status"
+        ],
+        "properties": {
+          "evidence_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "candidate_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "outcome": {
+            "enum": [
+              "supports",
+              "does_not_support",
+              "inconclusive",
+              "not_tested",
+              "unavailable"
+            ]
+          },
+          "modality": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "field_survey",
+              "magnetometry",
+              "ground_penetrating_radar",
+              "electrical_resistivity",
+              "excavation",
+              "archival_research",
+              "community_custodial_knowledge",
+              "airborne_lidar",
+              "uav_optical",
+              "satellite_optical",
+              "thermal_infrared",
+              "synthetic_simulation",
+              "other",
+              null
+            ]
+          },
+          "relationship": {
+            "enum": [
+              "same_candidate",
+              "nearby_context",
+              "regional_context",
+              "unrelated"
+            ]
+          },
+          "independence": {
+            "enum": [
+              "independent_measurement",
+              "independent_interpretation_same_source",
+              "shared_source",
+              "not_assessed"
+            ]
+          },
+          "rights_state": {
+            "enum": [
+              "verified",
+              "pending",
+              "denied",
+              "unknown"
+            ]
+          },
+          "same_candidate_ground_measurement": {
+            "type": "boolean"
+          },
+          "eligible_independent_corroboration": {
+            "type": "boolean"
+          },
+          "eligible_negative_control": {
+            "type": "boolean"
+          },
+          "adequate_candidate_coverage": {
+            "type": "boolean"
+          },
+          "explanatory_status": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}
