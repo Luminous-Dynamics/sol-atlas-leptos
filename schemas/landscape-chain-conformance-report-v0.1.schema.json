@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/landscape-chain-conformance-report-v0.1.schema.json",
+  "title": "Landscape Chain Conformance Report v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "suite_id",
+    "conformance_status",
+    "data_origin",
+    "claim_ceiling",
+    "upstream_pinned_contract_count",
+    "project_feature_count",
+    "observation_count",
+    "metric_definition_count",
+    "metric_observation_mapping_count",
+    "observations_matching_crosswalk_count",
+    "eligible_supporting_observation_count",
+    "unmapped_observation_count",
+    "source_catalog_record_count",
+    "source_catalog_status",
+    "measurement_consent_status",
+    "site_access_status",
+    "measurement_authorization_verification_status",
+    "measurement_operation_authorized_by_harness",
+    "scenario_execution_status",
+    "paired_scenario_count",
+    "paired_scenarios_share_boundary_conditions",
+    "review_ranking_status",
+    "recommendation_status",
+    "passed_check_count",
+    "checks",
+    "negative_controls_attempted",
+    "negative_controls_rejected",
+    "negative_controls_unexpectedly_accepted",
+    "artifact_sha256",
+    "template_input_sha256"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.landscape-chain-conformance-report.v0.1"
+    },
+    "suite_id": {
+      "const": "LANDSCAPE-CHAIN-CONFORMANCE-V0.1"
+    },
+    "conformance_status": {
+      "const": "PASS_SYNTHETIC_CONTRACT_CONFORMANCE_ONLY"
+    },
+    "data_origin": {
+      "const": "synthetic_fixture"
+    },
+    "claim_ceiling": {
+      "const": "SYNTHETIC_STRUCTURAL_CONFORMANCE_ONLY"
+    },
+    "upstream_pinned_contract_count": {
+      "type": "integer",
+      "minimum": 39
+    },
+    "project_feature_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "observation_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "metric_definition_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "source_catalog_record_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "source_catalog_status": {
+      "const": "metadata-only-not-ingested"
+    },
+    "scenario_execution_status": {
+      "const": "BLOCKED_NOT_EXECUTED"
+    },
+    "review_ranking_status": {
+      "const": "no-defensible-ranking"
+    },
+    "recommendation_status": {
+      "const": "no-ranking"
+    },
+    "passed_check_count": {
+      "type": "integer",
+      "minimum": 21
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "negative_controls_attempted": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "negative_controls_rejected": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "negative_controls_unexpectedly_accepted": {
+      "const": 0
+    },
+    "artifact_sha256": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "template_input_sha256": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "metric_observation_mapping_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "observations_matching_crosswalk_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "eligible_supporting_observation_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "unmapped_observation_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "paired_scenario_count": {
+      "type": "integer",
+      "minimum": 2
+    },
+    "paired_scenarios_share_boundary_conditions": {
+      "const": true
+    },
+    "measurement_consent_status": {
+      "const": "unknown"
+    },
+    "site_access_status": {
+      "const": "unknown"
+    },
+    "measurement_authorization_verification_status": {
+      "const": "not-verified"
+    },
+    "measurement_operation_authorized_by_harness": {
+      "const": false
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "schema": "luminous.landscape-site-reference.v0.1",
+  "site_ref_id": "synthetic-site-comparison",
+  "data_origin": "synthetic_fixture",
+  "scope": "site-parcel",
+  "coordinate_frame": {
+    "kind": "LOCAL_CARTESIAN_DRAWING_UNITS",
+    "georeferenced": false
+  },
+  "role": "comparison",
+  "geometry_status": "schematic-design-intent"
+}

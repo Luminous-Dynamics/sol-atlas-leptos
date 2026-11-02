@@ -1,0 +1,14 @@
+{
+  "schema": "luminous.landscape-boundary-conditions.v0.1",
+  "data_origin": "synthetic_fixture",
+  "claim_ceiling": "STRUCTURAL_CONFORMANCE_ONLY",
+  "scope": "site-parcel",
+  "coordinate_frame_kind": "LOCAL_CARTESIAN_DRAWING_UNITS",
+  "georeferenced": false,
+  "forcing": {
+    "rainfall_event_mm": 25,
+    "rainfall_event_duration_minutes": 30,
+    "ambient_temperature_degC": 28
+  },
+  "note": "Invented values for contract linkage tests only; not Johannesburg weather or a qualified design storm."
+}
