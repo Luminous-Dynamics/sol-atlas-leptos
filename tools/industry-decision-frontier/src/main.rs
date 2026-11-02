@@ -791,7 +791,7 @@ mod tests {
     ) -> EvidenceItem {
         EvidenceItem {
             evidence_id: id.to_string(),
-            evidence_kind: "measurement".to_string(),
+            evidence_kind: "source_measurement".to_string(),
             source_id: "source:test".to_string(),
             artifact_sha256: digest('d'),
             valid_time: None,
@@ -1162,6 +1162,14 @@ mod tests {
         let report = audit(&snapshot, br#"{}"#).expect("audit should succeed");
         assert_eq!(report.summary.unknown, 1);
         assert_eq!(report.classifications[0].reason_code, "cutoff_time_unverified");
+    }
+
+    #[test]
+    fn unsupported_evidence_kind_is_rejected() {
+        let mut item = evidence("unsupported-kind", None, None);
+        item.evidence_kind = "measurement".to_string();
+        let result = audit(&snapshot_with(vec![item]), br#"{}"#);
+        assert!(result.is_err());
     }
 
     #[test]
