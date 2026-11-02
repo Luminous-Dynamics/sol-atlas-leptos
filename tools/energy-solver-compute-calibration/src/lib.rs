@@ -193,10 +193,9 @@ impl SolverTrace {
             self.search_action_expansions,
             self.feasible_complete_schedules,
             self.pareto_frontier_count,
-        ) {
-            if expansions == 0 || (feasible == 0) != (frontier == 0) {
-                return Err(TraceError::InvalidStatusSemantics);
-            }
+        ) && (expansions == 0 || (feasible == 0) != (frontier == 0))
+        {
+            return Err(TraceError::InvalidStatusSemantics);
         }
         if self.objective_value_units.is_some() && self.time_to_first_feasible_ns.is_none() {
             return Err(TraceError::InvalidStatusSemantics);
