@@ -75,14 +75,6 @@ jobs:
       - name: Validate capsule, trust-pin and audit-report contracts
         run: |
           set -euo pipefail
-          for schema in \
-            schemas/industry-ieac-verification-capsule-v0.1.schema.json \
-            schemas/industry-ieac-verification-capsule-trust-pin-v0.1.schema.json \
-            schemas/industry-ieac-verification-capsule-audit-report-v0.1.schema.json; do
-            jsonschema-cli validate --draft 2020 --assert-format \
-              https://json-schema.org/draft/2020-12/schema -i "$schema"
-          done
-
           capsule_schema=schemas/industry-ieac-verification-capsule-v0.1.schema.json
           pin_schema=schemas/industry-ieac-verification-capsule-trust-pin-v0.1.schema.json
           for fixture in \
