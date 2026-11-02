@@ -6,13 +6,15 @@ A source-bound execution profiler for the actual `sol-atlas-core::energy_dispatc
 
 The current v0.1 kernel recursively enumerates finite integer dispatch actions over chronological intervals, enforces its transition/bus-balance/reserve rules, and retains a non-dominated lexicographic Pareto frontier. It is **not** an LP, MILP, AC optimal-power-flow solver or continuous-physics simulator.
 
-The engine exposes:
-- evaluated action expansions;
+The exact v1 API exposes:
+- the legacy `evaluated_action_expansions` counter;
 - feasible complete schedules;
 - retained Pareto frontier size;
 - an exact/complete status for the declared finite quantized model.
 
-The profiler preserves those fields rather than inventing continuous/binary variable counts, scalar objectives, dual bounds, a scalar optimality gap, a random seed or an unobserved first-feasible timestamp. Those trace fields stay `NA` where they are not defined or not instrumented.
+The legacy expansion counter is specifically the number of **admitted visits across five nested enumeration levels** (grid import, SOC withdrawal, charge input, essential service and flexible service). It is not a count of complete dispatch actions or schedules and must not be equated to CP-SAT nodes or Gurobi work units. The additive anytime API exposes the more accurate name `enumeration_prefix_visits`.
+
+The profiler preserves the v1 exact fields rather than inventing continuous/binary variable counts, scalar objectives, dual bounds, a scalar optimality gap, a random seed or an unobserved first-feasible timestamp. Those trace fields stay `NA` where they are not defined or not instrumented. The runner still invokes the legacy exact API and emits trace schema v0.2; it does not yet serialize anytime incumbent outcomes. A versioned trace extension is required before a candidate-with-unproven-optimality can be represented without overloading the current `feasible` or `limit_reached` statuses.
 
 ## Trace and provenance contract
 
