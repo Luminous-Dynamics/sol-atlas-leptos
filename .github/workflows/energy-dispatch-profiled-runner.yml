@@ -53,27 +53,36 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.96.0
         with:
           components: rustfmt, clippy
-      - name: Format the profiled runner source
+      - name: Format both v0.2 and v0.3 profiler binaries
         run: cargo fmt --package energy-dispatch-profile-runner --check
       - name: Check exact-search profiler against the committed locked core
         run: cargo check --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-profile
-      - name: Run exact-search profiler positive and negative controls
-        run: cargo test --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-profile
+      - name: Run v0.2 and v0.3 profiler positive/negative controls
+        run: |
+          set -euo pipefail
+          cargo test --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-profile
+          cargo check --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-anytime-profile
+          cargo test --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-anytime-profile
       - name: Format and test the independent schedule and service-floor auditors
         run: |
           set -euo pipefail
           cargo fmt --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml --all --check
           cargo test --locked --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml --all-targets
           cargo clippy --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml --all-targets --locked -- -D warnings
-      - name: Strict Clippy for the new profiler binary
-        run: cargo clippy --no-deps --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-profile -- -D warnings
-      - name: Build profiler, independent schedule auditor, service-floor auditor and trace aggregator
+      - name: Strict Clippy for both profiler binaries
+        run: |
+          set -euo pipefail
+          cargo clippy --no-deps --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-profile -- -D warnings
+          cargo clippy --no-deps --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-anytime-profile -- -D warnings
+      - name: Build v0.2/v0.3 profilers, independent auditors and both trace aggregators
         run: |
           set -euo pipefail
           cargo build --release --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-profile
+          cargo build --release --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-anytime-profile
           cargo build --release --locked --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml --bin energy-dispatch-schedule-auditor
           cargo build --release --locked --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml --bin energy-dispatch-service-floor-auditor
           cargo build --release --locked --manifest-path tools/energy-solver-compute-calibration/Cargo.toml --bin energy-solver-compute-calibration
+          cargo build --release --locked --manifest-path tools/energy-solver-compute-calibration/Cargo.toml --bin energy-solver-compute-calibration-v03
       - name: Execute 30 exact-search runs and independently audit every selected schedule
         run: |
           set -euo pipefail
@@ -159,12 +168,78 @@ jobs:
           jq -r '.assessment | "search_action_expansions=\(.evaluated_action_expansions)\nfeasible_complete_schedules=\(.feasible_complete_schedules)\npareto_frontier_count=\(.pareto_frontier_count)"' \
             target/energy-dispatch-profiled-runner/report-30.json
           cat target/energy-dispatch-profiled-runner/trace-summary.csv
+      - name: Execute 30 v0.3 anytime runs with independent schedule and service-floor receipts
+        run: |
+          set -euo pipefail
+          mkdir -p target/energy-dispatch-profiled-runner/v0.3
+          panel_sha="$(sha256sum schemas/examples/energy-dispatch-pv-outage.synthetic.json | awk '{print $1}')"
+          anytime="$CARGO_TARGET_DIR/release/energy-dispatch-anytime-profile"
+          auditor="$CARGO_TARGET_DIR/release/energy-dispatch-schedule-auditor"
+          floor_auditor="$CARGO_TARGET_DIR/release/energy-dispatch-service-floor-auditor"
+          policy="tools/energy-dispatch-schedule-auditor/fixtures/energy-dispatch-pv-outage.service-floor-v0.1.json"
+          for sample in $(seq -w 1 30); do
+            "$anytime" \
+              schemas/examples/energy-dispatch-pv-outage.synthetic.json \
+              "$panel_sha" \
+              target/energy-dispatch-profiled-runner/v0.3/trace.csv \
+              "target/energy-dispatch-profiled-runner/v0.3/report-$sample.json" \
+              "target/energy-dispatch-profiled-runner/v0.3/schedule-$sample.json" \
+              "target/energy-dispatch-profiled-runner/v0.3/audit-receipt-$sample.json" \
+              "$policy" \
+              "target/energy-dispatch-profiled-runner/v0.3/service-floor-receipt-$sample.json" \
+              "$auditor" \
+              "$floor_auditor"
+
+            jq -e '
+              .status == "exact_complete" and
+              .anytime_assessment.search_complete == true and
+              .anytime_assessment.optimality_proven == true and
+              (.anytime_assessment.time_to_first_complete_candidate_ns | type == "number" and . > 0) and
+              .selected_schedule != null and
+              .schedule_audit_receipt.disposition == "accepted" and
+              .service_floor_receipt.disposition == "passed"
+            ' "target/energy-dispatch-profiled-runner/v0.3/report-$sample.json"
+          done
+          awk -F, 'NF != 41 { exit 1 }' target/energy-dispatch-profiled-runner/v0.3/trace.csv
+          test "$(wc -l < target/energy-dispatch-profiled-runner/v0.3/trace.csv)" -eq 31
+          test "$(find target/energy-dispatch-profiled-runner/v0.3 -name 'audit-receipt-*.json' | wc -l)" -eq 30
+          test "$(find target/energy-dispatch-profiled-runner/v0.3 -name 'service-floor-receipt-*.json' | wc -l)" -eq 30
+          jq -s -e 'length == 30 and all(.[]; .disposition == "accepted")' \
+            target/energy-dispatch-profiled-runner/v0.3/audit-receipt-*.json
+          jq -s -e 'length == 30 and all(.[]; .disposition == "passed")' \
+            target/energy-dispatch-profiled-runner/v0.3/service-floor-receipt-*.json
+      - name: Aggregate v0.3 anytime candidates and audited-decision yield
+        run: |
+          set -euo pipefail
+          cargo run --release --locked --manifest-path tools/energy-solver-compute-calibration/Cargo.toml --bin energy-solver-compute-calibration-v03 -- \
+            target/energy-dispatch-profiled-runner/v0.3/trace.csv \
+            > target/energy-dispatch-profiled-runner/v0.3/trace-summary.csv
+          awk -F, '
+            NR == 1 { if (NF != 29 || $1 != "cohort_id") exit 1 }
+            NR == 2 {
+              if ($2 != 30 || $3 != 30 || $4 != 0 || $5 != 0 || $6 != 0) exit 1
+              if ($10 != 30 || $11 != 30 || $12 != 30 || $13 != 0 || $14 != 0 || $15 != 0) exit 1
+              if ($16 != 30 || $17 != 0 || $18 != 0 || $19 != 0 || $20 != 30) exit 1
+              if ($21 != 30 || $22 == "NA" || $23 == "NA") exit 1
+              if ($24 != 30 || $25 == "NA" || $26 == "NA") exit 1
+              if ($27 == "NA" || $28 == "NA" || $29 == "NA") exit 1
+            }
+            END { if (NR != 2) exit 1 }
+          ' target/energy-dispatch-profiled-runner/v0.3/trace-summary.csv
       - name: Capture source, fixture and runner provenance
         run: |
           sha256sum schemas/examples/energy-dispatch-pv-outage.synthetic.json \
             > target/energy-dispatch-profiled-runner/request-fixture.sha256
           sha256sum "$CARGO_TARGET_DIR/release/energy-dispatch-profile" \
             > target/energy-dispatch-profiled-runner/runner-binary.sha256
+          sha256sum "$CARGO_TARGET_DIR/release/energy-dispatch-anytime-profile" \
+            > target/energy-dispatch-profiled-runner/v0.3/anytime-runner-binary.sha256
+          sha256sum "$CARGO_TARGET_DIR/release/energy-solver-compute-calibration-v03" \
+            > target/energy-dispatch-profiled-runner/v0.3/aggregator-binary.sha256
+          sha256sum target/energy-dispatch-profiled-runner/v0.3/trace.csv \
+            > target/energy-dispatch-profiled-runner/v0.3/trace-source.sha256
+          sha256sum target/energy-dispatch-profiled-runner/v0.3/trace-summary.csv \
+            > target/energy-dispatch-profiled-runner/v0.3/trace-summary.sha256
           sha256sum "$CARGO_TARGET_DIR/release/energy-dispatch-schedule-auditor" \
             > target/energy-dispatch-profiled-runner/auditor-binary.sha256
           sha256sum "$CARGO_TARGET_DIR/release/energy-dispatch-service-floor-auditor" \
@@ -203,10 +278,13 @@ jobs:
             target/energy-dispatch-profiled-runner/schedule-*.json
             target/energy-dispatch-profiled-runner/audit-receipt-*.json
             target/energy-dispatch-profiled-runner/service-floor-receipt-*.json
+            target/energy-dispatch-profiled-runner/v0.3/
             target/energy-dispatch-profiled-runner/*.sha256
             target/energy-dispatch-profiled-runner/build-provenance.txt
             tools/energy-dispatch-profile-runner/src/main.rs
+            tools/energy-dispatch-profile-runner/src/bin/energy-dispatch-anytime-profile.rs
             tools/energy-dispatch-profile-runner/Cargo.toml
+            tools/energy-solver-compute-calibration/src/bin/energy-solver-compute-calibration-v03.rs
             tools/energy-dispatch-profile-runner/README.md
             tools/energy-dispatch-schedule-auditor/Cargo.toml
             tools/energy-dispatch-schedule-auditor/Cargo.lock
