@@ -10,7 +10,7 @@ The earlier structural adapter accepted an external JSON report containing self-
 
 It directly invokes `sigstore-tuf` 0.15.1 in process:
 
-1. Read an out-of-band bootstrap `root.json`.
+1. Read an operator-provisioned bootstrap `root.json` and verify its exact raw bytes against a separately configured SHA-256 pin.
 2. Construct the TUF repository transport.
 3. Create an `Updater` from the pinned root.
 4. Run the full root → timestamp → snapshot → targets refresh at one fixed update-start time.
@@ -18,7 +18,7 @@ It directly invokes `sigstore-tuf` 0.15.1 in process:
 6. Verify/download target bytes or re-verify cached target bytes against authenticated target length and hashes.
 7. Emit a report with exact repository, metadata versions and four target hashes/lengths.
 
-There are no report-supplied `verified=true` fields, verifier-build strings or threshold booleans used as proof. The cryptographic checks happen inside the same process that emits the result.
+There are no report-supplied `verified=true` fields, verifier-build strings or threshold booleans used as proof. The cryptographic checks happen inside the same process that emits the result. The root file is rejected unless it is a regular file no larger than 512,000 bytes and its SHA-256 exactly matches the pin in the operator-provisioned trust policy.
 
 ## 2. Why this Rust implementation
 
@@ -96,7 +96,17 @@ cargo run --manifest-path tools/industry-tuf-inprocess-verifier/Cargo.toml --loc
 
 The report output is created with create-new semantics; an existing output file is not overwritten.
 
-## 8. Claim ceiling
+## 8. Report authenticity boundary
+
+The emitted report is an **unsigned audit output**. It records what this invocation verified, but it is not a portable proof of that verification if copied to another system or detached from the process/binary that produced it. A downstream admission service must either rerun this verifier against the protected policy/root/cache or consume a separately authenticated verification bundle. Do not accept the report's `cryptographically_verified` string alone as authority.
+
+The report explicitly states:
+- `report_authentication = unsigned_audit_output`;
+- `standalone_admission_proof = no_requires_reverification_or_authenticated_binding_before_offline_admission`.
+
+A signed evidence bundle / independent offline verifier and an authenticated monotonic high-water store remain follow-on work under #441.
+
+## 9. Claim ceiling
 
 A `cryptographically_verified` report from this package means the pinned `sigstore-tuf` implementation verified the metadata chain, signatures/thresholds, expiry/version relationships and delegation path under the supplied out-of-band root, and that the returned target bytes match authenticated length/hash metadata.
 
