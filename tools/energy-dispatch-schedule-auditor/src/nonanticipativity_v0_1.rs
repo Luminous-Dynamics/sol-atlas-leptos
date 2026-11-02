@@ -1071,6 +1071,7 @@ mod tests {
         )
         .unwrap();
 
+        assert_eq!(receipt.disposition, NonAnticipativityDispositionV1::Accepted);
         assert_eq!(
             receipt.scenario_bindings[0].information_set_sha256_by_interval[0],
             receipt.scenario_bindings[1].information_set_sha256_by_interval[0]
