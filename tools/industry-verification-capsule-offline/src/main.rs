@@ -333,6 +333,20 @@ fn is_sha256(value: &str) -> bool {
             .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
+fn is_https_origin(value: &str) -> bool {
+    let Some(authority) = value.strip_prefix("https://") else {
+        return false;
+    };
+    !authority.is_empty()
+        && !authority.contains('/')
+        && !authority.contains('@')
+        && !authority.contains('?')
+        && !authority.contains('#')
+        && authority.bytes().all(|byte| {
+            byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'-' | b':' | b'[' | b']')
+        })
+}
+
 fn safe_relative_path(value: &str) -> bool {
     !value.is_empty()
         && !value.starts_with('/')
@@ -473,8 +487,10 @@ fn validate_mode(manifest: &Manifest, pin: &TrustPin) -> Result<(), String> {
 
 fn validate_pin(manifest: &Manifest, pin: &TrustPin) -> Result<(), String> {
     if pin.schema_version != PIN_SCHEMA || pin.action_authority != "none"
+        || pin.pin_id.trim().is_empty()
         || pin.max_capsule_bytes == 0 || pin.max_capsule_bytes > 1_073_741_824
-        || pin.max_file_count < 4 || pin.max_file_count > 4096
+        || pin.max_file_count < 6 || pin.max_file_count > 4096
+        || pin.allowed_capsule_modes.is_empty()
         || !is_sha256(&pin.root_sha256) || !is_sha256(&pin.policy_sha256)
         || !is_sha256(&pin.time_policy_sha256)
         || !is_sha256(&pin.time_verifier_build_sha256)
@@ -493,7 +509,17 @@ fn validate_pin(manifest: &Manifest, pin: &TrustPin) -> Result<(), String> {
     {
         return Err("invalid capsule schema, claim ceiling or canonicalization profile".to_string());
     }
-    if manifest.trust_bootstrap.repository_id != pin.repository_id
+    if !is_https_origin(&pin.repository_origin)
+        || manifest.trust_bootstrap.repository_id.trim().is_empty()
+        || manifest.trust_bootstrap.root_version == 0
+        || !safe_relative_path(&manifest.trust_bootstrap.root_metadata_path)
+        || !safe_relative_path(&manifest.policy_file_path)
+        || manifest.created_at.parse::<jiff::Timestamp>().is_err()
+        || manifest.replay_context.clock_id.trim().is_empty()
+        || pin.clock_id.trim().is_empty()
+        || pin.uncertainty_before_ms > 86_400_000
+        || pin.uncertainty_after_ms > 86_400_000
+        || manifest.trust_bootstrap.repository_id != pin.repository_id
         || manifest.trust_bootstrap.repository_origin != pin.repository_origin
         || manifest.trust_bootstrap.root_sha256 != pin.root_sha256
         || manifest.policy.policy_id != pin.policy_id
