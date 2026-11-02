@@ -33,14 +33,46 @@ pub const SPECTRAL_DISTANCE_METRICS: [SpectralDistanceMetric; 4] = [
     SpectralDistanceMetric::Mahalanobis,
 ];
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SpectralRepresentation {
+    RawReflectance,
+    GaussianRelativeResidual,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CropmarkPreprocessingProfile {
+    pub sensor_product_id: String,
+    pub spatial_grid_resolution_m: f64,
+    pub max_scene_cloud_coverage_pct: f64,
+    pub scene_median_ndvi_min: f64,
+    pub pixel_ndvi_min: f64,
+    pub spectral_representation: SpectralRepresentation,
+    /// Required for GaussianRelativeResidual; the cited study used 0.10
+    /// and tested 0.05..=0.20. Must be None for RawReflectance.
+    pub gaussian_residual_alpha: Option<f64>,
+    /// B04/red and B08/NIR mapping and NDVI computation contract.
+    pub ndvi_definition_sha256: String,
+    /// Points to the source asset's validated red/NIR channel contract.
+    pub ndvi_channel_contract_ref: String,
+    /// Scene-level geometry/radiometric quality-control procedure.
+    pub geometric_quality_control_ref: String,
+    /// Scene/date removals after QA, including an explicit no-removals record.
+    pub date_exclusion_audit_ref: String,
+    pub source_asset_manifest_sha256: String,
+    pub preprocessing_config_sha256: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct MonthlyDirectionalDistance {
+    /// Pooled calendar month (1..=12), with acquisitions from different years
+    /// aggregated upstream after the declared vegetation/quality filters.
     pub calendar_month: u8,
     pub metric: SpectralDistanceMetric,
-    /// d(A_source(month), A_target(month)).
-    pub source_archaeology_to_target_archaeology: f64,
-    /// d(A_source(month), H_target(month)).
-    pub source_archaeology_to_target_background: f64,
+    /// d(A_source(month), A_target(month)); A is a cropmark vegetation proxy.
+    pub source_a_to_target_a: f64,
+    /// d(A_source(month), H_target(month)); H is other vegetated background.
+    pub source_a_to_target_h: f64,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -53,6 +85,7 @@ pub struct DirectionalSpectralTransferInput {
     pub positive_class_semantics: String,
     pub background_class_semantics: String,
     pub label_protocol_ref: String,
+    pub preprocessing: CropmarkPreprocessingProfile,
     /// Digest for the band/feature transformations used to create clusters.
     pub feature_definition_sha256: String,
     /// Digest for the implementation that computed the distance samples.
@@ -97,6 +130,7 @@ pub struct DirectionalSpectralTransferReport {
     pub positive_class_semantics: String,
     pub background_class_semantics: String,
     pub label_protocol_ref: String,
+    pub preprocessing: CropmarkPreprocessingProfile,
     pub feature_definition_sha256: String,
     pub distance_pipeline_sha256: String,
     pub top_month_count: usize,
@@ -144,6 +178,17 @@ pub enum SpectralTransferError {
     EmptyPositiveClassSemantics,
     EmptyBackgroundClassSemantics,
     EmptyLabelProtocolReference,
+    EmptySensorProductId,
+    InvalidSpatialGridResolution,
+    InvalidCloudCoverageThreshold,
+    InvalidVegetationThresholds,
+    InvalidGaussianResidualConfiguration,
+    InvalidNdviDefinitionDigest,
+    EmptyNdviChannelContractReference,
+    EmptyGeometricQualityControlReference,
+    EmptyDateExclusionAuditReference,
+    InvalidSourceAssetManifestDigest,
+    InvalidPreprocessingConfigDigest,
     InvalidFeatureDefinitionDigest,
     InvalidDistancePipelineDigest,
     EmptyMonthlyDistances,
@@ -194,11 +239,71 @@ fn valid_calendar_month(value: u8) -> bool {
     (1..=12).contains(&value)
 }
 
+
+fn validate_preprocessing(
+    profile: &CropmarkPreprocessingProfile,
+) -> Result<(), SpectralTransferError> {
+    if profile.sensor_product_id.trim().is_empty() {
+        return Err(SpectralTransferError::EmptySensorProductId);
+    }
+    if !profile.spatial_grid_resolution_m.is_finite()
+        || profile.spatial_grid_resolution_m <= 0.0
+    {
+        return Err(SpectralTransferError::InvalidSpatialGridResolution);
+    }
+    if !profile.max_scene_cloud_coverage_pct.is_finite()
+        || !(0.0..=100.0).contains(&profile.max_scene_cloud_coverage_pct)
+    {
+        return Err(SpectralTransferError::InvalidCloudCoverageThreshold);
+    }
+    if !profile.scene_median_ndvi_min.is_finite()
+        || !profile.pixel_ndvi_min.is_finite()
+        || !(-1.0..=1.0).contains(&profile.scene_median_ndvi_min)
+        || !(-1.0..=1.0).contains(&profile.pixel_ndvi_min)
+        || profile.pixel_ndvi_min > profile.scene_median_ndvi_min
+    {
+        return Err(SpectralTransferError::InvalidVegetationThresholds);
+    }
+    match profile.spectral_representation {
+        SpectralRepresentation::RawReflectance => {
+            if profile.gaussian_residual_alpha.is_some() {
+                return Err(SpectralTransferError::InvalidGaussianResidualConfiguration);
+            }
+        }
+        SpectralRepresentation::GaussianRelativeResidual => {
+            if !profile.gaussian_residual_alpha.is_some_and(|alpha| {
+                alpha.is_finite() && (0.05..=0.20).contains(&alpha)
+            }) {
+                return Err(SpectralTransferError::InvalidGaussianResidualConfiguration);
+            }
+        }
+    }
+    if !is_sha256(&profile.ndvi_definition_sha256) {
+        return Err(SpectralTransferError::InvalidNdviDefinitionDigest);
+    }
+    if profile.ndvi_channel_contract_ref.trim().is_empty() {
+        return Err(SpectralTransferError::EmptyNdviChannelContractReference);
+    }
+    if profile.geometric_quality_control_ref.trim().is_empty() {
+        return Err(SpectralTransferError::EmptyGeometricQualityControlReference);
+    }
+    if profile.date_exclusion_audit_ref.trim().is_empty() {
+        return Err(SpectralTransferError::EmptyDateExclusionAuditReference);
+    }
+    if !is_sha256(&profile.source_asset_manifest_sha256) {
+        return Err(SpectralTransferError::InvalidSourceAssetManifestDigest);
+    }
+    if !is_sha256(&profile.preprocessing_config_sha256) {
+        return Err(SpectralTransferError::InvalidPreprocessingConfigDigest);
+    }
+    Ok(())
+}
+
 fn directional_ratio(
     distance: &MonthlyDirectionalDistance,
 ) -> Result<f64, SpectralTransferError> {
-    let numerator = distance.source_archaeology_to_target_archaeology;
-    let denominator = distance.source_archaeology_to_target_background;
+    let numerator = distance.source_a_to_target_a;
+    let denominator = distance.source_a_to_target_h;
 
     // The published ratio is undefined for zero/negative distance values.
     // Fail closed rather than introduce an undocumented epsilon regulariser.
@@ -259,6 +364,7 @@ pub fn calculate_directional_spectral_transfer(
     if input.label_protocol_ref.trim().is_empty() {
         return Err(SpectralTransferError::EmptyLabelProtocolReference);
     }
+    validate_preprocessing(&input.preprocessing)?;
     if !is_sha256(&input.feature_definition_sha256) {
         return Err(SpectralTransferError::InvalidFeatureDefinitionDigest);
     }
@@ -348,6 +454,7 @@ pub fn calculate_directional_spectral_transfer(
         positive_class_semantics: input.positive_class_semantics.clone(),
         background_class_semantics: input.background_class_semantics.clone(),
         label_protocol_ref: input.label_protocol_ref.clone(),
+        preprocessing: input.preprocessing.clone(),
         feature_definition_sha256: input.feature_definition_sha256.clone(),
         distance_pipeline_sha256: input.distance_pipeline_sha256.clone(),
         top_month_count: config.top_month_count,
@@ -535,8 +642,8 @@ mod tests {
                 monthly_distances.push(MonthlyDirectionalDistance {
                     calendar_month: *month,
                     metric,
-                    source_archaeology_to_target_archaeology: *aa,
-                    source_archaeology_to_target_background: *ah,
+                    source_a_to_target_a: *aa,
+                    source_a_to_target_h: *ah,
                 });
             }
         }
@@ -544,9 +651,24 @@ mod tests {
             source_region_id: source.to_owned(),
             target_region_id: target.to_owned(),
             task_scope: "cropmark_vegetation_proxy".into(),
-            positive_class_semantics: "vegetation over buried archaeological remains".into(),
-            background_class_semantics: "other vegetated pixels".into(),
-            label_protocol_ref: "urn:synthetic:cropmark-label-protocol:v1".into(),
+            positive_class_semantics: "vegetation pixels visually interpreted as cropmarks; not field-confirmed".into(),
+            background_class_semantics: "other vegetated pixels after NDVI masking".into(),
+            label_protocol_ref: "urn:synthetic:visual-cropmark-mask-protocol:v1".into(),
+            preprocessing: CropmarkPreprocessingProfile {
+                sensor_product_id: "Sentinel-2 Level-2A synthetic fixture".into(),
+                spatial_grid_resolution_m: 10.0,
+                max_scene_cloud_coverage_pct: 20.0,
+                scene_median_ndvi_min: 0.30,
+                pixel_ndvi_min: 0.05,
+                spectral_representation: SpectralRepresentation::GaussianRelativeResidual,
+                gaussian_residual_alpha: Some(0.10),
+                ndvi_definition_sha256: "c".repeat(64),
+                ndvi_channel_contract_ref: "urn:synthetic:red-b04-nir-b08-contract:v1".into(),
+                geometric_quality_control_ref: "urn:synthetic:scene-geometry-filter:v1".into(),
+                date_exclusion_audit_ref: "urn:synthetic:date-exclusion-log:none".into(),
+                source_asset_manifest_sha256: "d".repeat(64),
+                preprocessing_config_sha256: "e".repeat(64),
+            },
             feature_definition_sha256: "a".repeat(64),
             distance_pipeline_sha256: "b".repeat(64),
             monthly_distances,
@@ -700,6 +822,52 @@ mod tests {
         }).collect::<Vec<_>>();
         let report = evaluate_transfer_score_association(&records).unwrap();
         assert!(report.spearman_rank_correlation.is_some());
+    }
+
+    #[test]
+    fn preprocessing_profile_requires_valid_ndvi_and_spatial_residual_contract() {
+        let mut data = input("source-a", "target-b", &[
+            (1, 1.0, 3.0), (2, 1.0, 3.0), (3, 1.0, 3.0),
+        ]);
+        data.preprocessing.ndvi_channel_contract_ref.clear();
+        assert_eq!(
+            calculate_directional_spectral_transfer(&data, config()),
+            Err(SpectralTransferError::EmptyNdviChannelContractReference)
+        );
+
+        let mut data = input("source-a", "target-b", &[
+            (1, 1.0, 3.0), (2, 1.0, 3.0), (3, 1.0, 3.0),
+        ]);
+        data.preprocessing.gaussian_residual_alpha = Some(0.30);
+        assert_eq!(
+            calculate_directional_spectral_transfer(&data, config()),
+            Err(SpectralTransferError::InvalidGaussianResidualConfiguration)
+        );
+
+        let mut data = input("source-a", "target-b", &[
+            (1, 1.0, 3.0), (2, 1.0, 3.0), (3, 1.0, 3.0),
+        ]);
+        data.preprocessing.pixel_ndvi_min = 0.4;
+        assert_eq!(
+            calculate_directional_spectral_transfer(&data, config()),
+            Err(SpectralTransferError::InvalidVegetationThresholds)
+        );
+    }
+
+    #[test]
+    fn raw_reflectance_profile_must_not_claim_gaussian_residual_alpha() {
+        let mut data = input("source-a", "target-b", &[
+            (1, 1.0, 3.0), (2, 1.0, 3.0), (3, 1.0, 3.0),
+        ]);
+        data.preprocessing.spectral_representation = SpectralRepresentation::RawReflectance;
+        data.preprocessing.gaussian_residual_alpha = Some(0.10);
+        assert_eq!(
+            calculate_directional_spectral_transfer(&data, config()),
+            Err(SpectralTransferError::InvalidGaussianResidualConfiguration)
+        );
+
+        data.preprocessing.gaussian_residual_alpha = None;
+        assert!(calculate_directional_spectral_transfer(&data, config()).is_ok());
     }
 
     #[test]

@@ -54,3 +54,17 @@ This module implements the published distance-ratio aggregation over caller-supp
 The association report additionally removes each landscape in turn, drops every directed pair touching that landscape, and recomputes Spearman correlation on the remaining pairs when at least three remain. It records the omitted landscape, remaining pair count and correlation; it then reports the minimum and maximum available jackknife correlations.
 
 This is a **leave-one-landscape-out sensitivity diagnostic, not a confidence interval**. With only three sites/six directed pairs it may be undefined for every omission, which is the honest result. A larger spatially independent benchmark with at least five landscapes is needed before this diagnostic becomes informative. Directed pairs still share landscapes; do not treat them as independent replicates or use a naive pair-level standard error.
+
+## Preprocessing and proxy-label fidelity (2026-11-02 audit)
+
+The supplementary method operationalises its NDVI/phenophase gate as follows: Sentinel-2 Level-2A BOA, 12 bands resampled to a common 10 m grid; scene cloud limit <=20%; scene-level geometric filtering on mean 12-band reflectance signatures; scene median NDVI >=0.3; pixel spectra set to NaN where NDVI <0.05; occasional manually removed dates after inspecting NDVI curves, histograms and NIR-Red-Green composites. It then pools A/H spectra by calendar month across all years. It does not describe a general harmonic time-warp or a learned global phenology alignment. The Rust evaluator therefore takes pooled calendar-month distances, while the preprocessing profile records the NDVI gate and QA evidence.
+
+The study also evaluates a Gaussian relative-residual transform:
+
+- trend = Gaussian-smoothed reflectance, with sigma = alpha * min(image width, image height);
+- relative residual = (reflectance - trend) / trend;
+- main result alpha = 0.10; sensitivity range alpha = 0.05..0.20.
+
+Raw-reflectance and Gaussian-relative-residual inputs must be declared separately. The profile requires an explicit B04/red-B08/NIR NDVI channel-contract reference, scene and pixel NDVI thresholds, cloud threshold, spatial grid resolution, geometry QA reference, date-exclusion audit, source manifest digest and preprocessing config digest.
+
+The source study's A masks are visually interpreted cropmark vegetation proxies based on high-resolution imagery and literature, fixed once per site. They are not a complete field-verified inventory of archaeological remains. The Rust field names use A/H rather than claiming that these pixel labels are confirmed archaeology.

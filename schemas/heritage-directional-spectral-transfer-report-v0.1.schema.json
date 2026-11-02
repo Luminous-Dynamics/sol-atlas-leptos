@@ -16,7 +16,8 @@
     "feature_definition_sha256",
     "distance_pipeline_sha256",
     "top_month_count",
-    "metrics"
+    "metrics",
+    "preprocessing"
   ],
   "properties": {
     "schema_version": {
@@ -139,6 +140,130 @@
           }
         }
       }
+    },
+    "preprocessing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sensor_product_id",
+        "spatial_grid_resolution_m",
+        "max_scene_cloud_coverage_pct",
+        "scene_median_ndvi_min",
+        "pixel_ndvi_min",
+        "spectral_representation",
+        "gaussian_residual_alpha",
+        "ndvi_definition_sha256",
+        "ndvi_channel_contract_ref",
+        "geometric_quality_control_ref",
+        "date_exclusion_audit_ref",
+        "source_asset_manifest_sha256",
+        "preprocessing_config_sha256"
+      ],
+      "properties": {
+        "sensor_product_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "spatial_grid_resolution_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "max_scene_cloud_coverage_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "scene_median_ndvi_min": {
+          "type": "number",
+          "minimum": -1,
+          "maximum": 1
+        },
+        "pixel_ndvi_min": {
+          "type": "number",
+          "minimum": -1,
+          "maximum": 1
+        },
+        "spectral_representation": {
+          "enum": [
+            "raw_reflectance",
+            "gaussian_relative_residual"
+          ]
+        },
+        "gaussian_residual_alpha": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0.05,
+          "maximum": 0.2
+        },
+        "ndvi_definition_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "ndvi_channel_contract_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "geometric_quality_control_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "date_exclusion_audit_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_asset_manifest_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "preprocessing_config_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "spectral_representation": {
+                "const": "gaussian_relative_residual"
+              }
+            },
+            "required": [
+              "spectral_representation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "gaussian_residual_alpha": {
+                "type": "number",
+                "minimum": 0.05,
+                "maximum": 0.2
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "spectral_representation": {
+                "const": "raw_reflectance"
+              }
+            },
+            "required": [
+              "spectral_representation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "gaussian_residual_alpha": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }

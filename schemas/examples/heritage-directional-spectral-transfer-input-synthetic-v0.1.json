@@ -2,8 +2,8 @@
   "source_region_id": "synthetic-region-a",
   "target_region_id": "synthetic-region-b",
   "task_scope": "cropmark_vegetation_proxy",
-  "positive_class_semantics": "vegetation over independently reviewed buried archaeological remains",
-  "background_class_semantics": "other vegetated pixels in the same landscape",
+  "positive_class_semantics": "vegetation pixels visually interpreted as cropmarks; not field-confirmed",
+  "background_class_semantics": "other vegetated pixels after NDVI masking",
   "label_protocol_ref": "urn:synthetic:cropmark-mask-adjudication:v1",
   "feature_definition_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "distance_pipeline_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
@@ -11,74 +11,89 @@
     {
       "calendar_month": 1,
       "metric": "euclidean",
-      "source_archaeology_to_target_archaeology": 1,
-      "source_archaeology_to_target_background": 4
+      "source_a_to_target_a": 1,
+      "source_a_to_target_h": 4
     },
     {
       "calendar_month": 2,
       "metric": "euclidean",
-      "source_archaeology_to_target_archaeology": 1,
-      "source_archaeology_to_target_background": 2
+      "source_a_to_target_a": 1,
+      "source_a_to_target_h": 2
     },
     {
       "calendar_month": 3,
       "metric": "euclidean",
-      "source_archaeology_to_target_archaeology": 1.5,
-      "source_archaeology_to_target_background": 3
+      "source_a_to_target_a": 1.5,
+      "source_a_to_target_h": 3
     },
     {
       "calendar_month": 1,
       "metric": "wasserstein",
-      "source_archaeology_to_target_archaeology": 1,
-      "source_archaeology_to_target_background": 4
+      "source_a_to_target_a": 1,
+      "source_a_to_target_h": 4
     },
     {
       "calendar_month": 2,
       "metric": "wasserstein",
-      "source_archaeology_to_target_archaeology": 1,
-      "source_archaeology_to_target_background": 2
+      "source_a_to_target_a": 1,
+      "source_a_to_target_h": 2
     },
     {
       "calendar_month": 3,
       "metric": "wasserstein",
-      "source_archaeology_to_target_archaeology": 1.5,
-      "source_archaeology_to_target_background": 3
+      "source_a_to_target_a": 1.5,
+      "source_a_to_target_h": 3
     },
     {
       "calendar_month": 1,
       "metric": "kolmogorov_smirnov",
-      "source_archaeology_to_target_archaeology": 1,
-      "source_archaeology_to_target_background": 4
+      "source_a_to_target_a": 1,
+      "source_a_to_target_h": 4
     },
     {
       "calendar_month": 2,
       "metric": "kolmogorov_smirnov",
-      "source_archaeology_to_target_archaeology": 1,
-      "source_archaeology_to_target_background": 2
+      "source_a_to_target_a": 1,
+      "source_a_to_target_h": 2
     },
     {
       "calendar_month": 3,
       "metric": "kolmogorov_smirnov",
-      "source_archaeology_to_target_archaeology": 1.5,
-      "source_archaeology_to_target_background": 3
+      "source_a_to_target_a": 1.5,
+      "source_a_to_target_h": 3
     },
     {
       "calendar_month": 1,
       "metric": "mahalanobis",
-      "source_archaeology_to_target_archaeology": 1,
-      "source_archaeology_to_target_background": 4
+      "source_a_to_target_a": 1,
+      "source_a_to_target_h": 4
     },
     {
       "calendar_month": 2,
       "metric": "mahalanobis",
-      "source_archaeology_to_target_archaeology": 1,
-      "source_archaeology_to_target_background": 2
+      "source_a_to_target_a": 1,
+      "source_a_to_target_h": 2
     },
     {
       "calendar_month": 3,
       "metric": "mahalanobis",
-      "source_archaeology_to_target_archaeology": 1.5,
-      "source_archaeology_to_target_background": 3
+      "source_a_to_target_a": 1.5,
+      "source_a_to_target_h": 3
     }
-  ]
+  ],
+  "preprocessing": {
+    "sensor_product_id": "Sentinel-2 Level-2A synthetic fixture",
+    "spatial_grid_resolution_m": 10,
+    "max_scene_cloud_coverage_pct": 20,
+    "scene_median_ndvi_min": 0.3,
+    "pixel_ndvi_min": 0.05,
+    "spectral_representation": "gaussian_relative_residual",
+    "gaussian_residual_alpha": 0.1,
+    "ndvi_definition_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "ndvi_channel_contract_ref": "urn:synthetic:red-b04-nir-b08-contract:v1",
+    "geometric_quality_control_ref": "urn:synthetic:scene-geometry-filter:v1",
+    "date_exclusion_audit_ref": "urn:synthetic:date-exclusion-log:none",
+    "source_asset_manifest_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "preprocessing_config_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+  }
 }
