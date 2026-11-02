@@ -1,0 +1,51 @@
+name: Energy Dispatch Anytime API
+
+on:
+  pull_request:
+    paths:
+      - "sol-atlas-core/src/energy_dispatch.rs"
+      - "sol-atlas-core/Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/energy-dispatch-anytime.yml"
+  push:
+    branches:
+      - "research/energy-anytime-engine-v0-1"
+    paths:
+      - "sol-atlas-core/src/energy_dispatch.rs"
+      - "sol-atlas-core/Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/energy-dispatch-anytime.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  anytime-dispatch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CARGO_TERM_COLOR: always
+      EXPECTED_SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Assert exact subject before execution
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SUBJECT_SHA"
+      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+        with:
+          toolchain: 1.96.0
+          components: rustfmt
+      - name: Assert pinned Rust toolchain
+        run: test "$(rustc +1.96.0 --version)" = "rustc 1.96.0 (ac68faa20 2026-05-25)"
+      - name: Format changed finite dispatch module
+        run: rustfmt +1.96.0 --edition 2024 --check sol-atlas-core/src/energy_dispatch.rs
+      - name: Check core library and all targets under lock
+        run: cargo +1.96.0 check --locked -p sol-atlas-core --all-targets
+      - name: Run all core library and energy dispatch tests
+        run: cargo +1.96.0 test --locked -p sol-atlas-core --lib
+      - name: Assert exact subject and clean source after execution
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SUBJECT_SHA"
+          test -z "$(git status --porcelain)"
