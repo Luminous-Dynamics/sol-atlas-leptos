@@ -106,7 +106,7 @@ jobs:
             $a.absence_proof == null and
             $a.absence_query.verification_status == "verified" and
             $a.absence_query.matching_event_count == 0 and
-            $a.absence_query.signer_id != "" and
+            ($m.capture_contract.authorized_completeness_query_signers | index($a.absence_query.signer_id)) != null and
             $a.absence_query.predicate_binding.relying_party_id == $a.channel_identity.relying_party_id and
             $a.absence_query.predicate_binding.evidence_channel_id == $a.channel_identity.evidence_channel_id and
             $a.absence_query.predicate_binding.tenant_scope == $a.scope.tenant_scope and
