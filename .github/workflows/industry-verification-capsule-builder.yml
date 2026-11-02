@@ -1,0 +1,113 @@
+name: IEAC deterministic verification capsule packer
+
+on:
+  pull_request:
+    paths:
+      - "tools/industry-verification-capsule-builder/**"
+      - "schemas/industry-ieac-verification-capsule-build-template-v0.1.schema.json"
+      - "schemas/industry-ieac-verification-capsule-pack-receipt-v0.1.schema.json"
+      - "schemas/examples/ieac-verification-capsule-build-template-*.json"
+      - ".github/workflows/industry-verification-capsule-builder.yml"
+  push:
+    branches:
+      - main
+      - feat/ieac-verification-capsule-offline-v0-1
+    paths:
+      - "tools/industry-verification-capsule-builder/**"
+      - "schemas/industry-ieac-verification-capsule-build-template-v0.1.schema.json"
+      - "schemas/industry-ieac-verification-capsule-pack-receipt-v0.1.schema.json"
+      - "schemas/examples/ieac-verification-capsule-build-template-*.json"
+      - ".github/workflows/industry-verification-capsule-builder.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ieac-capsule-builder-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  capsule-builder:
+    name: Exact-head deterministic packer and fail-closed input tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact source revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Format, lint and test deterministic capsule builder
+        run: |
+          set -euo pipefail
+          manifest=tools/industry-verification-capsule-builder/Cargo.toml
+          cargo fmt --manifest-path "$manifest" -- --check
+          cargo clippy --manifest-path "$manifest" --all-targets --locked -- -D warnings
+          cargo test --manifest-path "$manifest" --locked
+
+      - name: Assert builder has no network client
+        run: |
+          set -euo pipefail
+          if rg -n 'reqwest|HttpRepository|ureq::|hyper::|https?::get' tools/industry-verification-capsule-builder/src; then
+            echo "unexpected network client in offline packer"
+            exit 1
+          fi
+
+      - name: Install pinned Draft 2020-12 validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Add schema CLI to PATH
+        run: echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+
+      - name: Validate template, receipt and trust-pin schemas
+        run: |
+          set -euo pipefail
+          for schema in \
+            schemas/industry-ieac-verification-capsule-build-template-v0.1.schema.json \
+            schemas/industry-ieac-verification-capsule-pack-receipt-v0.1.schema.json \
+            schemas/industry-ieac-verification-capsule-trust-pin-v0.1.schema.json; do
+            jsonschema-cli validate --draft 2020 --assert-format \
+              https://json-schema.org/draft/2020-12/schema -i "$schema"
+          done
+          jsonschema-cli validate --draft 2020 --assert-format --offline \
+            schemas/industry-ieac-verification-capsule-build-template-v0.1.schema.json \
+            -i schemas/examples/ieac-verification-capsule-build-template-synthetic-v0.1.json
+          jsonschema-cli validate --draft 2020 --assert-format --offline \
+            schemas/industry-ieac-verification-capsule-trust-pin-v0.1.schema.json \
+            -i schemas/examples/ieac-verification-capsule-trust-pin-synthetic-v0.1.json
+
+      - name: Independently check template target set and packer claim ceiling
+        run: |
+          set -euo pipefail
+          jq -e '
+            .schema_version == "luminous.ieac-verification-capsule-build-template.v0.1" and
+            .capsule_mode == "self_contained" and
+            .replayability == "fully_replayable" and
+            ([.targets[].id] | sort) == [
+              "availability_audit_report",
+              "channel_manifest",
+              "checkpoint_state",
+              "completeness_attestation"
+            ] and
+            all(.targets[]; .content_mode == "embedded" and has("staged_path")) and
+            ([.metadata_artifacts[].staged_path, .bootstrap_root.staged_path, .policy_file.staged_path] | unique | length) ==
+              ([.metadata_artifacts[].staged_path, .bootstrap_root.staged_path, .policy_file.staged_path] | length)
+          ' schemas/examples/ieac-verification-capsule-build-template-synthetic-v0.1.json
+
+          test "$(rg -n 'verification_performed: false|status: "packed_unverified"' tools/industry-verification-capsule-builder/src/main.rs | wc -l)" -ge 2
+
+      - name: Prove committed Cargo lock and generated schemas remain unchanged
+        run: |
+          set -euo pipefail
+          git diff --exit-code -- tools/industry-verification-capsule-builder/Cargo.lock
+          git diff --exit-code -- schemas/industry-ieac-verification-capsule-build-template-v0.1.schema.json
