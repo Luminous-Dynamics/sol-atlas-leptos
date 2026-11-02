@@ -99,7 +99,6 @@ struct Summary {
     candidate_as_known_count: usize,
     excluded_after_cutoff: usize,
     unknown: usize,
-    false_admission_count: usize,
     history_completeness: String,
 }
 
@@ -236,14 +235,16 @@ fn validate_snapshot(snapshot: &Snapshot) -> Result<(), String> {
         }
 
         if let Some(valid_time) = &item.valid_time {
-            for (name, value) in [
-                ("valid_from", valid_time.valid_from.as_deref()),
-                ("valid_until", valid_time.valid_until.as_deref()),
-            ] {
-                if let Some(value) = value {
-                    parse_utc_seconds(value)
-                        .map_err(|error| format!("{path}.valid_time.{name}: {error}"))?;
-                }
+            let valid_from = valid_time.valid_from.as_deref()
+                .map(parse_utc_seconds)
+                .transpose()
+                .map_err(|error| format!("{path}.valid_time.valid_from: {error}"))?;
+            let valid_until = valid_time.valid_until.as_deref()
+                .map(parse_utc_seconds)
+                .transpose()
+                .map_err(|error| format!("{path}.valid_time.valid_until: {error}"))?;
+            if matches!((valid_from, valid_until), (Some(start), Some(end)) if start > end) {
+                return Err(format!("{path}.valid_time interval is reversed"));
             }
         }
         if let Some(observed) = &item.observed_at {
@@ -553,7 +554,6 @@ fn audit(snapshot: &Snapshot, raw: &[u8]) -> Result<Report, String> {
             candidate_as_known_count: included,
             excluded_after_cutoff: excluded,
             unknown,
-            false_admission_count: 0,
             history_completeness: "not_established".to_string(),
         },
         claim_ceiling: "historical_information_boundary_only".to_string(),
