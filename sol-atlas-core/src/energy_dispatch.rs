@@ -717,7 +717,7 @@ pub fn assess_energy_dispatch(
         best_incumbent: None,
     };
     let mut path = Vec::with_capacity(request.intervals.len());
-    search.visit(0, battery.initial_soc_quanta, &mut path)?;
+    search.visit(0, request.battery.initial_soc_quanta, &mut path)?;
     if search.feasible_complete_schedules == 0 || search.frontier.is_empty() {
         return Err(EnergyDispatchError::NoFeasibleSchedules);
     }
@@ -829,6 +829,102 @@ mod tests {
         assert!(matches!(
             assess_energy_dispatch(&request),
             Err(EnergyDispatchError::CandidateExpansionCapExceeded { cap: 1 })
+        ));
+    }
+
+    #[test]
+    fn anytime_exact_completion_matches_the_legacy_exact_api() {
+        let request = fixture_request();
+        let exact = assess_energy_dispatch(&request).expect("legacy exact assessment");
+        let anytime = assess_energy_dispatch_anytime(&request).expect("anytime exact completion");
+        assert_eq!(anytime.status, EnergyDispatchAnytimeStatus::ExactComplete);
+        assert_eq!(anytime.stop_reason, None);
+        assert_eq!(
+            anytime.attempted_enumeration_prefix_visits,
+            exact.evaluated_action_expansions
+        );
+        assert_eq!(
+            anytime.admitted_enumeration_prefix_visits,
+            exact.evaluated_action_expansions
+        );
+        assert_eq!(
+            anytime.complete_pareto_frontier,
+            Some(exact.pareto_alternatives.clone())
+        );
+        assert_eq!(anytime.incumbent, Some(exact.pareto_alternatives[0].clone()));
+    }
+
+    #[test]
+    fn anytime_budget_before_first_candidate_returns_no_candidate_without_infeasibility() {
+        let mut request = fixture_request();
+        request.max_candidate_expansions = 1;
+        let result = assess_energy_dispatch_anytime(&request).expect("bounded outcome is returned");
+        assert_eq!(
+            result.status,
+            EnergyDispatchAnytimeStatus::LimitWithoutCandidate
+        );
+        assert_eq!(
+            result.stop_reason,
+            Some(EnergyDispatchStopReason::CandidateExpansionCap { cap: 1 })
+        );
+        assert_eq!(result.attempted_enumeration_prefix_visits, 2);
+        assert_eq!(result.admitted_enumeration_prefix_visits, 1);
+        assert_eq!(result.admitted_enumeration_prefix_visits, request.max_candidate_expansions);
+        assert_eq!(result.feasible_complete_schedules, 0);
+        assert_eq!(result.incumbent, None);
+        assert_eq!(result.complete_pareto_frontier, None);
+    }
+
+    #[test]
+    fn anytime_budget_after_candidate_preserves_only_a_complete_incumbent() {
+        let mut request = fixture_request();
+        request.max_candidate_expansions = 100;
+        let result = assess_energy_dispatch_anytime(&request).expect("bounded outcome is returned");
+        assert_eq!(result.status, EnergyDispatchAnytimeStatus::FeasibleUnproven);
+        assert_eq!(
+            result.stop_reason,
+            Some(EnergyDispatchStopReason::CandidateExpansionCap { cap: 100 })
+        );
+        assert!(result.feasible_complete_schedules > 0);
+        let incumbent = result.incumbent.expect("complete candidate is preserved");
+        assert_eq!(incumbent.schedule.len(), request.intervals.len());
+        assert_eq!(result.attempted_enumeration_prefix_visits, 101);
+        assert_eq!(result.admitted_enumeration_prefix_visits, 100);
+        assert!(result.admitted_enumeration_prefix_visits <= request.max_candidate_expansions);
+        assert_eq!(result.complete_pareto_frontier, None);
+        assert_eq!(result.pareto_frontier_entries_observed, 0.max(result.pareto_frontier_entries_observed));
+    }
+
+    #[test]
+    fn anytime_exhaustive_search_can_prove_finite_model_infeasibility() {
+        let mut request = fixture_request();
+        request.max_candidate_expansions = 10_000;
+        request.battery.capacity_quanta = 1;
+        request.battery.initial_soc_quanta = 0;
+        request.battery.charge_input_limit_quanta = 0;
+        request.battery.discharge_withdrawal_limit_quanta = 0;
+        request.battery.terminal_reserve_quanta = 1;
+        for interval in &mut request.intervals {
+            interval.pv_available_quanta = 0;
+            interval.grid_import_limit_quanta = 0;
+            interval.essential_demand_quanta = 0;
+            interval.flexible_demand_quanta = 0;
+        }
+        let result = assess_energy_dispatch_anytime(&request).expect("exhaustive status is returned");
+        assert_eq!(result.status, EnergyDispatchAnytimeStatus::ProvenInfeasible);
+        assert_eq!(result.stop_reason, None);
+        assert_eq!(result.feasible_complete_schedules, 0);
+        assert_eq!(result.incumbent, None);
+        assert_eq!(result.complete_pareto_frontier, Some(Vec::new()));
+    }
+
+    #[test]
+    fn anytime_does_not_relabel_non_limit_errors_as_partial_success() {
+        let mut request = fixture_request();
+        request.energy_quantum_kwh = f64::NAN;
+        assert!(matches!(
+            assess_energy_dispatch_anytime(&request),
+            Err(EnergyDispatchError::InvalidEnergyQuantum)
         ));
     }
 
