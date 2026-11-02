@@ -1,0 +1,23 @@
+{
+  "schema_version": "luminous.ieac-tuf-freshness-policy.v0.1",
+  "repository_id": "tuf:ieac-production",
+  "relying_party_id": "rp:industrial-assurance",
+  "channel_id": "channel:plant-17",
+  "tenant_scope": "tenant:plant-17",
+  "purpose": "industrial_resilience_assurance",
+  "ledger_id": "ledger:plant-17-evidence",
+  "sequence_namespace": "plant-17-events",
+  "manifest_target_path": "channels/plant-17/manifest.json",
+  "manifest_target_role": "ieac-channel-manifests",
+  "checkpoint_target_path": "channels/plant-17/checkpoint.json",
+  "checkpoint_target_role": "ieac-channel-checkpoints",
+  "max_timestamp_expiry_horizon_seconds": 172800,
+  "time_verifier_build_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "time_verification_policy_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "time_verification_trust_bundle_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "tuf_verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "tuf_verification_policy_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "tuf_trust_bundle_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "claim_ceiling": "tuf_freshness_and_anti_rollback_only",
+  "action_authority": "none"
+}
