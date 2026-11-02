@@ -13,7 +13,7 @@ use std::io::Read;
 use std::path::{Component, Path, PathBuf};
 use std::process::ExitCode;
 
-const MANIFEST_SCHEMA: &str = "energy-dispatch-nonanticipativity-manifest-v0.1";
+const MANIFEST_SCHEMA: &str = "energy-dispatch-nonanticipativity-manifest-v0.2";
 const MAX_MANIFEST_BYTES: usize = 1_048_576;
 
 #[derive(Debug, Deserialize)]
