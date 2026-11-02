@@ -722,7 +722,13 @@ fn build_impact_report(
                 let node = nodes
                     .get(destination)
                     .ok_or_else(|| "impact traversal found an unknown node".to_owned())?;
-                if !scope_matches(node, event_scope) || paths.contains_key(destination) {
+                // Authority scope constrains the event's direct targets, which
+                // were checked by validate_event. Once a valid target is selected,
+                // dependency impact follows exact graph edges across domain
+                // boundaries: a water decision can still consume an energy
+                // statement. Propagation only triggers re-verification/quarantine
+                // for descendants; it does not grant the revoker authority over them.
+                if paths.contains_key(destination) {
                     continue;
                 }
                 let mut next_path = current_path.clone();
@@ -1053,6 +1059,78 @@ mod tests {
     }
 
     #[test]
+    fn dependency_impact_crosses_domains_but_unconnected_out_of_scope_records_stay_unaffected() {
+        let mut fixture = fixture();
+        let graph = &mut fixture["graph"];
+        let water_source_id = graph["nodes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|node| {
+                node["node_type"] == "source_measurement"
+                    && node["scope"]["domain"] == "water"
+            })
+            .unwrap()["node_id"]
+            .clone();
+        let water_decision_digest = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+        let water_decision_id = format!("decision:sha256:{water_decision_digest}");
+        graph["nodes"].as_array_mut().unwrap().push(json!({
+            "node_id": water_decision_id,
+            "node_type": "decision",
+            "artifact_sha256": water_decision_digest,
+            "scope": {
+                "domain": "water",
+                "subject_pseudonyms": ["case:water:asset:delta"],
+                "purposes": ["water_operations"]
+            }
+        }));
+        graph["edges"].as_array_mut().unwrap().push(json!({
+            "edge_id": "edge-cross-domain-water-decision",
+            "from_node_id": water_source_id,
+            "to_node_id": water_decision_id,
+            "relation": "evidence_for"
+        }));
+
+        let mut digest_input = graph.clone();
+        digest_input
+            .as_object_mut()
+            .unwrap()
+            .remove("graph_snapshot_sha256");
+        graph["graph_snapshot_sha256"] = json!(canonical_json_digest(&digest_input).unwrap());
+
+        let nodes = validate_graph(graph).unwrap();
+        validate_event(&fixture["invalidation_event"], &nodes).unwrap();
+        let report = build_impact_report(
+            graph,
+            &fixture["invalidation_event"],
+            &fixture["expected_impact_report"],
+            &nodes,
+        )
+        .unwrap();
+        let results = report["results"].as_array().unwrap();
+        let water_source = results
+            .iter()
+            .find(|row| row["node_id"] == water_source_id)
+            .unwrap();
+        let water_decision = results
+            .iter()
+            .find(|row| row["node_id"] == water_decision_id)
+            .unwrap();
+        assert_eq!(water_source["impact_class"], "reverify_required");
+        assert_eq!(water_decision["impact_class"], "quarantined_pending_review");
+
+        let disconnected_water_control = results
+            .iter()
+            .find(|row| {
+                row["node_type"] == "source_measurement"
+                    && row["impact_class"] == "no_impact"
+                    && row["reason_codes"][0] == "OUTSIDE_INVALIDATION_SCOPE"
+            })
+            .expect("disconnected water control remains outside the impact closure");
+        assert_eq!(disconnected_water_control["impact_class"], "no_impact");
+    }
+
+    #[test]
     fn graph_snapshot_mutation_is_rejected() {
         let mut fixture = fixture();
         fixture["graph"]["nodes"][0]["issuer_id"] = json!("urn:example:attacker");
@@ -1148,7 +1226,8 @@ mod tests {
         node_ids.push(root_id.clone());
         nodes.push(root);
         for index in 1..impacted_nodes {
-            let (node_id, node) = scale_node(index, "execution", "energy");
+            let domain = if index % 5 == 0 { "water" } else { "energy" };
+            let (node_id, node) = scale_node(index, "execution", domain);
             let parent_index = if index == 1 { 0 } else { (index - 1) / 2 };
             edges.push(json!({
                 "edge_id": format!("edge-{index:08}"),
@@ -1160,7 +1239,8 @@ mod tests {
             nodes.push(node);
         }
         for index in impacted_nodes..total_nodes {
-            let (node_id, node) = scale_node(index, "source_measurement", "water");
+            let domain = if index % 2 == 0 { "water" } else { "energy" };
+            let (node_id, node) = scale_node(index, "source_measurement", domain);
             node_ids.push(node_id);
             nodes.push(node);
         }
