@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-ingestion-receipt-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Ingestion Receipt",
+  "description": "Deterministic evidence that exact bytes matched the digest declared by one source snapshot and were processed under a named pipeline configuration. It does not prove publisher authenticity, legal permission beyond the recorded authorization decision, semantic correctness, or archaeological validity.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source_id",
+    "asset_ref",
+    "retrieved_at",
+    "byte_length",
+    "content_sha256",
+    "metadata_sha256",
+    "pipeline_id",
+    "pipeline_version",
+    "receipt_sha256"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-ingestion-receipt.v0.1"
+    },
+    "source_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "asset_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "retrieved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "byte_length": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "content_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "metadata_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "pipeline_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "pipeline_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "receipt_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    }
+  }
+}

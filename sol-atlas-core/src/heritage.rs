@@ -883,8 +883,9 @@ pub fn authorize_metadata_use(
 }
 
 /// Verify exact supplied bytes against the source snapshot and create a
-/// deterministic receipt. This function does not decide whether the caller is
-/// allowed to download, view, process, train on, or redistribute the asset.
+/// deterministic receipt after authorizing the one requested use and access
+/// context. Authorization here does not extend to other purposes, publication,
+/// redistribution, land access, field survey, excavation, or physical disturbance.
 pub fn verify_artifact_bytes(
     metadata: &SourceAssetMetadata,
     bytes: &[u8],
@@ -900,6 +901,7 @@ pub fn verify_artifact_bytes(
         .map_err(ReceiptError::RightsDenied)?;
 
     let expected = metadata
+        .asset
         .content_sha256
         .as_deref()
         .ok_or(ReceiptError::MissingExpectedDigest)?;
