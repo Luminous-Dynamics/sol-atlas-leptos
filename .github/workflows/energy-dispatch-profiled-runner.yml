@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - "tools/energy-dispatch-profile-runner/src/main.rs"
+      - "tools/energy-dispatch-profile-runner/Cargo.toml"
+      - "Cargo.toml"
       - "sol-atlas-core/src/energy_dispatch.rs"
       - "sol-atlas-core/src/energy_pathway.rs"
       - "sol-atlas-core/src/lib.rs"
@@ -49,7 +51,7 @@ jobs:
         with:
           components: rustfmt, clippy
       - name: Format the profiled runner source
-        run: cargo fmt --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --check
+        run: cargo fmt --package energy-dispatch-profile-runner --check
       - name: Check exact-search profiler against the committed locked core
         run: cargo check --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-profile
       - name: Run exact-search profiler positive and negative controls
