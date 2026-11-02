@@ -13,10 +13,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
-use super::heritage_cause::{ChangeCause, CHANGE_CAUSES};
+use super::heritage_cause::{CHANGE_CAUSES, ChangeCause};
 
-pub const CAUSE_EVIDENCE_AUDIT_SCHEMA_VERSION: &str =
-    "luminous.heritage-cause-evidence-audit.v0.1";
+pub const CAUSE_EVIDENCE_AUDIT_SCHEMA_VERSION: &str = "luminous.heritage-cause-evidence-audit.v0.1";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -179,22 +178,56 @@ pub enum CauseEvidenceAuditError {
     DuplicateCauseHypothesis(ChangeCause),
     EmptyEvidenceId,
     DuplicateEvidenceId(String),
-    EvidenceForDifferentEvent { evidence_id: String },
-    EmptySourceReference { evidence_id: String },
-    InvalidSourceDigest { evidence_id: String },
-    EmptyMethodId { evidence_id: String },
-    EmptyIndependenceGroupId { evidence_id: String },
-    EmptyRightsReceipt { evidence_id: String },
-    EmptyReviewerReference { evidence_id: String },
-    EmptyAuthorityReference { evidence_id: String },
-    MissingDetectabilityAssessment { evidence_id: String },
-    EmptyEvidenceReference { cause: ChangeCause },
-    DuplicateEvidenceReference { cause: ChangeCause, evidence_id: String },
-    EvidenceReferenceNotFound { cause: ChangeCause, evidence_id: String },
-    EvidenceCauseMismatch { cause: ChangeCause, evidence_id: String },
-    EvidencePolarityMismatch { cause: ChangeCause, evidence_id: String },
+    EvidenceForDifferentEvent {
+        evidence_id: String,
+    },
+    EmptySourceReference {
+        evidence_id: String,
+    },
+    InvalidSourceDigest {
+        evidence_id: String,
+    },
+    EmptyMethodId {
+        evidence_id: String,
+    },
+    EmptyIndependenceGroupId {
+        evidence_id: String,
+    },
+    EmptyRightsReceipt {
+        evidence_id: String,
+    },
+    EmptyReviewerReference {
+        evidence_id: String,
+    },
+    EmptyAuthorityReference {
+        evidence_id: String,
+    },
+    MissingDetectabilityAssessment {
+        evidence_id: String,
+    },
+    EmptyEvidenceReference {
+        cause: ChangeCause,
+    },
+    DuplicateEvidenceReference {
+        cause: ChangeCause,
+        evidence_id: String,
+    },
+    EvidenceReferenceNotFound {
+        cause: ChangeCause,
+        evidence_id: String,
+    },
+    EvidenceCauseMismatch {
+        cause: ChangeCause,
+        evidence_id: String,
+    },
+    EvidencePolarityMismatch {
+        cause: ChangeCause,
+        evidence_id: String,
+    },
     UnreferencedEvidenceRecord(String),
-    InvalidCauseProbability { cause: ChangeCause },
+    InvalidCauseProbability {
+        cause: ChangeCause,
+    },
 }
 
 impl fmt::Display for CauseEvidenceAuditError {
@@ -607,7 +640,10 @@ mod tests {
         hypotheses: &'a mut [CauseHypothesisEvidence],
         cause: ChangeCause,
     ) -> &'a mut CauseHypothesisEvidence {
-        hypotheses.iter_mut().find(|item| item.cause == cause).unwrap()
+        hypotheses
+            .iter_mut()
+            .find(|item| item.cause == cause)
+            .unwrap()
     }
 
     fn evidence(
@@ -656,8 +692,20 @@ mod tests {
     fn separate_sources_and_independence_groups_count_as_independent_support() {
         let cause = ChangeCause::ArchaeologicalExcavationLooting;
         let records = vec![
-            evidence("support-a", cause, CauseEvidencePolarity::Supports, 'a', "group-a"),
-            evidence("support-b", cause, CauseEvidencePolarity::Supports, 'b', "group-b"),
+            evidence(
+                "support-a",
+                cause,
+                CauseEvidencePolarity::Supports,
+                'a',
+                "group-a",
+            ),
+            evidence(
+                "support-b",
+                cause,
+                CauseEvidencePolarity::Supports,
+                'b',
+                "group-b",
+            ),
         ];
         let mut hypotheses = hypotheses();
         let claim = hypothesis_mut(&mut hypotheses, cause);
@@ -665,7 +713,11 @@ mod tests {
         claim.support_evidence_refs = vec!["support-a".into(), "support-b".into()];
 
         let report = audit_cause_evidence(&case(hypotheses, records)).unwrap();
-        let summary = report.hypothesis_summaries.iter().find(|item| item.cause == cause).unwrap();
+        let summary = report
+            .hypothesis_summaries
+            .iter()
+            .find(|item| item.cause == cause)
+            .unwrap();
         assert!(summary.asserted);
         assert_eq!(summary.independent_support_count, 2);
         assert_eq!(summary.independent_support_modality_count, 1);
@@ -676,9 +728,27 @@ mod tests {
     fn same_source_or_same_independence_group_never_increases_independent_count() {
         let cause = ChangeCause::ArchaeologicalExcavationLooting;
         let records = vec![
-            evidence("support-a", cause, CauseEvidencePolarity::Supports, 'a', "group-a"),
-            evidence("same-source", cause, CauseEvidencePolarity::Supports, 'a', "group-b"),
-            evidence("same-group", cause, CauseEvidencePolarity::Supports, 'b', "group-a"),
+            evidence(
+                "support-a",
+                cause,
+                CauseEvidencePolarity::Supports,
+                'a',
+                "group-a",
+            ),
+            evidence(
+                "same-source",
+                cause,
+                CauseEvidencePolarity::Supports,
+                'a',
+                "group-b",
+            ),
+            evidence(
+                "same-group",
+                cause,
+                CauseEvidencePolarity::Supports,
+                'b',
+                "group-a",
+            ),
         ];
         let mut hypotheses = hypotheses();
         let claim = hypothesis_mut(&mut hypotheses, cause);
@@ -690,7 +760,11 @@ mod tests {
         ];
 
         let report = audit_cause_evidence(&case(hypotheses, records)).unwrap();
-        let summary = report.hypothesis_summaries.iter().find(|item| item.cause == cause).unwrap();
+        let summary = report
+            .hypothesis_summaries
+            .iter()
+            .find(|item| item.cause == cause)
+            .unwrap();
         assert_eq!(summary.independent_support_count, 1);
         assert_eq!(summary.non_independent_support_count, 2);
     }
@@ -698,13 +772,23 @@ mod tests {
     #[test]
     fn same_source_interpretation_is_visible_but_not_independent_support() {
         let cause = ChangeCause::ArchaeologicalExcavationLooting;
-        let mut record = evidence("same-source", cause, CauseEvidencePolarity::Supports, 'a', "group-a");
+        let mut record = evidence(
+            "same-source",
+            cause,
+            CauseEvidencePolarity::Supports,
+            'a',
+            "group-a",
+        );
         record.evidence_tier = CauseEvidenceTier::SameSourceInterpretation;
         let mut hypotheses = hypotheses();
         hypothesis_mut(&mut hypotheses, cause).support_evidence_refs = vec!["same-source".into()];
 
         let report = audit_cause_evidence(&case(hypotheses, vec![record])).unwrap();
-        let summary = report.hypothesis_summaries.iter().find(|item| item.cause == cause).unwrap();
+        let summary = report
+            .hypothesis_summaries
+            .iter()
+            .find(|item| item.cause == cause)
+            .unwrap();
         assert_eq!(summary.support_record_count, 1);
         assert_eq!(summary.independent_support_count, 0);
         assert_eq!(summary.non_independent_support_count, 1);
@@ -713,9 +797,21 @@ mod tests {
     #[test]
     fn context_only_and_rights_pending_evidence_are_not_independent() {
         let cause = ChangeCause::ArchaeologicalExcavationLooting;
-        let mut context = evidence("context", cause, CauseEvidencePolarity::Supports, 'a', "group-a");
+        let mut context = evidence(
+            "context",
+            cause,
+            CauseEvidencePolarity::Supports,
+            'a',
+            "group-a",
+        );
         context.scope = CauseEvidenceScope::ContextOnly;
-        let mut pending = evidence("pending", cause, CauseEvidencePolarity::Supports, 'b', "group-b");
+        let mut pending = evidence(
+            "pending",
+            cause,
+            CauseEvidencePolarity::Supports,
+            'b',
+            "group-b",
+        );
         pending.rights_status = CauseEvidenceRightsStatus::Pending;
         pending.rights_receipt_ref = None;
         let mut hypotheses = hypotheses();
@@ -723,7 +819,11 @@ mod tests {
             vec!["context".into(), "pending".into()];
 
         let report = audit_cause_evidence(&case(hypotheses, vec![context, pending])).unwrap();
-        let summary = report.hypothesis_summaries.iter().find(|item| item.cause == cause).unwrap();
+        let summary = report
+            .hypothesis_summaries
+            .iter()
+            .find(|item| item.cause == cause)
+            .unwrap();
         assert_eq!(summary.independent_support_count, 0);
         assert_eq!(summary.non_independent_support_count, 2);
         assert_eq!(report.context_only_evidence_record_count, 1);
@@ -734,8 +834,20 @@ mod tests {
     fn support_and_contradiction_are_both_preserved_as_contested_evidence() {
         let cause = ChangeCause::ArchaeologicalExcavationLooting;
         let records = vec![
-            evidence("supports", cause, CauseEvidencePolarity::Supports, 'a', "group-a"),
-            evidence("contradicts", cause, CauseEvidencePolarity::Contradicts, 'b', "group-b"),
+            evidence(
+                "supports",
+                cause,
+                CauseEvidencePolarity::Supports,
+                'a',
+                "group-a",
+            ),
+            evidence(
+                "contradicts",
+                cause,
+                CauseEvidencePolarity::Contradicts,
+                'b',
+                "group-b",
+            ),
         ];
         let mut hypotheses = hypotheses();
         let claim = hypothesis_mut(&mut hypotheses, cause);
@@ -744,7 +856,11 @@ mod tests {
         claim.contradiction_evidence_refs = vec!["contradicts".into()];
 
         let report = audit_cause_evidence(&case(hypotheses, records)).unwrap();
-        let summary = report.hypothesis_summaries.iter().find(|item| item.cause == cause).unwrap();
+        let summary = report
+            .hypothesis_summaries
+            .iter()
+            .find(|item| item.cause == cause)
+            .unwrap();
         assert!(summary.contested);
         assert_eq!(summary.independent_support_count, 1);
         assert_eq!(summary.independent_contradiction_count, 1);
@@ -765,7 +881,13 @@ mod tests {
     #[test]
     fn non_detection_requires_a_detectability_assessment() {
         let cause = ChangeCause::AgricultureCultivation;
-        let mut record = evidence("non-detection", cause, CauseEvidencePolarity::Contradicts, 'a', "group-a");
+        let mut record = evidence(
+            "non-detection",
+            cause,
+            CauseEvidencePolarity::Contradicts,
+            'a',
+            "group-a",
+        );
         record.is_non_detection = true;
         let mut hypotheses = hypotheses();
         hypothesis_mut(&mut hypotheses, cause).contradiction_evidence_refs =
@@ -779,7 +901,13 @@ mod tests {
     #[test]
     fn non_detection_with_detectability_is_retained_as_contradictory_evidence() {
         let cause = ChangeCause::AgricultureCultivation;
-        let mut record = evidence("non-detection", cause, CauseEvidencePolarity::Contradicts, 'a', "group-a");
+        let mut record = evidence(
+            "non-detection",
+            cause,
+            CauseEvidencePolarity::Contradicts,
+            'a',
+            "group-a",
+        );
         record.is_non_detection = true;
         record.detectability_assessment_ref = Some("urn:synthetic:detectability".into());
         let mut hypotheses = hypotheses();
@@ -787,14 +915,24 @@ mod tests {
             vec!["non-detection".into()];
         let report = audit_cause_evidence(&case(hypotheses, vec![record])).unwrap();
         assert_eq!(report.non_detection_record_count, 1);
-        let summary = report.hypothesis_summaries.iter().find(|item| item.cause == cause).unwrap();
+        let summary = report
+            .hypothesis_summaries
+            .iter()
+            .find(|item| item.cause == cause)
+            .unwrap();
         assert_eq!(summary.independent_contradiction_count, 1);
     }
 
     #[test]
     fn evidence_for_a_different_event_is_rejected() {
         let cause = ChangeCause::ArchaeologicalExcavationLooting;
-        let mut record = evidence("other-event", cause, CauseEvidencePolarity::Supports, 'a', "group-a");
+        let mut record = evidence(
+            "other-event",
+            cause,
+            CauseEvidencePolarity::Supports,
+            'a',
+            "group-a",
+        );
         record.event_id = "event-b".into();
         let mut hypotheses = hypotheses();
         hypothesis_mut(&mut hypotheses, cause).support_evidence_refs = vec!["other-event".into()];
@@ -814,7 +952,13 @@ mod tests {
             Err(CauseEvidenceAuditError::EvidenceReferenceNotFound { .. })
         ));
 
-        let record = evidence("contradiction", cause, CauseEvidencePolarity::Contradicts, 'a', "group-a");
+        let record = evidence(
+            "contradiction",
+            cause,
+            CauseEvidencePolarity::Contradicts,
+            'a',
+            "group-a",
+        );
         let mut wrong = hypotheses();
         hypothesis_mut(&mut wrong, cause).support_evidence_refs = vec!["contradiction".into()];
         assert!(matches!(
@@ -834,7 +978,13 @@ mod tests {
     #[test]
     fn rights_receipts_and_source_digests_are_required_when_applicable() {
         let cause = ChangeCause::ArchaeologicalExcavationLooting;
-        let mut no_receipt = evidence("no-receipt", cause, CauseEvidencePolarity::Supports, 'a', "group-a");
+        let mut no_receipt = evidence(
+            "no-receipt",
+            cause,
+            CauseEvidencePolarity::Supports,
+            'a',
+            "group-a",
+        );
         no_receipt.rights_receipt_ref = None;
         let mut hypotheses = hypotheses();
         hypothesis_mut(&mut hypotheses, cause).support_evidence_refs = vec!["no-receipt".into()];
@@ -843,7 +993,13 @@ mod tests {
             Err(CauseEvidenceAuditError::EmptyRightsReceipt { .. })
         ));
 
-        let mut bad_digest = evidence("bad-digest", cause, CauseEvidencePolarity::Supports, 'a', "group-a");
+        let mut bad_digest = evidence(
+            "bad-digest",
+            cause,
+            CauseEvidencePolarity::Supports,
+            'a',
+            "group-a",
+        );
         bad_digest.source_asset_sha256 = "not-a-sha256".into();
         let mut hypotheses = hypotheses();
         hypothesis_mut(&mut hypotheses, cause).support_evidence_refs = vec!["bad-digest".into()];
@@ -856,7 +1012,13 @@ mod tests {
     #[test]
     fn field_assessment_requires_reviewer_and_authority_references() {
         let cause = ChangeCause::ArchaeologicalExcavationLooting;
-        let mut record = evidence("no-reviewer", cause, CauseEvidencePolarity::Supports, 'a', "group-a");
+        let mut record = evidence(
+            "no-reviewer",
+            cause,
+            CauseEvidencePolarity::Supports,
+            'a',
+            "group-a",
+        );
         record.reviewer_ref = None;
         let mut hypotheses = hypotheses();
         hypothesis_mut(&mut hypotheses, cause).support_evidence_refs = vec!["no-reviewer".into()];
