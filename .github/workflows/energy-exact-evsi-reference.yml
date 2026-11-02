@@ -1,0 +1,75 @@
+name: Exact Energy EVSI Reference
+
+on:
+  pull_request:
+    paths:
+      - "tools/energy-exact-evsi-reference/**"
+      - ".github/workflows/energy-exact-evsi-reference.yml"
+  push:
+    branches:
+      - "research/energy-exact-evsi-reference-v0-1"
+    paths:
+      - "tools/energy-exact-evsi-reference/**"
+      - ".github/workflows/energy-exact-evsi-reference.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: energy-exact-evsi-reference-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  exact-evsi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CARGO_NET_OFFLINE: "true"
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/energy-exact-evsi-reference/cargo-target
+      EXPECTED_SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Assert exact subject
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SUBJECT_SHA"
+      - uses: dtolnay/rust-toolchain@1.96.0
+        with:
+          components: rustfmt, clippy
+      - name: Format
+        run: cargo fmt --manifest-path tools/energy-exact-evsi-reference/Cargo.toml --check
+      - name: Locked offline check
+        run: cargo check --locked --all-targets --manifest-path tools/energy-exact-evsi-reference/Cargo.toml
+      - name: Run exact EVSI and adversarial controls
+        run: cargo test --locked --all-targets --manifest-path tools/energy-exact-evsi-reference/Cargo.toml
+      - name: Strict Clippy
+        run: cargo clippy --locked --all-targets --manifest-path tools/energy-exact-evsi-reference/Cargo.toml -- -D warnings
+      - name: Emit deterministic heuristic-vs-EVSI report
+        run: |
+          mkdir -p target/energy-exact-evsi-reference
+          cargo run --release --locked --manifest-path tools/energy-exact-evsi-reference/Cargo.toml \
+            > target/energy-exact-evsi-reference/report.txt
+          grep -q 'heuristic_order=high-bound-low-information|lower-bound-informative' \
+            target/energy-exact-evsi-reference/report.txt
+          grep -q 'exact_evsi_order=lower-bound-informative|high-bound-low-information' \
+            target/energy-exact-evsi-reference/report.txt
+          grep -q 'perfect_information_evsi_numerator_ppm2=20000000000000' \
+            target/energy-exact-evsi-reference/report.txt
+      - name: Assert exact subject and clean source
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SUBJECT_SHA"
+          git diff --exit-code
+          test -z "$(git status --porcelain --untracked-files=all | grep -v '^?? target/energy-exact-evsi-reference/' || true)"
+      - name: Upload exact EVSI report and source
+        uses: actions/upload-artifact@v4
+        with:
+          name: energy-exact-evsi-reference-${{ github.sha }}
+          path: |
+            target/energy-exact-evsi-reference/report.txt
+            tools/energy-exact-evsi-reference/Cargo.toml
+            tools/energy-exact-evsi-reference/Cargo.lock
+            tools/energy-exact-evsi-reference/README.md
+            tools/energy-exact-evsi-reference/src/
+          if-no-files-found: error
+          retention-days: 14
