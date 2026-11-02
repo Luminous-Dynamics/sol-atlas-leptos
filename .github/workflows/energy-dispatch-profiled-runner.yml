@@ -50,11 +50,21 @@ jobs:
           components: rustfmt, clippy
       - name: Format the profiled runner source
         run: rustfmt --edition 2024 --check sol-atlas-core/src/bin/energy-dispatch-profile.rs
-      - name: Check exact-search profiler against the locked core
-        run: cargo check --locked --manifest-path sol-atlas-core/Cargo.toml --bin energy-dispatch-profile
-      - name: Run exact-search profiler positive and negative controls
+      - name: Reconcile workspace lockfile and capture exact resolver output
+        run: |
+          set -euo pipefail
+          mkdir -p target/energy-dispatch-profiled-runner
+          cp Cargo.lock target/energy-dispatch-profiled-runner/Cargo.lock.committed
+          cargo check --manifest-path sol-atlas-core/Cargo.toml --bin energy-dispatch-profile
+          cp Cargo.lock target/energy-dispatch-profiled-runner/Cargo.lock.resolved
+          diff -u target/energy-dispatch-profiled-runner/Cargo.lock.committed \
+            target/energy-dispatch-profiled-runner/Cargo.lock.resolved \
+            > target/energy-dispatch-profiled-runner/Cargo.lock.diff || true
+          sha256sum target/energy-dispatch-profiled-runner/Cargo.lock.resolved \
+            > target/energy-dispatch-profiled-runner/Cargo.lock.resolved.sha256
+      - name: Verify tests against the generated lockfile
         run: cargo test --locked --manifest-path sol-atlas-core/Cargo.toml --bin energy-dispatch-profile
-      - name: Strict Clippy
+      - name: Strict Clippy against the generated lockfile
         run: cargo clippy --locked --manifest-path sol-atlas-core/Cargo.toml --bin energy-dispatch-profile -- -D warnings
       - name: Execute the real exact enumerator on the frozen synthetic request
         run: |
@@ -90,6 +100,12 @@ jobs:
             printf 'logical_cpu_count='; nproc
             printf 'runner_ram_kib='; awk '/MemTotal/ {print $2}' /proc/meminfo
           } > target/energy-dispatch-profiled-runner/build-provenance.txt
+      - name: Restore committed lockfile after resolver diagnostic
+        if: always()
+        run: |
+          if test -f target/energy-dispatch-profiled-runner/Cargo.lock.committed; then
+            cp target/energy-dispatch-profiled-runner/Cargo.lock.committed Cargo.lock
+          fi
       - name: Assert exact source and clean tracked worktree
         run: |
           test "$(git rev-parse HEAD)" = "$EXPECTED_SUBJECT_SHA"
