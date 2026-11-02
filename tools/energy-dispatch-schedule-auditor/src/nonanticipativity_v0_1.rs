@@ -218,7 +218,8 @@ pub fn evaluate_nonanticipativity_bytes(
             || schedule.interval_dispatches.len() != request.intervals.len()
         {
             return Err(audit_error(
-                "each scenario must supply one information-set digest and one schedule step per source interval",
+                "each scenario must supply one information-set digest and one schedule step \
+                 per source interval",
             ));
         }
         if source
@@ -294,7 +295,8 @@ pub fn evaluate_nonanticipativity_bytes(
     });
     if !common_model {
         return Err(audit_error(
-            "scenario requests must share the same schema, asset configuration, energy quantum and interval chronology",
+            "scenario requests must share the same schema, asset configuration, energy \
+             quantum and interval chronology",
         ));
     }
 
@@ -398,9 +400,11 @@ pub fn evaluate_nonanticipativity_bytes(
             scenario_ids.clone(),
             observation_prefix_equal,
             if observation_prefix_equal {
-                "scenarios sharing this information set have identical declared exogenous observation prefixes"
+                "scenarios sharing this information set have identical declared \
+                 exogenous observation prefixes"
             } else {
-                "scenarios share an information-set label but their declared observation prefixes differ"
+                "scenarios share an information-set label but their declared \
+                 observation prefixes differ"
             },
         );
         add_finding(
@@ -428,7 +432,8 @@ pub fn evaluate_nonanticipativity_bytes(
             None,
             parsed.iter().map(|scenario| scenario.scenario_id.clone()).collect(),
             false,
-            "no interval contains a shared information set; non-anticipativity would otherwise pass vacuously",
+            "no interval contains a shared information set; non-anticipativity would \
+             otherwise pass vacuously",
         );
     }
 
@@ -464,7 +469,11 @@ pub fn evaluate_nonanticipativity_bytes(
         claim_ceiling,
     };
     let subject_bytes = serde_json::to_vec(&subject)
-        .map_err(|error| audit_error(format!("serialize non-anticipativity receipt subject: {error}")))?;
+        .map_err(|error| {
+            audit_error(format!(
+                "serialize non-anticipativity receipt subject: {error}"
+            ))
+        })?;
 
     Ok(NonAnticipativityReceiptV1 {
         receipt_schema: receipt_schema.to_owned(),
