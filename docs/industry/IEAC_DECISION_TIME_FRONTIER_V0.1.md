@@ -38,13 +38,19 @@ Three standards are useful, but their semantics must not be stretched:
 - **RFC 3161:** a trusted timestamp token can provide proof-of-existence of the datum before a stated time, subject to TSA policy and token validation. Existence is not the same as accessibility to a particular relying party.
 - **TUF:** signed metadata, expiration, monotonic versions and role separation are useful models for trusted metadata freshness and rollback/freeze resistance. TUF is not a decision-time evidence database or a source of physical truth.
 
-For that reason, only these initial proof kinds can support a relying-party availability candidate in v0.1:
+For that reason, v0.1 distinguishes **positive availability evidence** from **proof of first availability**.
+
+Positive availability evidence can establish that an artifact was available to the specified relying party by a particular time:
 
 - `relying_party_ingest_receipt` backed by an authenticated ingest log;
 - `authenticated_access_log` backed by an authenticated access log;
 - `sealed_cache_manifest` backed by the pinned trusted-clock policy.
 
-A SCITT receipt, RFC 3161 token or source assertion is retained as evidence but classifies as `unknown` for relying-party availability unless accompanied by a separate access/ingest proof. Scope must match the relying party in the decision reference. Every proof binds the exact evidence artifact digest.
+A positive access/ingest event after the decision cutoff proves availability by that later time. It does **not** prove the artifact was unavailable before then. Therefore a post-cutoff access event is `unknown`, not automatically `excluded_after_cutoff`.
+
+To classify an artifact as first available after the cutoff, require `complete_first_availability_ledger` plus a separately bound coverage proof for the exact relying-party and evidence-channel identity. The proof must establish a complete, independently verified observation interval beginning no later than the earliest possible decision cutoff and continuing through the latest possible first-access time. Both coverage endpoints carry their own clock uncertainty and are verified under the pinned verifier build and policy. Missing, partial, disputed, out-of-scope or temporally insufficient coverage remains `unknown`.
+
+A SCITT receipt, RFC 3161 token or source assertion is retained as evidence but classifies as `unknown` for relying-party availability unless accompanied by a separate access/ingest proof. Those existence proofs must not be relabelled as access proofs. Every availability proof binds the exact evidence artifact digest and the relying-party/evidence-channel scope.
 
 The `verification_status`, verifier-build digest and policy digest are externally produced facts. The tool checks that the digests match the verifier build and policy pinned by the snapshot; it does **not** verify those signatures/proofs itself. The outer IEAC trust policy must independently authenticate the provenance of this input and the pin.
 
@@ -87,7 +93,7 @@ The report hashes the exact input file bytes. It does not claim JCS canonicaliza
 
 ## 6. Frozen synthetic corpus
 
-The checked-in 12-item corpus includes:
+The checked-in 13-item corpus includes:
 
 1. Two independently supported pre-cutoff observations.
 2. An observation made earlier but ingested after the cutoff.
@@ -101,7 +107,7 @@ The checked-in 12-item corpus includes:
 10. A late outcome observation.
 11. An ingest proof without a verified external result.
 
-Expected distribution: 2 candidate-included, 3 excluded-after-cutoff and 7 unknown. These are synthetic contract outcomes, not measured operational accuracy or risk.
+Expected distribution: 2 candidate-included, 2 excluded-after-cutoff and 9 unknown. The two exclusions have complete channel-history coverage proving first availability after cutoff; ordinary late access observations remain unknown. These are synthetic contract outcomes, not measured operational accuracy or risk.
 
 ## 7. Benchmarks and promotion gates
 
@@ -141,7 +147,8 @@ Compare on identical evidence bytes, time facts, relying-party scope, clock unce
 2. **Source-timestamp-only replay:** tests the common but unsafe assumption that old source timestamps prove prior availability.
 3. **Single-time bitemporal replay:** compares valid/effective time with system/recorded time but lacks artifact-level relying-party availability.
 4. **SCITT/RFC 3161-only replay:** tests existence/registration evidence without an access proof.
-5. **IEAC decision frontier:** adds exact artifact binding, relying-party scope, verifier/policy pins and conservative interval comparison.
+5. **Positive-access-only replay:** treats a later fetch as evidence of prior absence (deliberately unsafe negative baseline).
+6. **IEAC decision frontier:** adds exact artifact binding, relying-party/channel scope, verifier/policy pins, interval comparison and complete-history evidence before asserting first availability after cutoff.
 
 IEAC should outperform these baselines on the frozen temporal-mismatch corpus while retaining useful candidate coverage. Do not claim superiority over a production historian or event-sourcing platform without a matched deployment comparison and independently sourced ground truth.
 
