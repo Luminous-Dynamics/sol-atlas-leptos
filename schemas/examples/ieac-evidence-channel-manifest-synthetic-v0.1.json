@@ -33,7 +33,10 @@
     "unmonitored_access_paths": [],
     "durability": "synchronous_durable",
     "loss_handling": "fail_closed",
-    "policy_change_semantics": "append_only_versioned"
+    "policy_change_semantics": "append_only_versioned",
+    "authorized_completeness_query_signers": [
+      "issuer:plant-17-access-ledger"
+    ]
   },
   "ledger": {
     "ledger_id": "ledger:plant-17-evidence",
