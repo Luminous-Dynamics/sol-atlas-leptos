@@ -13,6 +13,7 @@ use crate::energy_pathway::EvidenceClass;
 use serde::{Deserialize, Serialize};
 use std::cmp::Reverse;
 use std::collections::BTreeSet;
+use std::time::Instant;
 
 pub const MAX_CANDIDATE_EXPANSIONS: u64 = 1_000_000;
 pub const MAX_PARETO_FRONTIER: usize = 128;
@@ -183,6 +184,9 @@ pub struct EnergyDispatchAnytimeAssessment {
     pub search_complete: bool,
     pub optimality_proven: bool,
     pub enumeration_prefix_visits: u64,
+    /// Monotonic elapsed nanoseconds from search start to materializing the
+    /// first complete horizon trajectory. None means no complete candidate.
+    pub time_to_first_complete_candidate_ns: Option<u64>,
     pub configured_expansion_limit: u64,
     pub feasible_complete_schedules: u64,
     /// Always a complete horizon trajectory; never a partial path.
@@ -341,6 +345,8 @@ struct ExactSearch<'a> {
     feasible_complete_schedules: u64,
     frontier: Vec<DispatchParetoAlternative>,
     best_incumbent: Option<DispatchParetoAlternative>,
+    search_started_at: Instant,
+    time_to_first_complete_candidate_ns: Option<u64>,
 }
 
 impl<'a> ExactSearch<'a> {
@@ -374,6 +380,16 @@ impl<'a> ExactSearch<'a> {
             objective: objective.clone(),
             schedule: schedule.to_vec(),
         };
+
+        if self.time_to_first_complete_candidate_ns.is_none() {
+            self.time_to_first_complete_candidate_ns = Some(
+                u64::try_from(self.search_started_at.elapsed().as_nanos()).map_err(|_| {
+                    EnergyDispatchError::ArithmeticOverflow {
+                        context: "first-complete-candidate elapsed nanoseconds".to_owned(),
+                    }
+                })?,
+            );
+        }
 
         // Keep the best complete trajectory separately. Frontier insertion can
         // still fail after a candidate has been discovered.
@@ -630,6 +646,8 @@ fn run_energy_dispatch_search(
         feasible_complete_schedules: 0,
         frontier: Vec::new(),
         best_incumbent: None,
+        search_started_at: Instant::now(),
+        time_to_first_complete_candidate_ns: None,
     };
     let mut path = Vec::with_capacity(request.intervals.len());
     let stop_reason = match search.visit(0, request.battery.initial_soc_quanta, &mut path) {
@@ -679,6 +697,7 @@ fn anytime_report_from_search(
         search_complete,
         optimality_proven: disposition == EnergyDispatchAnytimeDisposition::ExactComplete,
         enumeration_prefix_visits: search.enumeration_prefix_visits,
+        time_to_first_complete_candidate_ns: search.time_to_first_complete_candidate_ns,
         configured_expansion_limit: request.max_candidate_expansions,
         feasible_complete_schedules: search.feasible_complete_schedules,
         candidate,
@@ -801,6 +820,9 @@ mod tests {
             exact.evaluated_action_expansions
         );
         let candidate = execution.anytime.candidate.expect("anytime incumbent");
+        assert!(
+            execution.anytime.time_to_first_complete_candidate_ns.is_some()
+        );
         assert!(exact.pareto_alternatives.iter().any(|alternative| {
             alternative.objective == candidate.objective
                 && alternative.schedule == candidate.schedule
@@ -837,6 +859,11 @@ mod tests {
         assert!(anytime.optimality_proven);
         let candidate = anytime.candidate.expect("complete candidate");
         assert_eq!(candidate.schedule.len(), request.intervals.len());
+        let first_candidate_ns = anytime
+            .time_to_first_complete_candidate_ns
+            .expect("first complete candidate time is measured");
+        assert!(first_candidate_ns > 0);
+        assert!(first_candidate_ns <= exact.evaluated_action_expansions.saturating_add(1));
         assert!(exact.pareto_alternatives.iter().any(|alternative| {
             alternative.objective == candidate.objective
                 && alternative.schedule == candidate.schedule
@@ -859,6 +886,7 @@ mod tests {
         assert!(!result.search_complete);
         assert!(!result.optimality_proven);
         assert!(result.candidate.is_none());
+        assert!(result.time_to_first_complete_candidate_ns.is_none());
         assert_eq!(result.enumeration_prefix_visits, 1);
         assert!(result.enumeration_prefix_visits <= result.configured_expansion_limit);
     }
@@ -884,6 +912,10 @@ mod tests {
         assert!(!result.optimality_proven);
         let candidate = result.candidate.expect("incumbent preserved");
         assert_eq!(candidate.schedule.len(), bounded.intervals.len());
+        let first_candidate_ns = result
+            .time_to_first_complete_candidate_ns
+            .expect("incumbent has a measured first-candidate time");
+        assert!(first_candidate_ns > 0);
         assert!(result.enumeration_prefix_visits <= result.configured_expansion_limit);
     }
 
