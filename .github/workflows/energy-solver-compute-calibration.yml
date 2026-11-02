@@ -4,11 +4,13 @@ on:
   pull_request:
     paths:
       - "tools/energy-solver-compute-calibration/**"
+      - ".github/workflows/energy-solver-compute-calibration.yml"
   push:
     branches:
       - "research/energy-solver-compute-calibration-*"
     paths:
       - "tools/energy-solver-compute-calibration/**"
+      - ".github/workflows/energy-solver-compute-calibration.yml"
 
 permissions:
   contents: read
@@ -51,77 +53,12 @@ jobs:
             tools/energy-solver-compute-calibration/fixtures/synthetic-traces.csv \
             > target/energy-solver-compute-calibration/synthetic-fixture-report.csv
           test "$(grep -vc '^cohort_id,' target/energy-solver-compute-calibration/synthetic-fixture-report.csv)" -eq 1
-          grep -q '^cohort-a,synthetic,30,22,22,30,18,4,4,4,0,0,0,' target/energy-solver-compute-calibration/synthetic-fixture-report.csv
-          grep -q ',NA,.*false
-          sha256sum tools/energy-solver-compute-calibration/fixtures/synthetic-traces.csv \
-            > target/energy-solver-compute-calibration/fixture-source.sha256
-          sha256sum "$CARGO_TARGET_DIR/release/energy-solver-compute-calibration" \
-            > target/energy-solver-compute-calibration/aggregator-binary.sha256
-          {
-            printf 'subject_commit=%s\n' "$(git rev-parse HEAD)"
-            printf 'rustc='; rustc --version
-            printf 'cargo='; cargo --version
-            printf 'runner_os=%s\n' "$RUNNER_OS"
-            printf 'runner_arch=%s\n' "$RUNNER_ARCH"
-            printf 'cpu_model='; lscpu | awk -F: '/Model name/ {gsub(/^ +/, "", $2); print $2; exit}'
-            printf 'logical_cpu_count='; nproc
-            printf 'runner_ram_kib='; awk '/MemTotal/ {print $2}' /proc/meminfo
-          } > target/energy-solver-compute-calibration/build-provenance.txt
-      - name: Assert exact subject and clean tracked source
-        run: |
-          test "$(git rev-parse HEAD)" = "$EXPECTED_SUBJECT_SHA"
-          git diff --exit-code
-          test -z "$(git status --porcelain --untracked-files=all)"
-      - name: Upload calibration fixture report and provenance
-        uses: actions/upload-artifact@v4
-        with:
-          name: energy-solver-compute-calibration-${{ github.sha }}
-          path: |
-            target/energy-solver-compute-calibration/
-            tools/energy-solver-compute-calibration/Cargo.toml
-            tools/energy-solver-compute-calibration/Cargo.lock
-            tools/energy-solver-compute-calibration/README.md
-            tools/energy-solver-compute-calibration/src/
-            tools/energy-solver-compute-calibration/fixtures/
-          if-no-files-found: error
-          retention-days: 14
- target/energy-solver-compute-calibration/synthetic-fixture-report.csv
+          grep -q '^cohort-a,synthetic,30,22,22,30,18,4,4,4,0,0,0,' \
+            target/energy-solver-compute-calibration/synthetic-fixture-report.csv
+          grep -q ',NA,.*false$' target/energy-solver-compute-calibration/synthetic-fixture-report.csv
           awk -F, 'NF != 34 { exit 1 }' tools/energy-solver-compute-calibration/fixtures/synthetic-traces.csv
           awk -F, 'NF != 34 { exit 1 }' target/energy-solver-compute-calibration/synthetic-fixture-report.csv
-          grep -q ',NA,NA,NA
-          sha256sum tools/energy-solver-compute-calibration/fixtures/synthetic-traces.csv \
-            > target/energy-solver-compute-calibration/fixture-source.sha256
-          sha256sum "$CARGO_TARGET_DIR/release/energy-solver-compute-calibration" \
-            > target/energy-solver-compute-calibration/aggregator-binary.sha256
-          {
-            printf 'subject_commit=%s\n' "$(git rev-parse HEAD)"
-            printf 'rustc='; rustc --version
-            printf 'cargo='; cargo --version
-            printf 'runner_os=%s\n' "$RUNNER_OS"
-            printf 'runner_arch=%s\n' "$RUNNER_ARCH"
-            printf 'cpu_model='; lscpu | awk -F: '/Model name/ {gsub(/^ +/, "", $2); print $2; exit}'
-            printf 'logical_cpu_count='; nproc
-            printf 'runner_ram_kib='; awk '/MemTotal/ {print $2}' /proc/meminfo
-          } > target/energy-solver-compute-calibration/build-provenance.txt
-      - name: Assert exact subject and clean tracked source
-        run: |
-          test "$(git rev-parse HEAD)" = "$EXPECTED_SUBJECT_SHA"
-          git diff --exit-code
-          test -z "$(git status --porcelain --untracked-files=all)"
-      - name: Upload calibration fixture report and provenance
-        uses: actions/upload-artifact@v4
-        with:
-          name: energy-solver-compute-calibration-${{ github.sha }}
-          path: |
-            target/energy-solver-compute-calibration/
-            tools/energy-solver-compute-calibration/Cargo.toml
-            tools/energy-solver-compute-calibration/Cargo.lock
-            tools/energy-solver-compute-calibration/README.md
-            tools/energy-solver-compute-calibration/src/
-            tools/energy-solver-compute-calibration/fixtures/
-          if-no-files-found: error
-          retention-days: 14
- tools/energy-solver-compute-calibration/fixtures/synthetic-traces.csv
+          grep -q ',NA,NA,NA$' tools/energy-solver-compute-calibration/fixtures/synthetic-traces.csv
           sha256sum tools/energy-solver-compute-calibration/fixtures/synthetic-traces.csv \
             > target/energy-solver-compute-calibration/fixture-source.sha256
           sha256sum "$CARGO_TARGET_DIR/release/energy-solver-compute-calibration" \
