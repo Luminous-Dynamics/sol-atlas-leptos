@@ -760,7 +760,7 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use serde_json::Value;
 
     #[test]
     fn tiny_signed_float_values_roundtrip_to_identical_canonical_json() {
