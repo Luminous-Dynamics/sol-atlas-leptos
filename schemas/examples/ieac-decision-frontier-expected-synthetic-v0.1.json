@@ -3,9 +3,9 @@
   "fixture_status": "synthetic_only",
   "snapshot_file": "ieac-decision-frontier-snapshot-synthetic-v0.1.json",
   "expected": {
-    "evidence_count": 12,
-    "excluded_after_cutoff": 3,
-    "unknown": 7,
+    "evidence_count": 13,
+    "excluded_after_cutoff": 2,
+    "unknown": 9,
     "history_completeness": "not_established",
     "classifications": [
       {
@@ -20,13 +20,13 @@
       },
       {
         "evidence_id": "late-ingested-observation",
-        "status": "excluded_after_cutoff",
-        "reason_code": "verified_available_after_cutoff"
+        "status": "unknown",
+        "reason_code": "post_cutoff_access_does_not_prove_prior_absence"
       },
       {
         "evidence_id": "backdated-source-correction",
         "status": "excluded_after_cutoff",
-        "reason_code": "verified_available_after_cutoff"
+        "reason_code": "complete_channel_history_proves_first_availability_after_cutoff"
       },
       {
         "evidence_id": "scitt-registration-is-not-access",
@@ -60,13 +60,18 @@
       },
       {
         "evidence_id": "late-outcome-observation",
-        "status": "excluded_after_cutoff",
-        "reason_code": "verified_available_after_cutoff"
+        "status": "unknown",
+        "reason_code": "post_cutoff_access_does_not_prove_prior_absence"
       },
       {
         "evidence_id": "unverified-ingest-proof",
         "status": "unknown",
         "reason_code": "availability_time_not_independently_verified"
+      },
+      {
+        "evidence_id": "late-complete-ledger-record",
+        "status": "excluded_after_cutoff",
+        "reason_code": "complete_channel_history_proves_first_availability_after_cutoff"
       }
     ],
     "candidate_as_known_count": 2
