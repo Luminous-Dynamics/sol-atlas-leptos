@@ -366,35 +366,37 @@ fn validate_validity(profile: &Value, out: &mut Vec<ValidationIssue>) {
     };
     let start = string(validity, "valid_from", "/validity", out);
     let review = string(validity, "review_by", "/validity", out);
-    if let Some(s) = start {
-        if !is_canonical_utc(s) {
-            issue(
-                out,
-                "NONCANONICAL_VALID_FROM",
-                "/validity/valid_from",
-                "Use canonical UTC YYYY-MM-DDTHH:MM:SSZ.",
-            );
-        }
+    if let Some(s) = start
+        && !is_canonical_utc(s)
+    {
+        issue(
+            out,
+            "NONCANONICAL_VALID_FROM",
+            "/validity/valid_from",
+            "Use canonical UTC YYYY-MM-DDTHH:MM:SSZ.",
+        );
     }
-    if let Some(r) = review {
-        if !is_canonical_utc(r) {
-            issue(
-                out,
-                "NONCANONICAL_REVIEW_BY",
-                "/validity/review_by",
-                "Use canonical UTC YYYY-MM-DDTHH:MM:SSZ.",
-            );
-        }
+    if let Some(r) = review
+        && !is_canonical_utc(r)
+    {
+        issue(
+            out,
+            "NONCANONICAL_REVIEW_BY",
+            "/validity/review_by",
+            "Use canonical UTC YYYY-MM-DDTHH:MM:SSZ.",
+        );
     }
-    if let (Some(s), Some(r)) = (start, review) {
-        if is_canonical_utc(s) && is_canonical_utc(r) && r <= s {
-            issue(
-                out,
-                "INVALID_VALIDITY_WINDOW",
-                "/validity/review_by",
-                "review_by must be later than valid_from.",
-            );
-        }
+    if let (Some(s), Some(r)) = (start, review)
+        && is_canonical_utc(s)
+        && is_canonical_utc(r)
+        && r <= s
+    {
+        issue(
+            out,
+            "INVALID_VALIDITY_WINDOW",
+            "/validity/review_by",
+            "review_by must be later than valid_from.",
+        );
     }
 }
 
@@ -421,15 +423,15 @@ fn validate_artifacts<'a>(
         let rights = string(artifact, "rights_state", &path, out);
         let _ = string(artifact, "evidence_class", &path, out);
 
-        if let Some(id) = id {
-            if by_id.insert(id.to_owned(), artifact).is_some() {
-                issue(
-                    out,
-                    "DUPLICATE_ARTIFACT_ID",
-                    format!("{path}/artifact_id"),
-                    "Artifact IDs must be unique.",
-                );
-            }
+        if let Some(id) = id
+            && by_id.insert(id.to_owned(), artifact).is_some()
+        {
+            issue(
+                out,
+                "DUPLICATE_ARTIFACT_ID",
+                format!("{path}/artifact_id"),
+                "Artifact IDs must be unique.",
+            );
         }
         if let Some(role) = role {
             roles.insert(role.to_owned());
@@ -462,45 +464,45 @@ fn validate_artifacts<'a>(
                     );
                 }
             }
-            if let Some(repo) = repo {
-                if repo.split('/').count() != 2 {
-                    issue(
-                        out,
-                        "INVALID_REPOSITORY",
-                        format!("{path}/repository"),
-                        "Repository must use owner/name form.",
-                    );
-                }
+            if let Some(repo) = repo
+                && repo.split('/').count() != 2
+            {
+                issue(
+                    out,
+                    "INVALID_REPOSITORY",
+                    format!("{path}/repository"),
+                    "Repository must use owner/name form.",
+                );
             }
-            if let Some(commit) = commit {
-                if !is_hex(commit, 40) {
-                    issue(
-                        out,
-                        "INVALID_COMMIT_SHA",
-                        format!("{path}/commit_sha"),
-                        "Expected a 40-character Git commit SHA.",
-                    );
-                }
+            if let Some(commit) = commit
+                && !is_hex(commit, 40)
+            {
+                issue(
+                    out,
+                    "INVALID_COMMIT_SHA",
+                    format!("{path}/commit_sha"),
+                    "Expected a 40-character Git commit SHA.",
+                );
             }
-            if let Some(blob) = blob {
-                if !is_hex(blob, 40) {
-                    issue(
-                        out,
-                        "INVALID_GIT_BLOB_SHA",
-                        format!("{path}/git_blob_sha"),
-                        "Expected a 40-character Git blob SHA-1.",
-                    );
-                }
+            if let Some(blob) = blob
+                && !is_hex(blob, 40)
+            {
+                issue(
+                    out,
+                    "INVALID_GIT_BLOB_SHA",
+                    format!("{path}/git_blob_sha"),
+                    "Expected a 40-character Git blob SHA-1.",
+                );
             }
-            if let Some(path_value) = file_path {
-                if path_value.starts_with('/') || path_value.split('/').any(|p| p == "..") {
-                    issue(
-                        out,
-                        "UNSAFE_ARTIFACT_PATH",
-                        format!("{path}/path"),
-                        "Use a repository-relative path without parent traversal.",
-                    );
-                }
+            if let Some(path_value) = file_path
+                && (path_value.starts_with('/') || path_value.split('/').any(|p| p == ".."))
+            {
+                issue(
+                    out,
+                    "UNSAFE_ARTIFACT_PATH",
+                    format!("{path}/path"),
+                    "Use a repository-relative path without parent traversal.",
+                );
             }
         }
         if is_external_binding {
@@ -539,17 +541,16 @@ fn validate_artifacts<'a>(
                 "Artifact requires either a Git repository pin or an external URI plus SHA-256.",
             );
         }
-        if !is_external_binding {
-            if let Some(content) = content_sha256 {
-                if !is_hex(content, 64) {
-                    issue(
-                        out,
-                        "INVALID_CONTENT_SHA256",
-                        format!("{path}/content_sha256"),
-                        "Expected a 64-character SHA-256 digest.",
-                    );
-                }
-            }
+        if !is_external_binding
+            && let Some(content) = content_sha256
+            && !is_hex(content, 64)
+        {
+            issue(
+                out,
+                "INVALID_CONTENT_SHA256",
+                format!("{path}/content_sha256"),
+                "Expected a 64-character SHA-256 digest.",
+            );
         }
         if let Some(rights) = rights {
             if !["verified", "restricted", "unknown", "not_applicable"].contains(&rights) {
@@ -734,25 +735,25 @@ fn validate_evidence(
                 validate_canonical_timestamp(observed_at, &format!("{ev_path}/observed_at"), out);
             }
             validate_optional_timestamp(item, "valid_until", &ev_path, out);
-            if let Some(id) = evidence_id {
-                if !evidence_ids.insert(id.to_owned()) {
-                    issue(
-                        out,
-                        "DUPLICATE_EVIDENCE_ID",
-                        format!("{ev_path}/evidence_id"),
-                        "Evidence IDs must be unique across the full profile.",
-                    );
-                }
+            if let Some(id) = evidence_id
+                && !evidence_ids.insert(id.to_owned())
+            {
+                issue(
+                    out,
+                    "DUPLICATE_EVIDENCE_ID",
+                    format!("{ev_path}/evidence_id"),
+                    "Evidence IDs must be unique across the full profile.",
+                );
             }
-            if let Some(id) = artifact_id {
-                if !artifact_ids.contains_key(id) {
-                    issue(
-                        out,
-                        "DANGLING_EVIDENCE_ARTIFACT",
-                        format!("{ev_path}/artifact_id"),
-                        "Evidence artifact_id must reference an artifact binding.",
-                    );
-                }
+            if let Some(id) = artifact_id
+                && !artifact_ids.contains_key(id)
+            {
+                issue(
+                    out,
+                    "DANGLING_EVIDENCE_ARTIFACT",
+                    format!("{ev_path}/artifact_id"),
+                    "Evidence artifact_id must reference an artifact binding.",
+                );
             }
             if state == "established" {
                 let _ = string(item, "verifier_id", &ev_path, out);
