@@ -1,0 +1,321 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-cause-evidence-audit-input-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Cause Evidence Audit Input",
+  "description": "Typed event-specific support and contradiction evidence for the multi-label cause hypotheses. Evidence counts are audited, not used to automatically adjudicate causation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "case_id",
+    "event_id",
+    "abstained",
+    "cause_threshold",
+    "hypotheses",
+    "evidence_records"
+  ],
+  "properties": {
+    "case_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "event_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "abstained": {
+      "type": "boolean"
+    },
+    "cause_threshold": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "hypotheses": {
+      "type": "array",
+      "minItems": 11,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "cause",
+          "probability",
+          "support_evidence_refs",
+          "contradiction_evidence_refs"
+        ],
+        "properties": {
+          "cause": {
+            "enum": [
+              "archaeological_excavation_looting",
+              "agriculture_cultivation",
+              "seasonal_vegetation_phenology",
+              "erosion_geomorphic",
+              "hydrology_flood",
+              "fire_vegetation_clearance",
+              "modern_construction_infrastructure",
+              "quarry_mining",
+              "military_conflict",
+              "sensor_processing_artifact",
+              "other_known_cause"
+            ]
+          },
+          "probability": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "support_evidence_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          },
+          "contradiction_evidence_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          }
+        }
+      }
+    },
+    "evidence_records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "evidence_id",
+          "event_id",
+          "cause",
+          "polarity",
+          "modality",
+          "evidence_tier",
+          "scope",
+          "rights_status",
+          "source_ref",
+          "source_asset_sha256",
+          "method_id",
+          "independence_group_id",
+          "rights_receipt_ref",
+          "reviewer_ref",
+          "authority_ref",
+          "is_non_detection",
+          "detectability_assessment_ref"
+        ],
+        "properties": {
+          "evidence_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "event_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "cause": {
+            "enum": [
+              "archaeological_excavation_looting",
+              "agriculture_cultivation",
+              "seasonal_vegetation_phenology",
+              "erosion_geomorphic",
+              "hydrology_flood",
+              "fire_vegetation_clearance",
+              "modern_construction_infrastructure",
+              "quarry_mining",
+              "military_conflict",
+              "sensor_processing_artifact",
+              "other_known_cause"
+            ]
+          },
+          "polarity": {
+            "enum": [
+              "supports",
+              "contradicts"
+            ]
+          },
+          "modality": {
+            "enum": [
+              "satellite_optical",
+              "satellite_sar",
+              "satellite_multispectral",
+              "uav_optical",
+              "uav_thermal",
+              "airborne_lidar",
+              "terrestrial_lidar",
+              "field_walkover",
+              "magnetometry",
+              "ground_penetrating_radar",
+              "electrical_resistivity",
+              "archival",
+              "community_observation",
+              "other"
+            ]
+          },
+          "evidence_tier": {
+            "enum": [
+              "field_assessed",
+              "independently_expert_reviewed",
+              "instrument_observation",
+              "same_source_interpretation",
+              "model_derived",
+              "catalogue_reference",
+              "unknown"
+            ]
+          },
+          "scope": {
+            "enum": [
+              "same_event",
+              "context_only"
+            ]
+          },
+          "rights_status": {
+            "enum": [
+              "verified",
+              "pending",
+              "denied",
+              "unknown"
+            ]
+          },
+          "source_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_asset_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "method_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "independence_group_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rights_receipt_ref": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          },
+          "reviewer_ref": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          },
+          "authority_ref": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          },
+          "is_non_detection": {
+            "type": "boolean"
+          },
+          "detectability_assessment_ref": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "rights_status": {
+                  "const": "verified"
+                }
+              },
+              "required": [
+                "rights_status"
+              ]
+            },
+            "then": {
+              "properties": {
+                "rights_receipt_ref": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "evidence_tier": {
+                  "enum": [
+                    "field_assessed",
+                    "independently_expert_reviewed"
+                  ]
+                }
+              },
+              "required": [
+                "evidence_tier"
+              ]
+            },
+            "then": {
+              "properties": {
+                "reviewer_ref": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "authority_ref": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "is_non_detection": {
+                  "const": true
+                }
+              },
+              "required": [
+                "is_non_detection"
+              ]
+            },
+            "then": {
+              "properties": {
+                "detectability_assessment_ref": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "is_non_detection": {
+                  "const": true
+                }
+              },
+              "required": [
+                "is_non_detection"
+              ]
+            },
+            "then": {
+              "properties": {
+                "polarity": {
+                  "const": "contradicts"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
