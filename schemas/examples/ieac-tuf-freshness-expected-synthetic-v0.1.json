@@ -5,7 +5,7 @@
   "policy_file": "ieac-tuf-freshness-policy-synthetic-v0.1.json",
   "state_file": "ieac-tuf-high-water-state-synthetic-v0.1.json",
   "expected": {
-    "status": "current",
+    "status": "unverified",
     "root_version": 3,
     "timestamp_version": 14,
     "snapshot_version": 9,
@@ -32,12 +32,7 @@
     "action_authority": "none",
     "completeness_attestation_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
     "availability_report_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-    "state_transition": {
-      "expected_previous_state_revision": 18,
-      "next_state_revision": 19,
-      "commit_semantics": "compare_and_swap_atomic",
-      "next_sequence": 120,
-      "next_target_role_count": 4
-    }
+    "structural_status": "consistent",
+    "verification_boundary": "external_tuf_report_not_authenticated_or_cryptographically_verified_here"
   }
 }
