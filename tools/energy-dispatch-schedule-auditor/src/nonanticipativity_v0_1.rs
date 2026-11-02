@@ -14,8 +14,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 pub const NONANTICIPATIVITY_AUDITOR_ID: &str = "energy-dispatch-nonanticipativity-auditor";
-pub const NONANTICIPATIVITY_RECEIPT_SCHEMA_V1: &str =
-    "energy-dispatch-nonanticipativity-receipt-v0.1";
+pub const NONANTICIPATIVITY_RECEIPT_SCHEMA_V2: &str =
+    "energy-dispatch-nonanticipativity-receipt-v0.2";
 pub const MAX_SCENARIOS: usize = 256;
 
 /// Information-set metadata reconstructed from the exact forecast artifact.
@@ -561,7 +561,7 @@ pub fn evaluate_nonanticipativity_bytes(
     } else {
         NonAnticipativityDispositionV1::Rejected
     };
-    let receipt_schema = NONANTICIPATIVITY_RECEIPT_SCHEMA_V1;
+    let receipt_schema = NONANTICIPATIVITY_RECEIPT_SCHEMA_V2;
     let auditor_id = NONANTICIPATIVITY_AUDITOR_ID;
     let auditor_version = env!("CARGO_PKG_VERSION");
     let auditor_binary_sha256 = current_binary_sha256()?;
