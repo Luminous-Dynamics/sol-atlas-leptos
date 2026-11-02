@@ -16,7 +16,8 @@
     "spatial_block_count",
     "geometry_distances_recomputed_by_core",
     "manifest_sha256",
-    "receipt_sha256"
+    "receipt_sha256",
+    "sample_count"
   ],
   "properties": {
     "schema_version": {
@@ -85,6 +86,10 @@
     "receipt_sha256": {
       "type": "string",
       "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "sample_count": {
+      "type": "integer",
+      "minimum": 0
     }
   }
 }

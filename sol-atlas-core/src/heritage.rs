@@ -92,7 +92,7 @@ pub struct RightsProfile {
     pub restrictions: Vec<String>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AccessContext {
     /// Highest access tier explicitly granted to the current caller.
     pub max_tier: AccessTier,
@@ -109,7 +109,8 @@ impl AccessContext {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum RightsDenial {
     RightsNotVerified(RightsState),
     PurposeNotPermitted(HeritageUse),
@@ -607,7 +608,7 @@ fn requires_vertical_datum(modality: HeritageModality) -> bool {
     )
 }
 
-fn parse_rfc3339_nanos(value: &str) -> Option<i128> {
+pub(crate) fn parse_rfc3339_nanos(value: &str) -> Option<i128> {
     let bytes = value.as_bytes();
     if bytes.len() < 20
         || bytes.get(4) != Some(&b'-')
@@ -860,26 +861,41 @@ impl fmt::Display for ReceiptError {
 
 impl std::error::Error for ReceiptError {}
 
-/// Apply both asset-level rights and spatial geometry access controls.
+/// Apply asset-level rights, spatial geometry tier and exact-geometry policy.
+pub fn authorize_rights_and_geometry(
+    rights: &RightsProfile,
+    geometry_access_tier: AccessTier,
+    purpose: HeritageUse,
+    context: AccessContext,
+    exact_geometry: bool,
+) -> Result<(), RightsDenial> {
+    rights.authorize(purpose, context, exact_geometry)?;
+    if geometry_access_tier == AccessTier::Withheld {
+        return Err(RightsDenial::WithheldAsset);
+    }
+    if context.max_tier < geometry_access_tier {
+        return Err(RightsDenial::AccessTierInsufficient {
+            required: geometry_access_tier,
+            granted: context.max_tier,
+        });
+    }
+    Ok(())
+}
+
+/// Apply rights controls to one registered source asset.
 pub fn authorize_metadata_use(
     metadata: &SourceAssetMetadata,
     purpose: HeritageUse,
     context: AccessContext,
     exact_geometry: bool,
 ) -> Result<(), RightsDenial> {
-    metadata
-        .rights
-        .authorize(purpose, context, exact_geometry)?;
-    if metadata.spatial.geometry_access_tier == AccessTier::Withheld {
-        return Err(RightsDenial::WithheldAsset);
-    }
-    if context.max_tier < metadata.spatial.geometry_access_tier {
-        return Err(RightsDenial::AccessTierInsufficient {
-            required: metadata.spatial.geometry_access_tier,
-            granted: context.max_tier,
-        });
-    }
-    Ok(())
+    authorize_rights_and_geometry(
+        &metadata.rights,
+        metadata.spatial.geometry_access_tier,
+        purpose,
+        context,
+        exact_geometry,
+    )
 }
 
 /// Verify exact supplied bytes against the source snapshot and create a

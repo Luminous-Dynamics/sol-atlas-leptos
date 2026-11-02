@@ -5,6 +5,7 @@
 //! This module consumes supplied priors/likelihoods; it never invents them or
 //! authorizes land access, permits, excavation, or physical disturbance.
 
+use crate::heritage::{authorize_rights_and_geometry, AccessContext, AccessTier, HeritageUse, RightsDenial, RightsProfile};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
@@ -23,9 +24,20 @@ pub struct SurveyOutcomeModel {
     pub likelihood_by_hypothesis: BTreeMap<String, f64>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SurveyDataAuthorization {
+    pub source_id: String,
+    pub asset_ref: String,
+    pub rights_profile: RightsProfile,
+    pub geometry_access_tier: AccessTier,
+    pub purpose: HeritageUse,
+    pub access_context: AccessContext,
+    pub exact_geometry: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SurveyAuthorization {
-    pub source_rights_verified: bool,
+    pub source_data: Vec<SurveyDataAuthorization>,
     pub requires_land_access: bool,
     pub land_access_confirmed: bool,
     pub requires_permit: bool,
@@ -66,7 +78,7 @@ pub struct SurveyRecommendation {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SurveyRejectionReason {
-    SourceRightsNotVerified,
+    SourceRightsDenied(RightsDenial),
     LandAccessNotConfirmed,
     PermitNotConfirmed,
     CustodialReviewIncomplete,
@@ -96,6 +108,9 @@ pub enum SurveyPlannerError {
     InvalidPriorProbability { hypothesis_id: String },
     PriorProbabilitiesDoNotSumToOne { sum: f64, tolerance: f64 },
     EmptyActionId,
+    EmptySourceDataAuthorizations { action_id: String },
+    EmptySourceId { action_id: String },
+    EmptyAssetReference { action_id: String },
     DuplicateActionId(String),
     InvalidCost { action_id: String },
     InvalidImpactScore { action_id: String },
@@ -163,6 +178,10 @@ fn validate_priors(
             tolerance,
         });
     }
+    // Normalize accepted floating-point summation drift before Bayesian updating.
+    for probability in by_id.values_mut() {
+        *probability /= sum;
+    }
     Ok(by_id)
 }
 
@@ -183,6 +202,19 @@ fn validate_action(
         return Err(SurveyPlannerError::InvalidImpactScore {
             action_id: action.action_id.clone(),
         });
+    }
+    if action.authorization.source_data.is_empty() {
+        return Err(SurveyPlannerError::EmptySourceDataAuthorizations {
+            action_id: action.action_id.clone(),
+        });
+    }
+    for source in &action.authorization.source_data {
+        if source.source_id.trim().is_empty() {
+            return Err(SurveyPlannerError::EmptySourceId { action_id: action.action_id.clone() });
+        }
+        if source.asset_ref.trim().is_empty() {
+            return Err(SurveyPlannerError::EmptyAssetReference { action_id: action.action_id.clone() });
+        }
     }
     if action.likelihood_basis_ref.trim().is_empty() {
         return Err(SurveyPlannerError::EmptyLikelihoodBasis {
@@ -252,8 +284,16 @@ fn rejection_reason(
     action: &SurveyAction,
     constraints: SurveyPlanningConstraints,
 ) -> Option<SurveyRejectionReason> {
-    if !action.authorization.source_rights_verified {
-        return Some(SurveyRejectionReason::SourceRightsNotVerified);
+    for source in &action.authorization.source_data {
+        if let Err(reason) = authorize_rights_and_geometry(
+            &source.rights_profile,
+            source.geometry_access_tier,
+            source.purpose,
+            source.access_context,
+            source.exact_geometry,
+        ) {
+            return Some(SurveyRejectionReason::SourceRightsDenied(reason));
+        }
     }
     if action.authorization.requires_land_access && !action.authorization.land_access_confirmed {
         return Some(SurveyRejectionReason::LandAccessNotConfirmed);
@@ -281,7 +321,10 @@ pub fn expected_information_gain_nats(
     action: &SurveyAction,
     probability_tolerance: f64,
 ) -> Result<(f64, f64), SurveyPlannerError> {
-    if !probability_tolerance.is_finite() || probability_tolerance <= 0.0 {
+    if !probability_tolerance.is_finite()
+        || probability_tolerance <= 0.0
+        || probability_tolerance > 1.0
+    {
         return Err(SurveyPlannerError::InvalidProbabilityTolerance);
     }
     let prior_by_id = validate_priors(priors, probability_tolerance)?;
@@ -294,7 +337,7 @@ pub fn expected_information_gain_nats(
         let outcome_probability: f64 = prior_by_id
             .iter()
             .map(|(hypothesis_id, prior)| {
-                prior * outcome.likelihood_by_hypothesis[hypothesis_id]
+                *prior * outcome.likelihood_by_hypothesis[hypothesis_id]
             })
             .sum();
 
@@ -302,7 +345,7 @@ pub fn expected_information_gain_nats(
             continue;
         }
         let posterior = prior_by_id.iter().map(|(hypothesis_id, prior)| {
-            prior * outcome.likelihood_by_hypothesis[hypothesis_id] / outcome_probability
+            *prior * outcome.likelihood_by_hypothesis[hypothesis_id] / outcome_probability
         });
         expected_posterior_entropy += outcome_probability * entropy_nats(posterior);
     }
@@ -336,6 +379,7 @@ pub fn plan_non_invasive_surveys(
     }
     if !constraints.probability_tolerance.is_finite()
         || constraints.probability_tolerance <= 0.0
+        || constraints.probability_tolerance > 1.0
     {
         return Err(SurveyPlannerError::InvalidProbabilityTolerance);
     }
@@ -408,8 +452,29 @@ mod tests {
     }
 
     fn authorization() -> SurveyAuthorization {
+        let mut permitted_uses = BTreeSet::new();
+        permitted_uses.insert(HeritageUse::Research);
         SurveyAuthorization {
-            source_rights_verified: true,
+            source_data: vec![SurveyDataAuthorization {
+                source_id: "synthetic-source".into(),
+                asset_ref: "urn:synthetic:asset:01".into(),
+                rights_profile: RightsProfile {
+                    state: crate::heritage::RightsState::Verified,
+                    permitted_uses,
+                    access_tier: AccessTier::ApprovedResearch,
+                    exact_geometry_policy: crate::heritage::ExactGeometryPolicy::ApprovedResearchOnly,
+                    licence_uri: Some("https://example.invalid/licence".into()),
+                    attribution_text: None,
+                    consent_or_authority_ref: Some("urn:synthetic:consent:01".into()),
+                    jurisdiction: Some("synthetic".into()),
+                    review_due_at: None,
+                    restrictions: Vec::new(),
+                },
+                geometry_access_tier: AccessTier::ApprovedResearch,
+                purpose: HeritageUse::Research,
+                access_context: AccessContext { max_tier: AccessTier::ApprovedResearch, exact_geometry_authorized: true },
+                exact_geometry: true,
+            }],
             requires_land_access: true,
             land_access_confirmed: true,
             requires_permit: true,
@@ -485,7 +550,7 @@ mod tests {
     #[test]
     fn authorisation_cost_and_impact_gates_reject_actions() {
         let mut no_rights = action("no-rights", 1.0, 0.0, [(1.0, 0.0), (0.0, 1.0)]);
-        no_rights.authorization.source_rights_verified = false;
+        no_rights.authorization.source_data[0].rights_profile.state = crate::heritage::RightsState::Unknown;
         let mut no_land = action("no-land", 1.0, 0.0, [(1.0, 0.0), (0.0, 1.0)]);
         no_land.authorization.land_access_confirmed = false;
         let mut no_permit = action("no-permit", 1.0, 0.0, [(1.0, 0.0), (0.0, 1.0)]);
@@ -504,12 +569,59 @@ mod tests {
 
         assert!(plan.ranked_actions.is_empty());
         assert_eq!(plan.rejected_actions.len(), 6);
-        assert!(plan.rejected_actions.iter().any(|r| r.reason == SurveyRejectionReason::SourceRightsNotVerified));
+        assert!(plan.rejected_actions.iter().any(|r| matches!(r.reason, SurveyRejectionReason::SourceRightsDenied(RightsDenial::RightsNotVerified(_)))));
         assert!(plan.rejected_actions.iter().any(|r| r.reason == SurveyRejectionReason::LandAccessNotConfirmed));
         assert!(plan.rejected_actions.iter().any(|r| r.reason == SurveyRejectionReason::PermitNotConfirmed));
         assert!(plan.rejected_actions.iter().any(|r| r.reason == SurveyRejectionReason::CustodialReviewIncomplete));
         assert!(plan.rejected_actions.iter().any(|r| r.reason == SurveyRejectionReason::CostBudgetExceeded));
         assert!(plan.rejected_actions.iter().any(|r| r.reason == SurveyRejectionReason::ImpactCeilingExceeded));
+    }
+
+    #[test]
+    fn survey_actions_use_purpose_specific_rights_and_geometry_tiers() {
+        let mut training = action("training-not-permitted", 1.0, 0.0, [(1.0, 0.0), (0.0, 1.0)]);
+        training.authorization.source_data[0].purpose = HeritageUse::Training;
+        let plan = plan_non_invasive_surveys(
+            &priors(),
+            &[training],
+            constraints(),
+            "hours",
+        ).unwrap();
+        assert!(matches!(
+            plan.rejected_actions[0].reason,
+            SurveyRejectionReason::SourceRightsDenied(
+                RightsDenial::PurposeNotPermitted(HeritageUse::Training)
+            )
+        ));
+
+        let mut exact_unapproved = action("exact-unapproved", 1.0, 0.0, [(1.0, 0.0), (0.0, 1.0)]);
+        exact_unapproved.authorization.source_data[0].access_context.exact_geometry_authorized = false;
+        let plan = plan_non_invasive_surveys(
+            &priors(),
+            &[exact_unapproved],
+            constraints(),
+            "hours",
+        ).unwrap();
+        assert!(matches!(
+            plan.rejected_actions[0].reason,
+            SurveyRejectionReason::SourceRightsDenied(RightsDenial::ExactGeometryNotAuthorized)
+        ));
+
+        let mut spatial_restricted = action("geometry-tier-restricted", 1.0, 0.0, [(1.0, 0.0), (0.0, 1.0)]);
+        spatial_restricted.authorization.source_data[0].geometry_access_tier = AccessTier::Custodial;
+        let plan = plan_non_invasive_surveys(
+            &priors(),
+            &[spatial_restricted],
+            constraints(),
+            "hours",
+        ).unwrap();
+        assert!(matches!(
+            plan.rejected_actions[0].reason,
+            SurveyRejectionReason::SourceRightsDenied(RightsDenial::AccessTierInsufficient {
+                required: AccessTier::Custodial,
+                granted: AccessTier::ApprovedResearch
+            })
+        ));
     }
 
     #[test]

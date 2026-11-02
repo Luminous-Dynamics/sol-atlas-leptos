@@ -169,8 +169,197 @@
               "temporal_holdout",
               "external_blind"
             ]
+          },
+          "sample_assignments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "sample_id",
+                "site_id",
+                "partition"
+              ],
+              "properties": {
+                "sample_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "site_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "partition": {
+                  "enum": [
+                    "train",
+                    "validation",
+                    "test"
+                  ]
+                },
+                "region_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "biome_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sensor_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "acquisition_start_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "acquisition_end_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "external_blind_evaluation_ref": {
+            "type": "string",
+            "minLength": 1
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "protocol": {
+                  "const": "within_site_spatial_block"
+                }
+              },
+              "required": [
+                "protocol"
+              ]
+            },
+            "then": {
+              "required": [
+                "spatial_block_assignments",
+                "spatial_distance_audit_ref",
+                "estimated_spatial_dependence_m",
+                "spatial_buffer_m"
+              ],
+              "properties": {
+                "spatial_block_assignments": {
+                  "minItems": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "protocol": {
+                  "const": "held_out_region"
+                }
+              },
+              "required": [
+                "protocol"
+              ]
+            },
+            "then": {
+              "required": [
+                "held_out_region_id",
+                "sample_assignments"
+              ],
+              "properties": {
+                "sample_assignments": {
+                  "minItems": 3
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "protocol": {
+                  "const": "leave_one_biome_out"
+                }
+              },
+              "required": [
+                "protocol"
+              ]
+            },
+            "then": {
+              "required": [
+                "held_out_biome_id",
+                "sample_assignments"
+              ],
+              "properties": {
+                "sample_assignments": {
+                  "minItems": 3
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "protocol": {
+                  "const": "leave_one_sensor_out"
+                }
+              },
+              "required": [
+                "protocol"
+              ]
+            },
+            "then": {
+              "required": [
+                "held_out_sensor_id",
+                "sample_assignments"
+              ],
+              "properties": {
+                "sample_assignments": {
+                  "minItems": 3
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "protocol": {
+                  "const": "temporal_holdout"
+                }
+              },
+              "required": [
+                "protocol"
+              ]
+            },
+            "then": {
+              "required": [
+                "temporal_cutoff_at",
+                "sample_assignments"
+              ],
+              "properties": {
+                "sample_assignments": {
+                  "minItems": 3
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "protocol": {
+                  "const": "external_blind"
+                }
+              },
+              "required": [
+                "protocol"
+              ]
+            },
+            "then": {
+              "required": [
+                "external_blind_evaluation_ref"
+              ]
+            }
+          }
+        ]
       }
     },
     "evaluation": {

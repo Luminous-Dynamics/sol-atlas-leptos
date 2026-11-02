@@ -9,7 +9,7 @@
 //! the declared distance/buffer contract but does not calculate geometry
 //! distances from raster or vector assets.
 
-use crate::heritage::sha256_hex;
+use crate::heritage::{parse_rfc3339_nanos, sha256_hex};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
@@ -47,6 +47,23 @@ pub struct SpatialBlockAssignment {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct BenchmarkSampleAssignment {
+    pub sample_id: String,
+    pub site_id: String,
+    pub partition: BenchmarkPartition,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub region_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub biome_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sensor_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub acquisition_start_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub acquisition_end_at: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BenchmarkSplitManifest {
     pub schema_version: String,
     pub split_id: String,
@@ -61,6 +78,18 @@ pub struct BenchmarkSplitManifest {
     pub test_site_ids: Vec<String>,
     #[serde(default)]
     pub spatial_block_assignments: Vec<SpatialBlockAssignment>,
+    #[serde(default)]
+    pub sample_assignments: Vec<BenchmarkSampleAssignment>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub held_out_region_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub held_out_biome_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub held_out_sensor_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub temporal_cutoff_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub external_blind_evaluation_ref: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub estimated_spatial_dependence_m: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -86,6 +115,7 @@ pub struct SplitValidationReceipt {
     pub validation_site_count: usize,
     pub test_site_count: usize,
     pub spatial_block_count: usize,
+    pub sample_count: usize,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub estimated_spatial_dependence_m: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -129,6 +159,23 @@ pub enum SplitValidationError {
     },
     MissingSpatialBlockPartition(BenchmarkPartition),
     SpatialBlockSiteListMismatch(BenchmarkPartition),
+    MissingSampleAssignments,
+    EmptySampleId,
+    DuplicateSampleId(String),
+    MissingRegionId { sample_id: String },
+    MissingBiomeId { sample_id: String },
+    MissingSensorId { sample_id: String },
+    MissingAcquisitionInterval { sample_id: String },
+    InvalidSampleAcquisitionInterval { sample_id: String },
+    MissingHeldOutRegionId,
+    HeldOutRegionMismatch { sample_id: String, expected: String },
+    MissingHeldOutBiomeId,
+    HeldOutBiomeMismatch { sample_id: String, expected: String },
+    MissingHeldOutSensorId,
+    HeldOutSensorMismatch { sample_id: String, expected: String },
+    MissingTemporalCutoff,
+    TemporalPartitionViolation { sample_id: String, partition: BenchmarkPartition },
+    MissingExternalBlindEvaluationReference,
     Serialization(String),
 }
 
@@ -162,6 +209,83 @@ fn validate_site_list(
     Ok(unique)
 }
 
+fn validate_sample_assignments(
+    samples: &[BenchmarkSampleAssignment],
+) -> Result<(usize, usize, usize), SplitValidationError> {
+    if samples.is_empty() {
+        return Err(SplitValidationError::MissingSampleAssignments);
+    }
+
+    let mut sample_ids = BTreeSet::new();
+    let mut sites: BTreeMap<BenchmarkPartition, BTreeSet<String>> = BTreeMap::new();
+    let mut counts: BTreeMap<BenchmarkPartition, usize> = BTreeMap::new();
+
+    for sample in samples {
+        if sample.sample_id.trim().is_empty() {
+            return Err(SplitValidationError::EmptySampleId);
+        }
+        if !sample_ids.insert(sample.sample_id.clone()) {
+            return Err(SplitValidationError::DuplicateSampleId(sample.sample_id.clone()));
+        }
+        if sample.site_id.trim().is_empty() {
+            return Err(SplitValidationError::EmptySiteId);
+        }
+        sites.entry(sample.partition).or_default().insert(sample.site_id.clone());
+        *counts.entry(sample.partition).or_default() += 1;
+    }
+
+    for partition in [
+        BenchmarkPartition::Train,
+        BenchmarkPartition::Validation,
+        BenchmarkPartition::Test,
+    ] {
+        if !counts.contains_key(&partition) {
+            return Err(SplitValidationError::EmptySitePartition(partition));
+        }
+    }
+
+    Ok((
+        sites.get(&BenchmarkPartition::Train).map_or(0, BTreeSet::len),
+        sites.get(&BenchmarkPartition::Validation).map_or(0, BTreeSet::len),
+        sites.get(&BenchmarkPartition::Test).map_or(0, BTreeSet::len),
+    ))
+}
+
+fn validate_site_partition_disjoint(
+    samples: &[BenchmarkSampleAssignment],
+) -> Result<(), SplitValidationError> {
+    let mut partition_by_site: BTreeMap<&str, BenchmarkPartition> = BTreeMap::new();
+    for sample in samples {
+        if let Some(previous) = partition_by_site.insert(&sample.site_id, sample.partition) {
+            if previous != sample.partition {
+                return Err(SplitValidationError::SiteOverlapsPartitions {
+                    site_id: sample.site_id.clone(),
+                });
+            }
+        }
+    }
+    Ok(())
+}
+
+fn validate_single_holdout_group(
+    samples: &[BenchmarkSampleAssignment],
+    target: &str,
+    field: fn(&BenchmarkSampleAssignment) -> Option<&str>,
+    held_out_partition: BenchmarkPartition,
+    mismatch: impl Fn(String, String) -> SplitValidationError,
+    missing: impl Fn(String) -> SplitValidationError,
+) -> Result<(), SplitValidationError> {
+    for sample in samples {
+        let value = field(sample).filter(|value| !value.trim().is_empty())
+            .ok_or_else(|| missing(sample.sample_id.clone()))?;
+        let should_match = sample.partition == held_out_partition;
+        if should_match != (value == target) {
+            return Err(mismatch(sample.sample_id.clone(), target.to_owned()));
+        }
+    }
+    Ok(())
+}
+
 /// Validate a benchmark split and return a deterministic, scope-limited receipt.
 ///
 /// For held-out geography/data splits this checks that whole site IDs do not
@@ -183,6 +307,7 @@ pub fn validate_benchmark_split(
     let mut validation_site_count = 0;
     let mut test_site_count = 0;
     let mut spatial_block_count = 0;
+    let mut sample_count = 0;
     let mut minimum_declared_cross_partition_distance_m = None;
     let scope;
 
@@ -209,7 +334,7 @@ pub fn validate_benchmark_split(
             if manifest
                 .spatial_distance_audit_ref
                 .as_deref()
-                .is_none_or(str::is_empty)
+                .is_none_or(|value| value.trim().is_empty())
             {
                 return Err(SplitValidationError::MissingSpatialDistanceAuditReference);
             }
@@ -309,7 +434,117 @@ pub fn validate_benchmark_split(
             spatial_block_count = manifest.spatial_block_assignments.len();
             scope = SplitValidationScope::DeclaredExternalSpatialBlockAudit;
         }
-        _ => {
+        BenchmarkSplitProtocol::HeldOutRegion
+        | BenchmarkSplitProtocol::LeaveOneBiomeOut
+        | BenchmarkSplitProtocol::LeaveOneSensorOut
+        | BenchmarkSplitProtocol::TemporalHoldout => {
+            let (train_sites, validation_sites, test_sites) =
+                validate_sample_assignments(&manifest.sample_assignments)?;
+            sample_count = manifest.sample_assignments.len();
+
+            match manifest.protocol {
+                BenchmarkSplitProtocol::HeldOutRegion => {
+                    let target = manifest.held_out_region_id.as_deref()
+                        .filter(|value| !value.trim().is_empty())
+                        .ok_or(SplitValidationError::MissingHeldOutRegionId)?;
+                    validate_site_partition_disjoint(&manifest.sample_assignments)?;
+                    validate_single_holdout_group(
+                        &manifest.sample_assignments,
+                        target,
+                        |sample| sample.region_id.as_deref(),
+                        BenchmarkPartition::Test,
+                        |sample_id, expected| SplitValidationError::HeldOutRegionMismatch { sample_id, expected },
+                        |sample_id| SplitValidationError::MissingRegionId { sample_id },
+                    )?;
+                }
+                BenchmarkSplitProtocol::LeaveOneBiomeOut => {
+                    let target = manifest.held_out_biome_id.as_deref()
+                        .filter(|value| !value.trim().is_empty())
+                        .ok_or(SplitValidationError::MissingHeldOutBiomeId)?;
+                    validate_site_partition_disjoint(&manifest.sample_assignments)?;
+                    validate_single_holdout_group(
+                        &manifest.sample_assignments,
+                        target,
+                        |sample| sample.biome_id.as_deref(),
+                        BenchmarkPartition::Test,
+                        |sample_id, expected| SplitValidationError::HeldOutBiomeMismatch { sample_id, expected },
+                        |sample_id| SplitValidationError::MissingBiomeId { sample_id },
+                    )?;
+                }
+                BenchmarkSplitProtocol::LeaveOneSensorOut => {
+                    let target = manifest.held_out_sensor_id.as_deref()
+                        .filter(|value| !value.trim().is_empty())
+                        .ok_or(SplitValidationError::MissingHeldOutSensorId)?;
+                    validate_single_holdout_group(
+                        &manifest.sample_assignments,
+                        target,
+                        |sample| sample.sensor_id.as_deref(),
+                        BenchmarkPartition::Test,
+                        |sample_id, expected| SplitValidationError::HeldOutSensorMismatch { sample_id, expected },
+                        |sample_id| SplitValidationError::MissingSensorId { sample_id },
+                    )?;
+                }
+                BenchmarkSplitProtocol::TemporalHoldout => {
+                    let cutoff = manifest.temporal_cutoff_at.as_deref()
+                        .and_then(parse_rfc3339_nanos)
+                        .ok_or(SplitValidationError::MissingTemporalCutoff)?;
+                    for sample in &manifest.sample_assignments {
+                        let start = sample.acquisition_start_at.as_deref()
+                            .and_then(parse_rfc3339_nanos);
+                        let end = sample.acquisition_end_at.as_deref()
+                            .and_then(parse_rfc3339_nanos);
+                        let (Some(start), Some(end)) = (start, end) else {
+                            return Err(SplitValidationError::MissingAcquisitionInterval {
+                                sample_id: sample.sample_id.clone(),
+                            });
+                        };
+                        if end < start {
+                            return Err(SplitValidationError::InvalidSampleAcquisitionInterval {
+                                sample_id: sample.sample_id.clone(),
+                            });
+                        }
+                        let valid = match sample.partition {
+                            BenchmarkPartition::Train | BenchmarkPartition::Validation => end <= cutoff,
+                            BenchmarkPartition::Test => start > cutoff,
+                        };
+                        if !valid {
+                            return Err(SplitValidationError::TemporalPartitionViolation {
+                                sample_id: sample.sample_id.clone(),
+                                partition: sample.partition,
+                            });
+                        }
+                    }
+                }
+                _ => unreachable!("protocol branch matched above"),
+            }
+            train_site_count = train_sites;
+            validation_site_count = validation_sites;
+            test_site_count = test_sites;
+            scope = SplitValidationScope::SiteIdDisjointness;
+        }
+        BenchmarkSplitProtocol::ExternalBlind => {
+            if manifest.external_blind_evaluation_ref.as_deref()
+                .is_none_or(|value| value.trim().is_empty())
+            {
+                return Err(SplitValidationError::MissingExternalBlindEvaluationReference);
+            }
+            let train = validate_site_list(BenchmarkPartition::Train, &manifest.train_site_ids)?;
+            let validation = validate_site_list(BenchmarkPartition::Validation, &manifest.validation_site_ids)?;
+            let test = validate_site_list(BenchmarkPartition::Test, &manifest.test_site_ids)?;
+            let mut seen = BTreeSet::new();
+            for site_id in train.iter().chain(validation.iter()).chain(test.iter()) {
+                if !seen.insert(site_id.clone()) {
+                    return Err(SplitValidationError::SiteOverlapsPartitions {
+                        site_id: site_id.clone(),
+                    });
+                }
+            }
+            train_site_count = train.len();
+            validation_site_count = validation.len();
+            test_site_count = test.len();
+            scope = SplitValidationScope::SiteIdDisjointness;
+        }
+        BenchmarkSplitProtocol::HeldOutSite => {
             let train = validate_site_list(
                 BenchmarkPartition::Train,
                 &manifest.train_site_ids,
@@ -349,6 +584,7 @@ pub fn validate_benchmark_split(
         validation_site_count: usize,
         test_site_count: usize,
         spatial_block_count: usize,
+        sample_count: usize,
         manifest_sha256: &'a str,
         geometry_distances_recomputed_by_core: bool,
     }
@@ -362,6 +598,7 @@ pub fn validate_benchmark_split(
         validation_site_count,
         test_site_count,
         spatial_block_count,
+        sample_count,
         manifest_sha256: &manifest_sha256,
         geometry_distances_recomputed_by_core: false,
     };
@@ -378,6 +615,7 @@ pub fn validate_benchmark_split(
         validation_site_count,
         test_site_count,
         spatial_block_count,
+        sample_count,
         estimated_spatial_dependence_m: manifest.estimated_spatial_dependence_m,
         declared_spatial_buffer_m: manifest.spatial_buffer_m,
         minimum_declared_cross_partition_distance_m,
@@ -401,9 +639,37 @@ mod tests {
             validation_site_ids: vec!["site-c".to_owned()],
             test_site_ids: vec!["site-d".to_owned()],
             spatial_block_assignments: Vec::new(),
+            sample_assignments: Vec::new(),
+            held_out_region_id: None,
+            held_out_biome_id: None,
+            held_out_sensor_id: None,
+            temporal_cutoff_at: None,
+            external_blind_evaluation_ref: None,
             estimated_spatial_dependence_m: None,
             spatial_buffer_m: None,
             spatial_distance_audit_ref: None,
+        }
+    }
+
+    fn sample(
+        sample_id: &str,
+        site_id: &str,
+        partition: BenchmarkPartition,
+        region_id: Option<&str>,
+        biome_id: Option<&str>,
+        sensor_id: Option<&str>,
+        start_at: Option<&str>,
+        end_at: Option<&str>,
+    ) -> BenchmarkSampleAssignment {
+        BenchmarkSampleAssignment {
+            sample_id: sample_id.to_owned(),
+            site_id: site_id.to_owned(),
+            partition,
+            region_id: region_id.map(str::to_owned),
+            biome_id: biome_id.map(str::to_owned),
+            sensor_id: sensor_id.map(str::to_owned),
+            acquisition_start_at: start_at.map(str::to_owned),
+            acquisition_end_at: end_at.map(str::to_owned),
         }
     }
 
@@ -419,6 +685,86 @@ mod tests {
         assert_eq!(first.test_site_count, 1);
         assert_eq!(first.receipt_sha256.len(), 64);
         assert!(!first.geometry_distances_recomputed_by_core);
+    }
+
+    #[test]
+    fn region_biome_and_sensor_holdouts_validate_explicit_sample_groups() {
+        let assignments = || vec![
+            sample("a-train", "site-a", BenchmarkPartition::Train, Some("region-a"), Some("biome-a"), Some("sensor-a"), None, None),
+            sample("b-valid", "site-b", BenchmarkPartition::Validation, Some("region-b"), Some("biome-b"), Some("sensor-b"), None, None),
+            sample("c-test", "site-c", BenchmarkPartition::Test, Some("region-c"), Some("biome-c"), Some("sensor-c"), None, None),
+        ];
+
+        let mut region = held_out_manifest();
+        region.protocol = BenchmarkSplitProtocol::HeldOutRegion;
+        region.held_out_region_id = Some("region-c".to_owned());
+        region.sample_assignments = assignments();
+        assert_eq!(validate_benchmark_split(&region).unwrap().sample_count, 3);
+
+        let mut biome = held_out_manifest();
+        biome.protocol = BenchmarkSplitProtocol::LeaveOneBiomeOut;
+        biome.held_out_biome_id = Some("biome-c".to_owned());
+        biome.sample_assignments = assignments();
+        assert_eq!(validate_benchmark_split(&biome).unwrap().sample_count, 3);
+
+        let mut sensor = held_out_manifest();
+        sensor.protocol = BenchmarkSplitProtocol::LeaveOneSensorOut;
+        sensor.held_out_sensor_id = Some("sensor-c".to_owned());
+        sensor.sample_assignments = assignments();
+        assert_eq!(validate_benchmark_split(&sensor).unwrap().sample_count, 3);
+    }
+
+    #[test]
+    fn held_out_region_rejects_a_site_leaking_across_partitions() {
+        let mut manifest = held_out_manifest();
+        manifest.protocol = BenchmarkSplitProtocol::HeldOutRegion;
+        manifest.held_out_region_id = Some("region-c".to_owned());
+        manifest.sample_assignments = vec![
+            sample("train-a", "site-shared", BenchmarkPartition::Train, Some("region-a"), Some("biome-a"), Some("sensor-a"), None, None),
+            sample("test-c", "site-shared", BenchmarkPartition::Test, Some("region-c"), Some("biome-c"), Some("sensor-c"), None, None),
+            sample("validation-b", "site-b", BenchmarkPartition::Validation, Some("region-b"), Some("biome-b"), Some("sensor-b"), None, None),
+        ];
+        assert_eq!(
+            validate_benchmark_split(&manifest),
+            Err(SplitValidationError::SiteOverlapsPartitions {
+                site_id: "site-shared".to_owned()
+            })
+        );
+    }
+
+    #[test]
+    fn temporal_holdout_allows_same_site_but_not_time_leakage() {
+        let mut manifest = held_out_manifest();
+        manifest.protocol = BenchmarkSplitProtocol::TemporalHoldout;
+        manifest.temporal_cutoff_at = Some("2021-01-01T00:00:00Z".to_owned());
+        manifest.sample_assignments = vec![
+            sample("train-2020", "site-a", BenchmarkPartition::Train, Some("region-a"), Some("biome-a"), Some("sensor-a"), Some("2020-01-01T00:00:00Z"), Some("2020-12-31T23:59:59Z")),
+            sample("validation-2020", "site-a", BenchmarkPartition::Validation, Some("region-a"), Some("biome-a"), Some("sensor-a"), Some("2020-03-01T00:00:00Z"), Some("2020-11-01T00:00:00Z")),
+            sample("test-2021", "site-a", BenchmarkPartition::Test, Some("region-a"), Some("biome-a"), Some("sensor-a"), Some("2021-02-01T00:00:00Z"), Some("2021-03-01T00:00:00Z")),
+        ];
+        assert_eq!(validate_benchmark_split(&manifest).unwrap().sample_count, 3);
+
+        manifest.sample_assignments[2].acquisition_start_at = Some("2020-12-31T00:00:00Z".to_owned());
+        assert!(matches!(
+            validate_benchmark_split(&manifest),
+            Err(SplitValidationError::TemporalPartitionViolation {
+                sample_id,
+                partition: BenchmarkPartition::Test
+            }) if sample_id == "test-2021"
+        ));
+    }
+
+    #[test]
+    fn external_blind_requires_a_separate_evaluation_reference() {
+        let mut manifest = held_out_manifest();
+        manifest.protocol = BenchmarkSplitProtocol::ExternalBlind;
+        assert_eq!(
+            validate_benchmark_split(&manifest),
+            Err(SplitValidationError::MissingExternalBlindEvaluationReference)
+        );
+        manifest.external_blind_evaluation_ref = Some("urn:synthetic:blind-evaluation:1".to_owned());
+        let receipt = validate_benchmark_split(&manifest).unwrap();
+        assert_eq!(receipt.protocol, BenchmarkSplitProtocol::ExternalBlind);
     }
 
     #[test]

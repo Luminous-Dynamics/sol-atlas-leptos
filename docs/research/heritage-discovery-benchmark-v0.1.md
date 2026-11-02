@@ -413,3 +413,19 @@ The core validator distinguishes two different evaluation designs:
 For spatial-block runs, the receipt records the external geometry-audit reference and explicitly states geometry_distances_recomputed_by_core = false. This is intentional: the Rust core checks declared audit evidence and threshold consistency; a pinned geospatial adapter must compute and preserve the actual geometry-distance results. Site-ID disjointness alone cannot prove the absence of duplicate imagery, overlapping campaigns, or derived-tile leakage.
 
 These are executable contract and negative-control tests over synthetic data. They are not benchmark scores or evidence that a real-world survey has improved discovery yield.
+
+
+## 16. Expanded split contracts: region, biome, sensor, time and blind holdout
+
+The executable split contract now distinguishes:
+
+- **Held-out region:** sample-level assignments carry region IDs; all test samples must belong to the declared held-out region; train/validation samples must not; a site may not cross partitions.
+- **Leave-one-biome-out:** same rule for a declared biome.
+- **Leave-one-sensor-out:** sample assignments carry sensor IDs; all test samples must belong to the held-out sensor, while train/validation samples must not. This protocol may intentionally compare sensors at sites that occur in more than one partition; that design must be explicit in the preregistration and should not be mistaken for geographic generalization.
+- **Temporal holdout:** acquisition intervals in train/validation must end on or before the cutoff; test intervals must start strictly after it. The same site may appear before and after the cutoff by design.
+- **External blind:** a separately controlled evaluation reference is mandatory, in addition to site-disjoint train/validation/test IDs.
+- **Within-site spatial blocks:** block assignments and an external CRS-aware distance audit remain mandatory, with the buffer at least as large as the estimated spatial-dependence range.
+
+The validator does not compute geometry or confirm the authenticity of an external blind custodian. It checks supplied declarations, exact sample/site IDs, timestamps, groups and digest inputs. The split-validation receipt records its scope.
+
+This reduces obvious site/region/time leakage. It does not prove that duplicated imagery, near-duplicate raster chips, overlapping survey campaigns, derivatives, labels copied between catalogues, or leaked model pretraining data are absent. Those require a separate asset-level and lineage audit before any blind evaluation is trusted.
