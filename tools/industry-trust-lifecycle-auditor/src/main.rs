@@ -203,15 +203,30 @@ fn valid_utc_timestamp(value: &str) -> bool {
             }
         })
     };
-    let Some(year) = number(0, 4) else { return false };
-    let Some(month) = number(5, 7) else { return false };
-    let Some(day) = number(8, 10) else { return false };
-    let Some(hour) = number(11, 13) else { return false };
-    let Some(minute) = number(14, 16) else { return false };
-    let Some(second) = number(17, 19) else { return false };
+    let Some(year) = number(0, 4) else {
+        return false;
+    };
+    let Some(month) = number(5, 7) else {
+        return false;
+    };
+    let Some(day) = number(8, 10) else {
+        return false;
+    };
+    let Some(hour) = number(11, 13) else {
+        return false;
+    };
+    let Some(minute) = number(14, 16) else {
+        return false;
+    };
+    let Some(second) = number(17, 19) else {
+        return false;
+    };
 
-    if year == 0 || !(1..=12).contains(&month) || !(0..=23).contains(&hour)
-        || !(0..=59).contains(&minute) || !(0..=59).contains(&second)
+    if year == 0
+        || !(1..=12).contains(&month)
+        || !(0..=23).contains(&hour)
+        || !(0..=59).contains(&minute)
+        || !(0..=59).contains(&second)
     {
         return false;
     }
@@ -581,8 +596,8 @@ fn validate_event_chain(
     let mut previous_trusted_at: Option<String> = None;
 
     for (index, (sequence, (digest, event))) in by_sequence.into_iter().enumerate() {
-        let expected_sequence = u64::try_from(index + 1)
-            .map_err(|_| "event chain index exceeds u64".to_owned())?;
+        let expected_sequence =
+            u64::try_from(index + 1).map_err(|_| "event chain index exceeds u64".to_owned())?;
         if sequence != expected_sequence {
             return Err(format!(
                 "authority event sequence is not contiguous: expected {expected_sequence}, got {sequence}"
@@ -668,12 +683,8 @@ fn signed_statement_precedes_compromise(
                     && valid_utc_timestamp(effective_at)
                     && time < effective_at
             })
-            && fresh_until.is_some_and(|time| {
-                valid_utc_timestamp(time) && time >= evaluated_at
-            })
-            && checked_at.is_some_and(|time| {
-                valid_utc_timestamp(time) && time <= evaluated_at
-            })
+            && fresh_until.is_some_and(|time| valid_utc_timestamp(time) && time >= evaluated_at)
+            && checked_at.is_some_and(|time| valid_utc_timestamp(time) && time <= evaluated_at)
     })
 }
 
@@ -969,7 +980,8 @@ fn evaluate_fixture(fixture: &Value) -> Result<Value, String> {
 }
 
 fn run(input_path: &str, output_path: &str) -> Result<(), String> {
-    let file = fs::File::open(input_path).map_err(|error| format!("cannot open fixture: {error}"))?;
+    let file =
+        fs::File::open(input_path).map_err(|error| format!("cannot open fixture: {error}"))?;
     let mut bytes = Vec::new();
     file.take(MAX_INPUT_BYTES + 1)
         .read_to_end(&mut bytes)
@@ -1060,9 +1072,8 @@ mod tests {
         assert!(validate_event_chain(&[first.clone(), gap], &nodes).is_err());
 
         let mut broken_link = second.clone();
-        broken_link["previous_event_sha256"] = json!(
-            "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
-        );
+        broken_link["previous_event_sha256"] =
+            json!("dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd");
         assert!(validate_event_chain(&[first.clone(), broken_link], &nodes).is_err());
 
         let mut backdated = second;
@@ -1108,12 +1119,12 @@ mod tests {
             .unwrap()
             .iter()
             .find(|node| {
-                node["node_type"] == "source_measurement"
-                    && node["scope"]["domain"] == "water"
+                node["node_type"] == "source_measurement" && node["scope"]["domain"] == "water"
             })
             .unwrap()["node_id"]
             .clone();
-        let water_decision_digest = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+        let water_decision_digest =
+            "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
         let water_decision_id = format!("decision:sha256:{water_decision_digest}");
         let disconnected_control_digest =
             "abababababababababababababababababababababababababababababababab";
@@ -1139,7 +1150,7 @@ mod tests {
                     "subject_pseudonyms": ["case:water:asset:epsilon"],
                     "purposes": ["water_operations"]
                 }
-            })
+            }),
         ]);
         let issuer_key_id = graph["nodes"][0]["node_id"].clone();
         graph["edges"].as_array_mut().unwrap().extend([
@@ -1154,7 +1165,7 @@ mod tests {
                 "from_node_id": water_source_id,
                 "to_node_id": water_decision_id,
                 "relation": "evidence_for"
-            })
+            }),
         ]);
 
         let mut digest_input = graph.clone();
@@ -1213,9 +1224,11 @@ mod tests {
         let nodes = validate_graph(&fixture["graph"]).unwrap();
         let mut event = fixture["invalidation_event"].clone();
         event["targets"] = json!(vec![Value::Null; MAX_EVENT_TARGETS + 1]);
-        assert!(validate_event(&event, &nodes)
-            .unwrap_err()
-            .contains("target count"));
+        assert!(
+            validate_event(&event, &nodes)
+                .unwrap_err()
+                .contains("target count")
+        );
     }
 
     #[test]
@@ -1422,8 +1435,14 @@ mod tests {
             assert_eq!(false_negatives, 0, "false negatives at {total_nodes} nodes");
             assert_eq!(report["summary"]["node_count"], total_nodes);
             assert_eq!(report["summary"]["claim_invalidated_count"], 1);
-            assert_eq!(report["summary"]["reverify_required_count"], expected_affected - 1);
-            assert_eq!(report["summary"]["no_impact_count"], total_nodes - expected_affected);
+            assert_eq!(
+                report["summary"]["reverify_required_count"],
+                expected_affected - 1
+            );
+            assert_eq!(
+                report["summary"]["no_impact_count"],
+                total_nodes - expected_affected
+            );
 
             let report_digest = canonical_json_digest(&report).unwrap();
             drop(report);
