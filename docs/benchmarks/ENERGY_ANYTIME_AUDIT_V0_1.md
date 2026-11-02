@@ -195,6 +195,25 @@ Current reference documentation:
 
 These references define comparison targets, not evidence that Sol-Atlas is presently superior.
 
+## 7.1 Concrete implementation seam in the current enumerator
+
+The source-level review of `sol-atlas-core/src/energy_dispatch.rs` identifies two interruption points that an additive anytime API must handle separately:
+
+1. `ExactSearch::tick` currently increments `evaluated_action_expansions` and then checks whether the new value is greater than the request cap. Thus a cap of C can leave the internal counter at C+1 on the rejected expansion. The current all-or-nothing API does not expose that partial counter, but an anytime trace will. Before publishing a measured work budget, define whether the counter means attempted or admitted expansions. Prefer an invariant of **admitted expansions <= configured cap**, with a boundary test at C-1, C and C+1.
+2. `ExactSearch::record_schedule` increments the complete-schedule counter, computes the objective and then mutates the Pareto frontier. The frontier cap can fail after a complete schedule has already been found. The anytime implementation must maintain a separate incumbent before frontier insertion/pruning, so a frontier-cap interruption cannot erase the candidate.
+
+Do not implement anytime behavior by catching every error and relabeling it as `feasible_unproven`. Only the explicitly recognized expansion/frontier budget stop conditions may return a preserved incumbent; arithmetic overflow, invalid input and unexpected search errors remain errors. If a limit stop has no fully completed candidate, return `limit_without_candidate`.
+
+### Required interruption-point regression tests
+
+- expansion cap reached before any complete path: no candidate and no infeasibility claim;
+- one or more complete paths found before expansion cap: return a complete incumbent, but no complete-frontier/optimality claim;
+- frontier cap reached after at least one complete path: preserve the incumbent independently of the partial frontier;
+- exact cap boundary: observed admitted expansions never exceed the configured cap;
+- arithmetic overflow or malformed request after a candidate exists: do not mask the error as a normal budget stop;
+- exhaustive no-schedule case: only then may the outcome become `proven_infeasible`;
+- exhaustive completion: preserve exact v0.1 API parity and compare the full result with the independent test oracle.
+
 ## 8. Implementation sequence
 
 1. Preserve the current exact API and trace v0.2 semantics.
