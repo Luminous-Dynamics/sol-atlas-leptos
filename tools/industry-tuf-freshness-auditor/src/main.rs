@@ -152,6 +152,16 @@ fn interval(v: &Value, path: &str) -> Result<Interval, String> {
 }
 
 #[derive(Debug)]
+struct TargetRoleInfo {
+    version: u64,
+    metadata_sha256: String,
+    expires_at: String,
+    target_path: String,
+    target_length: u64,
+    target_sha256: String,
+}
+
+#[derive(Debug)]
 struct AuditResult {
     status: &'static str,
     reason_codes: Vec<String>,
@@ -354,7 +364,6 @@ fn audit(
         return Err("root update chain must be empty when root version is unchanged".to_string());
     }
 
-    let now_max = eval.hi;
     let max_horizon = uint(policy,"max_timestamp_expiry_horizon_seconds","policy")?;
     for (name, metadata, max) in [
         ("root",root,None),
@@ -378,16 +387,22 @@ fn audit(
     }
 
     let roles=array(report,"target_roles","verifier_report")?;
-    let mut new_role_map=BTreeMap::<String,(u64,String)>::new();
+    let mut new_role_map=BTreeMap::<String,TargetRoleInfo>::new();
     for (i,r) in roles.iter().enumerate() {
         let p=format!("target_roles[{i}]");
         deny_unknown(r,&["role_name","version","metadata_sha256","expires_at",
             "target_path","target_length","target_sha256"],&p)?;
         let name=string(r,"role_name",&p)?.to_string();
         let meta_sha=require_digest(r,"metadata_sha256",&p)?.to_string();
-        let v=uint(r,"version",&p)?;
-        require_digest(r,"target_sha256",&p)?;
-        if new_role_map.insert(name,(v,meta_sha)).is_some() {
+        let info=TargetRoleInfo {
+            version:uint(r,"version",&p)?,
+            metadata_sha256:meta_sha,
+            expires_at:string(r,"expires_at",&p)?.to_string(),
+            target_path:string(r,"target_path",&p)?.to_string(),
+            target_length:uint(r,"target_length",&p)?,
+            target_sha256:require_digest(r,"target_sha256",&p)?.to_string(),
+        };
+        if new_role_map.insert(name,info).is_some() {
             return Err("duplicate TUF target role".to_string());
         }
         if let Some(reason)=expiry_result(string(r,"expires_at",&p)?,&eval,None)? {
@@ -406,9 +421,9 @@ fn audit(
         }
     }
     for (role,(old_v,old_sha)) in &old_role_map {
-        let (new_v,new_sha)=new_role_map.get(role)
+        let new_info=new_role_map.get(role)
             .ok_or_else(||format!("previously trusted delegated target role {role} disappeared"))?;
-        check_metadata_version(role,*new_v,new_sha,*old_v,old_sha)?;
+        check_metadata_version(role,new_info.version,&new_info.metadata_sha256,*old_v,old_sha)?;
     }
 
     let manifest_path=string(policy,"manifest_target_path","policy")?;
@@ -448,9 +463,10 @@ fn audit(
     {
         return Err("TUF target role/path does not match the pinned channel policy".to_string());
     }
-    if !new_role_map.contains_key(manifest_role) || !new_role_map.contains_key(checkpoint_role) {
-        return Err("required delegated TUF target role missing".to_string());
-    }
+    let manifest_role_info=new_role_map.get(manifest_role)
+        .ok_or_else(||"required channel-manifest TUF target role missing".to_string())?;
+    let checkpoint_role_info=new_role_map.get(checkpoint_role)
+        .ok_or_else(||"required checkpoint-state TUF target role missing".to_string())?;
     let old_manifest_sha=string(state,"manifest_sha256","trusted_state")?;
     let old_checkpoint_sha=string(state,"checkpoint_state_sha256","trusted_state")?;
     if !is_sha256(old_manifest_sha)||!is_sha256(old_checkpoint_sha) {
@@ -458,6 +474,27 @@ fn audit(
     }
     let manifest_sha=string(manifest,"target_sha256","channel_manifest")?.to_string();
     let checkpoint_sha=string(checkpoint,"target_sha256","checkpoint_state")?.to_string();
+    if manifest_role_info.target_path != manifest_path
+        || manifest_role_info.target_path != string(manifest,"target_path","channel_manifest")?
+        || manifest_role_info.target_length != uint(manifest,"target_length","channel_manifest")?
+        || manifest_role_info.target_sha256 != manifest_sha
+        || checkpoint_role_info.target_path != checkpoint_path
+        || checkpoint_role_info.target_path != string(checkpoint,"target_path","checkpoint_state")?
+        || checkpoint_role_info.target_length != uint(checkpoint,"target_length","checkpoint_state")?
+        || checkpoint_role_info.target_sha256 != checkpoint_sha
+    {
+        return Err("TUF metadata target path/length/digest does not match channel binding".to_string());
+    }
+    if let Some((old_version,_))=old_role_map.get(manifest_role) {
+        if manifest_role_info.version == *old_version && manifest_sha != old_manifest_sha {
+            return Err("channel manifest target changed without a delegated metadata version advance".to_string());
+        }
+    }
+    if let Some((old_version,_))=old_role_map.get(checkpoint_role) {
+        if checkpoint_role_info.version == *old_version && checkpoint_sha != old_checkpoint_sha {
+            return Err("checkpoint state target changed without a delegated metadata version advance".to_string());
+        }
+    }
     let old_epoch=string(state,"sequence_epoch","trusted_state")?;
     let old_seq=uint(state,"last_sequence","trusted_state")?;
     let mut epoch_transition_valid=false;
@@ -485,7 +522,7 @@ fn audit(
         return Err("trusted state repository identity mismatch".to_string());
     }
 
-    let role_versions=new_role_map.iter().map(|(k,(v,_))|(k.clone(),*v)).collect();
+    let role_versions=new_role_map.iter().map(|(k,v)|(k.clone(),v.version)).collect();
     let status=if unknown.is_empty() {"current"} else {"unknown"};
     Ok(AuditResult{
         status,
