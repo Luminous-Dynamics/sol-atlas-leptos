@@ -2,13 +2,18 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://luminousdynamics.io/schemas/heritage-transfer-association-report-v0.1.schema.json",
   "title": "Sol-Atlas Transfer Association Report",
+  "description": "Association and deterministic leave-one-landscape-out sensitivity for DSS vs one-way held-out target performance. The jackknife range is not a confidence interval.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "metric",
     "directed_pair_count",
+    "unique_region_count",
     "spearman_rank_correlation",
-    "pearson_correlation"
+    "pearson_correlation",
+    "region_jackknife",
+    "region_jackknife_spearman_min",
+    "region_jackknife_spearman_max"
   ],
   "properties": {
     "metric": {
@@ -23,6 +28,10 @@
       "type": "integer",
       "minimum": 3
     },
+    "unique_region_count": {
+      "type": "integer",
+      "minimum": 2
+    },
     "spearman_rank_correlation": {
       "type": [
         "number",
@@ -32,6 +41,53 @@
       "maximum": 1
     },
     "pearson_correlation": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": -1,
+      "maximum": 1
+    },
+    "region_jackknife": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "omitted_region_id",
+          "remaining_directed_pair_count",
+          "spearman_rank_correlation"
+        ],
+        "properties": {
+          "omitted_region_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "remaining_directed_pair_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "spearman_rank_correlation": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -1,
+            "maximum": 1
+          }
+        }
+      }
+    },
+    "region_jackknife_spearman_min": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": -1,
+      "maximum": 1
+    },
+    "region_jackknife_spearman_max": {
       "type": [
         "number",
         "null"

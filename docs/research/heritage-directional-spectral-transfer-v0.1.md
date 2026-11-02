@@ -49,3 +49,8 @@ The association evaluator takes one record per ordered held-out pair for a singl
 ## Claim ceiling
 
 This module implements the published distance-ratio aggregation over caller-supplied distances. It does not verify source reflectance data, cropmark labels, archaeological remains, or independent field truth. A high DSS is not an archaeological discovery and cannot replace expert review.
+## Region jackknife sensitivity
+
+The association report additionally removes each landscape in turn, drops every directed pair touching that landscape, and recomputes Spearman correlation on the remaining pairs when at least three remain. It records the omitted landscape, remaining pair count and correlation; it then reports the minimum and maximum available jackknife correlations.
+
+This is a **leave-one-landscape-out sensitivity diagnostic, not a confidence interval**. With only three sites/six directed pairs it may be undefined for every omission, which is the honest result. A larger spatially independent benchmark with at least five landscapes is needed before this diagnostic becomes informative. Directed pairs still share landscapes; do not treat them as independent replicates or use a naive pair-level standard error.

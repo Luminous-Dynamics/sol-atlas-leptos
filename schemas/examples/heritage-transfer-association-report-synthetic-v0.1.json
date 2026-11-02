@@ -1,6 +1,26 @@
 {
   "metric": "euclidean",
   "directed_pair_count": 4,
+  "unique_region_count": 3,
   "spearman_rank_correlation": 1,
-  "pearson_correlation": 1
+  "pearson_correlation": 1,
+  "region_jackknife": [
+    {
+      "omitted_region_id": "a",
+      "remaining_directed_pair_count": 0,
+      "spearman_rank_correlation": null
+    },
+    {
+      "omitted_region_id": "b",
+      "remaining_directed_pair_count": 1,
+      "spearman_rank_correlation": null
+    },
+    {
+      "omitted_region_id": "c",
+      "remaining_directed_pair_count": 2,
+      "spearman_rank_correlation": null
+    }
+  ],
+  "region_jackknife_spearman_min": null,
+  "region_jackknife_spearman_max": null
 }

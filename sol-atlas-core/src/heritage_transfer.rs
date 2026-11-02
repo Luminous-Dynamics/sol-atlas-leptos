@@ -115,11 +115,24 @@ pub struct TransferAssociationRecord {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct RegionJackknifeAssociation {
+    pub omitted_region_id: String,
+    pub remaining_directed_pair_count: usize,
+    /// None means too few remaining pairs or a constant rank vector.
+    pub spearman_rank_correlation: Option<f64>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TransferAssociationReport {
     pub metric: SpectralDistanceMetric,
     pub directed_pair_count: usize,
+    pub unique_region_count: usize,
     pub spearman_rank_correlation: Option<f64>,
     pub pearson_correlation: Option<f64>,
+    /// Leave-one-landscape-out sensitivity. This is not a confidence interval.
+    pub region_jackknife: Vec<RegionJackknifeAssociation>,
+    pub region_jackknife_spearman_min: Option<f64>,
+    pub region_jackknife_spearman_max: Option<f64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -439,12 +452,75 @@ pub fn evaluate_transfer_score_association(
 
     let dss_ranks = average_ranks(&dss);
     let f1_ranks = average_ranks(&f1);
+    let spearman_rank_correlation = pearson_correlation(&dss_ranks, &f1_ranks);
+    let pearson = pearson_correlation(&dss, &f1);
+
+    // Remove every pair touching one landscape. This is a deterministic
+    // sensitivity diagnostic that reduces the chance a single landscape
+    // dominates the association; it is not a bootstrap confidence interval.
+    let regions: BTreeSet<&str> = records
+        .iter()
+        .flat_map(|record| [
+            record.source_region_id.as_str(),
+            record.target_region_id.as_str(),
+        ])
+        .collect();
+    let mut region_jackknife = Vec::with_capacity(regions.len());
+    let mut jackknife_spearman_values = Vec::new();
+
+    for omitted_region_id in &regions {
+        let remaining: Vec<&TransferAssociationRecord> = records
+            .iter()
+            .filter(|record| {
+                record.source_region_id.as_str() != *omitted_region_id
+                    && record.target_region_id.as_str() != *omitted_region_id
+            })
+            .collect();
+
+        let (remaining_dss, remaining_f1): (Vec<f64>, Vec<f64>) = remaining
+            .iter()
+            .map(|record| (
+                record.directional_strength_score,
+                record.target_transfer_f1,
+            ))
+            .unzip();
+
+        let remaining_spearman = if remaining.len() >= 3 {
+            let dss_rank = average_ranks(&remaining_dss);
+            let f1_rank = average_ranks(&remaining_f1);
+            pearson_correlation(&dss_rank, &f1_rank)
+        } else {
+            None
+        };
+
+        if let Some(value) = remaining_spearman {
+            jackknife_spearman_values.push(value);
+        }
+        region_jackknife.push(RegionJackknifeAssociation {
+            omitted_region_id: (*omitted_region_id).to_owned(),
+            remaining_directed_pair_count: remaining.len(),
+            spearman_rank_correlation: remaining_spearman,
+        });
+    }
+
+    let region_jackknife_spearman_min = jackknife_spearman_values
+        .iter()
+        .copied()
+        .min_by(f64::total_cmp);
+    let region_jackknife_spearman_max = jackknife_spearman_values
+        .iter()
+        .copied()
+        .max_by(f64::total_cmp);
 
     Ok(TransferAssociationReport {
         metric,
         directed_pair_count: records.len(),
-        spearman_rank_correlation: pearson_correlation(&dss_ranks, &f1_ranks),
-        pearson_correlation: pearson_correlation(&dss, &f1),
+        unique_region_count: regions.len(),
+        spearman_rank_correlation,
+        pearson_correlation: pearson,
+        region_jackknife,
+        region_jackknife_spearman_min,
+        region_jackknife_spearman_max,
     })
 }
 
@@ -579,6 +655,33 @@ mod tests {
         assert_eq!(report.directed_pair_count, 4);
         assert_eq!(report.spearman_rank_correlation, Some(1.0));
         assert_eq!(report.pearson_correlation, Some(1.0));
+    }
+
+    #[test]
+    fn region_jackknife_removes_all_pairs_touching_each_landscape() {
+        let records = vec![
+            ("a", "b", 1.0, 0.1),
+            ("b", "c", 2.0, 0.2),
+            ("c", "d", 3.0, 0.3),
+            ("d", "e", 4.0, 0.4),
+            ("e", "a", 5.0, 0.5),
+        ].into_iter().map(|(source, target, dss, f1)| TransferAssociationRecord {
+            metric: SpectralDistanceMetric::Euclidean,
+            source_region_id: source.into(),
+            target_region_id: target.into(),
+            directional_strength_score: dss,
+            target_transfer_f1: f1,
+        }).collect::<Vec<_>>();
+
+        let report = evaluate_transfer_score_association(&records).unwrap();
+        assert_eq!(report.unique_region_count, 5);
+        assert_eq!(report.region_jackknife.len(), 5);
+        assert!(report.region_jackknife.iter().all(|entry| {
+            entry.remaining_directed_pair_count == 3
+                && entry.spearman_rank_correlation == Some(1.0)
+        }));
+        assert_eq!(report.region_jackknife_spearman_min, Some(1.0));
+        assert_eq!(report.region_jackknife_spearman_max, Some(1.0));
     }
 
     #[test]
