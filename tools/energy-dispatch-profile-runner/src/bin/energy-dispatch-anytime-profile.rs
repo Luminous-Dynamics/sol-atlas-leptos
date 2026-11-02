@@ -19,7 +19,7 @@ use std::path::Path;
 use std::process::{Command, ExitCode};
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
-mod trace_support {
+pub mod trace_support {
     #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
     pub enum MeasurementClass {
         Synthetic,
