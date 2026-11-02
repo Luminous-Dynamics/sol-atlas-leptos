@@ -32,7 +32,7 @@ The direct adapter uses the crate's:
 - `get_target_info(path, fixed_update_start)` to resolve a top-level or delegated target;
 - `find_cached_target` / `download_target` to verify bytes against the authenticated target metadata.
 
-The HTTP client is configured with a 10-second connection timeout and a 45-second overall timeout. The URL must be HTTPS and cannot contain userinfo, query parameters or a fragment. The code rejects path traversal, absolute target paths, ambiguous separators and duplicate target paths.
+The HTTP client is configured with a 10-second connection timeout, a 45-second overall timeout and redirects disabled. The URL must be HTTPS and cannot contain userinfo, query parameters or a fragment. The bootstrap root must be a regular file no larger than 512,000 bytes. Target paths are restricted to normalized ASCII repository-relative segments; absolute paths, traversal, percent-encoded separators/dot segments, whitespace, ambiguous separators and duplicate target paths are rejected. The TUF transport receives the configured maximum target length, so oversized target downloads are refused before target bytes are buffered.
 
 References: [TUF 1.0.36 specification](https://theupdateframework.github.io/specification/v1.0.36/) · [sigstore-tuf 0.15.1](https://docs.rs/crate/sigstore-tuf/0.15.1) · [Updater API](https://docs.rs/sigstore-tuf/0.15.1/sigstore_tuf/client/struct.Updater.html).
 
