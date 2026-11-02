@@ -89,3 +89,30 @@ Required metrics are:
 - quality-vs-compute and audited-yield-vs-compute curves.
 
 No scalar optimality gap is emitted for this multi-objective enumerator. No cross-solver expansion-count equivalence is assumed. A 25% median reduction in time-to-first-audited-candidate at matched quality is a promotion hypothesis, not an achieved result.
+
+## Executable v0.1 implementation
+
+The additive `assess_energy_dispatch_anytime` API is implemented in `sol-atlas-core/src/energy_dispatch.rs`. The existing `assess_energy_dispatch` function remains all-or-nothing and retains its exact output contract.
+
+The new report uses:
+- `ExactComplete` — complete frontier included;
+- `FeasibleUnproven` — complete-horizon incumbent included, frontier omitted;
+- `ProvenInfeasible` — only after exhaustive completion with no feasible schedule;
+- `LimitWithoutCandidate` — declared cap reached before any complete schedule.
+
+Only `CandidateExpansionCapExceeded` and `ParetoFrontierCapExceeded` are translated to bounded outcomes. Other errors propagate. The search stores the best complete incumbent before attempting Pareto insertion; the candidate is selected by a versioned lexicographic objective key and retained only when it improves the incumbent, avoiding an unnecessary schedule clone for every completed trajectory.
+
+The report separates attempted enumeration-prefix visits (including the first cap-denied attempt) from admitted prefix visits (which never exceed the cap). The old exact API's successful work count is unchanged because a completed exact search has no denied visit.
+
+### Additional interruption tests
+
+The implementation includes tests for:
+- exact-complete parity between the legacy exact result and the anytime complete frontier;
+- cap before first candidate;
+- cap after at least one complete candidate, with no partial frontier publication;
+- exhaustive finite-model infeasibility;
+- malformed-input error preservation;
+- complete-incumbent preservation when Pareto-frontier insertion exceeds the frontier cap.
+
+These tests establish finite algorithm/API semantics only. The incumbent remains unaudited until the separate schedule auditor accepts its exact request/schedule bytes, and service-floor qualification remains a distinct caller policy.
+
