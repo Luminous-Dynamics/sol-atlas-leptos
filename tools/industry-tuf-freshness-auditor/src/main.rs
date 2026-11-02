@@ -917,6 +917,26 @@ mod tests{
         let rb=serde_json::to_vec(&r).unwrap();let pb=serde_json::to_vec(&p).unwrap();let sb=serde_json::to_vec(&s).unwrap();
         assert!(audit(&r,&p,&s,&rb,&pb,&sb).is_err());
     }
+    #[test]fn completeness_attestation_target_substitution_is_rejected(){
+        let (mut r,p,s)=base();
+        r["channel_binding"]["completeness_attestation"]["target_sha256"]=json!(d('x'));
+        let rb=serde_json::to_vec(&r).unwrap();let pb=serde_json::to_vec(&p).unwrap();let sb=serde_json::to_vec(&s).unwrap();
+        assert!(audit(&r,&p,&s,&rb,&pb,&sb).is_err());
+    }
+    #[test]fn availability_audit_report_target_substitution_is_rejected(){
+        let (mut r,p,s)=base();
+        r["channel_binding"]["availability_audit_report"]["target_sha256"]=json!(d('x'));
+        let rb=serde_json::to_vec(&r).unwrap();let pb=serde_json::to_vec(&p).unwrap();let sb=serde_json::to_vec(&s).unwrap();
+        assert!(audit(&r,&p,&s,&rb,&pb,&sb).is_err());
+    }
+    #[test]fn completeness_target_same_role_version_cannot_change(){
+        let (mut r,p,s)=base();
+        r["channel_binding"]["completeness_attestation"]["target_sha256"]=json!(d('x'));
+        r["target_roles"][2]["target_sha256"]=json!(d('x'));
+        let rb=serde_json::to_vec(&r).unwrap();let pb=serde_json::to_vec(&p).unwrap();let sb=serde_json::to_vec(&s).unwrap();
+        assert!(audit(&r,&p,&s,&rb,&pb,&sb).is_err());
+    }
+
     #[test]fn missing_required_target_role_is_rejected(){
         let (mut r,p,s)=base();r["target_roles"].as_array_mut().unwrap().pop();
         let rb=serde_json::to_vec(&r).unwrap();let pb=serde_json::to_vec(&p).unwrap();let sb=serde_json::to_vec(&s).unwrap();
