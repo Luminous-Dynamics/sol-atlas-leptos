@@ -651,8 +651,10 @@ struct CohortV03Key {
 pub fn summarize_traces_v03(records: &[SolverTraceV03]) -> Result<Vec<TraceSummaryV03>, TraceV03Error> {
     let mut groups =
         BTreeMap::<(CohortV03Key, String), Vec<&SolverTraceV03>>::new();
-    let mut seen =
-        BTreeMap::<(CohortV03Key, String), BTreeMap<String, SolverTraceV03>>::new();
+    // Sample IDs are unique across an entire cohort, not merely within one
+    // scenario stratum. This prevents a replay from being relabelled to another
+    // scenario while retaining identical-row idempotency.
+    let mut seen = BTreeMap::<CohortV03Key, BTreeMap<String, SolverTraceV03>>::new();
     let mut cohort_identity_by_id = BTreeMap::<String, CohortV03Key>::new();
     for record in records {
         record.validate()?;
@@ -677,7 +679,7 @@ pub fn summarize_traces_v03(records: &[SolverTraceV03]) -> Result<Vec<TraceSumma
             cohort_identity_by_id.insert(record.cohort_id.clone(), key.clone());
         }
         let scenario_key = (key.clone(), record.scenario_id.clone());
-        let samples = seen.entry(scenario_key.clone()).or_default();
+        let samples = seen.entry(key.clone()).or_default();
         if let Some(existing) = samples.get(&record.sample_id) {
             if existing != record {
                 return Err(TraceV03Error::DuplicateSampleConflict);
@@ -1133,6 +1135,17 @@ mod tests {
         assert_eq!(summary.decision_ready_latency_sample_count, 20);
         assert_eq!(summary.decision_ready_latency_p50_ns, Some(109));
         assert_eq!(summary.decision_ready_latency_p95_ns, Some(118));
+    }
+
+    #[test]
+    fn sample_id_cannot_be_relabelled_into_another_scenario_stratum() {
+        let first = base(SearchDispositionV03::ExactComplete);
+        let mut relabelled = first.clone();
+        relabelled.scenario_id = "another-scenario".to_owned();
+        assert_eq!(
+            summarize_traces_v03(&[first, relabelled]),
+            Err(TraceV03Error::DuplicateSampleConflict)
+        );
     }
 
     #[test]
