@@ -357,6 +357,7 @@ struct ScenarioOutcomeReportSubject<'a> {
     model_sha256: &'a str,
     benchmark_binary_sha256: &'a str,
     service_floor_policy_id: &'a str,
+    service_floor_policy: &'a ServiceFloorPolicy,
     service_floor_policy_sha256: &'a str,
     worst_tail_mass_bps: u16,
     probability_total: Rational,
@@ -780,6 +781,57 @@ fn metric_summary(
     })
 }
 
+fn metric_summary_lower_tail(
+    scenarios: &[ScenarioOutcome],
+    tail_mass: Rational,
+    value: impl Fn(&ScenarioOutcome) -> u64,
+) -> Result<MetricSummary, String> {
+    let mut expected = Rational::zero();
+    let mut losses = Vec::with_capacity(scenarios.len());
+    let mut worst_case = u64::MAX;
+    for scenario in scenarios {
+        let metric = value(scenario);
+        worst_case = worst_case.min(metric);
+        expected = expected.add(scenario.probability.mul_integer(metric)?)?;
+        losses.push((metric, scenario.probability));
+    }
+    let worst_tail_cvar = cvar_lower_tail(&mut losses, tail_mass)?;
+    Ok(MetricSummary {
+        expected,
+        worst_case,
+        worst_tail_cvar,
+    })
+}
+
+/// Exact discrete lower-tail mean for beneficial metrics such as terminal SOC.
+fn cvar_lower_tail(
+    losses: &mut [(u64, Rational)],
+    tail_mass: Rational,
+) -> Result<Rational, String> {
+    if tail_mass.is_zero() || tail_mass.cmp_exact(Rational::one())? == Ordering::Greater {
+        return Err("CVaR tail mass must be in (0, 1]".to_owned());
+    }
+    losses.sort_by(|left, right| left.0.cmp(&right.0));
+    let mut remaining = tail_mass;
+    let mut weighted_value = Rational::zero();
+    for (value, probability) in losses.iter().copied() {
+        if remaining.is_zero() {
+            break;
+        }
+        let take = if probability.cmp_exact(remaining)? == Ordering::Less {
+            probability
+        } else {
+            remaining
+        };
+        weighted_value = weighted_value.add(take.mul_integer(value)?)?;
+        remaining = remaining.sub(take)?;
+    }
+    if !remaining.is_zero() {
+        return Err("scenario probability mass is insufficient for CVaR tail".to_owned());
+    }
+    weighted_value.div(tail_mass)
+}
+
 /// Exact discrete upper-tail mean. Probability mass at the boundary is
 /// fractionally allocated so the selected worst tail has exactly tail_mass.
 fn cvar_upper_tail(
@@ -890,6 +942,7 @@ fn aggregate(
         model_sha256,
         benchmark_binary_sha256: &benchmark_binary_sha256,
         service_floor_policy_id: &policy.policy_id,
+        service_floor_policy: policy,
         service_floor_policy_sha256: policy_sha256,
         worst_tail_mass_bps: tail_mass_bps,
         probability_total,
