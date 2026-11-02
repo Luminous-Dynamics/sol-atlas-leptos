@@ -568,9 +568,12 @@ mod tests {
         let terminal_soc = first_soc - second_discharge;
         let first_charge = if charge_in_first_interval { 1_u16 } else { 0_u16 };
         let first_pv_used = first_charge;
-        let first_pv_available = request_value["intervals"][0]["pv_available_quanta"]
-            .as_u64()
-            .unwrap() as u16;
+        let first_pv_available = u16::try_from(
+            request_value["intervals"][0]["pv_available_quanta"]
+                .as_u64()
+                .unwrap(),
+        )
+        .unwrap();
         let first_pv_curtailed = first_pv_available - first_pv_used;
         let second_served = second_discharge;
         let second_unserved = 1 - second_served;
