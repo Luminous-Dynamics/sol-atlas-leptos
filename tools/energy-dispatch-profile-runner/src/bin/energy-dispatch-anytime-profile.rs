@@ -566,16 +566,53 @@ fn run_profile(
                     })();
                     match decoded {
                         Ok((receipt_value, lite)) => {
-                            if lite.request_sha256 != request_sha256
+                            let subject = ScheduleAuditReceiptSubjectLite {
+                                receipt_schema: &lite.receipt_schema,
+                                auditor_id: &lite.auditor_id,
+                                auditor_version: &lite.auditor_version,
+                                auditor_binary_sha256: &lite.auditor_binary_sha256,
+                                source_schema_version: &lite.source_schema_version,
+                                schedule_schema_version: &lite.schedule_schema_version,
+                                case_id: &lite.case_id,
+                                synthetic_source: lite.synthetic_source,
+                                max_candidate_expansions: lite.max_candidate_expansions,
+                                request_sha256: &lite.request_sha256,
+                                schedule_sha256: &lite.schedule_sha256,
+                                interval_count: lite.interval_count,
+                                disposition: &lite.disposition,
+                                findings: &lite.findings,
+                                recomputed_objectives: &lite.recomputed_objectives,
+                                claim_ceiling: &lite.claim_ceiling,
+                            };
+                            let receipt_subject_hash = serde_json::to_vec(&subject)
+                                .map(|bytes| sha256(&bytes))
+                                .map_err(|error| format!("serialize schedule audit receipt subject: {error}"))?;
+                            let accepted_findings_valid = lite.disposition != "accepted"
+                                || lite.findings.iter().all(|finding| finding.passed);
+                            let rejected_findings_valid = lite.disposition != "rejected"
+                                || lite.findings.iter().any(|finding| !finding.passed);
+                            if lite.receipt_schema != "energy-dispatch-schedule-audit-receipt-v0.1"
+                                || lite.auditor_id != "energy-dispatch-schedule-auditor"
+                                || lite.auditor_version.trim().is_empty()
+                                || lite.source_schema_version != request.schema_version
+                                || lite.schedule_schema_version != "energy-dispatch-schedule-v0.1"
+                                || lite.case_id != request.case_id
+                                || lite.synthetic_source != request.synthetic
+                                || lite.max_candidate_expansions != request.max_candidate_expansions
+                                || lite.interval_count != request.intervals.len()
+                                || lite.request_sha256 != request_sha256
                                 || lite.schedule_sha256
                                     != candidate_schedule_hash.as_deref().unwrap_or("")
                                 || auditor_binary_hash.as_deref()
                                     != Some(lite.auditor_binary_sha256.as_str())
                                 || !valid_sha256(&lite.receipt_sha256)
+                                || receipt_subject_hash != lite.receipt_sha256
+                                || !accepted_findings_valid
+                                || !rejected_findings_valid
                             {
                                 audit_disposition = AuditDispositionV03::Unavailable;
                                 failure = Some(
-                                    "schedule audit receipt bindings did not match exact input bytes or executable"
+                                    "schedule audit receipt subject, source bindings, findings or executable digest did not verify"
                                         .to_owned(),
                                 );
                             } else {
@@ -656,7 +693,29 @@ fn run_profile(
                     })();
                     match decoded {
                         Ok((receipt_value, lite)) => {
-                            if lite.request_sha256 != request_sha256
+                            let subject = ServiceFloorReceiptSubjectLite {
+                                receipt_schema: &lite.receipt_schema,
+                                policy_id: &lite.policy_id,
+                                policy_sha256: &lite.policy_sha256,
+                                request_sha256: &lite.request_sha256,
+                                schedule_sha256: &lite.schedule_sha256,
+                                schedule_audit_receipt_sha256: &lite.schedule_audit_receipt_sha256,
+                                schedule_auditor_binary_sha256: &lite.schedule_auditor_binary_sha256,
+                                service_floor_auditor_binary_sha256: &lite.service_floor_auditor_binary_sha256,
+                                disposition: &lite.disposition,
+                                findings: &lite.findings,
+                                claim_ceiling: &lite.claim_ceiling,
+                            };
+                            let receipt_subject_hash = serde_json::to_vec(&subject)
+                                .map(|bytes| sha256(&bytes))
+                                .map_err(|error| format!("serialize service-floor receipt subject: {error}"))?;
+                            let passed_findings_valid = lite.disposition != "passed"
+                                || lite.findings.iter().all(|finding| finding.passed);
+                            let failed_findings_valid = lite.disposition != "failed"
+                                || lite.findings.iter().any(|finding| !finding.passed);
+                            if lite.receipt_schema != "energy-service-floor-receipt-v0.1"
+                                || lite.policy_id.trim().is_empty()
+                                || lite.request_sha256 != request_sha256
                                 || lite.schedule_sha256
                                     != candidate_schedule_hash.as_deref().unwrap_or("")
                                 || lite.schedule_audit_receipt_sha256
@@ -667,11 +726,14 @@ fn run_profile(
                                     != service_floor_binary_hash.as_deref()
                                 || lite.policy_sha256 != policy_hash
                                 || !valid_sha256(&lite.receipt_sha256)
+                                || receipt_subject_hash != lite.receipt_sha256
+                                || !passed_findings_valid
+                                || !failed_findings_valid
                             {
                                 service_floor_disposition =
                                     ServiceFloorDispositionV03::Unavailable;
                                 failure = Some(
-                                    "service-floor receipt bindings did not match exact policy, request, schedule, audit receipt or evaluator executable".to_owned(),
+                                    "service-floor receipt subject, policy/source bindings, findings or executable digest did not verify".to_owned(),
                                 );
                             } else {
                                 service_floor_disposition = match lite.disposition.as_str() {
