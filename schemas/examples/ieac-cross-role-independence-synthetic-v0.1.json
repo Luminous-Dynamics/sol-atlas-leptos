@@ -210,6 +210,13 @@
                 "ccf_reference_id": "dep:breakglass-prod",
                 "binding_status": "verified",
                 "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              },
+              {
+                "token_id": "ci:prod",
+                "token_type": "ci_release_pipeline",
+                "ccf_reference_id": "dep:release-pipeline-prod",
+                "binding_status": "verified",
+                "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               }
             ],
             "ccf_control_id": "verifier-deployment"
@@ -687,6 +694,13 @@
                 "token_id": "breakglass:prod:ind:4",
                 "token_type": "break_glass_authority",
                 "ccf_reference_id": "dep:ind:4:2",
+                "binding_status": "verified",
+                "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              },
+              {
+                "token_id": "ci:prod",
+                "token_type": "ci_release_pipeline",
+                "ccf_reference_id": "dep:release-pipeline-prod",
                 "binding_status": "verified",
                 "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               }
