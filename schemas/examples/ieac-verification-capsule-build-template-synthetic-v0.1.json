@@ -1,0 +1,114 @@
+{
+  "schema_version": "luminous.ieac-verification-capsule-build-template.v0.1",
+  "capsule_id": "synthetic-plant-17-2026-06",
+  "capsule_mode": "self_contained",
+  "replayability": "fully_replayable",
+  "created_at": "2026-06-01T00:00:02Z",
+  "bootstrap_root": {
+    "version": 1,
+    "staged_path": "root/1.root.json",
+    "capsule_file_path": "root/1.root.json"
+  },
+  "policy_file": {
+    "staged_path": "policy/ieac-policy.json",
+    "capsule_file_path": "policy/ieac-policy.json"
+  },
+  "verifier_identity": {
+    "implementation": "sigstore-tuf",
+    "version": "0.15.1",
+    "build_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+    "independent_verifier_required": true
+  },
+  "metadata_artifacts": [
+    {
+      "role_name": "timestamp",
+      "version": 1,
+      "repository_path": "timestamp.json",
+      "staged_path": "metadata/timestamp.json",
+      "capsule_file_path": "metadata/timestamp.json",
+      "expires_at": "2030-01-01T00:00:00Z"
+    },
+    {
+      "role_name": "snapshot",
+      "version": 1,
+      "repository_path": "snapshot.json",
+      "staged_path": "metadata/snapshot.json",
+      "capsule_file_path": "metadata/snapshot.json",
+      "expires_at": "2030-01-01T00:00:00Z"
+    },
+    {
+      "role_name": "targets",
+      "version": 1,
+      "repository_path": "targets.json",
+      "staged_path": "metadata/targets.json",
+      "capsule_file_path": "metadata/targets.json",
+      "expires_at": "2030-01-01T00:00:00Z"
+    },
+    {
+      "role_name": "ieac-channel-manifests",
+      "version": 1,
+      "repository_path": "ieac-channel-manifests.json",
+      "staged_path": "metadata/ieac-channel-manifests.json",
+      "capsule_file_path": "metadata/ieac-channel-manifests.json",
+      "expires_at": "2030-01-01T00:00:00Z"
+    },
+    {
+      "role_name": "ieac-channel-checkpoints",
+      "version": 1,
+      "repository_path": "ieac-channel-checkpoints.json",
+      "staged_path": "metadata/ieac-channel-checkpoints.json",
+      "capsule_file_path": "metadata/ieac-channel-checkpoints.json",
+      "expires_at": "2030-01-01T00:00:00Z"
+    },
+    {
+      "role_name": "ieac-channel-completeness-attestations",
+      "version": 1,
+      "repository_path": "ieac-channel-completeness-attestations.json",
+      "staged_path": "metadata/ieac-channel-completeness-attestations.json",
+      "capsule_file_path": "metadata/ieac-channel-completeness-attestations.json",
+      "expires_at": "2030-01-01T00:00:00Z"
+    },
+    {
+      "role_name": "ieac-channel-completeness-reports",
+      "version": 1,
+      "repository_path": "ieac-channel-completeness-reports.json",
+      "staged_path": "metadata/ieac-channel-completeness-reports.json",
+      "capsule_file_path": "metadata/ieac-channel-completeness-reports.json",
+      "expires_at": "2030-01-01T00:00:00Z"
+    }
+  ],
+  "targets": [
+    {
+      "id": "channel_manifest",
+      "repository_path": "channels/plant-17/manifest.json",
+      "length": 4096,
+      "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "content_mode": "embedded",
+      "staged_path": "target-bytes/manifest.json"
+    },
+    {
+      "id": "checkpoint_state",
+      "repository_path": "channels/plant-17/checkpoint.json",
+      "length": 1024,
+      "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "content_mode": "embedded",
+      "staged_path": "target-bytes/checkpoint.json"
+    },
+    {
+      "id": "completeness_attestation",
+      "repository_path": "channels/plant-17/completeness-attestation.json",
+      "length": 8192,
+      "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "content_mode": "embedded",
+      "staged_path": "target-bytes/completeness-attestation.json"
+    },
+    {
+      "id": "availability_audit_report",
+      "repository_path": "channels/plant-17/completeness-report.json",
+      "length": 2048,
+      "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "content_mode": "embedded",
+      "staged_path": "target-bytes/completeness-report.json"
+    }
+  ]
+}
