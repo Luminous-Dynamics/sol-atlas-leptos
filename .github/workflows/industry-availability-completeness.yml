@@ -134,6 +134,19 @@ jobs:
             $a.absence_query.verification_policy_sha256 == $a.verifier.policy_sha256 and
             $a.continuity.verifier_build_sha256 == $a.verifier.build_sha256 and
             $a.continuity.verification_policy_sha256 == $a.verifier.policy_sha256 and
+            $a.decision_cutoff.basis == "trusted_clock_attestation" and
+            all([
+              $a.coverage_start_checkpoint.observed_at,
+              $a.decision_boundary_checkpoint.observed_at,
+              $a.coverage_end_checkpoint.observed_at,
+              $a.first_access.observed_at,
+              $a.coverage.coverage_from,
+              $a.coverage.coverage_through
+            ][];
+              .verification_status == "verified" and
+              .verifier_build_sha256 == $a.verifier.build_sha256 and
+              .verification_policy_sha256 == $a.verifier.policy_sha256
+            ) and
             late($a.coverage_start_checkpoint.observed_at) <= early($a.decision_cutoff) and
             early($a.decision_boundary_checkpoint.observed_at) > late($a.decision_cutoff) and
             early($a.first_access.observed_at) > late($a.decision_boundary_checkpoint.observed_at) and
@@ -168,8 +181,9 @@ jobs:
           jq '.absence_query.matching_event_count = 1' "$source" > "$RUNNER_TEMP/nonzero-query.json"
           jq '.absence_query.sequence_through_inclusive = 99' "$source" > "$RUNNER_TEMP/wrong-query-range.json"
           jq '.first_access.sequence = 100' "$source" > "$RUNNER_TEMP/access-before-boundary.json"
-          jq '.decision_boundary_checkpoint.observed_at.time_utc = "2026-11-02T09:10:00Z"' "$source" > "$RUNNER_TEMP/boundary-not-after-cutoff.json"
-          for mutant in "$RUNNER_TEMP/gap.json" "$RUNNER_TEMP/bypass.json" "$RUNNER_TEMP/nonzero-query.json" "$RUNNER_TEMP/wrong-query-range.json" "$RUNNER_TEMP/access-before-boundary.json"; do
+          jq '.decision_boundary_checkpoint.observed_at.time_utc = "2026-11-02T09:09:00Z"' "$source" > "$RUNNER_TEMP/boundary-not-after-cutoff.json"
+          jq '.coverage_start_checkpoint.observed_at.time_utc = "2026-11-02T09:11:00Z"' "$source" > "$RUNNER_TEMP/coverage-start-after-cutoff.json"
+          for mutant in "$RUNNER_TEMP/gap.json" "$RUNNER_TEMP/bypass.json" "$RUNNER_TEMP/nonzero-query.json" "$RUNNER_TEMP/wrong-query-range.json" "$RUNNER_TEMP/access-before-boundary.json" "$RUNNER_TEMP/boundary-not-after-cutoff.json" "$RUNNER_TEMP/coverage-start-after-cutoff.json"; do
             if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$mutant"; then
               echo "ERROR: attestation schema accepted incomplete negative control $mutant"
               exit 1
