@@ -1,0 +1,269 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-directional-spectral-transfer-report-v0.1.schema.json",
+  "title": "Sol-Atlas Directional Spectral Transfer Report",
+  "description": "Directional DSS report. Reverse direction is a separate report; DSS is not a symmetric site similarity.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source_region_id",
+    "target_region_id",
+    "task_scope",
+    "positive_class_semantics",
+    "background_class_semantics",
+    "label_protocol_ref",
+    "feature_definition_sha256",
+    "distance_pipeline_sha256",
+    "top_month_count",
+    "metrics",
+    "preprocessing"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-spectral-transfer.v0.1"
+    },
+    "source_region_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_region_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_scope": {
+      "const": "cropmark_vegetation_proxy"
+    },
+    "positive_class_semantics": {
+      "type": "string",
+      "minLength": 1
+    },
+    "background_class_semantics": {
+      "type": "string",
+      "minLength": 1
+    },
+    "label_protocol_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "feature_definition_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "distance_pipeline_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "top_month_count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 12
+    },
+    "metrics": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "metric",
+          "shared_month_count",
+          "monthly_ratios",
+          "selected_calendar_months",
+          "selected_reciprocal_strengths",
+          "directional_strength_score"
+        ],
+        "properties": {
+          "metric": {
+            "enum": [
+              "euclidean",
+              "wasserstein",
+              "kolmogorov_smirnov",
+              "mahalanobis"
+            ]
+          },
+          "shared_month_count": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          },
+          "monthly_ratios": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "calendar_month",
+                "ratio",
+                "reciprocal_strength"
+              ],
+              "properties": {
+                "calendar_month": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 12
+                },
+                "ratio": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "reciprocal_strength": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              }
+            }
+          },
+          "selected_calendar_months": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 12,
+            "items": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12
+            }
+          },
+          "selected_reciprocal_strengths": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 12,
+            "items": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "directional_strength_score": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        }
+      }
+    },
+    "preprocessing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sensor_product_id",
+        "spatial_grid_resolution_m",
+        "max_scene_cloud_coverage_pct",
+        "scene_median_ndvi_min",
+        "pixel_ndvi_min",
+        "spectral_representation",
+        "gaussian_residual_alpha",
+        "ndvi_definition_sha256",
+        "ndvi_channel_contract_ref",
+        "geometric_quality_control_ref",
+        "date_exclusion_audit_ref",
+        "source_asset_manifest_sha256",
+        "preprocessing_config_sha256"
+      ],
+      "properties": {
+        "sensor_product_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "spatial_grid_resolution_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "max_scene_cloud_coverage_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "scene_median_ndvi_min": {
+          "type": "number",
+          "minimum": -1,
+          "maximum": 1
+        },
+        "pixel_ndvi_min": {
+          "type": "number",
+          "minimum": -1,
+          "maximum": 1
+        },
+        "spectral_representation": {
+          "enum": [
+            "raw_reflectance",
+            "gaussian_relative_residual"
+          ]
+        },
+        "gaussian_residual_alpha": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0.05,
+          "maximum": 0.2
+        },
+        "ndvi_definition_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "ndvi_channel_contract_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "geometric_quality_control_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "date_exclusion_audit_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_asset_manifest_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "preprocessing_config_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "spectral_representation": {
+                "const": "gaussian_relative_residual"
+              }
+            },
+            "required": [
+              "spectral_representation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "gaussian_residual_alpha": {
+                "type": "number",
+                "minimum": 0.05,
+                "maximum": 0.2
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "spectral_representation": {
+                "const": "raw_reflectance"
+              }
+            },
+            "required": [
+              "spectral_representation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "gaussian_residual_alpha": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-transfer-association-input-v0.1.schema.json",
+  "title": "Sol-Atlas Transfer Association Input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "records"
+  ],
+  "properties": {
+    "records": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "metric",
+          "source_region_id",
+          "target_region_id",
+          "directional_strength_score",
+          "target_transfer_f1"
+        ],
+        "properties": {
+          "metric": {
+            "enum": [
+              "euclidean",
+              "wasserstein",
+              "kolmogorov_smirnov",
+              "mahalanobis"
+            ]
+          },
+          "source_region_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target_region_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "directional_strength_score": {
+            "type": "number",
+            "minimum": 0
+          },
+          "target_transfer_f1": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      }
+    }
+  }
+}

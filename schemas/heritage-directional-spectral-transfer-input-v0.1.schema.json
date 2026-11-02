@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-directional-spectral-transfer-input-v0.1.schema.json",
+  "title": "Sol-Atlas Directional Spectral Transfer Input",
+  "description": "Monthly pooled cropmark-positive (A) and vegetated-background (H) spectral-cluster distances for one ordered source-to-target region pair.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "source_region_id",
+    "target_region_id",
+    "task_scope",
+    "positive_class_semantics",
+    "background_class_semantics",
+    "label_protocol_ref",
+    "feature_definition_sha256",
+    "distance_pipeline_sha256",
+    "monthly_distances",
+    "preprocessing"
+  ],
+  "properties": {
+    "source_region_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_region_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_scope": {
+      "const": "cropmark_vegetation_proxy"
+    },
+    "positive_class_semantics": {
+      "type": "string",
+      "minLength": 1
+    },
+    "background_class_semantics": {
+      "type": "string",
+      "minLength": 1
+    },
+    "label_protocol_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "feature_definition_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "distance_pipeline_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "monthly_distances": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "calendar_month",
+          "metric",
+          "source_a_to_target_a",
+          "source_a_to_target_h"
+        ],
+        "properties": {
+          "calendar_month": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          },
+          "metric": {
+            "enum": [
+              "euclidean",
+              "wasserstein",
+              "kolmogorov_smirnov",
+              "mahalanobis"
+            ]
+          },
+          "source_a_to_target_a": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "source_a_to_target_h": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        }
+      }
+    },
+    "preprocessing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sensor_product_id",
+        "spatial_grid_resolution_m",
+        "max_scene_cloud_coverage_pct",
+        "scene_median_ndvi_min",
+        "pixel_ndvi_min",
+        "spectral_representation",
+        "gaussian_residual_alpha",
+        "ndvi_definition_sha256",
+        "ndvi_channel_contract_ref",
+        "geometric_quality_control_ref",
+        "date_exclusion_audit_ref",
+        "source_asset_manifest_sha256",
+        "preprocessing_config_sha256"
+      ],
+      "properties": {
+        "sensor_product_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "spatial_grid_resolution_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "max_scene_cloud_coverage_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "scene_median_ndvi_min": {
+          "type": "number",
+          "minimum": -1,
+          "maximum": 1
+        },
+        "pixel_ndvi_min": {
+          "type": "number",
+          "minimum": -1,
+          "maximum": 1
+        },
+        "spectral_representation": {
+          "enum": [
+            "raw_reflectance",
+            "gaussian_relative_residual"
+          ]
+        },
+        "gaussian_residual_alpha": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0.05,
+          "maximum": 0.2
+        },
+        "ndvi_definition_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "ndvi_channel_contract_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "geometric_quality_control_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "date_exclusion_audit_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_asset_manifest_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "preprocessing_config_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "spectral_representation": {
+                "const": "gaussian_relative_residual"
+              }
+            },
+            "required": [
+              "spectral_representation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "gaussian_residual_alpha": {
+                "type": "number",
+                "minimum": 0.05,
+                "maximum": 0.2
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "spectral_representation": {
+                "const": "raw_reflectance"
+              }
+            },
+            "required": [
+              "spectral_representation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "gaussian_residual_alpha": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

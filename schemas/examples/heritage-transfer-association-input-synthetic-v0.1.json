@@ -1,0 +1,32 @@
+{
+  "records": [
+    {
+      "metric": "euclidean",
+      "source_region_id": "a",
+      "target_region_id": "b",
+      "directional_strength_score": 1,
+      "target_transfer_f1": 0.2
+    },
+    {
+      "metric": "euclidean",
+      "source_region_id": "a",
+      "target_region_id": "c",
+      "directional_strength_score": 2,
+      "target_transfer_f1": 0.4
+    },
+    {
+      "metric": "euclidean",
+      "source_region_id": "b",
+      "target_region_id": "a",
+      "directional_strength_score": 3,
+      "target_transfer_f1": 0.6
+    },
+    {
+      "metric": "euclidean",
+      "source_region_id": "b",
+      "target_region_id": "c",
+      "directional_strength_score": 4,
+      "target_transfer_f1": 0.8
+    }
+  ]
+}

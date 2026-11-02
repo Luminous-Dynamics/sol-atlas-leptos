@@ -1,0 +1,157 @@
+{
+  "schema_version": "luminous.heritage-spectral-transfer.v0.1",
+  "source_region_id": "synthetic-region-a",
+  "target_region_id": "synthetic-region-b",
+  "task_scope": "cropmark_vegetation_proxy",
+  "positive_class_semantics": "vegetation pixels visually interpreted as cropmarks; not field-confirmed",
+  "background_class_semantics": "other vegetated pixels after NDVI masking",
+  "label_protocol_ref": "urn:synthetic:cropmark-mask-adjudication:v1",
+  "feature_definition_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "distance_pipeline_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "top_month_count": 3,
+  "metrics": [
+    {
+      "metric": "euclidean",
+      "shared_month_count": 3,
+      "monthly_ratios": [
+        {
+          "calendar_month": 1,
+          "ratio": 0.25,
+          "reciprocal_strength": 4
+        },
+        {
+          "calendar_month": 2,
+          "ratio": 0.5,
+          "reciprocal_strength": 2
+        },
+        {
+          "calendar_month": 3,
+          "ratio": 0.5,
+          "reciprocal_strength": 2
+        }
+      ],
+      "selected_calendar_months": [
+        1,
+        2,
+        3
+      ],
+      "selected_reciprocal_strengths": [
+        4,
+        2,
+        2
+      ],
+      "directional_strength_score": 2.6666666666666665
+    },
+    {
+      "metric": "wasserstein",
+      "shared_month_count": 3,
+      "monthly_ratios": [
+        {
+          "calendar_month": 1,
+          "ratio": 0.25,
+          "reciprocal_strength": 4
+        },
+        {
+          "calendar_month": 2,
+          "ratio": 0.5,
+          "reciprocal_strength": 2
+        },
+        {
+          "calendar_month": 3,
+          "ratio": 0.5,
+          "reciprocal_strength": 2
+        }
+      ],
+      "selected_calendar_months": [
+        1,
+        2,
+        3
+      ],
+      "selected_reciprocal_strengths": [
+        4,
+        2,
+        2
+      ],
+      "directional_strength_score": 2.6666666666666665
+    },
+    {
+      "metric": "kolmogorov_smirnov",
+      "shared_month_count": 3,
+      "monthly_ratios": [
+        {
+          "calendar_month": 1,
+          "ratio": 0.25,
+          "reciprocal_strength": 4
+        },
+        {
+          "calendar_month": 2,
+          "ratio": 0.5,
+          "reciprocal_strength": 2
+        },
+        {
+          "calendar_month": 3,
+          "ratio": 0.5,
+          "reciprocal_strength": 2
+        }
+      ],
+      "selected_calendar_months": [
+        1,
+        2,
+        3
+      ],
+      "selected_reciprocal_strengths": [
+        4,
+        2,
+        2
+      ],
+      "directional_strength_score": 2.6666666666666665
+    },
+    {
+      "metric": "mahalanobis",
+      "shared_month_count": 3,
+      "monthly_ratios": [
+        {
+          "calendar_month": 1,
+          "ratio": 0.25,
+          "reciprocal_strength": 4
+        },
+        {
+          "calendar_month": 2,
+          "ratio": 0.5,
+          "reciprocal_strength": 2
+        },
+        {
+          "calendar_month": 3,
+          "ratio": 0.5,
+          "reciprocal_strength": 2
+        }
+      ],
+      "selected_calendar_months": [
+        1,
+        2,
+        3
+      ],
+      "selected_reciprocal_strengths": [
+        4,
+        2,
+        2
+      ],
+      "directional_strength_score": 2.6666666666666665
+    }
+  ],
+  "preprocessing": {
+    "sensor_product_id": "Sentinel-2 Level-2A synthetic fixture",
+    "spatial_grid_resolution_m": 10,
+    "max_scene_cloud_coverage_pct": 20,
+    "scene_median_ndvi_min": 0.3,
+    "pixel_ndvi_min": 0.05,
+    "spectral_representation": "gaussian_relative_residual",
+    "gaussian_residual_alpha": 0.1,
+    "ndvi_definition_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "ndvi_channel_contract_ref": "urn:synthetic:red-b04-nir-b08-contract:v1",
+    "geometric_quality_control_ref": "urn:synthetic:scene-geometry-filter:v1",
+    "date_exclusion_audit_ref": "urn:synthetic:date-exclusion-log:none",
+    "source_asset_manifest_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "preprocessing_config_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+  }
+}
