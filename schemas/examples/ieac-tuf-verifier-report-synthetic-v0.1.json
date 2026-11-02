@@ -4,7 +4,9 @@
   "root": {
     "version": 3,
     "sha256": "1111111111111111111111111111111111111111111111111111111111111111",
-    "expires_at": "2026-12-01T00:00:00Z"
+    "expires_at": "2026-12-01T00:00:00Z",
+    "timestamp_keyset_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "snapshot_keyset_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
   },
   "timestamp": {
     "version": 14,
@@ -95,7 +97,8 @@
     "snapshot_targets_binding_verified": true,
     "delegation_authorization_verified": true,
     "target_hash_length_verified": true,
-    "root_chain_verified": true
+    "root_chain_verified": true,
+    "timestamp_snapshot_key_rotation_recovery_verified": false
   },
   "evaluation_time": {
     "time_utc": "2026-11-02T09:30:00Z",
