@@ -1,5 +1,5 @@
 {
-  "schema_version": "energy-dispatch-nonanticipativity-manifest-v0.2",
+  "schema_version": "energy-dispatch-nonanticipativity-manifest-v0.3",
   "scenario_set_id": "demo-nonanticipativity-branching-v0.1",
   "scenarios": [
     {
@@ -8,10 +8,14 @@
       "schedule_path": "branch-scenario-a.schedule.json",
       "information_sets_by_interval": [
         {
+          "observed_at_unix_seconds": 1799999999,
+          "observation_bundle_path": "observation-positive-root.json",
           "forecast_as_of_unix_seconds": 1799996400,
           "forecast_bundle_path": "forecast-bundle-positive.json"
         },
         {
+          "observed_at_unix_seconds": 1800003600,
+          "observation_bundle_path": "observation-positive-scenario-a-branch.json",
           "forecast_as_of_unix_seconds": 1799996400,
           "forecast_bundle_path": "forecast-bundle-positive.json"
         }
@@ -23,10 +27,14 @@
       "schedule_path": "branch-scenario-b.schedule.json",
       "information_sets_by_interval": [
         {
+          "observed_at_unix_seconds": 1799999999,
+          "observation_bundle_path": "observation-positive-root.json",
           "forecast_as_of_unix_seconds": 1799996400,
           "forecast_bundle_path": "forecast-bundle-positive.json"
         },
         {
+          "observed_at_unix_seconds": 1800003600,
+          "observation_bundle_path": "observation-positive-scenario-b-branch.json",
           "forecast_as_of_unix_seconds": 1799996400,
           "forecast_bundle_path": "forecast-bundle-positive.json"
         }
