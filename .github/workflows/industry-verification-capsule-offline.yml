@@ -1,0 +1,135 @@
+name: IEAC offline verification capsule replay
+
+on:
+  pull_request:
+    paths:
+      - "tools/industry-verification-capsule-offline/**"
+      - "schemas/industry-ieac-verification-capsule-*.json"
+      - "schemas/examples/ieac-verification-capsule-*-synthetic-v0.1.json"
+      - "docs/industry/IEAC_VERIFICATION_CAPSULE_V0.1.md"
+      - ".github/workflows/industry-verification-capsule-offline.yml"
+  push:
+    branches:
+      - main
+      - feat/ieac-verification-capsule-v0-1
+    paths:
+      - "tools/industry-verification-capsule-offline/**"
+      - "schemas/industry-ieac-verification-capsule-*.json"
+      - "schemas/examples/ieac-verification-capsule-*-synthetic-v0.1.json"
+      - "docs/industry/IEAC_VERIFICATION_CAPSULE_V0.1.md"
+      - ".github/workflows/industry-verification-capsule-offline.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ieac-verification-capsule-offline-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  capsule-offline-replay:
+    name: Exact-head offline TUF capsule replay and privacy conformance
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact source revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Format, lint and test offline capsule verifier
+        run: |
+          set -euo pipefail
+          manifest=tools/industry-verification-capsule-offline/Cargo.toml
+          cargo fmt --manifest-path "$manifest" -- --check
+          cargo clippy --manifest-path "$manifest" --all-targets --locked -- -D warnings
+          cargo test --manifest-path "$manifest" --locked
+
+      - name: Assert the offline TUF crate has no HTTP client feature enabled
+        run: |
+          set -euo pipefail
+          grep -F 'sigstore-tuf = { version = "=0.15.1", default-features = false, features = ["aws-lc-rs"] }' \
+            tools/industry-verification-capsule-offline/Cargo.toml
+          if rg -n 'HttpRepository|reqwest|https?::get|ureq::|hyper::' \
+            tools/industry-verification-capsule-offline/src; then
+            echo "unexpected network client in offline capsule verifier"
+            exit 1
+          fi
+
+      - name: Install pinned Draft 2020-12 validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Add schema CLI to PATH
+        run: echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+
+      - name: Validate capsule, trust-pin and audit-report contracts
+        run: |
+          set -euo pipefail
+          for schema in \
+            schemas/industry-ieac-verification-capsule-v0.1.schema.json \
+            schemas/industry-ieac-verification-capsule-trust-pin-v0.1.schema.json \
+            schemas/industry-ieac-verification-capsule-audit-report-v0.1.schema.json; do
+            jsonschema-cli validate --draft 2020 --assert-format \
+              https://json-schema.org/draft/2020-12/schema -i "$schema"
+          done
+
+          capsule_schema=schemas/industry-ieac-verification-capsule-v0.1.schema.json
+          pin_schema=schemas/industry-ieac-verification-capsule-trust-pin-v0.1.schema.json
+          for fixture in \
+            schemas/examples/ieac-verification-capsule-self-contained-synthetic-v0.1.json \
+            schemas/examples/ieac-verification-capsule-target-referenced-synthetic-v0.1.json \
+            schemas/examples/ieac-verification-capsule-commitment-only-synthetic-v0.1.json; do
+            jsonschema-cli validate --draft 2020 --assert-format --offline "$capsule_schema" -i "$fixture"
+          done
+          jsonschema-cli validate --draft 2020 --assert-format --offline \
+            "$pin_schema" -i schemas/examples/ieac-verification-capsule-trust-pin-synthetic-v0.1.json
+
+      - name: Independently check target completeness, file inventory and privacy modes
+        run: |
+          set -euo pipefail
+          expected='["availability_audit_report","channel_manifest","checkpoint_state","completeness_attestation"]'
+
+          jq -e --argjson expected "$expected" '
+            .capsule_mode == "self_contained" and
+            .replayability == "fully_replayable" and
+            ([.targets[].id] | sort) == $expected and
+            ([.targets[].repository_path] | unique | length) == 4 and
+            all(.targets[]; .content_mode == "embedded" and has("capsule_file_path") and (has("reference") | not)) and
+            ([.file_inventory[].path] == ([.file_inventory[].path] | sort)) and
+            ([.file_inventory[].path] | unique | length) == (.file_inventory | length) and
+            (.file_inventory_sha256 | test("^[0-9a-f]{64}$"))
+          ' schemas/examples/ieac-verification-capsule-self-contained-synthetic-v0.1.json
+
+          jq -e --argjson expected "$expected" '
+            .capsule_mode == "metadata_complete_target_referenced" and
+            .replayability == "conditionally_replayable" and
+            ([.targets[].id] | sort) == $expected and
+            all(.targets[]; .content_mode == "referenced" and has("reference") and (has("capsule_file_path") | not) and (.reference.scheme == "cas") and (.reference.locator == ("cas://sha256/" + .sha256))) and
+            all(.file_inventory[]; .kind != "target_bytes") and
+            ([.file_inventory[].path] | unique | length) == (.file_inventory | length)
+          ' schemas/examples/ieac-verification-capsule-target-referenced-synthetic-v0.1.json
+
+          jq -e --argjson expected "$expected" '
+            .capsule_mode == "commitment_only" and
+            .replayability == "commitment_only" and
+            ([.targets[].id] | sort) == $expected and
+            all(.targets[]; .content_mode == "withheld" and (has("reference") | not) and (has("capsule_file_path") | not)) and
+            all(.file_inventory[]; .kind != "target_bytes") and
+            ([.file_inventory[].path] | unique | length) == (.file_inventory | length)
+          ' schemas/examples/ieac-verification-capsule-commitment-only-synthetic-v0.1.json
+
+      - name: Preserve locked dependency graph and generated schema fixtures
+        run: |
+          set -euo pipefail
+          git diff --exit-code -- tools/industry-verification-capsule-offline/Cargo.lock
+          git diff --exit-code -- schemas/industry-ieac-verification-capsule-v0.1.schema.json
