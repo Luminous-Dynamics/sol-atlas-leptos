@@ -1,0 +1,66 @@
+{
+  "case_id": "synthetic-case",
+  "candidate_id": "synthetic-candidate",
+  "predictions": [
+    {
+      "event_id": "event-a",
+      "month_probabilities": [
+        {
+          "month_ordinal": 24240,
+          "probability": 0.2
+        },
+        {
+          "month_ordinal": 24241,
+          "probability": 0.5
+        },
+        {
+          "month_ordinal": 24242,
+          "probability": 0.3
+        }
+      ]
+    },
+    {
+      "event_id": "event-b",
+      "month_probabilities": [
+        {
+          "month_ordinal": 24243,
+          "probability": 0.6
+        },
+        {
+          "month_ordinal": 24244,
+          "probability": 0.4
+        }
+      ]
+    }
+  ],
+  "ground_truth": [
+    {
+      "event_id": "event-a",
+      "admissible_interval": {
+        "start_month": 24241,
+        "end_month": 24242
+      },
+      "adjudication_ref": "urn:synthetic:adjudication:event-a",
+      "evidence_refs": [
+        "urn:synthetic:last-unaffected:event-a",
+        "urn:synthetic:first-affected:event-a"
+      ]
+    },
+    {
+      "event_id": "event-b",
+      "admissible_interval": {
+        "start_month": 24244,
+        "end_month": 24244
+      },
+      "adjudication_ref": "urn:synthetic:adjudication:event-b",
+      "evidence_refs": [
+        "urn:synthetic:last-unaffected:event-b",
+        "urn:synthetic:first-affected:event-b"
+      ]
+    }
+  ],
+  "config": {
+    "top_k_months": 2,
+    "probability_tolerance": 1e-9
+  }
+}

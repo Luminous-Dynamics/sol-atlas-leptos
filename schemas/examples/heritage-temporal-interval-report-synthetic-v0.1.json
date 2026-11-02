@@ -1,0 +1,44 @@
+{
+  "schema_version": "luminous.heritage-temporal-interval.v0.1",
+  "case_id": "synthetic-case",
+  "candidate_id": "synthetic-candidate",
+  "event_count": 2,
+  "map_inside_interval_count": 1,
+  "map_inside_interval_rate": 0.5,
+  "top_k_months": 2,
+  "recall_at_k_count": 2,
+  "recall_at_k": 1,
+  "mean_probability_mass_in_interval": 0.6,
+  "mean_negative_log_interval_likelihood": 0.5697171415941824,
+  "mean_map_distance_to_interval_months": 0.5,
+  "ordered_event_pair_count": 1,
+  "ambiguous_event_pair_count": 0,
+  "decisive_order_pair_count": 1,
+  "tied_order_pair_count": 0,
+  "pairwise_order_accuracy": 1,
+  "mean_pairwise_order_brier": 0,
+  "events": [
+    {
+      "event_id": "event-a",
+      "admissible_start_month": 24241,
+      "admissible_end_month": 24242,
+      "map_month": 24241,
+      "map_inside_interval": true,
+      "top_k_intersects_interval": true,
+      "probability_mass_in_interval": 0.8,
+      "negative_log_interval_likelihood": 0.2231435513142097,
+      "map_distance_to_interval_months": 0
+    },
+    {
+      "event_id": "event-b",
+      "admissible_start_month": 24244,
+      "admissible_end_month": 24244,
+      "map_month": 24243,
+      "map_inside_interval": false,
+      "top_k_intersects_interval": true,
+      "probability_mass_in_interval": 0.4,
+      "negative_log_interval_likelihood": 0.916290731874155,
+      "map_distance_to_interval_months": 1
+    }
+  ]
+}

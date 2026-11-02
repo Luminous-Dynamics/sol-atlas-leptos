@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-temporal-interval-input-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Interval-Censored Temporal Evaluation Input",
+  "description": "Conditional event-time probability distributions scored against evidence-supported inclusive time intervals. Event detection and cause attribution are separate tasks.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "case_id",
+    "candidate_id",
+    "predictions",
+    "ground_truth",
+    "config"
+  ],
+  "properties": {
+    "case_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "candidate_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "predictions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "event_id",
+          "month_probabilities"
+        ],
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "month_probabilities": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "month_ordinal",
+                "probability"
+              ],
+              "properties": {
+                "month_ordinal": {
+                  "type": "integer"
+                },
+                "probability": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ground_truth": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "event_id",
+          "admissible_interval",
+          "adjudication_ref",
+          "evidence_refs"
+        ],
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "admissible_interval": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "start_month",
+              "end_month"
+            ],
+            "properties": {
+              "start_month": {
+                "type": "integer"
+              },
+              "end_month": {
+                "type": "integer"
+              }
+            }
+          },
+          "adjudication_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_refs": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          }
+        }
+      }
+    },
+    "config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "top_k_months",
+        "probability_tolerance"
+      ],
+      "properties": {
+        "top_k_months": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "probability_tolerance": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 0.000001
+        }
+      }
+    }
+  }
+}

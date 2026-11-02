@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-temporal-interval-report-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Interval-Censored Temporal Evaluation Report",
+  "description": "Event localization metrics over interval-censored time truth and chronology metrics only for non-overlapping intervals.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "case_id",
+    "candidate_id",
+    "event_count",
+    "map_inside_interval_count",
+    "map_inside_interval_rate",
+    "top_k_months",
+    "recall_at_k_count",
+    "recall_at_k",
+    "mean_probability_mass_in_interval",
+    "mean_negative_log_interval_likelihood",
+    "mean_map_distance_to_interval_months",
+    "ordered_event_pair_count",
+    "ambiguous_event_pair_count",
+    "decisive_order_pair_count",
+    "tied_order_pair_count",
+    "pairwise_order_accuracy",
+    "mean_pairwise_order_brier",
+    "events"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-temporal-interval.v0.1"
+    },
+    "case_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "candidate_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "event_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "map_inside_interval_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "map_inside_interval_rate": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "top_k_months": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "recall_at_k_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "recall_at_k": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "mean_probability_mass_in_interval": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1
+    },
+    "mean_negative_log_interval_likelihood": {
+      "type": "number",
+      "minimum": 0
+    },
+    "mean_map_distance_to_interval_months": {
+      "type": "number",
+      "minimum": 0
+    },
+    "ordered_event_pair_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "ambiguous_event_pair_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "decisive_order_pair_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "tied_order_pair_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "pairwise_order_accuracy": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "mean_pairwise_order_brier": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "event_id",
+          "admissible_start_month",
+          "admissible_end_month",
+          "map_month",
+          "map_inside_interval",
+          "top_k_intersects_interval",
+          "probability_mass_in_interval",
+          "negative_log_interval_likelihood",
+          "map_distance_to_interval_months"
+        ],
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "admissible_start_month": {
+            "type": "integer"
+          },
+          "admissible_end_month": {
+            "type": "integer"
+          },
+          "map_month": {
+            "type": "integer"
+          },
+          "map_inside_interval": {
+            "type": "boolean"
+          },
+          "top_k_intersects_interval": {
+            "type": "boolean"
+          },
+          "probability_mass_in_interval": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1
+          },
+          "negative_log_interval_likelihood": {
+            "type": "number",
+            "minimum": 0
+          },
+          "map_distance_to_interval_months": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    }
+  }
+}
