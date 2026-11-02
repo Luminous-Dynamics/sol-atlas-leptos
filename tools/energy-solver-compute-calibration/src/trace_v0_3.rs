@@ -1076,6 +1076,7 @@ mod tests {
         let first = base(SearchDispositionV03::ExactComplete);
         let mut conflict = first.clone();
         conflict.search_disposition = SearchDispositionV03::LimitWithoutCandidate;
+        conflict.time_to_first_candidate_ns = None;
         conflict.candidate_complete_horizon = false;
         conflict.candidate_schedule_sha256 = None;
         conflict.feasible_complete_schedules = Some(0);
