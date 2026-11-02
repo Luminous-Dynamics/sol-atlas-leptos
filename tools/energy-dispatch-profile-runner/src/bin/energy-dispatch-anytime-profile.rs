@@ -100,25 +100,104 @@ struct DispatchScheduleForAudit {
     terminal_soc_quanta: u16,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+struct AuditFindingLite {
+    predicate: String,
+    interval_index: Option<usize>,
+    interval_id: Option<String>,
+    passed: bool,
+    detail: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct RecomputedObjectivesLite {
+    essential_unserved_quanta: Option<i64>,
+    flexible_unserved_quanta: Option<i64>,
+    operating_cost_units: Option<i64>,
+    grid_carbon_grams: Option<i64>,
+    curtailed_pv_quanta: Option<i64>,
+    terminal_soc_quanta: Option<i64>,
+}
+
 #[derive(Debug, Deserialize)]
 struct ScheduleAuditReceiptLite {
-    disposition: String,
+    receipt_schema: String,
+    auditor_id: String,
+    auditor_version: String,
+    auditor_binary_sha256: String,
+    source_schema_version: String,
+    schedule_schema_version: String,
+    case_id: String,
+    synthetic_source: bool,
+    max_candidate_expansions: u64,
     request_sha256: String,
     schedule_sha256: String,
-    auditor_binary_sha256: String,
+    interval_count: usize,
+    disposition: String,
+    findings: Vec<AuditFindingLite>,
+    recomputed_objectives: RecomputedObjectivesLite,
     receipt_sha256: String,
+    claim_ceiling: String,
+}
+
+#[derive(Serialize)]
+struct ScheduleAuditReceiptSubjectLite<'a> {
+    receipt_schema: &'a str,
+    auditor_id: &'a str,
+    auditor_version: &'a str,
+    auditor_binary_sha256: &'a str,
+    source_schema_version: &'a str,
+    schedule_schema_version: &'a str,
+    case_id: &'a str,
+    synthetic_source: bool,
+    max_candidate_expansions: u64,
+    request_sha256: &'a str,
+    schedule_sha256: &'a str,
+    interval_count: usize,
+    disposition: &'a str,
+    findings: &'a [AuditFindingLite],
+    recomputed_objectives: &'a RecomputedObjectivesLite,
+    claim_ceiling: &'a str,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct ServiceFloorFindingLite {
+    predicate: String,
+    interval_index: Option<usize>,
+    interval_id: Option<String>,
+    passed: bool,
+    detail: String,
 }
 
 #[derive(Debug, Deserialize)]
 struct ServiceFloorReceiptLite {
-    disposition: String,
+    receipt_schema: String,
+    policy_id: String,
+    policy_sha256: String,
     request_sha256: String,
     schedule_sha256: String,
-    policy_sha256: String,
     schedule_audit_receipt_sha256: String,
     schedule_auditor_binary_sha256: String,
     service_floor_auditor_binary_sha256: String,
+    disposition: String,
+    findings: Vec<ServiceFloorFindingLite>,
     receipt_sha256: String,
+    claim_ceiling: String,
+}
+
+#[derive(Serialize)]
+struct ServiceFloorReceiptSubjectLite<'a> {
+    receipt_schema: &'a str,
+    policy_id: &'a str,
+    policy_sha256: &'a str,
+    request_sha256: &'a str,
+    schedule_sha256: &'a str,
+    schedule_audit_receipt_sha256: &'a str,
+    schedule_auditor_binary_sha256: &'a str,
+    service_floor_auditor_binary_sha256: &'a str,
+    disposition: &'a str,
+    findings: &'a [ServiceFloorFindingLite],
+    claim_ceiling: &'a str,
 }
 
 #[derive(Debug, Serialize)]
