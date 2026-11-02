@@ -176,6 +176,13 @@ jobs:
           set -euo pipefail
           mkdir -p target/energy-dispatch-profiled-runner/v0.3
           panel="schemas/examples/energy-dispatch-scenario-panel-v0.1.json"
+          jq -e '
+            .schema_version == "energy-dispatch-scenario-panel-v0.1" and
+            .panel_id == "sol-atlas-islanded-microgrid-stress-v0.1" and
+            (.scenarios | length == 4) and
+            ([.scenarios[].scenario_id] | unique | length == 4) and
+            all(.scenarios[]; .expected_schedule_audit == "accepted")
+          ' "$panel"
           panel_sha="$(sha256sum "$panel" | awk '{print $1}')"
           anytime="$CARGO_TARGET_DIR/release/energy-dispatch-anytime-profile"
           auditor="$CARGO_TARGET_DIR/release/energy-dispatch-schedule-auditor"
