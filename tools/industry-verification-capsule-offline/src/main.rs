@@ -210,103 +210,63 @@ struct AuditReport {
 
 #[derive(Debug, Clone)]
 enum TargetSource {
-    Embedded { capsule_path: String, sha256: String },
-    Referenced { sha256: String },
+    Embedded { bytes: Vec<u8>, sha256: String },
+    Referenced { bytes: Option<Vec<u8>>, sha256: String },
     Withheld { sha256: String },
 }
 
 struct CapsuleRepository {
-    capsule_root: PathBuf,
-    cas_root: Option<PathBuf>,
-    metadata_paths: BTreeMap<String, String>,
+    metadata_bytes: BTreeMap<String, Vec<u8>>,
     target_sources: BTreeMap<String, TargetSource>,
 }
 
 impl CapsuleRepository {
-    fn read_limited(root: &Path, rel: &str, max_length: u64) -> sigstore_tuf::Result<Option<Vec<u8>>> {
-        let rel_path = Path::new(rel);
-        if !safe_relative_path(rel) {
-            return Err(TufError::transport(format!("unsafe capsule path: {rel}")));
-        }
-        let canonical_root = fs::canonicalize(root)
-            .map_err(|error| TufError::transport_with_source("capsule root unavailable", error))?;
-        let mut cursor = canonical_root.clone();
-        for component in rel_path.components() {
-            match component {
-                Component::Normal(part) => cursor.push(part),
-                _ => return Err(TufError::transport(format!("unsafe capsule path component: {rel}"))),
-            }
-            let metadata = match fs::symlink_metadata(&cursor) {
-                Ok(value) => value,
-                Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
-                Err(error) => return Err(TufError::transport_with_source("cannot inspect capsule path", error)),
-            };
-            if metadata.file_type().is_symlink() {
-                return Err(TufError::transport(format!("symlink not permitted in capsule: {rel}")));
-            }
-        }
-        let canonical_file = fs::canonicalize(&cursor)
-            .map_err(|error| TufError::transport_with_source("cannot resolve capsule file", error))?;
-        if !canonical_file.starts_with(&canonical_root) {
-            return Err(TufError::transport(format!("capsule path escapes root: {rel}")));
-        }
-        let metadata = fs::metadata(&canonical_file)
-            .map_err(|error| TufError::transport_with_source("cannot stat capsule file", error))?;
-        if !metadata.is_file() {
-            return Err(TufError::transport(format!("capsule path is not a regular file: {rel}")));
-        }
-        if metadata.len() > max_length {
-            return Err(TufError::transport(format!(
-                "capsule file {rel} exceeds transport limit {max_length}"
-            )));
-        }
-        let bytes = fs::read(&canonical_file)
-            .map_err(|error| TufError::transport_with_source("cannot read capsule file", error))?;
-        if bytes.len() as u64 > max_length {
-            return Err(TufError::transport(format!(
-                "capsule file {rel} grew beyond transport limit {max_length}"
-            )));
-        }
-        Ok(Some(bytes))
-    }
-
-    fn target_bytes(&self, path: &str, max_length: u64) -> sigstore_tuf::Result<Option<Vec<u8>>> {
-        let direct = self.target_sources.get(path);
-        let resolved = direct.or_else(|| {
+    fn target_source(&self, path: &str) -> Option<&TargetSource> {
+        self.target_sources.get(path).or_else(|| {
             self.target_sources.iter().find_map(|(original, source)| {
                 let digest = match source {
                     TargetSource::Embedded { sha256, .. }
-                    | TargetSource::Referenced { sha256 }
+                    | TargetSource::Referenced { sha256, .. }
                     | TargetSource::Withheld { sha256 } => sha256,
                 };
                 (consistent_snapshot_target_name(original, digest) == path).then_some(source)
             })
-        });
-        let Some(source) = resolved else {
+        })
+    }
+
+    fn target_bytes(&self, path: &str, max_length: u64) -> sigstore_tuf::Result<Option<Vec<u8>>> {
+        let Some(source) = self.target_source(path) else {
             return Ok(None);
         };
-        match source {
-            TargetSource::Embedded { capsule_path, .. } => {
-                Self::read_limited(&self.capsule_root, capsule_path, max_length)
-            }
-            TargetSource::Referenced { sha256 } => {
-                let Some(root) = &self.cas_root else {
-                    return Ok(None);
-                };
-                Self::read_limited(root, sha256, max_length)
-            }
-            TargetSource::Withheld { .. } => Ok(None),
+        let bytes = match source {
+            TargetSource::Embedded { bytes, .. } => Some(bytes),
+            TargetSource::Referenced { bytes, .. } => bytes.as_ref(),
+            TargetSource::Withheld { .. } => None,
+        };
+        match bytes {
+            Some(bytes) if bytes.len() as u64 <= max_length => Ok(Some(bytes.clone())),
+            Some(_) => Err(TufError::transport(format!("capsule target {path} exceeds transport limit {max_length}"))),
+            None => Ok(None),
         }
+    }
+
+    fn has_target_bytes(&self, path: &str) -> bool {
+        matches!(
+            self.target_source(path),
+            Some(TargetSource::Embedded { .. })
+                | Some(TargetSource::Referenced { bytes: Some(_), .. })
+        )
     }
 }
 
 impl Repository for CapsuleRepository {
     fn fetch_metadata<'a>(&'a self, name: &'a str, max_length: u64) -> FetchFuture<'a> {
         Box::pin(async move {
-            let Some(path) = self.metadata_paths.get(name) else {
-                return Ok(None);
-            };
-            Self::read_limited(&self.capsule_root, path, max_length)
+            match self.metadata_bytes.get(name) {
+                Some(bytes) if bytes.len() as u64 <= max_length => Ok(Some(bytes.clone())),
+                Some(_) => Err(TufError::transport(format!("capsule metadata {name} exceeds transport limit {max_length}"))),
+                None => Ok(None),
+            }
         })
     }
 
