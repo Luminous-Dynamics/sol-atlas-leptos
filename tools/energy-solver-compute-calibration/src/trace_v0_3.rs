@@ -126,6 +126,7 @@ pub enum TraceV03Error {
     InvalidTiming,
     MixedCohortIdentity,
     EmptyCohort,
+    InputTooLarge,
 }
 
 impl std::fmt::Display for TraceV03Error {
@@ -458,6 +459,9 @@ impl SolverTraceV03 {
 }
 
 pub fn parse_trace_csv_v03(input: &str) -> Result<Vec<SolverTraceV03>, TraceV03Error> {
+    if input.len() > super::MAX_TRACE_CSV_BYTES {
+        return Err(TraceV03Error::InputTooLarge);
+    }
     let mut lines = input.lines();
     if lines.next() != Some(TRACE_V03_HEADER) {
         return Err(TraceV03Error::InvalidHeader);
@@ -549,7 +553,11 @@ pub struct TraceSummaryV03 {
     pub audit_rejected_count: usize,
     pub audit_unavailable_count: usize,
     pub audit_not_run_count: usize,
+    pub audit_attempt_count: usize,
     pub service_floor_passed_count: usize,
+    pub service_floor_failed_count: usize,
+    pub service_floor_not_evaluated_count: usize,
+    pub service_floor_unavailable_count: usize,
     pub decision_ready_count: usize,
     pub first_candidate_sample_count: usize,
     pub first_candidate_p50_ns: Option<u64>,
@@ -558,6 +566,7 @@ pub struct TraceSummaryV03 {
     pub first_audit_accept_p50_ns: Option<u64>,
     pub first_audit_accept_p95_ns: Option<u64>,
     pub total_prefix_visits: Option<u64>,
+    pub audit_accepted_per_million_prefix_visits: Option<u64>,
     pub decision_ready_per_million_prefix_visits: Option<u64>,
 }
 
@@ -619,7 +628,11 @@ pub fn summarize_traces_v03(records: &[SolverTraceV03]) -> Result<Vec<TraceSumma
             audit_rejected_count: 0,
             audit_unavailable_count: 0,
             audit_not_run_count: 0,
+            audit_attempt_count: 0,
             service_floor_passed_count: 0,
+            service_floor_failed_count: 0,
+            service_floor_not_evaluated_count: 0,
+            service_floor_unavailable_count: 0,
             decision_ready_count: 0,
             first_candidate_sample_count: 0,
             first_candidate_p50_ns: None,
@@ -628,6 +641,7 @@ pub fn summarize_traces_v03(records: &[SolverTraceV03]) -> Result<Vec<TraceSumma
             first_audit_accept_p50_ns: None,
             first_audit_accept_p95_ns: None,
             total_prefix_visits: None,
+            audit_accepted_per_million_prefix_visits: None,
             decision_ready_per_million_prefix_visits: None,
         };
         let mut first_candidates = Vec::new();
@@ -658,8 +672,22 @@ pub fn summarize_traces_v03(records: &[SolverTraceV03]) -> Result<Vec<TraceSumma
                 AuditDispositionV03::Rejected => summary.audit_rejected_count += 1,
                 AuditDispositionV03::Unavailable => summary.audit_unavailable_count += 1,
             }
-            if row.service_floor_disposition == ServiceFloorDispositionV03::Passed {
-                summary.service_floor_passed_count += 1;
+            if row.audit_disposition != AuditDispositionV03::NotRun {
+                summary.audit_attempt_count += 1;
+            }
+            match row.service_floor_disposition {
+                ServiceFloorDispositionV03::NotEvaluated => {
+                    summary.service_floor_not_evaluated_count += 1;
+                }
+                ServiceFloorDispositionV03::Passed => {
+                    summary.service_floor_passed_count += 1;
+                }
+                ServiceFloorDispositionV03::Failed => {
+                    summary.service_floor_failed_count += 1;
+                }
+                ServiceFloorDispositionV03::Unavailable => {
+                    summary.service_floor_unavailable_count += 1;
+                }
             }
             if row.decision_ready() {
                 summary.decision_ready_count += 1;
@@ -668,7 +696,9 @@ pub fn summarize_traces_v03(records: &[SolverTraceV03]) -> Result<Vec<TraceSumma
                 first_candidates.push(value);
             }
             if let Some(value) = row.enumeration_prefix_visits {
-                prefix_visits = prefix_visits.saturating_add(value);
+                prefix_visits = prefix_visits
+                    .checked_add(value)
+                    .ok_or(TraceV03Error::InvalidNumber)?;
             } else {
                 all_have_prefix_visits = false;
             }
@@ -697,6 +727,10 @@ pub fn summarize_traces_v03(records: &[SolverTraceV03]) -> Result<Vec<TraceSumma
         }
         if all_have_prefix_visits && prefix_visits > 0 {
             summary.total_prefix_visits = Some(prefix_visits);
+            summary.audit_accepted_per_million_prefix_visits = Some(
+                ((summary.audit_accepted_count as u128 * 1_000_000) / u128::from(prefix_visits))
+                    .min(u128::from(u64::MAX)) as u64
+            );
             summary.decision_ready_per_million_prefix_visits = Some(
                 ((summary.decision_ready_count as u128 * 1_000_000) / u128::from(prefix_visits))
                     .min(u128::from(u64::MAX)) as u64
@@ -894,6 +928,58 @@ mod tests {
         assert_eq!(summary.decision_ready_count, 0);
         assert_eq!(summary.total_prefix_visits, Some(60));
         assert_eq!(summary.decision_ready_per_million_prefix_visits, Some(0));
+    }
+
+    #[test]
+    fn summary_keeps_all_service_floor_and_audit_attempt_denominators() {
+        let mut rejected = base(SearchDispositionV03::FeasibleUnproven);
+        rejected.sample_id = "sample-rejected".into();
+        rejected.audit_disposition = AuditDispositionV03::Rejected;
+        rejected.audit_receipt_sha256 = Some(digest(20));
+        rejected.audit_request_sha256 = Some(digest(2));
+        rejected.audit_schedule_sha256 = Some(digest(9));
+        rejected.auditor_binary_sha256 = Some(digest(11));
+        rejected.audit_elapsed_ns = Some(5);
+        rejected.service_floor_disposition = ServiceFloorDispositionV03::Failed;
+        rejected.service_floor_policy_sha256 = Some(digest(12));
+
+        let mut unavailable = base(SearchDispositionV03::FeasibleUnproven);
+        unavailable.sample_id = "sample-unavailable".into();
+        unavailable.audit_disposition = AuditDispositionV03::Unavailable;
+        unavailable.auditor_binary_sha256 = Some(digest(11));
+        unavailable.audit_elapsed_ns = Some(5);
+        unavailable.service_floor_disposition = ServiceFloorDispositionV03::Unavailable;
+        unavailable.service_floor_policy_sha256 = Some(digest(13));
+
+        let summary = summarize_traces_v03(&[rejected, unavailable]).unwrap().remove(0);
+        assert_eq!(summary.audit_attempt_count, 2);
+        assert_eq!(summary.audit_rejected_count, 1);
+        assert_eq!(summary.audit_unavailable_count, 1);
+        assert_eq!(summary.service_floor_failed_count, 1);
+        assert_eq!(summary.service_floor_unavailable_count, 1);
+        assert_eq!(summary.service_floor_not_evaluated_count, 0);
+        assert_eq!(summary.decision_ready_count, 0);
+    }
+
+    #[test]
+    fn csv_parser_rejects_input_above_declared_byte_limit() {
+        let oversized = "x".repeat(super::super::MAX_TRACE_CSV_BYTES + 1);
+        assert_eq!(
+            parse_trace_csv_v03(&oversized),
+            Err(TraceV03Error::InputTooLarge)
+        );
+    }
+
+    #[test]
+    fn reused_cohort_id_with_changed_solver_identity_is_rejected() {
+        let first = base(SearchDispositionV03::ExactComplete);
+        let mut second = base(SearchDispositionV03::ExactComplete);
+        second.sample_id = "sample-other".into();
+        second.solver_binary_sha256 = digest(99);
+        assert_eq!(
+            summarize_traces_v03(&[first, second]),
+            Err(TraceV03Error::MixedCohortIdentity)
+        );
     }
 
     #[test]
