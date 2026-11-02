@@ -125,17 +125,17 @@
     }
   },
   "decision_boundary_checkpoint": {
-    "checkpoint_id": "checkpoint:decision-boundary-0100",
+    "checkpoint_id": "checkpoint:decision-boundary-0109",
     "ledger_id": "ledger:plant-17-evidence",
     "sequence_namespace": "plant-17-evidence-events",
     "sequence_epoch": "epoch:2026-11-01",
-    "sequence": 100,
-    "tree_size": 100,
+    "sequence": 109,
+    "tree_size": 109,
     "root_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
     "signed_bytes_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
     "receipt_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
     "observed_at": {
-      "time_utc": "2026-11-02T09:11:00Z",
+      "time_utc": "2026-11-02T09:24:00Z",
       "uncertainty_before_seconds": 1,
       "uncertainty_after_seconds": 1,
       "clock_id": "clock:channel-attested",
@@ -188,7 +188,7 @@
       ]
     },
     "sequence_from_exclusive": 90,
-    "sequence_through_inclusive": 100,
+    "sequence_through_inclusive": 109,
     "matching_event_count": 0,
     "result_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
     "signed_statement_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
