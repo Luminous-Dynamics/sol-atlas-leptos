@@ -132,6 +132,8 @@ pub struct EnergyDispatchAssessment {
     pub search_is_exact: bool,
     /// True only if no cap was hit and the full non-dominated frontier was retained.
     pub pareto_frontier_complete: bool,
+    /// Legacy v1 field name. Counts admitted visits to the five nested
+    /// enumeration levels, not complete dispatch actions or schedules.
     pub evaluated_action_expansions: u64,
     pub feasible_complete_schedules: u64,
     pub pareto_frontier_count: usize,
