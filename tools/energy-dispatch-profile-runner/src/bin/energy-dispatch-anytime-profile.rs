@@ -687,7 +687,7 @@ fn run_profile(
         request_sha256,
         scenario_panel_sha256: scenario_panel_sha256.to_owned(),
         model_sha256: model_hash,
-        solver_binary_sha256: current_binary_sha256()?,
+        solver_binary_sha256: runner_binary_hash,
         solver_config_sha256,
         hardware_profile_sha256: host_hash,
         elapsed_ns,
