@@ -422,6 +422,7 @@ impl SolverTraceV03 {
             }
             ServiceFloorDispositionV03::Unavailable => {
                 if !candidate_present
+                    || self.audit_disposition != AuditDispositionV03::Accepted
                     || self
                         .service_floor_policy_sha256
                         .as_ref()
