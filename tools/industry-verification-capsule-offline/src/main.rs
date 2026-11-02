@@ -181,6 +181,8 @@ struct TargetResult {
 struct AuditReport {
     schema_version: &'static str,
     status: &'static str,
+    trust_pin_id: String,
+    capsule_created_at: String,
     capsule_id: String,
     capsule_mode: String,
     replayability: &'static str,
@@ -544,7 +546,9 @@ fn validate_file_inventory(root: &Path, manifest: &Manifest, pin: &TrustPin) -> 
             return Err("file inventory paths must be strictly sorted and unique".to_string());
         }
         previous = Some(&entry.path);
-        if total_bytes > pin.max_capsule_bytes.saturating_sub(entry.length) {
+        if entry.length > pin.max_capsule_bytes
+            || total_bytes > pin.max_capsule_bytes.saturating_sub(entry.length)
+        {
             return Err("capsule payload bytes exceed operator maximum".to_string());
         }
         total_bytes += entry.length;
@@ -653,6 +657,24 @@ fn validate_manifest_files(
             return Err(format!("capsule metadata must contain exactly one {required} role"));
         }
     }
+    for (role, count) in &roles {
+        if *role != "root" && *count != 1 {
+            return Err(format!("capsule contains duplicate metadata role {role}"));
+        }
+    }
+    let mut root_versions: Vec<u64> = manifest.metadata_artifacts
+        .iter()
+        .filter(|artifact| artifact.role_name == "root")
+        .map(|artifact| artifact.version)
+        .collect();
+    root_versions.sort_unstable();
+    let mut expected_root = manifest.trust_bootstrap.root_version.saturating_add(1);
+    for version in root_versions {
+        if version != expected_root {
+            return Err("TUF root update artifacts must form a contiguous N+1 chain".to_string());
+        }
+        expected_root = expected_root.saturating_add(1);
+    }
 
     let mut target_paths = BTreeSet::new();
     for target in &manifest.targets {
@@ -756,6 +778,13 @@ async fn audit_capsule(
         return Err("unsupported trust pin schema or action-authority boundary".to_string());
     }
 
+    let capsule_canonical = fs::canonicalize(capsule_root)
+        .map_err(|error| format!("cannot canonicalize capsule root: {error}"))?;
+    let trust_pin_canonical = fs::canonicalize(trust_pin_path)
+        .map_err(|error| format!("cannot canonicalize out-of-band trust pin: {error}"))?;
+    if trust_pin_canonical.starts_with(&capsule_canonical) {
+        return Err("out-of-band trust pin must be stored outside the untrusted capsule".to_string());
+    }
     let manifest_path = capsule_root.join(MANIFEST_FILE);
     let manifest_bytes = read_regular_file(&manifest_path, 8 * 1024 * 1024)?;
     let manifest: Manifest = serde_json::from_slice(&manifest_bytes)
@@ -767,6 +796,9 @@ async fn audit_capsule(
         return Err("capsule manifest has invalid identity or cardinality".to_string());
     }
     validate_pin(&manifest, &pin)?;
+    if manifest_bytes.len() as u64 > pin.max_capsule_bytes {
+        return Err("capsule manifest exceeds operator byte limit".to_string());
+    }
     if manifest.file_inventory.len() > pin.max_file_count {
         return Err("capsule file inventory exceeds operator file-count limit".to_string());
     }
@@ -882,6 +914,8 @@ async fn audit_capsule(
         ("fully_replayed", "fully_replayable")
     } else if verified_count == 0 && target_results.iter().all(|target| target.content_mode == "withheld") {
         ("metadata_verified_commitment_only", "commitment_only")
+    } else if manifest.replayability == "commitment_only" {
+        ("metadata_verified_target_replay_incomplete", "commitment_only")
     } else {
         ("metadata_verified_target_replay_incomplete", "conditionally_replayable")
     };
@@ -892,6 +926,8 @@ async fn audit_capsule(
     Ok(AuditReport {
         schema_version: REPORT_SCHEMA,
         status,
+        trust_pin_id: pin.pin_id,
+        capsule_created_at: manifest.created_at,
         capsule_id: manifest.capsule_id,
         capsule_mode: manifest.capsule_mode,
         replayability,
