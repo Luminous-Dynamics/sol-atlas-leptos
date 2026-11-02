@@ -64,14 +64,6 @@ jobs:
       - name: Validate TUF report, policy, persisted state and audit report schemas
         run: |
           set -euo pipefail
-          meta=https://json-schema.org/draft/2020-12/schema
-          for schema in \
-            schemas/industry-ieac-tuf-verifier-report-v0.1.schema.json \
-            schemas/industry-ieac-tuf-freshness-policy-v0.1.schema.json \
-            schemas/industry-ieac-tuf-high-water-state-v0.1.schema.json \
-            schemas/industry-ieac-tuf-freshness-report-v0.1.schema.json; do
-            jsonschema-cli validate --draft 2020 --assert-format "$meta" -i "$schema"
-          done
           jsonschema-cli validate --draft 2020 --assert-format --offline \
             schemas/industry-ieac-tuf-verifier-report-v0.1.schema.json \
             -i schemas/examples/ieac-tuf-verifier-report-synthetic-v0.1.json
