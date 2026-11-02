@@ -1109,6 +1109,9 @@ mod tests {
 
         let summary = summarize_traces_v03(&rows).unwrap().remove(0);
         assert_eq!(summary.decision_ready_count, 20);
+        assert_eq!(summary.solver_time_sample_count, 20);
+        assert_eq!(summary.solver_elapsed_p50_ns, Some(50));
+        assert_eq!(summary.solver_elapsed_p95_ns, Some(50));
         assert_eq!(summary.service_floor_sample_count, 20);
         assert_eq!(summary.service_floor_elapsed_p50_ns, Some(19));
         assert_eq!(summary.service_floor_elapsed_p95_ns, Some(28));
