@@ -8,7 +8,9 @@
     "relying_party_id": "rp:industrial-assurance",
     "profile_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
     "policy_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
-    "evaluator_build_sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+    "evaluator_build_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+    "time_verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "time_verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   },
   "decision_cutoff": {
     "time_utc": "2026-11-02T09:10:00Z",
@@ -18,8 +20,8 @@
     "basis": "trusted_clock_attestation",
     "verification_status": "verified",
     "proof_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
-    "verifier_build_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
-    "verification_policy_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
+    "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   },
   "evidence": [
     {
