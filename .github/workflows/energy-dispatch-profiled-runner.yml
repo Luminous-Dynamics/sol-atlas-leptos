@@ -84,6 +84,7 @@ jobs:
           cargo build --release --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-anytime-profile
           cargo build --release --locked --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml --bin energy-dispatch-schedule-auditor
           cargo build --release --locked --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml --bin energy-dispatch-service-floor-auditor
+          cargo build --release --locked --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml --bin energy-dispatch-nonanticipativity-auditor
           cargo build --release --locked --manifest-path tools/energy-solver-compute-calibration/Cargo.toml --bin energy-solver-compute-calibration
           cargo build --release --locked --manifest-path tools/energy-solver-compute-calibration/Cargo.toml --bin energy-solver-compute-calibration-v03
       - name: Execute 30 exact-search runs and independently audit every selected schedule
@@ -379,6 +380,7 @@ jobs:
             tools/energy-dispatch-schedule-auditor/Cargo.lock
             tools/energy-dispatch-schedule-auditor/src/
             tools/energy-dispatch-schedule-auditor/schedule-schema-v0.1.json
+            tools/energy-dispatch-schedule-auditor/nonanticipativity-manifest-schema-v0.1.json
             tools/energy-dispatch-schedule-auditor/service-floor-policy-schema-v0.1.json
             tools/energy-dispatch-schedule-auditor/service-floor-receipt-schema-v0.1.json
             tools/energy-dispatch-schedule-auditor/fixtures/energy-dispatch-pv-outage.service-floor-v0.1.json
