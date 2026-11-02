@@ -95,29 +95,22 @@ jobs:
           cargo run --manifest-path "$tool" --locked -- "$verifier" "$policy" "$state" "$report"
           jsonschema-cli validate --draft 2020 --assert-format --offline \
             schemas/industry-ieac-tuf-freshness-report-v0.1.schema.json -i "$report"
-          state_sha=$(sha256sum "$state" | cut -d' ' -f1)
-          next_state_sha=$(jq -cS '.state_transition.next_state' "$report" | sha256sum | cut -d' ' -f1)
-          jq --slurpfile expected "$expected" --arg state_sha "$state_sha" --arg next_state_sha "$next_state_sha" -e '
+          jq --slurpfile expected "$expected" -e '
             . as $report |
             $expected[0].expected as $want |
             $report.schema_version == "luminous.ieac-tuf-freshness-report.v0.1" and
-            $report.status == $want.status and
-            $report.accepted_metadata.root_version == $want.root_version and
-            $report.accepted_metadata.timestamp_version == $want.timestamp_version and
-            $report.accepted_metadata.snapshot_version == $want.snapshot_version and
-            $report.accepted_metadata.target_roles == $want.target_roles and
-            $report.accepted_channel_state.completeness_attestation_sha256 == $want.completeness_attestation_sha256 and
-            $report.accepted_channel_state.availability_report_sha256 == $want.availability_report_sha256 and
-            $report.accepted_channel_state.last_sequence == $want.checkpoint_sequence and
-            $report.accepted_channel_state.ledger_epoch == $want.ledger_epoch and
-            $report.state_transition.expected_previous_state_revision == $want.state_transition.expected_previous_state_revision and
-            $report.state_transition.next_state_revision == $want.state_transition.next_state_revision and
-            $report.state_transition.commit_semantics == $want.state_transition.commit_semantics and
-            $report.state_transition.expected_previous_state_sha256 == $state_sha and
-            $report.state_transition.next_state_sha256 == $next_state_sha and
-            $report.state_transition.next_state.state_revision == $want.state_transition.next_state_revision and
-            $report.state_transition.next_state.last_sequence == $want.state_transition.next_sequence and
-            ($report.state_transition.next_state.target_roles | length) == $want.state_transition.next_target_role_count and
+            $report.status == "unverified" and
+            $report.structural_status == $want.structural_status and
+            $report.verification_boundary == $want.verification_boundary and
+            $report.reported_metadata.root_version == $want.root_version and
+            $report.reported_metadata.timestamp_version == $want.timestamp_version and
+            $report.reported_metadata.snapshot_version == $want.snapshot_version and
+            $report.reported_metadata.target_roles == $want.target_roles and
+            $report.reported_channel_state.completeness_attestation_sha256 == $want.completeness_attestation_sha256 and
+            $report.reported_channel_state.availability_report_sha256 == $want.availability_report_sha256 and
+            $report.reported_channel_state.last_sequence == $want.checkpoint_sequence and
+            $report.reported_channel_state.ledger_epoch == $want.ledger_epoch and
+            $report.state_transition == null and
             $report.action_authority == "none" and
             $report.claim_ceiling == "tuf_freshness_and_anti_rollback_only"
           ' "$report"
@@ -174,7 +167,7 @@ jobs:
             status=$?
             set -e
             test "$status" -eq 3
-            jq -e '.status == "unknown" and .state_transition == null and .action_authority == "none"' "$report"
+            jq -e '.status == "unverified" and .structural_status == "unknown" and .state_transition == null and .action_authority == "none"' "$report"
           done
 
       - name: Retain exact audit report and input digests
