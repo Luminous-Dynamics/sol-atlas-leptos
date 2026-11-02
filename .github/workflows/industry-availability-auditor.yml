@@ -128,7 +128,8 @@ jobs:
           jq '.first_access.sequence = 109' "$source" > "$RUNNER_TEMP/access-before-boundary.json"
           jq '.first_access.sequence = 111' "$source" > "$RUNNER_TEMP/skipped-access-sequence.json"
           jq '.decision_boundary_checkpoint.observed_at.time_utc = "2026-11-02T09:10:00Z"' "$source" > "$RUNNER_TEMP/boundary-not-after-cutoff.json"
-          for mutant in "$RUNNER_TEMP/gap.json" "$RUNNER_TEMP/bypass.json" "$RUNNER_TEMP/nonzero-query.json" "$RUNNER_TEMP/wrong-query-range.json" "$RUNNER_TEMP/access-before-boundary.json" "$RUNNER_TEMP/skipped-access-sequence.json" "$RUNNER_TEMP/boundary-not-after-cutoff.json"; do
+          jq '.continuity.trust_bundle_sha256 = "9999999999999999999999999999999999999999999999999999999999999999"' "$source" > "$RUNNER_TEMP/continuity-trust-bundle-substitution.json"
+          for mutant in "$RUNNER_TEMP/gap.json" "$RUNNER_TEMP/bypass.json" "$RUNNER_TEMP/nonzero-query.json" "$RUNNER_TEMP/wrong-query-range.json" "$RUNNER_TEMP/access-before-boundary.json" "$RUNNER_TEMP/skipped-access-sequence.json" "$RUNNER_TEMP/boundary-not-after-cutoff.json" "$RUNNER_TEMP/continuity-trust-bundle-substitution.json"; do
             set +e
             cargo run --manifest-path tools/industry-availability-auditor/Cargo.toml --locked -- "$manifest" "$mutant" "$report"
             status=$?
