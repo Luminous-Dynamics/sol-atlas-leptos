@@ -375,15 +375,14 @@ impl<'a> ExactSearch<'a> {
 
         // Preserve a complete incumbent before Pareto insertion can hit its cap.
         // The lexicographic selection policy is independent of traversal order.
-        let candidate = DispatchParetoAlternative {
-            objective: objective.clone(),
-            schedule: schedule.to_vec(),
-        };
         let replace_incumbent = self.best_incumbent.as_ref().is_none_or(|known| {
-            objective_order_key(&candidate.objective) < objective_order_key(&known.objective)
+            objective_order_key(&objective) < objective_order_key(&known.objective)
         });
         if replace_incumbent {
-            self.best_incumbent = Some(candidate);
+            self.best_incumbent = Some(DispatchParetoAlternative {
+                objective: objective.clone(),
+                schedule: schedule.to_vec(),
+            });
         }
 
         // Deterministic first-witness retention for duplicate objective vectors.
