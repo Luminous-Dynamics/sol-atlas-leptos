@@ -82,7 +82,9 @@ fn resolve_under_root(root: &Path, supplied: &str, label: &str) -> Result<PathBu
     Ok(canonical)
 }
 
-fn load_manifest(path: &Path) -> Result<(NonAnticipativityManifestV1, Vec<LoadedScenario>), String> {
+fn load_manifest(
+    path: &Path,
+) -> Result<(NonAnticipativityManifestV1, Vec<LoadedScenario>), String> {
     let canonical_manifest_path = path
         .canonicalize()
         .map_err(|error| format!("resolve non-anticipativity manifest: {error}"))?;
