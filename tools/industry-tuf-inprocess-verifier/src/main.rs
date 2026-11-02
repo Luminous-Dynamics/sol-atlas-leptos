@@ -113,12 +113,16 @@ fn validate_target_path(path: &str) -> Result<(), String> {
         || path.contains('\\')
         || path.contains('?')
         || path.contains('#')
-        || path.split('/').any(|part| part.is_empty() || part == "." || part == "..")
+        || path
+            .split('/')
+            .any(|part| part.is_empty() || part == "." || part == "..")
         || !path.bytes().all(|byte| {
             byte.is_ascii_alphanumeric() || matches!(byte, b'/' | b'.' | b'_' | b'-' | b'~')
         })
     {
-        return Err(format!("unsafe or non-normalized repository-relative TUF target path: {path:?}"));
+        return Err(format!(
+            "unsafe or non-normalized repository-relative TUF target path: {path:?}"
+        ));
     }
     Ok(())
 }
@@ -146,7 +150,9 @@ fn validate_request(request: &VerificationRequest) -> Result<(), String> {
         || url.query().is_some()
         || url.fragment().is_some()
     {
-        return Err("repository_url must be HTTPS without userinfo, query, or fragment".to_string());
+        return Err(
+            "repository_url must be HTTPS without userinfo, query, or fragment".to_string(),
+        );
     }
 
     let mut ids = BTreeSet::new();
@@ -161,7 +167,10 @@ fn validate_request(request: &VerificationRequest) -> Result<(), String> {
         validate_target_path(&target.path)?;
         if let Some(expected) = &target.expected_sha256 {
             if !is_sha256(expected) {
-                return Err(format!("{} expected_sha256 must be lowercase SHA-256", target.id));
+                return Err(format!(
+                    "{} expected_sha256 must be lowercase SHA-256",
+                    target.id
+                ));
             }
         }
     }
@@ -179,8 +188,8 @@ fn read_request(path: &Path) -> Result<VerificationRequest, String> {
     let bytes = fs::read(path)
         .map_err(|error| format!("cannot read request {}: {error}", path.display()))?;
     // Struct deserialization rejects duplicate known fields and unknown fields.
-    let request: VerificationRequest = serde_json::from_slice(&bytes)
-        .map_err(|error| format!("invalid request JSON: {error}"))?;
+    let request: VerificationRequest =
+        serde_json::from_slice(&bytes).map_err(|error| format!("invalid request JSON: {error}"))?;
     validate_request(&request)?;
     Ok(request)
 }
@@ -215,16 +224,9 @@ async fn verify_repository(request: VerificationRequest) -> Result<VerificationR
         )
     })?;
     if !root_metadata.is_file() || root_metadata.len() > 512_000 {
-        return Err("bootstrap root must be a regular file no larger than 512000 bytes".to_string());
-    }
-    let root_metadata = fs::metadata(&request.bootstrap_root_path).map_err(|error| {
-        format!(
-            "cannot inspect out-of-band bootstrap root {}: {error}",
-            request.bootstrap_root_path.display()
-        )
-    })?;
-    if !root_metadata.is_file() || root_metadata.len() > 512_000 {
-        return Err("bootstrap root must be a regular file no larger than 512000 bytes".to_string());
+        return Err(
+            "bootstrap root must be a regular file no larger than 512000 bytes".to_string(),
+        );
     }
     let root_bytes = fs::read(&request.bootstrap_root_path).map_err(|error| {
         format!(
@@ -235,10 +237,8 @@ async fn verify_repository(request: VerificationRequest) -> Result<VerificationR
 
     // A caller-configured timeout prevents a hostile or stalled mirror from
     // blocking the TUF refresh indefinitely.
-    let bootstrap_root_sha256 = verify_bootstrap_root_pin(
-        &root_bytes,
-        &request.bootstrap_root_sha256,
-    )?;
+    let bootstrap_root_sha256 =
+        verify_bootstrap_root_pin(&root_bytes, &request.bootstrap_root_sha256)?;
 
     let http = sigstore_tuf::reqwest::Client::builder()
         .connect_timeout(Duration::from_secs(10))
@@ -320,7 +320,10 @@ async fn verify_repository(request: VerificationRequest) -> Result<VerificationR
             .ok_or_else(|| format!("target {} has no SHA-256 hash in TUF metadata", binding.id))?
             .to_ascii_lowercase();
         if !is_sha256(&target_sha256) {
-            return Err(format!("target {} has malformed TUF SHA-256 metadata", binding.id));
+            return Err(format!(
+                "target {} has malformed TUF SHA-256 metadata",
+                binding.id
+            ));
         }
         if let Some(expected_sha256) = &binding.expected_sha256 {
             if &target_sha256 != expected_sha256 {
@@ -341,7 +344,10 @@ async fn verify_repository(request: VerificationRequest) -> Result<VerificationR
                     .download_target(&info, &binding.path)
                     .await
                     .map_err(|error| {
-                        format!("TUF target download/integrity check failed for {}: {error}", binding.id)
+                        format!(
+                            "TUF target download/integrity check failed for {}: {error}",
+                            binding.id
+                        )
                     })?,
                 false,
             ),
@@ -420,9 +426,9 @@ async fn main() -> ExitCode {
 mod tests {
     use super::*;
     use sigstore_tuf::{
+        Error, Updater,
         cache::{FileStore, StoreRepository},
         transport::{FetchFuture, Repository},
-        Error, Updater,
     };
     use std::path::{Path as FsPath, PathBuf};
 
@@ -433,7 +439,11 @@ mod tests {
     }
 
     impl FixtureRepository {
-        fn read(dir: &FsPath, name: &str, max_length: u64) -> sigstore_tuf::Result<Option<Vec<u8>>> {
+        fn read(
+            dir: &FsPath,
+            name: &str,
+            max_length: u64,
+        ) -> sigstore_tuf::Result<Option<Vec<u8>>> {
             match fs::read(dir.join(name)) {
                 Ok(bytes) if bytes.len() as u64 > max_length => Err(Error::transport(format!(
                     "{name} exceeds transport limit {max_length}"
@@ -558,21 +568,35 @@ mod tests {
     #[tokio::test]
     async fn verifies_python_tuf_repository_and_delegated_target() {
         let root = fixture_root();
-        let mut updater = Updater::new(fixture_repo(None), &root)
-            .expect("python-tuf root must self-verify");
-        updater.refresh(fixture_time()).await.expect("full TUF refresh");
+        let mut updater =
+            Updater::new(fixture_repo(None), &root).expect("python-tuf root must self-verify");
+        updater
+            .refresh(fixture_time())
+            .await
+            .expect("full TUF refresh");
         assert_eq!(updater.trusted().root().version, 1);
         assert_eq!(updater.trusted().timestamp().unwrap().version, 1);
         assert_eq!(updater.trusted().snapshot().unwrap().version, 1);
 
-        let file1 = updater.get_target("file1.txt", fixture_time()).await.unwrap();
+        let file1 = updater
+            .get_target("file1.txt", fixture_time())
+            .await
+            .unwrap();
         assert_eq!(file1, b"This is an example target file.");
 
         assert!(
-            updater.trusted().targets_role("targets").unwrap().target("file3.txt").is_none(),
+            updater
+                .trusted()
+                .targets_role("targets")
+                .unwrap()
+                .target("file3.txt")
+                .is_none(),
             "file3 must be reached through delegation, not top-level targets"
         );
-        let file3 = updater.get_target("file3.txt", fixture_time()).await.unwrap();
+        let file3 = updater
+            .get_target("file3.txt", fixture_time())
+            .await
+            .unwrap();
         assert_eq!(file3, b"This is role1's target file.");
     }
 
@@ -581,9 +605,15 @@ mod tests {
         let root = fixture_root();
         let mut updater = Updater::new(fixture_repo(Some("file3.txt")), &root)
             .expect("python-tuf root must self-verify");
-        updater.refresh(fixture_time()).await.expect("full TUF refresh");
+        updater
+            .refresh(fixture_time())
+            .await
+            .expect("full TUF refresh");
         let result = updater.get_target("file3.txt", fixture_time()).await;
-        assert!(result.is_err(), "tampered target bytes must fail TUF integrity verification");
+        assert!(
+            result.is_err(),
+            "tampered target bytes must fail TUF integrity verification"
+        );
     }
 
     #[tokio::test]
@@ -594,8 +624,14 @@ mod tests {
         let mut online = Updater::new(fixture_repo(None), &root)
             .expect("python-tuf root must self-verify")
             .with_store(store.clone());
-        online.refresh(fixture_time()).await.expect("online fixture refresh");
-        let downloaded = online.get_target("file3.txt", fixture_time()).await.unwrap();
+        online
+            .refresh(fixture_time())
+            .await
+            .expect("online fixture refresh");
+        let downloaded = online
+            .get_target("file3.txt", fixture_time())
+            .await
+            .unwrap();
         assert_eq!(downloaded, b"This is role1's target file.");
         drop(online);
 
@@ -603,8 +639,14 @@ mod tests {
         let mut offline = Updater::new(StoreRepository::new(offline_store.clone()), &root)
             .expect("bootstrap root is pinned")
             .with_store(offline_store);
-        offline.refresh(fixture_time()).await.expect("offline cached refresh");
-        let cached = offline.get_target("file3.txt", fixture_time()).await.unwrap();
+        offline
+            .refresh(fixture_time())
+            .await
+            .expect("offline cached refresh");
+        let cached = offline
+            .get_target("file3.txt", fixture_time())
+            .await
+            .unwrap();
         assert_eq!(cached, b"This is role1's target file.");
     }
 
@@ -620,7 +662,10 @@ mod tests {
             let error = sigstore_tuf::TrustedMetadataSet::from_root(&bytes)
                 .expect_err("malformed root must fail closed");
             assert!(
-                matches!(error, Error::ThresholdNotMet { .. } | Error::DuplicateSignature { .. }),
+                matches!(
+                    error,
+                    Error::ThresholdNotMet { .. } | Error::DuplicateSignature { .. }
+                ),
                 "{file}: unexpected verification error {error:?}"
             );
         }
@@ -630,7 +675,10 @@ mod tests {
     fn bootstrap_root_bytes_must_match_operator_sha256_pin() {
         let bytes = b"exact root bytes";
         let expected = sha256_hex(bytes);
-        assert_eq!(verify_bootstrap_root_pin(bytes, &expected).unwrap(), expected);
+        assert_eq!(
+            verify_bootstrap_root_pin(bytes, &expected).unwrap(),
+            expected
+        );
         assert!(verify_bootstrap_root_pin(b"substituted root bytes", &expected).is_err());
         assert!(verify_bootstrap_root_pin(bytes, "not-a-digest").is_err());
     }
