@@ -224,25 +224,67 @@ pub enum HeritageModality {
     Other,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum OrbitDirection {
+    Ascending,
+    Descending,
+    NotApplicable,
+    Unknown,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ProviderIdentity {
+    pub provider_id: String,
+    pub name: String,
+    pub homepage: Option<String>,
+    pub contact_ref: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AssetIdentity {
+    pub asset_ref: String,
+    pub stac_item_uri: Option<String>,
+    pub stac_asset_key: Option<String>,
+    pub media_type: String,
+    pub upstream_asset_id: Option<String>,
+    pub content_sha256: Option<String>,
+    pub byte_length: Option<u64>,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct AcquisitionInterval {
     pub start_at: String,
     pub end_at: String,
+    pub platform: Option<String>,
+    pub sensor: Option<String>,
+    pub product_level: Option<String>,
+    pub bands_or_polarisations: Vec<String>,
+    pub orbit_direction: OrbitDirection,
+    pub acquisition_notes: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SpatialMetadata {
-    /// CRS identifier/URI, for example an OGC CRS URI. This does not reproject data.
+    /// Source bounding box in the declared CRS: 2D [minx, miny, maxx, maxy]
+    /// or 3D [minx, miny, minz, maxx, maxy, maxz]. Axis semantics remain
+    /// those of the declared CRS; this layer does not silently reproject.
+    pub bbox: Option<Vec<f64>>,
     pub crs_uri: String,
-    /// WGS84-style [west, south, east, north] bounds when supplied.
-    /// west > east is permitted to represent an antimeridian-crossing bbox.
-    pub bbox: Option<[f64; 4]>,
+    pub vertical_datum: Option<String>,
     pub native_resolution_m: Option<f64>,
     pub point_density_points_per_m2: Option<f64>,
     pub positional_accuracy_m: Option<f64>,
-    /// Required for elevation-bearing modalities; source vertical datum must
-    /// not be silently inferred from a horizontal CRS.
-    pub vertical_datum: Option<String>,
+    pub geometry_access_tier: AccessTier,
+    pub coverage_notes: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct QualityMetadata {
+    pub cloud_fraction: Option<f64>,
+    pub nodata_fraction: Option<f64>,
+    pub registration_error_m: Option<f64>,
+    pub known_issues: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -251,19 +293,21 @@ pub struct IngestionProvenance {
     pub ingested_at: String,
     pub ingestion_pipeline_id: String,
     pub ingestion_pipeline_version: String,
+    pub ingestion_manifest_ref: Option<String>,
+    pub retrieval_receipt_ref: Option<String>,
+    pub content_sha256: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SourceAssetMetadata {
     pub schema_version: String,
     pub source_id: String,
-    pub provider_id: String,
-    pub asset_ref: String,
-    pub media_type: String,
+    pub provider: ProviderIdentity,
+    pub asset: AssetIdentity,
     pub modality: HeritageModality,
     pub acquisition: AcquisitionInterval,
     pub spatial: SpatialMetadata,
-    pub content_sha256: Option<String>,
+    pub quality: Option<QualityMetadata>,
     pub rights: RightsProfile,
     pub provenance: IngestionProvenance,
 }
@@ -273,22 +317,28 @@ pub enum MetadataValidationError {
     UnsupportedSchemaVersion,
     EmptySourceId,
     EmptyProviderId,
+    EmptyProviderName,
+    InvalidProviderHomepage,
     EmptyAssetReference,
     EmptyMediaType,
+    InvalidStacItemUri,
     InvalidAcquisitionStart,
     InvalidAcquisitionEnd,
     AcquisitionEndsBeforeItStarts,
     InvalidCrsUri,
     InvalidBoundingBox,
     InvalidNativeResolution,
+    MissingNativeResolution,
     InvalidPointDensity,
+    MissingPointDensity,
     InvalidPositionalAccuracy,
     MissingVerticalDatum,
     EmptyVerticalDatum,
-    MissingNativeResolution,
-    MissingPointDensity,
     InvalidContentDigest,
+    InvalidQualityFraction,
+    InvalidRegistrationError,
     InvalidIngestionTimestamp,
+    InvalidRightsReviewTimestamp,
     EmptyIngestionPipelineId,
     EmptyIngestionPipelineVersion,
     EmptyPermittedUses,
@@ -314,14 +364,33 @@ impl SourceAssetMetadata {
         if self.source_id.trim().is_empty() {
             errors.push(MetadataValidationError::EmptySourceId);
         }
-        if self.provider_id.trim().is_empty() {
+        if self.provider.provider_id.trim().is_empty() {
             errors.push(MetadataValidationError::EmptyProviderId);
         }
-        if self.asset_ref.trim().is_empty() {
+        if self.provider.name.trim().is_empty() {
+            errors.push(MetadataValidationError::EmptyProviderName);
+        }
+        if self
+            .provider
+            .homepage
+            .as_deref()
+            .is_some_and(|value| !has_uri_scheme(value))
+        {
+            errors.push(MetadataValidationError::InvalidProviderHomepage);
+        }
+        if self.asset.asset_ref.trim().is_empty() {
             errors.push(MetadataValidationError::EmptyAssetReference);
         }
-        if self.media_type.trim().is_empty() {
+        if self.asset.media_type.trim().is_empty() {
             errors.push(MetadataValidationError::EmptyMediaType);
+        }
+        if self
+            .asset
+            .stac_item_uri
+            .as_deref()
+            .is_some_and(|value| !has_uri_scheme(value))
+        {
+            errors.push(MetadataValidationError::InvalidStacItemUri);
         }
 
         let start = parse_rfc3339_nanos(&self.acquisition.start_at);
@@ -339,30 +408,24 @@ impl SourceAssetMetadata {
         if !has_uri_scheme(&self.spatial.crs_uri) {
             errors.push(MetadataValidationError::InvalidCrsUri);
         }
-        if let Some(bbox) = self.spatial.bbox {
-            let [west, south, east, north] = bbox;
-            let valid = bbox.iter().all(|value| value.is_finite())
-                && (-180.0..=180.0).contains(&west)
-                && (-180.0..=180.0).contains(&east)
-                && (-90.0..=90.0).contains(&south)
-                && (-90.0..=90.0).contains(&north)
-                && south <= north;
-            if !valid {
+        if let Some(bbox) = self.spatial.bbox.as_ref() {
+            if !matches!(bbox.len(), 4 | 6) || bbox.iter().any(|value| !value.is_finite()) {
                 errors.push(MetadataValidationError::InvalidBoundingBox);
             }
         }
-
-        if requires_native_resolution(self.modality) && self.spatial.native_resolution_m.is_none() {
+        if requires_native_resolution(self.modality) && self.spatial.native_resolution_m.is_none()
+        {
             errors.push(MetadataValidationError::MissingNativeResolution);
         }
-        if requires_point_density(self.modality) && self.spatial.point_density_points_per_m2.is_none() {
-            errors.push(MetadataValidationError::MissingPointDensity);
-        }
-
         if let Some(resolution) = self.spatial.native_resolution_m {
             if !resolution.is_finite() || resolution <= 0.0 {
                 errors.push(MetadataValidationError::InvalidNativeResolution);
             }
+        }
+        if requires_point_density(self.modality)
+            && self.spatial.point_density_points_per_m2.is_none()
+        {
+            errors.push(MetadataValidationError::MissingPointDensity);
         }
         if let Some(density) = self.spatial.point_density_points_per_m2 {
             if !density.is_finite() || density <= 0.0 {
@@ -385,14 +448,43 @@ impl SourceAssetMetadata {
             }
         }
 
-        if let Some(digest) = self.content_sha256.as_deref() {
+        if let Some(digest) = self.asset.content_sha256.as_deref() {
+            if !is_sha256_hex(digest) {
+                errors.push(MetadataValidationError::InvalidContentDigest);
+            }
+        }
+        if let Some(digest) = self.provenance.content_sha256.as_deref() {
             if !is_sha256_hex(digest) {
                 errors.push(MetadataValidationError::InvalidContentDigest);
             }
         }
 
+        if self.quality.as_ref().is_some_and(|quality| {
+            [quality.cloud_fraction, quality.nodata_fraction]
+                .into_iter()
+                .flatten()
+                .any(|value| !value.is_finite() || !(0.0..=1.0).contains(&value))
+        }) {
+            errors.push(MetadataValidationError::InvalidQualityFraction);
+        }
+        if self.quality.as_ref().is_some_and(|quality| {
+            quality
+                .registration_error_m
+                .is_some_and(|value| !value.is_finite() || value < 0.0)
+        }) {
+            errors.push(MetadataValidationError::InvalidRegistrationError);
+        }
+
         if parse_rfc3339_nanos(&self.provenance.ingested_at).is_none() {
             errors.push(MetadataValidationError::InvalidIngestionTimestamp);
+        }
+        if self
+            .rights
+            .review_due_at
+            .as_deref()
+            .is_some_and(|value| parse_rfc3339_nanos(value).is_none())
+        {
+            errors.push(MetadataValidationError::InvalidRightsReviewTimestamp);
         }
         if self.provenance.ingestion_pipeline_id.trim().is_empty() {
             errors.push(MetadataValidationError::EmptyIngestionPipelineId);
@@ -441,7 +533,10 @@ fn requires_native_resolution(modality: HeritageModality) -> bool {
 }
 
 fn requires_point_density(modality: HeritageModality) -> bool {
-    matches!(modality, HeritageModality::AirborneLidar | HeritageModality::DroneLidar)
+    matches!(
+        modality,
+        HeritageModality::AirborneLidar | HeritageModality::DroneLidar
+    )
 }
 
 fn requires_vertical_datum(modality: HeritageModality) -> bool {
@@ -454,25 +549,6 @@ fn requires_vertical_datum(modality: HeritageModality) -> bool {
     )
 }
 
-fn is_sha256_hex(value: &str) -> bool {
-    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
-}
-
-fn has_uri_scheme(value: &str) -> bool {
-    let Some((scheme, remainder)) = value.split_once(':') else {
-        return false;
-    };
-    !scheme.is_empty()
-        && scheme.as_bytes()[0].is_ascii_alphabetic()
-        && scheme
-            .bytes()
-            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'+' | b'.' | b'-'))
-        && !remainder.is_empty()
-        && !remainder.chars().any(char::is_whitespace)
-}
-
-/// Parse a deliberately bounded RFC 3339 subset into nanoseconds from Unix epoch.
-/// Supports numeric UTC offsets and up to nine fractional-second digits.
 fn parse_rfc3339_nanos(value: &str) -> Option<i128> {
     let bytes = value.as_bytes();
     if bytes.len() < 20
