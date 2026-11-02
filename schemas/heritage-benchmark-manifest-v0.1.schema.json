@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://luminousdynamics.io/schemas/heritage-benchmark-manifest-v0.1.schema.json",
   "title": "Heritage Discovery Benchmark Manifest",
-  "description": "A frozen, reproducible benchmark specification for HDB-1 to HDB-8. Dataset and split references must resolve to rights-cleared, independently governed site packs. HDB-7 adds probability-sampled negative-space audits; HDB-8 adds sequential non-invasive survey policy evaluation.",
+  "description": "A frozen, reproducible benchmark specification for HDB-1 to HDB-9. Dataset and split references must resolve to rights-cleared, independently governed site packs. HDB-7 adds probability-sampled negative-space audits; HDB-8 adds sequential non-invasive survey policy evaluation; HDB-9 adds interval-censored event timing and partial chronology.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -37,7 +37,8 @@
         "HDB-5",
         "HDB-6",
         "HDB-7",
-        "HDB-8"
+        "HDB-8",
+        "HDB-9"
       ]
     },
     "created_at": {
@@ -247,6 +248,75 @@
         },
         "non_invasive_only": {
           "type": "boolean"
+        },
+        "temporal_ground_truth_unit": {
+          "enum": [
+            "exact_month",
+            "interval_censored"
+          ]
+        },
+        "event_time_probability_unit": {
+          "enum": [
+            "month_ordinal"
+          ]
+        },
+        "temporal_baselines": {
+          "type": "array",
+          "minItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "watch_ted",
+              "watch_sscd",
+              "watch_weakly_supervised",
+              "watch_symmetric_margin",
+              "watch_directional_margin",
+              "peak_score_month",
+              "nearest_observation_midpoint",
+              "uniform_admissible_interval",
+              "random_uniform_interval",
+              "hazard_sequence"
+            ]
+          }
+        },
+        "temporal_uncertainty_metrics": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "interval_probability_mass",
+              "negative_log_interval_likelihood",
+              "map_to_interval_distance",
+              "recall_at_k_interval",
+              "pairwise_order_brier",
+              "pairwise_order_accuracy",
+              "ambiguous_interval_pair_count"
+            ]
+          }
+        },
+        "chronology_metrics": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "pairwise_order_brier",
+              "pairwise_order_accuracy",
+              "ambiguous_pair_count"
+            ]
+          }
+        },
+        "observation_cadence_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "event_adjudication_protocol_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cause_classification_separate": {
+          "type": "boolean"
         }
       }
     },
@@ -302,6 +372,45 @@
             ],
             "properties": {
               "non_invasive_only": {
+                "const": true
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "task_id": {
+            "const": "HDB-9"
+          }
+        },
+        "required": [
+          "task_id"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evaluation": {
+            "required": [
+              "temporal_ground_truth_unit",
+              "event_time_probability_unit",
+              "temporal_baselines",
+              "temporal_uncertainty_metrics",
+              "chronology_metrics",
+              "observation_cadence_ref",
+              "event_adjudication_protocol_ref",
+              "cause_classification_separate"
+            ],
+            "properties": {
+              "temporal_ground_truth_unit": {
+                "const": "interval_censored"
+              },
+              "event_time_probability_unit": {
+                "const": "month_ordinal"
+              },
+              "cause_classification_separate": {
                 "const": true
               }
             }

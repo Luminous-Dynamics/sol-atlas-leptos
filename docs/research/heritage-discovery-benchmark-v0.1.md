@@ -431,3 +431,22 @@ HDB's reproduction matrix should include the following task-matched reference im
 | Drone stone/wall segmentation | Stone instances and wall segments | Nine sites | Keep instance, boundary, geolocation and held-out-site metrics separate from regional candidate ranking. |
 
 Reference metadata belongs in a frozen benchmark manifest alongside exact input channel semantics, source/data/weight licenses, label evidence tier, sample design, preprocessing hash and evaluation unit.
+### HDB-9: interval-censored event timing and partial chronology
+
+**Question:** given a known physical change event and irregular or sparse observations, how well does the model represent the possible event-time interval and the chronology among distinct events?
+
+**Primary inputs:** site/landscape time series, observation cadence and no-data masks, evidence-supported event intervals, monthly probability distributions for each event, and site/time/sensor split manifests. Event intervals are inclusive and should be bounded by the last known unaffected observation and first known affected observation (or other adjudicated evidence).
+
+**Metrics:** interval probability mass, negative log interval likelihood, MAP-in-interval rate, Recall@K intersecting the admissible interval, distance from MAP to the interval, pairwise event-order probability/Brier/accuracy, and count of ambiguous overlapping intervals. Keep detection false-alert metrics, event localization, cause attribution and significance assessment separate.
+
+**Required baselines:** Microsoft WATCH TED, SSCD and WS; WATCH-style symmetric and directional margin scoring; peak-score month; nearest-observation midpoint; uniform probability over the admissible interval; random-uniform-interval; and a simple hazard/sequence baseline. Run WATCH first on its original month-level setting, then apply HDB-9 interval metrics to the same output distributions.
+
+**Required safeguards:**
+- No exact month is fabricated when evidence only supports an interval.
+- Intervals that overlap do not impose an order; count them as ambiguous.
+- Missing observation months are not no-event labels.
+- The same site, candidate, source image or event must not cross train/validation/test partitions.
+- Lock event intervals and adjudication references before final model tuning; retain evidence and review lineage.
+- Report results by region, sensor, observation cadence, interval width, season and event type.
+
+**Primary target:** at least 10% lower interval NLL than the strongest matched WATCH baseline on a preregistered held-out-site set, plus at least 10% lower pairwise chronology Brier than nearest-observation midpoint, while preserving/improving WATCH Recall@K at matched review budget. These are aspirations, not current results.

@@ -209,3 +209,27 @@ Berganzo-Besga, Orengo and Lumbreras, *Best practices for the application of com
 ### 9.4 Updated comparison rule
 
 Q2000 F1 0.89, ADAF recall 0.84, PlanetScope looting F1 0.926 and cropmark DSS results are not one leaderboard. Their sensors, target classes, spatial evaluation units, sample construction, geography and evidence tiers differ. Sol-Atlas should reproduce each relevant baseline on matched inputs/splits, then claim improvement only on task-specific held-out sites/regions, calibrated risk/coverage, review-budget utility and independently audited false-negative burden.
+
+## 10. Temporal change-monitoring baselines (2026-11-02)
+
+### 10.1 Microsoft WATCH — month-level event localization
+
+Microsoft WATCH: Wide-Area Archaeological Site Tracking for Change Detection (2026). Repository: https://github.com/microsoft/WATCH (MIT).
+
+WATCH uses Planet Labs monthly mosaics (RGB+NIR, 4.7 m/pixel) from 2017–2024, 1 km² site patches and masks for 1,943 Afghanistan archaeological sites. It compares six geospatial foundation-model embedding backends plus handcrafted spectral/texture features across three pipelines: TED (unsupervised temporal embedding distance, no training), SSCD (self-supervised change detection trained once), and WS (weakly supervised temporal localization using month labels only up to a cutoff, default 2020-12). Each produces a per-site probability distribution over months. Evaluation includes Recall@K, symmetric and directional temporal margins, and additional generalization sites in Syria, Turkey, Pakistan and Egypt.
+
+Important boundaries: the public repository does not ship the PlanetScope imagery or model checkpoints; MIT code licensing does not grant rights to those assets. The README summarizes cross-country generalization but does not provide a full per-country audit table in the repository description. Sol-Atlas must verify exact site-level split disjointness, temporal label cutoffs, image-month completeness and model-weight licenses before claiming a reproduction or transfer score. WATCH is the required HDB-9 primary baseline, not evidence that its methods transfer globally.
+
+### 10.2 Phenology-aware UAV change detection — fine-scale conservation baseline
+
+Liu, Qiu and Yang, *Construction of an intelligent interpretation and change detection system based on UAV remote sensing for landscape architectural heritage conservation*, Scientific Reports 16, 33942 (published 2026-07-25), DOI 10.1038/s41598-026-63132-8.
+
+The paper reports a six-layer conservation workflow with multi-scale element segmentation and temporal Siamese change detection with phenology-aware pseudo-change suppression across three East Asian garden/landscape heritage settings. Its 1,346 manually delineated change polygons were reviewed by two conservators with a third adjudicator (reported Cohen's kappa 0.87). Across four temporal intervals it reports F1 89.31%, false alarm rate 6.42%, miss rate 8.17%, overall accuracy 94.85%; the cross-season subset reports FAR 7.94%. An 18-month deployment reports 184 verified true-positive events, mean lead time 27.3 days, and throughput 1.93 ha/h on a dual RTX 4090 workstation.
+
+Transfer limits: three site types, UAV-scale acquisition and a three-year in-situ phenophase calendar. The paper itself identifies sample scarcity, shallow element ontology, topographic shadowing, residual seasonal phenology lag, and the need for additional LiDAR/thermal fusion. This is a fine-scale conservation comparator, not a regional satellite benchmark.
+
+Reference: https://doi.org/10.1038/s41598-026-63132-8.
+
+### 10.3 Temporal comparison rule
+
+Do not compare WATCH monthly satellite Recall@K with UAV pixel F1 or false-alarm rate as one score. HDB-9 must reproduce WATCH's own event-month ranking protocol on matched imagery and splits, then add interval-censored likelihood, MAP-to-interval distance and pairwise chronology Brier. UAV baselines should be evaluated separately on comparable fine-scale geometry and phenology conditions.
