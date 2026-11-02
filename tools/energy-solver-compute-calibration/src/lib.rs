@@ -8,14 +8,14 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
-pub const TRACE_SCHEMA: &str = "energy-solver-compute-trace-v0.1";
-pub const SUMMARY_SCHEMA: &str = "energy-solver-compute-summary-v0.1";
+pub const TRACE_SCHEMA: &str = "energy-solver-compute-trace-v0.2";
+pub const SUMMARY_SCHEMA: &str = "energy-solver-compute-summary-v0.2";
 pub const MAX_TRACE_CSV_BYTES: usize = 64 * 1024 * 1024;
 pub const P50_MIN_SAMPLES: usize = 5;
 pub const P95_MIN_SAMPLES: usize = 20;
 pub const P99_MIN_SAMPLES: usize = 1_000;
 
-pub const TRACE_HEADER: &str = "schema_version,measurement_class,cohort_id,sample_id,scenario_id,scenario_panel_sha256,request_sha256,model_sha256,mesh_policy_sha256,mesh_instance_sha256,solver_name,solver_version,solver_binary_sha256,solver_config_sha256,hardware_profile_sha256,horizon_minutes,interval_count,continuous_variables,integer_variables,binary_variables,constraints,random_seed,status,elapsed_ns,time_to_first_feasible_ns,time_to_optimal_ns,objective_value_units,best_bound_units,optimality_gap_ppm,peak_memory_bytes,timeout_limit_ns";
+pub const TRACE_HEADER: &str = "schema_version,measurement_class,cohort_id,sample_id,scenario_id,scenario_panel_sha256,request_sha256,model_sha256,mesh_policy_sha256,mesh_instance_sha256,solver_name,solver_version,solver_binary_sha256,solver_config_sha256,hardware_profile_sha256,horizon_minutes,interval_count,continuous_variables,integer_variables,binary_variables,constraints,random_seed,status,elapsed_ns,time_to_first_feasible_ns,time_to_optimal_ns,objective_value_units,best_bound_units,optimality_gap_ppm,peak_memory_bytes,timeout_limit_ns,search_action_expansions,feasible_complete_schedules,pareto_frontier_count";
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum MeasurementClass {
@@ -46,6 +46,7 @@ pub enum SolveStatus {
     Feasible,
     Infeasible,
     TimedOut,
+    LimitReached,
     Cancelled,
     Error,
 }
@@ -57,6 +58,7 @@ impl SolveStatus {
             Self::Feasible => "feasible",
             Self::Infeasible => "infeasible",
             Self::TimedOut => "timed_out",
+            Self::LimitReached => "limit_reached",
             Self::Cancelled => "cancelled",
             Self::Error => "error",
         }
@@ -68,6 +70,7 @@ impl SolveStatus {
             "feasible" => Ok(Self::Feasible),
             "infeasible" => Ok(Self::Infeasible),
             "timed_out" => Ok(Self::TimedOut),
+            "limit_reached" => Ok(Self::LimitReached),
             "cancelled" => Ok(Self::Cancelled),
             "error" => Ok(Self::Error),
             _ => Err(TraceError::InvalidSolveStatus),
@@ -101,10 +104,11 @@ pub struct SolverTrace {
     pub hardware_profile_sha256: String,
     pub horizon_minutes: u16,
     pub interval_count: u32,
-    pub continuous_variables: u64,
-    pub integer_variables: u64,
-    pub binary_variables: u64,
-    pub constraints: u64,
+    /// Optional for exact enumerators that do not expose an explicit mathematical-program variable model.
+    pub continuous_variables: Option<u64>,
+    pub integer_variables: Option<u64>,
+    pub binary_variables: Option<u64>,
+    pub constraints: Option<u64>,
     pub random_seed: u64,
     pub status: SolveStatus,
     /// Wall-clock process elapsed time. For timeouts this is right-censored at
@@ -116,7 +120,11 @@ pub struct SolverTrace {
     pub best_bound_units: Option<i64>,
     pub optimality_gap_ppm: Option<u32>,
     pub peak_memory_bytes: Option<u64>,
-    pub timeout_limit_ns: u64,
+    pub timeout_limit_ns: Option<u64>,
+    /// Algorithm-specific search work; not applicable to every solver family.
+    pub search_action_expansions: Option<u64>,
+    pub feasible_complete_schedules: Option<u64>,
+    pub pareto_frontier_count: Option<u32>,
 }
 
 impl SolverTrace {
@@ -152,9 +160,12 @@ impl SolverTrace {
         if self.horizon_minutes == 0
             || self.horizon_minutes > 1_440
             || self.interval_count == 0
-            || self.binary_variables > self.integer_variables
             || self.elapsed_ns == 0
-            || self.timeout_limit_ns == 0
+            || self.timeout_limit_ns.is_some_and(|limit| limit == 0)
+            || self.binary_variables.zip(self.integer_variables).is_some_and(
+                |(binary, integer)| binary > integer
+            )
+            || (self.binary_variables.is_some() && self.integer_variables.is_none())
         {
             return Err(TraceError::InvalidModelOrTiming);
         }
@@ -167,6 +178,25 @@ impl SolverTrace {
         {
             return Err(TraceError::InvalidModelOrTiming);
         }
+        let search_metrics = [
+            self.search_action_expansions.is_some(),
+            self.feasible_complete_schedules.is_some(),
+            self.pareto_frontier_count.is_some(),
+        ];
+        if search_metrics.iter().any(|present| *present)
+            && !search_metrics.iter().all(|present| *present)
+        {
+            return Err(TraceError::InvalidStatusSemantics);
+        }
+        if let (Some(expansions), Some(feasible), Some(frontier)) = (
+            self.search_action_expansions,
+            self.feasible_complete_schedules,
+            self.pareto_frontier_count,
+        ) {
+            if expansions == 0 || (feasible == 0) != (frontier == 0) {
+                return Err(TraceError::InvalidStatusSemantics);
+            }
+        }
         if self.objective_value_units.is_some() && self.time_to_first_feasible_ns.is_none() {
             return Err(TraceError::InvalidStatusSemantics);
         }
@@ -176,19 +206,27 @@ impl SolverTrace {
         if self.time_to_optimal_ns.is_some() != (self.status == SolveStatus::Optimal) {
             return Err(TraceError::InvalidStatusSemantics);
         }
+        let scalar_optimality_evidence = self.objective_value_units.is_some()
+            && self.time_to_first_feasible_ns.is_some();
+        let exhaustive_search_evidence = self.search_action_expansions.is_some()
+            && self.feasible_complete_schedules.is_some_and(|count| count > 0)
+            && self.pareto_frontier_count.is_some_and(|count| count > 0);
         if self.status == SolveStatus::Optimal
-            && (self.time_to_first_feasible_ns.is_none()
-                || self.objective_value_units.is_none()
-                || self.best_bound_units.is_none()
-                || self.optimality_gap_ppm.is_none())
+            && (self.time_to_optimal_ns.is_none()
+                || !(scalar_optimality_evidence || exhaustive_search_evidence))
         {
             return Err(TraceError::InvalidStatusSemantics);
         }
-        if self.status == SolveStatus::Infeasible
-            && (self.time_to_first_feasible_ns.is_some()
-                || self.objective_value_units.is_some()
-                || self.best_bound_units.is_some()
-                || self.optimality_gap_ppm.is_some())
+        if matches!(
+            self.status,
+            SolveStatus::Infeasible | SolveStatus::LimitReached | SolveStatus::Error
+        ) && (self.time_to_first_feasible_ns.is_some()
+            || self.time_to_optimal_ns.is_some()
+            || self.objective_value_units.is_some()
+            || self.best_bound_units.is_some()
+            || self.optimality_gap_ppm.is_some()
+            || self.feasible_complete_schedules.is_some_and(|count| count > 0)
+            || self.pareto_frontier_count.is_some_and(|count| count > 0))
         {
             return Err(TraceError::InvalidStatusSemantics);
         }
@@ -197,8 +235,14 @@ impl SolverTrace {
         {
             return Err(TraceError::InvalidStatusSemantics);
         }
-        if self.status.has_feasible_solution()
+        if self.status == SolveStatus::Feasible
             && (self.time_to_first_feasible_ns.is_none() || self.objective_value_units.is_none())
+        {
+            return Err(TraceError::InvalidStatusSemantics);
+        }
+        if self.status == SolveStatus::Optimal
+            && self.time_to_first_feasible_ns.is_none()
+            && !exhaustive_search_evidence
         {
             return Err(TraceError::InvalidStatusSemantics);
         }
@@ -330,10 +374,10 @@ fn parse_csv_row(line: &str) -> Result<SolverTrace, TraceError> {
         hardware_profile_sha256: fields[14].to_owned(),
         horizon_minutes: parse_u16(fields[15])?,
         interval_count: parse_u32(fields[16])?,
-        continuous_variables: parse_u64(fields[17])?,
-        integer_variables: parse_u64(fields[18])?,
-        binary_variables: parse_u64(fields[19])?,
-        constraints: parse_u64(fields[20])?,
+        continuous_variables: parse_optional(fields[17], parse_u64)?,
+        integer_variables: parse_optional(fields[18], parse_u64)?,
+        binary_variables: parse_optional(fields[19], parse_u64)?,
+        constraints: parse_optional(fields[20], parse_u64)?,
         random_seed: parse_u64(fields[21])?,
         status: SolveStatus::parse(fields[22])?,
         elapsed_ns: parse_u64(fields[23])?,
@@ -343,7 +387,10 @@ fn parse_csv_row(line: &str) -> Result<SolverTrace, TraceError> {
         best_bound_units: parse_optional(fields[27], parse_i64)?,
         optimality_gap_ppm: parse_optional(fields[28], parse_u32)?,
         peak_memory_bytes: parse_optional(fields[29], parse_u64)?,
-        timeout_limit_ns: parse_u64(fields[30])?,
+        timeout_limit_ns: parse_optional(fields[30], parse_u64)?,
+        search_action_expansions: parse_optional(fields[31], parse_u64)?,
+        feasible_complete_schedules: parse_optional(fields[32], parse_u64)?,
+        pareto_frontier_count: parse_optional(fields[33], parse_u32)?,
     })
 }
 
@@ -389,6 +436,7 @@ pub struct CohortSummary {
     pub timeout_count: usize,
     pub cancelled_count: usize,
     pub error_count: usize,
+    pub limit_reached_count: usize,
     pub completed_latency_p50_ns: Option<u64>,
     pub completed_latency_p95_ns: Option<u64>,
     pub completed_latency_p99_ns: Option<u64>,
@@ -400,10 +448,17 @@ pub struct CohortSummary {
     pub peak_memory_p95_bytes: Option<u64>,
     pub interval_count_min: u32,
     pub interval_count_max: u32,
-    pub binary_variables_min: u64,
-    pub binary_variables_max: u64,
-    pub constraints_min: u64,
-    pub constraints_max: u64,
+    pub binary_variables_min: Option<u64>,
+    pub binary_variables_max: Option<u64>,
+    pub constraints_min: Option<u64>,
+    pub constraints_max: Option<u64>,
+    pub search_metrics_sample_count: usize,
+    pub search_action_expansions_min: Option<u64>,
+    pub search_action_expansions_max: Option<u64>,
+    pub feasible_complete_schedules_min: Option<u64>,
+    pub feasible_complete_schedules_max: Option<u64>,
+    pub pareto_frontier_count_min: Option<u32>,
+    pub pareto_frontier_count_max: Option<u32>,
     pub p99_ready: bool,
 }
 
@@ -434,6 +489,7 @@ fn summarize_group(traces: &[&SolverTrace]) -> CohortSummary {
     let mut timeouts = 0;
     let mut cancelled = 0;
     let mut errors = 0;
+    let mut limit_reached = 0;
 
     for trace in traces {
         match trace.status {
@@ -447,6 +503,7 @@ fn summarize_group(traces: &[&SolverTrace]) -> CohortSummary {
             }
             SolveStatus::Infeasible => infeasible += 1,
             SolveStatus::TimedOut => timeouts += 1,
+            SolveStatus::LimitReached => limit_reached += 1,
             SolveStatus::Cancelled => cancelled += 1,
             SolveStatus::Error => errors += 1,
         }
@@ -472,6 +529,7 @@ fn summarize_group(traces: &[&SolverTrace]) -> CohortSummary {
         timeout_count: timeouts,
         cancelled_count: cancelled,
         error_count: errors,
+        limit_reached_count: limit_reached,
         completed_latency_p50_ns: gated_quantile(completed_elapsed.clone(), 50, P50_MIN_SAMPLES),
         completed_latency_p95_ns: gated_quantile(completed_elapsed.clone(), 95, P95_MIN_SAMPLES),
         completed_latency_p99_ns: gated_quantile(completed_elapsed, 99, P99_MIN_SAMPLES),
@@ -489,18 +547,38 @@ fn summarize_group(traces: &[&SolverTrace]) -> CohortSummary {
             .map(|trace| trace.interval_count)
             .max()
             .unwrap(),
-        binary_variables_min: traces
+        binary_variables_min: traces.iter().filter_map(|trace| trace.binary_variables).min(),
+        binary_variables_max: traces.iter().filter_map(|trace| trace.binary_variables).max(),
+        constraints_min: traces.iter().filter_map(|trace| trace.constraints).min(),
+        constraints_max: traces.iter().filter_map(|trace| trace.constraints).max(),
+        search_metrics_sample_count: traces
             .iter()
-            .map(|trace| trace.binary_variables)
-            .min()
-            .unwrap(),
-        binary_variables_max: traces
+            .filter(|trace| trace.search_action_expansions.is_some())
+            .count(),
+        search_action_expansions_min: traces
             .iter()
-            .map(|trace| trace.binary_variables)
-            .max()
-            .unwrap(),
-        constraints_min: traces.iter().map(|trace| trace.constraints).min().unwrap(),
-        constraints_max: traces.iter().map(|trace| trace.constraints).max().unwrap(),
+            .filter_map(|trace| trace.search_action_expansions)
+            .min(),
+        search_action_expansions_max: traces
+            .iter()
+            .filter_map(|trace| trace.search_action_expansions)
+            .max(),
+        feasible_complete_schedules_min: traces
+            .iter()
+            .filter_map(|trace| trace.feasible_complete_schedules)
+            .min(),
+        feasible_complete_schedules_max: traces
+            .iter()
+            .filter_map(|trace| trace.feasible_complete_schedules)
+            .max(),
+        pareto_frontier_count_min: traces
+            .iter()
+            .filter_map(|trace| trace.pareto_frontier_count)
+            .min(),
+        pareto_frontier_count_max: traces
+            .iter()
+            .filter_map(|trace| trace.pareto_frontier_count)
+            .max(),
         p99_ready: traces
             .iter()
             .filter(|trace| trace.status.has_feasible_solution())
@@ -550,7 +628,7 @@ pub fn summarize_traces(traces: &[SolverTrace]) -> Result<Vec<CohortSummary>, Tr
 
 pub fn render_summary_csv(summaries: &[CohortSummary]) -> String {
     let mut output = String::from(
-        "cohort_id,measurement_class,samples,completed_samples,first_feasible_samples,peak_memory_samples,optimal,feasible,infeasible,timeouts,cancelled,errors,completed_p50_ns,completed_p95_ns,completed_p99_ns,first_feasible_p50_ns,first_feasible_p95_ns,observed_attempt_elapsed_p95_ns,peak_memory_p95_bytes,interval_count_min,interval_count_max,binary_variables_min,binary_variables_max,constraints_min,constraints_max,p99_ready\n",
+        "cohort_id,measurement_class,samples,completed_samples,first_feasible_samples,peak_memory_samples,optimal,feasible,infeasible,timeouts,limit_reached,cancelled,errors,completed_p50_ns,completed_p95_ns,completed_p99_ns,first_feasible_p50_ns,first_feasible_p95_ns,observed_attempt_elapsed_p95_ns,peak_memory_p95_bytes,interval_count_min,interval_count_max,binary_variables_min,binary_variables_max,constraints_min,constraints_max,search_metrics_samples,search_action_expansions_min,search_action_expansions_max,feasible_complete_schedules_min,feasible_complete_schedules_max,pareto_frontier_count_min,pareto_frontier_count_max,p99_ready\n",
     );
     for summary in summaries {
         let optional = |value: Option<u64>| {
@@ -559,7 +637,7 @@ pub fn render_summary_csv(summaries: &[CohortSummary]) -> String {
                 .unwrap_or_else(|| "NA".to_owned())
         };
         output.push_str(&format!(
-            "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n",
+            "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n",
             summary.cohort_id,
             summary.measurement_class.as_str(),
             summary.sample_count,
@@ -570,6 +648,7 @@ pub fn render_summary_csv(summaries: &[CohortSummary]) -> String {
             summary.feasible_count,
             summary.infeasible_count,
             summary.timeout_count,
+            summary.limit_reached_count,
             summary.cancelled_count,
             summary.error_count,
             optional(summary.completed_latency_p50_ns),
@@ -581,19 +660,27 @@ pub fn render_summary_csv(summaries: &[CohortSummary]) -> String {
             optional(summary.peak_memory_p95_bytes),
             summary.interval_count_min,
             summary.interval_count_max,
-            summary.binary_variables_min,
-            summary.binary_variables_max,
-            summary.constraints_min,
-            summary.constraints_max,
+            optional(summary.binary_variables_min),
+            optional(summary.binary_variables_max),
+            optional(summary.constraints_min),
+            optional(summary.constraints_max),
+            summary.search_metrics_sample_count,
+            optional(summary.search_action_expansions_min),
+            optional(summary.search_action_expansions_max),
+            optional(summary.feasible_complete_schedules_min),
+            optional(summary.feasible_complete_schedules_max),
+            summary.pareto_frontier_count_min.map(|value| value.to_string()).unwrap_or_else(|| "NA".to_owned()),
+            summary.pareto_frontier_count_max.map(|value| value.to_string()).unwrap_or_else(|| "NA".to_owned()),
             summary.p99_ready,
         ));
     }
     output
 }
 
-#[cfg(test)]
-fn trace_to_csv(trace: &SolverTrace) -> String {
-    let optional = |value: Option<u64>| {
+/// Render one validated trace row using the fixed v0.2 CSV schema.
+pub fn render_trace_csv_row(trace: &SolverTrace) -> Result<String, TraceError> {
+    trace.validate()?;
+    let optional_u64 = |value: Option<u64>| {
         value
             .map(|number| number.to_string())
             .unwrap_or_else(|| "NA".to_owned())
@@ -608,8 +695,8 @@ fn trace_to_csv(trace: &SolverTrace) -> String {
             .map(|number| number.to_string())
             .unwrap_or_else(|| "NA".to_owned())
     };
-    format!(
-        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
+    Ok(format!(
+        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
         trace.schema_version,
         trace.measurement_class.as_str(),
         trace.cohort_id,
@@ -627,21 +714,24 @@ fn trace_to_csv(trace: &SolverTrace) -> String {
         trace.hardware_profile_sha256,
         trace.horizon_minutes,
         trace.interval_count,
-        trace.continuous_variables,
-        trace.integer_variables,
-        trace.binary_variables,
-        trace.constraints,
+        optional_u64(trace.continuous_variables),
+        optional_u64(trace.integer_variables),
+        optional_u64(trace.binary_variables),
+        optional_u64(trace.constraints),
         trace.random_seed,
         trace.status.as_str(),
         trace.elapsed_ns,
-        optional(trace.time_to_first_feasible_ns),
-        optional(trace.time_to_optimal_ns),
+        optional_u64(trace.time_to_first_feasible_ns),
+        optional_u64(trace.time_to_optimal_ns),
         optional_i64(trace.objective_value_units),
         optional_i64(trace.best_bound_units),
         optional_u32(trace.optimality_gap_ppm),
-        optional(trace.peak_memory_bytes),
-        trace.timeout_limit_ns,
-    )
+        optional_u64(trace.peak_memory_bytes),
+        optional_u64(trace.timeout_limit_ns),
+        optional_u64(trace.search_action_expansions),
+        optional_u64(trace.feasible_complete_schedules),
+        optional_u32(trace.pareto_frontier_count),
+    ))
 }
 
 #[cfg(test)]
@@ -678,10 +768,10 @@ mod tests {
             hardware_profile_sha256: digest('f'),
             horizon_minutes: 1_440,
             interval_count: 96,
-            continuous_variables: 400,
-            integer_variables: 96,
-            binary_variables: 48,
-            constraints: 800,
+            continuous_variables: Some(400),
+            integer_variables: Some(96),
+            binary_variables: Some(48),
+            constraints: Some(800),
             random_seed: sample as u64,
             status,
             elapsed_ns,
@@ -691,7 +781,10 @@ mod tests {
             best_bound_units: feasible.then_some(10_000 - sample as i64),
             optimality_gap_ppm: feasible.then_some(0),
             peak_memory_bytes: Some(2_000_000 + sample as u64 * 1_024),
-            timeout_limit_ns,
+            timeout_limit_ns: Some(timeout_limit_ns),
+            search_action_expansions: None,
+            feasible_complete_schedules: None,
+            pareto_frontier_count: None,
         }
     }
 
@@ -974,7 +1067,7 @@ mod tests {
         let input = format!(
             "{TRACE_HEADER}\n{}",
             (0..30)
-                .map(|index| trace_to_csv(&trace(
+                .map(|index| render_trace_csv_row(&trace(
                     index,
                     if index < 18 {
                         SolveStatus::Optimal
@@ -986,6 +1079,7 @@ mod tests {
                         SolveStatus::Infeasible
                     }
                 )))
+                .map(Result::unwrap)
                 .collect::<Vec<_>>()
                 .join("\n")
         );
