@@ -47,7 +47,7 @@ pub mod trace_support {
 
 use trace_support::trace_v0_3::{parse_trace_csv_v03, summarize_traces_v03};
 
-const SUMMARY_HEADER: &str = "cohort_id,samples,solver_time_samples,solver_elapsed_p50_ns,solver_elapsed_p95_ns,exact_complete,feasible_unproven,proven_infeasible,limit_without_candidate,timed_out,cancelled,errors,candidates,audit_attempts,audit_accepted,audit_rejected,audit_unavailable,audit_not_run,service_floor_passed,service_floor_failed,service_floor_unavailable,service_floor_not_evaluated,decision_ready,first_candidate_samples,first_candidate_p50_ns,first_candidate_p95_ns,first_audit_accept_samples,first_audit_accept_p50_ns,first_audit_accept_p95_ns,total_prefix_visits,audit_accepted_per_million_prefix_visits,decision_ready_per_million_prefix_visits,service_floor_samples,service_floor_elapsed_p50_ns,service_floor_elapsed_p95_ns,decision_ready_latency_samples,decision_ready_latency_p50_ns,decision_ready_latency_p95_ns";
+const SUMMARY_HEADER: &str = "scenario_id,cohort_id,samples,solver_time_samples,solver_elapsed_p50_ns,solver_elapsed_p95_ns,exact_complete,feasible_unproven,proven_infeasible,limit_without_candidate,timed_out,cancelled,errors,candidates,audit_attempts,audit_accepted,audit_rejected,audit_unavailable,audit_not_run,service_floor_passed,service_floor_failed,service_floor_unavailable,service_floor_not_evaluated,decision_ready,first_candidate_samples,first_candidate_p50_ns,first_candidate_p95_ns,first_audit_accept_samples,first_audit_accept_p50_ns,first_audit_accept_p95_ns,total_prefix_visits,audit_accepted_per_million_prefix_visits,decision_ready_per_million_prefix_visits,service_floor_samples,service_floor_elapsed_p50_ns,service_floor_elapsed_p95_ns,decision_ready_latency_samples,decision_ready_latency_p50_ns,decision_ready_latency_p95_ns";
 
 fn optional(value: Option<u64>) -> String {
     value.map(|n| n.to_string()).unwrap_or_else(|| "NA".to_owned())
@@ -84,6 +84,7 @@ fn summarize(path: &Path) -> Result<String, String> {
     output.push('\n');
     for row in summaries {
         let fields = [
+            row.scenario_id,
             row.cohort_id,
             row.sample_count.to_string(),
             row.solver_time_sample_count.to_string(),
@@ -162,8 +163,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn summary_header_is_unique_and_has_38_columns() {
-        assert_eq!(SUMMARY_HEADER.split(',').count(), 38);
+    fn summary_header_is_unique_and_has_39_columns() {
+        assert_eq!(SUMMARY_HEADER.split(',').count(), 39);
     }
 
     #[test]
