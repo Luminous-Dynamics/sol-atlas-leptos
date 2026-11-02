@@ -454,6 +454,108 @@ fn validate_event(event: &Value, nodes: &BTreeMap<String, Value>) -> Result<(), 
     Ok(())
 }
 
+/// Verify a complete authority event chain and return its canonical sequence order.
+///
+/// Exact duplicate events are idempotent. Conflicting events at the same sequence,
+/// reused event IDs, sequence gaps, broken predecessor digests, or backwards
+/// recorded/trusted time are rejected. This is an in-memory batch verifier only;
+/// it is not a persistent anti-rollback high-water store.
+fn validate_event_chain(
+    events: &[Value],
+    nodes: &BTreeMap<String, Value>,
+) -> Result<Vec<Value>, String> {
+    let mut by_sequence: BTreeMap<u64, (String, Value)> = BTreeMap::new();
+    let mut event_ids: BTreeMap<String, (u64, String)> = BTreeMap::new();
+
+    for event in events {
+        validate_event(event, nodes)?;
+        let event_id = required_string(event, "event_id", "event")?.to_owned();
+        let sequence = event
+            .get("authority_sequence")
+            .and_then(Value::as_u64)
+            .ok_or_else(|| "authority_sequence must be a positive integer".to_owned())?;
+        let digest = canonical_json_digest(event)?;
+
+        if let Some((existing_sequence, existing_digest)) = event_ids.get(&event_id) {
+            if *existing_sequence != sequence || existing_digest != &digest {
+                return Err(format!(
+                    "event ID {event_id} is reused with a different sequence or content"
+                ));
+            }
+        }
+        if let Some((existing_digest, _)) = by_sequence.get(&sequence) {
+            if existing_digest != &digest {
+                return Err(format!(
+                    "conflicting invalidation events share authority sequence {sequence}"
+                ));
+            }
+            // Exact replay of an already-seen event is idempotent.
+            continue;
+        }
+        event_ids.insert(event_id, (sequence, digest.clone()));
+        by_sequence.insert(sequence, (digest, event.clone()));
+    }
+
+    let mut ordered = Vec::with_capacity(by_sequence.len());
+    let mut previous_digest: Option<String> = None;
+    let mut previous_recorded_at: Option<String> = None;
+    let mut previous_trusted_at: Option<String> = None;
+
+    for (index, (sequence, (digest, event))) in by_sequence.into_iter().enumerate() {
+        let expected_sequence = u64::try_from(index + 1)
+            .map_err(|_| "event chain index exceeds u64".to_owned())?;
+        if sequence != expected_sequence {
+            return Err(format!(
+                "authority event sequence is not contiguous: expected {expected_sequence}, got {sequence}"
+            ));
+        }
+
+        let previous = event
+            .get("previous_event_sha256")
+            .ok_or("previous_event_sha256 is required")?;
+        match previous_digest.as_deref() {
+            None if !previous.is_null() => {
+                return Err("first authority event must have no predecessor".into());
+            }
+            Some(expected) if previous.as_str() != Some(expected) => {
+                return Err(format!(
+                    "authority event sequence {sequence} has a broken predecessor digest"
+                ));
+            }
+            _ => {}
+        }
+
+        let system_time = event
+            .get("system_time")
+            .ok_or("event system_time is required for chain ordering")?;
+        let recorded_at = required_string(system_time, "recorded_at", "event.system_time")?;
+        let trusted_at = required_string(system_time, "trusted_at", "event.system_time")?;
+        if !recorded_at.ends_with('Z') || !trusted_at.ends_with('Z') {
+            return Err(format!(
+                "authority event sequence {sequence} requires normalized UTC recorded/trusted times"
+            ));
+        }
+        if previous_recorded_at
+            .as_deref()
+            .is_some_and(|previous| recorded_at < previous)
+            || previous_trusted_at
+                .as_deref()
+                .is_some_and(|previous| trusted_at < previous)
+        {
+            return Err(format!(
+                "authority event sequence {sequence} moves recorded/trusted time backwards"
+            ));
+        }
+
+        previous_digest = Some(digest);
+        previous_recorded_at = Some(recorded_at.to_owned());
+        previous_trusted_at = Some(trusted_at.to_owned());
+        ordered.push(event);
+    }
+
+    Ok(ordered)
+}
+
 fn signed_statement_precedes_compromise(
     path: &[String],
     nodes: &BTreeMap<String, Value>,
@@ -727,7 +829,7 @@ fn evaluate_fixture(fixture: &Value) -> Result<Value, String> {
         .get("invalidation_event")
         .ok_or("fixture.invalidation_event is missing")?;
     let nodes = validate_graph(graph)?;
-    validate_event(event, &nodes)?;
+    validate_event_chain(std::slice::from_ref(event), &nodes)?;
     let expected = fixture
         .get("expected_impact_report")
         .ok_or("fixture.expected_impact_report is missing")?;
@@ -808,6 +910,61 @@ mod tests {
             "../../../schemas/examples/ieac-trust-lifecycle-key-compromise-synthetic-v0.1.json"
         ))
         .unwrap()
+    }
+
+    fn two_event_chain() -> (BTreeMap<String, Value>, Value, Value) {
+        let fixture = fixture();
+        let nodes = validate_graph(&fixture["graph"]).unwrap();
+        let first = fixture["invalidation_event"].clone();
+        let first_digest = canonical_json_digest(&first).unwrap();
+        let mut second = first.clone();
+        second["event_id"] = json!("evt-key-compromise-followup-002");
+        second["authority_sequence"] = json!(2);
+        second["previous_event_sha256"] = json!(first_digest);
+        second["system_time"]["recorded_at"] = json!("2026-11-02T11:00:00Z");
+        second["system_time"]["trusted_at"] = json!("2026-11-02T11:01:00Z");
+        (nodes, first, second)
+    }
+
+    #[test]
+    fn event_chain_sorts_out_of_order_delivery_and_accepts_exact_replay() {
+        let (nodes, first, second) = two_event_chain();
+        let ordered =
+            validate_event_chain(&[second.clone(), first.clone(), first.clone()], &nodes).unwrap();
+        assert_eq!(ordered.len(), 2);
+        assert_eq!(ordered[0]["authority_sequence"], 1);
+        assert_eq!(ordered[1]["authority_sequence"], 2);
+    }
+
+    #[test]
+    fn event_chain_rejects_conflicting_same_sequence_and_reused_ids() {
+        let (nodes, first, second) = two_event_chain();
+        let mut conflicting = second.clone();
+        conflicting["event_id"] = json!("evt-conflicting-sequence-002");
+        assert!(validate_event_chain(&[first.clone(), second, conflicting], &nodes).is_err());
+
+        let mut reused_id = two_event_chain().2;
+        reused_id["event_id"] = first["event_id"].clone();
+        assert!(validate_event_chain(&[first, reused_id], &nodes).is_err());
+    }
+
+    #[test]
+    fn event_chain_rejects_gaps_broken_predecessors_and_time_rollback() {
+        let (nodes, first, second) = two_event_chain();
+        let mut gap = second.clone();
+        gap["authority_sequence"] = json!(3);
+        assert!(validate_event_chain(&[first.clone(), gap], &nodes).is_err());
+
+        let mut broken_link = second.clone();
+        broken_link["previous_event_sha256"] = json!(
+            "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        );
+        assert!(validate_event_chain(&[first.clone(), broken_link], &nodes).is_err());
+
+        let mut backdated = second;
+        backdated["system_time"]["recorded_at"] = json!("2026-10-31T00:00:00Z");
+        backdated["system_time"]["trusted_at"] = json!("2026-10-31T00:00:00Z");
+        assert!(validate_event_chain(&[first, backdated], &nodes).is_err());
     }
 
     #[test]
