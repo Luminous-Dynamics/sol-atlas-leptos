@@ -10,7 +10,6 @@ use super::{
     audit_error, current_binary_sha256, parse_unique_json, recompute_objectives, sha256,
     validate_request, validate_schedule, AuditError, AuditFinding, DispatchSchedule,
     IntervalDispatch, SourceRequest, MAX_INTERVALS, MAX_REQUEST_BYTES, MAX_SCHEDULE_BYTES,
-    SCHEDULE_SCHEMA_VERSION, SOURCE_SCHEMA_VERSION,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -129,6 +128,7 @@ struct ParsedScenario {
     schedule: DispatchSchedule,
     information_set_sha256_by_interval: Vec<String>,
     domain_valid: bool,
+    domain_failure_detail: String,
 }
 
 fn safe_scenario_id(value: &str) -> bool {
@@ -238,7 +238,17 @@ pub fn evaluate_nonanticipativity_bytes(
         // Objective recomputation is part of admission: an overflow or missing
         // complete trajectory is not silently tolerated by this verifier.
         let _ = recompute_objectives(&request, &schedule)?;
-        let domain_valid = domain_findings.iter().all(|finding| finding.passed);
+        let failed_domain_findings: Vec<_> = domain_findings
+            .iter()
+            .filter(|finding| !finding.passed)
+            .map(|finding| format!("{}: {}", finding.predicate, finding.detail))
+            .collect();
+        let domain_valid = failed_domain_findings.is_empty();
+        let domain_failure_detail = if domain_valid {
+            "all standalone request/schedule domain predicates passed".to_owned()
+        } else {
+            failed_domain_findings.join("; ")
+        };
 
         parsed.push(ParsedScenario {
             scenario_id: source.scenario_id.to_owned(),
@@ -250,6 +260,7 @@ pub fn evaluate_nonanticipativity_bytes(
                 .information_set_sha256_by_interval
                 .to_vec(),
             domain_valid,
+            domain_failure_detail,
         });
     }
 
@@ -304,7 +315,7 @@ pub fn evaluate_nonanticipativity_bytes(
             None,
             vec![scenario.scenario_id.clone()],
             scenario.domain_valid,
-            "the scenario request and complete schedule must satisfy the standalone domain predicates",
+            scenario.domain_failure_detail.clone(),
         );
     }
 
