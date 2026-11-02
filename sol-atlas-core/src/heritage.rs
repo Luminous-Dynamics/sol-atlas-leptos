@@ -78,6 +78,12 @@ pub struct RightsProfile {
     pub permitted_uses: BTreeSet<HeritageUse>,
     pub access_tier: AccessTier,
     pub exact_geometry_policy: ExactGeometryPolicy,
+    pub licence_uri: Option<String>,
+    pub attribution_text: Option<String>,
+    pub consent_or_authority_ref: Option<String>,
+    pub jurisdiction: Option<String>,
+    pub review_due_at: Option<String>,
+    pub restrictions: Vec<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -339,6 +345,8 @@ pub enum MetadataValidationError {
     InvalidRegistrationError,
     InvalidIngestionTimestamp,
     InvalidRightsReviewTimestamp,
+    InvalidLicenceUri,
+    ProvenanceDigestMismatch,
     EmptyIngestionPipelineId,
     EmptyIngestionPipelineVersion,
     EmptyPermittedUses,
@@ -457,6 +465,14 @@ impl SourceAssetMetadata {
             if !is_sha256_hex(digest) {
                 errors.push(MetadataValidationError::InvalidContentDigest);
             }
+            if self
+                .asset
+                .content_sha256
+                .as_deref()
+                .is_some_and(|asset_digest| !asset_digest.eq_ignore_ascii_case(digest))
+            {
+                errors.push(MetadataValidationError::ProvenanceDigestMismatch);
+            }
         }
 
         if self.quality.as_ref().is_some_and(|quality| {
@@ -486,6 +502,14 @@ impl SourceAssetMetadata {
         {
             errors.push(MetadataValidationError::InvalidRightsReviewTimestamp);
         }
+        if self
+            .rights
+            .licence_uri
+            .as_deref()
+            .is_some_and(|value| !has_uri_scheme(value))
+        {
+            errors.push(MetadataValidationError::InvalidLicenceUri);
+        }
         if self.provenance.ingestion_pipeline_id.trim().is_empty() {
             errors.push(MetadataValidationError::EmptyIngestionPipelineId);
         }
@@ -495,7 +519,8 @@ impl SourceAssetMetadata {
         if self.rights.permitted_uses.is_empty() {
             errors.push(MetadataValidationError::EmptyPermittedUses);
         }
-        if self.rights.access_tier == AccessTier::Withheld
+        if (self.rights.access_tier == AccessTier::Withheld
+            || self.spatial.geometry_access_tier == AccessTier::Withheld)
             && self.rights.state == RightsState::Verified
         {
             errors.push(MetadataValidationError::InconsistentWithheldRights);
@@ -691,7 +716,7 @@ impl AssetRegistry {
         let metadata_sha256 = metadata
             .metadata_sha256()
             .map_err(|error| RegistryError::Serialization(error.to_string()))?;
-        let key = registry_key(&metadata.source_id, &metadata.asset_ref);
+        let key = registry_key(&metadata.source_id, &metadata.asset.asset_ref);
         let versions = self.revisions.entry(key).or_default();
 
         if let Some(existing) = versions
@@ -708,9 +733,9 @@ impl AssetRegistry {
         versions.push(AssetVersion {
             version,
             source_id: metadata.source_id.clone(),
-            asset_ref: metadata.asset_ref.clone(),
+            asset_ref: metadata.asset.asset_ref.clone(),
             metadata_sha256,
-            content_sha256: metadata.content_sha256.clone(),
+            content_sha256: metadata.asset.content_sha256.clone(),
             rights_state: metadata.rights.state,
         });
 
@@ -791,6 +816,7 @@ pub enum ReceiptError {
     EmptyPipelineVersion,
     Serialization(String),
     RightsDenied(RightsDenial),
+    ByteLengthMismatch { expected: u64, actual: u64 },
 }
 
 impl fmt::Display for ReceiptError {
@@ -800,6 +826,28 @@ impl fmt::Display for ReceiptError {
 }
 
 impl std::error::Error for ReceiptError {}
+
+/// Apply both asset-level rights and spatial geometry access controls.
+pub fn authorize_metadata_use(
+    metadata: &SourceAssetMetadata,
+    purpose: HeritageUse,
+    context: AccessContext,
+    exact_geometry: bool,
+) -> Result<(), RightsDenial> {
+    metadata
+        .rights
+        .authorize(purpose, context, exact_geometry)?;
+    if metadata.spatial.geometry_access_tier == AccessTier::Withheld {
+        return Err(RightsDenial::WithheldAsset);
+    }
+    if context.max_tier < metadata.spatial.geometry_access_tier {
+        return Err(RightsDenial::AccessTierInsufficient {
+            required: metadata.spatial.geometry_access_tier,
+            granted: context.max_tier,
+        });
+    }
+    Ok(())
+}
 
 /// Verify exact supplied bytes against the source snapshot and create a
 /// deterministic receipt. This function does not decide whether the caller is
@@ -815,9 +863,7 @@ pub fn verify_artifact_bytes(
     exact_geometry: bool,
 ) -> Result<IngestionReceipt, ReceiptError> {
     metadata.validate().map_err(ReceiptError::InvalidMetadata)?;
-    metadata
-        .rights
-        .authorize(purpose, access, exact_geometry)
+    authorize_metadata_use(metadata, purpose, access, exact_geometry)
         .map_err(ReceiptError::RightsDenied)?;
 
     let expected = metadata
@@ -837,6 +883,17 @@ pub fn verify_artifact_bytes(
         return Err(ReceiptError::EmptyPipelineVersion);
     }
 
+    let actual_length = u64::try_from(bytes.len())
+        .map_err(|error| ReceiptError::Serialization(error.to_string()))?;
+    if let Some(expected_length) = metadata.asset.byte_length {
+        if expected_length != actual_length {
+            return Err(ReceiptError::ByteLengthMismatch {
+                expected: expected_length,
+                actual: actual_length,
+            });
+        }
+    }
+
     let actual = sha256_hex(bytes);
     if !actual.eq_ignore_ascii_case(expected) {
         return Err(ReceiptError::DigestMismatch {
@@ -848,13 +905,12 @@ pub fn verify_artifact_bytes(
     let metadata_sha256 = metadata
         .metadata_sha256()
         .map_err(|error| ReceiptError::Serialization(error.to_string()))?;
-    let byte_length =
-        u64::try_from(bytes.len()).map_err(|error| ReceiptError::Serialization(error.to_string()))?;
+    let byte_length = actual_length;
 
     let payload = ReceiptPayload {
         schema_version: INGESTION_RECEIPT_SCHEMA_VERSION,
         source_id: &metadata.source_id,
-        asset_ref: &metadata.asset_ref,
+        asset_ref: &metadata.asset.asset_ref,
         retrieved_at,
         byte_length,
         content_sha256: &actual,
@@ -869,7 +925,7 @@ pub fn verify_artifact_bytes(
     Ok(IngestionReceipt {
         schema_version: INGESTION_RECEIPT_SCHEMA_VERSION.to_owned(),
         source_id: metadata.source_id.clone(),
-        asset_ref: metadata.asset_ref.clone(),
+        asset_ref: metadata.asset.asset_ref.clone(),
         retrieved_at: retrieved_at.to_owned(),
         byte_length,
         content_sha256: actual,
@@ -988,34 +1044,68 @@ mod tests {
         SourceAssetMetadata {
             schema_version: SOURCE_ASSET_SCHEMA_VERSION.to_owned(),
             source_id: "source-synthetic-01".to_owned(),
-            provider_id: "provider-synthetic".to_owned(),
-            asset_ref: "urn:synthetic:asset:lidar:01".to_owned(),
-            media_type: "application/octet-stream".to_owned(),
+            provider: ProviderIdentity {
+                provider_id: "provider-synthetic".to_owned(),
+                name: "Synthetic Test Provider".to_owned(),
+                homepage: Some("https://example.invalid".to_owned()),
+                contact_ref: None,
+            },
+            asset: AssetIdentity {
+                asset_ref: "urn:synthetic:asset:lidar:01".to_owned(),
+                stac_item_uri: Some("https://example.invalid/stac/items/synthetic-01".to_owned()),
+                stac_asset_key: Some("lidar".to_owned()),
+                media_type: "application/octet-stream".to_owned(),
+                upstream_asset_id: Some("synthetic-upstream-01".to_owned()),
+                content_sha256: Some(sha256_hex(b"synthetic point cloud bytes")),
+                byte_length: Some(b"synthetic point cloud bytes".len() as u64),
+            },
             modality: HeritageModality::AirborneLidar,
             acquisition: AcquisitionInterval {
                 start_at: "2026-10-01T00:00:00Z".to_owned(),
                 end_at: "2026-10-01T00:10:00Z".to_owned(),
+                platform: Some("synthetic-platform".to_owned()),
+                sensor: Some("synthetic-lidar".to_owned()),
+                product_level: Some("synthetic-ground-model".to_owned()),
+                bands_or_polarisations: Vec::new(),
+                orbit_direction: OrbitDirection::NotApplicable,
+                acquisition_notes: None,
             },
             spatial: SpatialMetadata {
+                bbox: Some(vec![0.1, 0.1, 0.2, 0.2]),
                 crs_uri: "https://www.opengis.net/def/crs/OGC/1.3/CRS84".to_owned(),
-                bbox: Some([0.1, 0.1, 0.2, 0.2]),
+                vertical_datum: Some("synthetic-vertical-datum".to_owned()),
                 native_resolution_m: Some(0.1),
                 point_density_points_per_m2: Some(12.0),
                 positional_accuracy_m: Some(0.1),
-                vertical_datum: Some("synthetic-vertical-datum".to_owned()),
+                geometry_access_tier: AccessTier::ApprovedResearch,
+                coverage_notes: Some("Synthetic fixture only".to_owned()),
             },
-            content_sha256: Some(sha256_hex(b"synthetic point cloud bytes")),
+            quality: Some(QualityMetadata {
+                cloud_fraction: Some(0.0),
+                nodata_fraction: Some(0.0),
+                registration_error_m: Some(0.05),
+                known_issues: Vec::new(),
+            }),
             rights: RightsProfile {
                 state: RightsState::Verified,
                 permitted_uses,
                 access_tier: AccessTier::ApprovedResearch,
                 exact_geometry_policy: ExactGeometryPolicy::ApprovedResearchOnly,
+                licence_uri: Some("https://example.invalid/licence/synthetic".to_owned()),
+                attribution_text: Some("Synthetic fixture only".to_owned()),
+                consent_or_authority_ref: Some("urn:synthetic:authority:01".to_owned()),
+                jurisdiction: Some("synthetic".to_owned()),
+                review_due_at: Some("2027-11-02T10:00:00Z".to_owned()),
+                restrictions: Vec::new(),
             },
             provenance: IngestionProvenance {
                 upstream_dataset_version: Some("synthetic-v1".to_owned()),
                 ingested_at: "2026-11-02T10:00:00Z".to_owned(),
                 ingestion_pipeline_id: "heritage-fixture-ingestor".to_owned(),
                 ingestion_pipeline_version: "0.1.0".to_owned(),
+                ingestion_manifest_ref: Some("urn:synthetic:manifest:01".to_owned()),
+                retrieval_receipt_ref: None,
+                content_sha256: None,
             },
         }
     }
@@ -1050,10 +1140,10 @@ mod tests {
     #[test]
     fn antimeridian_crossing_bbox_is_valid_but_bad_latitude_is_not() {
         let mut metadata = fixture_metadata();
-        metadata.spatial.bbox = Some([170.0, -10.0, -170.0, 10.0]);
+        metadata.spatial.bbox = Some(vec![170.0, -10.0, -170.0, 10.0]);
         assert_eq!(metadata.validate(), Ok(()));
 
-        metadata.spatial.bbox = Some([170.0, -91.0, -170.0, 10.0]);
+        metadata.spatial.bbox = Some(vec![170.0, -91.0, -170.0, 10.0]);
         assert!(metadata
             .validate()
             .unwrap_err()
@@ -1076,7 +1166,7 @@ mod tests {
     #[test]
     fn malformed_content_digest_is_rejected() {
         let mut metadata = fixture_metadata();
-        metadata.content_sha256 = Some("not-a-digest".to_owned());
+        metadata.asset.content_sha256 = Some("not-a-digest".to_owned());
         assert!(metadata
             .validate()
             .unwrap_err()
@@ -1260,7 +1350,7 @@ mod tests {
     #[test]
     fn receipt_requires_expected_digest_and_valid_retrieval_time() {
         let mut metadata = fixture_metadata();
-        metadata.content_sha256 = None;
+        metadata.asset.content_sha256 = None;
         assert_eq!(
             verify_artifact_bytes(
                 &metadata,
@@ -1275,7 +1365,7 @@ mod tests {
             Err(ReceiptError::MissingExpectedDigest)
         );
 
-        metadata.content_sha256 = Some(sha256_hex(b"bytes"));
+        metadata.asset.content_sha256 = Some(sha256_hex(b"bytes"));
         assert_eq!(
             verify_artifact_bytes(
                 &metadata,
@@ -1305,7 +1395,7 @@ mod tests {
             Ok(RegistrationOutcome::AlreadyPresent { version: 1 })
         );
 
-        metadata.content_sha256 = Some(sha256_hex(b"changed source bytes"));
+        metadata.asset.content_sha256 = Some(sha256_hex(b"changed source bytes"));
         metadata.provenance.upstream_dataset_version = Some("synthetic-v2".to_owned());
         assert_eq!(
             registry.register(&metadata),
@@ -1315,7 +1405,7 @@ mod tests {
             })
         );
 
-        let versions = registry.versions(&metadata.source_id, &metadata.asset_ref);
+        let versions = registry.versions(&metadata.source_id, &metadata.asset.asset_ref);
         assert_eq!(versions.len(), 2);
         assert_ne!(versions[0].content_sha256, versions[1].content_sha256);
         assert_eq!(versions[0].version, 1);
