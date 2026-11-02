@@ -158,9 +158,8 @@ pub struct SolverTraceV03 {
     pub horizon_minutes: u16,
     pub interval_count: u32,
     pub search_disposition: SearchDispositionV03,
-    /// Entire solver invocation elapsed time. Audit time is included only when
-    /// the runner actually executes the auditor within this invocation.
-    /// End-to-end search-through-service-floor time measured by the runner.
+    /// End-to-end elapsed time from profile-run start through all attempted
+    /// independent audit/service-floor work.
     pub elapsed_ns: u64,
     /// Time spent inside the bounded dispatch search call only.
     pub solver_elapsed_ns: u64,
@@ -959,6 +958,18 @@ mod tests {
         let mut trace = base(SearchDispositionV03::LimitWithoutCandidate);
         trace.feasible_complete_schedules = Some(1);
         assert_eq!(trace.validate(), Err(TraceV03Error::InvalidSearchSemantics));
+    }
+
+    #[test]
+    fn solver_time_and_first_candidate_must_fit_inside_end_to_end_and_solver_windows() {
+        let mut trace = base(SearchDispositionV03::FeasibleUnproven);
+        trace.solver_elapsed_ns = 101;
+        assert_eq!(trace.validate(), Err(TraceV03Error::InvalidNumber));
+
+        let mut trace = base(SearchDispositionV03::FeasibleUnproven);
+        trace.solver_elapsed_ns = 20;
+        trace.time_to_first_candidate_ns = Some(21);
+        assert_eq!(trace.validate(), Err(TraceV03Error::InvalidTiming));
     }
 
     #[test]
