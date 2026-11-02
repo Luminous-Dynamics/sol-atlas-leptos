@@ -212,7 +212,7 @@ impl SolverTrace {
         let exhaustive_search_evidence = self.search_action_expansions.is_some()
             && self
                 .feasible_complete_schedules
-                .is_some_and(|count| count > 0);
+                .is_some_and(|count| count > 0)
             && self.pareto_frontier_count.is_some_and(|count| count > 0);
         if self.status == SolveStatus::Optimal
             && (self.time_to_optimal_ns.is_none()
@@ -948,8 +948,7 @@ mod tests {
     }
 
     #[test]
-    fn expansion_cap_is_a_distinct_limit_reached_outcome_not_a_timeout_or_infeasible_result()
-    {
+    fn expansion_cap_is_a_distinct_limit_reached_outcome_not_a_timeout_or_infeasible_result() {
         let mut row = trace(0, SolveStatus::LimitReached);
         row.time_to_first_feasible_ns = None;
         row.time_to_optimal_ns = None;
