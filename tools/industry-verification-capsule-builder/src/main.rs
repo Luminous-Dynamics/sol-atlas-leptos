@@ -450,6 +450,13 @@ fn validate_mode(mode: &str, replayability: &str, targets: &[TargetTemplate]) ->
     Ok(())
 }
 
+fn metadata_artifacts_versions(items: &[MetadataTemplate]) -> Vec<u64> {
+    items.iter()
+        .filter(|item| item.role_name == "root")
+        .map(|item| item.version)
+        .collect()
+}
+
 fn validate_pin_and_template(
     template: &BuildTemplate,
     pin: &TrustPin,
@@ -549,6 +556,15 @@ fn validate_pin_and_template(
             return Err(format!("template lacks required metadata role {required}"));
         }
     }
+    let mut root_versions: Vec<u64> = metadata_artifacts_versions(&template.metadata_artifacts);
+    root_versions.sort_unstable();
+    let mut next_root = template.bootstrap_root.version.saturating_add(1);
+    for version in root_versions {
+        if version != next_root {
+            return Err("root-history versions must form a contiguous N+1 chain".to_string());
+        }
+        next_root = next_root.saturating_add(1);
+    }
     Ok(())
 }
 
@@ -646,7 +662,7 @@ fn build_manifest(
 
     let mut targets = Vec::with_capacity(4);
     for target in &template.targets {
-        let (capsule_file_path, reference, bytes_embedded) = match target.content_mode.as_str() {
+        let (capsule_file_path, reference) = match target.content_mode.as_str() {
             "embedded" => {
                 let staged = target.staged_path.as_ref().ok_or_else(|| "embedded target missing staging path".to_string())?;
                 let bytes = read_staged_file(staging_root, staged)?;
@@ -655,7 +671,7 @@ fn build_manifest(
                 }
                 let capsule_path = format!("targets/{}", target.repository_path);
                 add_payload(payload, &capsule_path, bytes.clone(), "target_bytes")?;
-                (Some(capsule_path), None, true)
+                (Some(capsule_path), None)
             }
             "referenced" => {
                 let digest = &target.sha256;
@@ -670,10 +686,9 @@ fn build_manifest(
                         scheme: "cas".to_string(),
                         locator: format!("cas://sha256/{digest}"),
                     }),
-                    false,
                 )
             }
-            "withheld" => (None, None, false),
+            "withheld" => (None, None),
             _ => return Err(format!("unsupported target content mode: {}", target.content_mode)),
         };
         targets.push(TargetEntry {
@@ -685,7 +700,6 @@ fn build_manifest(
             capsule_file_path,
             reference,
         });
-        let _ = bytes_embedded;
     }
     targets.sort_by(|left, right| left.id.cmp(&right.id));
 
