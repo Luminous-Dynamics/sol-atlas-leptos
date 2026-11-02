@@ -6,6 +6,7 @@ on:
       - "tools/industry-tuf-inprocess-verifier/Cargo.toml"
       - "tools/industry-tuf-inprocess-verifier/Cargo.lock"
       - "tools/industry-tuf-inprocess-verifier/src/**"
+      - "tools/industry-tuf-inprocess-verifier/THIRD_PARTY_NOTICES.md"
       - ".github/workflows/industry-tuf-official-conformance.yml"
   push:
     branches: [main]
