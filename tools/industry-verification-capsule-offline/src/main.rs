@@ -1005,6 +1005,113 @@ mod tests {
         }
     }
 
+    fn reference_repository(root: PathBuf, target_source: TargetSource) -> CapsuleRepository {
+        let metadata_paths = [
+            ("timestamp.json", "metadata/timestamp.json"),
+            ("snapshot.json", "metadata/snapshot.json"),
+            ("targets.json", "metadata/targets.json"),
+            ("role1.json", "metadata/role1.json"),
+            ("role2.json", "metadata/role2.json"),
+        ]
+        .into_iter()
+        .map(|(name, path)| (name.to_string(), path.to_string()))
+        .collect();
+        let target_sources = [("file3.txt".to_string(), target_source)].into_iter().collect();
+        CapsuleRepository {
+            capsule_root: root,
+            cas_root: None,
+            metadata_paths,
+            target_sources,
+        }
+    }
+
+    fn copy_reference_repository(destination: &Path, corrupt_target: bool) -> PathBuf {
+        let source = fixture_root().join("tuf-reference-impl");
+        for directory in ["metadata", "targets"] {
+            fs::create_dir_all(destination.join(directory)).unwrap();
+        }
+        for name in [
+            "1.root.json",
+            "timestamp.json",
+            "snapshot.json",
+            "targets.json",
+            "role1.json",
+            "role2.json",
+        ] {
+            fs::copy(source.join("metadata").join(name), destination.join("metadata").join(name))
+                .unwrap();
+        }
+        for name in ["file1.txt", "file2.txt", "file3.txt"] {
+            fs::copy(source.join("targets").join(name), destination.join("targets").join(name))
+                .unwrap();
+        }
+        if corrupt_target {
+            fs::write(destination.join("targets/file3.txt"), b"tampered target bytes").unwrap();
+        }
+        destination.to_path_buf()
+    }
+
+    fn fixture_eval_time() -> jiff::Timestamp {
+        "2026-06-01T00:00:00Z".parse().expect("fixed fixture evaluation time")
+    }
+
+    #[tokio::test]
+    async fn offline_capsule_transport_verifies_reference_metadata_and_delegated_target() {
+        let temp = tempfile::tempdir().unwrap();
+        let root_dir = copy_reference_repository(temp.path(), false);
+        let root_bytes = fs::read(root_dir.join("metadata/1.root.json")).unwrap();
+        let repo = reference_repository(
+            root_dir,
+            TargetSource::Embedded { capsule_path: "targets/file3.txt".to_string() },
+        );
+        let mut updater = Updater::new(repo, &root_bytes)
+            .expect("pinned Python-TUF root self-verifies")
+            .with_store(MemoryStore::new());
+        updater.refresh(fixture_eval_time()).await.expect("offline TUF metadata refresh");
+
+        assert!(updater.trusted().targets_role("targets").unwrap().target("file3.txt").is_none());
+        let info = updater.get_target_info("file3.txt", fixture_eval_time()).await
+            .unwrap().expect("signed delegation authorizes file3");
+        let bytes = updater.download_target(&info, "file3.txt").await.unwrap();
+        assert_eq!(bytes, b"This is role1's target file.");
+    }
+
+    #[tokio::test]
+    async fn offline_capsule_transport_rejects_target_byte_substitution() {
+        let temp = tempfile::tempdir().unwrap();
+        let root_dir = copy_reference_repository(temp.path(), true);
+        let root_bytes = fs::read(root_dir.join("metadata/1.root.json")).unwrap();
+        let repo = reference_repository(
+            root_dir,
+            TargetSource::Embedded { capsule_path: "targets/file3.txt".to_string() },
+        );
+        let mut updater = Updater::new(repo, &root_bytes)
+            .expect("pinned Python-TUF root self-verifies")
+            .with_store(MemoryStore::new());
+        updater.refresh(fixture_eval_time()).await.expect("offline TUF metadata refresh");
+        let info = updater.get_target_info("file3.txt", fixture_eval_time()).await
+            .unwrap().expect("signed delegation authorizes file3");
+        assert!(
+            updater.download_target(&info, "file3.txt").await.is_err(),
+            "tampered bytes must not replay against signed length/hash metadata"
+        );
+    }
+
+    #[tokio::test]
+    async fn withheld_target_is_not_replayable_but_metadata_can_still_be_verified() {
+        let temp = tempfile::tempdir().unwrap();
+        let root_dir = copy_reference_repository(temp.path(), false);
+        let root_bytes = fs::read(root_dir.join("metadata/1.root.json")).unwrap();
+        let repo = reference_repository(root_dir, TargetSource::Withheld);
+        let mut updater = Updater::new(repo, &root_bytes)
+            .expect("pinned Python-TUF root self-verifies")
+            .with_store(MemoryStore::new());
+        updater.refresh(fixture_eval_time()).await.expect("offline TUF metadata refresh");
+        let info = updater.get_target_info("file3.txt", fixture_eval_time()).await
+            .unwrap().expect("metadata authorization exists even when bytes are withheld");
+        assert!(updater.find_cached_target(&info, "file3.txt").is_none());
+    }
+
     #[test]
     fn unsafe_relative_paths_are_rejected() {
         for value in [
