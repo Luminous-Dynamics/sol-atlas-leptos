@@ -35,56 +35,46 @@
   },
   "metadata_artifacts": [
     {
-      "role_name": "root",
-      "version": 1,
-      "repository_path": "root/1.root.json",
-      "length": 3396,
-      "sha256": "7777777777777777777777777777777777777777777777777777777777777777",
-      "expires_at": "2030-01-01T00:00:00Z",
-      "authorized_by": "out_of_band_root"
-    },
-    {
       "role_name": "timestamp",
       "version": 1,
-      "repository_path": "metadata/timestamp.json",
+      "repository_path": "timestamp.json",
       "length": 557,
       "sha256": "8888888888888888888888888888888888888888888888888888888888888888",
       "expires_at": "2030-01-01T00:00:00Z",
-      "authorized_by": "root.timestamp"
+      "capsule_file_path": "metadata/timestamp.json"
     },
     {
       "role_name": "snapshot",
       "version": 1,
-      "repository_path": "metadata/snapshot.json",
+      "repository_path": "snapshot.json",
       "length": 556,
       "sha256": "9999999999999999999999999999999999999999999999999999999999999999",
       "expires_at": "2030-01-01T00:00:00Z",
-      "authorized_by": "root.snapshot"
+      "capsule_file_path": "metadata/snapshot.json"
     },
     {
       "role_name": "targets",
       "version": 1,
-      "repository_path": "metadata/targets.json",
+      "repository_path": "targets.json",
       "length": 1624,
       "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "expires_at": "2030-01-01T00:00:00Z",
-      "authorized_by": "root.targets"
+      "capsule_file_path": "metadata/targets.json"
     },
     {
       "role_name": "role1",
       "version": 1,
-      "repository_path": "metadata/role1.json",
+      "repository_path": "role1.json",
       "length": 1252,
       "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
       "expires_at": "2030-01-01T00:00:00Z",
-      "authorized_by": "targets.role1"
+      "capsule_file_path": "metadata/role1.json"
     }
   ],
   "targets": [
     {
       "id": "channel_manifest",
       "repository_path": "channels/plant-17/manifest.json",
-      "authorized_role": "ieac-channel-manifests",
       "length": 4096,
       "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "content_mode": "embedded",
@@ -93,7 +83,6 @@
     {
       "id": "checkpoint_state",
       "repository_path": "channels/plant-17/checkpoint.json",
-      "authorized_role": "ieac-channel-checkpoints",
       "length": 1024,
       "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "content_mode": "embedded",
@@ -102,7 +91,6 @@
     {
       "id": "completeness_attestation",
       "repository_path": "channels/plant-17/completeness-attestation.json",
-      "authorized_role": "ieac-channel-completeness-attestations",
       "length": 8192,
       "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
       "content_mode": "embedded",
@@ -111,7 +99,6 @@
     {
       "id": "availability_audit_report",
       "repository_path": "channels/plant-17/completeness-report.json",
-      "authorized_role": "ieac-channel-completeness-reports",
       "length": 2048,
       "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
       "content_mode": "embedded",
