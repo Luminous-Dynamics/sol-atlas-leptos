@@ -285,6 +285,8 @@ pub enum MetadataValidationError {
     InvalidPositionalAccuracy,
     MissingVerticalDatum,
     EmptyVerticalDatum,
+    MissingNativeResolution,
+    MissingPointDensity,
     InvalidContentDigest,
     InvalidIngestionTimestamp,
     EmptyIngestionPipelineId,
@@ -348,6 +350,13 @@ impl SourceAssetMetadata {
             if !valid {
                 errors.push(MetadataValidationError::InvalidBoundingBox);
             }
+        }
+
+        if requires_native_resolution(self.modality) && self.spatial.native_resolution_m.is_none() {
+            errors.push(MetadataValidationError::MissingNativeResolution);
+        }
+        if requires_point_density(self.modality) && self.spatial.point_density_points_per_m2.is_none() {
+            errors.push(MetadataValidationError::MissingPointDensity);
         }
 
         if let Some(resolution) = self.spatial.native_resolution_m {
@@ -416,6 +425,23 @@ impl SourceAssetMetadata {
         let bytes = serde_json::to_vec(self)?;
         Ok(sha256_hex(&bytes))
     }
+}
+
+fn requires_native_resolution(modality: HeritageModality) -> bool {
+    matches!(
+        modality,
+        HeritageModality::Sar
+            | HeritageModality::OpticalMultispectral
+            | HeritageModality::Hyperspectral
+            | HeritageModality::Thermal
+            | HeritageModality::Dem
+            | HeritageModality::HistoricalAerial
+            | HeritageModality::Photogrammetry
+    )
+}
+
+fn requires_point_density(modality: HeritageModality) -> bool {
+    matches!(modality, HeritageModality::AirborneLidar | HeritageModality::DroneLidar)
 }
 
 fn requires_vertical_datum(modality: HeritageModality) -> bool {
@@ -511,7 +537,7 @@ fn parse_rfc3339_nanos(value: &str) -> Option<i128> {
 
     // Howard Hinnant's civil-date conversion. The result is timezone-neutral;
     // the RFC 3339 offset is subtracted to obtain UTC.
-    let adjusted_year = year - i64::from(month <= 2);
+    let adjusted_year = year - if month <= 2 { 1 } else { 0 };
     let era = adjusted_year.div_euclid(400);
     let year_of_era = adjusted_year - era * 400;
     let month_prime = month + if month > 2 { -3 } else { 9 };
@@ -688,6 +714,7 @@ pub enum ReceiptError {
     EmptyPipelineId,
     EmptyPipelineVersion,
     Serialization(String),
+    RightsDenied(RightsDenial),
 }
 
 impl fmt::Display for ReceiptError {
@@ -707,8 +734,15 @@ pub fn verify_artifact_bytes(
     retrieved_at: &str,
     pipeline_id: &str,
     pipeline_version: &str,
+    purpose: HeritageUse,
+    access: AccessContext,
+    exact_geometry: bool,
 ) -> Result<IngestionReceipt, ReceiptError> {
     metadata.validate().map_err(ReceiptError::InvalidMetadata)?;
+    metadata
+        .rights
+        .authorize(purpose, access, exact_geometry)
+        .map_err(ReceiptError::RightsDenied)?;
 
     let expected = metadata
         .content_sha256
@@ -1081,6 +1115,9 @@ mod tests {
             "2026-11-02T10:00:00Z",
             "heritage-ingestor",
             "0.1.0",
+            HeritageUse::Research,
+            AccessContext { max_tier: AccessTier::ApprovedResearch, exact_geometry_authorized: true },
+            true,
         )
         .unwrap();
         let second = verify_artifact_bytes(
@@ -1089,6 +1126,9 @@ mod tests {
             "2026-11-02T10:00:00Z",
             "heritage-ingestor",
             "0.1.0",
+            HeritageUse::Research,
+            AccessContext { max_tier: AccessTier::ApprovedResearch, exact_geometry_authorized: true },
+            true,
         )
         .unwrap();
         assert_eq!(first, second);
@@ -1121,7 +1161,10 @@ mod tests {
                 b"bytes",
                 "2026-11-02T10:00:00Z",
                 "heritage-ingestor",
-                "0.1.0"
+                "0.1.0",
+                HeritageUse::Research,
+                AccessContext { max_tier: AccessTier::ApprovedResearch, exact_geometry_authorized: true },
+                true
             ),
             Err(ReceiptError::MissingExpectedDigest)
         );
@@ -1133,7 +1176,10 @@ mod tests {
                 b"bytes",
                 "not-a-timestamp",
                 "heritage-ingestor",
-                "0.1.0"
+                "0.1.0",
+                HeritageUse::Research,
+                AccessContext { max_tier: AccessTier::ApprovedResearch, exact_geometry_authorized: true },
+                true
             ),
             Err(ReceiptError::InvalidRetrievalTimestamp)
         );
