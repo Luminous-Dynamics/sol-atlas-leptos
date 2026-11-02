@@ -53,8 +53,10 @@ jobs:
         run: |
           set -euo pipefail
           meta=https://json-schema.org/draft/2020-12/schema
-          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industrial-twin-evidence-envelope-v0.1.schema.json
-          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industrial-twin-observation-capability-v0.1.schema.json
+          meta_schema="$RUNNER_TEMP/draft-2020-12-meta-schema.json"
+          curl --fail --location --retry 5 --retry-connrefused "$meta" -o "$meta_schema"
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i schemas/industrial-twin-evidence-envelope-v0.1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i schemas/industrial-twin-observation-capability-v0.1.schema.json
 
       - name: Validate bounded synthetic examples
         run: |
