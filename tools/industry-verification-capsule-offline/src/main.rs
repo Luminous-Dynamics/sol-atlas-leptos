@@ -802,6 +802,12 @@ async fn audit_capsule(
     if manifest.file_inventory.len() > pin.max_file_count {
         return Err("capsule file inventory exceeds operator file-count limit".to_string());
     }
+    let payload_bytes = manifest.file_inventory.iter().try_fold(0u64, |total, entry| {
+        total.checked_add(entry.length).ok_or_else(|| "capsule inventory length overflow".to_string())
+    })?;
+    if payload_bytes > pin.max_capsule_bytes.saturating_sub(manifest_bytes.len() as u64) {
+        return Err("capsule manifest plus payload exceeds operator byte limit".to_string());
+    }
     let files = validate_file_inventory(capsule_root, &manifest, &pin)?;
     let root_bytes = validate_manifest_files(capsule_root, &manifest, &pin, &files)?;
     let eval_upper = conservative_eval_time(&manifest.replay_context)?;
