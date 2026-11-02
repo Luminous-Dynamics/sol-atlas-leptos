@@ -218,13 +218,14 @@ struct FamilyCounts {
 fn verify_case(
     record: &Value,
     case_index: usize,
-    header_vertical: &str,
-    expected_trial_count: usize,
-    family_counts: &mut BTreeMap<String, usize>,
-    family_metrics: &mut BTreeMap<String, FamilyCounts>,
-    case_ids: &mut BTreeSet<String>,
-    counts: &mut Counts,
+    context: &mut VerificationContext<'_>,
 ) -> Result<(), String> {
+    let header_vertical = context.header_vertical;
+    let expected_trial_count = context.expected_trial_count;
+    let family_counts = &mut *context.family_counts;
+    let family_metrics = &mut *context.family_metrics;
+    let case_ids = &mut *context.case_ids;
+    let counts = &mut *context.counts;
     if record["schema_version"].as_str() != Some(CASE_LEDGER_SCHEMA) {
         return Err(format!("case {case_index} has an unsupported schema version"));
     }
@@ -435,6 +436,15 @@ struct Counts {
     latencies_ms: Vec<f64>,
 }
 
+struct VerificationContext<'a> {
+    header_vertical: &'a str,
+    expected_trial_count: usize,
+    family_counts: &'a mut BTreeMap<String, usize>,
+    family_metrics: &'a mut BTreeMap<String, FamilyCounts>,
+    case_ids: &'a mut BTreeSet<String>,
+    counts: &'a mut Counts,
+}
+
 fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
     let file = File::open(cases_path)
         .map_err(|error| format!("cannot open {}: {error}", cases_path.display()))?;
@@ -482,16 +492,15 @@ fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
                 if case_index >= expected_record_count {
                     return Err("case ledger contains more cases than preregistered".to_owned());
                 }
-                verify_case(
-                    &record,
-                    case_index,
-                    vertical,
-                    trials_per_family,
-                    &mut family_counts,
-                    &mut family_metrics,
-                    &mut case_ids,
-                    &mut counts,
-                )?;
+                let mut context = VerificationContext {
+                    header_vertical: vertical,
+                    expected_trial_count: trials_per_family,
+                    family_counts: &mut family_counts,
+                    family_metrics: &mut family_metrics,
+                    case_ids: &mut case_ids,
+                    counts: &mut counts,
+                };
+                verify_case(&record, case_index, &mut context)?;
                 prefix_hasher.update(&line);
                 cases_hasher.update(&line);
                 case_index += 1;
