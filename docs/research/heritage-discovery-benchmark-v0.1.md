@@ -263,3 +263,120 @@ The first pilot may show that one or more targets are unrealistic for a particul
 9. Publish positive and negative results with provenance, limitations, code and permitted data references.
 
 The benchmark's primary claim is not that it finds more shapes. It is that, with the same available evidence and human review resources, it helps qualified researchers make better, safer and more cost-effective decisions about where to look next.
+
+
+## 11. Baseline update — literature and project scan, 2026-11-02
+
+The initial baseline list is incomplete without three recent archaeological-prospection efforts. Include these before claiming the benchmark represents the field.
+
+### ADAF: airborne laser scanning detection (Ireland)
+
+Čož et al. (2026), *Automatic detection of archaeological features from airborne laser scanning data using deep learning: Development and evaluation of the ADAF tool*, Journal of Archaeological Science: Reports 71, 105733, DOI 10.1016/j.jasrep.2026.105733.
+
+- The published tool uses CNN-based detection from ALS derivatives, with Relief Visualization Toolbox (RVT) and AiTLAS.
+- Training labels cover Irish barrows, ringforts and enclosures from an extensive archive of ALS data.
+- In an active infrastructure development corridor test, the paper reports 84% recall for known archaeological sites and 116 potential new sites not noticed during manual inspection.
+- The 116 outputs are potential candidates, not 116 independently proven discoveries.
+- A March 2026 conference presentation reports preliminary transfer of an Irish-trained model to southern Herzegovina: about half of known barrows identified with few false positives, with dense clusters and rugged relief reducing accuracy.
+- Public software is in the EarthObservation/adaf repository under Apache-2.0. The user-facing installation documentation is Windows 64-bit/Conda/Python-oriented and the README describes approximately 5 GB of pretrained weights. This makes it an important reproducibility/integration baseline, not a Rust architecture template.
+- The article and repository are useful baselines for ALS feature detection. Do not imply the entire training archive or every model weight is automatically licensed for all re-use merely because the tool code is Apache-2.0.
+
+References:
+- Article and reported results: https://doi.org/10.1016/j.jasrep.2026.105733
+- Zenodo article record: https://zenodo.org/records/20136757
+- Tool source: https://github.com/EarthObservation/adaf
+- Cross-region preliminary presentation: https://zenodo.org/records/20137748
+
+### ESA Φ-lab: geospatial foundation models for archaeological prospection
+
+The ESA Φ-lab/Cultural Heritage Technology project page documents an exploratory March–April 2026 evaluation of TerraMind and RemoteCLIP for settlement-mound (tell) mapping in Central Iraq.
+
+- Seven-band input: Sentinel-2 RGB+NIR, Sentinel-1 VV+VH and Copernicus DEM resampled to 10 m.
+- Expert annotations and comparisons with U-Net and Vision Transformer trained from scratch.
+- TerraMind and RemoteCLIP used as frozen encoders with a trainable UPerNet decoder.
+- Label-scarcity experiments range from 100% to 5% of training labels.
+- Preliminary mini-dataset results covering approximately 20% of the total study area indicate TerraMind advantages in low-label regimes and improved results from combined SAR, optical and elevation inputs.
+- The same project page lists full-area scaling, object/tile metrics, an Iran out-of-distribution test, and exploration of TESSERA/AlphaEarth embeddings as future work. These are not yet completed validations on that project page.
+
+This is a highly relevant multimodal-GFM baseline. Our HDB contribution should be a rigorous independent evaluation suite around it: frozen geographic holdouts, object-level and site-level utility, calibrated uncertainty, explicit unknowns, rights/provenance, and survey value—not the claim that applying a foundation model to archaeology is itself novel.
+
+Reference: https://cin.philab.esa.int/databases/projects/geospatial-foundation-models-for-archaeological-prospection-tasks
+
+### Drone imagery: stone instances and wall segments
+
+Uziel, Zohar and Jaffe (2026), *Semi-automatic detection of building stones and wall segments of archaeological ruins*, Journal of Archaeological Science 185, 106430, DOI 10.1016/j.jas.2025.106430.
+
+This is a task-specific baseline for high-resolution drone orthomosaics and stone/wall segmentation across nine sites with differing vegetation, ground colour and material composition. The article reports strong results for the studied cases and provides a reproducible code/data bundle at Zenodo DOI 10.5281/zenodo.15673668. Keep its feature definition, ground resolution, annotations, matching rules and split design aligned when comparing results. Do not compare its pixel-wall F1 to regional candidate ranking or ALS object-level recall as a single leaderboard score.
+
+Reference: https://doi.org/10.1016/j.jas.2025.106430
+
+### Kweneng: terrain derivatives and LightGBM
+
+Siteleki (2026), DOI 10.1111/arcm.70143, is a regionally important South African baseline. It uses high-resolution LiDAR/context data in Kweneng North and assesses AutoML for stone-wall identification; LightGBM and elevation are highlighted. The studied northern area is approximately 945 ha with 211 known stone-wall sites. The study itself motivates wider testing and stronger assessment of false positives. Treat this as a local task baseline, not independent proof of transfer to other southern African regions.
+
+Reference: https://doi.org/10.1111/arcm.70143
+
+### Sentinel-1 SAR: two viewing geometries
+
+Michenot et al. (2024), DOI 10.1038/s41598-024-53068-2, uses Sentinel-1 ascending/descending observations to exploit directional response and identify some structures under jungle canopy. The paper describes limitations: C-band is generally not ideal for forest penetration, rough canopy signatures can obscure structures, and small regular terrain features can cause false alarms. Treat this as a targeted regional-screening feature and a hard-negative generator, not a universal subsurface or canopy-penetration capability.
+
+Reference: https://doi.org/10.1038/s41598-024-53068-2
+
+## 12. Competitive positioning and what would constitute an actual advance
+
+| Existing capability | Strong point | Sol-Atlas should add | Evidence required before claiming an advantage |
+|---|---|---|---|
+| ADAF / RVT / AiTLAS | Operational ALS feature detector, specialist archaeological classes, accessible workflow and retraining | Sensor-flexible source registry, global rights/provenance, cross-domain evaluation, candidate evidence graph and active survey planning | Reproduce on the same ALS tasks, then demonstrate held-out-region utility and lower review/field cost |
+| Drone stone/wall segmentation | Fine-grained stone instances and wall geometry from high-resolution imagery | Fuse local geometry with regional context and non-drone imagery; assess transfer beyond sampled landscapes | Same-image/same-label comparison, plus independent held-out sites |
+| Kweneng LightGBM | Interpretable terrain-variable baseline on local stone-wall landscape | Stronger hard negatives, independent regions, confidence calibration, survey-budget measure | Same-region reproduction first; separate South African holdout second |
+| ESA Φ-lab TerraMind/RemoteCLIP exploration | Multimodal EO foundation representations under label scarcity | Complete geographic OOD tests, uncertainty/abstention, site-level statistics and active survey economics | Replicate the stated setup where possible, then compare on a blind region with identical splits |
+| Commercial high-resolution imagery/GIS | Potentially valuable imagery coverage, mature GIS and enterprise delivery | Open evidence contracts, reproducibility, source rights and interoperable outputs across providers | Compare on identical purchased/permitted assets; do not assume commercial coverage or pricing |
+| Heritage inventories / Arches-style systems | Domain records, human workflows, governance and conservation management | Connect survey evidence, multi-sensor candidates, model lineage, benchmark and 3D reconstruction | Demonstrate standards compatibility and partner-authorised exchange, not just a new map UI |
+
+There is no defensible single global “archaeological AI SOTA” score across these systems: they address different objects, sensors, resolutions, geographies, labels, and outcomes. HDB should publish task-specific scorecards and a workflow-level result at a fixed review budget.
+
+### The intended competitive wedge
+
+The differentiator is not merely “we use more sensors” or “we use a larger foundation model.” It is a reproducible chain:
+
+**licensed observation → quality-aware processing → explicit evidence → competing explanations → calibrated prioritisation → human adjudication → best next survey → independently recorded outcome.**
+
+A claim of superiority requires evidence for the complete chain, especially better candidate yield per expert-hour and per field-survey cost on independent geographies.
+
+## 13. Global data access realities
+
+The source inventory is not a globally complete archaeological training set.
+
+- **Open Heritage 3D** publishes high-resolution terrestrial/aerial LiDAR and photogrammetry data with contributor-selected Creative Commons terms. The organisation says a typical site download is around 25 GB, and commercial use varies by project. Site-level licensing, access and reuse must be checked before every ingest or training use.
+- **ARIADNE** provides a large searchable archaeology catalogue. Catalogue discoverability and metadata aggregation do not mean all underlying files are downloadable, harmonised, globally representative, or licensed for model training.
+- **EAMENA/MarEA** is an important model for tiered heritage data access. Its current policy explicitly follows “as open as possible, as closed as necessary”; the public mode omits coordinates and site-condition data, while research access is reviewed. This is a production precedent for protecting sensitive site data.
+- **Copernicus and Landsat** provide broad-coverage EO inputs, but their resolutions and observables determine the task: regional candidate screening is reasonable; identifying small walls from a coarse pixel is not.
+- **OpenTopography and national LiDAR portals** provide valuable high-resolution ALS where available, but coverage, terms, format, and access differ by country and collection.
+
+The coverage atlas must measure actual coverage and survey effort. Never render gaps as absence of archaeological material. A non-surveyed area remains unknown.
+
+References:
+- Open Heritage 3D FAQ and per-project licensing: https://openheritage3d.org/faq
+- Open Heritage 3D dataset catalogue: https://openheritage3d.org/data
+- ARIADNE portal: https://portal.ariadne-infrastructure.eu/
+- EAMENA access policy: https://eamena.org/open-access-policy
+- OpenTopography catalogue: https://portal.opentopography.org/datasets
+
+## 14. First benchmark recommendation
+
+Start with a **two-stage reproducibility challenge**, not a global model training campaign.
+
+**Stage A — reproduce existing specialist detectors**
+- Reproduce ADAF on the documented Irish ALS task using its permitted code, weights and data.
+- Reproduce the drone stone/wall model on its published Zenodo data bundle, after confirming the dataset's precise licence and required attribution.
+- Reproduce the Kweneng LightGBM baseline only when its exact source data, preprocessing and label access are authorised.
+- Reproduce the ESA multimodal tell experiment only if its annotation/data access and use conditions are confirmed.
+
+**Stage B — held-out transfer**
+- Test the Irish ALS detector on a separately governed geomorphologically contrasting ALS dataset, using the publicly reported southern Herzegovina transfer as an external comparison lead.
+- Test the drone stone/wall detector on a site that contributed no training tiles, with resolution and annotation protocol matched.
+- Test multimodal tell mapping on a distinct, held-out landscape (the ESA page names Iran as planned OOD work; do not represent that test as already complete).
+- Test the South African Kweneng model on a different southern African landscape, not adjacent Kweneng tiles.
+- For every transfer, report the false-candidate burden, abstention, calibration and per-site results.
+
+The initial release can reproduce public benchmarks without claiming global coverage. The global benchmark only becomes credible after independently governed site packs from multiple geographic/cultural regions and environmental settings are available.
