@@ -396,6 +396,21 @@ fn add_unique_staging_path(used: &mut BTreeSet<String>, path: String) -> Result<
     Ok(())
 }
 
+fn staging_source_paths(template: &BuildTemplate) -> Result<BTreeSet<String>, String> {
+    let mut used = BTreeSet::new();
+    add_unique_staging_path(&mut used, template.bootstrap_root.staged_path.clone())?;
+    add_unique_staging_path(&mut used, template.policy_file.staged_path.clone())?;
+    for item in &template.metadata_artifacts {
+        add_unique_staging_path(&mut used, item.staged_path.clone())?;
+    }
+    for target in &template.targets {
+        if let Some(path) = &target.staged_path {
+            add_unique_staging_path(&mut used, path.clone())?;
+        }
+    }
+    Ok(used)
+}
+
 fn check_exact_staging_set(
     staging_root: &Path,
     used: &BTreeSet<String>,
@@ -870,23 +885,10 @@ fn pack(
     let (pin, pin_bytes) = read_trust_pin(trust_pin_path)?;
     let (template, template_bytes) = read_template(template_path)?;
     validate_pin_and_template(&template, &pin)?;
+    let used_staging = staging_source_paths(&template)?;
 
     let mut payload = BTreeMap::new();
     let manifest = build_manifest(template, &pin, &mut payload, &staging_canonical, cas_root)?;
-    // The set below is built from actual staged source paths, not capsule output
-    // paths. Re-read the template only for this path accounting before any write.
-    let (template_again, _) = read_template(template_path)?;
-    let mut used_staging = BTreeSet::new();
-    add_unique_staging_path(&mut used_staging, template_again.bootstrap_root.staged_path)?;
-    add_unique_staging_path(&mut used_staging, template_again.policy_file.staged_path)?;
-    for item in template_again.metadata_artifacts {
-        add_unique_staging_path(&mut used_staging, item.staged_path)?;
-    }
-    for target in template_again.targets {
-        if let Some(path) = target.staged_path {
-            add_unique_staging_path(&mut used_staging, path)?;
-        }
-    }
     check_exact_staging_set(&staging_canonical, &used_staging)?;
 
     let manifest_bytes = serde_json::to_vec_pretty(&manifest)
