@@ -498,8 +498,8 @@ pub fn evaluate_nonanticipativity_bytes(
         let first = &parsed[members[0]];
         let first_information_set = &first.information_sets_by_interval[interval_index];
         let forecast_consistent = members.iter().skip(1).all(|member| {
-            parsed[*member].information_sets_by_interval[interval_index]
-                == *first_information_set
+            &parsed[*member].information_sets_by_interval[interval_index]
+                == first_information_set
         });
         let mut scenario_ids: Vec<_> = members
             .iter()
