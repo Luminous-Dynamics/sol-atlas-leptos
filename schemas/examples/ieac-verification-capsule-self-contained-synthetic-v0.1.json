@@ -144,6 +144,12 @@
       "kind": "timestamp"
     },
     {
+      "path": "policy/ieac-policy.json",
+      "length": 1024,
+      "sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+      "kind": "policy"
+    },
+    {
       "path": "root/1.root.json",
       "length": 3396,
       "sha256": "7777777777777777777777777777777777777777777777777777777777777777",
@@ -176,5 +182,6 @@
   ],
   "file_inventory_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "claim_ceiling": "replayable_integrity_of_included_signed_metadata_and_target_bytes_only",
-  "action_authority": "none"
+  "action_authority": "none",
+  "policy_file_path": "policy/ieac-policy.json"
 }
