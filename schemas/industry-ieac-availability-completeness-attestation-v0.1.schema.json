@@ -261,6 +261,17 @@
         "boundary_to_end_receipt_sha256": {
           "type": "string",
           "pattern": "^[0-9a-f]{64}$"
+        },
+        "trust_bundle_sha256": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "allOf": [
@@ -288,6 +299,10 @@
                 "pattern": "^[0-9a-f]{64}$"
               },
               "verification_policy_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "trust_bundle_sha256": {
                 "type": "string",
                 "pattern": "^[0-9a-f]{64}$"
               }
