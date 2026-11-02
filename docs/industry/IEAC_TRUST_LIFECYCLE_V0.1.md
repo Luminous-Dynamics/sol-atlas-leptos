@@ -224,3 +224,11 @@ This is only an in-memory chain consistency check over supplied events. It does 
 Event-chain ordering now accepts only canonical whole-second UTC timestamps in `YYYY-MM-DDTHH:MM:SSZ` form. The parser validates separators, digits, hour/minute/second ranges, calendar day ranges and leap years before lexical ordering is used. This intentionally excludes offsets and fractional seconds in v0.1 so two accepted timestamps have one representation and lexical order matches chronological order. A broader timestamp representation would require a canonical conversion layer before comparison.
 
 Regression cases cover valid leap-day values, impossible calendar dates, hour overflow, offsets, fractional seconds and invalid months.
+
+## 9.4 Authority scope versus dependency impact scope
+
+Event authority scope constrains the **direct target nodes**: `validate_event` still rejects a key/source revocation whose declared domains, subjects or purposes do not cover the target. Once that target is accepted, impact propagation follows the exact typed dependency edges even when a downstream consumer has a different local domain or purpose. A water-domain decision can consume an energy-domain signed statement; excluding it solely because its own domain differs would create a false negative.
+
+Propagation to a cross-domain descendant does not grant the revoker direct authority over that descendant. The auditor reports it as `reverify_required` or `quarantined_pending_review`; it does not mark it `claim_invalidated` merely because it is reachable. Disconnected out-of-scope records remain `no_impact`. The regression fixture exercises an energy-key → water-source → water-decision path plus a disconnected water-domain control, and the scale ladder mixes cross-domain descendants with disconnected same-/different-domain controls.
+
+This separates three predicates that must not be collapsed: (1) whether the event authority may target the root, (2) whether an exact dependency path exists, and (3) what action/claim class is permitted for each downstream node.
