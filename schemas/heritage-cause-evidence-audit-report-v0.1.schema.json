@@ -1,0 +1,199 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-cause-evidence-audit-report-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Cause Evidence Audit Report",
+  "description": "Evidence completeness, independent support/contradiction, rights and contested-hypothesis summary. Not an automated causal adjudication.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "case_id",
+    "event_id",
+    "abstained",
+    "cause_hypothesis_count",
+    "asserted_cause_count",
+    "asserted_causes_with_independent_support",
+    "unsupported_asserted_cause_count",
+    "contested_cause_count",
+    "evidence_record_count",
+    "same_event_evidence_record_count",
+    "context_only_evidence_record_count",
+    "rights_unverified_evidence_record_count",
+    "model_or_catalogue_evidence_record_count",
+    "same_source_interpretation_record_count",
+    "non_detection_record_count",
+    "independent_support_evidence_count",
+    "independent_contradiction_evidence_count",
+    "non_independent_support_evidence_count",
+    "non_independent_contradiction_evidence_count",
+    "hypothesis_summaries"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-cause-evidence-audit.v0.1"
+    },
+    "case_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "event_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "abstained": {
+      "type": "boolean"
+    },
+    "cause_hypothesis_count": {
+      "type": "integer",
+      "minimum": 11,
+      "maximum": 11
+    },
+    "asserted_cause_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "asserted_causes_with_independent_support": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "unsupported_asserted_cause_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "contested_cause_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "evidence_record_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "same_event_evidence_record_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "context_only_evidence_record_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "rights_unverified_evidence_record_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "model_or_catalogue_evidence_record_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "same_source_interpretation_record_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "non_detection_record_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "independent_support_evidence_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "independent_contradiction_evidence_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "non_independent_support_evidence_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "non_independent_contradiction_evidence_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "hypothesis_summaries": {
+      "type": "array",
+      "minItems": 11,
+      "maxItems": 11,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "cause",
+          "probability",
+          "asserted",
+          "has_event_specific_support",
+          "support_record_count",
+          "contradiction_record_count",
+          "independent_support_count",
+          "independent_contradiction_count",
+          "non_independent_support_count",
+          "non_independent_contradiction_count",
+          "independent_support_modality_count",
+          "independent_contradiction_modality_count",
+          "contested"
+        ],
+        "properties": {
+          "cause": {
+            "enum": [
+              "archaeological_excavation_looting",
+              "agriculture_cultivation",
+              "seasonal_vegetation_phenology",
+              "erosion_geomorphic",
+              "hydrology_flood",
+              "fire_vegetation_clearance",
+              "modern_construction_infrastructure",
+              "quarry_mining",
+              "military_conflict",
+              "sensor_processing_artifact",
+              "other_known_cause"
+            ]
+          },
+          "probability": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "asserted": {
+            "type": "boolean"
+          },
+          "has_event_specific_support": {
+            "type": "boolean"
+          },
+          "support_record_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "contradiction_record_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "independent_support_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "independent_contradiction_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "non_independent_support_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "non_independent_contradiction_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "independent_support_modality_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "independent_contradiction_modality_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "contested": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

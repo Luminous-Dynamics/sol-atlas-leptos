@@ -1,0 +1,199 @@
+{
+  "case_id": "cause-evidence-synthetic",
+  "event_id": "event-01",
+  "abstained": false,
+  "cause_threshold": 0.7,
+  "hypotheses": [
+    {
+      "cause": "archaeological_excavation_looting",
+      "probability": 0.9,
+      "support_evidence_refs": [
+        "support-a",
+        "support-b",
+        "support-context"
+      ],
+      "contradiction_evidence_refs": [
+        "contradiction-a"
+      ]
+    },
+    {
+      "cause": "agriculture_cultivation",
+      "probability": 0.6,
+      "support_evidence_refs": [
+        "agriculture-model",
+        "rights-pending"
+      ],
+      "contradiction_evidence_refs": []
+    },
+    {
+      "cause": "seasonal_vegetation_phenology",
+      "probability": 0.05,
+      "support_evidence_refs": [],
+      "contradiction_evidence_refs": []
+    },
+    {
+      "cause": "erosion_geomorphic",
+      "probability": 0.05,
+      "support_evidence_refs": [],
+      "contradiction_evidence_refs": []
+    },
+    {
+      "cause": "hydrology_flood",
+      "probability": 0.05,
+      "support_evidence_refs": [],
+      "contradiction_evidence_refs": []
+    },
+    {
+      "cause": "fire_vegetation_clearance",
+      "probability": 0.05,
+      "support_evidence_refs": [],
+      "contradiction_evidence_refs": []
+    },
+    {
+      "cause": "modern_construction_infrastructure",
+      "probability": 0.05,
+      "support_evidence_refs": [],
+      "contradiction_evidence_refs": []
+    },
+    {
+      "cause": "quarry_mining",
+      "probability": 0.05,
+      "support_evidence_refs": [],
+      "contradiction_evidence_refs": []
+    },
+    {
+      "cause": "military_conflict",
+      "probability": 0.05,
+      "support_evidence_refs": [],
+      "contradiction_evidence_refs": []
+    },
+    {
+      "cause": "sensor_processing_artifact",
+      "probability": 0.05,
+      "support_evidence_refs": [],
+      "contradiction_evidence_refs": []
+    },
+    {
+      "cause": "other_known_cause",
+      "probability": 0.05,
+      "support_evidence_refs": [],
+      "contradiction_evidence_refs": []
+    }
+  ],
+  "evidence_records": [
+    {
+      "evidence_id": "support-a",
+      "event_id": "event-01",
+      "cause": "archaeological_excavation_looting",
+      "polarity": "supports",
+      "modality": "field_walkover",
+      "evidence_tier": "field_assessed",
+      "scope": "same_event",
+      "rights_status": "verified",
+      "source_ref": "urn:synthetic:source:support-a",
+      "source_asset_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "method_id": "field-observation-v1",
+      "independence_group_id": "group-a",
+      "rights_receipt_ref": "urn:synthetic:rights:support-a",
+      "reviewer_ref": "urn:synthetic:reviewer",
+      "authority_ref": "urn:synthetic:authority",
+      "is_non_detection": false,
+      "detectability_assessment_ref": null
+    },
+    {
+      "evidence_id": "support-b",
+      "event_id": "event-01",
+      "cause": "archaeological_excavation_looting",
+      "polarity": "supports",
+      "modality": "magnetometry",
+      "evidence_tier": "instrument_observation",
+      "scope": "same_event",
+      "rights_status": "verified",
+      "source_ref": "urn:synthetic:source:support-b",
+      "source_asset_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "method_id": "magnetometry-v1",
+      "independence_group_id": "group-b",
+      "rights_receipt_ref": "urn:synthetic:rights:support-b",
+      "reviewer_ref": null,
+      "authority_ref": null,
+      "is_non_detection": false,
+      "detectability_assessment_ref": null
+    },
+    {
+      "evidence_id": "support-context",
+      "event_id": "event-01",
+      "cause": "archaeological_excavation_looting",
+      "polarity": "supports",
+      "modality": "archival",
+      "evidence_tier": "catalogue_reference",
+      "scope": "context_only",
+      "rights_status": "verified",
+      "source_ref": "urn:synthetic:source:support-context",
+      "source_asset_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "method_id": "field-observation-v1",
+      "independence_group_id": "group-c",
+      "rights_receipt_ref": "urn:synthetic:rights:support-context",
+      "reviewer_ref": null,
+      "authority_ref": null,
+      "is_non_detection": false,
+      "detectability_assessment_ref": null
+    },
+    {
+      "evidence_id": "contradiction-a",
+      "event_id": "event-01",
+      "cause": "archaeological_excavation_looting",
+      "polarity": "contradicts",
+      "modality": "field_walkover",
+      "evidence_tier": "field_assessed",
+      "scope": "same_event",
+      "rights_status": "verified",
+      "source_ref": "urn:synthetic:source:contradiction-a",
+      "source_asset_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "method_id": "field-observation-v1",
+      "independence_group_id": "group-d",
+      "rights_receipt_ref": "urn:synthetic:rights:contradiction-a",
+      "reviewer_ref": "urn:synthetic:reviewer",
+      "authority_ref": "urn:synthetic:authority",
+      "is_non_detection": true,
+      "detectability_assessment_ref": "urn:synthetic:detectability"
+    },
+    {
+      "evidence_id": "agriculture-model",
+      "event_id": "event-01",
+      "cause": "agriculture_cultivation",
+      "polarity": "supports",
+      "modality": "satellite_optical",
+      "evidence_tier": "model_derived",
+      "scope": "same_event",
+      "rights_status": "verified",
+      "source_ref": "urn:synthetic:source:agriculture-model",
+      "source_asset_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "method_id": "field-observation-v1",
+      "independence_group_id": "group-e",
+      "rights_receipt_ref": "urn:synthetic:rights:agriculture-model",
+      "reviewer_ref": null,
+      "authority_ref": null,
+      "is_non_detection": false,
+      "detectability_assessment_ref": null
+    },
+    {
+      "evidence_id": "rights-pending",
+      "event_id": "event-01",
+      "cause": "agriculture_cultivation",
+      "polarity": "supports",
+      "modality": "satellite_sar",
+      "evidence_tier": "instrument_observation",
+      "scope": "same_event",
+      "rights_status": "pending",
+      "source_ref": "urn:synthetic:source:rights-pending",
+      "source_asset_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "method_id": "field-observation-v1",
+      "independence_group_id": "group-f",
+      "rights_receipt_ref": null,
+      "reviewer_ref": null,
+      "authority_ref": null,
+      "is_non_detection": false,
+      "detectability_assessment_ref": null
+    }
+  ]
+}
