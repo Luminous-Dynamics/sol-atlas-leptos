@@ -57,7 +57,7 @@ features = [
 ]
 
 [workspace]
-members = [".", "sol-atlas-core"]
+members = [".", "sol-atlas-core", "tools/energy-dispatch-profile-runner"]
 resolver = "3"
 
 [profile.release]
