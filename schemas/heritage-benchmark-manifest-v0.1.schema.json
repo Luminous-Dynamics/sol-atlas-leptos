@@ -67,7 +67,8 @@
           "split_id",
           "train_site_ids",
           "validation_site_ids",
-          "test_site_ids"
+          "test_site_ids",
+          "protocol"
         ],
         "properties": {
           "split_id": {
@@ -97,7 +98,7 @@
           },
           "spatial_buffer_m": {
             "type": "number",
-            "minimum": 0
+            "exclusiveMinimum": 0
           },
           "estimated_spatial_dependence_m": {
             "type": "number",
@@ -119,6 +120,55 @@
           "split_manifest_digest": {
             "type": "string",
             "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "spatial_block_assignments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "site_id",
+                "block_id",
+                "partition",
+                "nearest_other_partition_distance_m"
+              ],
+              "properties": {
+                "site_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "block_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "partition": {
+                  "enum": [
+                    "train",
+                    "validation",
+                    "test"
+                  ]
+                },
+                "nearest_other_partition_distance_m": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "spatial_distance_audit_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "protocol": {
+            "enum": [
+              "within_site_spatial_block",
+              "held_out_site",
+              "held_out_region",
+              "leave_one_biome_out",
+              "leave_one_sensor_out",
+              "temporal_holdout",
+              "external_blind"
+            ]
           }
         }
       }

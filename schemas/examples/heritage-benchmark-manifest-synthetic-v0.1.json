@@ -20,7 +20,9 @@
       ],
       "spatial_buffer_m": 500,
       "estimated_spatial_dependence_m": 250,
-      "split_manifest_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      "split_manifest_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "spatial_block_assignments": [],
+      "protocol": "held_out_site"
     }
   ],
   "evaluation": {
