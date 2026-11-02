@@ -121,7 +121,8 @@
           "additionalProperties": false,
           "required": [
             "tree_size",
-            "root_sha256"
+            "root_sha256",
+            "signed_bytes_sha256"
           ],
           "properties": {
             "tree_size": {
@@ -132,6 +133,11 @@
             "root_sha256": {
               "type": "string",
               "pattern": "^[0-9a-f]{64}$"
+            },
+            "signed_bytes_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$",
+              "description": "SHA-256 of the exact prior signed tree-head bytes used as the old checkpoint in consistency verification."
             }
           }
         }
