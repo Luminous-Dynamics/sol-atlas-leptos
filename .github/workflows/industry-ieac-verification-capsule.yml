@@ -1,0 +1,90 @@
+name: IEAC verification capsule contract
+
+on:
+  pull_request:
+    paths:
+      - "schemas/industry-ieac-verification-capsule-v0.1.schema.json"
+      - "schemas/examples/ieac-verification-capsule-*.json"
+      - "docs/industry/IEAC_VERIFICATION_CAPSULE_V0.1.md"
+      - ".github/workflows/industry-ieac-verification-capsule.yml"
+  push:
+    branches:
+      - main
+      - feat/ieac-tuf-inprocess-verifier-v0-1
+    paths:
+      - "schemas/industry-ieac-verification-capsule-v0.1.schema.json"
+      - "schemas/examples/ieac-verification-capsule-*.json"
+      - "docs/industry/IEAC_VERIFICATION_CAPSULE_V0.1.md"
+      - ".github/workflows/industry-ieac-verification-capsule.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ieac-verification-capsule-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  capsule-contract:
+    name: Exact-head capsule schema and privacy-mode conformance
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact source revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install pinned Draft 2020-12 validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Add schema CLI to PATH
+        run: echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+
+      - name: Validate capsule schema and all privacy-mode fixtures
+        run: |
+          set -euo pipefail
+          schema=schemas/industry-ieac-verification-capsule-v0.1.schema.json
+          for fixture in schemas/examples/ieac-verification-capsule-*-synthetic-v0.1.json; do
+            jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$fixture"
+          done
+
+      - name: Independently check four-target and privacy-mode invariants
+        run: |
+          set -euo pipefail
+          jq -e '
+            .capsule_mode == "self_contained" and
+            .replayability == "fully_replayable" and
+            ([.targets[].id] | sort) == [
+              "availability_audit_report",
+              "channel_manifest",
+              "checkpoint_state",
+              "completeness_attestation"
+            ] and
+            ([.targets[].repository_path] | unique | length) == 4 and
+            all(.targets[]; .content_mode == "embedded" and has("capsule_file_path") and (has("reference") | not)) and
+            ([.file_inventory[].path] == ([.file_inventory[].path] | sort)) and
+            ([.file_inventory[].path] | unique | length) == (.file_inventory | length)
+          ' schemas/examples/ieac-verification-capsule-self-contained-synthetic-v0.1.json
+
+          jq -e '
+            .capsule_mode == "metadata_complete_target_referenced" and
+            .replayability == "conditionally_replayable" and
+            all(.targets[]; .content_mode == "referenced" and has("reference") and (has("capsule_file_path") | not)) and
+            all(.file_inventory[]; .kind != "target_bytes")
+          ' schemas/examples/ieac-verification-capsule-target-referenced-synthetic-v0.1.json
+
+          jq -e '
+            .capsule_mode == "commitment_only" and
+            .replayability == "commitment_only" and
+            all(.targets[]; .content_mode == "withheld" and (has("reference") | not) and (has("capsule_file_path") | not)) and
+            all(.file_inventory[]; .kind != "target_bytes")
+          ' schemas/examples/ieac-verification-capsule-commitment-only-synthetic-v0.1.json
+
+      - name: Preserve deterministic schema and fixture inputs
+        run: git diff --exit-code -- schemas/industry-ieac-verification-capsule-v0.1.schema.json schemas/examples/ieac-verification-capsule-*-synthetic-v0.1.json

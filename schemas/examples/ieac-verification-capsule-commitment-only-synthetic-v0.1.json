@@ -1,0 +1,152 @@
+{
+  "schema_version": "luminous.ieac-verification-capsule.v0.1",
+  "capsule_id": "synthetic-plant-17-commitment-2026-06",
+  "capsule_mode": "commitment_only",
+  "replayability": "commitment_only",
+  "canonicalization": "RFC8785_JCS_FOR_CAPSULE_MANIFEST_ONLY",
+  "created_at": "2026-06-01T00:00:02Z",
+  "trust_bootstrap": {
+    "repository_id": "tuf:ieac-plant17",
+    "repository_origin": "https://tuf.example.invalid",
+    "root_metadata_path": "root/1.root.json",
+    "root_version": 1,
+    "root_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "replay_context": {
+    "evaluation_time": "2026-06-01T00:00:00Z",
+    "uncertainty_before_ms": 2,
+    "uncertainty_after_ms": 2,
+    "clock_id": "clock:plant17-gateway",
+    "time_policy_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "time_verifier_build_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+    "time_verifier_trust_bundle_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+  },
+  "policy": {
+    "policy_id": "ieac-plant17-policy",
+    "policy_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+    "policy_kind": "composite",
+    "scope_id": "plant-17/decision-2026-06-01"
+  },
+  "verifier_identity": {
+    "implementation": "sigstore-tuf",
+    "version": "0.15.1",
+    "build_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+    "independent_verifier_required": true
+  },
+  "metadata_artifacts": [
+    {
+      "role_name": "root",
+      "version": 1,
+      "repository_path": "root/1.root.json",
+      "length": 3396,
+      "sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+      "expires_at": "2030-01-01T00:00:00Z",
+      "authorized_by": "out_of_band_root"
+    },
+    {
+      "role_name": "timestamp",
+      "version": 1,
+      "repository_path": "metadata/timestamp.json",
+      "length": 557,
+      "sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+      "expires_at": "2030-01-01T00:00:00Z",
+      "authorized_by": "root.timestamp"
+    },
+    {
+      "role_name": "snapshot",
+      "version": 1,
+      "repository_path": "metadata/snapshot.json",
+      "length": 556,
+      "sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+      "expires_at": "2030-01-01T00:00:00Z",
+      "authorized_by": "root.snapshot"
+    },
+    {
+      "role_name": "targets",
+      "version": 1,
+      "repository_path": "metadata/targets.json",
+      "length": 1624,
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "expires_at": "2030-01-01T00:00:00Z",
+      "authorized_by": "root.targets"
+    },
+    {
+      "role_name": "role1",
+      "version": 1,
+      "repository_path": "metadata/role1.json",
+      "length": 1252,
+      "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "expires_at": "2030-01-01T00:00:00Z",
+      "authorized_by": "targets.role1"
+    }
+  ],
+  "targets": [
+    {
+      "id": "channel_manifest",
+      "repository_path": "channels/plant-17/manifest.json",
+      "authorized_role": "ieac-channel-manifests",
+      "length": 4096,
+      "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "content_mode": "withheld"
+    },
+    {
+      "id": "checkpoint_state",
+      "repository_path": "channels/plant-17/checkpoint.json",
+      "authorized_role": "ieac-channel-checkpoints",
+      "length": 1024,
+      "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "content_mode": "withheld"
+    },
+    {
+      "id": "completeness_attestation",
+      "repository_path": "channels/plant-17/completeness-attestation.json",
+      "authorized_role": "ieac-channel-completeness-attestations",
+      "length": 8192,
+      "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "content_mode": "withheld"
+    },
+    {
+      "id": "availability_audit_report",
+      "repository_path": "channels/plant-17/completeness-report.json",
+      "authorized_role": "ieac-channel-completeness-reports",
+      "length": 2048,
+      "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "content_mode": "withheld"
+    }
+  ],
+  "file_inventory": [
+    {
+      "path": "metadata/role1.json",
+      "length": 1252,
+      "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "kind": "targets_role"
+    },
+    {
+      "path": "metadata/snapshot.json",
+      "length": 556,
+      "sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+      "kind": "snapshot"
+    },
+    {
+      "path": "metadata/targets.json",
+      "length": 1624,
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "kind": "targets_role"
+    },
+    {
+      "path": "metadata/timestamp.json",
+      "length": 557,
+      "sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+      "kind": "timestamp"
+    },
+    {
+      "path": "root/1.root.json",
+      "length": 3396,
+      "sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+      "kind": "root"
+    }
+  ],
+  "file_inventory_sha256": "1313131313131313131313131313131313131313131313131313131313131313",
+  "claim_ceiling": "replayable_integrity_of_included_signed_metadata_and_target_bytes_only",
+  "action_authority": "none"
+}
