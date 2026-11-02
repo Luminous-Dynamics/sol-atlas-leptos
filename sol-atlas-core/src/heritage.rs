@@ -1138,12 +1138,12 @@ mod tests {
     }
 
     #[test]
-    fn antimeridian_crossing_bbox_is_valid_but_bad_latitude_is_not() {
+    fn antimeridian_bbox_is_preserved_and_malformed_bbox_is_rejected() {
         let mut metadata = fixture_metadata();
         metadata.spatial.bbox = Some(vec![170.0, -10.0, -170.0, 10.0]);
         assert_eq!(metadata.validate(), Ok(()));
 
-        metadata.spatial.bbox = Some(vec![170.0, -91.0, -170.0, 10.0]);
+        metadata.spatial.bbox = Some(vec![170.0, -10.0, -170.0]);
         assert!(metadata
             .validate()
             .unwrap_err()
@@ -1258,6 +1258,24 @@ mod tests {
     }
 
     #[test]
+    fn spatial_geometry_tier_is_enforced_separately_from_asset_rights() {
+        let mut metadata = fixture_metadata();
+        metadata.rights.access_tier = AccessTier::Public;
+        metadata.spatial.geometry_access_tier = AccessTier::Custodial;
+        let context = AccessContext {
+            max_tier: AccessTier::Public,
+            exact_geometry_authorized: true,
+        };
+        assert_eq!(
+            authorize_metadata_use(&metadata, HeritageUse::Research, context, false),
+            Err(RightsDenial::AccessTierInsufficient {
+                required: AccessTier::Custodial,
+                granted: AccessTier::Public,
+            })
+        );
+    }
+
+    #[test]
     fn withheld_exact_geometry_never_passes() {
         let mut profile = fixture_metadata().rights;
         profile.exact_geometry_policy = ExactGeometryPolicy::Withheld;
@@ -1308,7 +1326,7 @@ mod tests {
         let metadata = fixture_metadata();
         let error = verify_artifact_bytes(
             &metadata,
-            b"modified bytes from the same asset reference",
+            b"synthetic point cloud byteX",
             "2026-11-02T10:00:00Z",
             "heritage-ingestor",
             "0.1.0",
