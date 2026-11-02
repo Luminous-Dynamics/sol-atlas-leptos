@@ -99,9 +99,11 @@ pub struct ControlAction {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ActionProposal {
+    pub proposal_digest: Digest,
     pub request_digest: Digest,
     pub schedule_digest: Digest,
     pub action_digest: Digest,
+    pub fallback_action_digest: Option<Digest>,
     pub interval_id: String,
     pub issued_at_unix_seconds: u64,
     pub expires_at_unix_seconds: u64,
@@ -124,6 +126,11 @@ pub struct FutureOperatingCondition {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AdmissionPolicy {
+    /// Digests are verified against exact serialized bytes by the trusted caller.
+    pub policy_digest: Digest,
+    pub battery_model_digest: Digest,
+    pub uncertainty_profile_digest: Digest,
+    pub future_envelope_digest: Digest,
     pub expected_source_digest: Digest,
     pub expected_calibration_digest: Digest,
     pub expected_epoch: u64,
@@ -198,10 +205,18 @@ pub enum AdmissionReason {
 pub struct AdmissionReport {
     pub disposition: AdmissionDisposition,
     pub reason: AdmissionReason,
+    pub proposal_digest: Digest,
     pub request_digest: Digest,
     pub schedule_digest: Digest,
+    /// Digest of the originally proposed action, even when a fallback is selected.
     pub action_digest: Digest,
+    /// Digest of the actual action selected by the monitor.
+    pub selected_action_digest: Option<Digest>,
     pub observation_digest: Digest,
+    pub policy_digest: Digest,
+    pub battery_model_digest: Digest,
+    pub uncertainty_profile_digest: Digest,
+    pub future_envelope_digest: Digest,
     pub monitor_digest: Digest,
     pub selected_action: Option<ControlAction>,
     pub current_states_checked: usize,
@@ -222,15 +237,22 @@ fn report(
     disposition: AdmissionDisposition,
     reason: AdmissionReason,
     selected_action: Option<ControlAction>,
+    selected_action_digest: Option<Digest>,
     evaluation: Evaluation,
 ) -> AdmissionReport {
     AdmissionReport {
         disposition,
         reason,
+        proposal_digest: proposal.proposal_digest,
         request_digest: proposal.request_digest,
         schedule_digest: proposal.schedule_digest,
         action_digest: proposal.action_digest,
+        selected_action_digest,
         observation_digest: observation.observation_digest,
+        policy_digest: policy.policy_digest,
+        battery_model_digest: policy.battery_model_digest,
+        uncertainty_profile_digest: policy.uncertainty_profile_digest,
+        future_envelope_digest: policy.future_envelope_digest,
         monitor_digest: policy.monitor_digest,
         selected_action,
         current_states_checked: evaluation.current_states_checked,
@@ -251,6 +273,7 @@ fn abstain(
         AdmissionDisposition::Abstain,
         reason,
         None,
+        None,
         Evaluation::default(),
     )
 }
@@ -268,6 +291,7 @@ fn replan(
         policy,
         AdmissionDisposition::Replan,
         reason,
+        None,
         None,
         evaluation,
     )
@@ -502,6 +526,7 @@ pub fn admit_action(
         || proposal.expected_soc_min_quanta > proposal.expected_soc_max_quanta
         || proposal.expected_soc_max_quanta > battery.capacity_quanta
         || proposal.issued_at_unix_seconds > now
+        || proposal.fallback_action.is_some() != proposal.fallback_action_digest.is_some()
     {
         return abstain(
             proposal,
@@ -536,6 +561,7 @@ pub fn admit_action(
             AdmissionDisposition::Admit,
             AdmissionReason::ProposedActionAdmitted,
             Some(proposal.proposed_action),
+            Some(proposal.action_digest),
             proposed,
         );
     }
@@ -566,6 +592,7 @@ pub fn admit_action(
             AdmissionDisposition::FallbackAdmitted,
             AdmissionReason::FallbackActionAdmitted,
             Some(fallback),
+            proposal.fallback_action_digest,
             fallback_evaluation,
         );
     }
@@ -639,6 +666,10 @@ mod tests {
 
     fn policy(future_conditions: Vec<FutureOperatingCondition>) -> AdmissionPolicy {
         AdmissionPolicy {
+            policy_digest: Digest::from_byte(20),
+            battery_model_digest: Digest::from_byte(21),
+            uncertainty_profile_digest: Digest::from_byte(22),
+            future_envelope_digest: Digest::from_byte(23),
             expected_source_digest: Digest::from_byte(1),
             expected_calibration_digest: Digest::from_byte(2),
             expected_epoch: 7,
@@ -653,9 +684,11 @@ mod tests {
 
     fn proposal(action: ControlAction) -> ActionProposal {
         ActionProposal {
+            proposal_digest: Digest::from_byte(9),
             request_digest: Digest::from_byte(10),
             schedule_digest: Digest::from_byte(11),
             action_digest: Digest::from_byte(12),
+            fallback_action_digest: None,
             interval_id: "interval-001".to_owned(),
             issued_at_unix_seconds: 97,
             expires_at_unix_seconds: 105,
@@ -856,6 +889,7 @@ mod tests {
         });
         candidate.expected_soc_min_quanta = 1;
         candidate.expected_soc_max_quanta = 1;
+        candidate.fallback_action_digest = Some(Digest::from_byte(13));
         candidate.fallback_action = Some(ControlAction {
             grid_import_quanta: 0,
             charge_input_quanta: 2,
@@ -880,6 +914,7 @@ mod tests {
         assert_eq!(result.disposition, AdmissionDisposition::FallbackAdmitted);
         assert_eq!(result.reason, AdmissionReason::FallbackActionAdmitted);
         assert_eq!(result.selected_action, candidate.fallback_action);
+        assert_eq!(result.selected_action_digest, candidate.fallback_action_digest);
     }
 
     #[test]
@@ -957,10 +992,15 @@ mod tests {
         let observed = observation(vec![state("current", 4)]);
         let configured = policy(vec![future("next-outage", 1)]);
         let result = admit_action(battery(), &candidate, &observed, &configured, 100);
+        assert_eq!(result.proposal_digest, candidate.proposal_digest);
         assert_eq!(result.request_digest, candidate.request_digest);
         assert_eq!(result.schedule_digest, candidate.schedule_digest);
         assert_eq!(result.action_digest, candidate.action_digest);
         assert_eq!(result.observation_digest, observed.observation_digest);
+        assert_eq!(result.policy_digest, configured.policy_digest);
+        assert_eq!(result.battery_model_digest, configured.battery_model_digest);
+        assert_eq!(result.uncertainty_profile_digest, configured.uncertainty_profile_digest);
+        assert_eq!(result.future_envelope_digest, configured.future_envelope_digest);
         assert_eq!(result.monitor_digest, configured.monitor_digest);
     }
 }
