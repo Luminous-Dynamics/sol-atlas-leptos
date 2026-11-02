@@ -117,6 +117,8 @@ struct CoverageProof {
     verifier_build_sha256: Option<String>,
     #[serde(deserialize_with = "deserialize_present_option")]
     verification_policy_sha256: Option<String>,
+    #[serde(deserialize_with = "deserialize_present_option")]
+    trust_bundle_sha256: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -246,7 +248,6 @@ fn validate_snapshot(snapshot: &Snapshot) -> Result<(), String> {
         ("evaluator_build_sha256", &snapshot.decision.evaluator_build_sha256),
         ("time_verifier_build_sha256", &snapshot.decision.time_verifier_build_sha256),
         ("time_verification_policy_sha256", &snapshot.decision.time_verification_policy_sha256),
-        ("time_verification_trust_bundle_sha256", &snapshot.decision.time_verification_trust_bundle_sha256),
         ("time_verification_trust_bundle_sha256", &snapshot.decision.time_verification_trust_bundle_sha256),
     ] {
         if !is_sha256(digest) {
