@@ -181,7 +181,7 @@ struct PanelManifest {
     scenarios: Vec<ScenarioSpec>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct ServiceFloorPolicy {
     schema_version: String,
@@ -353,6 +353,8 @@ struct OutcomeMetrics {
 struct ScenarioOutcomeReportSubject<'a> {
     report_schema: &'a str,
     panel_id: &'a str,
+    panel_manifest_sha256: &'a str,
+    model_sha256: &'a str,
     benchmark_binary_sha256: &'a str,
     service_floor_policy_id: &'a str,
     service_floor_policy_sha256: &'a str,
@@ -367,8 +369,11 @@ struct ScenarioOutcomeReportSubject<'a> {
 struct ScenarioOutcomeReport {
     report_schema: String,
     panel_id: String,
+    panel_manifest_sha256: String,
+    model_sha256: String,
     benchmark_binary_sha256: String,
     service_floor_policy_id: String,
+    service_floor_policy: ServiceFloorPolicy,
     service_floor_policy_sha256: String,
     worst_tail_mass_bps: u16,
     probability_total: Rational,
@@ -376,19 +381,6 @@ struct ScenarioOutcomeReport {
     metrics: OutcomeMetrics,
     report_sha256: String,
     claim_ceiling: String,
-}
-
-struct LoadedScenario {
-    spec: ScenarioSpec,
-    request_bytes: Vec<u8>,
-    request_value: Value,
-    schedule_bytes: Vec<u8>,
-    audit_receipt_bytes: Vec<u8>,
-    service_floor_receipt_bytes: Vec<u8>,
-    audit_receipt: AuditReceipt,
-    service_floor_receipt: ServiceFloorReceipt,
-    outcome: ScenarioOutcome,
-    model_fingerprint: String,
 }
 
 struct StrictJsonSeed;
@@ -741,6 +733,7 @@ fn model_fingerprint(request: &Value) -> Result<String, String> {
     let model = serde_json::json!({
         "schema_version": request["schema_version"],
         "synthetic": request["synthetic"],
+        "evidence_class": request["evidence_class"],
         "energy_quantum_kwh": request["energy_quantum_kwh"],
         "battery": request["battery"],
         "chronology": chronology
@@ -819,6 +812,8 @@ fn cvar_upper_tail(
 
 fn aggregate(
     panel_id: &str,
+    panel_manifest_sha256: &str,
+    model_sha256: &str,
     policy: &ServiceFloorPolicy,
     policy_sha256: &str,
     tail_mass_bps: u16,
@@ -873,7 +868,7 @@ fn aggregate(
         curtailed_pv_quanta: metric_summary(&scenarios, tail_mass, |scenario| {
             scenario.curtailed_pv_quanta
         })?,
-        terminal_soc_quanta: metric_summary(&scenarios, tail_mass, |scenario| {
+        terminal_soc_quanta: metric_summary_lower_tail(&scenarios, tail_mass, |scenario| {
             scenario.terminal_soc_quanta
         })?,
         service_floor_failure_probability,
@@ -884,12 +879,15 @@ fn aggregate(
 
     let claim_ceiling = concat!(
         "exact rational expected, worst-case and discrete upper-tail outcome summaries ",
-        "over the supplied receipt-bound scenario panel; no optimization, EVPI, ",
-        "probability calibration, real-world reliability or deployment claim"
+        "under the supplied scenario weights for one common finite physical model; ",
+        "weights are not calibrated real-world probabilities; no optimization, EVPI, ",
+        "policy optimality, probability calibration, reliability or deployment claim"
     );
     let subject = ScenarioOutcomeReportSubject {
         report_schema: REPORT_SCHEMA,
         panel_id,
+        panel_manifest_sha256,
+        model_sha256,
         benchmark_binary_sha256: &benchmark_binary_sha256,
         service_floor_policy_id: &policy.policy_id,
         service_floor_policy_sha256: policy_sha256,
@@ -906,8 +904,11 @@ fn aggregate(
     Ok(ScenarioOutcomeReport {
         report_schema: REPORT_SCHEMA.to_owned(),
         panel_id: panel_id.to_owned(),
+        panel_manifest_sha256: panel_manifest_sha256.to_owned(),
+        model_sha256: model_sha256.to_owned(),
         benchmark_binary_sha256,
         service_floor_policy_id: policy.policy_id.clone(),
+        service_floor_policy: policy.clone(),
         service_floor_policy_sha256: policy_sha256.to_owned(),
         worst_tail_mass_bps: tail_mass_bps,
         probability_total,
@@ -1041,8 +1042,12 @@ fn load_and_aggregate(
     if probability_total != Rational::one() {
         return Err("scenario probabilities must sum exactly to 1".to_owned());
     }
+    let model_sha256 = model_identity
+        .ok_or_else(|| "scenario panel has no model identity".to_owned())?;
     let report = aggregate(
         &manifest.panel_id,
+        &sha256(&manifest_bytes),
+        &model_sha256,
         &policy,
         &policy_sha256,
         manifest.worst_tail_mass_bps,
