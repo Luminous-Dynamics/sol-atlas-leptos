@@ -1,7 +1,7 @@
 {
   "schema_version": "luminous.ieac-availability-completeness-attestation.v0.1",
   "attestation_id": "availability-attestation:plant-17-evidence-001",
-  "channel_manifest_sha256": "dd35d3d0b6563713abfc6f3dd7b7b2c2f4166bebe62f276dd5c8691566023530",
+  "channel_manifest_sha256": "d7d8bf2a1148fc4d41e5a41bff9ad70111789ef9eef960ced51bdbac44809f41",
   "channel_identity": {
     "relying_party_id": "rp:industrial-assurance",
     "evidence_channel_id": "channel:ieac-ingest-registry",
