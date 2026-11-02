@@ -1,0 +1,26 @@
+{
+  "schema_version": "luminous.ieac-tuf-inprocess-request.v0.1",
+  "repository_id": "ieac-evidence-channel-example",
+  "repository_url": "https://tuf.example.invalid",
+  "bootstrap_root_path": "/etc/ieac/trust/plant-17/1.root.json",
+  "metadata_cache_path": "/var/lib/ieac/tuf/plant-17",
+  "max_target_bytes": 1048576,
+  "target_bindings": [
+    {
+      "id": "channel_manifest",
+      "path": "channels/plant-17/manifest.json"
+    },
+    {
+      "id": "checkpoint_state",
+      "path": "channels/plant-17/checkpoint.json"
+    },
+    {
+      "id": "completeness_attestation",
+      "path": "channels/plant-17/completeness-attestation.json"
+    },
+    {
+      "id": "availability_audit_report",
+      "path": "channels/plant-17/completeness-report.json"
+    }
+  ]
+}
