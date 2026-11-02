@@ -1,0 +1,158 @@
+name: IEAC evidence-channel completeness auditor
+
+on:
+  pull_request:
+    paths:
+      - "tools/industry-availability-auditor/**"
+      - "schemas/industry-ieac-evidence-channel-manifest-v0.1.schema.json"
+      - "schemas/industry-ieac-availability-completeness-attestation-v0.1.schema.json"
+      - "schemas/industry-ieac-availability-audit-report-v0.1.schema.json"
+      - "schemas/examples/ieac-evidence-channel-manifest-synthetic-v0.1.json"
+      - "schemas/examples/ieac-availability-completeness-attestation-synthetic-v0.1.json"
+      - "schemas/examples/ieac-availability-channel-expected-synthetic-v0.1.json"
+      - "docs/industry/IEAC_EVIDENCE_CHANNEL_COMPLETENESS_V0.1.md"
+      - ".github/workflows/industry-availability-auditor.yml"
+  push:
+    branches:
+      - main
+      - feat/ieac-decision-time-frontier-v0-1
+    paths:
+      - "tools/industry-availability-auditor/**"
+      - "schemas/industry-ieac-evidence-channel-manifest-v0.1.schema.json"
+      - "schemas/industry-ieac-availability-completeness-attestation-v0.1.schema.json"
+      - "schemas/industry-ieac-availability-audit-report-v0.1.schema.json"
+      - "schemas/examples/ieac-evidence-channel-manifest-synthetic-v0.1.json"
+      - "schemas/examples/ieac-availability-completeness-attestation-synthetic-v0.1.json"
+      - "schemas/examples/ieac-availability-channel-expected-synthetic-v0.1.json"
+      - "docs/industry/IEAC_EVIDENCE_CHANNEL_COMPLETENESS_V0.1.md"
+      - ".github/workflows/industry-availability-auditor.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ieac-availability-auditor-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  channel-audit:
+    name: Exact-head bounded channel audit and adversarial controls
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact source revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Format source and retain exact rustfmt output
+        run: |
+          set -euo pipefail
+          cargo fmt --manifest-path tools/industry-availability-auditor/Cargo.toml
+          echo "RUSTFMT_SOURCE_BEGIN"
+          base64 -w0 tools/industry-availability-auditor/src/main.rs
+          echo
+          echo "RUSTFMT_SOURCE_END"
+
+      - name: Run Clippy with warnings denied and unit tests
+        run: |
+          set -euo pipefail
+          manifest=tools/industry-availability-auditor/Cargo.toml
+          cargo clippy --manifest-path "$manifest" --all-targets --locked -- -D warnings
+          cargo test --manifest-path "$manifest" --locked
+
+      - name: Install pinned Draft 2020-12 validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Add schema CLI to PATH
+        run: echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+
+      - name: Validate schema dialects and frozen inputs
+        run: |
+          set -euo pipefail
+          manifest_schema=schemas/industry-ieac-evidence-channel-manifest-v0.1.schema.json
+          attestation_schema=schemas/industry-ieac-availability-completeness-attestation-v0.1.schema.json
+          report_schema=schemas/industry-ieac-availability-audit-report-v0.1.schema.json
+          manifest=schemas/examples/ieac-evidence-channel-manifest-synthetic-v0.1.json
+          attestation=schemas/examples/ieac-availability-completeness-attestation-synthetic-v0.1.json
+          jsonschema-cli validate --draft 2020 --assert-format -i "$manifest_schema"
+          jsonschema-cli validate --draft 2020 --assert-format -i "$attestation_schema"
+          jsonschema-cli validate --draft 2020 --assert-format -i "$report_schema"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$manifest_schema" -i "$manifest"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$attestation_schema" -i "$attestation"
+
+      - name: Execute Rust channel audit and validate report
+        run: |
+          set -euo pipefail
+          manifest=schemas/examples/ieac-evidence-channel-manifest-synthetic-v0.1.json
+          attestation=schemas/examples/ieac-availability-completeness-attestation-synthetic-v0.1.json
+          expected=schemas/examples/ieac-availability-channel-expected-synthetic-v0.1.json
+          report="$RUNNER_TEMP/ieac-availability-audit-report.json"
+          cargo run --manifest-path tools/industry-availability-auditor/Cargo.toml --locked -- "$manifest" "$attestation" "$report"
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-ieac-availability-audit-report-v0.1.schema.json -i "$report"
+          manifest_sha="$(sha256sum "$manifest" | awk '{print $1}')"
+          jq --slurpfile expected "$expected" --arg manifest_sha "$manifest_sha" -e '
+            .status == "structurally_complete_within_declared_channel" and
+            .manifest_sha256 == $manifest_sha and
+            .claim_ceiling == "absence_within_declared_access_channel_only" and
+            .action_authority == "none" and
+            .universal_non_access_claim == false and
+            .checkpoint_sequences.coverage_start == 90 and
+            .checkpoint_sequences.decision_boundary == 100 and
+            .checkpoint_sequences.first_access == 110 and
+            .checkpoint_sequences.coverage_end == 120 and
+            $expected[0].expected.rfc9162_non_inclusion_assumed == false
+          ' "$report"
+
+      - name: Negative controls for gaps, bypasses, query and checkpoint order
+        run: |
+          set -euo pipefail
+          manifest=schemas/examples/ieac-evidence-channel-manifest-synthetic-v0.1.json
+          source=schemas/examples/ieac-availability-completeness-attestation-synthetic-v0.1.json
+          report="$RUNNER_TEMP/availability-mutant-report.json"
+          jq '.capture_health.sequence_gap_count = 1' "$source" > "$RUNNER_TEMP/gap.json"
+          jq '.capture_health.known_bypass_paths = ["unlogged-cache"]' "$source" > "$RUNNER_TEMP/bypass.json"
+          jq '.absence_query.matching_event_count = 1' "$source" > "$RUNNER_TEMP/nonzero-query.json"
+          jq '.absence_query.sequence_through_inclusive = 99' "$source" > "$RUNNER_TEMP/wrong-query-range.json"
+          jq '.first_access.sequence = 100' "$source" > "$RUNNER_TEMP/access-before-boundary.json"
+          jq '.decision_boundary_checkpoint.observed_at.time_utc = "2026-11-02T09:10:00Z"' "$source" > "$RUNNER_TEMP/boundary-not-after-cutoff.json"
+          for mutant in "$RUNNER_TEMP/gap.json" "$RUNNER_TEMP/bypass.json" "$RUNNER_TEMP/nonzero-query.json" "$RUNNER_TEMP/wrong-query-range.json" "$RUNNER_TEMP/access-before-boundary.json" "$RUNNER_TEMP/boundary-not-after-cutoff.json"; do
+            set +e
+            cargo run --manifest-path tools/industry-availability-auditor/Cargo.toml --locked -- "$manifest" "$mutant" "$report"
+            status=$?
+            set -e
+            test "$status" -eq 3
+            jq -e '.status == "unknown" and .universal_non_access_claim == false and .action_authority == "none"' "$report"
+          done
+
+          jq '.channel_manifest_sha256 = "0000000000000000000000000000000000000000000000000000000000000000"' "$source" > "$RUNNER_TEMP/manifest-substitution.json"
+          set +e
+          cargo run --manifest-path tools/industry-availability-auditor/Cargo.toml --locked -- "$manifest" "$RUNNER_TEMP/manifest-substitution.json" "$report"
+          status=$?
+          set -e
+          test "$status" -eq 2
+
+      - name: Prove dependency lock remains unchanged
+        run: git diff --exit-code -- tools/industry-availability-auditor/Cargo.lock
+
+      - name: Retain exact report and source fixture digests
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ieac-availability-audit-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            ${{ runner.temp }}/ieac-availability-audit-report.json
+            schemas/examples/ieac-evidence-channel-manifest-synthetic-v0.1.json
+            schemas/examples/ieac-availability-completeness-attestation-synthetic-v0.1.json
+          if-no-files-found: warn
+          retention-days: 30
