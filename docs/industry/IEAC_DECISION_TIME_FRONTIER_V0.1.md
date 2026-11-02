@@ -26,7 +26,7 @@ For every evidence artifact, preserve separate concepts:
 | `source_recorded_at` | When the source says it recorded/published the item | Independent availability to the relying party |
 | `first_available.time` | Time bound for the exact artifact becoming accessible to a specified relying party | Physical truth or universal publication |
 
-The decision cutoff is a separate, independently supported time interval. Each `TimeBound` records a normalized UTC instant, uncertainty before/after, clock identity, basis, verification status, proof digest, verifier build and verification-policy digest.
+The decision cutoff is a separate, independently supported time interval. Each `TimeBound` records a normalized UTC instant, uncertainty before/after, clock identity, basis, verification status, proof digest, verifier build, verification-policy digest and trust-bundle digest. The decision snapshot pins the exact verifier build, policy and trust bundle; every time fact marked verified must match all three pins.
 
 The v0.1 Rust tool accepts only whole-second UTC timestamps of the form `YYYY-MM-DDTHH:MM:SSZ`. It rejects timezone offsets, fractional seconds and leap seconds rather than silently normalizing or guessing. The uncertainty interval is explicit and bounded to one day for this first profile. A future profile can add a richer time-scale/clock model after a dedicated conformance corpus exists.
 
@@ -117,8 +117,8 @@ Expected distribution: 2 candidate-included, 2 excluded-after-cutoff and 9 unkno
 - Zero late evidence included in the original as-known candidate set.
 - Zero backdated corrections that alter the original snapshot.
 - 100% unknown classification for unverified, scope-mismatched, existence-only or overlapping mandatory time evidence.
-- 100% refusal of malformed timestamps, duplicate JSON fields, unknown properties, verifier-build substitution, policy substitution and artifact-digest substitution.
-- 100% of reports bind the exact input bytes, decision, profile, evaluator build, time-verifier build and time-verification policy.
+- 100% refusal of malformed timestamps, duplicate JSON fields, unknown properties, verifier-build substitution, policy substitution, trust-bundle substitution and artifact-digest substitution.
+- 100% of reports bind the exact input bytes, decision, profile, evaluator build, time-verifier build, time-verification policy and time-verification trust bundle.
 
 ### Utility / coverage
 
