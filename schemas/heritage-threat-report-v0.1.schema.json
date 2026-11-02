@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-threat-report-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Threat Monitoring Report",
+  "description": "Temporal event localisation, early-warning, false-alert and observation-coverage metrics. Undefined ratios are null rather than imputed.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "site_series_count",
+    "known_event_site_count",
+    "confirmed_no_event_site_count",
+    "unknown_site_count",
+    "known_event_count",
+    "matched_event_count",
+    "exact_month_matched_event_count",
+    "event_recall_within_tolerance",
+    "exact_month_event_recall",
+    "median_absolute_localisation_error_months",
+    "early_warning_event_count",
+    "early_warning_event_rate",
+    "median_early_warning_lead_months",
+    "alert_episode_count",
+    "false_alert_count",
+    "expected_labelled_site_months",
+    "observed_labelled_site_months",
+    "observation_coverage",
+    "false_alerts_per_100_observed_site_months",
+    "alert_threshold",
+    "temporal_tolerance_months",
+    "alert_merge_gap_months",
+    "early_warning_window_months"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-threat-report.v0.1"
+    },
+    "site_series_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "known_event_site_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "confirmed_no_event_site_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "unknown_site_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "known_event_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "matched_event_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "exact_month_matched_event_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "event_recall_within_tolerance": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "exact_month_event_recall": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "median_absolute_localisation_error_months": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "early_warning_event_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "early_warning_event_rate": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "median_early_warning_lead_months": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "alert_episode_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "false_alert_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "expected_labelled_site_months": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "observed_labelled_site_months": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "observation_coverage": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "false_alerts_per_100_observed_site_months": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "alert_threshold": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "temporal_tolerance_months": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "alert_merge_gap_months": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "early_warning_window_months": {
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}

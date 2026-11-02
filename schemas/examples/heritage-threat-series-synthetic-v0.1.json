@@ -1,0 +1,39 @@
+{
+  "schema_version": "luminous.heritage-threat-series.v0.1",
+  "series_id": "synthetic-site-series-01",
+  "site_id": "synthetic-site-01",
+  "ground_truth": {
+    "kind": "known_events",
+    "monitoring_start_month": 24288,
+    "monitoring_end_month": 24293,
+    "event_months": [
+      24291
+    ]
+  },
+  "observations": [
+    {
+      "month_ordinal": 24288,
+      "alert_score": 0.12
+    },
+    {
+      "month_ordinal": 24289,
+      "alert_score": 0.18
+    },
+    {
+      "month_ordinal": 24290,
+      "alert_score": 0.86
+    },
+    {
+      "month_ordinal": 24291,
+      "alert_score": 0.21
+    },
+    {
+      "month_ordinal": 24292,
+      "alert_score": null
+    },
+    {
+      "month_ordinal": 24293,
+      "alert_score": 0.09
+    }
+  ]
+}
