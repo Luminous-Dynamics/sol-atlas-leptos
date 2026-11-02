@@ -19,6 +19,10 @@ on:
       - "schemas/industry-assurance-qualification-profile-v0.1.schema.json"
       - "schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json"
       - "docs/industry/IEAC_RUNTIME_ADMISSION_V0.1.md"
+      - "tools/industry-decision-frontier/**"
+      - "schemas/industry-ieac-decision-frontier-*.json"
+      - "schemas/examples/ieac-decision-frontier-*.json"
+      - "docs/industry/IEAC_DECISION_TIME_FRONTIER_V0.1.md"
       - ".github/workflows/industry-runtime-admission.yml"
   push:
     branches:
@@ -40,6 +44,10 @@ on:
       - "docs/industry/IEAC_TRUST_V0.2_SIGNED_ENVELOPE_PROFILE.md"
       - "schemas/industry-assurance-qualification-profile-v0.1.schema.json"
       - "schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json"
+      - "tools/industry-decision-frontier/**"
+      - "schemas/industry-ieac-decision-frontier-*.json"
+      - "schemas/examples/ieac-decision-frontier-*.json"
+      - "docs/industry/IEAC_DECISION_TIME_FRONTIER_V0.1.md"
       - ".github/workflows/industry-runtime-admission.yml"
   workflow_dispatch:
 
@@ -143,6 +151,127 @@ jobs:
 
       - name: Prove locked dependency graphs remain committed
         run: git diff --exit-code -- tools/industry-assurance-validator/Cargo.lock tools/industry-runtime-admission/Cargo.lock
+
+  decision-frontier:
+    name: Exact-head decision-time evidence frontier replay
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact source revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Format source and retain rustfmt output for exact-head review
+        run: |
+          set -euo pipefail
+          manifest=tools/industry-decision-frontier/Cargo.toml
+          cargo fmt --manifest-path "$manifest"
+          echo "RUSTFMT_GZIP_BASE64_BEGIN"
+          gzip -n -c tools/industry-decision-frontier/src/main.rs | base64 -w0
+          echo
+          echo "RUSTFMT_GZIP_BASE64_END"
+
+      - name: Lint and test standalone auditor
+        run: |
+          set -euo pipefail
+          manifest=tools/industry-decision-frontier/Cargo.toml
+          cargo clippy --manifest-path "$manifest" --all-targets --locked -- -D warnings
+          cargo test --manifest-path "$manifest" --locked
+
+      - name: Install pinned Draft 2020-12 validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Add schema CLI to PATH
+        run: echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+
+      - name: Validate temporal snapshot and report schemas
+        run: |
+          set -euo pipefail
+          snapshot=schemas/industry-ieac-decision-frontier-snapshot-v0.1.schema.json
+          report=schemas/industry-ieac-decision-frontier-report-v0.1.schema.json
+          fixture=schemas/examples/ieac-decision-frontier-snapshot-synthetic-v0.1.json
+          jsonschema-cli validate --draft 2020 --assert-format -i "$snapshot"
+          jsonschema-cli validate --draft 2020 --assert-format -i "$report"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$snapshot" -i "$fixture"
+
+      - name: Run temporal replay and expected-vector oracle
+        run: |
+          set -euo pipefail
+          fixture=schemas/examples/ieac-decision-frontier-snapshot-synthetic-v0.1.json
+          expected=schemas/examples/ieac-decision-frontier-expected-synthetic-v0.1.json
+          report="$RUNNER_TEMP/ieac-decision-frontier-report.json"
+          set +e
+          cargo run --manifest-path tools/industry-decision-frontier/Cargo.toml --locked -- "$fixture" "$report"
+          status=$?
+          set -e
+          test "$status" -eq 3
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-ieac-decision-frontier-report-v0.1.schema.json -i "$report"
+          input_sha="$(sha256sum "$fixture" | awk '{print $1}')"
+          jq --slurpfile expected "$expected" --arg input_sha "$input_sha" -e '
+            . as $report |
+            $expected[0].expected as $want |
+            $report.schema_version == "luminous.ieac-decision-frontier-report.v0.1" and
+            $report.input_sha256 == $input_sha and
+            $report.action_authority == "none" and
+            $report.claim_ceiling == "historical_information_boundary_only" and
+            $report.summary.history_completeness == "not_established" and
+            $report.summary.evidence_count == $want.evidence_count and
+            $report.summary.candidate_as_known_count == $want.candidate_as_known_count and
+            $report.summary.excluded_after_cutoff == $want.excluded_after_cutoff and
+            $report.summary.unknown == $want.unknown and
+            ($report.summary.candidate_as_known_count + $report.summary.excluded_after_cutoff + $report.summary.unknown) == $report.summary.evidence_count and
+            all($want.classifications[];
+              . as $expected_row |
+              any($report.classifications[];
+                .evidence_id == $expected_row.evidence_id and
+                .as_known_status == $expected_row.status and
+                .reason_code == $expected_row.reason_code
+              )
+            ) and
+            ($report.later_available_evidence_ids | length) == 0 and
+            all($report.candidate_as_known_evidence_ids[];
+              . == "known-before-cutoff" or . == "known-second-measurement"
+            )
+          ' "$report"
+
+      - name: Negative controls for temporal schema, binding and authority
+        run: |
+          set -euo pipefail
+          fixture=schemas/examples/ieac-decision-frontier-snapshot-synthetic-v0.1.json
+          schema=schemas/industry-ieac-decision-frontier-snapshot-v0.1.schema.json
+          jq '.unexpected = true' "$fixture" > "$RUNNER_TEMP/frontier-unknown-field.json"
+          jq '.decision_cutoff.time_utc = "2026-11-02T11:10:00+02:00"' "$fixture" > "$RUNNER_TEMP/frontier-offset-time.json"
+          jq '.action_authority = "execute"' "$fixture" > "$RUNNER_TEMP/frontier-action-escalation.json"
+          for mutant in "$RUNNER_TEMP/frontier-unknown-field.json" "$RUNNER_TEMP/frontier-offset-time.json" "$RUNNER_TEMP/frontier-action-escalation.json"; do
+            if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$mutant"; then
+              echo "ERROR: snapshot schema accepted negative control $mutant"
+              exit 1
+            fi
+          done
+
+          jq '.evidence[0].availability_evidence.artifact_sha256 = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"' "$fixture" > "$RUNNER_TEMP/frontier-artifact-substitution.json"
+          jq '.evidence[0].availability_evidence.time.verification_status = "failed"' "$fixture" > "$RUNNER_TEMP/frontier-failed-proof.json"
+          jq '.evidence[0].availability_evidence.time.trust_bundle_sha256 = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"' "$fixture" > "$RUNNER_TEMP/frontier-trust-bundle-substitution.json"
+          for mutant in "$RUNNER_TEMP/frontier-artifact-substitution.json" "$RUNNER_TEMP/frontier-failed-proof.json" "$RUNNER_TEMP/frontier-trust-bundle-substitution.json"; do
+            set +e
+            cargo run --manifest-path tools/industry-decision-frontier/Cargo.toml --locked -- "$mutant" "$RUNNER_TEMP/frontier-mutant-report.json"
+            status=$?
+            set -e
+            test "$status" -eq 2
+          done
+
+      - name: Prove standalone dependency lock remains committed
+        run: git diff --exit-code -- tools/industry-decision-frontier/Cargo.lock
 
   schema-conformance:
     name: Draft 2020-12 meta-schema, fixtures and negative controls
