@@ -264,7 +264,8 @@ jobs:
 
           jq '.evidence[0].availability_evidence.artifact_sha256 = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"' "$fixture" > "$RUNNER_TEMP/frontier-artifact-substitution.json"
           jq '.evidence[0].availability_evidence.time.verification_status = "failed"' "$fixture" > "$RUNNER_TEMP/frontier-failed-proof.json"
-          for mutant in "$RUNNER_TEMP/frontier-artifact-substitution.json" "$RUNNER_TEMP/frontier-failed-proof.json"; do
+          jq '.evidence[0].availability_evidence.time.trust_bundle_sha256 = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"' "$fixture" > "$RUNNER_TEMP/frontier-trust-bundle-substitution.json"
+          for mutant in "$RUNNER_TEMP/frontier-artifact-substitution.json" "$RUNNER_TEMP/frontier-failed-proof.json" "$RUNNER_TEMP/frontier-trust-bundle-substitution.json"; do
             set +e
             cargo run --manifest-path tools/industry-decision-frontier/Cargo.toml --locked -- "$mutant" "$RUNNER_TEMP/frontier-mutant-report.json"
             status=$?
