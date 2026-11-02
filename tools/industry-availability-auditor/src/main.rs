@@ -791,7 +791,7 @@ mod tests {
     #[test]
     fn access_before_decision_boundary_forces_unknown() {
         let (manifest, mut attestation) = corpus();
-        attestation["first_access"]["sequence"] = json!(100);
+        attestation["first_access"]["sequence"] = json!(109);
         let report = evaluate_mutation(&manifest, &attestation).expect("unknown is a valid result");
         assert_eq!(report["status"], "unknown");
     }
