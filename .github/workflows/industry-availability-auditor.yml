@@ -108,7 +108,7 @@ jobs:
             .action_authority == "none" and
             .universal_non_access_claim == false and
             .checkpoint_sequences.coverage_start == 90 and
-            .checkpoint_sequences.decision_boundary == 100 and
+            .checkpoint_sequences.decision_boundary == 109 and
             .checkpoint_sequences.first_access == 110 and
             .checkpoint_sequences.coverage_end == 120 and
             $expected[0].expected.rfc9162_non_inclusion_assumed == false
@@ -124,7 +124,7 @@ jobs:
           jq '.capture_health.known_bypass_paths = ["unlogged-cache"]' "$source" > "$RUNNER_TEMP/bypass.json"
           jq '.absence_query.matching_event_count = 1' "$source" > "$RUNNER_TEMP/nonzero-query.json"
           jq '.absence_query.sequence_through_inclusive = 99' "$source" > "$RUNNER_TEMP/wrong-query-range.json"
-          jq '.first_access.sequence = 100' "$source" > "$RUNNER_TEMP/access-before-boundary.json"
+          jq '.first_access.sequence = 109' "$source" > "$RUNNER_TEMP/access-before-boundary.json"
           jq '.decision_boundary_checkpoint.observed_at.time_utc = "2026-11-02T09:10:00Z"' "$source" > "$RUNNER_TEMP/boundary-not-after-cutoff.json"
           for mutant in "$RUNNER_TEMP/gap.json" "$RUNNER_TEMP/bypass.json" "$RUNNER_TEMP/nonzero-query.json" "$RUNNER_TEMP/wrong-query-range.json" "$RUNNER_TEMP/access-before-boundary.json" "$RUNNER_TEMP/boundary-not-after-cutoff.json"; do
             set +e
