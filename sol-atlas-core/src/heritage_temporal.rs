@@ -16,8 +16,7 @@ use std::fmt;
 
 use super::heritage_threat::year_month_from_ordinal;
 
-pub const TEMPORAL_INTERVAL_SCHEMA_VERSION: &str =
-    "luminous.heritage-temporal-interval.v0.1";
+pub const TEMPORAL_INTERVAL_SCHEMA_VERSION: &str = "luminous.heritage-temporal-interval.v0.1";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EventTimeInterval {
@@ -115,18 +114,45 @@ pub enum TemporalIntervalError {
     DuplicateGroundTruthEventId(String),
     MissingPredictionForEvent(String),
     PredictionWithoutGroundTruth(String),
-    InvalidEventInterval { event_id: String },
-    EmptyAdjudicationReference { event_id: String },
-    EmptyEvidenceReferences { event_id: String },
-    InvalidEvidenceReference { event_id: String },
-    DuplicateEvidenceReference { event_id: String },
-    EmptyMonthProbabilities { event_id: String },
-    InvalidMonthOrdinal { event_id: String, month_ordinal: i64 },
-    MonthProbabilitiesNotStrictlyIncreasing { event_id: String },
-    InvalidMonthProbability { event_id: String, month_ordinal: i64 },
-    MonthProbabilitySum { event_id: String, sum_millionths: i64 },
-    ZeroProbabilityInAdmissibleInterval { event_id: String },
-    InvalidIntervalDistance { event_id: String },
+    InvalidEventInterval {
+        event_id: String,
+    },
+    EmptyAdjudicationReference {
+        event_id: String,
+    },
+    EmptyEvidenceReferences {
+        event_id: String,
+    },
+    InvalidEvidenceReference {
+        event_id: String,
+    },
+    DuplicateEvidenceReference {
+        event_id: String,
+    },
+    EmptyMonthProbabilities {
+        event_id: String,
+    },
+    InvalidMonthOrdinal {
+        event_id: String,
+        month_ordinal: i64,
+    },
+    MonthProbabilitiesNotStrictlyIncreasing {
+        event_id: String,
+    },
+    InvalidMonthProbability {
+        event_id: String,
+        month_ordinal: i64,
+    },
+    MonthProbabilitySum {
+        event_id: String,
+        sum_millionths: i64,
+    },
+    ZeroProbabilityInAdmissibleInterval {
+        event_id: String,
+    },
+    InvalidIntervalDistance {
+        event_id: String,
+    },
 }
 
 impl fmt::Display for TemporalIntervalError {
@@ -242,7 +268,11 @@ fn validate_truth(truth: &TemporalEventTruth) -> Result<(), TemporalIntervalErro
             event_id: truth.event_id.clone(),
         });
     }
-    if truth.evidence_refs.iter().any(|reference| reference.trim().is_empty()) {
+    if truth
+        .evidence_refs
+        .iter()
+        .any(|reference| reference.trim().is_empty())
+    {
         return Err(TemporalIntervalError::InvalidEvidenceReference {
             event_id: truth.event_id.clone(),
         });
@@ -256,10 +286,7 @@ fn validate_truth(truth: &TemporalEventTruth) -> Result<(), TemporalIntervalErro
     Ok(())
 }
 
-fn probability_first_before_second(
-    first: &[MonthProbability],
-    second: &[MonthProbability],
-) -> f64 {
+fn probability_first_before_second(first: &[MonthProbability], second: &[MonthProbability]) -> f64 {
     let mut probability = 0.0;
     for first_month in first {
         for second_month in second {
@@ -491,17 +518,14 @@ pub fn evaluate_temporal_intervals(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::heritage_threat::month_ordinal;
+    use super::*;
 
     fn month(year: i32, month: u8) -> i64 {
         month_ordinal(year, month).unwrap()
     }
 
-    fn prediction(
-        event_id: &str,
-        months: &[(i32, u8, f64)],
-    ) -> TemporalEventPrediction {
+    fn prediction(event_id: &str, months: &[(i32, u8, f64)]) -> TemporalEventPrediction {
         TemporalEventPrediction {
             event_id: event_id.into(),
             month_probabilities: months
@@ -580,10 +604,7 @@ mod tests {
     #[test]
     fn zero_probability_in_the_admissible_interval_fails_closed() {
         let input = case(
-            vec![prediction(
-                "event-a",
-                &[(2020, 1, 0.6), (2020, 2, 0.4)],
-            )],
+            vec![prediction("event-a", &[(2020, 1, 0.6), (2020, 2, 0.4)])],
             vec![truth("event-a", (2020, 3), (2020, 4))],
         );
         assert!(matches!(
@@ -650,10 +671,7 @@ mod tests {
     #[test]
     fn probability_ties_choose_the_earliest_month_and_top_k_ties_are_stable() {
         let input = case(
-            vec![prediction(
-                "event-a",
-                &[(2020, 1, 0.5), (2020, 2, 0.5)],
-            )],
+            vec![prediction("event-a", &[(2020, 1, 0.5), (2020, 2, 0.5)])],
             vec![truth("event-a", (2020, 2), (2020, 2))],
         );
         let report = evaluate_temporal_intervals(&input, config(1)).unwrap();
@@ -664,18 +682,14 @@ mod tests {
     #[test]
     fn normalized_distribution_and_interval_are_required() {
         let mut input = case(
-            vec![prediction(
-                "event-a",
-                &[(2020, 1, 0.4), (2020, 2, 0.4)],
-            )],
+            vec![prediction("event-a", &[(2020, 1, 0.4), (2020, 2, 0.4)])],
             vec![truth("event-a", (2020, 1), (2020, 2))],
         );
         assert!(matches!(
             evaluate_temporal_intervals(&input, config(1)),
             Err(TemporalIntervalError::MonthProbabilitySum { .. })
         ));
-        input.ground_truth[0].admissible_interval.end_month =
-            month(2019, 1);
+        input.ground_truth[0].admissible_interval.end_month = month(2019, 1);
         input.predictions[0].month_probabilities[0].probability = 0.6;
         assert!(matches!(
             evaluate_temporal_intervals(&input, config(1)),
@@ -725,9 +739,9 @@ mod tests {
             vec![prediction("event-a", &[(2020, 1, 1.0)])],
             vec![truth("event-a", (2020, 1), (2020, 1))],
         );
-        input.ground_truth[0].evidence_refs.push(
-            input.ground_truth[0].evidence_refs[0].clone()
-        );
+        input.ground_truth[0]
+            .evidence_refs
+            .push(input.ground_truth[0].evidence_refs[0].clone());
         assert!(matches!(
             evaluate_temporal_intervals(&input, config(1)),
             Err(TemporalIntervalError::DuplicateEvidenceReference { .. })
@@ -747,7 +761,10 @@ mod tests {
         assert_eq!(
             evaluate_temporal_intervals(
                 &invalid,
-                TemporalIntervalConfig { top_k_months: 0, probability_tolerance: 1e-9 }
+                TemporalIntervalConfig {
+                    top_k_months: 0,
+                    probability_tolerance: 1e-9
+                }
             ),
             Err(TemporalIntervalError::InvalidConfig)
         );
