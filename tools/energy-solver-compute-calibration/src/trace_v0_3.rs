@@ -1136,6 +1136,25 @@ mod tests {
     }
 
     #[test]
+    fn summary_keeps_scenarios_separate_inside_one_shared_cohort() {
+        let mut nominal = base(SearchDispositionV03::ExactComplete);
+        nominal.scenario_id = "nominal-pv-charge-outage".to_owned();
+        nominal.sample_id = "sample-nominal".to_owned();
+
+        let mut battery_only = base(SearchDispositionV03::ExactComplete);
+        battery_only.scenario_id = "battery-only-outage-backup".to_owned();
+        battery_only.sample_id = "sample-battery-only".to_owned();
+
+        let summaries = summarize_traces_v03(&[nominal, battery_only]).unwrap();
+        assert_eq!(summaries.len(), 2);
+        assert_eq!(summaries[0].cohort_id, summaries[1].cohort_id);
+        assert_eq!(summaries[0].scenario_id, "battery-only-outage-backup");
+        assert_eq!(summaries[1].scenario_id, "nominal-pv-charge-outage");
+        assert_eq!(summaries[0].sample_count, 1);
+        assert_eq!(summaries[1].sample_count, 1);
+    }
+
+    #[test]
     fn summary_preserves_all_search_and_audit_denominators() {
         let mut exact = base(SearchDispositionV03::ExactComplete);
         exact.sample_id = "sample-exact".into();
