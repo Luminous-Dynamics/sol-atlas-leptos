@@ -161,14 +161,58 @@ fn read_fixture(path: &str) -> Result<Value, String> {
     serde_json::from_slice(&bytes).map_err(|e| format!("invalid JSON in {path}: {e}"))
 }
 
-fn vertical_spec(vertical: &str) -> Result<(&'static str, &'static str, f64, f64, f64, f64, f64), String> {
-    match vertical {
-        "telecommunications" => Ok(("site_backup_usable_energy", "kWh", 0.0, 20.0, 12.0, 11.0, 13.0)),
-        "water_food_energy" => Ok(("water_pressure", "kPa", 100.0, 500.0, 300.0, 295.0, 305.0)),
-        "industrial_maintenance" => Ok(("bearing_vibration", "mm/s", 0.0, 8.0, 2.5, 2.0, 3.0)),
-        "buildings" => Ok(("indoor_temperature", "degC", 18.0, 28.0, 22.0, 21.5, 22.5)),
-        other => Err(format!("unsupported benchmark.vertical {other:?}")),
-    }
+#[derive(Debug, Clone, Copy)]
+struct VerticalSpec {
+    variable: &'static str,
+    unit: &'static str,
+    minimum: f64,
+    maximum: f64,
+    value: f64,
+    lower: f64,
+    upper: f64,
+}
+
+fn vertical_spec(vertical: &str) -> Result<VerticalSpec, String> {
+    let spec = match vertical {
+        "telecommunications" => VerticalSpec {
+            variable: "site_backup_usable_energy",
+            unit: "kWh",
+            minimum: 0.0,
+            maximum: 20.0,
+            value: 12.0,
+            lower: 11.0,
+            upper: 13.0,
+        },
+        "water_food_energy" => VerticalSpec {
+            variable: "water_pressure",
+            unit: "kPa",
+            minimum: 100.0,
+            maximum: 500.0,
+            value: 300.0,
+            lower: 295.0,
+            upper: 305.0,
+        },
+        "industrial_maintenance" => VerticalSpec {
+            variable: "bearing_vibration",
+            unit: "mm/s",
+            minimum: 0.0,
+            maximum: 8.0,
+            value: 2.5,
+            lower: 2.0,
+            upper: 3.0,
+        },
+        "buildings" => VerticalSpec {
+            variable: "indoor_temperature",
+            unit: "degC",
+            minimum: 18.0,
+            maximum: 28.0,
+            value: 22.0,
+            lower: 21.5,
+            upper: 22.5,
+        },
+        other => return Err(format!("unsupported benchmark.vertical {other:?}")),
+    };
+    Ok(spec)
 }
 
 fn build_vertical_fixture(
@@ -177,7 +221,15 @@ fn build_vertical_fixture(
     pin: &mut Value,
     request: &mut Value,
 ) -> Result<(), String> {
-    let (variable, unit, minimum, maximum, value, lower, upper) = vertical_spec(vertical)?;
+    let VerticalSpec {
+        variable,
+        unit,
+        minimum,
+        maximum,
+        value,
+        lower,
+        upper,
+    } = vertical_spec(vertical)?;
     let slug = vertical.replace('_', "-");
     let asset = format!("synthetic-{slug}-asset-001");
     let sensor = format!("sensor-{slug}-001");
@@ -317,10 +369,16 @@ fn apply_family(
             "identity_drift" | "identity_drift_plus_pin_revoked" => {
                 request["model_sha256"] = json!("ff".repeat(32));
             }
-            "profile_expired" | "profile_expired_plus_authority_unavailable" | "out_of_range_plus_profile_expired" => {
+            "profile_expired" | "out_of_range_plus_profile_expired" => {
                 profile["validity"]["review_by"] = json!("2026-10-31T11:59:59Z");
                 refresh_pin(profile, pin);
                 request["profile_sha256"] = json!(digest_value(profile));
+            }
+            "profile_expired_plus_authority_unavailable" => {
+                profile["validity"]["review_by"] = json!("2026-10-31T11:59:59Z");
+                refresh_pin(profile, pin);
+                request["profile_sha256"] = json!(digest_value(profile));
+                request["revocation_snapshot"]["status"] = json!("unavailable");
             }
             "profile_pin_revoked" | "identity_drift_plus_pin_revoked" | "unit_mismatch_plus_pin_revoked" => {
                 pin["status"] = json!("revoked");
@@ -329,7 +387,7 @@ fn apply_family(
                 let source_id = request["snapshot"]["conditions"][0]["evidence_artifact_id"].clone();
                 request["revocation_snapshot"]["revoked_artifact_ids"] = json!([source_id]);
             }
-            "authorization_unavailable" | "profile_expired_plus_authority_unavailable" => {
+            "authorization_unavailable" => {
                 request["revocation_snapshot"]["status"] = json!("unavailable");
             }
             "authority_escalation" | "stale_plus_authority_escalation" => {
@@ -484,7 +542,15 @@ fn validate_cli_overrides(
     Ok(())
 }
 
-fn parse_args() -> Result<(String, Option<usize>, Option<u64>, Option<String>, String), String> {
+struct BenchmarkArgs {
+    manifest_path: String,
+    requested_trials: Option<usize>,
+    requested_seed: Option<u64>,
+    output_path: Option<String>,
+    cases_jsonl_path: String,
+}
+
+fn parse_args() -> Result<BenchmarkArgs, String> {
     let mut manifest = None;
     let mut output = None;
     let mut cases_jsonl = None;
@@ -514,11 +580,15 @@ fn parse_args() -> Result<(String, Option<usize>, Option<u64>, Option<String>, S
             _ => return Err(format!("unknown argument {arg}")),
         }
     }
-    Ok((
-        manifest.ok_or("required argument: --manifest <frozen-ibap-manifest.json>")?,
-        trials, seed, output,
-        cases_jsonl.ok_or("required argument: --cases-jsonl <new-case-ledger.jsonl>")?,
-    ))
+    Ok(BenchmarkArgs {
+        manifest_path: manifest
+            .ok_or("required argument: --manifest <frozen-ibap-manifest.json>")?,
+        requested_trials: trials,
+        requested_seed: seed,
+        output_path: output,
+        cases_jsonl_path: cases_jsonl
+            .ok_or("required argument: --cases-jsonl <new-case-ledger.jsonl>")?,
+    })
 }
 
 fn write_new(path: &str, bytes: &[u8]) -> Result<(), String> {
@@ -531,7 +601,13 @@ fn write_new(path: &str, bytes: &[u8]) -> Result<(), String> {
 }
 
 fn run() -> Result<(Value, bool), String> {
-    let (manifest_path, requested_trials, requested_seed, output_path, cases_jsonl_path) = parse_args()?;
+    let BenchmarkArgs {
+        manifest_path,
+        requested_trials,
+        requested_seed,
+        output_path,
+        cases_jsonl_path,
+    } = parse_args()?;
     let manifest_bytes = fs::read(&manifest_path)
         .map_err(|e| format!("cannot read manifest {manifest_path}: {e}"))?;
     let manifest: Value = serde_json::from_slice(&manifest_bytes)
