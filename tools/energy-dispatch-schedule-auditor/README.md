@@ -201,11 +201,11 @@ that decision:
 
 [
 O_{s,t}=H(
-  	ext{history schema},
-  	ext{scenario-set ID},
+  \textext{history schema},
+  \textext{scenario-set ID},
   t,
   O_{s,t-1},
-  	ext{observed-at}_t,
+  \textext{observed-at}_t,
   H(\text{canonical JSON observation payload}_t)
 )
 ]
@@ -214,12 +214,12 @@ It then derives the information-set identity:
 
 [
 I_{s,t}=H(
-  	ext{information-set schema},
-  	ext{scenario-set ID},
-  	ext{decision time}_t,
+  \textext{information-set schema},
+  \textext{scenario-set ID},
+  \textext{decision time}_t,
   O_{s,t},
-  	ext{forecast vintage}_t,
-  H(	ext{exact forecast bundle bytes}_t)
+  \textext{forecast vintage}_t,
+  H(\textext{exact forecast bundle bytes}_t)
 )
 ]
 
