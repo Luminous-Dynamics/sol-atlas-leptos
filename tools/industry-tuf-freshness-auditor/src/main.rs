@@ -1,4 +1,6 @@
-use serde_json::{json, Map, Value};
+use serde::de::{self, MapAccess, SeqAccess, Visitor};
+use serde::{Deserialize, Deserializer};
+use serde_json::{json, Map, Number, Value};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 use std::env;
@@ -9,6 +11,97 @@ const VERIFIER_SCHEMA: &str = "luminous.ieac-tuf-verifier-report.v0.1";
 const POLICY_SCHEMA: &str = "luminous.ieac-tuf-freshness-policy.v0.1";
 const STATE_SCHEMA: &str = "luminous.ieac-tuf-high-water-state.v0.1";
 const REPORT_SCHEMA: &str = "luminous.ieac-tuf-freshness-report.v0.1";
+
+#[derive(Debug)]
+enum StrictJson {
+    Null,
+    Bool(bool),
+    Number(Number),
+    String(String),
+    Array(Vec<StrictJson>),
+    Object(BTreeMap<String, StrictJson>),
+}
+impl StrictJson {
+    fn into_value(self) -> Value {
+        match self {
+            Self::Null => Value::Null,
+            Self::Bool(v) => Value::Bool(v),
+            Self::Number(v) => Value::Number(v),
+            Self::String(v) => Value::String(v),
+            Self::Array(v) => Value::Array(v.into_iter().map(Self::into_value).collect()),
+            Self::Object(v) => {
+                let mut out = Map::new();
+                for (k, value) in v { out.insert(k, value.into_value()); }
+                Value::Object(out)
+            }
+        }
+    }
+}
+impl<'de> Deserialize<'de> for StrictJson {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where D: Deserializer<'de> {
+        struct StrictVisitor;
+        impl<'de> Visitor<'de> for StrictVisitor {
+            type Value = StrictJson;
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                f.write_str("JSON value with no duplicate object members")
+            }
+            fn visit_unit<E>(self) -> Result<Self::Value, E> where E: de::Error {
+                Ok(StrictJson::Null)
+            }
+            fn visit_none<E>(self) -> Result<Self::Value, E> where E: de::Error {
+                Ok(StrictJson::Null)
+            }
+            fn visit_bool<E>(self, v: bool) -> Result<Self::Value, E> where E: de::Error {
+                Ok(StrictJson::Bool(v))
+            }
+            fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E> where E: de::Error {
+                Ok(StrictJson::Number(Number::from(v)))
+            }
+            fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E> where E: de::Error {
+                Ok(StrictJson::Number(Number::from(v)))
+            }
+            fn visit_f64<E>(self, v: f64) -> Result<Self::Value, E> where E: de::Error {
+                Number::from_f64(v).map(StrictJson::Number)
+                    .ok_or_else(|| E::custom("non-finite JSON number"))
+            }
+            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: de::Error {
+                Ok(StrictJson::String(v.to_string()))
+            }
+            fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: de::Error {
+                Ok(StrictJson::String(v))
+            }
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where A: SeqAccess<'de> {
+                let mut values = Vec::new();
+                while let Some(value) = seq.next_element::<StrictJson>()? {
+                    values.push(value);
+                }
+                Ok(StrictJson::Array(values))
+            }
+            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+            where A: MapAccess<'de> {
+                let mut values = BTreeMap::new();
+                while let Some(key) = map.next_key::<String>()? {
+                    if values.contains_key(&key) {
+                        return Err(de::Error::custom(format!("duplicate JSON member: {key}")));
+                    }
+                    values.insert(key, map.next_value::<StrictJson>()?);
+                }
+                Ok(StrictJson::Object(values))
+            }
+        }
+        deserializer.deserialize_any(StrictVisitor)
+    }
+}
+fn parse_strict_json(raw: &[u8], label: &str) -> Result<Value, String> {
+    let mut deserializer = serde_json::Deserializer::from_slice(raw);
+    let parsed = StrictJson::deserialize(&mut deserializer)
+        .map_err(|e| format!("invalid strict JSON in {label}: {e}"))?;
+    deserializer.end()
+        .map_err(|e| format!("trailing data in {label}: {e}"))?;
+    Ok(parsed.into_value())
+}
 
 fn obj<'a>(v: &'a Value, path: &str) -> Result<&'a Map<String, Value>, String> {
     v.as_object()
@@ -581,7 +674,7 @@ fn to_report(result: &AuditResult, state_id: &str) -> Value {
 
 fn read_json(path:&str)->Result<(Vec<u8>,Value),String>{
     let raw=fs::read(path).map_err(|e|format!("cannot read {path}: {e}"))?;
-    let value:Value=serde_json::from_slice(&raw).map_err(|e|format!("invalid JSON in {path}: {e}"))?;
+    let value=parse_strict_json(&raw,path)?;
     Ok((raw,value))
 }
 fn run()->Result<u8,String>{
@@ -693,6 +786,10 @@ mod tests{
         let pb=serde_json::to_vec(&p).unwrap();
         let sb=serde_json::to_vec(&s).unwrap();
         audit(&r,&p,&s,&rb,&pb,&sb)
+    }
+    #[test]fn rejects_duplicate_json_members() {
+        let parsed=parse_strict_json(br#"{"status":"verified","status":"failed"}"#,"duplicate-test");
+        assert!(parsed.is_err());
     }
     #[test]fn accepts_verified_monotonic_tuf_state(){assert_eq!(audit_base().unwrap().status,"current");}
     #[test]fn valid_root_rotation_accepts_contiguous_dual_threshold_chain(){
