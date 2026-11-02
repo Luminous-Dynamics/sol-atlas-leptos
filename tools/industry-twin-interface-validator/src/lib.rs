@@ -37,7 +37,6 @@ fn valid_sha256(value: &str) -> bool {
             .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
-
 fn reject_unknown_keys(
     value: &Value,
     allowed: &[&str],
@@ -110,7 +109,10 @@ pub fn validate_manifest(value: &Value) -> Vec<ValidationIssue> {
     if string_at(value, &["schema_version"])
         != Some("luminous.industry-twin-interface-manifest.v0.1")
     {
-        issues.push(ValidationIssue::new("SCHEMA_VERSION_UNSUPPORTED", "schema_version"));
+        issues.push(ValidationIssue::new(
+            "SCHEMA_VERSION_UNSUPPORTED",
+            "schema_version",
+        ));
     }
     if value["standard_conformity_claimed"].as_bool() != Some(false) {
         issues.push(ValidationIssue::new(
@@ -126,9 +128,7 @@ pub fn validate_manifest(value: &Value) -> Vec<ValidationIssue> {
             "claim_ceiling",
         ));
     }
-    if string_at(value, &["unknown_extension_policy"])
-        != Some("preserve_opaque_or_report_loss")
-    {
+    if string_at(value, &["unknown_extension_policy"]) != Some("preserve_opaque_or_report_loss") {
         issues.push(ValidationIssue::new(
             "UNKNOWN_EXTENSION_POLICY_UNSAFE",
             "unknown_extension_policy",
@@ -240,8 +240,8 @@ pub fn validate_manifest(value: &Value) -> Vec<ValidationIssue> {
                 ));
             }
         }
-        let Some(participant_id) = string_at(participant, &["participant_id"])
-            .filter(|id| !id.is_empty())
+        let Some(participant_id) =
+            string_at(participant, &["participant_id"]).filter(|id| !id.is_empty())
         else {
             issues.push(ValidationIssue::new(
                 "PARTICIPANT_ID_MISSING",
@@ -612,9 +612,7 @@ pub fn validate_manifest(value: &Value) -> Vec<ValidationIssue> {
     );
     let tier = string_at(decision, &["decision_tier"]);
     let action = string_at(decision, &["requested_action"]);
-    if tier == Some("D0_descriptive")
-        && !matches!(action, Some("view" | "annotate"))
-    {
+    if tier == Some("D0_descriptive") && !matches!(action, Some("view" | "annotate")) {
         issues.push(ValidationIssue::new(
             "D0_ACTION_ESCALATION",
             "decision_scope.requested_action",
@@ -828,7 +826,7 @@ mod tests {
             ),
             include_str!(
                 "../../../schemas/examples/industry-twin-interface-negative-unit-transform-v0.1.json"
-            )
+            ),
         ];
         for fixture_text in negative_fixtures {
             let value: Value = serde_json::from_str(fixture_text).unwrap();
