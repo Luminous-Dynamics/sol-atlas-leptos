@@ -389,6 +389,13 @@ fn add_payload(
     Ok(())
 }
 
+fn add_unique_staging_path(used: &mut BTreeSet<String>, path: String) -> Result<(), String> {
+    if !safe_relative_path(&path) || !used.insert(path.clone()) {
+        return Err(format!("unsafe or reused staging source path: {path}"));
+    }
+    Ok(())
+}
+
 fn check_exact_staging_set(
     staging_root: &Path,
     used: &BTreeSet<String>,
@@ -484,6 +491,13 @@ fn validate_pin_and_template(
         || pin.max_file_count < 6
         || pin.max_file_count > 4096
         || pin.allowed_capsule_modes.is_empty()
+        || pin.pin_id.trim().is_empty()
+        || pin.repository_id.trim().is_empty()
+        || pin.policy_id.trim().is_empty()
+        || pin.policy_scope_id.trim().is_empty()
+        || pin.clock_id.trim().is_empty()
+        || pin.uncertainty_before_ms > 86_400_000
+        || pin.uncertainty_after_ms > 86_400_000
         || !pin.allowed_capsule_modes.iter().any(|mode| mode == &template.capsule_mode)
     {
         return Err("invalid out-of-band trust pin".to_string());
@@ -846,6 +860,13 @@ fn pack(
     if receipt_parent.starts_with(&output_final) {
         return Err("pack receipt must be outside capsule directory".to_string());
     }
+    if let Some(root) = cas_root {
+        let cas_canonical = fs::canonicalize(root)
+            .map_err(|error| format!("cannot canonicalize local CAS root: {error}"))?;
+        if cas_canonical.starts_with(&output_final) {
+            return Err("local CAS root must be outside output capsule directory".to_string());
+        }
+    }
     let (pin, pin_bytes) = read_trust_pin(trust_pin_path)?;
     let (template, template_bytes) = read_template(template_path)?;
     validate_pin_and_template(&template, &pin)?;
@@ -856,14 +877,14 @@ fn pack(
     // paths. Re-read the template only for this path accounting before any write.
     let (template_again, _) = read_template(template_path)?;
     let mut used_staging = BTreeSet::new();
-    used_staging.insert(template_again.bootstrap_root.staged_path);
-    used_staging.insert(template_again.policy_file.staged_path);
+    add_unique_staging_path(&mut used_staging, template_again.bootstrap_root.staged_path)?;
+    add_unique_staging_path(&mut used_staging, template_again.policy_file.staged_path)?;
     for item in template_again.metadata_artifacts {
-        used_staging.insert(item.staged_path);
+        add_unique_staging_path(&mut used_staging, item.staged_path)?;
     }
     for target in template_again.targets {
         if let Some(path) = target.staged_path {
-            used_staging.insert(path);
+            add_unique_staging_path(&mut used_staging, path)?;
         }
     }
     check_exact_staging_set(&staging_canonical, &used_staging)?;
