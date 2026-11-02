@@ -62,6 +62,22 @@ jobs:
         with:
           components: rustfmt, clippy
 
+      - name: Generate Rust formatting candidates (temporary verification aid)
+        run: |
+          cargo fmt --manifest-path tools/industry-assurance-validator/Cargo.toml
+          cargo fmt --manifest-path tools/industry-runtime-admission/Cargo.toml
+
+      - name: Upload formatted Rust source candidates
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ieac-rustfmt-candidates
+          path: |
+            tools/industry-assurance-validator/src
+            tools/industry-runtime-admission/src
+          if-no-files-found: error
+          retention-days: 3
+
       - name: Check formatting
         run: |
           cargo fmt --manifest-path tools/industry-assurance-validator/Cargo.toml -- --check
@@ -187,6 +203,7 @@ jobs:
       - name: Validate the runtime profile and request fixtures
         run: |
           set -euo pipefail
+          meta_schema="$RUNNER_TEMP/draft-2020-12-meta-schema.json"
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-assurance-qualification-profile-v0.1.schema.json -i schemas/examples/industry-runtime-admission-profile-synthetic-v0.1.json
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-runtime-admission-request-v0.1.schema.json -i schemas/examples/industry-runtime-admission-request-synthetic-v0.1.json
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-runtime-profile-pin-v0.1.schema.json -i schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json
