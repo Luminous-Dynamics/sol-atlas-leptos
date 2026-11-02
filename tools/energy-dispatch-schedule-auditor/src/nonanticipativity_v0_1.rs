@@ -473,6 +473,54 @@ pub fn evaluate_nonanticipativity_bytes(
         },
     );
 
+    // A scenario tree represents one decision process. If two scenarios
+    // have identical source-observation histories at the same decision time,
+    // they must not be split by assigning them different forecast artifacts.
+    // Forecast updates may change the information set, but the same update
+    // must be presented to every scenario with the same observed history.
+    let mut observation_groups = BTreeMap::<(usize, String), Vec<usize>>::new();
+    for (scenario_index, scenario) in parsed.iter().enumerate() {
+        for (interval_index, observation_prefix_sha256) in
+            scenario.observation_prefix_sha256_by_interval.iter().enumerate()
+        {
+            observation_groups
+                .entry((interval_index, observation_prefix_sha256.clone()))
+                .or_default()
+                .push(scenario_index);
+        }
+    }
+
+    for ((interval_index, observation_prefix_sha256), members) in observation_groups {
+        if members.len() < 2 {
+            continue;
+        }
+        let first = &parsed[members[0]];
+        let first_information_set = &first.information_sets_by_interval[interval_index];
+        let forecast_consistent = members.iter().skip(1).all(|member| {
+            parsed[*member].information_sets_by_interval[interval_index]
+                == *first_information_set
+        });
+        let mut scenario_ids: Vec<_> = members
+            .iter()
+            .map(|index| parsed[*index].scenario_id.clone())
+            .collect();
+        scenario_ids.sort();
+        add_finding(
+            &mut findings,
+            "shared-observation-forecast-bundle-consistency",
+            Some(interval_index),
+            Some(first.information_set_sha256_by_interval[interval_index].clone()),
+            Some(observation_prefix_sha256),
+            scenario_ids,
+            forecast_consistent,
+            if forecast_consistent {
+                "scenarios with identical observed history use the same forecast vintage and exact forecast bundle"
+            } else {
+                "scenarios with identical observed history cite different forecast vintages or exact forecast bundles"
+            },
+        );
+    }
+
     let mut groups = BTreeMap::<(usize, String), Vec<usize>>::new();
     for (scenario_index, scenario) in parsed.iter().enumerate() {
         for (interval_index, information_set_sha256) in
