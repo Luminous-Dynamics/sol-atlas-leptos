@@ -21,7 +21,12 @@
     "max_capsule_bytes",
     "max_file_count",
     "allowed_capsule_modes",
-    "action_authority"
+    "action_authority",
+    "policy_scope_id",
+    "policy_kind",
+    "time_policy_sha256",
+    "time_verifier_build_sha256",
+    "time_verifier_trust_bundle_sha256"
   ],
   "properties": {
     "schema_version": {
@@ -130,6 +135,31 @@
     },
     "action_authority": {
       "const": "none"
+    },
+    "policy_scope_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "policy_kind": {
+      "enum": [
+        "industrial_assurance",
+        "channel_completeness",
+        "decision_time",
+        "composite"
+      ]
+    },
+    "time_policy_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "time_verifier_build_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "time_verifier_trust_bundle_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
     }
   },
   "allOf": [
