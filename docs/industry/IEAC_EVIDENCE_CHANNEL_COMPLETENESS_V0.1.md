@@ -37,7 +37,7 @@ Synthetic example:
 | First access | 110 | 09:25:00 ± 2s |
 | Coverage end | 120 | 09:30:00 |
 
-The zero-match query is bound to sequence range `(90, 109]`. The first access event is beyond that range and included before the end checkpoint.
+The zero-match query is bound to sequence range `(90, 109]`. The first access event is the immediate next ledger sequence after that range and is included before the end checkpoint.
 
 ## 3. Channel manifest
 
@@ -60,7 +60,7 @@ For a `complete` result, hard requirements are:
 - decision-boundary checkpoint is strictly after the latest possible decision cutoff;
 - coverage interval spans the start through the first-access event;
 - query range exactly equals the start-to-boundary sequence interval ending at `first_access.sequence - 1` and has zero matches;
-- first-access sequence is greater than the boundary sequence and no greater than end sequence;
+- first-access sequence is exactly one greater than the boundary sequence and no greater than end sequence;
 - all checkpoints and events share the same ledger, namespace and epoch;
 - no dropped events, sequence gaps, unresolved outages, backfills, policy changes, bypass paths, retention loss or degraded clock health are declared.
 
