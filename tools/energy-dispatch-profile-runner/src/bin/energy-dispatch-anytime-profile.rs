@@ -405,7 +405,8 @@ fn append_trace(path: &Path, trace: &SolverTraceV03) -> Result<String, String> {
     let mut input = Vec::new();
     file.seek(SeekFrom::Start(0))
         .map_err(|error| format!("seek opened v0.3 trace: {error}"))?;
-    file.take(trace_support::MAX_TRACE_CSV_BYTES as u64 + 1)
+    (&mut file)
+        .take(trace_support::MAX_TRACE_CSV_BYTES as u64 + 1)
         .read_to_end(&mut input)
         .map_err(|error| format!("bounded read of v0.3 trace: {error}"))?;
     if input.len() > trace_support::MAX_TRACE_CSV_BYTES {
