@@ -900,7 +900,9 @@ fn exact_maximum_independent_set(
             continue;
         }
 
-        let selected: BTreeSet<String> = ordered.iter().enumerate()
+        let selected: BTreeSet<String> = ordered
+            .iter()
+            .enumerate()
             .filter_map(|(index, id)| ((mask & (1u64 << index)) != 0).then_some(id.clone()))
             .collect();
         if count > best_count || (count == best_count && selected < best) {
@@ -1295,7 +1297,8 @@ mod tests {
             let mut request = base.clone();
             let original = request["sources"].as_array().unwrap().clone();
             let mut rows = original.clone();
-            let mut numerical_count = rows.iter()
+            let mut numerical_count = rows
+                .iter()
                 .filter(|row| row["control_id"] == "numerical_known_answers")
                 .count();
             while numerical_count < target {
@@ -1309,20 +1312,30 @@ mod tests {
             request["sources"] = json!(rows);
             let bytes = serde_json::to_vec(&request).unwrap();
             let report = evaluate(&request, &bytes).unwrap();
-            let numerical = report["control_results"].as_array().unwrap().iter()
+            let numerical = report["control_results"]
+                .as_array()
+                .unwrap()
+                .iter()
                 .find(|row| row["control_id"] == "numerical_known_answers")
                 .unwrap();
-            let physical = report["control_results"].as_array().unwrap().iter()
+            let physical = report["control_results"]
+                .as_array()
+                .unwrap()
+                .iter()
                 .find(|row| row["control_id"] == "physical_reference_validation")
                 .unwrap();
-            assert_eq!(numerical["candidate_source_ids"].as_array().unwrap().len(), target);
+            assert_eq!(
+                numerical["candidate_source_ids"].as_array().unwrap().len(),
+                target
+            );
             assert_eq!(numerical["method"], "exact_maximum_independent_set");
             assert_eq!(physical["method"], "exact_maximum_independent_set");
         }
         let mut request = base.clone();
         let original = request["sources"].as_array().unwrap().clone();
         let mut rows = original.clone();
-        let mut numerical_count = rows.iter()
+        let mut numerical_count = rows
+            .iter()
             .filter(|row| row["control_id"] == "numerical_known_answers")
             .count();
         while numerical_count < 21 {
@@ -1375,15 +1388,24 @@ mod tests {
             request["sources"] = json!(rows);
             let bytes = serde_json::to_vec(&request).unwrap();
             let report = evaluate(&request, &bytes).unwrap();
-            let numerical = report["control_results"].as_array().unwrap().iter()
+            let numerical = report["control_results"]
+                .as_array()
+                .unwrap()
+                .iter()
                 .find(|row| row["control_id"] == "numerical_known_answers")
                 .unwrap();
-            assert_eq!(numerical["candidate_source_ids"].as_array().unwrap().len(), target);
+            assert_eq!(
+                numerical["candidate_source_ids"].as_array().unwrap().len(),
+                target
+            );
             assert_eq!(numerical["method"], "deterministic_greedy_lower_bound");
             assert_eq!(numerical["optimality_status"], "lower_bound_not_proven");
             assert!(numerical["independent_source_count"].as_u64().unwrap() >= 2);
             assert_eq!(numerical["threshold_met"], true);
-            assert_eq!(numerical["registry_model_disposition"], "qualified_by_registry_model");
+            assert_eq!(
+                numerical["registry_model_disposition"],
+                "qualified_by_registry_model"
+            );
         }
     }
 
