@@ -1,0 +1,38 @@
+{
+  "fixture_schema_version": "luminous.ieac-tuf-freshness-fixture.v0.1",
+  "fixture_status": "synthetic_only",
+  "verifier_report_file": "ieac-tuf-verifier-report-synthetic-v0.1.json",
+  "policy_file": "ieac-tuf-freshness-policy-synthetic-v0.1.json",
+  "state_file": "ieac-tuf-high-water-state-synthetic-v0.1.json",
+  "expected": {
+    "status": "unverified",
+    "root_version": 3,
+    "timestamp_version": 14,
+    "snapshot_version": 9,
+    "target_roles": [
+      {
+        "role_name": "ieac-channel-checkpoints",
+        "version": 8
+      },
+      {
+        "role_name": "ieac-channel-completeness-attestations",
+        "version": 2
+      },
+      {
+        "role_name": "ieac-channel-completeness-reports",
+        "version": 2
+      },
+      {
+        "role_name": "ieac-channel-manifests",
+        "version": 5
+      }
+    ],
+    "checkpoint_sequence": 120,
+    "ledger_epoch": "epoch:2026-11-01",
+    "action_authority": "none",
+    "completeness_attestation_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+    "availability_report_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "structural_status": "consistent",
+    "verification_boundary": "external_tuf_report_not_authenticated_or_cryptographically_verified_here"
+  }
+}

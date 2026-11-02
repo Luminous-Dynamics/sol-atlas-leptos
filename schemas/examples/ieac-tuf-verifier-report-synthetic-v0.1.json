@@ -1,0 +1,120 @@
+{
+  "schema_version": "luminous.ieac-tuf-verifier-report.v0.1",
+  "repository_id": "tuf:ieac-production",
+  "root": {
+    "version": 3,
+    "sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "expires_at": "2026-12-01T00:00:00Z",
+    "timestamp_keyset_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "snapshot_keyset_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "timestamp": {
+    "version": 14,
+    "sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "expires_at": "2026-11-03T00:00:00Z"
+  },
+  "snapshot": {
+    "version": 9,
+    "sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+    "expires_at": "2026-11-10T00:00:00Z"
+  },
+  "target_roles": [
+    {
+      "role_name": "ieac-channel-manifests",
+      "version": 5,
+      "metadata_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+      "expires_at": "2026-11-10T00:00:00Z",
+      "target_path": "channels/plant-17/manifest.json",
+      "target_length": 8192,
+      "target_sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+    },
+    {
+      "role_name": "ieac-channel-checkpoints",
+      "version": 8,
+      "metadata_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+      "expires_at": "2026-11-10T00:00:00Z",
+      "target_path": "channels/plant-17/checkpoint.json",
+      "target_length": 2048,
+      "target_sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+    },
+    {
+      "role_name": "ieac-channel-completeness-attestations",
+      "version": 2,
+      "metadata_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+      "expires_at": "2026-11-10T00:00:00Z",
+      "target_path": "channels/plant-17/completeness-attestation.json",
+      "target_length": 16384,
+      "target_sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+    },
+    {
+      "role_name": "ieac-channel-completeness-reports",
+      "version": 2,
+      "metadata_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "expires_at": "2026-11-10T00:00:00Z",
+      "target_path": "channels/plant-17/completeness-report.json",
+      "target_length": 4096,
+      "target_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    }
+  ],
+  "channel_binding": {
+    "relying_party_id": "rp:industrial-assurance",
+    "channel_id": "channel:plant-17",
+    "tenant_scope": "tenant:plant-17",
+    "purpose": "industrial_resilience_assurance",
+    "ledger_id": "ledger:plant-17-evidence",
+    "sequence_namespace": "plant-17-events",
+    "sequence_epoch": "epoch:2026-11-01",
+    "last_sequence": 120,
+    "channel_manifest": {
+      "role_name": "ieac-channel-manifests",
+      "target_path": "channels/plant-17/manifest.json",
+      "target_length": 8192,
+      "target_sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+    },
+    "checkpoint_state": {
+      "role_name": "ieac-channel-checkpoints",
+      "target_path": "channels/plant-17/checkpoint.json",
+      "target_length": 2048,
+      "target_sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+    },
+    "epoch_transition": null,
+    "completeness_attestation": {
+      "role_name": "ieac-channel-completeness-attestations",
+      "target_path": "channels/plant-17/completeness-attestation.json",
+      "target_length": 16384,
+      "target_sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+    },
+    "availability_audit_report": {
+      "role_name": "ieac-channel-completeness-reports",
+      "target_path": "channels/plant-17/completeness-report.json",
+      "target_length": 4096,
+      "target_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    }
+  },
+  "root_update_chain": [],
+  "verification_checks": {
+    "timestamp_snapshot_binding_verified": true,
+    "snapshot_targets_binding_verified": true,
+    "delegation_authorization_verified": true,
+    "target_hash_length_verified": true,
+    "root_chain_verified": true,
+    "timestamp_snapshot_key_rotation_recovery_verified": false
+  },
+  "evaluation_time": {
+    "time_utc": "2026-11-02T09:30:00Z",
+    "uncertainty_before_seconds": 2,
+    "uncertainty_after_seconds": 2,
+    "clock_id": "clock:tuf-client",
+    "verification_status": "verified",
+    "proof_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+    "verifier_build_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "verification_policy_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "trust_bundle_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  },
+  "verifier": {
+    "status": "verified",
+    "build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "policy_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "trust_bundle_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+  }
+}

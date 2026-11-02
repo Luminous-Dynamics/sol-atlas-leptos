@@ -1,0 +1,57 @@
+{
+  "schema_version": "luminous.ieac-tuf-high-water-state.v0.1",
+  "state_id": "state:ieac-rp-plant17",
+  "state_revision": 18,
+  "repository_id": "tuf:ieac-production",
+  "relying_party_id": "rp:industrial-assurance",
+  "channel_id": "channel:plant-17",
+  "tenant_scope": "tenant:plant-17",
+  "purpose": "industrial_resilience_assurance",
+  "ledger_id": "ledger:plant-17-evidence",
+  "sequence_namespace": "plant-17-events",
+  "sequence_epoch": "epoch:2026-11-01",
+  "last_sequence": 118,
+  "root": {
+    "version": 3,
+    "sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "expires_at": "2026-12-01T00:00:00Z",
+    "timestamp_keyset_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "snapshot_keyset_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "timestamp": {
+    "version": 13,
+    "sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+    "expires_at": "2026-11-03T00:00:00Z"
+  },
+  "snapshot": {
+    "version": 8,
+    "sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+    "expires_at": "2026-11-10T00:00:00Z"
+  },
+  "target_roles": [
+    {
+      "role_name": "ieac-channel-manifests",
+      "version": 4,
+      "metadata_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "role_name": "ieac-channel-checkpoints",
+      "version": 7,
+      "metadata_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "role_name": "ieac-channel-completeness-attestations",
+      "version": 1,
+      "metadata_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    {
+      "role_name": "ieac-channel-completeness-reports",
+      "version": 1,
+      "metadata_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    }
+  ],
+  "manifest_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "checkpoint_state_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "completeness_attestation_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "availability_report_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+}

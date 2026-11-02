@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/industry-ieac-tuf-freshness-report-v0.1.schema.json",
+  "title": "IEAC TUF Channel Freshness Audit Report v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "reason_codes",
+    "trusted_state_id",
+    "verifier_report_sha256",
+    "policy_sha256",
+    "trusted_state_sha256",
+    "evaluation_interval",
+    "reported_metadata",
+    "reported_channel_state",
+    "claim_ceiling",
+    "action_authority",
+    "state_transition",
+    "structural_status",
+    "verification_boundary"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.ieac-tuf-freshness-report.v0.1"
+    },
+    "status": {
+      "const": "unverified"
+    },
+    "reason_codes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "trusted_state_id": {
+      "type": "string"
+    },
+    "verifier_report_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "policy_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "trusted_state_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "evaluation_interval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "earliest_epoch_seconds",
+        "latest_epoch_seconds"
+      ],
+      "properties": {
+        "earliest_epoch_seconds": {
+          "type": "integer"
+        },
+        "latest_epoch_seconds": {
+          "type": "integer"
+        }
+      }
+    },
+    "claim_ceiling": {
+      "const": "tuf_freshness_and_anti_rollback_only"
+    },
+    "action_authority": {
+      "const": "none"
+    },
+    "state_transition": {
+      "const": null
+    },
+    "structural_status": {
+      "enum": [
+        "consistent",
+        "unknown"
+      ]
+    },
+    "verification_boundary": {
+      "const": "external_tuf_report_not_authenticated_or_cryptographically_verified_here"
+    },
+    "reported_metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "root_version",
+        "timestamp_version",
+        "snapshot_version",
+        "target_roles"
+      ],
+      "properties": {
+        "root_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "timestamp_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "snapshot_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "target_roles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "role_name",
+              "version"
+            ],
+            "properties": {
+              "role_name": {
+                "type": "string"
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "reported_channel_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "manifest_sha256",
+        "checkpoint_state_sha256",
+        "ledger_epoch",
+        "last_sequence",
+        "completeness_attestation_sha256",
+        "availability_report_sha256"
+      ],
+      "properties": {
+        "manifest_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "checkpoint_state_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "ledger_epoch": {
+          "type": "string"
+        },
+        "last_sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "completeness_attestation_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "availability_report_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    }
+  }
+}
