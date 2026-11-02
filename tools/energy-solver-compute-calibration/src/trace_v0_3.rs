@@ -1110,35 +1110,69 @@ mod tests {
 
     #[test]
     fn summary_keeps_all_service_floor_and_audit_attempt_denominators() {
-        let mut rejected = base(SearchDispositionV03::FeasibleUnproven);
-        rejected.sample_id = "sample-rejected".into();
-        rejected.audit_disposition = AuditDispositionV03::Rejected;
-        rejected.audit_receipt_sha256 = Some(digest(20));
-        rejected.audit_request_sha256 = Some(digest(2));
-        rejected.audit_schedule_sha256 = Some(digest(9));
-        rejected.auditor_binary_sha256 = Some(digest(11));
-        rejected.audit_elapsed_ns = Some(5);
-        rejected.service_floor_disposition = ServiceFloorDispositionV03::Failed;
-        rejected.service_floor_policy_sha256 = Some(digest(12));
+        let mut rejected_audit = base(SearchDispositionV03::FeasibleUnproven);
+        rejected_audit.sample_id = "sample-rejected-audit".into();
+        rejected_audit.audit_disposition = AuditDispositionV03::Rejected;
+        rejected_audit.audit_receipt_sha256 = Some(digest(20));
+        rejected_audit.audit_request_sha256 = Some(digest(2));
+        rejected_audit.audit_schedule_sha256 = Some(digest(9));
+        rejected_audit.auditor_binary_sha256 = Some(digest(11));
+        rejected_audit.audit_elapsed_ns = Some(5);
 
-        let mut unavailable = base(SearchDispositionV03::FeasibleUnproven);
-        unavailable.sample_id = "sample-unavailable".into();
-        unavailable.audit_disposition = AuditDispositionV03::Unavailable;
-        unavailable.auditor_binary_sha256 = Some(digest(11));
-        unavailable.audit_elapsed_ns = Some(5);
-        unavailable.service_floor_disposition = ServiceFloorDispositionV03::Unavailable;
-        unavailable.service_floor_policy_sha256 = Some(digest(13));
-        unavailable.service_floor_auditor_binary_sha256 = Some(digest(14));
-        unavailable.service_floor_elapsed_ns = Some(5);
+        let mut failed_floor = base(SearchDispositionV03::FeasibleUnproven);
+        failed_floor.sample_id = "sample-failed-floor".into();
+        failed_floor.audit_disposition = AuditDispositionV03::Accepted;
+        failed_floor.audit_receipt_sha256 = Some(digest(21));
+        failed_floor.audit_request_sha256 = Some(digest(2));
+        failed_floor.audit_schedule_sha256 = Some(digest(9));
+        failed_floor.auditor_binary_sha256 = Some(digest(11));
+        failed_floor.audit_elapsed_ns = Some(5);
+        failed_floor.time_to_first_audit_accept_ns = Some(50);
+        failed_floor.service_floor_disposition = ServiceFloorDispositionV03::Failed;
+        failed_floor.service_floor_policy_sha256 = Some(digest(12));
+        failed_floor.service_floor_schedule_audit_receipt_sha256 = Some(digest(21));
+        failed_floor.service_floor_receipt_sha256 = Some(digest(31));
+        failed_floor.service_floor_auditor_binary_sha256 = Some(digest(14));
+        failed_floor.service_floor_elapsed_ns = Some(6);
 
-        let summary = summarize_traces_v03(&[rejected, unavailable]).unwrap().remove(0);
-        assert_eq!(summary.audit_attempt_count, 2);
+        let mut unavailable_floor = base(SearchDispositionV03::FeasibleUnproven);
+        unavailable_floor.sample_id = "sample-unavailable-floor".into();
+        unavailable_floor.audit_disposition = AuditDispositionV03::Accepted;
+        unavailable_floor.audit_receipt_sha256 = Some(digest(22));
+        unavailable_floor.audit_request_sha256 = Some(digest(2));
+        unavailable_floor.audit_schedule_sha256 = Some(digest(9));
+        unavailable_floor.auditor_binary_sha256 = Some(digest(11));
+        unavailable_floor.audit_elapsed_ns = Some(5);
+        unavailable_floor.time_to_first_audit_accept_ns = Some(50);
+        unavailable_floor.service_floor_disposition = ServiceFloorDispositionV03::Unavailable;
+        unavailable_floor.service_floor_policy_sha256 = Some(digest(13));
+        unavailable_floor.service_floor_auditor_binary_sha256 = Some(digest(14));
+        unavailable_floor.service_floor_elapsed_ns = Some(7);
+
+        let mut unavailable_audit = base(SearchDispositionV03::FeasibleUnproven);
+        unavailable_audit.sample_id = "sample-unavailable-audit".into();
+        unavailable_audit.audit_disposition = AuditDispositionV03::Unavailable;
+        unavailable_audit.auditor_binary_sha256 = Some(digest(11));
+        unavailable_audit.audit_elapsed_ns = Some(5);
+
+        let summary = summarize_traces_v03(&[
+            rejected_audit,
+            failed_floor,
+            unavailable_floor,
+            unavailable_audit,
+        ])
+        .unwrap()
+        .remove(0);
+        assert_eq!(summary.audit_attempt_count, 4);
         assert_eq!(summary.audit_rejected_count, 1);
+        assert_eq!(summary.audit_accepted_count, 2);
         assert_eq!(summary.audit_unavailable_count, 1);
         assert_eq!(summary.service_floor_failed_count, 1);
         assert_eq!(summary.service_floor_unavailable_count, 1);
-        assert_eq!(summary.service_floor_not_evaluated_count, 0);
+        assert_eq!(summary.service_floor_not_evaluated_count, 2);
         assert_eq!(summary.decision_ready_count, 0);
+        assert_eq!(summary.service_floor_sample_count, 2);
+        assert_eq!(summary.service_floor_elapsed_p50_ns, None);
     }
 
     #[test]
