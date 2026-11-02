@@ -13,10 +13,11 @@
   },
   "negative_controls": [
     "positive post-cutoff access without a verified zero-match query remains unknown",
-    "zero-match query sequence range must equal coverage-start to decision-boundary checkpoint interval",
+    "zero-match query range must equal (coverage-start sequence, first-access sequence minus one]",
     "decision-boundary checkpoint must be strictly later than latest possible decision cutoff",
     "coverage-start checkpoint must be no later than earliest possible decision cutoff",
     "first access event sequence must be greater than decision-boundary checkpoint sequence",
+    "first access sequence must be exactly one greater than zero-match query's upper sequence",
     "first access event sequence must be no greater than coverage-end checkpoint sequence",
     "first access event and all checkpoints must use the same ledger, namespace and epoch",
     "nonzero sequence gap, unresolved outage, backfill, policy change or known bypass prevents complete status",
