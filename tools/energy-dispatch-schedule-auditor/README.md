@@ -162,22 +162,79 @@ The checked-in synthetic PV/outage policy requires 100% essential service in eve
 
 The profiler workflow now runs both executables for each of its 30 repeated synthetic schedules and requires 30 accepted schedule receipts plus 30 passed service-floor receipts. The existing v0.2 solver trace remains unchanged; these separate service-floor receipts are uploaded as independent artifacts until the v0.3 trace-runner migration composes them.
 
-## Non-anticipativity auditor v0.1
+## Non-anticipativity auditor v0.2: exact forecast artifacts and derived information sets
 
-The additive `energy-dispatch-nonanticipativity-auditor` binary audits whether
-a set of complete scenario schedules can be interpreted as one policy under
-the caller-declared information sets. It is separate from the single-scenario
-schedule auditor and from the service-floor evaluator.
+The additive `energy-dispatch-nonanticipativity-auditor` binary evaluates
+whether complete scenario schedules can be interpreted as one policy under a
+shared, time-indexed information process. It is separate from the
+single-scenario schedule auditor and the service-floor evaluator.
 
-A strict manifest lists 2–256 scenarios and binds a safe `scenario_set_id`. Each entry binds:
-- a unique scenario ID, equal to the request case ID;
-- one exact source-request JSON file;
-- one exact complete schedule JSON file;
-- one 64-character information-set SHA-256 label per source interval.
+### Manifest and forecast evidence
 
-The receipt records the scenario-set ID, exact request/schedule digests, information-set labels, shared information-set count, action-comparison count, per-group findings, receipt digest and auditor executable digest. Its JSON contract is defined in `nonanticipativity-receipt-schema-v0.1.json`.
+The v0.2 manifest lists 2–256 scenarios and binds a safe `scenario_set_id`.
+Each scenario supplies an exact source-request path, exact schedule path, and
+one forecast artifact plus its issue/vintage time for every source interval.
+The manifest does **not** accept information-set hash strings.
 
-The CLI is invoked with a manifest and receipt output path:
+Each forecast artifact is strict JSON with:
+- schema `energy-dispatch-forecast-bundle-v0.1`;
+- the same `scenario_set_id` as the manifest;
+- a safe `bundle_id`;
+- `issued_at_unix_seconds`, `valid_from_unix_seconds`, and
+  `valid_through_unix_seconds`;
+- a non-empty `forecast_payload` object containing the declared forecast
+  distribution / trajectory data.
+
+The CLI loads every forecast file using the same canonical manifest-root path
+restriction and bounded reader as source requests and schedules. It rejects
+duplicate JSON keys, unknown top-level fields, out-of-root paths and files
+larger than 1 MiB. The auditor recomputes SHA-256 over the **exact forecast
+file bytes**; no caller-supplied forecast hash is trusted. It checks that the
+bundle's scenario-set ID and issue time match the manifest and that the bundle
+is valid at the interval's decision timestamp.
+
+### Canonical information-set identity
+
+For scenario (s) at interval (t), the auditor computes:
+
+[
+I_{s,t} = H(
+  	ext{schema},
+  	ext{scenario-set ID},
+  	ext{decision time}_t,
+  H(	ext{source observation prefix}_{s,0..t}),
+  	ext{forecast vintage}_{s,t},
+  H(	ext{exact forecast bundle bytes}_{s,t})
+)
+]
+
+The source observation prefix is taken only through the current decision
+interval; future request intervals are not included in earlier information-set
+identities. The exact bundle bytes, their vintage and the observation prefix
+are all retained in the receipt binding. A caller can no longer split two
+identical histories by assigning unrelated arbitrary information-set hashes.
+A branch may diverge after its observed prefix or its exact decision-time
+forecast artifact changes.
+
+The evaluator still requires every scenario request and schedule to pass the
+existing standalone domain predicates/objective recomputation. It then
+requires a common source schema, evidence class, search budget, energy quantum,
+battery configuration and interval chronology; a common root information set;
+and identical dispatch action fields for all scenarios with the same derived
+identity at each interval. It rejects a scenario set with no shared information
+set rather than passing vacuously.
+
+### Receipt and execution
+
+The v0.2 receipt binds the scenario-set ID, exact request/schedule digests,
+per-interval forecast vintage, SHA-256 of each exact forecast bundle, derived
+information-set digests, action-comparison counts, findings, receipt digest,
+and exact auditor executable digest. Its contract is
+`nonanticipativity-receipt-schema-v0.2.json`; the manifest and forecast
+contracts are `nonanticipativity-manifest-schema-v0.2.json` and
+`forecast-bundle-schema-v0.1.json`.
+
+Run the auditor with a manifest and output receipt path:
 
 ```sh
 cargo run --release --locked \
@@ -186,53 +243,36 @@ cargo run --release --locked \
   nonanticipativity-manifest.json nonanticipativity-receipt.json
 ```
 
-The CLI strict-parses the manifest and each source input, rejects duplicate
-JSON object keys, bounds every input read, and resolves request/schedule paths
-beneath the manifest directory (including canonical-path checks against
-symlink escape). It writes a canonical receipt and returns exit 0 for accepted,
-1 for a well-formed but rejected policy, or 2 for an audit/input error.
+Exit code 0 means the complete scenario set passed the declared
+non-anticipativity checks; 1 means a well-formed but rejected scenario policy;
+2 means an input or audit error. The receipt is content-addressed, not
+externally signed.
 
-The library evaluator first requires every scenario request and schedule to
-pass the existing standalone domain predicates/objective recomputation. It
-then requires all scenarios to share the same source schema, synthetic/evidence
-class, search budget, energy quantum, battery configuration and interval
-chronology. It also requires every scenario to share one root information set
-at the first decision; scenario trees without a common initial decision are
-rejected in this v0.1 contract. For each interval it groups scenarios by
-information-set digest. Every group with two or more members must have:
-1. identical source-observation prefixes through that interval; and
-2. identical dispatch action fields at that interval, including grid import,
-   battery charge/discharge, SOC after the interval, essential/flexible served
-   and unserved quantities, and PV use/curtailment.
+### Controls and claim boundary
 
-Actions may diverge after the information-set labels diverge. A set with no
-shared information sets is rejected rather than passing vacuously. The receipt
-binds every request/schedule digest, the information-set labels, all findings
-and the exact auditor executable digest.
+The checked-in controls under `schemas/examples/nonanticipativity-v0.1/`
+exercise:
+- positive: both branches share the exact forecast artifact and root
+  observations, take the same 2-quanta PV charge action, then diverge only
+  after the second-interval essential-demand observation differs;
+- negative: both schedules are individually domain-valid and have the same
+  root observation/forecast, but choose different root charge actions; the
+  auditor must reject the set;
+- derived digest controls: the receipt's forecast digest must equal the SHA-256
+  of the exact file bytes; information-set hashes must match at the shared
+  root and diverge only after the declared observation prefix changes;
+- future-dated forecast and wrong-scenario-set forecast artifacts are rejected.
 
-**Critical limit:** the auditor proves equality only for the information-set
-labels supplied in the manifest. It cannot prove that these labels are
-authentic, complete, or genuinely available to an operator at the decision
-time. The CLI also does not prove probabilistic forecast calibration,
-stochastic optimality, service-floor compliance, physical/network safety,
-or actuation authority. This is the first verifier primitive for
-[ENERGY-UNCERTAINTY-001 / #312](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/312), not yet a complete scenario-tree optimizer or rolling-horizon controller.
+**Critical limit:** the auditor binds the exact forecast bytes and checks their
+declared issue/validity times, but it does not authenticate the forecast
+producer, prove the bundle was actually available to the controller, validate
+forecast calibration, or prove that the scenario probabilities are statistically
+correct. A future Mycelix evidence adapter should verify signed publisher
+identity, forecast vintage, revocation/freshness and model provenance. That
+source attestation must remain separate from this byte-level verifier.
 
-The checked-in manifest controls under
-`schemas/examples/nonanticipativity-v0.1/` demonstrate both outcomes:
-- positive: the two branches take the same 2-quanta PV charging action at the
-  root, then diverge to 2-quanta versus 1-quanta battery discharge after branch
-  information is revealed;
-- negative: both schedules are individually domain-valid, but one branch
-  takes a 1-quanta rather than 2-quanta charge action while the root information
-  set is still shared; the verifier must reject it.
-
-The v0.1 tests also include:
-- rejection when two scenarios with the same pre-branch information choose
-  different actions;
-- acceptance when pre-branch actions match and actions diverge after the
-  information-set labels split;
-- rejection when a shared label hides different declared observation prefixes;
-- rejection when scenarios do not share one root information set;
-- rejection when no information set is shared;
-- receipt digest/binary provenance checks and bounded/path-safe CLI controls.
+The evaluator also does not prove stochastic optimality, service-floor
+compliance, physical/network safety or actuation authority. It is a
+non-anticipativity verifier primitive for
+[ENERGY-UNCERTAINTY-001 / #312](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/312),
+not yet a scenario-tree optimizer or a deployable rolling-horizon controller.
