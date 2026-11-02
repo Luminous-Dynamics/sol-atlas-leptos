@@ -1,9 +1,11 @@
 //! Independent audit of non-anticipativity across scenario schedules.
 //!
-//! Information-set identities are derived from exact source-observation
-//! prefixes, decision timestamps, and the exact bytes of time-bounded forecast
-//! bundles. Callers cannot submit an arbitrary information-set hash. Forecast
-//! authenticity and calibration still require an independent provenance layer.
+//! Information-set identities are derived from cumulative, time-stamped
+//! observation payloads and exact time-bounded forecast bundles. The full
+//! realized request trajectory is used for domain checking, never as the
+//! policy's decision-time information. Callers cannot submit arbitrary
+//! information-set hashes. Evidence authenticity and calibration still require
+//! an independent provenance layer.
 
 use super::{
     audit_error, current_binary_sha256, parse_unique_json, recompute_objectives, sha256,
