@@ -328,7 +328,9 @@ impl SolverTraceV03 {
                 if self.pareto_frontier_complete || self.pareto_frontier_count.is_some() {
                     return Err(TraceV03Error::InvalidSearchSemantics);
                 }
-                if candidate_present && self.feasible_complete_schedules.is_none_or(|count| count == 0) {
+                if candidate_present
+                    && self.feasible_complete_schedules.is_none_or(|count| count == 0)
+                {
                     return Err(TraceV03Error::InvalidSearchSemantics);
                 }
             }
@@ -452,8 +454,12 @@ impl SolverTraceV03 {
 
     pub fn render_csv_row(&self) -> Result<String, TraceV03Error> {
         self.validate()?;
-        let option = |value: Option<u64>| value.map(|n| n.to_string()).unwrap_or_else(|| "NA".to_owned());
-        let option_u32 = |value: Option<u32>| value.map(|n| n.to_string()).unwrap_or_else(|| "NA".to_owned());
+        let option = |value: Option<u64>| {
+            value.map(|n| n.to_string()).unwrap_or_else(|| "NA".to_owned())
+        };
+        let option_u32 = |value: Option<u32>| {
+            value.map(|n| n.to_string()).unwrap_or_else(|| "NA".to_owned())
+        };
         let option_digest = |value: &Option<String>| value.as_deref().unwrap_or("NA");
         let fields = vec![
             self.schema_version.clone(),
@@ -499,7 +505,9 @@ impl SolverTraceV03 {
             option_digest(&self.service_floor_auditor_binary_sha256).to_owned(),
             option(self.service_floor_elapsed_ns),
         ];
-        if fields.iter().any(|field| field.contains(',') || field.contains('\n') || field.contains('\r')) {
+        if fields.iter().any(|field| {
+            field.contains(',') || field.contains('\n') || field.contains('\r')
+        }) {
             return Err(TraceV03Error::InvalidIdentifier);
         }
         Ok(fields.join(","))
@@ -529,13 +537,41 @@ pub fn parse_trace_row_v03(line: &str) -> Result<SolverTraceV03, TraceV03Error> 
     if fields.len() != 42 {
         return Err(TraceV03Error::InvalidFieldCount);
     }
-    let parse_u64 = |value: &str| value.parse::<u64>().map_err(|_| TraceV03Error::InvalidNumber);
-    let parse_u32 = |value: &str| value.parse::<u32>().map_err(|_| TraceV03Error::InvalidNumber);
-    let parse_u16 = |value: &str| value.parse::<u16>().map_err(|_| TraceV03Error::InvalidNumber);
-    let parse_option_u64 = |value: &str| if value == "NA" { Ok(None) } else { parse_u64(value).map(Some) };
-    let parse_option_u32 = |value: &str| if value == "NA" { Ok(None) } else { parse_u32(value).map(Some) };
-    let parse_option_string = |value: &str| if value == "NA" { Ok(None) } else { Ok(Some(value.to_owned())) };
-    let parse_bool = |value: &str| match value { "true" => Ok(true), "false" => Ok(false), _ => Err(TraceV03Error::InvalidBoolean) };
+    let parse_u64 = |value: &str| {
+        value.parse::<u64>().map_err(|_| TraceV03Error::InvalidNumber)
+    };
+    let parse_u32 = |value: &str| {
+        value.parse::<u32>().map_err(|_| TraceV03Error::InvalidNumber)
+    };
+    let parse_u16 = |value: &str| {
+        value.parse::<u16>().map_err(|_| TraceV03Error::InvalidNumber)
+    };
+    let parse_option_u64 = |value: &str| {
+        if value == "NA" {
+            Ok(None)
+        } else {
+            parse_u64(value).map(Some)
+        }
+    };
+    let parse_option_u32 = |value: &str| {
+        if value == "NA" {
+            Ok(None)
+        } else {
+            parse_u32(value).map(Some)
+        }
+    };
+    let parse_option_string = |value: &str| {
+        if value == "NA" {
+            Ok(None)
+        } else {
+            Ok(Some(value.to_owned()))
+        }
+    };
+    let parse_bool = |value: &str| match value {
+        "true" => Ok(true),
+        "false" => Ok(false),
+        _ => Err(TraceV03Error::InvalidBoolean),
+    };
 
     let measurement_class = match fields[1] {
         "synthetic" => MeasurementClass::Synthetic,
@@ -648,7 +684,9 @@ struct CohortV03Key {
     hardware_profile_sha256: String,
 }
 
-pub fn summarize_traces_v03(records: &[SolverTraceV03]) -> Result<Vec<TraceSummaryV03>, TraceV03Error> {
+pub fn summarize_traces_v03(
+    records: &[SolverTraceV03],
+) -> Result<Vec<TraceSummaryV03>, TraceV03Error> {
     let mut groups =
         BTreeMap::<(CohortV03Key, String), Vec<&SolverTraceV03>>::new();
     // Sample IDs are unique across an entire cohort, not merely within one
@@ -744,7 +782,9 @@ pub fn summarize_traces_v03(records: &[SolverTraceV03]) -> Result<Vec<TraceSumma
                 SearchDispositionV03::ExactComplete => summary.exact_complete_count += 1,
                 SearchDispositionV03::FeasibleUnproven => summary.feasible_unproven_count += 1,
                 SearchDispositionV03::ProvenInfeasible => summary.proven_infeasible_count += 1,
-                SearchDispositionV03::LimitWithoutCandidate => summary.limit_without_candidate_count += 1,
+                SearchDispositionV03::LimitWithoutCandidate => {
+                    summary.limit_without_candidate_count += 1;
+                }
                 SearchDispositionV03::TimedOut => summary.timed_out_count += 1,
                 SearchDispositionV03::Cancelled => summary.cancelled_count += 1,
                 SearchDispositionV03::Error => summary.error_count += 1,
