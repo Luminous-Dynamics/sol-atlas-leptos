@@ -849,7 +849,10 @@ mod tests {
     fn anytime_exact_completion_returns_a_complete_lexicographic_candidate() {
         let request = fixture_request();
         let exact = assess_energy_dispatch(&request).expect("exact baseline");
+        let anytime_started_at = Instant::now();
         let anytime = assess_energy_dispatch_anytime(&request).expect("anytime exact completion");
+        let anytime_elapsed_ns =
+            u64::try_from(anytime_started_at.elapsed().as_nanos()).unwrap();
         assert_eq!(
             anytime.disposition,
             EnergyDispatchAnytimeDisposition::ExactComplete
@@ -863,7 +866,7 @@ mod tests {
             .time_to_first_complete_candidate_ns
             .expect("first complete candidate time is measured");
         assert!(first_candidate_ns > 0);
-        assert!(first_candidate_ns <= exact.evaluated_action_expansions.saturating_add(1));
+        assert!(first_candidate_ns <= anytime_elapsed_ns);
         assert!(exact.pareto_alternatives.iter().any(|alternative| {
             alternative.objective == candidate.objective
                 && alternative.schedule == candidate.schedule
