@@ -895,4 +895,172 @@ mod tests {
         fixture["invalidation_event"]["dispute_state"] = json!("disputed");
         assert!(evaluate_fixture(&fixture).is_err());
     }
+
+    fn scale_node(index: usize, node_type: &str, domain: &str) -> (String, Value) {
+        let digest = sha256_hex(format!("ieac-scale-node-v0.1:{index}:{node_type}").as_bytes());
+        let node_id = format!("{node_type}:sha256:{digest}");
+        let node = json!({
+            "node_id": node_id,
+            "node_type": node_type,
+            "artifact_sha256": digest,
+            "scope": {
+                "domain": domain,
+                "subject_pseudonyms": ["bench:subject:001"],
+                "purposes": ["runtime_admission_descriptive"]
+            }
+        });
+        (node_id, node)
+    }
+
+    fn scale_graph(total_nodes: usize) -> (Value, Value, Value, usize) {
+        assert!(total_nodes >= 4);
+        let impacted_nodes = total_nodes * 4 / 5;
+        let mut nodes = Vec::with_capacity(total_nodes);
+        let mut node_ids = Vec::with_capacity(total_nodes);
+        let mut edges = Vec::with_capacity(impacted_nodes.saturating_sub(1));
+
+        let (root_id, root) = scale_node(0, "issuer_key", "energy");
+        node_ids.push(root_id.clone());
+        nodes.push(root);
+        for index in 1..impacted_nodes {
+            let (node_id, node) = scale_node(index, "execution", "energy");
+            let parent_index = if index == 1 { 0 } else { (index - 1) / 2 };
+            edges.push(json!({
+                "edge_id": format!("edge-{index:08}"),
+                "from_node_id": node_ids[parent_index],
+                "to_node_id": node_id,
+                "relation": "derived_from"
+            }));
+            node_ids.push(node_id);
+            nodes.push(node);
+        }
+        for index in impacted_nodes..total_nodes {
+            let (node_id, node) = scale_node(index, "source_measurement", "water");
+            node_ids.push(node_id);
+            nodes.push(node);
+        }
+
+        let mut graph = json!({
+            "schema_version": GRAPH_SCHEMA,
+            "graph_id": format!("graph-scale-{total_nodes}"),
+            "captured_at": "2026-01-03T00:00:00Z",
+            "nodes": nodes,
+            "edges": edges,
+            "graph_snapshot_sha256": ""
+        });
+        let mut digest_input = graph.clone();
+        digest_input
+            .as_object_mut()
+            .unwrap()
+            .remove("graph_snapshot_sha256");
+        graph["graph_snapshot_sha256"] = json!(canonical_json_digest(&digest_input).unwrap());
+
+        let event = json!({
+            "schema_version": EVENT_SCHEMA,
+            "event_id": format!("event-scale-{total_nodes}"),
+            "authority_sequence": 1,
+            "previous_event_sha256": null,
+            "cause_class": "issuer_key_compromised",
+            "invalidation_semantics": "retroactive_from_effective_time",
+            "dispute_state": "undisputed",
+            "valid_time": {
+                "effective_at": "2026-01-01T00:00:00Z",
+                "effective_time_confidence": "verified"
+            },
+            "system_time": {
+                "recorded_at": "2026-01-02T00:00:00Z",
+                "trusted_at": "2026-01-02T00:00:00Z",
+                "trusted_timestamp_receipt_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "scope": {
+                "domains": ["energy"],
+                "subject_pseudonyms": ["bench:subject:001"],
+                "purposes": ["runtime_admission_descriptive"]
+            },
+            "targets": [{
+                "node_id": root_id,
+                "node_type": "issuer_key",
+                "artifact_sha256": graph["nodes"][0]["artifact_sha256"]
+            }]
+        });
+        let metadata = json!({
+            "evaluated_at": "2026-01-03T00:00:00Z",
+            "impact_policy_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "impact_engine_build_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        });
+        (graph, event, metadata, impacted_nodes)
+    }
+
+    #[test]
+    fn impact_propagation_scale_ladder_has_exact_precision_and_replay() {
+        use std::time::Instant;
+
+        for total_nodes in [100usize, 1_000, 10_000, 100_000] {
+            let (graph, event, metadata, expected_affected) = scale_graph(total_nodes);
+            let started = Instant::now();
+            let nodes = validate_graph(&graph).expect("generated DAG must validate");
+            validate_event(&event, &nodes).expect("generated invalidation event must validate");
+            let report = build_impact_report(&graph, &event, &metadata, &nodes)
+                .expect("impact traversal must complete");
+            let elapsed_ms = started.elapsed().as_secs_f64() * 1_000.0;
+
+            let results = report["results"].as_array().unwrap();
+            assert_eq!(results.len(), total_nodes);
+            let mut false_positives = 0usize;
+            let mut false_negatives = 0usize;
+            for (index, result) in results.iter().enumerate() {
+                let expected = if index == 0 {
+                    "claim_invalidated"
+                } else if index < expected_affected {
+                    "reverify_required"
+                } else {
+                    "no_impact"
+                };
+                let actual = result["impact_class"].as_str().unwrap();
+                if expected != actual {
+                    if expected == "no_impact" {
+                        false_positives += 1;
+                    } else {
+                        false_negatives += 1;
+                    }
+                }
+            }
+            assert_eq!(false_positives, 0, "false positives at {total_nodes} nodes");
+            assert_eq!(false_negatives, 0, "false negatives at {total_nodes} nodes");
+            assert_eq!(report["summary"]["node_count"], total_nodes);
+            assert_eq!(report["summary"]["claim_invalidated_count"], 1);
+            assert_eq!(report["summary"]["reverify_required_count"], expected_affected - 1);
+            assert_eq!(report["summary"]["no_impact_count"], total_nodes - expected_affected);
+
+            let report_digest = canonical_json_digest(&report).unwrap();
+            drop(report);
+            drop(nodes);
+
+            let replay_nodes = validate_graph(&graph).unwrap();
+            validate_event(&event, &replay_nodes).unwrap();
+            let replay = build_impact_report(&graph, &event, &metadata, &replay_nodes).unwrap();
+            assert_eq!(
+                canonical_json_digest(&replay).unwrap(),
+                report_digest,
+                "non-deterministic replay at {total_nodes} nodes"
+            );
+
+            println!(
+                "{}",
+                json!({
+                    "benchmark": "ieac_bitemporal_impact_scale_v0.1",
+                    "synthetic_only": true,
+                    "node_count": total_nodes,
+                    "edge_count": graph["edges"].as_array().unwrap().len(),
+                    "expected_affected_count": expected_affected,
+                    "expected_unaffected_out_of_scope_count": total_nodes - expected_affected,
+                    "false_positives": false_positives,
+                    "false_negatives": false_negatives,
+                    "deterministic_replay": true,
+                    "measured_validation_and_impact_ms": elapsed_ms,
+                    "measurement_scope": "single in-process sample; excludes fixture generation and process startup"
+                })
+            );
+        }
+    }
 }
