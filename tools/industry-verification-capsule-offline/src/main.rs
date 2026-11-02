@@ -1115,11 +1115,15 @@ mod tests {
             FileEntry { path: "a.json".into(), length: 1, sha256: "a".repeat(64), kind: "other".into() },
         ];
         let mut two = one.iter().cloned().collect::<Vec<_>>();
+        two.reverse();
+        let unsorted_one = sha256(&jcs_to_vec(&one).unwrap());
+        let unsorted_two = sha256(&jcs_to_vec(&two).unwrap());
+        assert_ne!(unsorted_one, unsorted_two, "input order affects raw JSON serialization");
         one.sort_by(|left, right| left.path.cmp(&right.path));
         two.sort_by(|left, right| left.path.cmp(&right.path));
-        let one_digest = sha256(&jcs_to_vec(&one).unwrap());
-        let two_digest = sha256(&jcs_to_vec(&two).unwrap());
-        assert_eq!(one_digest, two_digest);
+        let canonical_one = sha256(&jcs_to_vec(&one).unwrap());
+        let canonical_two = sha256(&jcs_to_vec(&two).unwrap());
+        assert_eq!(canonical_one, canonical_two, "normalization yields one deterministic inventory digest");
     }
 
     #[test]
