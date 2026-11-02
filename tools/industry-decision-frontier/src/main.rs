@@ -777,7 +777,7 @@ mod tests {
         assert_eq!(report.summary.unknown, 1);
         assert_eq!(
             report.classifications[0].reason_code,
-            "post_cutoff_access_does_not_prove_prior_absence"
+            "post_cutoff_access_requires_complete_channel_attestation"
         );
     }
 
