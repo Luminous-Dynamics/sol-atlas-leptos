@@ -59,8 +59,20 @@ jobs:
       - name: Run package Clippy with warnings denied
         run: cargo clippy --locked --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml --all-targets -- -D warnings
 
-      - name: Run standalone impact auditor tests
-        run: cargo test --locked --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml
+      - name: Run standalone impact auditor tests and scale ladder
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo test --locked --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml -- --nocapture 2>&1 | tee "$RUNNER_TEMP/ieac-impact-scale-results.log"
+
+      - name: Retain exact scale-ladder output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ieac-impact-scale-ladder-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/ieac-impact-scale-results.log
+          if-no-files-found: warn
+          retention-days: 30
 
       - name: Validate dependency, invalidation and report schemas
         run: |
