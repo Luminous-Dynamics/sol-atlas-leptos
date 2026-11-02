@@ -1,0 +1,11 @@
+[package]
+name = "energy-exact-evsi-reference"
+version = "0.1.0"
+edition = "2024"
+publish = false
+license = "AGPL-3.0-or-later"
+description = "Exact finite-state value-of-information reference for energy dispatch decisions"
+
+[dependencies]
+
+[workspace]
