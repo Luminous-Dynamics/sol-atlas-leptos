@@ -10,7 +10,7 @@ A valid, internally consistent checkpoint can still be stale. Monotonic sequence
 
 TUF already addresses metadata rollback and freeze attacks. This package does not implement TUF signatures, canonicalization, root rotation cryptography, delegation verification or metadata parsing. It consumes an external TUF verifier report, checks its exact verifier build/policy/trust-bundle pins, then compares the verified state to a separately provisioned policy and persisted high-water state.
 
-The trusted high-water file is a separate CLI argument; it is not embedded in the verifier report or caller request. Its storage/authenticity/atomic update are still operator responsibilities. The report binds the exact raw bytes of the verifier report, policy and state files.
+The trusted high-water file is a separate CLI argument; it is not embedded in the verifier report or caller request. Its storage/authenticity/atomic update are still operator responsibilities. The report binds the exact raw bytes of the verifier report, policy and state files. A successful result emits a proposed next state plus the expected prior state revision and raw-byte digest; the relying-party state store must commit it with compare-and-swap, atomically, and only if those expected values still match. The auditor itself never writes trusted state.
 
 ## 2. Why TUF, not another freshness service
 
@@ -42,6 +42,7 @@ The TUF report is not trusted just because it says `verified`. Its verifier buil
 - Monotonic root, timestamp, snapshot and delegated-target metadata versions compared with persisted high-water state.
 - Same-version metadata equivocation detection: equal version with a different metadata digest is rejected.
 - Incremental root-chain structure: each root transition is N → N+1 and carries externally verified old-root and new-root threshold results; the chain must end at the reported root digest.
+- TUF timestamp/snapshot key-rotation recovery: when either role keyset changes under a newer, verified root, the external verifier must explicitly attest that TUF's timestamp/snapshot cache-reset recovery was applied. Only then are the old timestamp and snapshot metadata version floors reset; delegated target-role versions and channel sequence floors remain monotonic.
 - Metadata expiry and policy-bounded timestamp expiry horizon using a fixed evaluation-time interval. If the interval overlaps expiry, the result is unknown rather than current.
 - Channel sequence rollback and same-sequence checkpoint equivocation checks.
 - Ledger epoch changes require an externally verified transition whose authorization target is the exact channel manifest digest.
@@ -58,7 +59,7 @@ The report's `current` status means the external TUF verifier facts satisfy the 
 - It does not prove a source measurement or physical outcome is true.
 - It does not grant decision or actuation authority.
 
-Missing/lost high-water state is a hard refusal. It must not be treated as a fresh bootstrap. Recovery requires an explicit operator-controlled bootstrap/rotation ceremony.
+Missing/lost high-water state is a hard refusal. It must not be treated as a fresh bootstrap. Recovery requires an explicit operator-controlled bootstrap/rotation ceremony. A successful audit returns a next-state proposal and a CAS precondition (previous state revision + exact raw-byte digest); the relying party must atomically compare and swap that state before advancing its high-water. Unknown results emit no next-state proposal.
 
 ## 6. Run
 
