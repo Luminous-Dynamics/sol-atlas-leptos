@@ -232,3 +232,9 @@ Event authority scope constrains the **direct target nodes**: `validate_event` s
 Propagation to a cross-domain descendant does not grant the revoker direct authority over that descendant. The auditor reports it as `reverify_required` or `quarantined_pending_review`; it does not mark it `claim_invalidated` merely because it is reachable. Disconnected out-of-scope records remain `no_impact`. The regression fixture exercises an energy-key → water-source → water-decision path plus a disconnected water-domain control, and the scale ladder mixes cross-domain descendants with disconnected same-/different-domain controls.
 
 This separates three predicates that must not be collapsed: (1) whether the event authority may target the root, (2) whether an exact dependency path exists, and (3) what action/claim class is permitted for each downstream node.
+
+## 9.5 Explicit input and graph budgets
+
+The standalone auditor now fails closed above these v0.1 input limits: 128 MiB per fixture file, 100,000 dependency nodes, 500,000 dependency edges, 10,000 direct invalidation targets and 10,000 events per in-memory chain batch. Node/edge counts are checked before graph cloning and canonical digest calculation; target and event counts are checked before per-item traversal. Boundary tests accept the 100,000-node benchmark and reject oversized node, edge and target collections.
+
+These are implementation resource ceilings, not a claim that all graphs of the maximum size fit every deployment's memory/time budget. Deployments should set lower operational limits where appropriate; extending beyond v0.1 requires a new bounded-memory/streaming design and fresh scale evidence.
