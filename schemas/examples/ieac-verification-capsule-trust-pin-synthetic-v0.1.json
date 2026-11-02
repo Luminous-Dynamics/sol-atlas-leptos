@@ -35,5 +35,10 @@
     "metadata_complete_target_referenced",
     "commitment_only"
   ],
-  "action_authority": "none"
+  "action_authority": "none",
+  "policy_scope_id": "plant-17/decision-2026-06-01",
+  "policy_kind": "composite",
+  "time_policy_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+  "time_verifier_build_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+  "time_verifier_trust_bundle_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
 }
