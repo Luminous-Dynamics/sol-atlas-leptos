@@ -1,0 +1,53 @@
+{
+  "schema_version": "luminous.ieac-evidence-channel-manifest.v0.1",
+  "manifest_id": "channel-manifest:industrial-assurance-ingest-v1",
+  "channel": {
+    "relying_party_id": "rp:industrial-assurance",
+    "evidence_channel_id": "channel:ieac-ingest-registry",
+    "log_service_id": "log:plant-evidence-ingest",
+    "operator_id": "operator:industrial-assurance-ops",
+    "tenant_scope": "tenant:plant-17",
+    "purpose_scope": [
+      "industrial_resilience_assurance"
+    ],
+    "subject_scope": "asset-pseudonym:plant-17",
+    "artifact_digest_algorithm": "sha-256"
+  },
+  "capture_contract": {
+    "policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "policy_version": "1.0.0",
+    "event_types": [
+      "ingest",
+      "read",
+      "cache_hit",
+      "replica_fetch",
+      "export",
+      "delegated_access"
+    ],
+    "instrumented_access_paths": [
+      "api-ingest",
+      "evidence-read-api",
+      "cache-gateway",
+      "replica-fetcher"
+    ],
+    "unmonitored_access_paths": [],
+    "durability": "synchronous_durable",
+    "loss_handling": "fail_closed",
+    "policy_change_semantics": "append_only_versioned",
+    "authorized_completeness_query_signers": [
+      "issuer:plant-17-access-ledger"
+    ]
+  },
+  "ledger": {
+    "ledger_id": "ledger:plant-17-evidence",
+    "sequence_namespace": "plant-17-evidence-events",
+    "sequence_epoch": "epoch:2026-11-01",
+    "monotonic_sequence": true,
+    "checkpoint_interval_seconds": 60,
+    "minimum_retention_seconds": 31536000,
+    "reset_semantics": "authenticated_epoch_transition"
+  },
+  "known_bypass_paths": [],
+  "claim_ceiling": "declared_access_channel_capture_scope_only",
+  "action_authority": "none"
+}

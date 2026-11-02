@@ -1,0 +1,26 @@
+{
+  "fixture_schema_version": "luminous.ieac-availability-channel-fixture.v0.1",
+  "fixture_status": "synthetic_only",
+  "channel_manifest_file": "ieac-evidence-channel-manifest-synthetic-v0.1.json",
+  "complete_attestation_file": "ieac-availability-completeness-attestation-synthetic-v0.1.json",
+  "expected": {
+    "complete_scope": "only the declared relying-party/channel/tenant/subject/purpose/artifact scope",
+    "complete_claim_allowed": true,
+    "late_exclusion_claim_allowed": true,
+    "action_authority": "none",
+    "universal_non_access_claim_allowed": false,
+    "rfc9162_non_inclusion_assumed": false
+  },
+  "negative_controls": [
+    "positive post-cutoff access without a verified zero-match query remains unknown",
+    "zero-match query range must equal (coverage-start sequence, first-access sequence minus one]",
+    "decision-boundary checkpoint must be strictly later than latest possible decision cutoff",
+    "coverage-start checkpoint must be no later than earliest possible decision cutoff",
+    "first access event sequence must be greater than decision-boundary checkpoint sequence",
+    "first access sequence must be exactly one greater than zero-match query's upper sequence",
+    "first access event sequence must be no greater than coverage-end checkpoint sequence",
+    "first access event and all checkpoints must use the same ledger, namespace and epoch",
+    "nonzero sequence gap, unresolved outage, backfill, policy change or known bypass prevents complete status",
+    "RFC9162_SHA256 consistency receipt must not be treated as a non-inclusion proof"
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/industry-ieac-availability-audit-report-v0.1.schema.json",
+  "title": "IEAC Availability Channel Audit Report v0.1",
+  "description": "Reports structural completeness within a declared access channel after checking the manifest, query, checkpoint, sequence and time bindings. Does not replace cryptographic verification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "reason",
+    "manifest_sha256",
+    "attestation_sha256",
+    "attestation_id",
+    "channel_identity",
+    "scope",
+    "checkpoint_sequences",
+    "claim_ceiling",
+    "action_authority",
+    "universal_non_access_claim"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.ieac-availability-audit-report.v0.1"
+    },
+    "status": {
+      "enum": [
+        "structurally_complete_within_declared_channel",
+        "unknown"
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024
+    },
+    "manifest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "attestation_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "attestation_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "channel_identity": {
+      "type": "object"
+    },
+    "scope": {
+      "type": "object"
+    },
+    "checkpoint_sequences": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "coverage_start",
+        "decision_boundary",
+        "first_access",
+        "coverage_end"
+      ],
+      "properties": {
+        "coverage_start": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "decision_boundary": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "first_access": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "coverage_end": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "claim_ceiling": {
+      "const": "absence_within_declared_access_channel_only"
+    },
+    "action_authority": {
+      "const": "none"
+    },
+    "universal_non_access_claim": {
+      "const": false
+    }
+  }
+}

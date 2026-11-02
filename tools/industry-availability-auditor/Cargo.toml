@@ -1,0 +1,14 @@
+[package]
+name = "industry-availability-auditor"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+description = "Bounded access-channel completeness auditor for IEAC"
+
+[[bin]]
+name = "industry-availability-audit"
+path = "src/main.rs"
+
+[dependencies]
+serde_json = { version = "=1.0.150", default-features = false, features = ["std"] }
+sha2 = { version = "=0.10.9", default-features = false }
