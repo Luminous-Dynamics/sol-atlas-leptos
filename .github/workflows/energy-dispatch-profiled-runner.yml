@@ -77,7 +77,7 @@ jobs:
       - name: Verify tests against the generated lockfile
         run: cargo test --locked --manifest-path sol-atlas-core/Cargo.toml --bin energy-dispatch-profile
       - name: Strict Clippy against the generated lockfile
-        run: cargo clippy --locked --manifest-path sol-atlas-core/Cargo.toml --bin energy-dispatch-profile -- -D warnings
+        run: cargo clippy --no-deps --locked --manifest-path sol-atlas-core/Cargo.toml --bin energy-dispatch-profile -- -D warnings
       - name: Execute the real exact enumerator on the frozen synthetic request
         run: |
           set -euo pipefail
