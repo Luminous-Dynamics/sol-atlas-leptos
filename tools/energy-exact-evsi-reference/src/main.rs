@@ -1,13 +1,19 @@
 use energy_exact_evsi_reference::{
-    exact_evsi, rank_observation_candidates, DecisionProblem, ObservationCandidate,
-    ObservationDesign, WeightedState,
+    DecisionProblem, ObservationCandidate, ObservationDesign, WeightedState, exact_evsi,
+    rank_observation_candidates,
 };
 
 fn main() {
     let problem = DecisionProblem {
         states: vec![
-            WeightedState { id: "normal".to_owned(), prior_probability_ppm: 500_000 },
-            WeightedState { id: "storm".to_owned(), prior_probability_ppm: 500_000 },
+            WeightedState {
+                id: "normal".to_owned(),
+                prior_probability_ppm: 500_000,
+            },
+            WeightedState {
+                id: "storm".to_owned(),
+                prior_probability_ppm: 500_000,
+            },
         ],
         actions: vec!["do-nothing".to_owned(), "prepare".to_owned()],
         losses: vec![vec![0, 40], vec![100, 40]],
