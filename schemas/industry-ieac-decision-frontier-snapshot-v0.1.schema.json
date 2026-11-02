@@ -211,7 +211,7 @@
           "valid_time",
           "observed_at",
           "source_recorded_at",
-          "first_available"
+          "availability_evidence"
         ],
         "properties": {
           "evidence_id": {
