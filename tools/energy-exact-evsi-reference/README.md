@@ -68,7 +68,7 @@ This exposes when a candidate has a high claimed loss bound but conveys little d
 
 ## Test panel
 
-The crate has **18 deterministic tests** covering:
+The crate has **20 deterministic tests** covering:
 - perfect observation equals EVPI;
 - uninformative signals have exactly zero EVSI;
 - noisy observations fall between zero and EVPI;
