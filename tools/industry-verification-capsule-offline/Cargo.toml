@@ -1,0 +1,22 @@
+[package]
+name = "industry-verification-capsule-offline"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+description = "Offline replay verifier for content-addressed IEAC verification capsules"
+
+[[bin]]
+name = "industry-verification-capsule-audit"
+path = "src/main.rs"
+
+[dependencies]
+jiff = { version = "=0.2.38" }
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = { version = "=1.0.154" }
+serde_json_canonicalizer = { version = "=0.4.1" }
+sha2 = { version = "=0.10.9", default-features = false }
+sigstore-tuf = { version = "=0.15.1", default-features = false, features = ["aws-lc-rs"] }
+tokio = { version = "=1.54.1", features = ["macros", "rt-multi-thread"] }
+
+[dev-dependencies]
+tempfile = { version = "=3.27.0" }
