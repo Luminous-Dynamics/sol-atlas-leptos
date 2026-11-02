@@ -1,0 +1,12 @@
+{
+  "schema_version": "luminous.heritage-ingestion-receipt.v0.1",
+  "source_id": "urn:synthetic:heritage:source:lidar-01",
+  "asset_ref": "urn:synthetic:asset:lidar:01",
+  "retrieved_at": "2026-11-02T10:00:00Z",
+  "byte_length": 27,
+  "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "metadata_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "pipeline_id": "synthetic-heritage-ingestor",
+  "pipeline_version": "0.1.0",
+  "receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+}

@@ -232,7 +232,8 @@
       "required": [
         "state",
         "permitted_uses",
-        "access_tier"
+        "access_tier",
+        "exact_geometry_policy"
       ],
       "properties": {
         "state": {
@@ -290,6 +291,15 @@
           "items": {
             "type": "string"
           }
+        },
+        "exact_geometry_policy": {
+          "enum": [
+            "restricted",
+            "custodial_approval_required",
+            "approved_research_only",
+            "public_approved",
+            "withheld"
+          ]
         }
       }
     },
