@@ -29,6 +29,28 @@ pub fn sha256_hex(bytes: &[u8]) -> String {
     encoded
 }
 
+/// Validate the scheme component of an absolute URI (RFC 3986 §3.1).
+/// This intentionally checks the URI scheme syntax, not remote reachability.
+fn has_uri_scheme(value: &str) -> bool {
+    if value.is_empty() || value.trim() != value || value.chars().any(char::is_whitespace) {
+        return false;
+    }
+    let Some((scheme, _)) = value.split_once(':') else {
+        return false;
+    };
+    let mut chars = scheme.chars();
+    matches!(chars.next(), Some(first) if first.is_ascii_alphabetic())
+        && chars.all(|character| {
+            character.is_ascii_alphanumeric() || matches!(character, '+' | '-' | '.')
+        })
+}
+
+/// SHA-256 digests are exactly 32 bytes represented by 64 hexadecimal digits.
+/// Upper- and lower-case hex are accepted; emitted digests remain lowercase.
+fn is_sha256_hex(value: &str) -> bool {
+    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum RightsState {
@@ -1159,6 +1181,40 @@ mod tests {
                 content_sha256: None,
             },
         }
+    }
+
+
+    #[test]
+    fn uri_scheme_validation_accepts_absolute_uri_schemes_and_rejects_malformed_values() {
+        for valid in [
+            "https://example.org/data/item.json",
+            "urn:ogc:def:crs:EPSG::4326",
+            "mailto:heritage@example.org",
+            "file:///tmp/asset.laz",
+        ] {
+            assert!(has_uri_scheme(valid), "expected valid URI scheme: {valid}");
+        }
+        for invalid in [
+            "",
+            "relative/path/item.json",
+            ":missing-scheme",
+            "1http://example.org",
+            "http ://example.org",
+            "https://example.org/with space",
+            " https://example.org",
+        ] {
+            assert!(!has_uri_scheme(invalid), "expected invalid URI: {invalid}");
+        }
+    }
+
+    #[test]
+    fn sha256_digest_validation_requires_exactly_64_hexadecimal_digits() {
+        let digest = sha256_hex(b"heritage-source");
+        assert!(is_sha256_hex(&digest));
+        assert!(is_sha256_hex(&digest.to_ascii_uppercase()));
+        assert!(!is_sha256_hex(&digest[..63]));
+        assert!(!is_sha256_hex(&format!("{}g", &digest[..63])));
+        assert!(!is_sha256_hex(&"0".repeat(63)));
     }
 
     #[test]
