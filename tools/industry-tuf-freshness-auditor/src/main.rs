@@ -271,6 +271,9 @@ struct AuditResult {
     verifier_report_sha256: String,
     policy_sha256: String,
     trusted_state_sha256: String,
+    previous_state_revision: u64,
+    next_state: Option<Value>,
+    next_state_sha256: Option<String>,
     evaluation_interval: Interval,
 }
 
@@ -702,6 +705,57 @@ fn audit(
 
     let role_versions=new_role_map.iter().map(|(k,v)|(k.clone(),v.version)).collect();
     let status=if unknown.is_empty() {"current"} else {"unknown"};
+    let previous_state_revision=uint(state,"state_revision","trusted_state")?;
+    let next_state_revision=previous_state_revision.checked_add(1)
+        .ok_or_else(||"trusted state revision overflow".to_string())?;
+    let next_roles:Vec<Value>=new_role_map.iter().map(|(role,info)|json!({
+        "role_name":role,
+        "version":info.version,
+        "metadata_sha256":info.metadata_sha256
+    })).collect();
+    let proposed_next_state=json!({
+        "schema_version":STATE_SCHEMA,
+        "state_id":string(state,"state_id","trusted_state")?,
+        "state_revision":next_state_revision,
+        "repository_id":string(policy,"repository_id","policy")?,
+        "relying_party_id":string(policy,"relying_party_id","policy")?,
+        "channel_id":string(policy,"channel_id","policy")?,
+        "tenant_scope":string(policy,"tenant_scope","policy")?,
+        "purpose":string(policy,"purpose","policy")?,
+        "ledger_id":string(policy,"ledger_id","policy")?,
+        "sequence_namespace":string(policy,"sequence_namespace","policy")?,
+        "sequence_epoch":new_epoch,
+        "last_sequence":new_seq,
+        "root":{
+            "version":root_version,
+            "sha256":string(root,"sha256","root")?,
+            "expires_at":string(root,"expires_at","root")?,
+            "timestamp_keyset_sha256":new_timestamp_keyset,
+            "snapshot_keyset_sha256":new_snapshot_keyset
+        },
+        "timestamp":{
+            "version":timestamp_version,
+            "sha256":string(timestamp,"sha256","timestamp")?,
+            "expires_at":string(timestamp,"expires_at","timestamp")?
+        },
+        "snapshot":{
+            "version":snapshot_version,
+            "sha256":string(snapshot_meta,"sha256","snapshot")?,
+            "expires_at":string(snapshot_meta,"expires_at","snapshot")?
+        },
+        "target_roles":next_roles,
+        "manifest_sha256":manifest_sha,
+        "checkpoint_state_sha256":checkpoint_sha,
+        "completeness_attestation_sha256":completeness_sha,
+        "availability_report_sha256":availability_report_sha
+    });
+    let (next_state,next_state_sha256)=if status=="current" {
+        let bytes=serde_json::to_vec(&proposed_next_state)
+            .map_err(|e|format!("cannot serialize next high-water state: {e}"))?;
+        (Some(proposed_next_state),Some(digest(&bytes)))
+    } else {
+        (None,None)
+    };
     Ok(AuditResult{
         status,
         reason_codes:unknown,
@@ -718,6 +772,9 @@ fn audit(
         verifier_report_sha256:digest(report_raw),
         policy_sha256:digest(policy_raw),
         trusted_state_sha256:digest(state_raw),
+        previous_state_revision,
+        next_state,
+        next_state_sha256,
         evaluation_interval:eval,
     })
 }
@@ -751,6 +808,19 @@ fn to_report(result: &AuditResult, state_id: &str) -> Value {
             "ledger_epoch": result.checkpoint_epoch,
             "last_sequence": result.checkpoint_sequence
         },
+        "state_transition": if let (Some(next_state),Some(next_state_sha256)) =
+            (&result.next_state,&result.next_state_sha256) {
+                json!({
+                    "expected_previous_state_revision":result.previous_state_revision,
+                    "expected_previous_state_sha256":result.trusted_state_sha256,
+                    "next_state_revision":result.previous_state_revision + 1,
+                    "next_state_sha256":next_state_sha256,
+                    "next_state":next_state,
+                    "commit_semantics":"compare_and_swap_atomic"
+                })
+            } else {
+                Value::Null
+            },
         "claim_ceiling": "tuf_freshness_and_anti_rollback_only",
         "action_authority": "none"
     })
@@ -888,6 +958,22 @@ mod tests{
         let sb=serde_json::to_vec(&s).unwrap();
         audit(&r,&p,&s,&rb,&pb,&sb)
     }
+    #[test]fn current_result_proposes_atomic_next_state_revision(){
+        let result=audit_base().unwrap();
+        let proposed=result.next_state.expect("current result must propose a next state");
+        assert_eq!(proposed["state_revision"],json!(19));
+        assert_eq!(proposed["last_sequence"],json!(120));
+        assert_eq!(proposed["target_roles"].as_array().unwrap().len(),4);
+    }
+    #[test]fn unknown_result_does_not_advance_high_water_state(){
+        let (mut r,p,s)=base();
+        r["timestamp"]["expires_at"]=json!("2026-11-02T09:29:00Z");
+        let rb=serde_json::to_vec(&r).unwrap();let pb=serde_json::to_vec(&p).unwrap();let sb=serde_json::to_vec(&s).unwrap();
+        let result=audit(&r,&p,&s,&rb,&pb,&sb).unwrap();
+        assert_eq!(result.status,"unknown");
+        assert!(result.next_state.is_none());
+    }
+
     #[test]fn rejects_duplicate_json_members() {
         let parsed=parse_strict_json(br#"{"status":"verified","status":"failed"}"#,"duplicate-test");
         assert!(parsed.is_err());
