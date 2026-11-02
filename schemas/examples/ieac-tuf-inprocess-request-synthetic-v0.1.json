@@ -22,5 +22,6 @@
       "id": "availability_audit_report",
       "path": "channels/plant-17/completeness-report.json"
     }
-  ]
+  ],
+  "bootstrap_root_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 }
