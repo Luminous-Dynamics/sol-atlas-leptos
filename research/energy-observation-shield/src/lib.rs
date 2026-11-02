@@ -149,6 +149,7 @@ pub enum AdmissionDisposition {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ActionFailure {
     SocOutsideCapacity,
+    StateOutsideProposalEnvelope,
     GridImportDuringOutage,
     GridImportLimitExceeded,
     ChargeLimitExceeded,
@@ -329,9 +330,11 @@ fn validate_policy(
 ) -> Result<(), AdmissionReason> {
     if !battery.is_valid(policy.future_reserve_quanta)
         || policy.max_observation_age_seconds == 0
-        || policy.future_conditions.is_empty()
     {
         return Err(AdmissionReason::InvalidPolicy);
+    }
+    if policy.future_conditions.is_empty() {
+        return Err(AdmissionReason::EmptyFutureEnvelope);
     }
     let mut ids = BTreeSet::new();
     for condition in &policy.future_conditions {
@@ -441,7 +444,7 @@ fn evaluate_action(
             && (state.soc_quanta < proposal.expected_soc_min_quanta
                 || state.soc_quanta > proposal.expected_soc_max_quanta)
         {
-            evaluation.failure = Some(ActionFailure::SocOutsideCapacity);
+            evaluation.failure = Some(ActionFailure::StateOutsideProposalEnvelope);
             return evaluation;
         }
 
@@ -810,7 +813,7 @@ mod tests {
         assert_eq!(result.disposition, AdmissionDisposition::Replan);
         assert_eq!(
             result.reason,
-            AdmissionReason::ProposedActionRejected(ActionFailure::SocOutsideCapacity)
+            AdmissionReason::ProposedActionRejected(ActionFailure::StateOutsideProposalEnvelope)
         );
     }
 
@@ -889,7 +892,7 @@ mod tests {
             100,
         );
         assert_eq!(empty.disposition, AdmissionDisposition::Abstain);
-        assert_eq!(empty.reason, AdmissionReason::InvalidPolicy);
+        assert_eq!(empty.reason, AdmissionReason::EmptyFutureEnvelope);
 
         let mut expired = proposal(discharge_two());
         expired.expires_at_unix_seconds = 100;
@@ -921,23 +924,26 @@ mod tests {
             essential_served_quanta: 1,
             flexible_served_quanta: 0,
         };
+        let mut configured = policy(vec![next.clone()]);
+        configured.current_essential_service_floor_quanta = 1;
         let result = admit_action(
             battery,
             &proposal(action),
             &observation(vec![current]),
-            &policy(vec![next.clone()]),
+            &configured,
             100,
         );
         // 2 internal quanta yield floor(2 * 3 / 4) = 1 delivered quantum;
         // after the withdrawal only 2 SOC quanta remain, one is reserved.
         assert_eq!(result.disposition, AdmissionDisposition::Replan);
         next.essential_service_floor_quanta = 1;
+        configured.future_conditions = vec![next];
         assert_eq!(
             admit_action(
                 battery,
                 &proposal(action),
                 &observation(vec![state("current", 4)]),
-                &policy(vec![next]),
+                &configured,
                 100,
             )
             .disposition,
