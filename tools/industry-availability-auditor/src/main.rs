@@ -372,6 +372,7 @@ fn complete_or_unknown(
     if string(attestation, "continuity.verifier_status")? != "verified"
         || string(attestation, "continuity.verifier_build_sha256")? != verifier_build
         || string(attestation, "continuity.verification_policy_sha256")? != verification_policy
+        || string(attestation, "continuity.trust_bundle_sha256")? != trust_bundle
     {
         return Ok(report(
             "unknown",
@@ -754,6 +755,17 @@ mod tests {
         assert_eq!(report["claim_ceiling"], "absence_within_declared_access_channel_only");
         assert_eq!(report["action_authority"], "none");
         assert_eq!(report["universal_non_access_claim"], false);
+    }
+
+    #[test]
+    fn continuity_trust_bundle_substitution_forces_unknown() {
+        let (manifest, mut attestation) = corpus();
+        attestation["continuity"]["trust_bundle_sha256"] =
+            json!("9".repeat(64));
+        let report = evaluate_mutation(&manifest, &attestation)
+            .expect("unknown is a valid result");
+        assert_eq!(report["status"], "unknown");
+        assert_eq!(report["action_authority"], "none");
     }
 
     #[test]
