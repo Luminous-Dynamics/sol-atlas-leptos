@@ -116,16 +116,10 @@
   ],
   "file_inventory": [
     {
-      "path": "root/1.root.json",
-      "length": 3396,
-      "sha256": "7777777777777777777777777777777777777777777777777777777777777777",
-      "kind": "root"
-    },
-    {
-      "path": "metadata/timestamp.json",
-      "length": 557,
-      "sha256": "8888888888888888888888888888888888888888888888888888888888888888",
-      "kind": "timestamp"
+      "path": "metadata/role1.json",
+      "length": 1252,
+      "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "kind": "targets_role"
     },
     {
       "path": "metadata/snapshot.json",
@@ -140,10 +134,16 @@
       "kind": "targets_role"
     },
     {
-      "path": "metadata/role1.json",
-      "length": 1252,
-      "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-      "kind": "targets_role"
+      "path": "metadata/timestamp.json",
+      "length": 557,
+      "sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+      "kind": "timestamp"
+    },
+    {
+      "path": "root/1.root.json",
+      "length": 3396,
+      "sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+      "kind": "root"
     }
   ],
   "file_inventory_sha256": "1313131313131313131313131313131313131313131313131313131313131313",
