@@ -213,8 +213,12 @@ interval; future request intervals are not included in earlier information-set
 identities. The exact bundle bytes, their vintage and the observation prefix
 are all retained in the receipt binding. A caller can no longer split two
 identical histories by assigning unrelated arbitrary information-set hashes.
-A branch may diverge after its observed prefix or its exact decision-time
-forecast artifact changes.
+A branch may diverge after its observed prefix changes. If two scenarios
+have identical observation prefixes at the same decision time, they must use
+the same forecast vintage and exact forecast bundle bytes; supplying different
+forecast files for an otherwise identical history is a hard rejection. This
+prevents a caller from creating a branch merely by selecting a different
+forecast artifact for one scenario.
 
 The evaluator still requires every scenario request and schedule to pass the
 existing standalone domain predicates/objective recomputation. It then
@@ -261,13 +265,15 @@ exercise:
 - derived digest controls: the receipt's forecast digest must equal the SHA-256
   of the exact file bytes; information-set hashes must match at the shared
   root and diverge only after the declared observation prefix changes;
+- two schedules cannot split their policy by citing different forecast bundle
+  bytes while their complete declared observation prefixes are identical;
 - future-dated forecast and wrong-scenario-set forecast artifacts are rejected.
 
 **Critical limit:** the auditor binds the exact forecast bytes and checks their
-declared issue/validity times, but it does not authenticate the forecast
-producer, prove the bundle was actually available to the controller, validate
-forecast calibration, or prove that the scenario probabilities are statistically
-correct. A future Mycelix evidence adapter should verify signed publisher
+declared issue/validity times, and it requires identical histories to carry the
+same forecast artifact. It does not authenticate the forecast producer, prove
+the bundle was actually available to the controller, validate forecast
+calibration, or prove that the scenario probabilities are statistically correct. A future Mycelix evidence adapter should verify signed publisher
 identity, forecast vintage, revocation/freshness and model provenance. That
 source attestation must remain separate from this byte-level verifier.
 
