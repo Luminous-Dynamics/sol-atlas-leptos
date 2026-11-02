@@ -526,12 +526,9 @@ fn step_soc_after(path: &[DispatchIntervalDecision]) -> u16 {
         .unwrap_or(0)
 }
 
-/// Exhaustively enumerate the complete bounded model and return its non-dominated
-/// feasible schedules. Any configured search or frontier cap hit is an error; no
-/// partial frontier is returned with an "exact" label.
-pub fn assess_energy_dispatch(
+fn validate_energy_dispatch_request(
     request: &EnergyDispatchRequest,
-) -> Result<EnergyDispatchAssessment, EnergyDispatchError> {
+) -> Result<(), EnergyDispatchError> {
     if request.schema_version != "energy-dispatch-v0.1" {
         return Err(EnergyDispatchError::UnsupportedSchemaVersion {
             schema_version: request.schema_version.clone(),
@@ -620,6 +617,96 @@ pub fn assess_energy_dispatch(
                 })?,
         );
     }
+
+    Ok(())
+}
+
+/// Run bounded search while preserving only fully materialized complete-horizon
+/// candidates. Search limits produce typed incomplete outcomes; arithmetic and
+/// input errors remain errors. A `FeasibleUnproven` result is not independently
+/// audited and must not be treated as a decision-ready or service-floor-passing action.
+pub fn assess_energy_dispatch_anytime(
+    request: &EnergyDispatchRequest,
+) -> Result<EnergyDispatchAnytimeAssessment, EnergyDispatchError> {
+    validate_energy_dispatch_request(request)?;
+
+    let mut search = ExactSearch {
+        request,
+        evaluated_action_expansions: 0,
+        admitted_action_expansions: 0,
+        feasible_complete_schedules: 0,
+        frontier: Vec::new(),
+        best_incumbent: None,
+    };
+    let mut path = Vec::with_capacity(request.intervals.len());
+    let stop_reason = match search.visit(0, request.battery.initial_soc_quanta, &mut path) {
+        Ok(()) => None,
+        Err(EnergyDispatchError::CandidateExpansionCapExceeded { cap }) => {
+            Some(EnergyDispatchStopReason::CandidateExpansionCap { cap })
+        }
+        Err(EnergyDispatchError::ParetoFrontierCapExceeded { cap }) => {
+            Some(EnergyDispatchStopReason::ParetoFrontierCap { cap })
+        }
+        Err(other) => return Err(other),
+    };
+
+    let complete = stop_reason.is_none();
+    let status = match (complete, search.best_incumbent.is_some()) {
+        (true, true) => EnergyDispatchAnytimeStatus::ExactComplete,
+        (true, false) => EnergyDispatchAnytimeStatus::ProvenInfeasible,
+        (false, true) => EnergyDispatchAnytimeStatus::FeasibleUnproven,
+        (false, false) => EnergyDispatchAnytimeStatus::LimitWithoutCandidate,
+    };
+
+    if complete {
+        search.frontier.sort_by_key(|alternative| objective_order_key(&alternative.objective));
+    }
+
+    Ok(EnergyDispatchAnytimeAssessment {
+        assessment_schema_version: "energy-dispatch-anytime-report-v0.1".to_owned(),
+        case_id: request.case_id.clone(),
+        synthetic: request.synthetic,
+        evidence_class: request.evidence_class,
+        evidence_ref: request.evidence_ref.clone(),
+        evidence_as_of: request.evidence_as_of.clone(),
+        claim_ceiling: concat!(
+            "candidate feasibility and search status apply only to the declared finite ",
+            "quantized model; an incumbent is not independently audited, service-floor ",
+            "qualified, authorized for actuation, or proven optimal unless exhaustive ",
+            "search completed; evidence metadata is not independently authenticated"
+        )
+        .to_owned(),
+        energy_quantum_kwh: request.energy_quantum_kwh,
+        status,
+        stop_reason,
+        attempted_enumeration_prefix_visits: search.evaluated_action_expansions,
+        admitted_enumeration_prefix_visits: search.admitted_action_expansions,
+        max_candidate_expansions: request.max_candidate_expansions,
+        feasible_complete_schedules: search.feasible_complete_schedules,
+        pareto_frontier_entries_observed: search.frontier.len(),
+        incumbent_selection_policy: "lexicographic-objective-v0.1".to_owned(),
+        incumbent: search.best_incumbent,
+        complete_pareto_frontier: if complete {
+            Some(search.frontier)
+        } else {
+            None
+        },
+        claim_ceiling_note: concat!(
+            "An incumbent is a complete finite-model trajectory only. Count it as ",
+            "decision-ready only after a separate process independently audits the ",
+            "exact request/schedule bytes and a separately pinned service-floor policy passes."
+        )
+        .to_owned(),
+    })
+}
+
+/// Exhaustively enumerate the complete bounded model and return its non-dominated
+/// feasible schedules. Any configured search or frontier cap hit is an error; no
+/// partial frontier is returned with an "exact" label.
+pub fn assess_energy_dispatch(
+    request: &EnergyDispatchRequest,
+) -> Result<EnergyDispatchAssessment, EnergyDispatchError> {
+    validate_energy_dispatch_request(request)?;
 
     let mut search = ExactSearch {
         request,
