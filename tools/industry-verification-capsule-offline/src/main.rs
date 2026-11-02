@@ -758,7 +758,7 @@ async fn audit_capsule(
             .map_err(|error| format!("TUF delegation resolution failed for {}: {error}", target.id))?
             .ok_or_else(|| format!("no verified TUF role authorizes target {}", target.repository_path))?;
         let verified_sha = info.hashes.get("sha256")
-            .map(str::to_ascii_lowercase)
+            .map(|value| value.to_ascii_lowercase())
             .ok_or_else(|| format!("verified TUF target {} has no SHA-256 hash", target.id))?;
         if info.length != target.length || verified_sha != target.sha256 {
             return Err(format!("capsule target claim differs from verified TUF metadata: {}", target.id));
@@ -767,15 +767,18 @@ async fn audit_capsule(
         let available = match target.content_mode.as_str() {
             "embedded" => true,
             "referenced" => {
-                let Some(root) = &cas_root else { false };
-                let reference = target.reference.as_ref().ok_or_else(|| "missing CAS reference".to_string())?;
-                let digest = reference.locator.strip_prefix("cas://sha256/")
-                    .ok_or_else(|| "invalid CAS reference URI".to_string())?;
-                match CapsuleRepository::read_limited(root, digest, target.length) {
-                    Ok(Some(bytes)) if bytes.len() as u64 == target.length && sha256(&bytes) == target.sha256 => true,
-                    Ok(None) => false,
-                    Ok(Some(_)) => return Err(format!("CAS target bytes mismatch: {}", target.id)),
-                    Err(error) => return Err(format!("CAS target read failed: {error}")),
+                if let Some(root) = &cas_root {
+                    let reference = target.reference.as_ref().ok_or_else(|| "missing CAS reference".to_string())?;
+                    let digest = reference.locator.strip_prefix("cas://sha256/")
+                        .ok_or_else(|| "invalid CAS reference URI".to_string())?;
+                    match CapsuleRepository::read_limited(root, digest, target.length) {
+                        Ok(Some(bytes)) if bytes.len() as u64 == target.length && sha256(&bytes) == target.sha256 => true,
+                        Ok(None) => false,
+                        Ok(Some(_)) => return Err(format!("CAS target bytes mismatch: {}", target.id)),
+                        Err(error) => return Err(format!("CAS target read failed: {error}")),
+                    }
+                } else {
+                    false
                 }
             }
             "withheld" => false,
