@@ -90,3 +90,28 @@ This v0.1 reference checks only the declared integer-quanta microgrid contract a
 - HIL, commissioning, regulatory/grid-code compliance or human/operator authorization.
 
 The next scientific step is a **bounded multi-step viability reference** for small state/action sets, differential-tested against exhaustive reachability. Only after that should larger robust viability kernels, reachable-set approximations or CBF/MPC filters be compared. A finite checker must never describe its admitted envelope as the full physical plant.
+
+## Current external comparators and promotion ladder
+
+The v0.1 integer-SOC shield is not a direct competitor to converter-level safety controllers. The following 2026 literature should inform later matched comparisons:
+
+- **Proximal-reserve CBF control:** a June 2026 *IEEE Transactions on Industrial Informatics* paper combines a nominal distributed controller with a proximal-reserve control-barrier safety layer, claims forward invariance, closed-loop stability and recursive feasibility, and validates the method in HIL on a four-dispatch-unit autonomous DC microgrid. This is an important HIL/controller baseline once Sol-Atlas represents the relevant voltage/current/converter states; the present SOC-only model cannot reproduce those claims. DOI: https://doi.org/10.1109/TII.2026.3659902
+- **Attack-resilient distributed secondary control:** a May 2026 *Applied Energy* paper studies deception attacks, communication-efficient event-triggered control and converter-level large-signal microgrid behavior with HIL validation. Add data integrity, replay, delay, packet loss and correlated communication failure to the future attack panel, but do not equate this integer telemetry fixture with an attack-resilient secondary controller. DOI: https://doi.org/10.1016/j.apenergy.2026.127521
+- **Learning-enhanced stochastic MPC:** a November 1, 2026 *Applied Energy* paper reports a learning-enhanced stochastic MPC framework for resilient multi-energy microgrids, including operation under 30% battery capacity loss and a reported approximately 40% forecast-error reduction against its selected baselines. These are paper-specific results, not reproduced Sol-Atlas results; compare only after matching data, degradation assumptions, forecast horizons and operational objectives. DOI: https://doi.org/10.1016/j.apenergy.2026.128321
+- **Testing framework:** IEC TS 62898-3-5:2026 specifies HIL, commissioning and periodic testing for microgrid monitoring/control/energy-management systems. IEEE P2030.8 is an active PAR (approved March 26, 2026) defining controller-function testing procedures; it is not yet a published standard. Obtain the normative/official documents before asserting conformity.
+
+### Promotion ladder
+
+1. **Finite software reference:** exhaustive differential tests for every admitted/rejected state/action tuple, including uncertainty-envelope boundaries.
+2. **Dynamic simulator:** add voltage, current, inverter saturation, line/network constraints, disturbances and model mismatch; compare the shield with proximal-reserve CBF/robust MPC on identical models.
+3. **Cyber-resilience simulation:** replay, spoofing, deception, communication delay/loss, clock skew, event-triggered updates and common-source compromise; compare with the attack-resilient distributed-control literature.
+4. **HIL:** measure transient constraint violations, settling/recovery, command-to-effect mismatch, replan/fallback latency, and false-safe/false-reject outcomes using the relevant IEC/IEEE test structure.
+5. **Commissioning and periodic evidence:** only with equipment owners and required safety/utility processes. Simulation and software receipts do not certify hardware.
+
+References:
+- Proximal-reserve CBF / HIL: https://doi.org/10.1109/TII.2026.3659902
+- Attack-resilient event-triggered secondary control / HIL: https://doi.org/10.1016/j.apenergy.2026.127521
+- Learning-enhanced stochastic MPC: https://doi.org/10.1016/j.apenergy.2026.128321
+- IEC TS 62898-3-5:2026: https://webstore.iec.ch/en/publication/84175
+- IEEE P2030.8 active PAR: https://standards.ieee.org/ieee/2030.8/12543/
+
