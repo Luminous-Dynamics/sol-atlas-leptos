@@ -169,7 +169,7 @@ fn derive_information_set_sha256(
     request: &SourceRequest,
     interval_index: usize,
     information_set: &NonAnticipativityInformationSetBytes<'_>,
-) -> Result<(NonAnticipativityInformationSetV1, String), AuditError> {
+) -> Result<(NonAnticipativityInformationSetV1, String, String), AuditError> {
     if information_set.forecast_bundle_bytes.len() > MAX_FORECAST_BUNDLE_BYTES {
         return Err(audit_error("forecast bundle exceeds the 1 MiB byte limit"));
     }
@@ -221,6 +221,7 @@ fn derive_information_set_sha256(
             forecast_as_of_unix_seconds: information_set.forecast_as_of_unix_seconds,
             forecast_bundle_sha256,
         },
+        observation_prefix_sha256,
         sha256(&bytes),
     ))
 }
@@ -232,6 +233,7 @@ struct ParsedScenario {
     request: SourceRequest,
     schedule: DispatchSchedule,
     information_sets_by_interval: Vec<NonAnticipativityInformationSetV1>,
+    observation_prefix_sha256_by_interval: Vec<String>,
     information_set_sha256_by_interval: Vec<String>,
     domain_valid: bool,
     domain_failure_detail: String,
@@ -344,11 +346,15 @@ pub fn evaluate_nonanticipativity_bytes(
             .collect::<Result<Vec<_>, _>>()?;
         let information_sets_by_interval = information_set_material
             .iter()
-            .map(|(information_set, _)| information_set.clone())
+            .map(|(information_set, _, _)| information_set.clone())
+            .collect::<Vec<_>>();
+        let observation_prefix_sha256_by_interval = information_set_material
+            .iter()
+            .map(|(_, observation_digest, _)| observation_digest.clone())
             .collect::<Vec<_>>();
         let information_set_sha256_by_interval = information_set_material
             .into_iter()
-            .map(|(_, digest)| digest)
+            .map(|(_, _, information_digest)| information_digest)
             .collect::<Vec<_>>();
 
         let request_sha256 = sha256(source.request_bytes);
@@ -383,6 +389,7 @@ pub fn evaluate_nonanticipativity_bytes(
             request,
             schedule,
             information_sets_by_interval,
+            observation_prefix_sha256_by_interval,
             information_set_sha256_by_interval,
             domain_valid,
             domain_failure_detail,
