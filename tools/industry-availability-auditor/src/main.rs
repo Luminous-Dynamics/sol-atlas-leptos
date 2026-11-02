@@ -259,6 +259,28 @@ fn complete_or_unknown(
             attestation,
         ));
     }
+    if string(attestation, "decision_cutoff.basis")? != "trusted_clock_attestation" {
+        return Ok(report(
+            "unknown",
+            "decision cutoff is not based on a trusted clock attestation",
+            &manifest_digest,
+            &attestation_digest,
+            attestation,
+        ));
+    }
+    if string(manifest, "capture_contract.durability")? != "synchronous_durable"
+        || string(manifest, "capture_contract.loss_handling")? != "fail_closed"
+        || string(manifest, "capture_contract.policy_change_semantics")? != "append_only_versioned"
+        || get(manifest, "capture_contract.instrumented_access_paths")?.as_array().is_none_or(Vec::is_empty)
+    {
+        return Ok(report(
+            "unknown",
+            "channel capture policy does not provide complete instrumented, durable, fail-closed capture",
+            &manifest_digest,
+            &attestation_digest,
+            attestation,
+        ));
+    }
 
     if string(attestation, "absence_basis")? != "complete_channel_signed_query" {
         return Ok(report(
@@ -387,7 +409,6 @@ fn complete_or_unknown(
     }
 
     for path in [
-        "capture_contract.known_bypass_paths",
         "capture_contract.unmonitored_access_paths",
         "known_bypass_paths",
         "capture_health.known_bypass_paths",
@@ -513,6 +534,24 @@ fn complete_or_unknown(
         verifier_build,
         verification_policy,
     )?;
+    for (path, expected_basis) in [
+        ("coverage_start_checkpoint.observed_at", "authenticated_ingest_log"),
+        ("decision_boundary_checkpoint.observed_at", "authenticated_ingest_log"),
+        ("coverage_end_checkpoint.observed_at", "authenticated_ingest_log"),
+        ("first_access.observed_at", "authenticated_ingest_log"),
+        ("coverage.coverage_from", "authenticated_ingest_log"),
+        ("coverage.coverage_through", "authenticated_ingest_log"),
+    ] {
+        if string(attestation, &format!("{path}.basis"))? != expected_basis {
+            return Ok(report(
+                "unknown",
+                &format!("{path} does not use the authenticated channel clock"),
+                &manifest_digest,
+                &attestation_digest,
+                attestation,
+            ));
+        }
+    }
     let coverage_start = verified_time(
         attestation,
         "coverage_start_checkpoint.observed_at",
@@ -556,6 +595,8 @@ fn complete_or_unknown(
         || coverage_end.earliest < first_access.latest
         || coverage_from.latest > cutoff.earliest
         || coverage_through.earliest < first_access.latest
+        || coverage_from.earliest > coverage_start.earliest
+        || coverage_through.latest < coverage_end.latest
     {
         return Ok(report(
             "unknown",
