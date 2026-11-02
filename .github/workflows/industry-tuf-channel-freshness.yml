@@ -1,0 +1,176 @@
+name: IEAC TUF channel freshness and anti-rollback
+
+on:
+  pull_request:
+    paths:
+      - "tools/industry-tuf-freshness-auditor/**"
+      - "schemas/industry-ieac-tuf-*.json"
+      - "schemas/examples/ieac-tuf-*.json"
+      - "docs/industry/IEAC_TUF_CHANNEL_FRESHNESS_V0.1.md"
+      - ".github/workflows/industry-tuf-channel-freshness.yml"
+  push:
+    branches:
+      - main
+      - feat/ieac-availability-channel-completeness-v0-1
+    paths:
+      - "tools/industry-tuf-freshness-auditor/**"
+      - "schemas/industry-ieac-tuf-*.json"
+      - "schemas/examples/ieac-tuf-*.json"
+      - "docs/industry/IEAC_TUF_CHANNEL_FRESHNESS_V0.1.md"
+      - ".github/workflows/industry-tuf-channel-freshness.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ieac-tuf-freshness-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tuf-freshness:
+    name: Exact-head TUF high-water and channel binding audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact source revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Format, lint and test TUF high-water auditor
+        run: |
+          set -euo pipefail
+          manifest=tools/industry-tuf-freshness-auditor/Cargo.toml
+          cargo fmt --manifest-path "$manifest"
+          cargo clippy --manifest-path "$manifest" --all-targets --locked -- -D warnings
+          cargo test --manifest-path "$manifest" --locked
+
+      - name: Install pinned Draft 2020-12 validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Add schema CLI to PATH
+        run: echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+
+      - name: Validate TUF report, policy, persisted state and audit report schemas
+        run: |
+          set -euo pipefail
+          meta=https://json-schema.org/draft/2020-12/schema
+          for schema in \
+            schemas/industry-ieac-tuf-verifier-report-v0.1.schema.json \
+            schemas/industry-ieac-tuf-freshness-policy-v0.1.schema.json \
+            schemas/industry-ieac-tuf-high-water-state-v0.1.schema.json \
+            schemas/industry-ieac-tuf-freshness-report-v0.1.schema.json; do
+            jsonschema-cli validate --draft 2020 --assert-format "$meta" -i "$schema"
+          done
+          jsonschema-cli validate --draft 2020 --assert-format --offline \
+            schemas/industry-ieac-tuf-verifier-report-v0.1.schema.json \
+            -i schemas/examples/ieac-tuf-verifier-report-synthetic-v0.1.json
+          jsonschema-cli validate --draft 2020 --assert-format --offline \
+            schemas/industry-ieac-tuf-freshness-policy-v0.1.schema.json \
+            -i schemas/examples/ieac-tuf-freshness-policy-synthetic-v0.1.json
+          jsonschema-cli validate --draft 2020 --assert-format --offline \
+            schemas/industry-ieac-tuf-high-water-state-v0.1.schema.json \
+            -i schemas/examples/ieac-tuf-high-water-state-synthetic-v0.1.json
+
+      - name: Execute exact synthetic high-water replay and independent expected-vector check
+        run: |
+          set -euo pipefail
+          tool=tools/industry-tuf-freshness-auditor/Cargo.toml
+          verifier=schemas/examples/ieac-tuf-verifier-report-synthetic-v0.1.json
+          policy=schemas/examples/ieac-tuf-freshness-policy-synthetic-v0.1.json
+          state=schemas/examples/ieac-tuf-high-water-state-synthetic-v0.1.json
+          expected=schemas/examples/ieac-tuf-freshness-expected-synthetic-v0.1.json
+          report="$RUNNER_TEMP/ieac-tuf-freshness-report.json"
+
+          cargo run --manifest-path "$tool" --locked -- "$verifier" "$policy" "$state" "$report"
+          jsonschema-cli validate --draft 2020 --assert-format --offline \
+            schemas/industry-ieac-tuf-freshness-report-v0.1.schema.json -i "$report"
+          jq --slurpfile expected "$expected" -e '
+            . as $report |
+            $expected[0].expected as $want |
+            $report.schema_version == "luminous.ieac-tuf-freshness-report.v0.1" and
+            $report.status == $want.status and
+            $report.accepted_metadata.root_version == $want.root_version and
+            $report.accepted_metadata.timestamp_version == $want.timestamp_version and
+            $report.accepted_metadata.snapshot_version == $want.snapshot_version and
+            $report.accepted_metadata.target_roles == $want.target_roles and
+            $report.accepted_channel_state.last_sequence == $want.checkpoint_sequence and
+            $report.accepted_channel_state.ledger_epoch == $want.ledger_epoch and
+            $report.action_authority == "none" and
+            $report.claim_ceiling == "tuf_freshness_and_anti_rollback_only"
+          ' "$report"
+
+      - name: Negative controls for rollback, expiry, verifier substitution and target substitution
+        run: |
+          set -euo pipefail
+          tool=tools/industry-tuf-freshness-auditor/Cargo.toml
+          verifier=schemas/examples/ieac-tuf-verifier-report-synthetic-v0.1.json
+          policy=schemas/examples/ieac-tuf-freshness-policy-synthetic-v0.1.json
+          state=schemas/examples/ieac-tuf-high-water-state-synthetic-v0.1.json
+          report="$RUNNER_TEMP/ieac-tuf-mutant-report.json"
+
+          jq '.timestamp.version = 12' "$verifier" > "$RUNNER_TEMP/tuf-timestamp-rollback.json"
+          jq '.timestamp.expires_at = "2026-11-02T09:29:00Z"' "$verifier" > "$RUNNER_TEMP/tuf-expired-timestamp.json"
+          jq '.verifier.trust_bundle_sha256 = "9999999999999999999999999999999999999999999999999999999999999999"' "$verifier" > "$RUNNER_TEMP/tuf-verifier-bundle-substitution.json"
+          jq '.channel_binding.channel_manifest.target_path = "channels/plant-17/evil.json"' "$verifier" > "$RUNNER_TEMP/tuf-target-path-substitution.json"
+          jq '.channel_binding.last_sequence = 117' "$verifier" > "$RUNNER_TEMP/tuf-channel-sequence-rollback.json"
+          jq '.verification_checks.delegation_authorization_verified = false' "$verifier" > "$RUNNER_TEMP/tuf-unknown-delegation.json"
+          jq '.root.version = 4 | .root.sha256 = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"' "$verifier" > "$RUNNER_TEMP/tuf-root-missing-chain.json"
+          jq '.timestamp.expires_at = "2026-11-15T00:00:00Z"' "$verifier" > "$RUNNER_TEMP/tuf-expiry-horizon.json"
+          jq '.target_roles[0].version = 3' "$verifier" > "$RUNNER_TEMP/tuf-target-role-rollback.json"
+          jq '.channel_binding.checkpoint_state.target_sha256 = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" | .target_roles[1].target_sha256 = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"' "$verifier" > "$RUNNER_TEMP/tuf-same-sequence-equivocation.json"
+          printf '{"schema_version":"x","schema_version":"y"}' > "$RUNNER_TEMP/tuf-duplicate-members.json"
+
+          for mutant in \
+            "$RUNNER_TEMP/tuf-timestamp-rollback.json" \
+            "$RUNNER_TEMP/tuf-verifier-bundle-substitution.json" \
+            "$RUNNER_TEMP/tuf-target-path-substitution.json" \
+            "$RUNNER_TEMP/tuf-channel-sequence-rollback.json" \
+            "$RUNNER_TEMP/tuf-root-missing-chain.json" \
+            "$RUNNER_TEMP/tuf-target-role-rollback.json" \
+            "$RUNNER_TEMP/tuf-same-sequence-equivocation.json" \
+            "$RUNNER_TEMP/tuf-duplicate-members.json"; do
+            set +e
+            cargo run --manifest-path "$tool" --locked -- "$mutant" "$policy" "$state" "$report"
+            status=$?
+            set -e
+            test "$status" -eq 2
+          done
+
+          for mutant in \
+            "$RUNNER_TEMP/tuf-expired-timestamp.json" \
+            "$RUNNER_TEMP/tuf-unknown-delegation.json" \
+            "$RUNNER_TEMP/tuf-expiry-horizon.json"; do
+            set +e
+            cargo run --manifest-path "$tool" --locked -- "$mutant" "$policy" "$state" "$report"
+            status=$?
+            set -e
+            test "$status" -eq 3
+            jq -e '.status == "unknown" and .action_authority == "none"' "$report"
+          done
+
+      - name: Retain exact audit report and input digests
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ieac-tuf-freshness-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            ${{ runner.temp }}/ieac-tuf-freshness-report.json
+            schemas/examples/ieac-tuf-verifier-report-synthetic-v0.1.json
+            schemas/examples/ieac-tuf-freshness-policy-synthetic-v0.1.json
+            schemas/examples/ieac-tuf-high-water-state-synthetic-v0.1.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Prove standalone dependency lock remains committed
+        run: git diff --exit-code -- tools/industry-tuf-freshness-auditor/Cargo.lock
