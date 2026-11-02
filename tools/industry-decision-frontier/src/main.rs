@@ -105,8 +105,8 @@ struct FirstAvailability {
 struct CoverageProof {
     relying_party_id: String,
     evidence_channel_id: String,
-    coverage_from_utc: String,
-    complete_through_utc: String,
+    coverage_from: TimeBound,
+    complete_through: TimeBound,
     coverage_proof_sha256: String,
     completeness: String,
     verification_status: String,
@@ -345,12 +345,25 @@ fn validate_coverage_proof(
     decision: &DecisionRef,
     path: &str,
 ) -> Result<(), String> {
-    let from = parse_utc_seconds(&coverage.coverage_from_utc)
-        .map_err(|error| format!("{path}.coverage_from_utc: {error}"))?;
-    let through = parse_utc_seconds(&coverage.complete_through_utc)
-        .map_err(|error| format!("{path}.complete_through_utc: {error}"))?;
-    if from > through {
-        return Err(format!("{path} coverage interval is reversed"));
+    validate_time_bound(&coverage.coverage_from, &format!("{path}.coverage_from"))?;
+    validate_time_bound(
+        &coverage.complete_through,
+        &format!("{path}.complete_through"),
+    )?;
+    validate_verifier_pin(
+        &coverage.coverage_from,
+        decision,
+        &format!("{path}.coverage_from"),
+    )?;
+    validate_verifier_pin(
+        &coverage.complete_through,
+        decision,
+        &format!("{path}.complete_through"),
+    )?;
+    let from = interval(&coverage.coverage_from)?;
+    let through = interval(&coverage.complete_through)?;
+    if from.latest_epoch_seconds > through.earliest_epoch_seconds {
+        return Err(format!("{path} coverage interval is reversed or indeterminate"));
     }
     if !is_sha256(&coverage.coverage_proof_sha256) {
         return Err(format!("{path}.coverage_proof_sha256 is invalid"));
@@ -586,8 +599,8 @@ fn classify(
                     item.evidence_id
                 ));
             }
-            let coverage_from = parse_utc_seconds(&coverage.coverage_from_utc)?;
-            let coverage_through = parse_utc_seconds(&coverage.complete_through_utc)?;
+            let coverage_from = interval(&coverage.coverage_from)?;
+            let coverage_through = interval(&coverage.complete_through)?;
             if coverage.relying_party_id != snapshot.decision.relying_party_id
                 || coverage.evidence_channel_id != snapshot.decision.evidence_channel_id
             {
@@ -598,8 +611,8 @@ fn classify(
             {
                 status = DecisionStatus::Unknown;
                 reason = "availability_coverage_not_complete_and_verified";
-            } else if coverage_from > cutoff.earliest_epoch_seconds
-                || coverage_through < available.latest_epoch_seconds
+            } else if coverage_from.latest_epoch_seconds > cutoff.earliest_epoch_seconds
+                || coverage_through.earliest_epoch_seconds < available.latest_epoch_seconds
             {
                 status = DecisionStatus::Unknown;
                 reason = "availability_coverage_does_not_span_cutoff_to_first_access";
@@ -909,8 +922,12 @@ mod tests {
         availability.coverage = Some(CoverageProof {
             relying_party_id: "rp:test".to_string(),
             evidence_channel_id: "channel:ieac-ingest-registry".to_string(),
-            coverage_from_utc: "2026-11-02T08:00:00Z".to_string(),
-            complete_through_utc: "2026-11-02T09:30:00Z".to_string(),
+            coverage_from: time(
+                "2026-11-02T08:00:00Z", 0, 0, "authenticated_ingest_log", "verified"
+            ),
+            complete_through: time(
+                "2026-11-02T09:30:00Z", 0, 0, "authenticated_ingest_log", "verified"
+            ),
             coverage_proof_sha256: digest('e'),
             completeness: "complete".to_string(),
             verification_status: "verified".to_string(),
@@ -943,8 +960,12 @@ mod tests {
         availability.coverage = Some(CoverageProof {
             relying_party_id: "rp:test".to_string(),
             evidence_channel_id: "channel:ieac-ingest-registry".to_string(),
-            coverage_from_utc: "2026-11-02T09:09:45Z".to_string(),
-            complete_through_utc: "2026-11-02T09:30:00Z".to_string(),
+            coverage_from: time(
+                "2026-11-02T09:09:45Z", 0, 0, "authenticated_ingest_log", "verified"
+            ),
+            complete_through: time(
+                "2026-11-02T09:30:00Z", 0, 0, "authenticated_ingest_log", "verified"
+            ),
             coverage_proof_sha256: digest('e'),
             completeness: "complete".to_string(),
             verification_status: "verified".to_string(),
