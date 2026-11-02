@@ -2226,7 +2226,6 @@ dependencies = [
  "glob",
  "hex",
  "jiff",
- "reqwest",
  "serde",
  "serde_json",
  "sigstore-crypto",
@@ -2235,7 +2234,6 @@ dependencies = [
  "thiserror",
  "tokio",
  "tracing",
- "url",
 ]
 
 [[package]]
@@ -3066,7 +3064,6 @@ dependencies = [
  "serde_json_canonicalizer",
  "sha2",
  "sigstore-tuf",
- "tempfile",
  "tokio",
 ]
 
