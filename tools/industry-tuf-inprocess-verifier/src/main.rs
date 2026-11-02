@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use sigstore_tuf::{
     cache::FileStore,
     client::{HttpRepository, Updater},
-    transport::Repository,
+    transport::{Repository, UpdaterConfig},
     StoreRepository,
 };
 use std::{
@@ -202,8 +202,11 @@ async fn verify_repository(request: VerificationRequest) -> Result<VerificationR
     // One fixed update-start time is used for refresh and every target
     // authorization check, matching the TUF client workflow.
     let update_started_at = jiff::Timestamp::now();
+    let mut updater_config = UpdaterConfig::default();
+    updater_config.target_max_length = request.max_target_bytes;
     let mut updater = Updater::new(repository, &root_bytes)
         .map_err(|error| format!("pinned TUF bootstrap root failed verification: {error}"))?
+        .with_config(updater_config)
         .with_store(FileStore::new(request.metadata_cache_path.clone()));
 
     updater
