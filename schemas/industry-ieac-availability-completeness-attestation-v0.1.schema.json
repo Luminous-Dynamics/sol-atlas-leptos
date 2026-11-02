@@ -666,25 +666,86 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
+            "query_id",
             "query_sha256",
-            "predicate_sha256",
+            "predicate_binding",
             "sequence_from_exclusive",
             "sequence_through_inclusive",
             "matching_event_count",
             "result_sha256",
+            "signed_statement_sha256",
+            "signer_id",
+            "signature_sha256",
             "receipt_sha256",
             "verification_status",
             "verifier_build_sha256",
-            "verification_policy_sha256"
+            "verification_policy_sha256",
+            "trust_bundle_sha256"
           ],
           "properties": {
+            "query_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
             "query_sha256": {
               "type": "string",
               "pattern": "^[0-9a-f]{64}$"
             },
-            "predicate_sha256": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
+            "predicate_binding": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "relying_party_id",
+                "evidence_channel_id",
+                "tenant_scope",
+                "subject_pseudonym",
+                "purpose",
+                "artifact_sha256",
+                "event_types"
+              ],
+              "properties": {
+                "relying_party_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                },
+                "evidence_channel_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                },
+                "tenant_scope": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                },
+                "subject_pseudonym": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                },
+                "purpose": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                },
+                "artifact_sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "event_types": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 32,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  }
+                }
+              }
             },
             "sequence_from_exclusive": {
               "type": "integer",
@@ -698,6 +759,19 @@
               "const": 0
             },
             "result_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "signed_statement_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "signer_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "signature_sha256": {
               "type": "string",
               "pattern": "^[0-9a-f]{64}$"
             },
@@ -718,6 +792,10 @@
               "pattern": "^[0-9a-f]{64}$"
             },
             "verification_policy_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "trust_bundle_sha256": {
               "type": "string",
               "pattern": "^[0-9a-f]{64}$"
             }
