@@ -3,7 +3,7 @@ name: Energy Dispatch Exact-Search Profiler
 on:
   pull_request:
     paths:
-      - "sol-atlas-core/src/bin/energy-dispatch-profile.rs"
+      - "tools/energy-dispatch-profile-runner/src/main.rs"
       - "sol-atlas-core/src/energy_dispatch.rs"
       - "sol-atlas-core/src/energy_pathway.rs"
       - "sol-atlas-core/src/lib.rs"
@@ -15,7 +15,7 @@ on:
     branches:
       - "research/energy-solver-compute-calibration-*"
     paths:
-      - "sol-atlas-core/src/bin/energy-dispatch-profile.rs"
+      - "tools/energy-dispatch-profile-runner/src/main.rs"
       - "sol-atlas-core/src/energy_dispatch.rs"
       - "sol-atlas-core/src/energy_pathway.rs"
       - "sol-atlas-core/src/lib.rs"
@@ -49,20 +49,19 @@ jobs:
         with:
           components: rustfmt, clippy
       - name: Format the profiled runner source
-        run: rustfmt --edition 2024 --check sol-atlas-core/src/bin/energy-dispatch-profile.rs
+        run: cargo fmt --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --check
       - name: Check exact-search profiler against the committed locked core
-        run: cargo check --locked --manifest-path sol-atlas-core/Cargo.toml --bin energy-dispatch-profile
+        run: cargo check --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-profile
       - name: Run exact-search profiler positive and negative controls
-        run: cargo test --locked --manifest-path sol-atlas-core/Cargo.toml --bin energy-dispatch-profile
+        run: cargo test --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-profile
       - name: Strict Clippy for the new profiler binary
-        run: cargo clippy --no-deps --locked --manifest-path sol-atlas-core/Cargo.toml --bin energy-dispatch-profile -- -D warnings
+        run: cargo clippy --no-deps --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-profile -- -D warnings
       - name: Execute the real exact enumerator on the frozen synthetic request
         run: |
           set -euo pipefail
           mkdir -p target/energy-dispatch-profiled-runner
           panel_sha="$(sha256sum schemas/examples/energy-dispatch-pv-outage.synthetic.json | awk '{print $1}')"
-          cargo run --release --locked --manifest-path sol-atlas-core/Cargo.toml \
-            --bin energy-dispatch-profile -- \
+          cargo run --release --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-profile -- \
             schemas/examples/energy-dispatch-pv-outage.synthetic.json \
             "$panel_sha" \
             target/energy-dispatch-profiled-runner/trace.csv \
@@ -101,7 +100,8 @@ jobs:
           name: energy-dispatch-profiled-runner-${{ github.sha }}
           path: |
             target/energy-dispatch-profiled-runner/
-            sol-atlas-core/src/bin/energy-dispatch-profile.rs
+            tools/energy-dispatch-profile-runner/src/main.rs
+            tools/energy-dispatch-profile-runner/Cargo.toml
             sol-atlas-core/src/energy_dispatch.rs
             sol-atlas-core/src/energy_pathway.rs
             sol-atlas-core/Cargo.toml
