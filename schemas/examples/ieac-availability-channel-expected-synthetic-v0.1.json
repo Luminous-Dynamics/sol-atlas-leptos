@@ -1,0 +1,23 @@
+{
+  "fixture_schema_version": "luminous.ieac-availability-channel-fixture.v0.1",
+  "fixture_status": "synthetic_only",
+  "channel_manifest_file": "ieac-evidence-channel-manifest-synthetic-v0.1.json",
+  "complete_attestation_file": "ieac-availability-completeness-attestation-synthetic-v0.1.json",
+  "expected": {
+    "complete_scope": "only the declared relying-party/channel/tenant/subject/purpose/artifact scope",
+    "complete_claim_allowed": true,
+    "late_exclusion_claim_allowed": true,
+    "action_authority": "none",
+    "universal_non_access_claim_allowed": false,
+    "rfc9162_non_inclusion_assumed": false
+  },
+  "negative_controls": [
+    "same positive post-cutoff access event without channel-completeness attestation must remain unknown",
+    "nonzero sequence gap must prevent complete status",
+    "known bypass path must prevent complete status",
+    "coverage interval starting after earliest possible cutoff must prevent complete status",
+    "first access sequence must be greater than lower checkpoint sequence",
+    "first access event and both checkpoints must use same ledger, namespace and epoch",
+    "policy change during coverage interval must prevent complete status"
+  ]
+}
