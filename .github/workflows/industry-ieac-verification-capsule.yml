@@ -67,7 +67,10 @@ jobs:
               "checkpoint_state",
               "completeness_attestation"
             ] and
-            all(.targets[]; .content_mode == "embedded" and has("capsule_file_path") and (has("reference") | not))
+            ([.targets[].repository_path] | unique | length) == 4 and
+            all(.targets[]; .content_mode == "embedded" and has("capsule_file_path") and (has("reference") | not)) and
+            ([.file_inventory[].path] == ([.file_inventory[].path] | sort)) and
+            ([.file_inventory[].path] | unique | length) == (.file_inventory | length)
           ' schemas/examples/ieac-verification-capsule-self-contained-synthetic-v0.1.json
 
           jq -e '
