@@ -23,7 +23,9 @@
     "persistent_high_water",
     "claim_ceiling",
     "action_authority",
-    "bootstrap_root_sha256"
+    "bootstrap_root_sha256",
+    "report_authentication",
+    "standalone_admission_proof"
   ],
   "properties": {
     "schema_version": {
@@ -133,6 +135,12 @@
     "bootstrap_root_sha256": {
       "type": "string",
       "pattern": "^[0-9a-f]{64}$"
+    },
+    "report_authentication": {
+      "const": "unsigned_audit_output"
+    },
+    "standalone_admission_proof": {
+      "const": "no_requires_reverification_or_authenticated_binding_before_offline_admission"
     }
   }
 }
