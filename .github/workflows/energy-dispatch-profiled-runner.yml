@@ -93,10 +93,13 @@ jobs:
           set -euo pipefail
           auditor="$CARGO_TARGET_DIR/release/energy-dispatch-nonanticipativity-auditor"
           fixture_dir="schemas/examples/nonanticipativity-v0.1"
+          positive_forecast_sha="$(sha256sum "$fixture_dir/forecast-bundle-positive.json" | awk '{print $1}')"
+          negative_forecast_sha="$(sha256sum "$fixture_dir/forecast-bundle-negative.json" | awk '{print $1}')"
           "$auditor" \
             "$fixture_dir/nonanticipativity-positive.manifest.json" \
             target/energy-dispatch-profiled-runner/nonanticipativity-positive-receipt.json
-          jq -e '
+          jq --arg forecast_sha "$positive_forecast_sha" -e '
+            .receipt_schema == "energy-dispatch-nonanticipativity-receipt-v0.2" and
             .disposition == "accepted" and
             .scenario_set_id == "demo-nonanticipativity-branching-v0.1" and
             .scenario_count == 2 and
@@ -104,12 +107,16 @@ jobs:
             all(.scenario_bindings[];
               (.information_sets_by_interval | length == 2) and
               (.information_set_sha256_by_interval | length == 2) and
-              all(.information_sets_by_interval[]; (.forecast_bundle_sha256 | length == 64))
+              all(.information_sets_by_interval[];
+                .forecast_bundle_sha256 == $forecast_sha
+              )
             ) and
             (.scenario_bindings[0].information_set_sha256_by_interval[0] ==
               .scenario_bindings[1].information_set_sha256_by_interval[0]) and
             (.scenario_bindings[0].information_set_sha256_by_interval[1] !=
               .scenario_bindings[1].information_set_sha256_by_interval[1]) and
+            (.scenario_bindings[0].information_sets_by_interval[0].forecast_bundle_sha256 ==
+              .scenario_bindings[1].information_sets_by_interval[0].forecast_bundle_sha256) and
             .shared_information_set_count == 1 and
             .checked_action_comparison_count == 1 and
             all(.findings[]; .passed == true) and
@@ -124,11 +131,14 @@ jobs:
           negative_status=$?
           set -e
           test "$negative_status" -eq 1
-          jq -e '
+          jq --arg forecast_sha "$negative_forecast_sha" -e '
+            .receipt_schema == "energy-dispatch-nonanticipativity-receipt-v0.2" and
             .disposition == "rejected" and
             all(.scenario_bindings[];
               (.information_sets_by_interval | length == 2) and
-              all(.information_sets_by_interval[]; (.forecast_bundle_sha256 | length == 64))
+              all(.information_sets_by_interval[];
+                .forecast_bundle_sha256 == $forecast_sha
+              )
             ) and
             any(.findings[];
               .predicate == "nonanticipative-dispatch-action" and
