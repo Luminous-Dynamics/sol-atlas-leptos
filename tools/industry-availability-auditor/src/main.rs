@@ -503,7 +503,7 @@ fn complete_or_unknown(
     let first_sequence = integer(attestation, "first_access.sequence")?;
     let end_sequence = integer(attestation, "coverage_end_checkpoint.sequence")?;
     if !(start_sequence < boundary_sequence
-        && boundary_sequence < first_sequence
+        && boundary_sequence.checked_add(1) == Some(first_sequence)
         && first_sequence <= end_sequence)
     {
         return Ok(report(
@@ -792,6 +792,14 @@ mod tests {
     fn access_before_decision_boundary_forces_unknown() {
         let (manifest, mut attestation) = corpus();
         attestation["first_access"]["sequence"] = json!(109);
+        let report = evaluate_mutation(&manifest, &attestation).expect("unknown is a valid result");
+        assert_eq!(report["status"], "unknown");
+    }
+
+    #[test]
+    fn skipped_sequence_between_boundary_and_first_access_forces_unknown() {
+        let (manifest, mut attestation) = corpus();
+        attestation["first_access"]["sequence"] = json!(111);
         let report = evaluate_mutation(&manifest, &attestation).expect("unknown is a valid result");
         assert_eq!(report["status"], "unknown");
     }
