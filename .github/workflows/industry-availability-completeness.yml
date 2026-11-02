@@ -180,7 +180,7 @@ jobs:
           jq '.capture_health.known_bypass_paths = ["unlogged-cache"]' "$source" > "$RUNNER_TEMP/bypass.json"
           jq '.absence_query.matching_event_count = 1' "$source" > "$RUNNER_TEMP/nonzero-query.json"
           jq '.absence_query.sequence_through_inclusive = 99' "$source" > "$RUNNER_TEMP/wrong-query-range.json"
-          jq '.first_access.sequence = 100' "$source" > "$RUNNER_TEMP/access-before-boundary.json"
+          jq '.first_access.sequence = 109' "$source" > "$RUNNER_TEMP/access-before-boundary.json"
           jq '.decision_boundary_checkpoint.observed_at.time_utc = "2026-11-02T09:09:00Z"' "$source" > "$RUNNER_TEMP/boundary-not-after-cutoff.json"
           jq '.coverage_start_checkpoint.observed_at.time_utc = "2026-11-02T09:11:00Z"' "$source" > "$RUNNER_TEMP/coverage-start-after-cutoff.json"
           for mutant in "$RUNNER_TEMP/gap.json" "$RUNNER_TEMP/bypass.json" "$RUNNER_TEMP/nonzero-query.json" "$RUNNER_TEMP/wrong-query-range.json" "$RUNNER_TEMP/access-before-boundary.json" "$RUNNER_TEMP/boundary-not-after-cutoff.json" "$RUNNER_TEMP/coverage-start-after-cutoff.json"; do
