@@ -33,7 +33,7 @@ Synthetic example:
 |---|---:|---|
 | Coverage start | 90 | 08:00:00 |
 | Decision cutoff | — | 09:10:00 ± 30s |
-| Decision boundary | 100 | 09:24:00 |
+| Decision boundary | 109 | 09:24:00 |
 | First access | 110 | 09:25:00 ± 2s |
 | Coverage end | 120 | 09:30:00 |
 
@@ -59,7 +59,7 @@ For a `complete` result, hard requirements are:
 - coverage-start checkpoint is at or before the earliest possible decision cutoff;
 - decision-boundary checkpoint is strictly after the latest possible decision cutoff;
 - coverage interval spans the start through the first-access event;
-- query range exactly equals the start-to-boundary sequence interval and has zero matches;
+- query range exactly equals the start-to-boundary sequence interval ending at `first_access.sequence - 1` and has zero matches;
 - first-access sequence is greater than the boundary sequence and no greater than end sequence;
 - all checkpoints and events share the same ledger, namespace and epoch;
 - no dropped events, sequence gaps, unresolved outages, backfills, policy changes, bypass paths, retention loss or degraded clock health are declared.
@@ -78,7 +78,7 @@ A signed zero-match query is only as trustworthy as its query engine, capture po
 
 ## 6. Frozen synthetic corpus
 
-The initial corpus contains one strict channel manifest, one synthetic complete attestation, checkpoints at sequences 90/100/120, one first-access event at sequence 110, and one signed-query placeholder covering `(90, 100]`.
+The initial corpus contains one strict channel manifest, one synthetic complete attestation, checkpoints at sequences 90/109/120, one first-access event at sequence 110, and one signed-query placeholder covering `(90, 109]`.
 
 Every digest and proof is synthetic placeholder data. No real keys, receipts, log roots, query signature or operational access events are supplied. The fixture demonstrates structure and relationships only.
 
