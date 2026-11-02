@@ -169,11 +169,13 @@ a set of complete scenario schedules can be interpreted as one policy under
 the caller-declared information sets. It is separate from the single-scenario
 schedule auditor and from the service-floor evaluator.
 
-A strict manifest lists 2–256 scenarios. Each entry binds:
+A strict manifest lists 2–256 scenarios and binds a safe `scenario_set_id`. Each entry binds:
 - a unique scenario ID, equal to the request case ID;
 - one exact source-request JSON file;
 - one exact complete schedule JSON file;
 - one 64-character information-set SHA-256 label per source interval.
+
+The receipt records the scenario-set ID, exact request/schedule digests, information-set labels, shared information-set count, action-comparison count, per-group findings, receipt digest and auditor executable digest. Its JSON contract is defined in `nonanticipativity-receipt-schema-v0.1.json`.
 
 The CLI is invoked with a manifest and receipt output path:
 
@@ -194,8 +196,10 @@ The library evaluator first requires every scenario request and schedule to
 pass the existing standalone domain predicates/objective recomputation. It
 then requires all scenarios to share the same source schema, synthetic/evidence
 class, search budget, energy quantum, battery configuration and interval
-chronology. For each interval it groups scenarios by information-set digest.
-Every group with two or more members must have:
+chronology. It also requires every scenario to share one root information set
+at the first decision; scenario trees without a common initial decision are
+rejected in this v0.1 contract. For each interval it groups scenarios by
+information-set digest. Every group with two or more members must have:
 1. identical source-observation prefixes through that interval; and
 2. identical dispatch action fields at that interval, including grid import,
    battery charge/discharge, SOC after the interval, essential/flexible served
@@ -215,6 +219,9 @@ or actuation authority. This is the first verifier primitive for
 [ENERGY-UNCERTAINTY-001 / #312](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/312), not yet a complete scenario-tree optimizer or rolling-horizon controller.
 
 The v0.1 tests include:
+- an accepted two-scenario example where both branches take the same 2-quanta
+  PV charging action at the root and diverge to 2-quanta versus 1-quanta
+  battery discharge after branch information is revealed;
 - rejection when two scenarios with the same pre-branch information choose
   different actions;
 - acceptance when pre-branch actions match and actions diverge after the
