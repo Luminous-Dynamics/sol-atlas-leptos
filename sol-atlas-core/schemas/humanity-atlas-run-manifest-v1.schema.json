@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas.luminousdynamics.io/schemas/humanity-atlas-run-manifest-v1.schema.json",
+  "title": "Humanity Atlas Run Manifest v1",
+  "description": "Binds a declared effective technology model to resolved simulation inputs and run parameters; does not authenticate publisher or scientific validity.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "selected_definition_source",
+    "effective_model_sha256",
+    "resolved_config_sha256",
+    "resolved_params_sha256",
+    "seed",
+    "ticks",
+    "source_revision"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "humanity-atlas.run-manifest.v1"
+    },
+    "selected_definition_source": {
+      "type": "string",
+      "minLength": 1
+    },
+    "effective_model_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "resolved_config_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "resolved_params_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "ticks": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "source_revision": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1,
+      "maxLength": 120
+    }
+  }
+}
