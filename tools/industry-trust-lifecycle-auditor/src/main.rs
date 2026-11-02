@@ -1074,22 +1074,47 @@ mod tests {
             .clone();
         let water_decision_digest = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
         let water_decision_id = format!("decision:sha256:{water_decision_digest}");
-        graph["nodes"].as_array_mut().unwrap().push(json!({
-            "node_id": water_decision_id,
-            "node_type": "decision",
-            "artifact_sha256": water_decision_digest,
-            "scope": {
-                "domain": "water",
-                "subject_pseudonyms": ["case:water:asset:delta"],
-                "purposes": ["water_operations"]
-            }
-        }));
-        graph["edges"].as_array_mut().unwrap().push(json!({
-            "edge_id": "edge-cross-domain-water-decision",
-            "from_node_id": water_source_id,
-            "to_node_id": water_decision_id,
-            "relation": "evidence_for"
-        }));
+        let disconnected_control_digest =
+            "abababababababababababababababababababababababababababababababab";
+        let disconnected_control_id =
+            format!("source_measurement:sha256:{disconnected_control_digest}");
+        graph["nodes"].as_array_mut().unwrap().extend([
+            json!({
+                "node_id": water_decision_id,
+                "node_type": "decision",
+                "artifact_sha256": water_decision_digest,
+                "scope": {
+                    "domain": "water",
+                    "subject_pseudonyms": ["case:water:asset:delta"],
+                    "purposes": ["water_operations"]
+                }
+            }),
+            json!({
+                "node_id": disconnected_control_id,
+                "node_type": "source_measurement",
+                "artifact_sha256": disconnected_control_digest,
+                "scope": {
+                    "domain": "water",
+                    "subject_pseudonyms": ["case:water:asset:epsilon"],
+                    "purposes": ["water_operations"]
+                }
+            })
+        ]);
+        let issuer_key_id = graph["nodes"][0]["node_id"].clone();
+        graph["edges"].as_array_mut().unwrap().extend([
+            json!({
+                "edge_id": "edge-energy-key-to-water-source",
+                "from_node_id": issuer_key_id,
+                "to_node_id": water_source_id,
+                "relation": "derived_from"
+            }),
+            json!({
+                "edge_id": "edge-cross-domain-water-decision",
+                "from_node_id": water_source_id,
+                "to_node_id": water_decision_id,
+                "relation": "evidence_for"
+            })
+        ]);
 
         let mut digest_input = graph.clone();
         digest_input
@@ -1121,13 +1146,13 @@ mod tests {
 
         let disconnected_water_control = results
             .iter()
-            .find(|row| {
-                row["node_type"] == "source_measurement"
-                    && row["impact_class"] == "no_impact"
-                    && row["reason_codes"][0] == "OUTSIDE_INVALIDATION_SCOPE"
-            })
-            .expect("disconnected water control remains outside the impact closure");
+            .find(|row| row["node_id"] == disconnected_control_id)
+            .expect("disconnected water control remains in the report");
         assert_eq!(disconnected_water_control["impact_class"], "no_impact");
+        assert_eq!(
+            disconnected_water_control["reason_codes"][0],
+            "OUTSIDE_INVALIDATION_SCOPE"
+        );
     }
 
     #[test]
