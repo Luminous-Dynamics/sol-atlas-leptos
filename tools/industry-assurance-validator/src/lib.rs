@@ -1011,18 +1011,18 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
     let _ = string(profile, "profile_id", "", &mut out);
     let _ = string(profile, "claim_ceiling", "", &mut out);
 
-    if let Some(claim) = profile.get("claim") {
-        if object(claim, "/claim", &mut out).is_some() {
-            for key in [
-                "claim_id",
-                "capability_id",
-                "instance_id",
-                "decision_id",
-                "description",
-                "intended_user",
-            ] {
-                let _ = string(claim, key, "/claim", &mut out);
-            }
+    if let Some(claim) = profile.get("claim")
+        && object(claim, "/claim", &mut out).is_some()
+    {
+        for key in [
+            "claim_id",
+            "capability_id",
+            "instance_id",
+            "decision_id",
+            "description",
+            "intended_user",
+        ] {
+            let _ = string(claim, key, "/claim", &mut out);
         }
     }
     let tier = profile
@@ -1064,8 +1064,9 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
         );
     }
 
-    if let Some(risk) = profile.get("risk_assessment") {
-        if object(risk, "/risk_assessment", &mut out).is_some() {
+    if let Some(risk) = profile.get("risk_assessment")
+        && object(risk, "/risk_assessment", &mut out).is_some()
+    {
             let class = string(risk, "reviewed_class", "/risk_assessment", &mut out).unwrap_or("");
             if !["low", "moderate", "high", "critical", "unassessed"].contains(&class) {
                 issue(
@@ -1165,15 +1166,15 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
                         ),
                     ];
                     for (key, allowed) in enums {
-                        if let Some(value) = risk_dims.get(key) {
-                            if !allowed.contains(value) {
-                                issue(
-                                    &mut out,
-                                    "INVALID_RISK_DIMENSION",
-                                    format!("/risk_assessment/dimensions/{key}"),
-                                    "Unrecognized risk dimension value.",
-                                );
-                            }
+                        if let Some(value) = risk_dims.get(key)
+                            && !allowed.contains(value)
+                        {
+                            issue(
+                                &mut out,
+                                "INVALID_RISK_DIMENSION",
+                                format!("/risk_assessment/dimensions/{key}"),
+                                "Unrecognized risk dimension value.",
+                            );
                         }
                     }
                 }
@@ -1247,26 +1248,26 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
                     _ => {}
                 }
             }
-        }
     }
 
     let (artifact_ids, roles) = validate_artifacts(profile, &mut out);
     validate_evidence(profile, &artifact_ids, &mut out);
     validate_authority(profile, &artifact_ids, &roles, &mut out);
-    if let Some(max_age) = profile.pointer("/authority/max_authority_snapshot_age_seconds") {
-        if max_age.as_u64().is_none() {
-            issue(
-                &mut out,
-                "INVALID_AUTHORITY_MAX_AGE_SECONDS",
-                "/authority/max_authority_snapshot_age_seconds",
-                "max_authority_snapshot_age_seconds must be a non-negative integer when present.",
-            );
-        }
+    if let Some(max_age) = profile.pointer("/authority/max_authority_snapshot_age_seconds")
+        && max_age.as_u64().is_none()
+    {
+        issue(
+            &mut out,
+            "INVALID_AUTHORITY_MAX_AGE_SECONDS",
+            "/authority/max_authority_snapshot_age_seconds",
+            "max_authority_snapshot_age_seconds must be a non-negative integer when present.",
+        );
     }
     validate_validity(profile, &mut out);
 
-    if let Some(envelope) = profile.get("operating_envelope") {
-        if object(envelope, "/operating_envelope", &mut out).is_some() {
+    if let Some(envelope) = profile.get("operating_envelope")
+        && object(envelope, "/operating_envelope", &mut out).is_some()
+    {
             for key in ["envelope_id", "domain_description", "out_of_domain_policy"] {
                 let _ = string(envelope, key, "/operating_envelope", &mut out);
             }
@@ -1293,50 +1294,49 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
                                 "maximum must be a finite JSON number.",
                             );
                         }
-                        if let (Some(Some(min)), Some(Some(max))) = (minimum, maximum) {
-                            if !min.is_finite() || !max.is_finite() || min > max {
-                                issue(
-                                    &mut out,
-                                    "REVERSED_OPERATING_RANGE",
-                                    &path,
-                                    "When both bounds are supplied, minimum must be finite and no greater than maximum.",
-                                );
-                            }
+                        if let (Some(Some(min)), Some(Some(max))) = (minimum, maximum)
+                            && (!min.is_finite() || !max.is_finite() || min > max)
+                        {
+                            issue(
+                                &mut out,
+                                "REVERSED_OPERATING_RANGE",
+                                &path,
+                                "When both bounds are supplied, minimum must be finite and no greater than maximum.",
+                            );
                         }
                         for key in ["variable", "unit", "support", "evidence_state"] {
                             let _ = string(condition, key, &path, &mut out);
                         }
-                        if let Some(max_age) = condition.get("max_age_seconds") {
-                            if max_age.as_u64().is_none() {
-                                issue(
-                                    &mut out,
-                                    "INVALID_MAX_AGE_SECONDS",
-                                    format!("{path}/max_age_seconds"),
-                                    "max_age_seconds must be a non-negative integer when present.",
-                                );
-                            }
+                        if let Some(max_age) = condition.get("max_age_seconds")
+                            && max_age.as_u64().is_none()
+                        {
+                            issue(
+                                &mut out,
+                                "INVALID_MAX_AGE_SECONDS",
+                                format!("{path}/max_age_seconds"),
+                                "max_age_seconds must be a non-negative integer when present.",
+                            );
                         }
                         if let Some(source_ids) = condition
                             .get("source_artifact_ids")
                             .and_then(Value::as_array)
                         {
                             for (j, source) in source_ids.iter().enumerate() {
-                                if let Some(id) = source.as_str() {
-                                    if !artifact_ids.contains_key(id) {
-                                        issue(
-                                            &mut out,
-                                            "DANGLING_ENVELOPE_ARTIFACT",
-                                            format!("{path}/source_artifact_ids/{j}"),
-                                            "Source artifact ID is not bound.",
-                                        );
-                                    }
+                                if let Some(id) = source.as_str()
+                                    && !artifact_ids.contains_key(id)
+                                {
+                                    issue(
+                                        &mut out,
+                                        "DANGLING_ENVELOPE_ARTIFACT",
+                                        format!("{path}/source_artifact_ids/{j}"),
+                                        "Source artifact ID is not bound.",
+                                    );
                                 }
                             }
                         }
                     }
                 }
             }
-        }
     }
 
     out.sort_by(|a, b| (&a.path, &a.code, &a.message).cmp(&(&b.path, &b.code, &b.message)));
