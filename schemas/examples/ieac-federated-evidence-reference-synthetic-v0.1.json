@@ -1,0 +1,47 @@
+{
+  "schema_version": "luminous.itip-federated-evidence-reference.v0.1",
+  "source": {
+    "system_id": "synthetic-pump-monitor",
+    "namespace_id": "urn:synthetic:plant-a",
+    "native_object_id": "pump-017",
+    "native_schema_uri": "urn:synthetic:schema:condition-observation",
+    "native_schema_version": "1.0.0",
+    "native_schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "native_record_id": "record-2026-11-02-00017",
+    "native_payload_uri": "urn:synthetic:payload:pump-017:2026-11-02T18:00:00Z",
+    "native_payload_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "source_sequence": 17017,
+    "observed_at": "2026-11-02T18:00:00Z",
+    "ingested_at": "2026-11-02T18:00:02Z"
+  },
+  "rights": {
+    "state": "verified",
+    "basis": "Synthetic fixture; not a real license grant.",
+    "permitted_uses": [
+      "testing",
+      "benchmarking",
+      "validation"
+    ],
+    "export_permitted": false,
+    "owner_or_controller_id": "synthetic-owner"
+  },
+  "observations": [
+    {
+      "observation_id": "pump-017-vibration-001",
+      "native_property_path": "/objects/pump-017/measurements/vibrationVelocityRms",
+      "semantic_concept": "rotating_equipment.vibration_velocity_rms",
+      "value": 4.2,
+      "unit": "mm/s",
+      "lower": 4.0,
+      "upper": 4.4,
+      "observed_at": "2026-11-02T18:00:00Z",
+      "evidence_state": "measured",
+      "semantic_status": "native",
+      "calibration_state": "current",
+      "notes": "Synthetic value and uncertainty interval for schema conformance only."
+    }
+  ],
+  "transformations": [],
+  "unsupported_semantics": [],
+  "claim_ceiling": "source_reference_and_transformation_lineage_only"
+}
