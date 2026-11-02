@@ -255,7 +255,8 @@ fn derive_information_set_sha256(
             .is_some_and(|payload| !payload.is_empty())
     {
         return Err(audit_error(
-            "forecast bundle identity, issue time, validity window or payload is invalid for this decision",
+            "forecast bundle identity, issue time, validity window or payload is invalid \
+             for this decision",
         ));
     }
 
