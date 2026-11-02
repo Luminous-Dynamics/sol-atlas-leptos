@@ -191,13 +191,45 @@ fn safe_target_path(target_directory: &Path, target_name: &str) -> Result<PathBu
         return Err(Error::transport("unsafe TUF target path"));
     }
     let relative = Path::new(target_name);
-    if relative
-        .components()
-        .any(|component| !matches!(component, Component::Normal(_)))
+    if target_name
+        .split('/')
+        .any(|part| part.is_empty() || part == "." || part == "..")
+        || relative
+            .components()
+            .any(|component| !matches!(component, Component::Normal(_)))
     {
         return Err(Error::transport("unsafe TUF target path component"));
     }
     Ok(target_directory.join(relative))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn safe_target_path_rejects_absolute_and_traversal_paths() {
+        let directory = Path::new("/tmp/tuf-targets");
+        for name in [
+            "",
+            "/etc/passwd",
+            "../escape",
+            "channels/../escape",
+            "channels//manifest.json",
+            "channels/./manifest.json",
+            "channels\\manifest.json",
+            "channels/manifest.json?download=1",
+        ] {
+            assert!(
+                safe_target_path(directory, name).is_err(),
+                "unsafe target path must fail: {name}"
+            );
+        }
+        assert_eq!(
+            safe_target_path(directory, "channels/plant-17/manifest.json").unwrap(),
+            directory.join("channels/plant-17/manifest.json")
+        );
+    }
 }
 
 fn print_error_chain(error: &Error) -> String {
