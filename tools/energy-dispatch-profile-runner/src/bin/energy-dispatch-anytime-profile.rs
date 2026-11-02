@@ -420,11 +420,8 @@ fn run_profile(
     let scenario_id = format!("scenario-{}", &sha256(request.case_id.as_bytes())[..24]);
 
     let invocation_started = Instant::now();
-    let solve_started = Instant::now();
     let execution = assess_energy_dispatch_execution(&request)
         .map_err(|error| format!("anytime dispatch execution error: {error:?}"))?;
-    let solve_elapsed_ns = u64::try_from(solve_started.elapsed().as_nanos())
-        .map_err(|_| "solver elapsed nanoseconds overflow".to_owned())?;
     let anytime = execution.anytime;
 
     let candidate = anytime.candidate.as_ref();
@@ -456,6 +453,7 @@ fn run_profile(
     let mut service_floor_receipt_sha = None;
     let mut service_floor_binary_sha = None;
     let mut service_floor_receipt_value = None;
+    let mut service_floor_elapsed_ns = None;
     let mut failure = None;
 
     // The exact source bytes are supplied through an immutable file path. Write
@@ -463,7 +461,8 @@ fn run_profile(
     let request_path = report_path.with_extension("request.json");
     atomic_write(&request_path, request_bytes, "exact request snapshot")?;
 
-    if let Some(bytes) = schedule_bytes.as_ref() {
+    if schedule_bytes.is_some() {
+        let _ = fs::remove_file(audit_receipt_path);
         let audit_started = Instant::now();
         let audit_output = Command::new(schedule_auditor_path)
             .arg(&request_path)
@@ -521,7 +520,6 @@ fn run_profile(
         }
 
         if audit_disposition == AuditDispositionV03::Unavailable {
-            let _ = bytes;
             if audit_receipt_sha.is_some() {
                 audit_receipt_sha = None;
                 audit_request_sha = None;
@@ -533,6 +531,7 @@ fn run_profile(
     }
 
     if audit_disposition == AuditDispositionV03::Accepted {
+        let _ = fs::remove_file(service_floor_receipt_path);
         let floor_started = Instant::now();
         let floor_output = Command::new(service_floor_auditor_path)
             .arg(&request_path)
@@ -543,6 +542,7 @@ fn run_profile(
             .output();
         let floor_elapsed = u64::try_from(floor_started.elapsed().as_nanos())
             .map_err(|_| "service-floor elapsed nanoseconds overflow".to_owned())?;
+        service_floor_elapsed_ns = Some(floor_elapsed);
         match floor_output {
             Ok(output) => {
                 if let Ok(receipt_bytes) = fs::read(service_floor_receipt_path) {
@@ -592,7 +592,6 @@ fn run_profile(
                 failure = Some(format!("could not execute service-floor auditor: {error}"));
             }
         }
-        let _ = floor_elapsed;
     }
 
     let elapsed_ns = u64::try_from(invocation_started.elapsed().as_nanos())
@@ -668,6 +667,7 @@ fn run_profile(
         service_floor_schedule_audit_receipt_sha256: service_floor_audit_receipt_sha,
         service_floor_receipt_sha256: service_floor_receipt_sha,
         service_floor_auditor_binary_sha256: service_floor_binary_sha,
+        service_floor_elapsed_ns,
     };
     let trace_row = append_trace(trace_path, &trace)?;
     let status = match trace.search_disposition {
