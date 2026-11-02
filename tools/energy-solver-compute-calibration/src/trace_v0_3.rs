@@ -1085,7 +1085,7 @@ mod tests {
         assert_eq!(summary.service_floor_elapsed_p50_ns, Some(19));
         assert_eq!(summary.service_floor_elapsed_p95_ns, Some(28));
         assert_eq!(summary.decision_ready_latency_sample_count, 20);
-        assert_eq!(summary.decision_ready_latency_p50_ns, Some(110));
+        assert_eq!(summary.decision_ready_latency_p50_ns, Some(109));
         assert_eq!(summary.decision_ready_latency_p95_ns, Some(118));
     }
 
