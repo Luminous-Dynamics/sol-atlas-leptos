@@ -1055,6 +1055,41 @@ mod tests {
     }
 
     #[test]
+    fn summary_reports_service_floor_and_decision_ready_latency_with_sample_gates() {
+        let mut rows = Vec::new();
+        for index in 0..20u8 {
+            let mut trace = base(SearchDispositionV03::FeasibleUnproven);
+            trace.sample_id = format!("sample-ready-{index}");
+            trace.elapsed_ns = 100 + u64::from(index);
+            trace.time_to_first_audit_accept_ns = Some(20 + u64::from(index));
+            let audit_receipt = digest(20 + index);
+            trace.audit_disposition = AuditDispositionV03::Accepted;
+            trace.audit_receipt_sha256 = Some(audit_receipt.clone());
+            trace.audit_request_sha256 = Some(digest(2));
+            trace.audit_schedule_sha256 = Some(digest(9));
+            trace.auditor_binary_sha256 = Some(digest(11));
+            trace.audit_elapsed_ns = Some(5);
+            trace.service_floor_disposition = ServiceFloorDispositionV03::Passed;
+            trace.service_floor_policy_sha256 = Some(digest(12));
+            trace.service_floor_schedule_audit_receipt_sha256 = Some(audit_receipt);
+            trace.service_floor_receipt_sha256 = Some(digest(100 + index));
+            trace.service_floor_auditor_binary_sha256 = Some(digest(14));
+            trace.service_floor_elapsed_ns = Some(10 + u64::from(index));
+            trace.validate().unwrap();
+            rows.push(trace);
+        }
+
+        let summary = summarize_traces_v03(&rows).unwrap().remove(0);
+        assert_eq!(summary.decision_ready_count, 20);
+        assert_eq!(summary.service_floor_sample_count, 20);
+        assert_eq!(summary.service_floor_elapsed_p50_ns, Some(19));
+        assert_eq!(summary.service_floor_elapsed_p95_ns, Some(28));
+        assert_eq!(summary.decision_ready_latency_sample_count, 20);
+        assert_eq!(summary.decision_ready_latency_p50_ns, Some(110));
+        assert_eq!(summary.decision_ready_latency_p95_ns, Some(118));
+    }
+
+    #[test]
     fn summary_preserves_all_search_and_audit_denominators() {
         let mut exact = base(SearchDispositionV03::ExactComplete);
         exact.sample_id = "sample-exact".into();
