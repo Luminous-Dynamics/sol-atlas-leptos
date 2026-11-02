@@ -521,12 +521,12 @@ mod tests {
             FeatureObservation { month_ordinal: month(2022, 1), value: Some(1.0) },
             FeatureObservation { month_ordinal: month(2023, 1), value: Some(1.0) },
         ];
-        let config = SeasonalBaselineConfig {
+        let long_window = SeasonalBaselineConfig {
             evaluation_end_month: month(2043, 1),
             ..config()
         };
         assert_eq!(
-            evaluate_seasonal_robust_deviation(&series(observations.clone()), config),
+            evaluate_seasonal_robust_deviation(&series(observations.clone()), long_window),
             Err(SeasonalBaselineError::EvaluationWindowTooLong)
         );
 
