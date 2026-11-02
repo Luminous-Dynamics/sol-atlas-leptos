@@ -201,7 +201,7 @@ jobs:
               .service_floor_receipt.disposition == "passed"
             ' "target/energy-dispatch-profiled-runner/v0.3/report-$sample.json"
           done
-          awk -F, 'NF != 41 { exit 1 }' target/energy-dispatch-profiled-runner/v0.3/trace.csv
+          awk -F, 'NF != 42 { exit 1 }' target/energy-dispatch-profiled-runner/v0.3/trace.csv
           test "$(wc -l < target/energy-dispatch-profiled-runner/v0.3/trace.csv)" -eq 31
           test "$(find target/energy-dispatch-profiled-runner/v0.3 -name 'audit-receipt-*.json' | wc -l)" -eq 30
           test "$(find target/energy-dispatch-profiled-runner/v0.3 -name 'service-floor-receipt-*.json' | wc -l)" -eq 30
@@ -216,16 +216,17 @@ jobs:
             target/energy-dispatch-profiled-runner/v0.3/trace.csv \
             > target/energy-dispatch-profiled-runner/v0.3/trace-summary.csv
           awk -F, '
-            NR == 1 { if (NF != 35 || $1 != "cohort_id") exit 1 }
+            NR == 1 { if (NF != 38 || $1 != "cohort_id") exit 1 }
             NR == 2 {
-              if ($2 != 30 || $3 != 30 || $4 != 0 || $5 != 0 || $6 != 0) exit 1
-              if ($10 != 30 || $11 != 30 || $12 != 30 || $13 != 0 || $14 != 0 || $15 != 0) exit 1
-              if ($16 != 30 || $17 != 0 || $18 != 0 || $19 != 0 || $20 != 30) exit 1
-              if ($21 != 30 || $22 == "NA" || $23 == "NA") exit 1
+              if ($2 != 30 || $3 != 30 || $4 == "NA" || $5 == "NA") exit 1
+              if ($6 != 30 || $7 != 0 || $8 != 0 || $9 != 0) exit 1
+              if ($13 != 30 || $14 != 30 || $15 != 30 || $16 != 0 || $17 != 0 || $18 != 0) exit 1
+              if ($19 != 30 || $20 != 0 || $21 != 0 || $22 != 0 || $23 != 30) exit 1
               if ($24 != 30 || $25 == "NA" || $26 == "NA") exit 1
-              if ($27 == "NA" || $28 == "NA" || $29 == "NA") exit 1
-              if ($30 != 30 || $31 == "NA" || $32 == "NA") exit 1
+              if ($27 != 30 || $28 == "NA" || $29 == "NA") exit 1
+              if ($30 == "NA" || $31 == "NA" || $32 == "NA") exit 1
               if ($33 != 30 || $34 == "NA" || $35 == "NA") exit 1
+              if ($36 != 30 || $37 == "NA" || $38 == "NA") exit 1
             }
             END { if (NR != 2) exit 1 }
           ' target/energy-dispatch-profiled-runner/v0.3/trace-summary.csv
