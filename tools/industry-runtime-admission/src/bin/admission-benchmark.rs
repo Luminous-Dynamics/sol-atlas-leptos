@@ -1,3 +1,5 @@
+#![recursion_limit = "256"]
+
 use industry_assurance_validator::validate_profile;
 use industry_runtime_admission::{
     evaluate_admission, independent_check, CHECKER_VERSION, EVALUATOR_VERSION,
