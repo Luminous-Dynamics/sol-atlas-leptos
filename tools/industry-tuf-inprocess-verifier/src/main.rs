@@ -93,8 +93,11 @@ fn validate_target_path(path: &str) -> Result<(), String> {
         || path.contains('?')
         || path.contains('#')
         || path.split('/').any(|part| part.is_empty() || part == "." || part == "..")
+        || !path.bytes().all(|byte| {
+            byte.is_ascii_alphanumeric() || matches!(byte, b'/' | b'.' | b'_' | b'-' | b'~')
+        })
     {
-        return Err(format!("unsafe repository-relative TUF target path: {path:?}"));
+        return Err(format!("unsafe or non-normalized repository-relative TUF target path: {path:?}"));
     }
     Ok(())
 }
@@ -181,6 +184,15 @@ fn write_new_report(path: &Path, report: &VerificationReport) -> Result<(), Stri
 }
 
 async fn verify_repository(request: VerificationRequest) -> Result<VerificationReport, String> {
+    let root_metadata = fs::metadata(&request.bootstrap_root_path).map_err(|error| {
+        format!(
+            "cannot inspect out-of-band bootstrap root {}: {error}",
+            request.bootstrap_root_path.display()
+        )
+    })?;
+    if !root_metadata.is_file() || root_metadata.len() > 512_000 {
+        return Err("bootstrap root must be a regular file no larger than 512000 bytes".to_string());
+    }
     let root_bytes = fs::read(&request.bootstrap_root_path).map_err(|error| {
         format!(
             "cannot read out-of-band bootstrap root {}: {error}",
@@ -193,6 +205,7 @@ async fn verify_repository(request: VerificationRequest) -> Result<VerificationR
     let http = sigstore_tuf::reqwest::Client::builder()
         .connect_timeout(Duration::from_secs(10))
         .timeout(Duration::from_secs(45))
+        .redirect(sigstore_tuf::reqwest::redirect::Policy::none())
         .build()
         .map_err(|error| format!("cannot create bounded HTTPS client: {error}"))?;
     let repository = HttpRepository::new(&request.repository_url)
@@ -501,6 +514,25 @@ mod tests {
                 "{file}: unexpected verification error {error:?}"
             );
         }
+    }
+
+    #[test]
+    fn target_path_rejects_encoded_traversal_and_non_ascii_paths() {
+        for path in [
+            "../escape.json",
+            "channels/%2e%2e/escape.json",
+            "channels/%2fetc/passwd",
+            "channels//checkpoint.json",
+            "channels/./checkpoint.json",
+            "channels\\\\checkpoint.json",
+            "channels/plant 17/checkpoint.json",
+        ] {
+            assert!(
+                validate_target_path(path).is_err(),
+                "unsafe target path must be rejected: {path}"
+            );
+        }
+        assert!(validate_target_path("channels/plant-17/checkpoint.json").is_ok());
     }
 
     #[test]
