@@ -539,7 +539,9 @@ fn write_schedule(path: &Path, profile: &ProfiledRun) -> Result<(), String> {
         .as_deref()
         .ok_or_else(|| "selected schedule has no source digest".to_owned())?;
     if sha256(&bytes) != expected_sha256 {
-        return Err("serialized schedule digest changed between profiling and publication".to_owned());
+        return Err(
+            "serialized schedule digest changed between profiling and publication".to_owned(),
+        );
     }
     let temporary = path.with_extension("json.tmp");
     fs::write(&temporary, bytes)
