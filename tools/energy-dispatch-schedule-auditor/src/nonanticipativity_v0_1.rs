@@ -648,7 +648,7 @@ mod tests {
         let labels_a = [digest(1), digest(2)];
         let labels_b = [digest(1), digest(3)];
 
-        let receipt = evaluate_nonanticipativity_bytes(&[
+        let receipt = evaluate_nonanticipativity_bytes("nonanticipativity-test-set", &[
             scenario("scenario-a", &request_a, &schedule_a, &labels_a),
             scenario("scenario-b", &request_b, &schedule_b, &labels_b),
         ])
@@ -668,7 +668,7 @@ mod tests {
         let schedule_b = schedule_bytes(&request_b, false, false);
         let labels = [digest(1), digest(2)];
 
-        let receipt = evaluate_nonanticipativity_bytes(&[
+        let receipt = evaluate_nonanticipativity_bytes("nonanticipativity-test-set", &[
             scenario("scenario-a", &request_a, &schedule_a, &labels),
             scenario("scenario-b", &request_b, &schedule_b, &labels),
         ])
@@ -691,7 +691,7 @@ mod tests {
         let labels_a = [digest(1), digest(2)];
         let labels_b = [digest(3), digest(2)];
 
-        let receipt = evaluate_nonanticipativity_bytes(&[
+        let receipt = evaluate_nonanticipativity_bytes("nonanticipativity-test-set", &[
             scenario("scenario-a", &request_a, &schedule_a, &labels_a),
             scenario("scenario-b", &request_b, &schedule_b, &labels_b),
         ])
@@ -712,7 +712,7 @@ mod tests {
         let labels_a = [digest(1), digest(2)];
         let labels_b = [digest(3), digest(4)];
 
-        let receipt = evaluate_nonanticipativity_bytes(&[
+        let receipt = evaluate_nonanticipativity_bytes("nonanticipativity-test-set", &[
             scenario("scenario-a", &request_a, &schedule_a, &labels_a),
             scenario("scenario-b", &request_b, &schedule_b, &labels_b),
         ])
@@ -733,7 +733,7 @@ mod tests {
         let labels_a = [digest(1), digest(2)];
         let labels_b = [digest(1), digest(3)];
 
-        let receipt = evaluate_nonanticipativity_bytes(&[
+        let receipt = evaluate_nonanticipativity_bytes("nonanticipativity-test-set", &[
             scenario("scenario-a", &request_a, &schedule_a, &labels_a),
             scenario("scenario-b", &request_b, &schedule_b, &labels_b),
         ])
@@ -742,6 +742,7 @@ mod tests {
         assert_eq!(receipt.disposition, NonAnticipativityDispositionV1::Accepted);
         assert!(super::super::is_sha256_hex(&receipt.auditor_binary_sha256));
         assert!(super::super::is_sha256_hex(&receipt.receipt_sha256));
+        assert_eq!(receipt.scenario_set_id, "nonanticipativity-test-set");
         assert_eq!(receipt.scenario_count, 2);
         assert_eq!(receipt.interval_count, 2);
     }
