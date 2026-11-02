@@ -1,0 +1,63 @@
+{
+  "schema_version": "luminous.heritage-seasonal-baseline.v0.1",
+  "feature_id": "synthetic-index",
+  "units": "synthetic-units",
+  "source_ref": "urn:synthetic:feature-series:01",
+  "feature_definition_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "reference_start_month": 24252,
+  "reference_end_month": 24275,
+  "evaluation_start_month": 24276,
+  "evaluation_end_month": 24287,
+  "minimum_reference_years": 2,
+  "scale_floor": 0.5,
+  "expected_evaluation_months": 12,
+  "supplied_evaluation_months": 2,
+  "unobserved_evaluation_months": 10,
+  "unobserved_month_ordinals": [
+    24278,
+    24279,
+    24280,
+    24281,
+    24282,
+    24283,
+    24284,
+    24285,
+    24286,
+    24287
+  ],
+  "valid_evaluation_observations": 1,
+  "missing_evaluation_observations": 1,
+  "insufficient_reference_observations": 0,
+  "scored_observations": 1,
+  "unscored_evaluation_months": 11,
+  "observation_coverage": 0.08333333333333333,
+  "score_coverage": 0.08333333333333333,
+  "alert_count": 1,
+  "robust_z_alert_threshold": 3.5,
+  "results": [
+    {
+      "month_ordinal": 24276,
+      "status": "scored",
+      "reference_sample_count": 2,
+      "reference_year_count": 2,
+      "reference_median": 0.3,
+      "reference_mad": 0,
+      "signed_robust_z": 8,
+      "absolute_robust_z": 8,
+      "anomaly_strength": 0.9996645373720975,
+      "alert": true
+    },
+    {
+      "month_ordinal": 24277,
+      "status": "missing_observation",
+      "reference_sample_count": 0,
+      "reference_year_count": 0,
+      "reference_median": null,
+      "reference_mad": null,
+      "signed_robust_z": null,
+      "absolute_robust_z": null,
+      "anomaly_strength": null,
+      "alert": false
+    }
+  ]
+}
