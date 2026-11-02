@@ -1163,6 +1163,20 @@ mod tests {
     }
 
     #[test]
+    fn source_metadata_serializes_with_versioned_nested_contract_shape() {
+        let value = serde_json::to_value(fixture_metadata()).unwrap();
+        assert_eq!(value["schema_version"], SOURCE_ASSET_SCHEMA_VERSION);
+        assert_eq!(value["provider"]["provider_id"], "provider-synthetic");
+        assert_eq!(value["asset"]["stac_asset_key"], "lidar");
+        assert_eq!(value["acquisition"]["orbit_direction"], "not_applicable");
+        assert_eq!(value["spatial"]["geometry_access_tier"], "approved_research");
+        assert_eq!(value["rights"]["exact_geometry_policy"], "approved_research_only");
+        assert!(value["quality"].is_object());
+        assert!(value["provenance"]["ingested_at"].is_string());
+        assert!(value["provider"].get("contact_ref").is_none());
+    }
+
+    #[test]
     fn rfc3339_timestamp_ordering_respects_timezone_offsets() {
         let start = parse_rfc3339_nanos("2026-01-01T00:00:00+02:00").unwrap();
         let end = parse_rfc3339_nanos("2025-12-31T22:00:01Z").unwrap();
@@ -1354,6 +1368,31 @@ mod tests {
         assert_eq!(first.byte_length, bytes.len() as u64);
         assert_eq!(first.content_sha256, sha256_hex(bytes));
         assert_eq!(first.receipt_sha256.len(), 64);
+    }
+
+    #[test]
+    fn receipt_rejects_declared_byte_length_mismatch() {
+        let mut metadata = fixture_metadata();
+        metadata.asset.byte_length = Some(1);
+        assert_eq!(
+            verify_artifact_bytes(
+                &metadata,
+                b"synthetic point cloud bytes",
+                "2026-11-02T10:00:00Z",
+                "heritage-ingestor",
+                "0.1.0",
+                HeritageUse::Research,
+                AccessContext {
+                    max_tier: AccessTier::ApprovedResearch,
+                    exact_geometry_authorized: true,
+                },
+                true,
+            ),
+            Err(ReceiptError::ByteLengthMismatch {
+                expected: 1,
+                actual: 27,
+            })
+        );
     }
 
     #[test]
