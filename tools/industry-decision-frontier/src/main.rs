@@ -374,6 +374,9 @@ fn validate_coverage_proof(
             }
         }
     }
+    if coverage.verification_status == "failed" {
+        return Err(format!("{path} coverage proof verification failed"));
+    }
     if coverage.verification_status == "verified"
         && (coverage.verifier_build_sha256.as_deref()
             != Some(decision.time_verifier_build_sha256.as_str())
@@ -788,9 +791,11 @@ mod tests {
     ) -> FirstAvailability {
         FirstAvailability {
             relying_party_id: relying_party_id.to_string(),
+            evidence_channel_id: "channel:ieac-ingest-registry".to_string(),
             proof_kind: proof_kind.to_string(),
             artifact_sha256: digest('d'),
             time,
+            coverage: None,
         }
     }
 
@@ -803,6 +808,7 @@ mod tests {
                 decision_event_sha256: digest('1'),
                 subject_pseudonym: "subject:test".to_string(),
                 relying_party_id: "rp:test".to_string(),
+                evidence_channel_id: "channel:ieac-ingest-registry".to_string(),
                 profile_sha256: digest('2'),
                 policy_sha256: digest('3'),
                 evaluator_build_sha256: digest('4'),
@@ -880,10 +886,78 @@ mod tests {
         );
         let snapshot = snapshot_with(vec![item]);
         let report = audit(&snapshot, br#"{}"#).expect("audit should succeed");
+        assert_eq!(report.summary.unknown, 1);
+        assert_eq!(
+            report.classifications[0].reason_code,
+            "post_cutoff_access_does_not_prove_prior_absence"
+        );
+    }
+
+    #[test]
+    fn complete_first_availability_ledger_can_prove_late_arrival() {
+        let mut availability = available(
+            "complete_first_availability_ledger",
+            "rp:test",
+            time(
+                "2026-11-02T09:25:00Z",
+                5,
+                5,
+                "authenticated_ingest_log",
+                "verified",
+            ),
+        );
+        availability.coverage = Some(CoverageProof {
+            relying_party_id: "rp:test".to_string(),
+            evidence_channel_id: "channel:ieac-ingest-registry".to_string(),
+            coverage_from_utc: "2026-11-02T08:00:00Z".to_string(),
+            complete_through_utc: "2026-11-02T09:30:00Z".to_string(),
+            coverage_proof_sha256: digest('e'),
+            completeness: "complete".to_string(),
+            verification_status: "verified".to_string(),
+            verifier_build_sha256: Some(digest('b')),
+            verification_policy_sha256: Some(digest('c')),
+        });
+        let item = evidence("complete-late", Some(availability), None);
+        let report = audit(&snapshot_with(vec![item]), br#"{}"#)
+            .expect("audit should succeed");
         assert_eq!(report.summary.excluded_after_cutoff, 1);
         assert_eq!(
             report.classifications[0].reason_code,
-            "verified_available_after_cutoff"
+            "complete_channel_history_proves_first_availability_after_cutoff"
+        );
+    }
+
+    #[test]
+    fn incomplete_first_availability_coverage_cannot_exclude_as_late() {
+        let mut availability = available(
+            "complete_first_availability_ledger",
+            "rp:test",
+            time(
+                "2026-11-02T09:25:00Z",
+                5,
+                5,
+                "authenticated_ingest_log",
+                "verified",
+            ),
+        );
+        availability.coverage = Some(CoverageProof {
+            relying_party_id: "rp:test".to_string(),
+            evidence_channel_id: "channel:ieac-ingest-registry".to_string(),
+            coverage_from_utc: "2026-11-02T09:09:45Z".to_string(),
+            complete_through_utc: "2026-11-02T09:30:00Z".to_string(),
+            coverage_proof_sha256: digest('e'),
+            completeness: "complete".to_string(),
+            verification_status: "verified".to_string(),
+            verifier_build_sha256: Some(digest('b')),
+            verification_policy_sha256: Some(digest('c')),
+        });
+        let item = evidence("coverage-starts-too-late", Some(availability), None);
+        let report = audit(&snapshot_with(vec![item]), br#"{}"#)
+            .expect("audit should succeed");
+        assert_eq!(report.summary.unknown, 1);
+        assert_eq!(
+            report.classifications[0].reason_code,
+            "availability_coverage_does_not_span_cutoff_to_first_access"
         );
     }
 
