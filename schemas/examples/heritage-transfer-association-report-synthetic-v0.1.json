@@ -1,0 +1,6 @@
+{
+  "metric": "euclidean",
+  "directed_pair_count": 4,
+  "spearman_rank_correlation": 1,
+  "pearson_correlation": 1
+}

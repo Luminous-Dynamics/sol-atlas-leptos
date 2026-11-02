@@ -1,0 +1,84 @@
+{
+  "source_region_id": "synthetic-region-a",
+  "target_region_id": "synthetic-region-b",
+  "task_scope": "cropmark_vegetation_proxy",
+  "positive_class_semantics": "vegetation over independently reviewed buried archaeological remains",
+  "background_class_semantics": "other vegetated pixels in the same landscape",
+  "label_protocol_ref": "urn:synthetic:cropmark-mask-adjudication:v1",
+  "feature_definition_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "distance_pipeline_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "monthly_distances": [
+    {
+      "calendar_month": 1,
+      "metric": "euclidean",
+      "source_archaeology_to_target_archaeology": 1,
+      "source_archaeology_to_target_background": 4
+    },
+    {
+      "calendar_month": 2,
+      "metric": "euclidean",
+      "source_archaeology_to_target_archaeology": 1,
+      "source_archaeology_to_target_background": 2
+    },
+    {
+      "calendar_month": 3,
+      "metric": "euclidean",
+      "source_archaeology_to_target_archaeology": 1.5,
+      "source_archaeology_to_target_background": 3
+    },
+    {
+      "calendar_month": 1,
+      "metric": "wasserstein",
+      "source_archaeology_to_target_archaeology": 1,
+      "source_archaeology_to_target_background": 4
+    },
+    {
+      "calendar_month": 2,
+      "metric": "wasserstein",
+      "source_archaeology_to_target_archaeology": 1,
+      "source_archaeology_to_target_background": 2
+    },
+    {
+      "calendar_month": 3,
+      "metric": "wasserstein",
+      "source_archaeology_to_target_archaeology": 1.5,
+      "source_archaeology_to_target_background": 3
+    },
+    {
+      "calendar_month": 1,
+      "metric": "kolmogorov_smirnov",
+      "source_archaeology_to_target_archaeology": 1,
+      "source_archaeology_to_target_background": 4
+    },
+    {
+      "calendar_month": 2,
+      "metric": "kolmogorov_smirnov",
+      "source_archaeology_to_target_archaeology": 1,
+      "source_archaeology_to_target_background": 2
+    },
+    {
+      "calendar_month": 3,
+      "metric": "kolmogorov_smirnov",
+      "source_archaeology_to_target_archaeology": 1.5,
+      "source_archaeology_to_target_background": 3
+    },
+    {
+      "calendar_month": 1,
+      "metric": "mahalanobis",
+      "source_archaeology_to_target_archaeology": 1,
+      "source_archaeology_to_target_background": 4
+    },
+    {
+      "calendar_month": 2,
+      "metric": "mahalanobis",
+      "source_archaeology_to_target_archaeology": 1,
+      "source_archaeology_to_target_background": 2
+    },
+    {
+      "calendar_month": 3,
+      "metric": "mahalanobis",
+      "source_archaeology_to_target_archaeology": 1.5,
+      "source_archaeology_to_target_background": 3
+    }
+  ]
+}

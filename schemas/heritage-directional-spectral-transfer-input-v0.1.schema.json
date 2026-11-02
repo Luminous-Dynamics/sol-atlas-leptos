@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-directional-spectral-transfer-input-v0.1.schema.json",
+  "title": "Sol-Atlas Directional Spectral Transfer Input",
+  "description": "Monthly pooled cropmark-positive (A) and vegetated-background (H) spectral-cluster distances for one ordered source-to-target region pair.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "source_region_id",
+    "target_region_id",
+    "task_scope",
+    "positive_class_semantics",
+    "background_class_semantics",
+    "label_protocol_ref",
+    "feature_definition_sha256",
+    "distance_pipeline_sha256",
+    "monthly_distances"
+  ],
+  "properties": {
+    "source_region_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_region_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_scope": {
+      "const": "cropmark_vegetation_proxy"
+    },
+    "positive_class_semantics": {
+      "type": "string",
+      "minLength": 1
+    },
+    "background_class_semantics": {
+      "type": "string",
+      "minLength": 1
+    },
+    "label_protocol_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "feature_definition_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "distance_pipeline_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "monthly_distances": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "calendar_month",
+          "metric",
+          "source_archaeology_to_target_archaeology",
+          "source_archaeology_to_target_background"
+        ],
+        "properties": {
+          "calendar_month": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          },
+          "metric": {
+            "enum": [
+              "euclidean",
+              "wasserstein",
+              "kolmogorov_smirnov",
+              "mahalanobis"
+            ]
+          },
+          "source_archaeology_to_target_archaeology": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "source_archaeology_to_target_background": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        }
+      }
+    }
+  }
+}

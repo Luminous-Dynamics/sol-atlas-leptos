@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-transfer-association-report-v0.1.schema.json",
+  "title": "Sol-Atlas Transfer Association Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "metric",
+    "directed_pair_count",
+    "spearman_rank_correlation",
+    "pearson_correlation"
+  ],
+  "properties": {
+    "metric": {
+      "enum": [
+        "euclidean",
+        "wasserstein",
+        "kolmogorov_smirnov",
+        "mahalanobis"
+      ]
+    },
+    "directed_pair_count": {
+      "type": "integer",
+      "minimum": 3
+    },
+    "spearman_rank_correlation": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": -1,
+      "maximum": 1
+    },
+    "pearson_correlation": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": -1,
+      "maximum": 1
+    }
+  }
+}
