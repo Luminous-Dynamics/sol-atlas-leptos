@@ -46,6 +46,30 @@ struct HostProfile {
 }
 
 #[derive(Debug, Serialize)]
+struct DispatchScheduleForAudit {
+    schema_version: &'static str,
+    case_id: String,
+    request_sha256: String,
+    interval_dispatches: Vec<AuditIntervalDispatch>,
+    terminal_soc_quanta: u16,
+}
+
+#[derive(Debug, Serialize)]
+struct AuditIntervalDispatch {
+    interval_id: String,
+    grid_import_quanta: u16,
+    charge_input_quanta: u16,
+    discharge_withdrawal_quanta: u16,
+    soc_after_quanta: u16,
+    essential_served_quanta: u16,
+    essential_unserved_quanta: u16,
+    flexible_served_quanta: u16,
+    flexible_unserved_quanta: u16,
+    pv_used_quanta: u16,
+    pv_curtailed_quanta: u16,
+}
+
+#[derive(Debug, Serialize)]
 struct ProfiledRun {
     report_schema: &'static str,
     trace_schema: &'static str,
@@ -62,6 +86,8 @@ struct ProfiledRun {
     peak_memory_bytes: Option<u64>,
     trace_csv_header: &'static str,
     trace_csv_row: String,
+    schedule_sha256: Option<String>,
+    selected_schedule: Option<DispatchScheduleForAudit>,
     failure: Option<String>,
     assessment: Option<EnergyDispatchAssessment>,
     claim_ceiling: &'static str,
@@ -354,6 +380,41 @@ fn run_profile(request_bytes: &[u8], scenario_panel_sha256: &str) -> Result<Prof
         ),
     };
 
+    let selected_schedule = assessment.as_ref().and_then(|result| {
+        let alternative = result.pareto_alternatives.first()?;
+        Some(DispatchScheduleForAudit {
+            schema_version: "energy-dispatch-schedule-v0.1",
+            case_id: result.case_id.clone(),
+            request_sha256: request_sha256.clone(),
+            interval_dispatches: alternative
+                .schedule
+                .iter()
+                .map(|step| AuditIntervalDispatch {
+                    interval_id: step.interval_id.clone(),
+                    grid_import_quanta: step.grid_import_quanta,
+                    charge_input_quanta: step.battery_charge_input_quanta,
+                    discharge_withdrawal_quanta: step.battery_soc_withdrawal_quanta,
+                    soc_after_quanta: step.battery_soc_after_quanta,
+                    essential_served_quanta: step.essential_served_quanta,
+                    essential_unserved_quanta: step.essential_unserved_quanta,
+                    flexible_served_quanta: step.flexible_served_quanta,
+                    flexible_unserved_quanta: step.flexible_unserved_quanta,
+                    pv_used_quanta: step.pv_used_quanta,
+                    pv_curtailed_quanta: step.pv_curtailed_quanta,
+                })
+                .collect(),
+            terminal_soc_quanta: alternative.objective.terminal_soc_quanta,
+        })
+    });
+    let schedule_sha256 = selected_schedule
+        .as_ref()
+        .map(|schedule| {
+            serde_json::to_vec_pretty(schedule)
+                .map(|bytes| sha256(&bytes))
+                .map_err(|error| format!("serialize selected schedule for digest: {error}"))
+        })
+        .transpose()?;
+
     let measurement_class = if request.synthetic {
         "synthetic"
     } else {
@@ -415,6 +476,8 @@ fn run_profile(request_bytes: &[u8], scenario_panel_sha256: &str) -> Result<Prof
         peak_memory_bytes,
         trace_csv_header: TRACE_HEADER,
         trace_csv_row,
+        schedule_sha256,
+        selected_schedule,
         failure,
         assessment,
         claim_ceiling: concat!(
@@ -465,11 +528,31 @@ fn write_report(path: &Path, profile: &ProfiledRun) -> Result<(), String> {
         .map_err(|error| format!("atomically publish profiled report: {error}"))
 }
 
+fn write_schedule(path: &Path, profile: &ProfiledRun) -> Result<(), String> {
+    let Some(schedule) = profile.selected_schedule.as_ref() else {
+        return Ok(());
+    };
+    let bytes = serde_json::to_vec_pretty(schedule)
+        .map_err(|error| format!("serialize auditor schedule: {error}"))?;
+    let expected_sha256 = profile
+        .schedule_sha256
+        .as_deref()
+        .ok_or_else(|| "selected schedule has no source digest".to_owned())?;
+    if sha256(&bytes) != expected_sha256 {
+        return Err("serialized schedule digest changed between profiling and publication".to_owned());
+    }
+    let temporary = path.with_extension("json.tmp");
+    fs::write(&temporary, bytes)
+        .map_err(|error| format!("write temporary auditor schedule: {error}"))?;
+    fs::rename(&temporary, path)
+        .map_err(|error| format!("atomically publish auditor schedule: {error}"))
+}
+
 fn run() -> Result<ExitCode, String> {
     let args: Vec<String> = std::env::args().collect();
-    if args.len() != 5 {
+    if args.len() != 6 {
         return Err(format!(
-            "usage: {} <request.json> <scenario-panel-sha256> <trace.csv> <report.json>",
+            "usage: {} <request.json> <scenario-panel-sha256> <trace.csv> <report.json> <schedule.json>",
             args.first()
                 .map(String::as_str)
                 .unwrap_or("energy-dispatch-profile")
@@ -478,6 +561,7 @@ fn run() -> Result<ExitCode, String> {
     let request_bytes = read_bounded(Path::new(&args[1]), MAX_REQUEST_BYTES)?;
     let profile = run_profile(&request_bytes, &args[2])?;
     append_trace(Path::new(&args[3]), &profile)?;
+    write_schedule(Path::new(&args[5]), &profile)?;
     write_report(Path::new(&args[4]), &profile)?;
     println!("status={}", profile.status);
     println!("request_sha256={}", profile.request_sha256);
@@ -486,6 +570,10 @@ fn run() -> Result<ExitCode, String> {
     println!("elapsed_ns={}", profile.elapsed_ns);
     println!("trace_csv={}", args[3]);
     println!("report_json={}", args[4]);
+    println!("schedule_json={}", args[5]);
+    if let Some(schedule_sha256) = profile.schedule_sha256.as_deref() {
+        println!("schedule_sha256={schedule_sha256}");
+    }
     Ok(ExitCode::SUCCESS)
 }
 
@@ -511,6 +599,12 @@ mod tests {
     fn frozen_synthetic_dispatch_runs_through_the_real_exact_engine_and_emits_34_column_trace() {
         let profile = run_profile(FIXTURE, PANEL_SHA256).expect("profile frozen request");
         assert_eq!(profile.status, "optimal");
+        assert!(profile.selected_schedule.is_some());
+        assert!(valid_sha256(profile.schedule_sha256.as_deref().unwrap()));
+        assert_eq!(
+            profile.selected_schedule.as_ref().unwrap().schema_version,
+            "energy-dispatch-schedule-v0.1"
+        );
         assert!(profile.assessment.as_ref().unwrap().search_is_exact);
         assert!(
             profile
@@ -543,6 +637,8 @@ mod tests {
         let profile = run_profile(&bytes, PANEL_SHA256).expect("profile cap-limited request");
         assert_eq!(profile.status, "limit_reached");
         assert!(profile.assessment.is_none());
+        assert!(profile.selected_schedule.is_none());
+        assert!(profile.schedule_sha256.is_none());
         assert!(
             profile
                 .failure
@@ -566,6 +662,8 @@ mod tests {
         let profile = run_profile(&bytes, PANEL_SHA256).expect("profile rejected model request");
         assert_eq!(profile.status, "error");
         assert!(profile.assessment.is_none());
+        assert!(profile.selected_schedule.is_none());
+        assert!(profile.schedule_sha256.is_none());
         assert!(
             profile
                 .failure
