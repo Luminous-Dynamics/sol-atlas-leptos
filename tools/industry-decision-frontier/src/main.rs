@@ -197,10 +197,10 @@ fn validate_time_bound(bound: &TimeBound, path: &str) -> Result<(), String> {
     ];
 
     for (field, value) in optional_digests {
-        if let Some(value) = value {
-            if !is_sha256(value) {
-                return Err(format!("{path}.{field} must be 64 lowercase hex characters"));
-            }
+        if let Some(value) = value
+            && !is_sha256(value)
+        {
+            return Err(format!("{path}.{field} must be 64 lowercase hex characters"));
         }
     }
 
@@ -381,10 +381,10 @@ fn validate_coverage_proof(
         ("verifier_build_sha256", coverage.verifier_build_sha256.as_deref()),
         ("verification_policy_sha256", coverage.verification_policy_sha256.as_deref()),
     ] {
-        if let Some(value) = value {
-            if !is_sha256(value) {
-                return Err(format!("{path}.{field} is invalid"));
-            }
+        if let Some(value) = value
+            && !is_sha256(value)
+        {
+            return Err(format!("{path}.{field} is invalid"));
         }
     }
     if coverage.verification_status == "failed" {
