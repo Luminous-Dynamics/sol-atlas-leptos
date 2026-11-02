@@ -296,10 +296,12 @@ fn parse_utc_seconds(value: &str) -> Result<i64, String> {
     }
 
     let parse_part = |start: usize, end: usize| -> Result<i64, String> {
-        let part = &value[start..end];
-        if !part.bytes().all(|byte| byte.is_ascii_digit()) {
+        let part = &bytes[start..end];
+        if !part.iter().all(|byte| byte.is_ascii_digit()) {
             return Err("timestamp contains a non-digit component".to_string());
         }
+        let part = std::str::from_utf8(part)
+            .map_err(|_| "timestamp component is not ASCII".to_string())?;
         part.parse::<i64>()
             .map_err(|_| "timestamp component is out of range".to_string())
     };
