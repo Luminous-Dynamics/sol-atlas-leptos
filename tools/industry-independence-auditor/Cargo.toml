@@ -1,0 +1,15 @@
+[package]
+name = "industry-independence-auditor"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+description = "Common-cause-aware verifier for IEAC evidence source independence"
+
+[[bin]]
+name = "industry-independence-audit"
+path = "src/main.rs"
+
+[dependencies]
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_json = { version = "=1.0.150", default-features = false, features = ["std"] }
+sha2 = { version = "=0.10.9", default-features = false }

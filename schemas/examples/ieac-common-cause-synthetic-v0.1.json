@@ -1,0 +1,310 @@
+{
+  "fixture_schema_version": "luminous.ieac-common-cause-fixture.v0.1",
+  "fixture_status": "synthetic_only",
+  "note": "Synthetic demonstration of common-cause conflicts and transitive dependency closure. IDs and hashes are not real assurance evidence.",
+  "request": {
+    "schema_version": "luminous.ieac-common-cause-request.v0.1",
+    "request_id": "ieac-ccf-synthetic-001",
+    "evaluated_at": "2026-11-01T14:00:00Z",
+    "registry_sha256": "f64979a90ab4e4226e02b1c9628bfd30973ab382709a563458a6d71b880df2e8",
+    "registry": {
+      "schema_version": "luminous.ieac-independence-registry.v0.1",
+      "registry_id": "synthetic-industrial-evidence-registry",
+      "registry_version": "2026.11.01",
+      "authority_id": "synthetic-registry-authority",
+      "issued_at": "2026-11-01T12:00:00Z",
+      "valid_from": "2026-01-01T00:00:00Z",
+      "valid_until": "2027-01-01T00:00:00Z",
+      "common_cause_groups": [
+        {
+          "group_id": "operator-team-east",
+          "cause_type": "operator_process"
+        },
+        {
+          "group_id": "calibration-lineage-r1",
+          "cause_type": "calibration_lineage"
+        },
+        {
+          "group_id": "upstream-feed-north",
+          "cause_type": "upstream_data_feed"
+        },
+        {
+          "group_id": "shared-lab-harness",
+          "cause_type": "test_harness"
+        },
+        {
+          "group_id": "regional-grid-west",
+          "cause_type": "power_supply"
+        }
+      ],
+      "dependency_nodes": [
+        {
+          "dependency_id": "calibration-chain-alpha",
+          "dependency_type": "calibration_chain",
+          "status": "active",
+          "common_cause_group_ids": [
+            "calibration-lineage-r1"
+          ]
+        },
+        {
+          "dependency_id": "reference-standard-r1",
+          "dependency_type": "reference_standard",
+          "status": "active",
+          "common_cause_group_ids": [
+            "calibration-lineage-r1"
+          ]
+        },
+        {
+          "dependency_id": "upstream-sensor-feed-north",
+          "dependency_type": "upstream_data_feed",
+          "status": "active",
+          "common_cause_group_ids": [
+            "upstream-feed-north"
+          ]
+        },
+        {
+          "dependency_id": "calibration-chain-gamma",
+          "dependency_type": "calibration_chain",
+          "status": "active",
+          "common_cause_group_ids": []
+        },
+        {
+          "dependency_id": "test-harness-prod-7",
+          "dependency_type": "test_harness",
+          "status": "active",
+          "common_cause_group_ids": [
+            "shared-lab-harness"
+          ]
+        },
+        {
+          "dependency_id": "power-grid-zone-west",
+          "dependency_type": "power_supply",
+          "status": "active",
+          "common_cause_group_ids": [
+            "regional-grid-west"
+          ]
+        },
+        {
+          "dependency_id": "calibration-chain-zeta",
+          "dependency_type": "calibration_chain",
+          "status": "active",
+          "common_cause_group_ids": []
+        }
+      ],
+      "dependency_edges": [
+        {
+          "dependency_id": "calibration-chain-alpha",
+          "depends_on_dependency_id": "reference-standard-r1"
+        }
+      ],
+      "domains": [
+        {
+          "domain_id": "lab-alpha",
+          "organization_id": "vendor-alpha",
+          "status": "active",
+          "dependency_completeness": "complete",
+          "dependency_ids": [
+            "calibration-chain-alpha",
+            "upstream-sensor-feed-north"
+          ],
+          "common_cause_group_ids": [
+            "operator-team-east"
+          ],
+          "valid_from": "2026-01-01T00:00:00Z",
+          "valid_until": "2027-01-01T00:00:00Z"
+        },
+        {
+          "domain_id": "lab-beta",
+          "organization_id": "vendor-beta",
+          "status": "active",
+          "dependency_completeness": "complete",
+          "dependency_ids": [
+            "reference-standard-r1",
+            "upstream-sensor-feed-north"
+          ],
+          "common_cause_group_ids": [
+            "operator-team-east"
+          ],
+          "valid_from": "2026-01-01T00:00:00Z",
+          "valid_until": "2027-01-01T00:00:00Z"
+        },
+        {
+          "domain_id": "lab-gamma",
+          "organization_id": "vendor-gamma",
+          "status": "active",
+          "dependency_completeness": "complete",
+          "dependency_ids": [
+            "calibration-chain-gamma"
+          ],
+          "common_cause_group_ids": [],
+          "valid_from": "2026-01-01T00:00:00Z",
+          "valid_until": "2027-01-01T00:00:00Z"
+        },
+        {
+          "domain_id": "lab-delta",
+          "organization_id": "vendor-delta",
+          "status": "active",
+          "dependency_completeness": "complete",
+          "dependency_ids": [
+            "test-harness-prod-7",
+            "power-grid-zone-west"
+          ],
+          "common_cause_group_ids": [],
+          "valid_from": "2026-01-01T00:00:00Z",
+          "valid_until": "2027-01-01T00:00:00Z"
+        },
+        {
+          "domain_id": "lab-epsilon",
+          "organization_id": "vendor-epsilon",
+          "status": "active",
+          "dependency_completeness": "complete",
+          "dependency_ids": [
+            "test-harness-prod-7",
+            "power-grid-zone-west"
+          ],
+          "common_cause_group_ids": [],
+          "valid_from": "2026-01-01T00:00:00Z",
+          "valid_until": "2027-01-01T00:00:00Z"
+        },
+        {
+          "domain_id": "lab-zeta",
+          "organization_id": "vendor-zeta",
+          "status": "active",
+          "dependency_completeness": "complete",
+          "dependency_ids": [
+            "calibration-chain-zeta"
+          ],
+          "common_cause_group_ids": [],
+          "valid_from": "2026-01-01T00:00:00Z",
+          "valid_until": "2027-01-01T00:00:00Z"
+        },
+        {
+          "domain_id": "lab-unknown",
+          "organization_id": "vendor-unknown",
+          "status": "active",
+          "dependency_completeness": "unknown",
+          "dependency_ids": [],
+          "common_cause_group_ids": [],
+          "valid_from": "2026-01-01T00:00:00Z",
+          "valid_until": "2027-01-01T00:00:00Z"
+        }
+      ]
+    },
+    "control_requirements": [
+      {
+        "control_id": "numerical_known_answers",
+        "minimum_independent_sources": 2
+      },
+      {
+        "control_id": "physical_reference_validation",
+        "minimum_independent_sources": 2
+      }
+    ],
+    "sources": [
+      {
+        "source_id": "num-alpha",
+        "control_id": "numerical_known_answers",
+        "source_kind": "existing_evidence",
+        "source_identity_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "domain_id": "lab-alpha",
+        "evidence_state": "verified",
+        "rights_status": "verified",
+        "rights_evidence_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "verified_at": "2026-11-01T10:00:00Z",
+        "valid_until": "2026-12-01T00:00:00Z"
+      },
+      {
+        "source_id": "num-beta",
+        "control_id": "numerical_known_answers",
+        "source_kind": "planned_action",
+        "source_identity_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "domain_id": "lab-beta",
+        "evidence_state": "planned",
+        "rights_status": "verified",
+        "rights_evidence_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "verified_at": "2026-11-01T10:00:00Z",
+        "valid_until": "2026-12-01T00:00:00Z"
+      },
+      {
+        "source_id": "num-gamma",
+        "control_id": "numerical_known_answers",
+        "source_kind": "existing_evidence",
+        "source_identity_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "domain_id": "lab-gamma",
+        "evidence_state": "verified",
+        "rights_status": "verified",
+        "rights_evidence_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "verified_at": "2026-11-01T10:00:00Z",
+        "valid_until": "2026-12-01T00:00:00Z"
+      },
+      {
+        "source_id": "num-unknown",
+        "control_id": "numerical_known_answers",
+        "source_kind": "planned_action",
+        "source_identity_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "domain_id": "lab-unknown",
+        "evidence_state": "planned",
+        "rights_status": "verified",
+        "rights_evidence_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+        "verified_at": "2026-11-01T10:00:00Z",
+        "valid_until": "2026-12-01T00:00:00Z"
+      },
+      {
+        "source_id": "physical-delta",
+        "control_id": "physical_reference_validation",
+        "source_kind": "planned_action",
+        "source_identity_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "domain_id": "lab-delta",
+        "evidence_state": "planned",
+        "rights_status": "verified",
+        "rights_evidence_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+        "verified_at": "2026-11-01T10:00:00Z",
+        "valid_until": "2026-12-01T00:00:00Z"
+      },
+      {
+        "source_id": "physical-epsilon",
+        "control_id": "physical_reference_validation",
+        "source_kind": "existing_evidence",
+        "source_identity_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "domain_id": "lab-epsilon",
+        "evidence_state": "verified",
+        "rights_status": "verified",
+        "rights_evidence_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+        "verified_at": "2026-11-01T10:00:00Z",
+        "valid_until": "2026-12-01T00:00:00Z"
+      },
+      {
+        "source_id": "physical-zeta",
+        "control_id": "physical_reference_validation",
+        "source_kind": "planned_action",
+        "source_identity_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+        "domain_id": "lab-zeta",
+        "evidence_state": "planned",
+        "rights_status": "verified",
+        "rights_evidence_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+        "verified_at": "2026-11-01T10:00:00Z",
+        "valid_until": "2026-12-01T00:00:00Z"
+      }
+    ],
+    "exact_source_limit": 20,
+    "action_authority": "none"
+  },
+  "expected": {
+    "numerical_known_answers": {
+      "threshold_met": true,
+      "independent_source_count": 2,
+      "independent_source_ids": [
+        "num-alpha",
+        "num-gamma"
+      ]
+    },
+    "physical_reference_validation": {
+      "threshold_met": true,
+      "independent_source_count": 2,
+      "independent_source_ids": [
+        "physical-delta",
+        "physical-zeta"
+      ]
+    }
+  }
+}

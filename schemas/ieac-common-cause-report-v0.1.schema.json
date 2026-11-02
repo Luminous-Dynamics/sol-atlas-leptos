@@ -1,0 +1,320 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/ieac-common-cause-report-v0.1.schema.json",
+  "title": "IEAC Common-Cause Independence Report v0.1",
+  "description": "Independence disposition under the exact pinned registry model. This does not prove registry completeness or qualify the IEAC profile.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_id",
+    "request_sha256",
+    "registry_sha256",
+    "registry_id",
+    "registry_version",
+    "evaluated_at",
+    "control_results",
+    "source_resolutions",
+    "conflict_edges",
+    "action_authority",
+    "profile_qualification_attested",
+    "registry_authority_id",
+    "auditor_version",
+    "auditor_build_id",
+    "claim_scope"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.ieac-common-cause-report.v0.1"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128
+    },
+    "request_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "registry_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "registry_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "registry_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evaluated_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$",
+      "format": "date-time"
+    },
+    "source_resolutions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source_id",
+          "domain_id",
+          "dependency_completeness",
+          "dependency_closure",
+          "common_cause_group_ids",
+          "registry_model_status",
+          "organization_id",
+          "source_kind",
+          "source_identity_sha256",
+          "evidence_state",
+          "rights_status",
+          "rights_evidence_sha256",
+          "verified_at",
+          "valid_until"
+        ],
+        "properties": {
+          "source_id": {
+            "type": "string"
+          },
+          "domain_id": {
+            "type": "string"
+          },
+          "dependency_completeness": {
+            "enum": [
+              "complete",
+              "unknown",
+              "disputed"
+            ]
+          },
+          "dependency_closure": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "common_cause_group_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "registry_model_status": {
+            "enum": [
+              "resolved",
+              "unknown_dependency",
+              "disputed_dependency"
+            ]
+          },
+          "organization_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "source_kind": {
+            "enum": [
+              "existing_evidence",
+              "planned_action"
+            ]
+          },
+          "source_identity_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "evidence_state": {
+            "enum": [
+              "verified",
+              "planned"
+            ]
+          },
+          "rights_status": {
+            "const": "verified"
+          },
+          "rights_evidence_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "verified_at": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$",
+            "format": "date-time"
+          },
+          "valid_until": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "conflict_edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source_id_a",
+          "source_id_b",
+          "reason_codes",
+          "shared_dependency_ids",
+          "shared_common_cause_group_ids"
+        ],
+        "properties": {
+          "source_id_a": {
+            "type": "string"
+          },
+          "source_id_b": {
+            "type": "string"
+          },
+          "reason_codes": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "shared_dependency_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "shared_common_cause_group_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "control_results": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "control_id",
+          "minimum_independent_sources",
+          "candidate_source_ids",
+          "conflicting_source_pairs",
+          "threshold_met",
+          "method",
+          "optimality_status",
+          "registry_model_disposition",
+          "independent_source_ids",
+          "independent_source_count"
+        ],
+        "properties": {
+          "control_id": {
+            "type": "string"
+          },
+          "minimum_independent_sources": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "candidate_source_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "conflicting_source_pairs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "source_id_a",
+                "source_id_b",
+                "reason_codes"
+              ],
+              "properties": {
+                "source_id_a": {
+                  "type": "string"
+                },
+                "source_id_b": {
+                  "type": "string"
+                },
+                "reason_codes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "threshold_met": {
+            "type": "boolean"
+          },
+          "method": {
+            "enum": [
+              "exact_maximum_independent_set",
+              "deterministic_greedy_lower_bound"
+            ]
+          },
+          "optimality_status": {
+            "enum": [
+              "proven_optimal",
+              "lower_bound_not_proven"
+            ]
+          },
+          "registry_model_disposition": {
+            "enum": [
+              "qualified_by_registry_model",
+              "not_qualified_by_registry_model",
+              "indeterminate_under_registry_model"
+            ]
+          },
+          "independent_source_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "independent_source_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 512
+          }
+        }
+      }
+    },
+    "action_authority": {
+      "const": "none"
+    },
+    "profile_qualification_attested": {
+      "const": false
+    },
+    "registry_authority_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "auditor_version": {
+      "const": "0.1.0"
+    },
+    "auditor_build_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "claim_scope": {
+      "const": "registry_model_only"
+    }
+  },
+  "allOf": []
+}

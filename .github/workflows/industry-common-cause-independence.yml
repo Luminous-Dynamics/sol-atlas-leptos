@@ -1,0 +1,175 @@
+name: IEAC common-cause independence contract
+
+on:
+  pull_request:
+    paths:
+      - "tools/industry-independence-auditor/**"
+      - "schemas/ieac-independence-registry-v0.1.schema.json"
+      - "schemas/ieac-common-cause-*.schema.json"
+      - "schemas/examples/ieac-common-cause-*.json"
+      - ".github/workflows/industry-common-cause-independence.yml"
+      - "docs/industry/IEAC_COMMON_CAUSE_INDEPENDENCE_V0.1.md"
+  push:
+    branches:
+      - feat/ieac-common-cause-independence-v0-1
+      - feat/ieac-proof-plan-v0-1
+      - main
+    paths:
+      - "tools/industry-independence-auditor/**"
+      - "schemas/ieac-independence-registry-v0.1.schema.json"
+      - "schemas/ieac-common-cause-*.schema.json"
+      - "schemas/examples/ieac-common-cause-*.json"
+      - ".github/workflows/industry-common-cause-independence.yml"
+      - "docs/industry/IEAC_COMMON_CAUSE_INDEPENDENCE_V0.1.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ieac-common-cause-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  common-cause:
+    name: Registry graph, exact independent set and adversarial CCF tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact source revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Check formatting
+        run: cargo fmt --manifest-path tools/industry-independence-auditor/Cargo.toml -- --check
+
+      - name: Run Clippy with warnings denied
+        run: cargo clippy --manifest-path tools/industry-independence-auditor/Cargo.toml --all-targets --locked -- -D warnings
+
+      - name: Run common-cause graph and independent-set tests
+        run: cargo test --manifest-path tools/industry-independence-auditor/Cargo.toml --locked
+
+      - name: Install pinned Draft 2020-12 schema CLI
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Add schema CLI to PATH
+        run: echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+
+      - name: Validate registry, request, report and fixture schemas
+        run: |
+          set -euo pipefail
+          meta=https://json-schema.org/draft/2020-12/schema
+          for schema in \
+            schemas/ieac-independence-registry-v0.1.schema.json \
+            schemas/ieac-common-cause-request-v0.1.schema.json \
+            schemas/ieac-common-cause-report-v0.1.schema.json \
+            schemas/ieac-common-cause-fixture-v0.1.schema.json; do
+            jsonschema-cli validate --draft 2020 --assert-format "$meta" --instance "$schema"
+          done
+          jsonschema-cli validate --draft 2020 --assert-format --offline \
+            schemas/ieac-common-cause-fixture-v0.1.schema.json \
+            --instance schemas/examples/ieac-common-cause-synthetic-v0.1.json
+          jq -e '
+            .fixture_schema_version == "luminous.ieac-common-cause-fixture.v0.1" and
+            .fixture_status == "synthetic_only" and
+            (.request.registry.domains | length) == 7 and
+            (.request.registry.dependency_nodes | length) == 7 and
+            (.request.sources | length) == 7 and
+            .expected.numerical_known_answers.independent_source_ids == ["num-alpha","num-gamma"] and
+            .expected.physical_reference_validation.independent_source_ids == ["physical-delta","physical-zeta"]
+          ' schemas/examples/ieac-common-cause-synthetic-v0.1.json
+
+      - name: Replay frozen registry-backed independence result
+        env:
+          IEAC_CCF_AUDITOR_BUILD_ID: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          jq '.request' schemas/examples/ieac-common-cause-synthetic-v0.1.json > "$RUNNER_TEMP/ccf-request.json"
+          request_sha="$(sha256sum "$RUNNER_TEMP/ccf-request.json" | awk '{print $1}')"
+          cargo run --manifest-path tools/industry-independence-auditor/Cargo.toml --locked -- \
+            "$RUNNER_TEMP/ccf-request.json" "$RUNNER_TEMP/ccf-report.json"
+          jq -e --arg request_sha "$request_sha" '
+            .schema_version == "luminous.ieac-common-cause-report.v0.1" and
+            .request_sha256 == $request_sha and
+            .registry_sha256 == "f64979a90ab4e4226e02b1c9628bfd30973ab382709a563458a6d71b880df2e8" and
+            .registry_authority_id == "synthetic-registry-authority" and
+            .auditor_build_id == "${{ github.event.pull_request.head.sha || github.sha }}" and
+            .claim_scope == "registry_model_only" and
+            .action_authority == "none" and
+            .profile_qualification_attested == false
+          ' "$RUNNER_TEMP/ccf-report.json"
+          jq -e '
+            .control_results[] |
+            if .control_id == "numerical_known_answers" then
+              .independent_source_ids == ["num-alpha","num-gamma"] and
+              .independent_source_count == 2 and .threshold_met == true and
+              .optimality_status == "proven_optimal"
+            elif .control_id == "physical_reference_validation" then
+              .independent_source_ids == ["physical-delta","physical-zeta"] and
+              .independent_source_count == 2 and .threshold_met == true and
+              .optimality_status == "proven_optimal"
+            else false end
+          ' "$RUNNER_TEMP/ccf-report.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline \
+            schemas/ieac-common-cause-report-v0.1.schema.json \
+            --instance "$RUNNER_TEMP/ccf-report.json"
+
+      - name: Negative control - reject registry digest substitution
+        run: |
+          set -euo pipefail
+          jq '.registry_sha256 = ("0" * 64)' "$RUNNER_TEMP/ccf-request.json" > "$RUNNER_TEMP/ccf-bad-digest.json"
+          if cargo run --quiet --manifest-path tools/industry-independence-auditor/Cargo.toml --locked -- \
+            "$RUNNER_TEMP/ccf-bad-digest.json" "$RUNNER_TEMP/ccf-bad-digest-report.json"; then
+            echo "ERROR: auditor accepted a mismatched registry digest"
+            exit 1
+          fi
+
+      - name: Negative control - reject cyclic dependency graph with recomputed digest
+        run: |
+          set -euo pipefail
+          jq '
+            .registry.dependency_edges += [{"dependency_id":"reference-standard-r1","depends_on_dependency_id":"calibration-chain-alpha"}]
+          ' "$RUNNER_TEMP/ccf-request.json" > "$RUNNER_TEMP/ccf-cycle-unhashed.json"
+          registry_sha="$(jq -cS '.registry' "$RUNNER_TEMP/ccf-cycle-unhashed.json" | sha256sum | awk '{print $1}')"
+          jq --arg digest "$registry_sha" '.registry_sha256 = $digest' "$RUNNER_TEMP/ccf-cycle-unhashed.json" > "$RUNNER_TEMP/ccf-cycle-request.json"
+          if cargo run --quiet --manifest-path tools/industry-independence-auditor/Cargo.toml --locked -- \
+            "$RUNNER_TEMP/ccf-cycle-request.json" "$RUNNER_TEMP/ccf-cycle-report.json"; then
+            echo "ERROR: auditor accepted a cyclic dependency graph"
+            exit 1
+          fi
+
+      - name: Unknown dependency membership cannot manufacture a second source
+        run: |
+          set -euo pipefail
+          jq '
+            .registry.domains |= map(.dependency_completeness = "unknown")
+          ' "$RUNNER_TEMP/ccf-request.json" > "$RUNNER_TEMP/ccf-unknown-unhashed.json"
+          registry_sha="$(jq -cS '.registry' "$RUNNER_TEMP/ccf-unknown-unhashed.json" | sha256sum | awk '{print $1}')"
+          jq --arg digest "$registry_sha" '.registry_sha256 = $digest' "$RUNNER_TEMP/ccf-unknown-unhashed.json" > "$RUNNER_TEMP/ccf-unknown-request.json"
+          cargo run --manifest-path tools/industry-independence-auditor/Cargo.toml --locked -- \
+            "$RUNNER_TEMP/ccf-unknown-request.json" "$RUNNER_TEMP/ccf-unknown-report.json"
+          jq -e '
+            all(.control_results[];
+              .independent_source_count == 1 and
+              .threshold_met == false and
+              .registry_model_disposition == "indeterminate_under_registry_model"
+            )
+          ' "$RUNNER_TEMP/ccf-unknown-report.json"
+
+      - name: Upload exact-head common-cause report
+        uses: actions/upload-artifact@v4
+        with:
+          name: ieac-common-cause-${{ github.event.pull_request.head.sha || github.sha }}
+          path: "$RUNNER_TEMP/ccf-report.json"
+          if-no-files-found: error
+          retention-days: 30
