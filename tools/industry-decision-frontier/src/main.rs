@@ -1136,6 +1136,40 @@ mod tests {
     }
 
     #[test]
+    fn coverage_verification_trust_bundle_substitution_is_rejected() {
+        let mut availability = available(
+            "complete_first_availability_ledger",
+            "rp:test",
+            time(
+                "2026-11-02T09:25:00Z",
+                5,
+                5,
+                "authenticated_ingest_log",
+                "verified",
+            ),
+        );
+        availability.coverage = Some(CoverageProof {
+            relying_party_id: "rp:test".to_string(),
+            evidence_channel_id: "channel:ieac-ingest-registry".to_string(),
+            coverage_from: time(
+                "2026-11-02T08:00:00Z", 0, 0, "authenticated_ingest_log", "verified"
+            ),
+            complete_through: time(
+                "2026-11-02T09:30:00Z", 0, 0, "authenticated_ingest_log", "verified"
+            ),
+            coverage_proof_sha256: digest('e'),
+            completeness: "complete".to_string(),
+            verification_status: "verified".to_string(),
+            verifier_build_sha256: Some(digest('b')),
+            verification_policy_sha256: Some(digest('c')),
+            trust_bundle_sha256: Some(digest('9')),
+        });
+        let item = evidence("wrong-coverage-trust-bundle", Some(availability), None);
+        let result = audit(&snapshot_with(vec![item]), br#"{}"#);
+        assert!(result.is_err());
+    }
+
+    #[test]
     fn time_verification_trust_bundle_substitution_is_rejected() {
         let mut item = evidence(
             "wrong-trust-bundle",
