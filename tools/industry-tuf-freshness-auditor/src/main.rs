@@ -413,7 +413,11 @@ fn audit(
     let root = field(report,"root","verifier_report")?;
     let timestamp = field(report,"timestamp","verifier_report")?;
     let snapshot_meta = field(report,"snapshot","verifier_report")?;
-    for (v,path) in [(root,"root"),(timestamp,"timestamp"),(snapshot_meta,"snapshot")] {
+    deny_unknown(root,&["version","sha256","expires_at","timestamp_keyset_sha256","snapshot_keyset_sha256"],"root")?;
+    require_digest(root,"sha256","root")?;
+    let new_timestamp_keyset=require_digest(root,"timestamp_keyset_sha256","root")?;
+    let new_snapshot_keyset=require_digest(root,"snapshot_keyset_sha256","root")?;
+    for (v,path) in [(timestamp,"timestamp"),(snapshot_meta,"snapshot")] {
         deny_unknown(v,&["version","sha256","expires_at"],path)?;
         require_digest(v,"sha256",path)?;
     }
@@ -423,16 +427,35 @@ fn audit(
     let old_root = field(state,"root","trusted_state")?;
     let old_timestamp = field(state,"timestamp","trusted_state")?;
     let old_snapshot = field(state,"snapshot","trusted_state")?;
-    for (v,path) in [(old_root,"state.root"),(old_timestamp,"state.timestamp"),(old_snapshot,"state.snapshot")] {
+    deny_unknown(old_root,&["version","sha256","expires_at","timestamp_keyset_sha256","snapshot_keyset_sha256"],"state.root")?;
+    require_digest(old_root,"sha256","state.root")?;
+    let old_timestamp_keyset=require_digest(old_root,"timestamp_keyset_sha256","state.root")?;
+    let old_snapshot_keyset=require_digest(old_root,"snapshot_keyset_sha256","state.root")?;
+    for (v,path) in [(old_timestamp,"state.timestamp"),(old_snapshot,"state.snapshot")] {
         deny_unknown(v,&["version","sha256","expires_at"],path)?;
         require_digest(v,"sha256",path)?;
     }
     check_metadata_version("root",root_version,string(root,"sha256","root")?,
         uint(old_root,"version","state.root")?,string(old_root,"sha256","state.root")?)?;
-    check_metadata_version("timestamp",timestamp_version,string(timestamp,"sha256","timestamp")?,
-        uint(old_timestamp,"version","state.timestamp")?,string(old_timestamp,"sha256","state.timestamp")?)?;
-    check_metadata_version("snapshot",snapshot_version,string(snapshot_meta,"sha256","snapshot")?,
-        uint(old_snapshot,"version","state.snapshot")?,string(old_snapshot,"sha256","state.snapshot")?)?;
+    let timestamp_or_snapshot_keys_rotated =
+        new_timestamp_keyset != old_timestamp_keyset || new_snapshot_keyset != old_snapshot_keyset;
+    if timestamp_or_snapshot_keys_rotated && root_version <= uint(old_root,"version","state.root")? {
+        return Err("TUF timestamp/snapshot key rotation requires a newer trusted root".to_string());
+    }
+    if timestamp_or_snapshot_keys_rotated
+        && string(root,"sha256","root")? == string(old_root,"sha256","state.root")?
+    {
+        return Err("TUF role-key set changed without a root metadata digest change".to_string());
+    }
+    // TUF recovery semantics: if timestamp and/or snapshot keys rotate under a
+    // newly trusted root, clients discard both cached timestamp and snapshot
+    // metadata. Their prior version floors are reset only for this verified case.
+    if !timestamp_or_snapshot_keys_rotated {
+        check_metadata_version("timestamp",timestamp_version,string(timestamp,"sha256","timestamp")?,
+            uint(old_timestamp,"version","state.timestamp")?,string(old_timestamp,"sha256","state.timestamp")?)?;
+        check_metadata_version("snapshot",snapshot_version,string(snapshot_meta,"sha256","snapshot")?,
+            uint(old_snapshot,"version","state.snapshot")?,string(old_snapshot,"sha256","state.snapshot")?)?;
+    }
 
     // Root rotation must be a complete, contiguous N -> N+1 chain with both
     // predecessor and successor thresholds verified by the external TUF client.
@@ -481,7 +504,13 @@ fn audit(
     let checks=field(report,"verification_checks","verifier_report")?;
     deny_unknown(checks,&["timestamp_snapshot_binding_verified",
         "snapshot_targets_binding_verified","delegation_authorization_verified",
-        "target_hash_length_verified","root_chain_verified"],"verification_checks")?;
+        "target_hash_length_verified","root_chain_verified",
+        "timestamp_snapshot_key_rotation_recovery_verified"],"verification_checks")?;
+    if timestamp_or_snapshot_keys_rotated
+        && !bool_field(checks,"timestamp_snapshot_key_rotation_recovery_verified","verification_checks")?
+    {
+        unknown.push("tuf_timestamp_snapshot_key_rotation_recovery_not_verified".to_string());
+    }
     for k in ["timestamp_snapshot_binding_verified","snapshot_targets_binding_verified",
         "delegation_authorization_verified","target_hash_length_verified","root_chain_verified"] {
         if !bool_field(checks,k,"verification_checks")? {
@@ -873,6 +902,45 @@ mod tests{
         }]);
         let rb=serde_json::to_vec(&r).unwrap();let pb=serde_json::to_vec(&p).unwrap();let sb=serde_json::to_vec(&s).unwrap();
         assert_eq!(audit(&r,&p,&s,&rb,&pb,&sb).unwrap().status,"current");
+    }
+    #[test]fn root_role_key_rotation_allows_tuf_timestamp_snapshot_recovery(){
+        let (mut r,p,mut s)=base();
+        r["root"]["version"]=json!(4);
+        r["root"]["sha256"]=json!(d('z'));
+        r["root"]["timestamp_keyset_sha256"]=json!(d('d'));
+        r["root"]["snapshot_keyset_sha256"]=json!(d('e'));
+        r["root_update_chain"]=json!([{
+            "from_version":3,"from_sha256":d('1'),
+            "to_version":4,"to_sha256":d('z'),
+            "old_threshold_verified":true,"new_threshold_verified":true
+        }]);
+        r["timestamp"]["version"]=json!(1);
+        r["timestamp"]["sha256"]=json!(d('a'));
+        r["snapshot"]["version"]=json!(1);
+        r["snapshot"]["sha256"]=json!(d('b'));
+        r["verification_checks"]["timestamp_snapshot_key_rotation_recovery_verified"]=json!(true);
+        s["root"]["timestamp_keyset_sha256"]=json!(d('b'));
+        s["root"]["snapshot_keyset_sha256"]=json!(d('c'));
+        let rb=serde_json::to_vec(&r).unwrap();let pb=serde_json::to_vec(&p).unwrap();let sb=serde_json::to_vec(&s).unwrap();
+        assert_eq!(audit(&r,&p,&s,&rb,&pb,&sb).unwrap().status,"current");
+    }
+    #[test]fn unverified_role_key_rotation_recovery_is_unknown(){
+        let (mut r,p,mut s)=base();
+        r["root"]["version"]=json!(4);
+        r["root"]["sha256"]=json!(d('z'));
+        r["root"]["timestamp_keyset_sha256"]=json!(d('d'));
+        r["root"]["snapshot_keyset_sha256"]=json!(d('e'));
+        r["root_update_chain"]=json!([{
+            "from_version":3,"from_sha256":d('1'),
+            "to_version":4,"to_sha256":d('z'),
+            "old_threshold_verified":true,"new_threshold_verified":true
+        }]);
+        r["timestamp"]["version"]=json!(1);
+        r["snapshot"]["version"]=json!(1);
+        s["root"]["timestamp_keyset_sha256"]=json!(d('b'));
+        s["root"]["snapshot_keyset_sha256"]=json!(d('c'));
+        let rb=serde_json::to_vec(&r).unwrap();let pb=serde_json::to_vec(&p).unwrap();let sb=serde_json::to_vec(&s).unwrap();
+        assert_eq!(audit(&r,&p,&s,&rb,&pb,&sb).unwrap().status,"unknown");
     }
     #[test]fn target_role_rollback_is_rejected(){
         let (mut r,p,s)=base();r["target_roles"][0]["version"]=json!(3);
