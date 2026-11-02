@@ -1,0 +1,39 @@
+{
+  "schema_version": "luminous.ieac-verification-capsule-trust-pin.v0.1",
+  "pin_id": "ieac-plant17-capsule-pin-v1",
+  "repository_id": "tuf:ieac-plant17",
+  "repository_origin": "https://tuf.example.invalid",
+  "root_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+  "policy_id": "ieac-plant17-policy",
+  "policy_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+  "evaluation_time": "2026-06-01T00:00:00Z",
+  "uncertainty_before_ms": 2,
+  "uncertainty_after_ms": 2,
+  "clock_id": "clock:plant17-gateway",
+  "targets": [
+    {
+      "id": "channel_manifest",
+      "repository_path": "channels/plant-17/manifest.json"
+    },
+    {
+      "id": "checkpoint_state",
+      "repository_path": "channels/plant-17/checkpoint.json"
+    },
+    {
+      "id": "completeness_attestation",
+      "repository_path": "channels/plant-17/completeness-attestation.json"
+    },
+    {
+      "id": "availability_audit_report",
+      "repository_path": "channels/plant-17/completeness-report.json"
+    }
+  ],
+  "max_capsule_bytes": 536870912,
+  "max_file_count": 1024,
+  "allowed_capsule_modes": [
+    "self_contained",
+    "metadata_complete_target_referenced",
+    "commitment_only"
+  ],
+  "action_authority": "none"
+}
