@@ -37,6 +37,7 @@ struct DecisionRef {
     decision_event_sha256: String,
     subject_pseudonym: String,
     relying_party_id: String,
+    evidence_channel_id: String,
     profile_sha256: String,
     policy_sha256: String,
     evaluator_build_sha256: String,
@@ -75,7 +76,7 @@ struct EvidenceItem {
     #[serde(deserialize_with = "deserialize_present_option")]
     source_recorded_at: Option<TimeBound>,
     #[serde(deserialize_with = "deserialize_present_option")]
-    first_available: Option<FirstAvailability>,
+    availability_evidence: Option<FirstAvailability>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -91,9 +92,28 @@ struct ValidTime {
 #[serde(deny_unknown_fields)]
 struct FirstAvailability {
     relying_party_id: String,
+    evidence_channel_id: String,
     proof_kind: String,
     artifact_sha256: String,
     time: TimeBound,
+    #[serde(deserialize_with = "deserialize_present_option")]
+    coverage: Option<CoverageProof>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CoverageProof {
+    relying_party_id: String,
+    evidence_channel_id: String,
+    coverage_from_utc: String,
+    complete_through_utc: String,
+    coverage_proof_sha256: String,
+    completeness: String,
+    verification_status: String,
+    #[serde(deserialize_with = "deserialize_present_option")]
+    verifier_build_sha256: Option<String>,
+    #[serde(deserialize_with = "deserialize_present_option")]
+    verification_policy_sha256: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -281,25 +301,86 @@ fn validate_snapshot(snapshot: &Snapshot) -> Result<(), String> {
             validate_time_bound(recorded, &format!("{path}.source_recorded_at"))?;
             validate_verifier_pin(recorded, &snapshot.decision, &format!("{path}.source_recorded_at"))?;
         }
-        if let Some(availability) = &item.first_available {
-            if availability.relying_party_id.trim().is_empty() {
-                return Err(format!("{path}.first_available.relying_party_id is empty"));
+        if let Some(availability) = &item.availability_evidence {
+            if availability.relying_party_id.trim().is_empty()
+                || availability.evidence_channel_id.trim().is_empty()
+            {
+                return Err(format!("{path}.availability_evidence identity fields are empty"));
             }
             if availability.artifact_sha256 != item.artifact_sha256 {
                 return Err(format!(
-                    "{path}.first_available.artifact_sha256 does not bind the evidence artifact"
+                    "{path}.availability_evidence.artifact_sha256 does not bind the evidence artifact"
                 ));
             }
             validate_time_bound(
                 &availability.time,
-                &format!("{path}.first_available.time"),
+                &format!("{path}.availability_evidence.time"),
             )?;
             validate_verifier_pin(
                 &availability.time,
                 &snapshot.decision,
-                &format!("{path}.first_available.time"),
+                &format!("{path}.availability_evidence.time"),
             )?;
+            if let Some(coverage) = &availability.coverage {
+                validate_coverage_proof(
+                    coverage,
+                    &snapshot.decision,
+                    &format!("{path}.availability_evidence.coverage"),
+                )?;
+            }
+            if availability.proof_kind != "complete_first_availability_ledger"
+                && availability.coverage.is_some()
+            {
+                return Err(format!(
+                    "{path}.availability_evidence.coverage requires complete_first_availability_ledger"
+                ));
+            }
         }
+    }
+    Ok(())
+}
+
+fn validate_coverage_proof(
+    coverage: &CoverageProof,
+    decision: &DecisionRef,
+    path: &str,
+) -> Result<(), String> {
+    let from = parse_utc_seconds(&coverage.coverage_from_utc)
+        .map_err(|error| format!("{path}.coverage_from_utc: {error}"))?;
+    let through = parse_utc_seconds(&coverage.complete_through_utc)
+        .map_err(|error| format!("{path}.complete_through_utc: {error}"))?;
+    if from > through {
+        return Err(format!("{path} coverage interval is reversed"));
+    }
+    if !is_sha256(&coverage.coverage_proof_sha256) {
+        return Err(format!("{path}.coverage_proof_sha256 is invalid"));
+    }
+    if !matches!(coverage.completeness.as_str(), "complete" | "partial" | "unknown") {
+        return Err(format!("{path}.completeness is unsupported"));
+    }
+    if !matches!(
+        coverage.verification_status.as_str(),
+        "verified" | "failed" | "unknown" | "not_checked" | "disputed"
+    ) {
+        return Err(format!("{path}.verification_status is unsupported"));
+    }
+    for (field, value) in [
+        ("verifier_build_sha256", coverage.verifier_build_sha256.as_deref()),
+        ("verification_policy_sha256", coverage.verification_policy_sha256.as_deref()),
+    ] {
+        if let Some(value) = value {
+            if !is_sha256(value) {
+                return Err(format!("{path}.{field} is invalid"));
+            }
+        }
+    }
+    if coverage.verification_status == "verified"
+        && (coverage.verifier_build_sha256.as_deref()
+            != Some(decision.time_verifier_build_sha256.as_str())
+            || coverage.verification_policy_sha256.as_deref()
+                != Some(decision.time_verification_policy_sha256.as_str()))
+    {
+        return Err(format!("{path} uses an unpinned coverage verifier build or policy"));
     }
     Ok(())
 }
@@ -409,6 +490,7 @@ fn availability_is_relying_party_access(proof_kind: &str, basis: &str) -> bool {
         ("relying_party_ingest_receipt", "authenticated_ingest_log")
             | ("authenticated_access_log", "authenticated_ingest_log")
             | ("sealed_cache_manifest", "trusted_clock_attestation")
+            | ("complete_first_availability_ledger", "authenticated_ingest_log")
     )
 }
 
@@ -425,7 +507,7 @@ fn classify(
         ));
     };
 
-    let Some(availability) = &item.first_available else {
+    let Some(availability) = &item.availability_evidence else {
         return Ok((
             DecisionStatus::Unknown,
             "missing_availability_evidence".to_string(),
@@ -440,7 +522,8 @@ fn classify(
         ));
     }
 
-    if availability.relying_party_id != snapshot.decision.relying_party_id {
+    if availability.relying_party_id != snapshot.decision.relying_party_id
+        || availability.evidence_channel_id != snapshot.decision.evidence_channel_id {
         return Ok((
             DecisionStatus::Unknown,
             "availability_scope_mismatch".to_string(),
@@ -490,8 +573,41 @@ fn classify(
         status = DecisionStatus::Included;
         reason = "verified_available_before_cutoff";
     } else if available.earliest_epoch_seconds > cutoff.latest_epoch_seconds {
-        status = DecisionStatus::ExcludedAfterCutoff;
-        reason = "verified_available_after_cutoff";
+        if availability.proof_kind != "complete_first_availability_ledger" {
+            status = DecisionStatus::Unknown;
+            reason = "post_cutoff_access_does_not_prove_prior_absence";
+        } else if let Some(coverage) = &availability.coverage {
+            if coverage.verification_status == "failed" {
+                return Err(format!(
+                    "availability coverage verification failed for {}",
+                    item.evidence_id
+                ));
+            }
+            let coverage_from = parse_utc_seconds(&coverage.coverage_from_utc)?;
+            let coverage_through = parse_utc_seconds(&coverage.complete_through_utc)?;
+            if coverage.relying_party_id != snapshot.decision.relying_party_id
+                || coverage.evidence_channel_id != snapshot.decision.evidence_channel_id
+            {
+                status = DecisionStatus::Unknown;
+                reason = "availability_coverage_scope_mismatch";
+            } else if coverage.verification_status != "verified"
+                || coverage.completeness != "complete"
+            {
+                status = DecisionStatus::Unknown;
+                reason = "availability_coverage_not_complete_and_verified";
+            } else if coverage_from > cutoff.earliest_epoch_seconds
+                || coverage_through < available.latest_epoch_seconds
+            {
+                status = DecisionStatus::Unknown;
+                reason = "availability_coverage_does_not_span_cutoff_to_first_access";
+            } else {
+                status = DecisionStatus::ExcludedAfterCutoff;
+                reason = "complete_channel_history_proves_first_availability_after_cutoff";
+            }
+        } else {
+            status = DecisionStatus::Unknown;
+            reason = "availability_coverage_missing";
+        }
     } else {
         status = DecisionStatus::Unknown;
         reason = "availability_and_cutoff_intervals_overlap";
@@ -650,7 +766,7 @@ mod tests {
 
     fn evidence(
         id: &str,
-        first_available: Option<FirstAvailability>,
+        availability_evidence: Option<FirstAvailability>,
         observed_at: Option<TimeBound>,
     ) -> EvidenceItem {
         EvidenceItem {
@@ -661,7 +777,7 @@ mod tests {
             valid_time: None,
             observed_at,
             source_recorded_at: None,
-            first_available,
+            availability_evidence,
         }
     }
 
@@ -899,7 +1015,7 @@ mod tests {
             )),
             None,
         );
-        item.first_available.as_mut().unwrap().time.verifier_build_sha256 = Some(digest('9'));
+        item.availability_evidence.as_mut().unwrap().time.verifier_build_sha256 = Some(digest('9'));
         let result = audit(&snapshot_with(vec![item]), br#"{}"#);
         assert!(result.is_err());
     }
