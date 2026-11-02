@@ -374,7 +374,7 @@ pub fn evaluate_nonanticipativity_bytes(
             .map_err(|error| audit_error(format!("serialize observation prefix: {error}")))?;
         let observation_prefix_sha256 = sha256(&observation_prefix_bytes);
         let observation_prefix_equal = members.iter().skip(1).all(|member| {
-            parsed[*member].request.intervals[..=interval_index] == *observation_prefix
+            &parsed[*member].request.intervals[..=interval_index] == observation_prefix
         });
         let first_action =
             DispatchActionV1::from(&first.schedule.interval_dispatches[interval_index]);
@@ -550,15 +550,19 @@ mod tests {
     ) -> Vec<u8> {
         let request_value: serde_json::Value = serde_json::from_slice(request).unwrap();
         let case_id = request_value["case_id"].as_str().unwrap();
-        let first_soc = u16::from(charge_in_first_interval);
-        let terminal_soc = first_soc - u16::from(discharge_in_second_interval);
-        let first_charge = u16::from(charge_in_first_interval);
+        let first_soc = if charge_in_first_interval { 1_u16 } else { 0_u16 };
+        let second_discharge = if discharge_in_second_interval {
+            1_u16
+        } else {
+            0_u16
+        };
+        let terminal_soc = first_soc - second_discharge;
+        let first_charge = if charge_in_first_interval { 1_u16 } else { 0_u16 };
         let first_pv_used = first_charge;
         let first_pv_available = request_value["intervals"][0]["pv_available_quanta"]
             .as_u64()
             .unwrap() as u16;
         let first_pv_curtailed = first_pv_available - first_pv_used;
-        let second_discharge = u16::from(discharge_in_second_interval);
         let second_served = second_discharge;
         let second_unserved = 1 - second_served;
 
