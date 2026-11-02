@@ -8,9 +8,9 @@
 
 A valid, internally consistent checkpoint can still be stale. Monotonic sequence numbers inside one observed channel chain do not protect a relying party from being shown an older, internally consistent chain.
 
-TUF already addresses metadata rollback and freeze attacks. This package does not implement TUF signatures, canonicalization, root rotation cryptography, delegation verification or metadata parsing. It consumes an external TUF verifier report, checks its exact verifier build/policy/trust-bundle pins, then compares the verified state to a separately provisioned policy and persisted high-water state.
+TUF already addresses metadata rollback and freeze attacks. This package does not implement TUF signatures, canonicalization, root rotation cryptography, delegation verification or metadata parsing. It consumes an external TUF verifier report and checks its claimed build/policy/trust-bundle pins against separately provisioned policy. **Those JSON claims are not authenticated by this adapter.** A substituted report can copy the expected digest strings and set its claimed verification booleans to true. Hashing the report records which bytes were checked; it does not establish who produced them.
 
-The trusted high-water file is a separate CLI argument; it is not embedded in the verifier report or caller request. Its storage/authenticity/atomic update are still operator responsibilities. The report binds the exact raw bytes of the verifier report, policy and state files. A successful result emits a proposed next state plus the expected prior state revision and raw-byte digest; the relying-party state store must commit it with compare-and-swap, atomically, and only if those expected values still match. The auditor itself never writes trusted state.
+The trusted high-water file is a separate CLI argument; it is not embedded in the verifier report or caller request. Its storage/authenticity remains an operator responsibility. The report binds the exact raw bytes of the verifier report, policy and state files. The output is always `status = unverified`, with a separate `structural_status = consistent | unknown`. It never emits a proposed next state or state transition. This is deliberate: no high-water advance is safe until #441 replaces the self-asserted report with in-process TUF metadata verification or an equivalently authenticated verifier result.
 
 ## 2. Why TUF, not another freshness service
 
@@ -48,7 +48,7 @@ The TUF report is not trusted just because it says `verified`. Its verifier buil
 - Ledger epoch changes require an externally verified transition whose authorization target is the exact channel manifest digest.
 - Strict JSON duplicate-member rejection, unknown-field rejection and exact raw-input SHA-256 binding.
 
-The report's `current` status means the external TUF verifier facts satisfy the pinned policy and no local high-water rollback/expiry conflict was found. It does not mean the channel is complete: that remains #419/#422. It does not mean the underlying industrial evidence is true.
+The report's `structural_status = consistent` means only that the supplied JSON claims are internally consistent with this adapter's policy and previous-state comparisons. It does **not** mean TUF signatures, thresholds, metadata relationships or delegation have been verified. The top-level status therefore remains `unverified` for every input. The cryptographic verifier integration is tracked in [#441](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/441).
 
 ## 5. What this tool does not do
 
@@ -75,9 +75,9 @@ cargo run --manifest-path tools/industry-tuf-freshness-auditor/Cargo.toml --lock
 ```
 
 Exit codes:
-- `0`: current under pinned TUF policy and persisted high-water state;
-- `3`: valid inputs but freshness/evidence status unknown (e.g., expired or unverified metadata);
-- `2`: invalid inputs, policy mismatch, rollback, equivocation, target substitution, broken root chain or failed state binding.
+- `0`: structural checks are consistent; **TUF verification is still unverified** and no high-water state is advanced;
+- `3`: valid inputs but structural/freshness claims are unknown (e.g., expired or unverified metadata);
+- `2`: invalid inputs, policy mismatch, rollback, equivocation, target substitution, broken claimed root chain or failed state binding.
 
 ## 7. Frozen synthetic benchmark
 
