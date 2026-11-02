@@ -18,18 +18,22 @@ pub const NONANTICIPATIVITY_RECEIPT_SCHEMA_V2: &str =
     "energy-dispatch-nonanticipativity-receipt-v0.2";
 pub const MAX_SCENARIOS: usize = 256;
 
-/// Information-set metadata reconstructed from the exact forecast artifact.
+/// Information-set metadata reconstructed from exact observation and forecast artifacts.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct NonAnticipativityInformationSetV1 {
+    pub observed_at_unix_seconds: i64,
+    pub observation_bundle_sha256: String,
     pub forecast_as_of_unix_seconds: i64,
     pub forecast_bundle_sha256: String,
 }
 
-/// Exact forecast bytes supplied to the independent auditor. The SHA-256 is
-/// always recomputed from these bytes; a caller cannot choose the digest.
+/// Exact decision-time evidence supplied to the auditor. All digests are
+/// recomputed from these bytes; no caller-selected information-set hash exists.
 #[derive(Debug, Clone, Copy)]
 pub struct NonAnticipativityInformationSetBytes<'a> {
+    pub observed_at_unix_seconds: i64,
+    pub observation_bundle_bytes: &'a [u8],
     pub forecast_as_of_unix_seconds: i64,
     pub forecast_bundle_bytes: &'a [u8],
 }
@@ -139,13 +143,35 @@ impl From<&IntervalDispatch> for DispatchActionV1 {
 }
 
 #[derive(Serialize)]
+struct ObservationHistorySubjectV1<'a> {
+    schema_version: &'a str,
+    scenario_set_id: &'a str,
+    interval_index: usize,
+    previous_history_sha256: &'a str,
+    observed_at_unix_seconds: i64,
+    observation_bundle_sha256: &'a str,
+}
+
+#[derive(Serialize)]
 struct InformationSetSubjectV1<'a> {
     schema_version: &'a str,
     scenario_set_id: &'a str,
     decision_time_unix_seconds: i64,
-    observation_prefix_sha256: &'a str,
+    observation_history_sha256: &'a str,
+    observed_at_unix_seconds: i64,
+    observation_bundle_sha256: &'a str,
     forecast_as_of_unix_seconds: i64,
     forecast_bundle_sha256: &'a str,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ObservationBundleV1 {
+    schema_version: String,
+    scenario_set_id: String,
+    bundle_id: String,
+    observed_at_unix_seconds: i64,
+    observation_payload: serde_json::Value,
 }
 
 #[derive(Debug, Deserialize)]
@@ -161,69 +187,112 @@ struct ForecastBundleV1 {
 }
 
 const INFORMATION_SET_SCHEMA_V1: &str = "energy-dispatch-information-set-v0.1";
+const OBSERVATION_BUNDLE_SCHEMA_V1: &str = "energy-dispatch-observation-bundle-v0.1";
 const FORECAST_BUNDLE_SCHEMA_V1: &str = "energy-dispatch-forecast-bundle-v0.1";
+pub const MAX_OBSERVATION_BUNDLE_BYTES: usize = 1_048_576;
 pub const MAX_FORECAST_BUNDLE_BYTES: usize = 1_048_576;
+
+fn valid_bundle_id(value: &str) -> bool {
+    !value.trim().is_empty()
+        && value.len() <= 128
+        && value
+            .chars()
+            .all(|ch| ch.is_ascii_alphanumeric() || "-_.:".contains(ch))
+}
 
 fn derive_information_set_sha256(
     scenario_set_id: &str,
     request: &SourceRequest,
     interval_index: usize,
+    previous_history_sha256: &str,
     information_set: &NonAnticipativityInformationSetBytes<'_>,
 ) -> Result<(NonAnticipativityInformationSetV1, String, String), AuditError> {
+    if information_set.observation_bundle_bytes.len() > MAX_OBSERVATION_BUNDLE_BYTES {
+        return Err(audit_error("observation bundle exceeds the 1 MiB byte limit"));
+    }
     if information_set.forecast_bundle_bytes.len() > MAX_FORECAST_BUNDLE_BYTES {
         return Err(audit_error("forecast bundle exceeds the 1 MiB byte limit"));
     }
-    let bundle_value = parse_unique_json(information_set.forecast_bundle_bytes)?;
-    let bundle: ForecastBundleV1 = serde_json::from_value(bundle_value)
-        .map_err(|error| audit_error(format!("forecast bundle schema: {error}")))?;
+
     let interval = request
         .intervals
         .get(interval_index)
         .ok_or_else(|| audit_error("information-set interval index is outside the request"))?;
-    if bundle.schema_version != FORECAST_BUNDLE_SCHEMA_V1
-        || bundle.scenario_set_id != scenario_set_id
-        || bundle.bundle_id.trim().is_empty()
-        || bundle.bundle_id.len() > 128
-        || !bundle
-            .bundle_id
-            .chars()
-            .all(|ch| ch.is_ascii_alphanumeric() || "-_.:".contains(ch))
-        || bundle.issued_at_unix_seconds != information_set.forecast_as_of_unix_seconds
-        || bundle.issued_at_unix_seconds > interval.start_unix_seconds
-        || bundle.valid_from_unix_seconds > interval.start_unix_seconds
-        || bundle.valid_through_unix_seconds < interval.start_unix_seconds
-        || bundle.valid_through_unix_seconds < bundle.valid_from_unix_seconds
-        || !bundle.forecast_payload
+    let decision_time = interval.start_unix_seconds;
+
+    let observation_value = parse_unique_json(information_set.observation_bundle_bytes)?;
+    let observation: ObservationBundleV1 = serde_json::from_value(observation_value)
+        .map_err(|error| audit_error(format!("observation bundle schema: {error}")))?;
+    if observation.schema_version != OBSERVATION_BUNDLE_SCHEMA_V1
+        || observation.scenario_set_id != scenario_set_id
+        || !valid_bundle_id(&observation.bundle_id)
+        || observation.observed_at_unix_seconds != information_set.observed_at_unix_seconds
+        || observation.observed_at_unix_seconds > decision_time
+        || !observation
+            .observation_payload
             .as_object()
             .is_some_and(|payload| !payload.is_empty())
     {
         return Err(audit_error(
-            "forecast bundle identity, issue time, validity window or payload is invalid \
-             for this decision",
+            "observation bundle identity, observation time or payload is invalid for this decision",
         ));
     }
+
+    let forecast_value = parse_unique_json(information_set.forecast_bundle_bytes)?;
+    let forecast: ForecastBundleV1 = serde_json::from_value(forecast_value)
+        .map_err(|error| audit_error(format!("forecast bundle schema: {error}")))?;
+    if forecast.schema_version != FORECAST_BUNDLE_SCHEMA_V1
+        || forecast.scenario_set_id != scenario_set_id
+        || !valid_bundle_id(&forecast.bundle_id)
+        || forecast.issued_at_unix_seconds != information_set.forecast_as_of_unix_seconds
+        || forecast.issued_at_unix_seconds > decision_time
+        || forecast.valid_from_unix_seconds > decision_time
+        || forecast.valid_through_unix_seconds < decision_time
+        || forecast.valid_through_unix_seconds < forecast.valid_from_unix_seconds
+        || !forecast
+            .forecast_payload
+            .as_object()
+            .is_some_and(|payload| !payload.is_empty())
+    {
+        return Err(audit_error(
+            "forecast bundle identity, issue time, validity window or payload is invalid for this decision",
+        ));
+    }
+
+    let observation_bundle_sha256 = sha256(information_set.observation_bundle_bytes);
     let forecast_bundle_sha256 = sha256(information_set.forecast_bundle_bytes);
-    let observation_prefix_bytes =
-        serde_json::to_vec(&request.intervals[..=interval_index])
-            .map_err(|error| audit_error(format!("serialize observation prefix: {error}")))?;
-    let observation_prefix_sha256 = sha256(&observation_prefix_bytes);
-    let subject = InformationSetSubjectV1 {
+    let history_subject = ObservationHistorySubjectV1 {
+        schema_version: "energy-dispatch-observation-history-v0.1",
+        scenario_set_id,
+        interval_index,
+        previous_history_sha256,
+        observed_at_unix_seconds: information_set.observed_at_unix_seconds,
+        observation_bundle_sha256: &observation_bundle_sha256,
+    };
+    let history_bytes = serde_json::to_vec(&history_subject)
+        .map_err(|error| audit_error(format!("serialize observation history: {error}")))?;
+    let observation_history_sha256 = sha256(&history_bytes);
+    let information_subject = InformationSetSubjectV1 {
         schema_version: INFORMATION_SET_SCHEMA_V1,
         scenario_set_id,
-        decision_time_unix_seconds: interval.start_unix_seconds,
-        observation_prefix_sha256: &observation_prefix_sha256,
+        decision_time_unix_seconds: decision_time,
+        observation_history_sha256: &observation_history_sha256,
+        observed_at_unix_seconds: information_set.observed_at_unix_seconds,
+        observation_bundle_sha256: &observation_bundle_sha256,
         forecast_as_of_unix_seconds: information_set.forecast_as_of_unix_seconds,
         forecast_bundle_sha256: &forecast_bundle_sha256,
     };
-    let bytes = serde_json::to_vec(&subject)
+    let information_bytes = serde_json::to_vec(&information_subject)
         .map_err(|error| audit_error(format!("serialize information-set subject: {error}")))?;
     Ok((
         NonAnticipativityInformationSetV1 {
+            observed_at_unix_seconds: information_set.observed_at_unix_seconds,
+            observation_bundle_sha256,
             forecast_as_of_unix_seconds: information_set.forecast_as_of_unix_seconds,
             forecast_bundle_sha256,
         },
-        observation_prefix_sha256,
-        sha256(&bytes),
+        observation_history_sha256,
+        sha256(&information_bytes),
     ))
 }
 
