@@ -101,6 +101,7 @@ struct DispatchScheduleForAudit {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 struct AuditFindingLite {
     predicate: String,
     interval_index: Option<usize>,
@@ -110,6 +111,7 @@ struct AuditFindingLite {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 struct RecomputedObjectivesLite {
     essential_unserved_quanta: Option<i64>,
     flexible_unserved_quanta: Option<i64>,
@@ -120,6 +122,7 @@ struct RecomputedObjectivesLite {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct ScheduleAuditReceiptLite {
     receipt_schema: String,
     auditor_id: String,
@@ -161,6 +164,7 @@ struct ScheduleAuditReceiptSubjectLite<'a> {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 struct ServiceFloorFindingLite {
     predicate: String,
     interval_index: Option<usize>,
@@ -170,6 +174,7 @@ struct ServiceFloorFindingLite {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct ServiceFloorReceiptLite {
     receipt_schema: String,
     policy_id: String,
