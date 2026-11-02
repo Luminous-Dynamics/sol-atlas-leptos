@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/industry-ieac-tuf-freshness-policy-v0.1.schema.json",
+  "title": "IEAC TUF Channel Freshness Policy Pin v0.1",
+  "description": "Operator-provisioned relying-party policy. Never accept these pins from the TUF report or request itself.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "repository_id",
+    "relying_party_id",
+    "channel_id",
+    "tenant_scope",
+    "purpose",
+    "ledger_id",
+    "sequence_namespace",
+    "manifest_target_path",
+    "manifest_target_role",
+    "checkpoint_target_path",
+    "checkpoint_target_role",
+    "max_timestamp_expiry_horizon_seconds",
+    "time_verifier_build_sha256",
+    "time_verification_policy_sha256",
+    "time_verification_trust_bundle_sha256",
+    "tuf_verifier_build_sha256",
+    "tuf_verification_policy_sha256",
+    "tuf_trust_bundle_sha256",
+    "claim_ceiling",
+    "action_authority"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.ieac-tuf-freshness-policy.v0.1"
+    },
+    "repository_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "relying_party_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "channel_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "tenant_scope": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "ledger_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "sequence_namespace": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "manifest_target_path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024
+    },
+    "manifest_target_role": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "checkpoint_target_path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024
+    },
+    "checkpoint_target_role": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "max_timestamp_expiry_horizon_seconds": {
+      "type": "integer",
+      "minimum": 60,
+      "maximum": 604800
+    },
+    "time_verifier_build_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "time_verification_policy_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "time_verification_trust_bundle_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "tuf_verifier_build_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "tuf_verification_policy_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "tuf_trust_bundle_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "claim_ceiling": {
+      "const": "tuf_freshness_and_anti_rollback_only"
+    },
+    "action_authority": {
+      "const": "none"
+    }
+  }
+}
