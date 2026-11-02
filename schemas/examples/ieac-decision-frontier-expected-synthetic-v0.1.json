@@ -4,20 +4,18 @@
   "snapshot_file": "ieac-decision-frontier-snapshot-synthetic-v0.1.json",
   "expected": {
     "evidence_count": 12,
-    "included_by_cutoff": 2,
     "excluded_after_cutoff": 3,
     "unknown": 7,
-    "false_admission_count": 0,
     "history_completeness": "not_established",
     "classifications": [
       {
         "evidence_id": "known-before-cutoff",
-        "status": "included",
+        "status": "candidate_included",
         "reason_code": "verified_available_before_cutoff"
       },
       {
         "evidence_id": "known-second-measurement",
-        "status": "included",
+        "status": "candidate_included",
         "reason_code": "verified_available_before_cutoff"
       },
       {
@@ -70,7 +68,8 @@
         "status": "unknown",
         "reason_code": "availability_time_not_independently_verified"
       }
-    ]
+    ],
+    "candidate_as_known_count": 2
   },
   "note": "Expected outcomes are structural oracle values only. The fixture does not contain cryptographic keys, signed proof bytes or field measurements."
 }
