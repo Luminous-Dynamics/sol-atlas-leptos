@@ -889,19 +889,14 @@ mod tests {
             .unwrap();
         forecast["issued_at_unix_seconds"] = serde_json::json!(1_800_000_001_i64);
         let bytes = serde_json::to_vec(&forecast).unwrap();
-        let information = vec![
+        let information = [
             NonAnticipativityInformationSetBytes {
                 forecast_as_of_unix_seconds: 1_800_000_001_i64,
                 forecast_bundle_bytes: &bytes,
             },
             NonAnticipativityInformationSetBytes {
-                forecast_as_of_unix_seconds: FORECAST_AS_OF,
-                forecast_bundle_bytes: &forecast_bundle_bytes(
-                    SCENARIO_SET,
-                    "future-forecast",
-                    1,
-                    0,
-                ),
+                forecast_as_of_unix_seconds: 1_800_000_001_i64,
+                forecast_bundle_bytes: &bytes,
             },
         ];
         let request_b = request_bytes("scenario-b", 1, 0);
