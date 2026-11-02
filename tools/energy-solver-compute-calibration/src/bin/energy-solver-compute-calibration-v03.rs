@@ -124,7 +124,9 @@ fn summarize(path: &Path) -> Result<String, String> {
             optional(row.decision_ready_latency_p50_ns),
             optional(row.decision_ready_latency_p95_ns),
         ];
-        if fields.iter().any(|value| value.contains(',') || value.contains('\n') || value.contains('\r')) {
+        if fields.iter().any(|value| {
+            value.contains(',') || value.contains('\n') || value.contains('\r')
+        }) {
             return Err("v0.3 summary contains an invalid CSV identifier".to_owned());
         }
         output.push_str(&fields.join(","));
