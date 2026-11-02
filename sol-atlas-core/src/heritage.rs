@@ -166,7 +166,10 @@ impl fmt::Display for RightsDenial {
                 write!(f, "exact-geometry access requires explicit authorization")
             }
             Self::ExactGeometryTierInsufficient { required, granted } => {
-                write!(f, "exact-geometry tier {granted:?} does not satisfy {required:?}")
+                write!(
+                    f,
+                    "exact-geometry tier {granted:?} does not satisfy {required:?}"
+                )
             }
             Self::ExactGeometryWithheld => write!(f, "exact geometry is withheld"),
             Self::WithheldAsset => write!(f, "asset access is withheld"),
@@ -477,8 +480,7 @@ impl SourceAssetMetadata {
                 errors.push(MetadataValidationError::InvalidBoundingBox);
             }
         }
-        if requires_native_resolution(self.modality) && self.spatial.native_resolution_m.is_none()
-        {
+        if requires_native_resolution(self.modality) && self.spatial.native_resolution_m.is_none() {
             errors.push(MetadataValidationError::MissingNativeResolution);
         }
         if let Some(resolution) = self.spatial.native_resolution_m {
@@ -702,8 +704,7 @@ pub(crate) fn parse_rfc3339_nanos(value: &str) -> Option<i128> {
     let day_of_era = year_of_era * 365 + year_of_era / 4 - year_of_era / 100 + day_of_year;
     let days_since_epoch = era * 146_097 + day_of_era - 719_468;
 
-    let local_seconds =
-        days_since_epoch * 86_400 + hour * 3_600 + minute * 60 + second;
+    let local_seconds = days_since_epoch * 86_400 + hour * 3_600 + minute * 60 + second;
     let utc_seconds = local_seconds - offset_seconds;
     Some(i128::from(utc_seconds) * 1_000_000_000 + i128::from(fractional_nanos))
 }
@@ -745,8 +746,12 @@ pub struct AssetVersion {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RegistrationOutcome {
-    Added { version: usize },
-    AlreadyPresent { version: usize },
+    Added {
+        version: usize,
+    },
+    AlreadyPresent {
+        version: usize,
+    },
     NewRevision {
         version: usize,
         previous_version: usize,
@@ -768,7 +773,9 @@ impl AssetRegistry {
         &mut self,
         metadata: &SourceAssetMetadata,
     ) -> Result<RegistrationOutcome, RegistryError> {
-        metadata.validate().map_err(RegistryError::InvalidMetadata)?;
+        metadata
+            .validate()
+            .map_err(RegistryError::InvalidMetadata)?;
         let metadata_sha256 = metadata
             .metadata_sha256()
             .map_err(|error| RegistryError::Serialization(error.to_string()))?;
@@ -1037,8 +1044,8 @@ impl std::error::Error for StacItemError {}
 
 impl StacItemEnvelope {
     pub fn parse(json: &str) -> Result<Self, StacItemError> {
-        let original: Value =
-            serde_json::from_str(json).map_err(|error| StacItemError::InvalidJson(error.to_string()))?;
+        let original: Value = serde_json::from_str(json)
+            .map_err(|error| StacItemError::InvalidJson(error.to_string()))?;
         let object = original.as_object().ok_or(StacItemError::NotFeature)?;
 
         if object.get("type").and_then(Value::as_str) != Some("Feature") {
@@ -1241,8 +1248,14 @@ mod tests {
         assert_eq!(value["provider"]["provider_id"], "provider-synthetic");
         assert_eq!(value["asset"]["stac_asset_key"], "lidar");
         assert_eq!(value["acquisition"]["orbit_direction"], "not_applicable");
-        assert_eq!(value["spatial"]["geometry_access_tier"], "approved_research");
-        assert_eq!(value["rights"]["exact_geometry_policy"], "approved_research_only");
+        assert_eq!(
+            value["spatial"]["geometry_access_tier"],
+            "approved_research"
+        );
+        assert_eq!(
+            value["rights"]["exact_geometry_policy"],
+            "approved_research_only"
+        );
         assert!(value["quality"].is_object());
         assert!(value["provenance"]["ingested_at"].is_string());
         assert!(value["provider"].get("contact_ref").is_none());
@@ -1265,20 +1278,24 @@ mod tests {
         assert_eq!(metadata.validate(), Ok(()));
 
         metadata.spatial.bbox = Some(vec![170.0, -10.0, -170.0]);
-        assert!(metadata
-            .validate()
-            .unwrap_err()
-            .contains(&MetadataValidationError::InvalidBoundingBox));
+        assert!(
+            metadata
+                .validate()
+                .unwrap_err()
+                .contains(&MetadataValidationError::InvalidBoundingBox)
+        );
     }
 
     #[test]
     fn elevation_modalities_require_an_explicit_vertical_datum() {
         let mut metadata = fixture_metadata();
         metadata.spatial.vertical_datum = None;
-        assert!(metadata
-            .validate()
-            .unwrap_err()
-            .contains(&MetadataValidationError::MissingVerticalDatum));
+        assert!(
+            metadata
+                .validate()
+                .unwrap_err()
+                .contains(&MetadataValidationError::MissingVerticalDatum)
+        );
 
         metadata.modality = HeritageModality::OpticalMultispectral;
         assert_eq!(metadata.validate(), Ok(()));
@@ -1288,10 +1305,12 @@ mod tests {
     fn malformed_content_digest_is_rejected() {
         let mut metadata = fixture_metadata();
         metadata.asset.content_sha256 = Some("not-a-digest".to_owned());
-        assert!(metadata
-            .validate()
-            .unwrap_err()
-            .contains(&MetadataValidationError::InvalidContentDigest));
+        assert!(
+            metadata
+                .validate()
+                .unwrap_err()
+                .contains(&MetadataValidationError::InvalidContentDigest)
+        );
     }
 
     #[test]
@@ -1328,9 +1347,11 @@ mod tests {
             max_tier: AccessTier::ApprovedResearch,
             exact_geometry_authorized: false,
         };
-        assert!(profile
-            .authorize(HeritageUse::Research, context, false)
-            .is_ok());
+        assert!(
+            profile
+                .authorize(HeritageUse::Research, context, false)
+                .is_ok()
+        );
         assert_eq!(
             profile.authorize(HeritageUse::Training, context, false),
             Err(RightsDenial::PurposeNotPermitted(HeritageUse::Training))
@@ -1369,9 +1390,11 @@ mod tests {
             max_tier: AccessTier::ApprovedResearch,
             exact_geometry_authorized: true,
         };
-        assert!(profile
-            .authorize(HeritageUse::Research, approved_research, true)
-            .is_ok());
+        assert!(
+            profile
+                .authorize(HeritageUse::Research, approved_research, true)
+                .is_ok()
+        );
         assert_eq!(
             profile.authorize(HeritageUse::Evaluation, approved_research, true),
             Err(RightsDenial::PurposeNotPermitted(HeritageUse::Evaluation))
@@ -1421,7 +1444,10 @@ mod tests {
             "heritage-ingestor",
             "0.1.0",
             HeritageUse::Research,
-            AccessContext { max_tier: AccessTier::ApprovedResearch, exact_geometry_authorized: true },
+            AccessContext {
+                max_tier: AccessTier::ApprovedResearch,
+                exact_geometry_authorized: true,
+            },
             true,
         )
         .unwrap();
@@ -1432,7 +1458,10 @@ mod tests {
             "heritage-ingestor",
             "0.1.0",
             HeritageUse::Research,
-            AccessContext { max_tier: AccessTier::ApprovedResearch, exact_geometry_authorized: true },
+            AccessContext {
+                max_tier: AccessTier::ApprovedResearch,
+                exact_geometry_authorized: true,
+            },
             true,
         )
         .unwrap();
@@ -1523,7 +1552,10 @@ mod tests {
                 "heritage-ingestor",
                 "0.1.0",
                 HeritageUse::Research,
-                AccessContext { max_tier: AccessTier::ApprovedResearch, exact_geometry_authorized: true },
+                AccessContext {
+                    max_tier: AccessTier::ApprovedResearch,
+                    exact_geometry_authorized: true
+                },
                 true
             ),
             Err(ReceiptError::MissingExpectedDigest)
@@ -1538,7 +1570,10 @@ mod tests {
                 "heritage-ingestor",
                 "0.1.0",
                 HeritageUse::Research,
-                AccessContext { max_tier: AccessTier::ApprovedResearch, exact_geometry_authorized: true },
+                AccessContext {
+                    max_tier: AccessTier::ApprovedResearch,
+                    exact_geometry_authorized: true
+                },
                 true
             ),
             Err(ReceiptError::InvalidRetrievalTimestamp)

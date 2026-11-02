@@ -5,7 +5,10 @@
 //! This module consumes supplied priors/likelihoods; it never invents them or
 //! authorizes land access, permits, excavation, or physical disturbance.
 
-use crate::heritage::{authorize_rights_and_geometry, AccessContext, AccessTier, HeritageUse, RightsDenial, RightsProfile};
+use crate::heritage::{
+    AccessContext, AccessTier, HeritageUse, RightsDenial, RightsProfile,
+    authorize_rights_and_geometry,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
@@ -146,30 +149,73 @@ pub enum SurveyPlannerError {
     EmptyHypotheses,
     EmptyHypothesisId,
     DuplicateHypothesisId(String),
-    InvalidPriorProbability { hypothesis_id: String },
-    PriorProbabilitiesDoNotSumToOne { sum: f64, tolerance: f64 },
+    InvalidPriorProbability {
+        hypothesis_id: String,
+    },
+    PriorProbabilitiesDoNotSumToOne {
+        sum: f64,
+        tolerance: f64,
+    },
     EmptyActionId,
     EmptyCostUnit,
-    EmptySourceDataAuthorizations { action_id: String },
-    EmptySourceId { action_id: String },
-    EmptyAssetReference { action_id: String },
+    EmptySourceDataAuthorizations {
+        action_id: String,
+    },
+    EmptySourceId {
+        action_id: String,
+    },
+    EmptyAssetReference {
+        action_id: String,
+    },
     DuplicateActionId(String),
-    InvalidCost { action_id: String },
-    InvalidDuration { action_id: String },
-    InvalidLikelihoodModelDigest { action_id: String },
-    InvalidImpactScore { action_id: String },
-    EmptyLikelihoodBasis { action_id: String },
-    EmptyOutcomes { action_id: String },
-    EmptyOutcomeId { action_id: String },
-    DuplicateOutcomeId { action_id: String, outcome_id: String },
-    LikelihoodHypothesisIdsMismatch { action_id: String, outcome_id: String },
-    InvalidLikelihood { action_id: String, outcome_id: String, hypothesis_id: String },
-    LikelihoodsDoNotSumToOne { action_id: String, hypothesis_id: String, sum: f64, tolerance: f64 },
+    InvalidCost {
+        action_id: String,
+    },
+    InvalidDuration {
+        action_id: String,
+    },
+    InvalidLikelihoodModelDigest {
+        action_id: String,
+    },
+    InvalidImpactScore {
+        action_id: String,
+    },
+    EmptyLikelihoodBasis {
+        action_id: String,
+    },
+    EmptyOutcomes {
+        action_id: String,
+    },
+    EmptyOutcomeId {
+        action_id: String,
+    },
+    DuplicateOutcomeId {
+        action_id: String,
+        outcome_id: String,
+    },
+    LikelihoodHypothesisIdsMismatch {
+        action_id: String,
+        outcome_id: String,
+    },
+    InvalidLikelihood {
+        action_id: String,
+        outcome_id: String,
+        hypothesis_id: String,
+    },
+    LikelihoodsDoNotSumToOne {
+        action_id: String,
+        hypothesis_id: String,
+        sum: f64,
+        tolerance: f64,
+    },
     InvalidMaxCost,
     InvalidMaxDuration,
     InvalidMaxImpact,
     InvalidProbabilityTolerance,
-    NegativeInformationGain { action_id: String, value: f64 },
+    NegativeInformationGain {
+        action_id: String,
+        value: f64,
+    },
 }
 
 impl fmt::Display for SurveyPlannerError {
@@ -222,10 +268,7 @@ fn validate_priors(
     }
 
     if (sum - 1.0).abs() > tolerance {
-        return Err(SurveyPlannerError::PriorProbabilitiesDoNotSumToOne {
-            sum,
-            tolerance,
-        });
+        return Err(SurveyPlannerError::PriorProbabilitiesDoNotSumToOne { sum, tolerance });
     }
     // Normalize accepted floating-point summation drift before Bayesian updating.
     for probability in by_id.values_mut() {
@@ -269,10 +312,14 @@ fn validate_action(
     }
     for source in &action.authorization.source_data {
         if source.source_id.trim().is_empty() {
-            return Err(SurveyPlannerError::EmptySourceId { action_id: action.action_id.clone() });
+            return Err(SurveyPlannerError::EmptySourceId {
+                action_id: action.action_id.clone(),
+            });
         }
         if source.asset_ref.trim().is_empty() {
-            return Err(SurveyPlannerError::EmptyAssetReference { action_id: action.action_id.clone() });
+            return Err(SurveyPlannerError::EmptyAssetReference {
+                action_id: action.action_id.clone(),
+            });
         }
     }
     if action.likelihood_basis_ref.trim().is_empty() {
@@ -402,9 +449,7 @@ pub fn expected_information_gain_nats(
     for outcome in &action.outcomes {
         let outcome_probability: f64 = prior_by_id
             .iter()
-            .map(|(hypothesis_id, prior)| {
-                *prior * outcome.likelihood_by_hypothesis[hypothesis_id]
-            })
+            .map(|(hypothesis_id, prior)| *prior * outcome.likelihood_by_hypothesis[hypothesis_id])
             .sum();
 
         if outcome_probability <= 0.0 {
@@ -474,7 +519,9 @@ pub fn plan_non_invasive_surveys(
             return Err(SurveyPlannerError::EmptyActionId);
         }
         if !seen_action_ids.insert(action.action_id.as_str()) {
-            return Err(SurveyPlannerError::DuplicateActionId(action.action_id.clone()));
+            return Err(SurveyPlannerError::DuplicateActionId(
+                action.action_id.clone(),
+            ));
         }
         validate_action(action, &prior_by_id, constraints.probability_tolerance)?;
 
@@ -520,19 +567,22 @@ pub fn plan_non_invasive_surveys(
             && left.expected_cost_units <= right.expected_cost_units
             && left.expected_duration_hours <= right.expected_duration_hours
             && left.impact_score <= right.impact_score;
-        let strictly_better =
-            left.expected_information_gain_nats > right.expected_information_gain_nats
-                || left.expected_cost_units < right.expected_cost_units
-                || left.expected_duration_hours < right.expected_duration_hours
-                || left.impact_score < right.impact_score;
+        let strictly_better = left.expected_information_gain_nats
+            > right.expected_information_gain_nats
+            || left.expected_cost_units < right.expected_cost_units
+            || left.expected_duration_hours < right.expected_duration_hours
+            || left.impact_score < right.impact_score;
         no_worse && strictly_better
     };
 
     let mut pareto_front_action_ids = Vec::new();
     for index in 0..ranked_actions.len() {
-        let dominated = ranked_actions.iter().enumerate().any(|(other_index, other)| {
-            index != other_index && dominates(other, &ranked_actions[index])
-        });
+        let dominated = ranked_actions
+            .iter()
+            .enumerate()
+            .any(|(other_index, other)| {
+                index != other_index && dominates(other, &ranked_actions[index])
+            });
         ranked_actions[index].pareto_optimal = !dominated;
         if !dominated {
             pareto_front_action_ids.push(ranked_actions[index].action_id.clone());
@@ -541,10 +591,19 @@ pub fn plan_non_invasive_surveys(
     pareto_front_action_ids.sort();
 
     ranked_actions.sort_by(|left, right| {
-        right.information_gain_per_cost.unwrap_or(f64::NEG_INFINITY)
+        right
+            .information_gain_per_cost
+            .unwrap_or(f64::NEG_INFINITY)
             .total_cmp(&left.information_gain_per_cost.unwrap_or(f64::NEG_INFINITY))
-            .then_with(|| right.expected_information_gain_nats.total_cmp(&left.expected_information_gain_nats))
-            .then_with(|| left.expected_cost_units.total_cmp(&right.expected_cost_units))
+            .then_with(|| {
+                right
+                    .expected_information_gain_nats
+                    .total_cmp(&left.expected_information_gain_nats)
+            })
+            .then_with(|| {
+                left.expected_cost_units
+                    .total_cmp(&right.expected_cost_units)
+            })
             .then_with(|| left.action_id.cmp(&right.action_id))
     });
     rejected_actions.sort_by(|left, right| left.action_id.cmp(&right.action_id));
@@ -565,8 +624,14 @@ mod tests {
 
     fn priors() -> Vec<HypothesisPrior> {
         vec![
-            HypothesisPrior { hypothesis_id: "archaeological".into(), probability: 0.5 },
-            HypothesisPrior { hypothesis_id: "geological".into(), probability: 0.5 },
+            HypothesisPrior {
+                hypothesis_id: "archaeological".into(),
+                probability: 0.5,
+            },
+            HypothesisPrior {
+                hypothesis_id: "geological".into(),
+                probability: 0.5,
+            },
         ]
     }
 
@@ -581,7 +646,8 @@ mod tests {
                     state: crate::heritage::RightsState::Verified,
                     permitted_uses,
                     access_tier: AccessTier::ApprovedResearch,
-                    exact_geometry_policy: crate::heritage::ExactGeometryPolicy::ApprovedResearchOnly,
+                    exact_geometry_policy:
+                        crate::heritage::ExactGeometryPolicy::ApprovedResearchOnly,
                     licence_uri: Some("https://example.invalid/licence".into()),
                     attribution_text: None,
                     consent_or_authority_ref: Some("urn:synthetic:consent:01".into()),
@@ -591,7 +657,10 @@ mod tests {
                 },
                 geometry_access_tier: AccessTier::ApprovedResearch,
                 purpose: HeritageUse::Research,
-                access_context: AccessContext { max_tier: AccessTier::ApprovedResearch, exact_geometry_authorized: true },
+                access_context: AccessContext {
+                    max_tier: AccessTier::ApprovedResearch,
+                    exact_geometry_authorized: true,
+                },
                 exact_geometry: true,
             }],
             requires_land_access: true,
@@ -603,7 +672,12 @@ mod tests {
         }
     }
 
-    fn action(action_id: &str, cost: f64, impact: f64, likelihoods: [(f64, f64); 2]) -> SurveyAction {
+    fn action(
+        action_id: &str,
+        cost: f64,
+        impact: f64,
+        likelihoods: [(f64, f64); 2],
+    ) -> SurveyAction {
         let mut positive = BTreeMap::new();
         positive.insert("archaeological".into(), likelihoods[0].0);
         positive.insert("geological".into(), likelihoods[0].1);
@@ -620,8 +694,14 @@ mod tests {
             impact_score: impact,
             authorization: authorization(),
             outcomes: vec![
-                SurveyOutcomeModel { outcome_id: "positive".into(), likelihood_by_hypothesis: positive },
-                SurveyOutcomeModel { outcome_id: "negative".into(), likelihood_by_hypothesis: negative },
+                SurveyOutcomeModel {
+                    outcome_id: "positive".into(),
+                    likelihood_by_hypothesis: positive,
+                },
+                SurveyOutcomeModel {
+                    outcome_id: "negative".into(),
+                    likelihood_by_hypothesis: negative,
+                },
             ],
             likelihood_basis_ref: "urn:synthetic:likelihoods:v1".into(),
             likelihood_model_sha256: "b".repeat(64),
@@ -662,10 +742,10 @@ mod tests {
             action("cheap-partial", 1.0, 0.0, [(0.8, 0.2), (0.2, 0.8)]),
             action("zero-information", 1.0, 0.0, [(0.5, 0.5), (0.5, 0.5)]),
         ];
-        let first = plan_non_invasive_surveys(&priors(), &actions, constraints(), "analyst_hours")
-            .unwrap();
-        let second = plan_non_invasive_surveys(&priors(), &actions, constraints(), "analyst_hours")
-            .unwrap();
+        let first =
+            plan_non_invasive_surveys(&priors(), &actions, constraints(), "analyst_hours").unwrap();
+        let second =
+            plan_non_invasive_surveys(&priors(), &actions, constraints(), "analyst_hours").unwrap();
         assert_eq!(first, second);
         assert_eq!(first.ranked_actions[0].action_id, "cheap-partial");
         assert_eq!(first.ranked_actions[1].action_id, "costly-perfect");
@@ -674,7 +754,8 @@ mod tests {
     #[test]
     fn authorisation_cost_and_impact_gates_reject_actions() {
         let mut no_rights = action("no-rights", 1.0, 0.0, [(1.0, 0.0), (0.0, 1.0)]);
-        no_rights.authorization.source_data[0].rights_profile.state = crate::heritage::RightsState::Unknown;
+        no_rights.authorization.source_data[0].rights_profile.state =
+            crate::heritage::RightsState::Unknown;
         let mut no_land = action("no-land", 1.0, 0.0, [(1.0, 0.0), (0.0, 1.0)]);
         no_land.authorization.land_access_confirmed = false;
         let mut no_permit = action("no-permit", 1.0, 0.0, [(1.0, 0.0), (0.0, 1.0)]);
@@ -686,62 +767,82 @@ mod tests {
 
         let plan = plan_non_invasive_surveys(
             &priors(),
-            &[no_rights, no_land, no_permit, no_custody, costly, disturbing],
+            &[
+                no_rights, no_land, no_permit, no_custody, costly, disturbing,
+            ],
             constraints(),
             "survey_cost_units",
-        ).unwrap();
+        )
+        .unwrap();
 
         assert!(plan.ranked_actions.is_empty());
         assert_eq!(plan.rejected_actions.len(), 6);
-        assert!(plan.rejected_actions.iter().any(|r| r.reasons.iter().any(|reason| matches!(
-            reason,
-            SurveyRejectionReason::SourceRightsDenied(RightsDenial::RightsNotVerified(_))
-        ))));
-        assert!(plan.rejected_actions.iter().any(|r| r.reasons.contains(&SurveyRejectionReason::LandAccessNotConfirmed)));
-        assert!(plan.rejected_actions.iter().any(|r| r.reasons.contains(&SurveyRejectionReason::PermitNotConfirmed)));
-        assert!(plan.rejected_actions.iter().any(|r| r.reasons.contains(&SurveyRejectionReason::CustodialReviewIncomplete)));
-        assert!(plan.rejected_actions.iter().any(|r| r.reasons.contains(&SurveyRejectionReason::CostBudgetExceeded)));
-        assert!(plan.rejected_actions.iter().any(|r| r.reasons.contains(&SurveyRejectionReason::ImpactCeilingExceeded)));
+        assert!(
+            plan.rejected_actions
+                .iter()
+                .any(|r| r.reasons.iter().any(|reason| matches!(
+                    reason,
+                    SurveyRejectionReason::SourceRightsDenied(RightsDenial::RightsNotVerified(_))
+                )))
+        );
+        assert!(plan.rejected_actions.iter().any(|r| {
+            r.reasons
+                .contains(&SurveyRejectionReason::LandAccessNotConfirmed)
+        }));
+        assert!(plan.rejected_actions.iter().any(|r| {
+            r.reasons
+                .contains(&SurveyRejectionReason::PermitNotConfirmed)
+        }));
+        assert!(plan.rejected_actions.iter().any(|r| {
+            r.reasons
+                .contains(&SurveyRejectionReason::CustodialReviewIncomplete)
+        }));
+        assert!(plan.rejected_actions.iter().any(|r| {
+            r.reasons
+                .contains(&SurveyRejectionReason::CostBudgetExceeded)
+        }));
+        assert!(plan.rejected_actions.iter().any(|r| {
+            r.reasons
+                .contains(&SurveyRejectionReason::ImpactCeilingExceeded)
+        }));
     }
 
     #[test]
     fn survey_actions_use_purpose_specific_rights_and_geometry_tiers() {
         let mut training = action("training-not-permitted", 1.0, 0.0, [(1.0, 0.0), (0.0, 1.0)]);
         training.authorization.source_data[0].purpose = HeritageUse::Training;
-        let plan = plan_non_invasive_surveys(
-            &priors(),
-            &[training],
-            constraints(),
-            "hours",
-        ).unwrap();
+        let plan =
+            plan_non_invasive_surveys(&priors(), &[training], constraints(), "hours").unwrap();
         assert!(matches!(
             plan.rejected_actions[0].reasons[0],
-            SurveyRejectionReason::SourceRightsDenied(
-                RightsDenial::PurposeNotPermitted(HeritageUse::Training)
-            )
+            SurveyRejectionReason::SourceRightsDenied(RightsDenial::PurposeNotPermitted(
+                HeritageUse::Training
+            ))
         ));
 
         let mut exact_unapproved = action("exact-unapproved", 1.0, 0.0, [(1.0, 0.0), (0.0, 1.0)]);
-        exact_unapproved.authorization.source_data[0].access_context.exact_geometry_authorized = false;
-        let plan = plan_non_invasive_surveys(
-            &priors(),
-            &[exact_unapproved],
-            constraints(),
-            "hours",
-        ).unwrap();
+        exact_unapproved.authorization.source_data[0]
+            .access_context
+            .exact_geometry_authorized = false;
+        let plan =
+            plan_non_invasive_surveys(&priors(), &[exact_unapproved], constraints(), "hours")
+                .unwrap();
         assert!(matches!(
             plan.rejected_actions[0].reasons[0],
             SurveyRejectionReason::SourceRightsDenied(RightsDenial::ExactGeometryNotAuthorized)
         ));
 
-        let mut spatial_restricted = action("geometry-tier-restricted", 1.0, 0.0, [(1.0, 0.0), (0.0, 1.0)]);
-        spatial_restricted.authorization.source_data[0].geometry_access_tier = AccessTier::Custodial;
-        let plan = plan_non_invasive_surveys(
-            &priors(),
-            &[spatial_restricted],
-            constraints(),
-            "hours",
-        ).unwrap();
+        let mut spatial_restricted = action(
+            "geometry-tier-restricted",
+            1.0,
+            0.0,
+            [(1.0, 0.0), (0.0, 1.0)],
+        );
+        spatial_restricted.authorization.source_data[0].geometry_access_tier =
+            AccessTier::Custodial;
+        let plan =
+            plan_non_invasive_surveys(&priors(), &[spatial_restricted], constraints(), "hours")
+                .unwrap();
         assert!(matches!(
             plan.rejected_actions[0].reasons[0],
             SurveyRejectionReason::SourceRightsDenied(RightsDenial::AccessTierInsufficient {
@@ -755,26 +856,27 @@ mod tests {
     fn invasive_actions_are_never_ranked_even_with_confirmed_permits() {
         let mut invasive = action("excavation", 1.0, 0.0, [(1.0, 0.0), (0.0, 1.0)]);
         invasive.non_invasive = false;
-        let report = plan_non_invasive_surveys(
-            &priors(), &[invasive], constraints(), "hours"
-        ).unwrap();
+        let report =
+            plan_non_invasive_surveys(&priors(), &[invasive], constraints(), "hours").unwrap();
         assert!(report.ranked_actions.is_empty());
-        assert!(report.rejected_actions[0].reasons.contains(
-            &SurveyRejectionReason::InvasiveActionNotSupported
-        ));
+        assert!(
+            report.rejected_actions[0]
+                .reasons
+                .contains(&SurveyRejectionReason::InvasiveActionNotSupported)
+        );
     }
 
     #[test]
     fn duration_is_a_hard_constraint_and_reported_in_rejection_reasons() {
         let mut slow = action("slow", 1.0, 0.0, [(1.0, 0.0), (0.0, 1.0)]);
         slow.expected_duration_hours = 30.0;
-        let report = plan_non_invasive_surveys(
-            &priors(), &[slow], constraints(), "hours"
-        ).unwrap();
+        let report = plan_non_invasive_surveys(&priors(), &[slow], constraints(), "hours").unwrap();
         assert!(report.ranked_actions.is_empty());
-        assert!(report.rejected_actions[0].reasons.contains(
-            &SurveyRejectionReason::DurationBudgetExceeded
-        ));
+        assert!(
+            report.rejected_actions[0]
+                .reasons
+                .contains(&SurveyRejectionReason::DurationBudgetExceeded)
+        );
     }
 
     #[test]
@@ -783,12 +885,15 @@ mod tests {
         let mut faster = action("faster-lower-info", 3.0, 0.0, [(0.8, 0.2), (0.2, 0.8)]);
         faster.expected_duration_hours = 0.5;
         let report = plan_non_invasive_surveys(
-            &priors(), &[high_information, faster], constraints(), "hours"
-        ).unwrap();
+            &priors(),
+            &[high_information, faster],
+            constraints(),
+            "hours",
+        )
+        .unwrap();
         assert_eq!(report.pareto_front_action_ids.len(), 2);
         assert!(report.ranked_actions.iter().all(|item| item.pareto_optimal));
     }
-
 
     #[test]
     fn zero_cost_actions_are_allowed_but_cost_efficiency_is_null() {
@@ -802,8 +907,14 @@ mod tests {
     #[test]
     fn malformed_prior_and_likelihood_models_fail_closed() {
         let invalid_priors = vec![
-            HypothesisPrior { hypothesis_id: "a".into(), probability: 0.7 },
-            HypothesisPrior { hypothesis_id: "b".into(), probability: 0.7 },
+            HypothesisPrior {
+                hypothesis_id: "a".into(),
+                probability: 0.7,
+            },
+            HypothesisPrior {
+                hypothesis_id: "b".into(),
+                probability: 0.7,
+            },
         ];
         assert!(matches!(
             plan_non_invasive_surveys(&invalid_priors, &[], constraints(), "hours"),
@@ -811,7 +922,9 @@ mod tests {
         ));
 
         let mut invalid = action("bad", 1.0, 0.0, [(0.5, 0.5), (0.5, 0.5)]);
-        invalid.outcomes[0].likelihood_by_hypothesis.insert("unknown".into(), 0.1);
+        invalid.outcomes[0]
+            .likelihood_by_hypothesis
+            .insert("unknown".into(), 0.1);
         assert!(matches!(
             expected_information_gain_nats(&priors(), &invalid, PROBABILITY_TOLERANCE),
             Err(SurveyPlannerError::LikelihoodHypothesisIdsMismatch { .. })
@@ -822,7 +935,12 @@ mod tests {
     fn duplicate_action_and_outcome_ids_are_rejected() {
         let duplicate = action("same", 1.0, 0.0, [(0.5, 0.5), (0.5, 0.5)]);
         assert_eq!(
-            plan_non_invasive_surveys(&priors(), &[duplicate.clone(), duplicate], constraints(), "hours"),
+            plan_non_invasive_surveys(
+                &priors(),
+                &[duplicate.clone(), duplicate],
+                constraints(),
+                "hours"
+            ),
             Err(SurveyPlannerError::DuplicateActionId("same".into()))
         );
 
