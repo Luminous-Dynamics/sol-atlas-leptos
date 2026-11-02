@@ -101,7 +101,7 @@
     },
     "target_roles": {
       "type": "array",
-      "minItems": 2,
+      "minItems": 4,
       "maxItems": 128,
       "items": {
         "type": "object",
@@ -165,7 +165,9 @@
         "last_sequence",
         "channel_manifest",
         "checkpoint_state",
-        "epoch_transition"
+        "epoch_transition",
+        "completeness_attestation",
+        "availability_audit_report"
       ],
       "properties": {
         "relying_party_id": {
@@ -308,6 +310,68 @@
               }
             }
           ]
+        },
+        "completeness_attestation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "role_name",
+            "target_path",
+            "target_length",
+            "target_sha256"
+          ],
+          "properties": {
+            "role_name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "target_path": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "target_length": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1073741824
+            },
+            "target_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        "availability_audit_report": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "role_name",
+            "target_path",
+            "target_length",
+            "target_sha256"
+          ],
+          "properties": {
+            "role_name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "target_path": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "target_length": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1073741824
+            },
+            "target_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
         }
       }
     },
