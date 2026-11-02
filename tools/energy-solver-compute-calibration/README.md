@@ -79,3 +79,20 @@ cargo run --release --locked --manifest-path tools/energy-solver-compute-calibra
 ## Claim ceiling
 
 This is trace integrity and aggregation machinery. It does not run an optimizer, measure real solver performance by itself, guarantee that a hardware fingerprint is truthful, prove model correctness, or establish SOTA superiority. Every measured trace still needs an independent source/model/schedule identity chain. The first real output should be published only after an instrumented solver runner emits actual executable and host fingerprints.
+
+## Anytime and audit trace schema v0.3 (additive prototype)
+
+The existing v0.2 CSV parser and fixture remain unchanged. The new `src/trace_v0_3.rs` module introduces a separately named v0.3 record and strict parser for the anytime energy-dispatch contract.
+
+The v0.3 record separates:
+- search disposition: `exact_complete`, `feasible_unproven`, `proven_infeasible`, `limit_without_candidate`, `timed_out`, `cancelled`, `error`;
+- complete candidate availability and exact schedule digest;
+- independent audit disposition, receipt digest, echoed request/schedule digests and auditor binary digest;
+- service-floor disposition and policy digest;
+- search-prefix visits, complete schedules, complete-frontier status, first-candidate timing and first accepted-audit timing.
+
+Validation rejects impossible combinations. For example, a `feasible_unproven` result cannot claim a complete Pareto frontier; an accepted receipt must bind the exact request and candidate digest; and audit acceptance without a passed service-floor policy is not a decision-ready result.
+
+The v0.3 aggregator reports search outcomes, candidate yield, audit acceptance/rejection/unavailability, service-floor outcomes and decision-ready yield as separate counts. It does not interpret a candidate as optimal merely because the independent schedule auditor accepts it.
+
+This module is a typed parser/validator/summary prototype. The existing profile runner still emits v0.2 and has not yet been migrated to emit v0.3. The migration must preserve old v0.2 parsing and add a new exact-head runner/auditor integration rather than coercing unproven candidates into the old `feasible` or `limit_reached` statuses.
