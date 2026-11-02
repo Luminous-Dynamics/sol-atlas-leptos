@@ -1,0 +1,19 @@
+[package]
+name = "energy-scenario-policy-benchmark"
+version = "0.1.0"
+edition = "2024"
+publish = false
+license = "AGPL-3.0-or-later"
+description = "Receipt-bound exact rational scenario outcome and tail-risk accounting"
+
+[dependencies]
+hex = "=0.4.3"
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_json = "=1.0.150"
+sha2 = "=0.10.9"
+
+[[bin]]
+name = "energy-scenario-policy-benchmark"
+path = "src/main.rs"
+
+[workspace]
