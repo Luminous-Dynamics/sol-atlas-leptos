@@ -50,7 +50,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
 
       - name: Assert exact source revision
         env:
@@ -143,7 +143,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
 
       - name: Assert exact source revision
         env:
@@ -180,8 +180,8 @@ jobs:
       - name: Validate the frozen admission benchmark manifest against IBAP v0.1
         run: |
           set -euo pipefail
-          jsonschema-cli validate --draft 2020 --assert-format --offline \\
-            .ibap-contract/schemas/industrial-benchmark-run-manifest-v0.1.schema.json \\
+          jsonschema-cli validate --draft 2020 --assert-format --offline \
+            .ibap-contract/schemas/industrial-benchmark-run-manifest-v0.1.schema.json \
             -i schemas/examples/ieac-runtime-admission-benchmark-manifest-synthetic-v0.1.json
 
       - name: Validate the runtime profile and request fixtures
