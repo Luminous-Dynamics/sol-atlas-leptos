@@ -3,8 +3,8 @@
 
 use energy_dispatch_schedule_auditor::nonanticipativity_v0_1::{
     evaluate_nonanticipativity_bytes, NonAnticipativityDispositionV1,
-    NonAnticipativityInformationSetBytes, NonAnticipativityScenarioBytes, MAX_FORECAST_BUNDLE_BYTES,
-    MAX_SCENARIOS,
+    NonAnticipativityInformationSetBytes, NonAnticipativityScenarioBytes,
+    MAX_FORECAST_BUNDLE_BYTES, MAX_OBSERVATION_BUNDLE_BYTES, MAX_SCENARIOS,
 };
 use energy_dispatch_schedule_auditor::{parse_unique_json, MAX_REQUEST_BYTES, MAX_SCHEDULE_BYTES};
 use serde::Deserialize;
@@ -13,12 +13,14 @@ use std::io::Read;
 use std::path::{Component, Path, PathBuf};
 use std::process::ExitCode;
 
-const MANIFEST_SCHEMA: &str = "energy-dispatch-nonanticipativity-manifest-v0.2";
+const MANIFEST_SCHEMA: &str = "energy-dispatch-nonanticipativity-manifest-v0.3";
 const MAX_MANIFEST_BYTES: usize = 1_048_576;
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct InformationSetManifestV1 {
+    observed_at_unix_seconds: i64,
+    observation_bundle_path: String,
     forecast_as_of_unix_seconds: i64,
     forecast_bundle_path: String,
 }
@@ -41,6 +43,8 @@ struct NonAnticipativityManifestV1 {
 }
 
 struct LoadedInformationSet {
+    observed_at_unix_seconds: i64,
+    observation_bundle_bytes: Vec<u8>,
     forecast_as_of_unix_seconds: i64,
     forecast_bundle_bytes: Vec<u8>,
 }
@@ -146,12 +150,23 @@ fn load_manifest(
             scenario.information_sets_by_interval.len(),
         );
         for information_set in &scenario.information_sets_by_interval {
+            let observation_bundle_path = resolve_under_root(
+                &manifest_dir,
+                &information_set.observation_bundle_path,
+                "observation_bundle_path",
+            )?;
             let forecast_bundle_path = resolve_under_root(
                 &manifest_dir,
                 &information_set.forecast_bundle_path,
                 "forecast_bundle_path",
             )?;
             information_sets_by_interval.push(LoadedInformationSet {
+                observed_at_unix_seconds: information_set.observed_at_unix_seconds,
+                observation_bundle_bytes: read_bounded(
+                    &observation_bundle_path,
+                    MAX_OBSERVATION_BUNDLE_BYTES,
+                    "observation bundle",
+                )?,
                 forecast_as_of_unix_seconds: information_set.forecast_as_of_unix_seconds,
                 forecast_bundle_bytes: read_bounded(
                     &forecast_bundle_path,
@@ -213,6 +228,8 @@ fn run() -> Result<ExitCode, String> {
                 .information_sets_by_interval
                 .iter()
                 .map(|information_set| NonAnticipativityInformationSetBytes {
+                    observed_at_unix_seconds: information_set.observed_at_unix_seconds,
+                    observation_bundle_bytes: &information_set.observation_bundle_bytes,
                     forecast_as_of_unix_seconds: information_set.forecast_as_of_unix_seconds,
                     forecast_bundle_bytes: &information_set.forecast_bundle_bytes,
                 })
