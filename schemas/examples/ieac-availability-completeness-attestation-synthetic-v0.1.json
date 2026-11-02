@@ -169,15 +169,35 @@
     }
   },
   "absence_query": {
+    "query_id": "query:plant-17-asset-e-first-access",
     "query_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
-    "predicate_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "predicate_binding": {
+      "relying_party_id": "rp:industrial-assurance",
+      "evidence_channel_id": "channel:ieac-ingest-registry",
+      "tenant_scope": "tenant:plant-17",
+      "subject_pseudonym": "asset-pseudonym:plant-17",
+      "purpose": "industrial_resilience_assurance",
+      "artifact_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "event_types": [
+        "ingest",
+        "read",
+        "cache_hit",
+        "replica_fetch",
+        "export",
+        "delegated_access"
+      ]
+    },
     "sequence_from_exclusive": 90,
     "sequence_through_inclusive": 100,
     "matching_event_count": 0,
-    "result_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
-    "receipt_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+    "result_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "signed_statement_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+    "signer_id": "issuer:plant-17-access-ledger",
+    "signature_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+    "receipt_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
     "verification_status": "verified",
     "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-    "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "trust_bundle_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
   }
 }
