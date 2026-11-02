@@ -41,6 +41,9 @@ The crate has **24 unit tests** covering:
 - exhaustive exact-search certificates without fabricated scalar objectives or MILP variable counts;
 - expansion-cap exhaustion as a distinct `limit_reached` outcome;
 - incomplete exact-search counter triples are rejected;
+- exhaustive exact-search certificates without fabricated scalar objectives or MILP variable counts;
+- expansion-cap exhaustion as a distinct `limit_reached` outcome;
+- incomplete exact-search counter triples are rejected;
 - different exact mesh instances may vary inside one stable mesh-policy cohort;
 - a timeout with an incumbent remains a timeout for completed latency and a valid first-feasible observation;
 - completed, first-feasible and memory percentiles expose separate sample denominators;
