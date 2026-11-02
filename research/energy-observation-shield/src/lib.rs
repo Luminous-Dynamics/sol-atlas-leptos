@@ -617,6 +617,7 @@ pub fn admit_action(
         proposal,
         observation,
         policy,
+        now,
         AdmissionReason::FallbackRejected {
             proposed: proposed_failure,
             fallback: fallback_evaluation
@@ -1113,6 +1114,37 @@ mod tests {
             AdmissionReason::ProposedActionRejected(ActionFailure::DischargeLimitExceeded)
         );
         assert_eq!(result.selected_action, None);
+    }
+
+    #[test]
+    fn successful_admission_expires_at_the_earliest_input_expiry() {
+        let candidate = proposal(discharge_two());
+        let mut observed = observation(vec![state("current", 4)]);
+        observed.expires_at_unix_seconds = 102;
+        let configured = policy(vec![future("next-outage", 1)]);
+        let result = admit_action(battery(), &candidate, &observed, &configured, 100);
+        assert_eq!(result.disposition, AdmissionDisposition::Admit);
+        assert_eq!(result.checked_at_unix_seconds, 100);
+        assert_eq!(result.valid_until_unix_seconds, 102);
+    }
+
+    #[test]
+    fn invalid_battery_contract_abstains_before_action_evaluation() {
+        let invalid_battery = BatteryContract {
+            charge_efficiency_numerator: 2,
+            charge_efficiency_denominator: 1,
+            ..battery()
+        };
+        let result = admit_action(
+            invalid_battery,
+            &proposal(discharge_two()),
+            &observation(vec![state("current", 4)]),
+            &policy(vec![future("next-outage", 1)]),
+            100,
+        );
+        assert_eq!(result.disposition, AdmissionDisposition::Abstain);
+        assert_eq!(result.reason, AdmissionReason::InvalidBatteryContract);
+        assert_eq!(result.current_states_checked, 0);
     }
 
     #[test]
