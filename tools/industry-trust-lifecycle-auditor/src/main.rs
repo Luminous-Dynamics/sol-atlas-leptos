@@ -6,11 +6,17 @@ use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::env;
 use std::fmt;
 use std::fs;
+use std::io::Read;
 use std::process::ExitCode;
 
 const GRAPH_SCHEMA: &str = "luminous.ieac-assurance-dependency-graph.v0.1";
 const EVENT_SCHEMA: &str = "luminous.ieac-assurance-invalidation-event.v0.1";
 const REPORT_SCHEMA: &str = "luminous.ieac-assurance-impact-report.v0.1";
+const MAX_INPUT_BYTES: u64 = 128 * 1024 * 1024;
+const MAX_GRAPH_NODES: usize = 100_000;
+const MAX_GRAPH_EDGES: usize = 500_000;
+const MAX_EVENT_TARGETS: usize = 10_000;
+const MAX_AUTHORITY_EVENTS_PER_BATCH: usize = 10_000;
 
 #[derive(Debug)]
 enum StrictJson {
@@ -273,6 +279,28 @@ fn validate_graph(graph: &Value) -> Result<BTreeMap<String, Value>, String> {
         return Err("unsupported dependency graph schema".into());
     }
 
+    // Check declared collection budgets before cloning/canonicalizing the graph.
+    let rows = graph
+        .get("nodes")
+        .and_then(Value::as_array)
+        .ok_or_else(|| "graph.nodes must be an array".to_owned())?;
+    if rows.len() > MAX_GRAPH_NODES {
+        return Err(format!(
+            "graph node count {} exceeds v0.1 limit {MAX_GRAPH_NODES}",
+            rows.len()
+        ));
+    }
+    let edges = graph
+        .get("edges")
+        .and_then(Value::as_array)
+        .ok_or_else(|| "graph.edges must be an array".to_owned())?;
+    if edges.len() > MAX_GRAPH_EDGES {
+        return Err(format!(
+            "graph edge count {} exceeds v0.1 limit {MAX_GRAPH_EDGES}",
+            edges.len()
+        ));
+    }
+
     let claimed_digest = required_string(graph, "graph_snapshot_sha256", "graph")?;
     if !valid_sha256(claimed_digest) {
         return Err("graph_snapshot_sha256 is not lowercase SHA-256".into());
@@ -289,10 +317,6 @@ fn validate_graph(graph: &Value) -> Result<BTreeMap<String, Value>, String> {
         ));
     }
 
-    let rows = graph
-        .get("nodes")
-        .and_then(Value::as_array)
-        .ok_or_else(|| "graph.nodes must be an array".to_owned())?;
     let mut nodes = BTreeMap::new();
     for (index, node) in rows.iter().enumerate() {
         let context = format!("graph.nodes[{index}]");
@@ -313,10 +337,6 @@ fn validate_graph(graph: &Value) -> Result<BTreeMap<String, Value>, String> {
         }
     }
 
-    let edges = graph
-        .get("edges")
-        .and_then(Value::as_array)
-        .ok_or_else(|| "graph.edges must be an array".to_owned())?;
     let mut edge_ids = BTreeSet::new();
     let mut edge_pairs = BTreeSet::new();
     let mut adjacency: BTreeMap<String, Vec<String>> = BTreeMap::new();
@@ -468,6 +488,12 @@ fn validate_event(event: &Value, nodes: &BTreeMap<String, Value>) -> Result<(), 
     if targets.is_empty() {
         return Err("invalidation event has no target nodes".into());
     }
+    if targets.len() > MAX_EVENT_TARGETS {
+        return Err(format!(
+            "invalidation target count {} exceeds v0.1 limit {MAX_EVENT_TARGETS}",
+            targets.len()
+        ));
+    }
     let mut target_ids = BTreeSet::new();
     for (index, target) in targets.iter().enumerate() {
         let context = format!("event.targets[{index}]");
@@ -511,6 +537,12 @@ fn validate_event_chain(
     events: &[Value],
     nodes: &BTreeMap<String, Value>,
 ) -> Result<Vec<Value>, String> {
+    if events.len() > MAX_AUTHORITY_EVENTS_PER_BATCH {
+        return Err(format!(
+            "authority event batch size {} exceeds v0.1 limit {MAX_AUTHORITY_EVENTS_PER_BATCH}",
+            events.len()
+        ));
+    }
     let mut by_sequence: BTreeMap<u64, (String, Value)> = BTreeMap::new();
     let mut event_ids: BTreeMap<String, (u64, String)> = BTreeMap::new();
 
@@ -937,7 +969,16 @@ fn evaluate_fixture(fixture: &Value) -> Result<Value, String> {
 }
 
 fn run(input_path: &str, output_path: &str) -> Result<(), String> {
-    let bytes = fs::read(input_path).map_err(|error| format!("cannot read fixture: {error}"))?;
+    let file = fs::File::open(input_path).map_err(|error| format!("cannot open fixture: {error}"))?;
+    let mut bytes = Vec::new();
+    file.take(MAX_INPUT_BYTES + 1)
+        .read_to_end(&mut bytes)
+        .map_err(|error| format!("cannot read fixture: {error}"))?;
+    if u64::try_from(bytes.len()).unwrap_or(u64::MAX) > MAX_INPUT_BYTES {
+        return Err(format!(
+            "fixture input exceeds v0.1 byte limit {MAX_INPUT_BYTES}"
+        ));
+    }
     let parsed: StrictJson = serde_json::from_slice(&bytes)
         .map_err(|error| format!("invalid or duplicate-key JSON fixture: {error}"))?;
     let fixture = parsed.into_value();
@@ -1153,6 +1194,28 @@ mod tests {
             disconnected_water_control["reason_codes"][0],
             "OUTSIDE_INVALIDATION_SCOPE"
         );
+    }
+
+    #[test]
+    fn graph_node_and_edge_budgets_reject_oversized_collections() {
+        let mut graph = fixture()["graph"].clone();
+        graph["nodes"] = json!(vec![Value::Null; MAX_GRAPH_NODES + 1]);
+        assert!(validate_graph(&graph).unwrap_err().contains("node count"));
+
+        let mut graph = fixture()["graph"].clone();
+        graph["edges"] = json!(vec![Value::Null; MAX_GRAPH_EDGES + 1]);
+        assert!(validate_graph(&graph).unwrap_err().contains("edge count"));
+    }
+
+    #[test]
+    fn invalidation_target_budget_rejects_oversized_event() {
+        let fixture = fixture();
+        let nodes = validate_graph(&fixture["graph"]).unwrap();
+        let mut event = fixture["invalidation_event"].clone();
+        event["targets"] = json!(vec![Value::Null; MAX_EVENT_TARGETS + 1]);
+        assert!(validate_event(&event, &nodes)
+            .unwrap_err()
+            .contains("target count"));
     }
 
     #[test]
