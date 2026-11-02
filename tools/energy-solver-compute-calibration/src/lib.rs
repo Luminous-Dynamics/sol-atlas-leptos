@@ -162,9 +162,10 @@ impl SolverTrace {
             || self.interval_count == 0
             || self.elapsed_ns == 0
             || self.timeout_limit_ns.is_some_and(|limit| limit == 0)
-            || self.binary_variables.zip(self.integer_variables).is_some_and(
-                |(binary, integer)| binary > integer
-            )
+            || self
+                .binary_variables
+                .zip(self.integer_variables)
+                .is_some_and(|(binary, integer)| binary > integer)
             || (self.binary_variables.is_some() && self.integer_variables.is_none())
         {
             return Err(TraceError::InvalidModelOrTiming);
@@ -206,10 +207,12 @@ impl SolverTrace {
         if self.time_to_optimal_ns.is_some() != (self.status == SolveStatus::Optimal) {
             return Err(TraceError::InvalidStatusSemantics);
         }
-        let scalar_optimality_evidence = self.objective_value_units.is_some()
-            && self.time_to_first_feasible_ns.is_some();
+        let scalar_optimality_evidence =
+            self.objective_value_units.is_some() && self.time_to_first_feasible_ns.is_some();
         let exhaustive_search_evidence = self.search_action_expansions.is_some()
-            && self.feasible_complete_schedules.is_some_and(|count| count > 0)
+            && self
+                .feasible_complete_schedules
+                .is_some_and(|count| count > 0);
             && self.pareto_frontier_count.is_some_and(|count| count > 0);
         if self.status == SolveStatus::Optimal
             && (self.time_to_optimal_ns.is_none()
@@ -225,7 +228,9 @@ impl SolverTrace {
             || self.objective_value_units.is_some()
             || self.best_bound_units.is_some()
             || self.optimality_gap_ppm.is_some()
-            || self.feasible_complete_schedules.is_some_and(|count| count > 0)
+            || self
+                .feasible_complete_schedules
+                .is_some_and(|count| count > 0)
             || self.pareto_frontier_count.is_some_and(|count| count > 0))
         {
             return Err(TraceError::InvalidStatusSemantics);
@@ -547,8 +552,14 @@ fn summarize_group(traces: &[&SolverTrace]) -> CohortSummary {
             .map(|trace| trace.interval_count)
             .max()
             .unwrap(),
-        binary_variables_min: traces.iter().filter_map(|trace| trace.binary_variables).min(),
-        binary_variables_max: traces.iter().filter_map(|trace| trace.binary_variables).max(),
+        binary_variables_min: traces
+            .iter()
+            .filter_map(|trace| trace.binary_variables)
+            .min(),
+        binary_variables_max: traces
+            .iter()
+            .filter_map(|trace| trace.binary_variables)
+            .max(),
         constraints_min: traces.iter().filter_map(|trace| trace.constraints).min(),
         constraints_max: traces.iter().filter_map(|trace| trace.constraints).max(),
         search_metrics_sample_count: traces
@@ -909,7 +920,8 @@ mod tests {
     }
 
     #[test]
-    fn exact_enumerator_can_report_a_complete_pareto_frontier_without_fake_scalar_variables_or_first_hit_time() {
+    fn exact_enumerator_can_report_a_complete_pareto_frontier_without_fake_scalar_variables_or_first_hit_time()
+    {
         let mut row = trace(0, SolveStatus::Optimal);
         row.time_to_first_feasible_ns = None;
         row.objective_value_units = None;
@@ -936,7 +948,8 @@ mod tests {
     }
 
     #[test]
-    fn expansion_cap_is_a_distinct_limit_reached_outcome_not_a_timeout_or_infeasible_result() {
+    fn expansion_cap_is_a_distinct_limit_reached_outcome_not_a_timeout_or_infeasible_result()
+    {
         let mut row = trace(0, SolveStatus::LimitReached);
         row.time_to_first_feasible_ns = None;
         row.time_to_optimal_ns = None;
