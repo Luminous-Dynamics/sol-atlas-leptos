@@ -4,7 +4,7 @@ use sha2::{Digest, Sha256};
 use std::{
     collections::{BTreeMap, BTreeSet},
     env,
-    fs::{self, File, OpenOptions},
+    fs::{self, OpenOptions},
     io::Write,
     path::{Component, Path, PathBuf},
     process::ExitCode,
@@ -459,7 +459,6 @@ fn validate_pin_and_template(
         || pin.action_authority != "none"
         || template.capsule_id.trim().is_empty()
         || template.bootstrap_root.version == 0
-        || template.bootstrap_root.version.to_string().is_empty()
         || template.verifier_identity.implementation != "sigstore-tuf"
         || template.verifier_identity.version != "0.15.1"
         || !template.verifier_identity.independent_verifier_required
@@ -654,9 +653,9 @@ fn build_manifest(
                 if bytes.len() as u64 != target.length || sha256(&bytes) != target.sha256 {
                     return Err(format!("embedded target bytes differ from signed TUF target commitment: {}", target.id));
                 }
-                let name = format!("target_bytes");
-                add_payload(payload, staged, bytes.clone(), &name)?;
-                (Some(staged.clone()), None, true)
+                let capsule_path = format!("targets/{}", target.repository_path);
+                add_payload(payload, &capsule_path, bytes.clone(), "target_bytes")?;
+                (Some(capsule_path), None, true)
             }
             "referenced" => {
                 let digest = &target.sha256;
@@ -839,13 +838,10 @@ fn pack(
 
     let mut payload = BTreeMap::new();
     let manifest = build_manifest(template, &pin, &mut payload, &staging_canonical, cas_root)?;
-    let mut used_staging = BTreeSet::new();
-    used_staging.insert(manifest.trust_bootstrap.root_metadata_path.clone());
-    used_staging.insert(manifest.policy_file_path.clone());
     // The set below is built from actual staged source paths, not capsule output
     // paths. Re-read the template only for this path accounting before any write.
     let (template_again, _) = read_template(template_path)?;
-    used_staging.clear();
+    let mut used_staging = BTreeSet::new();
     used_staging.insert(template_again.bootstrap_root.staged_path);
     used_staging.insert(template_again.policy_file.staged_path);
     for item in template_again.metadata_artifacts {
@@ -924,7 +920,7 @@ fn pack(
     Ok(receipt)
 }
 
-async fn run() -> Result<(), String> {
+fn run() -> Result<(), String> {
     let args: Vec<String> = env::args().skip(1).collect();
     if args.len() < 5 || args.len() > 6 {
         return Err(
@@ -961,9 +957,8 @@ async fn run() -> Result<(), String> {
     Ok(())
 }
 
-#[tokio::main]
-async fn main() -> ExitCode {
-    match run().await {
+fn main() -> ExitCode {
+    match run() {
         Ok(()) => ExitCode::SUCCESS,
         Err(error) => {
             eprintln!("industry-verification-capsule-pack: {error}");
