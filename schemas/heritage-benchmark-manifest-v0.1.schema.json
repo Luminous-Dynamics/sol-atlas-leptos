@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://luminousdynamics.io/schemas/heritage-benchmark-manifest-v0.1.schema.json",
   "title": "Heritage Discovery Benchmark Manifest",
-  "description": "A frozen, reproducible benchmark specification. Dataset and split references must resolve to rights-cleared, independently governed site packs.",
+  "description": "A frozen, reproducible benchmark specification for HDB-1 to HDB-8. Dataset and split references must resolve to rights-cleared, independently governed site packs. HDB-7 adds probability-sampled negative-space audits; HDB-8 adds sequential non-invasive survey policy evaluation.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -35,7 +35,9 @@
         "HDB-3",
         "HDB-4",
         "HDB-5",
-        "HDB-6"
+        "HDB-6",
+        "HDB-7",
+        "HDB-8"
       ]
     },
     "created_at": {

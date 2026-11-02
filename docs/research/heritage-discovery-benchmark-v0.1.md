@@ -380,3 +380,41 @@ Start with a **two-stage reproducibility challenge**, not a global model trainin
 - For every transfer, report the false-candidate burden, abstention, calibration and per-site results.
 
 The initial release can reproduce public benchmarks without claiming global coverage. The global benchmark only becomes credible after independently governed site packs from multiple geographic/cultural regions and environmental settings are available.
+
+### HDB-7: stratified negative-space audit
+
+Input: a frozen finite population frame of landscape units, model predictions/abstentions, score strata, and a probability-sample audit design. Include high-, medium- and low-score candidates, predicted-negative landscape blocks, model-abstained units and data-unavailable areas.
+
+Output: design-aware estimates of population TP/FP/TN/FN totals and false-negative burden, with raw adjudicated counts, inclusion probabilities, unresolved/non-response shares, landscape/site clusters and effective sample size.
+
+Required safeguards:
+- Every sampled unit records its first-order inclusion probability and stratum/frame digest.
+- Unknown and unobservable samples are not negatives. Confirmed negatives require evidence tier A/B plus a detectability assessment for the target size/depth and survey conditions.
+- The final audit sample is locked and never reused for training/tuning.
+- Use Horvitz–Thompson totals and ratio estimates for probability-sampled populations. Confidence intervals require joint inclusion probabilities or a declared PSU/cluster variance design; pixel-IID intervals are prohibited.
+- Report false-negative discoveries per 100 review-hours, design-weighted recall, unresolved share, Kish effective sample size, and differences from naive validated-only estimates.
+
+Compare stratified probability sampling with uniform random, score-proportional, adaptive active-learning and expert-targeted audit allocations at matched budget. Adaptive samples used for model updates cannot serve as the untouched final audit.
+
+### HDB-8: sequential survey policy and permission-aware value of information
+
+Input: a candidate with competing hypotheses, a calibrated prior, a finite set of non-invasive observation actions, action-specific outcome likelihoods, source rights and access permissions, and cost/time/impact limits.
+
+Output: a survey policy or a bounded action sequence that minimizes expected decision cost/regret while reducing uncertainty and respecting rights, access, custodial authorization and disturbance ceilings.
+
+Required evaluation:
+- Predicted EIG vs realized entropy reduction on independent held-out survey outcomes.
+- One-step myopic EIG vs multi-step policy under the same finite horizon and budget.
+- Regret and cumulative cost/time to a predeclared decision threshold.
+- Comparison with random, uniform-grid, expert-designed, highest-anomaly-first and cost-only baselines.
+- Pareto frontier over information, cost, duration and declared disturbance; no opaque scalar utility unless weights are public and policy-declared.
+- All invasive actions excluded from automated planning; access and rights denials remain explicit rather than being silently dropped.
+- Likelihood calibration and coverage/abstention reported separately from mathematical EIG correctness.
+
+The v0.1 implementation is one-step and myopic. HDB-8 defines the full multi-step research target; it must not be confused with current implementation capability.
+
+## 7. Negative-space and decision-policy reporting
+
+Every HDB run involving ranked candidates must publish a frozen population frame and state whether the final audit is probability-sampled. If no valid sample design exists, recall and false-negative burden are conditional on the observed reviewed subset and must not be presented as population estimates.
+
+For survey-policy tasks, no expected information gain may be presented as real-world information value unless the action likelihood model is calibrated on independent modality-specific evidence. A synthetic fixture tests only the calculation.
