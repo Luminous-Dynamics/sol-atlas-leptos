@@ -1,0 +1,76 @@
+{
+  "fixture_schema_version": "luminous.ieac-decision-frontier-fixture.v0.1",
+  "fixture_status": "synthetic_only",
+  "snapshot_file": "ieac-decision-frontier-snapshot-synthetic-v0.1.json",
+  "expected": {
+    "evidence_count": 12,
+    "included_by_cutoff": 2,
+    "excluded_after_cutoff": 3,
+    "unknown": 7,
+    "false_admission_count": 0,
+    "history_completeness": "not_established",
+    "classifications": [
+      {
+        "evidence_id": "known-before-cutoff",
+        "status": "included",
+        "reason_code": "verified_available_before_cutoff"
+      },
+      {
+        "evidence_id": "known-second-measurement",
+        "status": "included",
+        "reason_code": "verified_available_before_cutoff"
+      },
+      {
+        "evidence_id": "late-ingested-observation",
+        "status": "excluded_after_cutoff",
+        "reason_code": "verified_available_after_cutoff"
+      },
+      {
+        "evidence_id": "backdated-source-correction",
+        "status": "excluded_after_cutoff",
+        "reason_code": "verified_available_after_cutoff"
+      },
+      {
+        "evidence_id": "scitt-registration-is-not-access",
+        "status": "unknown",
+        "reason_code": "proof_establishes_existence_not_relying_party_access"
+      },
+      {
+        "evidence_id": "rfc3161-existence-is-not-access",
+        "status": "unknown",
+        "reason_code": "proof_establishes_existence_not_relying_party_access"
+      },
+      {
+        "evidence_id": "clock-interval-overlap",
+        "status": "unknown",
+        "reason_code": "availability_and_cutoff_intervals_overlap"
+      },
+      {
+        "evidence_id": "missing-first-availability",
+        "status": "unknown",
+        "reason_code": "missing_availability_evidence"
+      },
+      {
+        "evidence_id": "availability-for-another-relying-party",
+        "status": "unknown",
+        "reason_code": "availability_scope_mismatch"
+      },
+      {
+        "evidence_id": "source-assertion-only",
+        "status": "unknown",
+        "reason_code": "source_assertion_does_not_prove_availability"
+      },
+      {
+        "evidence_id": "late-outcome-observation",
+        "status": "excluded_after_cutoff",
+        "reason_code": "verified_available_after_cutoff"
+      },
+      {
+        "evidence_id": "unverified-ingest-proof",
+        "status": "unknown",
+        "reason_code": "availability_time_not_independently_verified"
+      }
+    ]
+  },
+  "note": "Expected outcomes are structural oracle values only. The fixture does not contain cryptographic keys, signed proof bytes or field measurements."
+}
