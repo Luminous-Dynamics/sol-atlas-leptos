@@ -563,6 +563,82 @@
           "replayability"
         ]
       }
+    },
+    {
+      "properties": {
+        "targets": {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "const": "channel_manifest"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        }
+      }
+    },
+    {
+      "properties": {
+        "targets": {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "const": "checkpoint_state"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        }
+      }
+    },
+    {
+      "properties": {
+        "targets": {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "const": "completeness_attestation"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        }
+      }
+    },
+    {
+      "properties": {
+        "targets": {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "const": "availability_audit_report"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        }
+      }
     }
   ]
 }
