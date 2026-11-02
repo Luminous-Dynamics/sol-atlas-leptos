@@ -101,6 +101,15 @@ jobs:
             .scenario_set_id == "demo-nonanticipativity-branching-v0.1" and
             .scenario_count == 2 and
             .interval_count == 2 and
+            all(.scenario_bindings[];
+              (.information_sets_by_interval | length == 2) and
+              (.information_set_sha256_by_interval | length == 2) and
+              all(.information_sets_by_interval[]; (.forecast_bundle_sha256 | length == 64))
+            ) and
+            (.scenario_bindings[0].information_set_sha256_by_interval[0] ==
+              .scenario_bindings[1].information_set_sha256_by_interval[0]) and
+            (.scenario_bindings[0].information_set_sha256_by_interval[1] !=
+              .scenario_bindings[1].information_set_sha256_by_interval[1]) and
             .shared_information_set_count == 1 and
             .checked_action_comparison_count == 1 and
             all(.findings[]; .passed == true) and
@@ -117,6 +126,10 @@ jobs:
           test "$negative_status" -eq 1
           jq -e '
             .disposition == "rejected" and
+            all(.scenario_bindings[];
+              (.information_sets_by_interval | length == 2) and
+              all(.information_sets_by_interval[]; (.forecast_bundle_sha256 | length == 64))
+            ) and
             any(.findings[];
               .predicate == "nonanticipative-dispatch-action" and
               .interval_index == 0 and
@@ -418,8 +431,12 @@ jobs:
             tools/energy-dispatch-schedule-auditor/Cargo.lock
             tools/energy-dispatch-schedule-auditor/src/
             tools/energy-dispatch-schedule-auditor/schedule-schema-v0.1.json
-            tools/energy-dispatch-schedule-auditor/nonanticipativity-manifest-schema-v0.1.json
+            tools/energy-dispatch-schedule-auditor/nonanticipativity-manifest-schema-v0.2.json
+            tools/energy-dispatch-schedule-auditor/forecast-bundle-schema-v0.1.json
+            tools/energy-dispatch-schedule-auditor/nonanticipativity-manifest-schema-v0.2.json
+            tools/energy-dispatch-schedule-auditor/forecast-bundle-schema-v0.1.json
             tools/energy-dispatch-schedule-auditor/nonanticipativity-receipt-schema-v0.1.json
+            tools/energy-dispatch-schedule-auditor/nonanticipativity-receipt-schema-v0.2.json
             tools/energy-dispatch-schedule-auditor/service-floor-policy-schema-v0.1.json
             tools/energy-dispatch-schedule-auditor/service-floor-receipt-schema-v0.1.json
             tools/energy-dispatch-schedule-auditor/fixtures/energy-dispatch-pv-outage.service-floor-v0.1.json
