@@ -987,6 +987,118 @@ mod tests {
     }
 
     #[test]
+    fn every_future_scenario_must_retain_an_essential_service_continuation() {
+        let result = admit_action(
+            battery(),
+            &proposal(discharge_two()),
+            &observation(vec![state("current", 4)]),
+            &policy(vec![
+                future("short-outage", 1),
+                future("prolonged-outage", 2),
+            ]),
+            100,
+        );
+        assert_eq!(result.disposition, AdmissionDisposition::Replan);
+        assert_eq!(
+            result.reason,
+            AdmissionReason::ProposedActionRejected(ActionFailure::NoSafeContinuation)
+        );
+        assert_eq!(result.future_conditions_checked, 2);
+    }
+
+    #[test]
+    fn fallback_without_its_own_digest_is_rejected_before_evaluation() {
+        let mut candidate = proposal(ControlAction {
+            grid_import_quanta: 2,
+            charge_input_quanta: 0,
+            soc_withdrawal_quanta: 0,
+            essential_served_quanta: 1,
+            flexible_served_quanta: 0,
+        });
+        candidate.expected_soc_min_quanta = 1;
+        candidate.expected_soc_max_quanta = 1;
+        candidate.fallback_action = Some(ControlAction {
+            grid_import_quanta: 0,
+            charge_input_quanta: 2,
+            soc_withdrawal_quanta: 0,
+            essential_served_quanta: 1,
+            flexible_served_quanta: 0,
+        });
+        let mut current = state("pv-surplus", 1);
+        current.grid_outage = false;
+        current.pv_available_quanta = 3;
+        current.essential_demand_quanta = 1;
+        let result = admit_action(
+            battery(),
+            &candidate,
+            &observation(vec![current]),
+            &policy(vec![future("next-outage", 1)]),
+            100,
+        );
+        assert_eq!(result.disposition, AdmissionDisposition::Abstain);
+        assert_eq!(result.reason, AdmissionReason::InvalidProposalEnvelope);
+        assert_eq!(result.selected_action, None);
+    }
+
+    #[test]
+    fn observation_expiry_and_future_sample_timestamp_fail_closed() {
+        let mut expired_observation = observation(vec![state("current", 4)]);
+        expired_observation.expires_at_unix_seconds = 100;
+        assert_eq!(
+            admit_action(
+                battery(),
+                &proposal(discharge_two()),
+                &expired_observation,
+                &policy(vec![future("next-outage", 1)]),
+                100,
+            )
+            .reason,
+            AdmissionReason::ObservationExpired
+        );
+
+        let mut future_sample = observation(vec![state("current", 4)]);
+        future_sample.sampled_at_unix_seconds = 101;
+        future_sample.received_at_unix_seconds = 101;
+        assert_eq!(
+            admit_action(
+                battery(),
+                &proposal(discharge_two()),
+                &future_sample,
+                &policy(vec![future("next-outage", 1)]),
+                100,
+            )
+            .reason,
+            AdmissionReason::InvalidTimestampOrder
+        );
+    }
+
+    #[test]
+    fn missing_fallback_is_replan_not_an_implicit_admission() {
+        let mut candidate = proposal(ControlAction {
+            grid_import_quanta: 0,
+            charge_input_quanta: 0,
+            soc_withdrawal_quanta: 4,
+            essential_served_quanta: 2,
+            flexible_served_quanta: 0,
+        });
+        candidate.expected_soc_min_quanta = 4;
+        candidate.expected_soc_max_quanta = 4;
+        let result = admit_action(
+            battery(),
+            &candidate,
+            &observation(vec![state("current", 4)]),
+            &policy(vec![future("next-outage", 1)]),
+            100,
+        );
+        assert_eq!(result.disposition, AdmissionDisposition::Replan);
+        assert_eq!(
+            result.reason,
+            AdmissionReason::ProposedActionRejected(ActionFailure::DischargeLimitExceeded)
+        );
+        assert_eq!(result.selected_action, None);
+    }
+
+    #[test]
     fn report_binds_the_exact_proposal_observation_and_monitor() {
         let candidate = proposal(discharge_two());
         let observed = observation(vec![state("current", 4)]);
