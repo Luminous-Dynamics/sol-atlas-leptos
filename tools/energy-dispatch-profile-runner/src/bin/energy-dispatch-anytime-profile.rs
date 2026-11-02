@@ -492,7 +492,8 @@ fn run_profile(
     let horizon = horizon_minutes(&request)?;
     let interval_count = u32::try_from(request.intervals.len())
         .map_err(|_| "interval count does not fit u32".to_owned())?;
-    let auditor_binary_hash = file_sha256(schedule_auditor_path, "schedule auditor executable").ok();
+    let auditor_binary_hash =
+        file_sha256(schedule_auditor_path, "schedule auditor executable").ok();
     let service_floor_binary_hash =
         file_sha256(service_floor_auditor_path, "service-floor auditor executable").ok();
     let policy_bytes = read_bounded(policy_path, MAX_REQUEST_BYTES, "service-floor policy")?;
@@ -594,8 +595,9 @@ fn run_profile(
                         let value: Value = serde_json::from_slice(&receipt_bytes)
                             .map_err(|error| format!("parse schedule audit receipt: {error}"))?;
                         let lite: ScheduleAuditReceiptLite =
-                            serde_json::from_value(value.clone())
-                                .map_err(|error| format!("decode schedule audit receipt: {error}"))?;
+                            serde_json::from_value(value.clone()).map_err(|error| {
+                                format!("decode schedule audit receipt: {error}")
+                            })?;
                         Ok((value, lite))
                     })();
                     match decoded {
@@ -620,7 +622,9 @@ fn run_profile(
                             };
                             let receipt_subject_hash = serde_json::to_vec(&subject)
                                 .map(|bytes| sha256(&bytes))
-                                .map_err(|error| format!("serialize schedule audit receipt subject: {error}"))?;
+                                .map_err(|error| {
+                                    format!("serialize schedule audit receipt subject: {error}")
+                                })?;
                             let accepted_findings_valid = lite.disposition != "accepted"
                                 || lite.findings.iter().all(|finding| finding.passed);
                             let rejected_findings_valid = lite.disposition != "rejected"
@@ -669,7 +673,9 @@ fn run_profile(
                                 if audit_disposition == AuditDispositionV03::Accepted {
                                     time_to_first_audit_accept_ns = Some(
                                         u64::try_from(invocation_started.elapsed().as_nanos())
-                                            .map_err(|_| "audit acceptance elapsed overflow".to_owned())?,
+                                            .map_err(|_| {
+                                                "audit acceptance elapsed overflow".to_owned()
+                                            })?,
                                     );
                                 }
                             }
@@ -681,7 +687,10 @@ fn run_profile(
                     }
                 } else {
                     audit_disposition = AuditDispositionV03::Unavailable;
-                    failure = Some(format!("schedule auditor produced no receipt; exit={:?}", output.status.code()));
+                    failure = Some(format!(
+                        "schedule auditor produced no receipt; exit={:?}",
+                        output.status.code()
+                    ));
                 }
             }
             Err(error) => {
@@ -733,16 +742,21 @@ fn run_profile(
                                 policy_sha256: &lite.policy_sha256,
                                 request_sha256: &lite.request_sha256,
                                 schedule_sha256: &lite.schedule_sha256,
-                                schedule_audit_receipt_sha256: &lite.schedule_audit_receipt_sha256,
-                                schedule_auditor_binary_sha256: &lite.schedule_auditor_binary_sha256,
-                                service_floor_auditor_binary_sha256: &lite.service_floor_auditor_binary_sha256,
+                                schedule_audit_receipt_sha256:
+                                    &lite.schedule_audit_receipt_sha256,
+                                schedule_auditor_binary_sha256:
+                                    &lite.schedule_auditor_binary_sha256,
+                                service_floor_auditor_binary_sha256:
+                                    &lite.service_floor_auditor_binary_sha256,
                                 disposition: &lite.disposition,
                                 findings: &lite.findings,
                                 claim_ceiling: &lite.claim_ceiling,
                             };
                             let receipt_subject_hash = serde_json::to_vec(&subject)
                                 .map(|bytes| sha256(&bytes))
-                                .map_err(|error| format!("serialize service-floor receipt subject: {error}"))?;
+                                .map_err(|error| {
+                                    format!("serialize service-floor receipt subject: {error}")
+                                })?;
                             let passed_findings_valid = lite.disposition != "passed"
                                 || lite.findings.iter().all(|finding| finding.passed);
                             let failed_findings_valid = lite.disposition != "failed"
@@ -767,7 +781,8 @@ fn run_profile(
                                 service_floor_disposition =
                                     ServiceFloorDispositionV03::Unavailable;
                                 failure = Some(
-                                    "service-floor receipt subject, policy/source bindings, findings or executable digest did not verify".to_owned(),
+                                    "service-floor receipt subject or policy/source binding did not verify"
+                                        .to_owned(),
                                 );
                             } else {
                                 service_floor_disposition = match lite.disposition.as_str() {
@@ -801,7 +816,10 @@ fn run_profile(
                     }
                 } else {
                     service_floor_disposition = ServiceFloorDispositionV03::Unavailable;
-                    failure = Some(format!("service-floor auditor produced no receipt; exit={:?}", output.status.code()));
+                    failure = Some(format!(
+                        "service-floor auditor produced no receipt; exit={:?}",
+                        output.status.code()
+                    ));
                 }
             }
             Err(error) => {
