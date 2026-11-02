@@ -38,7 +38,7 @@ Expected value of perfect information is calculated as an independent upper boun
 
 All probabilities are integer parts per million (ppm). Prior probabilities and each state's observation-likelihood row must sum exactly to 1,000,000. Joint probabilities are accumulated as ppm² and losses remain integer units. EVSI is therefore reported as an exact numerator over (10^{12}); no floating-point posterior normalization, rounding, Monte Carlo sampling or arbitrary scalarization occurs.
 
-Observation cost is converted to the same ppm² denominator. A signal is recommended only when exact EVSI is at least its observation cost.
+Observation cost is converted to the same ppm² denominator. A signal is classified as worthwhile only when exact EVSI is at least its observation cost; zero net value is nonnegative but has no surplus.
 
 ## Heuristic-vs-exact bake-off
 
