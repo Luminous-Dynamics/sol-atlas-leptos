@@ -206,7 +206,7 @@ O_{s,t}=H(
   t,
   O_{s,t-1},
   	ext{observed-at}_t,
-  H(	ext{exact observation bundle bytes}_t)
+  H(\text{canonical JSON observation payload}_t)
 )
 ]
 
@@ -225,8 +225,11 @@ I_{s,t}=H(
 
 The initial observation-history seed is a fixed, domain-separated digest.
 Every subsequent history digest includes the previous one, the current
-observation timestamp and the SHA-256 of the exact observation bytes. Forecast
-bytes are hashed separately and included in the information-set identity.
+observation timestamp and the SHA-256 of the canonical serialized
+`observation_payload`. Bundle ID and JSON formatting do not create a new
+information state. The receipt separately records the SHA-256 of the exact raw
+observation bundle bytes for provenance. Forecast bytes are hashed separately
+and included in the information-set identity.
 
 This design has three important consequences:
 
@@ -291,10 +294,11 @@ exercise:
 - **Freshness controls:** future-dated observations/forecasts and bundles from
   another scenario set are rejected.
 
-**Critical limit:** these artifacts are content-bound and time-checked, but this
-verifier does not authenticate the observation publisher, prove the
-measurements were actually available to the controller, authenticate the
-forecast producer, or establish forecast calibration/probability validity.
+**Critical limit:** the raw artifacts are content-bound and time-checked, and
+observation semantics are canonicalized, but this verifier does not authenticate
+the observation publisher, prove the measurements were actually available to
+the controller, authenticate the forecast producer, or establish forecast
+calibration/probability validity.
 Those require independent provenance, signed publisher identity, clock and
 freshness assurance, revocation handling and calibration evidence. The current
 auditor cannot prove the semantic truth of caller-supplied observation payloads.
