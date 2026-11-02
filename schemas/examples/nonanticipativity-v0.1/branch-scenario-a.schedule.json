@@ -1,0 +1,34 @@
+{
+  "schema_version": "energy-dispatch-schedule-v0.1",
+  "case_id": "branch-scenario-a",
+  "request_sha256": "937acbb7e68d24a8b25c286df4698098203cf3f9e81a65e83ca9292d4d7e2a0c",
+  "interval_dispatches": [
+    {
+      "interval_id": "pre-branch-pv-surplus",
+      "grid_import_quanta": 0,
+      "charge_input_quanta": 2,
+      "discharge_withdrawal_quanta": 0,
+      "soc_after_quanta": 2,
+      "essential_served_quanta": 0,
+      "essential_unserved_quanta": 0,
+      "flexible_served_quanta": 0,
+      "flexible_unserved_quanta": 0,
+      "pv_used_quanta": 2,
+      "pv_curtailed_quanta": 0
+    },
+    {
+      "interval_id": "post-branch-outage",
+      "grid_import_quanta": 0,
+      "charge_input_quanta": 0,
+      "discharge_withdrawal_quanta": 2,
+      "soc_after_quanta": 0,
+      "essential_served_quanta": 2,
+      "essential_unserved_quanta": 0,
+      "flexible_served_quanta": 0,
+      "flexible_unserved_quanta": 0,
+      "pv_used_quanta": 0,
+      "pv_curtailed_quanta": 0
+    }
+  ],
+  "terminal_soc_quanta": 0
+}
