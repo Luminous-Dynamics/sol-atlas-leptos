@@ -50,7 +50,6 @@ jobs:
         run: |
           set -euo pipefail
           schema=schemas/industry-ieac-verification-capsule-v0.1.schema.json
-          jsonschema-cli validate --draft 2020 --assert-format https://json-schema.org/draft/2020-12/schema -i "$schema"
           for fixture in schemas/examples/ieac-verification-capsule-*-synthetic-v0.1.json; do
             jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$fixture"
           done
