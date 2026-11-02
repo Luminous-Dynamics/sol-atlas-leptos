@@ -440,7 +440,7 @@
           },
           {
             "requirement_id": "sep:reviewer-vs-query",
-            "assignment_id_a": "independent-reviewer",
+            "assignment_id_a": "reviewer",
             "assignment_id_b": "query-signer",
             "required_distinctions": [
               "different_principal",
@@ -457,7 +457,7 @@
           },
           {
             "requirement_id": "sep:reviewer-vs-verifier",
-            "assignment_id_a": "independent-reviewer",
+            "assignment_id_a": "reviewer",
             "assignment_id_b": "verifier-deployment",
             "required_distinctions": [
               "different_principal",
@@ -927,7 +927,7 @@
           },
           {
             "requirement_id": "sep:reviewer-vs-query",
-            "assignment_id_a": "independent-reviewer",
+            "assignment_id_a": "reviewer",
             "assignment_id_b": "query-signer",
             "required_distinctions": [
               "different_principal",
@@ -944,7 +944,7 @@
           },
           {
             "requirement_id": "sep:reviewer-vs-verifier",
-            "assignment_id_a": "independent-reviewer",
+            "assignment_id_a": "reviewer",
             "assignment_id_b": "verifier-deployment",
             "required_distinctions": [
               "different_principal",
