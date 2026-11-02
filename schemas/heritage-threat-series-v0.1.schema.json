@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-threat-series-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Threat Monitoring Series",
+  "description": "A site-level temporal alert series with explicit complete event labels, verified no-event windows, or unknown ground truth. Missing months/scores are not negative labels.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "series_id",
+    "site_id",
+    "ground_truth",
+    "observations"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-threat-series.v0.1"
+    },
+    "series_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "site_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ground_truth": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "monitoring_start_month",
+            "monitoring_end_month",
+            "event_months"
+          ],
+          "properties": {
+            "kind": {
+              "const": "known_events"
+            },
+            "monitoring_start_month": {
+              "type": "integer"
+            },
+            "monitoring_end_month": {
+              "type": "integer"
+            },
+            "event_months": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "monitoring_start_month",
+            "monitoring_end_month"
+          ],
+          "properties": {
+            "kind": {
+              "const": "confirmed_no_event_for_window"
+            },
+            "monitoring_start_month": {
+              "type": "integer"
+            },
+            "monitoring_end_month": {
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "unknown"
+            }
+          }
+        }
+      ]
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "month_ordinal",
+          "alert_score"
+        ],
+        "properties": {
+          "month_ordinal": {
+            "type": "integer"
+          },
+          "alert_score": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}
