@@ -89,7 +89,7 @@ The starter fixture advances:
 - checkpoint delegated role 7 → 8;
 - channel sequence 118 → 120 in the same ledger epoch.
 
-The test suite also covers timestamp rollback, same-version digest equivocation, expired metadata, excessive expiry horizon, verifier trust-bundle substitution, delegated target rollback, missing root-rotation chain, target-path substitution, channel sequence rollback, same-sequence checkpoint equivocation, unsupported verification checks, duplicate JSON members and unapproved epoch reset.
+The test suite also covers timestamp rollback, same-version digest equivocation, expired metadata, excessive expiry horizon, verifier trust-bundle substitution, delegated target rollback, missing root-rotation chain, valid N+1 root rotation, TUF timestamp/snapshot key-rotation recovery, unverified recovery refusal, target-path substitution, channel sequence rollback, same-sequence checkpoint equivocation, completeness-attestation and audit-report substitution, unsupported verification checks, duplicate JSON members, unapproved epoch reset, CAS next-state proposal and no state advancement on unknown.
 
 Promotion targets:
 - 100% rejection of the frozen rollback, same-version equivocation, target substitution, root-chain discontinuity and unauthorized epoch-reset controls.
