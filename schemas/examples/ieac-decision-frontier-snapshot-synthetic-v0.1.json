@@ -10,7 +10,8 @@
     "policy_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
     "evaluator_build_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
     "time_verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-    "time_verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    "time_verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "evidence_channel_id": "channel:ieac-ingest-registry"
   },
   "decision_cutoff": {
     "time_utc": "2026-11-02T09:10:00Z",
@@ -52,7 +53,7 @@
         "verifier_build_sha256": null,
         "verification_policy_sha256": null
       },
-      "first_available": {
+      "availability_evidence": {
         "relying_party_id": "rp:industrial-assurance",
         "proof_kind": "relying_party_ingest_receipt",
         "artifact_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
@@ -66,7 +67,9 @@
           "proof_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
           "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-        }
+        },
+        "evidence_channel_id": "channel:ieac-ingest-registry",
+        "coverage": null
       }
     },
     {
@@ -97,7 +100,7 @@
         "verifier_build_sha256": null,
         "verification_policy_sha256": null
       },
-      "first_available": {
+      "availability_evidence": {
         "relying_party_id": "rp:industrial-assurance",
         "proof_kind": "authenticated_access_log",
         "artifact_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
@@ -111,7 +114,9 @@
           "proof_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
           "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-        }
+        },
+        "evidence_channel_id": "channel:ieac-ingest-registry",
+        "coverage": null
       }
     },
     {
@@ -142,7 +147,7 @@
         "verifier_build_sha256": null,
         "verification_policy_sha256": null
       },
-      "first_available": {
+      "availability_evidence": {
         "relying_party_id": "rp:industrial-assurance",
         "proof_kind": "authenticated_access_log",
         "artifact_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
@@ -156,7 +161,9 @@
           "proof_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
           "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-        }
+        },
+        "evidence_channel_id": "channel:ieac-ingest-registry",
+        "coverage": null
       }
     },
     {
@@ -190,9 +197,9 @@
         "verifier_build_sha256": null,
         "verification_policy_sha256": null
       },
-      "first_available": {
+      "availability_evidence": {
         "relying_party_id": "rp:industrial-assurance",
-        "proof_kind": "relying_party_ingest_receipt",
+        "proof_kind": "complete_first_availability_ledger",
         "artifact_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
         "time": {
           "time_utc": "2026-11-02T10:00:00Z",
@@ -202,6 +209,38 @@
           "basis": "authenticated_ingest_log",
           "verification_status": "verified",
           "proof_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "evidence_channel_id": "channel:ieac-ingest-registry",
+        "coverage": {
+          "relying_party_id": "rp:industrial-assurance",
+          "evidence_channel_id": "channel:ieac-ingest-registry",
+          "coverage_from": {
+            "time_utc": "2026-11-02T08:00:00Z",
+            "uncertainty_before_seconds": 0,
+            "uncertainty_after_seconds": 0,
+            "clock_id": "clock:rp-ingest",
+            "basis": "authenticated_ingest_log",
+            "verification_status": "verified",
+            "proof_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "complete_through": {
+            "time_utc": "2026-11-02T10:05:00Z",
+            "uncertainty_before_seconds": 0,
+            "uncertainty_after_seconds": 0,
+            "clock_id": "clock:rp-ingest",
+            "basis": "authenticated_ingest_log",
+            "verification_status": "verified",
+            "proof_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "coverage_proof_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "completeness": "complete",
+          "verification_status": "verified",
           "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
           "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         }
@@ -225,7 +264,7 @@
         "verification_policy_sha256": null
       },
       "source_recorded_at": null,
-      "first_available": {
+      "availability_evidence": {
         "relying_party_id": "rp:industrial-assurance",
         "proof_kind": "scitt_receipt",
         "artifact_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
@@ -239,7 +278,9 @@
           "proof_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
           "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-        }
+        },
+        "evidence_channel_id": "channel:ieac-ingest-registry",
+        "coverage": null
       }
     },
     {
@@ -260,7 +301,7 @@
         "verification_policy_sha256": null
       },
       "source_recorded_at": null,
-      "first_available": {
+      "availability_evidence": {
         "relying_party_id": "rp:industrial-assurance",
         "proof_kind": "rfc3161_timestamp_token",
         "artifact_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
@@ -274,7 +315,9 @@
           "proof_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
           "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-        }
+        },
+        "evidence_channel_id": "channel:ieac-ingest-registry",
+        "coverage": null
       }
     },
     {
@@ -285,7 +328,7 @@
       "valid_time": null,
       "observed_at": null,
       "source_recorded_at": null,
-      "first_available": {
+      "availability_evidence": {
         "relying_party_id": "rp:industrial-assurance",
         "proof_kind": "relying_party_ingest_receipt",
         "artifact_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
@@ -299,7 +342,9 @@
           "proof_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
           "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-        }
+        },
+        "evidence_channel_id": "channel:ieac-ingest-registry",
+        "coverage": null
       }
     },
     {
@@ -330,7 +375,7 @@
       "valid_time": null,
       "observed_at": null,
       "source_recorded_at": null,
-      "first_available": {
+      "availability_evidence": {
         "relying_party_id": "rp:other-tenant",
         "proof_kind": "relying_party_ingest_receipt",
         "artifact_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
@@ -344,7 +389,9 @@
           "proof_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
           "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-        }
+        },
+        "evidence_channel_id": "channel:ieac-ingest-registry",
+        "coverage": null
       }
     },
     {
@@ -365,7 +412,7 @@
         "verification_policy_sha256": null
       },
       "source_recorded_at": null,
-      "first_available": {
+      "availability_evidence": {
         "relying_party_id": "rp:industrial-assurance",
         "proof_kind": "source_assertion",
         "artifact_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -379,7 +426,9 @@
           "proof_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
           "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-        }
+        },
+        "evidence_channel_id": "channel:ieac-ingest-registry",
+        "coverage": null
       }
     },
     {
@@ -400,7 +449,7 @@
         "verification_policy_sha256": null
       },
       "source_recorded_at": null,
-      "first_available": {
+      "availability_evidence": {
         "relying_party_id": "rp:industrial-assurance",
         "proof_kind": "relying_party_ingest_receipt",
         "artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
@@ -414,7 +463,9 @@
           "proof_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
           "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-        }
+        },
+        "evidence_channel_id": "channel:ieac-ingest-registry",
+        "coverage": null
       }
     },
     {
@@ -425,7 +476,7 @@
       "valid_time": null,
       "observed_at": null,
       "source_recorded_at": null,
-      "first_available": {
+      "availability_evidence": {
         "relying_party_id": "rp:industrial-assurance",
         "proof_kind": "relying_party_ingest_receipt",
         "artifact_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
@@ -439,6 +490,85 @@
           "proof_sha256": null,
           "verifier_build_sha256": null,
           "verification_policy_sha256": null
+        },
+        "evidence_channel_id": "channel:ieac-ingest-registry",
+        "coverage": null
+      }
+    },
+    {
+      "evidence_id": "late-complete-ledger-record",
+      "evidence_kind": "source_measurement",
+      "source_id": "source:plant-17",
+      "artifact_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "valid_time": null,
+      "observed_at": {
+        "time_utc": "2026-11-02T09:20:00Z",
+        "uncertainty_before_seconds": 0,
+        "uncertainty_after_seconds": 0,
+        "clock_id": "clock:source-attested",
+        "basis": "source_assertion",
+        "verification_status": "verified",
+        "proof_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "source_recorded_at": {
+        "time_utc": "2026-11-02T09:22:00Z",
+        "uncertainty_before_seconds": 0,
+        "uncertainty_after_seconds": 0,
+        "clock_id": "clock:source-attested",
+        "basis": "source_assertion",
+        "verification_status": "verified",
+        "proof_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "availability_evidence": {
+        "relying_party_id": "rp:industrial-assurance",
+        "evidence_channel_id": "channel:ieac-ingest-registry",
+        "proof_kind": "complete_first_availability_ledger",
+        "artifact_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "time": {
+          "time_utc": "2026-11-02T09:25:00Z",
+          "uncertainty_before_seconds": 5,
+          "uncertainty_after_seconds": 5,
+          "clock_id": "clock:rp-ingest",
+          "basis": "authenticated_ingest_log",
+          "verification_status": "verified",
+          "proof_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+          "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "coverage": {
+          "relying_party_id": "rp:industrial-assurance",
+          "evidence_channel_id": "channel:ieac-ingest-registry",
+          "coverage_from": {
+            "time_utc": "2026-11-02T08:00:00Z",
+            "uncertainty_before_seconds": 0,
+            "uncertainty_after_seconds": 0,
+            "clock_id": "clock:rp-ingest",
+            "basis": "authenticated_ingest_log",
+            "verification_status": "verified",
+            "proof_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+            "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "complete_through": {
+            "time_utc": "2026-11-02T09:30:00Z",
+            "uncertainty_before_seconds": 0,
+            "uncertainty_after_seconds": 0,
+            "clock_id": "clock:rp-ingest",
+            "basis": "authenticated_ingest_log",
+            "verification_status": "verified",
+            "proof_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+            "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "coverage_proof_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+          "completeness": "complete",
+          "verification_status": "verified",
+          "verifier_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "verification_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         }
       }
     }
