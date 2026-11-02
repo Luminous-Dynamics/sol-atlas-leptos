@@ -942,7 +942,7 @@ mod tests {
             admit_action(
                 battery,
                 &proposal(action),
-                &observation(vec![state("current", 4)]),
+                &observation(vec![state("current", 5)]),
                 &configured,
                 100,
             )
