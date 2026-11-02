@@ -1156,7 +1156,11 @@ mod tests {
         claim.contradiction_evidence_refs = vec!["contradicts".into()];
 
         let report = audit_cause_evidence(&case(hypotheses, records)).unwrap();
-        let summary = report.hypothesis_summaries.iter().find(|item| item.cause == cause).unwrap();
+        let summary = report
+            .hypothesis_summaries
+            .iter()
+            .find(|item| item.cause == cause)
+            .unwrap();
         assert_eq!(summary.independent_support_count, 0);
         assert_eq!(summary.independent_contradiction_count, 0);
         assert_eq!(summary.cross_polarity_conflict_record_count, 2);
