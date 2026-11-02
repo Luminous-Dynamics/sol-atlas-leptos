@@ -104,6 +104,8 @@ jobs:
             $report.accepted_metadata.timestamp_version == $want.timestamp_version and
             $report.accepted_metadata.snapshot_version == $want.snapshot_version and
             $report.accepted_metadata.target_roles == $want.target_roles and
+            $report.accepted_channel_state.completeness_attestation_sha256 == $want.completeness_attestation_sha256 and
+            $report.accepted_channel_state.availability_report_sha256 == $want.availability_report_sha256 and
             $report.accepted_channel_state.last_sequence == $want.checkpoint_sequence and
             $report.accepted_channel_state.ledger_epoch == $want.ledger_epoch and
             $report.action_authority == "none" and
@@ -129,6 +131,8 @@ jobs:
           jq '.timestamp.expires_at = "2026-11-15T00:00:00Z"' "$verifier" > "$RUNNER_TEMP/tuf-expiry-horizon.json"
           jq '.target_roles[0].version = 3' "$verifier" > "$RUNNER_TEMP/tuf-target-role-rollback.json"
           jq '.channel_binding.checkpoint_state.target_sha256 = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" | .target_roles[1].target_sha256 = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"' "$verifier" > "$RUNNER_TEMP/tuf-same-sequence-equivocation.json"
+          jq '.channel_binding.completeness_attestation.target_sha256 = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"' "$verifier" > "$RUNNER_TEMP/tuf-completeness-attestation-substitution.json"
+          jq '.channel_binding.availability_audit_report.target_sha256 = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"' "$verifier" > "$RUNNER_TEMP/tuf-availability-report-substitution.json"
           printf '{"schema_version":"x","schema_version":"y"}' > "$RUNNER_TEMP/tuf-duplicate-members.json"
 
           for mutant in \
@@ -139,6 +143,8 @@ jobs:
             "$RUNNER_TEMP/tuf-root-missing-chain.json" \
             "$RUNNER_TEMP/tuf-target-role-rollback.json" \
             "$RUNNER_TEMP/tuf-same-sequence-equivocation.json" \
+            "$RUNNER_TEMP/tuf-completeness-attestation-substitution.json" \
+            "$RUNNER_TEMP/tuf-availability-report-substitution.json" \
             "$RUNNER_TEMP/tuf-duplicate-members.json"; do
             set +e
             cargo run --manifest-path "$tool" --locked -- "$mutant" "$policy" "$state" "$report"
