@@ -99,26 +99,6 @@ struct FirstAvailability {
     proof_kind: String,
     artifact_sha256: String,
     time: TimeBound,
-    #[serde(deserialize_with = "deserialize_present_option")]
-    coverage: Option<CoverageProof>,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct CoverageProof {
-    relying_party_id: String,
-    evidence_channel_id: String,
-    coverage_from: TimeBound,
-    complete_through: TimeBound,
-    coverage_proof_sha256: String,
-    completeness: String,
-    verification_status: String,
-    #[serde(deserialize_with = "deserialize_present_option")]
-    verifier_build_sha256: Option<String>,
-    #[serde(deserialize_with = "deserialize_present_option")]
-    verification_policy_sha256: Option<String>,
-    #[serde(deserialize_with = "deserialize_present_option")]
-    trust_bundle_sha256: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -328,85 +308,8 @@ fn validate_snapshot(snapshot: &Snapshot) -> Result<(), String> {
                 &snapshot.decision,
                 &format!("{path}.availability_evidence.time"),
             )?;
-            if let Some(coverage) = &availability.coverage {
-                validate_coverage_proof(
-                    coverage,
-                    &snapshot.decision,
-                    &format!("{path}.availability_evidence.coverage"),
-                )?;
-            }
-            if availability.proof_kind != "complete_first_availability_ledger"
-                && availability.coverage.is_some()
-            {
-                return Err(format!(
-                    "{path}.availability_evidence.coverage requires complete_first_availability_ledger"
-                ));
-            }
-        }
-    }
-    Ok(())
-}
 
-fn validate_coverage_proof(
-    coverage: &CoverageProof,
-    decision: &DecisionRef,
-    path: &str,
-) -> Result<(), String> {
-    validate_time_bound(&coverage.coverage_from, &format!("{path}.coverage_from"))?;
-    validate_time_bound(
-        &coverage.complete_through,
-        &format!("{path}.complete_through"),
-    )?;
-    validate_verifier_pin(
-        &coverage.coverage_from,
-        decision,
-        &format!("{path}.coverage_from"),
-    )?;
-    validate_verifier_pin(
-        &coverage.complete_through,
-        decision,
-        &format!("{path}.complete_through"),
-    )?;
-    let from = interval(&coverage.coverage_from)?;
-    let through = interval(&coverage.complete_through)?;
-    if from.latest_epoch_seconds > through.earliest_epoch_seconds {
-        return Err(format!("{path} coverage interval is reversed or indeterminate"));
-    }
-    if !is_sha256(&coverage.coverage_proof_sha256) {
-        return Err(format!("{path}.coverage_proof_sha256 is invalid"));
-    }
-    if !matches!(coverage.completeness.as_str(), "complete" | "partial" | "unknown") {
-        return Err(format!("{path}.completeness is unsupported"));
-    }
-    if !matches!(
-        coverage.verification_status.as_str(),
-        "verified" | "failed" | "unknown" | "not_checked" | "disputed"
-    ) {
-        return Err(format!("{path}.verification_status is unsupported"));
-    }
-    for (field, value) in [
-        ("verifier_build_sha256", coverage.verifier_build_sha256.as_deref()),
-        ("verification_policy_sha256", coverage.verification_policy_sha256.as_deref()),
-        ("trust_bundle_sha256", coverage.trust_bundle_sha256.as_deref()),
-    ] {
-        if let Some(value) = value
-            && !is_sha256(value)
-        {
-            return Err(format!("{path}.{field} is invalid"));
         }
-    }
-    if coverage.verification_status == "failed" {
-        return Err(format!("{path} coverage proof verification failed"));
-    }
-    if coverage.verification_status == "verified"
-        && (coverage.verifier_build_sha256.as_deref()
-            != Some(decision.time_verifier_build_sha256.as_str())
-            || coverage.verification_policy_sha256.as_deref()
-                != Some(decision.time_verification_policy_sha256.as_str())
-            || coverage.trust_bundle_sha256.as_deref()
-                != Some(decision.time_verification_trust_bundle_sha256.as_str()))
-    {
-        return Err(format!("{path} uses an unpinned coverage verifier build or policy"));
     }
     Ok(())
 }
@@ -518,7 +421,7 @@ fn availability_is_relying_party_access(proof_kind: &str, basis: &str) -> bool {
         ("relying_party_ingest_receipt", "authenticated_ingest_log")
             | ("authenticated_access_log", "authenticated_ingest_log")
             | ("sealed_cache_manifest", "trusted_clock_attestation")
-            | ("complete_first_availability_ledger", "authenticated_ingest_log")
+
     )
 }
 
@@ -601,45 +504,11 @@ fn classify(
         status = DecisionStatus::Included;
         reason = "verified_available_before_cutoff";
     } else if available.earliest_epoch_seconds > cutoff.latest_epoch_seconds {
-        if availability.proof_kind != "complete_first_availability_ledger" {
-            status = DecisionStatus::Unknown;
-            reason = "post_cutoff_access_does_not_prove_prior_absence";
-        } else if let Some(coverage) = &availability.coverage {
-            if coverage.verification_status == "failed" {
-                return Err(format!(
-                    "availability coverage verification failed for {}",
-                    item.evidence_id
-                ));
-            }
-            let coverage_from = interval(&coverage.coverage_from)?;
-            let coverage_through = interval(&coverage.complete_through)?;
-            if coverage.relying_party_id != snapshot.decision.relying_party_id
-                || coverage.evidence_channel_id != snapshot.decision.evidence_channel_id
-            {
-                status = DecisionStatus::Unknown;
-                reason = "availability_coverage_scope_mismatch";
-            } else if coverage.verification_status != "verified"
-                || coverage.completeness != "complete"
-                || coverage.coverage_from.verification_status != "verified"
-                || coverage.complete_through.verification_status != "verified"
-                || coverage.coverage_from.basis != "authenticated_ingest_log"
-                || coverage.complete_through.basis != "authenticated_ingest_log"
-            {
-                status = DecisionStatus::Unknown;
-                reason = "availability_coverage_not_complete_and_verified";
-            } else if coverage_from.latest_epoch_seconds > cutoff.earliest_epoch_seconds
-                || coverage_through.earliest_epoch_seconds < available.latest_epoch_seconds
-            {
-                status = DecisionStatus::Unknown;
-                reason = "availability_coverage_does_not_span_cutoff_to_first_access";
-            } else {
-                status = DecisionStatus::ExcludedAfterCutoff;
-                reason = "complete_channel_history_proves_first_availability_after_cutoff";
-            }
-        } else {
-            status = DecisionStatus::Unknown;
-            reason = "availability_coverage_missing";
-        }
+        // A positive post-cutoff access record does not prove earlier absence.
+        // The complete four-stage channel attestation is owned by #419/#422;
+        // this frontier auditor does not downgrade that claim to a local boolean.
+        status = DecisionStatus::Unknown;
+        reason = "post_cutoff_access_requires_complete_channel_attestation";
     } else {
         status = DecisionStatus::Unknown;
         reason = "availability_and_cutoff_intervals_overlap";
@@ -825,7 +694,6 @@ mod tests {
             proof_kind: proof_kind.to_string(),
             artifact_sha256: digest('d'),
             time,
-            coverage: None,
         }
     }
 
@@ -925,80 +793,28 @@ mod tests {
     }
 
     #[test]
-    fn complete_first_availability_ledger_can_prove_late_arrival() {
-        let mut availability = available(
-            "complete_first_availability_ledger",
-            "rp:test",
-            time(
-                "2026-11-02T09:25:00Z",
-                5,
-                5,
-                "authenticated_ingest_log",
-                "verified",
-            ),
+    fn post_cutoff_access_cannot_exclude_without_full_channel_attestation() {
+        let item = evidence(
+            "late-access-without-channel-attestation",
+            Some(available(
+                "authenticated_access_log",
+                "rp:test",
+                time(
+                    "2026-11-02T09:25:00Z",
+                    5,
+                    5,
+                    "authenticated_ingest_log",
+                    "verified",
+                ),
+            )),
+            Some(time("2026-11-02T08:00:00Z", 0, 0, "source_assertion", "not_checked")),
         );
-        availability.coverage = Some(CoverageProof {
-            relying_party_id: "rp:test".to_string(),
-            evidence_channel_id: "channel:ieac-ingest-registry".to_string(),
-            coverage_from: time(
-                "2026-11-02T08:00:00Z", 0, 0, "authenticated_ingest_log", "verified"
-            ),
-            complete_through: time(
-                "2026-11-02T09:30:00Z", 0, 0, "authenticated_ingest_log", "verified"
-            ),
-            coverage_proof_sha256: digest('e'),
-            completeness: "complete".to_string(),
-            verification_status: "verified".to_string(),
-            verifier_build_sha256: Some(digest('b')),
-            verification_policy_sha256: Some(digest('c')),
-            trust_bundle_sha256: Some(digest('d')),
-        });
-        let item = evidence("complete-late", Some(availability), None);
-        let report = audit(&snapshot_with(vec![item]), br#"{}"#)
-            .expect("audit should succeed");
-        assert_eq!(report.summary.excluded_after_cutoff, 1);
-        assert_eq!(
-            report.classifications[0].reason_code,
-            "complete_channel_history_proves_first_availability_after_cutoff"
-        );
-    }
-
-    #[test]
-    fn incomplete_first_availability_coverage_cannot_exclude_as_late() {
-        let mut availability = available(
-            "complete_first_availability_ledger",
-            "rp:test",
-            time(
-                "2026-11-02T09:25:00Z",
-                5,
-                5,
-                "authenticated_ingest_log",
-                "verified",
-            ),
-        );
-        availability.coverage = Some(CoverageProof {
-            relying_party_id: "rp:test".to_string(),
-            evidence_channel_id: "channel:ieac-ingest-registry".to_string(),
-            coverage_from: time(
-                "2026-11-02T09:09:45Z", 0, 0, "authenticated_ingest_log", "verified"
-            ),
-            complete_through: time(
-                "2026-11-02T09:30:00Z", 0, 0, "authenticated_ingest_log", "verified"
-            ),
-            coverage_proof_sha256: digest('e'),
-            completeness: "complete".to_string(),
-            verification_status: "verified".to_string(),
-            verifier_build_sha256: Some(digest('b')),
-            verification_policy_sha256: Some(digest('c')),
-            trust_bundle_sha256: Some(digest('d')),
-        });
-        let item = evidence("coverage-starts-too-late", Some(availability), None);
         let report = audit(&snapshot_with(vec![item]), br#"{}"#)
             .expect("audit should succeed");
         assert_eq!(report.summary.unknown, 1);
         assert_eq!(
             report.classifications[0].reason_code,
-            "availability_coverage_does_not_span_cutoff_to_first_access"
+            "post_cutoff_access_requires_complete_channel_attestation"
         );
     }
 
@@ -1131,40 +947,6 @@ mod tests {
             None,
         );
         item.availability_evidence.as_mut().unwrap().time.verifier_build_sha256 = Some(digest('9'));
-        let result = audit(&snapshot_with(vec![item]), br#"{}"#);
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn coverage_verification_trust_bundle_substitution_is_rejected() {
-        let mut availability = available(
-            "complete_first_availability_ledger",
-            "rp:test",
-            time(
-                "2026-11-02T09:25:00Z",
-                5,
-                5,
-                "authenticated_ingest_log",
-                "verified",
-            ),
-        );
-        availability.coverage = Some(CoverageProof {
-            relying_party_id: "rp:test".to_string(),
-            evidence_channel_id: "channel:ieac-ingest-registry".to_string(),
-            coverage_from: time(
-                "2026-11-02T08:00:00Z", 0, 0, "authenticated_ingest_log", "verified"
-            ),
-            complete_through: time(
-                "2026-11-02T09:30:00Z", 0, 0, "authenticated_ingest_log", "verified"
-            ),
-            coverage_proof_sha256: digest('e'),
-            completeness: "complete".to_string(),
-            verification_status: "verified".to_string(),
-            verifier_build_sha256: Some(digest('b')),
-            verification_policy_sha256: Some(digest('c')),
-            trust_bundle_sha256: Some(digest('9')),
-        });
-        let item = evidence("wrong-coverage-trust-bundle", Some(availability), None);
         let result = audit(&snapshot_with(vec![item]), br#"{}"#);
         assert!(result.is_err());
     }
