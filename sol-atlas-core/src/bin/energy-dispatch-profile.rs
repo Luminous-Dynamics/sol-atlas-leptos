@@ -11,8 +11,8 @@
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 use sol_atlas_core::energy_dispatch::{
-    assess_energy_dispatch, EnergyDispatchAssessment, EnergyDispatchError, EnergyDispatchRequest,
-    MAX_CANDIDATE_EXPANSIONS, MAX_PARETO_FRONTIER,
+    EnergyDispatchAssessment, EnergyDispatchError, EnergyDispatchRequest, MAX_CANDIDATE_EXPANSIONS,
+    MAX_PARETO_FRONTIER, assess_energy_dispatch,
 };
 use std::fmt::Write as FmtWrite;
 use std::fs::{self, OpenOptions};
@@ -255,13 +255,12 @@ fn status_for_error(error: &EnergyDispatchError) -> &'static str {
 }
 
 fn optional_u64(value: Option<u64>) -> String {
-    value.map(|number| number.to_string()).unwrap_or_else(|| "NA".to_owned())
+    value
+        .map(|number| number.to_string())
+        .unwrap_or_else(|| "NA".to_owned())
 }
 
-fn run_profile(
-    request_bytes: &[u8],
-    scenario_panel_sha256: &str,
-) -> Result<ProfiledRun, String> {
+fn run_profile(request_bytes: &[u8], scenario_panel_sha256: &str) -> Result<ProfiledRun, String> {
     if !valid_sha256(scenario_panel_sha256) {
         return Err("scenario panel digest must be 64 lowercase hexadecimal characters".to_owned());
     }
@@ -310,15 +309,24 @@ fn run_profile(
     }
     let peak_memory_bytes = peak_memory_bytes();
 
-    let (status, time_to_optimal_ns, search_action_expansions, feasible_complete_schedules,
-        pareto_frontier_count, failure, assessment) = match assessed {
+    let (
+        status,
+        time_to_optimal_ns,
+        search_action_expansions,
+        feasible_complete_schedules,
+        pareto_frontier_count,
+        failure,
+        assessment,
+    ) = match assessed {
         Ok(assessment) => (
             "optimal",
             Some(elapsed_ns),
             Some(assessment.evaluated_action_expansions),
             Some(assessment.feasible_complete_schedules),
-            Some(u32::try_from(assessment.pareto_frontier_count)
-                .map_err(|_| "Pareto frontier count does not fit u32".to_owned())?),
+            Some(
+                u32::try_from(assessment.pareto_frontier_count)
+                    .map_err(|_| "Pareto frontier count does not fit u32".to_owned())?,
+            ),
             None,
             Some(assessment),
         ),
@@ -333,7 +341,11 @@ fn run_profile(
         ),
     };
 
-    let measurement_class = if request.synthetic { "synthetic" } else { "measured" };
+    let measurement_class = if request.synthetic {
+        "synthetic"
+    } else {
+        "measured"
+    };
     let trace_csv_row = format!(
         "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
         TRACE_SCHEMA,
@@ -445,7 +457,9 @@ fn run() -> Result<ExitCode, String> {
     if args.len() != 5 {
         return Err(format!(
             "usage: {} <request.json> <scenario-panel-sha256> <trace.csv> <report.json>",
-            args.first().map(String::as_str).unwrap_or("energy-dispatch-profile")
+            args.first()
+                .map(String::as_str)
+                .unwrap_or("energy-dispatch-profile")
         ));
     }
     let request_bytes = read_bounded(Path::new(&args[1]), MAX_REQUEST_BYTES)?;
@@ -478,19 +492,20 @@ mod tests {
 
     const FIXTURE: &[u8] =
         include_bytes!("../../../schemas/examples/energy-dispatch-pv-outage.synthetic.json");
-    const PANEL_SHA256: &str =
-        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    const PANEL_SHA256: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
     #[test]
     fn frozen_synthetic_dispatch_runs_through_the_real_exact_engine_and_emits_34_column_trace() {
         let profile = run_profile(FIXTURE, PANEL_SHA256).expect("profile frozen request");
         assert_eq!(profile.status, "optimal");
         assert!(profile.assessment.as_ref().unwrap().search_is_exact);
-        assert!(profile
-            .assessment
-            .as_ref()
-            .unwrap()
-            .pareto_frontier_complete);
+        assert!(
+            profile
+                .assessment
+                .as_ref()
+                .unwrap()
+                .pareto_frontier_complete
+        );
 
         let columns: Vec<&str> = profile.trace_csv_row.split(',').collect();
         assert_eq!(columns.len(), 34);
@@ -515,7 +530,13 @@ mod tests {
         let profile = run_profile(&bytes, PANEL_SHA256).expect("profile cap-limited request");
         assert_eq!(profile.status, "limit_reached");
         assert!(profile.assessment.is_none());
-        assert!(profile.failure.as_deref().unwrap().contains("CandidateExpansionCapExceeded"));
+        assert!(
+            profile
+                .failure
+                .as_deref()
+                .unwrap()
+                .contains("CandidateExpansionCapExceeded")
+        );
 
         let columns: Vec<&str> = profile.trace_csv_row.split(',').collect();
         assert_eq!(columns[22], "limit_reached");
@@ -532,7 +553,13 @@ mod tests {
         let profile = run_profile(&bytes, PANEL_SHA256).expect("profile rejected model request");
         assert_eq!(profile.status, "error");
         assert!(profile.assessment.is_none());
-        assert!(profile.failure.as_deref().unwrap().contains("UnsupportedSchemaVersion"));
+        assert!(
+            profile
+                .failure
+                .as_deref()
+                .unwrap()
+                .contains("UnsupportedSchemaVersion")
+        );
         let columns: Vec<&str> = profile.trace_csv_row.split(',').collect();
         assert_eq!(columns[22], "error");
     }
