@@ -209,3 +209,12 @@ The focused Rust test `impact_propagation_scale_ladder_has_exact_precision_and_r
 For every size, the test independently derives the expected affected set from the generator's parent relation, compares every reported node classification, requires zero false positives and zero false negatives, and repeats the full validation/impact computation to require an identical canonical report digest. The workflow retains the exact-head `--nocapture` output as an artifact, including node/edge counts, expected impacted/unaffected counts and one in-process validation-plus-impact timing sample.
 
 This first scale ladder is a structural precision/determinism/performance smoke benchmark, not a field benchmark or a complete comparison against TUF/SCITT implementations. Its timing excludes fixture generation and process startup and is one sample per size; repeat runs, confidence intervals, persistent high-water-state tests, concurrent invalidation ordering, and independent implementation comparison remain later gates. The algorithm currently emits a classification for every graph node, so these timings include full output materialization rather than claiming O(affected-subgraph) total cost.
+
+
+## 9.2 Append-only event-chain verification
+
+The auditor now includes an in-memory batch verifier for authority invalidation events. It canonical-digests every event, orders delivery by the declared authority sequence, checks predecessor digests, requires contiguous sequence numbers beginning at 1, rejects reused event IDs, and enforces monotonic `recorded_at` and `trusted_at` across the ordered chain.
+
+Exact duplicate replay of the same event ID, sequence and canonical content is idempotent. A different event at an already-used sequence, a reused ID with different content, a gap, a broken predecessor digest or backwards recorded/trusted time is rejected before impact classification. Tests cover out-of-order delivery, exact replay, conflicting same-sequence events, ID reuse, sequence gaps, bad predecessors and time rollback.
+
+This is only an in-memory chain consistency check over supplied events. It does not authenticate the issuer signature, revoker authority, trusted timestamp proof, or persist a monotonic high-water mark across process restart. Durable anti-rollback storage and concurrent/crash-recovery behavior remain explicit follow-on work.
