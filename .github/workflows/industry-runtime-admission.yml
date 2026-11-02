@@ -170,10 +170,12 @@ jobs:
         run: |
           set -euo pipefail
           meta=https://json-schema.org/draft/2020-12/schema
-          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-assurance-qualification-profile-v0.1.schema.json
-          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-runtime-admission-request-v0.1.schema.json
-          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-runtime-admission-report-v0.1.schema.json
-          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-runtime-profile-pin-v0.1.schema.json
+          meta_schema="$RUNNER_TEMP/draft-2020-12-meta-schema.json"
+          curl --fail --location --retry 5 --retry-connrefused "$meta" -o "$meta_schema"
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i schemas/industry-assurance-qualification-profile-v0.1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i schemas/industry-runtime-admission-request-v0.1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i schemas/industry-runtime-admission-report-v0.1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i schemas/industry-runtime-profile-pin-v0.1.schema.json
 
       - name: Validate the frozen admission benchmark manifest against IBAP v0.1
         run: |
@@ -188,7 +190,7 @@ jobs:
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-assurance-qualification-profile-v0.1.schema.json -i schemas/examples/industry-runtime-admission-profile-synthetic-v0.1.json
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-runtime-admission-request-v0.1.schema.json -i schemas/examples/industry-runtime-admission-request-synthetic-v0.1.json
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-runtime-profile-pin-v0.1.schema.json -i schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json
-          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-federated-evidence-reference-v0.1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i schemas/industry-federated-evidence-reference-v0.1.schema.json
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-federated-evidence-reference-v0.1.schema.json -i schemas/examples/ieac-federated-evidence-reference-synthetic-v0.1.json
           jq '.snapshot.conditions = []' schemas/examples/industry-runtime-admission-request-synthetic-v0.1.json > "$RUNNER_TEMP/empty-measurements.json"
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-runtime-admission-request-v0.1.schema.json -i "$RUNNER_TEMP/empty-measurements.json"
