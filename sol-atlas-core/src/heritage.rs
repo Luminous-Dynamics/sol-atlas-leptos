@@ -1146,9 +1146,39 @@ mod tests {
             "2026-11-02T10:00:00Z",
             "heritage-ingestor",
             "0.1.0",
+            HeritageUse::Research,
+            AccessContext {
+                max_tier: AccessTier::ApprovedResearch,
+                exact_geometry_authorized: true,
+            },
+            true,
         )
         .unwrap_err();
         assert!(matches!(error, ReceiptError::DigestMismatch { .. }));
+    }
+
+    #[test]
+    fn receipt_denies_unverified_rights_even_when_bytes_match() {
+        let mut metadata = fixture_metadata();
+        metadata.rights.state = RightsState::Unknown;
+        let error = verify_artifact_bytes(
+            &metadata,
+            b"synthetic point cloud bytes",
+            "2026-11-02T10:00:00Z",
+            "heritage-ingestor",
+            "0.1.0",
+            HeritageUse::Research,
+            AccessContext {
+                max_tier: AccessTier::Restricted,
+                exact_geometry_authorized: true,
+            },
+            true,
+        )
+        .unwrap_err();
+        assert_eq!(
+            error,
+            ReceiptError::RightsDenied(RightsDenial::RightsNotVerified(RightsState::Unknown))
+        );
     }
 
     #[test]
