@@ -299,6 +299,16 @@ jobs:
             jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$RUNNER_TEMP/ieac-scitt-witness-observation.json"
           done
           jq -e '
+            def prior_head_matches($current):
+              any(.observations[];
+                .transparency_service_id == $current.transparency_service_id and
+                .transparency_service_operator_id == $current.transparency_service_operator_id and
+                .vds_type == $current.vds_type and
+                .log_id == $current.log_id and
+                .signed_tree_head.tree_size == $current.consistency_from.tree_size and
+                .signed_tree_head.root_sha256 == $current.consistency_from.root_sha256 and
+                .signed_tree_head.signed_bytes_sha256 == $current.consistency_from.signed_bytes_sha256
+              );
             .fixture_schema_version == "luminous.ieac-scitt-witness-fixture.v0.1" and
             .fixture_status == "synthetic_only" and
             (.observations | length == 5) and
@@ -306,6 +316,8 @@ jobs:
             ([.observations[] | select(.transparency_service_id == "ts:service-a" and .signed_tree_head.tree_size == 10)] | length) == 3 and
             ([.observations[] | select(.transparency_service_id == "ts:service-b" and .signed_tree_head.tree_size == 7)] | length) == 1 and
             all(.observations[]; ([.statement_digests[]] | sort) == ([.inclusion_proofs[].statement_sha256] | sort)) and
+            all(.observations[]; .consistency_from == null or (.consistency_from.signed_bytes_sha256 | test("^[0-9a-f]{64}$"))) and
+            all(.observations[] | select(.consistency_from != null); . as $current | prior_head_matches($current)) and
             ([.observations[].inclusion_proofs | length] | add) == .expected_structural_comparison.inclusion_proof_count and
             .expected_structural_comparison.cross_ts_root_comparison == "not_comparable" and
             .expected_structural_comparison.witness_operator_diversity_for_equal_head == 2
@@ -321,6 +333,13 @@ jobs:
           jq -e '.observations[1]' "$RUNNER_TEMP/witness-missing-consistency-proof.json" > "$RUNNER_TEMP/witness-mutated-observation.json"
           if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$RUNNER_TEMP/witness-mutated-observation.json"; then
             echo "ERROR: witness schema accepted a prior head without its consistency proof"
+            exit 1
+          fi
+          # The prior checkpoint must be bound to its exact signed tree-head bytes.
+          jq '.observations[1].consistency_from |= del(.signed_bytes_sha256)' "$fixture" > "$RUNNER_TEMP/witness-missing-prior-head-bytes.json"
+          jq -e '.observations[1]' "$RUNNER_TEMP/witness-missing-prior-head-bytes.json" > "$RUNNER_TEMP/witness-mutated-observation.json"
+          if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$RUNNER_TEMP/witness-mutated-observation.json"; then
+            echo "ERROR: witness schema accepted a prior head without its exact signed-byte digest"
             exit 1
           fi
 
