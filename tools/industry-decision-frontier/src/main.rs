@@ -227,6 +227,13 @@ fn validate_snapshot(snapshot: &Snapshot) -> Result<(), String> {
         if item.evidence_id.trim().is_empty() || item.source_id.trim().is_empty() {
             return Err(format!("{path} identity fields must not be empty"));
         }
+        if !matches!(
+            item.evidence_kind.as_str(),
+            "source_measurement" | "source_correction" | "model_output" |
+            "outcome_observation" | "decision_input" | "other"
+        ) {
+            return Err(format!("{path}.evidence_kind is unsupported"));
+        }
         if !ids.insert(item.evidence_id.as_str()) {
             return Err(format!("duplicate evidence_id: {}", item.evidence_id));
         }
