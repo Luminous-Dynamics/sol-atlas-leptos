@@ -83,7 +83,14 @@ fn resolve_under_root(root: &Path, supplied: &str, label: &str) -> Result<PathBu
 }
 
 fn load_manifest(path: &Path) -> Result<(NonAnticipativityManifestV1, Vec<LoadedScenario>), String> {
-    let manifest_bytes = read_bounded(path, MAX_MANIFEST_BYTES, "non-anticipativity manifest")?;
+    let canonical_manifest_path = path
+        .canonicalize()
+        .map_err(|error| format!("resolve non-anticipativity manifest: {error}"))?;
+    let manifest_bytes = read_bounded(
+        &canonical_manifest_path,
+        MAX_MANIFEST_BYTES,
+        "non-anticipativity manifest",
+    )?;
     let manifest_value = parse_unique_json(&manifest_bytes)
         .map_err(|error| format!("strict manifest JSON parse: {error}"))?;
     let manifest: NonAnticipativityManifestV1 = serde_json::from_value(manifest_value)
@@ -109,12 +116,10 @@ fn load_manifest(path: &Path) -> Result<(NonAnticipativityManifestV1, Vec<Loaded
         ));
     }
 
-    let manifest_dir = path
+    let manifest_dir = canonical_manifest_path
         .parent()
-        .filter(|parent| !parent.as_os_str().is_empty())
-        .unwrap_or_else(|| Path::new("."))
-        .canonicalize()
-        .map_err(|error| format!("resolve manifest directory: {error}"))?;
+        .ok_or_else(|| "canonical manifest path has no parent directory".to_owned())?
+        .to_path_buf();
 
     let mut loaded = Vec::with_capacity(manifest.scenarios.len());
     for scenario in &manifest.scenarios {
@@ -180,8 +185,11 @@ fn run() -> Result<ExitCode, String> {
         })
         .collect();
 
-    let receipt = evaluate_nonanticipativity_bytes(&scenario_inputs)
-        .map_err(|error| format!("non-anticipativity evaluation failed closed: {error}"))?;
+    let receipt = evaluate_nonanticipativity_bytes(
+        &manifest.scenario_set_id,
+        &scenario_inputs,
+    )
+    .map_err(|error| format!("non-anticipativity evaluation failed closed: {error}"))?;
     write_receipt(&receipt_path, &receipt)?;
 
     println!("scenario_set_id={}", manifest.scenario_set_id);
