@@ -127,6 +127,7 @@ pub enum TraceV03Error {
     MixedCohortIdentity,
     EmptyCohort,
     InputTooLarge,
+    DuplicateSampleConflict,
 }
 
 impl std::fmt::Display for TraceV03Error {
@@ -616,6 +617,9 @@ struct CohortV03Key {
     scenario_panel_sha256: String,
     model_sha256: String,
     mesh_policy_sha256: String,
+    solver_name: String,
+    solver_version: String,
+    horizon_minutes: u16,
     solver_binary_sha256: String,
     solver_config_sha256: String,
     hardware_profile_sha256: String,
@@ -623,7 +627,8 @@ struct CohortV03Key {
 
 pub fn summarize_traces_v03(records: &[SolverTraceV03]) -> Result<Vec<TraceSummaryV03>, TraceV03Error> {
     let mut groups = BTreeMap::<CohortV03Key, Vec<&SolverTraceV03>>::new();
-    let mut seen = BTreeMap::<CohortV03Key, std::collections::BTreeSet<String>>::new();
+    let mut seen =
+        BTreeMap::<CohortV03Key, BTreeMap<String, SolverTraceV03>>::new();
     let mut cohort_identity_by_id = BTreeMap::<String, CohortV03Key>::new();
     for record in records {
         record.validate()?;
@@ -633,6 +638,9 @@ pub fn summarize_traces_v03(records: &[SolverTraceV03]) -> Result<Vec<TraceSumma
             scenario_panel_sha256: record.scenario_panel_sha256.clone(),
             model_sha256: record.model_sha256.clone(),
             mesh_policy_sha256: record.mesh_policy_sha256.clone(),
+            solver_name: record.solver_name.clone(),
+            solver_version: record.solver_version.clone(),
+            horizon_minutes: record.horizon_minutes,
             solver_binary_sha256: record.solver_binary_sha256.clone(),
             solver_config_sha256: record.solver_config_sha256.clone(),
             hardware_profile_sha256: record.hardware_profile_sha256.clone(),
@@ -645,9 +653,13 @@ pub fn summarize_traces_v03(records: &[SolverTraceV03]) -> Result<Vec<TraceSumma
             cohort_identity_by_id.insert(record.cohort_id.clone(), key.clone());
         }
         let samples = seen.entry(key.clone()).or_default();
-        if !samples.insert(record.sample_id.clone()) {
+        if let Some(existing) = samples.get(&record.sample_id) {
+            if existing != record {
+                return Err(TraceV03Error::DuplicateSampleConflict);
+            }
             continue;
         }
+        samples.insert(record.sample_id.clone(), record.clone());
         groups.entry(key).or_default().push(record);
     }
     let mut summaries = Vec::new();
@@ -1056,6 +1068,22 @@ mod tests {
         assert_eq!(
             summarize_traces_v03(&[first, second]),
             Err(TraceV03Error::MixedCohortIdentity)
+        );
+    }
+
+    #[test]
+    fn duplicate_sample_id_with_conflicting_outcome_is_rejected() {
+        let first = base(SearchDispositionV03::ExactComplete);
+        let mut conflict = first.clone();
+        conflict.search_disposition = SearchDispositionV03::LimitWithoutCandidate;
+        conflict.candidate_complete_horizon = false;
+        conflict.candidate_schedule_sha256 = None;
+        conflict.feasible_complete_schedules = Some(0);
+        conflict.pareto_frontier_complete = false;
+        conflict.pareto_frontier_count = None;
+        assert_eq!(
+            summarize_traces_v03(&[first, conflict]),
+            Err(TraceV03Error::DuplicateSampleConflict)
         );
     }
 
