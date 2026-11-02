@@ -1081,9 +1081,7 @@ mod tests {
             },
         );
         let repo = CapsuleRepository {
-            capsule_root: PathBuf::from("/tmp"),
-            cas_root: None,
-            metadata_paths: BTreeMap::new(),
+            metadata_bytes: BTreeMap::new(),
             target_sources: sources,
         };
         let transformed = format!("channels/plant-17/{digest}.manifest.json");
@@ -1091,7 +1089,10 @@ mod tests {
             consistent_snapshot_target_name("channels/plant-17/manifest.json", &digest),
             transformed
         );
-        assert!(repo.target_sources.contains_key("channels/plant-17/manifest.json"));
+        assert_eq!(
+            repo.target_bytes(&transformed, 1024).unwrap(),
+            Some(b"manifest bytes".to_vec())
+        );
     }
 
     #[test]
