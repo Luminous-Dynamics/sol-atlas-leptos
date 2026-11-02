@@ -1,0 +1,77 @@
+{
+  "sample_id": "synthetic-agriculture-change-01",
+  "ground_truth": {
+    "kind": "complete_causes",
+    "causes": [
+      "agriculture_cultivation",
+      "seasonal_vegetation_phenology"
+    ],
+    "adjudication_ref": "urn:synthetic:review:01"
+  },
+  "prediction": {
+    "abstained": false,
+    "scores": [
+      {
+        "cause": "archaeological_excavation_looting",
+        "probability": 0.79,
+        "evidence_refs": [
+          "urn:synthetic:evidence:archaeological_excavation_looting"
+        ]
+      },
+      {
+        "cause": "agriculture_cultivation",
+        "probability": 0.92,
+        "evidence_refs": [
+          "urn:synthetic:evidence:agriculture_cultivation"
+        ]
+      },
+      {
+        "cause": "seasonal_vegetation_phenology",
+        "probability": 0.82,
+        "evidence_refs": [
+          "urn:synthetic:evidence:seasonal_vegetation_phenology"
+        ]
+      },
+      {
+        "cause": "erosion_geomorphic",
+        "probability": 0.04,
+        "evidence_refs": []
+      },
+      {
+        "cause": "hydrology_flood",
+        "probability": 0.04,
+        "evidence_refs": []
+      },
+      {
+        "cause": "fire_vegetation_clearance",
+        "probability": 0.04,
+        "evidence_refs": []
+      },
+      {
+        "cause": "modern_construction_infrastructure",
+        "probability": 0.04,
+        "evidence_refs": []
+      },
+      {
+        "cause": "quarry_mining",
+        "probability": 0.04,
+        "evidence_refs": []
+      },
+      {
+        "cause": "military_conflict",
+        "probability": 0.04,
+        "evidence_refs": []
+      },
+      {
+        "cause": "sensor_processing_artifact",
+        "probability": 0.04,
+        "evidence_refs": []
+      },
+      {
+        "cause": "other_known_cause",
+        "probability": 0.04,
+        "evidence_refs": []
+      }
+    ]
+  }
+}
