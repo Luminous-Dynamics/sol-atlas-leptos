@@ -31,6 +31,13 @@
     "ledger_epoch": "epoch:2026-11-01",
     "action_authority": "none",
     "completeness_attestation_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
-    "availability_report_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    "availability_report_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "state_transition": {
+      "expected_previous_state_revision": 18,
+      "next_state_revision": 19,
+      "commit_semantics": "compare_and_swap_atomic",
+      "next_sequence": 120,
+      "next_target_role_count": 4
+    }
   }
 }
