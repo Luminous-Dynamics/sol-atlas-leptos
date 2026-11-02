@@ -477,35 +477,56 @@ fn run_profile(
             Ok(output) => {
                 let receipt_bytes = fs::read(audit_receipt_path).ok();
                 if let Some(receipt_bytes) = receipt_bytes {
-                    let receipt_value: Value = serde_json::from_slice(&receipt_bytes)
-                        .map_err(|error| format!("parse schedule audit receipt: {error}"))?;
-                    let lite: ScheduleAuditReceiptLite = serde_json::from_value(receipt_value.clone())
-                        .map_err(|error| format!("decode schedule audit receipt: {error}"))?;
-                    if lite.request_sha256 != request_sha256
-                        || lite.schedule_sha256 != candidate_schedule_hash.as_deref().unwrap_or("")
-                        || auditor_binary_hash.as_deref() != Some(lite.auditor_binary_sha256.as_str())
-                        || !valid_sha256(&lite.receipt_sha256)
-                    {
-                        audit_disposition = AuditDispositionV03::Unavailable;
-                        failure = Some("schedule audit receipt bindings did not match exact input bytes or executable".to_owned());
-                    } else {
-                        audit_disposition = match lite.disposition.as_str() {
-                            "accepted" if output.status.success() => AuditDispositionV03::Accepted,
-                            "rejected" if output.status.code() == Some(1) => AuditDispositionV03::Rejected,
-                            _ => AuditDispositionV03::Unavailable,
-                        };
-                        if audit_disposition != AuditDispositionV03::Unavailable {
-                            audit_receipt_sha = Some(lite.receipt_sha256.clone());
-                            audit_request_sha = Some(lite.request_sha256.clone());
-                            audit_schedule_sha = Some(lite.schedule_sha256.clone());
-                            audit_binary_sha = Some(lite.auditor_binary_sha256.clone());
-                            audit_receipt_value = Some(receipt_value);
+                    let decoded = (|| -> Result<(Value, ScheduleAuditReceiptLite), String> {
+                        let value: Value = serde_json::from_slice(&receipt_bytes)
+                            .map_err(|error| format!("parse schedule audit receipt: {error}"))?;
+                        let lite: ScheduleAuditReceiptLite =
+                            serde_json::from_value(value.clone())
+                                .map_err(|error| format!("decode schedule audit receipt: {error}"))?;
+                        Ok((value, lite))
+                    })();
+                    match decoded {
+                        Ok((receipt_value, lite)) => {
+                            if lite.request_sha256 != request_sha256
+                                || lite.schedule_sha256
+                                    != candidate_schedule_hash.as_deref().unwrap_or("")
+                                || auditor_binary_hash.as_deref()
+                                    != Some(lite.auditor_binary_sha256.as_str())
+                                || !valid_sha256(&lite.receipt_sha256)
+                            {
+                                audit_disposition = AuditDispositionV03::Unavailable;
+                                failure = Some(
+                                    "schedule audit receipt bindings did not match exact input bytes or executable"
+                                        .to_owned(),
+                                );
+                            } else {
+                                audit_disposition = match lite.disposition.as_str() {
+                                    "accepted" if output.status.success() => {
+                                        AuditDispositionV03::Accepted
+                                    }
+                                    "rejected" if output.status.code() == Some(1) => {
+                                        AuditDispositionV03::Rejected
+                                    }
+                                    _ => AuditDispositionV03::Unavailable,
+                                };
+                                if audit_disposition != AuditDispositionV03::Unavailable {
+                                    audit_receipt_sha = Some(lite.receipt_sha256.clone());
+                                    audit_request_sha = Some(lite.request_sha256.clone());
+                                    audit_schedule_sha = Some(lite.schedule_sha256.clone());
+                                    audit_binary_sha = Some(lite.auditor_binary_sha256.clone());
+                                    audit_receipt_value = Some(receipt_value);
+                                }
+                                if audit_disposition == AuditDispositionV03::Accepted {
+                                    time_to_first_audit_accept_ns = Some(
+                                        u64::try_from(invocation_started.elapsed().as_nanos())
+                                            .map_err(|_| "audit acceptance elapsed overflow".to_owned())?,
+                                    );
+                                }
+                            }
                         }
-                        if audit_disposition == AuditDispositionV03::Accepted {
-                            time_to_first_audit_accept_ns = Some(
-                                u64::try_from(invocation_started.elapsed().as_nanos())
-                                    .map_err(|_| "audit acceptance elapsed overflow".to_owned())?,
-                            );
+                        Err(error) => {
+                            audit_disposition = AuditDispositionV03::Unavailable;
+                            failure = Some(error);
                         }
                     }
                 } else {
@@ -546,40 +567,61 @@ fn run_profile(
         match floor_output {
             Ok(output) => {
                 if let Ok(receipt_bytes) = fs::read(service_floor_receipt_path) {
-                    let receipt_value: Value = serde_json::from_slice(&receipt_bytes)
-                        .map_err(|error| format!("parse service-floor receipt: {error}"))?;
-                    let lite: ServiceFloorReceiptLite =
-                        serde_json::from_value(receipt_value.clone())
-                            .map_err(|error| format!("decode service-floor receipt: {error}"))?;
-                    if lite.request_sha256 != request_sha256
-                        || lite.schedule_sha256 != candidate_schedule_hash.as_deref().unwrap_or("")
-                        || lite.schedule_audit_receipt_sha256
-                            != audit_receipt_sha.as_deref().unwrap_or("")
-                        || lite.schedule_auditor_binary_sha256
-                            != audit_binary_sha.as_deref().unwrap_or("")
-                        || Some(lite.service_floor_auditor_binary_sha256.as_str())
-                            != service_floor_binary_hash.as_deref()
-                        || lite.policy_sha256 != policy_hash
-                        || !valid_sha256(&lite.receipt_sha256)
-                    {
-                        service_floor_disposition = ServiceFloorDispositionV03::Unavailable;
-                        failure = Some("service-floor receipt bindings did not match exact policy, request, schedule, audit receipt or evaluator executable".to_owned());
-                    } else {
-                        service_floor_disposition = match lite.disposition.as_str() {
-                            "passed" if output.status.success() => ServiceFloorDispositionV03::Passed,
-                            "failed" if output.status.code() == Some(1) => ServiceFloorDispositionV03::Failed,
-                            _ => ServiceFloorDispositionV03::Unavailable,
-                        };
-                        if matches!(
-                            service_floor_disposition,
-                            ServiceFloorDispositionV03::Passed | ServiceFloorDispositionV03::Failed
-                        ) {
-                            service_floor_audit_receipt_sha =
-                                Some(lite.schedule_audit_receipt_sha256.clone());
-                            service_floor_receipt_sha = Some(lite.receipt_sha256.clone());
-                            service_floor_binary_sha =
-                                Some(lite.service_floor_auditor_binary_sha256.clone());
-                            service_floor_receipt_value = Some(receipt_value);
+                    let decoded = (|| -> Result<(Value, ServiceFloorReceiptLite), String> {
+                        let value: Value = serde_json::from_slice(&receipt_bytes)
+                            .map_err(|error| format!("parse service-floor receipt: {error}"))?;
+                        let lite: ServiceFloorReceiptLite =
+                            serde_json::from_value(value.clone())
+                                .map_err(|error| format!("decode service-floor receipt: {error}"))?;
+                        Ok((value, lite))
+                    })();
+                    match decoded {
+                        Ok((receipt_value, lite)) => {
+                            if lite.request_sha256 != request_sha256
+                                || lite.schedule_sha256
+                                    != candidate_schedule_hash.as_deref().unwrap_or("")
+                                || lite.schedule_audit_receipt_sha256
+                                    != audit_receipt_sha.as_deref().unwrap_or("")
+                                || lite.schedule_auditor_binary_sha256
+                                    != audit_binary_sha.as_deref().unwrap_or("")
+                                || Some(lite.service_floor_auditor_binary_sha256.as_str())
+                                    != service_floor_binary_hash.as_deref()
+                                || lite.policy_sha256 != policy_hash
+                                || !valid_sha256(&lite.receipt_sha256)
+                            {
+                                service_floor_disposition =
+                                    ServiceFloorDispositionV03::Unavailable;
+                                failure = Some(
+                                    "service-floor receipt bindings did not match exact policy, request, schedule, audit receipt or evaluator executable".to_owned(),
+                                );
+                            } else {
+                                service_floor_disposition = match lite.disposition.as_str() {
+                                    "passed" if output.status.success() => {
+                                        ServiceFloorDispositionV03::Passed
+                                    }
+                                    "failed" if output.status.code() == Some(1) => {
+                                        ServiceFloorDispositionV03::Failed
+                                    }
+                                    _ => ServiceFloorDispositionV03::Unavailable,
+                                };
+                                if matches!(
+                                    service_floor_disposition,
+                                    ServiceFloorDispositionV03::Passed
+                                        | ServiceFloorDispositionV03::Failed
+                                ) {
+                                    service_floor_audit_receipt_sha =
+                                        Some(lite.schedule_audit_receipt_sha256.clone());
+                                    service_floor_receipt_sha =
+                                        Some(lite.receipt_sha256.clone());
+                                    service_floor_binary_sha =
+                                        Some(lite.service_floor_auditor_binary_sha256.clone());
+                                    service_floor_receipt_value = Some(receipt_value);
+                                }
+                            }
+                        }
+                        Err(error) => {
+                            service_floor_disposition = ServiceFloorDispositionV03::Unavailable;
+                            failure = Some(error);
                         }
                     }
                 } else {
