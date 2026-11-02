@@ -197,12 +197,11 @@ jobs:
       - name: Validate temporal snapshot and report schemas
         run: |
           set -euo pipefail
-          meta=https://json-schema.org/draft/2020-12/schema
           snapshot=schemas/industry-ieac-decision-frontier-snapshot-v0.1.schema.json
           report=schemas/industry-ieac-decision-frontier-report-v0.1.schema.json
           fixture=schemas/examples/ieac-decision-frontier-snapshot-synthetic-v0.1.json
-          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i "$snapshot"
-          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i "$report"
+          jsonschema-cli validate --draft 2020 --assert-format -i "$snapshot"
+          jsonschema-cli validate --draft 2020 --assert-format -i "$report"
           jsonschema-cli validate --draft 2020 --assert-format --offline "$snapshot" -i "$fixture"
 
       - name: Run temporal replay and expected-vector oracle
