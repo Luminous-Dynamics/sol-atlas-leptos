@@ -822,22 +822,30 @@ mod tests {
         let scenarios = [
             (
                 "nominal-pv-charge-outage",
-                include_str!("../../schemas/examples/energy-dispatch-scenarios/nominal-pv-charge-outage.json"),
+                include_str!(
+                    "../../schemas/examples/energy-dispatch-scenarios/nominal-pv-charge-outage.json"
+                ),
                 0_u64,
             ),
             (
                 "battery-only-outage-backup",
-                include_str!("../../schemas/examples/energy-dispatch-scenarios/battery-only-outage-backup.json"),
+                include_str!(
+                    "../../schemas/examples/energy-dispatch-scenarios/battery-only-outage-backup.json"
+                ),
                 0_u64,
             ),
             (
                 "pv-derate-islanded",
-                include_str!("../../schemas/examples/energy-dispatch-scenarios/pv-derate-islanded.json"),
+                include_str!(
+                    "../../schemas/examples/energy-dispatch-scenarios/pv-derate-islanded.json"
+                ),
                 1_u64,
             ),
             (
                 "demand-surge-outage",
-                include_str!("../../schemas/examples/energy-dispatch-scenarios/demand-surge-outage.json"),
+                include_str!(
+                    "../../schemas/examples/energy-dispatch-scenarios/demand-surge-outage.json"
+                ),
                 1_u64,
             ),
         ];
