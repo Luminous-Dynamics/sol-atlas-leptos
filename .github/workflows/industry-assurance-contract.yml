@@ -55,18 +55,6 @@ jobs:
         with:
           components: rustfmt, clippy
 
-      - name: Generate validator lockfile candidate for review
-        run: cargo generate-lockfile --manifest-path tools/industry-assurance-validator/Cargo.toml
-
-      - name: Upload validator lockfile candidate
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: industry-assurance-validator-lockfile-candidate
-          path: tools/industry-assurance-validator/Cargo.lock
-          if-no-files-found: error
-          retention-days: 3
-
       - name: Check formatting
         run: cargo fmt --manifest-path tools/industry-assurance-validator/Cargo.toml -- --check
 
@@ -130,12 +118,11 @@ jobs:
       - name: Validate schemas against the Draft 2020-12 meta-schema
         run: |
           set -euo pipefail
-          jsonschema-cli validate --draft 2020 --assert-format \
-            https://json-schema.org/draft/2020-12/schema \
-            --instance schemas/industry-assurance-qualification-profile-v0.1.schema.json
-          jsonschema-cli validate --draft 2020 --assert-format \
-            https://json-schema.org/draft/2020-12/schema \
-            --instance schemas/industry-assurance-validation-report-v0.1.schema.json
+          meta=https://json-schema.org/draft/2020-12/schema
+          meta_schema="$RUNNER_TEMP/draft-2020-12-meta-schema.json"
+          curl --fail --location --retry 5 --retry-connrefused "$meta" -o "$meta_schema"
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" --instance schemas/industry-assurance-qualification-profile-v0.1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" --instance schemas/industry-assurance-validation-report-v0.1.schema.json
 
       - name: Validate all profile examples against the full schema
         run: |
