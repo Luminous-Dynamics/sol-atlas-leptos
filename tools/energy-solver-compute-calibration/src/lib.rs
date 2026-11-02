@@ -353,7 +353,7 @@ fn parse_optional<T>(
 
 fn parse_csv_row(line: &str) -> Result<SolverTrace, TraceError> {
     let fields: Vec<&str> = line.split(',').collect();
-    if fields.len() != 31 {
+    if fields.len() != 34 {
         return Err(TraceError::InvalidCsvFieldCount);
     }
     Ok(SolverTrace {
@@ -909,6 +909,62 @@ mod tests {
     }
 
     #[test]
+    fn exact_enumerator_can_report_a_complete_pareto_frontier_without_fake_scalar_variables_or_first_hit_time() {
+        let mut row = trace(0, SolveStatus::Optimal);
+        row.time_to_first_feasible_ns = None;
+        row.objective_value_units = None;
+        row.best_bound_units = None;
+        row.optimality_gap_ppm = None;
+        row.continuous_variables = None;
+        row.integer_variables = None;
+        row.binary_variables = None;
+        row.constraints = None;
+        row.search_action_expansions = Some(1_024);
+        row.feasible_complete_schedules = Some(48);
+        row.pareto_frontier_count = Some(7);
+
+        assert!(row.validate().is_ok());
+        let summary = summarize_traces(&[row]).unwrap().remove(0);
+        assert_eq!(summary.completed_sample_count, 1);
+        assert_eq!(summary.first_feasible_sample_count, 0);
+        assert_eq!(summary.binary_variables_min, None);
+        assert_eq!(summary.constraints_min, None);
+        assert_eq!(summary.search_metrics_sample_count, 1);
+        assert_eq!(summary.search_action_expansions_min, Some(1_024));
+        assert_eq!(summary.feasible_complete_schedules_min, Some(48));
+        assert_eq!(summary.pareto_frontier_count_min, Some(7));
+    }
+
+    #[test]
+    fn expansion_cap_is_a_distinct_limit_reached_outcome_not_a_timeout_or_infeasible_result() {
+        let mut row = trace(0, SolveStatus::LimitReached);
+        row.time_to_first_feasible_ns = None;
+        row.time_to_optimal_ns = None;
+        row.objective_value_units = None;
+        row.best_bound_units = None;
+        row.optimality_gap_ppm = None;
+        row.search_action_expansions = None;
+        row.feasible_complete_schedules = None;
+        row.pareto_frontier_count = None;
+
+        assert!(row.validate().is_ok());
+        let summary = summarize_traces(&[row]).unwrap().remove(0);
+        assert_eq!(summary.limit_reached_count, 1);
+        assert_eq!(summary.timeout_count, 0);
+        assert_eq!(summary.infeasible_count, 0);
+        assert_eq!(summary.completed_sample_count, 0);
+    }
+
+    #[test]
+    fn partial_exact_search_metrics_are_rejected() {
+        let mut row = trace(0, SolveStatus::Optimal);
+        row.search_action_expansions = Some(100);
+        row.feasible_complete_schedules = None;
+        row.pareto_frontier_count = None;
+        assert_eq!(row.validate(), Err(TraceError::InvalidStatusSemantics));
+    }
+
+    #[test]
     fn timeout_with_an_incumbent_is_a_timeout_and_a_first_feasible_observation() {
         let mut row = trace(22, SolveStatus::TimedOut);
         row.time_to_first_feasible_ns = Some(10_000_000);
@@ -1039,7 +1095,11 @@ mod tests {
         assert_eq!(summary.feasible_count, 4);
         assert_eq!(summary.timeout_count, 4);
         assert_eq!(summary.infeasible_count, 4);
+        assert_eq!(summary.limit_reached_count, 0);
         assert_eq!(summary.completed_sample_count, 22);
+        assert_eq!(summary.search_metrics_sample_count, 0);
+        assert_eq!(summary.binary_variables_min, Some(48));
+        assert_eq!(summary.constraints_min, Some(800));
         assert_eq!(summary.first_feasible_sample_count, 22);
         assert_eq!(summary.peak_memory_sample_count, 30);
         assert_eq!(summary.completed_latency_p95_ns, Some(1_200_000));
