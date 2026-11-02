@@ -1,5 +1,5 @@
-use industry_twin_interface_validator::{validate_manifest, VALIDATOR_VERSION};
-use serde_json::{json, Value};
+use industry_twin_interface_validator::{VALIDATOR_VERSION, validate_manifest};
+use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::env;
 use std::fs::{self, OpenOptions};
@@ -21,15 +21,14 @@ fn run() -> Result<(Value, bool, Option<String>), String> {
     if args.next().is_some() {
         return Err("too many arguments".to_owned());
     }
-    let bytes = fs::read(&input_path)
-        .map_err(|error| format!("cannot read {input_path}: {error}"))?;
+    let bytes =
+        fs::read(&input_path).map_err(|error| format!("cannot read {input_path}: {error}"))?;
     let value: Value = serde_json::from_slice(&bytes)
         .map_err(|error| format!("invalid JSON in {input_path}: {error}"))?;
     let issues = validate_manifest(&value);
     let valid = issues.is_empty();
-    let schema_bytes = include_bytes!(
-        "../../../schemas/industry-twin-interface-manifest-v0.1.schema.json"
-    );
+    let schema_bytes =
+        include_bytes!("../../../schemas/industry-twin-interface-manifest-v0.1.schema.json");
     let report = json!({
         "schema_version": "luminous.industry-twin-interface-validation-report.v0.1",
         "manifest_id": value["manifest_id"],
@@ -61,9 +60,8 @@ fn main() {
             if let Some(path) = output_path {
                 match OpenOptions::new().write(true).create_new(true).open(&path) {
                     Ok(mut file) => {
-                        if let Err(error) = file
-                            .write_all(&bytes)
-                            .and_then(|_| file.write_all(b"\n"))
+                        if let Err(error) =
+                            file.write_all(&bytes).and_then(|_| file.write_all(b"\n"))
                         {
                             eprintln!("cannot write {path}: {error}");
                             std::process::exit(2);
