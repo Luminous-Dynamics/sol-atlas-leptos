@@ -26,7 +26,11 @@
     "tuf_verification_policy_sha256",
     "tuf_trust_bundle_sha256",
     "claim_ceiling",
-    "action_authority"
+    "action_authority",
+    "completeness_attestation_target_path",
+    "completeness_attestation_target_role",
+    "availability_report_target_path",
+    "availability_report_target_role"
   ],
   "properties": {
     "schema_version": {
@@ -121,6 +125,26 @@
     },
     "action_authority": {
       "const": "none"
+    },
+    "completeness_attestation_target_path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024
+    },
+    "completeness_attestation_target_role": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "availability_report_target_path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024
+    },
+    "availability_report_target_role": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
     }
   }
 }
