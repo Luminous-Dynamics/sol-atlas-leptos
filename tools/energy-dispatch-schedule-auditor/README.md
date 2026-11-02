@@ -135,3 +135,29 @@ declared integer battery/PV/grid model for the exact request bytes. It does
 not prove physical-model completeness, source evidence authenticity, solver
 optimality, field reliability, grid-interconnection compliance, equipment
 safety or authorization to execute the schedule.
+
+## Independent essential-service floor evaluator v0.1
+
+The package also builds a second executable, `energy-dispatch-service-floor-auditor`. It is a distinct process from the schedule search and from the schedule-auditor CLI. It accepts five inputs:
+
+```sh
+cargo run --release --locked \
+  --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml \
+  --bin energy-dispatch-service-floor-auditor -- \
+  request.json schedule.json service-floor-policy.json \
+  schedule-audit-receipt.json service-floor-receipt.json
+```
+
+The evaluator does not accept optimizer-supplied service or objective claims. It strict-parses the exact request, schedule, policy and prior schedule-audit receipt; recomputes the source-aligned schedule findings and all objective values; verifies the receipt's canonical subject digest and exact request/schedule bindings; then evaluates the pinned policy.
+
+The v0.1 policy contains:
+- minimum essential-service fraction per interval (basis points, 0–10,000);
+- maximum cumulative essential unserved energy;
+- maximum consecutive intervals below the per-interval floor;
+- minimum terminal battery SOC.
+
+This is intentionally time-indexed. A daily/whole-horizon energy total cannot conceal a critical interval in which essential service falls below its declared floor. The service-floor receipt binds the exact policy, request, schedule, preceding schedule-audit receipt, schedule-auditor executable and service-floor-auditor executable. The receipt digest is a content identifier, not an external signature or proof of binary authenticity.
+
+The checked-in synthetic PV/outage policy requires 100% essential service in every interval, zero cumulative essential unserved energy, zero consecutive service-floor misses and a zero-quanta minimum terminal reserve. It is a deliberately strict synthetic positive control, not a universal policy for all sites or operating contexts. A real deployment needs a separately authored, risk-approved policy with site-specific service classes, uncertainty, operating envelope and operator authority.
+
+The profiler workflow now runs both executables for each of its 30 repeated synthetic schedules and requires 30 accepted schedule receipts plus 30 passed service-floor receipts. The existing v0.2 solver trace remains unchanged; these separate service-floor receipts are uploaded as independent artifacts until the v0.3 trace-runner migration composes them.
