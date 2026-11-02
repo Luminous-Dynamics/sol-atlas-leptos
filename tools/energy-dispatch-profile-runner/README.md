@@ -49,12 +49,16 @@ A successful search without an accepted independent receipt is not counted as an
 The first frozen request is `schemas/examples/energy-dispatch-pv-outage.synthetic.json`: a two-interval PV-charge / grid-outage micro-case. It is explicitly synthetic. Runtime and memory are actually measured on the hosted runner; the data/model case is synthetic. The scenario class must not be mistaken for fabricated timings.
 
 The repeated campaign:
+- builds the exact profiler, standalone schedule auditor and trace aggregator once;
 - executes the same frozen request 30 times in one source/model/mesh/solver-binary/configuration/hardware cohort;
 - emits 30 unique sample IDs and a 34-column trace;
-- audits all 30 selected schedules in a separate process;
+- serializes the first lexicographic Pareto alternative as the domain-level schedule DTO;
+- audits all 30 selected schedules in a separate process and requires 30 accepted receipts bound to their exact request/schedule hashes;
 - computes nearest-rank p50 and p95 for completed search latency;
 - withholds p99 because the required 1,000 completed samples are not available;
 - reports the sample denominators and full runner/auditor/aggregator provenance.
+
+The trace has `measurement_class=synthetic` because the frozen request is synthetic; the `elapsed_ns` values are still measured with `Instant` around the real kernel call. The 30 repetitions estimate within-case timing variability on the exact hosted runner, not variation across scenarios or machines.
 
 This is a **within-case repeatability measurement**, not a broad dispatch performance result. It does not yet establish how runtime scales with horizon, uncertainty, asset count, constraint density or network size. The first 30-row cohort will be uploaded as a CI artifact; use its exact source commit, panel digest, executable hashes and host fingerprint when interpreting it.
 
@@ -121,4 +125,4 @@ The exact 30-sample campaign and independent audit commands are kept in `.github
 
 ## Claim ceiling
 
-This runner measures execution of the actual current bounded exact enumerator on a declared request and uses a separate executable to audit the selected trajectory. It does not establish grid safety, real-world optimality, network feasibility, battery life, forecast accuracy, field reliability, regulatory compliance, or SOTA superiority. Those require additional physics, data, operating constraints and matched baselines.
+This runner measures execution of the actual current bounded exact enumerator on a declared request and uses a separate executable to audit the selected trajectory. The current first panel is a single two-interval synthetic case; its 30 repeats are not an external baseline comparison or evidence of SOTA superiority. It does not establish grid safety, real-world optimality, network feasibility, battery life, forecast accuracy, field reliability, regulatory compliance, or SOTA superiority. Those require additional physics, data, operating constraints and matched baselines.
