@@ -1,6 +1,6 @@
-use serde::de::{self, MapAccess, SeqAccess, Visitor};
 use serde::Deserialize;
-use serde_json::{json, Map, Number, Value};
+use serde::de::{self, MapAccess, SeqAccess, Visitor};
+use serde_json::{Map, Number, Value, json};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::env;
@@ -273,8 +273,7 @@ fn validate_graph(graph: &Value) -> Result<BTreeMap<String, Value>, String> {
     let mut edge_ids = BTreeSet::new();
     let mut edge_pairs = BTreeSet::new();
     let mut adjacency: BTreeMap<String, Vec<String>> = BTreeMap::new();
-    let mut indegree: BTreeMap<String, usize> =
-        nodes.keys().map(|key| (key.clone(), 0)).collect();
+    let mut indegree: BTreeMap<String, usize> = nodes.keys().map(|key| (key.clone(), 0)).collect();
 
     for (index, edge) in edges.iter().enumerate() {
         let context = format!("graph.edges[{index}]");
@@ -340,7 +339,10 @@ fn cause_allows(cause: &str, node_type: &str) -> bool {
         "trust_root_changed" => node_type == "trust_bundle",
         "source_corrected" => node_type == "source_measurement",
         "rights_revoked_or_expired" => {
-            matches!(node_type, "source_measurement" | "authority_grant" | "signed_statement")
+            matches!(
+                node_type,
+                "source_measurement" | "authority_grant" | "signed_statement"
+            )
         }
         "model_superseded" => node_type == "model",
         "schema_superseded" => node_type == "schema",
@@ -368,11 +370,7 @@ fn validate_event(event: &Value, nodes: &BTreeMap<String, Value>) -> Result<(), 
     if sequence == 1 && !previous.is_null() {
         return Err("first authority event must have no predecessor".into());
     }
-    if sequence > 1
-        && !previous
-            .as_str()
-            .is_some_and(valid_sha256)
-    {
+    if sequence > 1 && !previous.as_str().is_some_and(valid_sha256) {
         return Err("later authority event requires a predecessor digest".into());
     }
 
@@ -400,10 +398,15 @@ fn validate_event(event: &Value, nodes: &BTreeMap<String, Value>) -> Result<(), 
             || !trusted_at.ends_with('Z')
             || trusted_at < recorded_at
         {
-            return Err("retroactive event times must be ordered, normalized UTC timestamps".into());
+            return Err(
+                "retroactive event times must be ordered, normalized UTC timestamps".into(),
+            );
         }
-        let timestamp_receipt =
-            required_string(system_time, "trusted_timestamp_receipt_sha256", "system_time")?;
+        let timestamp_receipt = required_string(
+            system_time,
+            "trusted_timestamp_receipt_sha256",
+            "system_time",
+        )?;
         if !valid_sha256(timestamp_receipt) {
             return Err("trusted timestamp receipt digest is invalid".into());
         }
@@ -430,16 +433,22 @@ fn validate_event(event: &Value, nodes: &BTreeMap<String, Value>) -> Result<(), 
         if node.get("node_type").and_then(Value::as_str) != Some(node_type)
             || node.get("artifact_sha256").and_then(Value::as_str) != Some(artifact_digest)
         {
-            return Err(format!("{context}: target type or digest does not match graph node"));
+            return Err(format!(
+                "{context}: target type or digest does not match graph node"
+            ));
         }
         if !target_ids.insert(node_id.to_owned()) {
             return Err(format!("{context}: duplicate invalidation target"));
         }
         if !cause_allows(cause, node_type) {
-            return Err(format!("{context}: cause class is incompatible with target node type"));
+            return Err(format!(
+                "{context}: cause class is incompatible with target node type"
+            ));
         }
         if !scope_matches(node, event_scope) {
-            return Err(format!("{context}: invalidation authority scope does not cover target"));
+            return Err(format!(
+                "{context}: invalidation authority scope does not cover target"
+            ));
         }
     }
     Ok(())
@@ -494,14 +503,22 @@ fn build_impact_report(
         "effective_at",
         "event.valid_time",
     )?;
-    let evaluated_at = required_string(expected_metadata, "evaluated_at", "expected report metadata")?;
+    let evaluated_at = required_string(
+        expected_metadata,
+        "evaluated_at",
+        "expected report metadata",
+    )?;
     if !evaluated_at.ends_with('Z') {
         return Err("impact evaluation time must be normalized UTC".into());
     }
-    let system_time = event.get("system_time").ok_or("event system_time missing")?;
+    let system_time = event
+        .get("system_time")
+        .ok_or("event system_time missing")?;
     let trusted_at = required_string(system_time, "trusted_at", "event.system_time")?;
     if trusted_at > evaluated_at || effective_at > evaluated_at {
-        return Err("invalidation event was not trusted/effective at the requested evaluation time".into());
+        return Err(
+            "invalidation event was not trusted/effective at the requested evaluation time".into(),
+        );
     }
     let event_scope = event.get("scope").ok_or("event scope missing")?;
     let targets = event
@@ -594,7 +611,8 @@ fn build_impact_report(
                     "ineligible",
                     vec!["ISSUER_KEY_COMPROMISED", "CURRENT_KEY_TRUST_WITHDRAWN"],
                 )
-            } else if signed_statement_precedes_compromise(path, nodes, effective_at, evaluated_at) {
+            } else if signed_statement_precedes_compromise(path, nodes, effective_at, evaluated_at)
+            {
                 (
                     "historical_record_only",
                     "valid_at_time",
@@ -696,7 +714,9 @@ fn build_impact_report(
 }
 
 fn evaluate_fixture(fixture: &Value) -> Result<Value, String> {
-    if fixture.get("fixture_schema_version").and_then(Value::as_str)
+    if fixture
+        .get("fixture_schema_version")
+        .and_then(Value::as_str)
         != Some("luminous.ieac-trust-lifecycle-fixture.v0.1")
         || fixture.get("fixture_status").and_then(Value::as_str) != Some("synthetic_only")
     {
@@ -720,7 +740,9 @@ fn evaluate_fixture(fixture: &Value) -> Result<Value, String> {
         .get("summary")
         .ok_or("expected report summary is missing")?;
     if report["results"] != *expected_results {
-        return Err("derived impact results do not match the frozen expected node classifications".into());
+        return Err(
+            "derived impact results do not match the frozen expected node classifications".into(),
+        );
     }
     if report["summary"] != *expected_summary {
         return Err("derived impact summary does not match the frozen expected counts".into());
@@ -729,7 +751,9 @@ fn evaluate_fixture(fixture: &Value) -> Result<Value, String> {
         return Err("impact report graph digest does not match expected report binding".into());
     }
     if report["invalidation_event_sha256"] != expected["invalidation_event_sha256"] {
-        return Err("impact report invalidation-event digest does not match expected binding".into());
+        return Err(
+            "impact report invalidation-event digest does not match expected binding".into(),
+        );
     }
     for field in [
         "report_id",
@@ -739,7 +763,9 @@ fn evaluate_fixture(fixture: &Value) -> Result<Value, String> {
         "action_authority",
     ] {
         if report[field] != expected[field] {
-            return Err(format!("impact report field '{field}' does not match the frozen expected contract"));
+            return Err(format!(
+                "impact report field '{field}' does not match the frozen expected contract"
+            ));
         }
     }
     Ok(report)
@@ -753,7 +779,8 @@ fn run(input_path: &str, output_path: &str) -> Result<(), String> {
     let report = evaluate_fixture(&fixture)?;
     let encoded = serde_json::to_vec_pretty(&report)
         .map_err(|error| format!("cannot encode impact report: {error}"))?;
-    fs::write(output_path, encoded).map_err(|error| format!("cannot write impact report: {error}"))?;
+    fs::write(output_path, encoded)
+        .map_err(|error| format!("cannot write impact report: {error}"))?;
     Ok(())
 }
 
@@ -810,17 +837,28 @@ mod tests {
     #[test]
     fn dependency_cycle_is_rejected() {
         let mut fixture = fixture();
-        let key_id = fixture["graph"]["nodes"][0]["node_id"].as_str().unwrap().to_owned();
-        let terminal_outcome_id = fixture["graph"]["nodes"][14]["node_id"].as_str().unwrap().to_owned();
-        fixture["graph"]["edges"].as_array_mut().unwrap().push(json!({
-            "edge_id":"edge-cycle-test",
-            "from_node_id":terminal_outcome_id,
-            "to_node_id":key_id,
-            "relation":"revoked_by"
-        }));
+        let key_id = fixture["graph"]["nodes"][0]["node_id"]
+            .as_str()
+            .unwrap()
+            .to_owned();
+        let terminal_outcome_id = fixture["graph"]["nodes"][14]["node_id"]
+            .as_str()
+            .unwrap()
+            .to_owned();
+        fixture["graph"]["edges"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!({
+                "edge_id":"edge-cycle-test",
+                "from_node_id":terminal_outcome_id,
+                "to_node_id":key_id,
+                "relation":"revoked_by"
+            }));
         // Recompute the graph digest so the cycle check, not only the digest check, is exercised.
         let mut core = fixture["graph"].clone();
-        core.as_object_mut().unwrap().remove("graph_snapshot_sha256");
+        core.as_object_mut()
+            .unwrap()
+            .remove("graph_snapshot_sha256");
         fixture["graph"]["graph_snapshot_sha256"] = json!(canonical_json_digest(&core).unwrap());
         assert!(evaluate_fixture(&fixture).is_err());
     }
@@ -837,7 +875,9 @@ mod tests {
         let mut fixture = fixture();
         fixture["graph"]["nodes"][0]["scope"]["domain"] = json!("water");
         let mut core = fixture["graph"].clone();
-        core.as_object_mut().unwrap().remove("graph_snapshot_sha256");
+        core.as_object_mut()
+            .unwrap()
+            .remove("graph_snapshot_sha256");
         fixture["graph"]["graph_snapshot_sha256"] = json!(canonical_json_digest(&core).unwrap());
         assert!(evaluate_fixture(&fixture).is_err());
     }
