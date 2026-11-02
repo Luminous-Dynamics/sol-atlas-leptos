@@ -184,28 +184,41 @@ jobs:
           jq '.first_access.sequence = 111' "$source" > "$RUNNER_TEMP/skipped-access-sequence.json"
           jq '.decision_boundary_checkpoint.observed_at.time_utc = "2026-11-02T09:09:00Z"' "$source" > "$RUNNER_TEMP/boundary-not-after-cutoff.json"
           jq '.coverage_start_checkpoint.observed_at.time_utc = "2026-11-02T09:11:00Z"' "$source" > "$RUNNER_TEMP/coverage-start-after-cutoff.json"
-          for mutant in "$RUNNER_TEMP/gap.json" "$RUNNER_TEMP/bypass.json" "$RUNNER_TEMP/nonzero-query.json" "$RUNNER_TEMP/wrong-query-range.json" "$RUNNER_TEMP/access-before-boundary.json" "$RUNNER_TEMP/boundary-not-after-cutoff.json" "$RUNNER_TEMP/coverage-start-after-cutoff.json"; do
+          # These three controls violate unconditional structural constraints.
+          for mutant in "$RUNNER_TEMP/gap.json" "$RUNNER_TEMP/bypass.json" "$RUNNER_TEMP/nonzero-query.json"; do
             if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$mutant"; then
-              echo "ERROR: attestation schema accepted incomplete negative control $mutant"
+              echo "ERROR: attestation schema accepted structural negative control $mutant"
               exit 1
             fi
           done
-          if jq -e '.first_access.sequence == (.decision_boundary_checkpoint.sequence + 1)' "$RUNNER_TEMP/access-before-boundary.json"; then
-            echo "ERROR: sequence oracle accepted an access at/before its decision boundary"
-            exit 1
-          fi
-          if jq -e '.first_access.sequence == (.decision_boundary_checkpoint.sequence + 1)' "$RUNNER_TEMP/skipped-access-sequence.json"; then
-            echo "ERROR: sequence oracle accepted a sequence gap before first access"
-            exit 1
-          fi
-          if jq -e '(.decision_boundary_checkpoint.observed_at.time_utc | fromdateiso8601) > (.decision_cutoff.time_utc | fromdateiso8601)' "$RUNNER_TEMP/boundary-not-after-cutoff.json"; then
-            echo "ERROR: time oracle accepted a boundary that is not after cutoff"
-            exit 1
-          fi
-          if jq -e '(.coverage_start_checkpoint.observed_at.time_utc | fromdateiso8601) <= (.decision_cutoff.time_utc | fromdateiso8601)' "$RUNNER_TEMP/coverage-start-after-cutoff.json"; then
-            echo "ERROR: time oracle accepted a coverage start after the decision cutoff"
-            exit 1
-          fi
+
+          # These are cross-field semantics. JSON Schema validates shape; the
+          # independent relationship oracle must reject them.
+          check_complete_relations() {
+            jq -e '
+              def epoch($tb): ($tb.time_utc | fromdateiso8601);
+              def early($tb): epoch($tb) - $tb.uncertainty_before_seconds;
+              def late($tb): epoch($tb) + $tb.uncertainty_after_seconds;
+              . as $a |
+              $a.absence_query.sequence_from_exclusive == $a.coverage_start_checkpoint.sequence and
+              $a.absence_query.sequence_through_inclusive == $a.decision_boundary_checkpoint.sequence and
+              $a.absence_query.matching_event_count == 0 and
+              $a.first_access.sequence == ($a.decision_boundary_checkpoint.sequence + 1) and
+              $a.first_access.sequence <= $a.coverage_end_checkpoint.sequence and
+              late($a.coverage_start_checkpoint.observed_at) <= early($a.decision_cutoff) and
+              early($a.decision_boundary_checkpoint.observed_at) > late($a.decision_cutoff) and
+              early($a.first_access.observed_at) > late($a.decision_boundary_checkpoint.observed_at) and
+              early($a.coverage_end_checkpoint.observed_at) >= late($a.first_access.observed_at) and
+              late($a.coverage.coverage_from) <= early($a.decision_cutoff) and
+              early($a.coverage.coverage_through) >= late($a.first_access.observed_at)
+            ' "$1" >/dev/null
+          }
+          for mutant in "$RUNNER_TEMP/wrong-query-range.json" "$RUNNER_TEMP/access-before-boundary.json" "$RUNNER_TEMP/skipped-access-sequence.json" "$RUNNER_TEMP/boundary-not-after-cutoff.json" "$RUNNER_TEMP/coverage-start-after-cutoff.json"; do
+            if check_complete_relations "$mutant"; then
+              echo "ERROR: relationship oracle accepted negative control $mutant"
+              exit 1
+            fi
+          done
 
       - name: Retain synthetic channel evidence
         if: always()
