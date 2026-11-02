@@ -1,0 +1,218 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-evidence-record-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Evidence Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "evidence_id",
+    "candidate_id",
+    "detection_source_sha256",
+    "detection_method_id",
+    "corroboration_source_sha256",
+    "corroboration_method_id",
+    "modality",
+    "relationship",
+    "independence",
+    "outcome",
+    "candidate_coverage_fraction",
+    "detectability_assessment_ref",
+    "evidence_assessment_ref",
+    "reviewer_ref",
+    "authority_ref",
+    "rights_state",
+    "rights_receipt_ref"
+  ],
+  "properties": {
+    "evidence_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "candidate_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "detection_source_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "detection_method_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "corroboration_source_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "corroboration_method_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "modality": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "field_survey",
+        "magnetometry",
+        "ground_penetrating_radar",
+        "electrical_resistivity",
+        "excavation",
+        "archival_research",
+        "community_custodial_knowledge",
+        "airborne_lidar",
+        "uav_optical",
+        "satellite_optical",
+        "thermal_infrared",
+        "synthetic_simulation",
+        "other",
+        null
+      ]
+    },
+    "relationship": {
+      "enum": [
+        "same_candidate",
+        "nearby_context",
+        "regional_context",
+        "unrelated"
+      ]
+    },
+    "independence": {
+      "enum": [
+        "independent_measurement",
+        "independent_interpretation_same_source",
+        "shared_source",
+        "not_assessed"
+      ]
+    },
+    "outcome": {
+      "enum": [
+        "supports",
+        "does_not_support",
+        "inconclusive",
+        "not_tested",
+        "unavailable"
+      ]
+    },
+    "candidate_coverage_fraction": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "detectability_assessment_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "evidence_assessment_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "reviewer_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "authority_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "rights_state": {
+      "enum": [
+        "verified",
+        "pending",
+        "denied",
+        "unknown"
+      ]
+    },
+    "rights_receipt_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "enum": [
+              "not_tested",
+              "unavailable"
+            ]
+          }
+        },
+        "required": [
+          "outcome"
+        ]
+      },
+      "then": {
+        "properties": {
+          "independence": {
+            "const": "not_assessed"
+          },
+          "corroboration_source_sha256": {
+            "type": "null"
+          },
+          "corroboration_method_id": {
+            "type": "null"
+          },
+          "modality": {
+            "type": "null"
+          },
+          "candidate_coverage_fraction": {
+            "type": "null"
+          },
+          "detectability_assessment_ref": {
+            "type": "null"
+          },
+          "evidence_assessment_ref": {
+            "type": "null"
+          },
+          "reviewer_ref": {
+            "type": "null"
+          },
+          "authority_ref": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "rights_state": {
+            "const": "verified"
+          }
+        },
+        "required": [
+          "rights_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "rights_receipt_ref": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  ]
+}
