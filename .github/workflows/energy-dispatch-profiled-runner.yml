@@ -15,6 +15,7 @@ on:
       - "schemas/examples/energy-dispatch-pv-outage.synthetic.json"
       - "schemas/examples/energy-dispatch-scenario-panel-v0.1.json"
       - "schemas/examples/energy-dispatch-scenarios/**"
+      - "schemas/examples/nonanticipativity-v0.1/**"
       - "schemas/energy-dispatch-scenario-panel-v0.1.schema.json"
       - ".github/workflows/energy-dispatch-profiled-runner.yml"
   push:
@@ -418,6 +419,7 @@ jobs:
             tools/energy-dispatch-schedule-auditor/src/
             tools/energy-dispatch-schedule-auditor/schedule-schema-v0.1.json
             tools/energy-dispatch-schedule-auditor/nonanticipativity-manifest-schema-v0.1.json
+            tools/energy-dispatch-schedule-auditor/nonanticipativity-receipt-schema-v0.1.json
             tools/energy-dispatch-schedule-auditor/service-floor-policy-schema-v0.1.json
             tools/energy-dispatch-schedule-auditor/service-floor-receipt-schema-v0.1.json
             tools/energy-dispatch-schedule-auditor/fixtures/energy-dispatch-pv-outage.service-floor-v0.1.json
