@@ -200,3 +200,12 @@ These are synthetic conformance targets, not estimated real-world compromise rat
 ## 11. Claim ceiling
 
 This protocol computes impact only from declared, authenticated inputs; the current fixture supplies synthetic inputs. It does not establish that a key was compromised, rights were revoked, a source correction is true, a model is invalid, a verifier is vulnerable or a physical intervention was unsafe. Those determinations remain with the owning security, identity, rights, data, model or operational authority and must themselves be independently evidenced.
+
+
+## 9.1 Implemented synthetic impact scale ladder
+
+The focused Rust test `impact_propagation_scale_ladder_has_exact_precision_and_replay` now exercises the actual v0.1 graph validator and impact auditor at 100, 1,000, 10,000 and 100,000 nodes. Each generated DAG contains a single in-scope compromised issuer-key root, a deterministic binary tree of dependent execution records, and disconnected out-of-scope water-domain source records.
+
+For every size, the test independently derives the expected affected set from the generator's parent relation, compares every reported node classification, requires zero false positives and zero false negatives, and repeats the full validation/impact computation to require an identical canonical report digest. The workflow retains the exact-head `--nocapture` output as an artifact, including node/edge counts, expected impacted/unaffected counts and one in-process validation-plus-impact timing sample.
+
+This first scale ladder is a structural precision/determinism/performance smoke benchmark, not a field benchmark or a complete comparison against TUF/SCITT implementations. Its timing excludes fixture generation and process startup and is one sample per size; repeat runs, confidence intervals, persistent high-water-state tests, concurrent invalidation ordering, and independent implementation comparison remain later gates. The algorithm currently emits a classification for every graph node, so these timings include full output materialization rather than claiming O(affected-subgraph) total cost.
