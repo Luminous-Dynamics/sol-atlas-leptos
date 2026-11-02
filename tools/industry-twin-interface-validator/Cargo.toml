@@ -1,0 +1,10 @@
+[package]
+name = "industry-twin-interface-validator"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+description = "Source-preserving industrial twin interface and composition manifest validator"
+
+[dependencies]
+serde_json = { version = "=1.0.150", default-features = false, features = ["std"] }
+sha2 = { version = "=0.10.9", default-features = false }

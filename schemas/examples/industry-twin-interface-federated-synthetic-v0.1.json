@@ -1,0 +1,157 @@
+{
+  "schema_version": "luminous.industry-twin-interface-manifest.v0.1",
+  "manifest_id": "itip.synthetic.federated.water.v01",
+  "composition": {
+    "mode": "federated",
+    "composition_id": "synthetic-water-federation-001",
+    "federation_id": "synthetic-catchment-federation-001",
+    "member_participant_ids": [
+      "reservoir-operator",
+      "treatment-operator"
+    ],
+    "description": "Two separately governed operators retain their own source authority and exchange explicit snapshot references."
+  },
+  "participants": [
+    {
+      "participant_id": "reservoir-operator",
+      "system_id": "reservoir-control-system",
+      "twin_id": "reservoir-001",
+      "owner_id": "reservoir-authority",
+      "role": "physical_twin",
+      "native_model": {
+        "model_id": "reservoir-hydrology-model",
+        "version": "1.0.0",
+        "artifact_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
+      },
+      "interface": {
+        "interface_profile_id": "urn:luminous:itip:synthetic-profile-v0.1",
+        "interface_profile_version": "0.1",
+        "document_kind": "reservoir-level-snapshot",
+        "protocol": "https-json-fixture",
+        "protocol_version": "1",
+        "adapter_id": "itip-reference-adapter",
+        "adapter_version": "0.1.0",
+        "native_schema": {
+          "format": "json",
+          "schema_id": "urn:reservoir:level:2",
+          "schema_version": "1.0.0",
+          "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "source_snapshot": {
+        "source_uri": "urn:synthetic:reservoir-operator:snapshot",
+        "immutable_revision": "seq-4401",
+        "content_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+        "retrieved_at": "2026-10-31T15:00:00Z",
+        "rights_state": "not_applicable",
+        "license_or_basis": "Synthetic fixture generated within this repository; not third-party data."
+      },
+      "time_semantics": {
+        "clock_domain": "reservoir-clock",
+        "event_time_field": "observed_at",
+        "ingestion_time_field": "ingested_at",
+        "sequence_field": "sequence",
+        "sequence_order": "strict_monotonic",
+        "timezone": "UTC",
+        "timestamp_precision": "millisecond"
+      }
+    },
+    {
+      "participant_id": "treatment-operator",
+      "system_id": "treatment-twin-service",
+      "twin_id": "treatment-plant-001",
+      "owner_id": "treatment-authority",
+      "role": "digital_twin",
+      "native_model": {
+        "model_id": "water-demand-model",
+        "version": "1.0.0",
+        "artifact_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
+      },
+      "interface": {
+        "interface_profile_id": "urn:luminous:itip:synthetic-profile-v0.1",
+        "interface_profile_version": "0.1",
+        "document_kind": "treatment-demand-view",
+        "protocol": "https-json-fixture",
+        "protocol_version": "1",
+        "adapter_id": "itip-reference-adapter",
+        "adapter_version": "0.1.0",
+        "native_schema": {
+          "format": "aas",
+          "schema_id": "urn:aas:submodel:water-demand:1",
+          "schema_version": "1.0.0",
+          "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "source_snapshot": {
+        "source_uri": "urn:synthetic:treatment-operator:snapshot",
+        "immutable_revision": "rev-92",
+        "content_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+        "retrieved_at": "2026-10-31T15:00:00Z",
+        "rights_state": "not_applicable",
+        "license_or_basis": "Synthetic fixture generated within this repository; not third-party data."
+      },
+      "time_semantics": {
+        "clock_domain": "treatment-clock",
+        "event_time_field": "observed_at",
+        "ingestion_time_field": "ingested_at",
+        "sequence_field": "sequence",
+        "sequence_order": "strict_monotonic",
+        "timezone": "UTC",
+        "timestamp_precision": "millisecond"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "relationship_id": "reservoir-to-treatment-context",
+      "from_participant_id": "reservoir-operator",
+      "to_participant_id": "treatment-operator",
+      "relation": "supplies_operating_context_to",
+      "join_strategy": "exact_native_id",
+      "from_reference_field": "reservoir_id",
+      "to_reference_field": "reservoir_id",
+      "identity_namespace": "urn:regional-water:reservoirs"
+    }
+  ],
+  "mappings": [
+    {
+      "mapping_id": "reservoir-level-semantic",
+      "source_participant_id": "reservoir-operator",
+      "source_field": "reservoir.level",
+      "target_concept": "water_context.reservoir_level",
+      "source_unit": "m",
+      "target_unit": "m",
+      "transform": {
+        "transform_id": "identity-level-v1",
+        "version": "1.0.0",
+        "kind": "identity",
+        "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "loss_class": "identity",
+      "human_reviewed": true,
+      "loss_description": "Native level value and unit remain unchanged."
+    }
+  ],
+  "authorization": {
+    "principal_id": "synthetic-federation-coordinator",
+    "read_scopes": [
+      "reservoir-001:read",
+      "treatment-plant-001:read"
+    ],
+    "write_scopes": [],
+    "actuation_scopes": [],
+    "authority_ref": "urn:synthetic:regional-authority:ro",
+    "scope_separation_declared": true
+  },
+  "decision_scope": {
+    "decision_tier": "D1_advisory",
+    "requested_action": "recommend",
+    "human_approval_required": true,
+    "actuation_enabled": false
+  },
+  "qualification_profile_ref": "urn:luminous:ieac:synthetic:water-federation-advisory:v0.1",
+  "evaluation_mode": "synthetic_fixture",
+  "claim_ceiling": "synthetic_fixture",
+  "standard_conformity_claimed": false,
+  "unknown_extension_policy": "preserve_opaque_or_report_loss"
+}

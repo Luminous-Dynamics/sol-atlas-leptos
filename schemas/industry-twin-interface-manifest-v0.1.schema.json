@@ -1,0 +1,682 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/industry-twin-interface-manifest-v0.1.schema.json",
+  "title": "Industrial Twin Interface Manifest v0.1",
+  "description": "Source-preserving interface/composition contract. Internal fixture contract only; not a normative standards-conformity claim.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "manifest_id",
+    "composition",
+    "participants",
+    "relationships",
+    "mappings",
+    "authorization",
+    "decision_scope",
+    "qualification_profile_ref",
+    "evaluation_mode",
+    "claim_ceiling",
+    "standard_conformity_claimed",
+    "unknown_extension_policy"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.industry-twin-interface-manifest.v0.1"
+    },
+    "manifest_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "composition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "composition_id",
+        "member_participant_ids",
+        "description"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "integrated",
+            "unified",
+            "federated"
+          ]
+        },
+        "composition_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "federation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "member_participant_ids": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          }
+        },
+        "shared_schema_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "integrated"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "shared_schema_ref"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "federated"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "federation_id"
+            ]
+          }
+        }
+      ]
+    },
+    "participants": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "$ref": "#/$defs/participant"
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/relationship"
+      }
+    },
+    "mappings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/mapping"
+      }
+    },
+    "authorization": {
+      "$ref": "#/$defs/authorization"
+    },
+    "decision_scope": {
+      "$ref": "#/$defs/decision_scope"
+    },
+    "qualification_profile_ref": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "evaluation_mode": {
+      "const": "synthetic_fixture"
+    },
+    "claim_ceiling": {
+      "const": "synthetic_fixture"
+    },
+    "standard_conformity_claimed": {
+      "const": false
+    },
+    "unknown_extension_policy": {
+      "const": "preserve_opaque_or_report_loss"
+    }
+  },
+  "$defs": {
+    "participant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "participant_id",
+        "system_id",
+        "twin_id",
+        "owner_id",
+        "role",
+        "native_model",
+        "interface",
+        "source_snapshot",
+        "time_semantics"
+      ],
+      "properties": {
+        "participant_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "system_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "twin_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "owner_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "role": {
+          "enum": [
+            "physical_twin",
+            "digital_twin",
+            "interface_adapter",
+            "domain_model"
+          ]
+        },
+        "native_model": {
+          "$ref": "#/$defs/native_model"
+        },
+        "interface": {
+          "$ref": "#/$defs/interface"
+        },
+        "source_snapshot": {
+          "$ref": "#/$defs/source_snapshot"
+        },
+        "time_semantics": {
+          "$ref": "#/$defs/time_semantics"
+        }
+      }
+    },
+    "native_model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_id",
+        "version",
+        "artifact_sha256"
+      ],
+      "properties": {
+        "model_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "artifact_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "interface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "interface_profile_id",
+        "interface_profile_version",
+        "document_kind",
+        "protocol",
+        "protocol_version",
+        "adapter_id",
+        "adapter_version",
+        "native_schema"
+      ],
+      "properties": {
+        "interface_profile_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "interface_profile_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "document_kind": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "protocol": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "protocol_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "adapter_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "adapter_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "native_schema": {
+          "$ref": "#/$defs/native_schema"
+        }
+      }
+    },
+    "native_schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "format",
+        "schema_id",
+        "schema_version",
+        "schema_sha256"
+      ],
+      "properties": {
+        "format": {
+          "enum": [
+            "json",
+            "xml",
+            "aas",
+            "mtconnect",
+            "qif",
+            "protobuf",
+            "binary",
+            "other"
+          ]
+        },
+        "schema_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "schema_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "schema_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "source_snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_uri",
+        "immutable_revision",
+        "content_sha256",
+        "retrieved_at",
+        "rights_state",
+        "license_or_basis"
+      ],
+      "properties": {
+        "source_uri": {
+          "type": "string",
+          "format": "uri",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "immutable_revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "content_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "retrieved_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "rights_state": {
+          "enum": [
+            "verified",
+            "restricted",
+            "unknown",
+            "not_applicable"
+          ]
+        },
+        "license_or_basis": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      }
+    },
+    "time_semantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "clock_domain",
+        "event_time_field",
+        "ingestion_time_field",
+        "sequence_order",
+        "timezone",
+        "timestamp_precision"
+      ],
+      "properties": {
+        "clock_domain": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "event_time_field": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "ingestion_time_field": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "sequence_field": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "sequence_order": {
+          "enum": [
+            "strict_monotonic",
+            "monotonic",
+            "unordered",
+            "none"
+          ]
+        },
+        "timezone": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "timestamp_precision": {
+          "enum": [
+            "second",
+            "millisecond",
+            "microsecond",
+            "nanosecond",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relationship_id",
+        "from_participant_id",
+        "to_participant_id",
+        "relation",
+        "join_strategy",
+        "from_reference_field",
+        "to_reference_field",
+        "identity_namespace"
+      ],
+      "properties": {
+        "relationship_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "from_participant_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "to_participant_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "relation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "join_strategy": {
+          "enum": [
+            "exact_native_id",
+            "typed_reference"
+          ]
+        },
+        "from_reference_field": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "to_reference_field": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "identity_namespace": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      }
+    },
+    "mapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mapping_id",
+        "source_participant_id",
+        "source_field",
+        "target_concept",
+        "source_unit",
+        "target_unit",
+        "transform",
+        "loss_class",
+        "human_reviewed",
+        "loss_description"
+      ],
+      "properties": {
+        "mapping_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "source_participant_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "source_field": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "target_concept": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "source_unit": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "target_unit": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "transform": {
+          "$ref": "#/$defs/transform"
+        },
+        "loss_class": {
+          "enum": [
+            "identity",
+            "lossless",
+            "lossy",
+            "opaque"
+          ]
+        },
+        "human_reviewed": {
+          "type": "boolean"
+        },
+        "loss_description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        }
+      }
+    },
+    "transform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transform_id",
+        "version",
+        "kind",
+        "sha256"
+      ],
+      "properties": {
+        "transform_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "kind": {
+          "enum": [
+            "identity",
+            "unit_conversion",
+            "semantic_mapping",
+            "aggregation",
+            "time_mapping"
+          ]
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "principal_id",
+        "read_scopes",
+        "write_scopes",
+        "actuation_scopes",
+        "authority_ref",
+        "scope_separation_declared"
+      ],
+      "properties": {
+        "principal_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "read_scopes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[^*]+:read$"
+          }
+        },
+        "write_scopes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[^*]+:write$"
+          }
+        },
+        "actuation_scopes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[^*]+:actuate$"
+          }
+        },
+        "authority_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "scope_separation_declared": {
+          "const": true
+        }
+      }
+    },
+    "decision_scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision_tier",
+        "requested_action",
+        "human_approval_required",
+        "actuation_enabled"
+      ],
+      "properties": {
+        "decision_tier": {
+          "enum": [
+            "D0_descriptive",
+            "D1_advisory"
+          ]
+        },
+        "requested_action": {
+          "enum": [
+            "view",
+            "annotate",
+            "recommend",
+            "rank_options",
+            "prepare_plan"
+          ]
+        },
+        "human_approval_required": {
+          "const": true
+        },
+        "actuation_enabled": {
+          "const": false
+        }
+      }
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}
