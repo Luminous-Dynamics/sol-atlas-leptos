@@ -161,3 +161,78 @@ This is intentionally time-indexed. A daily/whole-horizon energy total cannot co
 The checked-in synthetic PV/outage policy requires 100% essential service in every interval, zero cumulative essential unserved energy, zero consecutive service-floor misses and a zero-quanta minimum terminal reserve. It is a deliberately strict synthetic positive control, not a universal policy for all sites or operating contexts. A real deployment needs a separately authored, risk-approved policy with site-specific service classes, uncertainty, operating envelope and operator authority.
 
 The profiler workflow now runs both executables for each of its 30 repeated synthetic schedules and requires 30 accepted schedule receipts plus 30 passed service-floor receipts. The existing v0.2 solver trace remains unchanged; these separate service-floor receipts are uploaded as independent artifacts until the v0.3 trace-runner migration composes them.
+
+## Non-anticipativity auditor v0.1
+
+The additive `energy-dispatch-nonanticipativity-auditor` binary audits whether
+a set of complete scenario schedules can be interpreted as one policy under
+the caller-declared information sets. It is separate from the single-scenario
+schedule auditor and from the service-floor evaluator.
+
+A strict manifest lists 2–256 scenarios and binds a safe `scenario_set_id`. Each entry binds:
+- a unique scenario ID, equal to the request case ID;
+- one exact source-request JSON file;
+- one exact complete schedule JSON file;
+- one 64-character information-set SHA-256 label per source interval.
+
+The receipt records the scenario-set ID, exact request/schedule digests, information-set labels, shared information-set count, action-comparison count, per-group findings, receipt digest and auditor executable digest. Its JSON contract is defined in `nonanticipativity-receipt-schema-v0.1.json`.
+
+The CLI is invoked with a manifest and receipt output path:
+
+```sh
+cargo run --release --locked \
+  --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml \
+  --bin energy-dispatch-nonanticipativity-auditor -- \
+  nonanticipativity-manifest.json nonanticipativity-receipt.json
+```
+
+The CLI strict-parses the manifest and each source input, rejects duplicate
+JSON object keys, bounds every input read, and resolves request/schedule paths
+beneath the manifest directory (including canonical-path checks against
+symlink escape). It writes a canonical receipt and returns exit 0 for accepted,
+1 for a well-formed but rejected policy, or 2 for an audit/input error.
+
+The library evaluator first requires every scenario request and schedule to
+pass the existing standalone domain predicates/objective recomputation. It
+then requires all scenarios to share the same source schema, synthetic/evidence
+class, search budget, energy quantum, battery configuration and interval
+chronology. It also requires every scenario to share one root information set
+at the first decision; scenario trees without a common initial decision are
+rejected in this v0.1 contract. For each interval it groups scenarios by
+information-set digest. Every group with two or more members must have:
+1. identical source-observation prefixes through that interval; and
+2. identical dispatch action fields at that interval, including grid import,
+   battery charge/discharge, SOC after the interval, essential/flexible served
+   and unserved quantities, and PV use/curtailment.
+
+Actions may diverge after the information-set labels diverge. A set with no
+shared information sets is rejected rather than passing vacuously. The receipt
+binds every request/schedule digest, the information-set labels, all findings
+and the exact auditor executable digest.
+
+**Critical limit:** the auditor proves equality only for the information-set
+labels supplied in the manifest. It cannot prove that these labels are
+authentic, complete, or genuinely available to an operator at the decision
+time. The CLI also does not prove probabilistic forecast calibration,
+stochastic optimality, service-floor compliance, physical/network safety,
+or actuation authority. This is the first verifier primitive for
+[ENERGY-UNCERTAINTY-001 / #312](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/312), not yet a complete scenario-tree optimizer or rolling-horizon controller.
+
+The checked-in manifest controls under
+`schemas/examples/nonanticipativity-v0.1/` demonstrate both outcomes:
+- positive: the two branches take the same 2-quanta PV charging action at the
+  root, then diverge to 2-quanta versus 1-quanta battery discharge after branch
+  information is revealed;
+- negative: both schedules are individually domain-valid, but one branch
+  takes a 1-quanta rather than 2-quanta charge action while the root information
+  set is still shared; the verifier must reject it.
+
+The v0.1 tests also include:
+- rejection when two scenarios with the same pre-branch information choose
+  different actions;
+- acceptance when pre-branch actions match and actions diverge after the
+  information-set labels split;
+- rejection when a shared label hides different declared observation prefixes;
+- rejection when scenarios do not share one root information set;
+- rejection when no information set is shared;
+- receipt digest/binary provenance checks and bounded/path-safe CLI controls.

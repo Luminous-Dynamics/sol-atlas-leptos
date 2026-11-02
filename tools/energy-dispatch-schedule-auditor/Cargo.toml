@@ -12,6 +12,10 @@ serde = { version = "=1.0.228", features = ["derive"] }
 serde_json = "=1.0.150"
 sha2 = "=0.10.9"
 
+[[bin]]
+name = "energy-dispatch-nonanticipativity-auditor"
+path = "src/bin/energy-dispatch-nonanticipativity-auditor.rs"
+
 [[bench]]
 name = "audit_latency"
 harness = false

@@ -15,6 +15,7 @@ on:
       - "schemas/examples/energy-dispatch-pv-outage.synthetic.json"
       - "schemas/examples/energy-dispatch-scenario-panel-v0.1.json"
       - "schemas/examples/energy-dispatch-scenarios/**"
+      - "schemas/examples/nonanticipativity-v0.1/**"
       - "schemas/energy-dispatch-scenario-panel-v0.1.schema.json"
       - ".github/workflows/energy-dispatch-profiled-runner.yml"
   push:
@@ -84,8 +85,45 @@ jobs:
           cargo build --release --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-anytime-profile
           cargo build --release --locked --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml --bin energy-dispatch-schedule-auditor
           cargo build --release --locked --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml --bin energy-dispatch-service-floor-auditor
+          cargo build --release --locked --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml --bin energy-dispatch-nonanticipativity-auditor
           cargo build --release --locked --manifest-path tools/energy-solver-compute-calibration/Cargo.toml --bin energy-solver-compute-calibration
           cargo build --release --locked --manifest-path tools/energy-solver-compute-calibration/Cargo.toml --bin energy-solver-compute-calibration-v03
+      - name: Run non-anticipativity positive and negative scenario-tree controls
+        run: |
+          set -euo pipefail
+          auditor="$CARGO_TARGET_DIR/release/energy-dispatch-nonanticipativity-auditor"
+          fixture_dir="schemas/examples/nonanticipativity-v0.1"
+          "$auditor" \
+            "$fixture_dir/nonanticipativity-positive.manifest.json" \
+            target/energy-dispatch-profiled-runner/nonanticipativity-positive-receipt.json
+          jq -e '
+            .disposition == "accepted" and
+            .scenario_set_id == "demo-nonanticipativity-branching-v0.1" and
+            .scenario_count == 2 and
+            .interval_count == 2 and
+            .shared_information_set_count == 1 and
+            .checked_action_comparison_count == 1 and
+            all(.findings[]; .passed == true) and
+            (.receipt_sha256 | length == 64) and
+            (.auditor_binary_sha256 | length == 64)
+          ' target/energy-dispatch-profiled-runner/nonanticipativity-positive-receipt.json
+
+          set +e
+          "$auditor" \
+            "$fixture_dir/nonanticipativity-negative.manifest.json" \
+            target/energy-dispatch-profiled-runner/nonanticipativity-negative-receipt.json
+          negative_status=$?
+          set -e
+          test "$negative_status" -eq 1
+          jq -e '
+            .disposition == "rejected" and
+            any(.findings[];
+              .predicate == "nonanticipative-dispatch-action" and
+              .interval_index == 0 and
+              .passed == false
+            ) and
+            (.receipt_sha256 | length == 64)
+          ' target/energy-dispatch-profiled-runner/nonanticipativity-negative-receipt.json
       - name: Execute 30 exact-search runs and independently audit every selected schedule
         run: |
           set -euo pipefail
@@ -368,6 +406,7 @@ jobs:
             target/energy-dispatch-profiled-runner/audit-receipt-*.json
             target/energy-dispatch-profiled-runner/service-floor-receipt-*.json
             target/energy-dispatch-profiled-runner/v0.3/
+            target/energy-dispatch-profiled-runner/nonanticipativity-*-receipt.json
             target/energy-dispatch-profiled-runner/*.sha256
             target/energy-dispatch-profiled-runner/build-provenance.txt
             tools/energy-dispatch-profile-runner/src/main.rs
@@ -379,6 +418,8 @@ jobs:
             tools/energy-dispatch-schedule-auditor/Cargo.lock
             tools/energy-dispatch-schedule-auditor/src/
             tools/energy-dispatch-schedule-auditor/schedule-schema-v0.1.json
+            tools/energy-dispatch-schedule-auditor/nonanticipativity-manifest-schema-v0.1.json
+            tools/energy-dispatch-schedule-auditor/nonanticipativity-receipt-schema-v0.1.json
             tools/energy-dispatch-schedule-auditor/service-floor-policy-schema-v0.1.json
             tools/energy-dispatch-schedule-auditor/service-floor-receipt-schema-v0.1.json
             tools/energy-dispatch-schedule-auditor/fixtures/energy-dispatch-pv-outage.service-floor-v0.1.json
@@ -395,6 +436,7 @@ jobs:
             schemas/examples/energy-dispatch-pv-outage.synthetic.json
             schemas/examples/energy-dispatch-scenario-panel-v0.1.json
             schemas/examples/energy-dispatch-scenarios/
+            schemas/examples/nonanticipativity-v0.1/
             schemas/energy-dispatch-scenario-panel-v0.1.schema.json
             sol-atlas-core/src/energy_dispatch.rs
             sol-atlas-core/src/energy_pathway.rs
