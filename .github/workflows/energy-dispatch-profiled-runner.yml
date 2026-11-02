@@ -194,7 +194,8 @@ jobs:
               .status == "exact_complete" and
               .anytime_assessment.search_complete == true and
               .anytime_assessment.optimality_proven == true and
-              (.anytime_assessment.time_to_first_complete_candidate_ns | type == "number" and . > 0) and
+              (.anytime_assessment.time_to_first_complete_candidate_ns != null) and
+              (.anytime_assessment.time_to_first_complete_candidate_ns > 0) and
               .selected_schedule != null and
               .schedule_audit_receipt.disposition == "accepted" and
               .service_floor_receipt.disposition == "passed"
@@ -215,7 +216,7 @@ jobs:
             target/energy-dispatch-profiled-runner/v0.3/trace.csv \
             > target/energy-dispatch-profiled-runner/v0.3/trace-summary.csv
           awk -F, '
-            NR == 1 { if (NF != 29 || $1 != "cohort_id") exit 1 }
+            NR == 1 { if (NF != 35 || $1 != "cohort_id") exit 1 }
             NR == 2 {
               if ($2 != 30 || $3 != 30 || $4 != 0 || $5 != 0 || $6 != 0) exit 1
               if ($10 != 30 || $11 != 30 || $12 != 30 || $13 != 0 || $14 != 0 || $15 != 0) exit 1
@@ -223,6 +224,8 @@ jobs:
               if ($21 != 30 || $22 == "NA" || $23 == "NA") exit 1
               if ($24 != 30 || $25 == "NA" || $26 == "NA") exit 1
               if ($27 == "NA" || $28 == "NA" || $29 == "NA") exit 1
+              if ($30 != 30 || $31 == "NA" || $32 == "NA") exit 1
+              if ($33 != 30 || $34 == "NA" || $35 == "NA") exit 1
             }
             END { if (NR != 2) exit 1 }
           ' target/energy-dispatch-profiled-runner/v0.3/trace-summary.csv
