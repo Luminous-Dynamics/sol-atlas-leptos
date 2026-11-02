@@ -1,0 +1,197 @@
+name: IEAC evidence-channel completeness
+
+on:
+  pull_request:
+    paths:
+      - "schemas/industry-ieac-evidence-channel-manifest-v0.1.schema.json"
+      - "schemas/industry-ieac-availability-completeness-attestation-v0.1.schema.json"
+      - "schemas/examples/ieac-evidence-channel-manifest-synthetic-v0.1.json"
+      - "schemas/examples/ieac-availability-completeness-attestation-synthetic-v0.1.json"
+      - "schemas/examples/ieac-availability-channel-expected-synthetic-v0.1.json"
+      - "docs/industry/IEAC_EVIDENCE_CHANNEL_COMPLETENESS_V0.1.md"
+      - ".github/workflows/industry-availability-completeness.yml"
+  push:
+    branches:
+      - main
+      - feat/ieac-decision-time-frontier-v0-1
+    paths:
+      - "schemas/industry-ieac-evidence-channel-manifest-v0.1.schema.json"
+      - "schemas/industry-ieac-availability-completeness-attestation-v0.1.schema.json"
+      - "schemas/examples/ieac-evidence-channel-manifest-synthetic-v0.1.json"
+      - "schemas/examples/ieac-availability-completeness-attestation-synthetic-v0.1.json"
+      - "schemas/examples/ieac-availability-channel-expected-synthetic-v0.1.json"
+      - "docs/industry/IEAC_EVIDENCE_CHANNEL_COMPLETENESS_V0.1.md"
+      - ".github/workflows/industry-availability-completeness.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ieac-availability-completeness-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  channel-completeness:
+    name: Exact-head channel completeness and zero-match binding
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact source revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install Rust for pinned schema CLI
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install pinned Draft 2020-12 validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Add schema CLI to PATH
+        run: echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+
+      - name: Validate both schemas against their declared Draft 2020-12 meta-schema
+        run: |
+          set -euo pipefail
+          manifest_schema=schemas/industry-ieac-evidence-channel-manifest-v0.1.schema.json
+          attestation_schema=schemas/industry-ieac-availability-completeness-attestation-v0.1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format -i "$manifest_schema"
+          jsonschema-cli validate --draft 2020 --assert-format -i "$attestation_schema"
+
+      - name: Validate synthetic channel manifest and attestation
+        run: |
+          set -euo pipefail
+          manifest_schema=schemas/industry-ieac-evidence-channel-manifest-v0.1.schema.json
+          attestation_schema=schemas/industry-ieac-availability-completeness-attestation-v0.1.schema.json
+          manifest=schemas/examples/ieac-evidence-channel-manifest-synthetic-v0.1.json
+          attestation=schemas/examples/ieac-availability-completeness-attestation-synthetic-v0.1.json
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$manifest_schema" -i "$manifest"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$attestation_schema" -i "$attestation"
+
+      - name: Cross-check exact manifest digest, scope, checkpoints, query and first access
+        run: |
+          set -euo pipefail
+          manifest=schemas/examples/ieac-evidence-channel-manifest-synthetic-v0.1.json
+          attestation=schemas/examples/ieac-availability-completeness-attestation-synthetic-v0.1.json
+          expected=schemas/examples/ieac-availability-channel-expected-synthetic-v0.1.json
+          manifest_sha="$(sha256sum "$manifest" | awk '{print $1}')"
+
+          jq --slurpfile manifest "$manifest" --slurpfile expected "$expected" --arg manifest_sha "$manifest_sha" -e '
+            . as $a |
+            $manifest[0] as $m |
+            $expected[0] as $x |
+            def epoch($tb): ($tb.time_utc | fromdateiso8601);
+            def early($tb): epoch($tb) - $tb.uncertainty_before_seconds;
+            def late($tb): epoch($tb) + $tb.uncertainty_after_seconds;
+            $a.schema_version == "luminous.ieac-availability-completeness-attestation.v0.1" and
+            $a.channel_manifest_sha256 == $manifest_sha and
+            $a.channel_identity.relying_party_id == $m.channel.relying_party_id and
+            $a.channel_identity.evidence_channel_id == $m.channel.evidence_channel_id and
+            $a.channel_identity.log_service_id == $m.channel.log_service_id and
+            $a.channel_identity.operator_id == $m.channel.operator_id and
+            $a.channel_identity.ledger_id == $m.ledger.ledger_id and
+            $a.channel_identity.sequence_namespace == $m.ledger.sequence_namespace and
+            $a.channel_identity.sequence_epoch == $m.ledger.sequence_epoch and
+            $a.scope.tenant_scope == $m.channel.tenant_scope and
+            $a.scope.subject_pseudonym == $m.channel.subject_scope and
+            ($m.channel.purpose_scope | index($a.scope.purpose)) != null and
+            $a.first_access.artifact_sha256 == $a.scope.artifact_sha256 and
+            $a.coverage.completeness == "complete" and
+            $a.absence_basis == "complete_channel_signed_query" and
+            $a.absence_proof == null and
+            $a.absence_query.verification_status == "verified" and
+            $a.absence_query.matching_event_count == 0 and
+            $a.absence_query.signer_id != "" and
+            $a.absence_query.predicate_binding.relying_party_id == $a.channel_identity.relying_party_id and
+            $a.absence_query.predicate_binding.evidence_channel_id == $a.channel_identity.evidence_channel_id and
+            $a.absence_query.predicate_binding.tenant_scope == $a.scope.tenant_scope and
+            $a.absence_query.predicate_binding.subject_pseudonym == $a.scope.subject_pseudonym and
+            $a.absence_query.predicate_binding.purpose == $a.scope.purpose and
+            $a.absence_query.predicate_binding.artifact_sha256 == $a.scope.artifact_sha256 and
+            $a.absence_query.predicate_binding.event_types == $m.capture_contract.event_types and
+            $a.absence_query.sequence_from_exclusive == $a.coverage_start_checkpoint.sequence and
+            $a.absence_query.sequence_through_inclusive == $a.decision_boundary_checkpoint.sequence and
+            $a.coverage_start_checkpoint.ledger_id == $a.decision_boundary_checkpoint.ledger_id and
+            $a.coverage_start_checkpoint.ledger_id == $a.coverage_end_checkpoint.ledger_id and
+            $a.coverage_start_checkpoint.sequence_namespace == $a.decision_boundary_checkpoint.sequence_namespace and
+            $a.coverage_start_checkpoint.sequence_namespace == $a.coverage_end_checkpoint.sequence_namespace and
+            $a.coverage_start_checkpoint.sequence_epoch == $a.decision_boundary_checkpoint.sequence_epoch and
+            $a.coverage_start_checkpoint.sequence_epoch == $a.coverage_end_checkpoint.sequence_epoch and
+            $a.coverage_start_checkpoint.sequence < $a.decision_boundary_checkpoint.sequence and
+            $a.decision_boundary_checkpoint.sequence < $a.first_access.sequence and
+            $a.first_access.sequence <= $a.coverage_end_checkpoint.sequence and
+            $a.coverage_start_checkpoint.tree_size < $a.decision_boundary_checkpoint.tree_size and
+            $a.decision_boundary_checkpoint.tree_size < $a.coverage_end_checkpoint.tree_size and
+            $a.continuity.verifier_status == "verified" and
+            ($a.continuity.proof_type == "rfc9162_sha256_consistency" or $a.continuity.proof_type == "other_registered_vds_consistency") and
+            $a.verifier.status == "verified" and
+            $a.absence_query.verifier_build_sha256 == $a.verifier.build_sha256 and
+            $a.absence_query.verification_policy_sha256 == $a.verifier.policy_sha256 and
+            $a.continuity.verifier_build_sha256 == $a.verifier.build_sha256 and
+            $a.continuity.verification_policy_sha256 == $a.verifier.policy_sha256 and
+            late($a.coverage_start_checkpoint.observed_at) <= early($a.decision_cutoff) and
+            early($a.decision_boundary_checkpoint.observed_at) > late($a.decision_cutoff) and
+            early($a.first_access.observed_at) > late($a.decision_boundary_checkpoint.observed_at) and
+            early($a.coverage_end_checkpoint.observed_at) >= late($a.first_access.observed_at) and
+            late($a.coverage.coverage_from) <= early($a.decision_cutoff) and
+            early($a.coverage.coverage_through) >= late($a.first_access.observed_at) and
+            $a.capture_health.dropped_events_count == 0 and
+            $a.capture_health.sequence_gap_count == 0 and
+            $a.capture_health.unresolved_outage_count == 0 and
+            $a.capture_health.backfilled_events_count == 0 and
+            $a.capture_health.policy_changes_count == 0 and
+            ($a.capture_health.known_bypass_paths | length) == 0 and
+            ($a.capture_health.unmonitored_access_paths | length) == 0 and
+            $a.capture_health.retention_loss == false and
+            $a.capture_health.clock_health == "healthy" and
+            ($m.capture_contract.known_bypass_paths | length) == 0 and
+            ($m.capture_contract.unmonitored_access_paths | length) == 0 and
+            ($m.known_bypass_paths | length) == 0 and
+            $a.action_authority == "none" and
+            $a.claim_ceiling == "absence_within_declared_access_channel_only" and
+            $x.expected.universal_non_access_claim_allowed == false and
+            $x.expected.rfc9162_non_inclusion_assumed == false
+          ' "$attestation"
+
+      - name: Prove incomplete or mismatched histories cannot retain complete claim
+        run: |
+          set -euo pipefail
+          source=schemas/examples/ieac-availability-completeness-attestation-synthetic-v0.1.json
+          schema=schemas/industry-ieac-availability-completeness-attestation-v0.1.schema.json
+          jq '.capture_health.sequence_gap_count = 1' "$source" > "$RUNNER_TEMP/gap.json"
+          jq '.capture_health.known_bypass_paths = ["unlogged-cache"]' "$source" > "$RUNNER_TEMP/bypass.json"
+          jq '.absence_query.matching_event_count = 1' "$source" > "$RUNNER_TEMP/nonzero-query.json"
+          jq '.absence_query.sequence_through_inclusive = 99' "$source" > "$RUNNER_TEMP/wrong-query-range.json"
+          jq '.first_access.sequence = 100' "$source" > "$RUNNER_TEMP/access-before-boundary.json"
+          jq '.decision_boundary_checkpoint.observed_at.time_utc = "2026-11-02T09:10:00Z"' "$source" > "$RUNNER_TEMP/boundary-not-after-cutoff.json"
+          for mutant in "$RUNNER_TEMP/gap.json" "$RUNNER_TEMP/bypass.json" "$RUNNER_TEMP/nonzero-query.json" "$RUNNER_TEMP/wrong-query-range.json" "$RUNNER_TEMP/access-before-boundary.json"; do
+            if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$mutant"; then
+              echo "ERROR: attestation schema accepted incomplete negative control $mutant"
+              exit 1
+            fi
+          done
+          if jq -e '.first_access.sequence > .decision_boundary_checkpoint.sequence' "$RUNNER_TEMP/access-before-boundary.json"; then
+            echo "ERROR: sequence oracle accepted an access before its decision boundary"
+            exit 1
+          fi
+          if jq -e '(.decision_boundary_checkpoint.observed_at.time_utc | fromdateiso8601) > (.decision_cutoff.time_utc | fromdateiso8601)' "$RUNNER_TEMP/boundary-not-after-cutoff.json"; then
+            echo "ERROR: time oracle accepted a boundary that is not after cutoff"
+            exit 1
+          fi
+
+      - name: Retain synthetic channel evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ieac-availability-completeness-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            schemas/examples/ieac-evidence-channel-manifest-synthetic-v0.1.json
+            schemas/examples/ieac-availability-completeness-attestation-synthetic-v0.1.json
+            schemas/examples/ieac-availability-channel-expected-synthetic-v0.1.json
+          if-no-files-found: warn
+          retention-days: 30
