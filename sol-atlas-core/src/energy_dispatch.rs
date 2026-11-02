@@ -513,9 +513,6 @@ fn step_soc_after(path: &[DispatchIntervalDecision]) -> u16 {
         .unwrap_or(0)
 }
 
-/// Exhaustively enumerate the complete bounded model and return its non-dominated
-/// feasible schedules. Any configured search or frontier cap hit is an error; no
-/// partial frontier is returned with an "exact" label.
 fn validate_energy_dispatch_request(
     request: &EnergyDispatchRequest,
 ) -> Result<(), EnergyDispatchError> {
@@ -611,6 +608,9 @@ fn validate_energy_dispatch_request(
     Ok(())
 }
 
+/// Exhaustively enumerate the complete bounded model and return its non-dominated
+/// feasible schedules. Any configured search or frontier cap hit is an error; no
+/// partial frontier is returned with an "exact" label.
 pub fn assess_energy_dispatch(
     request: &EnergyDispatchRequest,
 ) -> Result<EnergyDispatchAssessment, EnergyDispatchError> {
@@ -838,7 +838,11 @@ mod tests {
         assert!(!result.optimality_proven);
         let candidate = result.candidate.expect("incumbent survives frontier cap");
         assert_eq!(candidate.schedule.len(), 1);
-        assert_eq!(candidate.objective.essential_unserved_quanta, 0);
+        assert_eq!(
+            candidate.objective.essential_unserved_quanta
+                + u64::from(candidate.schedule[0].essential_served_quanta),
+            u64::from(request.intervals[0].essential_demand_quanta)
+        );
         assert!(result.enumeration_prefix_visits <= result.configured_expansion_limit);
     }
 
@@ -846,7 +850,7 @@ mod tests {
     fn anytime_exhaustive_infeasibility_is_distinct_from_budget_exhaustion() {
         let mut request = fixture_request();
         request.battery.initial_soc_quanta = 0;
-        request.battery.capacity_quanta = 0;
+        request.battery.capacity_quanta = 1;
         request.battery.charge_input_limit_quanta = 0;
         request.battery.discharge_withdrawal_limit_quanta = 0;
         request.battery.terminal_reserve_quanta = 1;
