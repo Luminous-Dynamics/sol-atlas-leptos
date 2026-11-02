@@ -340,8 +340,21 @@ fn complete_or_unknown(
     ] {
         require_digest(attestation, path)?;
     }
-    if string(attestation, "absence_query.signer_id")?.is_empty() {
+    let query_signer = string(attestation, "absence_query.signer_id")?;
+    if query_signer.is_empty() {
         return Err("absence-query signer identity is empty".to_string());
+    }
+    let allowed_query_signers = get(
+        manifest,
+        "capture_contract.authorized_completeness_query_signers",
+    )?
+    .as_array()
+    .ok_or_else(|| "authorized_completeness_query_signers is not an array".to_string())?;
+    if !allowed_query_signers
+        .iter()
+        .any(|allowed| allowed.as_str() == Some(query_signer))
+    {
+        return Err("zero-match query signer is not authorized by the channel manifest".to_string());
     }
     if integer(attestation, "absence_query.matching_event_count")? != 0 {
         return Ok(report(
