@@ -936,6 +936,34 @@ mod tests {
     }
 
     #[test]
+    fn identical_observation_histories_cannot_split_on_different_forecast_artifacts() {
+        let request_a = request_bytes("scenario-a", 1, 1);
+        let request_b = request_bytes("scenario-b", 1, 1);
+        let schedule_a = schedule_bytes(&request_a, true, true);
+        let schedule_b = schedule_bytes(&request_b, false, false);
+        let forecast_a = forecast_bundle_bytes(SCENARIO_SET, "forecast-a", 1, 1);
+        let forecast_b = forecast_bundle_bytes(SCENARIO_SET, "forecast-b", 1, 1);
+        let information_a = information_sets(&forecast_a);
+        let information_b = information_sets(&forecast_b);
+
+        let receipt = evaluate_nonanticipativity_bytes(
+            SCENARIO_SET,
+            &[
+                scenario("scenario-a", &request_a, &schedule_a, &information_a),
+                scenario("scenario-b", &request_b, &schedule_b, &information_b),
+            ],
+        )
+        .unwrap();
+
+        assert_eq!(receipt.disposition, NonAnticipativityDispositionV1::Rejected);
+        assert!(receipt.findings.iter().any(|finding| {
+            finding.predicate == "shared-observation-forecast-bundle-consistency"
+                && finding.interval_index == Some(0)
+                && !finding.passed
+        }));
+    }
+
+    #[test]
     fn future_dated_forecast_is_rejected() {
         let request = request_bytes("scenario-a", 1, 1);
         let schedule = schedule_bytes(&request, true, true);
