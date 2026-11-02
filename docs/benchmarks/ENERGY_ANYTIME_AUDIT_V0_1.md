@@ -197,10 +197,11 @@ These references define comparison targets, not evidence that Sol-Atlas is prese
 
 ## 7.1 Concrete implementation seam in the current enumerator
 
-The source-level review of `sol-atlas-core/src/energy_dispatch.rs` identifies two interruption points that an additive anytime API must handle separately:
+The source-level review of `sol-atlas-core/src/energy_dispatch.rs` identifies two interruption points and one important measurement-definition issue.
 
-1. `ExactSearch::tick` currently increments `evaluated_action_expansions` and then checks whether the new value is greater than the request cap. Thus a cap of C can leave the internal counter at C+1 on the rejected expansion. The current all-or-nothing API does not expose that partial counter, but an anytime trace will. Before publishing a measured work budget, define whether the counter means attempted or admitted expansions. Prefer an invariant of **admitted expansions <= configured cap**, with a boundary test at C-1, C and C+1.
-2. `ExactSearch::record_schedule` increments the complete-schedule counter, computes the objective and then mutates the Pareto frontier. The frontier cap can fail after a complete schedule has already been found. The anytime implementation must maintain a separate incumbent before frontier insertion/pruning, so a frontier-cap interruption cannot erase the candidate.
+1. **Budget accounting.** `ExactSearch::tick` currently increments `evaluated_action_expansions` and then checks whether the new value is greater than the request cap. Thus a cap of C can leave the internal counter at C+1 on the rejected tick. Before publishing an anytime trace, define whether the counter represents attempted or admitted work. Prefer an invariant of **admitted expansions <= configured cap**, with boundary tests at C-1, C and C+1.
+2. **Incumbent retention.** `ExactSearch::record_schedule` increments the complete-schedule counter, computes the objective and then mutates the Pareto frontier. The frontier cap can fail after a complete schedule has already been found. The anytime implementation must maintain a separate incumbent before frontier insertion/pruning, so a frontier-cap interruption cannot erase the candidate.
+3. **Work-unit meaning.** `tick()` is called at each of five nested loop levels: grid import, SOC withdrawal, charge input, essential service and flexible service. The current `evaluated_action_expansions` therefore counts enumeration-prefix visits at different depths, not just complete dispatch-action vectors, full schedules or recursively completed nodes. Preserve this exact definition for existing v0.2 traces. For a successor trace, either rename the measure to something precise such as `enumeration_prefix_visits` with per-depth counts, or publish a schema-bound definition that makes the five-level counting explicit. Never compare this number directly with CP-SAT search nodes, Gurobi work units, or another algorithm's expansions without a separately justified normalization.
 
 Do not implement anytime behavior by catching every error and relabeling it as `feasible_unproven`. Only the explicitly recognized expansion/frontier budget stop conditions may return a preserved incumbent; arithmetic overflow, invalid input and unexpected search errors remain errors. If a limit stop has no fully completed candidate, return `limit_without_candidate`.
 
@@ -210,6 +211,7 @@ Do not implement anytime behavior by catching every error and relabeling it as `
 - one or more complete paths found before expansion cap: return a complete incumbent, but no complete-frontier/optimality claim;
 - frontier cap reached after at least one complete path: preserve the incumbent independently of the partial frontier;
 - exact cap boundary: observed admitted expansions never exceed the configured cap;
+- depth-specific counters sum to the declared total, and counters have stable semantics across deterministic replay;
 - arithmetic overflow or malformed request after a candidate exists: do not mask the error as a normal budget stop;
 - exhaustive no-schedule case: only then may the outcome become `proven_infeasible`;
 - exhaustive completion: preserve exact v0.1 API parity and compare the full result with the independent test oracle.
