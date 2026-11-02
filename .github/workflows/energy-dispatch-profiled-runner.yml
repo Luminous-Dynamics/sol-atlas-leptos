@@ -1,0 +1,195 @@
+name: Energy Dispatch Exact-Search Profiler
+
+on:
+  pull_request:
+    paths:
+      - "tools/energy-dispatch-profile-runner/**"
+      - "tools/energy-dispatch-schedule-auditor/**"
+      - "tools/energy-solver-compute-calibration/**"
+      - "sol-atlas-core/src/energy_dispatch.rs"
+      - "sol-atlas-core/src/energy_pathway.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "sol-atlas-core/Cargo.toml"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "schemas/examples/energy-dispatch-pv-outage.synthetic.json"
+      - ".github/workflows/energy-dispatch-profiled-runner.yml"
+  push:
+    branches:
+      - "research/energy-solver-compute-calibration-*"
+    paths:
+      - "tools/energy-dispatch-profile-runner/**"
+      - "tools/energy-dispatch-schedule-auditor/**"
+      - "tools/energy-solver-compute-calibration/**"
+      - "sol-atlas-core/src/energy_dispatch.rs"
+      - "sol-atlas-core/src/energy_pathway.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "sol-atlas-core/Cargo.toml"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "schemas/examples/energy-dispatch-pv-outage.synthetic.json"
+      - ".github/workflows/energy-dispatch-profiled-runner.yml"
+permissions:
+  contents: read
+
+concurrency:
+  group: energy-dispatch-profiled-runner-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  exact-dispatch-profile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/energy-dispatch-profiled-runner/cargo-target
+      EXPECTED_SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Assert exact source subject
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SUBJECT_SHA"
+      - uses: dtolnay/rust-toolchain@1.96.0
+        with:
+          components: rustfmt, clippy
+      - name: Format the profiled runner source
+        run: cargo fmt --package energy-dispatch-profile-runner --check
+      - name: Check exact-search profiler against the committed locked core
+        run: cargo check --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-profile
+      - name: Run exact-search profiler positive and negative controls
+        run: cargo test --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-profile
+      - name: Strict Clippy for the new profiler binary
+        run: cargo clippy --no-deps --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-profile -- -D warnings
+      - name: Build profiler, independent schedule auditor and trace aggregator
+        run: |
+          set -euo pipefail
+          cargo build --release --locked --manifest-path tools/energy-dispatch-profile-runner/Cargo.toml --bin energy-dispatch-profile
+          cargo build --release --locked --manifest-path tools/energy-dispatch-schedule-auditor/Cargo.toml --bin energy-dispatch-schedule-auditor
+          cargo build --release --locked --manifest-path tools/energy-solver-compute-calibration/Cargo.toml --bin energy-solver-compute-calibration
+      - name: Execute 30 exact-search runs and independently audit every selected schedule
+        run: |
+          set -euo pipefail
+          mkdir -p target/energy-dispatch-profiled-runner
+          panel_sha="$(sha256sum schemas/examples/energy-dispatch-pv-outage.synthetic.json | awk '{print $1}')"
+          profiler="$CARGO_TARGET_DIR/release/energy-dispatch-profile"
+          auditor="$CARGO_TARGET_DIR/release/energy-dispatch-schedule-auditor"
+          for sample in $(seq -w 1 30); do
+            "$profiler" \
+              schemas/examples/energy-dispatch-pv-outage.synthetic.json \
+              "$panel_sha" \
+              target/energy-dispatch-profiled-runner/trace.csv \
+              "target/energy-dispatch-profiled-runner/report-$sample.json" \
+              "target/energy-dispatch-profiled-runner/schedule-$sample.json"
+            request_sha="$(jq -r '.request_sha256' "target/energy-dispatch-profiled-runner/report-$sample.json")"
+            schedule_sha="$(jq -r '.schedule_sha256' "target/energy-dispatch-profiled-runner/report-$sample.json")"
+            "$auditor" \
+              schemas/examples/energy-dispatch-pv-outage.synthetic.json \
+              "target/energy-dispatch-profiled-runner/schedule-$sample.json" \
+              "target/energy-dispatch-profiled-runner/audit-receipt-$sample.json"
+            jq --arg request_sha "$request_sha" --arg schedule_sha "$schedule_sha" -e '
+              .disposition == "accepted" and
+              .request_sha256 == $request_sha and
+              .schedule_sha256 == $schedule_sha and
+              all(.findings[]; .passed == true) and
+              (.auditor_binary_sha256 | length == 64) and
+              (.receipt_sha256 | length == 64)
+            ' "target/energy-dispatch-profiled-runner/audit-receipt-$sample.json"
+          done
+          awk -F, 'NF != 34 { exit 1 }' target/energy-dispatch-profiled-runner/trace.csv
+          test "$(wc -l < target/energy-dispatch-profiled-runner/trace.csv)" -eq 31
+          test "$(find target/energy-dispatch-profiled-runner -name 'audit-receipt-*.json' | wc -l)" -eq 30
+          grep -q ',optimal,' target/energy-dispatch-profiled-runner/trace.csv
+          grep -q ',NA,NA,NA,' target/energy-dispatch-profiled-runner/trace.csv
+          jq -e '.status == "optimal" and .assessment.search_is_exact == true and .assessment.pareto_frontier_complete == true and .selected_schedule != null' \
+            target/energy-dispatch-profiled-runner/report-30.json
+          jq -e '.assessment.evaluated_action_expansions > 0 and .assessment.feasible_complete_schedules > 0 and .assessment.pareto_frontier_count > 0 and (.schedule_sha256 | length == 64)' \
+            target/energy-dispatch-profiled-runner/report-30.json
+      - name: Aggregate measured search timings and require an auditable p95
+        run: |
+          set -euo pipefail
+          cargo run --release --locked --manifest-path tools/energy-solver-compute-calibration/Cargo.toml -- \
+            target/energy-dispatch-profiled-runner/trace.csv \
+            > target/energy-dispatch-profiled-runner/trace-summary.csv
+          awk -F, '
+            NR == 1 { if (NF != 34 || $1 != "cohort_id") exit 1 }
+            NR == 2 {
+              if ($3 != 30 || $4 != 30 || $5 != 0 || $6 != 30) exit 1
+              if ($14 == "NA" || $15 == "NA" || $16 != "NA" || $34 != "false") exit 1
+              if ($17 != "NA" || $18 != "NA" || $19 == "NA" || $20 == "NA") exit 1
+              if ($27 != 30 || $28 == "NA" || $29 == "NA") exit 1
+              if ($30 == "NA" || $31 == "NA" || $32 == "NA" || $33 == "NA") exit 1
+            }
+            END { if (NR != 2) exit 1 }
+          ' target/energy-dispatch-profiled-runner/trace-summary.csv
+          jq -s -e 'length == 30 and all(.[]; .disposition == "accepted")' \
+            target/energy-dispatch-profiled-runner/audit-receipt-*.json
+          jq -r '.assessment | "search_action_expansions=\(.evaluated_action_expansions)\nfeasible_complete_schedules=\(.feasible_complete_schedules)\npareto_frontier_count=\(.pareto_frontier_count)"' \
+            target/energy-dispatch-profiled-runner/report-30.json
+          cat target/energy-dispatch-profiled-runner/trace-summary.csv
+      - name: Capture source, fixture and runner provenance
+        run: |
+          sha256sum schemas/examples/energy-dispatch-pv-outage.synthetic.json \
+            > target/energy-dispatch-profiled-runner/request-fixture.sha256
+          sha256sum "$CARGO_TARGET_DIR/release/energy-dispatch-profile" \
+            > target/energy-dispatch-profiled-runner/runner-binary.sha256
+          sha256sum "$CARGO_TARGET_DIR/release/energy-dispatch-schedule-auditor" \
+            > target/energy-dispatch-profiled-runner/auditor-binary.sha256
+          sha256sum "$CARGO_TARGET_DIR/release/energy-solver-compute-calibration" \
+            > target/energy-dispatch-profiled-runner/trace-aggregator-binary.sha256
+          sha256sum target/energy-dispatch-profiled-runner/trace.csv \
+            > target/energy-dispatch-profiled-runner/trace-source.sha256
+          sha256sum target/energy-dispatch-profiled-runner/trace-summary.csv \
+            > target/energy-dispatch-profiled-runner/trace-summary.sha256
+          {
+            printf 'subject_commit=%s\n' "$(git rev-parse HEAD)"
+            printf 'rustc='; rustc --version
+            printf 'cargo='; cargo --version
+            printf 'runner_os=%s\n' "$RUNNER_OS"
+            printf 'runner_arch=%s\n' "$RUNNER_ARCH"
+            printf 'cpu_model='; lscpu | awk -F: '/Model name/ {gsub(/^ +/, "", $2); print $2; exit}'
+            printf 'logical_cpu_count='; nproc
+            printf 'runner_ram_kib='; awk '/MemTotal/ {print $2}' /proc/meminfo
+          } > target/energy-dispatch-profiled-runner/build-provenance.txt
+      - name: Assert exact source and clean tracked worktree
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SUBJECT_SHA"
+          git diff --exit-code
+          test -z "$(git status --porcelain --untracked-files=all)"
+      - name: Upload exact-search trace and execution receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: energy-dispatch-profiled-runner-${{ github.sha }}
+          path: |
+            target/energy-dispatch-profiled-runner/trace.csv
+            target/energy-dispatch-profiled-runner/trace-summary.csv
+            target/energy-dispatch-profiled-runner/report-*.json
+            target/energy-dispatch-profiled-runner/schedule-*.json
+            target/energy-dispatch-profiled-runner/audit-receipt-*.json
+            target/energy-dispatch-profiled-runner/*.sha256
+            target/energy-dispatch-profiled-runner/build-provenance.txt
+            tools/energy-dispatch-profile-runner/src/main.rs
+            tools/energy-dispatch-profile-runner/Cargo.toml
+            tools/energy-dispatch-profile-runner/README.md
+            tools/energy-dispatch-schedule-auditor/Cargo.toml
+            tools/energy-dispatch-schedule-auditor/Cargo.lock
+            tools/energy-dispatch-schedule-auditor/src/
+            tools/energy-dispatch-schedule-auditor/schedule-schema-v0.1.json
+            tools/energy-solver-compute-calibration/Cargo.toml
+            tools/energy-solver-compute-calibration/Cargo.lock
+            tools/energy-solver-compute-calibration/src/
+            tools/energy-solver-compute-calibration/README.md
+            sol-atlas-core/src/energy_dispatch.rs
+            sol-atlas-core/src/energy_pathway.rs
+            sol-atlas-core/src/lib.rs
+            sol-atlas-core/Cargo.toml
+            Cargo.toml
+            Cargo.lock
+            schemas/examples/energy-dispatch-pv-outage.synthetic.json
+            sol-atlas-core/src/energy_dispatch.rs
+            sol-atlas-core/src/energy_pathway.rs
+            sol-atlas-core/Cargo.toml
+            Cargo.lock
+            schemas/examples/energy-dispatch-pv-outage.synthetic.json
+          if-no-files-found: error
+          retention-days: 14

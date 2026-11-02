@@ -1,0 +1,11 @@
+[package]
+name = "energy-solver-compute-calibration"
+version = "0.1.0"
+edition = "2024"
+publish = false
+license = "AGPL-3.0-or-later"
+description = "Strict, source-bound solver trace validation and compute calibration"
+
+[dependencies]
+
+[workspace]
