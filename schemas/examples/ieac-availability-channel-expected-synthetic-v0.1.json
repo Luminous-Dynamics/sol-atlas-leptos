@@ -12,12 +12,14 @@
     "rfc9162_non_inclusion_assumed": false
   },
   "negative_controls": [
-    "same positive post-cutoff access event without channel-completeness attestation must remain unknown",
-    "nonzero sequence gap must prevent complete status",
-    "known bypass path must prevent complete status",
-    "coverage interval starting after earliest possible cutoff must prevent complete status",
-    "first access sequence must be greater than lower checkpoint sequence",
-    "first access event and both checkpoints must use same ledger, namespace and epoch",
-    "policy change during coverage interval must prevent complete status"
+    "positive post-cutoff access without a verified zero-match query remains unknown",
+    "zero-match query sequence range must equal coverage-start to decision-boundary checkpoint interval",
+    "decision-boundary checkpoint must be strictly later than latest possible decision cutoff",
+    "coverage-start checkpoint must be no later than earliest possible decision cutoff",
+    "first access event sequence must be greater than decision-boundary checkpoint sequence",
+    "first access event sequence must be no greater than coverage-end checkpoint sequence",
+    "first access event and all checkpoints must use the same ledger, namespace and epoch",
+    "nonzero sequence gap, unresolved outage, backfill, policy change or known bypass prevents complete status",
+    "RFC9162_SHA256 consistency receipt must not be treated as a non-inclusion proof"
   ]
 }
