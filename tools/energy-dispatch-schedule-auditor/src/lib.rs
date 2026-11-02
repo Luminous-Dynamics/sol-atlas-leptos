@@ -20,6 +20,8 @@ pub const MAX_REQUEST_BYTES: usize = 1_048_576;
 pub const MAX_SCHEDULE_BYTES: usize = 1_048_576;
 pub const MAX_INTERVALS: usize = 128;
 
+pub mod nonanticipativity_v0_1;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AuditError(pub String);
 
@@ -191,7 +193,7 @@ struct SourceRequest {
     intervals: Vec<SourceInterval>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 struct Battery {
     capacity_quanta: u16,
@@ -205,7 +207,7 @@ struct Battery {
     terminal_reserve_quanta: u16,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 struct SourceInterval {
     interval_id: String,
