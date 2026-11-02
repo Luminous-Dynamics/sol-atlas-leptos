@@ -1,23 +1,43 @@
 {
-  "schema_version": "energy-dispatch-nonanticipativity-manifest-v0.1",
+  "schema_version": "energy-dispatch-nonanticipativity-manifest-v0.3",
   "scenario_set_id": "demo-nonanticipativity-branching-v0.1",
   "scenarios": [
     {
       "scenario_id": "branch-scenario-a",
       "request_path": "branch-scenario-a.request.json",
       "schedule_path": "branch-scenario-a.schedule.json",
-      "information_set_sha256_by_interval": [
-        "49236d6e0f07c20c9b8dc14d87d7fd6eef174b40bb95e5370d4ed1309c5e6763",
-        "4008ae0e7feee77959e76bed00836e4aefa55eb3a624f8013595561438442f0d"
+      "information_sets_by_interval": [
+        {
+          "observed_at_unix_seconds": 1799999999,
+          "observation_bundle_path": "observation-positive-root.json",
+          "forecast_as_of_unix_seconds": 1799996400,
+          "forecast_bundle_path": "forecast-bundle-positive.json"
+        },
+        {
+          "observed_at_unix_seconds": 1800003600,
+          "observation_bundle_path": "observation-positive-scenario-a-branch.json",
+          "forecast_as_of_unix_seconds": 1799996400,
+          "forecast_bundle_path": "forecast-bundle-positive.json"
+        }
       ]
     },
     {
       "scenario_id": "branch-scenario-b",
       "request_path": "branch-scenario-b.request.json",
       "schedule_path": "branch-scenario-b.schedule.json",
-      "information_set_sha256_by_interval": [
-        "49236d6e0f07c20c9b8dc14d87d7fd6eef174b40bb95e5370d4ed1309c5e6763",
-        "17066ab4f6d5971c2190b25fb82368cecffba5d2371e35b04878fb9dc650add3"
+      "information_sets_by_interval": [
+        {
+          "observed_at_unix_seconds": 1799999999,
+          "observation_bundle_path": "observation-positive-root.json",
+          "forecast_as_of_unix_seconds": 1799996400,
+          "forecast_bundle_path": "forecast-bundle-positive.json"
+        },
+        {
+          "observed_at_unix_seconds": 1800003600,
+          "observation_bundle_path": "observation-positive-scenario-b-branch.json",
+          "forecast_as_of_unix_seconds": 1799996400,
+          "forecast_bundle_path": "forecast-bundle-positive.json"
+        }
       ]
     }
   ]

@@ -1,11 +1,12 @@
 #![forbid(unsafe_code)]
 
-pub mod trace_v0_3;
 //! Strict solver-trace validation and per-cohort latency/quality aggregation.
 //!
 //! This crate deliberately does not synthesize solver measurements. Its checked-in
 //! CSV is a parser fixture. Real traces must identify the exact solver binary,
 //! model, request, mesh, scenario panel and hardware profile before aggregation.
+
+pub mod trace_v0_3;
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;

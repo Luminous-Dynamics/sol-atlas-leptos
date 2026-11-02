@@ -1211,11 +1211,10 @@ pub fn evaluate_service_floor_bytes(
                 maximum_consecutive_below_floor.max(consecutive_below_floor);
         }
 
-        let service_bps = if demand == 0 {
-            10_000
-        } else {
-            ((served * 10_000) / demand) as u16
-        };
+        let service_numerator = served
+            .checked_mul(10_000)
+            .ok_or_else(|| audit_error("essential service basis-point multiplication overflow"))?;
+        let service_bps = service_numerator.checked_div(demand).unwrap_or(10_000) as u16;
         service_floor_finding(
             &mut findings,
             "per-interval-essential-service-floor",

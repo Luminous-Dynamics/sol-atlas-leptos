@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/energy-dispatch-observation-bundle-v0.1.json",
+  "title": "Energy Dispatch Observation Bundle v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "scenario_set_id",
+    "bundle_id",
+    "observed_at_unix_seconds",
+    "observation_payload"
+  ],
+  "properties": {
+    "schema_version": { "const": "energy-dispatch-observation-bundle-v0.1" },
+    "scenario_set_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+    },
+    "bundle_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+    },
+    "observed_at_unix_seconds": { "type": "integer" },
+    "observation_payload": {
+      "type": "object",
+      "minProperties": 1
+    }
+  }
+}

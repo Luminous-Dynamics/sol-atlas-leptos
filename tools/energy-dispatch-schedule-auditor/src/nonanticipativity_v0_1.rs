@@ -1,10 +1,11 @@
-//! Independent audit of declared non-anticipativity across scenario schedules.
+//! Independent audit of non-anticipativity across scenario schedules.
 //!
-//! The evaluator checks that scenarios carrying the same caller-declared
-//! information-set digest have identical dispatch actions at that interval.
-//! It also checks that those scenarios carry the same source-observation
-//! prefix through that interval. It cannot establish that the labels faithfully
-//! represent what an operator/controller could actually observe.
+//! Information-set identities are derived from cumulative, time-stamped
+//! observation payloads and exact time-bounded forecast bundles. The full
+//! realized request trajectory is used for domain checking, never as the
+//! policy's decision-time information. Callers cannot submit arbitrary
+//! information-set hashes. Evidence authenticity and calibration still require
+//! an independent provenance layer.
 
 use super::{
     audit_error, current_binary_sha256, parse_unique_json, recompute_objectives, sha256,
@@ -15,20 +16,28 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 pub const NONANTICIPATIVITY_AUDITOR_ID: &str = "energy-dispatch-nonanticipativity-auditor";
-pub const NONANTICIPATIVITY_RECEIPT_SCHEMA_V1: &str =
-    "energy-dispatch-nonanticipativity-receipt-v0.1";
+pub const NONANTICIPATIVITY_RECEIPT_SCHEMA_V3: &str =
+    "energy-dispatch-nonanticipativity-receipt-v0.3";
 pub const MAX_SCENARIOS: usize = 256;
 
+/// Information-set metadata reconstructed from exact observation and forecast artifacts.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct NonAnticipativityInformationSetV1 {
-    /// The forecast issue/vintage time represented in the decision-maker's
-    /// information set. It must not be later than the interval decision time.
+    pub observed_at_unix_seconds: i64,
+    pub observation_bundle_sha256: String,
     pub forecast_as_of_unix_seconds: i64,
-    /// Content digest of the forecast bundle available at that vintage.
-    /// Authenticity and calibration of the underlying bundle require a
-    /// separate evidence adapter and are not established by this digest.
     pub forecast_bundle_sha256: String,
+}
+
+/// Exact decision-time evidence supplied to the auditor. All digests are
+/// recomputed from these bytes; no caller-selected information-set hash exists.
+#[derive(Debug, Clone, Copy)]
+pub struct NonAnticipativityInformationSetBytes<'a> {
+    pub observed_at_unix_seconds: i64,
+    pub observation_bundle_bytes: &'a [u8],
+    pub forecast_as_of_unix_seconds: i64,
+    pub forecast_bundle_bytes: &'a [u8],
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -36,10 +45,11 @@ pub struct NonAnticipativityScenarioBytes<'a> {
     pub scenario_id: &'a str,
     pub request_bytes: &'a [u8],
     pub schedule_bytes: &'a [u8],
-    /// Forecast vintage and bundle commitment for each decision interval.
-    /// The actual information-set digest is derived from this metadata plus
-    /// the exact source-observation prefix and interval decision time.
-    pub information_sets_by_interval: &'a [NonAnticipativityInformationSetV1],
+    /// One exact observation bundle and one exact forecast bundle per
+    /// decision interval. The evaluator derives a cumulative history from
+    /// these artifacts; it never treats the full realized request trajectory
+    /// as information available to the policy.
+    pub information_sets_by_interval: &'a [NonAnticipativityInformationSetBytes<'a>],
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -63,7 +73,7 @@ pub struct NonAnticipativityFindingV1 {
     pub predicate: String,
     pub interval_index: Option<usize>,
     pub information_set_sha256: Option<String>,
-    pub observation_prefix_sha256: Option<String>,
+    pub observation_history_sha256: Option<String>,
     pub scenario_ids: Vec<String>,
     pub passed: bool,
     pub detail: String,
@@ -136,49 +146,159 @@ impl From<&IntervalDispatch> for DispatchActionV1 {
 }
 
 #[derive(Serialize)]
+struct ObservationHistorySubjectV1<'a> {
+    schema_version: &'a str,
+    scenario_set_id: &'a str,
+    interval_index: usize,
+    previous_history_sha256: &'a str,
+    observed_at_unix_seconds: i64,
+    canonical_observation_payload_sha256: &'a str,
+}
+
+#[derive(Serialize)]
 struct InformationSetSubjectV1<'a> {
     schema_version: &'a str,
+    scenario_set_id: &'a str,
     decision_time_unix_seconds: i64,
-    observation_prefix_sha256: &'a str,
+    observation_history_sha256: &'a str,
+    observed_at_unix_seconds: i64,
     forecast_as_of_unix_seconds: i64,
     forecast_bundle_sha256: &'a str,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ObservationBundleV1 {
+    schema_version: String,
+    scenario_set_id: String,
+    bundle_id: String,
+    observed_at_unix_seconds: i64,
+    observation_payload: serde_json::Value,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ForecastBundleV1 {
+    schema_version: String,
+    scenario_set_id: String,
+    bundle_id: String,
+    issued_at_unix_seconds: i64,
+    valid_from_unix_seconds: i64,
+    valid_through_unix_seconds: i64,
+    forecast_payload: serde_json::Value,
+}
+
 const INFORMATION_SET_SCHEMA_V1: &str = "energy-dispatch-information-set-v0.1";
+const OBSERVATION_BUNDLE_SCHEMA_V1: &str = "energy-dispatch-observation-bundle-v0.1";
+const FORECAST_BUNDLE_SCHEMA_V1: &str = "energy-dispatch-forecast-bundle-v0.1";
+pub const MAX_OBSERVATION_BUNDLE_BYTES: usize = 1_048_576;
+pub const MAX_FORECAST_BUNDLE_BYTES: usize = 1_048_576;
+
+fn valid_bundle_id(value: &str) -> bool {
+    !value.trim().is_empty()
+        && value.len() <= 128
+        && value
+            .chars()
+            .all(|ch| ch.is_ascii_alphanumeric() || "-_.:".contains(ch))
+}
 
 fn derive_information_set_sha256(
+    scenario_set_id: &str,
     request: &SourceRequest,
     interval_index: usize,
-    information_set: &NonAnticipativityInformationSetV1,
-) -> Result<String, AuditError> {
-    if !super::is_sha256_hex(&information_set.forecast_bundle_sha256) {
-        return Err(audit_error(
-            "forecast bundle SHA-256 must be 64 lowercase hexadecimal characters",
-        ));
+    previous_history_sha256: &str,
+    information_set: &NonAnticipativityInformationSetBytes<'_>,
+) -> Result<(NonAnticipativityInformationSetV1, String, String), AuditError> {
+    if information_set.observation_bundle_bytes.len() > MAX_OBSERVATION_BUNDLE_BYTES {
+        return Err(audit_error("observation bundle exceeds the 1 MiB byte limit"));
     }
+    if information_set.forecast_bundle_bytes.len() > MAX_FORECAST_BUNDLE_BYTES {
+        return Err(audit_error("forecast bundle exceeds the 1 MiB byte limit"));
+    }
+
     let interval = request
         .intervals
         .get(interval_index)
         .ok_or_else(|| audit_error("information-set interval index is outside the request"))?;
-    if information_set.forecast_as_of_unix_seconds > interval.start_unix_seconds {
+    let decision_time = interval.start_unix_seconds;
+
+    let observation_value = parse_unique_json(information_set.observation_bundle_bytes)?;
+    let observation: ObservationBundleV1 = serde_json::from_value(observation_value)
+        .map_err(|error| audit_error(format!("observation bundle schema: {error}")))?;
+    if observation.schema_version != OBSERVATION_BUNDLE_SCHEMA_V1
+        || observation.scenario_set_id != scenario_set_id
+        || !valid_bundle_id(&observation.bundle_id)
+        || observation.observed_at_unix_seconds != information_set.observed_at_unix_seconds
+        || observation.observed_at_unix_seconds > decision_time
+        || !observation
+            .observation_payload
+            .as_object()
+            .is_some_and(|payload| !payload.is_empty())
+    {
         return Err(audit_error(
-            "forecast vintage cannot be later than the interval decision time",
+            "observation bundle identity, observation time or payload is invalid for this decision",
         ));
     }
-    let observation_prefix_bytes =
-        serde_json::to_vec(&request.intervals[..=interval_index])
-            .map_err(|error| audit_error(format!("serialize observation prefix: {error}")))?;
-    let observation_prefix_sha256 = sha256(&observation_prefix_bytes);
-    let subject = InformationSetSubjectV1 {
-        schema_version: INFORMATION_SET_SCHEMA_V1,
-        decision_time_unix_seconds: interval.start_unix_seconds,
-        observation_prefix_sha256: &observation_prefix_sha256,
-        forecast_as_of_unix_seconds: information_set.forecast_as_of_unix_seconds,
-        forecast_bundle_sha256: &information_set.forecast_bundle_sha256,
+
+    let forecast_value = parse_unique_json(information_set.forecast_bundle_bytes)?;
+    let forecast: ForecastBundleV1 = serde_json::from_value(forecast_value)
+        .map_err(|error| audit_error(format!("forecast bundle schema: {error}")))?;
+    if forecast.schema_version != FORECAST_BUNDLE_SCHEMA_V1
+        || forecast.scenario_set_id != scenario_set_id
+        || !valid_bundle_id(&forecast.bundle_id)
+        || forecast.issued_at_unix_seconds != information_set.forecast_as_of_unix_seconds
+        || forecast.issued_at_unix_seconds > decision_time
+        || forecast.valid_from_unix_seconds > decision_time
+        || forecast.valid_through_unix_seconds < decision_time
+        || forecast.valid_through_unix_seconds < forecast.valid_from_unix_seconds
+        || !forecast
+            .forecast_payload
+            .as_object()
+            .is_some_and(|payload| !payload.is_empty())
+    {
+        return Err(audit_error(
+            "forecast bundle identity, issue time, validity window or payload is invalid \
+             for this decision",
+        ));
+    }
+
+    let observation_bundle_sha256 = sha256(information_set.observation_bundle_bytes);
+    let canonical_observation_payload_bytes = serde_json::to_vec(&observation.observation_payload)
+        .map_err(|error| audit_error(format!("canonicalize observation payload: {error}")))?;
+    let canonical_observation_payload_sha256 = sha256(&canonical_observation_payload_bytes);
+    let forecast_bundle_sha256 = sha256(information_set.forecast_bundle_bytes);
+    let history_subject = ObservationHistorySubjectV1 {
+        schema_version: "energy-dispatch-observation-history-v0.1",
+        scenario_set_id,
+        interval_index,
+        previous_history_sha256,
+        observed_at_unix_seconds: information_set.observed_at_unix_seconds,
+        canonical_observation_payload_sha256: &canonical_observation_payload_sha256,
     };
-    let bytes = serde_json::to_vec(&subject)
+    let history_bytes = serde_json::to_vec(&history_subject)
+        .map_err(|error| audit_error(format!("serialize observation history: {error}")))?;
+    let observation_history_sha256 = sha256(&history_bytes);
+    let information_subject = InformationSetSubjectV1 {
+        schema_version: INFORMATION_SET_SCHEMA_V1,
+        scenario_set_id,
+        decision_time_unix_seconds: decision_time,
+        observation_history_sha256: &observation_history_sha256,
+        observed_at_unix_seconds: information_set.observed_at_unix_seconds,
+        forecast_as_of_unix_seconds: information_set.forecast_as_of_unix_seconds,
+        forecast_bundle_sha256: &forecast_bundle_sha256,
+    };
+    let information_bytes = serde_json::to_vec(&information_subject)
         .map_err(|error| audit_error(format!("serialize information-set subject: {error}")))?;
-    Ok(sha256(&bytes))
+    Ok((
+        NonAnticipativityInformationSetV1 {
+            observed_at_unix_seconds: information_set.observed_at_unix_seconds,
+            observation_bundle_sha256,
+            forecast_as_of_unix_seconds: information_set.forecast_as_of_unix_seconds,
+            forecast_bundle_sha256,
+        },
+        observation_history_sha256,
+        sha256(&information_bytes),
+    ))
 }
 
 struct ParsedScenario {
@@ -188,6 +308,7 @@ struct ParsedScenario {
     request: SourceRequest,
     schedule: DispatchSchedule,
     information_sets_by_interval: Vec<NonAnticipativityInformationSetV1>,
+    observation_history_sha256_by_interval: Vec<String>,
     information_set_sha256_by_interval: Vec<String>,
     domain_valid: bool,
     domain_failure_detail: String,
@@ -206,7 +327,7 @@ fn add_finding(
     predicate: &str,
     interval_index: Option<usize>,
     information_set_sha256: Option<String>,
-    observation_prefix_sha256: Option<String>,
+    observation_history_sha256: Option<String>,
     scenario_ids: Vec<String>,
     passed: bool,
     detail: impl Into<String>,
@@ -215,24 +336,27 @@ fn add_finding(
         predicate: predicate.to_owned(),
         interval_index,
         information_set_sha256,
-        observation_prefix_sha256,
+        observation_history_sha256,
         scenario_ids,
         passed,
         detail: detail.into(),
     });
 }
 
-/// Evaluate a set of source-bound complete-horizon schedules against declared
-/// information-set labels.
+/// Evaluate complete-horizon scenario schedules using auditor-derived information sets.
 ///
-/// For every interval, scenarios that share an information-set digest must:
-/// 1. have identical source-observation prefixes through that interval; and
-/// 2. take identical dispatch actions at that interval.
+/// Each interval's information-set identity is derived from the exact source
+/// observation prefix, decision timestamp, forecast vintage, scenario-set ID,
+/// and SHA-256 of the exact strict-parsed forecast bundle bytes. The bundle's
+/// issue time and validity window must cover the decision time.
 ///
-/// Distinct information-set labels may take different actions. A missing
-/// shared information set is rejected rather than treated as vacuous success.
-/// The evaluator does not prove that caller-supplied information-set labels
-/// correspond to authentic, complete or decision-time-available observations.
+/// For every interval, scenarios with equal derived identities must take the
+/// same dispatch action. Distinct identities may diverge after new observations
+/// or a new forecast artifact becomes available. A missing shared information
+/// set is rejected rather than treated as vacuous success.
+///
+/// The evaluator binds forecast bytes but does not authenticate their producer,
+/// prove their availability to an operator, or establish forecast calibration.
 pub fn evaluate_nonanticipativity_bytes(
     scenario_set_id: &str,
     scenarios: &[NonAnticipativityScenarioBytes<'_>],
@@ -282,14 +406,36 @@ pub fn evaluate_nonanticipativity_bytes(
                  per source interval",
             ));
         }
-        let information_set_sha256_by_interval = source
-            .information_sets_by_interval
+        let mut information_set_material = Vec::with_capacity(
+            source.information_sets_by_interval.len(),
+        );
+        let mut previous_history_sha256 =
+            sha256(b"energy-dispatch-observation-history-root-v0.1");
+        for (interval_index, information_set) in
+            source.information_sets_by_interval.iter().enumerate()
+        {
+            let material = derive_information_set_sha256(
+                scenario_set_id,
+                &request,
+                interval_index,
+                &previous_history_sha256,
+                information_set,
+            )?;
+            previous_history_sha256 = material.1.clone();
+            information_set_material.push(material);
+        }
+        let information_sets_by_interval = information_set_material
             .iter()
-            .enumerate()
-            .map(|(interval_index, information_set)| {
-                derive_information_set_sha256(&request, interval_index, information_set)
-            })
-            .collect::<Result<Vec<_>, _>>()?;
+            .map(|(information_set, _, _)| information_set.clone())
+            .collect::<Vec<_>>();
+        let observation_history_sha256_by_interval = information_set_material
+            .iter()
+            .map(|(_, observation_digest, _)| observation_digest.clone())
+            .collect::<Vec<_>>();
+        let information_set_sha256_by_interval = information_set_material
+            .into_iter()
+            .map(|(_, _, information_digest)| information_digest)
+            .collect::<Vec<_>>();
 
         let request_sha256 = sha256(source.request_bytes);
         let schedule_sha256 = sha256(source.schedule_bytes);
@@ -322,7 +468,8 @@ pub fn evaluate_nonanticipativity_bytes(
             schedule_sha256,
             request,
             schedule,
-            information_sets_by_interval: source.information_sets_by_interval.to_vec(),
+            information_sets_by_interval,
+            observation_history_sha256_by_interval,
             information_set_sha256_by_interval,
             domain_valid,
             domain_failure_detail,
@@ -406,6 +553,58 @@ pub fn evaluate_nonanticipativity_bytes(
         },
     );
 
+    // A scenario tree represents one decision process. If two scenarios
+    // have identical source-observation histories at the same decision time,
+    // they must not be split by assigning them different forecast artifacts.
+    // Forecast updates may change the information set, but the same update
+    // must be presented to every scenario with the same observed history.
+    let mut observation_groups = BTreeMap::<(usize, String), Vec<usize>>::new();
+    for (scenario_index, scenario) in parsed.iter().enumerate() {
+        for (interval_index, observation_history_sha256) in
+            scenario.observation_history_sha256_by_interval.iter().enumerate()
+        {
+            observation_groups
+                .entry((interval_index, observation_history_sha256.clone()))
+                .or_default()
+                .push(scenario_index);
+        }
+    }
+
+    for ((interval_index, observation_history_sha256), members) in observation_groups {
+        if members.len() < 2 {
+            continue;
+        }
+        let first = &parsed[members[0]];
+        let first_information_set = &first.information_sets_by_interval[interval_index];
+        let forecast_consistent = members.iter().skip(1).all(|member| {
+            let candidate = &parsed[*member].information_sets_by_interval[interval_index];
+            candidate.forecast_as_of_unix_seconds
+                == first_information_set.forecast_as_of_unix_seconds
+                && candidate.forecast_bundle_sha256 == first_information_set.forecast_bundle_sha256
+        });
+        let mut scenario_ids: Vec<_> = members
+            .iter()
+            .map(|index| parsed[*index].scenario_id.clone())
+            .collect();
+        scenario_ids.sort();
+        add_finding(
+            &mut findings,
+            "shared-observation-forecast-bundle-consistency",
+            Some(interval_index),
+            Some(first.information_set_sha256_by_interval[interval_index].clone()),
+            Some(observation_history_sha256),
+            scenario_ids,
+            forecast_consistent,
+            if forecast_consistent {
+                "scenarios with identical observed history use the same forecast vintage \
+                 and exact forecast bundle"
+            } else {
+                "scenarios with identical observed history cite different forecast \
+                 vintages or exact forecast bundles"
+            },
+        );
+    }
+
     let mut groups = BTreeMap::<(usize, String), Vec<usize>>::new();
     for (scenario_index, scenario) in parsed.iter().enumerate() {
         for (interval_index, information_set_sha256) in
@@ -430,12 +629,12 @@ pub fn evaluate_nonanticipativity_bytes(
             .ok_or_else(|| audit_error("action comparison count overflow"))?;
 
         let first = &parsed[members[0]];
-        let observation_prefix = &first.request.intervals[..=interval_index];
-        let observation_prefix_bytes = serde_json::to_vec(observation_prefix)
+        let observation_history = &first.request.intervals[..=interval_index];
+        let observation_history_bytes = serde_json::to_vec(observation_history)
             .map_err(|error| audit_error(format!("serialize observation prefix: {error}")))?;
-        let observation_prefix_sha256 = sha256(&observation_prefix_bytes);
-        let observation_prefix_equal = members.iter().skip(1).all(|member| {
-            &parsed[*member].request.intervals[..=interval_index] == observation_prefix
+        let observation_history_sha256 = sha256(&observation_history_bytes);
+        let observation_history_equal = members.iter().skip(1).all(|member| {
+            &parsed[*member].request.intervals[..=interval_index] == observation_history
         });
         let first_action =
             DispatchActionV1::from(&first.schedule.interval_dispatches[interval_index]);
@@ -455,10 +654,10 @@ pub fn evaluate_nonanticipativity_bytes(
             "shared-information-set-observation-prefix",
             Some(interval_index),
             Some(information_set_sha256.clone()),
-            Some(observation_prefix_sha256),
+            Some(observation_history_sha256),
             scenario_ids.clone(),
-            observation_prefix_equal,
-            if observation_prefix_equal {
+            observation_history_equal,
+            if observation_history_equal {
                 "scenarios sharing this information set have identical declared \
                  exogenous observation prefixes"
             } else {
@@ -501,16 +700,17 @@ pub fn evaluate_nonanticipativity_bytes(
     } else {
         NonAnticipativityDispositionV1::Rejected
     };
-    let receipt_schema = NONANTICIPATIVITY_RECEIPT_SCHEMA_V1;
+    let receipt_schema = NONANTICIPATIVITY_RECEIPT_SCHEMA_V3;
     let auditor_id = NONANTICIPATIVITY_AUDITOR_ID;
     let auditor_version = env!("CARGO_PKG_VERSION");
     let auditor_binary_sha256 = current_binary_sha256()?;
     let claim_ceiling = concat!(
-        "equality of exact dispatch action fields for scenarios sharing caller-declared ",
-        "information-set SHA-256 labels, plus equality of their declared source-observation ",
-        "prefixes; does not authenticate information-set labels or prove observation ",
-        "availability, forecast calibration, stochastic optimality, service-floor compliance, ",
-        "physical safety or actuation authority"
+        "equality of exact dispatch action fields for scenarios sharing information-set ",
+        "SHA-256 identities derived from cumulative canonical observation payloads, observed ",
+        "timestamps and exact time-bounded forecast bundle bytes; raw observation/forecast ",
+        "artifacts are content-bound but publisher authenticity, actual operator availability ",
+        "and calibration are not verified; no stochastic optimality, service-floor, physical ",
+        "safety or actuation claim"
     );
     let subject = NonAnticipativityReceiptSubjectV1 {
         receipt_schema,
@@ -556,11 +756,60 @@ pub fn evaluate_nonanticipativity_bytes(
 mod tests {
     use super::*;
 
-    fn digest(byte: u8) -> String {
-        format!("{byte:02x}{}", "00".repeat(31))
+    const SCENARIO_SET: &str = "nonanticipativity-test-set";
+    const OBSERVED_ROOT_AT: i64 = 1_799_999_999;
+    const OBSERVED_BRANCH_AT: i64 = 1_800_003_600;
+    const FORECAST_AS_OF: i64 = 1_799_996_400;
+
+    fn observation_bundle_bytes(
+        scenario_set_id: &str,
+        bundle_id: &str,
+        observed_at_unix_seconds: i64,
+        observation_payload: serde_json::Value,
+    ) -> Vec<u8> {
+        serde_json::to_vec(&serde_json::json!({
+            "schema_version": "energy-dispatch-observation-bundle-v0.1",
+            "scenario_set_id": scenario_set_id,
+            "bundle_id": bundle_id,
+            "observed_at_unix_seconds": observed_at_unix_seconds,
+            "observation_payload": observation_payload
+        }))
+        .unwrap()
     }
 
-    fn request_bytes(case_id: &str, first_pv: u16) -> Vec<u8> {
+    fn forecast_bundle_bytes(
+        scenario_set_id: &str,
+        bundle_id: &str,
+        first_demand: u16,
+        second_demand: u16,
+    ) -> Vec<u8> {
+        serde_json::to_vec(&serde_json::json!({
+            "schema_version": "energy-dispatch-forecast-bundle-v0.1",
+            "scenario_set_id": scenario_set_id,
+            "bundle_id": bundle_id,
+            "issued_at_unix_seconds": FORECAST_AS_OF,
+            "valid_from_unix_seconds": FORECAST_AS_OF,
+            "valid_through_unix_seconds": 1_800_007_200_i64,
+            "forecast_payload": {
+                "scenario_probabilities": [
+                    {
+                        "scenario_id": "scenario-a",
+                        "weight_numerator": 1,
+                        "weight_denominator": 2
+                    },
+                    {
+                        "scenario_id": "scenario-b",
+                        "weight_numerator": 1,
+                        "weight_denominator": 2
+                    }
+                ],
+                "expected_essential_demand_quanta": [first_demand, second_demand]
+            }
+        }))
+        .unwrap()
+    }
+
+    fn request_bytes(case_id: &str, first_pv: u16, second_demand: u16) -> Vec<u8> {
         serde_json::to_vec(&serde_json::json!({
             "schema_version": "energy-dispatch-v0.1",
             "case_id": case_id,
@@ -601,7 +850,7 @@ mod tests {
                     "grid_outage": true,
                     "pv_available_quanta": 0,
                     "grid_import_limit_quanta": 0,
-                    "essential_demand_quanta": 1,
+                    "essential_demand_quanta": second_demand,
                     "flexible_demand_quanta": 0,
                     "grid_cost_units_per_quantum": 3,
                     "grid_carbon_grams_per_quantum": 7
@@ -619,11 +868,7 @@ mod tests {
         let request_value: serde_json::Value = serde_json::from_slice(request).unwrap();
         let case_id = request_value["case_id"].as_str().unwrap();
         let first_soc = if charge_in_first_interval { 1_u16 } else { 0_u16 };
-        let second_discharge = if discharge_in_second_interval {
-            1_u16
-        } else {
-            0_u16
-        };
+        let second_discharge = if discharge_in_second_interval { 1_u16 } else { 0_u16 };
         let terminal_soc = first_soc - second_discharge;
         let first_charge = if charge_in_first_interval { 1_u16 } else { 0_u16 };
         let first_pv_used = first_charge;
@@ -635,7 +880,13 @@ mod tests {
         .unwrap();
         let first_pv_curtailed = first_pv_available - first_pv_used;
         let second_served = second_discharge;
-        let second_unserved = 1 - second_served;
+        let second_demand = u16::try_from(
+            request_value["intervals"][1]["essential_demand_quanta"]
+                .as_u64()
+                .unwrap(),
+        )
+        .unwrap();
+        let second_unserved = second_demand - second_served;
 
         serde_json::to_vec(&serde_json::json!({
             "schema_version": "energy-dispatch-schedule-v0.1",
@@ -674,32 +925,86 @@ mod tests {
         .unwrap()
     }
 
+    fn information_sets<'a>(
+        observations: [&'a [u8]; 2],
+        forecasts: [&'a [u8]; 2],
+    ) -> Vec<NonAnticipativityInformationSetBytes<'a>> {
+        [
+            NonAnticipativityInformationSetBytes {
+                observed_at_unix_seconds: OBSERVED_ROOT_AT,
+                observation_bundle_bytes: observations[0],
+                forecast_as_of_unix_seconds: FORECAST_AS_OF,
+                forecast_bundle_bytes: forecasts[0],
+            },
+            NonAnticipativityInformationSetBytes {
+                observed_at_unix_seconds: OBSERVED_BRANCH_AT,
+                observation_bundle_bytes: observations[1],
+                forecast_as_of_unix_seconds: FORECAST_AS_OF,
+                forecast_bundle_bytes: forecasts[1],
+            },
+        ]
+        .to_vec()
+    }
+
+    fn root_observation() -> Vec<u8> {
+        observation_bundle_bytes(
+            SCENARIO_SET,
+            "root-observation-v1",
+            OBSERVED_ROOT_AT,
+            serde_json::json!({
+                "grid_connected": true,
+                "pv_available_quanta": 1,
+                "battery_soc_quanta": 0
+            }),
+        )
+    }
+
+    fn branch_observation(scenario: &str, essential_demand: u16) -> Vec<u8> {
+        observation_bundle_bytes(
+            SCENARIO_SET,
+            &format!("{scenario}-branch-observation-v1"),
+            OBSERVED_BRANCH_AT,
+            serde_json::json!({
+                "grid_connected": false,
+                "essential_demand_quanta": essential_demand
+            }),
+        )
+    }
+
     fn scenario<'a>(
         scenario_id: &'a str,
         request: &'a [u8],
         schedule: &'a [u8],
-        labels: &'a [String],
+        information_sets: &'a [NonAnticipativityInformationSetBytes<'a>],
     ) -> NonAnticipativityScenarioBytes<'a> {
         NonAnticipativityScenarioBytes {
             scenario_id,
             request_bytes: request,
             schedule_bytes: schedule,
-            information_set_sha256_by_interval: labels,
+            information_sets_by_interval: information_sets,
         }
     }
 
     #[test]
     fn shared_pre_branch_actions_must_be_identical() {
-        let request_a = request_bytes("scenario-a", 1);
-        let request_b = request_bytes("scenario-b", 1);
+        let request_a = request_bytes("scenario-a", 1, 1);
+        let request_b = request_bytes("scenario-b", 1, 0);
         let schedule_a = schedule_bytes(&request_a, true, true);
         let schedule_b = schedule_bytes(&request_b, false, false);
-        let labels = [digest(1), digest(2)];
+        let root = root_observation();
+        let branch_a = branch_observation("scenario-a", 1);
+        let branch_b = branch_observation("scenario-b", 0);
+        let forecast = forecast_bundle_bytes(SCENARIO_SET, "forecast-root-v1", 1, 0);
+        let info_a = information_sets([&root, &branch_a], [&forecast, &forecast]);
+        let info_b = information_sets([&root, &branch_b], [&forecast, &forecast]);
 
-        let receipt = evaluate_nonanticipativity_bytes("nonanticipativity-test-set", &[
-            scenario("scenario-a", &request_a, &schedule_a, &labels),
-            scenario("scenario-b", &request_b, &schedule_b, &labels),
-        ])
+        let receipt = evaluate_nonanticipativity_bytes(
+            SCENARIO_SET,
+            &[
+                scenario("scenario-a", &request_a, &schedule_a, &info_a),
+                scenario("scenario-b", &request_b, &schedule_b, &info_b),
+            ],
+        )
         .unwrap();
 
         assert_eq!(receipt.disposition, NonAnticipativityDispositionV1::Rejected);
@@ -711,61 +1016,308 @@ mod tests {
     }
 
     #[test]
-    fn actions_may_diverge_after_information_set_splits() {
-        let request_a = request_bytes("scenario-a", 1);
-        let request_b = request_bytes("scenario-b", 1);
+    fn actions_may_diverge_after_observed_history_splits() {
+        let request_a = request_bytes("scenario-a", 1, 1);
+        let request_b = request_bytes("scenario-b", 1, 0);
         let schedule_a = schedule_bytes(&request_a, true, true);
         let schedule_b = schedule_bytes(&request_b, true, false);
-        let labels_a = [digest(1), digest(2)];
-        let labels_b = [digest(1), digest(3)];
+        let root = root_observation();
+        let branch_a = branch_observation("scenario-a", 1);
+        let branch_b = branch_observation("scenario-b", 0);
+        let forecast = forecast_bundle_bytes(SCENARIO_SET, "forecast-root-v1", 1, 0);
+        let info_a = information_sets([&root, &branch_a], [&forecast, &forecast]);
+        let info_b = information_sets([&root, &branch_b], [&forecast, &forecast]);
 
-        let receipt = evaluate_nonanticipativity_bytes("nonanticipativity-test-set", &[
-            scenario("scenario-a", &request_a, &schedule_a, &labels_a),
-            scenario("scenario-b", &request_b, &schedule_b, &labels_b),
-        ])
+        let receipt = evaluate_nonanticipativity_bytes(
+            SCENARIO_SET,
+            &[
+                scenario("scenario-a", &request_a, &schedule_a, &info_a),
+                scenario("scenario-b", &request_b, &schedule_b, &info_b),
+            ],
+        )
         .unwrap();
 
         assert_eq!(receipt.disposition, NonAnticipativityDispositionV1::Accepted);
         assert_eq!(receipt.shared_information_set_count, 1);
         assert_eq!(receipt.checked_action_comparison_count, 1);
         assert!(receipt.findings.iter().all(|finding| finding.passed));
+        assert_eq!(
+            receipt.scenario_bindings[0].information_set_sha256_by_interval[0],
+            receipt.scenario_bindings[1].information_set_sha256_by_interval[0]
+        );
+        assert_ne!(
+            receipt.scenario_bindings[0].information_set_sha256_by_interval[1],
+            receipt.scenario_bindings[1].information_set_sha256_by_interval[1]
+        );
     }
 
     #[test]
-    fn same_label_with_different_declared_observation_prefix_is_rejected() {
-        let request_a = request_bytes("scenario-a", 1);
-        let request_b = request_bytes("scenario-b", 0);
+    fn future_request_trajectory_does_not_leak_into_earlier_information_sets() {
+        let request_a = request_bytes("scenario-a", 1, 1);
+        let request_b = request_bytes("scenario-b", 1, 0);
         let schedule_a = schedule_bytes(&request_a, true, true);
-        let schedule_b = schedule_bytes(&request_b, false, false);
-        let labels = [digest(1), digest(2)];
+        let schedule_b = schedule_bytes(&request_b, true, false);
+        let root = root_observation();
+        let branch_a = branch_observation("scenario-a", 1);
+        let branch_b = branch_observation("scenario-b", 0);
+        let forecast = forecast_bundle_bytes(SCENARIO_SET, "forecast-root-v1", 1, 0);
+        let info_a = information_sets([&root, &branch_a], [&forecast, &forecast]);
+        let info_b = information_sets([&root, &branch_b], [&forecast, &forecast]);
 
-        let receipt = evaluate_nonanticipativity_bytes("nonanticipativity-test-set", &[
-            scenario("scenario-a", &request_a, &schedule_a, &labels),
-            scenario("scenario-b", &request_b, &schedule_b, &labels),
-        ])
+        let receipt = evaluate_nonanticipativity_bytes(
+            SCENARIO_SET,
+            &[
+                scenario("scenario-a", &request_a, &schedule_a, &info_a),
+                scenario("scenario-b", &request_b, &schedule_b, &info_b),
+            ],
+        )
         .unwrap();
 
+        assert_eq!(receipt.disposition, NonAnticipativityDispositionV1::Accepted);
+        assert_eq!(
+            receipt.scenario_bindings[0].information_set_sha256_by_interval[0],
+            receipt.scenario_bindings[1].information_set_sha256_by_interval[0]
+        );
+        assert_ne!(
+            receipt.scenario_bindings[0].request_sha256,
+            receipt.scenario_bindings[1].request_sha256
+        );
+    }
+
+    #[test]
+    fn information_set_digests_bind_exact_observation_and_forecast_bytes() {
+        let request_a = request_bytes("scenario-a", 1, 1);
+        let request_b = request_bytes("scenario-b", 1, 0);
+        let schedule_a = schedule_bytes(&request_a, true, true);
+        let schedule_b = schedule_bytes(&request_b, true, false);
+        let root = root_observation();
+        let branch_a = branch_observation("scenario-a", 1);
+        let branch_b = branch_observation("scenario-b", 0);
+        let forecast = forecast_bundle_bytes(SCENARIO_SET, "forecast-root-v1", 1, 0);
+        let info_a = information_sets([&root, &branch_a], [&forecast, &forecast]);
+        let info_b = information_sets([&root, &branch_b], [&forecast, &forecast]);
+
+        let receipt = evaluate_nonanticipativity_bytes(
+            SCENARIO_SET,
+            &[
+                scenario("scenario-a", &request_a, &schedule_a, &info_a),
+                scenario("scenario-b", &request_b, &schedule_b, &info_b),
+            ],
+        )
+        .unwrap();
+
+        let binding_a = &receipt.scenario_bindings[0];
+        let binding_b = &receipt.scenario_bindings[1];
+        assert_eq!(
+            binding_a.information_sets_by_interval[0].observation_bundle_sha256,
+            sha256(&root)
+        );
+        assert_eq!(
+            binding_a.information_sets_by_interval[0].forecast_bundle_sha256,
+            sha256(&forecast)
+        );
+        assert_eq!(
+            binding_a.information_set_sha256_by_interval[0],
+            binding_b.information_set_sha256_by_interval[0]
+        );
+        assert_ne!(
+            binding_a.information_set_sha256_by_interval[1],
+            binding_b.information_set_sha256_by_interval[1]
+        );
+    }
+
+    #[test]
+    fn observation_bundle_ids_and_json_formatting_do_not_create_new_information() {
+        let request_a = request_bytes("scenario-a", 1, 1);
+        let request_b = request_bytes("scenario-b", 1, 1);
+        let schedule_a = schedule_bytes(&request_a, true, true);
+        let schedule_b = schedule_bytes(&request_b, false, false);
+        let root_a = root_observation();
+        let mut root_value: serde_json::Value =
+            serde_json::from_slice(&root_a).unwrap();
+        root_value["bundle_id"] = serde_json::json!("alternate-root-bundle-id");
+        let root_b = serde_json::to_vec(&root_value).unwrap();
+        let branch = branch_observation("shared", 1);
+        let forecast = forecast_bundle_bytes(SCENARIO_SET, "forecast-v1", 1, 1);
+        let info_a = information_sets([&root_a, &branch], [&forecast, &forecast]);
+        let info_b = information_sets([&root_b, &branch], [&forecast, &forecast]);
+
+        let receipt = evaluate_nonanticipativity_bytes(
+            SCENARIO_SET,
+            &[
+                scenario("scenario-a", &request_a, &schedule_a, &info_a),
+                scenario("scenario-b", &request_b, &schedule_b, &info_b),
+            ],
+        )
+        .unwrap();
+
+        assert_ne!(
+            receipt.scenario_bindings[0].information_sets_by_interval[0]
+                .observation_bundle_sha256,
+            receipt.scenario_bindings[1].information_sets_by_interval[0]
+                .observation_bundle_sha256
+        );
+        assert_eq!(
+            receipt.scenario_bindings[0].information_set_sha256_by_interval[0],
+            receipt.scenario_bindings[1].information_set_sha256_by_interval[0]
+        );
         assert_eq!(receipt.disposition, NonAnticipativityDispositionV1::Rejected);
         assert!(receipt.findings.iter().any(|finding| {
-            finding.predicate == "shared-information-set-observation-prefix"
+            finding.predicate == "nonanticipative-dispatch-action"
                 && finding.interval_index == Some(0)
                 && !finding.passed
         }));
     }
 
     #[test]
-    fn scenarios_must_share_one_root_information_set_before_branching() {
-        let request_a = request_bytes("scenario-a", 1);
-        let request_b = request_bytes("scenario-b", 1);
+    fn identical_observation_histories_cannot_split_on_different_forecast_artifacts() {
+        let request_a = request_bytes("scenario-a", 1, 1);
+        let request_b = request_bytes("scenario-b", 1, 1);
+        let schedule_a = schedule_bytes(&request_a, true, true);
+        let schedule_b = schedule_bytes(&request_b, false, false);
+        let root = root_observation();
+        let branch = branch_observation("shared", 1);
+        let forecast_a = forecast_bundle_bytes(SCENARIO_SET, "forecast-a", 1, 1);
+        let forecast_b = forecast_bundle_bytes(SCENARIO_SET, "forecast-b", 1, 1);
+        let info_a = information_sets([&root, &branch], [&forecast_a, &forecast_a]);
+        let info_b = information_sets([&root, &branch], [&forecast_b, &forecast_b]);
+
+        let receipt = evaluate_nonanticipativity_bytes(
+            SCENARIO_SET,
+            &[
+                scenario("scenario-a", &request_a, &schedule_a, &info_a),
+                scenario("scenario-b", &request_b, &schedule_b, &info_b),
+            ],
+        )
+        .unwrap();
+
+        assert_eq!(receipt.disposition, NonAnticipativityDispositionV1::Rejected);
+        assert!(receipt.findings.iter().any(|finding| {
+            finding.predicate == "shared-observation-forecast-bundle-consistency"
+                && finding.interval_index == Some(0)
+                && !finding.passed
+        }));
+    }
+
+    #[test]
+    fn future_observation_and_future_forecast_artifacts_are_rejected() {
+        let request = request_bytes("scenario-a", 1, 1);
+        let schedule = schedule_bytes(&request, true, true);
+        let future_observation = observation_bundle_bytes(
+            SCENARIO_SET,
+            "future-observation",
+            1_800_000_001,
+            serde_json::json!({"pv_available_quanta": 1}),
+        );
+        let forecast = forecast_bundle_bytes(SCENARIO_SET, "forecast-v1", 1, 0);
+        let future_forecast = forecast_bundle_bytes(SCENARIO_SET, "forecast-v2", 1, 0);
+        let mut future_value: serde_json::Value =
+            serde_json::from_slice(&future_forecast).unwrap();
+        future_value["issued_at_unix_seconds"] = serde_json::json!(1_800_000_001_i64);
+        let future_forecast = serde_json::to_vec(&future_value).unwrap();
+
+        let information = [
+            NonAnticipativityInformationSetBytes {
+                observed_at_unix_seconds: 1_800_000_001,
+                observation_bundle_bytes: &future_observation,
+                forecast_as_of_unix_seconds: FORECAST_AS_OF,
+                forecast_bundle_bytes: &forecast,
+            },
+            NonAnticipativityInformationSetBytes {
+                observed_at_unix_seconds: OBSERVED_BRANCH_AT,
+                observation_bundle_bytes: &future_observation,
+                forecast_as_of_unix_seconds: 1_800_000_001,
+                forecast_bundle_bytes: &future_forecast,
+            },
+        ];
+        let request_b = request_bytes("scenario-b", 1, 0);
+        let schedule_b = schedule_bytes(&request_b, true, false);
+        let root = root_observation();
+        let branch = branch_observation("scenario-b", 0);
+        let valid_information = information_sets([&root, &branch], [&forecast, &forecast]);
+
+        assert!(
+            evaluate_nonanticipativity_bytes(
+                SCENARIO_SET,
+                &[
+                    scenario("scenario-a", &request, &schedule, &information),
+                    scenario("scenario-b", &request_b, &schedule_b, &valid_information),
+                ],
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn observation_and_forecast_bundles_for_another_scenario_set_are_rejected() {
+        let request_a = request_bytes("scenario-a", 1, 1);
+        let request_b = request_bytes("scenario-b", 1, 0);
         let schedule_a = schedule_bytes(&request_a, true, true);
         let schedule_b = schedule_bytes(&request_b, true, false);
-        let labels_a = [digest(1), digest(2)];
-        let labels_b = [digest(3), digest(2)];
+        let wrong_observation = observation_bundle_bytes(
+            "another-scenario-set",
+            "wrong-observation",
+            OBSERVED_ROOT_AT,
+            serde_json::json!({"pv_available_quanta": 1}),
+        );
+        let wrong_forecast =
+            forecast_bundle_bytes("another-scenario-set", "wrong-forecast", 1, 0);
+        let information = [
+            NonAnticipativityInformationSetBytes {
+                observed_at_unix_seconds: OBSERVED_ROOT_AT,
+                observation_bundle_bytes: &wrong_observation,
+                forecast_as_of_unix_seconds: FORECAST_AS_OF,
+                forecast_bundle_bytes: &wrong_forecast,
+            },
+            NonAnticipativityInformationSetBytes {
+                observed_at_unix_seconds: OBSERVED_BRANCH_AT,
+                observation_bundle_bytes: &wrong_observation,
+                forecast_as_of_unix_seconds: FORECAST_AS_OF,
+                forecast_bundle_bytes: &wrong_forecast,
+            },
+        ];
 
-        let receipt = evaluate_nonanticipativity_bytes("nonanticipativity-test-set", &[
-            scenario("scenario-a", &request_a, &schedule_a, &labels_a),
-            scenario("scenario-b", &request_b, &schedule_b, &labels_b),
-        ])
+        assert!(
+            evaluate_nonanticipativity_bytes(
+                SCENARIO_SET,
+                &[
+                    scenario("scenario-a", &request_a, &schedule_a, &information),
+                    scenario("scenario-b", &request_b, &schedule_b, &information),
+                ],
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn scenarios_must_share_one_root_observation_history_before_branching() {
+        let request_a = request_bytes("scenario-a", 1, 1);
+        let request_b = request_bytes("scenario-b", 0, 1);
+        let schedule_a = schedule_bytes(&request_a, true, true);
+        let schedule_b = schedule_bytes(&request_b, false, false);
+        let root_a = root_observation();
+        let root_b = observation_bundle_bytes(
+            SCENARIO_SET,
+            "different-root-observation",
+            OBSERVED_ROOT_AT,
+            serde_json::json!({
+                "grid_connected": true,
+                "pv_available_quanta": 0,
+                "battery_soc_quanta": 0
+            }),
+        );
+        let branch = branch_observation("branch", 1);
+        let forecast = forecast_bundle_bytes(SCENARIO_SET, "forecast-v1", 1, 0);
+        let info_a = information_sets([&root_a, &branch], [&forecast, &forecast]);
+        let info_b = information_sets([&root_b, &branch], [&forecast, &forecast]);
+
+        let receipt = evaluate_nonanticipativity_bytes(
+            SCENARIO_SET,
+            &[
+                scenario("scenario-a", &request_a, &schedule_a, &info_a),
+                scenario("scenario-b", &request_b, &schedule_b, &info_b),
+            ],
+        )
         .unwrap();
 
         assert_eq!(receipt.disposition, NonAnticipativityDispositionV1::Rejected);
@@ -776,45 +1328,78 @@ mod tests {
 
     #[test]
     fn no_shared_information_set_is_not_a_vacuous_pass() {
-        let request_a = request_bytes("scenario-a", 1);
-        let request_b = request_bytes("scenario-b", 1);
+        let request_a = request_bytes("scenario-a", 1, 1);
+        let request_b = request_bytes("scenario-b", 0, 0);
         let schedule_a = schedule_bytes(&request_a, true, true);
-        let schedule_b = schedule_bytes(&request_b, true, false);
-        let labels_a = [digest(1), digest(2)];
-        let labels_b = [digest(3), digest(4)];
+        let schedule_b = schedule_bytes(&request_b, false, false);
+        let root_a = root_observation();
+        let root_b = observation_bundle_bytes(
+            SCENARIO_SET,
+            "different-root",
+            OBSERVED_ROOT_AT,
+            serde_json::json!({"grid_connected": false}),
+        );
+        let branch_a = branch_observation("scenario-a", 1);
+        let branch_b = branch_observation("scenario-b", 0);
+        let forecast = forecast_bundle_bytes(SCENARIO_SET, "forecast-v1", 1, 0);
+        let info_a = information_sets([&root_a, &branch_a], [&forecast, &forecast]);
+        let info_b = information_sets([&root_b, &branch_b], [&forecast, &forecast]);
 
-        let receipt = evaluate_nonanticipativity_bytes("nonanticipativity-test-set", &[
-            scenario("scenario-a", &request_a, &schedule_a, &labels_a),
-            scenario("scenario-b", &request_b, &schedule_b, &labels_b),
-        ])
+        let receipt = evaluate_nonanticipativity_bytes(
+            SCENARIO_SET,
+            &[
+                scenario("scenario-a", &request_a, &schedule_a, &info_a),
+                scenario("scenario-b", &request_b, &schedule_b, &info_b),
+            ],
+        )
         .unwrap();
 
         assert_eq!(receipt.disposition, NonAnticipativityDispositionV1::Rejected);
+        assert!(receipt.findings.iter().any(|finding| {
+            finding.predicate == "root-information-set-coverage" && !finding.passed
+        }));
         assert!(receipt.findings.iter().any(|finding| {
             finding.predicate == "shared-information-set-coverage" && !finding.passed
         }));
     }
 
     #[test]
-    fn exact_receipt_digest_binds_scenario_schedule_and_information_labels() {
-        let request_a = request_bytes("scenario-a", 1);
-        let request_b = request_bytes("scenario-b", 1);
+    fn exact_receipt_digest_binds_request_schedule_observation_forecast_and_history() {
+        let request_a = request_bytes("scenario-a", 1, 1);
+        let request_b = request_bytes("scenario-b", 1, 0);
         let schedule_a = schedule_bytes(&request_a, true, true);
         let schedule_b = schedule_bytes(&request_b, true, false);
-        let labels_a = [digest(1), digest(2)];
-        let labels_b = [digest(1), digest(3)];
+        let root = root_observation();
+        let branch_a = branch_observation("scenario-a", 1);
+        let branch_b = branch_observation("scenario-b", 0);
+        let forecast = forecast_bundle_bytes(SCENARIO_SET, "forecast-v1", 1, 0);
+        let info_a = information_sets([&root, &branch_a], [&forecast, &forecast]);
+        let info_b = information_sets([&root, &branch_b], [&forecast, &forecast]);
 
-        let receipt = evaluate_nonanticipativity_bytes("nonanticipativity-test-set", &[
-            scenario("scenario-a", &request_a, &schedule_a, &labels_a),
-            scenario("scenario-b", &request_b, &schedule_b, &labels_b),
-        ])
+        let receipt = evaluate_nonanticipativity_bytes(
+            SCENARIO_SET,
+            &[
+                scenario("scenario-a", &request_a, &schedule_a, &info_a),
+                scenario("scenario-b", &request_b, &schedule_b, &info_b),
+            ],
+        )
         .unwrap();
 
         assert_eq!(receipt.disposition, NonAnticipativityDispositionV1::Accepted);
         assert!(super::super::is_sha256_hex(&receipt.auditor_binary_sha256));
         assert!(super::super::is_sha256_hex(&receipt.receipt_sha256));
-        assert_eq!(receipt.scenario_set_id, "nonanticipativity-test-set");
+        assert_eq!(receipt.scenario_set_id, SCENARIO_SET);
         assert_eq!(receipt.scenario_count, 2);
         assert_eq!(receipt.interval_count, 2);
+        assert_eq!(
+            receipt.scenario_bindings[0].information_sets_by_interval[0]
+                .observation_bundle_sha256,
+            sha256(&root)
+        );
+        assert_eq!(
+            receipt.scenario_bindings[0].information_sets_by_interval[0]
+                .forecast_bundle_sha256,
+            sha256(&forecast)
+        );
     }
 }

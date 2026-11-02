@@ -1,0 +1,43 @@
+{
+  "schema_version": "energy-dispatch-forecast-bundle-v0.1",
+  "scenario_set_id": "demo-nonanticipativity-negative-control-v0.1",
+  "bundle_id": "branching-negative-control-forecast-v1",
+  "issued_at_unix_seconds": 1799996400,
+  "valid_from_unix_seconds": 1799996400,
+  "valid_through_unix_seconds": 1800007200,
+  "forecast_payload": {
+    "scenario_probabilities": [
+      {
+        "scenario_id": "branch-scenario-a",
+        "weight_numerator": 1,
+        "weight_denominator": 2
+      },
+      {
+        "scenario_id": "branch-scenario-b",
+        "weight_numerator": 1,
+        "weight_denominator": 2
+      }
+    ],
+    "interval_forecasts": [
+      {
+        "interval_id": "pre-branch-pv-surplus",
+        "pv_available_quanta": 2,
+        "grid_outage": false,
+        "essential_demand_quanta": 0
+      },
+      {
+        "interval_id": "post-branch-outage",
+        "branch_values": [
+          {
+            "scenario_id": "branch-scenario-a",
+            "essential_demand_quanta": 2
+          },
+          {
+            "scenario_id": "branch-scenario-b",
+            "essential_demand_quanta": 1
+          }
+        ]
+      }
+    ]
+  }
+}

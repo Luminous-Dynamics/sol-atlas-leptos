@@ -801,8 +801,7 @@ fn run_profile(
                                 ) {
                                     service_floor_audit_receipt_sha =
                                         Some(lite.schedule_audit_receipt_sha256.clone());
-                                    service_floor_receipt_sha =
-                                        Some(lite.receipt_sha256.clone());
+                                    service_floor_receipt_sha = Some(lite.receipt_sha256.clone());
                                     service_floor_binary_sha =
                                         Some(lite.service_floor_auditor_binary_sha256.clone());
                                     service_floor_receipt_value = Some(receipt_value);
@@ -831,54 +830,52 @@ fn run_profile(
 
     let elapsed_ns = u64::try_from(invocation_started.elapsed().as_nanos())
         .map_err(|_| "profile elapsed nanoseconds overflow".to_owned())?;
-    let (search_disposition, pareto_frontier_complete, pareto_frontier_count,
-        enumeration_prefix_visits, feasible_complete_schedules, time_to_first_candidate_ns) =
-        match anytime.as_ref() {
-            Some(assessment) => match assessment.disposition {
-                EnergyDispatchAnytimeDisposition::ExactComplete => (
-                    SearchDispositionV03::ExactComplete,
-                    true,
-                    exact_report
-                        .as_ref()
-                        .map(|report| report.pareto_frontier_count as u32),
-                    Some(assessment.enumeration_prefix_visits),
-                    Some(assessment.feasible_complete_schedules),
-                    assessment.time_to_first_complete_candidate_ns,
-                ),
-                EnergyDispatchAnytimeDisposition::FeasibleUnproven => (
-                    SearchDispositionV03::FeasibleUnproven,
-                    false,
-                    None,
-                    Some(assessment.enumeration_prefix_visits),
-                    Some(assessment.feasible_complete_schedules),
-                    assessment.time_to_first_complete_candidate_ns,
-                ),
-                EnergyDispatchAnytimeDisposition::ProvenInfeasible => (
-                    SearchDispositionV03::ProvenInfeasible,
-                    true,
-                    Some(0),
-                    Some(assessment.enumeration_prefix_visits),
-                    Some(assessment.feasible_complete_schedules),
-                    None,
-                ),
-                EnergyDispatchAnytimeDisposition::LimitWithoutCandidate => (
-                    SearchDispositionV03::LimitWithoutCandidate,
-                    false,
-                    None,
-                    Some(assessment.enumeration_prefix_visits),
-                    Some(assessment.feasible_complete_schedules),
-                    None,
-                ),
-            },
-            None => (
-                SearchDispositionV03::Error,
+    let (
+        search_disposition,
+        pareto_frontier_complete,
+        pareto_frontier_count,
+        enumeration_prefix_visits,
+        feasible_complete_schedules,
+        time_to_first_candidate_ns,
+    ) = match anytime.as_ref() {
+        Some(assessment) => match assessment.disposition {
+            EnergyDispatchAnytimeDisposition::ExactComplete => (
+                SearchDispositionV03::ExactComplete,
+                true,
+                exact_report
+                    .as_ref()
+                    .map(|report| report.pareto_frontier_count as u32),
+                Some(assessment.enumeration_prefix_visits),
+                Some(assessment.feasible_complete_schedules),
+                assessment.time_to_first_complete_candidate_ns,
+            ),
+            EnergyDispatchAnytimeDisposition::FeasibleUnproven => (
+                SearchDispositionV03::FeasibleUnproven,
                 false,
                 None,
-                None,
-                None,
+                Some(assessment.enumeration_prefix_visits),
+                Some(assessment.feasible_complete_schedules),
+                assessment.time_to_first_complete_candidate_ns,
+            ),
+            EnergyDispatchAnytimeDisposition::ProvenInfeasible => (
+                SearchDispositionV03::ProvenInfeasible,
+                true,
+                Some(0),
+                Some(assessment.enumeration_prefix_visits),
+                Some(assessment.feasible_complete_schedules),
                 None,
             ),
-        };
+            EnergyDispatchAnytimeDisposition::LimitWithoutCandidate => (
+                SearchDispositionV03::LimitWithoutCandidate,
+                false,
+                None,
+                Some(assessment.enumeration_prefix_visits),
+                Some(assessment.feasible_complete_schedules),
+                None,
+            ),
+        },
+        None => (SearchDispositionV03::Error, false, None, None, None, None),
+    };
     let policy_hash_for_trace = match service_floor_disposition {
         ServiceFloorDispositionV03::NotEvaluated => None,
         ServiceFloorDispositionV03::Passed
