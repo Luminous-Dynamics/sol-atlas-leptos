@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use sigstore_tuf::{
     cache::FileStore,
     client::{HttpRepository, Updater},
@@ -31,6 +32,7 @@ struct VerificationRequest {
     repository_id: String,
     repository_url: String,
     bootstrap_root_path: PathBuf,
+    bootstrap_root_sha256: String,
     metadata_cache_path: PathBuf,
     max_target_bytes: u64,
     target_bindings: Vec<TargetBinding>,
@@ -66,6 +68,7 @@ struct VerificationReport {
     repository_id: String,
     repository_url: String,
     bootstrap_root_path: String,
+    bootstrap_root_sha256: String,
     bootstrap_root_version: u64,
     timestamp_version: u64,
     snapshot_version: u64,
@@ -83,6 +86,23 @@ fn is_sha256(value: &str) -> bool {
         && value
             .bytes()
             .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+}
+
+fn sha256_hex(bytes: &[u8]) -> String {
+    format!("{:x}", Sha256::digest(bytes))
+}
+
+fn verify_bootstrap_root_pin(bytes: &[u8], expected_sha256: &str) -> Result<String, String> {
+    if !is_sha256(expected_sha256) {
+        return Err("bootstrap_root_sha256 must be lowercase SHA-256".to_string());
+    }
+    let actual = sha256_hex(bytes);
+    if actual != expected_sha256 {
+        return Err(format!(
+            "bootstrap root SHA-256 mismatch: expected {expected_sha256}, found {actual}"
+        ));
+    }
+    Ok(actual)
 }
 
 fn validate_target_path(path: &str) -> Result<(), String> {
@@ -107,6 +127,9 @@ fn validate_request(request: &VerificationRequest) -> Result<(), String> {
     }
     if request.repository_id.trim().is_empty() {
         return Err("repository_id must not be empty".to_string());
+    }
+    if !is_sha256(&request.bootstrap_root_sha256) {
+        return Err("bootstrap_root_sha256 must be lowercase SHA-256".to_string());
     }
     if request.max_target_bytes == 0 || request.max_target_bytes > 64 * 1024 * 1024 {
         return Err("max_target_bytes must be between 1 and 67108864".to_string());
@@ -201,6 +224,11 @@ async fn verify_repository(request: VerificationRequest) -> Result<VerificationR
 
     // A caller-configured timeout prevents a hostile or stalled mirror from
     // blocking the TUF refresh indefinitely.
+    let bootstrap_root_sha256 = verify_bootstrap_root_pin(
+        &root_bytes,
+        &request.bootstrap_root_sha256,
+    )?;
+
     let http = sigstore_tuf::reqwest::Client::builder()
         .connect_timeout(Duration::from_secs(10))
         .timeout(Duration::from_secs(45))
@@ -332,6 +360,7 @@ async fn verify_repository(request: VerificationRequest) -> Result<VerificationR
         repository_id: request.repository_id,
         repository_url: request.repository_url,
         bootstrap_root_path: request.bootstrap_root_path.display().to_string(),
+        bootstrap_root_sha256,
         bootstrap_root_version: root_version,
         timestamp_version,
         snapshot_version,
@@ -450,6 +479,7 @@ mod tests {
             repository_id: "test-repository".to_string(),
             repository_url: "https://tuf.example.invalid".to_string(),
             bootstrap_root_path: PathBuf::from("/etc/ieac/root.json"),
+            bootstrap_root_sha256: "a".repeat(64),
             metadata_cache_path: PathBuf::from("/var/lib/ieac/tuf"),
             max_target_bytes: 1024 * 1024,
             target_bindings: vec![
@@ -581,6 +611,15 @@ mod tests {
                 "{file}: unexpected verification error {error:?}"
             );
         }
+    }
+
+    #[test]
+    fn bootstrap_root_bytes_must_match_operator_sha256_pin() {
+        let bytes = b"exact root bytes";
+        let expected = sha256_hex(bytes);
+        assert_eq!(verify_bootstrap_root_pin(bytes, &expected).unwrap(), expected);
+        assert!(verify_bootstrap_root_pin(b"substituted root bytes", &expected).is_err());
+        assert!(verify_bootstrap_root_pin(bytes, "not-a-digest").is_err());
     }
 
     #[test]
