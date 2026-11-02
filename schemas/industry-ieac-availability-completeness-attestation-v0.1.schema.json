@@ -13,8 +13,6 @@
     "scope",
     "decision_cutoff",
     "coverage",
-    "lower_checkpoint",
-    "upper_checkpoint",
     "first_access",
     "continuity",
     "capture_health",
@@ -22,7 +20,11 @@
     "absence_proof",
     "verifier",
     "claim_ceiling",
-    "action_authority"
+    "action_authority",
+    "coverage_start_checkpoint",
+    "decision_boundary_checkpoint",
+    "coverage_end_checkpoint",
+    "absence_query"
   ],
   "properties": {
     "schema_version": {
@@ -147,128 +149,6 @@
         }
       }
     },
-    "lower_checkpoint": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "checkpoint_id",
-        "ledger_id",
-        "sequence_namespace",
-        "sequence_epoch",
-        "sequence",
-        "tree_size",
-        "root_sha256",
-        "signed_bytes_sha256",
-        "receipt_sha256",
-        "observed_at"
-      ],
-      "properties": {
-        "checkpoint_id": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 128
-        },
-        "ledger_id": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 256
-        },
-        "sequence_namespace": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 256
-        },
-        "sequence_epoch": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 128
-        },
-        "sequence": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "tree_size": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "root_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "signed_bytes_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "receipt_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "observed_at": {
-          "$ref": "#/$defs/timeBound"
-        }
-      }
-    },
-    "upper_checkpoint": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "checkpoint_id",
-        "ledger_id",
-        "sequence_namespace",
-        "sequence_epoch",
-        "sequence",
-        "tree_size",
-        "root_sha256",
-        "signed_bytes_sha256",
-        "receipt_sha256",
-        "observed_at"
-      ],
-      "properties": {
-        "checkpoint_id": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 128
-        },
-        "ledger_id": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 256
-        },
-        "sequence_namespace": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 256
-        },
-        "sequence_epoch": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 128
-        },
-        "sequence": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "tree_size": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "root_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "signed_bytes_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "receipt_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "observed_at": {
-          "$ref": "#/$defs/timeBound"
-        }
-      }
-    },
     "first_access": {
       "type": "object",
       "additionalProperties": false,
@@ -327,7 +207,8 @@
       "required": [
         "vds_id",
         "proof_type",
-        "consistency_receipt_sha256",
+        "start_to_boundary_receipt_sha256",
+        "boundary_to_end_receipt_sha256",
         "verifier_status"
       ],
       "properties": {
@@ -342,10 +223,6 @@
             "other_registered_vds_consistency",
             "unsupported"
           ]
-        },
-        "consistency_receipt_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
         },
         "verifier_status": {
           "enum": [
@@ -376,6 +253,14 @@
               "type": "null"
             }
           ]
+        },
+        "start_to_boundary_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "boundary_to_end_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
         }
       },
       "allOf": [
@@ -478,7 +363,7 @@
     },
     "absence_basis": {
       "enum": [
-        "complete_capture_channel_attestation",
+        "complete_channel_signed_query",
         "registered_vds_non_inclusion",
         "not_available"
       ]
@@ -588,6 +473,257 @@
     },
     "action_authority": {
       "const": "none"
+    },
+    "coverage_start_checkpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "checkpoint_id",
+        "ledger_id",
+        "sequence_namespace",
+        "sequence_epoch",
+        "sequence",
+        "tree_size",
+        "root_sha256",
+        "signed_bytes_sha256",
+        "receipt_sha256",
+        "observed_at"
+      ],
+      "properties": {
+        "checkpoint_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "ledger_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "sequence_namespace": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "sequence_epoch": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tree_size": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "root_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "signed_bytes_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "receipt_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "observed_at": {
+          "$ref": "#/$defs/timeBound"
+        }
+      }
+    },
+    "decision_boundary_checkpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "checkpoint_id",
+        "ledger_id",
+        "sequence_namespace",
+        "sequence_epoch",
+        "sequence",
+        "tree_size",
+        "root_sha256",
+        "signed_bytes_sha256",
+        "receipt_sha256",
+        "observed_at"
+      ],
+      "properties": {
+        "checkpoint_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "ledger_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "sequence_namespace": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "sequence_epoch": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tree_size": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "root_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "signed_bytes_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "receipt_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "observed_at": {
+          "$ref": "#/$defs/timeBound"
+        }
+      }
+    },
+    "coverage_end_checkpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "checkpoint_id",
+        "ledger_id",
+        "sequence_namespace",
+        "sequence_epoch",
+        "sequence",
+        "tree_size",
+        "root_sha256",
+        "signed_bytes_sha256",
+        "receipt_sha256",
+        "observed_at"
+      ],
+      "properties": {
+        "checkpoint_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "ledger_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "sequence_namespace": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "sequence_epoch": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tree_size": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "root_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "signed_bytes_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "receipt_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "observed_at": {
+          "$ref": "#/$defs/timeBound"
+        }
+      }
+    },
+    "absence_query": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "query_sha256",
+            "predicate_sha256",
+            "sequence_from_exclusive",
+            "sequence_through_inclusive",
+            "matching_event_count",
+            "result_sha256",
+            "receipt_sha256",
+            "verification_status",
+            "verifier_build_sha256",
+            "verification_policy_sha256"
+          ],
+          "properties": {
+            "query_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "predicate_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "sequence_from_exclusive": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "sequence_through_inclusive": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "matching_event_count": {
+              "const": 0
+            },
+            "result_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "receipt_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "verification_status": {
+              "enum": [
+                "verified",
+                "failed",
+                "unknown",
+                "not_supported"
+              ]
+            },
+            "verifier_build_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "verification_policy_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        }
+      ]
     }
   },
   "allOf": [
@@ -611,9 +747,33 @@
       },
       "then": {
         "properties": {
+          "absence_basis": {
+            "const": "complete_channel_signed_query"
+          },
+          "absence_query": {
+            "type": "object",
+            "properties": {
+              "verification_status": {
+                "const": "verified"
+              },
+              "matching_event_count": {
+                "const": 0
+              }
+            }
+          },
+          "absence_proof": {
+            "type": "null"
+          },
           "continuity": {
             "properties": {
               "verifier_status": {
+                "const": "verified"
+              }
+            }
+          },
+          "decision_cutoff": {
+            "properties": {
+              "verification_status": {
                 "const": "verified"
               }
             }
@@ -636,10 +796,36 @@
               }
             }
           },
-          "decision_cutoff": {
+          "coverage_start_checkpoint": {
             "properties": {
-              "verification_status": {
-                "const": "verified"
+              "observed_at": {
+                "properties": {
+                  "verification_status": {
+                    "const": "verified"
+                  }
+                }
+              }
+            }
+          },
+          "decision_boundary_checkpoint": {
+            "properties": {
+              "observed_at": {
+                "properties": {
+                  "verification_status": {
+                    "const": "verified"
+                  }
+                }
+              }
+            }
+          },
+          "coverage_end_checkpoint": {
+            "properties": {
+              "observed_at": {
+                "properties": {
+                  "verification_status": {
+                    "const": "verified"
+                  }
+                }
               }
             }
           },
@@ -684,6 +870,35 @@
                 "const": "healthy"
               }
             }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "absence_basis": {
+            "const": "complete_channel_signed_query"
+          }
+        },
+        "required": [
+          "absence_basis"
+        ]
+      },
+      "then": {
+        "properties": {
+          "absence_query": {
+            "type": "object"
+          },
+          "absence_proof": {
+            "type": "null"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "absence_query": {
+            "type": "null"
           }
         }
       }
