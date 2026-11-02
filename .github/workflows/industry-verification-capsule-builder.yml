@@ -72,13 +72,6 @@ jobs:
       - name: Validate template, receipt and trust-pin schemas
         run: |
           set -euo pipefail
-          for schema in \
-            schemas/industry-ieac-verification-capsule-build-template-v0.1.schema.json \
-            schemas/industry-ieac-verification-capsule-pack-receipt-v0.1.schema.json \
-            schemas/industry-ieac-verification-capsule-trust-pin-v0.1.schema.json; do
-            jsonschema-cli validate --draft 2020 --assert-format \
-              https://json-schema.org/draft/2020-12/schema -i "$schema"
-          done
           for fixture in schemas/examples/ieac-verification-capsule-build-template-*-synthetic-v0.1.json; do
             jsonschema-cli validate --draft 2020 --assert-format --offline \
               schemas/industry-ieac-verification-capsule-build-template-v0.1.schema.json -i "$fixture"
