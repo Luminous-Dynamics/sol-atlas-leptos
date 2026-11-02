@@ -1,0 +1,115 @@
+{
+  "schema_version": "luminous.industrial-twin-evidence-envelope.v0.1",
+  "observation_id": "synthetic.water.site-07.pressure.000184",
+  "source": {
+    "source_system_id": "synthetic.water-scada-07",
+    "protocol": "opc_ua_fx",
+    "endpoint_identity": "urn:synthetic:opcua:water-plant-07",
+    "native_schema_uri": "https://example.invalid/schemas/water-pressure",
+    "native_schema_version": "3.2.1",
+    "connector_id": "sol-atlas-opcua-readonly-v0.1",
+    "connector_build_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "source_asset_id": "water-plant-07",
+    "source_instance_id": "pressure-transmitter-184"
+  },
+  "native_record": {
+    "native_record_id": "ns=4;s=Plant07.Pressure.PT184",
+    "native_payload_uri": "urn:synthetic:payload:water-pressure:000184",
+    "native_payload_media_type": "application/json",
+    "native_payload_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "retrieval_mode": "subscription",
+    "sequence_number": 184,
+    "source_cursor": "sequence=184"
+  },
+  "field": {
+    "native_field_path": "/Plant07/Pressure/PT184/EngineeringValue",
+    "native_field_name": "EngineeringValue",
+    "native_type": "number",
+    "source_unit": "psi",
+    "source_value": 42,
+    "source_quality_code": "Good"
+  },
+  "temporal": {
+    "observed_at": "2026-10-31T17:20:15Z",
+    "received_at": "2026-10-31T17:20:15.025Z",
+    "clock_domain": "plant-07-ptp-grandmaster-1",
+    "synchronization_state": "ptp_locked",
+    "clock_uncertainty_ms": 0.5,
+    "sequence_number": 184,
+    "watermark": "sequence=184"
+  },
+  "semantic_projection": {
+    "status": "exact_converted",
+    "target_concept": "water.network.pressure",
+    "projection_version": "pressure-map-v1",
+    "normalized_value": 289.5791,
+    "normalized_unit": "kPa",
+    "transform_artifact_id": "psi-to-kpa-exact-v1",
+    "transform_artifact_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "uncertainty_transform": "propagated"
+  },
+  "uncertainty": {
+    "kind": "bounded_interval",
+    "state": "quantified",
+    "lower": 41.8,
+    "upper": 42.2,
+    "unit": "psi",
+    "method_artifact_id": "synthetic-pressure-calibration-184",
+    "method_artifact_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  },
+  "provenance": {
+    "lineage": [
+      {
+        "artifact_id": "synthetic-transmitter-184",
+        "artifact_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "role": "origin"
+      },
+      {
+        "artifact_id": "synthetic-calibration-chain-07",
+        "artifact_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "role": "calibration"
+      },
+      {
+        "artifact_id": "synthetic-opcua-gateway-07",
+        "artifact_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "role": "gateway"
+      }
+    ],
+    "dependency_artifact_ids": [
+      "synthetic-calibration-chain-07",
+      "synthetic-opcua-gateway-07"
+    ],
+    "source_attestation_state": "operator_pinned"
+  },
+  "rights": {
+    "state": "verified",
+    "basis": "Synthetic fixture; source owner grants read and derive for this test contract.",
+    "permitted_uses": [
+      "view",
+      "annotate",
+      "derive",
+      "benchmark"
+    ]
+  },
+  "observation_scope": {
+    "capability_profile_id": "synthetic.opcua-plant07.capability-v01",
+    "inventory_snapshot_id": "synthetic.opcua-plant07.inventory-20261031",
+    "inventory_snapshot_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "inventory_trust_state": "operator_pinned",
+    "declared_channel_ids": [
+      "PT184.pressure",
+      "PT185.pressure"
+    ],
+    "observed_channel_ids": [
+      "PT184.pressure",
+      "PT185.pressure"
+    ],
+    "omitted_channel_ids": [],
+    "unsupported_channel_ids": [],
+    "blind_spots_within_declared_inventory": [],
+    "capture_loss_count": 0,
+    "observation_state": "complete_within_declared_inventory",
+    "scope_definition": "Two explicitly enumerated pressure channels in the authenticated synthetic asset inventory, over the subscription interval ending at sequence 184. This says nothing about channels or dependencies outside that inventory."
+  },
+  "claim_ceiling": "source_native_evidence_only"
+}
