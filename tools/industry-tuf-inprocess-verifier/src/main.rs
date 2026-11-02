@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use sigstore_tuf::{
     cache::FileStore,
     client::{HttpRepository, Updater},
