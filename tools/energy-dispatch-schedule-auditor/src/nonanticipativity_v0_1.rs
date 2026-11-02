@@ -319,6 +319,26 @@ pub fn evaluate_nonanticipativity_bytes(
         );
     }
 
+    let root_information_set_sha256 =
+        parsed[0].information_set_sha256_by_interval[0].clone();
+    let root_shared_by_all = parsed.iter().all(|scenario| {
+        scenario.information_set_sha256_by_interval[0] == root_information_set_sha256
+    });
+    add_finding(
+        &mut findings,
+        "root-information-set-coverage",
+        Some(0),
+        Some(root_information_set_sha256),
+        None,
+        parsed.iter().map(|scenario| scenario.scenario_id.clone()).collect(),
+        root_shared_by_all,
+        if root_shared_by_all {
+            "all scenarios share one initial information set before any declared branch"
+        } else {
+            "all scenarios in one scenario tree must share the same initial information set"
+        },
+    );
+
     let mut groups = BTreeMap::<(usize, String), Vec<usize>>::new();
     for (scenario_index, scenario) in parsed.iter().enumerate() {
         for (interval_index, information_set_sha256) in
@@ -526,7 +546,10 @@ mod tests {
         let terminal_soc = first_soc - u16::from(discharge_in_second_interval);
         let first_charge = u16::from(charge_in_first_interval);
         let first_pv_used = first_charge;
-        let first_pv_curtailed = 1 - first_pv_used;
+        let first_pv_available = request_value["intervals"][0]["pv_available_quanta"]
+            .as_u64()
+            .unwrap() as u16;
+        let first_pv_curtailed = first_pv_available - first_pv_used;
         let second_discharge = u16::from(discharge_in_second_interval);
         let second_served = second_discharge;
         let second_unserved = 1 - second_served;
@@ -644,6 +667,27 @@ mod tests {
             finding.predicate == "shared-information-set-observation-prefix"
                 && finding.interval_index == Some(0)
                 && !finding.passed
+        }));
+    }
+
+    #[test]
+    fn scenarios_must_share_one_root_information_set_before_branching() {
+        let request_a = request_bytes("scenario-a", 1);
+        let request_b = request_bytes("scenario-b", 1);
+        let schedule_a = schedule_bytes(&request_a, true, true);
+        let schedule_b = schedule_bytes(&request_b, true, false);
+        let labels_a = [digest(1), digest(2)];
+        let labels_b = [digest(3), digest(2)];
+
+        let receipt = evaluate_nonanticipativity_bytes(&[
+            scenario("scenario-a", &request_a, &schedule_a, &labels_a),
+            scenario("scenario-b", &request_b, &schedule_b, &labels_b),
+        ])
+        .unwrap();
+
+        assert_eq!(receipt.disposition, NonAnticipativityDispositionV1::Rejected);
+        assert!(receipt.findings.iter().any(|finding| {
+            finding.predicate == "root-information-set-coverage" && !finding.passed
         }));
     }
 
