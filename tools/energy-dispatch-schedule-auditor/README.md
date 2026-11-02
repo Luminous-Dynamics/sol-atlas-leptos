@@ -218,14 +218,21 @@ stochastic optimality, service-floor compliance, physical/network safety,
 or actuation authority. This is the first verifier primitive for
 [ENERGY-UNCERTAINTY-001 / #312](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/312), not yet a complete scenario-tree optimizer or rolling-horizon controller.
 
-The v0.1 tests include:
-- an accepted two-scenario example where both branches take the same 2-quanta
-  PV charging action at the root and diverge to 2-quanta versus 1-quanta
-  battery discharge after branch information is revealed;
+The checked-in manifest controls under
+`schemas/examples/nonanticipativity-v0.1/` demonstrate both outcomes:
+- positive: the two branches take the same 2-quanta PV charging action at the
+  root, then diverge to 2-quanta versus 1-quanta battery discharge after branch
+  information is revealed;
+- negative: both schedules are individually domain-valid, but one branch
+  takes a 1-quanta rather than 2-quanta charge action while the root information
+  set is still shared; the verifier must reject it.
+
+The v0.1 tests also include:
 - rejection when two scenarios with the same pre-branch information choose
   different actions;
 - acceptance when pre-branch actions match and actions diverge after the
   information-set labels split;
 - rejection when a shared label hides different declared observation prefixes;
+- rejection when scenarios do not share one root information set;
 - rejection when no information set is shared;
 - receipt digest/binary provenance checks and bounded/path-safe CLI controls.
