@@ -703,10 +703,11 @@ pub fn evaluate_nonanticipativity_bytes(
     let auditor_binary_sha256 = current_binary_sha256()?;
     let claim_ceiling = concat!(
         "equality of exact dispatch action fields for scenarios sharing information-set ",
-        "SHA-256 identities derived by this auditor from exact source-observation prefixes ",
-        "and exact time-bounded forecast bundle bytes; forecast bytes are content-bound but ",
-        "their producer authenticity, actual operator availability and calibration are not ",
-        "verified; no stochastic optimality, service-floor, physical safety or actuation claim"
+        "SHA-256 identities derived from cumulative canonical observation payloads, observed ",
+        "timestamps and exact time-bounded forecast bundle bytes; raw observation/forecast ",
+        "artifacts are content-bound but publisher authenticity, actual operator availability ",
+        "and calibration are not verified; no stochastic optimality, service-floor, physical ",
+        "safety or actuation claim"
     );
     let subject = NonAnticipativityReceiptSubjectV1 {
         receipt_schema,
@@ -1119,6 +1120,49 @@ mod tests {
             binding_a.information_set_sha256_by_interval[1],
             binding_b.information_set_sha256_by_interval[1]
         );
+    }
+
+    #[test]
+    fn observation_bundle_ids_and_json_formatting_do_not_create_new_information() {
+        let request_a = request_bytes("scenario-a", 1, 1);
+        let request_b = request_bytes("scenario-b", 1, 1);
+        let schedule_a = schedule_bytes(&request_a, true, true);
+        let schedule_b = schedule_bytes(&request_b, false, false);
+        let root_a = root_observation();
+        let mut root_value: serde_json::Value =
+            serde_json::from_slice(&root_a).unwrap();
+        root_value["bundle_id"] = serde_json::json!("alternate-root-bundle-id");
+        let root_b = serde_json::to_vec(&root_value).unwrap();
+        let branch = branch_observation("shared", 1);
+        let forecast = forecast_bundle_bytes(SCENARIO_SET, "forecast-v1", 1, 1);
+        let info_a = information_sets([&root_a, &branch], [&forecast, &forecast]);
+        let info_b = information_sets([&root_b, &branch], [&forecast, &forecast]);
+
+        let receipt = evaluate_nonanticipativity_bytes(
+            SCENARIO_SET,
+            &[
+                scenario("scenario-a", &request_a, &schedule_a, &info_a),
+                scenario("scenario-b", &request_b, &schedule_b, &info_b),
+            ],
+        )
+        .unwrap();
+
+        assert_ne!(
+            receipt.scenario_bindings[0].information_sets_by_interval[0]
+                .observation_bundle_sha256,
+            receipt.scenario_bindings[1].information_sets_by_interval[0]
+                .observation_bundle_sha256
+        );
+        assert_eq!(
+            receipt.scenario_bindings[0].information_set_sha256_by_interval[0],
+            receipt.scenario_bindings[1].information_set_sha256_by_interval[0]
+        );
+        assert_eq!(receipt.disposition, NonAnticipativityDispositionV1::Rejected);
+        assert!(receipt.findings.iter().any(|finding| {
+            finding.predicate == "nonanticipative-dispatch-action"
+                && finding.interval_index == Some(0)
+                && !finding.passed
+        }));
     }
 
     #[test]
