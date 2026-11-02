@@ -1,0 +1,11 @@
+[package]
+name = "energy-observation-shield"
+version = "0.1.0"
+edition = "2024"
+publish = false
+license = "AGPL-3.0-or-later"
+description = "Finite independent action-admission shield reference model"
+
+[dependencies]
+
+[workspace]
