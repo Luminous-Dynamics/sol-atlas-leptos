@@ -9,7 +9,7 @@ use super::{MeasurementClass, P50_MIN_SAMPLES, P95_MIN_SAMPLES};
 use std::collections::BTreeMap;
 
 pub const TRACE_V03_SCHEMA: &str = "energy-solver-compute-trace-v0.3";
-pub const TRACE_V03_HEADER: &str = "schema_version,measurement_class,cohort_id,sample_id,scenario_id,scenario_panel_sha256,request_sha256,model_sha256,mesh_policy_sha256,mesh_instance_sha256,solver_name,solver_version,solver_binary_sha256,solver_config_sha256,hardware_profile_sha256,horizon_minutes,interval_count,search_disposition,elapsed_ns,time_to_first_candidate_ns,time_to_first_audit_accept_ns,peak_memory_bytes,timeout_limit_ns,enumeration_prefix_visits,feasible_complete_schedules,pareto_frontier_complete,pareto_frontier_count,candidate_complete_horizon,candidate_schedule_sha256,audit_disposition,audit_receipt_sha256,audit_request_sha256,audit_schedule_sha256,auditor_binary_sha256,audit_elapsed_ns,service_floor_disposition,service_floor_policy_sha256,service_floor_schedule_audit_receipt_sha256,service_floor_receipt_sha256,service_floor_auditor_binary_sha256";
+pub const TRACE_V03_HEADER: &str = "schema_version,measurement_class,cohort_id,sample_id,scenario_id,scenario_panel_sha256,request_sha256,model_sha256,mesh_policy_sha256,mesh_instance_sha256,solver_name,solver_version,solver_binary_sha256,solver_config_sha256,hardware_profile_sha256,horizon_minutes,interval_count,search_disposition,elapsed_ns,time_to_first_candidate_ns,time_to_first_audit_accept_ns,peak_memory_bytes,timeout_limit_ns,enumeration_prefix_visits,feasible_complete_schedules,pareto_frontier_complete,pareto_frontier_count,candidate_complete_horizon,candidate_schedule_sha256,audit_disposition,audit_receipt_sha256,audit_request_sha256,audit_schedule_sha256,auditor_binary_sha256,audit_elapsed_ns,service_floor_disposition,service_floor_policy_sha256,service_floor_schedule_audit_receipt_sha256,service_floor_receipt_sha256,service_floor_auditor_binary_sha256,service_floor_elapsed_ns";
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum SearchDispositionV03 {
@@ -187,6 +187,7 @@ pub struct SolverTraceV03 {
     pub service_floor_schedule_audit_receipt_sha256: Option<String>,
     pub service_floor_receipt_sha256: Option<String>,
     pub service_floor_auditor_binary_sha256: Option<String>,
+    pub service_floor_elapsed_ns: Option<u64>,
 }
 
 impl SolverTraceV03 {
@@ -395,6 +396,7 @@ impl SolverTraceV03 {
                     || self.service_floor_schedule_audit_receipt_sha256.is_some()
                     || self.service_floor_receipt_sha256.is_some()
                     || self.service_floor_auditor_binary_sha256.is_some()
+                    || self.service_floor_elapsed_ns.is_some()
                 {
                     return Err(TraceV03Error::InvalidServiceFloorBindings);
                 }
@@ -416,6 +418,7 @@ impl SolverTraceV03 {
                         .service_floor_auditor_binary_sha256
                         .as_ref()
                         .is_none_or(|digest| !super::is_sha256_hex(digest))
+                    || self.service_floor_elapsed_ns.is_none_or(|elapsed| elapsed == 0)
                 {
                     return Err(TraceV03Error::InvalidServiceFloorBindings);
                 }
@@ -429,6 +432,7 @@ impl SolverTraceV03 {
                         .is_none_or(|digest| !super::is_sha256_hex(digest))
                     || self.service_floor_schedule_audit_receipt_sha256.is_some()
                     || self.service_floor_receipt_sha256.is_some()
+                    || self.service_floor_elapsed_ns.is_none_or(|elapsed| elapsed == 0)
                 {
                     return Err(TraceV03Error::InvalidServiceFloorBindings);
                 }
@@ -488,6 +492,7 @@ impl SolverTraceV03 {
             option_digest(&self.service_floor_schedule_audit_receipt_sha256).to_owned(),
             option_digest(&self.service_floor_receipt_sha256).to_owned(),
             option_digest(&self.service_floor_auditor_binary_sha256).to_owned(),
+            option(self.service_floor_elapsed_ns),
         ];
         if fields.iter().any(|field| field.contains(',') || field.contains('\n') || field.contains('\r')) {
             return Err(TraceV03Error::InvalidIdentifier);
@@ -516,7 +521,7 @@ pub fn parse_trace_csv_v03(input: &str) -> Result<Vec<SolverTraceV03>, TraceV03E
 
 pub fn parse_trace_row_v03(line: &str) -> Result<SolverTraceV03, TraceV03Error> {
     let fields: Vec<&str> = line.split(',').collect();
-    if fields.len() != 40 {
+    if fields.len() != 41 {
         return Err(TraceV03Error::InvalidFieldCount);
     }
     let parse_u64 = |value: &str| value.parse::<u64>().map_err(|_| TraceV03Error::InvalidNumber);
@@ -573,6 +578,7 @@ pub fn parse_trace_row_v03(line: &str) -> Result<SolverTraceV03, TraceV03Error> 
         service_floor_schedule_audit_receipt_sha256: parse_option_string(fields[37])?,
         service_floor_receipt_sha256: parse_option_string(fields[38])?,
         service_floor_auditor_binary_sha256: parse_option_string(fields[39])?,
+        service_floor_elapsed_ns: parse_option_u64(fields[40])?,
     };
     trace.validate()?;
     Ok(trace)
@@ -859,6 +865,7 @@ mod tests {
             service_floor_schedule_audit_receipt_sha256: None,
             service_floor_receipt_sha256: None,
             service_floor_auditor_binary_sha256: None,
+            service_floor_elapsed_ns: None,
         }
     }
 
@@ -912,6 +919,7 @@ mod tests {
         trace.service_floor_schedule_audit_receipt_sha256 = Some(digest(10));
         trace.service_floor_receipt_sha256 = Some(digest(13));
         trace.service_floor_auditor_binary_sha256 = Some(digest(14));
+        trace.service_floor_elapsed_ns = Some(4);
         trace.validate().unwrap();
         assert!(trace.decision_ready());
     }
@@ -928,6 +936,8 @@ mod tests {
         trace.service_floor_disposition = ServiceFloorDispositionV03::Passed;
         trace.service_floor_policy_sha256 = Some(digest(12));
         trace.service_floor_schedule_audit_receipt_sha256 = Some(digest(10));
+        trace.service_floor_auditor_binary_sha256 = Some(digest(14));
+        trace.service_floor_elapsed_ns = Some(4);
         assert_eq!(trace.validate(), Err(TraceV03Error::InvalidServiceFloorBindings));
     }
 
@@ -945,6 +955,7 @@ mod tests {
         trace.service_floor_schedule_audit_receipt_sha256 = Some(digest(99));
         trace.service_floor_receipt_sha256 = Some(digest(13));
         trace.service_floor_auditor_binary_sha256 = Some(digest(14));
+        trace.service_floor_elapsed_ns = Some(4);
         assert_eq!(trace.validate(), Err(TraceV03Error::InvalidServiceFloorBindings));
     }
 
@@ -1040,6 +1051,8 @@ mod tests {
         unavailable.audit_elapsed_ns = Some(5);
         unavailable.service_floor_disposition = ServiceFloorDispositionV03::Unavailable;
         unavailable.service_floor_policy_sha256 = Some(digest(13));
+        unavailable.service_floor_auditor_binary_sha256 = Some(digest(14));
+        unavailable.service_floor_elapsed_ns = Some(5);
 
         let summary = summarize_traces_v03(&[rejected, unavailable]).unwrap().remove(0);
         assert_eq!(summary.audit_attempt_count, 2);
