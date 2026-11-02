@@ -102,7 +102,7 @@ fn GlobeApp() -> impl IntoView {
         <GlobeCanvas />
         <div class="globe-title">
             <h1>"Sol Atlas"</h1>
-            <p class="subtitle">"Symthaea Planetary Coordination Layer"</p>
+            <p class="subtitle">"Energy & infrastructure scenario explorer"</p>
             <A href="/labs/reactor-twin" attr:class="labs-link">"Labs: Reactor Digital Twin demo \u{2192}"</A>
         </div>
         <Hud />
