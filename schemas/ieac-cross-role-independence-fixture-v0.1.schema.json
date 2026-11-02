@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/ieac-cross-role-independence-fixture-v0.1.schema.json",
+  "title": "IEAC Cross-Role Independence Fixture v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "fixture_schema_version",
+    "fixture_status",
+    "note",
+    "cases"
+  ],
+  "properties": {
+    "fixture_schema_version": {
+      "const": "luminous.ieac-cross-role-independence-fixture.v0.1"
+    },
+    "fixture_status": {
+      "const": "synthetic_only"
+    },
+    "note": {
+      "type": "string",
+      "minLength": 1
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "request",
+          "expected"
+        ],
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "request": {
+            "$ref": "ieac-cross-role-independence-request-v0.1.schema.json"
+          },
+          "expected": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "overall_disposition",
+              "conflicted_pairs",
+              "separate_pairs",
+              "claim_ceiling",
+              "action_authority"
+            ],
+            "properties": {
+              "overall_disposition": {
+                "enum": [
+                  "independence_satisfied_under_registry_model",
+                  "not_independent_under_registry_model",
+                  "independence_unknown"
+                ]
+              },
+              "conflicted_pairs": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "separate_pairs": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "claim_ceiling": {
+                "const": "independence_under_exact_pinned_ccf_registry_only"
+              },
+              "action_authority": {
+                "const": "none"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
