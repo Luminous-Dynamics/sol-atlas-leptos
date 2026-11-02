@@ -105,6 +105,18 @@ jobs:
               ([.metadata_artifacts[].staged_path, .bootstrap_root.staged_path, .policy_file.staged_path] | length)
           ' schemas/examples/ieac-verification-capsule-build-template-synthetic-v0.1.json
 
+          jq -e '
+            .capsule_mode == "metadata_complete_target_referenced" and
+            .replayability == "conditionally_replayable" and
+            all(.targets[]; .content_mode == "referenced" and (has("staged_path") | not))
+          ' schemas/examples/ieac-verification-capsule-build-template-referenced-synthetic-v0.1.json
+
+          jq -e '
+            .capsule_mode == "commitment_only" and
+            .replayability == "commitment_only" and
+            all(.targets[]; .content_mode == "withheld" and (has("staged_path") | not))
+          ' schemas/examples/ieac-verification-capsule-build-template-commitment-synthetic-v0.1.json
+
           test "$(rg -n 'verification_performed: false|status: "packed_unverified"' tools/industry-verification-capsule-builder/src/main.rs | wc -l)" -ge 2
 
       - name: Prove committed Cargo lock and generated schemas remain unchanged
