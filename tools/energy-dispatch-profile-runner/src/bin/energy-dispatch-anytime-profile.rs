@@ -14,7 +14,7 @@ use sol_atlas_core::energy_dispatch::{
 };
 use std::fmt::Write as FmtWrite;
 use std::fs::{self, OpenOptions};
-use std::io::{Read, Write};
+use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::Path;
 use std::process::{Command, ExitCode};
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
@@ -387,14 +387,32 @@ fn append_trace(path: &Path, trace: &SolverTraceV03) -> Result<String, String> {
     let row = trace
         .render_csv_row()
         .map_err(|error| format!("v0.3 trace validation/render: {error}"))?;
-    let existing = match fs::read_to_string(path) {
-        Ok(value) => value,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => String::new(),
-        Err(error) => return Err(format!("read existing v0.3 trace: {error}")),
-    };
-    if existing.len() > trace_support::MAX_TRACE_CSV_BYTES {
+    let mut file = OpenOptions::new()
+        .create(true)
+        .read(true)
+        .append(true)
+        .open(path)
+        .map_err(|error| format!("open v0.3 trace for bounded append: {error}"))?;
+    let metadata = file
+        .metadata()
+        .map_err(|error| format!("inspect opened v0.3 trace: {error}"))?;
+    if !metadata.is_file() {
+        return Err("v0.3 trace path must identify a regular file".to_owned());
+    }
+    if metadata.len() > trace_support::MAX_TRACE_CSV_BYTES as u64 {
         return Err("existing v0.3 trace exceeds declared byte limit".to_owned());
     }
+    let mut input = Vec::new();
+    file.seek(SeekFrom::Start(0))
+        .map_err(|error| format!("seek opened v0.3 trace: {error}"))?;
+    file.take(trace_support::MAX_TRACE_CSV_BYTES as u64 + 1)
+        .read_to_end(&mut input)
+        .map_err(|error| format!("bounded read of v0.3 trace: {error}"))?;
+    if input.len() > trace_support::MAX_TRACE_CSV_BYTES {
+        return Err("existing v0.3 trace exceeded declared byte limit while reading".to_owned());
+    }
+    let existing = String::from_utf8(input)
+        .map_err(|error| format!("existing v0.3 trace is not UTF-8: {error}"))?;
     let mut output = String::new();
     if existing.is_empty() {
         output.push_str(TRACE_V03_HEADER);
@@ -409,11 +427,9 @@ fn append_trace(path: &Path, trace: &SolverTraceV03) -> Result<String, String> {
     }
     output.push_str(&row);
     output.push('\n');
-    let mut file = OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(path)
-        .map_err(|error| format!("open v0.3 trace for append: {error}"))?;
+    if existing.len().saturating_add(output.len()) > trace_support::MAX_TRACE_CSV_BYTES {
+        return Err("v0.3 trace append would exceed declared byte limit".to_owned());
+    }
     file.write_all(output.as_bytes())
         .map_err(|error| format!("append v0.3 trace row: {error}"))?;
     Ok(row)
