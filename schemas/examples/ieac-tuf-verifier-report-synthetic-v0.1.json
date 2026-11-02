@@ -34,6 +34,24 @@
       "target_path": "channels/plant-17/checkpoint.json",
       "target_length": 2048,
       "target_sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+    },
+    {
+      "role_name": "ieac-channel-completeness-attestations",
+      "version": 2,
+      "metadata_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+      "expires_at": "2026-11-10T00:00:00Z",
+      "target_path": "channels/plant-17/completeness-attestation.json",
+      "target_length": 16384,
+      "target_sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+    },
+    {
+      "role_name": "ieac-channel-completeness-reports",
+      "version": 2,
+      "metadata_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "expires_at": "2026-11-10T00:00:00Z",
+      "target_path": "channels/plant-17/completeness-report.json",
+      "target_length": 4096,
+      "target_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
     }
   ],
   "channel_binding": {
@@ -57,7 +75,19 @@
       "target_length": 2048,
       "target_sha256": "7777777777777777777777777777777777777777777777777777777777777777"
     },
-    "epoch_transition": null
+    "epoch_transition": null,
+    "completeness_attestation": {
+      "role_name": "ieac-channel-completeness-attestations",
+      "target_path": "channels/plant-17/completeness-attestation.json",
+      "target_length": 16384,
+      "target_sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+    },
+    "availability_audit_report": {
+      "role_name": "ieac-channel-completeness-reports",
+      "target_path": "channels/plant-17/completeness-report.json",
+      "target_length": 4096,
+      "target_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    }
   },
   "root_update_chain": [],
   "verification_checks": {
