@@ -78,9 +78,7 @@ fn valid_id(value: &str) -> bool {
             .all(|byte| byte.is_ascii_alphanumeric() || b"_-.:".contains(&byte))
 }
 
-fn validate_unique<'a>(
-    values: impl IntoIterator<Item = &'a str>,
-) -> Result<(), EvsiError> {
+fn validate_unique<'a>(values: impl IntoIterator<Item = &'a str>) -> Result<(), EvsiError> {
     let mut seen = BTreeSet::new();
     for value in values {
         if !valid_id(value) {
@@ -224,7 +222,9 @@ pub struct CandidateRanking {
 }
 
 fn checked_add(total: &mut u128, value: u128) -> Result<(), EvsiError> {
-    *total = total.checked_add(value).ok_or(EvsiError::ArithmeticOverflow)?;
+    *total = total
+        .checked_add(value)
+        .ok_or(EvsiError::ArithmeticOverflow)?;
     Ok(())
 }
 
@@ -232,10 +232,7 @@ fn checked_mul(left: u128, right: u128) -> Result<u128, EvsiError> {
     left.checked_mul(right).ok_or(EvsiError::ArithmeticOverflow)
 }
 
-fn weighted_prior_loss(
-    problem: &DecisionProblem,
-    action_index: usize,
-) -> Result<u128, EvsiError> {
+fn weighted_prior_loss(problem: &DecisionProblem, action_index: usize) -> Result<u128, EvsiError> {
     let mut total = 0u128;
     for (state, losses) in problem.states.iter().zip(&problem.losses) {
         checked_add(
@@ -249,10 +246,7 @@ fn weighted_prior_loss(
     Ok(total)
 }
 
-fn best_action<'a>(
-    problem: &'a DecisionProblem,
-    risks: &[u128],
-) -> (usize, &'a str) {
+fn best_action<'a>(problem: &'a DecisionProblem, risks: &[u128]) -> (usize, &'a str) {
     let mut best_index = 0usize;
     for index in 1..problem.actions.len() {
         if risks[index] < risks[best_index]
@@ -303,8 +297,7 @@ pub fn exact_evsi(
     let prior_action_risks: Vec<u128> = (0..problem.actions.len())
         .map(|action_index| weighted_prior_loss(problem, action_index))
         .collect::<Result<_, _>>()?;
-    let (prior_best_action_index, prior_best_action_id) =
-        best_action(problem, &prior_action_risks);
+    let (prior_best_action_index, prior_best_action_id) = best_action(problem, &prior_action_risks);
     let prior_bayes_risk_numerator_ppm = prior_action_risks[prior_best_action_index];
 
     let mut perfect_information_risk_numerator_ppm2 = 0u128;
@@ -386,17 +379,13 @@ pub fn exact_evsi(
         return Err(EvsiError::EvsiExceedsPerfectInformation);
     }
 
-    let evsi_numerator_ppm2 =
-        prior_risk_numerator_ppm2 - posterior_bayes_risk_numerator_ppm2;
-    let evpi_numerator_ppm2 =
-        prior_risk_numerator_ppm2 - perfect_information_risk_numerator_ppm2;
+    let evsi_numerator_ppm2 = prior_risk_numerator_ppm2 - posterior_bayes_risk_numerator_ppm2;
+    let evpi_numerator_ppm2 = prior_risk_numerator_ppm2 - perfect_information_risk_numerator_ppm2;
     if evsi_numerator_ppm2 > evpi_numerator_ppm2 {
         return Err(EvsiError::EvsiExceedsPerfectInformation);
     }
-    let observation_cost_numerator_ppm2 = checked_mul(
-        u128::from(observation_cost_units),
-        EVSI_DENOMINATOR,
-    )?;
+    let observation_cost_numerator_ppm2 =
+        checked_mul(u128::from(observation_cost_units), EVSI_DENOMINATOR)?;
     let net_value_nonnegative = evsi_numerator_ppm2 >= observation_cost_numerator_ppm2;
     let net_value_magnitude_numerator_ppm2 = if net_value_nonnegative {
         evsi_numerator_ppm2 - observation_cost_numerator_ppm2
@@ -421,7 +410,10 @@ pub fn exact_evsi(
     })
 }
 
-fn compare_candidate_heuristic(left: &CandidateEvaluation, right: &CandidateEvaluation) -> Ordering {
+fn compare_candidate_heuristic(
+    left: &CandidateEvaluation,
+    right: &CandidateEvaluation,
+) -> Ordering {
     compare_positive_fractions(
         u128::from(left.heuristic_avoidable_loss_lower_bound_units),
         left.compute_cost_units,
@@ -480,8 +472,8 @@ pub fn rank_observation_candidates(
         let evsi = exact_evsi(problem, &candidate.design, candidate.observation_cost_units)?;
         evaluations.push(CandidateEvaluation {
             id: candidate.id.clone(),
-            heuristic_avoidable_loss_lower_bound_units:
-                candidate.heuristic_avoidable_loss_lower_bound_units,
+            heuristic_avoidable_loss_lower_bound_units: candidate
+                .heuristic_avoidable_loss_lower_bound_units,
             compute_cost_units: candidate.compute_cost_units,
             exact_evsi: evsi,
         });
@@ -493,7 +485,10 @@ pub fn rank_observation_candidates(
     exact.sort_by(compare_candidate_exact);
 
     Ok(CandidateRanking {
-        heuristic_order: heuristic.iter().map(|candidate| candidate.id.clone()).collect(),
+        heuristic_order: heuristic
+            .iter()
+            .map(|candidate| candidate.id.clone())
+            .collect(),
         exact_evsi_order: exact.iter().map(|candidate| candidate.id.clone()).collect(),
         evaluations,
     })
@@ -540,7 +535,10 @@ mod tests {
 
         assert_eq!(result.prior_best_action_id, "prepare");
         assert_eq!(result.prior_bayes_risk_numerator_ppm, 40_000_000);
-        assert_eq!(result.posterior_bayes_risk_numerator_ppm2, 20_000_000_000_000);
+        assert_eq!(
+            result.posterior_bayes_risk_numerator_ppm2,
+            20_000_000_000_000
+        );
         assert_eq!(result.evsi_numerator_ppm2, 20_000_000_000_000);
         assert_eq!(result.evpi_numerator_ppm2, 20_000_000_000_000);
         assert!(result.worthwhile_to_observe);
@@ -586,8 +584,16 @@ mod tests {
     fn observation_cost_is_compared_without_rounding() {
         let problem = two_state_problem();
         let perfect = design("perfect", [1_000_000, 0], [0, 1_000_000]);
-        assert!(exact_evsi(&problem, &perfect, 20).unwrap().worthwhile_to_observe);
-        assert!(!exact_evsi(&problem, &perfect, 21).unwrap().worthwhile_to_observe);
+        assert!(
+            exact_evsi(&problem, &perfect, 20)
+                .unwrap()
+                .worthwhile_to_observe
+        );
+        assert!(
+            !exact_evsi(&problem, &perfect, 21)
+                .unwrap()
+                .worthwhile_to_observe
+        );
     }
 
     #[test]
@@ -600,10 +606,7 @@ mod tests {
                 "ordinary".to_owned(),
                 "storm".to_owned(),
             ],
-            likelihoods_ppm: vec![
-                vec![0, 1_000_000, 0],
-                vec![0, 0, 1_000_000],
-            ],
+            likelihoods_ppm: vec![vec![0, 1_000_000, 0], vec![0, 0, 1_000_000]],
         };
         let result = exact_evsi(&problem, &design, 0).unwrap();
         let impossible = result
@@ -624,8 +627,10 @@ mod tests {
         let reordered = DecisionProblem {
             states: vec![problem.states[1].clone(), problem.states[0].clone()],
             actions: vec![problem.actions[1].clone(), problem.actions[0].clone()],
-            losses: vec![problem.losses[1].iter().rev().copied().collect(),
-                         problem.losses[0].iter().rev().copied().collect()],
+            losses: vec![
+                problem.losses[1].iter().rev().copied().collect(),
+                problem.losses[0].iter().rev().copied().collect(),
+            ],
         };
         let second_design = design("noisy", [100_000, 900_000], [900_000, 100_000]);
         let second = exact_evsi(&reordered, &second_design, 0).unwrap();
@@ -640,14 +645,22 @@ mod tests {
         let candidates = vec![
             ObservationCandidate {
                 id: "high-bound-low-information".to_owned(),
-                design: design("high-bound-low-information", [500_000, 500_000], [500_000, 500_000]),
+                design: design(
+                    "high-bound-low-information",
+                    [500_000, 500_000],
+                    [500_000, 500_000],
+                ),
                 heuristic_avoidable_loss_lower_bound_units: 10_000,
                 observation_cost_units: 0,
                 compute_cost_units: 1,
             },
             ObservationCandidate {
                 id: "lower-bound-informative".to_owned(),
-                design: design("lower-bound-informative", [900_000, 100_000], [100_000, 900_000]),
+                design: design(
+                    "lower-bound-informative",
+                    [900_000, 100_000],
+                    [100_000, 900_000],
+                ),
                 heuristic_avoidable_loss_lower_bound_units: 100,
                 observation_cost_units: 0,
                 compute_cost_units: 1,
@@ -779,10 +792,7 @@ mod tests {
     fn duplicate_state_action_observation_and_candidate_ids_are_rejected() {
         let mut problem = two_state_problem();
         problem.states[1].id = problem.states[0].id.clone();
-        assert_eq!(
-            problem.validate(),
-            Err(EvsiError::DuplicateIdentifier)
-        );
+        assert_eq!(problem.validate(), Err(EvsiError::DuplicateIdentifier));
 
         let problem = two_state_problem();
         let mut invalid = design("duplicate", [1_000_000, 0], [0, 1_000_000]);
@@ -833,14 +843,17 @@ mod tests {
     fn probability_and_loss_precision_is_integer_exact_at_u64_boundaries() {
         let problem = DecisionProblem {
             states: vec![
-                WeightedState { id: "a".to_owned(), prior_probability_ppm: 500_000 },
-                WeightedState { id: "b".to_owned(), prior_probability_ppm: 500_000 },
+                WeightedState {
+                    id: "a".to_owned(),
+                    prior_probability_ppm: 500_000,
+                },
+                WeightedState {
+                    id: "b".to_owned(),
+                    prior_probability_ppm: 500_000,
+                },
             ],
             actions: vec!["left".to_owned(), "right".to_owned()],
-            losses: vec![
-                vec![u64::MAX, 0],
-                vec![0, u64::MAX],
-            ],
+            losses: vec![vec![u64::MAX, 0], vec![0, u64::MAX]],
         };
         let noisy = design("noisy", [900_000, 100_000], [100_000, 900_000]);
         let result = exact_evsi(&problem, &noisy, 0).unwrap();
