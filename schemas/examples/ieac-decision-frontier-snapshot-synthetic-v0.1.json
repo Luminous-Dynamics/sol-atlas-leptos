@@ -365,7 +365,7 @@
         "verification_policy_sha256": null
       },
       "source_recorded_at": null,
-      "first_available": null
+      "availability_evidence": null
     },
     {
       "evidence_id": "availability-for-another-relying-party",
