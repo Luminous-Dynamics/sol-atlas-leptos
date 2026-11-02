@@ -369,7 +369,7 @@ fn verify_case(
         family_metric.expected_reason_code_hits += 1;
     }
     family_metric.report_tamper_checks += 1;
-    if tamper_detected {
+    if replayed_tamper_detection {
         family_metric.report_tamper_detected += 1;
     }
     if !checker_errors.is_empty() {
