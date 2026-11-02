@@ -43,6 +43,7 @@ struct DecisionRef {
     evaluator_build_sha256: String,
     time_verifier_build_sha256: String,
     time_verification_policy_sha256: String,
+    time_verification_trust_bundle_sha256: String,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -60,6 +61,8 @@ struct TimeBound {
     verifier_build_sha256: Option<String>,
     #[serde(deserialize_with = "deserialize_present_option")]
     verification_policy_sha256: Option<String>,
+    #[serde(deserialize_with = "deserialize_present_option")]
+    trust_bundle_sha256: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -194,6 +197,7 @@ fn validate_time_bound(bound: &TimeBound, path: &str) -> Result<(), String> {
             "verification_policy_sha256",
             bound.verification_policy_sha256.as_deref(),
         ),
+        ("trust_bundle_sha256", bound.trust_bundle_sha256.as_deref()),
     ];
 
     for (field, value) in optional_digests {
@@ -242,6 +246,8 @@ fn validate_snapshot(snapshot: &Snapshot) -> Result<(), String> {
         ("evaluator_build_sha256", &snapshot.decision.evaluator_build_sha256),
         ("time_verifier_build_sha256", &snapshot.decision.time_verifier_build_sha256),
         ("time_verification_policy_sha256", &snapshot.decision.time_verification_policy_sha256),
+        ("time_verification_trust_bundle_sha256", &snapshot.decision.time_verification_trust_bundle_sha256),
+        ("time_verification_trust_bundle_sha256", &snapshot.decision.time_verification_trust_bundle_sha256),
     ] {
         if !is_sha256(digest) {
             return Err(format!("decision.{name} must be 64 lowercase hex characters"));
@@ -380,6 +386,7 @@ fn validate_coverage_proof(
     for (field, value) in [
         ("verifier_build_sha256", coverage.verifier_build_sha256.as_deref()),
         ("verification_policy_sha256", coverage.verification_policy_sha256.as_deref()),
+        ("trust_bundle_sha256", coverage.trust_bundle_sha256.as_deref()),
     ] {
         if let Some(value) = value
             && !is_sha256(value)
@@ -394,7 +401,9 @@ fn validate_coverage_proof(
         && (coverage.verifier_build_sha256.as_deref()
             != Some(decision.time_verifier_build_sha256.as_str())
             || coverage.verification_policy_sha256.as_deref()
-                != Some(decision.time_verification_policy_sha256.as_str()))
+                != Some(decision.time_verification_policy_sha256.as_str())
+            || coverage.trust_bundle_sha256.as_deref()
+                != Some(decision.time_verification_trust_bundle_sha256.as_str()))
     {
         return Err(format!("{path} uses an unpinned coverage verifier build or policy"));
     }
@@ -410,7 +419,9 @@ fn validate_verifier_pin(
         && (bound.verifier_build_sha256.as_deref()
             != Some(decision.time_verifier_build_sha256.as_str())
             || bound.verification_policy_sha256.as_deref()
-                != Some(decision.time_verification_policy_sha256.as_str()))
+                != Some(decision.time_verification_policy_sha256.as_str())
+            || bound.trust_bundle_sha256.as_deref()
+                != Some(decision.time_verification_trust_bundle_sha256.as_str()))
     {
         return Err(format!("{path} uses an unpinned time verifier build or policy"));
     }
@@ -781,6 +792,7 @@ mod tests {
             proof_sha256: if status == "verified" { Some(digest('a')) } else { None },
             verifier_build_sha256: if status == "verified" { Some(digest('b')) } else { None },
             verification_policy_sha256: if status == "verified" { Some(digest('c')) } else { None },
+            trust_bundle_sha256: if status == "verified" { Some(digest('d')) } else { None },
         }
     }
 
@@ -831,6 +843,7 @@ mod tests {
                 evaluator_build_sha256: digest('4'),
                 time_verifier_build_sha256: digest('b'),
                 time_verification_policy_sha256: digest('c'),
+                time_verification_trust_bundle_sha256: digest('d'),
             },
             decision_cutoff: time(
                 "2026-11-02T09:10:00Z",
@@ -937,6 +950,7 @@ mod tests {
             verification_status: "verified".to_string(),
             verifier_build_sha256: Some(digest('b')),
             verification_policy_sha256: Some(digest('c')),
+            trust_bundle_sha256: Some(digest('d')),
         });
         let item = evidence("complete-late", Some(availability), None);
         let report = audit(&snapshot_with(vec![item]), br#"{}"#)
@@ -975,6 +989,7 @@ mod tests {
             verification_status: "verified".to_string(),
             verifier_build_sha256: Some(digest('b')),
             verification_policy_sha256: Some(digest('c')),
+            trust_bundle_sha256: Some(digest('d')),
         });
         let item = evidence("coverage-starts-too-late", Some(availability), None);
         let report = audit(&snapshot_with(vec![item]), br#"{}"#)
@@ -1115,6 +1130,28 @@ mod tests {
             None,
         );
         item.availability_evidence.as_mut().unwrap().time.verifier_build_sha256 = Some(digest('9'));
+        let result = audit(&snapshot_with(vec![item]), br#"{}"#);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn time_verification_trust_bundle_substitution_is_rejected() {
+        let mut item = evidence(
+            "wrong-trust-bundle",
+            Some(available(
+                "relying_party_ingest_receipt",
+                "rp:test",
+                time(
+                    "2026-11-02T09:00:00Z",
+                    0,
+                    0,
+                    "authenticated_ingest_log",
+                    "verified",
+                ),
+            )),
+            None,
+        );
+        item.availability_evidence.as_mut().unwrap().time.trust_bundle_sha256 = Some(digest('9'));
         let result = audit(&snapshot_with(vec![item]), br#"{}"#);
         assert!(result.is_err());
     }
