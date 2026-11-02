@@ -1,0 +1,97 @@
+{
+  "population_frame_id": "urn:synthetic:population-frame:2026-01",
+  "sampling_design_id": "urn:synthetic:stratified-design:01",
+  "strata": [
+    {
+      "stratum_id": "positive",
+      "kind": "high_score_candidates",
+      "population_unit_count": 100,
+      "selected_unit_count": 2,
+      "sampling_design": "stratified_simple_random_without_replacement",
+      "design_reference": "urn:synthetic:srs:positive"
+    },
+    {
+      "stratum_id": "negative",
+      "kind": "predicted_negative_landscape",
+      "population_unit_count": 200,
+      "selected_unit_count": 2,
+      "sampling_design": "stratified_simple_random_without_replacement",
+      "design_reference": "urn:synthetic:srs:negative"
+    }
+  ],
+  "samples": [
+    {
+      "sample_id": "sample-1",
+      "unit_id": "unit-1",
+      "landscape_id": "landscape-1",
+      "stratum_id": "positive",
+      "inclusion_probability": 0.02,
+      "model_prediction": "positive",
+      "ground_truth": {
+        "status": "confirmed_positive",
+        "adjudication_ref": "urn:adjudication:1",
+        "evidence_tier": "field_assessed",
+        "reviewer_ref": "urn:reviewer:1",
+        "authority_ref": "urn:authority:1",
+        "rights_receipt_ref": "urn:rights:1"
+      },
+      "reviewer_hours": 1
+    },
+    {
+      "sample_id": "sample-2",
+      "unit_id": "unit-2",
+      "landscape_id": "landscape-1",
+      "stratum_id": "positive",
+      "inclusion_probability": 0.02,
+      "model_prediction": "positive",
+      "ground_truth": {
+        "status": "confirmed_negative",
+        "adjudication_ref": "urn:adjudication:2",
+        "evidence_tier": "field_assessed",
+        "reviewer_ref": "urn:reviewer:1",
+        "authority_ref": "urn:authority:1",
+        "rights_receipt_ref": "urn:rights:1",
+        "detectability_assessment_ref": "urn:detectability:1"
+      },
+      "reviewer_hours": 1
+    },
+    {
+      "sample_id": "sample-3",
+      "unit_id": "unit-3",
+      "landscape_id": "landscape-2",
+      "stratum_id": "negative",
+      "inclusion_probability": 0.01,
+      "model_prediction": "negative",
+      "ground_truth": {
+        "status": "confirmed_positive",
+        "adjudication_ref": "urn:adjudication:3",
+        "evidence_tier": "field_assessed",
+        "reviewer_ref": "urn:reviewer:1",
+        "authority_ref": "urn:authority:1",
+        "rights_receipt_ref": "urn:rights:1"
+      },
+      "reviewer_hours": 1
+    },
+    {
+      "sample_id": "sample-4",
+      "unit_id": "unit-4",
+      "landscape_id": "landscape-2",
+      "stratum_id": "negative",
+      "inclusion_probability": 0.01,
+      "model_prediction": "negative",
+      "ground_truth": {
+        "status": "confirmed_negative",
+        "adjudication_ref": "urn:adjudication:4",
+        "evidence_tier": "field_assessed",
+        "reviewer_ref": "urn:reviewer:1",
+        "authority_ref": "urn:authority:1",
+        "rights_receipt_ref": "urn:rights:1",
+        "detectability_assessment_ref": "urn:detectability:1"
+      },
+      "reviewer_hours": 1
+    }
+  ],
+  "config": {
+    "probability_tolerance": 1e-9
+  }
+}

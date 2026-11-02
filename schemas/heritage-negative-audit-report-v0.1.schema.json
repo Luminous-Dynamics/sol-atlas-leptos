@@ -1,0 +1,316 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-negative-audit-report-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Negative-Space Audit Report",
+  "description": "Raw adjudication counts plus Horvitz-Thompson population totals only when every selected unit has a resolved, independent positive or detectability-qualified negative. Confidence intervals are not computed in v0.1.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "population_frame_id",
+    "sampling_design_id",
+    "total_population_units",
+    "selected_unit_count",
+    "adjudicated_positive_count",
+    "adjudicated_negative_count",
+    "unknown_count",
+    "unobservable_count",
+    "unresolved_count",
+    "model_abstained_count",
+    "adjudication_coverage",
+    "sampled_landscape_count",
+    "kish_effective_sample_size",
+    "design_weighted_metrics",
+    "adjudicated_sample_confusion",
+    "false_negative_sample_count",
+    "reviewer_hours",
+    "stratum_summaries",
+    "confidence_interval_status"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-negative-audit.v0.1"
+    },
+    "population_frame_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sampling_design_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "total_population_units": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "selected_unit_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "adjudicated_positive_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "adjudicated_negative_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "unknown_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "unobservable_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "unresolved_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "model_abstained_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "adjudication_coverage": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "sampled_landscape_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "kish_effective_sample_size": {
+      "type": "number",
+      "minimum": 0
+    },
+    "design_weighted_metrics": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "estimated_population_confusion",
+            "precision",
+            "recall",
+            "f1",
+            "false_negative_rate",
+            "false_negative_total",
+            "sampled_false_negative_discoveries_per_100_reviewer_hours"
+          ],
+          "properties": {
+            "estimated_population_confusion": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "true_positive",
+                "false_positive",
+                "true_negative",
+                "false_negative"
+              ],
+              "properties": {
+                "true_positive": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "false_positive": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "true_negative": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "false_negative": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              }
+            },
+            "precision": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 1
+            },
+            "recall": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 1
+            },
+            "f1": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 1
+            },
+            "false_negative_rate": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 1
+            },
+            "false_negative_total": {
+              "type": "number",
+              "minimum": 0
+            },
+            "sampled_false_negative_discoveries_per_100_reviewer_hours": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            }
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "adjudicated_sample_confusion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "true_positive",
+        "false_positive",
+        "true_negative",
+        "false_negative"
+      ],
+      "properties": {
+        "true_positive": {
+          "type": "number",
+          "minimum": 0
+        },
+        "false_positive": {
+          "type": "number",
+          "minimum": 0
+        },
+        "true_negative": {
+          "type": "number",
+          "minimum": 0
+        },
+        "false_negative": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "false_negative_sample_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "reviewer_hours": {
+      "type": "number",
+      "minimum": 0
+    },
+    "stratum_summaries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "stratum_id",
+          "kind",
+          "population_unit_count",
+          "selected_unit_count",
+          "adjudicated_positive_count",
+          "adjudicated_negative_count",
+          "unknown_count",
+          "unobservable_count",
+          "unresolved_fraction",
+          "weighted_false_negative_total",
+          "weighted_true_positive_total",
+          "weighted_false_positive_total",
+          "weighted_true_negative_total"
+        ],
+        "properties": {
+          "stratum_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": [
+              "high_score_candidates",
+              "medium_score_candidates",
+              "low_score_candidates",
+              "predicted_negative_landscape",
+              "model_abstained",
+              "data_unavailable"
+            ]
+          },
+          "population_unit_count": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "selected_unit_count": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "adjudicated_positive_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "adjudicated_negative_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "unknown_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "unobservable_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "unresolved_fraction": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "weighted_false_negative_total": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "weighted_true_positive_total": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "weighted_false_positive_total": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "weighted_true_negative_total": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "confidence_interval_status": {
+      "const": "not_computed_v0_1_joint_inclusion_or_cluster_variance_design_required"
+    }
+  }
+}

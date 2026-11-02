@@ -1,0 +1,71 @@
+{
+  "schema_version": "luminous.heritage-negative-audit.v0.1",
+  "population_frame_id": "urn:synthetic:population-frame:2026-01",
+  "sampling_design_id": "urn:synthetic:stratified-design:01",
+  "total_population_units": 300,
+  "selected_unit_count": 4,
+  "adjudicated_positive_count": 2,
+  "adjudicated_negative_count": 2,
+  "unknown_count": 0,
+  "unobservable_count": 0,
+  "unresolved_count": 0,
+  "model_abstained_count": 0,
+  "adjudication_coverage": 1,
+  "sampled_landscape_count": 2,
+  "kish_effective_sample_size": 3.6,
+  "design_weighted_metrics": {
+    "estimated_population_confusion": {
+      "true_positive": 50,
+      "false_positive": 50,
+      "true_negative": 100,
+      "false_negative": 100
+    },
+    "precision": 0.5,
+    "recall": 0.3333333333333333,
+    "f1": 0.4,
+    "false_negative_rate": 0.6666666666666666,
+    "false_negative_total": 100,
+    "sampled_false_negative_discoveries_per_100_reviewer_hours": 25
+  },
+  "adjudicated_sample_confusion": {
+    "true_positive": 1,
+    "false_positive": 1,
+    "true_negative": 1,
+    "false_negative": 1
+  },
+  "false_negative_sample_count": 1,
+  "reviewer_hours": 4,
+  "stratum_summaries": [
+    {
+      "stratum_id": "negative",
+      "kind": "predicted_negative_landscape",
+      "population_unit_count": 200,
+      "selected_unit_count": 2,
+      "adjudicated_positive_count": 1,
+      "adjudicated_negative_count": 1,
+      "unknown_count": 0,
+      "unobservable_count": 0,
+      "unresolved_fraction": 0,
+      "weighted_false_negative_total": 100,
+      "weighted_true_positive_total": null,
+      "weighted_false_positive_total": null,
+      "weighted_true_negative_total": 100
+    },
+    {
+      "stratum_id": "positive",
+      "kind": "high_score_candidates",
+      "population_unit_count": 100,
+      "selected_unit_count": 2,
+      "adjudicated_positive_count": 1,
+      "adjudicated_negative_count": 1,
+      "unknown_count": 0,
+      "unobservable_count": 0,
+      "unresolved_fraction": 0,
+      "weighted_false_negative_total": null,
+      "weighted_true_positive_total": 50,
+      "weighted_false_positive_total": 50,
+      "weighted_true_negative_total": null
+    }
+  ],
+  "confidence_interval_status": "not_computed_v0_1_joint_inclusion_or_cluster_variance_design_required"
+}

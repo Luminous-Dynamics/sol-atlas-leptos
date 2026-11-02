@@ -1,0 +1,262 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-negative-audit-input-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Negative-Space Audit Input",
+  "description": "Probability-sample audit of model-positive, low-score, predicted-negative, abstained and data-unavailable landscape units. Unknown and unobservable outcomes are distinct from confirmed negatives.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "population_frame_id",
+    "sampling_design_id",
+    "strata",
+    "samples",
+    "config"
+  ],
+  "properties": {
+    "population_frame_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sampling_design_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "strata": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "stratum_id",
+          "kind",
+          "population_unit_count",
+          "selected_unit_count",
+          "sampling_design",
+          "design_reference"
+        ],
+        "properties": {
+          "stratum_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": [
+              "high_score_candidates",
+              "medium_score_candidates",
+              "low_score_candidates",
+              "predicted_negative_landscape",
+              "model_abstained",
+              "data_unavailable"
+            ]
+          },
+          "population_unit_count": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "selected_unit_count": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "sampling_design": {
+            "enum": [
+              "stratified_simple_random_without_replacement",
+              "known_unequal_first_order_probability"
+            ]
+          },
+          "design_reference": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "samples": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sample_id",
+          "unit_id",
+          "landscape_id",
+          "stratum_id",
+          "inclusion_probability",
+          "model_prediction",
+          "ground_truth",
+          "reviewer_hours"
+        ],
+        "properties": {
+          "sample_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "unit_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "landscape_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "stratum_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "inclusion_probability": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1
+          },
+          "model_prediction": {
+            "enum": [
+              "positive",
+              "negative",
+              "abstained"
+            ]
+          },
+          "ground_truth": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "status",
+                  "adjudication_ref",
+                  "evidence_tier",
+                  "reviewer_ref",
+                  "authority_ref",
+                  "rights_receipt_ref"
+                ],
+                "properties": {
+                  "status": {
+                    "const": "confirmed_positive"
+                  },
+                  "adjudication_ref": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "evidence_tier": {
+                    "enum": [
+                      "field_assessed",
+                      "independently_expert_reviewed"
+                    ]
+                  },
+                  "reviewer_ref": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "authority_ref": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "rights_receipt_ref": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "status",
+                  "adjudication_ref",
+                  "evidence_tier",
+                  "reviewer_ref",
+                  "authority_ref",
+                  "rights_receipt_ref",
+                  "detectability_assessment_ref"
+                ],
+                "properties": {
+                  "status": {
+                    "const": "confirmed_negative"
+                  },
+                  "adjudication_ref": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "evidence_tier": {
+                    "enum": [
+                      "field_assessed",
+                      "independently_expert_reviewed"
+                    ]
+                  },
+                  "reviewer_ref": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "authority_ref": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "rights_receipt_ref": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "detectability_assessment_ref": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "status",
+                  "reason_ref"
+                ],
+                "properties": {
+                  "status": {
+                    "const": "unknown"
+                  },
+                  "reason_ref": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "status",
+                  "reason_ref"
+                ],
+                "properties": {
+                  "status": {
+                    "const": "unobservable"
+                  },
+                  "reason_ref": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            ]
+          },
+          "reviewer_hours": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "probability_tolerance"
+      ],
+      "properties": {
+        "probability_tolerance": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 0.000001
+        }
+      }
+    }
+  }
+}
