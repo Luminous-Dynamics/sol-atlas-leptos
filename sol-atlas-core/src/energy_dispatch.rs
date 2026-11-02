@@ -138,6 +138,55 @@ pub struct EnergyDispatchAssessment {
     pub pareto_alternatives: Vec<DispatchParetoAlternative>,
 }
 
+/// Typed outcome for the additive anytime search API. It never publishes a
+/// partial Pareto frontier.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EnergyDispatchAnytimeDisposition {
+    /// Exhaustive enumeration completed. The candidate is lexicographically
+    /// optimal over the declared finite model and objective order.
+    ExactComplete,
+    /// A complete horizon candidate exists, but search stopped at a resource cap.
+    FeasibleUnproven,
+    /// Exhaustive enumeration completed and found no feasible complete trajectory.
+    ProvenInfeasible,
+    /// A declared resource cap stopped search before a complete candidate existed.
+    LimitWithoutCandidate,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EnergyDispatchAnytimeStopReason {
+    SearchExhausted,
+    CandidateExpansionCap,
+    ParetoFrontierCap,
+}
+
+/// The count is the number of admitted visits to the five nested enumeration
+/// levels (grid import, SOC withdrawal, charge input, essential service and
+/// flexible service). It is not a count of complete schedules, CP-SAT nodes,
+/// or another solver's work units.
+#[derive(Clone, Debug, PartialEq, Serialize)]
+pub struct EnergyDispatchAnytimeAssessment {
+    pub assessment_schema_version: String,
+    pub case_id: String,
+    pub synthetic: bool,
+    pub evidence_class: EvidenceClass,
+    pub evidence_ref: Option<String>,
+    pub evidence_as_of: Option<String>,
+    pub claim_ceiling: String,
+    pub disposition: EnergyDispatchAnytimeDisposition,
+    pub stop_reason: EnergyDispatchAnytimeStopReason,
+    pub candidate_selection_policy: String,
+    pub search_complete: bool,
+    pub optimality_proven: bool,
+    pub enumeration_prefix_visits: u64,
+    pub configured_expansion_limit: u64,
+    pub feasible_complete_schedules: u64,
+    /// Always a complete horizon trajectory; never a partial path.
+    pub candidate: Option<DispatchParetoAlternative>,
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum EnergyDispatchError {
@@ -208,6 +257,19 @@ impl DispatchObjective {
     }
 }
 
+fn dispatch_objective_order_key(
+    objective: &DispatchObjective,
+) -> (u64, u64, u64, u64, u64, Reverse<u16>) {
+    (
+        objective.essential_unserved_quanta,
+        objective.flexible_unserved_quanta,
+        objective.operating_cost_units,
+        objective.grid_carbon_grams,
+        objective.curtailed_pv_quanta,
+        Reverse(objective.terminal_soc_quanta),
+    )
+}
+
 fn objective_for_schedule(
     request: &EnergyDispatchRequest,
     schedule: &[DispatchIntervalDecision],
@@ -264,24 +326,25 @@ fn objective_for_schedule(
 
 struct ExactSearch<'a> {
     request: &'a EnergyDispatchRequest,
-    evaluated_action_expansions: u64,
+    enumeration_prefix_visits: u64,
     feasible_complete_schedules: u64,
     frontier: Vec<DispatchParetoAlternative>,
+    best_incumbent: Option<DispatchParetoAlternative>,
 }
 
 impl<'a> ExactSearch<'a> {
     fn tick(&mut self) -> Result<(), EnergyDispatchError> {
-        self.evaluated_action_expansions = self
-            .evaluated_action_expansions
-            .checked_add(1)
-            .ok_or_else(|| EnergyDispatchError::ArithmeticOverflow {
-                context: "action-expansion counter".to_owned(),
-            })?;
-        if self.evaluated_action_expansions > self.request.max_candidate_expansions {
+        if self.enumeration_prefix_visits >= self.request.max_candidate_expansions {
             return Err(EnergyDispatchError::CandidateExpansionCapExceeded {
                 cap: self.request.max_candidate_expansions,
             });
         }
+        self.enumeration_prefix_visits = self
+            .enumeration_prefix_visits
+            .checked_add(1)
+            .ok_or_else(|| EnergyDispatchError::ArithmeticOverflow {
+                context: "enumeration-prefix-visit counter".to_owned(),
+            })?;
         Ok(())
     }
 
@@ -296,9 +359,25 @@ impl<'a> ExactSearch<'a> {
                 context: "complete-schedule counter".to_owned(),
             })?;
         let objective = objective_for_schedule(self.request, schedule)?;
+        let candidate = DispatchParetoAlternative {
+            objective: objective.clone(),
+            schedule: schedule.to_vec(),
+        };
 
-        // Deterministic first-witness retention for duplicate objective vectors.
-        // Enumeration order is fixed by ascending integer loops.
+        // Keep the best complete trajectory separately. Frontier insertion can
+        // still fail after a candidate has been discovered.
+        let replace_incumbent = self
+            .best_incumbent
+            .as_ref()
+            .is_none_or(|known| {
+                dispatch_objective_order_key(&candidate.objective)
+                    < dispatch_objective_order_key(&known.objective)
+            });
+        if replace_incumbent {
+            self.best_incumbent = Some(candidate.clone());
+        }
+
+        // Deterministic first-witness retention for dominated/equal objectives.
         if self
             .frontier
             .iter()
@@ -309,10 +388,7 @@ impl<'a> ExactSearch<'a> {
 
         self.frontier
             .retain(|known| !objective.strictly_dominates(&known.objective));
-        self.frontier.push(DispatchParetoAlternative {
-            objective,
-            schedule: schedule.to_vec(),
-        });
+        self.frontier.push(candidate);
         if self.frontier.len() > MAX_PARETO_FRONTIER {
             return Err(EnergyDispatchError::ParetoFrontierCapExceeded {
                 cap: MAX_PARETO_FRONTIER,
@@ -440,9 +516,9 @@ fn step_soc_after(path: &[DispatchIntervalDecision]) -> u16 {
 /// Exhaustively enumerate the complete bounded model and return its non-dominated
 /// feasible schedules. Any configured search or frontier cap hit is an error; no
 /// partial frontier is returned with an "exact" label.
-pub fn assess_energy_dispatch(
+fn validate_energy_dispatch_request(
     request: &EnergyDispatchRequest,
-) -> Result<EnergyDispatchAssessment, EnergyDispatchError> {
+) -> Result<(), EnergyDispatchError> {
     if request.schema_version != "energy-dispatch-v0.1" {
         return Err(EnergyDispatchError::UnsupportedSchemaVersion {
             schema_version: request.schema_version.clone(),
@@ -532,11 +608,20 @@ pub fn assess_energy_dispatch(
         );
     }
 
+    Ok(())
+}
+
+pub fn assess_energy_dispatch(
+    request: &EnergyDispatchRequest,
+) -> Result<EnergyDispatchAssessment, EnergyDispatchError> {
+    validate_energy_dispatch_request(request)?;
+
     let mut search = ExactSearch {
         request,
-        evaluated_action_expansions: 0,
+        enumeration_prefix_visits: 0,
         feasible_complete_schedules: 0,
         frontier: Vec::new(),
+        best_incumbent: None,
     };
     let mut path = Vec::with_capacity(request.intervals.len());
     search.visit(0, battery.initial_soc_quanta, &mut path)?;
@@ -572,10 +657,77 @@ pub fn assess_energy_dispatch(
         energy_quantum_kwh: request.energy_quantum_kwh,
         search_is_exact: true,
         pareto_frontier_complete: true,
-        evaluated_action_expansions: search.evaluated_action_expansions,
+        evaluated_action_expansions: search.enumeration_prefix_visits,
         feasible_complete_schedules: search.feasible_complete_schedules,
         pareto_frontier_count: search.frontier.len(),
         pareto_alternatives: search.frontier,
+    })
+}
+
+/// Run the same bounded exact enumerator while retaining its best complete
+/// lexicographic candidate across expansion/frontier-cap interruptions.
+///
+/// This function does not run the standalone schedule auditor. Callers must
+/// serialize the exact request and candidate bytes and obtain an independent
+/// auditor receipt before treating a candidate as decision-ready. Only the two
+/// declared resource-cap errors become typed incomplete outcomes; every other
+/// validation or execution error is propagated.
+pub fn assess_energy_dispatch_anytime(
+    request: &EnergyDispatchRequest,
+) -> Result<EnergyDispatchAnytimeAssessment, EnergyDispatchError> {
+    validate_energy_dispatch_request(request)?;
+
+    let mut search = ExactSearch {
+        request,
+        enumeration_prefix_visits: 0,
+        feasible_complete_schedules: 0,
+        frontier: Vec::new(),
+        best_incumbent: None,
+    };
+    let mut path = Vec::with_capacity(request.intervals.len());
+    let stop_reason = match search.visit(0, request.battery.initial_soc_quanta, &mut path) {
+        Ok(()) => EnergyDispatchAnytimeStopReason::SearchExhausted,
+        Err(EnergyDispatchError::CandidateExpansionCapExceeded { .. }) => {
+            EnergyDispatchAnytimeStopReason::CandidateExpansionCap
+        }
+        Err(EnergyDispatchError::ParetoFrontierCapExceeded { .. }) => {
+            EnergyDispatchAnytimeStopReason::ParetoFrontierCap
+        }
+        Err(error) => return Err(error),
+    };
+
+    let search_complete = stop_reason == EnergyDispatchAnytimeStopReason::SearchExhausted;
+    let candidate = search.best_incumbent;
+    let disposition = match (search_complete, candidate.is_some()) {
+        (true, true) => EnergyDispatchAnytimeDisposition::ExactComplete,
+        (true, false) => EnergyDispatchAnytimeDisposition::ProvenInfeasible,
+        (false, true) => EnergyDispatchAnytimeDisposition::FeasibleUnproven,
+        (false, false) => EnergyDispatchAnytimeDisposition::LimitWithoutCandidate,
+    };
+
+    Ok(EnergyDispatchAnytimeAssessment {
+        assessment_schema_version: "energy-dispatch-anytime-report-v1".to_owned(),
+        case_id: request.case_id.clone(),
+        synthetic: request.synthetic,
+        evidence_class: request.evidence_class,
+        evidence_ref: request.evidence_ref.clone(),
+        evidence_as_of: request.evidence_as_of.clone(),
+        claim_ceiling: concat!(
+            "candidate completeness and search disposition apply only to the ",
+            "declared finite quantized model; the candidate is not independently ",
+            "audited, does not prove physical safety or source truth, and is not ",
+            "authorization to actuate"
+        )
+        .to_owned(),
+        disposition,
+        stop_reason,
+        candidate_selection_policy: "lexicographic-dispatch-objective-v1".to_owned(),
+        search_complete,
+        optimality_proven: disposition == EnergyDispatchAnytimeDisposition::ExactComplete,
+        enumeration_prefix_visits: search.enumeration_prefix_visits,
+        configured_expansion_limit: request.max_candidate_expansions,
+        feasible_complete_schedules: search.feasible_complete_schedules,
+        candidate,
     })
 }
 
@@ -588,6 +740,136 @@ mod tests {
 
     fn fixture_request() -> EnergyDispatchRequest {
         serde_json::from_str(FIXTURE).expect("valid frozen request fixture")
+    }
+
+    #[test]
+    fn anytime_exact_completion_returns_a_complete_lexicographic_candidate() {
+        let request = fixture_request();
+        let exact = assess_energy_dispatch(&request).expect("exact baseline");
+        let anytime = assess_energy_dispatch_anytime(&request).expect("anytime exact completion");
+        assert_eq!(
+            anytime.disposition,
+            EnergyDispatchAnytimeDisposition::ExactComplete
+        );
+        assert_eq!(anytime.stop_reason, EnergyDispatchAnytimeStopReason::SearchExhausted);
+        assert!(anytime.search_complete);
+        assert!(anytime.optimality_proven);
+        let candidate = anytime.candidate.expect("complete candidate");
+        assert_eq!(candidate.schedule.len(), request.intervals.len());
+        assert!(exact.pareto_alternatives.iter().any(|alternative| {
+            alternative.objective == candidate.objective
+                && alternative.schedule == candidate.schedule
+        }));
+    }
+
+    #[test]
+    fn anytime_budget_before_first_complete_schedule_has_no_candidate() {
+        let mut request = fixture_request();
+        request.max_candidate_expansions = 1;
+        let result = assess_energy_dispatch_anytime(&request).expect("typed budget stop");
+        assert_eq!(
+            result.disposition,
+            EnergyDispatchAnytimeDisposition::LimitWithoutCandidate
+        );
+        assert_eq!(
+            result.stop_reason,
+            EnergyDispatchAnytimeStopReason::CandidateExpansionCap
+        );
+        assert!(!result.search_complete);
+        assert!(!result.optimality_proven);
+        assert!(result.candidate.is_none());
+        assert_eq!(result.enumeration_prefix_visits, 1);
+        assert!(result.enumeration_prefix_visits <= result.configured_expansion_limit);
+    }
+
+    #[test]
+    fn anytime_budget_after_candidate_preserves_complete_schedule_without_optimality() {
+        let full = fixture_request();
+        let exact = assess_energy_dispatch(&full).expect("complete baseline");
+        assert!(exact.evaluated_action_expansions > 2);
+        let mut bounded = full.clone();
+        bounded.max_candidate_expansions = exact.evaluated_action_expansions - 1;
+
+        let result = assess_energy_dispatch_anytime(&bounded).expect("typed interrupted search");
+        assert_eq!(
+            result.disposition,
+            EnergyDispatchAnytimeDisposition::FeasibleUnproven
+        );
+        assert_eq!(
+            result.stop_reason,
+            EnergyDispatchAnytimeStopReason::CandidateExpansionCap
+        );
+        assert!(!result.search_complete);
+        assert!(!result.optimality_proven);
+        let candidate = result.candidate.expect("incumbent preserved");
+        assert_eq!(candidate.schedule.len(), bounded.intervals.len());
+        assert!(result.enumeration_prefix_visits <= result.configured_expansion_limit);
+    }
+
+    #[test]
+    fn anytime_frontier_cap_preserves_incumbent_without_partial_frontier_claim() {
+        let mut request = fixture_request();
+        request.max_candidate_expansions = MAX_CANDIDATE_EXPANSIONS;
+        request.battery.initial_soc_quanta = 0;
+        request.battery.capacity_quanta = 0;
+        request.battery.charge_input_limit_quanta = 0;
+        request.battery.discharge_withdrawal_limit_quanta = 0;
+        request.battery.terminal_reserve_quanta = 0;
+        request.intervals = vec![DispatchIntervalInput {
+            interval_id: "frontier-cap".to_owned(),
+            start_unix_seconds: 1_800_000_000,
+            duration_seconds: 3_600,
+            grid_outage: false,
+            pv_available_quanta: 0,
+            grid_import_limit_quanta: 130,
+            essential_demand_quanta: 130,
+            flexible_demand_quanta: 0,
+            grid_cost_units_per_quantum: 1,
+            grid_carbon_grams_per_quantum: 1,
+        }];
+
+        let result = assess_energy_dispatch_anytime(&request).expect("frontier cap is typed");
+        assert_eq!(
+            result.disposition,
+            EnergyDispatchAnytimeDisposition::FeasibleUnproven
+        );
+        assert_eq!(result.stop_reason, EnergyDispatchAnytimeStopReason::ParetoFrontierCap);
+        assert!(!result.search_complete);
+        assert!(!result.optimality_proven);
+        let candidate = result.candidate.expect("incumbent survives frontier cap");
+        assert_eq!(candidate.schedule.len(), 1);
+        assert_eq!(candidate.objective.essential_unserved_quanta, 0);
+        assert!(result.enumeration_prefix_visits <= result.configured_expansion_limit);
+    }
+
+    #[test]
+    fn anytime_exhaustive_infeasibility_is_distinct_from_budget_exhaustion() {
+        let mut request = fixture_request();
+        request.battery.initial_soc_quanta = 0;
+        request.battery.capacity_quanta = 0;
+        request.battery.charge_input_limit_quanta = 0;
+        request.battery.discharge_withdrawal_limit_quanta = 0;
+        request.battery.terminal_reserve_quanta = 1;
+
+        let result = assess_energy_dispatch_anytime(&request).expect("typed exhaustive result");
+        assert_eq!(
+            result.disposition,
+            EnergyDispatchAnytimeDisposition::ProvenInfeasible
+        );
+        assert_eq!(result.stop_reason, EnergyDispatchAnytimeStopReason::SearchExhausted);
+        assert!(result.search_complete);
+        assert!(!result.optimality_proven);
+        assert!(result.candidate.is_none());
+    }
+
+    #[test]
+    fn anytime_validation_errors_are_not_converted_to_budget_outcomes() {
+        let mut request = fixture_request();
+        request.intervals[0].duration_seconds = 0;
+        assert!(matches!(
+            assess_energy_dispatch_anytime(&request),
+            Err(EnergyDispatchError::InvalidIntervalDuration { .. })
+        ));
     }
 
     #[test]
