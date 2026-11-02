@@ -323,8 +323,12 @@ fn apply_family(
                 "positive_control" => condition["observed_at"] = json!("2026-10-31T11:30:00Z"),
                 "stale_measurement" => condition["observed_at"] = json!("2026-10-31T00:00:00Z"),
                 "future_measurement" => condition["observed_at"] = json!("2026-10-31T12:00:01Z"),
-                "stale_and_source_revoked" | "stale_plus_unit_mismatch" | "stale_plus_authority_escalation" => {
+                "stale_and_source_revoked" | "stale_plus_authority_escalation" => {
                     condition["observed_at"] = json!("2026-10-31T00:00:00Z")
+                }
+                "stale_plus_unit_mismatch" => {
+                    condition["observed_at"] = json!("2026-10-31T00:00:00Z");
+                    condition["unit"] = json!("__wrong_unit__");
                 }
                 "future_plus_source_revoked" => condition["observed_at"] = json!("2026-10-31T12:00:01Z"),
                 "exact_min_boundary" => {
@@ -359,15 +363,19 @@ fn apply_family(
                     condition["lower"] = json!(maximum + span * 0.08);
                     condition["upper"] = json!(maximum + span * 0.12);
                 }
-                "unit_mismatch" | "stale_plus_unit_mismatch" | "unit_mismatch_plus_pin_revoked" => {
+                "unit_mismatch" | "unit_mismatch_plus_pin_revoked" => {
                     condition["unit"] = json!("__wrong_unit__")
                 }
                 _ => {}
             }
         }
         match family {
-            "identity_drift" | "identity_drift_plus_pin_revoked" => {
+            "identity_drift" => {
                 request["model_sha256"] = json!("ff".repeat(32));
+            }
+            "identity_drift_plus_pin_revoked" => {
+                request["model_sha256"] = json!("ff".repeat(32));
+                pin["status"] = json!("revoked");
             }
             "profile_expired" | "out_of_range_plus_profile_expired" => {
                 profile["validity"]["review_by"] = json!("2026-10-31T11:59:59Z");
@@ -380,7 +388,7 @@ fn apply_family(
                 request["profile_sha256"] = json!(digest_value(profile));
                 request["revocation_snapshot"]["status"] = json!("unavailable");
             }
-            "profile_pin_revoked" | "identity_drift_plus_pin_revoked" | "unit_mismatch_plus_pin_revoked" => {
+            "profile_pin_revoked" | "unit_mismatch_plus_pin_revoked" => {
                 pin["status"] = json!("revoked");
             }
             "source_revoked" | "stale_and_source_revoked" | "interval_crossing_plus_source_revoked" | "future_plus_source_revoked" => {
