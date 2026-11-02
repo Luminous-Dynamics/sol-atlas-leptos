@@ -1,0 +1,16 @@
+[package]
+name = "industry-verification-capsule-builder"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+description = "Deterministic offline packer for content-addressed IEAC verification capsules"
+
+[[bin]]
+name = "industry-verification-capsule-pack"
+path = "src/main.rs"
+
+[dependencies]
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = { version = "=1.0.154" }
+serde_json_canonicalizer = { version = "=0.4.1" }
+sha2 = { version = "=0.10.9", default-features = false }

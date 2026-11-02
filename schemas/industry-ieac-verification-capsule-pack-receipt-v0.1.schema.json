@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/industry-ieac-verification-capsule-pack-receipt-v0.1.schema.json",
+  "title": "IEAC Verification Capsule Pack Receipt v0.1",
+  "description": "Receipt for deterministic packaging only. This is not a TUF verification result or admission token.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "verification_performed",
+    "capsule_id",
+    "capsule_path",
+    "capsule_mode",
+    "replayability",
+    "template_sha256",
+    "trust_pin_sha256",
+    "capsule_manifest_sha256",
+    "file_inventory_sha256",
+    "repository_id",
+    "root_sha256",
+    "policy_sha256",
+    "files",
+    "targets",
+    "claim_ceiling",
+    "action_authority"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.ieac-verification-capsule-pack-receipt.v0.1"
+    },
+    "status": {
+      "const": "packed_unverified"
+    },
+    "verification_performed": {
+      "const": false
+    },
+    "capsule_id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128
+    },
+    "capsule_path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "capsule_mode": {
+      "enum": [
+        "self_contained",
+        "metadata_complete_target_referenced",
+        "commitment_only",
+        "mixed"
+      ]
+    },
+    "replayability": {
+      "enum": [
+        "fully_replayable",
+        "conditionally_replayable",
+        "commitment_only"
+      ]
+    },
+    "template_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "trust_pin_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "capsule_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "file_inventory_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "repository_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "root_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "policy_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "files": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 4096,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "length",
+          "sha256",
+          "kind"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?/)(?!.*[\\\\?#])[^\\\\?#]+$"
+          },
+          "length": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "kind": {
+            "enum": [
+              "root",
+              "root_history",
+              "timestamp",
+              "snapshot",
+              "targets_role",
+              "policy",
+              "target_bytes"
+            ]
+          }
+        }
+      }
+    },
+    "targets": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "content_mode",
+          "length",
+          "sha256",
+          "bytes_embedded"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "channel_manifest",
+              "checkpoint_state",
+              "completeness_attestation",
+              "availability_audit_report"
+            ]
+          },
+          "content_mode": {
+            "enum": [
+              "embedded",
+              "referenced",
+              "withheld"
+            ]
+          },
+          "length": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 67108864
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "bytes_embedded": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "claim_ceiling": {
+      "const": "input_bytes_packaged_and_committed_only"
+    },
+    "action_authority": {
+      "const": "none"
+    }
+  }
+}
