@@ -432,6 +432,15 @@ fn make_node(spec: NodeProjection<'_>) -> Result<Value, String> {
     }))
 }
 
+struct UnmappedRelation<'a> {
+    code: &'static str,
+    source_kind: &'a str,
+    source_id: &'a str,
+    relation: &'a str,
+    referenced_id: &'a str,
+    detail: &'a str,
+}
+
 fn add_unmapped(
     findings: &mut Findings,
     unmapped: &mut BTreeMap<String, Value>,
