@@ -284,6 +284,7 @@
         "required": [
           "exclusion_code",
           "item_count",
+          "native_record_identity_sha256s",
           "policy_ref"
         ],
         "properties": {
@@ -298,6 +299,12 @@
           "policy_ref": {
             "type": "string",
             "minLength": 1
+          },
+          "native_record_identity_sha256s": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/sha256"
+            }
           }
         }
       }
