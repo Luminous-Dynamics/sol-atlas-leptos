@@ -376,6 +376,7 @@ fn add_unmapped(
 fn add_edge(
     edges: &mut BTreeMap<String, Value>,
     edge_mappings: &mut BTreeMap<String, Value>,
+    edge_pairs: &mut BTreeSet<(String, String)>,
     findings: &mut Findings,
     from_node: &str,
     to_node: &str,
@@ -393,6 +394,14 @@ fn add_edge(
             );
             return;
         }
+    }
+    if !edge_pairs.insert((from_node.to_owned(), to_node.to_owned())) {
+        findings.invalid(
+            "DUPLICATE_PROJECTED_EDGE_ENDPOINT_PAIR",
+            native_relationship_key,
+            "IEAC graph cannot represent two directed edges with the same endpoint pair",
+        );
+        return;
     }
     let edge_id = format!("edge-{}", &sha256_hex(&bytes)[..32]);
     let edge = json!({
@@ -421,6 +430,57 @@ fn add_edge(
             "mapping_disposition": "exact_native_relationship"
         }),
     );
+}
+
+fn has_dependency_cycle(
+    nodes: &BTreeMap<String, Value>,
+    edges: &BTreeMap<String, Value>,
+) -> bool {
+    let mut indegree: BTreeMap<String, usize> =
+        nodes.keys().map(|node_id| (node_id.clone(), 0)).collect();
+    let mut adjacency: BTreeMap<String, Vec<String>> = BTreeMap::new();
+
+    for edge in edges.values() {
+        let Some(from) = edge.get("from_node_id").and_then(Value::as_str) else {
+            return true;
+        };
+        let Some(to) = edge.get("to_node_id").and_then(Value::as_str) else {
+            return true;
+        };
+        if !nodes.contains_key(from) || !nodes.contains_key(to) {
+            return true;
+        }
+        adjacency.entry(from.to_owned()).or_default().push(to.to_owned());
+        let Some(degree) = indegree.get_mut(to) else {
+            return true;
+        };
+        *degree += 1;
+    }
+
+    for destinations in adjacency.values_mut() {
+        destinations.sort();
+        destinations.dedup();
+    }
+    let mut ready: BTreeSet<String> = indegree
+        .iter()
+        .filter_map(|(node_id, degree)| (*degree == 0).then_some(node_id.clone()))
+        .collect();
+    let mut visited = 0usize;
+    while let Some(node_id) = ready.pop_first() {
+        visited += 1;
+        if let Some(destinations) = adjacency.get(&node_id) {
+            for destination in destinations {
+                let Some(degree) = indegree.get_mut(destination) else {
+                    return true;
+                };
+                *degree -= 1;
+                if *degree == 0 {
+                    ready.insert(destination.clone());
+                }
+            }
+        }
+    }
+    visited != nodes.len()
 }
 
 fn record_payload<T: Serialize>(value: &T) -> Result<(String, String), String> {
@@ -992,6 +1052,7 @@ pub fn project_built_environment_case(
 
     let mut edges: BTreeMap<String, Value> = BTreeMap::new();
     let mut edge_mappings: BTreeMap<String, Value> = BTreeMap::new();
+    let mut edge_pairs: BTreeSet<(String, String)> = BTreeSet::new();
 
     // Parent artifact relationships: parent -> child (child derives from parent).
     for artifact in &case.artifacts {
@@ -1008,6 +1069,7 @@ pub fn project_built_environment_case(
                     add_edge(
                         &mut edges,
                         &mut edge_mappings,
+                        &mut edge_pairs,
                         &mut findings,
                         parent_node,
                         child_node,
@@ -1044,6 +1106,7 @@ pub fn project_built_environment_case(
                 Some(evidence_node) => add_edge(
                     &mut edges,
                     &mut edge_mappings,
+                    &mut edge_pairs,
                     &mut findings,
                     evidence_node,
                     child_node,
@@ -1077,6 +1140,7 @@ pub fn project_built_environment_case(
                 add_edge(
                     &mut edges,
                     &mut edge_mappings,
+                    &mut edge_pairs,
                     &mut findings,
                     &artifact_nodes[&receipt.input_artifact_id],
                     receipt_node,
@@ -1112,6 +1176,7 @@ pub fn project_built_environment_case(
                 Some(evidence_node) => add_edge(
                     &mut edges,
                     &mut edge_mappings,
+                    &mut edge_pairs,
                     &mut findings,
                     evidence_node,
                     receipt_node,
@@ -1145,6 +1210,7 @@ pub fn project_built_environment_case(
                 add_edge(
                     &mut edges,
                     &mut edge_mappings,
+                    &mut edge_pairs,
                     &mut findings,
                     &artifact_nodes[&decision.target_artifact_id],
                     decision_node,
@@ -1180,6 +1246,7 @@ pub fn project_built_environment_case(
                 Some(receipt_node) => add_edge(
                     &mut edges,
                     &mut edge_mappings,
+                    &mut edge_pairs,
                     &mut findings,
                     receipt_node,
                     decision_node,
@@ -1205,6 +1272,7 @@ pub fn project_built_environment_case(
                 Some(authority_node) => add_edge(
                     &mut edges,
                     &mut edge_mappings,
+                    &mut edge_pairs,
                     &mut findings,
                     authority_node,
                     decision_node,
@@ -1241,6 +1309,7 @@ pub fn project_built_environment_case(
                 Some(previous_node) => add_edge(
                     &mut edges,
                     &mut edge_mappings,
+                    &mut edge_pairs,
                     &mut findings,
                     previous_node,
                     decision_node,
@@ -1260,6 +1329,16 @@ pub fn project_built_environment_case(
                 ),
             }
         }
+    }
+
+    // Graph structural validity is independent from mapping completeness.
+    // A source cycle is not repaired by the projector; it is an invalid graph.
+    if has_dependency_cycle(&nodes, &edges) {
+        findings.invalid(
+            "PROJECTED_DEPENDENCY_CYCLE",
+            "projected_graph",
+            "projected dependency graph contains a directed cycle or an unresolved endpoint",
+        );
     }
 
     // Source maps are deterministic and preserve every native record key.
@@ -1633,6 +1712,41 @@ mod tests {
                     .as_str()
                     .is_some_and(|bytes| bytes.contains("evidence-design-source"))
         }));
+    }
+
+    #[test]
+    fn artifact_parent_cycle_is_invalid_and_never_claimed_as_record_only() {
+        let mut case = sample_case();
+        case.artifacts[0].parent_artifacts.push(ArtifactReference {
+            artifact_id: "artifact-revision-2".into(),
+            content_sha256: digest('c'),
+        });
+        let result = project_built_environment_case(&case, &context());
+        assert_eq!(result.disposition, ProjectionDisposition::InvalidInput);
+        assert_eq!(
+            result.graph["claim_ceiling"],
+            "incomplete_or_indeterminate"
+        );
+        assert!(result.projection_receipt["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|finding| finding["code"] == "PROJECTED_DEPENDENCY_CYCLE"));
+    }
+
+    #[test]
+    fn duplicate_endpoint_pairs_are_not_silently_coalesced() {
+        let mut case = sample_case();
+        case.artifacts[0]
+            .evidence_ids
+            .push("evidence-design-source".into());
+        let result = project_built_environment_case(&case, &context());
+        assert_eq!(result.disposition, ProjectionDisposition::InvalidInput);
+        assert!(result.projection_receipt["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|finding| finding["code"] == "DUPLICATE_PROJECTED_EDGE_ENDPOINT_PAIR"));
     }
 
     #[test]
