@@ -1245,6 +1245,36 @@ mod tests {
         }
     }
 
+    fn independent_identity_reference(descriptor: &SourceRecordDescriptor) -> String {
+        let node_type = match descriptor.record_kind {
+            SourceRecordKind::Evidence => "source_evidence",
+            SourceRecordKind::Artifact => "engineering_artifact",
+            SourceRecordKind::EngineeringReceipt => "engineering_receipt",
+            SourceRecordKind::Decision => "decision",
+        };
+        let mut components = BTreeMap::new();
+        for component in &descriptor.native_identity_components {
+            assert!(components
+                .insert(component.name.as_str(), component.value.as_str())
+                .is_none());
+        }
+        let mut encoded = b"LUMINOUS-IEAC-NODE-IDENTITY-V0.2\\0".to_vec();
+        let mut append = |value: &str| {
+            encoded.extend_from_slice(&(value.len() as u64).to_be_bytes());
+            encoded.extend_from_slice(value.as_bytes());
+        };
+        append(node_type);
+        append(&descriptor.owner_namespace);
+        for (name, value) in components {
+            append(name);
+            append(value);
+        }
+        Sha256::digest(encoded)
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect()
+    }
+
     fn descriptor(
         kind: SourceRecordKind,
         case_record_id: &str,
@@ -1738,6 +1768,54 @@ mod tests {
         let first = result.identity_sha256_by_case_record["evidence:evidence-001"].clone();
         let second = result.identity_sha256_by_case_record["evidence:evidence-002"].clone();
         assert_ne!(first, second);
+    }
+
+    #[test]
+    fn descriptor_identity_matches_an_independent_reference_encoder() {
+        let source_case = case();
+        let source_catalog = catalog(&source_case);
+        let validation = validate_source_descriptor_catalog(&source_case, &source_catalog);
+        for descriptor in &source_catalog.descriptors {
+            let key = descriptor
+                .record_kind
+                .case_key(&descriptor.case_record_id);
+            let expected = independent_identity_reference(descriptor);
+            assert_eq!(
+                validation.identity_sha256_by_case_record[&key],
+                expected,
+                "independent identity vector mismatch for {key}"
+            );
+        }
+    }
+
+    #[test]
+    fn one_thousand_native_revision_mutations_produce_one_thousand_distinct_identities() {
+        let mut source = descriptor(
+            SourceRecordKind::Artifact,
+            "artifact-001",
+            "design-001",
+            "model-native-001",
+            "urn:synthetic:design-owner",
+            'b',
+            None,
+        );
+        let baseline = independent_identity_reference(&source);
+        let mut seen = BTreeSet::new();
+        for revision in 0..1_000usize {
+            let component = source
+                .native_identity_components
+                .iter_mut()
+                .find(|component| component.name == "native_revision")
+                .unwrap();
+            component.value = revision.to_string();
+            let actual = independent_identity_reference(&source);
+            assert_ne!(actual, baseline, "revision mutation {revision} collapsed to baseline identity");
+            assert!(
+                seen.insert(actual),
+                "revision mutation {revision} collided with another native identity"
+            );
+        }
+        assert_eq!(seen.len(), 1_000);
     }
 
     #[test]
