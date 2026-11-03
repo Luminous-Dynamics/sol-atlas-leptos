@@ -148,7 +148,8 @@
           "snapshot_sha256",
           "source_watermark",
           "response_at",
-          "terminal"
+          "terminal",
+          "native_record_payload_sha256s"
         ],
         "properties": {
           "inventory_id": {
@@ -241,6 +242,12 @@
             "type": "boolean"
           },
           "tombstone_identity_sha256s": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/sha256"
+            }
+          },
+          "native_record_payload_sha256s": {
             "type": "array",
             "items": {
               "$ref": "#/$defs/sha256"
@@ -387,7 +394,8 @@
         "snapshot_sha256",
         "source_watermark",
         "response_at",
-        "terminal"
+        "terminal",
+        "native_record_payload_sha256s"
       ],
       "properties": {
         "inventory_id": {
@@ -480,6 +488,12 @@
           "type": "boolean"
         },
         "tombstone_identity_sha256s": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sha256"
+          }
+        },
+        "native_record_payload_sha256s": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/sha256"
