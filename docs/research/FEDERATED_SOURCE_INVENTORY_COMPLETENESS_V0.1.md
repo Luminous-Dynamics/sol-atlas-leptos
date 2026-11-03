@@ -52,7 +52,7 @@ A v0.1 manifest should carry:
 | reported_total_count | Source-reported count under the declared query |
 | enumerated_unique_count | Count of unique owner-native records returned |
 | duplicate_count | Repeated owner-native identities during enumeration |
-| excluded_count + exclusion_reasons[] | Records excluded by declared policy, rights or query conditions |
+| excluded_count + exclusion_reasons[] | Records excluded by declared policy, rights or query conditions; every excluded item is bound to an enumerated native-identity digest |
 | tombstone_count | Explicitly observed deletes/retractions |
 | pagination_exhausted | True only when the source's authoritative terminal condition was observed |
 | snapshot_consistent | Whether every page belongs to the same source snapshot/watermark |
@@ -75,7 +75,7 @@ Each page receipt should bind:
 - next cursor digest or an explicit terminal marker;
 - response timestamp and source revision/watermark.
 
-The verifier must reject a skipped ordinal, repeated cursor, broken predecessor link, duplicate terminal page, a page from a different snapshot, or a terminal marker that does not agree with the source API's documented completion semantics.
+The verifier must reject a skipped ordinal, repeated cursor, broken predecessor link, duplicate terminal page, a page from a different snapshot, or a terminal marker that does not agree with the source API's documented completion semantics. Exclusion records must also carry the native-identity digests of every excluded item, all present in the enumerated identity set; one identity cannot be assigned to multiple exclusion reasons.
 
 A cursor chain proves only that the returned pages form the declared chain. It does not prove the source API itself exposed every relevant record. That requires source-specific completeness semantics and an authenticated source claim.
 
