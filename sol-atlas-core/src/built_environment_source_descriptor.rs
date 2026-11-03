@@ -183,6 +183,7 @@ pub struct DescriptorValidation {
     pub extra_descriptor_count: usize,
     pub identity_sha256_by_case_record: BTreeMap<String, String>,
     pub native_identity_namespaces: BTreeMap<String, String>,
+    pub native_identity_components: BTreeMap<String, Vec<NativeIdentityComponent>>,
     pub payload_byte_verification: String,
     pub rights_authentication: String,
     pub source_attestation_authentication: String,
@@ -299,7 +300,10 @@ fn append_identity_field(encoded: &mut Vec<u8>, value: &str) {
     encoded.extend_from_slice(value.as_bytes());
 }
 
-fn identity_digest(descriptor: &SourceRecordDescriptor) -> Result<String, String> {
+fn identity_digest(
+    descriptor: &SourceRecordDescriptor,
+    case_id: &str,
+) -> Result<String, String> {
     if descriptor.owner_namespace.trim().is_empty()
         || descriptor.owner_namespace.len() > 1024
         || descriptor.owner_namespace.as_str() != descriptor.owner_namespace.trim()
@@ -337,6 +341,10 @@ fn identity_digest(descriptor: &SourceRecordDescriptor) -> Result<String, String
         return Err("native identity requires a record, revision, sequence, or observation discriminator".into());
     }
 
+    if components.contains_key("case_id") {
+        return Err("case_id is a projector-owned identity component and must not be supplied by the source descriptor".into());
+    }
+    components.insert("case_id".into(), case_id.to_owned());
     let mut encoded = IDENTITY_DOMAIN.to_vec();
     append_identity_field(&mut encoded, descriptor.record_kind.node_type());
     append_identity_field(&mut encoded, &descriptor.owner_namespace);
@@ -367,6 +375,43 @@ fn expected_case_records(case: &BuiltEnvironmentCase) -> BTreeSet<(SourceRecordK
                 .map(|record| (SourceRecordKind::Decision, record.event_id.clone())),
         )
         .collect()
+}
+
+fn expected_identity_components(
+    case: &BuiltEnvironmentCase,
+    kind: SourceRecordKind,
+    record_id: &str,
+) -> Option<BTreeMap<String, String>> {
+    let mut components = BTreeMap::new();
+    match kind {
+        SourceRecordKind::Evidence => {
+            let record = case.evidence.iter().find(|row| row.evidence_id == record_id)?;
+            components.insert("native_id".into(), record.source_id.clone());
+            components.insert("native_record_id".into(), record.evidence_id.clone());
+            components.insert("field_path".into(), record.field_path.clone());
+            components.insert("subject_id".into(), record.subject_id.clone());
+            components.insert("jurisdiction".into(), record.jurisdiction.clone());
+        }
+        SourceRecordKind::Artifact => {
+            let record = case.artifacts.iter().find(|row| row.artifact_id == record_id)?;
+            components.insert("native_id".into(), record.design_id.clone());
+            components.insert("native_record_id".into(), record.artifact_id.clone());
+            components.insert("native_revision".into(), record.revision.to_string());
+            components.insert("artifact_family".into(), record.family_id.clone());
+            components.insert("jurisdiction".into(), record.jurisdiction.clone());
+        }
+        SourceRecordKind::EngineeringReceipt => {
+            let record = case.engineering_receipts.iter().find(|row| row.receipt_id == record_id)?;
+            components.insert("native_id".into(), record.design_id.clone());
+            components.insert("native_record_id".into(), record.receipt_id.clone());
+        }
+        SourceRecordKind::Decision => {
+            let record = case.decisions.iter().find(|row| row.event_id == record_id)?;
+            components.insert("native_id".into(), record.design_id.clone());
+            components.insert("native_record_id".into(), record.event_id.clone());
+        }
+    }
+    Some(components)
 }
 
 fn case_payload_digest(
@@ -716,6 +761,7 @@ pub fn validate_source_descriptor_catalog(
     let mut native_identities = BTreeMap::<String, (String, Option<String>)>::new();
     let mut identity_sha256_by_case_record = BTreeMap::new();
     let mut native_identity_namespaces = BTreeMap::new();
+    let mut native_identity_components = BTreeMap::new();
 
     for descriptor in &catalog.descriptors {
         let key = descriptor
@@ -732,7 +778,25 @@ pub fn validate_source_descriptor_catalog(
             findings.invalid("DUPLICATE_CASE_RECORD_DESCRIPTOR", &key, "each typed case record may have only one descriptor");
         }
 
-        match identity_digest(descriptor) {
+        let expected_components =
+            expected_identity_components(case, descriptor.record_kind, &descriptor.case_record_id);
+        let mut supplied_components = descriptor
+            .native_identity_components
+            .iter()
+            .map(|component| (component.name.clone(), component.value.clone()))
+            .collect::<BTreeMap<_, _>>();
+        if let Some(expected_components) = expected_components.as_ref() {
+            for (name, expected_value) in expected_components {
+                if supplied_components.get(name) != Some(expected_value) {
+                    findings.invalid(
+                        "NATIVE_IDENTITY_COMPONENT_CASE_DISAGREEMENT",
+                        &key,
+                        format!("native identity component {name} disagrees with the typed case record"),
+                    );
+                }
+            }
+        }
+        match identity_digest(descriptor, &case.case_id) {
             Ok(identity_sha256) => {
                 if let Some((other_key, previous_digest)) = native_identities.get(&identity_sha256) {
                     if other_key != &key {
@@ -757,6 +821,14 @@ pub fn validate_source_descriptor_catalog(
                 }
                 identity_sha256_by_case_record.insert(key.clone(), identity_sha256);
                 native_identity_namespaces.insert(key.clone(), descriptor.owner_namespace.clone());
+                supplied_components.insert("case_id".into(), case.case_id.clone());
+                native_identity_components.insert(
+                    key.clone(),
+                    supplied_components
+                        .into_iter()
+                        .map(|(name, value)| NativeIdentityComponent { name, value })
+                        .collect(),
+                );
             }
             Err(error) => findings.invalid("INVALID_NATIVE_IDENTITY", &key, error),
         }
@@ -822,6 +894,7 @@ pub fn validate_source_descriptor_catalog(
         extra_descriptor_count: catalog.descriptors.len().saturating_sub(expected.len()),
         identity_sha256_by_case_record,
         native_identity_namespaces,
+        native_identity_components,
         payload_byte_verification: "not_performed".into(),
         rights_authentication: "not_performed".into(),
         source_attestation_authentication: "not_performed".into(),
@@ -975,7 +1048,7 @@ mod tests {
                 descriptor(
                     SourceRecordKind::Evidence,
                     "evidence-001",
-                    "survey-project-001",
+                    "survey-registry",
                     "survey-record-001",
                     "urn:synthetic:survey-owner",
                     'a',
