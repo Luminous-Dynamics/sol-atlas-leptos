@@ -7,6 +7,7 @@ on:
       - "schemas/examples/built-environment-dependency-coverage-complete-synthetic-v0.1.json"
       - "docs/research/BUILT_ENVIRONMENT_DEPENDENCY_COVERAGE_V0.1.md"
       - ".github/workflows/built-environment-dependency-coverage.yml"
+      - "tools/built-environment-coverage-auditor/**"
   push:
     branches:
       - main
@@ -16,6 +17,7 @@ on:
       - "schemas/examples/built-environment-dependency-coverage-complete-synthetic-v0.1.json"
       - "docs/research/BUILT_ENVIRONMENT_DEPENDENCY_COVERAGE_V0.1.md"
       - ".github/workflows/built-environment-dependency-coverage.yml"
+      - "tools/built-environment-coverage-auditor/**"
   workflow_dispatch:
 
 permissions:
@@ -45,6 +47,61 @@ jobs:
 
       - name: Add validator to PATH
         run: echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+
+
+      - name: Install pinned Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Verify runtime auditor formatting, lint and tests
+        run: |
+          set -euo pipefail
+          manifest=tools/built-environment-coverage-auditor/Cargo.toml
+          cargo fmt --manifest-path "$manifest" --check
+          cargo clippy --manifest-path "$manifest" --locked --all-targets -- -D warnings
+          cargo test --manifest-path "$manifest" --locked
+
+      - name: Audit the frozen manifest without promoting external trust
+        run: |
+          set -euo pipefail
+          manifest=tools/built-environment-coverage-auditor/Cargo.toml
+          fixture=schemas/examples/built-environment-dependency-coverage-complete-synthetic-v0.1.json
+          cargo run --manifest-path "$manifest" --locked -- "$fixture" > "$RUNNER_TEMP/coverage-report.json"
+          jq -e '
+            .verified_disposition == "complete_for_declared_scope" and
+            .no_impact_eligible == false and
+            .reliance_gate == "blocked_unverified_external_attestations_and_profile_adequacy"
+          ' "$RUNNER_TEMP/coverage-report.json"
+
+      - name: Runtime negative control for omitted mandatory relationship
+        run: |
+          set -euo pipefail
+          manifest=tools/built-environment-coverage-auditor/Cargo.toml
+          fixture=schemas/examples/built-environment-dependency-coverage-complete-synthetic-v0.1.json
+          jq '
+            .coverage_manifest.edge_provenance |= .[1:] |
+            .coverage_manifest.relationship_coverage[0].observed_relationship_count = 1
+          ' "$fixture" > "$RUNNER_TEMP/coverage-missing-edge.json"
+          set +e
+          cargo run --manifest-path "$manifest" --locked -- "$RUNNER_TEMP/coverage-missing-edge.json" > "$RUNNER_TEMP/coverage-missing-edge-report.json"
+          status=$?
+          set -e
+          test "$status" -eq 2
+          jq -e '.verified_disposition == "incomplete_or_indeterminate" and .no_impact_eligible == false' "$RUNNER_TEMP/coverage-missing-edge-report.json"
+
+      - name: Runtime negative control for stale bounded absence
+        run: |
+          set -euo pipefail
+          manifest=tools/built-environment-coverage-auditor/Cargo.toml
+          fixture=schemas/examples/built-environment-dependency-coverage-complete-synthetic-v0.1.json
+          jq '.coverage_manifest.evaluated_at = "2026-11-03T13:00:00Z"' "$fixture" > "$RUNNER_TEMP/coverage-expired-absence.json"
+          set +e
+          cargo run --manifest-path "$manifest" --locked -- "$RUNNER_TEMP/coverage-expired-absence.json" > "$RUNNER_TEMP/coverage-expired-absence-report.json"
+          status=$?
+          set -e
+          test "$status" -eq 2
+          jq -e '.findings | any(.code == "ABSENCE_ASSERTION_EXPIRED")' "$RUNNER_TEMP/coverage-expired-absence-report.json"
 
       - name: Validate schema and positive fixture
         run: |
