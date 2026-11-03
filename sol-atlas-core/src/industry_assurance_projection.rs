@@ -1651,7 +1651,10 @@ mod tests {
                 && node["observation_time"]["trusted_at"].is_null()
         }));
         assert_eq!(result.graph["action_authority"], "none");
-        assert_eq!(result.graph["claim_ceiling"], "record_only");
+        assert_eq!(
+            result.graph["claim_ceiling"],
+            "incomplete_or_indeterminate"
+        );
     }
 
     #[test]
