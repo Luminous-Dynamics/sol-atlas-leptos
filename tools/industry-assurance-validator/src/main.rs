@@ -37,11 +37,11 @@ fn main() -> ExitCode {
         }
     };
 
-    if let Some(path) = args.get(1) {
-        if let Err(error) = fs::write(path, format!("{rendered}\n")) {
-            eprintln!("cannot write {path}: {error}");
-            return ExitCode::from(2);
-        }
+    if let Some(path) = args.get(1)
+        && let Err(error) = fs::write(path, format!("{rendered}\n"))
+    {
+        eprintln!("cannot write {path}: {error}");
+        return ExitCode::from(2);
     }
 
     println!("{rendered}");

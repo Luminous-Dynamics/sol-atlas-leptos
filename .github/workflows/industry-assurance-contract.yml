@@ -43,11 +43,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: \${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Assert exact source revision
         env:
-          EXPECTED_SHA: \${{ github.event.pull_request.head.sha || github.sha }}
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
 
       - name: Install Rust
@@ -99,11 +99,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: \${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Assert exact source revision
         env:
-          EXPECTED_SHA: \${{ github.event.pull_request.head.sha || github.sha }}
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
 
       - name: Install Rust for pinned schema CLI
@@ -118,12 +118,11 @@ jobs:
       - name: Validate schemas against the Draft 2020-12 meta-schema
         run: |
           set -euo pipefail
-          jsonschema-cli validate --draft 2020 --assert-format \
-            https://json-schema.org/draft/2020-12/schema \
-            --instance schemas/industry-assurance-qualification-profile-v0.1.schema.json
-          jsonschema-cli validate --draft 2020 --assert-format \
-            https://json-schema.org/draft/2020-12/schema \
-            --instance schemas/industry-assurance-validation-report-v0.1.schema.json
+          meta=https://json-schema.org/draft/2020-12/schema
+          meta_schema="$RUNNER_TEMP/draft-2020-12-meta-schema.json"
+          curl --fail --location --retry 5 --retry-connrefused "$meta" -o "$meta_schema"
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" --instance schemas/industry-assurance-qualification-profile-v0.1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" --instance schemas/industry-assurance-validation-report-v0.1.schema.json
 
       - name: Validate all profile examples against the full schema
         run: |

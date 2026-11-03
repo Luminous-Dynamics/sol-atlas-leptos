@@ -218,13 +218,14 @@ struct FamilyCounts {
 fn verify_case(
     record: &Value,
     case_index: usize,
-    header_vertical: &str,
-    expected_trial_count: usize,
-    family_counts: &mut BTreeMap<String, usize>,
-    family_metrics: &mut BTreeMap<String, FamilyCounts>,
-    case_ids: &mut BTreeSet<String>,
-    counts: &mut Counts,
+    context: &mut VerificationContext<'_>,
 ) -> Result<(), String> {
+    let header_vertical = context.header_vertical;
+    let expected_trial_count = context.expected_trial_count;
+    let family_counts = &mut *context.family_counts;
+    let family_metrics = &mut *context.family_metrics;
+    let case_ids = &mut *context.case_ids;
+    let counts = &mut *context.counts;
     if record["schema_version"].as_str() != Some(CASE_LEDGER_SCHEMA) {
         return Err(format!("case {case_index} has an unsupported schema version"));
     }
@@ -369,7 +370,7 @@ fn verify_case(
         family_metric.expected_reason_code_hits += 1;
     }
     family_metric.report_tamper_checks += 1;
-    if tamper_detected {
+    if replayed_tamper_detection {
         family_metric.report_tamper_detected += 1;
     }
     if !checker_errors.is_empty() {
@@ -435,6 +436,123 @@ struct Counts {
     latencies_ms: Vec<f64>,
 }
 
+fn stratum_mismatch_fields(
+    stratum: &Value,
+    metrics: &FamilyCounts,
+    vertical: &str,
+) -> Vec<&'static str> {
+    let mut mismatches = Vec::new();
+    let candidate = &stratum["candidate"];
+    let negative = metrics.negative_control.unwrap_or(false);
+    let expected_upper = if negative {
+        Some(one_sided_exact_upper(metrics.false_admissions, metrics.trial_count, 0.05))
+    } else {
+        None
+    };
+
+    if stratum["vertical"].as_str() != Some(vertical) {
+        mismatches.push("vertical");
+    }
+    if stratum["trials"].as_u64() != Some(metrics.trial_count as u64) {
+        mismatches.push("trials");
+    }
+    if stratum["negative_control"].as_bool() != Some(negative) {
+        mismatches.push("negative_control");
+    }
+    if stratum["expected_admission"].as_str() != metrics.expected_admission.as_deref() {
+        mismatches.push("expected_admission");
+    }
+    if candidate["false_admissions"].as_u64() != Some(metrics.false_admissions as u64) {
+        mismatches.push("false_admissions");
+    }
+    match expected_upper {
+        Some(expected)
+            if number_matches(
+                &candidate["one_sided_exact_95_percent_false_admission_upper_bound"],
+                expected,
+            ) => {}
+        None if candidate["one_sided_exact_95_percent_false_admission_upper_bound"].is_null() => {}
+        _ => mismatches.push("one_sided_exact_95_percent_false_admission_upper_bound"),
+    }
+    if !fraction_matches(
+        &candidate["false_admission_rate"],
+        metrics.false_admissions,
+        if negative { metrics.trial_count } else { 0 },
+    ) {
+        mismatches.push("false_admission_rate");
+    }
+    if candidate["false_rejections_on_positive_controls"].as_u64()
+        != Some(metrics.false_rejections_on_positive_controls as u64)
+    {
+        mismatches.push("false_rejections_on_positive_controls");
+    }
+    for (field, expected) in [
+        ("positive_admissions", metrics.positive_admissions),
+        ("positive_abstentions", metrics.positive_abstentions),
+        ("positive_rejections", metrics.positive_rejections),
+        ("negative_rejects", metrics.negative_rejects),
+        ("negative_abstentions", metrics.negative_abstentions),
+        ("expected_disposition_matches", metrics.expected_disposition_matches),
+        ("independent_checker_disagreements", metrics.checker_disagreements),
+        ("expected_reason_code_hits", metrics.expected_reason_code_hits),
+    ] {
+        if candidate[field].as_u64() != Some(expected as u64) {
+            mismatches.push(match field {
+                "positive_admissions" => "positive_admissions",
+                "positive_abstentions" => "positive_abstentions",
+                "positive_rejections" => "positive_rejections",
+                "negative_rejects" => "negative_rejects",
+                "negative_abstentions" => "negative_abstentions",
+                "expected_disposition_matches" => "expected_disposition_matches",
+                "independent_checker_disagreements" => "independent_checker_disagreements",
+                _ => "expected_reason_code_hits",
+            });
+        }
+    }
+
+    if stratum["static_only_profile_baseline"]["profile_valid_trials"].as_u64()
+        != Some(metrics.static_profile_valid_trials as u64)
+    {
+        mismatches.push("static_profile_valid_trials");
+    }
+    if stratum["static_only_profile_baseline"]
+        ["would_counterfactually_accept_if_profile_validation_were_treated_as_runtime_authorization"]
+        .as_u64()
+        != Some(metrics.static_counterfactual_acceptances as u64)
+    {
+        mismatches.push("static_counterfactual_acceptances");
+    }
+    if stratum["report_tamper"]["checks"].as_u64()
+        != Some(metrics.report_tamper_checks as u64)
+    {
+        mismatches.push("report_tamper_checks");
+    }
+    if stratum["report_tamper"]["detected"].as_u64()
+        != Some(metrics.report_tamper_detected as u64)
+    {
+        mismatches.push("report_tamper_detected");
+    }
+    for (field, quantile) in [("p50", 0.50), ("p95", 0.95), ("p99", 0.99)] {
+        if !latency_matches(&stratum["latency_ms"][field], &metrics.latencies_ms, quantile) {
+            mismatches.push(match field {
+                "p50" => "latency_p50",
+                "p95" => "latency_p95",
+                _ => "latency_p99",
+            });
+        }
+    }
+    mismatches
+}
+
+struct VerificationContext<'a> {
+    header_vertical: &'a str,
+    expected_trial_count: usize,
+    family_counts: &'a mut BTreeMap<String, usize>,
+    family_metrics: &'a mut BTreeMap<String, FamilyCounts>,
+    case_ids: &'a mut BTreeSet<String>,
+    counts: &'a mut Counts,
+}
+
 fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
     let file = File::open(cases_path)
         .map_err(|error| format!("cannot open {}: {error}", cases_path.display()))?;
@@ -482,16 +600,15 @@ fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
                 if case_index >= expected_record_count {
                     return Err("case ledger contains more cases than preregistered".to_owned());
                 }
-                verify_case(
-                    &record,
-                    case_index,
-                    vertical,
-                    trials_per_family,
-                    &mut family_counts,
-                    &mut family_metrics,
-                    &mut case_ids,
-                    &mut counts,
-                )?;
+                let mut context = VerificationContext {
+                    header_vertical: vertical,
+                    expected_trial_count: trials_per_family,
+                    family_counts: &mut family_counts,
+                    family_metrics: &mut family_metrics,
+                    case_ids: &mut case_ids,
+                    counts: &mut counts,
+                };
+                verify_case(&record, case_index, &mut context)?;
                 prefix_hasher.update(&line);
                 cases_hasher.update(&line);
                 case_index += 1;
@@ -634,9 +751,9 @@ fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
             counts.positive_admissions,
             counts.positive_trials,
         )
-        && latency_matches(&report["end_to_end_latency_ms"]["p50"], &counts.latencies_ms, 0.50)
-        && latency_matches(&report["end_to_end_latency_ms"]["p95"], &counts.latencies_ms, 0.95)
-        && latency_matches(&report["end_to_end_latency_ms"]["p99"], &counts.latencies_ms, 0.99)
+        && latency_matches(&summary["end_to_end_latency_ms"]["p50"], &counts.latencies_ms, 0.50)
+        && latency_matches(&summary["end_to_end_latency_ms"]["p95"], &counts.latencies_ms, 0.95)
+        && latency_matches(&summary["end_to_end_latency_ms"]["p99"], &counts.latencies_ms, 0.99)
         && report["strata"].as_array().is_some_and(|strata| {
             if strata.len() != family_count || family_metrics.len() != family_count {
                 return false;
@@ -708,7 +825,55 @@ fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
             })
         });
     if !summary_matches {
-        return Err("benchmark report per-family and overall aggregates do not reconstruct from the case ledger".to_owned());
+        // Keep the acceptance gate fail-closed while identifying the exact
+        // per-family fields that failed reconciliation.
+        let mut stratum_mismatches = Vec::new();
+        if let Some(strata) = report["strata"].as_array() {
+            for stratum in strata {
+                let family = stratum["failure_family"]
+                    .as_str()
+                    .unwrap_or("<missing-family>");
+                if let Some(metrics) = family_metrics.get(family) {
+                    let fields = stratum_mismatch_fields(stratum, metrics, vertical);
+                    if !fields.is_empty() {
+                        stratum_mismatches.push(format!("{family}:{fields:?}"));
+                    }
+                } else {
+                    stratum_mismatches.push(format!("{family}:missing-ledger-family"));
+                }
+            }
+        } else {
+            stratum_mismatches.push("strata_not_array".to_owned());
+        }
+        return Err(format!(
+            "benchmark report per-family and overall aggregates do not reconstruct from the case ledger; expected family_count={}, negative_trials={}, false_admissions={}, negative_rejects={}, negative_abstentions={}, positive_trials={}, positive_admissions={}, positive_abstentions={}, positive_rejections={}, checker_disagreements={}, disposition_mismatches={}, reason_code_misses={}, tamper_checks={}, tamper_detected={}, replay_checks={}, replay_mismatches={}, static_counterfactual_acceptances={}, family_macro_rate={:.15}, family_macro_upper={:.15}, overall_p50={:?}, overall_p95={:?}, overall_p99={:?}; observed summary={}; strata_count={}, verifier_family_count={}, stratum_mismatches={:?}",
+            family_count,
+            counts.negative_trials,
+            counts.false_admissions,
+            counts.negative_rejects,
+            counts.negative_abstentions,
+            counts.positive_trials,
+            counts.positive_admissions,
+            counts.positive_abstentions,
+            counts.positive_rejections,
+            counts.checker_disagreements,
+            counts.expected_disposition_mismatches,
+            counts.expected_reason_code_misses,
+            counts.report_tamper_checks,
+            counts.report_tamper_detected,
+            counts.deterministic_replay_checks,
+            counts.deterministic_replay_mismatches,
+            counts.static_baseline_counterfactual_acceptances,
+            family_macro_rate,
+            family_macro_upper,
+            percentile(&counts.latencies_ms, 0.50),
+            percentile(&counts.latencies_ms, 0.95),
+            percentile(&counts.latencies_ms, 0.99),
+            summary,
+            report["strata"].as_array().map_or(0, Vec::len),
+            family_metrics.len(),
+            stratum_mismatches,
+        ));
     }
 
     if counts.false_admissions != 0
@@ -751,7 +916,52 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
+    use serde_json::Value;
+
+    #[test]
+    fn tiny_signed_float_values_roundtrip_to_identical_canonical_json() {
+        let value = serde_json::json!({
+            "lower": -8.0e-9_f64,
+            "upper": -8.0e-9_f64,
+            "value": -8.0e-9_f64,
+            "positive": 8.0e-9_f64,
+            "zero": 0.0_f64
+        });
+        let encoded = serde_json::to_vec(&value).unwrap();
+        let decoded: Value = serde_json::from_slice(&encoded).unwrap();
+        let replayed = serde_json::to_vec(&decoded).unwrap();
+        assert_eq!(replayed, encoded);
+    }
+
+
     use super::*;
+
+    #[test]
+    fn benchmark_latency_percentiles_are_read_from_summary_object() {
+        let summary = serde_json::json!({
+            "end_to_end_latency_ms": {
+                "p50": 4.498191,
+                "p95": 4.611620,
+                "p99": 4.683816
+            }
+        });
+        let latencies = vec![4.498191, 4.611620, 4.683816];
+        assert!(latency_matches(
+            &summary["end_to_end_latency_ms"]["p50"],
+            &latencies,
+            0.50
+        ));
+        assert!(latency_matches(
+            &summary["end_to_end_latency_ms"]["p95"],
+            &latencies,
+            0.95
+        ));
+        assert!(latency_matches(
+            &summary["end_to_end_latency_ms"]["p99"],
+            &latencies,
+            0.99
+        ));
+    }
 
     #[test]
     fn reason_code_matching_rejects_non_string_entries() {

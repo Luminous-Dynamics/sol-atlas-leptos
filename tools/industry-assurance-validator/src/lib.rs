@@ -3,20 +3,41 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::sync::OnceLock;
 
 const REQUIRED_ROOT: &[&str] = &[
-    "schema_version", "profile_id", "claim", "decision_tier", "operating_envelope",
-    "risk_assessment", "evidence_vector", "artifact_bindings", "authority", "validity",
-    "disposition", "claim_ceiling",
+    "schema_version",
+    "profile_id",
+    "claim",
+    "decision_tier",
+    "operating_envelope",
+    "risk_assessment",
+    "evidence_vector",
+    "artifact_bindings",
+    "authority",
+    "validity",
+    "disposition",
+    "claim_ceiling",
 ];
 
 const DIMENSIONS: &[&str] = &[
-    "software_conformance", "numerical_verification", "physical_validation",
-    "data_integrity_rights", "uncertainty_credibility", "generalization", "robustness",
-    "operational_assurance", "safety_security_authority", "prospective_outcomes",
+    "software_conformance",
+    "numerical_verification",
+    "physical_validation",
+    "data_integrity_rights",
+    "uncertainty_credibility",
+    "generalization",
+    "robustness",
+    "operational_assurance",
+    "safety_security_authority",
+    "prospective_outcomes",
 ];
 
 const ACTIONS: &[&str] = &[
-    "view", "annotate", "recommend", "rank_options", "prepare_plan",
-    "schedule_within_envelope", "execute_external_action",
+    "view",
+    "annotate",
+    "recommend",
+    "rank_options",
+    "prepare_plan",
+    "schedule_within_envelope",
+    "execute_external_action",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -26,11 +47,24 @@ pub struct ValidationIssue {
     pub message: String,
 }
 
-fn issue(out: &mut Vec<ValidationIssue>, code: &str, path: impl Into<String>, message: impl Into<String>) {
-    out.push(ValidationIssue { code: code.to_owned(), path: path.into(), message: message.into() });
+fn issue(
+    out: &mut Vec<ValidationIssue>,
+    code: &str,
+    path: impl Into<String>,
+    message: impl Into<String>,
+) {
+    out.push(ValidationIssue {
+        code: code.to_owned(),
+        path: path.into(),
+        message: message.into(),
+    });
 }
 
-fn object<'a>(value: &'a Value, path: &str, out: &mut Vec<ValidationIssue>) -> Option<&'a Map<String, Value>> {
+fn object<'a>(
+    value: &'a Value,
+    path: &str,
+    out: &mut Vec<ValidationIssue>,
+) -> Option<&'a Map<String, Value>> {
     match value.as_object() {
         Some(map) => Some(map),
         None => {
@@ -40,31 +74,61 @@ fn object<'a>(value: &'a Value, path: &str, out: &mut Vec<ValidationIssue>) -> O
     }
 }
 
-fn string<'a>(value: &'a Value, key: &str, path: &str, out: &mut Vec<ValidationIssue>) -> Option<&'a str> {
+fn string<'a>(
+    value: &'a Value,
+    key: &str,
+    path: &str,
+    out: &mut Vec<ValidationIssue>,
+) -> Option<&'a str> {
     match value.get(key).and_then(Value::as_str) {
         Some(s) if !s.trim().is_empty() => Some(s),
         _ => {
-            issue(out, "REQUIRED_NONEMPTY_STRING", format!("{path}/{key}"), "Expected a non-empty string.");
+            issue(
+                out,
+                "REQUIRED_NONEMPTY_STRING",
+                format!("{path}/{key}"),
+                "Expected a non-empty string.",
+            );
             None
         }
     }
 }
 
-fn bool_value(value: &Value, key: &str, path: &str, out: &mut Vec<ValidationIssue>) -> Option<bool> {
+fn bool_value(
+    value: &Value,
+    key: &str,
+    path: &str,
+    out: &mut Vec<ValidationIssue>,
+) -> Option<bool> {
     match value.get(key).and_then(Value::as_bool) {
         Some(v) => Some(v),
         None => {
-            issue(out, "REQUIRED_BOOLEAN", format!("{path}/{key}"), "Expected a boolean.");
+            issue(
+                out,
+                "REQUIRED_BOOLEAN",
+                format!("{path}/{key}"),
+                "Expected a boolean.",
+            );
             None
         }
     }
 }
 
-fn array<'a>(value: &'a Value, key: &str, path: &str, out: &mut Vec<ValidationIssue>) -> Option<&'a Vec<Value>> {
+fn array<'a>(
+    value: &'a Value,
+    key: &str,
+    path: &str,
+    out: &mut Vec<ValidationIssue>,
+) -> Option<&'a Vec<Value>> {
     match value.get(key).and_then(Value::as_array) {
         Some(v) => Some(v),
         None => {
-            issue(out, "REQUIRED_ARRAY", format!("{path}/{key}"), "Expected an array.");
+            issue(
+                out,
+                "REQUIRED_ARRAY",
+                format!("{path}/{key}"),
+                "Expected an array.",
+            );
             None
         }
     }
@@ -74,12 +138,13 @@ fn is_hex(s: &str, len: usize) -> bool {
     s.len() == len && s.bytes().all(|b| b.is_ascii_hexdigit())
 }
 
-
 fn profile_schema() -> &'static Value {
     static SCHEMA: OnceLock<Value> = OnceLock::new();
     SCHEMA.get_or_init(|| {
-        serde_json::from_str(include_str!("../../../schemas/industry-assurance-qualification-profile-v0.1.schema.json"))
-            .expect("embedded IEAC v0.1 schema must remain valid JSON")
+        serde_json::from_str(include_str!(
+            "../../../schemas/industry-assurance-qualification-profile-v0.1.schema.json"
+        ))
+        .expect("embedded IEAC v0.1 schema must remain valid JSON")
     })
 }
 
@@ -172,7 +237,8 @@ fn validate_closed_schema_objects(
         if let Some(properties) = schema.get("properties").and_then(Value::as_object) {
             for (key, child_schema) in properties {
                 if let Some(child_instance) = object_value.get(key) {
-                    let child_path = format!("{}/{}", instance_path, escape_json_pointer_segment(key));
+                    let child_path =
+                        format!("{}/{}", instance_path, escape_json_pointer_segment(key));
                     validate_closed_schema_objects(
                         child_instance,
                         child_schema,
@@ -231,7 +297,9 @@ fn validate_optional_timestamp(
     object_path: &str,
     out: &mut Vec<ValidationIssue>,
 ) {
-    let Some(value) = object.get(key) else { return; };
+    let Some(value) = object.get(key) else {
+        return;
+    };
     let path = format!("{object_path}/{key}");
     match value.as_str() {
         Some(timestamp) => validate_canonical_timestamp(timestamp, &path, out),
@@ -244,31 +312,41 @@ fn validate_optional_timestamp(
     }
 }
 
-
 // The RFC deliberately requires UTC seconds precision so validity ordering is
 // lexicographically comparable and reproducible across implementations.
 fn is_canonical_utc(s: &str) -> bool {
     let b = s.as_bytes();
     if b.len() != 20
-        || b[4] != b'-' || b[7] != b'-' || b[10] != b'T'
-        || b[13] != b':' || b[16] != b':' || b[19] != b'Z'
-        || !b.iter().enumerate().all(|(i, c)| {
-            [4, 7, 10, 13, 16, 19].contains(&i) || c.is_ascii_digit()
-        })
+        || b[4] != b'-'
+        || b[7] != b'-'
+        || b[10] != b'T'
+        || b[13] != b':'
+        || b[16] != b':'
+        || b[19] != b'Z'
+        || !b
+            .iter()
+            .enumerate()
+            .all(|(i, c)| [4, 7, 10, 13, 16, 19].contains(&i) || c.is_ascii_digit())
     {
         return false;
     }
-    let component = |range: std::ops::Range<usize>| {
-        std::str::from_utf8(&b[range]).ok()?.parse::<u32>().ok()
-    };
+    let component =
+        |range: std::ops::Range<usize>| std::str::from_utf8(&b[range]).ok()?.parse::<u32>().ok();
     let (Some(year), Some(month), Some(day), Some(hour), Some(minute), Some(second)) = (
-        component(0..4), component(5..7), component(8..10),
-        component(11..13), component(14..16), component(17..19)
+        component(0..4),
+        component(5..7),
+        component(8..10),
+        component(11..13),
+        component(14..16),
+        component(17..19),
     ) else {
         return false;
     };
-    if year == 0 || !(1..=12).contains(&month) || !(0..=23).contains(&hour)
-        || minute > 59 || second > 59
+    if year == 0
+        || !(1..=12).contains(&month)
+        || !(0..=23).contains(&hour)
+        || minute > 59
+        || second > 59
     {
         return false;
     }
@@ -283,23 +361,42 @@ fn is_canonical_utc(s: &str) -> bool {
 }
 
 fn validate_validity(profile: &Value, out: &mut Vec<ValidationIssue>) {
-    let Some(validity) = profile.get("validity") else { return; };
+    let Some(validity) = profile.get("validity") else {
+        return;
+    };
     let start = string(validity, "valid_from", "/validity", out);
     let review = string(validity, "review_by", "/validity", out);
-    if let Some(s) = start {
-        if !is_canonical_utc(s) {
-            issue(out, "NONCANONICAL_VALID_FROM", "/validity/valid_from", "Use canonical UTC YYYY-MM-DDTHH:MM:SSZ.");
-        }
+    if let Some(s) = start
+        && !is_canonical_utc(s)
+    {
+        issue(
+            out,
+            "NONCANONICAL_VALID_FROM",
+            "/validity/valid_from",
+            "Use canonical UTC YYYY-MM-DDTHH:MM:SSZ.",
+        );
     }
-    if let Some(r) = review {
-        if !is_canonical_utc(r) {
-            issue(out, "NONCANONICAL_REVIEW_BY", "/validity/review_by", "Use canonical UTC YYYY-MM-DDTHH:MM:SSZ.");
-        }
+    if let Some(r) = review
+        && !is_canonical_utc(r)
+    {
+        issue(
+            out,
+            "NONCANONICAL_REVIEW_BY",
+            "/validity/review_by",
+            "Use canonical UTC YYYY-MM-DDTHH:MM:SSZ.",
+        );
     }
-    if let (Some(s), Some(r)) = (start, review) {
-        if is_canonical_utc(s) && is_canonical_utc(r) && r <= s {
-            issue(out, "INVALID_VALIDITY_WINDOW", "/validity/review_by", "review_by must be later than valid_from.");
-        }
+    if let (Some(s), Some(r)) = (start, review)
+        && is_canonical_utc(s)
+        && is_canonical_utc(r)
+        && r <= s
+    {
+        issue(
+            out,
+            "INVALID_VALIDITY_WINDOW",
+            "/validity/review_by",
+            "review_by must be later than valid_from.",
+        );
     }
 }
 
@@ -309,24 +406,36 @@ fn validate_artifacts<'a>(
 ) -> (BTreeMap<String, &'a Value>, BTreeSet<String>) {
     let mut by_id = BTreeMap::new();
     let mut roles = BTreeSet::new();
-    let disposition = profile.get("disposition").and_then(Value::as_str).unwrap_or("");
+    let disposition = profile
+        .get("disposition")
+        .and_then(Value::as_str)
+        .unwrap_or("");
     let Some(items) = array(profile, "artifact_bindings", "", out) else {
         return (by_id, roles);
     };
     for (i, artifact) in items.iter().enumerate() {
         let path = format!("/artifact_bindings/{i}");
-        if object(artifact, &path, out).is_none() { continue; }
+        if object(artifact, &path, out).is_none() {
+            continue;
+        }
         let id = string(artifact, "artifact_id", &path, out);
         let role = string(artifact, "role", &path, out);
         let rights = string(artifact, "rights_state", &path, out);
         let _ = string(artifact, "evidence_class", &path, out);
 
-        if let Some(id) = id {
-            if by_id.insert(id.to_owned(), artifact).is_some() {
-                issue(out, "DUPLICATE_ARTIFACT_ID", format!("{path}/artifact_id"), "Artifact IDs must be unique.");
-            }
+        if let Some(id) = id
+            && by_id.insert(id.to_owned(), artifact).is_some()
+        {
+            issue(
+                out,
+                "DUPLICATE_ARTIFACT_ID",
+                format!("{path}/artifact_id"),
+                "Artifact IDs must be unique.",
+            );
         }
-        if let Some(role) = role { roles.insert(role.to_owned()); }
+        if let Some(role) = role {
+            roles.insert(role.to_owned());
+        }
 
         let repo = artifact.get("repository").and_then(Value::as_str);
         let commit = artifact.get("commit_sha").and_then(Value::as_str);
@@ -334,8 +443,10 @@ fn validate_artifacts<'a>(
         let file_path = artifact.get("path").and_then(Value::as_str);
         let source_uri = artifact.get("source_uri").and_then(Value::as_str);
         let content_sha256 = artifact.get("content_sha256").and_then(Value::as_str);
-        let is_git_binding = repo.is_some() || commit.is_some() || blob.is_some() || file_path.is_some();
-        let is_external_binding = source_uri.is_some() || (!is_git_binding && content_sha256.is_some());
+        let is_git_binding =
+            repo.is_some() || commit.is_some() || blob.is_some() || file_path.is_some();
+        let is_external_binding =
+            source_uri.is_some() || (!is_git_binding && content_sha256.is_some());
 
         if is_git_binding {
             for (field, value) in [
@@ -345,55 +456,118 @@ fn validate_artifacts<'a>(
                 ("path", file_path),
             ] {
                 if value.map(str::trim).filter(|v| !v.is_empty()).is_none() {
-                    issue(out, "INCOMPLETE_GIT_ARTIFACT_BINDING", format!("{path}/{field}"), "Git artifacts require repository, commit_sha, path and git_blob_sha.");
+                    issue(
+                        out,
+                        "INCOMPLETE_GIT_ARTIFACT_BINDING",
+                        format!("{path}/{field}"),
+                        "Git artifacts require repository, commit_sha, path and git_blob_sha.",
+                    );
                 }
             }
-            if let Some(repo) = repo {
-                if repo.split('/').count() != 2 {
-                    issue(out, "INVALID_REPOSITORY", format!("{path}/repository"), "Repository must use owner/name form.");
-                }
+            if let Some(repo) = repo
+                && repo.split('/').count() != 2
+            {
+                issue(
+                    out,
+                    "INVALID_REPOSITORY",
+                    format!("{path}/repository"),
+                    "Repository must use owner/name form.",
+                );
             }
-            if let Some(commit) = commit {
-                if !is_hex(commit, 40) {
-                    issue(out, "INVALID_COMMIT_SHA", format!("{path}/commit_sha"), "Expected a 40-character Git commit SHA.");
-                }
+            if let Some(commit) = commit
+                && !is_hex(commit, 40)
+            {
+                issue(
+                    out,
+                    "INVALID_COMMIT_SHA",
+                    format!("{path}/commit_sha"),
+                    "Expected a 40-character Git commit SHA.",
+                );
             }
-            if let Some(blob) = blob {
-                if !is_hex(blob, 40) {
-                    issue(out, "INVALID_GIT_BLOB_SHA", format!("{path}/git_blob_sha"), "Expected a 40-character Git blob SHA-1.");
-                }
+            if let Some(blob) = blob
+                && !is_hex(blob, 40)
+            {
+                issue(
+                    out,
+                    "INVALID_GIT_BLOB_SHA",
+                    format!("{path}/git_blob_sha"),
+                    "Expected a 40-character Git blob SHA-1.",
+                );
             }
-            if let Some(path_value) = file_path {
-                if path_value.starts_with('/') || path_value.split('/').any(|p| p == "..") {
-                    issue(out, "UNSAFE_ARTIFACT_PATH", format!("{path}/path"), "Use a repository-relative path without parent traversal.");
-                }
+            if let Some(path_value) = file_path
+                && (path_value.starts_with('/') || path_value.split('/').any(|p| p == ".."))
+            {
+                issue(
+                    out,
+                    "UNSAFE_ARTIFACT_PATH",
+                    format!("{path}/path"),
+                    "Use a repository-relative path without parent traversal.",
+                );
             }
         }
         if is_external_binding {
-            if source_uri.map(str::trim).filter(|v| !v.is_empty()).is_none() {
-                issue(out, "MISSING_EXTERNAL_SOURCE_URI", format!("{path}/source_uri"), "External artifacts require a source URI.");
+            if source_uri
+                .map(str::trim)
+                .filter(|v| !v.is_empty())
+                .is_none()
+            {
+                issue(
+                    out,
+                    "MISSING_EXTERNAL_SOURCE_URI",
+                    format!("{path}/source_uri"),
+                    "External artifacts require a source URI.",
+                );
             } else if !source_uri.unwrap_or("").contains("://") {
-                issue(out, "INVALID_EXTERNAL_SOURCE_URI", format!("{path}/source_uri"), "External source URI must include a scheme.");
+                issue(
+                    out,
+                    "INVALID_EXTERNAL_SOURCE_URI",
+                    format!("{path}/source_uri"),
+                    "External source URI must include a scheme.",
+                );
             }
             if content_sha256.map(|v| is_hex(v, 64)) != Some(true) {
-                issue(out, "INVALID_CONTENT_SHA256", format!("{path}/content_sha256"), "External artifacts require a 64-character SHA-256 digest.");
+                issue(
+                    out,
+                    "INVALID_CONTENT_SHA256",
+                    format!("{path}/content_sha256"),
+                    "External artifacts require a 64-character SHA-256 digest.",
+                );
             }
         } else if !is_git_binding {
-            issue(out, "UNPINNED_ARTIFACT", &path, "Artifact requires either a Git repository pin or an external URI plus SHA-256.");
+            issue(
+                out,
+                "UNPINNED_ARTIFACT",
+                &path,
+                "Artifact requires either a Git repository pin or an external URI plus SHA-256.",
+            );
         }
-        if !is_external_binding {
-            if let Some(content) = content_sha256 {
-                if !is_hex(content, 64) {
-                    issue(out, "INVALID_CONTENT_SHA256", format!("{path}/content_sha256"), "Expected a 64-character SHA-256 digest.");
-                }
-            }
+        if !is_external_binding
+            && let Some(content) = content_sha256
+            && !is_hex(content, 64)
+        {
+            issue(
+                out,
+                "INVALID_CONTENT_SHA256",
+                format!("{path}/content_sha256"),
+                "Expected a 64-character SHA-256 digest.",
+            );
         }
         if let Some(rights) = rights {
             if !["verified", "restricted", "unknown", "not_applicable"].contains(&rights) {
-                issue(out, "INVALID_RIGHTS_STATE", format!("{path}/rights_state"), "Unrecognized rights state.");
+                issue(
+                    out,
+                    "INVALID_RIGHTS_STATE",
+                    format!("{path}/rights_state"),
+                    "Unrecognized rights state.",
+                );
             }
             if disposition == "qualified_for_profile" && rights != "verified" {
-                issue(out, "QUALIFIED_WITH_UNVERIFIED_RIGHTS", format!("{path}/rights_state"), "Every artifact in a qualified profile requires verified data/artifact rights.");
+                issue(
+                    out,
+                    "QUALIFIED_WITH_UNVERIFIED_RIGHTS",
+                    format!("{path}/rights_state"),
+                    "Every artifact in a qualified profile requires verified data/artifact rights.",
+                );
             }
         }
     }
@@ -405,68 +579,153 @@ fn validate_evidence(
     artifact_ids: &BTreeMap<String, &Value>,
     out: &mut Vec<ValidationIssue>,
 ) {
-    let Some(vector) = profile.get("evidence_vector") else { return; };
-    if object(vector, "/evidence_vector", out).is_none() { return; }
-    let disposition = profile.get("disposition").and_then(Value::as_str).unwrap_or("");
-    let tier = profile.get("decision_tier").and_then(Value::as_str).unwrap_or("");
+    let Some(vector) = profile.get("evidence_vector") else {
+        return;
+    };
+    if object(vector, "/evidence_vector", out).is_none() {
+        return;
+    }
+    let disposition = profile
+        .get("disposition")
+        .and_then(Value::as_str)
+        .unwrap_or("");
+    let tier = profile
+        .get("decision_tier")
+        .and_then(Value::as_str)
+        .unwrap_or("");
     let qualified = disposition == "qualified_for_profile";
     let mut evidence_ids = BTreeSet::new();
 
     for dimension in DIMENSIONS {
         let path = format!("/evidence_vector/{dimension}");
         let Some(entry) = vector.get(*dimension) else {
-            issue(out, "MISSING_EVIDENCE_DIMENSION", &path, "Every evidence dimension must be present.");
+            issue(
+                out,
+                "MISSING_EVIDENCE_DIMENSION",
+                &path,
+                "Every evidence dimension must be present.",
+            );
             continue;
         };
-        if object(entry, &path, out).is_none() { continue; }
+        if object(entry, &path, out).is_none() {
+            continue;
+        }
         let state = string(entry, "state", &path, out).unwrap_or("");
         let requirement = string(entry, "requirement", &path, out).unwrap_or("");
         let _ = string(entry, "rationale", &path, out);
         validate_optional_timestamp(entry, "reviewed_at", &path, out);
-        let evidence = array(entry, "evidence", &path, out).cloned().unwrap_or_default();
+        let evidence = array(entry, "evidence", &path, out)
+            .cloned()
+            .unwrap_or_default();
 
-        if !["established", "not_established", "unknown", "conflicted", "not_applicable"].contains(&state) {
-            issue(out, "INVALID_EVIDENCE_STATE", format!("{path}/state"), "Unrecognized evidence state.");
+        if ![
+            "established",
+            "not_established",
+            "unknown",
+            "conflicted",
+            "not_applicable",
+        ]
+        .contains(&state)
+        {
+            issue(
+                out,
+                "INVALID_EVIDENCE_STATE",
+                format!("{path}/state"),
+                "Unrecognized evidence state.",
+            );
         }
         if !["mandatory", "optional"].contains(&requirement) {
-            issue(out, "INVALID_EVIDENCE_REQUIREMENT", format!("{path}/requirement"), "Requirement must be mandatory or optional.");
+            issue(
+                out,
+                "INVALID_EVIDENCE_REQUIREMENT",
+                format!("{path}/requirement"),
+                "Requirement must be mandatory or optional.",
+            );
         }
         if state == "not_applicable" {
             if requirement != "optional" {
-                issue(out, "MANDATORY_DIMENSION_NOT_APPLICABLE", &path, "A mandatory dimension cannot be marked not_applicable.");
+                issue(
+                    out,
+                    "MANDATORY_DIMENSION_NOT_APPLICABLE",
+                    &path,
+                    "A mandatory dimension cannot be marked not_applicable.",
+                );
             }
-            if string(entry, "reviewer_id", &path, out).is_none() || string(entry, "reviewed_at", &path, out).is_none() {
-                issue(out, "UNREVIEWED_NOT_APPLICABLE", &path, "not_applicable requires a reviewer and review timestamp.");
+            if string(entry, "reviewer_id", &path, out).is_none()
+                || string(entry, "reviewed_at", &path, out).is_none()
+            {
+                issue(
+                    out,
+                    "UNREVIEWED_NOT_APPLICABLE",
+                    &path,
+                    "not_applicable requires a reviewer and review timestamp.",
+                );
             }
         }
         if state == "established" && evidence.is_empty() {
-            issue(out, "ESTABLISHED_WITHOUT_EVIDENCE", &path, "An established dimension requires at least one evidence record.");
+            issue(
+                out,
+                "ESTABLISHED_WITHOUT_EVIDENCE",
+                &path,
+                "An established dimension requires at least one evidence record.",
+            );
         }
         if qualified && requirement == "mandatory" && state != "established" {
-            issue(out, "QUALIFIED_WITH_UNMET_REQUIREMENT", &path, "A qualified profile requires every mandatory dimension to be established.");
+            issue(
+                out,
+                "QUALIFIED_WITH_UNMET_REQUIREMENT",
+                &path,
+                "A qualified profile requires every mandatory dimension to be established.",
+            );
         }
         let tier_minimum: &[&str] = match tier {
-            "D0_descriptive" => &["software_conformance", "numerical_verification", "data_integrity_rights"],
+            "D0_descriptive" => &[
+                "software_conformance",
+                "numerical_verification",
+                "data_integrity_rights",
+            ],
             "D1_advisory" => &[
-                "software_conformance", "numerical_verification", "physical_validation",
-                "data_integrity_rights", "uncertainty_credibility", "generalization",
-                "robustness", "operational_assurance", "safety_security_authority",
+                "software_conformance",
+                "numerical_verification",
+                "physical_validation",
+                "data_integrity_rights",
+                "uncertainty_credibility",
+                "generalization",
+                "robustness",
+                "operational_assurance",
+                "safety_security_authority",
             ],
             "D2_delegated_planning" | "D3_autonomous_control" => DIMENSIONS,
             _ => &[],
         };
-        if qualified && tier_minimum.contains(dimension)
+        if qualified
+            && tier_minimum.contains(dimension)
             && (requirement != "mandatory" || state != "established")
         {
-            issue(out, "TIER_MINIMUM_EVIDENCE_NOT_MET", &path, "This dimension is mandatory and must be established for the declared decision tier.");
+            issue(
+                out,
+                "TIER_MINIMUM_EVIDENCE_NOT_MET",
+                &path,
+                "This dimension is mandatory and must be established for the declared decision tier.",
+            );
         }
-        if tier == "D3_autonomous_control" && qualified && (requirement != "mandatory" || state != "established") {
-            issue(out, "D3_EVIDENCE_VECTOR_INCOMPLETE", &path, "D3 qualification requires all ten dimensions mandatory and established.");
+        if tier == "D3_autonomous_control"
+            && qualified
+            && (requirement != "mandatory" || state != "established")
+        {
+            issue(
+                out,
+                "D3_EVIDENCE_VECTOR_INCOMPLETE",
+                &path,
+                "D3 qualification requires all ten dimensions mandatory and established.",
+            );
         }
 
         for (i, item) in evidence.iter().enumerate() {
             let ev_path = format!("{path}/evidence/{i}");
-            if object(item, &ev_path, out).is_none() { continue; }
+            if object(item, &ev_path, out).is_none() {
+                continue;
+            }
             let evidence_id = string(item, "evidence_id", &ev_path, out);
             let artifact_id = string(item, "artifact_id", &ev_path, out);
             let _ = string(item, "method", &ev_path, out);
@@ -476,15 +735,25 @@ fn validate_evidence(
                 validate_canonical_timestamp(observed_at, &format!("{ev_path}/observed_at"), out);
             }
             validate_optional_timestamp(item, "valid_until", &ev_path, out);
-            if let Some(id) = evidence_id {
-                if !evidence_ids.insert(id.to_owned()) {
-                    issue(out, "DUPLICATE_EVIDENCE_ID", format!("{ev_path}/evidence_id"), "Evidence IDs must be unique across the full profile.");
-                }
+            if let Some(id) = evidence_id
+                && !evidence_ids.insert(id.to_owned())
+            {
+                issue(
+                    out,
+                    "DUPLICATE_EVIDENCE_ID",
+                    format!("{ev_path}/evidence_id"),
+                    "Evidence IDs must be unique across the full profile.",
+                );
             }
-            if let Some(id) = artifact_id {
-                if !artifact_ids.contains_key(id) {
-                    issue(out, "DANGLING_EVIDENCE_ARTIFACT", format!("{ev_path}/artifact_id"), "Evidence artifact_id must reference an artifact binding.");
-                }
+            if let Some(id) = artifact_id
+                && !artifact_ids.contains_key(id)
+            {
+                issue(
+                    out,
+                    "DANGLING_EVIDENCE_ARTIFACT",
+                    format!("{ev_path}/artifact_id"),
+                    "Evidence artifact_id must reference an artifact binding.",
+                );
             }
             if state == "established" {
                 let _ = string(item, "verifier_id", &ev_path, out);
@@ -499,70 +768,186 @@ fn validate_authority(
     roles: &BTreeSet<String>,
     out: &mut Vec<ValidationIssue>,
 ) {
-    let Some(authority) = profile.get("authority") else { return; };
-    if object(authority, "/authority", out).is_none() { return; }
-    let tier = profile.get("decision_tier").and_then(Value::as_str).unwrap_or("");
-    let disposition = profile.get("disposition").and_then(Value::as_str).unwrap_or("");
+    let Some(authority) = profile.get("authority") else {
+        return;
+    };
+    if object(authority, "/authority", out).is_none() {
+        return;
+    }
+    let tier = profile
+        .get("decision_tier")
+        .and_then(Value::as_str)
+        .unwrap_or("");
+    let disposition = profile
+        .get("disposition")
+        .and_then(Value::as_str)
+        .unwrap_or("");
     let qualified = disposition == "qualified_for_profile";
-    let permitted: Vec<&str> = authority.get("permitted_actions").and_then(Value::as_array)
-        .map(|a| a.iter().filter_map(Value::as_str).collect()).unwrap_or_default();
+    let permitted: Vec<&str> = authority
+        .get("permitted_actions")
+        .and_then(Value::as_array)
+        .map(|a| a.iter().filter_map(Value::as_str).collect())
+        .unwrap_or_default();
     let actuation = bool_value(authority, "actuation_enabled", "/authority", out).unwrap_or(false);
-    let human = bool_value(authority, "human_approval_required", "/authority", out).unwrap_or(false);
+    let human =
+        bool_value(authority, "human_approval_required", "/authority", out).unwrap_or(false);
 
     for action in &permitted {
         if !ACTIONS.contains(action) {
-            issue(out, "UNKNOWN_AUTHORITY_ACTION", "/authority/permitted_actions", format!("Unsupported action: {action}"));
+            issue(
+                out,
+                "UNKNOWN_AUTHORITY_ACTION",
+                "/authority/permitted_actions",
+                format!("Unsupported action: {action}"),
+            );
         }
     }
     if !qualified {
         if actuation {
-            issue(out, "UNQUALIFIED_ACTUATION", "/authority/actuation_enabled", "Actuation must remain disabled until qualification is established.");
+            issue(
+                out,
+                "UNQUALIFIED_ACTUATION",
+                "/authority/actuation_enabled",
+                "Actuation must remain disabled until qualification is established.",
+            );
         }
         if permitted.iter().any(|a| !["view", "annotate"].contains(a)) {
-            issue(out, "UNQUALIFIED_ACTION_PERMISSION", "/authority/permitted_actions", "Unqualified profiles may only view or annotate; recommendations and side effects are not permitted.");
+            issue(
+                out,
+                "UNQUALIFIED_ACTION_PERMISSION",
+                "/authority/permitted_actions",
+                "Unqualified profiles may only view or annotate; recommendations and side effects are not permitted.",
+            );
         }
     } else {
         match tier {
             "D0_descriptive" => {
                 if actuation || permitted.iter().any(|a| !["view", "annotate"].contains(a)) {
-                    issue(out, "D0_AUTHORITY_ESCALATION", "/authority", "D0 is descriptive only and permits view/annotate actions.");
+                    issue(
+                        out,
+                        "D0_AUTHORITY_ESCALATION",
+                        "/authority",
+                        "D0 is descriptive only and permits view/annotate actions.",
+                    );
                 }
             }
             "D1_advisory" => {
-                if actuation || !human || permitted.iter().any(|a| ["schedule_within_envelope", "execute_external_action"].contains(a)) {
-                    issue(out, "D1_AUTHORITY_ESCALATION", "/authority", "D1 is advisory, requires human approval and cannot schedule or actuate.");
+                if actuation
+                    || !human
+                    || permitted.iter().any(|a| {
+                        ["schedule_within_envelope", "execute_external_action"].contains(a)
+                    })
+                {
+                    issue(
+                        out,
+                        "D1_AUTHORITY_ESCALATION",
+                        "/authority",
+                        "D1 is advisory, requires human approval and cannot schedule or actuate.",
+                    );
                 }
             }
             "D2_delegated_planning" => {
-                if actuation || !human || !permitted.contains(&"schedule_within_envelope") || permitted.contains(&"execute_external_action") {
-                    issue(out, "D2_AUTHORITY_INVALID", "/authority", "D2 requires human approval, may schedule within the envelope, and cannot actuate.");
+                if actuation
+                    || !human
+                    || !permitted.contains(&"schedule_within_envelope")
+                    || permitted.contains(&"execute_external_action")
+                {
+                    issue(
+                        out,
+                        "D2_AUTHORITY_INVALID",
+                        "/authority",
+                        "D2 requires human approval, may schedule within the envelope, and cannot actuate.",
+                    );
                 }
                 require_role("independent_verifier", roles, out);
                 require_role("rollback_plan", roles, out);
-                require_authority_artifact(authority, "independent_verifier_artifact_id", "independent_verifier", artifact_ids, out);
-                require_authority_artifact(authority, "rollback_plan_artifact_id", "rollback_plan", artifact_ids, out);
+                require_authority_artifact(
+                    authority,
+                    "independent_verifier_artifact_id",
+                    "independent_verifier",
+                    artifact_ids,
+                    out,
+                );
+                require_authority_artifact(
+                    authority,
+                    "rollback_plan_artifact_id",
+                    "rollback_plan",
+                    artifact_ids,
+                    out,
+                );
             }
             "D3_autonomous_control" => {
                 if !actuation || !permitted.contains(&"execute_external_action") {
-                    issue(out, "D3_AUTHORITY_INCOMPLETE", "/authority", "Qualified D3 requires actuation_enabled and execute_external_action.");
+                    issue(
+                        out,
+                        "D3_AUTHORITY_INCOMPLETE",
+                        "/authority",
+                        "Qualified D3 requires actuation_enabled and execute_external_action.",
+                    );
                 }
-                for role in ["independent_verifier", "rollback_plan", "safety_case", "operational_authorization", "cybersecurity_assessment"] {
+                for role in [
+                    "independent_verifier",
+                    "rollback_plan",
+                    "safety_case",
+                    "operational_authorization",
+                    "cybersecurity_assessment",
+                ] {
                     require_role(role, roles, out);
                 }
-                require_authority_artifact(authority, "independent_verifier_artifact_id", "independent_verifier", artifact_ids, out);
-                require_authority_artifact(authority, "rollback_plan_artifact_id", "rollback_plan", artifact_ids, out);
-                require_authority_artifact(authority, "safety_case_artifact_id", "safety_case", artifact_ids, out);
-                require_authority_artifact(authority, "operational_authorization_artifact_id", "operational_authorization", artifact_ids, out);
-                require_authority_artifact(authority, "cybersecurity_assessment_artifact_id", "cybersecurity_assessment", artifact_ids, out);
+                require_authority_artifact(
+                    authority,
+                    "independent_verifier_artifact_id",
+                    "independent_verifier",
+                    artifact_ids,
+                    out,
+                );
+                require_authority_artifact(
+                    authority,
+                    "rollback_plan_artifact_id",
+                    "rollback_plan",
+                    artifact_ids,
+                    out,
+                );
+                require_authority_artifact(
+                    authority,
+                    "safety_case_artifact_id",
+                    "safety_case",
+                    artifact_ids,
+                    out,
+                );
+                require_authority_artifact(
+                    authority,
+                    "operational_authorization_artifact_id",
+                    "operational_authorization",
+                    artifact_ids,
+                    out,
+                );
+                require_authority_artifact(
+                    authority,
+                    "cybersecurity_assessment_artifact_id",
+                    "cybersecurity_assessment",
+                    artifact_ids,
+                    out,
+                );
             }
-            _ => issue(out, "UNKNOWN_DECISION_TIER", "/decision_tier", "Unknown decision tier for authority evaluation."),
+            _ => issue(
+                out,
+                "UNKNOWN_DECISION_TIER",
+                "/decision_tier",
+                "Unknown decision tier for authority evaluation.",
+            ),
         }
     }
 }
 
 fn require_role(role: &str, roles: &BTreeSet<String>, out: &mut Vec<ValidationIssue>) {
     if !roles.contains(role) {
-        issue(out, "MISSING_REQUIRED_ARTIFACT_ROLE", "/artifact_bindings", format!("Required artifact role is missing: {role}."));
+        issue(
+            out,
+            "MISSING_REQUIRED_ARTIFACT_ROLE",
+            "/artifact_bindings",
+            format!("Required artifact role is missing: {role}."),
+        );
     }
 }
 
@@ -573,13 +958,25 @@ fn require_authority_artifact(
     artifact_ids: &BTreeMap<String, &Value>,
     out: &mut Vec<ValidationIssue>,
 ) {
-    let Some(id) = string(authority, field, "/authority", out) else { return; };
+    let Some(id) = string(authority, field, "/authority", out) else {
+        return;
+    };
     let Some(artifact) = artifact_ids.get(id) else {
-        issue(out, "AUTHORITY_ARTIFACT_NOT_BOUND", format!("/authority/{field}"), "Authority artifact ID is not present in artifact_bindings.");
+        issue(
+            out,
+            "AUTHORITY_ARTIFACT_NOT_BOUND",
+            format!("/authority/{field}"),
+            "Authority artifact ID is not present in artifact_bindings.",
+        );
         return;
     };
     if artifact.get("role").and_then(Value::as_str) != Some(expected_role) {
-        issue(out, "AUTHORITY_ARTIFACT_ROLE_MISMATCH", format!("/authority/{field}"), format!("Artifact must have role {expected_role}."));
+        issue(
+            out,
+            "AUTHORITY_ARTIFACT_ROLE_MISMATCH",
+            format!("/authority/{field}"),
+            format!("Artifact must have role {expected_role}."),
+        );
     }
 }
 
@@ -587,99 +984,267 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
     let mut out = Vec::new();
     let schema = profile_schema();
     validate_closed_schema_objects(profile, schema, schema, "", &mut BTreeSet::new(), &mut out);
-    let Some(root) = object(profile, "", &mut out) else { return out; };
+    let Some(root) = object(profile, "", &mut out) else {
+        return out;
+    };
 
     for key in REQUIRED_ROOT {
         if !root.contains_key(*key) {
-            issue(&mut out, "MISSING_ROOT_FIELD", format!("/{key}"), "Required root field is missing.");
+            issue(
+                &mut out,
+                "MISSING_ROOT_FIELD",
+                format!("/{key}"),
+                "Required root field is missing.",
+            );
         }
     }
-    if profile.get("schema_version").and_then(Value::as_str) != Some("luminous.industry-assurance-profile.v0.1") {
-        issue(&mut out, "UNSUPPORTED_SCHEMA_VERSION", "/schema_version", "Unsupported IEAC profile schema version.");
+    if profile.get("schema_version").and_then(Value::as_str)
+        != Some("luminous.industry-assurance-profile.v0.1")
+    {
+        issue(
+            &mut out,
+            "UNSUPPORTED_SCHEMA_VERSION",
+            "/schema_version",
+            "Unsupported IEAC profile schema version.",
+        );
     }
     let _ = string(profile, "profile_id", "", &mut out);
     let _ = string(profile, "claim_ceiling", "", &mut out);
 
-    if let Some(claim) = profile.get("claim") {
-        if object(claim, "/claim", &mut out).is_some() {
-            for key in ["claim_id", "capability_id", "instance_id", "decision_id", "description", "intended_user"] {
-                let _ = string(claim, key, "/claim", &mut out);
-            }
+    if let Some(claim) = profile.get("claim")
+        && object(claim, "/claim", &mut out).is_some()
+    {
+        for key in [
+            "claim_id",
+            "capability_id",
+            "instance_id",
+            "decision_id",
+            "description",
+            "intended_user",
+        ] {
+            let _ = string(claim, key, "/claim", &mut out);
         }
     }
-    let tier = profile.get("decision_tier").and_then(Value::as_str).unwrap_or("");
-    if !["D0_descriptive", "D1_advisory", "D2_delegated_planning", "D3_autonomous_control"].contains(&tier) {
-        issue(&mut out, "INVALID_DECISION_TIER", "/decision_tier", "Unsupported decision tier.");
+    let tier = profile
+        .get("decision_tier")
+        .and_then(Value::as_str)
+        .unwrap_or("");
+    if ![
+        "D0_descriptive",
+        "D1_advisory",
+        "D2_delegated_planning",
+        "D3_autonomous_control",
+    ]
+    .contains(&tier)
+    {
+        issue(
+            &mut out,
+            "INVALID_DECISION_TIER",
+            "/decision_tier",
+            "Unsupported decision tier.",
+        );
     }
-    let disposition = profile.get("disposition").and_then(Value::as_str).unwrap_or("");
-    if !["qualified_for_profile", "not_qualified", "indeterminate", "revoked"].contains(&disposition) {
-        issue(&mut out, "INVALID_DISPOSITION", "/disposition", "Unsupported qualification disposition.");
+    let disposition = profile
+        .get("disposition")
+        .and_then(Value::as_str)
+        .unwrap_or("");
+    if ![
+        "qualified_for_profile",
+        "not_qualified",
+        "indeterminate",
+        "revoked",
+    ]
+    .contains(&disposition)
+    {
+        issue(
+            &mut out,
+            "INVALID_DISPOSITION",
+            "/disposition",
+            "Unsupported qualification disposition.",
+        );
     }
 
-    if let Some(risk) = profile.get("risk_assessment") {
-        if object(risk, "/risk_assessment", &mut out).is_some() {
-            let class = string(risk, "reviewed_class", "/risk_assessment", &mut out).unwrap_or("");
-            if !["low", "moderate", "high", "critical", "unassessed"].contains(&class) {
-                issue(&mut out, "INVALID_RISK_CLASS", "/risk_assessment/reviewed_class", "Unsupported reviewed risk class.");
-            }
-            for key in ["rationale", "reviewer_id", "reviewed_at", "rule_set_version"] {
-                let _ = string(risk, key, "/risk_assessment", &mut out);
-            }
-            if let Some(reviewed_at) = risk.get("reviewed_at").and_then(Value::as_str) {
-                validate_canonical_timestamp(reviewed_at, "/risk_assessment/reviewed_at", &mut out);
-            }
-            let mut risk_dims = BTreeMap::new();
-            if let Some(dims) = risk.get("dimensions") {
-                if object(dims, "/risk_assessment/dimensions", &mut out).is_some() {
-                    for key in ["consequence", "model_influence", "exposure", "reversibility", "detectability", "fallback"] {
-                        let value = string(dims, key, "/risk_assessment/dimensions", &mut out).unwrap_or("");
-                        risk_dims.insert(key, value);
-                    }
-                    let enums: [(&str, &[&str]); 6] = [
-                        ("consequence", &["negligible", "minor", "major", "severe", "catastrophic", "unknown"]),
-                        ("model_influence", &["informational", "advisory", "constraint_gating", "selection", "direct_actuation", "unknown"]),
-                        ("exposure", &["single_asset", "site_or_facility", "multi_site", "regional", "national_or_larger", "unknown"]),
-                        ("reversibility", &["readily_reversible", "costly_or_delayed", "difficult_or_irreversible", "unknown"]),
-                        ("detectability", &["immediate_and_reliable", "delayed_or_partial", "poor", "unknown"]),
-                        ("fallback", &["independent_tested_fallback", "human_fallback", "degraded_fallback", "no_verified_fallback", "unknown"])
-                    ];
-                    for (key, allowed) in enums {
-                        if let Some(value) = risk_dims.get(key) {
-                            if !allowed.contains(value) {
-                                issue(&mut out, "INVALID_RISK_DIMENSION", format!("/risk_assessment/dimensions/{key}"), "Unrecognized risk dimension value.");
-                            }
-                        }
+    if let Some(risk) = profile.get("risk_assessment")
+        && object(risk, "/risk_assessment", &mut out).is_some()
+    {
+        let class = string(risk, "reviewed_class", "/risk_assessment", &mut out).unwrap_or("");
+        if !["low", "moderate", "high", "critical", "unassessed"].contains(&class) {
+            issue(
+                &mut out,
+                "INVALID_RISK_CLASS",
+                "/risk_assessment/reviewed_class",
+                "Unsupported reviewed risk class.",
+            );
+        }
+        for key in [
+            "rationale",
+            "reviewer_id",
+            "reviewed_at",
+            "rule_set_version",
+        ] {
+            let _ = string(risk, key, "/risk_assessment", &mut out);
+        }
+        if let Some(reviewed_at) = risk.get("reviewed_at").and_then(Value::as_str) {
+            validate_canonical_timestamp(reviewed_at, "/risk_assessment/reviewed_at", &mut out);
+        }
+        let mut risk_dims = BTreeMap::new();
+        if let Some(dims) = risk.get("dimensions") {
+            if object(dims, "/risk_assessment/dimensions", &mut out).is_some() {
+                for key in [
+                    "consequence",
+                    "model_influence",
+                    "exposure",
+                    "reversibility",
+                    "detectability",
+                    "fallback",
+                ] {
+                    let value =
+                        string(dims, key, "/risk_assessment/dimensions", &mut out).unwrap_or("");
+                    risk_dims.insert(key, value);
+                }
+                let enums: [(&str, &[&str]); 6] = [
+                    (
+                        "consequence",
+                        &[
+                            "negligible",
+                            "minor",
+                            "major",
+                            "severe",
+                            "catastrophic",
+                            "unknown",
+                        ],
+                    ),
+                    (
+                        "model_influence",
+                        &[
+                            "informational",
+                            "advisory",
+                            "constraint_gating",
+                            "selection",
+                            "direct_actuation",
+                            "unknown",
+                        ],
+                    ),
+                    (
+                        "exposure",
+                        &[
+                            "single_asset",
+                            "site_or_facility",
+                            "multi_site",
+                            "regional",
+                            "national_or_larger",
+                            "unknown",
+                        ],
+                    ),
+                    (
+                        "reversibility",
+                        &[
+                            "readily_reversible",
+                            "costly_or_delayed",
+                            "difficult_or_irreversible",
+                            "unknown",
+                        ],
+                    ),
+                    (
+                        "detectability",
+                        &[
+                            "immediate_and_reliable",
+                            "delayed_or_partial",
+                            "poor",
+                            "unknown",
+                        ],
+                    ),
+                    (
+                        "fallback",
+                        &[
+                            "independent_tested_fallback",
+                            "human_fallback",
+                            "degraded_fallback",
+                            "no_verified_fallback",
+                            "unknown",
+                        ],
+                    ),
+                ];
+                for (key, allowed) in enums {
+                    if let Some(value) = risk_dims.get(key)
+                        && !allowed.contains(value)
+                    {
+                        issue(
+                            &mut out,
+                            "INVALID_RISK_DIMENSION",
+                            format!("/risk_assessment/dimensions/{key}"),
+                            "Unrecognized risk dimension value.",
+                        );
                     }
                 }
-            } else {
-                issue(&mut out, "MISSING_RISK_DIMENSIONS", "/risk_assessment/dimensions", "Risk dimensions are required.");
             }
-            if disposition == "qualified_for_profile" {
-                if class == "unassessed" {
-                    issue(&mut out, "QUALIFIED_WITH_UNASSESSED_RISK", "/risk_assessment/reviewed_class", "A qualified profile requires a reviewed risk class.");
-                }
-                if risk_dims.values().any(|value| *value == "unknown") {
-                    issue(&mut out, "QUALIFIED_WITH_UNKNOWN_RISK", "/risk_assessment/dimensions", "A qualified profile cannot retain unknown risk dimensions.");
-                }
-                match tier {
-                    "D2_delegated_planning" => {
-                        if !["constraint_gating", "selection"].contains(&risk_dims.get("model_influence").copied().unwrap_or("")) {
-                            issue(&mut out, "D2_RISK_INFLUENCE_MISMATCH", "/risk_assessment/dimensions/model_influence", "D2 requires a reviewed constraint-gating or selection influence.");
-                        }
-                        if !["independent_tested_fallback", "human_fallback"].contains(&risk_dims.get("fallback").copied().unwrap_or("")) {
-                            issue(&mut out, "D2_FALLBACK_INSUFFICIENT", "/risk_assessment/dimensions/fallback", "D2 requires a human or independently tested fallback.");
-                        }
+        } else {
+            issue(
+                &mut out,
+                "MISSING_RISK_DIMENSIONS",
+                "/risk_assessment/dimensions",
+                "Risk dimensions are required.",
+            );
+        }
+        if disposition == "qualified_for_profile" {
+            if class == "unassessed" {
+                issue(
+                    &mut out,
+                    "QUALIFIED_WITH_UNASSESSED_RISK",
+                    "/risk_assessment/reviewed_class",
+                    "A qualified profile requires a reviewed risk class.",
+                );
+            }
+            if risk_dims.values().any(|value| *value == "unknown") {
+                issue(
+                    &mut out,
+                    "QUALIFIED_WITH_UNKNOWN_RISK",
+                    "/risk_assessment/dimensions",
+                    "A qualified profile cannot retain unknown risk dimensions.",
+                );
+            }
+            match tier {
+                "D2_delegated_planning" => {
+                    if !["constraint_gating", "selection"]
+                        .contains(&risk_dims.get("model_influence").copied().unwrap_or(""))
+                    {
+                        issue(
+                            &mut out,
+                            "D2_RISK_INFLUENCE_MISMATCH",
+                            "/risk_assessment/dimensions/model_influence",
+                            "D2 requires a reviewed constraint-gating or selection influence.",
+                        );
                     }
-                    "D3_autonomous_control" => {
-                        if risk_dims.get("model_influence").copied() != Some("direct_actuation") {
-                            issue(&mut out, "D3_RISK_INFLUENCE_MISMATCH", "/risk_assessment/dimensions/model_influence", "D3 requires direct_actuation to be declared.");
-                        }
-                        if risk_dims.get("fallback").copied() != Some("independent_tested_fallback") {
-                            issue(&mut out, "D3_FALLBACK_INSUFFICIENT", "/risk_assessment/dimensions/fallback", "D3 requires an independently tested fallback.");
-                        }
+                    if !["independent_tested_fallback", "human_fallback"]
+                        .contains(&risk_dims.get("fallback").copied().unwrap_or(""))
+                    {
+                        issue(
+                            &mut out,
+                            "D2_FALLBACK_INSUFFICIENT",
+                            "/risk_assessment/dimensions/fallback",
+                            "D2 requires a human or independently tested fallback.",
+                        );
                     }
-                    _ => {}
                 }
+                "D3_autonomous_control" => {
+                    if risk_dims.get("model_influence").copied() != Some("direct_actuation") {
+                        issue(
+                            &mut out,
+                            "D3_RISK_INFLUENCE_MISMATCH",
+                            "/risk_assessment/dimensions/model_influence",
+                            "D3 requires direct_actuation to be declared.",
+                        );
+                    }
+                    if risk_dims.get("fallback").copied() != Some("independent_tested_fallback") {
+                        issue(
+                            &mut out,
+                            "D3_FALLBACK_INSUFFICIENT",
+                            "/risk_assessment/dimensions/fallback",
+                            "D3 requires an independently tested fallback.",
+                        );
+                    }
+                }
+                _ => {}
             }
         }
     }
@@ -687,60 +1252,83 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
     let (artifact_ids, roles) = validate_artifacts(profile, &mut out);
     validate_evidence(profile, &artifact_ids, &mut out);
     validate_authority(profile, &artifact_ids, &roles, &mut out);
-    if let Some(max_age) = profile.pointer("/authority/max_authority_snapshot_age_seconds") {
-        if max_age.as_u64().is_none() {
-            issue(
-                &mut out,
-                "INVALID_AUTHORITY_MAX_AGE_SECONDS",
-                "/authority/max_authority_snapshot_age_seconds",
-                "max_authority_snapshot_age_seconds must be a non-negative integer when present.",
-            );
-        }
+    if let Some(max_age) = profile.pointer("/authority/max_authority_snapshot_age_seconds")
+        && max_age.as_u64().is_none()
+    {
+        issue(
+            &mut out,
+            "INVALID_AUTHORITY_MAX_AGE_SECONDS",
+            "/authority/max_authority_snapshot_age_seconds",
+            "max_authority_snapshot_age_seconds must be a non-negative integer when present.",
+        );
     }
     validate_validity(profile, &mut out);
 
-    if let Some(envelope) = profile.get("operating_envelope") {
-        if object(envelope, "/operating_envelope", &mut out).is_some() {
-            for key in ["envelope_id", "domain_description", "out_of_domain_policy"] {
-                let _ = string(envelope, key, "/operating_envelope", &mut out);
-            }
-            if let Some(conditions) = array(envelope, "conditions", "/operating_envelope", &mut out) {
-                for (i, condition) in conditions.iter().enumerate() {
-                    let path = format!("/operating_envelope/conditions/{i}");
-                    if object(condition, &path, &mut out).is_some() {
-                        let minimum = condition.get("minimum").map(Value::as_f64);
-                        let maximum = condition.get("maximum").map(Value::as_f64);
-                        if condition.get("minimum").is_some() && minimum.flatten().is_none() {
-                            issue(&mut out, "INVALID_OPERATING_RANGE_BOUND", format!("{path}/minimum"), "minimum must be a finite JSON number.");
-                        }
-                        if condition.get("maximum").is_some() && maximum.flatten().is_none() {
-                            issue(&mut out, "INVALID_OPERATING_RANGE_BOUND", format!("{path}/maximum"), "maximum must be a finite JSON number.");
-                        }
-                        if let (Some(Some(min)), Some(Some(max))) = (minimum, maximum) {
-                            if !min.is_finite() || !max.is_finite() || min > max {
-                                issue(&mut out, "REVERSED_OPERATING_RANGE", &path, "When both bounds are supplied, minimum must be finite and no greater than maximum.");
-                            }
-                        }
-                        for key in ["variable", "unit", "support", "evidence_state"] {
-                            let _ = string(condition, key, &path, &mut out);
-                        }
-                        if let Some(max_age) = condition.get("max_age_seconds") {
-                            if max_age.as_u64().is_none() {
+    if let Some(envelope) = profile.get("operating_envelope")
+        && object(envelope, "/operating_envelope", &mut out).is_some()
+    {
+        for key in ["envelope_id", "domain_description", "out_of_domain_policy"] {
+            let _ = string(envelope, key, "/operating_envelope", &mut out);
+        }
+        if let Some(conditions) = array(envelope, "conditions", "/operating_envelope", &mut out) {
+            for (i, condition) in conditions.iter().enumerate() {
+                let path = format!("/operating_envelope/conditions/{i}");
+                if object(condition, &path, &mut out).is_some() {
+                    let minimum = condition.get("minimum").map(Value::as_f64);
+                    let maximum = condition.get("maximum").map(Value::as_f64);
+                    if condition.get("minimum").is_some() && minimum.flatten().is_none() {
+                        issue(
+                            &mut out,
+                            "INVALID_OPERATING_RANGE_BOUND",
+                            format!("{path}/minimum"),
+                            "minimum must be a finite JSON number.",
+                        );
+                    }
+                    if condition.get("maximum").is_some() && maximum.flatten().is_none() {
+                        issue(
+                            &mut out,
+                            "INVALID_OPERATING_RANGE_BOUND",
+                            format!("{path}/maximum"),
+                            "maximum must be a finite JSON number.",
+                        );
+                    }
+                    if let (Some(Some(min)), Some(Some(max))) = (minimum, maximum)
+                        && (!min.is_finite() || !max.is_finite() || min > max)
+                    {
+                        issue(
+                            &mut out,
+                            "REVERSED_OPERATING_RANGE",
+                            &path,
+                            "When both bounds are supplied, minimum must be finite and no greater than maximum.",
+                        );
+                    }
+                    for key in ["variable", "unit", "support", "evidence_state"] {
+                        let _ = string(condition, key, &path, &mut out);
+                    }
+                    if let Some(max_age) = condition.get("max_age_seconds")
+                        && max_age.as_u64().is_none()
+                    {
+                        issue(
+                            &mut out,
+                            "INVALID_MAX_AGE_SECONDS",
+                            format!("{path}/max_age_seconds"),
+                            "max_age_seconds must be a non-negative integer when present.",
+                        );
+                    }
+                    if let Some(source_ids) = condition
+                        .get("source_artifact_ids")
+                        .and_then(Value::as_array)
+                    {
+                        for (j, source) in source_ids.iter().enumerate() {
+                            if let Some(id) = source.as_str()
+                                && !artifact_ids.contains_key(id)
+                            {
                                 issue(
                                     &mut out,
-                                    "INVALID_MAX_AGE_SECONDS",
-                                    format!("{path}/max_age_seconds"),
-                                    "max_age_seconds must be a non-negative integer when present.",
+                                    "DANGLING_ENVELOPE_ARTIFACT",
+                                    format!("{path}/source_artifact_ids/{j}"),
+                                    "Source artifact ID is not bound.",
                                 );
-                            }
-                        }
-                        if let Some(source_ids) = condition.get("source_artifact_ids").and_then(Value::as_array) {
-                            for (j, source) in source_ids.iter().enumerate() {
-                                if let Some(id) = source.as_str() {
-                                    if !artifact_ids.contains_key(id) {
-                                        issue(&mut out, "DANGLING_ENVELOPE_ARTIFACT", format!("{path}/source_artifact_ids/{j}"), "Source artifact ID is not bound.");
-                                    }
-                                }
                             }
                         }
                     }
@@ -754,8 +1342,14 @@ pub fn validate_profile(profile: &Value) -> Vec<ValidationIssue> {
 }
 
 pub fn build_report(profile: &Value, issues: &[ValidationIssue]) -> Value {
-    let profile_id = profile.get("profile_id").and_then(Value::as_str).unwrap_or("unknown");
-    let disposition = profile.get("disposition").and_then(Value::as_str).unwrap_or("unknown");
+    let profile_id = profile
+        .get("profile_id")
+        .and_then(Value::as_str)
+        .unwrap_or("unknown");
+    let disposition = profile
+        .get("disposition")
+        .and_then(Value::as_str)
+        .unwrap_or("unknown");
     let valid = issues.is_empty();
     let status = if !valid {
         "PROFILE_CONTRACT_INVALID"
@@ -764,9 +1358,14 @@ pub fn build_report(profile: &Value, issues: &[ValidationIssue]) -> Value {
     } else {
         "PROFILE_CONTRACT_VALID_NOT_QUALIFIED"
     };
-    let issue_values: Vec<Value> = issues.iter().map(|i| serde_json::json!({
-        "code": i.code, "path": i.path, "message": i.message
-    })).collect();
+    let issue_values: Vec<Value> = issues
+        .iter()
+        .map(|i| {
+            serde_json::json!({
+                "code": i.code, "path": i.path, "message": i.message
+            })
+        })
+        .collect();
     serde_json::json!({
         "schema_version": "luminous.industry-assurance-validation-report.v0.1",
         "profile_id": profile_id,
@@ -786,7 +1385,10 @@ mod tests {
     use serde_json::{Value, json};
 
     fn fixture() -> Value {
-        serde_json::from_str(include_str!("../../../schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json")).unwrap()
+        serde_json::from_str(include_str!(
+            "../../../schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json"
+        ))
+        .unwrap()
     }
 
     fn artifact(id: &str, role: &str) -> Value {
@@ -803,7 +1405,8 @@ mod tests {
     fn make_qualified_d1() -> Value {
         let mut p = fixture();
         p["disposition"] = json!("qualified_for_profile");
-        p["authority"]["permitted_actions"] = json!(["view", "annotate", "recommend", "rank_options"]);
+        p["authority"]["permitted_actions"] =
+            json!(["view", "annotate", "recommend", "rank_options"]);
         p["authority"]["human_approval_required"] = json!(true);
         p["authority"]["actuation_enabled"] = json!(false);
         p["artifact_bindings"] = json!([artifact("evidence-001", "test_report")]);
@@ -826,7 +1429,6 @@ mod tests {
     fn has_code(issues: &[ValidationIssue], code: &str) -> bool {
         issues.iter().any(|i| i.code == code)
     }
-
 
     #[test]
     fn rejects_unknown_properties_at_every_closed_schema_object_boundary() {
@@ -851,7 +1453,9 @@ mod tests {
             let target = if object_path.is_empty() {
                 &mut profile
             } else {
-                profile.pointer_mut(object_path).expect("fixture object path must exist")
+                profile
+                    .pointer_mut(object_path)
+                    .expect("fixture object path must exist")
             };
             target
                 .as_object_mut()
@@ -861,7 +1465,9 @@ mod tests {
             let expected_path = format!("{object_path}/unexpected_future_field");
             let issues = validate_profile(&profile);
             assert!(
-                issues.iter().any(|entry| entry.code == "UNKNOWN_PROPERTY" && entry.path == expected_path),
+                issues
+                    .iter()
+                    .any(|entry| entry.code == "UNKNOWN_PROPERTY" && entry.path == expected_path),
                 "unknown property at {expected_path} was not rejected: {issues:#?}"
             );
         }
@@ -871,49 +1477,76 @@ mod tests {
     fn timestamps_are_checked_consistently_across_contract_evidence() {
         let mut risk_timestamp = make_qualified_d1();
         risk_timestamp["risk_assessment"]["reviewed_at"] = json!("2026-02-30T00:00:00Z");
-        assert!(has_code(&validate_profile(&risk_timestamp), "NONCANONICAL_TIMESTAMP"));
+        assert!(has_code(
+            &validate_profile(&risk_timestamp),
+            "NONCANONICAL_TIMESTAMP"
+        ));
 
         let mut evidence_timestamp = make_qualified_d1();
         evidence_timestamp["evidence_vector"]["software_conformance"]["evidence"][0]["observed_at"] =
             json!("2026-10-30T25:00:00Z");
-        assert!(has_code(&validate_profile(&evidence_timestamp), "NONCANONICAL_TIMESTAMP"));
+        assert!(has_code(
+            &validate_profile(&evidence_timestamp),
+            "NONCANONICAL_TIMESTAMP"
+        ));
 
         let mut validity_timestamp = make_qualified_d1();
         validity_timestamp["evidence_vector"]["software_conformance"]["reviewed_at"] =
             json!("2026-10-30T00:00:00+02:00");
-        assert!(has_code(&validate_profile(&validity_timestamp), "NONCANONICAL_TIMESTAMP"));
+        assert!(has_code(
+            &validate_profile(&validity_timestamp),
+            "NONCANONICAL_TIMESTAMP"
+        ));
 
         let mut expiry_timestamp = make_qualified_d1();
         expiry_timestamp["evidence_vector"]["software_conformance"]["evidence"][0]["valid_until"] =
             json!("not-a-date");
-        assert!(has_code(&validate_profile(&expiry_timestamp), "NONCANONICAL_TIMESTAMP"));
+        assert!(has_code(
+            &validate_profile(&expiry_timestamp),
+            "NONCANONICAL_TIMESTAMP"
+        ));
     }
 
     #[test]
     fn optional_timestamps_reject_non_string_values_when_present() {
         let mut reviewed_at = make_qualified_d1();
         reviewed_at["evidence_vector"]["software_conformance"]["reviewed_at"] = json!(123);
-        assert!(has_code(&validate_profile(&reviewed_at), "TIMESTAMP_STRING_REQUIRED"));
+        assert!(has_code(
+            &validate_profile(&reviewed_at),
+            "TIMESTAMP_STRING_REQUIRED"
+        ));
 
         let mut valid_until = make_qualified_d1();
         valid_until["evidence_vector"]["software_conformance"]["evidence"][0]["valid_until"] =
             json!(false);
-        assert!(has_code(&validate_profile(&valid_until), "TIMESTAMP_STRING_REQUIRED"));
+        assert!(has_code(
+            &validate_profile(&valid_until),
+            "TIMESTAMP_STRING_REQUIRED"
+        ));
     }
 
     #[test]
     fn authority_snapshot_freshness_policy_must_be_a_nonnegative_integer() {
         let mut profile = fixture();
         profile["authority"]["max_authority_snapshot_age_seconds"] = json!(-1);
-        assert!(has_code(&validate_profile(&profile), "INVALID_AUTHORITY_MAX_AGE_SECONDS"));
+        assert!(has_code(
+            &validate_profile(&profile),
+            "INVALID_AUTHORITY_MAX_AGE_SECONDS"
+        ));
 
         let mut profile = fixture();
         profile["authority"]["max_authority_snapshot_age_seconds"] = json!("300");
-        assert!(has_code(&validate_profile(&profile), "INVALID_AUTHORITY_MAX_AGE_SECONDS"));
+        assert!(has_code(
+            &validate_profile(&profile),
+            "INVALID_AUTHORITY_MAX_AGE_SECONDS"
+        ));
 
         let mut profile = fixture();
         profile["authority"]["max_authority_snapshot_age_seconds"] = json!(300);
-        assert!(!has_code(&validate_profile(&profile), "INVALID_AUTHORITY_MAX_AGE_SECONDS"));
+        assert!(!has_code(
+            &validate_profile(&profile),
+            "INVALID_AUTHORITY_MAX_AGE_SECONDS"
+        ));
     }
 
     #[test]
@@ -921,9 +1554,11 @@ mod tests {
         let mut profile = fixture();
         profile["operating_envelope"]["conditions"][0]["minimum"] = json!(20.0);
         profile["operating_envelope"]["conditions"][0]["maximum"] = json!(10.0);
-        assert!(has_code(&validate_profile(&profile), "REVERSED_OPERATING_RANGE"));
+        assert!(has_code(
+            &validate_profile(&profile),
+            "REVERSED_OPERATING_RANGE"
+        ));
     }
-
 
     #[test]
     fn synthetic_example_is_valid_but_not_qualified() {
@@ -932,7 +1567,11 @@ mod tests {
         assert!(issues.is_empty(), "{issues:#?}");
         let report = build_report(&p, &issues);
         assert_eq!(report["status"], "PROFILE_CONTRACT_VALID_NOT_QUALIFIED");
-        assert!(!report["independent_qualification_attested"].as_bool().unwrap());
+        assert!(
+            !report["independent_qualification_attested"]
+                .as_bool()
+                .unwrap()
+        );
     }
 
     #[test]
@@ -941,7 +1580,10 @@ mod tests {
         let issues = validate_profile(&p);
         assert!(issues.is_empty(), "{issues:#?}");
         let report = build_report(&p, &issues);
-        assert_eq!(report["status"], "PROFILE_CONTRACT_VALID_QUALIFICATION_NOT_INDEPENDENTLY_ATTESTED");
+        assert_eq!(
+            report["status"],
+            "PROFILE_CONTRACT_VALID_QUALIFICATION_NOT_INDEPENDENTLY_ATTESTED"
+        );
         assert_eq!(report["independent_qualification_attested"], false);
     }
 
@@ -983,7 +1625,8 @@ mod tests {
     #[test]
     fn duplicate_evidence_ids_fail_closed() {
         let mut p = make_qualified_d1();
-        let duplicate = p["evidence_vector"]["software_conformance"]["evidence"][0]["evidence_id"].clone();
+        let duplicate =
+            p["evidence_vector"]["software_conformance"]["evidence"][0]["evidence_id"].clone();
         p["evidence_vector"]["numerical_verification"]["evidence"][0]["evidence_id"] = duplicate;
         let issues = validate_profile(&p);
         assert!(has_code(&issues, "DUPLICATE_EVIDENCE_ID"));
@@ -1012,7 +1655,8 @@ mod tests {
         let mut p = make_qualified_d1();
         p["decision_tier"] = json!("D2_delegated_planning");
         p["risk_assessment"]["dimensions"]["model_influence"] = json!("selection");
-        p["authority"]["permitted_actions"] = json!(["view", "annotate", "schedule_within_envelope"]);
+        p["authority"]["permitted_actions"] =
+            json!(["view", "annotate", "schedule_within_envelope"]);
         let issues = validate_profile(&p);
         assert!(has_code(&issues, "MISSING_REQUIRED_ARTIFACT_ROLE"));
     }
@@ -1043,9 +1687,16 @@ mod tests {
         let mut p = make_qualified_d1();
         p["decision_tier"] = json!("D2_delegated_planning");
         p["risk_assessment"]["dimensions"]["model_influence"] = json!("selection");
-        p["authority"]["permitted_actions"] = json!(["view", "annotate", "schedule_within_envelope"]);
-        p["artifact_bindings"].as_array_mut().unwrap().push(artifact("verifier-001", "independent_verifier"));
-        p["artifact_bindings"].as_array_mut().unwrap().push(artifact("rollback-001", "rollback_plan"));
+        p["authority"]["permitted_actions"] =
+            json!(["view", "annotate", "schedule_within_envelope"]);
+        p["artifact_bindings"]
+            .as_array_mut()
+            .unwrap()
+            .push(artifact("verifier-001", "independent_verifier"));
+        p["artifact_bindings"]
+            .as_array_mut()
+            .unwrap()
+            .push(artifact("rollback-001", "rollback_plan"));
         p["authority"]["independent_verifier_artifact_id"] = json!("verifier-001");
         p["authority"]["rollback_plan_artifact_id"] = json!("rollback-001");
         let issues = validate_profile(&p);
@@ -1065,10 +1716,13 @@ mod tests {
             ("rollback-001", "rollback_plan"),
             ("safety-001", "safety_case"),
             ("authorization-001", "operational_authorization"),
-            ("cyber-001", "cybersecurity_assessment")
+            ("cyber-001", "cybersecurity_assessment"),
         ];
         for (id, role) in roles {
-            p["artifact_bindings"].as_array_mut().unwrap().push(artifact(id, role));
+            p["artifact_bindings"]
+                .as_array_mut()
+                .unwrap()
+                .push(artifact(id, role));
         }
         p["authority"]["independent_verifier_artifact_id"] = json!("verifier-001");
         p["authority"]["rollback_plan_artifact_id"] = json!("rollback-001");
@@ -1087,17 +1741,36 @@ mod tests {
         assert!(issues.is_empty(), "{issues:#?}");
     }
 
-
     #[test]
     fn profile_and_report_schemas_parse_with_expected_contract_versions() {
-        let schema: Value = serde_json::from_str(include_str!("../../../schemas/industry-assurance-qualification-profile-v0.1.schema.json")).unwrap();
-        let report_schema: Value = serde_json::from_str(include_str!("../../../schemas/industry-assurance-validation-report-v0.1.schema.json")).unwrap();
-        assert_eq!(schema["$schema"], "https://json-schema.org/draft/2020-12/schema");
-        assert_eq!(schema["properties"]["schema_version"]["const"], "luminous.industry-assurance-profile.v0.1");
-        assert_eq!(report_schema["properties"]["independent_qualification_attested"]["const"], false);
-        assert!(schema["properties"]["evidence_vector"]["required"].as_array().unwrap().len() == 10);
+        let schema: Value = serde_json::from_str(include_str!(
+            "../../../schemas/industry-assurance-qualification-profile-v0.1.schema.json"
+        ))
+        .unwrap();
+        let report_schema: Value = serde_json::from_str(include_str!(
+            "../../../schemas/industry-assurance-validation-report-v0.1.schema.json"
+        ))
+        .unwrap();
+        assert_eq!(
+            schema["$schema"],
+            "https://json-schema.org/draft/2020-12/schema"
+        );
+        assert_eq!(
+            schema["properties"]["schema_version"]["const"],
+            "luminous.industry-assurance-profile.v0.1"
+        );
+        assert_eq!(
+            report_schema["properties"]["independent_qualification_attested"]["const"],
+            false
+        );
+        assert!(
+            schema["properties"]["evidence_vector"]["required"]
+                .as_array()
+                .unwrap()
+                .len()
+                == 10
+        );
     }
-
 
     #[test]
     fn external_artifact_uses_uri_and_sha256_without_fake_git_fields() {
@@ -1122,7 +1795,6 @@ mod tests {
         assert!(has_code(&issues, "QUALIFIED_WITH_UNVERIFIED_RIGHTS"));
     }
 
-
     #[test]
     fn advisory_profile_cannot_make_physical_validation_optional() {
         let mut p = make_qualified_d1();
@@ -1130,7 +1802,6 @@ mod tests {
         let issues = validate_profile(&p);
         assert!(has_code(&issues, "TIER_MINIMUM_EVIDENCE_NOT_MET"));
     }
-
 
     #[test]
     fn utc_timestamp_rejects_impossible_calendar_components() {
@@ -1145,9 +1816,9 @@ mod tests {
         let mut p = make_qualified_d1();
         let issues = validate_profile(&p);
         assert!(issues.is_empty(), "{issues:#?}");
-        p["artifact_bindings"][0]["content_sha256"] = json!("dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd");
+        p["artifact_bindings"][0]["content_sha256"] =
+            json!("dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd");
         let second = validate_profile(&p);
         assert!(second.is_empty(), "{second:#?}");
     }
-
 }

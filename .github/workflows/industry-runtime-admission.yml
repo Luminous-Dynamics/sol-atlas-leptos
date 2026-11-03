@@ -9,6 +9,9 @@ on:
       - "schemas/industry-runtime-profile-pin-v0.1.schema.json"
       - "schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json"
       - "schemas/examples/industry-runtime-admission-*.json"
+      - "schemas/industry-federated-evidence-reference-v0.1.schema.json"
+      - "schemas/examples/ieac-federated-evidence-reference-synthetic-v0.1.json"
+      - "docs/industry/ITIP_FEDERATED_EVIDENCE_REFERENCE_V0.1.md"
       - "schemas/industry-assurance-qualification-profile-v0.1.schema.json"
       - "schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json"
       - "docs/industry/IEAC_RUNTIME_ADMISSION_V0.1.md"
@@ -24,6 +27,9 @@ on:
       - "schemas/industry-runtime-profile-pin-v0.1.schema.json"
       - "schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json"
       - "schemas/examples/industry-runtime-admission-*.json"
+      - "schemas/industry-federated-evidence-reference-v0.1.schema.json"
+      - "schemas/examples/ieac-federated-evidence-reference-synthetic-v0.1.json"
+      - "docs/industry/ITIP_FEDERATED_EVIDENCE_REFERENCE_V0.1.md"
       - "schemas/industry-assurance-qualification-profile-v0.1.schema.json"
       - "schemas/examples/industry-assurance-qualification-profile-synthetic-v0.1.json"
       - ".github/workflows/industry-runtime-admission.yml"
@@ -44,6 +50,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Assert exact source revision
@@ -55,6 +62,27 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+
+      - name: Generate Rust formatting candidates in an isolated worktree (non-qualifying aid)
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          candidate="$RUNNER_TEMP/ieac-rustfmt-candidates"
+          git worktree add --detach "$candidate" "$EXPECTED_SHA"
+          cargo fmt --manifest-path "$candidate/tools/industry-assurance-validator/Cargo.toml"
+          cargo fmt --manifest-path "$candidate/tools/industry-runtime-admission/Cargo.toml"
+
+      - name: Upload formatted Rust source candidates
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ieac-rustfmt-candidates
+          path: |
+            ${{ runner.temp }}/ieac-rustfmt-candidates/tools/industry-assurance-validator/src
+            ${{ runner.temp }}/ieac-rustfmt-candidates/tools/industry-runtime-admission/src
+          if-no-files-found: error
+          retention-days: 3
 
       - name: Check formatting
         run: |
@@ -76,7 +104,7 @@ jobs:
           pin=schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json
           request=schemas/examples/industry-runtime-admission-request-synthetic-v0.1.json
           report="$RUNNER_TEMP/runtime-admission-report.json"
-          cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked -- "$profile" "$pin" "$request" "$report"
+          cargo run --manifest-path tools/industry-runtime-admission/Cargo.toml --locked --bin industry-runtime-admission -- "$profile" "$pin" "$request" "$report"
           jq -e '
             .schema_version == "luminous.ieac-runtime-admission-report.v0.1" and
             .admission == "admit_descriptive" and
@@ -137,6 +165,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Assert exact source revision
@@ -164,24 +193,29 @@ jobs:
         run: |
           set -euo pipefail
           meta=https://json-schema.org/draft/2020-12/schema
-          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-assurance-qualification-profile-v0.1.schema.json
-          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-runtime-admission-request-v0.1.schema.json
-          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-runtime-admission-report-v0.1.schema.json
-          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-runtime-profile-pin-v0.1.schema.json
+          meta_schema="$RUNNER_TEMP/draft-2020-12-meta-schema.json"
+          curl --fail --location --retry 5 --retry-connrefused "$meta" -o "$meta_schema"
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i schemas/industry-assurance-qualification-profile-v0.1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i schemas/industry-runtime-admission-request-v0.1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i schemas/industry-runtime-admission-report-v0.1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i schemas/industry-runtime-profile-pin-v0.1.schema.json
 
       - name: Validate the frozen admission benchmark manifest against IBAP v0.1
         run: |
           set -euo pipefail
-          jsonschema-cli validate --draft 2020 --assert-format --offline \\
-            .ibap-contract/schemas/industrial-benchmark-run-manifest-v0.1.schema.json \\
+          jsonschema-cli validate --draft 2020 --assert-format --offline \
+            .ibap-contract/schemas/industrial-benchmark-run-manifest-v0.1.schema.json \
             -i schemas/examples/ieac-runtime-admission-benchmark-manifest-synthetic-v0.1.json
 
       - name: Validate the runtime profile and request fixtures
         run: |
           set -euo pipefail
+          meta_schema="$RUNNER_TEMP/draft-2020-12-meta-schema.json"
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-assurance-qualification-profile-v0.1.schema.json -i schemas/examples/industry-runtime-admission-profile-synthetic-v0.1.json
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-runtime-admission-request-v0.1.schema.json -i schemas/examples/industry-runtime-admission-request-synthetic-v0.1.json
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-runtime-profile-pin-v0.1.schema.json -i schemas/examples/industry-runtime-profile-pin-synthetic-v0.1.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i schemas/industry-federated-evidence-reference-v0.1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-federated-evidence-reference-v0.1.schema.json -i schemas/examples/ieac-federated-evidence-reference-synthetic-v0.1.json
           jq '.snapshot.conditions = []' schemas/examples/industry-runtime-admission-request-synthetic-v0.1.json > "$RUNNER_TEMP/empty-measurements.json"
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-runtime-admission-request-v0.1.schema.json -i "$RUNNER_TEMP/empty-measurements.json"
 
