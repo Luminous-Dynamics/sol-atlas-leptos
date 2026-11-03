@@ -1258,7 +1258,7 @@ mod tests {
                 .insert(component.name.as_str(), component.value.as_str())
                 .is_none());
         }
-        let mut encoded = b"LUMINOUS-IEAC-NODE-IDENTITY-V0.2\\0".to_vec();
+        let mut encoded = b"LUMINOUS-IEAC-NODE-IDENTITY-V0.2\0".to_vec();
         let mut append = |value: &str| {
             encoded.extend_from_slice(&(value.len() as u64).to_be_bytes());
             encoded.extend_from_slice(value.as_bytes());
