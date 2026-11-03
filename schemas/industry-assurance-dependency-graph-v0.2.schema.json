@@ -318,11 +318,11 @@
           },
           "from_node_id": {
             "type": "string",
-            "pattern": "^[a-z][a-z0-9_-]*:sha256:[0-9a-f]{64}$"
+            "pattern": "^[a-z][a-z0-9_-]*:identity-sha256:[0-9a-f]{64}$"
           },
           "to_node_id": {
             "type": "string",
-            "pattern": "^[a-z][a-z0-9_-]*:sha256:[0-9a-f]{64}$"
+            "pattern": "^[a-z][a-z0-9_-]*:identity-sha256:[0-9a-f]{64}$"
           },
           "relation": {
             "enum": [
