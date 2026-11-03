@@ -186,9 +186,7 @@ fn validate_input(
     if input.minimum_shared_months == 0 || input.top_m_months > input.minimum_shared_months {
         return Err(DirectionalSpectralTransferError::InvalidMinimumSharedMonths);
     }
-    if input.months.len() < input.minimum_shared_months
-        || input.months.len() < input.top_m_months
-    {
+    if input.months.len() < input.minimum_shared_months || input.months.len() < input.top_m_months {
         return Err(DirectionalSpectralTransferError::InsufficientSharedMonths {
             found: input.months.len(),
             required: input.minimum_shared_months.max(input.top_m_months),
@@ -206,19 +204,25 @@ fn validate_input(
             return Err(DirectionalSpectralTransferError::MonthsNotStrictlyIncreasing);
         }
         if month.source_archaeological_sample_count == 0 {
-            return Err(DirectionalSpectralTransferError::EmptySourceArchaeologicalCluster {
-                month_ordinal: month.month_ordinal,
-            });
+            return Err(
+                DirectionalSpectralTransferError::EmptySourceArchaeologicalCluster {
+                    month_ordinal: month.month_ordinal,
+                },
+            );
         }
         if month.target_archaeological_sample_count == 0 {
-            return Err(DirectionalSpectralTransferError::EmptyTargetArchaeologicalCluster {
-                month_ordinal: month.month_ordinal,
-            });
+            return Err(
+                DirectionalSpectralTransferError::EmptyTargetArchaeologicalCluster {
+                    month_ordinal: month.month_ordinal,
+                },
+            );
         }
         if month.target_vegetated_control_sample_count == 0 {
-            return Err(DirectionalSpectralTransferError::EmptyTargetControlCluster {
-                month_ordinal: month.month_ordinal,
-            });
+            return Err(
+                DirectionalSpectralTransferError::EmptyTargetControlCluster {
+                    month_ordinal: month.month_ordinal,
+                },
+            );
         }
         if !month.archaeological_to_archaeological_distance.is_finite()
             || month.archaeological_to_archaeological_distance <= 0.0
@@ -229,9 +233,8 @@ fn validate_input(
                 month_ordinal: month.month_ordinal,
             });
         }
-        let ratio =
-            month.archaeological_to_archaeological_distance
-                / month.archaeological_to_control_distance;
+        let ratio = month.archaeological_to_archaeological_distance
+            / month.archaeological_to_control_distance;
         let reciprocal = 1.0 / ratio;
         if !ratio.is_finite() || ratio <= 0.0 || !reciprocal.is_finite() || reciprocal <= 0.0 {
             return Err(DirectionalSpectralTransferError::InvalidDirectionalRatio {
@@ -373,9 +376,16 @@ pub enum DssCorrelationError {
     EmptySiteId,
     SourceAndTargetMustDiffer,
     DuplicatePairId(String),
-    DuplicateDirectedSitePair { source_site_id: String, target_site_id: String },
-    InvalidDssValue { pair_id: String },
-    InvalidObservedTransferValue { pair_id: String },
+    DuplicateDirectedSitePair {
+        source_site_id: String,
+        target_site_id: String,
+    },
+    InvalidDssValue {
+        pair_id: String,
+    },
+    InvalidObservedTransferValue {
+        pair_id: String,
+    },
 }
 
 impl fmt::Display for DssCorrelationError {
@@ -394,7 +404,9 @@ fn average_ranks(values: &[f64]) -> Vec<f64> {
     while start < indices.len() {
         let mut end = start + 1;
         while end < indices.len()
-            && values[indices[start]].total_cmp(&values[indices[end]]).is_eq()
+            && values[indices[start]]
+                .total_cmp(&values[indices[end]])
+                .is_eq()
         {
             end += 1;
         }
@@ -466,18 +478,14 @@ fn validate_correlation_pairs(
         if pair.source_site_id == pair.target_site_id {
             return Err(DssCorrelationError::SourceAndTargetMustDiffer);
         }
-        if !directed_site_pairs.insert((
-            pair.source_site_id.as_str(),
-            pair.target_site_id.as_str(),
-        )) {
+        if !directed_site_pairs.insert((pair.source_site_id.as_str(), pair.target_site_id.as_str()))
+        {
             return Err(DssCorrelationError::DuplicateDirectedSitePair {
                 source_site_id: pair.source_site_id.clone(),
                 target_site_id: pair.target_site_id.clone(),
             });
         }
-        if !pair.directional_strength_score.is_finite()
-            || pair.directional_strength_score <= 0.0
-        {
+        if !pair.directional_strength_score.is_finite() || pair.directional_strength_score <= 0.0 {
             return Err(DssCorrelationError::InvalidDssValue {
                 pair_id: pair.pair_id.clone(),
             });
@@ -514,8 +522,7 @@ pub fn evaluate_dss_transfer_correlation(
             .pairs
             .iter()
             .filter(|pair| {
-                pair.source_site_id != *excluded_site_id
-                    && pair.target_site_id != *excluded_site_id
+                pair.source_site_id != *excluded_site_id && pair.target_site_id != *excluded_site_id
             })
             .cloned()
             .collect::<Vec<_>>();
@@ -551,7 +558,11 @@ mod tests {
         i64::from(year) * 12 + i64::from(month) - 1
     }
 
-    fn dss_input(source: &str, target: &str, distances: &[(u8, f64, f64)]) -> DirectionalSpectralTransferInput {
+    fn dss_input(
+        source: &str,
+        target: &str,
+        distances: &[(u8, f64, f64)],
+    ) -> DirectionalSpectralTransferInput {
         DirectionalSpectralTransferInput {
             pair_id: format!("{source}->{target}"),
             source_site_id: source.into(),
@@ -565,35 +576,56 @@ mod tests {
             phenophase_filter_ref: "urn:synthetic:ndvi-phenophase-filter".into(),
             top_m_months: 2,
             minimum_shared_months: 3,
-            months: distances.iter().map(|(month_id, aa, ah)| SpectralMonthlyDistances {
-                month_ordinal: month(2020, *month_id),
-                source_archaeological_sample_count: 20,
-                target_archaeological_sample_count: 18,
-                target_vegetated_control_sample_count: 25,
-                archaeological_to_archaeological_distance: *aa,
-                archaeological_to_control_distance: *ah,
-            }).collect(),
+            months: distances
+                .iter()
+                .map(|(month_id, aa, ah)| SpectralMonthlyDistances {
+                    month_ordinal: month(2020, *month_id),
+                    source_archaeological_sample_count: 20,
+                    target_archaeological_sample_count: 18,
+                    target_vegetated_control_sample_count: 25,
+                    archaeological_to_archaeological_distance: *aa,
+                    archaeological_to_control_distance: *ah,
+                })
+                .collect(),
         }
     }
 
     #[test]
     fn published_top_m_reciprocal_strength_formula_is_computed_exactly() {
-        let input = dss_input("site-a", "site-b", &[
-            (3, 1.0, 4.0),
-            (4, 2.0, 4.0),
-            (5, 3.0, 3.0),
-        ]);
+        let input = dss_input(
+            "site-a",
+            "site-b",
+            &[(3, 1.0, 4.0), (4, 2.0, 4.0), (5, 3.0, 3.0)],
+        );
         let report = evaluate_directional_spectral_transfer(&input).unwrap();
-        assert_eq!(report.selected_month_ordinals, vec![month(2020, 3), month(2020, 4)]);
+        assert_eq!(
+            report.selected_month_ordinals,
+            vec![month(2020, 3), month(2020, 4)]
+        );
         assert!((report.directional_strength_score - 3.0).abs() < 1e-12);
-        assert_eq!(report.months.iter().filter(|item| item.selected_in_top_m).count(), 2);
+        assert_eq!(
+            report
+                .months
+                .iter()
+                .filter(|item| item.selected_in_top_m)
+                .count(),
+            2
+        );
         assert!(report.primary_cross_site_generalization_eligible);
     }
 
     #[test]
     fn source_to_target_and_target_to_source_are_distinct_results() {
-        let forward = dss_input("site-a", "site-b", &[(3, 1.0, 4.0), (4, 2.0, 4.0), (5, 3.0, 3.0)]);
-        let reverse = dss_input("site-b", "site-a", &[(3, 3.0, 3.0), (4, 2.0, 4.0), (5, 1.0, 4.0)]);
+        let forward = dss_input(
+            "site-a",
+            "site-b",
+            &[(3, 1.0, 4.0), (4, 2.0, 4.0), (5, 3.0, 3.0)],
+        );
+        let reverse = dss_input(
+            "site-b",
+            "site-a",
+            &[(3, 3.0, 3.0), (4, 2.0, 4.0), (5, 1.0, 4.0)],
+        );
         let f = evaluate_directional_spectral_transfer(&forward).unwrap();
         let r = evaluate_directional_spectral_transfer(&reverse).unwrap();
         assert_ne!(f.directional_strength_score, r.directional_strength_score);
@@ -603,14 +635,25 @@ mod tests {
 
     #[test]
     fn tied_month_ratios_use_earliest_month_as_deterministic_tiebreak() {
-        let input = dss_input("site-a", "site-b", &[(3, 1.0, 2.0), (4, 2.0, 4.0), (5, 1.0, 2.0)]);
+        let input = dss_input(
+            "site-a",
+            "site-b",
+            &[(3, 1.0, 2.0), (4, 2.0, 4.0), (5, 1.0, 2.0)],
+        );
         let report = evaluate_directional_spectral_transfer(&input).unwrap();
-        assert_eq!(report.selected_month_ordinals, vec![month(2020, 3), month(2020, 4)]);
+        assert_eq!(
+            report.selected_month_ordinals,
+            vec![month(2020, 3), month(2020, 4)]
+        );
     }
 
     #[test]
     fn pixel_random_split_is_retained_but_not_primary_generalization_eligible() {
-        let mut input = dss_input("site-a", "site-b", &[(3, 1.0, 4.0), (4, 2.0, 4.0), (5, 3.0, 3.0)]);
+        let mut input = dss_input(
+            "site-a",
+            "site-b",
+            &[(3, 1.0, 4.0), (4, 2.0, 4.0), (5, 3.0, 3.0)],
+        );
         input.split_protocol = TransferSplitProtocol::PixelRandomInterpolation;
         let report = evaluate_directional_spectral_transfer(&input).unwrap();
         assert!(!report.primary_cross_site_generalization_eligible);
@@ -644,7 +687,11 @@ mod tests {
             evaluate_directional_spectral_transfer(&input),
             Err(DirectionalSpectralTransferError::InsufficientSharedMonths { .. })
         ));
-        input = dss_input("site-a", "site-b", &[(3, 1.0, 4.0), (4, 2.0, 4.0), (5, 3.0, 3.0)]);
+        input = dss_input(
+            "site-a",
+            "site-b",
+            &[(3, 1.0, 4.0), (4, 2.0, 4.0), (5, 3.0, 3.0)],
+        );
         input.months[2].month_ordinal = input.months[1].month_ordinal;
         assert_eq!(
             evaluate_directional_spectral_transfer(&input),
@@ -675,15 +722,19 @@ mod tests {
         ];
         DssCorrelationInput {
             outcome_metric: TransferOutcomeMetric::PrecisionRecallAuc,
-            pairs: pairs.iter().enumerate().map(|(index, (source, target, dss, observed))| {
-                ObservedTransferPair {
-                    pair_id: format!("pair-{index}"),
-                    source_site_id: (*source).into(),
-                    target_site_id: (*target).into(),
-                    directional_strength_score: *dss,
-                    observed_transfer_value: *observed,
-                }
-            }).collect(),
+            pairs: pairs
+                .iter()
+                .enumerate()
+                .map(
+                    |(index, (source, target, dss, observed))| ObservedTransferPair {
+                        pair_id: format!("pair-{index}"),
+                        source_site_id: (*source).into(),
+                        target_site_id: (*target).into(),
+                        directional_strength_score: *dss,
+                        observed_transfer_value: *observed,
+                    },
+                )
+                .collect(),
         }
     }
 
@@ -696,7 +747,12 @@ mod tests {
         assert!(!report.directed_pairs_are_independent);
         assert_eq!(report.confidence_interval, None);
         assert_eq!(report.site_leave_out.len(), 4);
-        assert!(report.site_leave_out.iter().all(|item| item.spearman_rho == Some(1.0)));
+        assert!(
+            report
+                .site_leave_out
+                .iter()
+                .all(|item| item.spearman_rho == Some(1.0))
+        );
     }
 
     #[test]
@@ -711,15 +767,19 @@ mod tests {
         ];
         let input = DssCorrelationInput {
             outcome_metric: TransferOutcomeMetric::F1,
-            pairs: pairs.iter().enumerate().map(|(index, (source, target, dss, observed))| {
-                ObservedTransferPair {
-                    pair_id: format!("tie-{index}"),
-                    source_site_id: (*source).into(),
-                    target_site_id: (*target).into(),
-                    directional_strength_score: *dss,
-                    observed_transfer_value: *observed,
-                }
-            }).collect(),
+            pairs: pairs
+                .iter()
+                .enumerate()
+                .map(
+                    |(index, (source, target, dss, observed))| ObservedTransferPair {
+                        pair_id: format!("tie-{index}"),
+                        source_site_id: (*source).into(),
+                        target_site_id: (*target).into(),
+                        directional_strength_score: *dss,
+                        observed_transfer_value: *observed,
+                    },
+                )
+                .collect(),
         };
         let report = evaluate_dss_transfer_correlation(&input).unwrap();
         assert_eq!(report.spearman_rho, Some(1.0));
