@@ -322,6 +322,10 @@ fn append_identity_field(encoded: &mut Vec<u8>, value: &str) {
     encoded.extend_from_slice(value.as_bytes());
 }
 
+/// Hash owner-native identity independently from graph/case membership.
+/// The case-bound catalogue separately proves which typed case record the
+/// descriptor describes; it must not make a reused source record acquire a
+/// different native identity in another case.
 fn identity_digest(descriptor: &SourceRecordDescriptor) -> Result<String, String> {
     if descriptor.owner_namespace.trim().is_empty()
         || descriptor.owner_namespace.len() > 1024
