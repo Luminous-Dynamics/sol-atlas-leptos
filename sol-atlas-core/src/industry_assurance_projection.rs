@@ -1799,6 +1799,62 @@ mod tests {
         }
     }
 
+    fn independent_sha256(bytes: &[u8]) -> String {
+        use sha2::Digest as _;
+        let digest = sha2::Sha256::digest(bytes);
+        digest.iter().map(|byte| format!("{byte:02x}")).collect()
+    }
+
+    fn append_independent_identity_field(encoded: &mut Vec<u8>, value: &str) {
+        encoded.extend_from_slice(&(value.len() as u64).to_be_bytes());
+        encoded.extend_from_slice(value.as_bytes());
+    }
+
+    #[test]
+    fn graph_identity_and_snapshot_digests_match_independent_recomputation() {
+        let output = project_built_environment_case(&sample_case(), &context());
+        let nodes = output.graph["nodes"].as_array().unwrap();
+
+        for node in nodes {
+            let node_type = node["node_type"].as_str().unwrap();
+            let identity_namespace = node["identity"]["identity_namespace"].as_str().unwrap();
+            let mut components = node["identity"]["components"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|component| (
+                    component["name"].as_str().unwrap().to_owned(),
+                    component["value"].as_str().unwrap().to_owned(),
+                ))
+                .collect::<Vec<_>>();
+            components.sort_by(|left, right| left.0.cmp(&right.0));
+
+            let mut encoded = b"LUMINOUS-IEAC-NODE-IDENTITY-V0.2\\0".to_vec();
+            append_independent_identity_field(&mut encoded, node_type);
+            append_independent_identity_field(&mut encoded, identity_namespace);
+            for (name, value) in components {
+                append_independent_identity_field(&mut encoded, &name);
+                append_independent_identity_field(&mut encoded, &value);
+            }
+
+            let expected_identity = independent_sha256(&encoded);
+            assert_eq!(node["identity_sha256"], expected_identity);
+            assert_eq!(
+                node["node_id"],
+                format!("{node_type}:identity-sha256:{expected_identity}")
+            );
+        }
+
+        let mut graph_core = output.graph.clone();
+        graph_core.as_object_mut().unwrap().remove("graph_snapshot_sha256");
+        let expected_graph_digest =
+            independent_sha256(&serde_json::to_vec(&graph_core).unwrap());
+        assert_eq!(
+            output.graph["graph_snapshot_sha256"],
+            expected_graph_digest
+        );
+    }
+
     #[test]
     fn unmodeled_source_media_type_and_schema_are_explicit_projection_losses() {
         let result = project_built_environment_case(&sample_case(), &context());
