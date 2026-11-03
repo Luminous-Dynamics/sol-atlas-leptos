@@ -27,7 +27,7 @@ Reachability answers **what may need review**. It does not grant the event issue
 - `industry-assurance-impact-delta-batch-v0.1.schema.json`: one output envelope carrying all deltas, final full report and next state pin.
 - `ieac-impact-delta-source-correction-synthetic-v0.1.json`: schema-valid synthetic event fixture.
 
-The batch runner validates and indexes the graph once, initializes one mutable impact-row map, applies each event's sparse changes in place, and materializes the final full report once at the batch boundary. It enforces a cumulative limit of 2,000,000 affected-node visits per batch. The tool reuses the main lifecycle auditor's strict duplicate-member parser, graph/event validators and exact impact-row classifier. It does not create a second event vocabulary or signature format.
+The batch runner validates and indexes the graph once, initializes one mutable impact-row map, applies each event's sparse changes in place, and materializes the final full report once at the batch boundary. It enforces a cumulative limit of 2,000,000 affected-node closure memberships per batch. The tool reuses the main lifecycle auditor's strict duplicate-member parser, graph/event validators and exact impact-row classifier. It does not create a second event vocabulary or signature format.
 
 ## 3. State and event binding
 
@@ -142,7 +142,7 @@ Do not set an arbitrary speed-up target before baseline measurements. Publish ra
 - delta application reconstructs the exact expected full-report digest;
 - one graph-index construction and one mutable row-map initialization per batch, reused for all accepted events;
 - exactly one full-report materialization at the batch boundary;
-- cumulative affected-node visits at or below the v0.1 budget of 2,000,000;
+- cumulative affected-node closure memberships at or below the v0.1 budget of 2,000,000;
 - unknown or unauthenticated trust state never silently becomes accepted.
 
 **P1 — incremental benefit**
