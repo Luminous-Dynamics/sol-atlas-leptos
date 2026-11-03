@@ -895,12 +895,6 @@ pub(crate) fn build_impact_report(
             "invalidation event was not trusted/effective at the requested evaluation time".into(),
         );
     }
-    let event_scope = event.get("scope").ok_or("event scope missing")?;
-    let targets = event
-        .get("targets")
-        .and_then(Value::as_array)
-        .ok_or_else(|| "event.targets must be an array".to_owned())?;
-
     let adjacency = build_forward_adjacency(graph)?;
     let impacted_results = build_impacted_results_with_adjacency(
         event,
