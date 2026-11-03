@@ -1829,7 +1829,7 @@ mod tests {
                 .collect::<Vec<_>>();
             components.sort_by(|left, right| left.0.cmp(&right.0));
 
-            let mut encoded = b"LUMINOUS-IEAC-NODE-IDENTITY-V0.2\\0".to_vec();
+            let mut encoded = b"LUMINOUS-IEAC-NODE-IDENTITY-V0.2\0".to_vec();
             append_independent_identity_field(&mut encoded, node_type);
             append_independent_identity_field(&mut encoded, identity_namespace);
             for (name, value) in components {
