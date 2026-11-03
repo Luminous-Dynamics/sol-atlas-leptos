@@ -199,6 +199,10 @@ pub struct InventoryValidation {
     pub source_truth: String,
     /// The result is bounded to the manifest's exact declared query and snapshot.
     pub claim_scope: String,
+    /// Always false in this structural verifier. Inventory consistency is not
+    /// sufficient to establish source truth or a decision-level NoImpact claim.
+    pub no_impact_eligible: bool,
+    pub no_impact_blockers: Vec<String>,
     pub findings: Vec<InventoryFinding>,
 }
 
@@ -1092,6 +1096,15 @@ pub fn validate_source_inventory_manifest(
         source_attestation_authentication: "not_performed".into(),
         source_truth: "not_established".into(),
         claim_scope: "declared_source_query_and_snapshot_only".into(),
+        no_impact_eligible: false,
+        no_impact_blockers: vec![
+            "source_page_payload_bytes_not_independently_retrieved_or_hashed".into(),
+            "source_attestation_authentication_not_performed".into(),
+            "source_signer_authority_not_established".into(),
+            "source_truth_not_established".into(),
+            "source_universe_completeness_not_established".into(),
+            "downstream_dependency_scope_and_decision_freshness_not_verified".into(),
+        ],
         findings: findings.rows(),
     }
 }
@@ -1235,6 +1248,10 @@ pub struct InventoryClosureValidation {
     /// The caller-supplied owner register and exact query/snapshot manifests;
     /// never a claim that all real-world source owners are known.
     pub claim_scope: String,
+    /// Always false until independent trust, source truth, expected-owner
+    /// register adequacy and downstream dependency completeness are qualified.
+    pub no_impact_eligible: bool,
+    pub no_impact_blockers: Vec<String>,
     pub findings: Vec<InventoryFinding>,
 }
 
@@ -1364,6 +1381,15 @@ pub fn validate_source_inventory_closure(
         owner_presence,
         per_manifest_validations,
         claim_scope: "caller_supplied_required_owner_set_and_declared_query_snapshots_only".into(),
+        no_impact_eligible: false,
+        no_impact_blockers: vec![
+            "expected_owner_register_adequacy_not_independently_established".into(),
+            "source_attestation_authentication_not_performed".into(),
+            "source_signer_authority_not_established".into(),
+            "source_payload_bytes_not_independently_retrieved_or_hashed".into(),
+            "source_truth_not_established".into(),
+            "dependency_graph_and_decision_freshness_not_verified_by_inventory_closure".into(),
+        ],
         findings: findings.rows(),
     }
 }
@@ -1777,6 +1803,35 @@ mod tests {
             InventoryClosureDisposition::CompleteWithDeclaredExclusions
         );
         assert_eq!(closure.complete_with_exclusions_count, 1);
+    }
+
+    #[test]
+    fn complete_inventory_never_grants_no_impact_eligibility() {
+        let manifest = valid_manifest();
+        let manifest_result = validate_source_inventory_manifest(&manifest);
+        assert_eq!(
+            manifest_result.disposition,
+            InventoryDisposition::CompleteWithinDeclaredQuery
+        );
+        assert!(!manifest_result.no_impact_eligible);
+        assert!(manifest_result.no_impact_blockers.iter().any(|blocker| {
+            blocker == "source_attestation_authentication_not_performed"
+        }));
+
+        let expected = vec![ExpectedSourceOwner {
+            owner_namespace: manifest.source_owner_namespace.clone(),
+            source_system_id: manifest.source_system_id.clone(),
+            required: true,
+        }];
+        let closure = validate_source_inventory_closure(&expected, &[manifest]);
+        assert_eq!(
+            closure.disposition,
+            InventoryClosureDisposition::CompleteWithinDeclaredOwnerSet
+        );
+        assert!(!closure.no_impact_eligible);
+        assert!(closure.no_impact_blockers.iter().any(|blocker| {
+            blocker == "expected_owner_register_adequacy_not_independently_established"
+        }));
     }
 
     #[test]
