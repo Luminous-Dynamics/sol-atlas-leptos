@@ -1254,9 +1254,11 @@ mod tests {
         };
         let mut components = BTreeMap::new();
         for component in &descriptor.native_identity_components {
-            assert!(components
-                .insert(component.name.as_str(), component.value.as_str())
-                .is_none());
+            assert!(
+                components
+                    .insert(component.name.as_str(), component.value.as_str())
+                    .is_none()
+            );
         }
         let mut encoded = b"LUMINOUS-IEAC-NODE-IDENTITY-V0.2\0".to_vec();
         let mut append = |value: &str| {
@@ -1776,13 +1778,10 @@ mod tests {
         let source_catalog = catalog(&source_case);
         let validation = validate_source_descriptor_catalog(&source_case, &source_catalog);
         for descriptor in &source_catalog.descriptors {
-            let key = descriptor
-                .record_kind
-                .case_key(&descriptor.case_record_id);
+            let key = descriptor.record_kind.case_key(&descriptor.case_record_id);
             let expected = independent_identity_reference(descriptor);
             assert_eq!(
-                validation.identity_sha256_by_case_record[&key],
-                expected,
+                validation.identity_sha256_by_case_record[&key], expected,
                 "independent identity vector mismatch for {key}"
             );
         }
@@ -1809,7 +1808,10 @@ mod tests {
                 .unwrap();
             component.value = revision.to_string();
             let actual = independent_identity_reference(&source);
-            assert_ne!(actual, baseline, "revision mutation {revision} collapsed to baseline identity");
+            assert_ne!(
+                actual, baseline,
+                "revision mutation {revision} collapsed to baseline identity"
+            );
             assert!(
                 seen.insert(actual),
                 "revision mutation {revision} collided with another native identity"
