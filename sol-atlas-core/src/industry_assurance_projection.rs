@@ -93,6 +93,7 @@ pub struct DescriptorProjectionOutput {
 pub struct InventoryQualifiedProjectionOutput {
     pub descriptor_validation: DescriptorValidation,
     pub inventory_validation: InventoryClosureValidation,
+    pub descriptor_inventory_binding: DescriptorInventoryBindingValidation,
     /// The graph remains descriptive. An incomplete or invalid inventory
     /// lowers its claim ceiling; this API never authorizes NoImpact.
     pub projection: ProjectionOutput,
