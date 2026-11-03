@@ -120,6 +120,20 @@ A vendor's unexportable internal relationships are unassessed, not missing; inac
 
 Do not advertise a commercial baseline as tested until its exact version, configuration, input corpus, hardware and raw result artifacts have been run by the benchmark team. Published vendor capability descriptions are context, not comparative test evidence.
 
+### 5.3 Federated source inventory boundary
+
+Descriptor coverage is bounded by the typed case, not by the upstream source universe. The next required layer is defined in [FEDERATED_SOURCE_INVENTORY_COMPLETENESS_V0.1.md](FEDERATED_SOURCE_INVENTORY_COMPLETENESS_V0.1.md) and tracked in [issue #497](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/497).
+
+Add source inventory completeness as an independent evidence dimension:
+- distinguish record-set completeness within an exact query/snapshot from source-universe coverage across owners/systems;
+- require page/cursor-chain integrity, snapshot consistency, terminal enumeration evidence, count reconciliation, tombstone visibility and explicit filter/exclusion accounting;
+- make false complete-within-query claims a zero-tolerance P0 metric;
+- never treat inaccessible or undiscovered sources as empty;
+- permit a bounded negative finding only when the relevant authenticated query boundary is complete;
+- keep signature authentication, signer authority, source truth and enumeration completeness separate.
+
+The descriptor catalogue may validate every record it received and still be incomplete relative to the source. Therefore, no composition or impact-analysis optimization may promote descriptor-level completeness into source-universe completeness.
+
 ### 5.2 Descriptor-to-projector composition gates
 
 The descriptor catalogue and projector must be evaluated as a joined pipeline, not two adjacent unit tests.
