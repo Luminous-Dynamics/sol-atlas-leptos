@@ -7,7 +7,8 @@
   "additionalProperties": false,
   "required": [
     "schema_version", "graph_snapshot_sha256", "impact_report_sha256",
-    "last_event_sequence", "event_chain_head_sha256", "impact_policy_sha256",
+    "last_event_sequence", "event_chain_head_sha256", "last_recorded_at",
+    "last_trusted_at", "impact_policy_sha256",
     "impact_engine_build_sha256", "pinned_at", "high_water_storage",
     "authentication_status", "claim_ceiling", "action_authority"
   ],
@@ -17,6 +18,8 @@
     "impact_report_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
     "last_event_sequence": { "type": "integer", "minimum": 1 },
     "event_chain_head_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "last_recorded_at": { "type": "string", "format": "date-time" },
+    "last_trusted_at": { "type": "string", "format": "date-time" },
     "impact_policy_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
     "impact_engine_build_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
     "pinned_at": { "type": "string", "format": "date-time" },
