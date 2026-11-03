@@ -642,6 +642,17 @@ pub fn validate_source_descriptor_catalog(
     }
 
     let expected = expected_case_records(case);
+    let total_case_records = case.evidence.len()
+        + case.artifacts.len()
+        + case.engineering_receipts.len()
+        + case.decisions.len();
+    if expected.len() != total_case_records {
+        findings.invalid(
+            "DUPLICATE_CASE_RECORD_KEY",
+            "case",
+            "one or more typed case records reuse the same record-kind and native case ID",
+        );
+    }
     let mut seen = BTreeSet::new();
     let mut native_identities = BTreeMap::<String, (String, Option<String>)>::new();
     let mut identity_sha256_by_case_record = BTreeMap::new();
@@ -988,6 +999,63 @@ mod tests {
         let first = result.identity_sha256_by_case_record["evidence:evidence-001"].clone();
         let second = result.identity_sha256_by_case_record["evidence:evidence-002"].clone();
         assert_ne!(first, second);
+    }
+
+    #[test]
+    fn same_owner_namespace_native_revision_replays_and_revision_change_changes_identity() {
+        let original = descriptor(
+            SourceRecordKind::Artifact,
+            "artifact-001",
+            "design-001",
+            "ifc-model-001",
+            "urn:synthetic:design-owner",
+            'b',
+        );
+        let replay = original.clone();
+        assert_eq!(identity_digest(&original).unwrap(), identity_digest(&replay).unwrap());
+
+        let mut revised = original.clone();
+        let component = revised
+            .native_identity_components
+            .iter_mut()
+            .find(|component| component.name == "native_revision")
+            .unwrap();
+        component.value = "3".into();
+        assert_ne!(identity_digest(&original).unwrap(), identity_digest(&revised).unwrap());
+    }
+
+    #[test]
+    fn duplicate_native_identity_with_conflicting_payload_digest_is_invalid() {
+        let mut case = case();
+        let mut second = case.evidence[0].clone();
+        second.evidence_id = "evidence-002".into();
+        second.source_payload_sha256 = Some(digest('f'));
+        case.evidence.push(second);
+
+        let mut catalog = catalog(&case);
+        let mut duplicate = catalog.descriptors[0].clone();
+        duplicate.case_record_id = "evidence-002".into();
+        duplicate.source_payload.sha256 = Some(digest('f'));
+        catalog.descriptors.push(duplicate);
+        catalog.case_representation_sha256 = sha256_hex(&serde_json::to_vec(&case).unwrap());
+
+        let result = validate_source_descriptor_catalog(&case, &catalog);
+        assert_eq!(result.disposition, DescriptorDisposition::InvalidInput);
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "DUPLICATE_NATIVE_IDENTITY_CONFLICTING_DIGEST"
+        }));
+    }
+
+    #[test]
+    fn duplicate_typed_case_record_key_is_invalid_even_before_descriptor_reconciliation() {
+        let mut case = case();
+        case.evidence.push(case.evidence[0].clone());
+        let catalog = catalog(&case);
+        let result = validate_source_descriptor_catalog(&case, &catalog);
+        assert_eq!(result.disposition, DescriptorDisposition::InvalidInput);
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "DUPLICATE_CASE_RECORD_KEY"
+        }));
     }
 
     #[test]
