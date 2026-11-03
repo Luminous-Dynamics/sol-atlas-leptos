@@ -61,7 +61,7 @@ jobs:
             .disposition == "complete_for_declared_scope" and
             .claim_ceiling == "coverage_only" and
             .action_authority == "none" and
-            ([.relationship_coverage[] | select(.required == true and .status == "complete")] | length) == (.coverage_profile.required_dependency_families | length)
+            (([.relationship_coverage[] | select(.required == true and .status == "complete")] | length)) == (.coverage_profile.required_dependency_families | length)
           ' "$RUNNER_TEMP/coverage-manifest.json"
 
       - name: Reject required-family incompleteness in a complete declaration
