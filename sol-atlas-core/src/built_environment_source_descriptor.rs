@@ -982,25 +982,58 @@ mod tests {
         native_record_id: &str,
         namespace: &str,
         payload_sha: char,
+        evidence_subject_id: Option<&str>,
     ) -> SourceRecordDescriptor {
+        let mut native_identity_components = vec![
+            NativeIdentityComponent {
+                name: "native_id".into(),
+                value: native_id.into(),
+            },
+            NativeIdentityComponent {
+                name: "native_record_id".into(),
+                value: native_record_id.into(),
+            },
+            NativeIdentityComponent {
+                name: "native_revision".into(),
+                value: if kind == SourceRecordKind::Artifact { "2" } else { "1" }.into(),
+            },
+        ];
+        match kind {
+            SourceRecordKind::Evidence => {
+                native_identity_components.extend([
+                    NativeIdentityComponent {
+                        name: "field_path".into(),
+                        value: "geometry.revision".into(),
+                    },
+                    NativeIdentityComponent {
+                        name: "subject_id".into(),
+                        value: evidence_subject_id.unwrap_or("design-001").into(),
+                    },
+                    NativeIdentityComponent {
+                        name: "jurisdiction".into(),
+                        value: "synthetic-jurisdiction".into(),
+                    },
+                ]);
+            }
+            SourceRecordKind::Artifact => {
+                native_identity_components.extend([
+                    NativeIdentityComponent {
+                        name: "artifact_family".into(),
+                        value: "design-model".into(),
+                    },
+                    NativeIdentityComponent {
+                        name: "jurisdiction".into(),
+                        value: "synthetic-jurisdiction".into(),
+                    },
+                ]);
+            }
+            SourceRecordKind::EngineeringReceipt | SourceRecordKind::Decision => {}
+        }
         SourceRecordDescriptor {
             record_kind: kind,
             case_record_id: case_record_id.into(),
             owner_namespace: namespace.into(),
-            native_identity_components: vec![
-                NativeIdentityComponent {
-                    name: "native_id".into(),
-                    value: native_id.into(),
-                },
-                NativeIdentityComponent {
-                    name: "native_record_id".into(),
-                    value: native_record_id.into(),
-                },
-                NativeIdentityComponent {
-                    name: "native_revision".into(),
-                    value: if kind == SourceRecordKind::Artifact { "2" } else { "1" }.into(),
-                },
-            ],
+            native_identity_components,
             source_payload: SourcePayloadDescriptor {
                 sha256: Some(digest(payload_sha)),
                 digest_basis: PayloadDigestBasis::LocallyRetrievedAndHashed,
@@ -1052,6 +1085,7 @@ mod tests {
                     "survey-record-001",
                     "urn:synthetic:survey-owner",
                     'a',
+                    Some("design-001"),
                 ),
                 descriptor(
                     SourceRecordKind::Artifact,
@@ -1060,6 +1094,7 @@ mod tests {
                     "model-001",
                     "urn:synthetic:design-owner",
                     'b',
+                    None,
                 ),
                 descriptor(
                     SourceRecordKind::EngineeringReceipt,
@@ -1068,6 +1103,7 @@ mod tests {
                     "solver-receipt-001",
                     "urn:synthetic:solver-owner",
                     'c',
+                    None,
                 ),
                 descriptor(
                     SourceRecordKind::Decision,
@@ -1076,6 +1112,7 @@ mod tests {
                     "decision-record-001",
                     "urn:synthetic:authority-owner",
                     'd',
+                    None,
                 ),
             ],
             claim_ceiling: "descriptor_integrity_only".into(),
@@ -1182,10 +1219,11 @@ mod tests {
         let mut second_descriptor = descriptor(
             SourceRecordKind::Evidence,
             "evidence-002",
-            "survey-project-002",
+            "survey-registry",
             "survey-record-002",
             "urn:synthetic:second-survey-owner",
             'a',
+            Some("design-002"),
         );
         second_descriptor.source_snapshot.snapshot_id = "snapshot-002".into();
         catalog.descriptors.push(second_descriptor);
@@ -1210,6 +1248,7 @@ mod tests {
             "ifc-model-001",
             "urn:synthetic:design-owner",
             'b',
+            None,
         );
         let replay = original.clone();
         assert_eq!(identity_digest(&original, "case-descriptor-001").unwrap(), identity_digest(&replay, "case-descriptor-001").unwrap());
