@@ -10,6 +10,10 @@
 use crate::built_environment_case::{
     ArtifactRecord, BuiltEnvironmentCase, DecisionRecord, EngineeringReceipt, EvidenceRecord,
 };
+use crate::built_environment_source_descriptor::{
+    validate_source_descriptor_catalog, DescriptorDisposition, DescriptorValidation,
+    NativeIdentityComponent, SourceDescriptorCatalog,
+};
 use serde::Serialize;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -62,6 +66,27 @@ pub struct ProjectionOutput {
     /// generated payloads, exact consumed-case representation, and digests.
     pub projection_receipt: Value,
     pub disposition: ProjectionDisposition,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SourceRecordProjectionMetadata {
+    pub media_type: Option<String>,
+    pub schema_id: Option<String>,
+    pub schema_version: Option<String>,
+    pub schema_sha256: Option<String>,
+}
+
+#[derive(Clone, Debug)]
+pub struct DescriptorProjectionOutput {
+    pub descriptor_validation: DescriptorValidation,
+    pub projection: ProjectionOutput,
+}
+
+struct ProjectionOverrides {
+    catalog_sha256: String,
+    validation: DescriptorValidation,
+    identity_components: BTreeMap<String, BTreeMap<String, String>>,
+    source_metadata: BTreeMap<String, SourceRecordProjectionMetadata>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -574,8 +599,138 @@ pub fn project_built_environment_case(
     case: &BuiltEnvironmentCase,
     context: &ProjectionContext,
 ) -> ProjectionOutput {
+    project_built_environment_case_inner(case, context, None)
+}
+
+pub fn project_built_environment_case_with_descriptors(
+    case: &BuiltEnvironmentCase,
+    context: &ProjectionContext,
+    catalog: &SourceDescriptorCatalog,
+) -> DescriptorProjectionOutput {
+    let validation = validate_source_descriptor_catalog(case, catalog);
+    let catalog_sha256 = serde_json::to_vec(catalog)
+        .map(|bytes| sha256_hex(&bytes))
+        .unwrap_or_default();
+
+    if validation.disposition == DescriptorDisposition::InvalidInput {
+        let receipt = json!({
+            "schema_version": PROJECTION_SCHEMA_V01,
+            "case_id": case.case_id,
+            "source_descriptor_catalog": {
+                "catalog_id": catalog.catalog_id,
+                "catalog_sha256": catalog_sha256,
+                "validation_disposition": validation.disposition.as_str(),
+                "validation": validation
+            },
+            "disposition": "invalid_input",
+            "claim_ceiling": "incomplete_or_indeterminate",
+            "action_authority": "none",
+            "verification_claim": "none",
+            "findings": [{
+                "severity": "invalid",
+                "code": "SOURCE_DESCRIPTOR_CATALOG_INVALID",
+                "native_key": "source_descriptor_catalog",
+                "detail": "invalid descriptor catalogue cannot supply projection identity or source metadata"
+            }]
+        });
+        return DescriptorProjectionOutput {
+            descriptor_validation: validation,
+            projection: projection_output(
+                Value::Null,
+                receipt,
+                ProjectionDisposition::InvalidInput,
+            ),
+        };
+    }
+
+    let mut projection_context = context.clone();
+    for (record_key, namespace) in &validation.native_identity_namespaces {
+        projection_context
+            .native_identity_namespaces
+            .insert(record_key.clone(), namespace.clone());
+    }
+
+    let identity_components = validation
+        .native_identity_components
+        .iter()
+        .map(|(record_key, components)| {
+            (
+                record_key.clone(),
+                components
+                    .iter()
+                    .map(|component| (component.name.clone(), component.value.clone()))
+                    .collect::<BTreeMap<_, _>>(),
+            )
+        })
+        .collect::<BTreeMap<_, _>>();
+
+    let source_metadata = catalog
+        .descriptors
+        .iter()
+        .map(|descriptor| {
+            let key = descriptor
+                .record_kind
+                .case_key(&descriptor.case_record_id);
+            (
+                key,
+                SourceRecordProjectionMetadata {
+                    media_type: descriptor.source_payload.media_type.clone(),
+                    schema_id: descriptor.source_payload.schema_id.clone(),
+                    schema_version: descriptor.source_payload.schema_version.clone(),
+                    schema_sha256: descriptor.source_payload.schema_sha256.clone(),
+                },
+            )
+        })
+        .collect::<BTreeMap<_, _>>();
+
+    let overrides = ProjectionOverrides {
+        catalog_sha256,
+        validation: validation.clone(),
+        identity_components,
+        source_metadata,
+    };
+    let projection =
+        project_built_environment_case_inner(case, &projection_context, Some(&overrides));
+    DescriptorProjectionOutput {
+        descriptor_validation: validation,
+        projection,
+    }
+}
+
+fn identity_components_for_record(
+    native_key: &str,
+    fallback: BTreeMap<String, String>,
+    overrides: Option<&ProjectionOverrides>,
+) -> BTreeMap<String, String> {
+    overrides
+        .and_then(|value| value.identity_components.get(native_key))
+        .cloned()
+        .unwrap_or(fallback)
+}
+
+fn source_metadata_for_record<'a>(
+    native_key: &str,
+    overrides: Option<&'a ProjectionOverrides>,
+) -> Option<&'a SourceRecordProjectionMetadata> {
+    overrides.and_then(|value| value.source_metadata.get(native_key))
+}
+
+fn project_built_environment_case_inner(
+    case: &BuiltEnvironmentCase,
+    context: &ProjectionContext,
+    descriptor_overrides: Option<&ProjectionOverrides>,
+) -> ProjectionOutput {
     let mut findings = Findings::default();
     let mut unmapped: BTreeMap<String, Value> = BTreeMap::new();
+    if let Some(overrides) = descriptor_overrides {
+        if overrides.validation.disposition == DescriptorDisposition::IncompleteOrIndeterminate {
+            findings.incomplete(
+                "SOURCE_DESCRIPTOR_CATALOG_INCOMPLETE",
+                "source_descriptor_catalog",
+                "descriptor validation found missing or unverified source metadata; supplied mappings remain bounded by its incomplete disposition",
+            );
+        }
+    }
 
     if case.case_id.trim().is_empty() {
         findings.invalid("EMPTY_CASE_ID", "case", "case_id is required");
@@ -811,11 +966,20 @@ pub fn project_built_environment_case(
     // including records that cannot become source-payload-addressed graph nodes.
     for evidence in &case.evidence {
         let native_key = format!("evidence:{}", evidence.evidence_id);
-        findings.incomplete(
-            "SOURCE_EVIDENCE_MEDIA_TYPE_SCHEMA_NOT_MODELED",
-            &native_key,
-            "the case model carries a source payload digest but not its source media type or schema identity; the projected graph records these as unknown",
-        );
+        let source_metadata = source_metadata_for_record(&native_key, descriptor_overrides);
+        let metadata_complete = source_metadata.is_some_and(|metadata| {
+            metadata.media_type.as_deref().is_some_and(|value| !value.trim().is_empty())
+                && metadata.schema_id.as_deref().is_some_and(|value| !value.trim().is_empty())
+                && metadata.schema_version.as_deref().is_some_and(|value| !value.trim().is_empty())
+                && metadata.schema_sha256.as_deref().is_some_and(valid_sha256)
+        });
+        if !metadata_complete {
+            findings.incomplete(
+                "SOURCE_EVIDENCE_MEDIA_TYPE_SCHEMA_NOT_MODELED",
+                &native_key,
+                "authoritative source media type, schema ID/version, or schema digest is not available from a validated descriptor",
+            );
+        }
         if evidence.jurisdiction != case.jurisdiction {
             findings.invalid(
                 "EVIDENCE_CASE_JURISDICTION_MISMATCH",
@@ -874,6 +1038,8 @@ pub fn project_built_environment_case(
         string_component(&mut components, "field_path", &evidence.field_path);
         string_component(&mut components, "subject_id", &evidence.subject_id);
         string_component(&mut components, "jurisdiction", &evidence.jurisdiction);
+        let components =
+            identity_components_for_record(&native_key, components, descriptor_overrides);
         let observed = evidence.observed_at_unix_seconds.and_then(unix_seconds_to_utc);
         if evidence.observed_at_unix_seconds.is_some() && observed.is_none() {
             findings.incomplete(
@@ -901,8 +1067,14 @@ pub fn project_built_environment_case(
             identity_namespace: &identity_namespace,
             components,
             payload_sha256: payload_sha,
-            artifact_media_type: "application/octet-stream",
-            schema_version: SOURCE_SCHEMA_UNKNOWN,
+            artifact_media_type: source_metadata
+                .and_then(|metadata| metadata.media_type.as_deref())
+                .filter(|value| !value.trim().is_empty())
+                .unwrap_or("application/octet-stream"),
+            schema_version: source_metadata
+                .and_then(|metadata| metadata.schema_version.as_deref())
+                .filter(|value| !value.trim().is_empty())
+                .unwrap_or(SOURCE_SCHEMA_UNKNOWN),
             recorded_at: &context.captured_at_utc,
             artifact_created_at: observed,
             case_id: &case.case_id,
@@ -948,7 +1120,13 @@ pub fn project_built_environment_case(
                 "source_data_rights": serde_json::to_value(evidence.data_rights).unwrap_or(Value::Null),
                 "source_license_id": evidence.license_id,
                 "source_observed_at_unix_seconds": evidence.observed_at_unix_seconds,
-                "schema_version_claim": "unknown"
+                "source_media_type": source_metadata.and_then(|metadata| metadata.media_type.as_deref()),
+                "source_schema_id": source_metadata.and_then(|metadata| metadata.schema_id.as_deref()),
+                "source_schema_version": source_metadata.and_then(|metadata| metadata.schema_version.as_deref()),
+                "source_schema_sha256": source_metadata.and_then(|metadata| metadata.schema_sha256.as_deref()),
+                "schema_version_claim": source_metadata
+                    .and_then(|metadata| metadata.schema_version.as_deref())
+                    .unwrap_or("unknown")
             }),
         );
         if let Some(payload) = projected_payloads.get_mut(&record_payload_key) {
@@ -959,11 +1137,20 @@ pub fn project_built_environment_case(
     // Artifact nodes use the source artifact content digest unchanged.
     for artifact in &case.artifacts {
         let native_key = format!("artifact:{}", artifact.artifact_id);
-        findings.incomplete(
-            "ENGINEERING_ARTIFACT_MEDIA_TYPE_SCHEMA_NOT_MODELED",
-            &native_key,
-            "the case model carries artifact bytes' digest and kind but not authoritative media type or payload schema identity",
-        );
+        let source_metadata = source_metadata_for_record(&native_key, descriptor_overrides);
+        let metadata_complete = source_metadata.is_some_and(|metadata| {
+            metadata.media_type.as_deref().is_some_and(|value| !value.trim().is_empty())
+                && metadata.schema_id.as_deref().is_some_and(|value| !value.trim().is_empty())
+                && metadata.schema_version.as_deref().is_some_and(|value| !value.trim().is_empty())
+                && metadata.schema_sha256.as_deref().is_some_and(valid_sha256)
+        });
+        if !metadata_complete {
+            findings.incomplete(
+                "ENGINEERING_ARTIFACT_MEDIA_TYPE_SCHEMA_NOT_MODELED",
+                &native_key,
+                "authoritative source media type, schema ID/version, or schema digest is not available from a validated descriptor",
+            );
+        }
         if artifact.jurisdiction != case.jurisdiction {
             findings.invalid(
                 "ARTIFACT_CASE_JURISDICTION_MISMATCH",
@@ -989,6 +1176,8 @@ pub fn project_built_environment_case(
         );
         string_component(&mut components, "artifact_family", &artifact.family_id);
         string_component(&mut components, "jurisdiction", &artifact.jurisdiction);
+        let components =
+            identity_components_for_record(&native_key, components, descriptor_overrides);
         let created = unix_seconds_to_utc(artifact.created_at_unix_seconds);
         if created.is_none() {
             findings.incomplete(
@@ -1016,8 +1205,14 @@ pub fn project_built_environment_case(
             identity_namespace: &identity_namespace,
             components,
             payload_sha256: &artifact.content_sha256,
-            artifact_media_type: "application/octet-stream",
-            schema_version: SOURCE_SCHEMA_UNKNOWN,
+            artifact_media_type: source_metadata
+                .and_then(|metadata| metadata.media_type.as_deref())
+                .filter(|value| !value.trim().is_empty())
+                .unwrap_or("application/octet-stream"),
+            schema_version: source_metadata
+                .and_then(|metadata| metadata.schema_version.as_deref())
+                .filter(|value| !value.trim().is_empty())
+                .unwrap_or(SOURCE_SCHEMA_UNKNOWN),
             recorded_at: &context.captured_at_utc,
             artifact_created_at: created,
             case_id: &case.case_id,
@@ -1065,6 +1260,10 @@ pub fn project_built_environment_case(
                 "source_payload_sha256": artifact.content_sha256,
                 "projected_payload_sha256": artifact.content_sha256,
                 "payload_digest_basis": "artifact_content_sha256",
+                "source_media_type": source_metadata.and_then(|metadata| metadata.media_type.as_deref()),
+                "source_schema_id": source_metadata.and_then(|metadata| metadata.schema_id.as_deref()),
+                "source_schema_version": source_metadata.and_then(|metadata| metadata.schema_version.as_deref()),
+                "source_schema_sha256": source_metadata.and_then(|metadata| metadata.schema_sha256.as_deref())
             }),
         );
     }
@@ -1088,6 +1287,8 @@ pub fn project_built_environment_case(
             "native_record_id",
             &receipt.receipt_id,
         );
+        let components =
+            identity_components_for_record(&native_key, components, descriptor_overrides);
         let identity_namespace = resolve_native_identity_namespace(
             &native_key,
             context,
@@ -1177,6 +1378,8 @@ pub fn project_built_environment_case(
             "native_record_id",
             &decision.event_id,
         );
+        let components =
+            identity_components_for_record(&native_key, components, descriptor_overrides);
         let created = unix_seconds_to_utc(decision.decided_at_unix_seconds);
         if created.is_none() {
             findings.incomplete(
@@ -1723,7 +1926,19 @@ pub fn project_built_environment_case(
             "native_identity_namespace_entries_supplied": supplied_native_identity_namespace_count,
             "native_identity_namespace_entries_expected": expected_namespace_keys.len(),
             "source_owner_namespace_entries_supplied_for_all_records": all_native_identity_namespaces_supplied,
-            "source_owner_namespace_authenticated": false
+            "source_owner_namespace_authenticated": false,
+            "source_descriptor_catalog": descriptor_overrides.map(|value| json!({
+                "catalog_sha256": value.catalog_sha256,
+                "validation_disposition": value.validation.disposition.as_str(),
+                "descriptor_count": value.validation.descriptor_count,
+                "missing_descriptor_count": value.validation.missing_descriptor_count,
+                "extra_descriptor_count": value.validation.extra_descriptor_count,
+                "payload_byte_verification": value.validation.payload_byte_verification,
+                "rights_authentication": value.validation.rights_authentication,
+                "source_attestation_authentication": value.validation.source_attestation_authentication,
+                "action_authority": "none",
+                "findings": value.validation.findings
+            }))
         },
         "projected_graph": {
             "schema_version": GRAPH_SCHEMA_V02,
