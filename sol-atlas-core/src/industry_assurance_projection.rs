@@ -698,7 +698,12 @@ pub fn project_built_environment_case(
             "action_authority": "none",
             "verification_claim": "none",
             "findings": findings.json(),
-            "unmapped_relationships": []
+            "unmapped_relationships": [],
+            "limitations": [
+                "Invalid input was not projected into a graph.",
+                "Source identity namespaces, if supplied, are caller assertions and are not authenticated here.",
+                "No source completeness, engineering verification, or action authority is established."
+            ]
         });
         if let Ok(receipt_digest) = canonical_json_sha256(&receipt) {
             receipt["projection_receipt_sha256"] = json!(receipt_digest);
@@ -1618,7 +1623,12 @@ pub fn project_built_environment_case(
             "disposition": final_disposition.as_str(),
             "claim_ceiling": "incomplete_or_indeterminate",
             "action_authority": "none",
-            "verification_claim": "none"
+            "verification_claim": "none",
+            "limitations": [
+                "No source-addressable IEAC graph node could be produced.",
+                "Source identity namespaces, if supplied, are caller assertions and are not authenticated here.",
+                "No source completeness, engineering verification, or action authority is established."
+            ]
         });
         if let Ok(receipt_digest) = canonical_json_sha256(&receipt) {
             receipt["projection_receipt_sha256"] = json!(receipt_digest);
@@ -2122,6 +2132,23 @@ mod tests {
         assert!(unmapped.iter().any(|row| {
             row["reason_code"] == "RECEIPT_INPUT_DIGEST_OR_PROJECTION_MISMATCH"
         }));
+    }
+
+    #[test]
+    fn projection_receipt_digest_binds_its_complete_receipt_body() {
+        let result = project_built_environment_case(&sample_case(), &context());
+        let declared = result.projection_receipt["projection_receipt_sha256"]
+            .as_str()
+            .expect("receipt digest is present");
+        let mut digest_input = result.projection_receipt.clone();
+        digest_input
+            .as_object_mut()
+            .unwrap()
+            .remove("projection_receipt_sha256");
+        assert_eq!(
+            canonical_json_sha256(&digest_input).unwrap(),
+            declared
+        );
     }
 
     #[test]
