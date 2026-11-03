@@ -9,8 +9,8 @@ use std::fs;
 use std::io::Read;
 use std::process::ExitCode;
 
-const GRAPH_SCHEMA: &str = "luminous.ieac-assurance-dependency-graph.v0.1";
-const EVENT_SCHEMA: &str = "luminous.ieac-assurance-invalidation-event.v0.1";
+pub(crate) const GRAPH_SCHEMA: &str = "luminous.ieac-assurance-dependency-graph.v0.1";
+pub(crate) const EVENT_SCHEMA: &str = "luminous.ieac-assurance-invalidation-event.v0.1";
 pub(crate) const REPORT_SCHEMA: &str = "luminous.ieac-assurance-impact-report.v0.1";
 const MAX_INPUT_BYTES: u64 = 128 * 1024 * 1024;
 const MAX_GRAPH_NODES: usize = 100_000;
@@ -688,7 +688,7 @@ pub(crate) fn signed_statement_precedes_compromise(
     })
 }
 
-fn build_forward_adjacency(
+pub(crate) fn build_forward_adjacency(
     graph: &Value,
 ) -> Result<BTreeMap<String, Vec<String>>, String> {
     let mut adjacency: BTreeMap<String, Vec<String>> = BTreeMap::new();
