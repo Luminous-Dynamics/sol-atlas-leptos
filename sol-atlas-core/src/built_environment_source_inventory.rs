@@ -231,7 +231,7 @@ pub struct SourceUniverseValidation {
     pub required_owner_count: usize,
     pub observed_manifest_count: usize,
     pub missing_required_owner_count: usize,
-    /// Coverage is only relative to the caller-supplied expected owner set.
+    /// Manifest presence is only relative to the caller-supplied expected owner set.
     pub claim_scope: String,
     pub findings: Vec<InventoryFinding>,
 }
@@ -1155,6 +1155,9 @@ pub struct InventoryClosureValidation {
 /// This result is only as complete as the independently maintained expected
 /// owner register supplied by the caller. It does not prove that the register
 /// contains every real-world owner or that any source statement is authentic.
+/// A complete disposition requires every required owner manifest to be present
+/// and every required manifest to independently validate as complete within
+/// its declared query; declared exclusions retain a separate disposition.
 pub fn validate_source_inventory_closure(
     expected_owners: &[ExpectedSourceOwner],
     manifests: &[SourceInventoryManifest],
