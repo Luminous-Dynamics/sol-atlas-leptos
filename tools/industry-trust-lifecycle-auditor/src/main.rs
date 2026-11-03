@@ -504,14 +504,23 @@ fn cause_allows(cause: &str, node_type: &str) -> bool {
         "issuer_key_compromised" | "issuer_key_revoked_or_rotated" => node_type == "issuer_key",
         "transparency_service_key_compromised" => node_type == "transparency_service_key",
         "trust_root_changed" => node_type == "trust_bundle",
-        "source_corrected" => node_type == "source_measurement",
+        "source_corrected" => {
+            matches!(node_type, "source_measurement" | "source_evidence")
+        }
         "rights_revoked_or_expired" => {
             matches!(
                 node_type,
-                "source_measurement" | "authority_grant" | "signed_statement"
+                "source_measurement"
+                    | "source_evidence"
+                    | "authority_grant"
+                    | "signed_statement"
+                    | "engineering_artifact"
+                    | "engineering_receipt"
             )
         }
-        "model_superseded" => node_type == "model",
+        "model_superseded" => matches!(node_type, "model" | "engineering_artifact"),
+        "engineering_artifact_superseded" => node_type == "engineering_artifact",
+        "engineering_receipt_corrected" => node_type == "engineering_receipt",
         "schema_superseded" => node_type == "schema",
         "verifier_vulnerable" => node_type == "verifier_build",
         "policy_changed" => node_type == "policy",
@@ -1236,6 +1245,15 @@ mod tests {
         let nodes = validate_graph(&graph)
             .expect("v0.2 native identity IDs must resolve as edge endpoints");
         assert_eq!(nodes.len(), 5);
+    }
+
+    #[test]
+    fn built_environment_node_types_have_specific_invalidation_causes() {
+        assert!(cause_allows("source_corrected", "source_evidence"));
+        assert!(cause_allows("rights_revoked_or_expired", "source_evidence"));
+        assert!(cause_allows("engineering_artifact_superseded", "engineering_artifact"));
+        assert!(cause_allows("engineering_receipt_corrected", "engineering_receipt"));
+        assert!(!cause_allows("engineering_receipt_corrected", "decision"));
     }
 
     fn fixture() -> Value {
