@@ -1090,6 +1090,37 @@ mod tests {
     }
 
     #[test]
+    fn transitioning_from_no_impact_removes_stale_no_dependency_reason() {
+        let previous = json!({
+            "node_id": "decision:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impact_class": "no_impact",
+            "historical_authenticity": "valid_at_time",
+            "current_reliance": "eligible",
+            "dependency_path": [],
+            "reason_codes": ["NO_DEPENDENCY_PATH", "OUTSIDE_INVALIDATION_SCOPE"]
+        });
+        let incoming = json!({
+            "node_id": "decision:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impact_class": "quarantined_pending_review",
+            "historical_authenticity": "unknown",
+            "current_reliance": "quarantined",
+            "dependency_path": ["issuer_key:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+            "reason_codes": ["DECISION_DEPENDS_ON_QUARANTINED_STATEMENT"]
+        });
+        let merged = merge_impact_rows(&previous, &incoming);
+        let reasons = merged["reason_codes"].as_array().unwrap();
+        assert!(reasons.iter().all(|reason| {
+            !matches!(
+                reason.as_str(),
+                Some("NO_DEPENDENCY_PATH" | "OUTSIDE_INVALIDATION_SCOPE")
+            )
+        }));
+        assert!(reasons.iter().any(|reason| {
+            reason == "DECISION_DEPENDS_ON_QUARANTINED_STATEMENT"
+        }));
+    }
+
+    #[test]
     fn sparse_delta_applies_exactly_and_matches_full_graph_transition() {
         let (graph, base_report, base_pin, _, index) = setup();
         let event = source_correction_event(&base_pin);
@@ -1294,6 +1325,10 @@ mod tests {
         let batch = run_batch(&graph, &base_report, &base_pin, &envelope).unwrap();
         assert_eq!(batch["graph_index_build_count"], 1);
         assert_eq!(batch["graph_index_reused_for_events"], 2);
+        assert_eq!(batch["state_row_map_initializations"], 1);
+        assert_eq!(batch["state_row_map_reused_for_events"], 2);
+        assert_eq!(batch["full_report_materializations"], 1);
+        assert!(batch["total_affected_node_visits"].as_u64().unwrap() <= 2_000_000);
         assert_eq!(batch["delta_count"], 2);
         assert_eq!(batch["next_state_pin"]["last_event_sequence"], 3);
         assert_eq!(
