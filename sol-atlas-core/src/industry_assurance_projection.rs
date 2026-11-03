@@ -287,6 +287,46 @@ fn string_component(components: &mut BTreeMap<String, String>, name: &str, value
     components.insert(name.to_owned(), value.to_owned());
 }
 
+fn namespace_map_digest(
+    namespaces: &BTreeMap<String, String>,
+) -> Result<String, String> {
+    let bytes = serde_json::to_vec(namespaces)
+        .map_err(|error| format!("namespace map serialization failed: {error}"))?;
+    Ok(sha256_hex(&bytes))
+}
+
+fn resolve_native_identity_namespace(
+    record_key: &str,
+    context: &ProjectionContext,
+    findings: &mut Findings,
+) -> String {
+    match context.native_identity_namespaces.get(record_key) {
+        Some(namespace)
+            if !namespace.trim().is_empty()
+                && namespace == namespace.trim()
+                && namespace.len() <= 1_024 =>
+        {
+            namespace.clone()
+        }
+        Some(_) => {
+            findings.invalid(
+                "INVALID_NATIVE_IDENTITY_NAMESPACE",
+                record_key,
+                "native identity namespace must be non-empty, trimmed, and no longer than 1024 UTF-8 bytes",
+            );
+            IDENTITY_NAMESPACE.to_owned()
+        }
+        None => {
+            findings.incomplete(
+                "NATIVE_IDENTITY_NAMESPACE_NOT_SUPPLIED",
+                record_key,
+                "no owner-native namespace was supplied for this record; adapter-scoped fallback identity is used and cannot be treated as source-owner identity",
+            );
+            IDENTITY_NAMESPACE.to_owned()
+        }
+    }
+}
+
 struct NodeProjection<'a> {
     node_type: &'a str,
     identity_namespace: &'a str,
