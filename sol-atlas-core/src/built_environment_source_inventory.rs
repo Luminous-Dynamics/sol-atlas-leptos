@@ -391,6 +391,15 @@ fn validate_page_partition(
                 format!("{partition_id}:{}", page.ordinal),
                 "page response time must be canonical UTC whole-second time",
             );
+        } else if page.response_at < manifest.enumeration_started_at
+            || page.response_at > manifest.enumeration_finished_at
+        {
+            chain_well_formed = false;
+            findings.invalid(
+                "INVENTORY_PAGE_RESPONSE_OUTSIDE_ENUMERATION_INTERVAL",
+                format!("{partition_id}:{}", page.ordinal),
+                "page response time must be within the manifest enumeration interval",
+            );
         }
         if let Some(manifest_snapshot) = manifest.snapshot_sha256.as_deref() {
             if page.snapshot_sha256.as_deref() != Some(manifest_snapshot) {
@@ -552,9 +561,13 @@ pub fn validate_source_inventory_manifest(
         );
     }
     if manifest.inventory_id.trim().is_empty()
+        || manifest.inventory_id != manifest.inventory_id.trim()
         || manifest.source_owner_namespace.trim().is_empty()
+        || manifest.source_owner_namespace != manifest.source_owner_namespace.trim()
         || manifest.source_system_id.trim().is_empty()
+        || manifest.source_system_id != manifest.source_system_id.trim()
         || manifest.connector_id.trim().is_empty()
+        || manifest.connector_id != manifest.connector_id.trim()
         || manifest.query_scope_summary.trim().is_empty()
     {
         findings.invalid(
@@ -859,7 +872,9 @@ pub fn validate_source_inventory_manifest(
 ///
 /// This does not prove that the expected owner set itself is complete. That
 /// discovery obligation must come from an independently maintained source
-/// register and appropriate owner attestations.
+/// register and appropriate owner attestations. This function only reconciles
+/// owner/system pairs; callers must separately validate each manifest's
+/// record-set completeness disposition.
 pub fn validate_source_universe_coverage(
     expected_owners: &[ExpectedSourceOwner],
     manifests: &[SourceInventoryManifest],
