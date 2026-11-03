@@ -77,6 +77,7 @@ jobs:
           jq -e '
             .schema_version == "luminous.federated-source-inventory-manifest.v0.1" and
             .snapshot_semantics == "immutable_snapshot" and
+            .access_scope == "source_asserted_complete" and
             .pagination_exhausted == true and
             .snapshot_consistent == true and
             .truncation_detected == false and
@@ -94,6 +95,32 @@ jobs:
           if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" \
               -i "$RUNNER_TEMP/malformed-inventory-digest.json"; then
             echo "ERROR: malformed inventory digest passed schema validation"
+            exit 1
+          fi
+
+      - name: Negative schema control — unsupported access scope
+        run: |
+          set -euo pipefail
+          schema=schemas/federated-source-inventory-manifest-v0.1.schema.json
+          fixture=schemas/examples/federated-source-inventory-manifest-synthetic-v0.1.json
+          jq '.access_scope = "unrestricted_without_proof"' "$fixture" \
+            > "$RUNNER_TEMP/unsupported-access-scope.json"
+          if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" \
+              -i "$RUNNER_TEMP/unsupported-access-scope.json"; then
+            echo "ERROR: unsupported source access scope passed schema validation"
+            exit 1
+          fi
+
+      - name: Negative schema control — missing per-record payload digest list
+        run: |
+          set -euo pipefail
+          schema=schemas/federated-source-inventory-manifest-v0.1.schema.json
+          fixture=schemas/examples/federated-source-inventory-manifest-synthetic-v0.1.json
+          jq 'del(.page_receipts[0].native_record_payload_sha256s)' "$fixture" \
+            > "$RUNNER_TEMP/missing-record-payload-digests.json"
+          if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" \
+              -i "$RUNNER_TEMP/missing-record-payload-digests.json"; then
+            echo "ERROR: page without per-record payload digests passed schema validation"
             exit 1
           fi
 
