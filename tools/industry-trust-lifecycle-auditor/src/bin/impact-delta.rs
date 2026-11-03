@@ -773,10 +773,8 @@ fn apply_delta(
             "impact delta does not equal the complete deterministic transition from its exact base".into(),
         );
     }
-    if canonical_json_digest(&expected.report)?
-        != delta["resulting_impact_report_sha256"].as_str().unwrap_or_default()
-    {
-        return Err("resulting report digest does not match sparse delta application".into());
+    if expected.state_pin["impact_state_sha256"] != delta["resulting_state_sha256"] {
+        return Err("resulting state root does not match sparse delta application".into());
     }
     Ok(expected)
 }
@@ -801,28 +799,43 @@ fn run_batch(
         return Err(format!("event batch must contain 1..={MAX_BATCH_EVENTS} events"));
     }
 
-    // The exact graph snapshot is validated and indexed once for the whole batch.
+    // One graph index and one validated mutable row map are reused for the
+    // entire batch. The per-event loop visits only the affected closure.
     let index = GraphIndex::build(graph)?;
-    validate_state_pin(&index, base_report, base_pin)?;
-    let mut current_report = base_report.clone();
-    let mut current_pin = base_pin.clone();
+    let mut rows = validate_state_pin(&index, base_report, base_pin)?;
+    let mut cursor = cursor_from_pin(base_pin)?;
+    let base_report_sha256 = canonical_json_digest(base_report)?;
     let mut deltas = Vec::with_capacity(events.len());
 
     for event in events {
-        let proposed = compute_transition(
+        let (delta, next_cursor) = advance_state(
             &index,
-            &current_report,
-            &current_pin,
+            &mut rows,
+            &base_report_sha256,
+            base_report,
+            &cursor,
             event,
             metadata,
         )?;
-        // The producer advances its in-memory state from the exact transition
-        // it just computed. External consumers use apply_delta to independently
-        // check a received sparse update against their pinned base.
-        deltas.push(proposed.delta);
-        current_report = proposed.report;
-        current_pin = proposed.state_pin;
+        deltas.push(delta);
+        cursor = next_cursor;
     }
+
+    // Materialize and hash the full reconciliation representation once, at
+    // the batch boundary, rather than once per event.
+    let final_event = events.last().ok_or("event batch unexpectedly empty")?;
+    let evaluated_at = required_string(metadata, "evaluated_at", "delta metadata")?;
+    let resulting_report = materialize_report(base_report, &rows, final_event, evaluated_at)?;
+    let resulting_report_sha256 = canonical_json_digest(&resulting_report)?;
+    let next_state_pin = make_state_pin(
+        &index,
+        &resulting_report,
+        cursor.sequence,
+        &cursor.event_head_sha256,
+        &cursor.last_recorded_at,
+        &cursor.last_trusted_at,
+        &cursor.state_sha256,
+    )?;
 
     let batch = json!({
         "schema_version": BATCH_SCHEMA,
@@ -835,11 +848,11 @@ fn run_batch(
         "event_count": events.len(),
         "delta_count": deltas.len(),
         "deltas": deltas,
-        "resulting_impact_report_sha256": canonical_json_digest(&current_report)?,
-        "resulting_event_sequence": current_pin["last_event_sequence"],
-        "resulting_event_chain_head_sha256": current_pin["event_chain_head_sha256"],
-        "resulting_impact_report": current_report,
-        "next_state_pin": current_pin,
+        "resulting_impact_report_sha256": resulting_report_sha256,
+        "resulting_event_sequence": cursor.sequence,
+        "resulting_event_chain_head_sha256": cursor.event_head_sha256,
+        "resulting_impact_report": resulting_report,
+        "next_state_pin": next_state_pin,
         "complete": true,
         "claim_ceiling": "incomplete_or_indeterminate",
         "action_authority": "none"
@@ -857,6 +870,7 @@ fn bootstrap_pin(
 ) -> Result<Value, String> {
     let index = GraphIndex::build(graph)?;
     let _ = report_rows(report, &index)?;
+    let state_sha256 = initial_state_digest(report)?;
     let pin = make_state_pin(
         &index,
         report,
@@ -864,6 +878,7 @@ fn bootstrap_pin(
         event_head,
         last_recorded_at,
         last_trusted_at,
+        &state_sha256,
     )?;
     validate_state_pin(&index, report, &pin)?;
     Ok(pin)
@@ -955,6 +970,7 @@ mod tests {
         .unwrap();
         let first_digest = canonical_json_digest(&first_event).unwrap();
         let first_system_time = &first_event["system_time"];
+        let genesis_state_sha256 = initial_state_digest(&base_report).unwrap();
         let base_pin = make_state_pin(
             &index,
             &base_report,
@@ -962,6 +978,7 @@ mod tests {
             &first_digest,
             first_system_time["recorded_at"].as_str().unwrap(),
             first_system_time["trusted_at"].as_str().unwrap(),
+            &genesis_state_sha256,
         )
         .unwrap();
         (graph, base_report, base_pin, metadata, index)
