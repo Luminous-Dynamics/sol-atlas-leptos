@@ -40,7 +40,7 @@ To avoid implicit JSON canonicalization dependencies, v0.2 uses a small domain-s
 
 The schema constrains component names to ASCII identifiers. The envelope MUST include `native_id` and at least one disambiguator: `native_record_id`, `native_revision`, `native_sequence`, or `native_observation_id`. If the source does not expose enough identity to distinguish the relevant record/version, projection remains incomplete rather than inventing a discriminator. The runtime independently validates uniqueness and recomputes the digest. Component input order does not affect the identity hash; value bytes do.
 
-The graph snapshot digest remains the existing graph-level canonical JSON digest. This v0.2 node identity encoding does not silently change the v0.1 graph digest contract.
+The graph snapshot digest remains the existing graph-level canonical JSON digest. This v0.2 node identity encoding does not silently change the v0.1 graph digest contract. The identity-specific byte encoding is not a general signed-payload canonicalization scheme and does not replace [IEAC-TRUST-001 / #347](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/347), which owns the cross-language canonicalization and signing-format decision. Signed graph snapshots, events and receipts must follow that contract when it is finalized.
 
 ## Collision corpus
 
