@@ -191,6 +191,17 @@ pub struct DescriptorValidation {
     pub findings: Vec<DescriptorFinding>,
 }
 
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct DescriptorCatalogSetValidation {
+    pub disposition: DescriptorDisposition,
+    pub catalog_count: usize,
+    pub case_count: usize,
+    pub unique_native_identity_count: usize,
+    pub shared_native_identity_reference_count: usize,
+    pub conflicting_native_identity_count: usize,
+    pub findings: Vec<DescriptorFinding>,
+}
+
 #[derive(Default)]
 struct Findings {
     rows: BTreeSet<DescriptorFinding>,
@@ -693,6 +704,144 @@ fn validate_time(descriptor: &SourceRecordDescriptor, catalog: &SourceDescriptor
     }
 }
 
+/// Reconcile multiple case-bound catalogues without conflating native
+/// record identity with case membership or payload equality.
+///
+/// Reusing one owner-native record in multiple cases is valid when its
+/// identity and any supplied payload digest agree. The same identity with
+/// conflicting digests is invalid, even when the cases themselves validate
+/// independently.
+pub fn validate_source_descriptor_catalog_set(
+    cases: &[BuiltEnvironmentCase],
+    catalogs: &[SourceDescriptorCatalog],
+) -> DescriptorCatalogSetValidation {
+    let mut findings = Findings::default();
+    if cases.is_empty() || catalogs.is_empty() {
+        findings.invalid(
+            "EMPTY_DESCRIPTOR_CATALOG_SET",
+            "catalog_set",
+            "catalogue-set validation requires at least one case and one catalogue",
+        );
+    }
+
+    let mut cases_by_id = BTreeMap::new();
+    for case in cases {
+        if cases_by_id.insert(case.case_id.as_str(), case).is_some() {
+            findings.invalid(
+                "DUPLICATE_CASE_IN_CATALOG_SET",
+                &case.case_id,
+                "case IDs must be unique within a catalogue-set validation",
+            );
+        }
+    }
+
+    let mut seen_catalog_cases = BTreeSet::new();
+    let mut native_identities =
+        BTreeMap::<String, (String, Option<String>)>::new();
+    let mut shared_native_identity_reference_count = 0usize;
+    let mut conflicting_native_identity_count = 0usize;
+
+    for catalog in catalogs {
+        if !seen_catalog_cases.insert(catalog.case_id.clone()) {
+            findings.invalid(
+                "DUPLICATE_CATALOG_FOR_CASE",
+                &catalog.case_id,
+                "only one descriptor catalogue may be supplied for each case",
+            );
+        }
+        let Some(case) = cases_by_id.get(catalog.case_id.as_str()).copied() else {
+            findings.invalid(
+                "CATALOG_WITHOUT_CASE",
+                &catalog.case_id,
+                "descriptor catalogue has no corresponding case in this set",
+            );
+            continue;
+        };
+
+        let validation = validate_source_descriptor_catalog(case, catalog);
+        for finding in &validation.findings {
+            let key = format!("{}:{}", catalog.case_id, finding.record_key);
+            if finding.severity == "invalid" {
+                findings.invalid(&finding.code, key, &finding.detail);
+            } else {
+                findings.incomplete(&finding.code, key, &finding.detail);
+            }
+        }
+
+        for (record_key, identity_sha256) in
+            &validation.identity_sha256_by_case_record
+        {
+            let payload_sha256 = catalog
+                .descriptors
+                .iter()
+                .find(|descriptor| {
+                    descriptor
+                        .record_kind
+                        .case_key(&descriptor.case_record_id)
+                        == *record_key
+                })
+                .and_then(|descriptor| descriptor.source_payload.sha256.clone());
+
+            if let Some((first_case_key, first_digest)) =
+                native_identities.get(identity_sha256)
+            {
+                shared_native_identity_reference_count += 1;
+                match (first_digest.as_deref(), payload_sha256.as_deref()) {
+                    (Some(first), Some(current)) if first != current => {
+                        conflicting_native_identity_count += 1;
+                        findings.invalid(
+                            "CROSS_CASE_NATIVE_IDENTITY_DIGEST_CONFLICT",
+                            format!("{}:{record_key}", catalog.case_id),
+                            format!(
+                                "native identity {identity_sha256} was previously bound at {first_case_key} to a different payload digest"
+                            ),
+                        );
+                    }
+                    (None, Some(_)) | (Some(_), None) => {
+                        findings.incomplete(
+                            "CROSS_CASE_NATIVE_IDENTITY_DIGEST_NOT_COMPARABLE",
+                            format!("{}:{record_key}", catalog.case_id),
+                            format!(
+                                "native identity {identity_sha256} is shared with {first_case_key}, but one case lacks a comparable payload digest"
+                            ),
+                        );
+                    }
+                    _ => {}
+                }
+            } else {
+                native_identities.insert(
+                    identity_sha256.clone(),
+                    (
+                        format!("{}:{record_key}", catalog.case_id),
+                        payload_sha256,
+                    ),
+                );
+            }
+        }
+    }
+
+    for case_id in cases_by_id.keys() {
+        if !seen_catalog_cases.contains(*case_id) {
+            findings.incomplete(
+                "CASE_DESCRIPTOR_CATALOG_MISSING",
+                *case_id,
+                "case has no descriptor catalogue in this set",
+            );
+        }
+    }
+
+    let disposition = findings.disposition();
+    DescriptorCatalogSetValidation {
+        disposition,
+        catalog_count: catalogs.len(),
+        case_count: cases.len(),
+        unique_native_identity_count: native_identities.len(),
+        shared_native_identity_reference_count,
+        conflicting_native_identity_count,
+        findings: findings.rows.into_iter().collect(),
+    }
+}
+
 /// Validate a descriptor catalogue against one exact typed case.
 ///
 /// A consistent result means only that the descriptor catalogue has one
@@ -1182,6 +1331,53 @@ mod tests {
             composed.projection.projection_receipt["projector"]["source_descriptor_catalog"]["catalog_sha256"],
             sha256_hex(&serde_json::to_vec(&catalog).unwrap())
         );
+    }
+
+    #[test]
+    fn catalogue_set_accepts_same_native_records_reused_across_cases() {
+        let first_case = case();
+        let mut second_case = first_case.clone();
+        second_case.case_id = "case-descriptor-002".into();
+        let first_catalog = catalog(&first_case);
+        let second_catalog = catalog(&second_case);
+
+        let result = validate_source_descriptor_catalog_set(
+            &[first_case, second_case],
+            &[first_catalog, second_catalog],
+        );
+        assert_eq!(
+            result.disposition,
+            DescriptorDisposition::InternallyConsistentForDeclaredCase
+        );
+        assert_eq!(result.unique_native_identity_count, 4);
+        assert_eq!(result.shared_native_identity_reference_count, 4);
+        assert_eq!(result.conflicting_native_identity_count, 0);
+    }
+
+    #[test]
+    fn catalogue_set_rejects_cross_case_digest_conflict_for_same_native_identity() {
+        let first_case = case();
+        let mut second_case = first_case.clone();
+        second_case.case_id = "case-descriptor-002".into();
+        second_case.evidence[0].source_payload_sha256 = Some(digest('f'));
+
+        let first_catalog = catalog(&first_case);
+        let mut second_catalog = catalog(&second_case);
+        second_catalog.descriptors[0].source_payload.sha256 = Some(digest('f'));
+        second_catalog.descriptors[0].source_payload.payload_object_ref =
+            Some(format!("cas:sha256:{}", digest('f')));
+        second_catalog.case_representation_sha256 =
+            sha256_hex(&serde_json::to_vec(&second_case).unwrap());
+
+        let result = validate_source_descriptor_catalog_set(
+            &[first_case, second_case],
+            &[first_catalog, second_catalog],
+        );
+        assert_eq!(result.disposition, DescriptorDisposition::InvalidInput);
+        assert_eq!(result.conflicting_native_identity_count, 1);
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "CROSS_CASE_NATIVE_IDENTITY_DIGEST_CONFLICT"
+        }));
     }
 
     #[test]
