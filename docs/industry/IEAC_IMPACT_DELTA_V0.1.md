@@ -27,18 +27,21 @@ Reachability answers **what may need review**. It does not grant the event issue
 - `industry-assurance-impact-delta-batch-v0.1.schema.json`: one output envelope carrying all deltas, final full report and next state pin.
 - `ieac-impact-delta-source-correction-synthetic-v0.1.json`: schema-valid synthetic event fixture.
 
-The tool reuses the main lifecycle auditor's strict duplicate-member parser, graph/event validators and exact impact-row classifier. It does not create a second event vocabulary or signature format.
+The batch runner validates and indexes the graph once, initializes one mutable impact-row map, applies each event's sparse changes in place, and materializes the final full report once at the batch boundary. It enforces a cumulative limit of 2,000,000 affected-node visits per batch. The tool reuses the main lifecycle auditor's strict duplicate-member parser, graph/event validators and exact impact-row classifier. It does not create a second event vocabulary or signature format.
 
 ## 3. State and event binding
 
 The state pin binds:
 - exact graph snapshot SHA-256;
 - exact canonical full impact-report SHA-256;
+- incremental `impact_state_sha256` root, initialized from the genesis report digest and advanced by each accepted event;
 - last authority sequence and event-chain head digest;
 - last `recorded_at` and `trusted_at` times;
 - exact impact policy and engine build digests.
 
 For the next event, sequence must be exactly prior + 1, predecessor digest must match the state pin, and neither recorded nor trusted time may move backward. The new trusted time cannot precede its recorded time. A policy or evaluator identity change requires full reconciliation before a delta can be applied.
+
+The state root is advanced as a canonical digest over the previous state root, event digest, sequence and digest of the sorted sparse update rows. This lets a consumer verify the transition chain without requiring the producer to rebuild the full report after every event. The final state pin binds both the final full-report digest and the final state root.
 
 The state pin explicitly says `caller_managed_monotonic_external_store_required`. This package does not implement persistent atomic high-water storage, distributed consensus, pin authentication, key custody or crash-safe compare-and-swap. A caller that reloads an older pin is vulnerable to rollback unless it stores the high-water in a separately protected monotonic system.
 
@@ -59,12 +62,15 @@ The closure checks are deliberately distinct in traversal strategy. The classifi
 The delta contains:
 - direct target node IDs, separately from the full affected node IDs;
 - only rows whose classification/reasons/path change under the monotonic merge policy;
-- exact base report SHA-256, graph and index SHA-256;
+- exact immutable batch base-report SHA-256, graph and index SHA-256;
+- base and resulting incremental state-root SHA-256;
 - event ID, sequence, digest and predecessor;
 - exact policy/evaluator digests;
 - resulting report digest and event-chain head;
 - closure verifier name and completion marker;
 - no action authority.
+
+The v0.1 state root commits each transition as `H(previous_state_root, event_digest, event_sequence, sparse_updates_digest)`. The batch path does not rebuild a full report per event; it updates the in-memory row map and materializes one final full report after all events are processed.
 
 The v0.1 merge is deliberately conservative and monotonic:
 - a new correction may raise a row from eligible/no-impact to reverify/quarantine;
@@ -76,7 +82,7 @@ A reversal, correction that reinstates reliance, or expiry of a quarantine requi
 
 ## 6. Single-file result envelope
 
-The CLI writes one `create_new` output file containing:
+The CLI exposes both a producer batch mode and a consumer `apply` mode. The consumer verifies the complete received delta against the exact base state pin before producing a new result. The CLI writes one `create_new` output file containing:
 - the ordered delta batch;
 - final full impact report;
 - next state pin;
@@ -134,7 +140,9 @@ Do not set an arbitrary speed-up target before baseline measurements. Publish ra
 - zero direct invalidations of untargeted descendants;
 - 100% rejection of stale base, wrong graph, broken predecessor, sequence gap, tampered delta and time rollback;
 - delta application reconstructs the exact expected full-report digest;
-- one graph-index construction per batch, reused for all accepted events;
+- one graph-index construction and one mutable row-map initialization per batch, reused for all accepted events;
+- exactly one full-report materialization at the batch boundary;
+- cumulative affected-node visits at or below the v0.1 budget of 2,000,000;
 - unknown or unauthenticated trust state never silently becomes accepted.
 
 **P1 — incremental benefit**
