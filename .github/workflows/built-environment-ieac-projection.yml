@@ -11,6 +11,9 @@ on:
       - "examples/built_environment_ieac_projection_fixture.rs"
       - "schemas/industry-assurance-dependency-graph-v0.2.schema.json"
       - "schemas/built-environment-ieac-projection-receipt-v0.1.schema.json"
+      - "schemas/engineering-assurance-case-v0.1.schema.json"
+      - "schemas/examples/engineering-assurance-case-tunnel-lining-synthetic-v0.1.json"
+      - "docs/research/ENGINEERING_ASSURANCE_CASE_V0.1.md"
       - ".github/workflows/built-environment-ieac-projection.yml"
   push:
     branches:
@@ -25,6 +28,9 @@ on:
       - "examples/built_environment_ieac_projection_fixture.rs"
       - "schemas/industry-assurance-dependency-graph-v0.2.schema.json"
       - "schemas/built-environment-ieac-projection-receipt-v0.1.schema.json"
+      - "schemas/engineering-assurance-case-v0.1.schema.json"
+      - "schemas/examples/engineering-assurance-case-tunnel-lining-synthetic-v0.1.json"
+      - "docs/research/ENGINEERING_ASSURANCE_CASE_V0.1.md"
       - ".github/workflows/built-environment-ieac-projection.yml"
   workflow_dispatch:
 
@@ -96,6 +102,47 @@ jobs:
             -i "$RUNNER_TEMP/built-environment-projection-graph.json"
           jsonschema-cli validate --draft 2020 --assert-format --offline "$receipt_schema" \
             -i "$RUNNER_TEMP/built-environment-projection-receipt.json"
+          assurance_schema=schemas/engineering-assurance-case-v0.1.schema.json
+          assurance_fixture=schemas/examples/engineering-assurance-case-tunnel-lining-synthetic-v0.1.json
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$assurance_schema" -i "$assurance_fixture"
+          jq -e '
+            .case_status == "draft" and
+            (.claims | length > 0)
+          ' "$assurance_fixture"
+          jq -e '
+            . as $case |
+            ([.claims[].claim_id] | length == (unique | length)) and
+            ([.arguments[].argument_id] | length == (unique | length)) and
+            ([.evidence_bindings[].binding_id] | length == (unique | length)) and
+            ([.assumptions[].assumption_id] | length == (unique | length)) and
+            ([.defeaters[].defeater_id] | length == (unique | length)) and
+            ([.claims[].claim_id] | index($case.top_level_claim_id) != null) and
+            all($case.claims[]; all(.parent_claim_ids[]; . as $id | ($case.claims | any(.claim_id == $id)))) and
+            all($case.claims[]; all(.argument_ids[]; . as $id | ($case.arguments | any(.argument_id == $id)))) and
+            all($case.claims[]; all(.evidence_binding_ids[]; . as $id | ($case.evidence_bindings | any(.binding_id == $id)))) and
+            all($case.claims[]; all(.assumption_ids[]; . as $id | ($case.assumptions | any(.assumption_id == $id)))) and
+            all($case.claims[]; all(.defeater_ids[]; . as $id | ($case.defeaters | any(.defeater_id == $id)))) and
+            all($case.arguments[];
+              . as $argument |
+              ($case.claims | any(.claim_id == $argument.conclusion_claim_id)) and
+              all($argument.premise_claim_ids[];
+                . as $id | ($case.claims | any(.claim_id == $id))) and
+              all($argument.evidence_binding_ids[];
+                . as $id | ($case.evidence_bindings | any(.binding_id == $id))) and
+              all($argument.assumption_ids[];
+                . as $id | ($case.assumptions | any(.assumption_id == $id))) and
+              all($argument.defeater_ids[];
+                . as $id | ($case.defeaters | any(.defeater_id == $id)))
+            )
+          ' "$assurance_fixture"
+          jq -e '
+            .case_status == "draft" and
+            ([.claims[] | select(.status != "proposed")] | length) == 0 and
+            ([.arguments[] | select(.status != "proposed")] | length) == 0 and
+            .verifier_attestations == [] and
+            .relying_party_appraisal.status == "not_evaluated" and
+            .action_authority == "none"
+          ' "$assurance_fixture"
           jq -e '
             .disposition == "projected_with_known_loss" and
             .projection_receipt.disposition == "projected_with_known_loss" and

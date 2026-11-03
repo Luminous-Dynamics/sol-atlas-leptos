@@ -1,0 +1,173 @@
+{
+  "schema_version": "luminous.engineering-assurance-case.v0.1",
+  "case_id": "assurance-case:tunnel-lining-segment-001",
+  "case_revision": 1,
+  "case_status": "draft",
+  "subject": {
+    "subject_type": "component",
+    "native_key": "fixture:project-001/design-001/lining-segment-001",
+    "description": "Synthetic tunnel lining segment used only to exercise the assurance-case structure.",
+    "jurisdiction": "synthetic-jurisdiction"
+  },
+  "decision_context": {
+    "intended_decision": "construction_release_review",
+    "purpose": "Demonstrate the representation of dimensional and provenance obligations; not a real release decision.",
+    "jurisdiction": "synthetic-jurisdiction",
+    "scope_statement": "One synthetic lining segment, one declared design revision, one dimensional inspection profile, and only the evidence explicitly represented in this case.",
+    "scope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "valid_from": null,
+    "valid_until": null
+  },
+  "ieac_graph_reference": null,
+  "top_level_claim_id": "claim:segment-conforms",
+  "claims": [
+    {
+      "claim_id": "claim:segment-conforms",
+      "claim_type": "conformance",
+      "proposition": "The synthetic lining segment satisfies the declared dimensional acceptance rule for the specified design revision.",
+      "subject_ref": "fixture:project-001/design-001/lining-segment-001",
+      "scope_statement": "Only the synthetic segment and declared dimensional inspection profile are in scope.",
+      "status": "proposed",
+      "parent_claim_ids": [],
+      "argument_ids": [
+        "argument:dimensional-conformance"
+      ],
+      "evidence_binding_ids": [
+        "binding:inspection-measurement"
+      ],
+      "assumption_ids": [
+        "assumption:measurement-method"
+      ],
+      "defeater_ids": [
+        "defeater:calibration-expiry"
+      ],
+      "limitations": [
+        "No source graph or real measurement bytes are attached.",
+        "This proposed claim has not been appraised by an independent verifier."
+      ]
+    },
+    {
+      "claim_id": "claim:measurement-within-tolerance",
+      "claim_type": "property",
+      "proposition": "The expanded uncertainty interval of the measurement lies wholly within the declared permitted tolerance interval.",
+      "subject_ref": "fixture:project-001/design-001/lining-segment-001",
+      "scope_statement": "Scalar interval rule only; geometric dimensioning and tolerancing, surface, weld, NDT and structural acceptance require separate profiles.",
+      "status": "proposed",
+      "parent_claim_ids": [
+        "claim:segment-conforms"
+      ],
+      "argument_ids": [],
+      "evidence_binding_ids": [
+        "binding:inspection-measurement"
+      ],
+      "assumption_ids": [
+        "assumption:measurement-method"
+      ],
+      "defeater_ids": [
+        "defeater:calibration-expiry"
+      ],
+      "limitations": [
+        "No numeric measurement, uncertainty budget or tolerance bounds are provided in this fixture."
+      ]
+    },
+    {
+      "claim_id": "claim:source-record-is-identifiable",
+      "claim_type": "traceability",
+      "proposition": "The measurement record can be bound to an owner-native source identity, revision and exact payload digest.",
+      "subject_ref": "fixture:project-001/design-001/lining-segment-001",
+      "scope_statement": "Owner namespace, record identifier, revision and payload digest must be present and independently authenticated.",
+      "status": "proposed",
+      "parent_claim_ids": [
+        "claim:segment-conforms"
+      ],
+      "argument_ids": [],
+      "evidence_binding_ids": [
+        "binding:inspection-measurement"
+      ],
+      "assumption_ids": [],
+      "defeater_ids": [],
+      "limitations": [
+        "The current synthetic evidence binding is unresolved and has no source node or payload digest."
+      ]
+    }
+  ],
+  "arguments": [
+    {
+      "argument_id": "argument:dimensional-conformance",
+      "conclusion_claim_id": "claim:segment-conforms",
+      "premise_claim_ids": [
+        "claim:measurement-within-tolerance",
+        "claim:source-record-is-identifiable"
+      ],
+      "evidence_binding_ids": [
+        "binding:inspection-measurement"
+      ],
+      "strategy": "Conjunctive decomposition: dimensional conformance requires both a valid metrology result and traceable source identity.",
+      "warrant": "A measurement result can support acceptance only when the applicable measurement process and uncertainty are valid for the declared tolerance, and the exact source record and revision are identified.",
+      "assumption_ids": [
+        "assumption:measurement-method"
+      ],
+      "defeater_ids": [
+        "defeater:calibration-expiry"
+      ],
+      "status": "proposed"
+    }
+  ],
+  "evidence_bindings": [
+    {
+      "binding_id": "binding:inspection-measurement",
+      "source_native_key": "owner-namespace/inspection-record/record-001/revision-1",
+      "source_node_id": null,
+      "source_payload_sha256": null,
+      "source_snapshot_sha256": null,
+      "relation": "supports",
+      "evidence_role": "primary",
+      "binding_status": "unresolved",
+      "limitations": [
+        "Synthetic placeholder only.",
+        "No owner-native namespace, source bytes, source snapshot or source attestation has been supplied."
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "assumption_id": "assumption:measurement-method",
+      "statement": "The declared measurement method is applicable to the component geometry and specified tolerance.",
+      "impact_if_false": "The measurement result may not support the dimensional conformance claim; remeasurement or a different inspection method may be required.",
+      "owner": "synthetic-inspection-authority",
+      "status": "unreviewed",
+      "review_due_at": null
+    }
+  ],
+  "defeaters": [
+    {
+      "defeater_id": "defeater:calibration-expiry",
+      "condition": "The instrument calibration was expired, revoked, or outside its valid scope at the time of measurement.",
+      "detection_method": "Check the instrument calibration record, calibration scope, valid-time interval, revocation history and measurement timestamp.",
+      "severity": "critical",
+      "status": "not_evaluated",
+      "last_evaluated_at": null,
+      "evidence_binding_ids": [
+        "binding:inspection-measurement"
+      ]
+    }
+  ],
+  "verifier_attestations": [],
+  "relying_party_policy_reference": null,
+  "relying_party_appraisal": {
+    "status": "not_evaluated",
+    "decision_record_sha256": null,
+    "policy_sha256": null,
+    "result": null
+  },
+  "created_at": "2026-11-03T00:00:00Z",
+  "recorded_at": "2026-11-03T00:00:00Z",
+  "supersedes_case_id": null,
+  "action_authority": "none",
+  "limitations": [
+    "This is a synthetic schema fixture, not a real engineering assurance case.",
+    "Schema validity does not establish claim truth, argument soundness, evidence authenticity, profile adequacy or engineering safety.",
+    "No verifier attestation or relying-party appraisal is present.",
+    "The schema does not perform cross-reference resolution, graph-cycle checks, cryptographic signature validation or temporal appraisal."
+  ]
+}
