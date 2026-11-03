@@ -236,9 +236,9 @@ pub fn mat4_inverse(m: [[f32; 4]; 4]) -> Option<[[f32; 4]; 4]> {
         - m[1][0] * (m[0][1] * m[2][2] - m[0][2] * m[2][1])
         + m[2][0] * (m[0][1] * m[1][2] - m[0][2] * m[1][1]);
 
-    for c in 0..4 {
-        for r in 0..4 {
-            inv[c][r] *= inv_det;
+    for column in &mut inv {
+        for value in column {
+            *value *= inv_det;
         }
     }
     Some(inv)
@@ -340,13 +340,12 @@ mod tests {
         let m = mat4_look_at([3.0, 2.0, 5.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
         let inv = mat4_inverse(m).unwrap();
         let product = mat4_mul(m, inv);
-        for i in 0..4 {
-            for j in 0..4 {
+        for (i, row) in product.iter().enumerate() {
+            for (j, value) in row.iter().enumerate() {
                 let expected = if i == j { 1.0 } else { 0.0 };
                 assert!(
-                    (product[i][j] - expected).abs() < 1e-4,
-                    "mat4 inverse roundtrip failed at [{i}][{j}]: {} vs {expected}",
-                    product[i][j]
+                    (*value - expected).abs() < 1e-4,
+                    "mat4 inverse roundtrip failed at [{i}][{j}]: {value} vs {expected}"
                 );
             }
         }
