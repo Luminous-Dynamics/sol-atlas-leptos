@@ -53,6 +53,21 @@ The graph snapshot digest remains the existing graph-level canonical JSON digest
 
 Expected result: four unique node IDs, one unique content digest, and no action authority. This fixture is synthetic; it is not a production OPC UA capture.
 
+The first node is a cross-language known-answer vector:
+
+```text
+node_type = source_measurement
+identity_namespace = urn:opcua:plant-7
+components (sorted):
+  native_id = Pump-07
+  observation_id = obs-0001
+identity_sha256 = 9d44bfea0695d452eccf7e1b5239ae1d58fa4875240aa4f480ce7225f874abaa
+node_id = source_measurement:identity-sha256:9d44bfea0695d452eccf7e1b5239ae1d58fa4875240aa4f480ce7225f874abaa
+artifact_sha256 = fd13299c4fabd771337218a8450a88319f6423cf998b92922742132dbefe4bdd
+```
+
+The other three fixture nodes intentionally retain that same `artifact_sha256` while differing in observation ID, native revision, or owner namespace.
+
 ## Migration rules
 
 - v0.1 fixtures remain valid only under the v0.1 schema and their original identity semantics.
