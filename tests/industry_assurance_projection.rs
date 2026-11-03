@@ -269,7 +269,12 @@ fn missing_decision_authority_is_not_inferred() {
 
 #[test]
 fn reordered_input_preserves_graph_digest_but_changes_exact_input_receipt() {
-    let case = fixture_case();
+    let mut case = fixture_case();
+    let mut second_evidence = case.evidence[0].clone();
+    second_evidence.evidence_id = "evidence-002".into();
+    second_evidence.field_path = "geometry.as_built_revision".into();
+    case.evidence.push(second_evidence);
+
     let mut reordered = case.clone();
     reordered.evidence.reverse();
     reordered.artifacts.reverse();
