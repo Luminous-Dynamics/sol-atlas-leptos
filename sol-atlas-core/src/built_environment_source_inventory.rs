@@ -1876,6 +1876,73 @@ mod tests {
     }
 
     #[test]
+    fn one_thousand_authorization_limited_inventories_never_claim_complete() {
+        for seed in 0..1_000u64 {
+            let mut manifest = valid_manifest();
+            manifest.access_scope = InventoryAccessScope::CallerAuthorizedSubset;
+            manifest.connector_id = format!("synthetic-connector-{seed}");
+            let result = validate_source_inventory_manifest(&manifest);
+            assert_eq!(
+                result.disposition,
+                InventoryDisposition::IncompleteOrIndeterminate,
+                "authorization-scope mutation seed {seed} must be incomplete"
+            );
+            assert!(!result.no_impact_eligible);
+            assert!(result.findings.iter().any(|finding| {
+                finding.code == "SOURCE_INVENTORY_AUTHORIZATION_SCOPE_LIMITED"
+            }));
+        }
+    }
+
+    #[test]
+    fn unknown_authorization_scope_is_incomplete_even_when_page_chain_is_valid() {
+        let mut manifest = valid_manifest();
+        manifest.access_scope = InventoryAccessScope::Unknown;
+        let result = validate_source_inventory_manifest(&manifest);
+        assert_eq!(
+            result.disposition,
+            InventoryDisposition::IncompleteOrIndeterminate
+        );
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "SOURCE_INVENTORY_AUTHORIZATION_SCOPE_UNKNOWN"
+        }));
+    }
+
+    #[test]
+    fn access_denied_with_no_records_is_not_comparable_not_empty() {
+        let mut manifest = valid_manifest();
+        manifest.access_scope = InventoryAccessScope::AccessDenied;
+        manifest.page_receipts.clear();
+        manifest.reported_total_count = None;
+        manifest.reported_total_count_semantics = None;
+        manifest.enumerated_item_count = 0;
+        manifest.enumerated_unique_count = 0;
+        manifest.duplicate_count = 0;
+        manifest.tombstone_count = 0;
+        manifest.tombstones_included = false;
+        manifest.pagination_exhausted = false;
+
+        let result = validate_source_inventory_manifest(&manifest);
+        assert_eq!(result.disposition, InventoryDisposition::NotComparable);
+        assert_eq!(result.enumerated_item_count, 0);
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "SOURCE_INVENTORY_ACCESS_DENIED"
+        }));
+        assert!(!result.no_impact_eligible);
+    }
+
+    #[test]
+    fn access_denied_manifest_cannot_also_claim_returned_records() {
+        let mut manifest = valid_manifest();
+        manifest.access_scope = InventoryAccessScope::AccessDenied;
+        let result = validate_source_inventory_manifest(&manifest);
+        assert_eq!(result.disposition, InventoryDisposition::InvalidInput);
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "ACCESS_DENIED_WITH_ENUMERATED_DATA"
+        }));
+    }
+
+    #[test]
     fn complete_inventory_never_grants_no_impact_eligibility() {
         let manifest = valid_manifest();
         let manifest_result = validate_source_inventory_manifest(&manifest);
