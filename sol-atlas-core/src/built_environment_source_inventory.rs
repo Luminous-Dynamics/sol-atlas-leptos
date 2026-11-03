@@ -40,6 +40,31 @@ impl SnapshotSemantics {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+pub enum InventoryAccessScope {
+    /// The source claims the connector can enumerate every record within the
+    /// exact declared query and source-policy boundary.
+    SourceAssertedComplete,
+    /// The caller can see only a permission-limited subset of that query.
+    CallerAuthorizedSubset,
+    /// The connector cannot establish whether its view is complete.
+    Unknown,
+    /// The source denied the query; this is not an empty inventory.
+    AccessDenied,
+}
+
+impl InventoryAccessScope {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::SourceAssertedComplete => "source_asserted_complete",
+            Self::CallerAuthorizedSubset => "caller_authorized_subset",
+            Self::Unknown => "unknown",
+            Self::AccessDenied => "access_denied",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum ReportedTotalSemantics {
     UniqueNativeRecords,
     RawPageItems,
@@ -154,6 +179,7 @@ pub struct SourceInventoryManifest {
     pub connector_build_sha256: String,
     pub query_scope_sha256: String,
     pub query_scope_summary: String,
+    pub access_scope: InventoryAccessScope,
     pub snapshot_semantics: SnapshotSemantics,
     pub snapshot_token: Option<String>,
     pub snapshot_sha256: Option<String>,
@@ -184,6 +210,7 @@ pub struct InventoryValidation {
     pub disposition: InventoryDisposition,
     pub inventory_id: String,
     pub manifest_sha256: String,
+    pub access_scope: String,
     pub page_count: usize,
     pub required_partition_count: usize,
     pub enumerated_item_count: u64,
@@ -813,6 +840,42 @@ pub fn validate_source_inventory_manifest(
         );
     }
 
+    let access_denied = match manifest.access_scope {
+        InventoryAccessScope::SourceAssertedComplete => false,
+        InventoryAccessScope::CallerAuthorizedSubset => {
+            findings.incomplete(
+                "SOURCE_INVENTORY_AUTHORIZATION_SCOPE_LIMITED",
+                "manifest",
+                "inventory represents only the caller-authorized subset, not the full declared source-policy query",
+            );
+            false
+        }
+        InventoryAccessScope::Unknown => {
+            findings.incomplete(
+                "SOURCE_INVENTORY_AUTHORIZATION_SCOPE_UNKNOWN",
+                "manifest",
+                "connector cannot establish whether its source view is complete or permission-limited",
+            );
+            false
+        }
+        InventoryAccessScope::AccessDenied => {
+            if manifest.enumerated_item_count != 0 || !manifest.page_receipts.is_empty() {
+                findings.invalid(
+                    "ACCESS_DENIED_WITH_ENUMERATED_DATA",
+                    "manifest",
+                    "an access-denied inventory cannot simultaneously report enumerated source records or pages",
+                );
+            } else {
+                findings.incomplete(
+                    "SOURCE_INVENTORY_ACCESS_DENIED",
+                    "manifest",
+                    "source denied enumeration; zero returned records must not be interpreted as an empty source",
+                );
+            }
+            true
+        }
+    };
+
     if !manifest.snapshot_consistent {
         findings.incomplete(
             "SOURCE_SNAPSHOT_CONSISTENCY_NOT_ESTABLISHED",
@@ -1076,6 +1139,9 @@ pub fn validate_source_inventory_manifest(
     {
         disposition = InventoryDisposition::NotComparable;
     }
+    if access_denied && disposition != InventoryDisposition::InvalidInput {
+        disposition = InventoryDisposition::NotComparable;
+    }
 
     let manifest_sha256 = serde_json::to_vec(manifest)
         .map(|bytes| sha256_hex(&bytes))
@@ -1084,6 +1150,7 @@ pub fn validate_source_inventory_manifest(
         disposition,
         inventory_id: manifest.inventory_id.clone(),
         manifest_sha256,
+        access_scope: manifest.access_scope.as_str().into(),
         page_count: manifest.page_receipts.len(),
         required_partition_count: manifest.required_partitions.len(),
         enumerated_item_count: manifest.enumerated_item_count,
@@ -1097,6 +1164,7 @@ pub fn validate_source_inventory_manifest(
         claim_scope: "declared_source_query_and_snapshot_only".into(),
         no_impact_eligible: false,
         no_impact_blockers: vec![
+            "source_access_scope_not_independently_authenticated".into(),
             "source_page_payload_bytes_not_independently_retrieved_or_hashed".into(),
             "source_attestation_authentication_not_performed".into(),
             "source_signer_authority_not_established".into(),
@@ -1462,6 +1530,7 @@ mod tests {
             connector_build_sha256: digest('d'),
             query_scope_sha256: digest('e'),
             query_scope_summary: "all synthetic records in region-a".into(),
+            access_scope: InventoryAccessScope::SourceAssertedComplete,
             snapshot_semantics: SnapshotSemantics::ImmutableSnapshot,
             snapshot_token: Some("snapshot-100".into()),
             snapshot_sha256: Some(digest('f')),
