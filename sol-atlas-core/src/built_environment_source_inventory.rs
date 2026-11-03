@@ -1363,8 +1363,7 @@ pub fn validate_source_inventory_closure(
         not_comparable_inventory_count,
         owner_presence,
         per_manifest_validations,
-        claim_scope: "caller_supplied_required_owner_set_and_declared_query_snapshots_only"
-            .into(),
+        claim_scope: "caller_supplied_required_owner_set_and_declared_query_snapshots_only".into(),
         findings: findings.rows(),
     }
 }
@@ -1924,9 +1923,12 @@ mod tests {
         }];
         let result = validate_source_inventory_manifest(&manifest);
         assert_eq!(result.disposition, InventoryDisposition::InvalidInput);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "INVENTORY_EXCLUSION_IDENTITY_NOT_ENUMERATED"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| finding.code == "INVENTORY_EXCLUSION_IDENTITY_NOT_ENUMERATED")
+        );
     }
 
     #[test]
@@ -1949,9 +1951,12 @@ mod tests {
         ];
         let result = validate_source_inventory_manifest(&manifest);
         assert_eq!(result.disposition, InventoryDisposition::InvalidInput);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "DUPLICATE_INVENTORY_EXCLUSION_IDENTITY"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| finding.code == "DUPLICATE_INVENTORY_EXCLUSION_IDENTITY")
+        );
     }
 
     #[test]
