@@ -105,7 +105,19 @@ The synthetic tests exercise:
 
 CI additionally validates each schema and runs the frozen source-correction event through the CLI. It must reject stale-base and backdated-time mutants.
 
-## 8. Benchmark programme
+## 8.1 Industry and research comparators
+
+The incremental engine should be benchmarked against mature dataflow systems, not described as a new replacement for them.
+
+- **Differential Dataflow / Timely Dataflow** is the closest algorithmic comparator for incremental computation over changing inputs. Its update model is naturally expressed as records with logical time and signed differences. The benchmark should compare incremental maintenance of the affected closure and derived row states, not only the speed of parsing a JSON graph. A production adapter remains a separate research decision. Reference: https://timelydataflow.github.io/differential-dataflow/ and https://www.microsoft.com/en-us/research/publication/differential-dataflow/
+- **Materialize arrangements** show the operational value of shared indexes over update collections: an arrangement indexes data and time/diff changes and can be reused by multiple dataflows. The current v0.1 forward/reverse adjacency index is a simpler in-memory snapshot index; it does not yet offer durable compaction, shared multi-query maintenance or distributed frontier semantics. Reference: https://materialize.com/docs/fundamentals/concepts/arrangements/ and https://materialize.com/docs/fundamentals/concepts/views/
+- **Apache Flink** is the operational comparator for stateful stream processing: checkpoints/savepoints, event-time, watermarks and late-data handling. Watermarks are completeness/progress declarations, not proof that a timestamp, signer, source, or revocation fact is authentic. The IEAC state pin's recorded/trusted high-water and bitemporal event semantics must remain distinct from an event-time watermark. Reference: https://nightlies.apache.org/flink/flink-docs-stable/docs/concepts/stateful-stream-processing/ and https://nightlies.apache.org/flink/flink-docs-stable/docs/concepts/time/
+
+The important boundary: Differential Dataflow's signed diffs are useful for maintaining derived views, but authoritative evidence history should remain append-only. A correction is a new authenticated event that supersedes or narrows current reliance; it must not erase the prior statement, approval, inspection or execution record. Negative diffs may be used internally in derived projections only when the source event and policy justify the retraction, and the historical record is still retained.
+
+The future persistent index should store bitemporal event progression separately from current derived impact state. A watermark/frontier can identify late or incomplete streams and trigger reconciliation, but cannot convert Unknown evidence into Accepted or permit a rollback of the protected event high-water.
+
+## 8.2 Benchmark programme
 
 Use the same frozen graph and event corpus to compare:
 
