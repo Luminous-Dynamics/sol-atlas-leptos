@@ -241,6 +241,8 @@
             "incomplete_inventory_count",
             "invalid_inventory_count",
             "not_comparable_inventory_count",
+            "cross_manifest_duplicate_identity_count",
+            "cross_manifest_payload_digest_conflict_count",
             "claim_scope",
             "no_impact_eligible",
             "no_impact_blockers",
@@ -527,6 +529,14 @@
                   }
                 }
               }
+            },
+            "cross_manifest_duplicate_identity_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "cross_manifest_payload_digest_conflict_count": {
+              "type": "integer",
+              "minimum": 0
             }
           }
         }
