@@ -459,6 +459,16 @@ pub fn project_built_environment_case(
     if case.case_id.trim().is_empty() {
         findings.invalid("EMPTY_CASE_ID", "case", "case_id is required");
     }
+    if case.jurisdiction.trim().is_empty() {
+        findings.invalid("EMPTY_CASE_JURISDICTION", "case", "case jurisdiction is required");
+    }
+    if case.evidence.is_empty()
+        && case.artifacts.is_empty()
+        && case.engineering_receipts.is_empty()
+        && case.decisions.is_empty()
+    {
+        findings.invalid("EMPTY_CASE_GRAPH", "case", "an empty case cannot produce a dependency graph");
+    }
     if !valid_utc_timestamp(&context.captured_at_utc) {
         findings.invalid(
             "INVALID_PROJECTION_TIME",
@@ -615,6 +625,13 @@ pub fn project_built_environment_case(
     // including records that cannot become source-payload-addressed graph nodes.
     for evidence in &case.evidence {
         let native_key = format!("evidence:{}", evidence.evidence_id);
+        if evidence.jurisdiction != case.jurisdiction {
+            findings.invalid(
+                "EVIDENCE_CASE_JURISDICTION_MISMATCH",
+                &native_key,
+                "evidence jurisdiction does not match the built-environment case jurisdiction",
+            );
+        }
         let (record_sha256, record_bytes) = match record_payload(evidence) {
             Ok(payload) => payload,
             Err(error) => {
@@ -732,6 +749,13 @@ pub fn project_built_environment_case(
     // Artifact nodes use the source artifact content digest unchanged.
     for artifact in &case.artifacts {
         let native_key = format!("artifact:{}", artifact.artifact_id);
+        if artifact.jurisdiction != case.jurisdiction {
+            findings.invalid(
+                "ARTIFACT_CASE_JURISDICTION_MISMATCH",
+                &native_key,
+                "artifact jurisdiction does not match the built-environment case jurisdiction",
+            );
+        }
         if !valid_sha256(&artifact.content_sha256) {
             findings.invalid(
                 "INVALID_ARTIFACT_CONTENT_DIGEST",
@@ -809,7 +833,6 @@ pub fn project_built_environment_case(
                 "source_payload_sha256": artifact.content_sha256,
                 "projected_payload_sha256": artifact.content_sha256,
                 "payload_digest_basis": "artifact_content_sha256",
-                "source_kind": serde_json::to_value(artifact.kind).unwrap_or(Value::Null)
             }),
         );
     }
@@ -1486,7 +1509,7 @@ mod tests {
         for relation in [
             "derived_from",
             "evidence_for",
-            "transformed_by",
+            "verified_by",
             "authorized_by",
         ] {
             assert!(edges.iter().any(|edge| edge["relation"] == relation), "missing {relation}");
