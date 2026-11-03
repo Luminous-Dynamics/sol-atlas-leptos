@@ -591,7 +591,7 @@ fn run_batch(
     base_pin: &Value,
     events_envelope: &Value,
     metadata: &Value,
-) -> Result<(Value, Value, Value), String> {
+) -> Result<Value, String> {
     let events = events_envelope
         .get("events")
         .and_then(Value::as_array)
