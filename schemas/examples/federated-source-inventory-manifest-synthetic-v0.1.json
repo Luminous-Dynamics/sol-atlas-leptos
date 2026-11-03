@@ -78,5 +78,6 @@
   "limitations": [
     "synthetic-only; authentication is not performed"
   ],
-  "reported_total_count_semantics": "unique_native_records"
+  "reported_total_count_semantics": "unique_native_records",
+  "access_scope": "source_asserted_complete"
 }
