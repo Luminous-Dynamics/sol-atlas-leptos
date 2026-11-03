@@ -2035,6 +2035,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
+ "sha2",
 ]
 
 [[package]]
