@@ -9,7 +9,7 @@
     "schema_version", "graph_snapshot_sha256", "graph_index_sha256",
     "graph_index_build_count", "graph_index_reused_for_events",
     "state_row_map_initializations", "state_row_map_reused_for_events",
-    "full_report_materializations", "total_affected_node_visits", "graph_node_count", "graph_edge_count", "event_count", "delta_count",
+    "full_report_materializations", "total_closure_node_memberships", "graph_node_count", "graph_edge_count", "event_count", "delta_count",
     "deltas", "resulting_impact_report_sha256", "resulting_event_sequence",
     "resulting_event_chain_head_sha256", "resulting_impact_report",
     "next_state_pin", "complete", "claim_ceiling", "action_authority"
@@ -23,7 +23,7 @@
     "state_row_map_initializations": { "const": 1 },
     "state_row_map_reused_for_events": { "type": "integer", "minimum": 1, "maximum": 10000 },
     "full_report_materializations": { "const": 1 },
-    "total_affected_node_visits": { "type": "integer", "minimum": 1, "maximum": 2000000 },
+    "total_closure_node_memberships": { "type": "integer", "minimum": 1, "maximum": 2000000 },
     "graph_node_count": { "type": "integer", "minimum": 1, "maximum": 100000 },
     "graph_edge_count": { "type": "integer", "minimum": 0, "maximum": 500000 },
     "event_count": { "type": "integer", "minimum": 1, "maximum": 10000 },
