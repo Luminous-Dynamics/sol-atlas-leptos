@@ -331,6 +331,7 @@ fn validate_page_partition(
     let mut seen_cursors = BTreeSet::new();
     let mut previous_after: Option<String> = None;
     let mut previous_receipt_sha256: Option<String> = None;
+    let mut previous_response_at: Option<&str> = None;
     let mut terminal_seen = false;
     let mut chain_well_formed = true;
 
@@ -400,7 +401,16 @@ fn validate_page_partition(
                 format!("{partition_id}:{}", page.ordinal),
                 "page response time must be within the manifest enumeration interval",
             );
+        } else if previous_response_at.is_some_and(|previous| page.response_at.as_str() < previous)
+        {
+            chain_well_formed = false;
+            findings.invalid(
+                "INVENTORY_PAGE_RESPONSE_TIME_REVERSED",
+                format!("{partition_id}:{}", page.ordinal),
+                "page response times must be nondecreasing within a sequential partition chain",
+            );
         }
+        previous_response_at = Some(page.response_at.as_str());
         if let Some(manifest_snapshot) = manifest.snapshot_sha256.as_deref() {
             if page.snapshot_sha256.as_deref() != Some(manifest_snapshot) {
                 chain_well_formed = false;
@@ -530,7 +540,17 @@ fn validate_page_partition(
                 );
             }
         }
-        item_count = item_count.saturating_add(page.item_count);
+        match item_count.checked_add(page.item_count) {
+            Some(total) => item_count = total,
+            None => {
+                chain_well_formed = false;
+                findings.invalid(
+                    "INVENTORY_PAGE_ITEM_COUNT_OVERFLOW",
+                    partition_id,
+                    "summed page item count exceeds u64",
+                );
+            }
+        }
     }
 
     if !terminal_seen {
@@ -744,8 +764,16 @@ pub fn validate_source_inventory_manifest(
         total_items = total_items.saturating_add(partition_items);
         all_partition_chains_complete &= chain_complete;
         for page in pages {
-            all_identity_digest_count = all_identity_digest_count
-                .saturating_add(page.native_record_identity_sha256s.len() as u64);
+            let page_identity_count =
+                u64::try_from(page.native_record_identity_sha256s.len()).unwrap_or(u64::MAX);
+            match all_identity_digest_count.checked_add(page_identity_count) {
+                Some(total) => all_identity_digest_count = total,
+                None => findings.invalid(
+                    "INVENTORY_IDENTITY_COUNT_OVERFLOW",
+                    partition_id,
+                    "summed page identity count exceeds u64",
+                ),
+            }
             all_identity_digests.extend(page.native_record_identity_sha256s.iter().cloned());
         }
     }
@@ -756,11 +784,15 @@ pub fn validate_source_inventory_manifest(
             "sum of page item counts disagrees with manifest enumerated_item_count",
         );
     }
-    let actual_unique_count = all_identity_digests.len() as u64;
+    let actual_unique_count = u64::try_from(all_identity_digests.len()).unwrap_or(u64::MAX);
     let actual_duplicate_count = all_identity_digest_count.saturating_sub(actual_unique_count);
-    if actual_unique_count != manifest.enumerated_unique_count
+    let declared_item_total = manifest
+        .enumerated_unique_count
+        .checked_add(manifest.duplicate_count);
+    if declared_item_total.is_none()
+        || actual_unique_count != manifest.enumerated_unique_count
         || actual_duplicate_count != manifest.duplicate_count
-        || total_items != manifest.enumerated_unique_count.saturating_add(manifest.duplicate_count)
+        || declared_item_total != Some(total_items)
     {
         findings.invalid(
             "INVENTORY_IDENTITY_COUNT_RECONCILIATION_FAILED",
