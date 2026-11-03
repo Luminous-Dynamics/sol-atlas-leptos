@@ -4,7 +4,6 @@
 //! End-to-end synthetic source descriptor -> BuiltEnvironmentCase -> IEAC v0.2.
 //! It is a schema/replay fixture, not evidence of engineering approval.
 
-use serde::Serialize;
 use sha2::{Digest, Sha256};
 use sol_atlas_core::built_environment_case::{
     ArtifactKind, ArtifactRecord, BuiltEnvironmentCase, DataRights, DecisionDisposition,
