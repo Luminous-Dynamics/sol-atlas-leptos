@@ -89,7 +89,7 @@ fn context() -> ProjectionContext {
 #[test]
 fn public_projector_emits_identity_preserving_graph_and_receipt() {
     let output = project_built_environment_case(&fixture_case(), &context());
-    assert_eq!(output.disposition, ProjectionDisposition::CompleteForDeclaredScope);
+    assert_eq!(output.disposition, ProjectionDisposition::ProjectedWithoutKnownLoss);
     assert_eq!(
         output.graph["schema_version"],
         "luminous.ieac-assurance-dependency-graph.v0.2"
@@ -100,7 +100,7 @@ fn public_projector_emits_identity_preserving_graph_and_receipt() {
     assert_eq!(output.graph["edges"].as_array().unwrap().len(), 6);
     assert_eq!(
         output.projection_receipt["disposition"],
-        "complete_for_declared_scope"
+        "projected_without_known_loss"
     );
     assert_eq!(output.projection_receipt["verification_claim"], "none");
     assert_eq!(output.projection_receipt["action_authority"], "none");
@@ -142,10 +142,10 @@ fn missing_source_payload_digest_is_preserved_but_not_projected_as_evidence_node
     let mut case = fixture_case();
     case.evidence[0].source_payload_sha256 = None;
     let output = project_built_environment_case(&case, &context());
-    assert_eq!(output.disposition, ProjectionDisposition::IncompleteOrIndeterminate);
+    assert_eq!(output.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
     assert_eq!(
         output.graph["claim_ceiling"],
-        "incomplete_or_indeterminate"
+        "projected_with_known_loss"
     );
     assert!(output.projection_receipt["projected_payloads"]
         .as_array()
@@ -161,7 +161,7 @@ fn missing_decision_authority_is_not_inferred() {
     let mut case = fixture_case();
     case.decisions[0].authority_evidence_id = None;
     let output = project_built_environment_case(&case, &context());
-    assert_eq!(output.disposition, ProjectionDisposition::IncompleteOrIndeterminate);
+    assert_eq!(output.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
     assert!(output.projection_receipt["unmapped_relationships"]
         .as_array()
         .unwrap()
@@ -211,7 +211,7 @@ fn mismatched_parent_and_solver_input_digests_do_not_create_edges() {
     case.engineering_receipts[0].input_artifact_sha256 = digest(b'f');
 
     let output = project_built_environment_case(&case, &context());
-    assert_eq!(output.disposition, ProjectionDisposition::IncompleteOrIndeterminate);
+    assert_eq!(output.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
     let unmapped = output.projection_receipt["unmapped_relationships"]
         .as_array()
         .unwrap();
