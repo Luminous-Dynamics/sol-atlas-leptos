@@ -2008,6 +2008,24 @@ mod tests {
                     && component["value"] == "evidence-design-source"))
             .unwrap();
         assert_eq!(node["identity"]["identity_namespace"], IDENTITY_NAMESPACE);
+        assert_eq!(
+            result.projection_receipt["projector"]["source_owner_namespace_entries_supplied_for_all_records"],
+            false
+        );
+        assert_eq!(
+            result.projection_receipt["projector"]["native_identity_namespace_entries_supplied"],
+            5
+        );
+        let fallback_mapping = result.projection_receipt["node_mappings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|row| row["native_key"] == "evidence:evidence-design-source")
+            .unwrap();
+        assert_eq!(
+            fallback_mapping["native_identity_namespace_basis"],
+            "adapter_fallback"
+        );
     }
 
     #[test]
