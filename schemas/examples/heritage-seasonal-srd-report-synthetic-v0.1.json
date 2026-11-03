@@ -1,0 +1,101 @@
+{
+  "schema_version": "luminous.heritage-seasonal-srd.v0.1",
+  "metadata": {
+    "series_id": "synthetic-seasonal-series",
+    "site_id": "synthetic-site-001",
+    "feature_id": "ndvi",
+    "feature_units": "unitless",
+    "channel_semantics": "Sentinel-2 B08 NIR and B04 red surface reflectance; NDVI=(B08-B04)/(B08+B04)",
+    "feature_definition_ref": "urn:synthetic:feature-definition:ndvi-v1",
+    "source_ref": "urn:synthetic:source:monthly-sentinel2-series",
+    "source_asset_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "config": {
+    "reference_interval": {
+      "start_month": 24240,
+      "end_month": 24274
+    },
+    "evaluation_interval": {
+      "start_month": 24276,
+      "end_month": 24278
+    },
+    "month_window": 0,
+    "min_reference_years": 3,
+    "scale_floor": 1,
+    "alert_threshold_abs": 3,
+    "alert_threshold_policy_ref": "urn:synthetic:alert-threshold-policy:v1",
+    "cusum": {
+      "drift_allowance": 0.5,
+      "alert_threshold": 4,
+      "min_valid_observations": 2,
+      "reset_after_missing_months": 0
+    }
+  },
+  "scored_month_count": 3,
+  "unobserved_month_count": 0,
+  "insufficient_reference_month_count": 0,
+  "single_month_alert_count": 0,
+  "cusum_alert_count": 1,
+  "points": [
+    {
+      "month_ordinal": 24276,
+      "state": {
+        "kind": "scored"
+      },
+      "observation_value": 12,
+      "reference_observation_count": 3,
+      "reference_year_count": 3,
+      "reference_median": 10,
+      "reference_mad": 0,
+      "robust_scale": 1,
+      "signed_residual": 2,
+      "robust_z_score": 2,
+      "single_month_alert": false,
+      "cusum_positive": 1.5,
+      "cusum_negative": 0,
+      "cusum_valid_observation_count": 1,
+      "cusum_reset_applied": true,
+      "cusum_alert": false
+    },
+    {
+      "month_ordinal": 24277,
+      "state": {
+        "kind": "scored"
+      },
+      "observation_value": 12,
+      "reference_observation_count": 3,
+      "reference_year_count": 3,
+      "reference_median": 10,
+      "reference_mad": 0,
+      "robust_scale": 1,
+      "signed_residual": 2,
+      "robust_z_score": 2,
+      "single_month_alert": false,
+      "cusum_positive": 3,
+      "cusum_negative": 0,
+      "cusum_valid_observation_count": 2,
+      "cusum_reset_applied": false,
+      "cusum_alert": false
+    },
+    {
+      "month_ordinal": 24278,
+      "state": {
+        "kind": "scored"
+      },
+      "observation_value": 12,
+      "reference_observation_count": 3,
+      "reference_year_count": 3,
+      "reference_median": 10,
+      "reference_mad": 0,
+      "robust_scale": 1,
+      "signed_residual": 2,
+      "robust_z_score": 2,
+      "single_month_alert": false,
+      "cusum_positive": 4.5,
+      "cusum_negative": 0,
+      "cusum_valid_observation_count": 3,
+      "cusum_reset_applied": false,
+      "cusum_alert": true
+    }
+  ]
+}

@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-seasonal-srd-input-v0.1.schema.json",
+  "title": "Sol-Atlas Fixed-Reference Seasonal Robust Deviation Input",
+  "description": "A feature time series scored against a frozen historical reference interval and circular month-of-year window. Missing observations remain unknown, never zero.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "metadata",
+    "observations",
+    "config"
+  ],
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "series_id",
+        "site_id",
+        "feature_id",
+        "feature_units",
+        "channel_semantics",
+        "feature_definition_ref",
+        "source_ref",
+        "source_asset_sha256"
+      ],
+      "properties": {
+        "series_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "site_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "feature_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "feature_units": {
+          "type": "string",
+          "minLength": 1
+        },
+        "channel_semantics": {
+          "type": "string",
+          "minLength": 1
+        },
+        "feature_definition_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_asset_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        }
+      }
+    },
+    "observations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "month_ordinal",
+          "value"
+        ],
+        "properties": {
+          "month_ordinal": {
+            "type": "integer"
+          },
+          "value": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reference_interval",
+        "evaluation_interval",
+        "month_window",
+        "min_reference_years",
+        "scale_floor",
+        "alert_threshold_abs",
+        "alert_threshold_policy_ref",
+        "cusum"
+      ],
+      "properties": {
+        "reference_interval": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "start_month",
+            "end_month"
+          ],
+          "properties": {
+            "start_month": {
+              "type": "integer"
+            },
+            "end_month": {
+              "type": "integer"
+            }
+          }
+        },
+        "evaluation_interval": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "start_month",
+            "end_month"
+          ],
+          "properties": {
+            "start_month": {
+              "type": "integer"
+            },
+            "end_month": {
+              "type": "integer"
+            }
+          }
+        },
+        "month_window": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 6
+        },
+        "min_reference_years": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "scale_floor": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "alert_threshold_abs": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "alert_threshold_policy_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cusum": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "drift_allowance",
+            "alert_threshold",
+            "min_valid_observations",
+            "reset_after_missing_months"
+          ],
+          "properties": {
+            "drift_allowance": {
+              "type": "number",
+              "minimum": 0
+            },
+            "alert_threshold": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "min_valid_observations": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "reset_after_missing_months": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    }
+  }
+}
