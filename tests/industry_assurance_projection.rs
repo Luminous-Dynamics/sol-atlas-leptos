@@ -116,3 +116,105 @@ fn public_projector_emits_identity_preserving_graph_and_receipt() {
         .as_str()
         .is_some_and(|value| value.len() == 64));
 }
+
+
+#[test]
+fn identical_evidence_payloads_keep_distinct_source_record_identities() {
+    let mut case = fixture_case();
+    let mut second = case.evidence[0].clone();
+    second.evidence_id = "evidence-002".into();
+    second.subject_id = "design-002".into();
+    case.evidence.push(second);
+    let output = project_built_environment_case(&case, &context());
+    let evidence_nodes = output.graph["nodes"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|node| node["node_type"] == "source_evidence")
+        .collect::<Vec<_>>();
+    assert_eq!(evidence_nodes.len(), 2);
+    assert_eq!(evidence_nodes[0]["artifact_sha256"], evidence_nodes[1]["artifact_sha256"]);
+    assert_ne!(evidence_nodes[0]["identity_sha256"], evidence_nodes[1]["identity_sha256"]);
+}
+
+#[test]
+fn missing_source_payload_digest_is_preserved_but_not_projected_as_evidence_node() {
+    let mut case = fixture_case();
+    case.evidence[0].source_payload_sha256 = None;
+    let output = project_built_environment_case(&case, &context());
+    assert_eq!(output.disposition, ProjectionDisposition::IncompleteOrIndeterminate);
+    assert_eq!(
+        output.graph["claim_ceiling"],
+        "incomplete_or_indeterminate"
+    );
+    assert!(output.projection_receipt["projected_payloads"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|row| row["record_key"] == "evidence:evidence-001"
+            && row["node_id"].is_null()
+            && row["payload_bytes_utf8"].as_str().is_some()));
+}
+
+#[test]
+fn missing_decision_authority_is_not_inferred() {
+    let mut case = fixture_case();
+    case.decisions[0].authority_evidence_id = None;
+    let output = project_built_environment_case(&case, &context());
+    assert_eq!(output.disposition, ProjectionDisposition::IncompleteOrIndeterminate);
+    assert!(output.projection_receipt["unmapped_relationships"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|row| row["reason_code"] == "DECISION_AUTHORITY_EVIDENCE_NOT_DECLARED"));
+}
+
+#[test]
+fn reordered_input_preserves_graph_digest_but_changes_exact_input_receipt() {
+    let case = fixture_case();
+    let mut reordered = case.clone();
+    reordered.evidence.reverse();
+    reordered.artifacts.reverse();
+    reordered.engineering_receipts.reverse();
+    reordered.decisions.reverse();
+
+    let first = project_built_environment_case(&case, &context());
+    let second = project_built_environment_case(&reordered, &context());
+    assert_eq!(
+        first.graph["graph_snapshot_sha256"],
+        second.graph["graph_snapshot_sha256"]
+    );
+    assert_ne!(
+        first.projection_receipt["source_case_representation"]["sha256"],
+        second.projection_receipt["source_case_representation"]["sha256"]
+    );
+    assert_ne!(
+        first.projection_receipt["projection_receipt_sha256"],
+        second.projection_receipt["projection_receipt_sha256"]
+    );
+}
+
+#[test]
+fn mismatched_parent_and_solver_input_digests_do_not_create_edges() {
+    let mut case = fixture_case();
+    let mut parent = case.artifacts[0].clone();
+    parent.artifact_id = "artifact-parent".into();
+    parent.content_sha256 = digest(b'f');
+    case.artifacts[0].parent_artifacts.push(
+        sol_atlas_core::built_environment_case::ArtifactReference {
+            artifact_id: parent.artifact_id.clone(),
+            content_sha256: digest(b'e'),
+        }
+    );
+    case.artifacts.push(parent);
+    case.artifacts[0].parent_artifacts[0].artifact_id = "missing-parent".into();
+    case.engineering_receipts[0].input_artifact_sha256 = digest(b'f');
+
+    let output = project_built_environment_case(&case, &context());
+    assert_eq!(output.disposition, ProjectionDisposition::IncompleteOrIndeterminate);
+    let unmapped = output.projection_receipt["unmapped_relationships"]
+        .as_array()
+        .unwrap();
+    assert!(unmapped.iter().any(|row| row["reason_code"] == "PARENT_ARTIFACT_NOT_FOUND"));
+    assert!(unmapped.iter().any(|row| row["reason_code"] == "RECEIPT_INPUT_DIGEST_OR_PROJECTION_MISMATCH"));
+}
