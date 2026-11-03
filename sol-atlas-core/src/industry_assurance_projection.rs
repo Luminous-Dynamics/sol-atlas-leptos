@@ -578,20 +578,37 @@ pub fn project_built_environment_case(
     let case_sha256 = sha256_hex(&case_bytes);
     if findings.disposition() == ProjectionDisposition::InvalidInput {
         let disposition = findings.disposition();
-        let receipt = json!({
+        let mut receipt = json!({
             "schema_version": PROJECTION_SCHEMA_V01,
             "case_id": case.case_id,
-            "source_case_representation_sha256": case_sha256,
-            "projector_build_sha256": context.projector_build_sha256,
-            "mapping_profile_sha256": context.mapping_profile_sha256,
-            "identity_namespace": IDENTITY_NAMESPACE,
-            "identity_namespace_basis": "adapter_scoped_case_namespace",
-            "source_owner_namespace_modelled": false,
+            "source_case_representation": {
+                "media_type": "application/json",
+                "serialization_profile": "serde_json_struct_field_order_v1",
+                "sha256": case_sha256
+            },
+            "projector": {
+                "id": "sol-atlas-built-environment-ieac-projector",
+                "version": env!("CARGO_PKG_VERSION"),
+                "build_sha256": context.projector_build_sha256,
+                "mapping_profile_sha256": context.mapping_profile_sha256,
+                "identity_namespace": IDENTITY_NAMESPACE,
+                "identity_namespace_basis": "adapter_scoped_case_namespace",
+                "source_owner_namespace_modelled": false
+            },
+            "projected_graph": null,
+            "node_mappings": [],
+            "edge_mappings": [],
+            "projected_payloads": [],
             "disposition": disposition.as_str(),
+            "claim_ceiling": "incomplete_or_indeterminate",
             "action_authority": "none",
+            "verification_claim": "none",
             "findings": findings.json(),
             "unmapped_relationships": []
         });
+        if let Ok(receipt_digest) = canonical_json_sha256(&receipt) {
+            receipt["projection_receipt_sha256"] = json!(receipt_digest);
+        }
         return projection_output(Value::Null, receipt, disposition);
     }
 
