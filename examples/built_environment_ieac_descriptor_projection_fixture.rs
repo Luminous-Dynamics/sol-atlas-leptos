@@ -249,7 +249,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     for (record_key, identity_sha) in expected {
         let mapping = projected
             .iter()
-            .find(|mapping| mapping["native_key"] == record_key)
+            .find(|mapping| mapping["native_key"].as_str() == Some(record_key.as_str()))
             .ok_or_else(|| format!("missing projected mapping for {record_key}"))?;
         if mapping["identity_sha256"].as_str() != Some(identity_sha.as_str()) {
             return Err(format!("identity mismatch for {record_key}").into());
