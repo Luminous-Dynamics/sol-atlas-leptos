@@ -1436,8 +1436,8 @@ mod tests {
         payload_sha256: &str,
     ) -> crate::built_environment_source_inventory::SourceInventoryManifest {
         use crate::built_environment_source_inventory::{
-            InventoryPageReceipt, ReportedTotalSemantics, SnapshotSemantics,
-            SourceInventoryManifest,
+            InventoryAccessScope, InventoryPageReceipt, ReportedTotalSemantics,
+            SnapshotSemantics, SourceInventoryManifest,
         };
 
         let inventory_id = format!("inventory-{}", descriptor.case_record_id);
@@ -1468,6 +1468,7 @@ mod tests {
             connector_build_sha256: digest('d'),
             query_scope_sha256: digest('e'),
             query_scope_summary: format!("all records for {}", descriptor.case_record_id),
+            access_scope: InventoryAccessScope::SourceAssertedComplete,
             snapshot_semantics: SnapshotSemantics::ImmutableSnapshot,
             snapshot_token: Some(descriptor.source_snapshot.snapshot_id.clone()),
             snapshot_sha256: Some(snapshot_sha256),
