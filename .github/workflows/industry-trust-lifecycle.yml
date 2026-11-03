@@ -101,6 +101,53 @@ jobs:
           jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-assurance-dependency-graph-v0.2.schema.json
           jq -e '.graph' schemas/examples/ieac-node-identity-collision-synthetic-v0.2.json > "$RUNNER_TEMP/ieac-node-identity-v0.2-graph.json"
           jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-assurance-dependency-graph-v0.2.schema.json -i "$RUNNER_TEMP/ieac-node-identity-v0.2-graph.json"
+          # Schema-only edge-shape control: v0.2 identity node IDs must be legal
+          # edge endpoints. The Rust test separately recomputes identity and graph digests.
+          jq '
+            .graph.nodes += [{
+              "node_id": "transformation:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "node_type": "transformation",
+              "identity": {
+                "identity_namespace": "urn:synthetic:sol-atlas-projector",
+                "components": [
+                  {"name": "native_id", "value": "projector-run-001"},
+                  {"name": "native_revision", "value": "projection-v1"}
+                ]
+              },
+              "identity_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "artifact_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+              "artifact_media_type": "application/json",
+              "schema_version": "urn:synthetic:projection-receipt:v1",
+              "issuer_id": "urn:synthetic:sol-atlas",
+              "scope": {
+                "domain": "built_environment",
+                "subject_pseudonyms": ["case:synthetic"],
+                "purposes": ["benchmarking"]
+              },
+              "valid_time": {"valid_from": null, "valid_until": null},
+              "observation_time": {
+                "artifact_created_at": null,
+                "recorded_at": "2026-11-03T00:00:01Z",
+                "trusted_at": null
+              },
+              "verification": {
+                "result": "unknown",
+                "policy_sha256": null,
+                "verifier_build_sha256": null,
+                "trust_bundle_sha256": null,
+                "checked_at": null,
+                "fresh_until": null
+              }
+            }] |
+            .graph.edges = [{
+              "edge_id": "edge-schema-v0-2-identity-endpoint",
+              "from_node_id": .graph.nodes[0].node_id,
+              "to_node_id": .graph.nodes[-1].node_id,
+              "relation": "transformed_by"
+            }] |
+            .graph
+          ' schemas/examples/ieac-node-identity-collision-synthetic-v0.2.json > "$RUNNER_TEMP/ieac-node-identity-v0.2-edge-schema-control.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-assurance-dependency-graph-v0.2.schema.json -i "$RUNNER_TEMP/ieac-node-identity-v0.2-edge-schema-control.json"
           jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-assurance-invalidation-event-v0.1.schema.json
           jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-assurance-impact-report-v0.1.schema.json
 
