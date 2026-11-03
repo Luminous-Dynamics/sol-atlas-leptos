@@ -1185,6 +1185,87 @@ mod tests {
     }
 
     #[test]
+    fn native_identity_is_stable_across_case_membership_changes() {
+        use crate::industry_assurance_projection::{
+            ProjectionContext, project_built_environment_case_with_descriptors,
+        };
+
+        let first_case = case();
+        let mut second_case = first_case.clone();
+        second_case.case_id = "case-descriptor-002".into();
+        let first_catalog = catalog(&first_case);
+        let mut second_catalog = catalog(&second_case);
+
+        // The source-owned descriptors remain exactly the same; only the
+        // case membership envelope changes and is re-bound to the new case.
+        second_catalog.case_representation_sha256 =
+            sha256_hex(&serde_json::to_vec(&second_case).unwrap());
+
+        let context = ProjectionContext {
+            captured_at_utc: "2026-11-03T12:00:00Z".into(),
+            projector_build_sha256: Some(digest('d')),
+            mapping_profile_sha256: digest('e'),
+            native_identity_namespaces: BTreeMap::new(),
+        };
+        let first = project_built_environment_case_with_descriptors(
+            &first_case,
+            &context,
+            &first_catalog,
+        );
+        let second = project_built_environment_case_with_descriptors(
+            &second_case,
+            &context,
+            &second_catalog,
+        );
+
+        assert_eq!(
+            first.descriptor_validation.disposition,
+            DescriptorDisposition::InternallyConsistentForDeclaredCase
+        );
+        assert_eq!(
+            second.descriptor_validation.disposition,
+            DescriptorDisposition::InternallyConsistentForDeclaredCase
+        );
+        assert_eq!(
+            first.descriptor_validation.identity_sha256_by_case_record,
+            second.descriptor_validation.identity_sha256_by_case_record
+        );
+
+        for node_id in first
+            .projection
+            .graph["nodes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|node| node["node_id"].as_str().unwrap())
+        {
+            assert!(second.projection.graph["nodes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|node| node["node_id"] == node_id));
+        }
+        assert_ne!(
+            first.projection.graph["graph_id"],
+            second.projection.graph["graph_id"],
+            "case graph identity remains case-specific even when native node identity is stable"
+        );
+        let first_node = first.projection.graph["nodes"].as_array().unwrap()[0].clone();
+        let identity_names = first_node["identity"]["components"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(|component| component["name"].as_str())
+            .collect::<Vec<_>>();
+        assert!(!identity_names.contains(&"case_id"));
+        assert!(first_node["scope"]["subject_pseudonyms"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|subject| subject == "case-descriptor-001"));
+    }
+
+    #[test]
     fn invalid_descriptor_catalog_never_emits_an_ieac_graph() {
         use crate::industry_assurance_projection::{
             ProjectionContext, ProjectionDisposition, project_built_environment_case_with_descriptors,
