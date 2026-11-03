@@ -751,9 +751,9 @@ fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
             counts.positive_admissions,
             counts.positive_trials,
         )
-        && latency_matches(&report["end_to_end_latency_ms"]["p50"], &counts.latencies_ms, 0.50)
-        && latency_matches(&report["end_to_end_latency_ms"]["p95"], &counts.latencies_ms, 0.95)
-        && latency_matches(&report["end_to_end_latency_ms"]["p99"], &counts.latencies_ms, 0.99)
+        && latency_matches(&summary["end_to_end_latency_ms"]["p50"], &counts.latencies_ms, 0.50)
+        && latency_matches(&summary["end_to_end_latency_ms"]["p95"], &counts.latencies_ms, 0.95)
+        && latency_matches(&summary["end_to_end_latency_ms"]["p99"], &counts.latencies_ms, 0.99)
         && report["strata"].as_array().is_some_and(|strata| {
             if strata.len() != family_count || family_metrics.len() != family_count {
                 return false;
@@ -935,6 +935,33 @@ mod tests {
 
 
     use super::*;
+
+    #[test]
+    fn benchmark_latency_percentiles_are_read_from_summary_object() {
+        let summary = serde_json::json!({
+            "end_to_end_latency_ms": {
+                "p50": 4.498191,
+                "p95": 4.611620,
+                "p99": 4.683816
+            }
+        });
+        let latencies = vec![4.498191, 4.611620, 4.683816];
+        assert!(latency_matches(
+            &summary["end_to_end_latency_ms"]["p50"],
+            &latencies,
+            0.50
+        ));
+        assert!(latency_matches(
+            &summary["end_to_end_latency_ms"]["p95"],
+            &latencies,
+            0.95
+        ));
+        assert!(latency_matches(
+            &summary["end_to_end_latency_ms"]["p99"],
+            &latencies,
+            0.99
+        ));
+    }
 
     #[test]
     fn reason_code_matching_rejects_non_string_entries() {
