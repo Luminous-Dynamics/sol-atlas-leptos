@@ -570,12 +570,12 @@ fn validate_event_chain(
             .ok_or_else(|| "authority_sequence must be a positive integer".to_owned())?;
         let digest = canonical_json_digest(event)?;
 
-        if let Some((existing_sequence, existing_digest)) = event_ids.get(&event_id) {
-            if *existing_sequence != sequence || existing_digest != &digest {
-                return Err(format!(
-                    "event ID {event_id} is reused with a different sequence or content"
-                ));
-            }
+        if let Some((existing_sequence, existing_digest)) = event_ids.get(&event_id)
+            && (*existing_sequence != sequence || existing_digest != &digest)
+        {
+            return Err(format!(
+                "event ID {event_id} is reused with a different sequence or content"
+            ));
         }
         if let Some((existing_digest, _)) = by_sequence.get(&sequence) {
             if existing_digest != &digest {
@@ -762,9 +762,6 @@ fn build_impact_report(
             .ok_or_else(|| "impact traversal lost its current path".to_owned())?;
         if let Some(destinations) = adjacency.get(&current) {
             for destination in destinations {
-                let node = nodes
-                    .get(destination)
-                    .ok_or_else(|| "impact traversal found an unknown node".to_owned())?;
                 // Authority scope constrains the event's direct targets, which
                 // were checked by validate_event. Once a valid target is selected,
                 // dependency impact follows exact graph edges across domain
@@ -1113,6 +1110,8 @@ mod tests {
     #[test]
     fn dependency_impact_crosses_domains_but_unconnected_out_of_scope_records_stay_unaffected() {
         let mut fixture = fixture();
+        let invalidation_event = fixture["invalidation_event"].clone();
+        let expected_impact_report = fixture["expected_impact_report"].clone();
         let graph = &mut fixture["graph"];
         let water_source_id = graph["nodes"]
             .as_array()
@@ -1176,11 +1175,11 @@ mod tests {
         graph["graph_snapshot_sha256"] = json!(canonical_json_digest(&digest_input).unwrap());
 
         let nodes = validate_graph(graph).unwrap();
-        validate_event(&fixture["invalidation_event"], &nodes).unwrap();
+        validate_event(&invalidation_event, &nodes).unwrap();
         let report = build_impact_report(
             graph,
-            &fixture["invalidation_event"],
-            &fixture["expected_impact_report"],
+            &invalidation_event,
+            &expected_impact_report,
             &nodes,
         )
         .unwrap();
