@@ -1430,6 +1430,101 @@ mod tests {
         }
     }
 
+    fn inventory_manifest_for_descriptor(
+        descriptor: &SourceRecordDescriptor,
+        identity_sha256: &str,
+        payload_sha256: &str,
+    ) -> crate::built_environment_source_inventory::SourceInventoryManifest {
+        use crate::built_environment_source_inventory::{
+            InventoryPageReceipt, ReportedTotalSemantics, SnapshotSemantics,
+            SourceInventoryManifest,
+        };
+
+        let inventory_id = format!("inventory-{}", descriptor.case_record_id);
+        let snapshot_sha256 = descriptor.source_snapshot.snapshot_sha256.clone();
+        let page = InventoryPageReceipt {
+            inventory_id: inventory_id.clone(),
+            partition_id: "region-a".into(),
+            ordinal: 0,
+            response_payload_sha256: digest('a'),
+            item_count: 1,
+            native_record_identity_sha256s: vec![identity_sha256.into()],
+            native_record_payload_sha256s: vec![payload_sha256.into()],
+            tombstone_identity_sha256s: vec![],
+            cursor_before_sha256: None,
+            cursor_after_sha256: None,
+            predecessor_page_receipt_sha256: None,
+            snapshot_sha256: Some(snapshot_sha256.clone()),
+            source_watermark: None,
+            response_at: "2026-11-03T10:01:00Z".into(),
+            terminal: true,
+        };
+        SourceInventoryManifest {
+            schema_version: "luminous.federated-source-inventory-manifest.v0.1".into(),
+            inventory_id,
+            source_owner_namespace: descriptor.owner_namespace.clone(),
+            source_system_id: descriptor.source_snapshot.source_id.clone(),
+            connector_id: "synthetic-inventory-connector".into(),
+            connector_build_sha256: digest('d'),
+            query_scope_sha256: digest('e'),
+            query_scope_summary: format!("all records for {}", descriptor.case_record_id),
+            snapshot_semantics: SnapshotSemantics::ImmutableSnapshot,
+            snapshot_token: Some(descriptor.source_snapshot.snapshot_id.clone()),
+            snapshot_sha256: Some(snapshot_sha256),
+            source_watermark: None,
+            required_partitions: vec!["region-a".into()],
+            enumeration_started_at: "2026-11-03T10:00:00Z".into(),
+            enumeration_finished_at: "2026-11-03T10:02:00Z".into(),
+            page_receipts: vec![page],
+            reported_total_count: Some(1),
+            reported_total_count_semantics: Some(ReportedTotalSemantics::UniqueNativeRecords),
+            enumerated_item_count: 1,
+            enumerated_unique_count: 1,
+            duplicate_count: 0,
+            excluded_count: 0,
+            exclusions: vec![],
+            tombstone_count: 0,
+            tombstones_included: true,
+            pagination_exhausted: true,
+            snapshot_consistent: true,
+            truncation_detected: false,
+            attestation_ref: Some("synthetic:inventory-attestation:001".into()),
+            issuer_key_id: Some("urn:synthetic:inventory-key:001".into()),
+            limitations: vec!["synthetic only; source attestation authentication is not performed".into()],
+        }
+    }
+
+    fn complete_inventory_inputs(
+        catalog: &SourceDescriptorCatalog,
+        validation: &DescriptorValidation,
+    ) -> (
+        Vec<crate::built_environment_source_inventory::ExpectedSourceOwner>,
+        Vec<crate::built_environment_source_inventory::SourceInventoryManifest>,
+    ) {
+        use crate::built_environment_source_inventory::ExpectedSourceOwner;
+
+        let mut expected_owners = Vec::new();
+        let mut manifests = Vec::new();
+        for descriptor in &catalog.descriptors {
+            let key = descriptor
+                .record_kind
+                .case_key(&descriptor.case_record_id);
+            let identity = validation.identity_sha256_by_case_record.get(&key).unwrap();
+            let payload = descriptor.source_payload.sha256.as_deref().unwrap();
+            expected_owners.push(ExpectedSourceOwner {
+                owner_namespace: descriptor.owner_namespace.clone(),
+                source_system_id: descriptor.source_snapshot.source_id.clone(),
+                required: true,
+            });
+            manifests.push(inventory_manifest_for_descriptor(
+                descriptor,
+                identity,
+                payload,
+            ));
+        }
+        (expected_owners, manifests)
+    }
+
     #[test]
     fn descriptor_catalog_projects_the_same_identity_and_source_schema_into_ieac() {
         use crate::industry_assurance_projection::{
@@ -1503,6 +1598,139 @@ mod tests {
             composed.projection.projection_receipt["projector"]["source_descriptor_catalog"]["catalog_sha256"],
             sha256_hex(&serde_json::to_vec(&catalog).unwrap())
         );
+    }
+
+    #[test]
+    fn inventory_composition_binds_each_descriptor_to_owner_identity_payload_and_snapshot() {
+        use crate::industry_assurance_projection::{
+            ProjectionContext, project_built_environment_case_with_inventory,
+        };
+
+        let case = case();
+        let catalog = catalog(&case);
+        let descriptor_validation = validate_source_descriptor_catalog(&case, &catalog);
+        let (expected_owners, manifests) =
+            complete_inventory_inputs(&catalog, &descriptor_validation);
+        let context = ProjectionContext {
+            captured_at_utc: "2026-11-03T12:00:00Z".into(),
+            projector_build_sha256: Some(digest('d')),
+            mapping_profile_sha256: digest('e'),
+            native_identity_namespaces: BTreeMap::new(),
+        };
+
+        let composed = project_built_environment_case_with_inventory(
+            &case,
+            &context,
+            &catalog,
+            &expected_owners,
+            &manifests,
+        );
+        assert_eq!(
+            composed.inventory_validation.disposition,
+            crate::built_environment_source_inventory::InventoryClosureDisposition::CompleteWithinDeclaredOwnerSet
+        );
+        assert_eq!(
+            composed.descriptor_inventory_binding.disposition,
+            "internally_consistent_for_declared_descriptors"
+        );
+        assert_eq!(composed.descriptor_inventory_binding.bound_record_count, 4);
+        assert!(!composed.descriptor_inventory_binding.no_impact_eligible);
+        assert!(!composed.inventory_validation.no_impact_eligible);
+        assert_eq!(
+            composed.projection.projection_receipt["projector"]["source_inventory_closure"]["descriptor_inventory_binding"]["bound_record_count"],
+            4
+        );
+    }
+
+    #[test]
+    fn complete_pagination_with_descriptor_payload_disagreement_lowers_graph_claim_ceiling() {
+        use crate::industry_assurance_projection::{
+            ProjectionContext, project_built_environment_case_with_inventory,
+        };
+
+        let case = case();
+        let catalog = catalog(&case);
+        let descriptor_validation = validate_source_descriptor_catalog(&case, &catalog);
+        let (expected_owners, mut manifests) =
+            complete_inventory_inputs(&catalog, &descriptor_validation);
+        manifests[0].page_receipts[0].native_record_payload_sha256s[0] = digest('f');
+        let context = ProjectionContext {
+            captured_at_utc: "2026-11-03T12:00:00Z".into(),
+            projector_build_sha256: Some(digest('d')),
+            mapping_profile_sha256: digest('e'),
+            native_identity_namespaces: BTreeMap::new(),
+        };
+
+        let composed = project_built_environment_case_with_inventory(
+            &case,
+            &context,
+            &catalog,
+            &expected_owners,
+            &manifests,
+        );
+        assert_eq!(
+            composed.inventory_validation.disposition,
+            crate::built_environment_source_inventory::InventoryClosureDisposition::CompleteWithinDeclaredOwnerSet
+        );
+        assert_eq!(
+            composed.descriptor_inventory_binding.disposition,
+            "invalid_input"
+        );
+        assert_eq!(
+            composed.descriptor_inventory_binding.payload_digest_mismatch_count,
+            1
+        );
+        assert_eq!(
+            composed.projection.graph["claim_ceiling"],
+            "incomplete_or_indeterminate"
+        );
+        assert!(!composed.inventory_validation.no_impact_eligible);
+        assert_eq!(
+            composed.projection.projection_receipt["claim_ceiling"],
+            "incomplete_or_indeterminate"
+        );
+    }
+
+    #[test]
+    fn missing_required_source_inventory_prevents_record_only_claim_ceiling() {
+        use crate::industry_assurance_projection::{
+            ProjectionContext, project_built_environment_case_with_inventory,
+        };
+
+        let case = case();
+        let catalog = catalog(&case);
+        let descriptor_validation = validate_source_descriptor_catalog(&case, &catalog);
+        let (expected_owners, mut manifests) =
+            complete_inventory_inputs(&catalog, &descriptor_validation);
+        manifests.pop();
+        let context = ProjectionContext {
+            captured_at_utc: "2026-11-03T12:00:00Z".into(),
+            projector_build_sha256: Some(digest('d')),
+            mapping_profile_sha256: digest('e'),
+            native_identity_namespaces: BTreeMap::new(),
+        };
+
+        let composed = project_built_environment_case_with_inventory(
+            &case,
+            &context,
+            &catalog,
+            &expected_owners,
+            &manifests,
+        );
+        assert_eq!(
+            composed.inventory_validation.disposition,
+            crate::built_environment_source_inventory::InventoryClosureDisposition::IncompleteOrIndeterminate
+        );
+        assert_eq!(
+            composed.descriptor_inventory_binding.disposition,
+            "incomplete_or_indeterminate"
+        );
+        assert_eq!(
+            composed.projection.graph["claim_ceiling"],
+            "incomplete_or_indeterminate"
+        );
+        assert!(!composed.projection.projection_receipt["projector"]["source_inventory_closure"]["no_impact_eligible"]
+            .as_bool().unwrap());
     }
 
     #[test]
