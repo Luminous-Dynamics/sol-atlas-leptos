@@ -23,6 +23,7 @@ const BATCH_SCHEMA: &str = "luminous.ieac-assurance-impact-delta-batch.v0.1";
 const DELTA_INPUT_SCHEMA: &str = "luminous.ieac-assurance-impact-delta-input.v0.1";
 const MAX_INPUT_BYTES: u64 = 128 * 1024 * 1024;
 const MAX_BATCH_EVENTS: usize = 10_000;
+const MAX_BATCH_AFFECTED_NODE_VISITS: usize = 2_000_000;
 
 #[derive(Debug)]
 struct GraphIndex {
@@ -341,9 +342,15 @@ fn merge_impact_rows(previous: &Value, incoming: &Value) -> Value {
     }
 
     let mut reasons = BTreeSet::new();
+    let state_is_impacted = impact_rank(previous).max(impact_rank(incoming)) > 0;
     for row in [previous, incoming] {
         if let Some(values) = row.get("reason_codes").and_then(Value::as_array) {
             for value in values.iter().filter_map(Value::as_str) {
+                if state_is_impacted
+                    && matches!(value, "NO_DEPENDENCY_PATH" | "OUTSIDE_INVALIDATION_SCOPE")
+                {
+                    continue;
+                }
                 reasons.insert(value.to_owned());
             }
         }
@@ -802,6 +809,7 @@ fn run_batch(
     let mut cursor = cursor_from_pin(base_pin)?;
     let base_report_sha256 = canonical_json_digest(base_report)?;
     let mut deltas = Vec::with_capacity(events.len());
+    let mut total_affected_node_visits = 0usize;
 
     for event in events {
         let (delta, next_cursor) = advance_state(
@@ -813,6 +821,18 @@ fn run_batch(
             event,
             metadata,
         )?;
+        let affected = delta["affected_node_count"]
+            .as_u64()
+            .and_then(|value| usize::try_from(value).ok())
+            .ok_or("delta affected-node count is invalid")?;
+        total_affected_node_visits = total_affected_node_visits
+            .checked_add(affected)
+            .ok_or("batch affected-node visit counter overflow")?;
+        if total_affected_node_visits > MAX_BATCH_AFFECTED_NODE_VISITS {
+            return Err(format!(
+                "batch affected-node visit budget exceeded: {total_affected_node_visits} > {MAX_BATCH_AFFECTED_NODE_VISITS}"
+            ));
+        }
         deltas.push(delta);
         cursor = next_cursor;
     }
@@ -842,6 +862,7 @@ fn run_batch(
         "state_row_map_initializations": 1,
         "state_row_map_reused_for_events": events.len(),
         "full_report_materializations": 1,
+        "total_affected_node_visits": total_affected_node_visits,
         "graph_node_count": index.nodes.len(),
         "graph_edge_count": index.edge_count,
         "event_count": events.len(),
@@ -916,6 +937,7 @@ fn main() -> ExitCode {
                 "state_row_map_initializations": 1,
                 "state_row_map_reused_for_events": 1,
                 "full_report_materializations": 1,
+                "total_affected_node_visits": applied.delta["affected_node_count"],
                 "graph_node_count": index.nodes.len(),
                 "graph_edge_count": index.edge_count,
                 "event_count": 1,
