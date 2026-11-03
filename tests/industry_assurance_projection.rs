@@ -98,6 +98,43 @@ fn public_projector_emits_identity_preserving_graph_and_receipt() {
     assert_eq!(output.graph["action_authority"], "none");
     assert_eq!(output.graph["nodes"].as_array().unwrap().len(), 4);
     assert_eq!(output.graph["edges"].as_array().unwrap().len(), 6);
+    let mut gold_relationships = output.graph["edges"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|edge| {
+            let from = output.graph["nodes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|node| node["node_id"] == edge["from_node_id"])
+                .unwrap()["node_type"]
+                .as_str()
+                .unwrap()
+                .to_owned();
+            let to = output.graph["nodes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|node| node["node_id"] == edge["to_node_id"])
+                .unwrap()["node_type"]
+                .as_str()
+                .unwrap()
+                .to_owned();
+            (from, to, edge["relation"].as_str().unwrap().to_owned())
+        })
+        .collect::<Vec<_>>();
+    gold_relationships.sort();
+    let mut expected_relationships = vec![
+        ("source_evidence".to_owned(), "engineering_artifact".to_owned(), "evidence_for".to_owned()),
+        ("engineering_artifact".to_owned(), "engineering_receipt".to_owned(), "verified_by".to_owned()),
+        ("source_evidence".to_owned(), "engineering_receipt".to_owned(), "evidence_for".to_owned()),
+        ("engineering_artifact".to_owned(), "decision".to_owned(), "evidence_for".to_owned()),
+        ("engineering_receipt".to_owned(), "decision".to_owned(), "evidence_for".to_owned()),
+        ("source_evidence".to_owned(), "decision".to_owned(), "authorized_by".to_owned()),
+    ];
+    expected_relationships.sort();
+    assert_eq!(gold_relationships, expected_relationships);
     assert_eq!(
         output.projection_receipt["disposition"],
         "projected_with_known_loss"
