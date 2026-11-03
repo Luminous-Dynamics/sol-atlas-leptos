@@ -537,20 +537,19 @@ fn materialize_report(
     Ok(report)
 }
 
-fn compute_transition(
+fn advance_state(
     index: &GraphIndex,
+    rows: &mut BTreeMap<String, Value>,
+    base_report_sha256: &str,
     base_report: &Value,
-    base_pin: &Value,
+    cursor: &EventCursor,
     event: &Value,
     metadata: &Value,
-) -> Result<Transition, String> {
-    validate_state_pin(index, base_report, base_pin)?;
+) -> Result<(Value, EventCursor), String> {
     validate_event(event, &index.nodes)?;
 
-    let previous_sequence = base_pin["last_event_sequence"]
-        .as_u64()
-        .ok_or("state pin sequence is missing")?;
-    let expected_sequence = previous_sequence
+    let expected_sequence = cursor
+        .sequence
         .checked_add(1)
         .ok_or("authority sequence overflow")?;
     let sequence = event["authority_sequence"]
@@ -561,9 +560,7 @@ fn compute_transition(
             "event sequence mismatch: expected {expected_sequence}, got {sequence}"
         ));
     }
-    if event["previous_event_sha256"].as_str()
-        != base_pin["event_chain_head_sha256"].as_str()
-    {
+    if event["previous_event_sha256"].as_str() != Some(cursor.event_head_sha256.as_str()) {
         return Err("event predecessor does not match pinned event-chain head".into());
     }
 
@@ -574,24 +571,31 @@ fn compute_transition(
     if !valid_utc_timestamp(recorded_at)
         || !valid_utc_timestamp(trusted_at)
         || trusted_at < recorded_at
-        || recorded_at < base_pin["last_recorded_at"].as_str().unwrap_or_default()
-        || trusted_at < base_pin["last_trusted_at"].as_str().unwrap_or_default()
+        || recorded_at < cursor.last_recorded_at.as_str()
+        || trusted_at < cursor.last_trusted_at.as_str()
     {
         return Err("event recorded/trusted times violate the pinned temporal high-water mark".into());
     }
+
     let evaluated_at = required_string(metadata, "evaluated_at", "delta metadata")?;
     let policy_sha = required_string(metadata, "impact_policy_sha256", "delta metadata")?;
     let engine_sha = required_string(metadata, "impact_engine_build_sha256", "delta metadata")?;
-    if !valid_utc_timestamp(evaluated_at) || !valid_sha256(policy_sha) || !valid_sha256(engine_sha) {
-        return Err("delta metadata has invalid time, policy digest or engine digest".into());
+    if !valid_utc_timestamp(evaluated_at)
+        || !valid_sha256(policy_sha)
+        || !valid_sha256(engine_sha)
+        || evaluated_at < cursor.pinned_at.as_str()
+    {
+        return Err("delta evaluation time, policy or engine identity is invalid or backdated".into());
     }
     if base_report["impact_policy_sha256"].as_str() != Some(policy_sha)
         || base_report["impact_engine_build_sha256"].as_str() != Some(engine_sha)
     {
         return Err("policy or engine identity changed; run full reconciliation before applying a delta".into());
     }
+    if canonical_json_digest(base_report)? != base_report_sha256 {
+        return Err("immutable batch base report digest changed during delta processing".into());
+    }
 
-    let base_rows = report_rows(base_report, index)?;
     let direct_target_set = event["targets"]
         .as_array()
         .ok_or("event.targets must be an array")?
@@ -610,7 +614,6 @@ fn compute_transition(
     if independently_reached != bfs_reached {
         return Err("independent DFS closure disagrees with lifecycle BFS closure".into());
     }
-
     for (node_id, row) in &impacted_rows {
         if row["impact_class"] == "claim_invalidated" && !direct_target_set.contains(node_id) {
             return Err(format!(
@@ -623,19 +626,19 @@ fn compute_transition(
         return Err("direct target is missing from the calculated impact closure".into());
     }
     let direct_target_node_ids = direct_target_set.iter().cloned().collect::<Vec<_>>();
+
     let mut updates = Vec::new();
-    let mut next_rows = base_rows.clone();
     for node_id in &affected_node_ids {
-        let previous = base_rows
+        let previous = rows
             .get(node_id)
-            .ok_or_else(|| format!("base report lacks affected node {node_id}"))?;
+            .ok_or_else(|| format!("base state lacks affected node {node_id}"))?;
         let incoming = impacted_rows
             .get(node_id)
             .ok_or_else(|| format!("impact row evaluator omitted affected node {node_id}"))?;
         let merged = merge_impact_rows(previous, incoming);
         if merged != *previous {
             updates.push(merged.clone());
-            next_rows.insert(node_id.clone(), merged);
+            rows.insert(node_id.clone(), merged);
         }
     }
     updates.sort_by(|left, right| {
@@ -644,21 +647,12 @@ fn compute_transition(
             .cmp(&right["node_id"].as_str())
     });
 
-    // No row outside the independently proven closure may be changed.
-    let next_summary = summarize_rows(&next_rows);
-    let mut next_report = base_report.clone();
-    next_report["report_id"] = json!(format!(
-        "impact-{}",
-        required_string(event, "event_id", "event")?
-    ));
-    next_report["invalidation_event_sha256"] = json!(event_digest);
-    next_report["evaluated_at"] = json!(evaluated_at);
-    next_report["results"] = json!(
-        next_rows.values().cloned().collect::<Vec<_>>()
-    );
-    next_report["summary"] = next_summary;
-    let resulting_report_sha = canonical_json_digest(&next_report)?;
-
+    let resulting_state_sha256 = next_state_digest(
+        &cursor.state_sha256,
+        &event_digest,
+        sequence,
+        &updates,
+    )?;
     let update_count = updates.len();
     let affected_node_count = independently_reached.len();
     let mut delta = json!({
@@ -666,9 +660,11 @@ fn compute_transition(
         "delta_id": format!("delta-{}-{}", sequence, required_string(event, "event_id", "event")?),
         "graph_snapshot_sha256": index.graph_snapshot_sha256,
         "graph_index_sha256": index.index_sha256,
-        "base_impact_report_sha256": canonical_json_digest(base_report)?,
-        "base_event_sequence": previous_sequence,
-        "base_event_chain_head_sha256": base_pin["event_chain_head_sha256"],
+        "base_impact_report_sha256": base_report_sha256,
+        "base_state_sha256": cursor.state_sha256,
+        "resulting_state_sha256": resulting_state_sha256,
+        "base_event_sequence": cursor.sequence,
+        "base_event_chain_head_sha256": cursor.event_head_sha256,
         "event_id": event["event_id"],
         "event_sequence": sequence,
         "event_sha256": event_digest,
@@ -684,7 +680,6 @@ fn compute_transition(
         "update_count": update_count,
         "closure_verifier": "independent_iterative_dfs_v0.1",
         "closure_complete": true,
-        "resulting_impact_report_sha256": resulting_report_sha,
         "resulting_event_sequence": sequence,
         "resulting_event_chain_head_sha256": event_digest,
         "claim_ceiling": "incomplete_or_indeterminate",
@@ -694,17 +689,50 @@ fn compute_transition(
     let delta_sha = canonical_digest_without_field(&delta, "delta_sha256")?;
     delta["delta_sha256"] = json!(delta_sha);
 
+    let next_cursor = EventCursor {
+        sequence,
+        event_head_sha256: event_digest,
+        last_recorded_at: recorded_at.to_owned(),
+        last_trusted_at: trusted_at.to_owned(),
+        pinned_at: evaluated_at.to_owned(),
+        state_sha256: resulting_state_sha256,
+    };
+    Ok((delta, next_cursor))
+}
+
+fn compute_transition(
+    index: &GraphIndex,
+    base_report: &Value,
+    base_pin: &Value,
+    event: &Value,
+    metadata: &Value,
+) -> Result<Transition, String> {
+    let mut rows = validate_state_pin(index, base_report, base_pin)?;
+    let cursor = cursor_from_pin(base_pin)?;
+    let base_report_sha256 = canonical_json_digest(base_report)?;
+    let (delta, next_cursor) = advance_state(
+        index,
+        &mut rows,
+        &base_report_sha256,
+        base_report,
+        &cursor,
+        event,
+        metadata,
+    )?;
+    let evaluated_at = required_string(metadata, "evaluated_at", "delta metadata")?;
+    let report = materialize_report(base_report, &rows, event, evaluated_at)?;
     let state_pin = make_state_pin(
         index,
-        &next_report,
-        sequence,
-        &event_digest,
-        recorded_at,
-        trusted_at,
+        &report,
+        next_cursor.sequence,
+        &next_cursor.event_head_sha256,
+        &next_cursor.last_recorded_at,
+        &next_cursor.last_trusted_at,
+        &next_cursor.state_sha256,
     )?;
     Ok(Transition {
         delta,
-        report: next_report,
+        report,
         state_pin,
     })
 }
