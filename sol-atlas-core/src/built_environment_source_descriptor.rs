@@ -1190,6 +1190,79 @@ mod tests {
     }
 
     #[test]
+    fn invalid_descriptor_catalog_never_emits_an_ieac_graph() {
+        use crate::industry_assurance_projection::{
+            ProjectionContext, ProjectionDisposition, project_built_environment_case_with_descriptors,
+        };
+
+        let case = case();
+        let mut catalog = catalog(&case);
+        catalog.descriptors[0].source_payload.sha256 = Some(digest('f'));
+        let context = ProjectionContext {
+            captured_at_utc: "2026-11-03T12:00:00Z".into(),
+            projector_build_sha256: Some(digest('d')),
+            mapping_profile_sha256: digest('e'),
+            native_identity_namespaces: BTreeMap::new(),
+        };
+        let composed =
+            project_built_environment_case_with_descriptors(&case, &context, &catalog);
+        assert_eq!(composed.projection.disposition, ProjectionDisposition::InvalidInput);
+        assert_eq!(composed.projection.graph, serde_json::Value::Null);
+        assert_eq!(
+            composed.projection.projection_receipt["projector"]["source_descriptor_catalog"]["validation_disposition"],
+            "invalid_input"
+        );
+        assert_eq!(
+            composed.projection.projection_receipt["action_authority"],
+            "none"
+        );
+        assert!(composed.projection.projection_receipt.get("projection_receipt_sha256").is_some());
+    }
+
+    #[test]
+    fn incomplete_descriptor_catalog_can_only_produce_loss_accounted_projection() {
+        use crate::industry_assurance_projection::{
+            ProjectionContext, ProjectionDisposition, project_built_environment_case_with_descriptors,
+        };
+
+        let case = case();
+        let mut catalog = catalog(&case);
+        catalog.descriptors[0].source_payload.media_type = None;
+        let context = ProjectionContext {
+            captured_at_utc: "2026-11-03T12:00:00Z".into(),
+            projector_build_sha256: Some(digest('d')),
+            mapping_profile_sha256: digest('e'),
+            native_identity_namespaces: BTreeMap::new(),
+        };
+        let composed =
+            project_built_environment_case_with_descriptors(&case, &context, &catalog);
+        assert_eq!(
+            composed.descriptor_validation.disposition,
+            DescriptorDisposition::IncompleteOrIndeterminate
+        );
+        assert_eq!(
+            composed.projection.disposition,
+            ProjectionDisposition::ProjectedWithKnownLoss
+        );
+        assert_eq!(
+            composed.projection.graph["claim_ceiling"],
+            "incomplete_or_indeterminate"
+        );
+        assert!(composed.projection.projection_receipt["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|finding| finding["code"] == "SOURCE_DESCRIPTOR_CATALOG_INCOMPLETE"));
+        let evidence_node = composed.projection.graph["nodes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|node| node["node_type"] == "source_evidence")
+            .unwrap();
+        assert_eq!(evidence_node["artifact_media_type"], "application/octet-stream");
+    }
+
+    #[test]
     fn complete_synthetic_descriptor_catalog_reconciles_all_case_records() {
         let case = case();
         let result = validate_source_descriptor_catalog(&case, &catalog(&case));
