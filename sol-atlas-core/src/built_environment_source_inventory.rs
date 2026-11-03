@@ -1255,6 +1255,70 @@ mod tests {
     }
 
     #[test]
+    fn raw_page_item_total_is_distinct_from_unique_native_record_total() {
+        let mut manifest = valid_manifest();
+        manifest.page_receipts[1].native_record_identity_sha256s[0] = digest('2');
+        manifest.enumerated_unique_count = 2;
+        manifest.duplicate_count = 1;
+        manifest.reported_total_count = Some(3);
+        manifest.reported_total_count_semantics = Some(ReportedTotalSemantics::RawPageItems);
+        let result = validate_source_inventory_manifest(&manifest);
+        assert_eq!(
+            result.disposition,
+            InventoryDisposition::CompleteWithinDeclaredQuery
+        );
+        assert_eq!(result.enumerated_item_count, 3);
+        assert_eq!(result.enumerated_unique_count, 2);
+        assert_eq!(result.duplicate_count, 1);
+    }
+
+    #[test]
+    fn tombstone_count_requires_page_bound_native_identity_digests() {
+        let mut manifest = valid_manifest();
+        manifest.tombstone_count = 1;
+        manifest.page_receipts[0]
+            .tombstone_identity_sha256s
+            .push(digest('2'));
+        let first_receipt_sha256 = manifest.page_receipts[0].receipt_sha256().unwrap();
+        manifest.page_receipts[1].predecessor_page_receipt_sha256 =
+            Some(first_receipt_sha256);
+        let result = validate_source_inventory_manifest(&manifest);
+        assert_eq!(
+            result.disposition,
+            InventoryDisposition::CompleteWithinDeclaredQuery
+        );
+        assert_eq!(result.tombstone_count, 1);
+    }
+
+    #[test]
+    fn tombstone_identity_not_present_in_page_is_invalid() {
+        let mut manifest = valid_manifest();
+        manifest.tombstone_count = 1;
+        manifest.page_receipts[0]
+            .tombstone_identity_sha256s
+            .push(digest('9'));
+        let first_receipt_sha256 = manifest.page_receipts[0].receipt_sha256().unwrap();
+        manifest.page_receipts[1].predecessor_page_receipt_sha256 =
+            Some(first_receipt_sha256);
+        let result = validate_source_inventory_manifest(&manifest);
+        assert_eq!(result.disposition, InventoryDisposition::InvalidInput);
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "INVENTORY_TOMBSTONE_IDENTITY_NOT_IN_PAGE"
+        }));
+    }
+
+    #[test]
+    fn tombstone_count_without_identity_evidence_is_invalid() {
+        let mut manifest = valid_manifest();
+        manifest.tombstone_count = 1;
+        let result = validate_source_inventory_manifest(&manifest);
+        assert_eq!(result.disposition, InventoryDisposition::InvalidInput);
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "INVENTORY_TOMBSTONE_IDENTITY_COUNT_MISMATCH"
+        }));
+    }
+
+    #[test]
     fn complete_frozen_manifest_is_bounded_to_declared_query() {
         let result = validate_source_inventory_manifest(&valid_manifest());
         assert_eq!(
