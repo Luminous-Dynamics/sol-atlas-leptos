@@ -72,6 +72,7 @@ Do not collapse these into a weighted score.
 | --- | --- | --- |
 | Identity | False identity merges | 0 |
 | Identity | False identity splits | 0 for stable owner namespace + same native identity tuple |
+| Cross-case identity | Conflicting digest accepted for same native identity | 0 |
 | Payload | Source payload digest mismatches | 0 |
 | Source coverage | Recall against independent gold inventory | 100% on supported declared scope |
 | Projection | Node mapping precision and recall | 100% on supported frozen subset |
@@ -141,7 +142,7 @@ Required negative controls:
 - descriptor catalogue invalidity must yield no graph;
 - descriptor validation incomplete must yield an incomplete/indeterminate graph if a diagnostic graph is emitted.
 
-Case membership is not part of source-native node identity. Include a cross-case replay test proving that the same owner namespace and native identity tuple keeps the same node ID in different case graphs, while each graph retains its own scope and graph digest. The descriptor verifier currently reports byte verification, rights authentication and attestation authentication as not_performed. These fields stay separate from internal consistency and projection loss. An assertion that bytes were locally retrieved is not an independent byte hash. The trust workflow must perform that check before it can be used as an authenticated source claim.
+Case membership is not part of source-native node identity. Include catalogue-set reconciliation: shared native identities with equal digests must remain shared across case graphs, while any conflicting digest for the same identity must be rejected. Missing digest on either side must remain incomparable/incomplete. Include a cross-case replay test proving that the same owner namespace and native identity tuple keeps the same node ID in different case graphs, while each graph retains its own scope and graph digest. The descriptor verifier currently reports byte verification, rights authentication and attestation authentication as not_performed. These fields stay separate from internal consistency and projection loss. An assertion that bytes were locally retrieved is not an independent byte hash. The trust workflow must perform that check before it can be used as an authenticated source claim.
 
 projected_without_known_loss means no known loss relative to the declared typed case plus supplied descriptors and mapping profile. It is never a source-universe completeness, authenticity, engineering-correctness, professional-approval or action-authority claim.
 
