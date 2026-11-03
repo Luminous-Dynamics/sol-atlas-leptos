@@ -1888,9 +1888,11 @@ mod tests {
                 "authorization-scope mutation seed {seed} must be incomplete"
             );
             assert!(!result.no_impact_eligible);
-            assert!(result.findings.iter().any(|finding| {
-                finding.code == "SOURCE_INVENTORY_AUTHORIZATION_SCOPE_LIMITED"
-            }));
+            assert!(
+                result.findings.iter().any(|finding| {
+                    finding.code == "SOURCE_INVENTORY_AUTHORIZATION_SCOPE_LIMITED"
+                })
+            );
         }
     }
 
@@ -1903,9 +1905,12 @@ mod tests {
             result.disposition,
             InventoryDisposition::IncompleteOrIndeterminate
         );
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "SOURCE_INVENTORY_AUTHORIZATION_SCOPE_UNKNOWN"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "SOURCE_INVENTORY_AUTHORIZATION_SCOPE_UNKNOWN" })
+        );
     }
 
     #[test]
@@ -1925,9 +1930,12 @@ mod tests {
         let result = validate_source_inventory_manifest(&manifest);
         assert_eq!(result.disposition, InventoryDisposition::NotComparable);
         assert_eq!(result.enumerated_item_count, 0);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "SOURCE_INVENTORY_ACCESS_DENIED"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "SOURCE_INVENTORY_ACCESS_DENIED" })
+        );
         assert!(!result.no_impact_eligible);
     }
 
@@ -1937,9 +1945,12 @@ mod tests {
         manifest.access_scope = InventoryAccessScope::AccessDenied;
         let result = validate_source_inventory_manifest(&manifest);
         assert_eq!(result.disposition, InventoryDisposition::InvalidInput);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "ACCESS_DENIED_WITH_ENUMERATED_DATA"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "ACCESS_DENIED_WITH_ENUMERATED_DATA" })
+        );
     }
 
     #[test]
