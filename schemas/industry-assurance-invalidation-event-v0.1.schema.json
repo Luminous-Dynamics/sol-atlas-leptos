@@ -63,6 +63,8 @@
         "source_corrected",
         "rights_revoked_or_expired",
         "model_superseded",
+        "engineering_artifact_superseded",
+        "engineering_receipt_corrected",
         "schema_superseded",
         "verifier_vulnerable",
         "policy_changed",
