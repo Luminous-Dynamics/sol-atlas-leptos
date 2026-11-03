@@ -23,6 +23,7 @@
     "enumeration_finished_at",
     "page_receipts",
     "reported_total_count",
+    "reported_total_count_semantics",
     "enumerated_item_count",
     "enumerated_unique_count",
     "duplicate_count",
@@ -140,6 +141,7 @@
           "response_payload_sha256",
           "item_count",
           "native_record_identity_sha256s",
+          "tombstone_identity_sha256s",
           "cursor_before_sha256",
           "cursor_after_sha256",
           "predecessor_page_receipt_sha256",
@@ -237,6 +239,12 @@
           },
           "terminal": {
             "type": "boolean"
+          },
+          "tombstone_identity_sha256s": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/sha256"
+            }
           }
         }
       }
@@ -339,6 +347,19 @@
         "type": "string",
         "minLength": 1
       }
+    },
+    "reported_total_count_semantics": {
+      "anyOf": [
+        {
+          "enum": [
+            "unique_native_records",
+            "raw_page_items"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
     }
   },
   "$defs": {
@@ -352,6 +373,7 @@
         "response_payload_sha256",
         "item_count",
         "native_record_identity_sha256s",
+        "tombstone_identity_sha256s",
         "cursor_before_sha256",
         "cursor_after_sha256",
         "predecessor_page_receipt_sha256",
@@ -449,6 +471,12 @@
         },
         "terminal": {
           "type": "boolean"
+        },
+        "tombstone_identity_sha256s": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sha256"
+          }
         }
       }
     },
