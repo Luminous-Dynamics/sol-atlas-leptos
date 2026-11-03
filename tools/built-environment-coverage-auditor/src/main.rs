@@ -1208,12 +1208,23 @@ fn audit_manifest(manifest: &Value, input_sha256: &str) -> Value {
         "review_evidence_sha256",
         "manifest/independent_review",
     );
-    let reviewed_at = check_timestamp(
-        &mut audit,
-        review,
-        "reviewed_at",
-        "manifest/independent_review",
-    );
+    let reviewed_at = if get_str(review, "status") == Some("accepted_for_declared_scope") {
+        check_timestamp(
+            &mut audit,
+            review,
+            "reviewed_at",
+            "manifest/independent_review",
+        )
+    } else if review.get("reviewed_at").is_some_and(Value::is_null) {
+        None
+    } else {
+        check_timestamp(
+            &mut audit,
+            review,
+            "reviewed_at",
+            "manifest/independent_review",
+        )
+    };
     if get_str(review, "status") != Some("accepted_for_declared_scope") {
         audit.incomplete(
             "INDEPENDENT_REVIEW_NOT_ACCEPTED",
