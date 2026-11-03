@@ -9,6 +9,7 @@ on:
       - "sol-atlas-core/src/**"
       - "tests/industry_assurance_projection.rs"
       - "examples/built_environment_ieac_projection_fixture.rs"
+      - "examples/built_environment_ieac_descriptor_projection_fixture.rs"
       - "schemas/industry-assurance-dependency-graph-v0.2.schema.json"
       - "schemas/built-environment-ieac-projection-receipt-v0.1.schema.json"
       - ".github/workflows/built-environment-ieac-projection.yml"
@@ -23,6 +24,7 @@ on:
       - "sol-atlas-core/src/**"
       - "tests/industry_assurance_projection.rs"
       - "examples/built_environment_ieac_projection_fixture.rs"
+      - "examples/built_environment_ieac_descriptor_projection_fixture.rs"
       - "schemas/industry-assurance-dependency-graph-v0.2.schema.json"
       - "schemas/built-environment-ieac-projection-receipt-v0.1.schema.json"
       - ".github/workflows/built-environment-ieac-projection.yml"
@@ -60,6 +62,7 @@ jobs:
           set -euo pipefail
           rustfmt --edition 2024 --check tests/industry_assurance_projection.rs
           rustfmt --edition 2024 --check examples/built_environment_ieac_projection_fixture.rs
+          rustfmt --edition 2024 --check examples/built_environment_ieac_descriptor_projection_fixture.rs
           cargo fmt --manifest-path sol-atlas-core/Cargo.toml --check
 
       - name: Strict Clippy and locked integration tests
@@ -76,6 +79,19 @@ jobs:
           jq -e '.graph and .projection_receipt and .disposition' "$RUNNER_TEMP/built-environment-projection-report.json"
           jq '.graph' "$RUNNER_TEMP/built-environment-projection-report.json" > "$RUNNER_TEMP/built-environment-projection-graph.json"
           jq '.projection_receipt' "$RUNNER_TEMP/built-environment-projection-report.json" > "$RUNNER_TEMP/built-environment-projection-receipt.json"
+
+          cargo run --manifest-path Cargo.toml --locked --example built_environment_ieac_descriptor_projection_fixture \
+            > "$RUNNER_TEMP/built-environment-descriptor-projection-report.json"
+          jq -e '
+            .fixture_status == "synthetic_only" and
+            .descriptor_validation.disposition == "incomplete_or_indeterminate" and
+            .graph.claim_ceiling == "incomplete_or_indeterminate" and
+            .graph.action_authority == "none" and
+            .projection_receipt.disposition == "projected_with_known_loss" and
+            .projection_receipt.projector.source_descriptor_catalog.validation_disposition == "incomplete_or_indeterminate"
+          ' "$RUNNER_TEMP/built-environment-descriptor-projection-report.json"
+          jq '.graph' "$RUNNER_TEMP/built-environment-descriptor-projection-report.json" > "$RUNNER_TEMP/built-environment-descriptor-ieac-graph.json"
+          jq '.projection_receipt' "$RUNNER_TEMP/built-environment-descriptor-projection-report.json" > "$RUNNER_TEMP/built-environment-descriptor-projection-receipt.json"
 
       - name: Install pinned Draft 2020-12 validator
         run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
@@ -96,6 +112,10 @@ jobs:
             -i "$RUNNER_TEMP/built-environment-projection-graph.json"
           jsonschema-cli validate --draft 2020 --assert-format --offline "$receipt_schema" \
             -i "$RUNNER_TEMP/built-environment-projection-receipt.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$graph_schema" \
+            -i "$RUNNER_TEMP/built-environment-descriptor-ieac-graph.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$receipt_schema" \
+            -i "$RUNNER_TEMP/built-environment-descriptor-projection-receipt.json"
           jq -e '
             .disposition == "projected_with_known_loss" and
             .projection_receipt.disposition == "projected_with_known_loss" and
