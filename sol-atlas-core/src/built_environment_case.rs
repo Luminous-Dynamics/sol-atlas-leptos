@@ -249,7 +249,6 @@ pub enum ImpactReason {
     SourceArtifactDigestChanged,
     DescendantArtifactDependsOnChangedAncestor,
     EngineeringReceiptInputArtifactChanged,
-    EngineeringReceiptAssumptionEvidenceAffected,
     DecisionTargetArtifactAffected,
     DecisionDependsOnAffectedReceipt,
 }
@@ -1337,11 +1336,7 @@ pub fn compute_revalidation_frontier(
     }
 
     let mut impacts = Vec::new();
-    let mut affected_evidence_ids = BTreeSet::new();
     for (artifact_id, path) in &affected_paths {
-        if let Some(artifact) = artifacts_by_id.get(artifact_id.as_str()) {
-            affected_evidence_ids.extend(artifact.evidence_ids.iter().cloned());
-        }
         impacts.push(ImpactRecord {
             node_kind: ImpactNodeKind::Artifact,
             node_id: artifact_id.clone(),
@@ -1354,34 +1349,17 @@ pub fn compute_revalidation_frontier(
         });
     }
 
+    // A changed artifact invalidates receipts that consumed that exact artifact
+    // (or a descendant). It does not mutate the upstream evidence records linked
+    // to the artifact; evidence changes require a distinct evidence-source query.
     let mut affected_receipt_paths = BTreeMap::<String, Vec<String>>::new();
     for receipt in &case.engineering_receipts {
-        let input_path = affected_paths.get(&receipt.input_artifact_id).cloned();
-        let evidence_path = if input_path.is_none() {
-            affected_paths.iter().find_map(|(artifact_id, path)| {
-                artifacts_by_id
-                    .get(artifact_id.as_str())
-                    .filter(|artifact| {
-                        artifact.evidence_ids.iter().any(|evidence_id| {
-                            receipt.assumption_evidence_ids.contains(evidence_id)
-                        })
-                    })
-                    .map(|_| path.clone())
-            })
-        } else {
-            None
-        };
-        if let Some(path) = input_path.or(evidence_path.clone()) {
-            let reason = if evidence_path.is_some() {
-                ImpactReason::EngineeringReceiptAssumptionEvidenceAffected
-            } else {
-                ImpactReason::EngineeringReceiptInputArtifactChanged
-            };
+        if let Some(path) = affected_paths.get(&receipt.input_artifact_id).cloned() {
             affected_receipt_paths.insert(receipt.receipt_id.clone(), path.clone());
             impacts.push(ImpactRecord {
                 node_kind: ImpactNodeKind::EngineeringReceipt,
                 node_id: receipt.receipt_id.clone(),
-                reason,
+                reason: ImpactReason::EngineeringReceiptInputArtifactChanged,
                 via_artifact_ids: path,
             });
         }
@@ -1544,6 +1522,218 @@ mod tests {
             ],
             decisions: vec![approval(&model.artifact_id, model.content_sha256.clone())],
         }
+    }
+
+    fn case_with_transitive_revalidation_chain() -> BuiltEnvironmentCase {
+        let mut case = valid_case();
+        let model = case.artifacts[0].clone();
+
+        let mut drawing = artifact("drawing-1", 1, 'd');
+        drawing.family_id = "drawing-package".into();
+        drawing.kind = ArtifactKind::DrawingPackage;
+        drawing.parent_artifacts.push(ArtifactReference {
+            artifact_id: model.artifact_id.clone(),
+            content_sha256: model.content_sha256.clone(),
+        });
+
+        let mut plan = artifact("plan-1", 1, 'e');
+        plan.family_id = "construction-plan".into();
+        plan.kind = ArtifactKind::ConstructionPlan;
+        plan.parent_artifacts.push(ArtifactReference {
+            artifact_id: drawing.artifact_id.clone(),
+            content_sha256: drawing.content_sha256.clone(),
+        });
+
+        let mut unrelated = artifact("unrelated-model", 1, 'f');
+        unrelated.family_id = "unrelated-family".into();
+
+        let structural = receipt(
+            "structural-plan",
+            EngineeringDiscipline::Structural,
+            &plan.artifact_id,
+            plan.content_sha256.clone(),
+        );
+        let geotechnical = receipt(
+            "geotechnical-plan",
+            EngineeringDiscipline::Geotechnical,
+            &plan.artifact_id,
+            plan.content_sha256.clone(),
+        );
+
+        let mut plan_approval = approval(&plan.artifact_id, plan.content_sha256.clone());
+        plan_approval.event_id = "approval-plan".into();
+        plan_approval.engineering_receipt_ids = vec![
+            structural.receipt_id.clone(),
+            geotechnical.receipt_id.clone(),
+        ];
+
+        case.artifacts.extend([drawing, plan, unrelated]);
+        case.engineering_receipts.extend([structural, geotechnical]);
+        case.decisions.push(plan_approval);
+        case
+    }
+
+    #[test]
+    fn unchanged_artifact_digest_has_no_revalidation_impact() {
+        let case = valid_case();
+        let frontier =
+            compute_revalidation_frontier(&case, "model-1", &digest('b'));
+        assert_eq!(frontier.status, RevalidationStatus::NoImpact);
+        assert!(frontier.graph_issues.is_empty());
+        assert!(frontier.impacts.is_empty());
+        assert_eq!(frontier.previous_content_sha256, Some(digest('b')));
+    }
+
+    #[test]
+    fn changed_artifact_reports_transitive_artifact_receipt_and_decision_frontier() {
+        let case = case_with_transitive_revalidation_chain();
+        let frontier =
+            compute_revalidation_frontier(&case, "model-1", &digest('c'));
+
+        assert_eq!(frontier.status, RevalidationStatus::RevalidationRequired);
+        assert!(frontier.graph_issues.is_empty());
+        assert_eq!(frontier.previous_content_sha256, Some(digest('b')));
+
+        let artifact_impacts = frontier
+            .impacts
+            .iter()
+            .filter(|impact| impact.node_kind == ImpactNodeKind::Artifact)
+            .collect::<Vec<_>>();
+        assert_eq!(
+            artifact_impacts
+                .iter()
+                .map(|impact| impact.node_id.as_str())
+                .collect::<BTreeSet<_>>(),
+            ["drawing-1", "model-1", "plan-1"]
+                .into_iter()
+                .collect::<BTreeSet<_>>()
+        );
+        let plan_impact = artifact_impacts
+            .iter()
+            .find(|impact| impact.node_id == "plan-1")
+            .unwrap();
+        assert_eq!(
+            plan_impact.via_artifact_ids,
+            vec!["model-1", "drawing-1", "plan-1"]
+        );
+
+        let receipt_impacts = frontier
+            .impacts
+            .iter()
+            .filter(|impact| impact.node_kind == ImpactNodeKind::EngineeringReceipt)
+            .map(|impact| impact.node_id.as_str())
+            .collect::<BTreeSet<_>>();
+        assert_eq!(
+            receipt_impacts,
+            ["structural-1", "geotechnical-1", "structural-plan", "geotechnical-plan"]
+                .into_iter()
+                .collect::<BTreeSet<_>>()
+        );
+
+        let decision_impacts = frontier
+            .impacts
+            .iter()
+            .filter(|impact| impact.node_kind == ImpactNodeKind::Decision)
+            .map(|impact| impact.node_id.as_str())
+            .collect::<BTreeSet<_>>();
+        assert_eq!(
+            decision_impacts,
+            ["approval-1", "approval-plan"].into_iter().collect::<BTreeSet<_>>()
+        );
+
+        assert!(!frontier.impacts.iter().any(|impact| {
+            impact.node_id == "unrelated-model"
+                || impact.node_id == "unrelated-family"
+        }));
+        assert!(frontier.impacts.iter().all(|impact| {
+            impact.node_kind != ImpactNodeKind::Decision
+                || impact.reason == ImpactReason::DecisionTargetArtifactAffected
+                || impact.reason == ImpactReason::DecisionDependsOnAffectedReceipt
+        }));
+    }
+
+    #[test]
+    fn revalidation_frontier_is_deterministic_under_input_vector_permutation() {
+        let case = case_with_transitive_revalidation_chain();
+        let expected = compute_revalidation_frontier(&case, "model-1", &digest('c'));
+
+        let mut permuted = case.clone();
+        permuted.artifacts.reverse();
+        permuted.engineering_receipts.reverse();
+        permuted.decisions.reverse();
+        permuted.evidence.reverse();
+
+        let actual = compute_revalidation_frontier(&permuted, "model-1", &digest('c'));
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn malformed_dependency_graph_returns_graph_invalid_without_partial_impacts() {
+        let mut case = valid_case();
+        let mut child = artifact("drawing-1", 1, 'd');
+        child.parent_artifacts.push(ArtifactReference {
+            artifact_id: "missing-parent".into(),
+            content_sha256: digest('b'),
+        });
+        case.artifacts.push(child);
+
+        let frontier = compute_revalidation_frontier(&case, "model-1", &digest('c'));
+        assert_eq!(frontier.status, RevalidationStatus::GraphInvalid);
+        assert!(frontier.impacts.is_empty());
+        assert!(frontier.graph_issues.iter().any(|issue| {
+            issue.code == ImpactGraphErrorCode::MissingParentArtifact
+        }));
+    }
+
+    #[test]
+    fn cyclic_dependency_graph_returns_graph_invalid() {
+        let mut case = valid_case();
+        let mut second = artifact("model-2", 2, 'd');
+        second.parent_artifacts.push(ArtifactReference {
+            artifact_id: "model-1".into(),
+            content_sha256: digest('b'),
+        });
+        case.artifacts[0].parent_artifacts.push(ArtifactReference {
+            artifact_id: "model-2".into(),
+            content_sha256: digest('d'),
+        });
+        case.artifacts.push(second);
+
+        let frontier = compute_revalidation_frontier(&case, "model-1", &digest('c'));
+        assert_eq!(frontier.status, RevalidationStatus::GraphInvalid);
+        assert!(frontier.impacts.is_empty());
+        assert!(frontier.graph_issues.iter().any(|issue| {
+            issue.code == ImpactGraphErrorCode::ArtifactDependencyCycle
+        }));
+    }
+
+    #[test]
+    fn invalid_proposed_digest_returns_graph_invalid() {
+        let case = valid_case();
+        let frontier = compute_revalidation_frontier(&case, "model-1", "not-a-digest");
+        assert_eq!(frontier.status, RevalidationStatus::GraphInvalid);
+        assert!(frontier.impacts.is_empty());
+        assert!(frontier.graph_issues.iter().any(|issue| {
+            issue.code == ImpactGraphErrorCode::InvalidProposedDigest
+        }));
+    }
+
+    #[test]
+    fn changed_artifact_does_not_invalidate_unrelated_upstream_evidence_or_receipts() {
+        let mut case = case_with_transitive_revalidation_chain();
+        let mut unrelated_receipt = receipt(
+            "unrelated-receipt",
+            EngineeringDiscipline::Structural,
+            "unrelated-model",
+            digest('f'),
+        );
+        unrelated_receipt.assumption_evidence_ids = vec!["evidence-1".into()];
+        case.engineering_receipts.push(unrelated_receipt);
+
+        let frontier = compute_revalidation_frontier(&case, "model-1", &digest('c'));
+        assert!(!frontier.impacts.iter().any(|impact| {
+            impact.node_id == "unrelated-receipt"
+        }));
     }
 
     #[test]
