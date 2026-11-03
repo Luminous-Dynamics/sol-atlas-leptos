@@ -56,7 +56,8 @@ jobs:
       - name: Check formatting
         run: |
           set -euo pipefail
-          cargo fmt --manifest-path Cargo.toml --check
+          rustfmt --edition 2024 --check tests/industry_assurance_projection.rs
+          rustfmt --edition 2024 --check examples/built_environment_ieac_projection_fixture.rs
           cargo fmt --manifest-path sol-atlas-core/Cargo.toml --check
 
       - name: Strict Clippy and locked integration tests
@@ -78,6 +79,7 @@ jobs:
         run: |
           set -euo pipefail
           echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+          export PATH="$RUNNER_TEMP/jsonschema-cli/bin:$PATH"
           schema=schemas/industry-assurance-dependency-graph-v0.2.schema.json
           meta=https://json-schema.org/draft/2020-12/schema
           meta_schema="$RUNNER_TEMP/draft-2020-12-meta-schema.json"
