@@ -28,7 +28,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: federated-source-inventory-\${{ github.ref }}
+  group: federated-source-inventory-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -39,11 +39,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: \${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Assert exact checked-out revision
         env:
-          EXPECTED_SHA: \${{ github.event.pull_request.head.sha || github.sha }}
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
 
       - name: Install stable Rust
