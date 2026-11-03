@@ -73,7 +73,7 @@ Each mandatory dependency family declares:
 - exact mapping-rule and coverage-evidence digests;
 - an explicit status: complete, partial, unavailable, unsupported, not searched or out of scope.
 
-Runtime must check that every required family in the profile appears exactly once, that every referenced source exists, and that counts and proof artifacts reconcile. JSON Schema alone cannot compare two arrays or authenticate the completeness proof.
+Runtime must check that every required family in the profile appears exactly once, that every referenced source exists, and that counts and proof artifacts reconcile. JSON Schema alone cannot compare two arrays or authenticate the completeness proof. The manifest's inventory/profile/proof SHA-256 fields refer to exact source-owned or separately retained evidence artifact bytes; they are not hashes of a mutable display projection. The v0.1 schema deliberately does not choose a new signed-payload canonicalization format: any canonical serialization used for signatures or cross-language canonical digests must follow [IEAC-TRUST-001 / #347](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/347).
 
 ### Edge provenance
 
