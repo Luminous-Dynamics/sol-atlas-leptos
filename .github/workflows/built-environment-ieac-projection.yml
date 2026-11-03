@@ -1,0 +1,94 @@
+name: Built-environment IEAC projection
+
+on:
+  pull_request:
+    paths:
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/src/**"
+      - "tests/industry_assurance_projection.rs"
+      - "examples/built_environment_ieac_projection_fixture.rs"
+      - "schemas/industry-assurance-dependency-graph-v0.2.schema.json"
+      - ".github/workflows/built-environment-ieac-projection.yml"
+  push:
+    branches:
+      - main
+      - research/built-environment-ieac-projector-v0-1
+    paths:
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/src/**"
+      - "tests/industry_assurance_projection.rs"
+      - "examples/built_environment_ieac_projection_fixture.rs"
+      - "schemas/industry-assurance-dependency-graph-v0.2.schema.json"
+      - ".github/workflows/built-environment-ieac-projection.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: built-environment-ieac-projection-\${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  projection:
+    name: Exact-head projector, integration tests and schema validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: \${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact source revision
+        env:
+          EXPECTED_SHA: \${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Check formatting
+        run: |
+          set -euo pipefail
+          cargo fmt --manifest-path Cargo.toml --check
+          cargo fmt --manifest-path sol-atlas-core/Cargo.toml --check
+
+      - name: Strict Clippy and locked integration tests
+        run: |
+          set -euo pipefail
+          cargo clippy --manifest-path Cargo.toml --locked --all-targets -- -D warnings
+          cargo test --manifest-path Cargo.toml --locked
+
+      - name: Build and emit the synthetic projector graph
+        run: |
+          set -euo pipefail
+          cargo run --manifest-path Cargo.toml --locked --example built_environment_ieac_projection_fixture \
+            > "$RUNNER_TEMP/built-environment-projection-graph.json"
+
+      - name: Install pinned Draft 2020-12 validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Validate the actual projector output against IEAC v0.2
+        run: |
+          set -euo pipefail
+          echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+          schema=schemas/industry-assurance-dependency-graph-v0.2.schema.json
+          meta=https://json-schema.org/draft/2020-12/schema
+          meta_schema="$RUNNER_TEMP/draft-2020-12-meta-schema.json"
+          curl --fail --location --retry 5 --retry-connrefused "$meta" -o "$meta_schema"
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i "$schema"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" \
+            -i "$RUNNER_TEMP/built-environment-projection-graph.json"
+          jq -e '
+            .schema_version == "luminous.ieac-assurance-dependency-graph.v0.2" and
+            .claim_ceiling == "record_only" and
+            .action_authority == "none" and
+            ([.nodes[] | select(.verification.result != "unknown")] | length) == 0 and
+            ([.nodes[] | select(.observation_time.trusted_at != null)] | length) == 0
+          ' "$RUNNER_TEMP/built-environment-projection-graph.json"
