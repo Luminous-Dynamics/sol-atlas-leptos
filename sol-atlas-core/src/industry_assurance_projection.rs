@@ -756,6 +756,8 @@ pub fn project_built_environment_case_with_inventory(
         "incomplete_inventory_count": inventory_validation.incomplete_inventory_count,
         "invalid_inventory_count": inventory_validation.invalid_inventory_count,
         "not_comparable_inventory_count": inventory_validation.not_comparable_inventory_count,
+        "cross_manifest_duplicate_identity_count": inventory_validation.cross_manifest_duplicate_identity_count,
+        "cross_manifest_payload_digest_conflict_count": inventory_validation.cross_manifest_payload_digest_conflict_count,
         "claim_scope": inventory_validation.claim_scope,
         "no_impact_eligible": inventory_validation.no_impact_eligible,
         "no_impact_blockers": inventory_validation.no_impact_blockers,
