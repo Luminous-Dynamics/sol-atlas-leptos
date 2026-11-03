@@ -75,6 +75,27 @@ jobs:
           ' "$RUNNER_TEMP/coverage-manifest.json"
 
           jq -e '
+            [.source_inventory[] | select(.completeness.total_record_count != null) |
+              select(.completeness.total_record_count != .completeness.returned_record_count)] | length == 0
+          ' "$RUNNER_TEMP/coverage-manifest.json"
+
+          jq -e '
+            . as $manifest |
+            ([ $manifest.relationship_coverage[] as $family |
+              select($family.status == "complete") |
+              select(([ $manifest.edge_provenance[] | select(.family == $family.family) ] | length) != $family.observed_relationship_count)
+            ] | length) == 0
+          ' "$RUNNER_TEMP/coverage-manifest.json"
+
+          jq -e '
+            . as $manifest |
+            ([ $manifest.relationship_coverage[] as $family |
+              $family.source_ids[] as $source_id |
+              select(([ $manifest.source_inventory[] | select(.source_id == $source_id) ] | length) != 1)
+            ] | length) == 0
+          ' "$RUNNER_TEMP/coverage-manifest.json"
+
+          jq -e '
             [.absence_assertions[] as $assertion |
               [.source_inventory[] | select(.source_id == $assertion.source_id and .snapshot_sha256 == $assertion.source_snapshot_sha256)] | length == 1
             ] | all
