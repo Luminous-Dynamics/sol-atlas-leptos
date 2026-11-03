@@ -1280,8 +1280,7 @@ mod tests {
             .tombstone_identity_sha256s
             .push(digest('2'));
         let first_receipt_sha256 = manifest.page_receipts[0].receipt_sha256().unwrap();
-        manifest.page_receipts[1].predecessor_page_receipt_sha256 =
-            Some(first_receipt_sha256);
+        manifest.page_receipts[1].predecessor_page_receipt_sha256 = Some(first_receipt_sha256);
         let result = validate_source_inventory_manifest(&manifest);
         assert_eq!(
             result.disposition,
@@ -1298,13 +1297,15 @@ mod tests {
             .tombstone_identity_sha256s
             .push(digest('9'));
         let first_receipt_sha256 = manifest.page_receipts[0].receipt_sha256().unwrap();
-        manifest.page_receipts[1].predecessor_page_receipt_sha256 =
-            Some(first_receipt_sha256);
+        manifest.page_receipts[1].predecessor_page_receipt_sha256 = Some(first_receipt_sha256);
         let result = validate_source_inventory_manifest(&manifest);
         assert_eq!(result.disposition, InventoryDisposition::InvalidInput);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "INVENTORY_TOMBSTONE_IDENTITY_NOT_IN_PAGE"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "INVENTORY_TOMBSTONE_IDENTITY_NOT_IN_PAGE" })
+        );
     }
 
     #[test]
@@ -1313,9 +1314,12 @@ mod tests {
         manifest.tombstone_count = 1;
         let result = validate_source_inventory_manifest(&manifest);
         assert_eq!(result.disposition, InventoryDisposition::InvalidInput);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "INVENTORY_TOMBSTONE_IDENTITY_COUNT_MISMATCH"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "INVENTORY_TOMBSTONE_IDENTITY_COUNT_MISMATCH" })
+        );
     }
 
     #[test]
