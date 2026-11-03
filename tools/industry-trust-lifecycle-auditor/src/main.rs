@@ -749,6 +749,12 @@ pub(crate) fn build_impacted_results_with_adjacency(
         .iter()
         .map(|target| required_string(target, "node_id", "event target").map(str::to_owned))
         .collect::<Result<_, _>>()?;
+    let key_compromise_semantics = matches!(
+        cause,
+        "issuer_key_compromised"
+            | "issuer_key_revoked_or_rotated"
+            | "transparency_service_key_compromised"
+    );
     let mut paths: BTreeMap<String, Vec<String>> = BTreeMap::new();
     let mut queue = VecDeque::new();
     for target in targets {
@@ -825,7 +831,8 @@ pub(crate) fn build_impacted_results_with_adjacency(
                     "ineligible",
                     vec![direct_reason, reliance_reason],
                 )
-            } else if signed_statement_precedes_compromise(&path, nodes, effective_at, evaluated_at)
+            } else if key_compromise_semantics
+                && signed_statement_precedes_compromise(&path, nodes, effective_at, evaluated_at)
             {
                 (
                     "historical_record_only",
