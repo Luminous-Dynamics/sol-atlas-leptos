@@ -502,6 +502,20 @@ fn compute_transition(
     }
 
     let affected_node_ids = bfs_reached.iter().cloned().collect::<Vec<_>>();
+    let direct_target_node_ids = event["targets"]
+        .as_array()
+        .ok_or("event.targets must be an array")?
+        .iter()
+        .map(|target| required_string(target, "node_id", "event target").map(str::to_owned))
+        .collect::<Result<BTreeSet<_>, _>>()?
+        .into_iter()
+        .collect::<Vec<_>>();
+    if direct_target_node_ids
+        .iter()
+        .any(|node_id| !bfs_reached.contains(node_id))
+    {
+        return Err("direct target is missing from the calculated impact closure".into());
+    }
     let mut updates = Vec::new();
     let mut next_rows = base_rows.clone();
     for node_id in &affected_node_ids {
@@ -556,6 +570,7 @@ fn compute_transition(
         "impact_engine_build_sha256": engine_sha,
         "evaluated_at": evaluated_at,
         "impact_merge_policy": "monotonic_conservative_join_v0.1",
+        "direct_target_node_ids": direct_target_node_ids,
         "affected_node_ids": affected_node_ids,
         "affected_node_count": affected_node_count,
         "updates": updates,
