@@ -516,8 +516,7 @@ fn validate_page_partition(
                 }
                 Some(_) => {}
                 None => {
-                    all_record_payload_digests
-                        .insert(identity.clone(), payload_digest.clone());
+                    all_record_payload_digests.insert(identity.clone(), payload_digest.clone());
                 }
             }
         }
@@ -1655,7 +1654,9 @@ mod tests {
     #[test]
     fn per_record_payload_digest_count_mismatch_is_invalid() {
         let mut manifest = valid_manifest();
-        manifest.page_receipts[0].native_record_payload_sha256s.pop();
+        manifest.page_receipts[0]
+            .native_record_payload_sha256s
+            .pop();
         let result = validate_source_inventory_manifest(&manifest);
         assert_eq!(result.disposition, InventoryDisposition::InvalidInput);
         assert!(result.findings.iter().any(|finding| {
@@ -1814,9 +1815,12 @@ mod tests {
             InventoryDisposition::CompleteWithinDeclaredQuery
         );
         assert!(!manifest_result.no_impact_eligible);
-        assert!(manifest_result.no_impact_blockers.iter().any(|blocker| {
-            blocker == "source_attestation_authentication_not_performed"
-        }));
+        assert!(
+            manifest_result
+                .no_impact_blockers
+                .iter()
+                .any(|blocker| blocker == "source_attestation_authentication_not_performed")
+        );
 
         let expected = vec![ExpectedSourceOwner {
             owner_namespace: manifest.source_owner_namespace.clone(),
