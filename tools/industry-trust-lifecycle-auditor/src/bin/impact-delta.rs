@@ -20,7 +20,7 @@ use std::process::ExitCode;
 const DELTA_SCHEMA: &str = "luminous.ieac-assurance-impact-delta.v0.1";
 const STATE_PIN_SCHEMA: &str = "luminous.ieac-assurance-impact-state-pin.v0.1";
 const BATCH_SCHEMA: &str = "luminous.ieac-assurance-impact-delta-batch.v0.1";
-const EVENT_BATCH_SCHEMA: &str = "luminous.ieac-assurance-invalidation-event-batch.v0.1";
+const DELTA_INPUT_SCHEMA: &str = "luminous.ieac-assurance-impact-delta-input.v0.1";
 const MAX_INPUT_BYTES: u64 = 128 * 1024 * 1024;
 const MAX_BATCH_EVENTS: usize = 10_000;
 
@@ -590,15 +590,15 @@ fn run_batch(
     graph: &Value,
     base_report: &Value,
     base_pin: &Value,
-    events_envelope: &Value,
-    metadata: &Value,
+    delta_input: &Value,
 ) -> Result<Value, String> {
-    if events_envelope.get("schema_version").and_then(Value::as_str)
-        != Some(EVENT_BATCH_SCHEMA)
+    if delta_input.get("schema_version").and_then(Value::as_str)
+        != Some(DELTA_INPUT_SCHEMA)
     {
-        return Err("events batch has an unsupported schema version".into());
+        return Err("impact delta input has an unsupported schema version".into());
     }
-    let events = events_envelope
+    let metadata = delta_input.get("metadata").ok_or("impact delta metadata is missing")?;
+    let events = delta_input
         .get("events")
         .and_then(Value::as_array)
         .ok_or("events input must contain an events array")?;
@@ -697,20 +697,19 @@ fn main() -> ExitCode {
         };
     }
 
-    if args.len() != 6 {
-        eprintln!("usage: industry-impact-delta <graph.json> <base-report.json> <base-pin.json> <events.json> <metadata.json> <new-batch-result.json>");
+    if args.len() != 5 {
+        eprintln!("usage: industry-impact-delta <graph.json> <base-report.json> <base-pin.json> <delta-input.json> <new-batch-result.json>");
         return ExitCode::from(4);
     }
     let result = (|| {
         let graph = parse_strict(Path::new(&args[0]))?;
         let base_report = parse_strict(Path::new(&args[1]))?;
         let base_pin = parse_strict(Path::new(&args[2]))?;
-        let events = parse_strict(Path::new(&args[3]))?;
-        let metadata = parse_strict(Path::new(&args[4]))?;
-        let batch = run_batch(&graph, &base_report, &base_pin, &events, &metadata)?;
+        let delta_input = parse_strict(Path::new(&args[3]))?;
+        let batch = run_batch(&graph, &base_report, &base_pin, &delta_input)?;
         // One create-new envelope carries the deltas, final report and next pin.
         // Consumers never observe a partially written three-file state tuple.
-        write_new(Path::new(&args[5]), &batch)?;
+        write_new(Path::new(&args[4]), &batch)?;
         Ok::<(), String>(())
     })();
     match result {
@@ -953,10 +952,11 @@ mod tests {
         event_three["system_time"]["trusted_at"] = json!("2026-11-02T12:01:00Z");
         let metadata = metadata_for_next_event(&base_report);
         let envelope = json!({
-            "schema_version": EVENT_BATCH_SCHEMA,
-            "events": [event_two,event_three]
+            "schema_version": DELTA_INPUT_SCHEMA,
+            "events": [event_two,event_three],
+            "metadata": metadata
         });
-        let batch = run_batch(&graph, &base_report, &base_pin, &envelope, &metadata).unwrap();
+        let batch = run_batch(&graph, &base_report, &base_pin, &envelope).unwrap();
         assert_eq!(batch["graph_index_build_count"], 1);
         assert_eq!(batch["graph_index_reused_for_events"], 2);
         assert_eq!(batch["delta_count"], 2);
