@@ -972,6 +972,312 @@ fn bootstrap_pin(
     Ok(pin)
 }
 
+
+fn build_scaled_benchmark_case(
+    total_nodes: usize,
+    impact_basis_points: usize,
+) -> Result<(Value, Value, Value, Value), String> {
+    if total_nodes == 0 || total_nodes > 100_000 || impact_basis_points > 10_000 {
+        return Err("benchmark graph size or impact fraction is outside the declared bounds".into());
+    }
+
+    let fixture: Value = {
+        let parsed: StrictJson = serde_json::from_str(include_str!(
+            "../../../../schemas/examples/ieac-trust-lifecycle-key-compromise-synthetic-v0.1.json"
+        ))
+        .map_err(|error| format!("cannot parse frozen benchmark fixture: {error}"))?;
+        parsed.into_value()
+    };
+    let fixture_graph = &fixture["graph"];
+    let root_template = fixture_graph["nodes"]
+        .as_array()
+        .and_then(|nodes| nodes.iter().find(|node| node["node_type"] == "issuer_key"))
+        .ok_or("benchmark fixture lacks an issuer-key root node")?;
+    let statement_template = fixture_graph["nodes"]
+        .as_array()
+        .and_then(|nodes| nodes.iter().find(|node| node["node_type"] == "signed_statement"))
+        .ok_or("benchmark fixture lacks a signed-statement node template")?;
+
+    let affected_count = total_nodes
+        .checked_mul(impact_basis_points)
+        .ok_or("benchmark impact-fraction arithmetic overflow")?
+        .checked_div(10_000)
+        .ok_or("benchmark impact-fraction division failed")?
+        .max(1)
+        .min(total_nodes);
+
+    let root_id = required_string(root_template, "node_id", "benchmark root")?.to_owned();
+    let root_digest = required_string(root_template, "artifact_sha256", "benchmark root")?.to_owned();
+    let mut nodes = Vec::with_capacity(total_nodes);
+    nodes.push(root_template.clone());
+    let mut edges = Vec::with_capacity(affected_count.saturating_sub(1));
+
+    for index in 1..total_nodes {
+        let mut node = statement_template.clone();
+        let digest = format!("{:064x}", index + 1);
+        let node_id = format!("signed_statement:sha256:{digest}");
+        node["node_id"] = json!(node_id);
+        node["artifact_sha256"] = json!(digest);
+        nodes.push(node);
+        if index < affected_count {
+            edges.push(json!({
+                "edge_id": format!("bench-edge-{index:08}"),
+                "from_node_id": root_id,
+                "to_node_id": node_id,
+                "relation": "signed_by"
+            }));
+        }
+    }
+
+    let mut graph = json!({
+        "schema_version": fixture_graph["schema_version"],
+        "graph_snapshot_sha256": "0".repeat(64),
+        "nodes": nodes,
+        "edges": edges
+    });
+    let mut digest_input = graph.clone();
+    digest_input
+        .as_object_mut()
+        .ok_or("benchmark graph must be an object")?
+        .remove("graph_snapshot_sha256");
+    graph["graph_snapshot_sha256"] = json!(canonical_json_digest(&digest_input)?);
+
+    let mut event = fixture["invalidation_event"].clone();
+    event["event_id"] = json!(format!("bench-key-compromise-{total_nodes}-{impact_basis_points}"));
+    event["authority_sequence"] = json!(1);
+    event["previous_event_sha256"] = Value::Null;
+    event["cause_class"] = json!("issuer_key_compromised");
+    event["targets"] = json!([{
+        "node_id": root_id,
+        "node_type": "issuer_key",
+        "artifact_sha256": root_digest
+    }]);
+
+    let nodes_by_id = validate_graph(&graph)?;
+    validate_event(&event, &nodes_by_id)?;
+    let mut base_metadata = fixture["expected_impact_report"].clone();
+    base_metadata["evaluated_at"] = json!("2026-11-03T06:00:00Z");
+    let base_report = lifecycle::build_impact_report(
+        &graph,
+        &event,
+        &base_metadata,
+        &nodes_by_id,
+    )?;
+    let event_digest = canonical_json_digest(&event)?;
+    let system_time = &event["system_time"];
+    let index = GraphIndex::build(&graph)?;
+    let state_root = initial_state_digest(&base_report)?;
+    let base_pin = make_state_pin(
+        &index,
+        &base_report,
+        1,
+        &event_digest,
+        required_string(system_time, "recorded_at", "benchmark event.system_time")?,
+        required_string(system_time, "trusted_at", "benchmark event.system_time")?,
+        &state_root,
+    )?;
+
+    let mut event_two = event.clone();
+    event_two["event_id"] = json!(format!("bench-key-rotation-{total_nodes}-{impact_basis_points}"));
+    event_two["authority_sequence"] = json!(2);
+    event_two["previous_event_sha256"] = json!(event_digest);
+    event_two["cause_class"] = json!("issuer_key_revoked_or_rotated");
+    event_two["system_time"]["recorded_at"] = json!("2026-11-02T12:00:00Z");
+    event_two["system_time"]["trusted_at"] = json!("2026-11-02T12:01:00Z");
+
+    let event_two_digest = canonical_json_digest(&event_two)?;
+    let mut event_three = event_two.clone();
+    event_three["event_id"] = json!(format!("bench-followup-{total_nodes}-{impact_basis_points}"));
+    event_three["authority_sequence"] = json!(3);
+    event_three["previous_event_sha256"] = json!(event_two_digest);
+    event_three["system_time"]["recorded_at"] = json!("2026-11-02T13:00:00Z");
+    event_three["system_time"]["trusted_at"] = json!("2026-11-02T13:01:00Z");
+
+    let delta_input = json!({
+        "schema_version": DELTA_INPUT_SCHEMA,
+        "events": [event_two, event_three],
+        "metadata": {
+            "evaluated_at": "2026-11-03T07:00:00Z",
+            "impact_policy_sha256": base_report["impact_policy_sha256"],
+            "impact_engine_build_sha256": base_report["impact_engine_build_sha256"]
+        }
+    });
+    Ok((graph, base_report, base_pin, delta_input))
+}
+
+fn full_recompute_batch_reference(
+    graph: &Value,
+    base_report: &Value,
+    base_pin: &Value,
+    delta_input: &Value,
+) -> Result<Value, String> {
+    let nodes = validate_graph(graph)?;
+    let metadata = delta_input.get("metadata").ok_or("benchmark metadata missing")?;
+    let events = delta_input
+        .get("events")
+        .and_then(Value::as_array)
+        .ok_or("benchmark events array missing")?;
+    let mut rows = report_rows(base_report, &GraphIndex::build(graph)?)?;
+    for event in events {
+        let full_event_report =
+            lifecycle::build_impact_report(graph, event, metadata, &nodes)?;
+        for row in full_event_report["results"]
+            .as_array()
+            .ok_or("full reference report rows missing")?
+        {
+            let node_id = required_string(row, "node_id", "full reference row")?;
+            let previous = rows
+                .get(node_id)
+                .ok_or_else(|| format!("full reference state lacks node {node_id}"))?;
+            rows.insert(node_id.to_owned(), merge_impact_rows(previous, row));
+        }
+        // The B0 path materializes and hashes a complete report after every
+        // event; this is intentionally the work being compared with B2.
+        let _ = materialize_report(
+            base_report,
+            &rows,
+            event,
+            required_string(metadata, "evaluated_at", "benchmark metadata")?,
+        )?;
+    }
+    let final_event = events.last().ok_or("benchmark event batch empty")?;
+    materialize_report(
+        base_report,
+        &rows,
+        final_event,
+        required_string(metadata, "evaluated_at", "benchmark metadata")?,
+    )
+    .map_err(Into::into)
+}
+
+fn percentile_ns(samples: &[u128], percentile: usize) -> Result<u128, String> {
+    if samples.is_empty() || percentile > 100 {
+        return Err("benchmark percentile requires non-empty samples and 0..=100".into());
+    }
+    let mut sorted = samples.to_vec();
+    sorted.sort_unstable();
+    let index = (sorted.len() - 1)
+        .checked_mul(percentile)
+        .ok_or("percentile index overflow")?
+        / 100;
+    sorted
+        .get(index)
+        .copied()
+        .ok_or_else(|| "percentile index out of range".to_owned())
+}
+
+fn run_delta_benchmark(smoke: bool) -> Result<Value, String> {
+    use std::time::Instant;
+
+    let graph_sizes: &[usize] = if smoke {
+        &[100, 1_000, 10_000]
+    } else {
+        &[100, 1_000, 10_000, 100_000]
+    };
+    let impact_fractions_bps: &[usize] = &[10, 100, 1_000, 5_000, 8_000];
+    let repetitions = if smoke { 3 } else { 5 };
+    let mut cases = Vec::new();
+
+    for total_nodes in graph_sizes {
+        for impact_bps in impact_fractions_bps {
+            let (graph, base_report, base_pin, delta_input) =
+                build_scaled_benchmark_case(*total_nodes, *impact_bps)?;
+            let mut b0_ns = Vec::with_capacity(repetitions);
+            let mut b2_ns = Vec::with_capacity(repetitions);
+            let mut final_batch = Value::Null;
+            let mut reference_report = Value::Null;
+
+            for _ in 0..repetitions {
+                let b0_start = Instant::now();
+                let reference = full_recompute_batch_reference(
+                    &graph,
+                    &base_report,
+                    &base_pin,
+                    &delta_input,
+                )?;
+                b0_ns.push(b0_start.elapsed().as_nanos());
+
+                let b2_start = Instant::now();
+                let batch = run_batch(&graph, &base_report, &base_pin, &delta_input)?;
+                b2_ns.push(b2_start.elapsed().as_nanos());
+
+                if batch["resulting_impact_report"] != reference {
+                    return Err(format!(
+                        "full-recompute and sparse-delta reports diverged at nodes={} impact_bps={}",
+                        total_nodes, impact_bps
+                    ));
+                }
+                reference_report = reference;
+                final_batch = batch;
+            }
+
+            let affected = final_batch["deltas"]
+                .as_array()
+                .and_then(|deltas| deltas.first())
+                .and_then(|delta| delta["affected_node_count"].as_u64())
+                .ok_or("benchmark affected-node count missing")?;
+            let full_bytes = serde_json::to_vec(&reference_report)
+                .map_err(|error| format!("cannot size full report: {error}"))?
+                .len();
+            let delta_bytes = serde_json::to_vec(&final_batch["deltas"])
+                .map_err(|error| format!("cannot size sparse deltas: {error}"))?
+                .len();
+            let full_p50 = percentile_ns(&b0_ns, 50)?;
+            let full_p95 = percentile_ns(&b0_ns, 95)?;
+            let delta_p50 = percentile_ns(&b2_ns, 50)?;
+            let delta_p95 = percentile_ns(&b2_ns, 95)?;
+
+            cases.push(json!({
+                "graph_node_count": total_nodes,
+                "graph_edge_count": graph["edges"].as_array().map_or(0, Vec::len),
+                "impact_fraction_basis_points": impact_bps,
+                "event_count": delta_input["events"].as_array().map_or(0, Vec::len),
+                "affected_node_count_per_event": affected,
+                "repetitions": repetitions,
+                "full_recompute_p50_ns": full_p50,
+                "full_recompute_p95_ns": full_p95,
+                "sparse_batch_p50_ns": delta_p50,
+                "sparse_batch_p95_ns": delta_p95,
+                "p50_speedup_ratio": if delta_p50 > 0 {
+                    full_p50 as f64 / delta_p50 as f64
+                } else {
+                    0.0
+                },
+                "full_report_bytes": full_bytes,
+                "sparse_delta_bytes": delta_bytes,
+                "delta_to_report_byte_ratio": if full_bytes > 0 {
+                    delta_bytes as f64 / full_bytes as f64
+                } else {
+                    0.0
+                },
+                "graph_index_build_count": final_batch["graph_index_build_count"],
+                "state_row_map_initializations": final_batch["state_row_map_initializations"],
+                "full_report_materializations": final_batch["full_report_materializations"],
+                "total_closure_node_memberships": final_batch["total_closure_node_memberships"],
+                "exact_report_digest_agreement": true
+            }));
+        }
+    }
+
+    Ok(json!({
+        "schema_version": "luminous.ieac-assurance-impact-delta-benchmark.v0.1",
+        "classification": "synthetic_only",
+        "benchmark_mode": if smoke { "smoke_100_to_10000_nodes" } else { "full_100_to_100000_nodes" },
+        "baseline": "B0_full_recompute_after_every_event",
+        "candidate": "B2_reused_index_mutable_rows_one_final_report",
+        "repetitions_per_case": repetitions,
+        "case_count": cases.len(),
+        "cases": cases,
+        "claim_ceiling": "incomplete_or_indeterminate",
+        "action_authority": "none",
+        "limitations": [
+            "Synthetic star dependency graphs only; graph topology, depth and fan-in require separate strata.",
+            "The B0 and B2 paths share the same impact-row classification policy.",
+            "No signature or authority authentication is performed.",
+            "Reported timings are single-runner observations and not a SOTA claim."
+        ]
+    }))
+}
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
     if args.first().is_some_and(|item| item == "verify-batch") {
