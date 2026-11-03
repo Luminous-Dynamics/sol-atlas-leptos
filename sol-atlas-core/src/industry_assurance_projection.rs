@@ -47,6 +47,10 @@ pub struct ProjectionContext {
     pub projector_build_sha256: Option<String>,
     /// Digest of the frozen identity, mapping, and loss-accounting profile.
     pub mapping_profile_sha256: String,
+    /// Source-owner namespaces keyed by evidence:<id>, artifact:<id>,
+    /// engineering_receipt:<id>, or decision:<id>. Missing keys use a
+    /// visibly incomplete adapter-scoped fallback.
+    pub native_identity_namespaces: BTreeMap<String, String>,
 }
 
 #[derive(Clone, Debug)]
@@ -160,6 +164,7 @@ fn valid_component_name(name: &str) -> bool {
 
 fn native_identity_sha256(
     node_type: &str,
+    identity_namespace: &str,
     components: &BTreeMap<String, String>,
 ) -> Result<String, String> {
     if components.len() < 2 {
@@ -183,9 +188,12 @@ fn native_identity_sha256(
         return Err("native identity component name is not a canonical ASCII identifier".into());
     }
 
+    if identity_namespace.trim().is_empty() || identity_namespace.len() > 1024 {
+        return Err("native identity namespace must be non-empty and at most 1024 UTF-8 bytes".into());
+    }
     let mut encoded = IDENTITY_DOMAIN.to_vec();
     append_identity_field(&mut encoded, node_type)?;
-    append_identity_field(&mut encoded, IDENTITY_NAMESPACE)?;
+    append_identity_field(&mut encoded, identity_namespace)?;
     for (name, value) in components {
         if value.is_empty() {
             return Err(format!("native identity component {name} is empty"));
@@ -281,6 +289,7 @@ fn string_component(components: &mut BTreeMap<String, String>, name: &str, value
 
 fn make_node(
     node_type: &str,
+    identity_namespace: &str,
     mut components: BTreeMap<String, String>,
     payload_sha256: &str,
     artifact_media_type: &str,
@@ -294,7 +303,7 @@ fn make_node(
         return Err("artifact payload digest is not lowercase SHA-256".into());
     }
     string_component(&mut components, "case_id", case_id);
-    let identity_sha = native_identity_sha256(node_type, &components)?;
+    let identity_sha = native_identity_sha256(node_type, identity_namespace, &components)?;
     let node_id = format!("{node_type}:identity-sha256:{identity_sha}");
 
     let mut subjects = BTreeSet::new();
@@ -314,7 +323,7 @@ fn make_node(
         "node_id": node_id,
         "node_type": node_type,
         "identity": {
-            "identity_namespace": IDENTITY_NAMESPACE,
+            "identity_namespace": identity_namespace,
             "components": identity_components
         },
         "identity_sha256": identity_sha,
@@ -345,6 +354,38 @@ fn make_node(
             "fresh_until": null
         }
     }))
+}
+
+fn resolve_native_identity_namespace(
+    record_key: &str,
+    context: &ProjectionContext,
+    findings: &mut Findings,
+) -> String {
+    match context.native_identity_namespaces.get(record_key) {
+        Some(namespace) if !namespace.trim().is_empty() && namespace.len() <= 1024 => namespace.clone(),
+        Some(_) => {
+            findings.invalid(
+                "INVALID_NATIVE_IDENTITY_NAMESPACE",
+                record_key,
+                "source-owner namespace must be non-empty and at most 1024 UTF-8 bytes",
+            );
+            IDENTITY_NAMESPACE.to_owned()
+        }
+        None => {
+            findings.incomplete(
+                "NATIVE_IDENTITY_NAMESPACE_NOT_SUPPLIED",
+                record_key,
+                "source-owner namespace was not supplied; adapter-scoped fallback is not source-native identity",
+            );
+            IDENTITY_NAMESPACE.to_owned()
+        }
+    }
+}
+
+fn namespace_map_digest(namespaces: &BTreeMap<String, String>) -> Result<String, String> {
+    let value = serde_json::to_value(namespaces)
+        .map_err(|error| format!("namespace map serialization failed: {error}"))?;
+    canonical_json_sha256(&value)
 }
 
 fn add_unmapped(
@@ -522,12 +563,22 @@ pub fn project_built_environment_case(
     if case.jurisdiction.trim().is_empty() {
         findings.invalid("EMPTY_CASE_JURISDICTION", "case", "case jurisdiction is required");
     }
-    if !case.evidence.is_empty() || !case.artifacts.is_empty() {
-        findings.incomplete(
-            "SOURCE_OWNER_NAMESPACE_NOT_MODELED",
-            "case",
-            "the typed case has source IDs but no separately typed owner-native namespace; emitted identity namespace is adapter-scoped and must not be asserted as the external source owner's namespace",
-        );
+    let expected_namespace_keys = case
+        .evidence
+        .iter()
+        .map(|record| format!("evidence:{}", record.evidence_id))
+        .chain(case.artifacts.iter().map(|record| format!("artifact:{}", record.artifact_id)))
+        .chain(case.engineering_receipts.iter().map(|record| format!("engineering_receipt:{}", record.receipt_id)))
+        .chain(case.decisions.iter().map(|record| format!("decision:{}", record.event_id)))
+        .collect::<BTreeSet<_>>();
+    for supplied_key in context.native_identity_namespaces.keys() {
+        if !expected_namespace_keys.contains(supplied_key) {
+            findings.incomplete(
+                "UNUSED_NATIVE_IDENTITY_NAMESPACE",
+                supplied_key,
+                "identity namespace map contains a key that does not identify a record in this case",
+            );
+        }
     }
     if case.evidence.is_empty()
         && case.artifacts.is_empty()
@@ -592,8 +643,10 @@ pub fn project_built_environment_case(
                 "build_sha256": context.projector_build_sha256,
                 "mapping_profile_sha256": context.mapping_profile_sha256,
                 "identity_namespace": IDENTITY_NAMESPACE,
-                "identity_namespace_basis": "adapter_scoped_case_namespace",
-                "source_owner_namespace_modelled": false
+                "identity_namespace_basis": "per_record_source_owner_namespace_when_supplied",
+            "native_identity_namespaces": context.native_identity_namespaces,
+            "native_identity_namespace_map_sha256": namespace_map_digest(&context.native_identity_namespaces).unwrap_or_default(),
+            "source_owner_namespace_modelled": true
             },
             "projected_graph": null,
             "node_mappings": [],
@@ -776,8 +829,14 @@ pub fn project_built_environment_case(
                 "source observation time is outside the supported UTC timestamp range",
             );
         }
+        let identity_namespace = resolve_native_identity_namespace(
+            &native_key,
+            context,
+            &mut findings,
+        );
         let node = match make_node(
             "source_evidence",
+            &identity_namespace,
             components,
             payload_sha,
             "application/octet-stream",
@@ -811,6 +870,7 @@ pub fn project_built_environment_case(
                 "native_key": native_key,
                 "native_source_id": evidence.source_id,
                 "native_record_id": evidence.evidence_id,
+                "native_identity_namespace": identity_namespace,
                 "node_type": "source_evidence",
                 "node_id": node_id,
                 "identity_sha256": identity_sha,
@@ -869,8 +929,14 @@ pub fn project_built_environment_case(
                 "artifact creation time is outside the supported UTC timestamp range",
             );
         }
+        let identity_namespace = resolve_native_identity_namespace(
+            &native_key,
+            context,
+            &mut findings,
+        );
         let node = match make_node(
             "engineering_artifact",
+            &identity_namespace,
             components,
             &artifact.content_sha256,
             "application/octet-stream",
@@ -906,6 +972,7 @@ pub fn project_built_environment_case(
                 "native_record_id": artifact.artifact_id,
                 "native_family_id": artifact.family_id,
                 "native_revision": artifact.revision,
+                "native_identity_namespace": identity_namespace,
                 "source_artifact_kind": serde_json::to_value(artifact.kind).unwrap_or(Value::Null),
                 "source_jurisdiction": artifact.jurisdiction,
                 "source_created_at_unix_seconds": artifact.created_at_unix_seconds,
@@ -943,8 +1010,14 @@ pub fn project_built_environment_case(
             "native_record_id",
             &receipt.receipt_id,
         );
+        let identity_namespace = resolve_native_identity_namespace(
+            &native_key,
+            context,
+            &mut findings,
+        );
         let node = match make_node(
             "engineering_receipt",
+            &identity_namespace,
             components,
             &payload_sha,
             "application/vnd.luminous.engineering-receipt+json",
@@ -978,6 +1051,7 @@ pub fn project_built_environment_case(
                 "native_key": native_key,
                 "native_design_id": receipt.design_id,
                 "native_record_id": receipt.receipt_id,
+                "native_identity_namespace": identity_namespace,
                 "node_type": "engineering_receipt",
                 "node_id": node_id,
                 "identity_sha256": identity_sha,
@@ -1023,8 +1097,14 @@ pub fn project_built_environment_case(
                 "decision timestamp is outside the supported UTC timestamp range",
             );
         }
+        let identity_namespace = resolve_native_identity_namespace(
+            &native_key,
+            context,
+            &mut findings,
+        );
         let node = match make_node(
             "decision",
+            &identity_namespace,
             components,
             &payload_sha,
             "application/vnd.luminous.engineering-decision+json",
@@ -1058,6 +1138,7 @@ pub fn project_built_environment_case(
                 "native_key": native_key,
                 "native_design_id": decision.design_id,
                 "native_record_id": decision.event_id,
+                "native_identity_namespace": identity_namespace,
                 "node_type": "decision",
                 "node_id": node_id,
                 "identity_sha256": identity_sha,
@@ -1478,8 +1559,10 @@ pub fn project_built_environment_case(
             "build_sha256": context.projector_build_sha256,
             "mapping_profile_sha256": context.mapping_profile_sha256,
             "identity_namespace": IDENTITY_NAMESPACE,
-            "identity_namespace_basis": "adapter_scoped_case_namespace",
-            "source_owner_namespace_modelled": false
+            "identity_namespace_basis": "per_record_source_owner_namespace_when_supplied",
+            "native_identity_namespaces": context.native_identity_namespaces,
+            "native_identity_namespace_map_sha256": namespace_map_digest(&context.native_identity_namespaces).unwrap_or_default(),
+            "source_owner_namespace_modelled": true
         },
         "projected_graph": {
             "schema_version": GRAPH_SCHEMA_V02,
@@ -1628,6 +1711,14 @@ mod tests {
             captured_at_utc: "2026-11-03T12:00:00Z".into(),
             projector_build_sha256: Some(digest('d')),
             mapping_profile_sha256: digest('e'),
+            native_identity_namespaces: BTreeMap::from([
+                ("evidence:evidence-design-source".into(), "urn:source-owner:survey-registry".into()),
+                ("evidence:evidence-authority".into(), "urn:source-owner:authority-registry".into()),
+                ("artifact:artifact-base".into(), "urn:source-owner:design-repository".into()),
+                ("artifact:artifact-revision-2".into(), "urn:source-owner:design-repository".into()),
+                ("engineering_receipt:receipt-structural-001".into(), "urn:source-owner:solver-registry".into()),
+                ("decision:decision-001".into(), "urn:source-owner:authority-registry".into())
+            ]),
         }
     }
 
