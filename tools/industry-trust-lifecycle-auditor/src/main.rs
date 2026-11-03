@@ -1130,6 +1130,21 @@ mod tests {
     }
 
     #[test]
+    fn v02_identity_without_native_record_discriminator_is_rejected() {
+        let identity = json!({
+            "identity_namespace": "urn:opcua:plant-7",
+            "components": [
+                {"name": "native_id", "value": "Pump-07"}
+            ]
+        });
+        assert!(
+            node_identity_sha256("source_measurement", &identity)
+                .unwrap_err()
+                .contains("requires a native record, revision, sequence, or observation discriminator")
+        );
+    }
+
+    #[test]
     fn v02_identity_component_order_is_canonical() {
         let fixture: Value = serde_json::from_str(include_str!(
             "../../../schemas/examples/ieac-node-identity-collision-synthetic-v0.2.json"
