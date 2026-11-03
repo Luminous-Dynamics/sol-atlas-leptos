@@ -30,7 +30,7 @@ The decisive principle: **absence is evidence only when the relevant source scop
 
 ## 3. Proposed data model
 
-This is a versioned design proposal, not a schema already accepted by the repository.
+The v0.1 schema and Rust validator are implemented on the stacked draft branch; source adapters and independent trust verifiers remain separate.
 
 ### 3.1 Inventory manifest
 
@@ -52,7 +52,7 @@ A v0.1 manifest should carry:
 | reported_total_count | Source-reported count under the declared query |
 | enumerated_unique_count | Count of unique owner-native records returned |
 | duplicate_count | Repeated owner-native identities during enumeration |
-| excluded_count + exclusion_reasons[] | Records excluded by declared policy, rights or query conditions |
+| excluded_count + exclusion_reasons[] | Records excluded by declared policy, rights or query conditions; each excluded item is bound to an enumerated native-identity digest, and each identity may appear under at most one exclusion reason |
 | tombstone_count | Explicitly observed deletes/retractions |
 | pagination_exhausted | True only when the source's authoritative terminal condition was observed |
 | snapshot_consistent | Whether every page belongs to the same source snapshot/watermark |
@@ -66,7 +66,7 @@ Do not include raw secrets, access tokens, internal credentials, or protected qu
 
 Each page receipt should bind:
 
-- a per-item exact source-payload digest array, positionally aligned with the owner-native identity digest array, so repeated native identity can be checked for conflicting payload bytes without retaining payload content;
+- a per-item exact source-payload digest array, positionally aligned with the owner-native identity digest array, so repeated native identity can be checked for conflicting payload bytes without retaining payload content; The generic verifier compares these hashes but does not fetch the payload bytes; the hashes remain unauthenticated source/connector claims.
 
 - inventory ID and snapshot token/digest;
 - 0-based ordinal and stable partition identifier;
@@ -230,13 +230,13 @@ The projector receipt binds the inventory-closure validation digest and descript
 **Important serialization limit:** page-receipt hashes and current validation hashes use the Rust struct's `serde_json` field-order serialization profile. They are not yet a declared cross-language canonical JSON format such as RFC 8785 or deterministic CBOR. They must not be used as interoperable signature inputs until that profile is explicitly frozen and independently implemented.
 
 **Verification limit:** current tests use synthetic manifests. Payload digests, connector identity, source snapshot references, owner namespaces, page receipt digests and attestation references remain claims until a separate byte verifier and trust policy authenticate them. Neither a structurally complete inventory nor a matching descriptor binding authorizes `NoImpact`, construction, or actuation.
-## 8. Implementation sequence
+## 9. Remaining implementation sequence
 
-1. Freeze this contract and publish the synthetic positive/negative manifests.
-2. Implemented on the draft branch: add a Rust SourceInventoryManifest model and JSON Schema in a separate v0.1 module, leaving the existing descriptor schema additive and backwards-compatible.
-3. Implemented on the draft branch: validate page chains, query digest shape, snapshot and watermark bindings. Canonical query semantics remain source-adapter-specific and are not independently reconstructed by the generic verifier.
+1. Keep this contract and synthetic positive/negative manifests frozen; expand them with independent cross-tool corpora.
+2. Implemented on the draft branch: the Rust SourceInventoryManifest model and JSON Schema live in a separate v0.1 module, leaving the existing descriptor schema additive and backwards-compatible.
+3. Implemented on the draft branch: page chains, query digest shape, snapshot and watermark bindings, counts, tombstones, exclusions, and duplicate identity/payload consistency. Canonical query semantics remain source-adapter-specific and are not independently reconstructed by the generic verifier.
 4. Keep cryptographic signature verification as a separate verifier input with explicit trust-policy results; not implemented by this module and never conflate it with structural validation.
-5. Implemented as a draft composition API: join owner inventory closure and per-descriptor native identity/payload/snapshot bindings into IEAC projection receipts.
+5. Implemented as a draft composition API: join owner inventory closure and per-descriptor native identity/payload/snapshot bindings into IEAC projection receipts, with claim-ceiling downgrade on missing or conflicting coverage.
 6. Add independent full-inventory gold oracles and mutation tests.
 7. Add change-event/tombstone watermarks to revalidation-frontier certificates.
 8. Only then compare end-to-end completeness, latency and cost against independent connector exports and vendor interfaces.
