@@ -20,6 +20,7 @@ use std::process::ExitCode;
 const DELTA_SCHEMA: &str = "luminous.ieac-assurance-impact-delta.v0.1";
 const STATE_PIN_SCHEMA: &str = "luminous.ieac-assurance-impact-state-pin.v0.1";
 const BATCH_SCHEMA: &str = "luminous.ieac-assurance-impact-delta-batch.v0.1";
+const EVENT_BATCH_SCHEMA: &str = "luminous.ieac-assurance-invalidation-event-batch.v0.1";
 const MAX_INPUT_BYTES: u64 = 128 * 1024 * 1024;
 const MAX_BATCH_EVENTS: usize = 10_000;
 
@@ -592,6 +593,11 @@ fn run_batch(
     events_envelope: &Value,
     metadata: &Value,
 ) -> Result<Value, String> {
+    if events_envelope.get("schema_version").and_then(Value::as_str)
+        != Some(EVENT_BATCH_SCHEMA)
+    {
+        return Err("events batch has an unsupported schema version".into());
+    }
     let events = events_envelope
         .get("events")
         .and_then(Value::as_array)
@@ -946,7 +952,10 @@ mod tests {
         event_three["system_time"]["recorded_at"] = json!("2026-11-02T12:00:00Z");
         event_three["system_time"]["trusted_at"] = json!("2026-11-02T12:01:00Z");
         let metadata = metadata_for_next_event(&base_report);
-        let envelope = json!({"events":[event_two,event_three]});
+        let envelope = json!({
+            "schema_version": EVENT_BATCH_SCHEMA,
+            "events": [event_two,event_three]
+        });
         let batch = run_batch(&graph, &base_report, &base_pin, &envelope, &metadata).unwrap();
         assert_eq!(batch["graph_index_build_count"], 1);
         assert_eq!(batch["graph_index_reused_for_events"], 2);
