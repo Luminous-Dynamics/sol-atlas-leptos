@@ -711,19 +711,12 @@ fn run_batch(
             event,
             metadata,
         )?;
-        // Applying each exact delta through the verifier is a second pass over
-        // the base-bound contract, not a new authorization decision.
-        let applied = apply_delta(
-            &index,
-            &current_report,
-            &current_pin,
-            event,
-            metadata,
-            &proposed.delta,
-        )?;
-        deltas.push(applied.delta);
-        current_report = applied.report;
-        current_pin = applied.state_pin;
+        // The producer advances its in-memory state from the exact transition
+        // it just computed. External consumers use apply_delta to independently
+        // check a received sparse update against their pinned base.
+        deltas.push(proposed.delta);
+        current_report = proposed.report;
+        current_pin = proposed.state_pin;
     }
 
     let batch = json!({
