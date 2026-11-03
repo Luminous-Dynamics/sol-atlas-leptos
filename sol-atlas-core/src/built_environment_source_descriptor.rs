@@ -503,14 +503,14 @@ fn validate_payload(
     key: &str,
 ) {
     let payload = &descriptor.source_payload;
-    if let Some(digest) = payload.sha256.as_deref() {
-        if !valid_sha256(digest) {
-            findings.invalid(
-                "INVALID_SOURCE_PAYLOAD_DIGEST",
-                key,
-                "source payload digest is not lowercase SHA-256",
-            );
-        }
+    if let Some(digest) = payload.sha256.as_deref()
+        && !valid_sha256(digest)
+    {
+        findings.invalid(
+            "INVALID_SOURCE_PAYLOAD_DIGEST",
+            key,
+            "source payload digest is not lowercase SHA-256",
+        );
     }
 
     match payload.digest_basis {
@@ -532,14 +532,13 @@ fn validate_payload(
             if let (Some(digest), Some(object_ref)) = (
                 payload.sha256.as_deref(),
                 payload.payload_object_ref.as_deref(),
-            ) {
-                if object_ref != expected_cas_reference(digest) {
-                    findings.invalid(
-                        "PAYLOAD_OBJECT_REFERENCE_DIGEST_MISMATCH",
-                        key,
-                        "content-addressed object reference must bind the exact declared SHA-256",
-                    );
-                }
+            ) && object_ref != expected_cas_reference(digest)
+            {
+                findings.invalid(
+                    "PAYLOAD_OBJECT_REFERENCE_DIGEST_MISMATCH",
+                    key,
+                    "content-addressed object reference must bind the exact declared SHA-256",
+                );
             }
         }
         PayloadDigestBasis::SourceOwnerAttested => {
@@ -585,14 +584,13 @@ fn validate_payload(
             if let (Some(digest), Some(object_ref)) = (
                 payload.sha256.as_deref(),
                 payload.payload_object_ref.as_deref(),
-            ) {
-                if object_ref != expected_cas_reference(digest) {
-                    findings.invalid(
-                        "PAYLOAD_OBJECT_REFERENCE_DIGEST_MISMATCH",
-                        key,
-                        "content-addressed object reference must bind the exact declared SHA-256",
-                    );
-                }
+            ) && object_ref != expected_cas_reference(digest)
+            {
+                findings.invalid(
+                    "PAYLOAD_OBJECT_REFERENCE_DIGEST_MISMATCH",
+                    key,
+                    "content-addressed object reference must bind the exact declared SHA-256",
+                );
             }
             findings.incomplete(
                 "EXTERNAL_PAYLOAD_BYTES_NOT_RETRIEVED",
@@ -1121,7 +1119,8 @@ pub fn validate_source_descriptor_catalog(
                 "descriptor catalogue must not claim to authenticate signatures or trust roots",
             );
         }
-        if descriptor.attestation.statement_ref.is_some() && descriptor.attestation.key_id.is_none()
+        if descriptor.attestation.statement_ref.is_some()
+            && descriptor.attestation.key_id.is_none()
         {
             findings.incomplete(
                 "ATTESTATION_KEY_ID_MISSING",
