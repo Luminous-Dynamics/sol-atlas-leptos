@@ -13,7 +13,7 @@ use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
 use std::env;
 use std::fs::{self, OpenOptions};
-use std::io::Read;
+use std::io::{Read, Write};
 use std::path::Path;
 use std::process::ExitCode;
 
@@ -143,7 +143,6 @@ fn write_new(path: &Path, value: &Value) -> Result<(), String> {
         .create_new(true)
         .open(path)
         .map_err(|error| format!("refusing to overwrite or cannot create {}: {error}", path.display()))?;
-    use std::io::Write;
     file.write_all(&bytes)
         .map_err(|error| format!("cannot write {}: {error}", path.display()))?;
     file.sync_all()
@@ -364,8 +363,23 @@ fn validate_state_pin(
         return Err("base state pin policy/engine identity differs from the base report".into());
     }
     let pinned_at = required_string(pin, "pinned_at", "base state pin")?;
-    if !valid_utc_timestamp(pinned_at) {
-        return Err("base state pin timestamp is not normalized UTC".into());
+    let last_recorded_at = required_string(pin, "last_recorded_at", "base state pin")?;
+    let last_trusted_at = required_string(pin, "last_trusted_at", "base state pin")?;
+    if !valid_utc_timestamp(pinned_at)
+        || !valid_utc_timestamp(last_recorded_at)
+        || !valid_utc_timestamp(last_trusted_at)
+        || last_recorded_at > pinned_at
+        || last_trusted_at < last_recorded_at
+        || last_trusted_at > pinned_at
+    {
+        return Err("base state pin has invalid or non-monotonic event times".into());
+    }
+    if pin["high_water_storage"] != "caller_managed_monotonic_external_store_required"
+        || pin["authentication_status"] != "not_checked"
+        || pin["claim_ceiling"] != "incomplete_or_indeterminate"
+        || pin["action_authority"] != "none"
+    {
+        return Err("base state pin claim ceiling or storage semantics are invalid".into());
     }
     let _ = report_rows(base_report, index)?;
     Ok(())
@@ -376,12 +390,23 @@ fn make_state_pin(
     report: &Value,
     sequence: u64,
     event_head: &str,
+    last_recorded_at: &str,
+    last_trusted_at: &str,
 ) -> Result<Value, String> {
     if sequence == 0 || !valid_sha256(event_head) {
         return Err("state pin requires a positive sequence and lowercase SHA-256 event head".into());
     }
     if report.get("invalidation_event_sha256").and_then(Value::as_str) != Some(event_head) {
         return Err("state pin event head differs from report invalidation digest".into());
+    }
+    let pinned_at = required_string(report, "evaluated_at", "base report")?;
+    if !valid_utc_timestamp(pinned_at)
+        || !valid_utc_timestamp(last_recorded_at)
+        || !valid_utc_timestamp(last_trusted_at)
+        || last_trusted_at < last_recorded_at
+        || last_trusted_at > pinned_at
+    {
+        return Err("state pin requires ordered, normalized recorded/trusted/evaluation times".into());
     }
     let report_sha = canonical_json_digest(report)?;
     Ok(json!({
@@ -390,9 +415,11 @@ fn make_state_pin(
         "impact_report_sha256": report_sha,
         "last_event_sequence": sequence,
         "event_chain_head_sha256": event_head,
+        "last_recorded_at": last_recorded_at,
+        "last_trusted_at": last_trusted_at,
         "impact_policy_sha256": report["impact_policy_sha256"],
         "impact_engine_build_sha256": report["impact_engine_build_sha256"],
-        "pinned_at": report["evaluated_at"],
+        "pinned_at": pinned_at,
         "high_water_storage": "caller_managed_monotonic_external_store_required",
         "authentication_status": "not_checked",
         "claim_ceiling": "incomplete_or_indeterminate",
@@ -437,6 +464,17 @@ fn compute_transition(
     }
 
     let event_digest = canonical_json_digest(event)?;
+    let event_system_time = event.get("system_time").ok_or("event system_time missing")?;
+    let recorded_at = required_string(event_system_time, "recorded_at", "event.system_time")?;
+    let trusted_at = required_string(event_system_time, "trusted_at", "event.system_time")?;
+    if !valid_utc_timestamp(recorded_at)
+        || !valid_utc_timestamp(trusted_at)
+        || trusted_at < recorded_at
+        || recorded_at < base_pin["last_recorded_at"].as_str().unwrap_or_default()
+        || trusted_at < base_pin["last_trusted_at"].as_str().unwrap_or_default()
+    {
+        return Err("event recorded/trusted times violate the pinned temporal high-water mark".into());
+    }
     let evaluated_at = required_string(metadata, "evaluated_at", "delta metadata")?;
     let policy_sha = required_string(metadata, "impact_policy_sha256", "delta metadata")?;
     let engine_sha = required_string(metadata, "impact_engine_build_sha256", "delta metadata")?;
@@ -534,7 +572,14 @@ fn compute_transition(
     let delta_sha = canonical_digest_without_field(&delta, "delta_sha256")?;
     delta["delta_sha256"] = json!(delta_sha);
 
-    let state_pin = make_state_pin(index, &next_report, sequence, &event_digest)?;
+    let state_pin = make_state_pin(
+        index,
+        &next_report,
+        sequence,
+        &event_digest,
+        recorded_at,
+        trusted_at,
+    )?;
     Ok(Transition {
         delta,
         report: next_report,
@@ -664,10 +709,19 @@ fn bootstrap_pin(
     report: &Value,
     sequence: u64,
     event_head: &str,
+    last_recorded_at: &str,
+    last_trusted_at: &str,
 ) -> Result<Value, String> {
     let index = GraphIndex::build(graph)?;
     let _ = report_rows(report, &index)?;
-    let pin = make_state_pin(&index, report, sequence, event_head)?;
+    let pin = make_state_pin(
+        &index,
+        report,
+        sequence,
+        event_head,
+        last_recorded_at,
+        last_trusted_at,
+    )?;
     validate_state_pin(&index, report, &pin)?;
     Ok(pin)
 }
@@ -675,8 +729,8 @@ fn bootstrap_pin(
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
     if args.first().is_some_and(|item| item == "pin") {
-        if args.len() != 6 {
-            eprintln!("usage: industry-impact-delta pin <graph.json> <base-report.json> <last-sequence> <event-chain-head-sha256> <new-pin.json>");
+        if args.len() != 8 {
+            eprintln!("usage: industry-impact-delta pin <graph.json> <base-report.json> <last-sequence> <event-chain-head-sha256> <last-recorded-at> <last-trusted-at> <new-pin.json>");
             return ExitCode::from(4);
         }
         let result = (|| {
@@ -685,8 +739,15 @@ fn main() -> ExitCode {
             let sequence = args[3]
                 .parse::<u64>()
                 .map_err(|error| format!("invalid last event sequence: {error}"))?;
-            let pin = bootstrap_pin(&graph, &report, sequence, &args[4])?;
-            write_new(Path::new(&args[5]), &pin)
+            let pin = bootstrap_pin(
+                &graph,
+                &report,
+                sequence,
+                &args[4],
+                &args[5],
+                &args[6],
+            )?;
+            write_new(Path::new(&args[7]), &pin)
         })();
         return match result {
             Ok(()) => ExitCode::SUCCESS,
@@ -750,7 +811,16 @@ mod tests {
         )
         .unwrap();
         let first_digest = canonical_json_digest(&first_event).unwrap();
-        let base_pin = make_state_pin(&index, &base_report, 1, &first_digest).unwrap();
+        let first_system_time = &first_event["system_time"];
+        let base_pin = make_state_pin(
+            &index,
+            &base_report,
+            1,
+            &first_digest,
+            first_system_time["recorded_at"].as_str().unwrap(),
+            first_system_time["trusted_at"].as_str().unwrap(),
+        )
+        .unwrap();
         (graph, base_report, base_pin, metadata, index)
     }
 
