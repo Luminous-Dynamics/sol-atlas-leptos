@@ -225,7 +225,7 @@ The draft branch now includes:
 - a descriptor-to-inventory projector path that matches owner namespace, source system, native identity digest, source payload digest and snapshot digest for every descriptor;
 - an explicit `no_impact_eligible: false` output and blockers, including when every synthetic inventory is internally complete.
 
-The projector receipt binds the inventory-closure validation digest and descriptor-binding result. A missing, incomplete, excluded, incomparable or invalid inventory, or any descriptor/inventory identity, payload or snapshot disagreement, downgrades the projected graph claim ceiling to `incomplete_or_indeterminate`.
+The projector receipt binds the inventory-closure validation digest and descriptor-binding result. It also binds a digest of the caller-supplied expected-owner register and records each manifest's owner namespace, source system, connector/build, query digest, snapshot semantics/digest, page count, manifest digest and per-manifest disposition. The register digest proves which expected set was evaluated; it does not authenticate the register or prove it is globally complete. A missing, incomplete, excluded, incomparable or invalid inventory, or any descriptor/inventory identity, payload or snapshot disagreement, downgrades the projected graph claim ceiling to `incomplete_or_indeterminate`.
 
 **Important serialization limit:** page-receipt hashes and current validation hashes use the Rust struct's `serde_json` field-order serialization profile. They are not yet a declared cross-language canonical JSON format such as RFC 8785 or deterministic CBOR. They must not be used as interoperable signature inputs until that profile is explicitly frozen and independently implemented.
 
