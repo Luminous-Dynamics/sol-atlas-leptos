@@ -64,6 +64,22 @@ jobs:
             (([.relationship_coverage[] | select(.required == true and .status == "complete")] | length)) == (.coverage_profile.required_dependency_families | length)
           ' "$RUNNER_TEMP/coverage-manifest.json"
 
+          required_families="$(jq -c '.coverage_profile.required_dependency_families | sort' "$RUNNER_TEMP/coverage-manifest.json")"
+          observed_families="$(jq -c '[.relationship_coverage[] | select(.required == true) | .family] | sort' "$RUNNER_TEMP/coverage-manifest.json")"
+          test "$required_families" = "$observed_families"
+
+          jq -e '
+            [.edge_provenance[] as $edge |
+              [.source_inventory[] | select(.source_id == $edge.source_id and .snapshot_sha256 == $edge.source_snapshot_sha256 and .extraction.adapter_build_sha256 == $edge.extraction_build_sha256)] | length == 1
+            ] | all
+          ' "$RUNNER_TEMP/coverage-manifest.json"
+
+          jq -e '
+            [.absence_assertions[] as $assertion |
+              [.source_inventory[] | select(.source_id == $assertion.source_id and .snapshot_sha256 == $assertion.source_snapshot_sha256)] | length == 1
+            ] | all
+          ' "$RUNNER_TEMP/coverage-manifest.json"
+
       - name: Reject required-family incompleteness in a complete declaration
         run: |
           set -euo pipefail
