@@ -696,6 +696,7 @@ pub fn project_built_environment_case_with_inventory(
                 "connector_id": manifest.connector_id,
                 "connector_build_sha256": manifest.connector_build_sha256,
                 "query_scope_sha256": manifest.query_scope_sha256,
+                "access_scope": manifest.access_scope.as_str(),
                 "snapshot_semantics": manifest.snapshot_semantics.as_str(),
                 "snapshot_sha256": manifest.snapshot_sha256,
                 "source_watermark": manifest.source_watermark,
