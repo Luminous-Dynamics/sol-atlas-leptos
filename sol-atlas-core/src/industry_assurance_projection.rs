@@ -14,6 +14,10 @@ use crate::built_environment_source_descriptor::{
     DescriptorDisposition, DescriptorValidation, SourceDescriptorCatalog,
     validate_source_descriptor_catalog,
 };
+use crate::built_environment_source_inventory::{
+    ExpectedSourceOwner, InventoryClosureDisposition, InventoryClosureValidation,
+    SourceInventoryManifest, validate_source_inventory_closure,
+};
 use serde::Serialize;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -82,6 +86,15 @@ pub struct SourceRecordProjectionMetadata {
 #[derive(Clone, Debug)]
 pub struct DescriptorProjectionOutput {
     pub descriptor_validation: DescriptorValidation,
+    pub projection: ProjectionOutput,
+}
+
+#[derive(Clone, Debug)]
+pub struct InventoryQualifiedProjectionOutput {
+    pub descriptor_validation: DescriptorValidation,
+    pub inventory_validation: InventoryClosureValidation,
+    /// The graph remains descriptive. An incomplete or invalid inventory
+    /// lowers its claim ceiling; this API never authorizes NoImpact.
     pub projection: ProjectionOutput,
 }
 
@@ -615,6 +628,84 @@ pub fn project_built_environment_case(
     context: &ProjectionContext,
 ) -> ProjectionOutput {
     project_built_environment_case_inner(case, context, None)
+}
+
+/// Compose descriptor-backed projection with independently qualified source
+/// inventory closure. An incomplete, excluded, incomparable, or invalid closure
+/// cannot support an unqualified downstream negative finding.
+pub fn project_built_environment_case_with_inventory(
+    case: &BuiltEnvironmentCase,
+    context: &ProjectionContext,
+    catalog: &SourceDescriptorCatalog,
+    expected_owners: &[ExpectedSourceOwner],
+    manifests: &[SourceInventoryManifest],
+) -> InventoryQualifiedProjectionOutput {
+    let descriptor_output =
+        project_built_environment_case_with_descriptors(case, context, catalog);
+    let inventory_validation = validate_source_inventory_closure(expected_owners, manifests);
+    let mut projection = descriptor_output.projection;
+    let inventory_validation_bytes =
+        serde_json::to_vec(&inventory_validation).unwrap_or_default();
+    let inventory_validation_sha256 = sha256_hex(&inventory_validation_bytes);
+    let inventory_disposition = inventory_validation.disposition.as_str();
+
+    if inventory_validation.disposition
+        != InventoryClosureDisposition::CompleteWithinDeclaredOwnerSet
+    {
+        if !projection.graph.is_null() {
+            projection.graph["claim_ceiling"] = json!("incomplete_or_indeterminate");
+            let mut graph_digest_input = projection.graph.clone();
+            if let Some(object) = graph_digest_input.as_object_mut() {
+                object.insert("graph_snapshot_sha256".into(), Value::Null);
+                object.remove("graph_snapshot_sha256");
+            }
+            if let Ok(graph_digest) = canonical_json_sha256(&graph_digest_input) {
+                projection.graph["graph_snapshot_sha256"] = json!(graph_digest);
+                projection.projection_receipt["projected_graph"]["graph_snapshot_sha256"] =
+                    json!(graph_digest);
+            } else {
+                projection.graph = Value::Null;
+                projection.projection_receipt["projected_graph"] = Value::Null;
+                projection.projection_receipt["disposition"] = json!("invalid_input");
+                projection.disposition = ProjectionDisposition::InvalidInput;
+            }
+        }
+        projection.projection_receipt["claim_ceiling"] =
+            json!("incomplete_or_indeterminate");
+    }
+
+    projection.projection_receipt["projector"]["source_inventory_closure"] = json!({
+        "validation_sha256": inventory_validation_sha256,
+        "validation_serialization": "serde_json_struct_field_order_v1",
+        "disposition": inventory_disposition,
+        "expected_owner_count": inventory_validation.expected_owner_count,
+        "required_owner_count": inventory_validation.required_owner_count,
+        "present_required_owner_count": inventory_validation.present_required_owner_count,
+        "complete_inventory_count": inventory_validation.complete_inventory_count,
+        "complete_with_exclusions_count": inventory_validation.complete_with_exclusions_count,
+        "incomplete_inventory_count": inventory_validation.incomplete_inventory_count,
+        "invalid_inventory_count": inventory_validation.invalid_inventory_count,
+        "not_comparable_inventory_count": inventory_validation.not_comparable_inventory_count,
+        "claim_scope": inventory_validation.claim_scope,
+        "no_impact_eligible": inventory_validation.no_impact_eligible,
+        "no_impact_blockers": inventory_validation.no_impact_blockers,
+        "findings": inventory_validation.findings
+    });
+    projection.projection_receipt
+        .as_object_mut()
+        .expect("projection receipt is an object")
+        .remove("projection_receipt_sha256");
+    if let Ok(receipt_digest) =
+        canonical_json_sha256(&projection.projection_receipt)
+    {
+        projection.projection_receipt["projection_receipt_sha256"] = json!(receipt_digest);
+    }
+
+    InventoryQualifiedProjectionOutput {
+        descriptor_validation: descriptor_output.descriptor_validation,
+        inventory_validation,
+        projection,
+    }
 }
 
 pub fn project_built_environment_case_with_descriptors(
