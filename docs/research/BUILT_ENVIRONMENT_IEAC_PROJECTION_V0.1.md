@@ -1,6 +1,6 @@
 # Built-environment to IEAC v0.2 projector
 
-**Status:** implementation and integration qualification lane are committed on `research/built-environment-ieac-projector-v0-1`; no Rust compiler, Clippy, integration-test, or schema-validation pass is claimed until the exact-head workflow reports it.
+**Status:** implementation, receipt schema, and integration qualification lane are committed on `research/built-environment-ieac-projector-v0-1`; no Rust compiler, Clippy, integration-test, or schema-validation pass is claimed until the exact-head workflow reports it.
 
 **Composition:** [#486 projector request](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/486), [#487 native identity v0.2](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/487), [#489 coverage manifest](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/489), [#490 coverage runtime verifier](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/490).
 
@@ -32,6 +32,8 @@ Native identity uses the same v0.2 domain separator and length-prefixed, sorted 
 For evidence records, the identity includes source ID, evidence ID, subject, field path and jurisdiction. Artifact identities include design ID, artifact ID, revision, family and jurisdiction. Receipt and decision identities include design ID and their native receipt/event ID.
 
 ## Loss and uncertainty accounting
+
+The projection receipt is itself specified by [`built-environment-ieac-projection-receipt-v0.1.schema.json`](../../schemas/built-environment-ieac-projection-receipt-v0.1.schema.json). The exact-head workflow validates both the generated IEAC graph and this receipt schema. The receipt's self-digest is computed over the complete receipt body with only its own digest field omitted; the raw typed case digest and namespace-map digest are separately retained.
 
 The projection receipt preserves:
 
