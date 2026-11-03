@@ -441,6 +441,7 @@
                   "connector_id",
                   "connector_build_sha256",
                   "query_scope_sha256",
+                  "access_scope",
                   "snapshot_semantics",
                   "snapshot_sha256",
                   "source_watermark",
@@ -514,6 +515,14 @@
                       "incomplete_or_indeterminate",
                       "invalid_input",
                       "not_comparable"
+                    ]
+                  },
+                  "access_scope": {
+                    "enum": [
+                      "source_asserted_complete",
+                      "caller_authorized_subset",
+                      "unknown",
+                      "access_denied"
                     ]
                   }
                 }
