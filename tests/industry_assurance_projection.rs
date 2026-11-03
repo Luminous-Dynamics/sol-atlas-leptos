@@ -249,3 +249,44 @@ fn mismatched_parent_and_solver_input_digests_do_not_create_edges() {
     assert!(unmapped.iter().any(|row| row["reason_code"] == "PARENT_ARTIFACT_NOT_FOUND"));
     assert!(unmapped.iter().any(|row| row["reason_code"] == "RECEIPT_INPUT_DIGEST_OR_PROJECTION_MISMATCH"));
 }
+
+
+#[test]
+fn one_thousand_digest_rebinding_mutations_never_map_a_false_parent_edge() {
+    let allowed_hex = b"0123456789abcde";
+    for seed in 0..1_000usize {
+        let mut case = fixture_case();
+        let mut parent = case.artifacts[0].clone();
+        parent.artifact_id = "artifact-parent".into();
+        parent.revision = 0;
+        parent.content_sha256 = digest(b'f');
+        parent.evidence_ids.clear();
+
+        case.artifacts[0].parent_artifacts.push(
+            sol_atlas_core::built_environment_case::ArtifactReference {
+                artifact_id: "artifact-parent".into(),
+                content_sha256: digest(allowed_hex[seed % allowed_hex.len()]),
+            }
+        );
+        case.artifacts.push(parent);
+
+        let output = project_built_environment_case(&case, &context());
+        assert_eq!(
+            output.disposition,
+            ProjectionDisposition::ProjectedWithKnownLoss,
+            "mutation seed {seed} must be loss-accounted"
+        );
+        assert!(!output.graph["edges"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|edge| edge["relation"] == "derived_from"));
+        assert!(output.projection_receipt["unmapped_relationships"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|row| row["reason_code"] == "PARENT_ARTIFACT_DIGEST_OR_PROJECTION_MISMATCH"),
+            "mutation seed {seed} must have an explicit digest mismatch finding"
+        );
+    }
+}
