@@ -1600,9 +1600,7 @@ mod tests {
             let mut item = artifact(&id, 1, sha);
             item.family_id = format!("generated-family-{index:04}");
 
-            let parent_indices: Vec<usize> = if index == 0 {
-                Vec::new()
-            } else if index % 11 == 0 {
+            let parent_indices: Vec<usize> = if index == 0 || index % 11 == 0 {
                 Vec::new()
             } else if index % 7 == 0 {
                 vec![index - 2, index - 1]
@@ -2086,8 +2084,8 @@ mod tests {
         let mut nodes = (0..node_count)
             .map(|index| artifact(&format!("deep-node-{index:05}"), 1, 'b'))
             .collect::<Vec<_>>();
-        for index in 1..node_count {
-            nodes[index].parent_artifacts.push(ArtifactReference {
+        for (index, node) in nodes.iter_mut().enumerate().skip(1) {
+            node.parent_artifacts.push(ArtifactReference {
                 artifact_id: format!("deep-node-{:05}", index - 1),
                 content_sha256: digest('b'),
             });
