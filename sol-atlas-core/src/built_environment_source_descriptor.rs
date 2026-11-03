@@ -1753,7 +1753,7 @@ mod tests {
             SourceRecordKind::Evidence,
             "evidence-002",
             "survey-registry",
-            "survey-record-002",
+            "evidence-002",
             "urn:synthetic:second-survey-owner",
             'a',
             Some("design-002"),
