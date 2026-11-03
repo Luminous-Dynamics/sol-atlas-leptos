@@ -389,6 +389,19 @@ fn case_payload_digest(
     }
 }
 
+fn expected_cas_reference(sha256: &str) -> String {
+    format!("cas:sha256:{sha256}")
+}
+
+const PERMITTED_USES: &[&str] = &[
+    "impact_analysis",
+    "design_review",
+    "engineering_review",
+    "construction_release_review",
+    "maintenance_review",
+    "benchmarking",
+];
+
 fn validate_payload(
     descriptor: &SourceRecordDescriptor,
     expected_case_digest: Option<&str>,
@@ -414,6 +427,17 @@ fn validate_payload(
                     key,
                     "locally retrieved and hashed payload requires digest, byte retrieval, byte length, and content-addressed object reference",
                 );
+            }
+            if let (Some(digest), Some(object_ref)) =
+                (payload.sha256.as_deref(), payload.payload_object_ref.as_deref())
+            {
+                if object_ref != expected_cas_reference(digest) {
+                    findings.invalid(
+                        "PAYLOAD_OBJECT_REFERENCE_DIGEST_MISMATCH",
+                        key,
+                        "content-addressed object reference must bind the exact declared SHA-256",
+                    );
+                }
             }
         }
         PayloadDigestBasis::SourceOwnerAttested => {
@@ -447,6 +471,17 @@ fn validate_payload(
                     key,
                     "external reference requires a digest and object reference and cannot claim local byte retrieval",
                 );
+            }
+            if let (Some(digest), Some(object_ref)) =
+                (payload.sha256.as_deref(), payload.payload_object_ref.as_deref())
+            {
+                if object_ref != expected_cas_reference(digest) {
+                    findings.invalid(
+                        "PAYLOAD_OBJECT_REFERENCE_DIGEST_MISMATCH",
+                        key,
+                        "content-addressed object reference must bind the exact declared SHA-256",
+                    );
+                }
             }
             findings.incomplete(
                 "EXTERNAL_PAYLOAD_BYTES_NOT_RETRIEVED",
@@ -514,6 +549,23 @@ fn validate_payload(
 }
 
 fn validate_rights(descriptor: &SourceRecordDescriptor, findings: &mut Findings, key: &str) {
+    let mut seen_uses = BTreeSet::new();
+    for permitted_use in &descriptor.rights.permitted_uses {
+        if !PERMITTED_USES.contains(&permitted_use.as_str()) {
+            findings.invalid(
+                "UNSUPPORTED_PERMITTED_USE",
+                key,
+                format!("unsupported permitted use: {permitted_use}"),
+            );
+        }
+        if !seen_uses.insert(permitted_use) {
+            findings.invalid(
+                "DUPLICATE_PERMITTED_USE",
+                key,
+                format!("permitted use {permitted_use} appears more than once"),
+            );
+        }
+    }
     match descriptor.rights.state {
         SourceRightsState::Verified => {
             if descriptor.rights.permitted_uses.is_empty()
@@ -551,6 +603,13 @@ fn validate_rights(descriptor: &SourceRecordDescriptor, findings: &mut Findings,
 
 fn validate_time(descriptor: &SourceRecordDescriptor, catalog: &SourceDescriptorCatalog, findings: &mut Findings, key: &str) {
     let snapshot = &descriptor.source_snapshot;
+    if snapshot.source_id.trim().is_empty() || snapshot.snapshot_id.trim().is_empty() {
+        findings.invalid(
+            "EMPTY_SOURCE_SNAPSHOT_IDENTITY",
+            key,
+            "source_id and snapshot_id must be non-empty",
+        );
+    }
     if !valid_sha256(&snapshot.snapshot_sha256) {
         findings.invalid("INVALID_SOURCE_SNAPSHOT_DIGEST", key, "source snapshot digest is invalid");
     }
