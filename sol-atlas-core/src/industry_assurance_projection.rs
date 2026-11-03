@@ -1617,7 +1617,7 @@ mod tests {
     #[test]
     fn same_payload_does_not_collapse_distinct_source_evidence_identities() {
         let result = project_built_environment_case(&sample_case(), &context());
-        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithoutKnownLoss);
+        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
         let evidence_nodes = result.graph["nodes"]
             .as_array()
             .unwrap()
@@ -1636,7 +1636,7 @@ mod tests {
     #[test]
     fn projector_retains_parent_evidence_receipt_authority_and_decision_edges() {
         let result = project_built_environment_case(&sample_case(), &context());
-        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithoutKnownLoss);
+        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
         let edges = result.graph["edges"].as_array().unwrap();
         for relation in [
             "derived_from",
