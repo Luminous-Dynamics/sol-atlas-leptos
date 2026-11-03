@@ -195,6 +195,37 @@ fn reordered_input_preserves_graph_digest_but_changes_exact_input_receipt() {
 }
 
 #[test]
+fn duplicate_dependency_edges_in_source_case_are_rejected_not_deduplicated() {
+    let mut case = fixture_case();
+    case.artifacts[0].evidence_ids.push("evidence-001".into());
+    let output = project_built_environment_case(&case, &context());
+    assert_eq!(output.disposition, ProjectionDisposition::InvalidInput);
+    assert!(output.projection_receipt["findings"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|finding| finding["code"] == "DUPLICATE_PROJECTED_EDGE_ENDPOINT_PAIR"));
+}
+
+#[test]
+fn source_artifact_parent_cycle_is_rejected() {
+    let mut case = fixture_case();
+    case.artifacts[0].parent_artifacts.push(
+        sol_atlas_core::built_environment_case::ArtifactReference {
+            artifact_id: "artifact-001".into(),
+            content_sha256: digest(b'b'),
+        }
+    );
+    let output = project_built_environment_case(&case, &context());
+    assert_eq!(output.disposition, ProjectionDisposition::InvalidInput);
+    assert!(output.projection_receipt["findings"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|finding| finding["code"] == "PROJECTED_DEPENDENCY_CYCLE"));
+}
+
+#[test]
 fn mismatched_parent_and_solver_input_digests_do_not_create_edges() {
     let mut case = fixture_case();
     let mut parent = case.artifacts[0].clone();
