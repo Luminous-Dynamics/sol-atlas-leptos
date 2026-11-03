@@ -45,6 +45,7 @@ A v0.1 manifest should carry:
 | connector_id + connector_build_sha256 | Adapter identity and exact build |
 | query_scope_sha256 | Digest of canonical query and filter semantics |
 | query_scope_summary | Human-auditable, non-secret statement of included domains, time range and partitions |
+| access_scope | Source assertion that enumeration is complete within the declared source-policy query, caller-authorized subset only, unknown, or denied; a limited/unknown scope is incomplete, denied is not comparable |
 | snapshot_token / snapshot_sha256 | Source snapshot or export identity; null must remain explicit |
 | enumeration_started_at / enumeration_finished_at | Enumeration time interval |
 | source_watermark | Source-side high-water mark, sequence, revision or event offset, if supported |
@@ -112,6 +113,8 @@ The verifier must handle both malicious and accidental failures:
 - page substitution from a different snapshot or tenant;
 - source mutation during enumeration;
 - authorization-limited response presented as unrestricted;
+- source access denied but represented as an empty inventory;
+- caller-authorized subset or unknown access scope presented as a source-policy-complete inventory;
 - silent default filter, retention window, pagination cap, or result truncation;
 - deleted/tombstoned records omitted from the current-state endpoint;
 - late-arriving events and retroactive corrections;
@@ -223,7 +226,7 @@ The draft branch now includes:
 - expected-owner presence reconciliation kept distinct from per-source query completeness;
 - composed owner-closure validation that requires every required owner manifest to validate independently;
 - a descriptor-to-inventory projector path that matches owner namespace, source system, native identity digest, source payload digest and snapshot digest for every descriptor;
-- an explicit `no_impact_eligible: false` output and blockers, including when every synthetic inventory is internally complete.
+- an explicit `no_impact_eligible: false` output and blockers, including when every synthetic inventory is internally complete. Source access scope is now explicit: limited and unknown scopes are incomplete, and access-denied empty results are `not_comparable`, never empty.
 
 The projector receipt binds the inventory-closure validation digest and descriptor-binding result. It also binds a digest of the caller-supplied expected-owner register and records each manifest's owner namespace, source system, connector/build, query digest, snapshot semantics/digest, page count, manifest digest and per-manifest disposition. The register digest proves which expected set was evaluated; it does not authenticate the register or prove it is globally complete. A missing, incomplete, excluded, incomparable or invalid inventory, or any descriptor/inventory identity, payload or snapshot disagreement, downgrades the projected graph claim ceiling to `incomplete_or_indeterminate`.
 
