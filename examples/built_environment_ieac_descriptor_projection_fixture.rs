@@ -97,7 +97,11 @@ fn inventory_manifest_for_descriptor(
     identity_sha256: &str,
 ) -> SourceInventoryManifest {
     let inventory_id = format!("inventory-{}", descriptor.case_record_id);
-    let payload_sha256 = descriptor.source_payload.sha256.clone().unwrap_or_else(|| digest('0'));
+    let payload_sha256 = descriptor
+        .source_payload
+        .sha256
+        .clone()
+        .unwrap_or_else(|| digest('0'));
     let snapshot_sha256 = descriptor.source_snapshot.snapshot_sha256.clone();
     let page = InventoryPageReceipt {
         inventory_id: inventory_id.clone(),
@@ -311,7 +315,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             source_system_id: descriptor.source_snapshot.source_id.clone(),
             required: true,
         });
-        manifests.push(inventory_manifest_for_descriptor(descriptor, identity_sha256));
+        manifests.push(inventory_manifest_for_descriptor(
+            descriptor,
+            identity_sha256,
+        ));
     }
     let output = project_built_environment_case_with_inventory(
         &case,
@@ -322,8 +329,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     );
 
     if descriptor_validation.disposition.as_str() != "incomplete_or_indeterminate"
-        || output.inventory_validation.disposition.as_str()
-            != "complete_within_declared_owner_set"
+        || output.inventory_validation.disposition.as_str() != "complete_within_declared_owner_set"
         || output.descriptor_inventory_binding.disposition
             != "internally_consistent_for_declared_descriptors"
         || output.projection.disposition.as_str() != "projected_with_known_loss"
@@ -333,7 +339,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         || output.projection.projection_receipt["projector"]["source_inventory_closure"]["no_impact_eligible"]
             != false
     {
-        return Err("descriptor/inventory composition did not retain its conservative claim ceiling".into());
+        return Err(
+            "descriptor/inventory composition did not retain its conservative claim ceiling".into(),
+        );
     }
 
     let expected = &descriptor_validation.identity_sha256_by_case_record;
