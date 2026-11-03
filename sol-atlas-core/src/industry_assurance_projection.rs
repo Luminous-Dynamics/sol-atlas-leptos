@@ -643,10 +643,11 @@ pub fn project_built_environment_case(
                 "build_sha256": context.projector_build_sha256,
                 "mapping_profile_sha256": context.mapping_profile_sha256,
                 "identity_namespace": IDENTITY_NAMESPACE,
-                "identity_namespace_basis": "per_record_source_owner_namespace_when_supplied",
+                "identity_namespace_basis": "caller_supplied_per_record_namespace_map_not_authenticated",
             "native_identity_namespaces": context.native_identity_namespaces,
             "native_identity_namespace_map_sha256": namespace_map_digest(&context.native_identity_namespaces).unwrap_or_default(),
-            "source_owner_namespace_modelled": true
+            "source_owner_namespace_supplied": true,
+            "source_owner_namespace_authenticated": false
             },
             "projected_graph": null,
             "node_mappings": [],
@@ -765,6 +766,11 @@ pub fn project_built_environment_case(
     // including records that cannot become source-payload-addressed graph nodes.
     for evidence in &case.evidence {
         let native_key = format!("evidence:{}", evidence.evidence_id);
+        findings.incomplete(
+            "SOURCE_EVIDENCE_MEDIA_TYPE_SCHEMA_NOT_MODELED",
+            &native_key,
+            "the case model carries a source payload digest but not its source media type or schema identity; the projected graph records these as unknown",
+        );
         if evidence.jurisdiction != case.jurisdiction {
             findings.invalid(
                 "EVIDENCE_CASE_JURISDICTION_MISMATCH",
@@ -896,6 +902,11 @@ pub fn project_built_environment_case(
     // Artifact nodes use the source artifact content digest unchanged.
     for artifact in &case.artifacts {
         let native_key = format!("artifact:{}", artifact.artifact_id);
+        findings.incomplete(
+            "ENGINEERING_ARTIFACT_MEDIA_TYPE_SCHEMA_NOT_MODELED",
+            &native_key,
+            "the case model carries artifact bytes' digest and kind but not authoritative media type or payload schema identity",
+        );
         if artifact.jurisdiction != case.jurisdiction {
             findings.invalid(
                 "ARTIFACT_CASE_JURISDICTION_MISMATCH",
@@ -1472,7 +1483,7 @@ pub fn project_built_environment_case(
                 "build_sha256": context.projector_build_sha256,
                 "mapping_profile_sha256": context.mapping_profile_sha256,
                 "identity_namespace": IDENTITY_NAMESPACE,
-                "identity_namespace_basis": "per_record_source_owner_namespace_when_supplied",
+                "identity_namespace_basis": "caller_supplied_per_record_namespace_map_not_authenticated",
                 "native_identity_namespaces": context.native_identity_namespaces,
                 "native_identity_namespace_map_sha256": namespace_map_digest(&context.native_identity_namespaces).unwrap_or_default()
             },
@@ -1562,10 +1573,11 @@ pub fn project_built_environment_case(
             "build_sha256": context.projector_build_sha256,
             "mapping_profile_sha256": context.mapping_profile_sha256,
             "identity_namespace": IDENTITY_NAMESPACE,
-            "identity_namespace_basis": "per_record_source_owner_namespace_when_supplied",
+            "identity_namespace_basis": "caller_supplied_per_record_namespace_map_not_authenticated",
             "native_identity_namespaces": context.native_identity_namespaces,
             "native_identity_namespace_map_sha256": namespace_map_digest(&context.native_identity_namespaces).unwrap_or_default(),
-            "source_owner_namespace_modelled": true
+            "source_owner_namespace_supplied": true,
+            "source_owner_namespace_authenticated": false
         },
         "projected_graph": {
             "schema_version": GRAPH_SCHEMA_V02,
@@ -1726,6 +1738,20 @@ mod tests {
     }
 
     #[test]
+    fn unmodeled_source_media_type_and_schema_are_explicit_projection_losses() {
+        let result = project_built_environment_case(&sample_case(), &context());
+        let findings = result.projection_receipt["findings"].as_array().unwrap();
+        assert!(findings.iter().any(|finding| {
+            finding["code"] == "SOURCE_EVIDENCE_MEDIA_TYPE_SCHEMA_NOT_MODELED"
+        }));
+        assert!(findings.iter().any(|finding| {
+            finding["code"] == "ENGINEERING_ARTIFACT_MEDIA_TYPE_SCHEMA_NOT_MODELED"
+        }));
+        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
+        assert_eq!(result.graph["claim_ceiling"], "incomplete_or_indeterminate");
+    }
+
+    #[test]
     fn source_owner_namespace_is_part_of_native_identity_and_receipt() {
         let result = project_built_environment_case(&sample_case(), &context());
         let evidence_mapping = result.projection_receipt["node_mappings"]
@@ -1799,7 +1825,7 @@ mod tests {
     #[test]
     fn same_payload_does_not_collapse_distinct_source_evidence_identities() {
         let result = project_built_environment_case(&sample_case(), &context());
-        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithoutKnownLoss);
+        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
         let evidence_nodes = result.graph["nodes"]
             .as_array()
             .unwrap()
@@ -1818,7 +1844,7 @@ mod tests {
     #[test]
     fn projector_retains_parent_evidence_receipt_authority_and_decision_edges() {
         let result = project_built_environment_case(&sample_case(), &context());
-        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithoutKnownLoss);
+        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
         let edges = result.graph["edges"].as_array().unwrap();
         for relation in [
             "derived_from",
