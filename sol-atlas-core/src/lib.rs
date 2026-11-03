@@ -10,8 +10,11 @@
 
 pub mod aesthetics;
 pub mod built_environment_case;
-/// Case-bound, owner-native source descriptors; validates metadata consistency
-/// only and does not authenticate source bytes, owners, rights, or attestations.
+/// Versioned source-owner descriptor catalogues, cross-case identity
+/// reconciliation, and loss-accounted metadata validation. The catalogue is
+/// case-bound, but its owner-native identity hashes deliberately exclude case
+/// membership so shared source records retain stable identity across projects.
+/// Structural validation does not authenticate bytes, owners, rights, or signatures.
 pub mod built_environment_source_descriptor;
 pub mod confluence;
 pub mod constants;
