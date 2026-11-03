@@ -1250,6 +1250,20 @@ mod tests {
     }
 
     #[test]
+    fn evaluation_time_cannot_roll_back_behind_the_pinned_report_time() {
+        let (_graph, base_report, base_pin, _, index) = setup();
+        let mut event = source_correction_event(&base_pin);
+        event["valid_time"]["effective_at"] = json!("2026-11-01T10:07:00Z");
+        event["system_time"]["recorded_at"] = json!("2026-11-01T10:05:00Z");
+        event["system_time"]["trusted_at"] = json!("2026-11-01T10:06:00Z");
+        let mut metadata = metadata_for_next_event(&base_report);
+        metadata["evaluated_at"] = json!("2026-11-01T10:10:00Z");
+        assert!(
+            compute_transition(&index, &base_report, &base_pin, &event, &metadata).is_err()
+        );
+    }
+
+    #[test]
     fn delta_tampering_is_rejected_even_when_payload_digest_is_resealed() {
         let (graph, base_report, base_pin, _, index) = setup();
         let event = source_correction_event(&base_pin);
@@ -1331,6 +1345,18 @@ mod tests {
         assert!(batch["total_affected_node_visits"].as_u64().unwrap() <= 2_000_000);
         assert_eq!(batch["delta_count"], 2);
         assert_eq!(batch["next_state_pin"]["last_event_sequence"], 3);
+        assert_eq!(
+            batch["deltas"][0]["base_state_sha256"],
+            base_pin["impact_state_sha256"]
+        );
+        assert_eq!(
+            batch["deltas"][1]["base_state_sha256"],
+            batch["deltas"][0]["resulting_state_sha256"]
+        );
+        assert_eq!(
+            batch["next_state_pin"]["impact_state_sha256"],
+            batch["deltas"][1]["resulting_state_sha256"]
+        );
         assert_eq!(
             batch["next_state_pin"]["impact_report_sha256"],
             canonical_json_digest(&batch["resulting_impact_report"]).unwrap()
