@@ -300,10 +300,7 @@ fn append_identity_field(encoded: &mut Vec<u8>, value: &str) {
     encoded.extend_from_slice(value.as_bytes());
 }
 
-fn identity_digest(
-    descriptor: &SourceRecordDescriptor,
-    case_id: &str,
-) -> Result<String, String> {
+fn identity_digest(descriptor: &SourceRecordDescriptor) -> Result<String, String> {
     if descriptor.owner_namespace.trim().is_empty()
         || descriptor.owner_namespace.len() > 1024
         || descriptor.owner_namespace.as_str() != descriptor.owner_namespace.trim()
@@ -342,9 +339,8 @@ fn identity_digest(
     }
 
     if components.contains_key("case_id") {
-        return Err("case_id is a projector-owned identity component and must not be supplied by the source descriptor".into());
+        return Err("case_id is graph membership scope, not a source-native identity component".into());
     }
-    components.insert("case_id".into(), case_id.to_owned());
     let mut encoded = IDENTITY_DOMAIN.to_vec();
     append_identity_field(&mut encoded, descriptor.record_kind.node_type());
     append_identity_field(&mut encoded, &descriptor.owner_namespace);
@@ -796,7 +792,7 @@ pub fn validate_source_descriptor_catalog(
                 }
             }
         }
-        match identity_digest(descriptor, &case.case_id) {
+        match identity_digest(descriptor) {
             Ok(identity_sha256) => {
                 if let Some((other_key, previous_digest)) = native_identities.get(&identity_sha256) {
                     if other_key != &key {
@@ -821,7 +817,6 @@ pub fn validate_source_descriptor_catalog(
                 }
                 identity_sha256_by_case_record.insert(key.clone(), identity_sha256);
                 native_identity_namespaces.insert(key.clone(), descriptor.owner_namespace.clone());
-                supplied_components.insert("case_id".into(), case.case_id.clone());
                 native_identity_components.insert(
                     key.clone(),
                     supplied_components
@@ -1324,7 +1319,7 @@ mod tests {
             None,
         );
         let replay = original.clone();
-        assert_eq!(identity_digest(&original, "case-descriptor-001").unwrap(), identity_digest(&replay, "case-descriptor-001").unwrap());
+        assert_eq!(identity_digest(&original).unwrap(), identity_digest(&replay).unwrap());
 
         let mut revised = original.clone();
         let component = revised
@@ -1333,7 +1328,7 @@ mod tests {
             .find(|component| component.name == "native_revision")
             .unwrap();
         component.value = "3".into();
-        assert_ne!(identity_digest(&original, "case-descriptor-001").unwrap(), identity_digest(&revised, "case-descriptor-001").unwrap());
+        assert_ne!(identity_digest(&original).unwrap(), identity_digest(&revised).unwrap());
     }
 
     #[test]
